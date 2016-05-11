@@ -1,10 +1,10 @@
 {
   "ambientDependencies": {
     "chai": "registry:dt/chai#3.4.0+20160317120654",
-    "github-electron": "registry:dt/github-electron#0.37.4+20160412150407",
+    "github-electron": "registry:dt/github-electron#0.37.8+20160509083739",
     "mocha": "registry:dt/mocha#2.2.5+20160317120654",
-    "node": "registry:dt/node#4.0.0+20160330064709",
-    "react": "registry:dt/react#0.14.0+20160412154040",
+    "node": "registry:dt/node#4.0.0+20160509154515",
+    "react": "registry:dt/react#0.14.0+20160423065914",
     "react-addons-test-utils": "registry:dt/react-addons-test-utils#0.14.0+20160427035638",
     "react-dom": "registry:dt/react-dom#0.14.0+20160412154040"
   }
