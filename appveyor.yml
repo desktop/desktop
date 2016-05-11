@@ -13,12 +13,12 @@ install:
   - ps: Install-Product node $env:nodejs_version
   - npm install
 
-test_script:
-  - node --version
-  - npm --version
-  - npm test
+build:
+  - npm run lint
+  - npm run build
 
-build: off
+test_script:
+  - npm test
 
 cache:
   - node_modules
