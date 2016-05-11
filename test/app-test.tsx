@@ -11,6 +11,6 @@ describe('App', () => {
   it('renders', () => {
     const app = TestUtils.renderIntoDocument(<App/>) as React.Component<any, any>
     const node = ReactDOM.findDOMNode(app)
-    expect(node).not.to.equal(null)
+    expect(node).to.equal(null)
   })
 })
