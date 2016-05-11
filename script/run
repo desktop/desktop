@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+
+// This gets us the path to electron.exe within the node_modules directory.
+var electron = require('electron-prebuilt');
+var proc = require('child_process');
+
+proc.spawn(electron, [ ".", "--debug" ], { env: { "NODE_ENV" : "development" } });
