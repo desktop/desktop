@@ -1,4 +1,4 @@
-# Desktop tech proof-of-concept
+# Desktop TNG
 
 Just playin around with some computering.
 
@@ -11,9 +11,6 @@ If you want hot loading:
 ```
 # Start the dev server
 npm start
-
-# And in another Terminal, launch the app
-npm run dev
 ```
 
 Or if you don't care:
