@@ -21,5 +21,17 @@ addons:
     packages:
       - g++-4.8
 
+install:
+  - npm install
+
 before_script:
   - export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start
+
+script:
+  - npm run lint
+  - npm run build
+  - npm test
+
+cache:
+  directories:
+    - node_modules
