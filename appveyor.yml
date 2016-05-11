@@ -13,7 +13,7 @@ install:
   - ps: Install-Product node $env:nodejs_version
   - npm install
 
-build:
+build_script:
   - npm run lint
   - npm run build
 
