@@ -31,3 +31,7 @@ script:
   - npm run lint
   - npm run build
   - npm test
+
+cache:
+  directories:
+    - node_modules
