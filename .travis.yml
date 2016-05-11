@@ -6,7 +6,6 @@ notifications:
 branches:
   only:
     - master
-    
 
 language: node_js
 node_js:

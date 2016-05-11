@@ -1,7 +1,11 @@
 {
   "name": "desktop",
   "version": "0.0.1",
-  "description": "",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/desktop/desktop.git"
+  },
+  "description": "The People's Glorious GitHub Client",
   "main": "./build/lib/browser/main.js",
   "scripts": {
     "test": "electron-mocha --renderer --require ts-node/register test/*.ts test/*.tsx",
