@@ -18,6 +18,5 @@ export default class TrayIcon {
       ]);
       appIcon.setToolTip("GitHub Client");
       appIcon.setContextMenu(contextMenu);
-      console.log('tray', "There should be a tray icon!");
   }
 }
