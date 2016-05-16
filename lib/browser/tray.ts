@@ -7,10 +7,10 @@ export default class TrayIcon {
       let imageFolder = __dirname + '/../../static';
 
       // Determine appropriate icon for platform
-      if (platform == 'darwin') {
+      if (platform === 'darwin') {
           trayImage = imageFolder + '/iconDarkTemplate.png';
       }
-      else if (platform == 'win32') {
+      else if (platform === 'win32') {
           trayImage = imageFolder + '/icon-light.ico';
       }
       let appIcon = new Tray(trayImage);
