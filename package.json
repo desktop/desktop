@@ -1,5 +1,10 @@
 {
   "name": "desktop",
+  "productName": "GitHub",
+  "bundleID": "com.github.GitHubClient",
+  "companyName": "GitHub, Inc.",
+  "version": "0.0.1",
+  "main": "./app/browser/main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
@@ -7,17 +12,23 @@
   "description": "The People's Glorious GitHub Client",
   "scripts": {
     "test": "electron-mocha --renderer --require ts-node/register test/*.ts test/*.tsx",
-    "postinstall": "cd app && typings install",
+    "postinstall": "typings install",
     "start-server": "node dev_server.js",
-    "start": "npm run package && npm-run-all --parallel dev start-server",
+    "start": "npm run build && npm-run-all --parallel dev start-server",
     "dev": "node script/run",
-    "build": "tsc -p ./app && webpack && cp -R app/static build && cp app/package.json build",
+    "compile": "tsc && webpack",
+    "build": "npm run compile && node script/package",
     "clean": "rm -rf build",
-    "lint": "tslint app/src/**/*.ts app/src/**/*.tsx",
-    "package": "npm run build && node script/package"
+    "lint": "tslint ./src/**/*.ts ./src/**/*.tsx ./test/**/*.ts ./test/**/*.tsx"
   },
   "author": "",
   "license": "MIT",
+  "dependencies": {
+    "babel-runtime": "^6.6.1",
+    "octokat": "^0.5.0-beta.0",
+    "react": "^15.0.2",
+    "react-dom": "^15.0.2"
+  },
   "devDependencies": {
     "babel-core": "^6.7.6",
     "babel-loader": "^6.2.4",
@@ -35,7 +46,6 @@
     "fs-extra": "^0.30.0",
     "mocha": "^2.4.5",
     "npm-run-all": "^1.8.0",
-    "react": "^15.0.2",
     "react-addons-test-utils": "^15.0.2",
     "react-transform-hmr": "^1.0.4",
     "ts-loader": "^0.8.2",

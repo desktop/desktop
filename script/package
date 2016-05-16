@@ -8,12 +8,13 @@ const packager = require('electron-packager')
 
 const projectRoot = path.join(__dirname, '..')
 const buildRoot = path.join(projectRoot, 'build')
-const appPackage = require(path.join(buildRoot, 'package.json'))
+const appPackage = require(path.join(projectRoot, 'package.json'))
 
 fs.removeSync(path.join(projectRoot, 'out'))
 
-fs.copySync(path.join(projectRoot, 'app', 'package.json'), path.join(buildRoot, 'package.json'), {clobber: true})
-fs.copySync(path.join(projectRoot, 'app', 'node_modules'), path.join(buildRoot, 'node_modules'), {clobber: true})
+fs.copySync(path.join(projectRoot, 'package.json'), path.join(buildRoot, 'package.json'), {clobber: true})
+fs.copySync(path.join(projectRoot, 'node_modules'), path.join(buildRoot, 'node_modules'), {clobber: true})
+fs.copySync(path.join(projectRoot, 'static'), path.join(buildRoot, 'static'), {clobber: true})
 
 const options = {
   platform: process.platform,

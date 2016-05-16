@@ -6,7 +6,7 @@ var config = {
   devtool: 'cheap-module-eval-source-map',
   entry: [
     'webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr',
-    './app/src/index'
+    './src/index'
   ],
   output: {
     filename: 'bundle.js',
@@ -31,7 +31,7 @@ var config = {
       {
         test: /\.tsx?$/,
         loaders: ['babel', 'ts'],
-        include: path.join(__dirname, 'app')
+        include: path.join(__dirname, 'src')
       }
     ]
   },
