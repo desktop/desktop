@@ -1,7 +1,17 @@
 #!/usr/bin/env node
 
-// This gets us the path to electron.exe within the node_modules directory.
-var electron = require('electron-prebuilt');
-var proc = require('child_process');
+'use strict'
 
-proc.spawn(electron, [ ".", "--debug" ], { env: { "NODE_ENV" : "development" } });
+const path = require('path')
+const proc = require('child_process')
+
+const env = {'NODE_ENV': 'development'}
+const appName = require(path.join(__dirname, '..', 'app', 'package.json')).productName
+const appDir = path.join(__dirname, '..', 'out', `${appName}-${process.platform}-${process.arch}`)
+
+if (process.platform === 'darwin') {
+  const exePath = path.join(appDir, `${appName}.app`)
+  proc.spawn('open', [exePath], {env})
+} else {
+  // TODO: How do we launch on Windows?
+}

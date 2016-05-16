@@ -1,3 +1,4 @@
 build/
+out/
 typings/
 node_modules/

@@ -1,0 +1,52 @@
+#!/usr/bin/env node
+
+'use strict'
+
+const path = require('path')
+const fs = require('fs-extra')
+const packager = require('electron-packager')
+
+const projectRoot = path.join(__dirname, '..')
+const buildRoot = path.join(projectRoot, 'build')
+const appPackage = require(path.join(buildRoot, 'package.json'))
+
+fs.removeSync(path.join(projectRoot, 'out'))
+
+fs.copySync(path.join(projectRoot, 'app', 'package.json'), path.join(buildRoot, 'package.json'), {clobber: true})
+fs.copySync(path.join(projectRoot, 'app', 'node_modules'), path.join(buildRoot, 'node_modules'), {clobber: true})
+
+const options = {
+  platform: process.platform,
+  arch: 'x64',
+  'app-version': appPackage.version,
+  'build-version': appPackage.version,
+  asar: false, // Probably wanna enable this down the road.
+  out: path.join(projectRoot, 'out'),
+  icon: path.join(buildRoot, 'static', 'icon'),
+  dir: path.join(projectRoot, 'build'),
+  overwrite: true,
+  // ignore: shouldIgnore,
+
+  // OS X
+  'app-bundle-id': appPackage.bundleID,
+  'app-category-type': 'public.app-category.developer-tools',
+
+  // Windows
+  'version-string': {
+    'CompanyName': appPackage.companyName,
+    'FileDescription': '',
+    'OriginalFilename': '',
+    'ProductName': appPackage.productName,
+    'InternalName': appPackage.productName
+  }
+}
+
+packager(options, (error, appPaths) => {
+  if (error) {
+    console.error(error)
+    process.exit(1)
+  } else {
+    console.log(`Built to ${appPaths}`)
+    process.exit(0)
+  }
+})

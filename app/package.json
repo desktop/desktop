@@ -1,0 +1,17 @@
+{
+  "productName": "GitHub",
+  "bundleID": "com.github.GitHubClient",
+  "companyName": "GitHub, Inc.",
+  "version": "0.0.1",
+  "main": "./app/browser/main.js",
+  "dependencies": {
+    "babel-runtime": "^6.6.1",
+    "octokat": "^0.5.0-beta.0",
+    "react": "^15.0.2",
+    "react-dom": "^15.0.2"
+  },
+  "devDependencies": {
+    "react-transform-hmr": "^1.0.4",
+    "webpack-hot-middleware": "^2.10.0"
+  }
+}

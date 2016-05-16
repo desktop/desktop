@@ -8,7 +8,7 @@
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
     "jsx": "react",
-    "outDir": "./build"
+    "outDir": "../build/app"
   },
   "exclude": [
     "node_modules",
