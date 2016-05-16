@@ -15,7 +15,6 @@ var config = {
     publicPath: 'http://localhost:3000/build/'
   },
   plugins: [
-    new webpack.IgnorePlugin(/vertx/),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
     new webpack.DefinePlugin({
