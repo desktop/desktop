@@ -15,7 +15,8 @@
     "out",
     "build",
     "typings/main",
-    "typings/main.d.ts"
+    "typings/main.d.ts",
+    "test"
   ],
   "compileOnSave": false
 }
