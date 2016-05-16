@@ -12,6 +12,8 @@
   },
   "exclude": [
     "node_modules",
+    "out",
+    "build",
     "typings/main",
     "typings/main.d.ts"
   ],
