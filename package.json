@@ -12,7 +12,7 @@
     "postinstall": "typings install",
     "start-server": "node dev_server.js",
     "start": "npm run build && npm-run-all --parallel dev start-server",
-    "dev": "node script/run",
+    "dev": "env NODE_ENV=development electron . --debug",
     "build": "tsc && webpack && cp -R static build",
     "clean": "rm -rf build",
     "lint": "tslint lib/**/*.ts lib/**/*.tsx"
