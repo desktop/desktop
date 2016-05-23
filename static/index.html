@@ -6,6 +6,15 @@
   </head>
   <body>
     <div id='content'></div>
-    <script src='../bundle.js'></script>
+    <script>
+      var src = '../bundle.js'
+      if (process.env.NODE_ENV === 'development') {
+        src = 'http://localhost:3000/build/bundle.js'
+      }
+
+      var scriptTag = document.createElement('script')
+      scriptTag.src = src
+      document.head.appendChild(scriptTag)
+    </script>
   </body>
 </html>
