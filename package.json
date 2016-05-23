@@ -15,7 +15,7 @@
     "postinstall": "typings install",
     "start-server": "node dev_server.js",
     "start": "npm run build && npm-run-all --parallel dev start-server",
-    "dev": "node script/run",
+    "dev": "env NODE_ENV=development electron . --debug",
     "compile": "tsc && webpack",
     "build": "npm run compile && node script/package",
     "clean": "rm -rf build",
