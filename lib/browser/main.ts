@@ -2,10 +2,11 @@ import {app} from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
-
+import TrayIcon from './tray'
 const stats = new Stats()
 
 let mainWindow: AppWindow = null
+let trayIcon = new TrayIcon()
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -22,4 +23,5 @@ app.on('ready', () => {
   })
 
   mainWindow.load()
+  trayIcon.load()
 })
