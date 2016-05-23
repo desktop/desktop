@@ -9,11 +9,14 @@ const projectRoot = path.join(__dirname, '..')
 const appPackage = require(path.join(projectRoot, 'package.json'))
 const distPath = path.join(projectRoot, 'dist', `${appPackage.productName}-${process.platform}-x64`)
 
+let binaryPath = ''
 if (process.platform === 'darwin') {
-  console.log(process.env)
-  const binaryPath = path.join(distPath, 'GitHub.app', 'Contents', 'MacOS', 'GitHub')
-  cp.spawn(binaryPath, [], {env: process.env})
+  binaryPath = path.join(distPath, 'GitHub.app', 'Contents', 'MacOS', 'GitHub')
+} else if (process.platform === 'win32') {
+  binaryPath = path.join(distPath, 'GitHub')
 } else {
   console.error(`I dunno how to run on ${process.arch} :(`)
   process.exit(1)
 }
+
+cp.spawn(binaryPath, [], {env: process.env})
