@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+
+'use strict'
+
+const path = require('path')
+const cp = require('child_process')
+
+const projectRoot = path.join(__dirname, '..')
+const appPackage = require(path.join(projectRoot, 'package.json'))
+const distPath = path.join(projectRoot, 'dist', `${appPackage.productName}-${process.platform}-x64`)
+
+if (process.platform === 'darwin') {
+  console.log(process.env)
+  const binaryPath = path.join(distPath, 'GitHub.app', 'Contents', 'MacOS', 'GitHub')
+  cp.spawn(binaryPath, [], {env: process.env})
+} else {
+  console.error(`I dunno how to run on ${process.arch} :(`)
+  process.exit(1)
+}
