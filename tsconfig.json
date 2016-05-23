@@ -12,7 +12,7 @@
   },
   "exclude": [
     "node_modules",
-    "out",
+    "dist",
     "build",
     "typings/main",
     "typings/main.d.ts",

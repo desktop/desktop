@@ -1,4 +1,4 @@
 build/
-out/
+dist/
 typings/
 node_modules/

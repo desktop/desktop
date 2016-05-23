@@ -10,7 +10,10 @@ const projectRoot = path.join(__dirname, '..')
 const buildRoot = path.join(projectRoot, 'build')
 const appPackage = require(path.join(projectRoot, 'package.json'))
 
-fs.removeSync(path.join(projectRoot, 'out'))
+fs.removeSync(path.join(projectRoot, 'dist'))
+
+fs.removeSync(path.join(buildRoot, 'node_modules'))
+fs.removeSync(path.join(buildRoot, 'static'))
 
 fs.copySync(path.join(projectRoot, 'package.json'), path.join(buildRoot, 'package.json'), {clobber: true})
 fs.copySync(path.join(projectRoot, 'node_modules'), path.join(buildRoot, 'node_modules'), {clobber: true})
@@ -21,13 +24,12 @@ const options = {
   arch: 'x64',
   'app-version': appPackage.version,
   'build-version': appPackage.version,
-  asar: false, // Probably wanna enable this down the road.
-  out: path.join(projectRoot, 'out'),
+  asar: false, // TODO: Probably wanna enable this down the road.
+  out: path.join(projectRoot, 'dist'),
   icon: path.join(buildRoot, 'static', 'icon'),
   dir: path.join(projectRoot, 'build'),
   overwrite: true,
   prune: false, // TODO: This should be true for release builds.
-  // ignore: shouldIgnore,
 
   // OS X
   'app-bundle-id': appPackage.bundleID,
