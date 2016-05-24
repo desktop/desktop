@@ -21,7 +21,6 @@ const config = {
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
     new webpack.DefinePlugin({
-      // TODO: This is obviously wrong for production builds.
       __DEV__: true,
       'process.env': {
         NODE_ENV: JSON.stringify('development')
