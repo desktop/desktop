@@ -16,9 +16,10 @@
     "start-server": "node dev_server.js",
     "start": "npm run pkg:debug && npm-run-all --parallel run start-server",
     "run": "env NODE_ENV=development node script/run",
-    "compile": "tsc && webpack",
-    "pkg:debug": "npm run compile && env NODE_ENV=development node script/package",
-    "pkg:release": "npm run compile && env NODE_ENV=production node script/package",
+    "compile:debug": "tsc && env NODE_ENV=development webpack --config webpack.development.js",
+    "compile:release": "tsc && env NODE_ENV=production webpack --config webpack.production.js",
+    "pkg:debug": "npm run compile:debug && env NODE_ENV=development node script/package",
+    "pkg:release": "npm run compile:release && env NODE_ENV=production node script/package",
     "clean": "rm -rf build",
     "rebuild": "npm run clean && npm run pkg:debug",
     "lint": "tslint ./src/**/*.ts ./src/**/*.tsx ./test/**/*.ts ./test/**/*.tsx"

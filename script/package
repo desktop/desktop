@@ -66,7 +66,7 @@ function installDependencies () {
 
   fs.removeSync(path.join(buildRoot, 'package.json'))
   fs.writeJsonSync(path.join(buildRoot, 'package.json'), packageJson)
-  cp.execSync('npm install', {cwd: buildRoot})
+  cp.execSync('npm install', {cwd: buildRoot, env: process.env})
 }
 
 function distPackageJson (appPackage) {
