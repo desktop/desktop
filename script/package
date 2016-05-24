@@ -15,8 +15,7 @@ console.log('Removing old distribution…')
 fs.removeSync(path.join(projectRoot, 'dist'))
 
 console.log('Installing dependencies…')
-fs.copySync(path.join(projectRoot, 'package.json'), path.join(buildRoot, 'package.json'), {clobber: true})
-cp.execSync('npm install --only=production', {cwd: buildRoot})
+installDependencies()
 
 console.log('Copying `static`…')
 fs.copySync(path.join(projectRoot, 'static'), path.join(buildRoot, 'static'), {clobber: true})
@@ -47,7 +46,6 @@ const options = {
   }
 }
 
-console.log('Packaging…')
 packager(options, (error, appPaths) => {
   if (error) {
     console.error(error)
@@ -57,3 +55,36 @@ packager(options, (error, appPaths) => {
     process.exit(0)
   }
 })
+
+function installDependencies () {
+  let packageJson = appPackage
+  if (process.env.NODE_ENV === 'development') {
+    packageJson = debugPackageJson(packageJson)
+  } else {
+    packageJson = releasePackageJson(packageJson)
+  }
+
+  fs.removeSync(path.join(buildRoot, 'package.json'))
+  fs.writeJsonSync(path.join(buildRoot, 'package.json'), packageJson)
+  cp.execSync('npm install', {cwd: buildRoot})
+}
+
+function distPackageJson (appPackage) {
+  const releasePackage = Object.assign({}, appPackage)
+  delete releasePackage['scripts']
+  delete releasePackage['devDependencies']
+  return releasePackage
+}
+
+function releasePackageJson (appPackage) {
+  const releasePackage = Object.assign({}, distPackageJson(appPackage))
+  delete releasePackage['debugDependencies']
+  return releasePackage
+}
+
+function debugPackageJson (appPackage) {
+  const releasePackage = Object.assign({}, distPackageJson(appPackage))
+  releasePackage.dependencies = Object.assign({}, releasePackage.dependencies, releasePackage.debugDependencies)
+  delete releasePackage['debugDependencies']
+  return releasePackage
+}
