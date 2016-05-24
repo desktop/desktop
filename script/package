@@ -11,6 +11,9 @@ const projectRoot = path.join(__dirname, '..')
 const buildRoot = path.join(projectRoot, 'build')
 const appPackage = require(path.join(projectRoot, 'package.json'))
 
+const devBuild = process.env.NODE_ENV === 'development'
+console.log(`Building for ${devBuild ? 'development' : 'production'}…`)
+
 console.log('Removing old distribution…')
 fs.removeSync(path.join(projectRoot, 'dist'))
 
