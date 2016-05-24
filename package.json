@@ -4,7 +4,7 @@
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
   "version": "0.0.1",
-  "main": "./app/browser/main.js",
+  "main": "./app/main-process/main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
