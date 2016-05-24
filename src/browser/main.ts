@@ -17,7 +17,7 @@ app.on('ready', () => {
   stats.readyTime = Date.now()
 
   mainWindow = new AppWindow(stats)
-  mainWindow.on('closed', () => {
+  mainWindow.onClose(() => {
     mainWindow = null
   })
 
