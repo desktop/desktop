@@ -1,10 +1,12 @@
-var express = require('express')
-var webpack = require('webpack')
-var config = require('./webpack.config')
+'use strict'
 
-var app = express()
-var compiler = webpack(config)
-var port = process.env.PORT || 3000
+const express = require('express')
+const webpack = require('webpack')
+const config = require('./webpack.development')
+
+const app = express()
+const compiler = webpack(config)
+const port = process.env.PORT || 3000
 
 app.use(require('webpack-dev-middleware')(compiler, {
   publicPath: config.output.publicPath
