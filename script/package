@@ -3,6 +3,7 @@
 'use strict'
 
 const path = require('path')
+const cp = require('child_process')
 const fs = require('fs-extra')
 const packager = require('electron-packager')
 
@@ -10,14 +11,14 @@ const projectRoot = path.join(__dirname, '..')
 const buildRoot = path.join(projectRoot, 'build')
 const appPackage = require(path.join(projectRoot, 'package.json'))
 
+console.log('Removing old distribution…')
 fs.removeSync(path.join(projectRoot, 'dist'))
 
-fs.removeSync(path.join(buildRoot, 'node_modules'))
-fs.removeSync(path.join(buildRoot, 'static'))
-
-// TODO: Before we do this, we should `npm prune --production`
-fs.copySync(path.join(projectRoot, 'node_modules'), path.join(buildRoot, 'node_modules'), {clobber: true})
+console.log('Installing dependencies…')
 fs.copySync(path.join(projectRoot, 'package.json'), path.join(buildRoot, 'package.json'), {clobber: true})
+cp.execSync('npm install --only=production', {cwd: buildRoot})
+
+console.log('Copying `static`…')
 fs.copySync(path.join(projectRoot, 'static'), path.join(buildRoot, 'static'), {clobber: true})
 
 const options = {
@@ -46,6 +47,7 @@ const options = {
   }
 }
 
+console.log('Packaging…')
 packager(options, (error, appPaths) => {
   if (error) {
     console.error(error)
