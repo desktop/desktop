@@ -19,6 +19,7 @@
     "compile": "tsc && webpack",
     "build": "npm run compile && node script/package",
     "clean": "rm -rf build",
+    "rebuild": "npm run clean && npm run build",
     "lint": "tslint ./src/**/*.ts ./src/**/*.tsx ./test/**/*.ts ./test/**/*.tsx"
   },
   "author": "",
