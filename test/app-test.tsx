@@ -5,7 +5,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-addons-test-utils'
 
-import App from '../lib/app'
+import App from '../src/app'
 
 describe('App', () => {
   it('renders', () => {

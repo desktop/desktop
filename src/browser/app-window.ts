@@ -25,6 +25,11 @@ export default class AppWindow extends BrowserWindow {
       this.rendererLog(`Launch: ${now - this.stats.launchTime}ms`)
     })
 
+    this.webContents.on('did-fail-load', () => {
+      this.webContents.openDevTools()
+      this.show()
+    })
+
     startLoad = Date.now()
     this.loadURL(`file://${__dirname}/../../static/index.html`)
   }

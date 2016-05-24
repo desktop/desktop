@@ -8,12 +8,15 @@
     "noFallthroughCasesInSwitch": true,
     "sourceMap": true,
     "jsx": "react",
-    "outDir": "./build"
+    "outDir": "./build/app"
   },
   "exclude": [
     "node_modules",
+    "dist",
+    "build",
     "typings/main",
-    "typings/main.d.ts"
+    "typings/main.d.ts",
+    "test"
   ],
   "compileOnSave": false
 }

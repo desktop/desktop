@@ -1,21 +1,25 @@
 {
   "name": "desktop",
+  "productName": "GitHub",
+  "bundleID": "com.github.GitHubClient",
+  "companyName": "GitHub, Inc.",
   "version": "0.0.1",
+  "main": "./app/browser/main.js",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/desktop/desktop.git"
+    "type": "git",
+    "url": "https://github.com/desktop/desktop.git"
   },
   "description": "The People's Glorious GitHub Client",
-  "main": "./build/lib/browser/main.js",
   "scripts": {
     "test": "electron-mocha --renderer --require ts-node/register test/*.ts test/*.tsx",
     "postinstall": "typings install",
     "start-server": "node dev_server.js",
     "start": "npm run build && npm-run-all --parallel dev start-server",
-    "dev": "env NODE_ENV=development electron . --debug",
-    "build": "tsc && webpack && cp -R static build",
+    "dev": "env NODE_ENV=development node script/run",
+    "compile": "tsc && webpack",
+    "build": "npm run compile && node script/package",
     "clean": "rm -rf build",
-    "lint": "tslint lib/**/*.ts lib/**/*.tsx"
+    "lint": "tslint ./src/**/*.ts ./src/**/*.tsx ./test/**/*.ts ./test/**/*.tsx"
   },
   "author": "",
   "license": "MIT",
@@ -24,8 +28,8 @@
     "octokat": "^0.5.0-beta.0",
     "react": "^15.0.2",
     "react-dom": "^15.0.2",
-    "typescript": "^1.8.10",
-    "typings": "^0.7.12"
+    "react-transform-hmr": "^1.0.4",
+    "webpack-hot-middleware": "^2.10.0"
   },
   "devDependencies": {
     "babel-core": "^6.7.6",
@@ -37,21 +41,21 @@
     "babel-preset-react-hmre": "^1.1.1",
     "babel-preset-stage-0": "^6.5.0",
     "chai": "^3.5.0",
-    "css-loader": "^0.23.1",
     "electron-mocha": "1.2.0",
+    "electron-packager": "^7.0.1",
     "electron-prebuilt": "^0.37.8",
     "express": "^4.13.4",
+    "fs-extra": "^0.30.0",
     "mocha": "^2.4.5",
     "npm-run-all": "^1.8.0",
     "react-addons-test-utils": "^15.0.2",
-    "react-transform-hmr": "^1.0.4",
-    "style-loader": "^0.13.1",
     "ts-loader": "^0.8.2",
     "ts-node": "^0.7.2",
     "tslint": "^3.9.0",
+    "typescript": "^1.8.10",
+    "typings": "^0.7.12",
     "webpack": "^1.12.15",
     "webpack-dev-middleware": "^1.6.1",
-    "webpack-hot-middleware": "^2.10.0",
     "webpack-target-electron-renderer": "^0.4.0"
   }
 }
