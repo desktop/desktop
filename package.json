@@ -27,7 +27,9 @@
     "babel-runtime": "^6.6.1",
     "octokat": "^0.5.0-beta.0",
     "react": "^15.0.2",
-    "react-dom": "^15.0.2"
+    "react-dom": "^15.0.2",
+    "react-transform-hmr": "^1.0.4",
+    "webpack-hot-middleware": "^2.10.0"
   },
   "devDependencies": {
     "babel-core": "^6.7.6",
@@ -47,7 +49,6 @@
     "mocha": "^2.4.5",
     "npm-run-all": "^1.8.0",
     "react-addons-test-utils": "^15.0.2",
-    "react-transform-hmr": "^1.0.4",
     "ts-loader": "^0.8.2",
     "ts-node": "^0.7.2",
     "tslint": "^3.9.0",
@@ -55,7 +56,6 @@
     "typings": "^0.7.12",
     "webpack": "^1.12.15",
     "webpack-dev-middleware": "^1.6.1",
-    "webpack-hot-middleware": "^2.10.0",
     "webpack-target-electron-renderer": "^0.4.0"
   }
 }
