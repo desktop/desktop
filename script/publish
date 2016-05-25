@@ -2,7 +2,7 @@
 
 'use strict'
 
-const TEST_RELEASE = true
+const TEST_PUBLISH = true
 
 let branchName = ''
 if (process.platform === 'darwin') {
@@ -11,7 +11,7 @@ if (process.platform === 'darwin') {
   branchName = process.env.APPVEYOR_REPO_BRANCH
 }
 
-if (!/release.*/.test(branchName) && !TEST_RELEASE) {
+if (!/release.*/.test(branchName) && !TEST_PUBLISH) {
   process.exit(0)
 }
 
