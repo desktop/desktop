@@ -3,6 +3,9 @@ notifications:
     on_success: never
     on_failure: change
 
+os:
+  - osx
+
 branches:
   only:
     - master
