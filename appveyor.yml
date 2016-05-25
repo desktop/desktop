@@ -1,6 +1,9 @@
 environment:
   nodejs_version: "5"
 
+cache:
+  - node_modules
+
 branches:
   only:
     - master
@@ -20,5 +23,5 @@ build_script:
 test_script:
   - npm test
 
-cache:
-  - node_modules
+deploy_script:
+  - node script/publish
