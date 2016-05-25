@@ -23,14 +23,7 @@ const distInfo = require('./dist-info')
 console.log('Packaging…')
 cp.execSync('npm run package')
 
-let sha = ''
-if (process.platform === 'darwin') {
-  sha = process.env.TRAVIS_COMMIT
-} else if (process.platform === 'win32') {
-  sha = process.env.APPVEYOR_REPO_COMMIT
-}
-
-sha = sha.substr(0, 6)
+const sha = cp.execSync('git rev-parse HEAD').toString().substr(0, 6)
 
 console.log('Uploading…')
 
