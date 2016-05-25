@@ -35,6 +35,7 @@ const options = {
   prune: false, // We only install production dependencies above.
 
   // OS X
+  // TODO: We'll need to sign this shit.
   'app-bundle-id': appPackage.bundleID,
   'app-category-type': 'public.app-category.developer-tools',
 
