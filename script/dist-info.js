@@ -28,7 +28,7 @@ function getOSXZipPath () {
 
 function getWindowsInstallerPath () {
   const productName = getProductName()
-  return path.join(getDistPath(), '..', 'installer', `${productName}.msi`)
+  return path.join(getDistPath(), '..', 'installer', `${productName}Setup.msi`)
 }
 
 module.exports = {getDistPath, getProductName, getCompanyName, getVersion, getOSXZipPath, getWindowsInstallerPath}
