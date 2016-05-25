@@ -20,7 +20,7 @@ if (process.platform === 'darwin') {
 }
 
 function packageOSX () {
-  const dest = `${distPath}/${productName}.zip`
+  const dest = path.join(distPath, '..', `${productName}.zip`)
   fs.removeSync(dest)
 
   cp.execSync(`ditto -ck --keepParent ${distPath}/${productName}.app ${dest}`)
