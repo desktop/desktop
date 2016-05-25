@@ -20,6 +20,7 @@
     "compile:release": "tsc && env NODE_ENV=production webpack --config webpack.production.js",
     "build:debug": "npm run compile:debug && env NODE_ENV=development node script/build",
     "build:release": "npm run compile:release && env NODE_ENV=production node script/build",
+    "pkg": "node script/package",
     "clean": "rm -rf build",
     "rebuild": "npm run clean && npm run build:debug",
     "lint": "tslint ./src/**/*.ts ./src/**/*.tsx ./test/**/*.ts ./test/**/*.tsx"

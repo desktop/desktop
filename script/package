@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+
+'use strict'
+
+const fs = require('fs-extra')
+const cp = require('child_process')
+const distInfo = require('./dist-info')
+
+const distPath = distInfo.getDistPath()
+const productName = distInfo.getProductName()
+
+if (process.platform === 'darwin') {
+  packageOSX()
+} else if (process.platform === 'win32') {
+  packageWindows()
+} else {
+  console.error(`I dunno how to package for ${process.platform} :(`)
+  process.exit(1)
+}
+
+function packageOSX () {
+  const dest = `${distPath}/${productName}.zip`
+  fs.removeSync(dest)
+
+  cp.execSync(`ditto -ck --keepParent ${distPath}/${productName}.app ${dest}`)
+  console.log(`Zipped to ${dest}`)
+}
+
+function packageWindows () {
+
+}

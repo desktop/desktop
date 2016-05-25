@@ -4,10 +4,9 @@
 
 const path = require('path')
 const cp = require('child_process')
+const distInfo = require('./dist-info')
 
-const projectRoot = path.join(__dirname, '..')
-const appPackage = require(path.join(projectRoot, 'package.json'))
-const distPath = path.join(projectRoot, 'dist', `${appPackage.productName}-${process.platform}-x64`)
+const distPath = distInfo.getDistPath()
 
 let binaryPath = ''
 if (process.platform === 'darwin') {
