@@ -26,6 +26,15 @@ const sha = cp.execSync('git rev-parse HEAD').toString().substr(0, 6)
 console.log('Uploading…')
 
 if (process.platform === 'darwin') {
+  uploadOSXAssets()
+} else if (process.platform === 'win32') {
+  uploadWindowsAssets()
+} else {
+  console.error(`I dunno how to publish a release for ${process.platform} :(`)
+  process.exit(1)
+}
+
+function uploadOSXAssets () {
   const name = `${distInfo.getProductName()}.zip`
   upload(name, distInfo.getOSXZipPath())
     .then(url => {
@@ -35,7 +44,9 @@ if (process.platform === 'darwin') {
       console.error(`Uploading ${name} failed: ${e}`)
       process.exit(1)
     })
-} else if (process.platform === 'win32') {
+}
+
+function uploadWindowsAssets () {
   const name = `${distInfo.getProductName()}.msi`
   upload(name, distInfo.getWindowsInstallerPath())
     .then(url => {
@@ -45,9 +56,6 @@ if (process.platform === 'darwin') {
       console.error(`Uploading ${name} failed: ${e}`)
       process.exit(1)
     })
-} else {
-  console.error(`I dunno how to publish a release for ${process.platform} :(`)
-  process.exit(1)
 }
 
 function upload (assetName, assetPath) {
