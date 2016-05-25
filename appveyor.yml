@@ -23,5 +23,5 @@ build_script:
 test_script:
   - npm test
 
-deploy_script:
+on_success:
   - node script/publish

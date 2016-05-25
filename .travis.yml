@@ -39,6 +39,5 @@ script:
   - npm run build:prod
   - npm test
 
-deploy:
-  provider: script
-  script: node script/publish
+after_success:
+  - node script/publish
