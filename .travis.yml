@@ -29,7 +29,7 @@ before_script:
 
 script:
   - npm run lint
-  - npm run pkg:release
+  - npm run build:release
   - npm test
 
 cache:
