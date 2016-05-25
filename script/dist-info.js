@@ -12,3 +12,7 @@ module.exports.getDistPath = function () {
 module.exports.getProductName = function () {
   return appPackage.productName
 }
+
+module.exports.getCompanyName = function () {
+  return appPackage.companyName
+}

@@ -4,6 +4,7 @@
 
 const fs = require('fs-extra')
 const cp = require('child_process')
+const path = require('path')
 const distInfo = require('./dist-info')
 
 const distPath = distInfo.getDistPath()
@@ -27,5 +28,18 @@ function packageOSX () {
 }
 
 function packageWindows () {
-
+  const electronInstaller = require('electron-winstaller')
+  // TODO: We'll need to sign this shit.
+  electronInstaller
+    .createWindowsInstaller({
+      appDirectory: distPath,
+      outputDirectory: path.join(distPath, 'installer'),
+      authors: distInfo.getCompanyName(),
+      exe: `${productName}.exe`
+    })
+    .then(x => console.log(`It worked ${x}`))
+    .catch(e => {
+      console.error(`Error packaging: ${e}`)
+      process.exit(1)
+    })
 }
