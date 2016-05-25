@@ -33,7 +33,7 @@ function packageWindows () {
   electronInstaller
     .createWindowsInstaller({
       appDirectory: distPath,
-      outputDirectory: path.join(distPath, 'installer'),
+      outputDirectory: path.join(distPath, '..', 'installer'),
       authors: distInfo.getCompanyName(),
       exe: `${productName}.exe`
     })
