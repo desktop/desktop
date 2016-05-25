@@ -29,15 +29,16 @@ function packageOSX () {
 
 function packageWindows () {
   const electronInstaller = require('electron-winstaller')
+  const outputDir = path.join(distPath, '..', 'installer')
   // TODO: We'll need to sign this shit.
   electronInstaller
     .createWindowsInstaller({
       appDirectory: distPath,
-      outputDirectory: path.join(distPath, '..', 'installer'),
+      outputDirectory: outputDir,
       authors: distInfo.getCompanyName(),
       exe: `${productName}.exe`
     })
-    .then(x => console.log(`It worked ${x}`))
+    .then(() => console.log(`Installers created in ${outputDir}`))
     .catch(e => {
       console.error(`Error packaging: ${e}`)
       process.exit(1)
