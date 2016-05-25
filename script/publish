@@ -47,7 +47,7 @@ function uploadOSXAssets () {
 }
 
 function uploadWindowsAssets () {
-  const name = `${distInfo.getProductName()}.msi`
+  const name = `${distInfo.getProductName()}Setup.msi`
   upload(name, distInfo.getWindowsInstallerPath())
     .then(url => {
       console.log(`Uploaded ${name} to ${url}`)
