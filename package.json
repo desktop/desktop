@@ -52,7 +52,6 @@
     "express": "^4.13.4",
     "fs-extra": "^0.30.0",
     "mocha": "^2.4.5",
-    "npm-run-all": "^1.8.0",
     "react-addons-test-utils": "^15.0.2",
     "ts-loader": "^0.8.2",
     "ts-node": "^0.7.2",
