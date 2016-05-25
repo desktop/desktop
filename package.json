@@ -13,9 +13,7 @@
   "scripts": {
     "test": "electron-mocha --renderer --require ts-node/register test/*.ts test/*.tsx",
     "postinstall": "typings install",
-    "start-server": "node dev_server.js",
-    "start": "npm run build:dev && npm-run-all --parallel run start-server",
-    "run": "env NODE_ENV=development node script/run",
+    "start": "npm run build:dev && node script/start",
     "compile:dev": "tsc && env NODE_ENV=development webpack --config webpack.development.js",
     "compile:prod": "tsc && env NODE_ENV=production webpack --config webpack.production.js",
     "build:dev": "npm run compile:dev && env NODE_ENV=development node script/build",
