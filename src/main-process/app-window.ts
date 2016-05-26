@@ -7,7 +7,17 @@ export default class AppWindow {
   private stats: Stats
 
   public constructor(stats: Stats) {
-    this.window = new BrowserWindow({width: 800, height: 600, show: false, titleBarStyle: 'hidden'})
+
+    this.window = new BrowserWindow(
+    {
+      width: 800,
+      height: 600,
+      show: false,
+      titleBarStyle: 'hidden',
+      // This fixes subpixel aliasing on Windows
+      // See https://github.com/atom/atom/commit/683bef5b9d133cb194b476938c77cc07fd05b972
+      backgroundColor: "#fff"
+    })
 
     this.stats = stats
   }
