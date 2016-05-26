@@ -1,7 +1,8 @@
-import {app} from 'electron'
+import {app, Menu} from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
+import {buildDefaultMenu} from './menu'
 
 const stats = new Stats()
 
@@ -22,4 +23,24 @@ app.on('ready', () => {
   })
 
   mainWindow.load()
+}
+
+app.on('ready', () => {
+  stats.readyTime = Date.now()
+
+  createWindow()
+
+  Menu.setApplicationMenu(buildDefaultMenu())
+})
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
+})
+
+app.on('activate', () => {
+  if (!mainWindow) {
+    createWindow()
+  }
 })
