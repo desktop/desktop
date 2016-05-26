@@ -14,8 +14,8 @@
     "node_modules",
     "dist",
     "build",
-    "typings/main",
-    "typings/main.d.ts",
+    "typings/browser",
+    "typings/browser.d.ts",
     "test"
   ],
   "compileOnSave": false
