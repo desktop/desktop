@@ -38,6 +38,14 @@ const options = {
   // TODO: We'll need to sign this shit.
   'app-bundle-id': appPackage.bundleID,
   'app-category-type': 'public.app-category.developer-tools',
+  'protocols': [
+    {
+      name: 'GitHub Auth',
+      schemes: [
+        'x-github-client'
+      ]
+    }
+  ],
 
   // Windows
   'version-string': {

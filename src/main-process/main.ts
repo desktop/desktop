@@ -16,6 +16,7 @@ app.on('window-all-closed', () => {
 app.on('ready', () => {
   stats.readyTime = Date.now()
 
+  app.setAsDefaultProtocolClient('x-github-client')
   mainWindow = new AppWindow(stats)
   mainWindow.onClose(() => {
     mainWindow = null
