@@ -30,6 +30,8 @@ if (process.platform === 'darwin') {
   sha = process.env.APPVEYOR_REPO_COMMIT
 }
 
+sha = sha.substr(0, 6)
+
 console.log('Uploading…')
 
 if (process.platform === 'darwin') {
