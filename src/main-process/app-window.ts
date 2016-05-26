@@ -39,7 +39,15 @@ export default class AppWindow {
     this.window.on('closed', fn)
   }
 
+  public didAuthenticate() {
+    this.send('did-auth', {})
+  }
+
   private rendererLog(msg: string) {
-    this.window.webContents.send('log', msg)
+    this.send('log', msg)
+  }
+
+  private send(channel: string, args: any) {
+    this.window.webContents.send(channel, args)
   }
 }

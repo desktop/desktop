@@ -1,5 +1,10 @@
 import {shell} from 'electron'
 
+const keytar = require('keytar')
+
+const ServiceName = 'GitHubClient'
+const ServiceUserName = 'user'
+
 const ClientID = 'de0e3c7e9973e1c4dd77'
 const ClientSecret = '4b35aab1581a32e23af0d930f2a294ae3bb84960'
 
@@ -45,4 +50,12 @@ function guid(): string {
 export function authenticate() {
   authState = guid()
   shell.openExternal(getOAuthURL(authState))
+}
+
+export function getToken(): string {
+  return keytar.getPassword(ServiceName, ServiceUserName)
+}
+
+export function setToken(token: string) {
+  keytar.addPassword(ServiceName, ServiceUserName, token)
 }

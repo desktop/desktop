@@ -3,7 +3,7 @@ import {app, ipcMain} from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
-import {requestToken, authenticate} from './auth'
+import {requestToken, authenticate, setToken} from './auth'
 
 const stats = new Stats()
 
@@ -22,7 +22,10 @@ app.on('will-finish-launching', () => {
     const parsedURL = URL.parse(url, true)
     const action = parseURLAction(parsedURL)
     if (action === 'oauth') {
-      requestToken(parsedURL.query.code)
+      requestToken(parsedURL.query.code).then(token => {
+        setToken(token)
+        mainWindow.didAuthenticate()
+      })
     } else {
       console.error(`I dunno how to handle this URL: ${url}`)
     }

@@ -1,6 +1,9 @@
 import * as React from 'react'
+import {ipcRenderer} from 'electron'
 import ThingList from './thing-list'
 import Info from './info'
+
+import {getToken} from './main-process/auth'
 
 const Octokat = require('octokat')
 
@@ -34,6 +37,16 @@ export default class App extends React.Component<AppProps, AppState> {
   public async componentDidMount() {
     const zen = await this.octo.zen.read()
     console.log('zen', zen)
+
+    ipcRenderer.on('did-auth', () => this.didAuthenticate())
+  }
+
+  public componentWillUnmount() {
+    ipcRenderer.removeListener('did-auth', () => this.didAuthenticate())
+  }
+
+  private didAuthenticate() {
+    console.log(`authenticated! ${getToken()}`)
   }
 
   public render() {

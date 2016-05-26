@@ -1,4 +1,5 @@
 import * as React from 'react'
+import {ipcRenderer} from 'electron'
 
 const LOLZ = [
   'http://www.reactiongifs.com/r/drkrm.gif',
@@ -29,8 +30,16 @@ const ImageStyle = {
 export default class Info extends React.Component<InfoProps, void> {
   private renderNoSelection() {
     return (
-      <div>No row selected!</div>
+      <div>
+        <div>No row selected!</div>
+        <div>Maybe you'd like to authenticate for fun and Great Victory?</div>
+        <button onClick={() => this.authenticate()}>Yes pls</button>
+      </div>
     )
+  }
+
+  private authenticate() {
+    ipcRenderer.send('request-auth')
   }
 
   public render() {
