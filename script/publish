@@ -2,7 +2,7 @@
 
 'use strict'
 
-const TEST_PUBLISH = true
+const TEST_PUBLISH = false
 
 let branchName = ''
 if (process.platform === 'darwin') {
