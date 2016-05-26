@@ -33,7 +33,6 @@ export default class AppWindow {
 
       const now = Date.now()
       this.rendererLog(`Loading: ${now - startLoad}ms`)
-      this.rendererLog(`Launch: ${now - this.stats.launchTime}ms`)
     })
 
     this.window.webContents.on('did-fail-load', () => {

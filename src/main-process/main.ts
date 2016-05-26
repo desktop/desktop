@@ -1,11 +1,29 @@
-import {app} from 'electron'
+import {app, Menu} from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
+import {buildDefaultMenu} from './menu'
 
 const stats = new Stats()
 
 let mainWindow: AppWindow = null
+
+function createWindow() {
+  mainWindow = new AppWindow(stats)
+  mainWindow.onClose(() => {
+    mainWindow = null
+  })
+
+  mainWindow.load()
+}
+
+app.on('ready', () => {
+  stats.readyTime = Date.now()
+
+  createWindow()
+
+  Menu.setApplicationMenu(buildDefaultMenu())
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
@@ -13,13 +31,8 @@ app.on('window-all-closed', () => {
   }
 })
 
-app.on('ready', () => {
-  stats.readyTime = Date.now()
-
-  mainWindow = new AppWindow(stats)
-  mainWindow.onClose(() => {
-    mainWindow = null
-  })
-
-  mainWindow.load()
+app.on('activate', () => {
+  if (!mainWindow) {
+    createWindow()
+  }
 })
