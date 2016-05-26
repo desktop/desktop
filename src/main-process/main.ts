@@ -8,15 +8,7 @@ const stats = new Stats()
 
 let mainWindow: AppWindow = null
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
-
-app.on('ready', () => {
-  stats.readyTime = Date.now()
-
+function createWindow() {
   mainWindow = new AppWindow(stats)
   mainWindow.onClose(() => {
     mainWindow = null
