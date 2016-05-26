@@ -7,7 +7,14 @@ export default class AppWindow {
   private stats: Stats
 
   public constructor(stats: Stats) {
-    this.window = new BrowserWindow({width: 800, height: 600, show: false, titleBarStyle: 'hidden'})
+
+    this.window = new BrowserWindow(
+    {
+      width: 800,
+      height: 600,
+      show: false,
+      titleBarStyle: 'hidden'
+  })
 
     this.stats = stats
   }
