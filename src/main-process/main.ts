@@ -3,7 +3,7 @@ import {app, ipcMain, Menu} from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
-import {requestToken, authenticate, setToken} from './auth'
+import {requestToken, authenticate, setToken} from '../auth'
 import {buildDefaultMenu} from './menu'
 
 const stats = new Stats()

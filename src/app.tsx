@@ -3,7 +3,7 @@ import {ipcRenderer} from 'electron'
 import ThingList from './thing-list'
 import Info from './info'
 
-import {getToken} from './main-process/auth'
+import {getToken} from './auth'
 
 const Octokat = require('octokat')
 
