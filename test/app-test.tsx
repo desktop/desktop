@@ -6,10 +6,11 @@ import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-addons-test-utils'
 
 import App from '../src/app'
+import UsersStore from '../src/users-store'
 
 describe('App', () => {
   it('renders', () => {
-    const app = TestUtils.renderIntoDocument(<App/>) as React.Component<any, any>
+    const app = TestUtils.renderIntoDocument(<App usersStore={new UsersStore()}/>) as React.Component<any, any>
     const node = ReactDOM.findDOMNode(app)
     expect(node).not.to.equal(null)
   })
