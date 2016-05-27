@@ -1,0 +1,93 @@
+#!/usr/bin/env node
+
+'use strict'
+
+const path = require('path')
+const cp = require('child_process')
+const fs = require('fs-extra')
+const packager = require('electron-packager')
+
+const projectRoot = path.join(__dirname, '..')
+const buildRoot = path.join(projectRoot, 'build')
+const appPackage = require(path.join(projectRoot, 'package.json'))
+
+console.log(`Building for ${process.env.NODE_ENV}…`)
+
+console.log('Removing old distribution…')
+fs.removeSync(path.join(projectRoot, 'dist'))
+
+console.log('Installing dependencies…')
+installDependencies()
+
+console.log('Copying `static`…')
+fs.copySync(path.join(projectRoot, 'static'), path.join(buildRoot, 'static'), {clobber: true})
+
+const options = {
+  platform: process.platform,
+  arch: 'x64',
+  'app-version': appPackage.version,
+  'build-version': appPackage.version,
+  asar: false, // TODO: Probably wanna enable this down the road.
+  out: path.join(projectRoot, 'dist'),
+  icon: path.join(buildRoot, 'static', 'icon'),
+  dir: path.join(projectRoot, 'build'),
+  overwrite: true,
+  prune: false, // We only install production dependencies above.
+
+  // OS X
+  // TODO: We'll need to sign this shit.
+  'app-bundle-id': appPackage.bundleID,
+  'app-category-type': 'public.app-category.developer-tools',
+
+  // Windows
+  'version-string': {
+    'CompanyName': appPackage.companyName,
+    'FileDescription': '',
+    'OriginalFilename': '',
+    'ProductName': appPackage.productName,
+    'InternalName': appPackage.productName
+  }
+}
+
+packager(options, (error, appPaths) => {
+  if (error) {
+    console.error(error)
+    process.exit(1)
+  } else {
+    console.log(`Built to ${appPaths}`)
+    process.exit(0)
+  }
+})
+
+function installDependencies () {
+  let packageJson = appPackage
+  if (process.env.NODE_ENV === 'development') {
+    packageJson = debugPackageJson(packageJson)
+  } else {
+    packageJson = releasePackageJson(packageJson)
+  }
+
+  fs.removeSync(path.join(buildRoot, 'package.json'))
+  fs.writeJsonSync(path.join(buildRoot, 'package.json'), packageJson)
+  cp.execSync('npm install', {cwd: buildRoot, env: process.env})
+}
+
+function distPackageJson (appPackage) {
+  const releasePackage = Object.assign({}, appPackage)
+  delete releasePackage['scripts']
+  delete releasePackage['devDependencies']
+  return releasePackage
+}
+
+function releasePackageJson (appPackage) {
+  const releasePackage = Object.assign({}, distPackageJson(appPackage))
+  delete releasePackage['debugDependencies']
+  return releasePackage
+}
+
+function debugPackageJson (appPackage) {
+  const releasePackage = Object.assign({}, distPackageJson(appPackage))
+  releasePackage.dependencies = Object.assign({}, releasePackage.dependencies, releasePackage.debugDependencies)
+  delete releasePackage['debugDependencies']
+  return releasePackage
+}
