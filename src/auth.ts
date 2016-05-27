@@ -23,10 +23,10 @@ export function requestToken(code: string): Promise<string> {
       method: 'post',
       headers: DefaultHeaders,
       body: JSON.stringify({
-          'client_id': ClientID,
-          'client_secret': ClientSecret,
-          'code': code,
-          'state': authState
+        'client_id': ClientID,
+        'client_secret': ClientSecret,
+        'code': code,
+        'state': authState
       })
     })
     .then(response => response.json())
