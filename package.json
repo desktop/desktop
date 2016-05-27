@@ -20,7 +20,8 @@
     "build:prod": "npm run compile:prod && env NODE_ENV=production node script/build",
     "package": "node script/package",
     "clean": "rm -rf build",
-    "rebuild": "npm run clean && npm run build:dev",
+    "rebuild:dev": "npm run clean && npm run build:dev",
+    "rebuild:prod": "npm run clean && npm run build:prod",
     "lint": "tslint ./src/**/*.ts ./src/**/*.tsx ./test/**/*.ts ./test/**/*.tsx"
   },
   "author": "",
