@@ -1,10 +1,9 @@
-import {app, ipcMain, Menu} from 'electron'
+import {app, Menu} from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
-import {authenticate} from '../auth'
 import {buildDefaultMenu} from './menu'
-import parseURL from './parse-url'
+import parseURL from '../lib/parse-url'
 
 const stats = new Stats()
 
@@ -22,7 +21,6 @@ app.on('ready', () => {
   stats.readyTime = Date.now()
 
   app.setAsDefaultProtocolClient('x-github-client')
-  ipcMain.on('request-auth', authenticate)
 
   createWindow()
 

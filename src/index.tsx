@@ -36,5 +36,5 @@ async function addUserWithCode(code: string) {
   const token = await requestToken(code)
   const octo = new Octokat({token})
   const user = await octo.user.fetch()
-  usersStore.addUser(new User(user, token))
+  usersStore.addUser(new User(user.login, token))
 }

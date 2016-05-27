@@ -1,9 +1,10 @@
 export default class User {
   public token: string
   public login: string
+  public server: string
 
-  public constructor(user: any, token: string) {
-    this.login = user.login
+  public constructor(login: string, token: string) {
+    this.login = login
     this.token = token
   }
 }
