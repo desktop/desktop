@@ -1,21 +1,16 @@
 import * as URL from 'url'
-import {app, ipcMain} from 'electron'
+import {app, ipcMain, Menu} from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
 import {requestToken, authenticate, setToken} from './auth'
+import {buildDefaultMenu} from './menu'
 
 const stats = new Stats()
 
 let mainWindow: AppWindow = null
 
 type URLAction = 'oauth' | 'unknown'
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
 
 app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
@@ -40,13 +35,31 @@ app.on('ready', () => {
   app.setAsDefaultProtocolClient('x-github-client')
   ipcMain.on('request-auth', authenticate)
 
+  createWindow()
+
+  Menu.setApplicationMenu(buildDefaultMenu())
+})
+
+app.on('activate', () => {
+  if (!mainWindow) {
+    createWindow()
+  }
+})
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
+})
+
+function createWindow() {
   mainWindow = new AppWindow(stats)
   mainWindow.onClose(() => {
     mainWindow = null
   })
 
   mainWindow.load()
-})
+}
 
 function parseURLAction(parsedURL: URL.Url): URLAction {
   const actionName = parsedURL.hostname
