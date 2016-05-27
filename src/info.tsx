@@ -1,6 +1,8 @@
 import * as React from 'react'
 
-import {askUserToAuth} from './auth'
+import User from './user'
+
+const Octokat = require('octokat')
 
 const LOLZ = [
   'http://www.reactiongifs.com/r/drkrm.gif',
@@ -11,7 +13,12 @@ const LOLZ = [
 ]
 
 type InfoProps = {
-  selectedRow: number
+  selectedRow: number,
+  user: User
+}
+
+interface InfoState {
+  userAvatarURL: string
 }
 
 const ContainerStyle = {
@@ -28,19 +35,41 @@ const ImageStyle = {
   flex: 1
 }
 
-export default class Info extends React.Component<InfoProps, void> {
+const AvatarStyle = {
+  width: 24,
+  height: 24,
+  borderRadius: '50%',
+  paddingRight: 4
+}
+
+export default class Info extends React.Component<InfoProps, InfoState> {
+  public constructor() {
+    super()
+
+    this.state = {userAvatarURL: ''}
+  }
+
+  public async componentWillMount() {
+    const api = new Octokat({token: this.props.user.token})
+    const user = await api.user.fetch()
+    this.setState({userAvatarURL: user.avatarUrl})
+    console.log('user', user)
+  }
+
   private renderNoSelection() {
     return (
       <div>
         <div>No row selected!</div>
-        <div>Maybe you'd like to authenticate for fun and Great Victory?</div>
-        <button onClick={() => this.authenticate()}>Yes pls</button>
       </div>
     )
   }
 
-  private authenticate() {
-    askUserToAuth()
+  private renderUser() {
+    return (
+      <div>
+        <img style={AvatarStyle} src={this.state.userAvatarURL}/>
+      </div>
+    )
   }
 
   public render() {
@@ -52,7 +81,14 @@ export default class Info extends React.Component<InfoProps, void> {
     const img = LOLZ[row % LOLZ.length]
     return (
       <div style={ContainerStyle}>
-        Row {row + 1} is selected!
+        <div style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center'
+        }}>
+          {this.renderUser()}
+          <div>Row {row + 1} is selected!</div>
+        </div>
 
         <div style={ImageStyle}>
           <img src={img}/>
