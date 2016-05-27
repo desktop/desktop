@@ -1,6 +1,7 @@
 import {BrowserWindow} from 'electron'
 
 import Stats from './stats'
+import {URLActionType} from '../lib/parse-url'
 
 export default class AppWindow {
   private window: Electron.BrowserWindow
@@ -48,8 +49,8 @@ export default class AppWindow {
     this.window.on('closed', fn)
   }
 
-  public didAuthenticate() {
-    this.send('did-auth', {})
+  public sendURLAction(action: URLActionType) {
+    this.send('url-action', action)
   }
 
   private rendererLog(msg: string) {

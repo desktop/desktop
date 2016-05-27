@@ -8,5 +8,8 @@
     "react-addons-test-utils": "registry:dt/react-addons-test-utils#0.14.0+20160427035638",
     "react-dom": "registry:dt/react-dom#0.14.0+20160412154040",
     "whatwg-fetch": "registry:dt/whatwg-fetch#0.0.0+20160524142046"
+  },
+  "dependencies": {
+    "event-kit": "registry:npm/event-kit#2.0.0+20160526055758"
   }
 }

@@ -1,5 +1,6 @@
 import * as React from 'react'
-import {ipcRenderer} from 'electron'
+
+import {askUserToAuth} from './auth'
 
 const LOLZ = [
   'http://www.reactiongifs.com/r/drkrm.gif',
@@ -39,7 +40,7 @@ export default class Info extends React.Component<InfoProps, void> {
   }
 
   private authenticate() {
-    ipcRenderer.send('request-auth')
+    askUserToAuth()
   }
 
   public render() {

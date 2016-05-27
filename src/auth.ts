@@ -47,15 +47,15 @@ function guid(): string {
   return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4()
 }
 
-export function authenticate() {
+export function askUserToAuth() {
   authState = guid()
   shell.openExternal(getOAuthURL(authState))
 }
 
-export function getToken(): string {
-  return keytar.getPassword(ServiceName, ServiceUserName)
+export function getToken(username: string): string {
+  return keytar.getPassword(ServiceName, username)
 }
 
-export function setToken(token: string) {
+export function setToken(username: string, token: string) {
   keytar.addPassword(ServiceName, ServiceUserName, token)
 }

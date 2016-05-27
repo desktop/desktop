@@ -1,9 +1,7 @@
 import * as React from 'react'
-import {ipcRenderer} from 'electron'
 import ThingList from './thing-list'
 import Info from './info'
-
-import {getToken} from './auth'
+import UsersStore from './users-store'
 
 const Octokat = require('octokat')
 
@@ -12,6 +10,7 @@ type AppState = {
 }
 
 type AppProps = {
+  usersStore: UsersStore,
   style?: Object
 }
 
@@ -31,22 +30,16 @@ export default class App extends React.Component<AppProps, AppState> {
       token: process.env.GITHUB_ACCESS_TOKEN
     })
 
+    props.usersStore.onUsersChanged(users => {
+
+    })
+
     this.state = {selectedRow: -1}
   }
 
   public async componentDidMount() {
     const zen = await this.octo.zen.read()
     console.log('zen', zen)
-
-    ipcRenderer.on('did-auth', () => this.didAuthenticate())
-  }
-
-  public componentWillUnmount() {
-    ipcRenderer.removeListener('did-auth', () => this.didAuthenticate())
-  }
-
-  private didAuthenticate() {
-    console.log(`authenticated! ${getToken()}`)
   }
 
   public render() {

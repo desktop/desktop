@@ -2,9 +2,8 @@ import {app, ipcMain, Menu} from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
-import {requestToken, authenticate, setToken} from '../auth'
+import {authenticate} from '../auth'
 import {buildDefaultMenu} from './menu'
-import {OAuthAction} from './parse-url'
 import parseURL from './parse-url'
 
 const stats = new Stats()
@@ -13,7 +12,8 @@ let mainWindow: AppWindow = null
 
 app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
-    handleURL(url)
+    const action = parseURL(url)
+    mainWindow.sendURLAction(action)
     event.preventDefault()
   })
 })
@@ -48,19 +48,4 @@ function createWindow() {
   })
 
   mainWindow.load()
-}
-
-function handleURL(url: string) {
-  const action = parseURL(url)
-  if (action.type === 'oauth') {
-    // Ideally TypeScript would do type refinement so we didn't have to do this
-    // cast :\
-    const oAuthAction = action as OAuthAction
-    requestToken(oAuthAction.code).then(token => {
-      setToken(token)
-      mainWindow.didAuthenticate()
-    })
-  } else {
-    console.error(`I dunno how to handle this URL: ${url}`)
-  }
 }
