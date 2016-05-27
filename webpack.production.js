@@ -13,10 +13,7 @@ const config = {
     new webpack.optimize.UglifyJsPlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(true),
     new webpack.DefinePlugin({
-      __DEV__: false,
-      'process.env': {
-        NODE_ENV: JSON.stringify('production')
-      }
+      __DEV__: false
     })
   ],
   module: common.module,
