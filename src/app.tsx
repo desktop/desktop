@@ -31,8 +31,10 @@ export default class App extends React.Component<AppProps, AppState> {
     })
 
     props.usersStore.onUsersChanged(users => {
-
+      console.log('users', users)
     })
+
+    console.log('users', props.usersStore.getUsers())
 
     this.state = {selectedRow: -1}
   }
