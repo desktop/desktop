@@ -53,6 +53,18 @@ export default class AppWindow {
     this.send('url-action', action)
   }
 
+  public isMinimized() {
+    return this.window.isMinimized()
+  }
+
+  public restore() {
+    this.window.restore()
+  }
+
+  public focus() {
+    this.window.focus()
+  }
+
   private rendererLog(msg: string) {
     this.send('log', msg)
   }

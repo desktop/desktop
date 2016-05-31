@@ -17,6 +17,29 @@ app.on('will-finish-launching', () => {
   })
 })
 
+if (process.platform !== 'darwin') {
+  const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore()
+      }
+      mainWindow.focus()
+    }
+
+    // look at the second argument received, it should have the OAuth
+    // callback contents and code for us to complete the signin flow
+    if (commandLine.length > 1) {
+      const action = parseURL(commandLine[1])
+      mainWindow.sendURLAction(action)
+    }
+  });
+
+  if (shouldQuit) {
+    app.quit()
+  }
+}
+
 app.on('ready', () => {
   stats.readyTime = Date.now()
 
