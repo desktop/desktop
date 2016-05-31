@@ -33,7 +33,7 @@ if (process.platform !== 'darwin') {
       const action = parseURL(commandLine[1])
       mainWindow.sendURLAction(action)
     }
-  });
+  })
 
   if (shouldQuit) {
     app.quit()
