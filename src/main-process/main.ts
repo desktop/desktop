@@ -26,7 +26,10 @@ const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
     mainWindow.focus();
   }
 
-  // TODO: other things?
+  if (commandLine.length > 1) {
+    const action = parseURL(commandLine[1])
+    mainWindow.sendURLAction(action)
+  }
 });
 
 if (shouldQuit) {
