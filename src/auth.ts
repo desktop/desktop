@@ -1,6 +1,7 @@
 import {shell} from 'electron'
-
 import * as keytar from 'keytar'
+
+import guid from './lib/guid'
 
 const ServiceName = 'GitHubClient'
 
@@ -37,15 +38,6 @@ export function requestToken(code: string): Promise<string> {
 
 function getOAuthURL(endpoint: string, state: string): string {
   return `${endpoint}/login/oauth/authorize?client_id=${ClientID}&scope=repo&state=${state}`
-}
-
-function guid(): string {
-  function s4(): string {
-    return Math.floor((1 + Math.random()) * 0x10000)
-      .toString(16)
-      .substring(1)
-  }
-  return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4()
 }
 
 export function getDotComEndpoint(): string {
