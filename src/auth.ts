@@ -36,8 +36,8 @@ export function requestToken(code: string): Promise<string> {
     .then(response => response.access_token)
 }
 
-function getOAuthURL(endpoint: string, state: string): string {
-  return `${endpoint}/login/oauth/authorize?client_id=${ClientID}&scope=repo&state=${state}`
+function getOAuthURL(authState: AuthState): string {
+  return `${authState.endpoint}/login/oauth/authorize?client_id=${ClientID}&scope=repo&state=${authState.oAuthState}`
 }
 
 export function getDotComEndpoint(): string {
@@ -47,7 +47,7 @@ export function getDotComEndpoint(): string {
 export function askUserToAuth(endpoint: string) {
   authState = {oAuthState: guid(), endpoint}
 
-  shell.openExternal(getOAuthURL(endpoint, authState.oAuthState))
+  shell.openExternal(getOAuthURL(authState))
 }
 
 export function getToken(username: string): string {
