@@ -14,10 +14,14 @@ const DefaultHeaders: {[key: string]: string} = {
   'User-Agent': 'GitHubClient/0.0.1'
 }
 
-let authState: string = null
+interface AuthState {
+  oAuthState: string
+  endpoint: string
+}
+let authState: AuthState = null
 
-export function requestToken(endpoint: string, code: string): Promise<string> {
-  return fetch(`${endpoint}/login/oauth/access_token`, {
+export function requestToken(code: string): Promise<string> {
+  return fetch(`${authState.endpoint}/login/oauth/access_token`, {
       method: 'post',
       headers: DefaultHeaders,
       body: JSON.stringify({
@@ -49,8 +53,9 @@ export function getDotComEndpoint(): string {
 }
 
 export function askUserToAuth(endpoint: string) {
-  authState = guid()
-  shell.openExternal(getOAuthURL(endpoint, authState))
+  authState = {oAuthState: guid(), endpoint}
+
+  shell.openExternal(getOAuthURL(endpoint, authState.oAuthState))
 }
 
 export function getToken(username: string): string {
