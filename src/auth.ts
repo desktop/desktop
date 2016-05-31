@@ -16,9 +16,8 @@ const DefaultHeaders: {[key: string]: string} = {
 
 let authState: string = null
 
-export function requestToken(code: string): Promise<string> {
-  // TODO: This should take a server URL.
-  return fetch('https://github.com/login/oauth/access_token', {
+export function requestToken(endpoint: string, code: string): Promise<string> {
+  return fetch(`${endpoint}/login/oauth/access_token`, {
       method: 'post',
       headers: DefaultHeaders,
       body: JSON.stringify({
@@ -32,9 +31,8 @@ export function requestToken(code: string): Promise<string> {
     .then(response => response.access_token)
 }
 
-function getOAuthURL(state: string): string {
-  // TODO: This should take a server URL.
-  return 'https://github.com/login/oauth/authorize?client_id=' + ClientID + '&scope=repo&state=' + state
+function getOAuthURL(endpoint: string, state: string): string {
+  return `${endpoint}/login/oauth/authorize?client_id=${ClientID}&scope=repo&state=${state}`
 }
 
 function guid(): string {
@@ -46,9 +44,13 @@ function guid(): string {
   return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4()
 }
 
-export function askUserToAuth() {
+export function getDotComEndpoint(): string {
+  return 'https://github.com'
+}
+
+export function askUserToAuth(endpoint: string) {
   authState = guid()
-  shell.openExternal(getOAuthURL(authState))
+  shell.openExternal(getOAuthURL(endpoint, authState))
 }
 
 export function getToken(username: string): string {
