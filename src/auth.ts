@@ -1,5 +1,4 @@
 import {shell} from 'electron'
-import * as keytar from 'keytar'
 
 import guid from './lib/guid'
 import User from './user'
@@ -49,16 +48,6 @@ export function askUserToAuth(endpoint: string) {
   shell.openExternal(getOAuthURL(authState))
 }
 
-export function getToken(login: string, endpoint: string): string {
-  const serviceName = getServiceNameForUser(new User(login, endpoint, ''))
-  return keytar.getPassword(serviceName, login)
-}
-
-export function setToken(user: User, token: string) {
-  const serviceName = getServiceNameForUser(user)
-  keytar.addPassword(serviceName, user.getLogin(), token)
-}
-
-function getServiceNameForUser(user: User): string {
+export function getKeyForUser(user: User): string {
   return `GitHub – ${user.getEndpoint()}`
 }

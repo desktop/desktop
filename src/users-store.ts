@@ -1,18 +1,21 @@
 import {Emitter, Disposable} from 'event-kit'
 
-import {setToken, getToken} from './auth'
+import {DataStore, SecureStore} from './stores'
+import {getKeyForUser} from './auth'
 import User from './user'
 
 export default class UsersStore {
+  private dataStore: DataStore
+  private secureStore: SecureStore
+
   private emitter: Emitter
   private users: User[]
 
-  private persisted: boolean
-
-  public constructor() {
+  public constructor(dataStore: DataStore, secureStore: SecureStore) {
+    this.dataStore = dataStore
+    this.secureStore = secureStore
     this.emitter = new Emitter()
     this.users = []
-    this.persisted = false
   }
 
   public onUsersChanged(fn: (users: User[]) => void): Disposable {
@@ -28,33 +31,32 @@ export default class UsersStore {
   }
 
   public addUser(user: User) {
-    setToken(user, user.getToken())
+    this.secureStore.setItem(getKeyForUser(user), user.getLogin(), user.getToken())
 
     this.users.push(user)
     this.usersDidChange()
 
-    if (this.persisted) {
-      this.saveToDisk()
-    }
+    this.save()
   }
 
-  public loadFromDisk() {
-    this.persisted = true
-
-    const raw = localStorage.getItem('users')
+  public loadFromStore() {
+    const raw = this.dataStore.getItem('users')
     if (!raw || !raw.length) {
       return
     }
 
     const rawUsers: any[] = JSON.parse(raw)
-    const usersWithTokens = rawUsers.map(user => new User(user.login, user.endpoint, getToken(user.login, user.endpoint)))
+    const usersWithTokens = rawUsers.map(user => {
+      const userWithoutToken = new User(user.login, user.endpoint, '')
+      return userWithoutToken.userWithToken(this.secureStore.getItem(getKeyForUser(userWithoutToken), user.login))
+    })
     this.users = usersWithTokens
 
     this.usersDidChange()
   }
 
-  private saveToDisk() {
+  private save() {
     const usersWithoutTokens = this.users.map(user => user.userWithToken(''))
-    localStorage.setItem('users', JSON.stringify(usersWithoutTokens))
+    this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
   }
 }
