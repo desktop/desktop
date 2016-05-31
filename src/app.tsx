@@ -5,12 +5,12 @@ import UsersStore from './users-store'
 import User from './user'
 import NotLoggedIn from './not-logged-in'
 
-type AppState = {
+interface AppState {
   selectedRow: number,
   user: User
 }
 
-type AppProps = {
+interface AppProps {
   usersStore: UsersStore,
   style?: Object
 }
