@@ -13,8 +13,7 @@ describe('App', () => {
   let usersStore: UsersStore = null
 
   beforeEach(() => {
-    const inMemoryStore = new InMemoryStore()
-    usersStore = new UsersStore(inMemoryStore, inMemoryStore)
+    usersStore = new UsersStore(new InMemoryStore(), new InMemoryStore())
   })
 
   it('renders', () => {

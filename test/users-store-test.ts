@@ -8,8 +8,7 @@ import InMemoryStore from './in-memory-store'
 describe('UsersStore', () => {
   let usersStore: UsersStore = null
   beforeEach(() => {
-    const inMemoryStore = new InMemoryStore()
-    usersStore = new UsersStore(inMemoryStore, inMemoryStore)
+    usersStore = new UsersStore(new InMemoryStore(), new InMemoryStore())
   })
 
   describe('adding a new user', () => {
