@@ -49,9 +49,9 @@ export function askUserToAuth(endpoint: string) {
   shell.openExternal(getOAuthURL(authState))
 }
 
-export function getToken(user: User): string {
-  const serviceName = getServiceNameForUser(user)
-  return keytar.getPassword(serviceName, user.getLogin())
+export function getToken(login: string, endpoint: string): string {
+  const serviceName = getServiceNameForUser(new User(login, endpoint, ''))
+  return keytar.getPassword(serviceName, login)
 }
 
 export function setToken(user: User, token: string) {

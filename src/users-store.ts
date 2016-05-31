@@ -46,8 +46,8 @@ export default class UsersStore {
       return
     }
 
-    const rawUsers: User[] = JSON.parse(raw)
-    const usersWithTokens = rawUsers.map(user => user.userWithToken(getToken(user)))
+    const rawUsers: any[] = JSON.parse(raw)
+    const usersWithTokens = rawUsers.map(user => new User(user.login, user.endpoint, getToken(user.login, user.endpoint)))
     this.users = usersWithTokens
 
     this.usersDidChange()
