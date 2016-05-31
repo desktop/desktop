@@ -50,10 +50,15 @@ export default class Info extends React.Component<InfoProps, InfoState> {
   }
 
   public async componentWillMount() {
+    if (!this.props.user) {
+      return Promise.resolve()
+    }
+
     const api = new Octokat({token: this.props.user.getToken()})
     const user = await api.user.fetch()
     this.setState({userAvatarURL: user.avatarUrl})
     console.log('user', user)
+    return Promise.resolve()
   }
 
   private renderNoSelection() {
