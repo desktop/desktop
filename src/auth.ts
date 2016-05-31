@@ -1,4 +1,5 @@
-import {shell} from 'electron'
+import {shell, remote} from 'electron'
+const {app} = remote
 
 import guid from './lib/guid'
 import User from './user'
@@ -9,8 +10,7 @@ const ClientSecret = '4b35aab1581a32e23af0d930f2a294ae3bb84960'
 const DefaultHeaders: {[key: string]: string} = {
   'Accept': 'application/vnd.github.v3+json, application/json',
   'Content-Type': 'application/json',
-  // TODO: We should get these from package.json at compile time.
-  'User-Agent': 'GitHubClient/0.0.1'
+  'User-Agent': `${app.getName()}/${app.getVersion}`
 }
 
 interface AuthState {
