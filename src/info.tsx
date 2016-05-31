@@ -12,7 +12,7 @@ const LOLZ = [
   'http://www.reactiongifs.com/r/didit.gif'
 ]
 
-type InfoProps = {
+interface InfoProps {
   selectedRow: number,
   user: User
 }
