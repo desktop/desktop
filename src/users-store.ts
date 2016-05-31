@@ -28,7 +28,7 @@ export default class UsersStore {
   }
 
   public addUser(user: User) {
-    setToken(user.login, user.token)
+    setToken(user, user.getToken())
 
     this.users.push(user)
     this.usersDidChange()
@@ -47,14 +47,14 @@ export default class UsersStore {
     }
 
     const rawUsers: User[] = JSON.parse(raw)
-    const usersWithTokens = rawUsers.map(user => new User(user.login, getToken(user.login)))
+    const usersWithTokens = rawUsers.map(user => user.userWithToken(getToken(user)))
     this.users = usersWithTokens
 
     this.usersDidChange()
   }
 
   private saveToDisk() {
-    const usersWithoutTokens = this.users.map(user => new User(user.login, ''))
+    const usersWithoutTokens = this.users.map(user => user.userWithToken(''))
     localStorage.setItem('users', JSON.stringify(usersWithoutTokens))
   }
 }

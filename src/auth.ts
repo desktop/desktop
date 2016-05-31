@@ -2,8 +2,7 @@ import {shell} from 'electron'
 import * as keytar from 'keytar'
 
 import guid from './lib/guid'
-
-const ServiceName = 'GitHubClient'
+import User from './user'
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
 const ClientSecret = '4b35aab1581a32e23af0d930f2a294ae3bb84960'
@@ -21,19 +20,19 @@ interface AuthState {
 }
 let authState: AuthState = null
 
-export function requestToken(code: string): Promise<string> {
-  return fetch(`${authState.endpoint}/login/oauth/access_token`, {
-      method: 'post',
-      headers: DefaultHeaders,
-      body: JSON.stringify({
-        'client_id': ClientID,
-        'client_secret': ClientSecret,
-        'code': code,
-        'state': authState
-      })
+export async function requestToken(code: string): Promise<string> {
+  const response = await fetch(`${authState.endpoint}/login/oauth/access_token`, {
+    method: 'post',
+    headers: DefaultHeaders,
+    body: JSON.stringify({
+      'client_id': ClientID,
+      'client_secret': ClientSecret,
+      'code': code,
+      'state': authState
     })
-    .then(response => response.json())
-    .then(response => response.access_token)
+  })
+  const json = await response.json()
+  return json.access_token
 }
 
 function getOAuthURL(authState: AuthState): string {
@@ -50,10 +49,16 @@ export function askUserToAuth(endpoint: string) {
   shell.openExternal(getOAuthURL(authState))
 }
 
-export function getToken(username: string): string {
-  return keytar.getPassword(ServiceName, username)
+export function getToken(user: User): string {
+  const serviceName = getServiceNameForUser(user)
+  return keytar.getPassword(serviceName, user.getLogin())
 }
 
-export function setToken(username: string, token: string) {
-  keytar.addPassword(ServiceName, username, token)
+export function setToken(user: User, token: string) {
+  const serviceName = getServiceNameForUser(user)
+  keytar.addPassword(serviceName, user.getLogin(), token)
+}
+
+function getServiceNameForUser(user: User): string {
+  return `GitHub – ${user.getEndpoint()}`
 }

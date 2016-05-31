@@ -50,7 +50,7 @@ export default class Info extends React.Component<InfoProps, InfoState> {
   }
 
   public async componentWillMount() {
-    const api = new Octokat({token: this.props.user.token})
+    const api = new Octokat({token: this.props.user.getToken()})
     const user = await api.user.fetch()
     this.setState({userAvatarURL: user.avatarUrl})
     console.log('user', user)
