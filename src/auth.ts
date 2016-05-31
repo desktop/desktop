@@ -1,6 +1,6 @@
 import {shell} from 'electron'
 
-const keytar = require('keytar')
+import * as keytar from 'keytar'
 
 const ServiceName = 'GitHubClient'
 
