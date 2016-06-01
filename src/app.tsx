@@ -11,11 +11,16 @@ interface AppState {
 }
 
 interface AppProps {
-  usersStore: UsersStore,
-  style?: Object
+  usersStore: UsersStore
 }
 
 const AppStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  flexGrow: 1
+}
+
+const ContentStyle = {
   display: 'flex',
   flexDirection: 'row',
   flexGrow: 1
@@ -32,12 +37,29 @@ export default class App extends React.Component<AppProps, AppState> {
     this.state = {selectedRow: -1, user: props.usersStore.getUsers()[0]}
   }
 
-  public render() {
-    const completeStyle = Object.assign({}, this.props.style, AppStyle)
+  private renderTitlebar() {
+    if (process.platform !== 'darwin') {
+      return null
+    }
+
     return (
-      <div style={completeStyle}>
-        <ThingList selectedRow={this.state.selectedRow} onSelectionChanged={row => this.handleSelectionChanged(row)}/>
-        {this.state.user ? <Info selectedRow={this.state.selectedRow} user={this.state.user}/> : <NotLoggedIn/>}
+      <div style={{
+        WebkitAppRegion: 'drag',
+        flexShrink: 0,
+        height: 20,
+        width: '100%'
+      }}/>
+    )
+  }
+
+  public render() {
+    return (
+      <div style={AppStyle}>
+        {this.renderTitlebar()}
+        <div style={ContentStyle}>
+          <ThingList selectedRow={this.state.selectedRow} onSelectionChanged={row => this.handleSelectionChanged(row)}/>
+          {this.state.user ? <Info selectedRow={this.state.selectedRow} user={this.state.user}/> : <NotLoggedIn/>}
+        </div>
       </div>
     )
   }

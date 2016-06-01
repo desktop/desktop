@@ -24,14 +24,10 @@ ipcRenderer.on('url-action', (event, msg) => {
   }
 })
 
-const style = {
-  paddingTop: process.platform === 'darwin' ? 20 : 0
-}
-
 const usersStore = new UsersStore(localStorage, tokenStore)
 usersStore.loadFromStore()
 
-ReactDOM.render(<App style={style} usersStore={usersStore}/>, document.getElementById('content'))
+ReactDOM.render(<App usersStore={usersStore}/>, document.getElementById('content'))
 
 async function addUserWithCode(code: string) {
   try {
