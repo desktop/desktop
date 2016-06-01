@@ -66,12 +66,16 @@ export default class App extends React.Component<AppProps, AppState> {
   }
 
   public render() {
+    const completeStyle = Object.assign({}, this.props.style, AppStyle)
     if (!this.state.user) {
-      return <NotLoggedIn/>
+      return (
+        <div style={completeStyle}>
+          <NotLoggedIn/>
+        </div>
+      )
     }
 
     const selectedRepo = this.state.repos[this.state.selectedRow]
-    const completeStyle = Object.assign({}, this.props.style, AppStyle)
     return (
       <div style={completeStyle}>
         <ReposList selectedRow={this.state.selectedRow}
