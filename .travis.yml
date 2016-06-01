@@ -9,6 +9,7 @@ os:
 branches:
   only:
     - master
+    - /^__release-.*/
 
 language: node_js
 node_js:
@@ -35,3 +36,6 @@ script:
   - npm run lint
   - npm run build:prod
   - npm test
+
+after_success:
+  - node script/publish

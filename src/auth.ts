@@ -10,7 +10,7 @@ const ClientSecret = '4b35aab1581a32e23af0d930f2a294ae3bb84960'
 const DefaultHeaders: {[key: string]: string} = {
   'Accept': 'application/vnd.github.v3+json, application/json',
   'Content-Type': 'application/json',
-  'User-Agent': `${app.getName()}/${app.getVersion}`
+  'User-Agent': `${app.getName()}/${app.getVersion()}`
 }
 
 interface AuthState {
