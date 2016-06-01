@@ -20,7 +20,8 @@ interface AuthState {
 let authState: AuthState = null
 
 export async function requestToken(code: string): Promise<string> {
-  const response = await fetch(`${authState.endpoint}/login/oauth/access_token`, {
+  const urlBase = getOAuthURL(authState.endpoint)
+  const response = await fetch(`${urlBase}/login/oauth/access_token`, {
     method: 'post',
     headers: DefaultHeaders,
     body: JSON.stringify({
@@ -34,18 +35,29 @@ export async function requestToken(code: string): Promise<string> {
   return json.access_token
 }
 
-function getOAuthURL(authState: AuthState): string {
-  return `${authState.endpoint}/login/oauth/authorize?client_id=${ClientID}&scope=repo&state=${authState.oAuthState}`
+function getOAuthAuthorizationURL(authState: AuthState): string {
+  const urlBase = getOAuthURL(authState.endpoint)
+  return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=repo&state=${authState.oAuthState}`
+}
+
+function getOAuthURL(endpoint: string): string {
+  if (endpoint === getDotComEndpoint()) {
+    // GitHub.com is A Special Snowflake in that the API lives at a subdomain
+    // but OAuth lives on the parent domain.
+    return 'https://github.com'
+  } else {
+    return endpoint
+  }
 }
 
 export function getDotComEndpoint(): string {
-  return 'https://github.com'
+  return 'https://api.github.com'
 }
 
 export function askUserToAuth(endpoint: string) {
   authState = {oAuthState: guid(), endpoint}
 
-  shell.openExternal(getOAuthURL(authState))
+  shell.openExternal(getOAuthAuthorizationURL(authState))
 }
 
 export function getKeyForUser(user: User): string {
