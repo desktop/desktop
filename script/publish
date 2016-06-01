@@ -1,0 +1,94 @@
+#!/usr/bin/env node
+
+'use strict'
+
+const TEST_PUBLISH = false
+
+let branchName = ''
+if (process.platform === 'darwin') {
+  branchName = process.env.TRAVIS_BRANCH
+} else if (process.platform === 'win32') {
+  branchName = process.env.APPVEYOR_REPO_BRANCH
+}
+
+if (!/^__release.*/.test(branchName) && !TEST_PUBLISH) {
+  process.exit(0)
+}
+
+const fs = require('fs')
+const cp = require('child_process')
+const AWS = require('aws-sdk')
+const distInfo = require('./dist-info')
+
+console.log('Packaging…')
+cp.execSync('npm run package')
+
+let sha = ''
+if (process.platform === 'darwin') {
+  sha = process.env.TRAVIS_COMMIT
+} else if (process.platform === 'win32') {
+  sha = process.env.APPVEYOR_REPO_COMMIT
+}
+
+sha = sha.substr(0, 8)
+
+console.log('Uploading…')
+
+if (process.platform === 'darwin') {
+  uploadOSXAssets()
+} else if (process.platform === 'win32') {
+  uploadWindowsAssets()
+} else {
+  console.error(`I dunno how to publish a release for ${process.platform} :(`)
+  process.exit(1)
+}
+
+function uploadOSXAssets () {
+  const name = `${distInfo.getProductName()}.zip`
+  upload(name, distInfo.getOSXZipPath())
+    .then(url => {
+      console.log(`Uploaded ${name} to ${url}`)
+    })
+    .catch(e => {
+      console.error(`Uploading ${name} failed: ${e}`)
+      process.exit(1)
+    })
+}
+
+function uploadWindowsAssets () {
+  const name = `${distInfo.getProductName()}Setup.msi`
+  upload(name, distInfo.getWindowsInstallerPath())
+    .then(url => {
+      console.log(`Uploaded ${name} to ${url}`)
+    })
+    .catch(e => {
+      console.error(`Uploading ${name} failed: ${e}`)
+      process.exit(1)
+    })
+}
+
+function upload (assetName, assetPath) {
+  const s3Info = {accessKeyId: process.env.S3_KEY, secretAccessKey: process.env.S3_SECRET}
+  const s3 = new AWS.S3(s3Info)
+
+  const bucket = process.env.S3_BUCKET
+  const key = `releases/${distInfo.getVersion()}-${sha}/${assetName}`
+  const url = `https://s3.amazonaws.com/${bucket}/${key}`
+
+  const uploadParams = {
+    Bucket: bucket,
+    ACL: 'public-read',
+    Key: key,
+    Body: fs.createReadStream(assetPath)
+  }
+
+  return new Promise((resolve, reject) => {
+    s3.upload(uploadParams, (error, data) => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve(url)
+      }
+    })
+  })
+}

@@ -39,6 +39,7 @@
     "webpack-hot-middleware": "^2.10.0"
   },
   "devDependencies": {
+    "aws-sdk": "^2.3.15",
     "babel-core": "^6.7.6",
     "babel-loader": "^6.2.4",
     "babel-plugin-react-transform": "^2.0.2",
