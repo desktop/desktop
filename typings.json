@@ -2,10 +2,15 @@
   "ambientDependencies": {
     "chai": "registry:dt/chai#3.4.0+20160317120654",
     "github-electron": "registry:dt/github-electron#1.0.2+20160523035412",
+    "keytar": "registry:dt/keytar#3.0.0+20160316155526",
     "mocha": "registry:dt/mocha#2.2.5+20160317120654",
     "node": "registry:dt/node#6.0.0+20160523035754",
     "react": "registry:dt/react#0.14.0+20160423065914",
     "react-addons-test-utils": "registry:dt/react-addons-test-utils#0.14.0+20160427035638",
-    "react-dom": "registry:dt/react-dom#0.14.0+20160412154040"
+    "react-dom": "registry:dt/react-dom#0.14.0+20160412154040",
+    "whatwg-fetch": "registry:dt/whatwg-fetch#0.0.0+20160524142046"
+  },
+  "dependencies": {
+    "event-kit": "registry:npm/event-kit#2.0.0+20160526055758"
   }
 }

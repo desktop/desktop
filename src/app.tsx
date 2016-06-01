@@ -1,14 +1,17 @@
 import * as React from 'react'
 import ThingList from './thing-list'
 import Info from './info'
+import UsersStore from './users-store'
+import User from './user'
+import NotLoggedIn from './not-logged-in'
 
-const Octokat = require('octokat')
-
-type AppState = {
-  selectedRow: number
+interface AppState {
+  selectedRow: number,
+  user: User
 }
 
-type AppProps = {
+interface AppProps {
+  usersStore: UsersStore,
   style?: Object
 }
 
@@ -19,21 +22,14 @@ const AppStyle = {
 }
 
 export default class App extends React.Component<AppProps, AppState> {
-  private octo: any
-
   public constructor(props: AppProps) {
     super(props)
 
-    this.octo = new Octokat({
-      token: process.env.GITHUB_ACCESS_TOKEN
+    props.usersStore.onUsersChanged(users => {
+      this.setState({selectedRow: this.state.selectedRow, user: users[0]})
     })
 
-    this.state = {selectedRow: -1}
-  }
-
-  public async componentDidMount() {
-    const zen = await this.octo.zen.read()
-    console.log('zen', zen)
+    this.state = {selectedRow: -1, user: props.usersStore.getUsers()[0]}
   }
 
   public render() {
@@ -41,12 +37,12 @@ export default class App extends React.Component<AppProps, AppState> {
     return (
       <div style={completeStyle}>
         <ThingList selectedRow={this.state.selectedRow} onSelectionChanged={row => this.handleSelectionChanged(row)}/>
-        <Info selectedRow={this.state.selectedRow}/>
+        {this.state.user ? <Info selectedRow={this.state.selectedRow} user={this.state.user}/> : <NotLoggedIn/>}
       </div>
     )
   }
 
   private handleSelectionChanged(row: number) {
-    this.setState({selectedRow: row})
+    this.setState({selectedRow: row, user: this.state.user})
   }
 }

@@ -1,6 +1,7 @@
 import {BrowserWindow} from 'electron'
 
 import Stats from './stats'
+import {URLActionType} from '../lib/parse-url'
 
 export default class AppWindow {
   private window: Electron.BrowserWindow
@@ -51,7 +52,27 @@ export default class AppWindow {
     this.window.on('closed', fn)
   }
 
+  public sendURLAction(action: URLActionType) {
+    this.send('url-action', action)
+  }
+
+  public isMinimized() {
+    return this.window.isMinimized()
+  }
+
+  public restore() {
+    this.window.restore()
+  }
+
+  public focus() {
+    this.window.focus()
+  }
+
   private rendererLog(msg: string) {
-    this.window.webContents.send('log', msg)
+    this.send('log', msg)
+  }
+
+  private send(channel: string, args: any) {
+    this.window.webContents.send(channel, args)
   }
 }

@@ -3,10 +3,64 @@ import {app, Menu} from 'electron'
 import AppWindow from './app-window'
 import Stats from './stats'
 import {buildDefaultMenu} from './menu'
+import parseURL from '../lib/parse-url'
 
 const stats = new Stats()
 
 let mainWindow: AppWindow = null
+
+app.on('will-finish-launching', () => {
+  app.on('open-url', (event, url) => {
+    const action = parseURL(url)
+    mainWindow.sendURLAction(action)
+    event.preventDefault()
+  })
+})
+
+if (process.platform !== 'darwin') {
+  const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore()
+      }
+      mainWindow.focus()
+    }
+
+    // look at the second argument received, it should have the OAuth
+    // callback contents and code for us to complete the signin flow
+    if (commandLine.length > 1) {
+      const action = parseURL(commandLine[1])
+      mainWindow.sendURLAction(action)
+    }
+  })
+
+  if (shouldQuit) {
+    app.quit()
+  }
+}
+
+app.on('ready', () => {
+  stats.readyTime = Date.now()
+
+  app.setAsDefaultProtocolClient('x-github-client')
+
+  createWindow()
+
+  Menu.setApplicationMenu(buildDefaultMenu())
+})
+
+app.on('activate', () => {
+  if (!mainWindow) {
+    createWindow()
+  }
+})
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit()
+  }
+})
 
 function createWindow() {
   mainWindow = new AppWindow(stats)
@@ -16,23 +70,3 @@ function createWindow() {
 
   mainWindow.load()
 }
-
-app.on('ready', () => {
-  stats.readyTime = Date.now()
-
-  createWindow()
-
-  Menu.setApplicationMenu(buildDefaultMenu())
-})
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
-
-app.on('activate', () => {
-  if (!mainWindow) {
-    createWindow()
-  }
-})
