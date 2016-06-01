@@ -24,6 +24,10 @@ export default class AppWindow {
 
   public load() {
     let startLoad: number = null
+    this.window.webContents.on('did-start-loading', () => {
+      startLoad = Date.now()
+    })
+
     this.window.webContents.on('did-finish-load', () => {
       if (process.env.NODE_ENV === 'development') {
         this.window.webContents.openDevTools()
@@ -40,7 +44,6 @@ export default class AppWindow {
       this.window.show()
     })
 
-    startLoad = Date.now()
     this.window.loadURL(`file://${__dirname}/../../static/index.html`)
   }
 
