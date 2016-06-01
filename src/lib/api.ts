@@ -19,8 +19,7 @@ export default class API {
   private client: any
 
   public constructor(user: User) {
-    // TODO: Use the user's endpoint
-    this.client = new Octokat({token: user.getToken()})
+    this.client = new Octokat({token: user.getToken(), rootURL: user.getEndpoint()})
   }
 
   public async fetchRepos(): Promise<Repo[]> {
