@@ -32,7 +32,10 @@ export default class App extends React.Component<AppProps, AppState> {
     super(props)
 
     props.usersStore.onUsersChanged(users => {
-      this.setState(Object.assign({}, this.state, {user: users[0]}))
+      const user = users[0]
+      this.api = new API(user)
+      this.setState(Object.assign({}, this.state, {user}))
+      this.fetchRepos()
     })
 
     const user = props.usersStore.getUsers()[0]
@@ -43,15 +46,23 @@ export default class App extends React.Component<AppProps, AppState> {
       repos: []
     }
 
-    this.api = new API(user)
+    if (user) {
+      this.api = new API(user)
+    }
   }
 
-  public async componentWillMount() {
+  private async fetchRepos() {
     const repos = await this.api.fetchRepos()
     this.setState(Object.assign({}, this.state, {
       loadingRepos: false,
       repos
     }))
+  }
+
+  public async componentWillMount() {
+    if (this.api) {
+      this.fetchRepos()
+    }
   }
 
   public render() {
