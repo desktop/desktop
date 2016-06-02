@@ -5,7 +5,7 @@ import {ipcRenderer} from 'electron'
 
 import App from './app'
 import {requestToken, getDotComEndpoint} from './auth'
-import {URLActionType, OAuthAction} from './lib/parse-url'
+import {URLActionType, isOAuthAction} from './lib/parse-url'
 import UsersStore from './users-store'
 import User from './user'
 import tokenStore from './token-store'
@@ -18,20 +18,15 @@ ipcRenderer.on('log', (event, msg) => {
 
 ipcRenderer.on('url-action', (event, msg) => {
   const action = msg as URLActionType
-  if (action.name === 'oauth') {
-    const oAuthAction = action as OAuthAction
-    addUserWithCode(oAuthAction.args.code)
+  if (isOAuthAction(action)) {
+    addUserWithCode(action.args.code)
   }
 })
-
-const style = {
-  paddingTop: process.platform === 'darwin' ? 20 : 0
-}
 
 const usersStore = new UsersStore(localStorage, tokenStore)
 usersStore.loadFromStore()
 
-ReactDOM.render(<App style={style} usersStore={usersStore}/>, document.getElementById('content'))
+ReactDOM.render(<App usersStore={usersStore}/>, document.getElementById('content'))
 
 async function addUserWithCode(code: string) {
   try {

@@ -15,11 +15,16 @@ interface AppState {
 }
 
 interface AppProps {
-  usersStore: UsersStore,
-  style?: Object
+  usersStore: UsersStore
 }
 
 const AppStyle = {
+  display: 'flex',
+  flexDirection: 'column',
+  flexGrow: 1
+}
+
+const ContentStyle = {
   display: 'flex',
   flexDirection: 'row',
   flexGrow: 1
@@ -65,25 +70,48 @@ export default class App extends React.Component<AppProps, AppState> {
     }
   }
 
-  public render() {
-    const completeStyle = Object.assign({}, this.props.style, AppStyle)
-    if (!this.state.user) {
-      return (
-        <div style={completeStyle}>
-          <NotLoggedIn/>
-        </div>
-      )
+  private renderTitlebar() {
+    if (process.platform !== 'darwin') {
+      return null
     }
 
+    return (
+      <div style={{
+        WebkitAppRegion: 'drag',
+        flexShrink: 0,
+        height: 20,
+        width: '100%'
+      }}/>
+    )
+  }
+
+  private renderApp() {
     const selectedRepo = this.state.repos[this.state.selectedRow]
     return (
-      <div style={completeStyle}>
+      <div style={ContentStyle}>
         <ReposList selectedRow={this.state.selectedRow}
                    onSelectionChanged={row => this.handleSelectionChanged(row)}
                    user={this.state.user}
                    repos={this.state.repos}
                    loading={this.state.loadingRepos}/>
         <Info selectedRepo={selectedRepo} user={this.state.user}/>
+      </div>
+    )
+  }
+
+  private renderNotLoggedIn() {
+    return (
+      <div style={ContentStyle}>
+        <NotLoggedIn/>
+      </div>
+    )
+  }
+
+  public render() {
+    return (
+      <div style={AppStyle}>
+        {this.renderTitlebar()}
+        {this.state.user ? this.renderApp() : this.renderNotLoggedIn()}
       </div>
     )
   }
