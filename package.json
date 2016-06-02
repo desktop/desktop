@@ -19,7 +19,7 @@
     "build:dev": "npm run compile:dev && env NODE_ENV=development node script/build",
     "build:prod": "npm run compile:prod && env NODE_ENV=production node script/build",
     "package": "node script/package",
-    "clean": "rm -rf build",
+    "clean": "rimraf build",
     "rebuild:dev": "npm run clean && npm run build:dev",
     "rebuild:prod": "npm run clean && npm run build:prod",
     "lint": "tslint ./src/**/*.ts ./src/**/*.tsx ./test/**/*.ts ./test/**/*.tsx"
@@ -58,6 +58,7 @@
     "mocha": "^2.4.5",
     "react-addons-test-utils": "^15.0.2",
     "react-transform-hmr": "^1.0.4",
+    "rimraf": "^2.5.2",
     "ts-loader": "^0.8.2",
     "ts-node": "^0.7.2",
     "tslint": "^3.9.0",
