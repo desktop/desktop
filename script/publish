@@ -35,37 +35,37 @@ sha = sha.substr(0, 8)
 
 console.log('Uploading…')
 
+let uploadPromise = null
 if (process.platform === 'darwin') {
-  uploadOSXAssets()
+  uploadPromise = uploadOSXAssets()
 } else if (process.platform === 'win32') {
-  uploadWindowsAssets()
+  uploadPromise = uploadWindowsAssets()
 } else {
   console.error(`I dunno how to publish a release for ${process.platform} :(`)
   process.exit(1)
 }
 
+uploadPromise
+  .then(({url, name}) => {
+    console.log(`Uploaded ${name} to ${url}`)
+  })
+  .catch(e => {
+    console.error(`Uploading failed: ${e}`)
+    process.exit(1)
+  })
+
 function uploadOSXAssets () {
   const name = `${distInfo.getProductName()}.zip`
-  upload(name, distInfo.getOSXZipPath())
-    .then(url => {
-      console.log(`Uploaded ${name} to ${url}`)
-    })
-    .catch(e => {
-      console.error(`Uploading ${name} failed: ${e}`)
-      process.exit(1)
-    })
+  return upload(name, distInfo.getOSXZipPath()).then(url => {
+    return {url, name}
+  })
 }
 
 function uploadWindowsAssets () {
   const name = `${distInfo.getProductName()}Setup.msi`
-  upload(name, distInfo.getWindowsInstallerPath())
-    .then(url => {
-      console.log(`Uploaded ${name} to ${url}`)
-    })
-    .catch(e => {
-      console.error(`Uploading ${name} failed: ${e}`)
-      process.exit(1)
-    })
+  return upload(name, distInfo.getWindowsInstallerPath()).then(url => {
+    return {url, name}
+  })
 }
 
 function upload (assetName, assetPath) {
