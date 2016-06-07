@@ -99,7 +99,7 @@ function upload (assetName, assetPath) {
 
 function createSignature (body) {
   const hmac = crypto.createHmac('sha1', process.env.DEPLOYMENT_SECRET)
-  hmac.update(body)
+  hmac.update(JSON.stringify(body))
   return `sha1=${hmac.digest('hex')}`
 }
 
