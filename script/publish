@@ -50,10 +50,10 @@ if (process.platform === 'darwin') {
 uploadPromise
   .then(({url, name}) => {
     console.log(`Uploaded ${name} to ${url}`)
-    updateDeploy()
+    return updateDeploy()
   })
   .catch(e => {
-    console.error(`Uploading failed: ${e}`)
+    console.error(`Publishing failed: ${e}`)
     process.exit(1)
   })
 
