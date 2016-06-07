@@ -1,6 +1,7 @@
 import * as React from 'react'
 
 import User from './user'
+import Octicon from './octicon'
 
 const Octokat = require('octokat')
 
@@ -98,6 +99,8 @@ export default class Info extends React.Component<InfoProps, InfoState> {
         <div style={ImageStyle}>
           <img src={img}/>
         </div>
+
+        <Octicon symbol="x" />
       </div>
     )
   }
