@@ -12,6 +12,7 @@ if (process.platform === 'darwin') {
 }
 
 if (!/^__release.*/.test(branchName) && !TEST_PUBLISH) {
+  console.log(`${branchName} isn't a release branch. Skipping publish.`)
   process.exit(0)
 }
 
