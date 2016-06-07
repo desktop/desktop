@@ -20,6 +20,8 @@ const fs = require('fs')
 const cp = require('child_process')
 const AWS = require('aws-sdk')
 const distInfo = require('./dist-info')
+const crypto = require('crypto')
+const request = require('request')
 
 console.log('Packaging…')
 cp.execSync('npm run package')
@@ -48,6 +50,7 @@ if (process.platform === 'darwin') {
 uploadPromise
   .then(({url, name}) => {
     console.log(`Uploaded ${name} to ${url}`)
+    updateDeploy()
   })
   .catch(e => {
     console.error(`Uploading failed: ${e}`)
@@ -90,6 +93,45 @@ function upload (assetName, assetPath) {
       } else {
         resolve(url)
       }
+    })
+  })
+}
+
+function createSignature (body) {
+  const hmac = crypto.createHmac('sha1', process.env.DEPLOYMENT_SECRET)
+  hmac.update(body)
+  return `sha1=${hmac.digest('hex')}`
+}
+
+function updateDeploy () {
+  const body = {
+    platform: process.platform,
+    branch_name: branchName
+  }
+  const signature = createSignature(body)
+  const options = {
+    method: 'POST',
+    url: 'https://central.github.com/api/deploy_built',
+    headers: {
+      'X-Hub-Signature': signature
+    },
+    json: true,
+    body
+  }
+
+  return new Promise((resolve, reject) => {
+    request(options, (error, response, body) => {
+      if (error) {
+        reject(error)
+        return
+      }
+
+      if (response.statusCode !== 200) {
+        reject(new Error(`Received a non-200 response (${response.statusCode}): ${body}`))
+        return
+      }
+
+      resolve()
     })
   })
 }
