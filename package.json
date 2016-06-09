@@ -9,6 +9,10 @@
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
   },
+  "engines": {
+    "node": ">= 6",
+    "npm": ">= 3"
+  },
   "description": "The People's Glorious GitHub Client",
   "scripts": {
     "test": "electron-mocha --renderer --require ts-node/register test/*.ts test/*.tsx",
