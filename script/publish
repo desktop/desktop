@@ -105,7 +105,7 @@ function createSignature (body) {
 
 function updateDeploy () {
   const body = {
-    platform: process.platform,
+    context: process.platform,
     branch_name: branchName
   }
   const signature = createSignature(body)
