@@ -59,16 +59,12 @@ uploadPromise
 
 function uploadOSXAssets () {
   const name = `${distInfo.getProductName()}.zip`
-  return upload(name, distInfo.getOSXZipPath()).then(url => {
-    return {url, name}
-  })
+  return upload(name, distInfo.getOSXZipPath()).then(url => ({url, name}))
 }
 
 function uploadWindowsAssets () {
   const name = `${distInfo.getProductName()}Setup.msi`
-  return upload(name, distInfo.getWindowsInstallerPath()).then(url => {
-    return {url, name}
-  })
+  return upload(name, distInfo.getWindowsInstallerPath()).then(url => ({url, name}))
 }
 
 function upload (assetName, assetPath) {
