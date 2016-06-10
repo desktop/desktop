@@ -50,7 +50,7 @@ if (process.platform === 'darwin') {
 uploadPromise
   .then(({url, name}) => {
     console.log(`Uploaded ${name} to ${url}`)
-    return updateDeploy()
+    return updateDeploy([{url, name}])
   })
   .catch(e => {
     console.error(`Publishing failed: ${e}`)
@@ -99,10 +99,11 @@ function createSignature (body) {
   return `sha1=${hmac.digest('hex')}`
 }
 
-function updateDeploy () {
+function updateDeploy (artifacts) {
   const body = {
     context: process.platform,
-    branch_name: branchName
+    branch_name: branchName,
+    artifacts
   }
   const signature = createSignature(body)
   const options = {
