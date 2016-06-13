@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import User from './user'
-import Octicon from './octicon'
+import {Octicon, OcticonSymbol} from './octicon'
 
 const Octokat = require('octokat')
 
@@ -11,6 +11,14 @@ const LOLZ = [
   'http://www.reactiongifs.com/r/ihniwid.gif',
   'http://www.reactiongifs.com/r/dTa.gif',
   'http://www.reactiongifs.com/r/didit.gif'
+]
+
+const LOLZ2: OcticonSymbol[] = [
+  OcticonSymbol.x,
+  OcticonSymbol.alert,
+  OcticonSymbol.clippy,
+  OcticonSymbol.calendar,
+  OcticonSymbol.diff_removed
 ]
 
 interface InfoProps {
@@ -85,6 +93,7 @@ export default class Info extends React.Component<InfoProps, InfoState> {
     }
 
     const img = LOLZ[row % LOLZ.length]
+    const symbol = LOLZ2[row % LOLZ2.length]
     return (
       <div style={ContainerStyle}>
         <div style={{
@@ -100,7 +109,7 @@ export default class Info extends React.Component<InfoProps, InfoState> {
           <img src={img}/>
         </div>
 
-        <Octicon symbol="x" />
+        <Octicon symbol={symbol} width={32} height={32} />
       </div>
     )
   }
