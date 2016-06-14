@@ -40,7 +40,7 @@ export default class Info extends React.Component<InfoProps, InfoState> {
       ? OcticonSymbol.lock
       : repo.fork
         ? OcticonSymbol.repo_forked
-        : OcticonSymbol.repo;
+        : OcticonSymbol.repo
 
     return (
       <div style={ContainerStyle}>
