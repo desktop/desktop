@@ -24,7 +24,7 @@ xml2js.parseString(xml, function (err, result) {
     const viewBoxMatch = viewBoxRe.exec(viewBox);
 
     if(!viewBoxMatch) {
-      console.error("Unexpected viewBox format for " + id);
+      console.error(`Unexpected viewBox format for ${id}`);
       process.exit(1);
     }
 
