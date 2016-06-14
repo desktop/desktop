@@ -4,13 +4,7 @@ import * as React from 'react'
 import User from './user'
 import {Repo} from './lib/api'
 
-const LOLZ2: OcticonSymbol[] = [
-  OcticonSymbol.x,
-  OcticonSymbol.alert,
-  OcticonSymbol.clippy,
-  OcticonSymbol.calendar,
-  OcticonSymbol.diff_removed
-]
+import {Octicon, OcticonSymbol} from './octicon'
 
 interface InfoProps {
   selectedRepo: Repo,
@@ -42,9 +36,15 @@ export default class Info extends React.Component<InfoProps, InfoState> {
       return this.renderNoSelection()
     }
 
-    const symbol = LOLZ2[row % LOLZ2.length]
+    const symbol = repo.private
+      ? OcticonSymbol.lock
+      : repo.fork
+        ? OcticonSymbol.repo_forked
+        : OcticonSymbol.repo;
+
     return (
       <div style={ContainerStyle}>
+        <h1><Octicon height={32} width={32} symbol={symbol} /> {repo.name}</h1>
         Stars: {repo.stargazersCount}
 
         <button onClick={() => shell.openExternal(repo.htmlUrl)}>Open</button>
