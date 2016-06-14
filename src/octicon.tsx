@@ -34,10 +34,6 @@ export class Octicon extends React.Component<OcticonProps, void> {
     symbol: OcticonSymbol.mark_github
   }
 
-  public constructor(props: OcticonProps) {
-    super(props)
-  }
-
   public render() {
     const symbol = this.props.symbol
     const viewBox = `0 0 ${symbol.w} ${symbol.h}`
