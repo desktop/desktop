@@ -31,7 +31,7 @@ xml2js.parseString(xml, function (err, result) {
     const [, w, h] = viewBoxMatch
     const jsFriendlyName = id.replace(/-/g, '_');
 
-    out.write(`  public static get ${jsFriendlyName}() { return new OcticonSymbol(${w}, ${h}, '${pathData}'); }\n`);
+    out.write(`  public static get ${jsFriendlyName}() { return new OcticonSymbol(${w}, ${h}, '${pathData}') }\n`);
   });
 
   out.write("}\n");
