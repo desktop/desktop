@@ -12,6 +12,7 @@ export interface Repo {
     type: 'user' | 'org'
   },
   private: boolean,
+  fork: boolean,
   stargazersCount: number
 }
 
