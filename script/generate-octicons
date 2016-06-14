@@ -1,5 +1,12 @@
 #!/usr/bin/env node
 
+/* generate-octicons
+ *
+ * Utility script for generating a strongly typed representation of all
+ * octicons currently in the master branch of primer/octicons. Automatically
+ * downloads the latest version of the `sprite.octicons.svg` file.
+ */
+
 'use strict'
 
 const fs = require('fs');
@@ -34,7 +41,7 @@ got('https://github.com/primer/octicons/raw/master/build/sprite.octicons.svg')
           process.exit(1);
         }
 
-        const [, w, h] = viewBoxMatch
+        const [, w, h] = viewBoxMatch;
         const jsFriendlyName = id.replace(/-/g, '_');
 
         out.write(`  public static get ${jsFriendlyName}() { return new OcticonSymbol(${w}, ${h}, '${pathData}') }\n`);
