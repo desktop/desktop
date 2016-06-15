@@ -10,7 +10,7 @@ We use some ES6+ language constructs in our build scripts so you need [Node.js](
 
 ### node-gyp
 
-node-gyp is required to build some of our native npm packages (such as keytar)
+node-gyp is required to build some of our native npm packages (such as [keytar](https://github.com/atom/node-keytar))
 
 * Install python 2.7 ([Windows](https://www.python.org/downloads/windows/), [MacOS](https://www.python.org/downloads/mac-osx/))
 * **MacOS:** Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
