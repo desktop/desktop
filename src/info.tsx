@@ -32,8 +32,8 @@ export default class Info extends React.Component<InfoProps, InfoState> {
 
   private iconForRepo(repo: Repo): OcticonSymbol {
 
-    if(repo.private) return OcticonSymbol.lock
-    if(repo.fork) return OcticonSymbol.repoForked
+    if (repo.private) { return OcticonSymbol.lock }
+    if (repo.fork) { return OcticonSymbol.repoForked }
 
     return OcticonSymbol.repo
   }
@@ -44,7 +44,7 @@ export default class Info extends React.Component<InfoProps, InfoState> {
       return this.renderNoSelection()
     }
 
-    const symbol = this.iconForRepo(repo);
+    const symbol = this.iconForRepo(repo)
 
     return (
       <div style={ContainerStyle}>
