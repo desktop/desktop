@@ -31,7 +31,7 @@ export class Octicon extends React.Component<OcticonProps, void> {
   public static defaultProps: OcticonProps = {
     width: 16,
     height: 16,
-    symbol: OcticonSymbol.mark_github
+    symbol: OcticonSymbol.markGithub
   }
 
   public render() {

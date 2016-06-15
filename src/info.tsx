@@ -39,7 +39,7 @@ export default class Info extends React.Component<InfoProps, InfoState> {
     const symbol = repo.private
       ? OcticonSymbol.lock
       : repo.fork
-        ? OcticonSymbol.repo_forked
+        ? OcticonSymbol.repoForked
         : OcticonSymbol.repo
 
     return (

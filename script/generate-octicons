@@ -14,6 +14,7 @@ const process = require('process');
 const xml2js = require('xml2js');
 const got = require('got');
 const path = require('path');
+const toCamelCase = require('to-camel-case');
 
 console.log('Downloading latest version of octicon sprite svg');
 
@@ -42,7 +43,7 @@ got('https://github.com/primer/octicons/raw/master/build/sprite.octicons.svg')
         }
 
         const [, w, h] = viewBoxMatch;
-        const jsFriendlyName = id.replace(/-/g, '_');
+        const jsFriendlyName = toCamelCase(id);
 
         out.write(`  public static get ${jsFriendlyName}() { return new OcticonSymbol(${w}, ${h}, '${pathData}') }\n`);
       });

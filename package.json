@@ -65,6 +65,7 @@
     "react-addons-test-utils": "^15.0.2",
     "react-transform-hmr": "^1.0.4",
     "rimraf": "^2.5.2",
+    "to-camel-case": "^1.0.0",
     "ts-loader": "^0.8.2",
     "ts-node": "^0.7.2",
     "tslint": "^3.9.0",
