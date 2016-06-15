@@ -4,7 +4,7 @@
 
 ### Node.js
 
-We use some ES6+ language constructs in our build scripts sou need [Node.js](https://nodejs.org) 6+ (just pick whatever the 'current' release is at the moment). Node 6 comes with npm 3 out of the box and while npm 3 isn't strictly necessary to build it does make things more efficient, especially on Windows where deep folder hierarchies can be detrimental to build speed.
+We use some ES6+ language constructs in our build scripts so you need [Node.js](https://nodejs.org) 6+ (just pick whatever the 'current' release is at the moment). Node 6 comes with npm 3 out of the box and while npm 3 isn't strictly necessary to build it does make things more efficient, especially on Windows where deep folder hierarchies can be detrimental to build speed.
 
 *Windows only: Make sure you allow the Node.js installer to add node to the PATH, it'll make life much easier for you*
 
