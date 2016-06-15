@@ -3,7 +3,7 @@ import {OcticonSymbol} from './octicons.generated'
 
 // We do this as a convenience so that others don't have to
 // import or know about the generated file.
-export {OcticonSymbol as OcticonSymbol};
+export {OcticonSymbol as OcticonSymbol}
 
 interface OcticonProps {
   width?: number,
