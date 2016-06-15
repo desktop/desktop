@@ -28,7 +28,7 @@ interface OcticonProps {
  */
 export class Octicon extends React.Component<OcticonProps, void> {
 
-  static defaultProps: OcticonProps = {
+  public static defaultProps: OcticonProps = {
     width: 16,
     height: 16,
     symbol: OcticonSymbol.mark_github
