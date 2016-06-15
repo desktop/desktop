@@ -35,3 +35,6 @@ img {
   height: 100%;
   width: 100%;
 }
+
+/* https://css-tricks.com/cascading-svg-fill-color/ */
+svg.octicon { fill: currentColor; }

@@ -60,11 +60,13 @@
     "electron-winstaller": "^2.3.0",
     "express": "^4.13.4",
     "fs-extra": "^0.30.0",
+    "got": "^6.3.0",
     "mocha": "^2.4.5",
     "react-addons-test-utils": "^15.0.2",
     "react-transform-hmr": "^1.0.4",
     "request": "^2.72.0",
     "rimraf": "^2.5.2",
+    "to-camel-case": "^1.0.0",
     "ts-loader": "^0.8.2",
     "ts-node": "^0.7.2",
     "tslint": "^3.9.0",
@@ -73,6 +75,7 @@
     "webpack": "^1.12.15",
     "webpack-dev-middleware": "^1.6.1",
     "webpack-hot-middleware": "^2.10.0",
-    "webpack-target-electron-renderer": "^0.4.0"
+    "webpack-target-electron-renderer": "^0.4.0",
+    "xml2js": "^0.4.16"
   }
 }
