@@ -12,6 +12,7 @@ if (process.platform === 'darwin') {
 }
 
 if (!/^__release.*/.test(branchName) && !TEST_PUBLISH) {
+  console.log(`${branchName} isn't a release branch. Skipping publish.`)
   process.exit(0)
 }
 
@@ -19,6 +20,8 @@ const fs = require('fs')
 const cp = require('child_process')
 const AWS = require('aws-sdk')
 const distInfo = require('./dist-info')
+const crypto = require('crypto')
+const request = require('request')
 
 console.log('Packaging…')
 cp.execSync('npm run package')
@@ -34,37 +37,34 @@ sha = sha.substr(0, 8)
 
 console.log('Uploading…')
 
+let uploadPromise = null
 if (process.platform === 'darwin') {
-  uploadOSXAssets()
+  uploadPromise = uploadOSXAssets()
 } else if (process.platform === 'win32') {
-  uploadWindowsAssets()
+  uploadPromise = uploadWindowsAssets()
 } else {
   console.error(`I dunno how to publish a release for ${process.platform} :(`)
   process.exit(1)
 }
 
+uploadPromise
+  .then(({url, name}) => {
+    console.log(`Uploaded ${name} to ${url}`)
+    return updateDeploy([{url, name}])
+  })
+  .catch(e => {
+    console.error(`Publishing failed: ${e}`)
+    process.exit(1)
+  })
+
 function uploadOSXAssets () {
   const name = `${distInfo.getProductName()}.zip`
-  upload(name, distInfo.getOSXZipPath())
-    .then(url => {
-      console.log(`Uploaded ${name} to ${url}`)
-    })
-    .catch(e => {
-      console.error(`Uploading ${name} failed: ${e}`)
-      process.exit(1)
-    })
+  return upload(name, distInfo.getOSXZipPath()).then(url => ({url, name}))
 }
 
 function uploadWindowsAssets () {
   const name = `${distInfo.getProductName()}Setup.msi`
-  upload(name, distInfo.getWindowsInstallerPath())
-    .then(url => {
-      console.log(`Uploaded ${name} to ${url}`)
-    })
-    .catch(e => {
-      console.error(`Uploading ${name} failed: ${e}`)
-      process.exit(1)
-    })
+  return upload(name, distInfo.getWindowsInstallerPath()).then(url => ({url, name}))
 }
 
 function upload (assetName, assetPath) {
@@ -89,6 +89,46 @@ function upload (assetName, assetPath) {
       } else {
         resolve(url)
       }
+    })
+  })
+}
+
+function createSignature (body) {
+  const hmac = crypto.createHmac('sha1', process.env.DEPLOYMENT_SECRET)
+  hmac.update(JSON.stringify(body))
+  return `sha1=${hmac.digest('hex')}`
+}
+
+function updateDeploy (artifacts) {
+  const body = {
+    context: process.platform,
+    branch_name: branchName,
+    artifacts
+  }
+  const signature = createSignature(body)
+  const options = {
+    method: 'POST',
+    url: 'https://central.github.com/api/deploy_built',
+    headers: {
+      'X-Hub-Signature': signature
+    },
+    json: true,
+    body
+  }
+
+  return new Promise((resolve, reject) => {
+    request(options, (error, response, body) => {
+      if (error) {
+        reject(error)
+        return
+      }
+
+      if (response.statusCode !== 200) {
+        reject(new Error(`Received a non-200 response (${response.statusCode}): ${body}`))
+        return
+      }
+
+      resolve()
     })
   })
 }

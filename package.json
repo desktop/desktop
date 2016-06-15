@@ -63,6 +63,7 @@
     "mocha": "^2.4.5",
     "react-addons-test-utils": "^15.0.2",
     "react-transform-hmr": "^1.0.4",
+    "request": "^2.72.0",
     "rimraf": "^2.5.2",
     "ts-loader": "^0.8.2",
     "ts-node": "^0.7.2",
