@@ -10,6 +10,7 @@ const config = {
   entry: common.entry,
   output: common.output,
   plugins: [
+    ...common.plugins,
     new webpack.optimize.UglifyJsPlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(true),
     new webpack.DefinePlugin({

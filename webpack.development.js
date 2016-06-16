@@ -18,6 +18,7 @@ const config = {
     publicPath: 'http://localhost:3000/build/'
   },
   plugins: [
+    ...common.plugins,
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
     new webpack.DefinePlugin({

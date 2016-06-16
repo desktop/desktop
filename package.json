@@ -62,6 +62,7 @@
     "express": "^4.13.4",
     "fs-extra": "^0.30.0",
     "got": "^6.3.0",
+    "html-webpack-plugin": "^2.21.0",
     "mocha": "^2.4.5",
     "node-sass": "^3.7.0",
     "react-addons-test-utils": "^15.0.2",
