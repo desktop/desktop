@@ -57,7 +57,7 @@ const options = {
   }
 }
 
-if (process.platform === 'darwin') {
+if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
 
