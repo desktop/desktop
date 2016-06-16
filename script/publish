@@ -93,7 +93,16 @@ function upload (assetName, assetPath) {
       if (error) {
         reject(error)
       } else {
-        resolve({name: assetName, url})
+        const stats = fs.statSync(assetPath)
+        const hash = crypto.createHash('sha1')
+        const input = fs.createReadStream(assetPath)
+
+        hash.on('finish', () => {
+          const sha = hash.read().toString('hex')
+          resolve({name: assetName, url, size: stats['size'], sha})
+        })
+
+        input.pipe(hash)
       }
     })
   })
