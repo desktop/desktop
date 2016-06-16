@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+﻿#!/usr/bin/env node
 
 'use strict'
 
@@ -26,7 +26,7 @@ const options = {
   'build-version': appPackage.version,
   asar: false, // TODO: Probably wanna enable this down the road.
   out: path.join(projectRoot, 'dist'),
-  icon: path.join(buildRoot, 'static', 'icon'),
+  icon: path.join(projectRoot, 'static', 'icon'),
   dir: path.join(projectRoot, 'build'),
   overwrite: true,
   prune: false, // We only install production dependencies above.
