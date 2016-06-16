@@ -48,9 +48,9 @@ if (process.platform === 'darwin') {
 }
 
 uploadPromise
-  .then(({url, name}) => {
-    console.log(`Uploaded ${name} to ${url}`)
-    return updateDeploy([{url, name}])
+  .then(artifacts => {
+    console.log(`Uploaded artifacts: ${artifacts}`)
+    return updateDeploy(artifacts)
   })
   .catch(e => {
     console.error(`Publishing failed: ${e}`)
@@ -58,13 +58,19 @@ uploadPromise
   })
 
 function uploadOSXAssets () {
-  const name = `${distInfo.getProductName()}.zip`
-  return upload(name, distInfo.getOSXZipPath()).then(url => ({url, name}))
+  const uploads = [
+    upload(distInfo.getOSXZipName(), distInfo.getOSXZipPath())
+  ]
+  return Promise.all(uploads)
 }
 
 function uploadWindowsAssets () {
-  const name = `${distInfo.getProductName()}Setup.msi`
-  return upload(name, distInfo.getWindowsInstallerPath()).then(url => ({url, name}))
+  const uploads = [
+    upload(distInfo.getWindowsInstallerName(), distInfo.getWindowsInstallerPath()),
+    upload(distInfo.getWindowsStandaloneName(), distInfo.getWindowsStandalonePath()),
+    upload(distInfo.getWindowsFullNugetPackageName(), distInfo.getWindowsFullNugetPackagePath())
+  ]
+  return Promise.all(uploads)
 }
 
 function upload (assetName, assetPath) {
@@ -87,7 +93,7 @@ function upload (assetName, assetPath) {
       if (error) {
         reject(error)
       } else {
-        resolve(url)
+        resolve({name: assetName, url})
       }
     })
   })
