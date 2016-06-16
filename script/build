@@ -19,9 +19,6 @@ fs.removeSync(path.join(projectRoot, 'dist'))
 console.log('Installing dependencies…')
 installDependencies()
 
-console.log('Copying `static`…')
-fs.copySync(path.join(projectRoot, 'static'), path.join(buildRoot, 'static'), {clobber: true})
-
 const options = {
   platform: process.platform,
   arch: 'x64',
