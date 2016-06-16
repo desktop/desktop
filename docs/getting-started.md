@@ -23,8 +23,7 @@ node-gyp is required to build some of our native npm packages (such as [keytar](
 
 #### macOS
 
-1. Download the [`developer-id-cert.p12`](https://github.com/desktop/desktop-secrets/blob/master/developer-id-cert.p12).
-1. Double-click on `developer-id-cert.p12`.
+1. Download the [`developer-id-cert.p12`](https://github.com/desktop/desktop-secrets/blob/master/developer-id-cert.p12) and then open it.
 1. Ask a member of the Desktop team for the password.
 1. Add it to your Keychain.
 
