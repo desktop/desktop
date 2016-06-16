@@ -7,6 +7,10 @@ import NotLoggedIn from './not-logged-in'
 import API from './lib/api'
 import {Repo} from './lib/api'
 
+/* This is the magic trigger for webpack to go compile
+ * our sass into css and inject it into the DOM. */
+import '../static/desktop.scss'
+
 interface AppState {
   selectedRow: number,
   repos: Repo[],
