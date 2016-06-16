@@ -57,6 +57,10 @@ const options = {
   }
 }
 
+if (process.platform === 'darwin') {
+  cp.execSync('setup-macos-keychain')
+}
+
 packager(options, (error, appPaths) => {
   if (error) {
     console.error(error)
