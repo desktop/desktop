@@ -17,7 +17,7 @@ node-gyp is required to build some of our native npm packages (such as [keytar](
 * **Windows:** Visual Studio 2015 or [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
   * Run `npm config set msvs_version 2015` after installing the build tools
 
-*Windows only*: Let python install into the default suggested path (`c:\Python27`), don't try to move it into Program Files and *let it add python.exe to the path* or else you'll have to configure node-gyp manually with the path.
+*Windows only*: Let python install into the default suggested path (`c:\Python27`), don't try to move it into Program Files or else you'll have to configure node-gyp manually with the path.
 
 ## Building
 
