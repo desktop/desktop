@@ -22,6 +22,10 @@ module.exports = {
       {
         test: /\.scss$/,
         loaders: ["style", "css?sourceMap", "sass?sourceMap"]
+      },
+      {
+        test: /\.(jpe?g|png|gif|ico)$/,
+        loaders: ["file?name=[path][name].[ext]"]
       }
     ]
   },
