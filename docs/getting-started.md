@@ -12,7 +12,7 @@ We use some ES6+ language constructs in our build scripts so you need [Node.js](
 
 node-gyp is required to build some of our native npm packages (such as [keytar](https://github.com/atom/node-keytar))
 
-* Install python 2.7 ([Windows](https://www.python.org/downloads/windows/), [MacOS](https://www.python.org/downloads/mac-osx/))
+* Install python 2.7 ([Windows](https://www.python.org/downloads/windows/), [macOS](https://www.python.org/downloads/mac-osx/))
 * **macOS:** Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 * **Windows:** Visual Studio 2015 or [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
   * Run `npm config set msvs_version 2015` after installing the build tools
