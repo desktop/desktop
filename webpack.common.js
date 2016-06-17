@@ -20,10 +20,6 @@ module.exports = {
         include: path.join(__dirname, 'src')
       },
       {
-        test: /\.scss$/,
-        loaders: ["style", "css?sourceMap", "sass?sourceMap"]
-      },
-      {
         test: /\.(jpe?g|png|gif|ico)$/,
         loaders: ["file?name=[path][name].[ext]"]
       }

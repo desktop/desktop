@@ -31,6 +31,14 @@ const config = {
   externals: common.externals
 }
 
+// This will cause the compiled CSS (and sourceMap) to be
+// embedded within the compiled javascript bundle and added
+// as a blob:// uri at runtime.
+config.module.loaders.push({
+  test: /\.scss$/,
+  loaders: ["style", "css?sourceMap", "sass?sourceMap"]
+});
+
 config.target = webpackTargetElectronRenderer(config)
 
 module.exports = config
