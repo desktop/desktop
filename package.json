@@ -15,7 +15,7 @@
   },
   "description": "The People's Glorious GitHub Client",
   "scripts": {
-    "test": "electron-mocha --renderer --require ts-node/register test/*.ts test/*.tsx",
+    "test": "cross-env TEST_ENV=1 electron-mocha --renderer --require ts-node/register test/*.ts test/*.tsx",
     "postinstall": "typings install",
     "start": "npm run build:dev && node script/start",
     "compile:dev": "tsc && cross-env NODE_ENV=development webpack --config webpack.development.js",
