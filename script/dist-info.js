@@ -13,6 +13,10 @@ function getProductName () {
   return appPackage.productName
 }
 
+function getName () {
+  return appPackage.name
+}
+
 function getCompanyName () {
   return appPackage.companyName
 }
@@ -21,14 +25,52 @@ function getVersion () {
   return appPackage.version
 }
 
-function getOSXZipPath () {
+function getOSXZipName () {
   const productName = getProductName()
-  return path.join(getDistPath(), '..', `${productName}.zip`)
+  return `${productName}.zip`
+}
+
+function getOSXZipPath () {
+  return path.join(getDistPath(), '..', getOSXZipName())
+}
+
+function getWindowsInstallerName () {
+  const productName = getProductName()
+  return `${productName}Setup.msi`
 }
 
 function getWindowsInstallerPath () {
-  const productName = getProductName()
-  return path.join(getDistPath(), '..', 'installer', `${productName}Setup.msi`)
+  return path.join(getDistPath(), '..', 'installer', getWindowsInstallerName())
 }
 
-module.exports = {getDistPath, getProductName, getCompanyName, getVersion, getOSXZipPath, getWindowsInstallerPath}
+function getWindowsStandaloneName () {
+  const productName = getProductName()
+  return `${productName}Setup.exe`
+}
+
+function getWindowsStandalonePath () {
+  return path.join(getDistPath(), '..', 'installer', getWindowsStandaloneName())
+}
+
+function getWindowsFullNugetPackageName () {
+  return `${getName()}-${getVersion()}-full.nupkg`
+}
+
+function getWindowsFullNugetPackagePath () {
+  return path.join(getDistPath(), '..', 'installer', getWindowsFullNugetPackageName())
+}
+
+module.exports = {
+  getDistPath,
+  getProductName,
+  getCompanyName,
+  getVersion,
+  getOSXZipName,
+  getOSXZipPath,
+  getWindowsInstallerName,
+  getWindowsInstallerPath,
+  getWindowsStandaloneName,
+  getWindowsStandalonePath,
+  getWindowsFullNugetPackageName,
+  getWindowsFullNugetPackagePath
+}
