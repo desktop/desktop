@@ -1,0 +1,11 @@
+@mixin win32 {
+  body.platform-win32 & {
+    @content;
+  }
+}
+
+@mixin darwin {
+  body.platform-darwin & {
+    @content;
+  }
+}
