@@ -12,12 +12,20 @@ We use some ES6+ language constructs in our build scripts so you need [Node.js](
 
 node-gyp is required to build some of our native npm packages (such as [keytar](https://github.com/atom/node-keytar))
 
-* Install python 2.7 ([Windows](https://www.python.org/downloads/windows/), [MacOS](https://www.python.org/downloads/mac-osx/))
-* **MacOS:** Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
+* Install python 2.7 ([Windows](https://www.python.org/downloads/windows/), [macOS](https://www.python.org/downloads/mac-osx/))
+* **macOS:** Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 * **Windows:** Visual Studio 2015 or [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
   * Run `npm config set msvs_version 2015` after installing the build tools
 
 *Windows only*: Let python install into the default suggested path (`c:\Python27`), don't try to move it into Program Files or else you'll have to configure node-gyp manually with the path.
+
+### Certificates
+
+#### macOS
+
+1. Download the [`developer-id-cert.p12`](https://github.com/desktop/desktop-secrets/blob/master/developer-id-cert.p12) and then open it.
+1. Ask a member of the Desktop team for the password.
+1. Add it to your Keychain.
 
 ## Building
 

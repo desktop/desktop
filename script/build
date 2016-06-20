@@ -35,7 +35,6 @@ const options = {
   prune: false, // We only install production dependencies above.
 
   // OS X
-  // TODO: We'll need to sign this shit.
   'app-bundle-id': appPackage.bundleID,
   'app-category-type': 'public.app-category.developer-tools',
   'protocols': [
@@ -46,6 +45,7 @@ const options = {
       ]
     }
   ],
+  'osx-sign': true,
 
   // Windows
   'version-string': {
@@ -55,6 +55,10 @@ const options = {
     'ProductName': appPackage.productName,
     'InternalName': appPackage.productName
   }
+}
+
+if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
+  cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
 }
 
 packager(options, (error, appPaths) => {
