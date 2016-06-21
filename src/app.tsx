@@ -59,7 +59,7 @@ export default class App extends React.Component<AppProps, AppState> {
   }
 
   private renderTitlebar() {
-    if (process.platform !== 'darwin') {
+    if (process.platform !== 'darwin' && process.platform !== 'win32') {
       return null
     }
 
