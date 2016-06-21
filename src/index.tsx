@@ -9,10 +9,11 @@ import {URLActionType, isOAuthAction} from './lib/parse-url'
 import UsersStore from './users-store'
 import User from './user'
 import tokenStore from './token-store'
+import {IPCLogEntry} from './lib/ipc-log-entry'
 
 const Octokat = require('octokat')
 
-ipcRenderer.on('log', (event: any, {msg, type}: {msg: string, type: 'log' | 'error'}) => {
+ipcRenderer.on('log', (event: any, {msg, type}: IPCLogEntry) => {
   switch (type) {
     case 'log':
       console.log(msg)

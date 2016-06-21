@@ -2,11 +2,7 @@ import {BrowserWindow} from 'electron'
 
 import Stats from './stats'
 import {URLActionType} from '../lib/parse-url'
-
-export interface IPCLogEntry {
-  msg: string
-  type: 'log' | 'error'
-}
+import {IPCLogEntry} from '../lib/ipc-log-entry'
 
 export default class AppWindow {
   private window: Electron.BrowserWindow
