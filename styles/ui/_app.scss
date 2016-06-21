@@ -1,0 +1,38 @@
+#desktop-app {
+
+  // This is just a dummy wrapper needed because react doesn't like
+  // being installed into <body>, see https://github.com/facebook/react/issues/3207
+  &-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  // The main react component div
+  &-chrome {
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
+    height: 100%;
+  }
+
+  // App titlebar, currently only shown on macOS but will be used on
+  // Windows as well as soon as we enable frameless windows.
+  &-titlebar {
+    -webkit-app-region: drag;
+    -webkit-user-select: none;
+    flex-shrink: 0;
+    height: 20px;
+    width: 100%;
+
+    .app-title { display: none; }
+  }
+
+  // main non-window chrome wrapper
+  &-contents {
+    display: flex;
+    flex-direction: row;
+    flex-grow: 1
+  }
+}
