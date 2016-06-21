@@ -64,8 +64,8 @@ app.on('ready', () => {
   autoUpdater.on('update-not-available', () => {
     mainWindow.console.log('Update not available!')
   })
-  autoUpdater.on('update-downloaded', info => {
-    mainWindow.console.log(`Update downloaded! ${info}`)
+  autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName, releaseDate, updateURL) => {
+    mainWindow.console.log(`Update downloaded! ${releaseDate}`)
   })
   autoUpdater.setFeedURL('https://central.github.com/api/deployments/desktop/desktop/latest')
   autoUpdater.checkForUpdates()
