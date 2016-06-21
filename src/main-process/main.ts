@@ -72,7 +72,9 @@ app.on('ready', () => {
     mainWindow.console.log(`Update downloaded! ${releaseDate}`)
   })
 
-  autoUpdater.setFeedURL(getFeedURL())
+  // TODO: Plumb the logged in .com user through here.
+  // Truly we have been haacked.
+  autoUpdater.setFeedURL(getFeedURL('haacked'))
   if (process.env.NODE_ENV !== 'development') {
     try {
       autoUpdater.checkForUpdates()

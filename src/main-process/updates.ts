@@ -1,7 +1,7 @@
 import {app} from 'electron'
 
-export function getFeedURL(): string {
-  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${app.getVersion()}`
+export function getFeedURL(username: string): string {
+  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${app.getVersion()}&username=${username}`
 }
 
 export function handleSquirrelEvent(eventName: string): boolean {
