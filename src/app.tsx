@@ -64,7 +64,7 @@ export default class App extends React.Component<AppProps, AppState> {
     }
 
     return (
-      <div id='desktop-app-titlebar'>
+      <div id='desktop-app-title-bar'>
         <span className='app-title'>GitHub Desktop</span>
       </div>
     )

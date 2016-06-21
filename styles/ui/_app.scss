@@ -17,9 +17,9 @@
     height: 100%;
   }
 
-  // App titlebar, currently only shown on macOS but will be used on
+  // App title bar, currently only shown on macOS but will be used on
   // Windows as well as soon as we enable frameless windows.
-  &-titlebar {
+  &-title-bar {
     -webkit-app-region: drag;
     -webkit-user-select: none;
     flex-shrink: 0;
