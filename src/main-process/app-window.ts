@@ -37,7 +37,7 @@ export default class AppWindow {
       this.window.show()
 
       const now = Date.now()
-      this.rendererLog(`Loading: ${now - startLoad}ms`)
+      this.console.log(`Loading: ${now - startLoad}ms`)
     })
 
     this.window.webContents.on('did-fail-load', () => {
@@ -68,8 +68,11 @@ export default class AppWindow {
     this.window.focus()
   }
 
-  private rendererLog(msg: string) {
-    this.send('log', msg)
+  public get console() {
+    return {
+      log: (msg: string) => this.send('log', {msg, type: 'log'}),
+      error: (msg: string) => this.send('log', {msg, type: 'error'})
+    }
   }
 
   private send(channel: string, args: any) {

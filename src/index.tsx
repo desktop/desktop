@@ -12,8 +12,15 @@ import tokenStore from './token-store'
 
 const Octokat = require('octokat')
 
-ipcRenderer.on('log', (event, msg) => {
-  console.log(msg)
+ipcRenderer.on('log', (event: any, {msg, type}: {msg: string, type: 'log' | 'error'}) => {
+  switch (type) {
+    case 'log':
+      console.log(msg)
+      break
+    case 'error':
+      console.error(msg)
+      break
+  }
 })
 
 ipcRenderer.on('url-action', (event, msg) => {
