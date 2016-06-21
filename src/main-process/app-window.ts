@@ -3,11 +3,20 @@ import {BrowserWindow} from 'electron'
 import Stats from './stats'
 import {URLActionType} from '../lib/parse-url'
 
+export interface IPCLogEntry {
+  msg: string
+  type: 'log' | 'error'
+}
+
 export default class AppWindow {
   private window: Electron.BrowserWindow
   private stats: Stats
+  private logQueue: IPCLogEntry[]
+  private loaded: boolean
 
   public constructor(stats: Stats) {
+    this.logQueue = []
+    this.loaded = false
 
     this.window = new BrowserWindow(
     {
@@ -38,6 +47,9 @@ export default class AppWindow {
 
       const now = Date.now()
       this.console.log(`Loading: ${now - startLoad}ms`)
+
+      this.loaded = true
+      this.flushLogQueue()
     })
 
     this.window.webContents.on('did-fail-load', () => {
@@ -70,9 +82,24 @@ export default class AppWindow {
 
   public get console() {
     return {
-      log: (msg: string) => this.send('log', {msg, type: 'log'}),
-      error: (msg: string) => this.send('log', {msg, type: 'error'})
+      log: (msg: string) => {
+        this.logQueue.push({msg, type: 'log'})
+        this.flushLogQueue()
+      },
+      error: (msg: string) => {
+        this.logQueue.push({msg, type: 'error'})
+        this.flushLogQueue()
+      }
     }
+  }
+
+  private flushLogQueue() {
+    if (!this.loaded) { return }
+
+    for (const log of this.logQueue) {
+      this.send('log', log)
+    }
+    this.logQueue = []
   }
 
   private send(channel: string, args: any) {
