@@ -32,6 +32,8 @@ ipcRenderer.on('url-action', (event, msg) => {
 const usersStore = new UsersStore(localStorage, tokenStore)
 usersStore.loadFromStore()
 
+document.body.classList.add(`platform-${process.platform}`)
+
 ReactDOM.render(<App usersStore={usersStore}/>, document.getElementById('desktop-app-container'))
 
 async function addUserWithCode(code: string) {
