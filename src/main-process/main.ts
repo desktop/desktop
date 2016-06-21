@@ -68,7 +68,9 @@ app.on('ready', () => {
     mainWindow.console.log(`Update downloaded! ${releaseDate}`)
   })
   autoUpdater.setFeedURL('https://central.github.com/api/deployments/desktop/desktop/latest')
-  autoUpdater.checkForUpdates()
+  if (process.env.NODE_ENV !== 'development') {
+    autoUpdater.checkForUpdates()
+  }
 })
 
 app.on('activate', () => {
