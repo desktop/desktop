@@ -4,6 +4,7 @@ import AppWindow from './app-window'
 import Stats from './stats'
 import {buildDefaultMenu} from './menu'
 import parseURL from '../lib/parse-url'
+import {handleSquirrelEvent, getFeedURL} from './updates'
 
 const stats = new Stats()
 
@@ -18,8 +19,8 @@ app.on('will-finish-launching', () => {
 })
 
 if (process.platform !== 'darwin') {
-  if (process.platform === 'win32') {
-    if (handleSquirrelEvent()) {
+  if (process.platform === 'win32' && process.argv.length > 1) {
+    if (handleSquirrelEvent(process.argv[1])) {
       app.quit()
     }
   }
@@ -58,18 +59,26 @@ app.on('ready', () => {
   autoUpdater.on('error', error => {
     mainWindow.console.error(`${error}`)
   })
+
   autoUpdater.on('update-available', () => {
     mainWindow.console.log('Update available!')
   })
+
   autoUpdater.on('update-not-available', () => {
     mainWindow.console.log('Update not available!')
   })
+
   autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName, releaseDate, updateURL) => {
     mainWindow.console.log(`Update downloaded! ${releaseDate}`)
   })
-  autoUpdater.setFeedURL('https://central.github.com/api/deployments/desktop/desktop/latest')
+
+  autoUpdater.setFeedURL(getFeedURL())
   if (process.env.NODE_ENV !== 'development') {
-    autoUpdater.checkForUpdates()
+    try {
+      autoUpdater.checkForUpdates()
+    } catch (e) {
+      mainWindow.console.error(`Error checking for updates: ${e}`)
+    }
   }
 })
 
@@ -92,38 +101,4 @@ function createWindow() {
   })
 
   mainWindow.load()
-}
-
-function handleSquirrelEvent() {
-  if (process.argv.length === 1) {
-    return false
-  }
-
-  const squirrelEvent = process.argv[1]
-  switch (squirrelEvent) {
-    case '--squirrel-install':
-    case '--squirrel-updated':
-      // Optionally do things such as:
-      // - Add your .exe to the PATH
-      // - Write to the registry for things like file associations and
-      //   explorer context menus
-
-      // Install desktop and start menu shortcuts
-      return true
-
-    case '--squirrel-uninstall':
-      // Undo anything you did in the --squirrel-install and
-      // --squirrel-updated handlers
-
-      // Remove desktop and start menu shortcuts
-      return true
-
-    case '--squirrel-obsolete':
-      // This is called on the outgoing version of your app before
-      // we update to the new version - it's the opposite of
-      // --squirrel-updated
-      return true
-  }
-
-  return false
 }
