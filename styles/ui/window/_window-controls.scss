@@ -1,0 +1,21 @@
+@import "../../mixins";
+
+button.window-control {
+  -webkit-app-region: no-drag;
+
+  display: inline-block;
+  width: 30px;
+  height: 25px;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  border: none;
+
+  color: #ccc;
+  background-color: transparent;
+
+  &:hover {
+    background-color: #e7e7e7;
+    color: #333;
+  }
+}

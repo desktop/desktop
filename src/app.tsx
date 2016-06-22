@@ -4,6 +4,7 @@ import Info from './info'
 import UsersStore from './users-store'
 import User from './user'
 import NotLoggedIn from './not-logged-in'
+import {WindowControls} from './ui/window/window-controls'
 import API from './lib/api'
 import {Repo} from './lib/api'
 
@@ -66,6 +67,7 @@ export default class App extends React.Component<AppProps, AppState> {
     return (
       <div id='desktop-app-title-bar'>
         <span className='app-title'>GitHub Desktop</span>
+        <WindowControls />
       </div>
     )
   }
