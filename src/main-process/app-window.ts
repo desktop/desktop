@@ -61,12 +61,19 @@ export default class AppWindow {
   }
 
   private registerWindowStateChangedEvents() {
-    this.window.on('enter-full-screen', () => this.sendWindowStateEvent('full-screen'))
-    this.window.on('leave-full-screen', () => this.sendWindowStateEvent(this.getWindowState()))
-    this.window.on('maximize', () => this.sendWindowStateEvent('maximized'))
-    this.window.on('minimize', () => this.sendWindowStateEvent('minimized'))
-    this.window.on('unmaximize', () => this.sendWindowStateEvent('normal'))
-    this.window.on('restore', () => this.sendWindowStateEvent('normal'))
+
+    const windowStateEvents = [
+      'enter-full-screen',
+      'leave-full-screen',
+      'maximize',
+      'minimize',
+      'unmaximize',
+      'restore'
+    ]
+
+    for (const eventName of windowStateEvents) {
+      this.window.on(eventName, this.sendWindowStateEvent)
+    }
   }
 
   private getWindowState(): WindowState {
@@ -81,8 +88,8 @@ export default class AppWindow {
     }
   }
 
-  private sendWindowStateEvent(state: WindowState) {
-    this.send('window-state-changed', state)
+  private sendWindowStateEvent = () => {
+    this.send('window-state-changed', this.getWindowState())
   }
 
   public onClose(fn: () => void) {
