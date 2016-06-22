@@ -4,21 +4,28 @@
 
 ### Node.js
 
-We use some ES6+ language constructs in our build scripts sou need [Node.js](https://nodejs.org) 6+ (just pick whatever the 'current' release is at the moment). Node 6 comes with npm 3 out of the box and while npm 3 isn't strictly necessary to build it does make things more efficient, especially on Windows where deep folder hierarchies can be detrimental to build speed.
+We use some ES6+ language constructs in our build scripts so you need [Node.js](https://nodejs.org) 6+ (just pick whatever the 'current' release is at the moment). Node 6 comes with npm 3 out of the box and while npm 3 isn't strictly necessary to build it does make things more efficient, especially on Windows where deep folder hierarchies can be detrimental to build speed.
 
 *Windows only: Make sure you allow the Node.js installer to add node to the PATH, it'll make life much easier for you*
 
 ### node-gyp
 
-node-gyp is required to build some of our native npm packages (such as keytar)
+node-gyp is required to build some of our native npm packages (such as [keytar](https://github.com/atom/node-keytar))
 
-* Install python 2.7 ([Windows](https://www.python.org/downloads/windows/), [MacOS](https://www.python.org/downloads/mac-osx/))
-* **MacOS:** Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
+* Install python 2.7 ([Windows](https://www.python.org/downloads/windows/), [macOS](https://www.python.org/downloads/mac-osx/))
+* **macOS:** Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
 * **Windows:** Visual Studio 2015 or [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
   * Run `npm config set msvs_version 2015` after installing the build tools
-* Run `npm install -g node-gyp`
 
-*Windows only*: Let python install into the default suggested path (`c:\Python27`), don't try to move it into Program Files and *let it add python.exe to the path* or else you'll have to configure node-gyp manually with the path.
+*Windows only*: Let python install into the default suggested path (`c:\Python27`), don't try to move it into Program Files or else you'll have to configure node-gyp manually with the path.
+
+### Certificates
+
+#### macOS
+
+1. Download the [`developer-id-cert.p12`](https://github.com/desktop/desktop-secrets/blob/master/developer-id-cert.p12) and then open it.
+1. Ask a member of the Desktop team for the password.
+1. Add it to your Keychain.
 
 ## Building
 
