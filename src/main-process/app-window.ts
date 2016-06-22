@@ -45,7 +45,7 @@ export default class AppWindow {
       this.window.show()
     })
 
-    this.window.loadURL(`file://${__dirname}/../../static/index.html`)
+    this.window.loadURL(`file://${__dirname}/../../index.html`)
   }
 
   public onClose(fn: () => void) {

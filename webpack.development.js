@@ -18,6 +18,7 @@ const config = {
     publicPath: 'http://localhost:3000/build/'
   },
   plugins: [
+    ...common.plugins,
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
     new webpack.DefinePlugin({
@@ -29,6 +30,14 @@ const config = {
   target: 'electron',
   externals: common.externals
 }
+
+// This will cause the compiled CSS (and sourceMap) to be
+// embedded within the compiled javascript bundle and added
+// as a blob:// uri at runtime.
+config.module.loaders.push({
+  test: /\.scss$/,
+  loaders: ["style", "css?sourceMap", "sass?sourceMap"]
+});
 
 config.target = webpackTargetElectronRenderer(config)
 
