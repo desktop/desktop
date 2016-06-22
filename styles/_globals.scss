@@ -71,6 +71,12 @@ img {
   pointer-events: none;
 }
 
+// Regardless of platform behavior we never want buttons to be
+// app drag targets unless explicitly specified.
+button {
+  -webkit-app-region: no-drag;
+}
+
 #content {
   display: flex;
 
