@@ -1,14 +1,51 @@
 import * as React from 'react'
-import {remote} from 'electron'
+import {ipcRenderer, remote} from 'electron'
+import {WindowState} from '../../lib/window-state'
+
+const windowStateChannelName = 'window-state-changed'
 
 interface WindowControlState {
-  windowState: 'minimized' | 'normal' | 'maximized' | 'full-screen'
+  windowState: WindowState
 }
 
 export class WindowControls extends React.Component<void, WindowControlState> {
 
   public componentWillMount() {
     this.setState({ windowState: 'normal' })
+
+    ipcRenderer.on(windowStateChannelName, this.onWindowStateChanged)
+  }
+
+  public componentWillUnmount() {
+    ipcRenderer.removeListener(windowStateChannelName, this.onWindowStateChanged)
+  }
+
+  private onWindowStateChanged = (event: Electron.IpcRendererEvent, args: any) => {
+    this.setState({ windowState: args as WindowState })
+  }
+
+  private renderButton(name: string, onClick: React.EventHandler<React.MouseEvent>) {
+    const className = `window-control ${name}`
+    return (
+      <button tabIndex='-1' className={className} onClick={onClick}>
+        {name}
+      </button>)
+  }
+
+  private onMinimize() {
+    remote.getCurrentWindow().minimize()
+  }
+
+  private onMaximize() {
+    remote.getCurrentWindow().maximize()
+  }
+
+  private onRestore() {
+    remote.getCurrentWindow().unmaximize()
+  }
+
+  private onClose() {
+    remote.getCurrentWindow().close()
   }
 
   public render() {
@@ -18,13 +55,11 @@ export class WindowControls extends React.Component<void, WindowControlState> {
       return null
     }
 
-    const min = <button tabIndex='-1' className='window-control minimize' onClick={() => remote.getCurrentWindow().minimize()}>min</button>
-
+    const min = this.renderButton('minimize', this.onMinimize)
     const maximizeOrRestore = this.state.windowState === 'maximized'
-      ? <button tabIndex='-1' className='window-control restore' onClick={() => remote.getCurrentWindow().unmaximize()}>restore</button>
-      : <button tabIndex='-1' className='window-control maximize' onClick={() => remote.getCurrentWindow().maximize()}>max</button>
-
-    const close = <button tabIndex='-1' className='window-control close' onClick={() => remote.getCurrentWindow().close()}>x</button>
+      ? this.renderButton('restore', this.onRestore)
+      : this.renderButton('maximize', this.onMaximize)
+    const close = this.renderButton('close', this.onClose)
 
     return (
       <div className='window-controls'>
