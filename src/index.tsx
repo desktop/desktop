@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 
-import {ipcRenderer} from 'electron'
+import {ipcRenderer, remote} from 'electron'
 
 import App from './app'
 import {requestToken, getDotComEndpoint} from './auth'
@@ -33,6 +33,19 @@ const usersStore = new UsersStore(localStorage, tokenStore)
 usersStore.loadFromStore()
 
 document.body.classList.add(`platform-${process.platform}`)
+
+function updateFullScreenBodyInfo(isInFullScreen: boolean) {
+  if (isInFullScreen) {
+    document.body.classList.add('fullscreen')
+  } else {
+    document.body.classList.remove('fullscreen')
+  }
+}
+
+updateFullScreenBodyInfo(remote.getCurrentWindow().isFullScreen())
+
+ipcRenderer.on('enter-full-screen', () => updateFullScreenBodyInfo(true))
+ipcRenderer.on('leave-full-screen', () => updateFullScreenBodyInfo(false))
 
 ReactDOM.render(<App usersStore={usersStore}/>, document.getElementById('desktop-app-container'))
 
