@@ -69,6 +69,8 @@ packager(options, (error, appPaths) => {
 })
 
 function installDependencies () {
+  fs.copySync(path.join(projectRoot, '.npmrc'), path.join(buildRoot, '.npmrc'))
+
   let packageJson = appPackage
   if (process.env.NODE_ENV === 'development') {
     packageJson = debugPackageJson(packageJson)
