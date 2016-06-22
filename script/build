@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 
 'use strict'
 
@@ -30,6 +30,14 @@ const options = {
   dir: path.join(projectRoot, 'build'),
   overwrite: true,
   prune: false, // We only install production dependencies above.
+  ignore: [
+    '/node_modules/electron-prebuilt($|/)',
+    '/node_modules/electron-packager($|/)',
+    '/\\.git($|/)',
+    '/node_modules/\\.bin($|/)',
+    '/node_modules/nodegit/vendor/libgit2/tests($|/)',
+    '/node_modules/ohnogit/spec($|/)'
+  ],
 
   // OS X
   'app-bundle-id': appPackage.bundleID,
