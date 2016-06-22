@@ -27,9 +27,6 @@ export default class AppWindow {
 
     this.window = new BrowserWindow(windowOptions)
 
-    this.window.on('enter-full-screen', () => this.send('enter-full-screen', null))
-    this.window.on('leave-full-screen', () => this.send('leave-full-screen', null))
-
     this.stats = stats
   }
 
