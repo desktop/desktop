@@ -77,7 +77,7 @@ export default class AppWindow {
   }
 
   private getWindowState(): WindowState {
-    if (this.window.isFullScreen) {
+    if (this.window.isFullScreen()) {
       return 'full-screen'
     } else if (this.window.isMaximized()) {
       return 'maximized'
