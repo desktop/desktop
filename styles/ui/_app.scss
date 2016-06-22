@@ -33,6 +33,9 @@
     @include win32 {
       height: 25px;
     }
+
+    // Don't ever show the title bar when we're in full screen mode.
+    @include in-fullscreen { display: none; }
   }
 
   // main non-window chrome wrapper
