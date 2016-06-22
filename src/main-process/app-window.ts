@@ -2,7 +2,7 @@ import {BrowserWindow} from 'electron'
 
 import Stats from './stats'
 import {URLActionType} from '../lib/parse-url'
-import {WindowState} from '../lib/window-state'
+import {getWindowState} from '../lib/window-state'
 
 export default class AppWindow {
   private window: Electron.BrowserWindow
@@ -76,20 +76,8 @@ export default class AppWindow {
     }
   }
 
-  private getWindowState(): WindowState {
-    if (this.window.isFullScreen()) {
-      return 'full-screen'
-    } else if (this.window.isMaximized()) {
-      return 'maximized'
-    } else if (this.window.isMinimized()) {
-      return 'minimized'
-    } else {
-      return 'normal'
-    }
-  }
-
   private sendWindowStateEvent = () => {
-    this.send('window-state-changed', this.getWindowState())
+    this.send('window-state-changed', getWindowState(this.window))
   }
 
   public onClose(fn: () => void) {
