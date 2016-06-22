@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {ipcRenderer, remote} from 'electron'
-import {WindowState} from '../../lib/window-state'
+import {WindowState, getWindowState} from '../../lib/window-state'
 
 const windowStateChannelName = 'window-state-changed'
 
@@ -11,7 +11,7 @@ interface WindowControlState {
 export class WindowControls extends React.Component<void, WindowControlState> {
 
   public componentWillMount() {
-    this.setState({ windowState: 'normal' })
+    this.setState({ windowState: getWindowState(remote.getCurrentWindow()) })
 
     ipcRenderer.on(windowStateChannelName, this.onWindowStateChanged)
   }
