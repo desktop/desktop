@@ -57,22 +57,6 @@ export class WindowControls extends React.Component<void, WindowControlState> {
       </button>)
   }
 
-  private onMinimize() {
-    remote.getCurrentWindow().minimize()
-  }
-
-  private onMaximize() {
-    remote.getCurrentWindow().maximize()
-  }
-
-  private onRestore() {
-    remote.getCurrentWindow().unmaximize()
-  }
-
-  private onClose() {
-    remote.getCurrentWindow().close()
-  }
-
   public render() {
 
     // We only know how to render fake windows-y controls
@@ -80,11 +64,11 @@ export class WindowControls extends React.Component<void, WindowControlState> {
       return null
     }
 
-    const min = this.renderButton('minimize', this.onMinimize, minimizePath)
+    const min = this.renderButton('minimize', (e) => remote.getCurrentWindow().minimize(), minimizePath)
     const maximizeOrRestore = this.state.windowState === 'maximized'
-      ? this.renderButton('restore', this.onRestore, restorePath)
-      : this.renderButton('maximize', this.onMaximize, maximizePath)
-    const close = this.renderButton('close', this.onClose, closePath)
+      ? this.renderButton('restore', (e) => remote.getCurrentWindow().unmaximize(), restorePath)
+      : this.renderButton('maximize', (e) => remote.getCurrentWindow().maximize(), maximizePath)
+    const close = this.renderButton('close', (e) => remote.getCurrentWindow().close(), closePath)
 
     return (
       <div className='window-controls'>
