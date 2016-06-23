@@ -2,7 +2,7 @@ import {BrowserWindow} from 'electron'
 
 import Stats from './stats'
 import {URLActionType} from '../lib/parse-url'
-import {getWindowState} from '../lib/window-state'
+import {WindowState} from '../lib/window-state'
 
 export default class AppWindow {
   private window: Electron.BrowserWindow
@@ -58,23 +58,26 @@ export default class AppWindow {
   }
 
   private registerWindowStateChangedEvents() {
+    this.window.on('enter-full-screen', () => this.sendWindowStateEvent('full-screen'))
 
-    const windowStateEvents = [
-      'enter-full-screen',
-      'leave-full-screen',
-      'maximize',
-      'minimize',
-      'unmaximize',
-      'restore'
-    ]
+    // So this is a bit of a hack. If we call window.isFullScreen directly after
+    // receiving the leave-full-screen event it'll return true which isn't what
+    // we're after. So we'll say that we're transitioning to 'normal' even though
+    // we might be maximized. This works because electron will emit a 'maximized'
+    // event after 'leave-full-screen' if the state prior to full-screen was maximized.
+    this.window.on('leave-full-screen', () => this.sendWindowStateEvent('normal'))
 
-    for (const eventName of windowStateEvents) {
-      this.window.on(eventName, this.sendWindowStateEvent)
-    }
+    this.window.on('maximize', () => this.sendWindowStateEvent('maximized'))
+    this.window.on('minimize', () => this.sendWindowStateEvent('minimized'))
+    this.window.on('unmaximize', () => this.sendWindowStateEvent('normal'))
+    this.window.on('restore', () => this.sendWindowStateEvent('normal'))
   }
 
-  private sendWindowStateEvent = () => {
-    this.send('window-state-changed', getWindowState(this.window))
+  /* Short hand convenience function for sending a window state change event
+   * over the window-state-changed channel to the render process.
+   */
+  private sendWindowStateEvent(state: WindowState) {
+    this.send('window-state-changed', state)
   }
 
   public onClose(fn: () => void) {
