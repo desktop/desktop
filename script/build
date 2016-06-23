@@ -39,7 +39,7 @@ const options = {
     '/node_modules/ohnogit/spec($|/)'
   ],
 
-  // OS X
+  // macOS
   'app-bundle-id': appPackage.bundleID,
   'app-category-type': 'public.app-category.developer-tools',
   'protocols': [
@@ -51,6 +51,7 @@ const options = {
     }
   ],
   'osx-sign': true,
+  'extra-resource': [path.join(projectRoot, 'git', 'git-macos', 'git')],
 
   // Windows
   'version-string': {
