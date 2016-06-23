@@ -36,6 +36,9 @@ export class WindowControls extends React.Component<void, WindowControlState> {
     ipcRenderer.removeListener(windowStateChannelName, this.onWindowStateChanged)
   }
 
+  public shouldComponentUpdate(nextProps: void, nextState: WindowControlState) {
+  }
+
   private onWindowStateChanged = (event: Electron.IpcRendererEvent, args: any) => {
     this.setState({ windowState: args as WindowState })
   }
