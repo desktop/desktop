@@ -37,6 +37,7 @@ export class WindowControls extends React.Component<void, WindowControlState> {
   }
 
   public shouldComponentUpdate(nextProps: void, nextState: WindowControlState) {
+    return nextState.windowState !== this.state.windowState
   }
 
   private onWindowStateChanged = (event: Electron.IpcRendererEvent, args: any) => {
