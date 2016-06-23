@@ -1,0 +1,3 @@
+[submodule "git/git-macos"]
+	path = git/git-macos
+	url = git@github.com:desktop/git-macos.git
