@@ -13,7 +13,8 @@ interface WindowControlState {
   windowState: WindowState
 }
 
-/* A component replicating typical win32 window controls in frameless windows
+/**
+ * A component replicating typical win32 window controls in frameless windows
  *
  * Note that the component only supports the Windows platform at the moment
  * and will render nothing when used on other platforms.
