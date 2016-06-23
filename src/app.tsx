@@ -90,7 +90,7 @@ export default class App extends React.Component<AppProps, AppState> {
   private renderApp() {
     const selectedRepo = this.state.repos[this.state.selectedRow]
     return (
-      <div id='desktop-app-contents' onContextMenu={this.onContextMenu}>
+      <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
         <ReposList selectedRow={this.state.selectedRow}
                    onSelectionChanged={row => this.handleSelectionChanged(row)}
                    user={this.state.user}
