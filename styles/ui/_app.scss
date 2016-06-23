@@ -19,25 +19,6 @@
     height: 100%;
   }
 
-  // App title bar, currently only shown on macOS but will be used on
-  // Windows as well as soon as we enable frameless windows.
-  &-title-bar {
-    -webkit-app-region: drag;
-    -webkit-user-select: none;
-    flex-shrink: 0;
-    height: 20px;
-    width: 100%;
-
-    .app-title { display: none; }
-
-    @include win32 {
-      height: 25px;
-    }
-
-    // Don't ever show the title bar when we're in full screen mode.
-    @include in-fullscreen { display: none; }
-  }
-
   // main non-window chrome wrapper
   &-contents {
     display: flex;
