@@ -2,6 +2,9 @@ import User from '../user'
 
 const Octokat = require('octokat')
 
+/**
+ * Information about a repository as returned by the GitHub API.
+ */
 export interface Repo {
   cloneUrl: string,
   htmlUrl: string,
@@ -16,6 +19,9 @@ export interface Repo {
   stargazersCount: number
 }
 
+/**
+ * An object for making authenticated requests to the GitHub API
+ */
 export default class API {
   private client: any
 
@@ -23,6 +29,14 @@ export default class API {
     this.client = new Octokat({token: user.getToken(), rootURL: user.getEndpoint()})
   }
 
+  /**
+   * Loads all repositories accessible to the current user.
+   *
+   * Loads public and private repositories across all organizations
+   * as well as the user account.
+   *
+   * @returns A promise yielding an array of {Repo} instances or error
+   */
   public async fetchRepos(): Promise<Repo[]> {
     const results: Repo[] = []
     let nextPage = this.client.user.repos

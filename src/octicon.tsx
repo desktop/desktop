@@ -6,12 +6,31 @@ import {OcticonSymbol} from './octicons.generated'
 export {OcticonSymbol as OcticonSymbol}
 
 interface OcticonProps {
+
+  /**
+   * The maximum width of the icon
+   *
+   * @default 16
+   */
   width?: number,
+
+  /**
+   * The maximum height of the icon
+   *
+   * @default 16
+   */
   height?: number,
+
+  /**
+  * An instance of an object conforming to the OcticonSymbol
+  * type. Supports custom paths as well as those provided
+  * through the static properties of the OcticonSymbol class.
+  */
   symbol: OcticonSymbol
 }
 
-/* A React component for displaying octicon symbols in SVG format.
+/**
+ * # A React component for displaying octicon symbols in SVG format.
  *
  * Note that the aspect ratios of the octicons will always be preserved
  * which is why the width and height properties specify the maximum and
@@ -19,12 +38,8 @@ interface OcticonProps {
  *
  * Usage: `<Octicon symbol={OcticonSymbol.mark_github} />`
  *
- * @param symbol  An instance of an object conforming to the OcticonSymbol
- *                type. Supports custom paths as well as those provided
- *                through the static properties of the OcticonSymbol class.
- *
- * @param width   The maximum width of the icon (optional, defaults to 16)
- * @param height  The maximum height of the icon (optional, defaults to 16)
+ * @see OcticonProps
+ * @extends React.Component<OcticonProps, void>
  */
 export class Octicon extends React.Component<OcticonProps, void> {
 
