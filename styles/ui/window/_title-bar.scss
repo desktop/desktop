@@ -43,8 +43,9 @@
       -webkit-app-region: no-drag;
 
       display: inline-block;
-      width: 30px;
-      height: 25px;
+      position: relative;
+      width: 45px;
+      height: 29px;
       padding: 0;
       margin: 0;
       overflow: hidden;
@@ -56,6 +57,12 @@
       &:hover {
         background-color: #e7e7e7;
         color: #333;
+      }
+
+      svg {
+        position: absolute;
+        top: 9px;
+        left: 17px;
       }
     }
 
