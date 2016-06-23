@@ -1,9 +1,10 @@
-import {BrowserWindow} from 'electron'
+import {BrowserWindow, ipcMain} from 'electron'
 
 import Stats from './stats'
 import {URLActionType} from '../lib/parse-url'
 import {WindowState} from '../lib/window-state'
 import {IPCLogEntry} from '../lib/ipc-log-entry'
+import {buildDefaultMenu} from './menu'
 
 export default class AppWindow {
   private window: Electron.BrowserWindow
@@ -19,7 +20,7 @@ export default class AppWindow {
       width: 800,
       height: 600,
       show: false,
-      // This fixes subpixel aliasing on Windows
+      // This fixes subpixel aliasing on Windows`
       // See https://github.com/atom/atom/commit/683bef5b9d133cb194b476938c77cc07fd05b972
       backgroundColor: '#fff'
     }
@@ -61,6 +62,17 @@ export default class AppWindow {
     })
 
     this.registerWindowStateChangedEvents()
+
+    // We don't have a menu bar on windows so we'll cheat
+    // for nor and make right-clicking on the title bar
+    // show the default menu as a context menu instead.
+    if (process.platform === 'win32') {
+      const menu = buildDefaultMenu()
+
+      ipcMain.on('show-popup-app-menu', (e, ...args) => {
+        menu.popup(this.window)
+      })
+    }
 
     this.window.loadURL(`file://${__dirname}/../../index.html`)
   }

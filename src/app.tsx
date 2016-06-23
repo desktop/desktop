@@ -1,4 +1,6 @@
 import * as React from 'react'
+import {ipcRenderer} from 'electron'
+
 import ReposList from './repos-list'
 import Info from './info'
 import UsersStore from './users-store'
@@ -72,10 +74,19 @@ export default class App extends React.Component<AppProps, AppState> {
     )
   }
 
+  /* Put the main application menu into a context menu for now (win only)
+   */
+  private onContextMenu(e: React.MouseEvent) {
+    if (process.platform === 'win32') {
+      e.preventDefault()
+      ipcRenderer.send('show-popup-app-menu', null)
+    }
+  }
+
   private renderApp() {
     const selectedRepo = this.state.repos[this.state.selectedRow]
     return (
-      <div id='desktop-app-contents'>
+      <div id='desktop-app-contents' onContextMenu={this.onContextMenu}>
         <ReposList selectedRow={this.state.selectedRow}
                    onSelectionChanged={row => this.handleSelectionChanged(row)}
                    user={this.state.user}
