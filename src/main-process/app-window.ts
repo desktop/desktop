@@ -3,12 +3,17 @@ import {BrowserWindow} from 'electron'
 import Stats from './stats'
 import {URLActionType} from '../lib/parse-url'
 import {WindowState} from '../lib/window-state'
+import {IPCLogEntry} from '../lib/ipc-log-entry'
 
 export default class AppWindow {
   private window: Electron.BrowserWindow
   private stats: Stats
+  private logQueue: IPCLogEntry[]
+  private loaded: boolean
 
   public constructor(stats: Stats) {
+    this.logQueue = []
+    this.loaded = false
 
     const windowOptions: Electron.BrowserWindowOptions = {
       width: 800,
@@ -44,7 +49,10 @@ export default class AppWindow {
       this.window.show()
 
       const now = Date.now()
-      this.rendererLog(`Loading: ${now - startLoad}ms`)
+      this.console.log(`Loading: ${now - startLoad}ms`)
+
+      this.loaded = true
+      this.flushLogQueue()
     })
 
     this.window.webContents.on('did-fail-load', () => {
@@ -105,8 +113,26 @@ export default class AppWindow {
     this.window.focus()
   }
 
-  private rendererLog(msg: string) {
-    this.send('log', msg)
+  public get console() {
+    return {
+      log: (msg: string) => {
+        this.logQueue.push({msg, type: 'log'})
+        this.flushLogQueue()
+      },
+      error: (msg: string) => {
+        this.logQueue.push({msg, type: 'error'})
+        this.flushLogQueue()
+      }
+    }
+  }
+
+  private flushLogQueue() {
+    if (!this.loaded) { return }
+
+    for (const log of this.logQueue) {
+      this.send('log', log)
+    }
+    this.logQueue = []
   }
 
   private send(channel: string, args: any) {

@@ -26,6 +26,7 @@ addons:
       - g++-4.8
 
 cache:
+  timeout: 600
   directories:
     - node_modules
 

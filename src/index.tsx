@@ -10,6 +10,7 @@ import {WindowState, getWindowState} from './lib/window-state'
 import UsersStore from './users-store'
 import User from './user'
 import tokenStore from './token-store'
+import {IPCLogEntry} from './lib/ipc-log-entry'
 
 const Octokat = require('octokat')
 
@@ -19,8 +20,15 @@ if (!process.env.TEST_ENV) {
   require('../styles/desktop.scss')
 }
 
-ipcRenderer.on('log', (event, msg) => {
-  console.log(msg)
+ipcRenderer.on('log', (event: any, {msg, type}: IPCLogEntry) => {
+  switch (type) {
+    case 'log':
+      console.log(msg)
+      break
+    case 'error':
+      console.error(msg)
+      break
+  }
 })
 
 ipcRenderer.on('url-action', (event, msg) => {

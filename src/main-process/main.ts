@@ -1,9 +1,10 @@
-import {app, Menu} from 'electron'
+import {app, Menu, autoUpdater} from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
 import {buildDefaultMenu} from './menu'
 import parseURL from '../lib/parse-url'
+import {handleSquirrelEvent, getFeedURL} from './updates'
 
 const stats = new Stats()
 
@@ -18,6 +19,12 @@ app.on('will-finish-launching', () => {
 })
 
 if (process.platform !== 'darwin') {
+  if (process.platform === 'win32' && process.argv.length > 1) {
+    if (handleSquirrelEvent(process.argv[1])) {
+      app.quit()
+    }
+  }
+
   const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
@@ -48,6 +55,33 @@ app.on('ready', () => {
   createWindow()
 
   Menu.setApplicationMenu(buildDefaultMenu())
+
+  autoUpdater.on('error', error => {
+    mainWindow.console.error(`${error}`)
+  })
+
+  autoUpdater.on('update-available', () => {
+    mainWindow.console.log('Update available!')
+  })
+
+  autoUpdater.on('update-not-available', () => {
+    mainWindow.console.log('Update not available!')
+  })
+
+  autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName, releaseDate, updateURL) => {
+    mainWindow.console.log(`Update downloaded! ${releaseDate}`)
+  })
+
+  // TODO: Plumb the logged in .com user through here.
+  // Truly we have been haacked.
+  autoUpdater.setFeedURL(getFeedURL('haacked'))
+  if (__DEV__) {
+    try {
+      autoUpdater.checkForUpdates()
+    } catch (e) {
+      mainWindow.console.error(`Error checking for updates: ${e}`)
+    }
+  }
 })
 
 app.on('activate', () => {
