@@ -56,7 +56,19 @@
 
       &:hover {
         background-color: #e7e7e7;
-        color: #333;
+
+        &:active {
+          background-color: #cccccc;
+        }
+      }
+
+      &.close:hover {
+        background-color: #e81123;
+        fill: #fff;
+
+        &:active {
+          background-color: #f1707a;
+        }
       }
 
       svg {
