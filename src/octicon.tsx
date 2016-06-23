@@ -49,6 +49,21 @@ export class Octicon extends React.Component<OcticonProps, void> {
     symbol: OcticonSymbol.markGithub
   }
 
+  public shouldComponentUpdate(nextProps: OcticonProps, nextState: void) {
+
+    if (nextProps.width !== this.props.width || nextProps.height !== this.props.height) {
+      return true
+    }
+
+    if (nextProps.symbol.w !== this.props.symbol.w ||
+       nextProps.symbol.h !== this.props.symbol.h ||
+       nextProps.symbol.d !== this.props.symbol.d) {
+       return true
+     }
+
+     return false
+  }
+
   public render() {
     const symbol = this.props.symbol
     const viewBox = `0 0 ${symbol.w} ${symbol.h}`
