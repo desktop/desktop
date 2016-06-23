@@ -57,6 +57,11 @@ export default class AppWindow {
     this.window.loadURL(`file://${__dirname}/../../index.html`)
   }
 
+  /* Set up message passing to the render process whenever the window
+   * state changes. We've definied 'window state' as one of minimized,
+   * normal, maximized and full-screen. These states will be sent
+   * over the window-state-changed channel
+   */
   private registerWindowStateChangedEvents() {
     this.window.on('enter-full-screen', () => this.sendWindowStateEvent('full-screen'))
 
