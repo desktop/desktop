@@ -18,18 +18,6 @@ interface AppProps {
   usersStore: UsersStore
 }
 
-const AppStyle = {
-  display: 'flex',
-  flexDirection: 'column',
-  flexGrow: 1
-}
-
-const ContentStyle = {
-  display: 'flex',
-  flexDirection: 'row',
-  flexGrow: 1
-}
-
 export default class App extends React.Component<AppProps, AppState> {
   private api: API
 
@@ -76,19 +64,16 @@ export default class App extends React.Component<AppProps, AppState> {
     }
 
     return (
-      <div style={{
-        WebkitAppRegion: 'drag',
-        flexShrink: 0,
-        height: 20,
-        width: '100%'
-      }}/>
+      <div id='desktop-app-title-bar'>
+        <span className='app-title'>GitHub Desktop</span>
+      </div>
     )
   }
 
   private renderApp() {
     const selectedRepo = this.state.repos[this.state.selectedRow]
     return (
-      <div style={ContentStyle}>
+      <div id='desktop-app-contents'>
         <ReposList selectedRow={this.state.selectedRow}
                    onSelectionChanged={row => this.handleSelectionChanged(row)}
                    user={this.state.user}
@@ -101,7 +86,7 @@ export default class App extends React.Component<AppProps, AppState> {
 
   private renderNotLoggedIn() {
     return (
-      <div style={ContentStyle}>
+      <div id='desktop-app-contents'>
         <NotLoggedIn/>
       </div>
     )
@@ -109,7 +94,7 @@ export default class App extends React.Component<AppProps, AppState> {
 
   public render() {
     return (
-      <div style={AppStyle}>
+      <div id='desktop-app-chrome'>
         {this.renderTitlebar()}
         {this.state.user ? this.renderApp() : this.renderNotLoggedIn()}
       </div>

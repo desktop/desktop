@@ -2,19 +2,8 @@
 <html>
   <head>
     <meta charset='UTF-8'>
-    <link rel='stylesheet' href='styles.css'>
   </head>
   <body>
-    <div id='content'></div>
-    <script>
-      var src = '../bundle.js'
-      if (process.env.NODE_ENV === 'development') {
-        src = 'http://localhost:3000/build/bundle.js'
-      }
-
-      var scriptTag = document.createElement('script')
-      scriptTag.src = src
-      document.head.appendChild(scriptTag)
-    </script>
+    <div id='desktop-app-container'></div>
   </body>
 </html>

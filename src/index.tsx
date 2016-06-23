@@ -13,6 +13,12 @@ import {IPCLogEntry} from './lib/ipc-log-entry'
 
 const Octokat = require('octokat')
 
+if (!process.env.TEST_ENV) {
+  /* This is the magic trigger for webpack to go compile
+  * our sass into css and inject it into the DOM. */
+  require('../styles/desktop.scss')
+}
+
 ipcRenderer.on('log', (event: any, {msg, type}: IPCLogEntry) => {
   switch (type) {
     case 'log':
@@ -34,7 +40,9 @@ ipcRenderer.on('url-action', (event, msg) => {
 const usersStore = new UsersStore(localStorage, tokenStore)
 usersStore.loadFromStore()
 
-ReactDOM.render(<App usersStore={usersStore}/>, document.getElementById('content'))
+document.body.classList.add(`platform-${process.platform}`)
+
+ReactDOM.render(<App usersStore={usersStore}/>, document.getElementById('desktop-app-container'))
 
 async function addUserWithCode(code: string) {
   try {

@@ -1,0 +1,79 @@
+// Globals
+//
+// This file is for things that have to apply globally, if your style
+// doesn't fit into that description it probably belongs in ui/
+
+// Reset the box-sizing, lifted from bootstrap reboot css, see:
+//   https://github.com/twbs/bootstrap/blob/bfc16c4a829ba596db28f5f42d7a3e429e6ea2e1/scss/_reboot.scss#L9
+//
+// Change from `box-sizing: content-box` to `border-box` so that when you add
+// `padding` or `border`s to an element, the overall declared `width` does not
+// change. For example, `width: 100px;` will always be `100px` despite the
+// `border: 10px solid red;` and `padding: 20px;`.
+//
+// Credit: https://css-tricks.com/inheriting-box-sizing-probably-slightly-better-best-practice/
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+//
+// Reset HTML, body, and more
+//
+
+// We never want the window to be scrollable, everything has to fit
+// or be placed into a scrollable container.
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+html {
+  // Sets a specific default `font-size` for user with `rem` type scales.
+  font-size: $font-size-root;
+}
+
+body {
+  // Make the `body` use the `font-size-root`
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  // Go easy on the eyes and use something other than `#000` for text
+  color: $primary-text-color;
+  // By default, `<body>` has no `background-color` so we set one as a best practice.
+  background-color: $primary-background-color;
+}
+
+:not(input):not(textarea) {
+  &, &::after, &::before {
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
+  }
+}
+
+input, button, textarea, :focus {
+  outline: none;
+}
+
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
+}
+
+#content {
+  display: flex;
+
+  height: 100%;
+  width: 100%;
+}

@@ -1,0 +1,27 @@
+// A mixin which takes a content block that should only
+// be applied when the current (real or emulated) operating
+// system is windows
+//
+// This helper mixin is useful in so far that it allows us
+// to keep platform specific styles next to cross-platform
+// styles instead of splitting them out and possibly forgetting
+// about them.
+@mixin win32 {
+  body.platform-win32 & {
+    @content;
+  }
+}
+
+// A mixin which takes a content block that should only
+// be applied when the current (real or emulated) operating
+// system is macOS.
+//
+// This helper mixin is useful in so far that it allows us
+// to keep platform specific styles next to cross-platform
+// styles instead of splitting them out and possibly forgetting
+// about them.
+@mixin darwin {
+  body.platform-darwin & {
+    @content;
+  }
+}

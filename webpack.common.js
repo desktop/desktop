@@ -1,6 +1,7 @@
 'use strict'
 
 const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   entry: [
@@ -17,6 +18,10 @@ module.exports = {
         test: /\.tsx?$/,
         loaders: ['babel', 'ts'],
         include: path.join(__dirname, 'src')
+      },
+      {
+        test: /\.(jpe?g|png|gif|ico)$/,
+        loaders: ["file?name=[path][name].[ext]"]
       }
     ]
   },
@@ -25,6 +30,7 @@ module.exports = {
     packageMains: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main']
   },
   target: 'electron',
+  plugins: [new HtmlWebpackPlugin({ 'template': 'static/index.html' })],
   externals: function (context, request, callback) {
     try {
       // Attempt to resolve the module via Node
