@@ -75,7 +75,7 @@ app.on('ready', () => {
   // TODO: Plumb the logged in .com user through here.
   // Truly we have been haacked.
   autoUpdater.setFeedURL(getFeedURL('haacked'))
-  if (process.env.NODE_ENV !== 'development') {
+  if (__DEV__) {
     try {
       autoUpdater.checkForUpdates()
     } catch (e) {
