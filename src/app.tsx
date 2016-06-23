@@ -66,10 +66,14 @@ export default class App extends React.Component<AppProps, AppState> {
       return null
     }
 
+    const winControls = process.platform === 'win32'
+      ? <WindowControls />
+      : null
+
     return (
       <div id='desktop-app-title-bar'>
         <span className='app-title'>GitHub Desktop</span>
-        <WindowControls />
+        {winControls}
       </div>
     )
   }
