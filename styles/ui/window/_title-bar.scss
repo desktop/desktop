@@ -28,6 +28,7 @@
   // margin.
   @include win32 {
     margin-top: 5px;
+    height: 25px;
     .window-controls { margin-top: -5px }
   }
 
