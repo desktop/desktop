@@ -2,7 +2,7 @@ import {BrowserWindow, ipcMain} from 'electron'
 
 import Stats from './stats'
 import {URLActionType} from '../lib/parse-url'
-import {WindowState} from '../lib/window-state'
+import {WindowState, windowStateChannelName} from '../lib/window-state'
 import {IPCLogEntry} from '../lib/ipc-log-entry'
 import {buildDefaultMenu} from './menu'
 
@@ -102,7 +102,7 @@ export default class AppWindow {
    * over the window-state-changed channel to the render process.
    */
   private sendWindowStateEvent(state: WindowState) {
-    this.send('window-state-changed', state)
+    this.send(windowStateChannelName, state)
   }
 
   public onClose(fn: () => void) {
