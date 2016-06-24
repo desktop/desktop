@@ -1,5 +1,5 @@
 import {ipcRenderer} from 'electron'
-import guid from '../../lib/guid'
+import guid from '../lib/guid'
 
 export default function send<T>(name: string, args: Object): Promise<T> {
   let resolve: (value: T) => void = null

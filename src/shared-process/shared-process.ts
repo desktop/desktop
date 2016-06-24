@@ -1,5 +1,5 @@
-import {BrowserWindow} from 'electron'
-import {Message} from './message-types'
+import {ipcMain, BrowserWindow} from 'electron'
+import {Message} from './message'
 
 export default class SharedProcess {
   private window: Electron.BrowserWindow
@@ -25,6 +25,13 @@ export default class SharedProcess {
       this.window.show()
       this.window.webContents.openDevTools()
     }
+  }
+
+  public register() {
+    ipcMain.on('shared/request', (event, args) => {
+      const message: Message = args[0]
+      this.send(message)
+    })
   }
 
   public send(msg: Message) {

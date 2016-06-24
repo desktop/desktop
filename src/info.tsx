@@ -5,7 +5,7 @@ import User from './user'
 import {Repo} from './lib/api'
 
 import {Octicon, OcticonSymbol} from './octicon'
-import send from './main-process/shared-process/send'
+import {console as remoteConsole, ping} from './shared-process/interface'
 
 interface InfoProps {
   selectedRepo: Repo,
@@ -58,9 +58,15 @@ export default class Info extends React.Component<InfoProps, InfoState> {
   }
 
   private async onOpen() {
-    const repo = this.props.selectedRepo
-    shell.openExternal(repo.htmlUrl)
-    const resp = await send('log', 'heyooo')
-    console.log('response: ' + resp)
+    // const repo = this.props.selectedRepo
+    // shell.openExternal(repo.htmlUrl)
+
+    remoteConsole.log('hey', 'there')
+
+    const start = Date.now()
+    const response = await ping()
+    const end = Date.now()
+    console.log(`Roundtrip: ${end - start}`)
+    console.log(`Response: ${response}`)
   }
 }
