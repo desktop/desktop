@@ -1,10 +1,15 @@
 import {ipcRenderer, remote} from 'electron'
 import {Message} from './message'
+import tokenStore from './token-store'
+import UsersStore from './users-store'
 
 const {BrowserWindow} = remote
 
 type SharedProcessFunction = (args: any) => Promise<any>
 const registeredFunctions: {[key: string]: SharedProcessFunction} = {}
+
+const usersStore = new UsersStore(localStorage, tokenStore)
+usersStore.loadFromStore()
 
 register('console/log', ({args}: {args: any[]}) => {
   console.log('', ...args)
@@ -18,6 +23,11 @@ register('console/error', ({args}: {args: any[]}) => {
 
 register('ping', () => {
   return Promise.resolve('pong')
+})
+
+register('users/get', () => {
+  // TODO: Not quite right. Gotta go to JSON.
+  return Promise.resolve(usersStore.getUsers())
 })
 
 ipcRenderer.on('shared/request', (event, args) => {

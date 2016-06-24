@@ -1,8 +1,8 @@
 import {Emitter, Disposable} from 'event-kit'
 
 import {DataStore, SecureStore} from './stores'
-import {getKeyForUser} from './auth'
-import User from './user'
+import {getKeyForUser} from '../auth'
+import User from '../user'
 
 export default class UsersStore {
   private dataStore: DataStore
