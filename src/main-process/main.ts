@@ -57,19 +57,27 @@ app.on('ready', () => {
   Menu.setApplicationMenu(buildDefaultMenu())
 
   autoUpdater.on('error', error => {
-    mainWindow.console.error(`${error}`)
+    if (mainWindow) {
+      mainWindow.console.error(`${error}`)
+    }
   })
 
   autoUpdater.on('update-available', () => {
-    mainWindow.console.log('Update available!')
+    if (mainWindow) {
+      mainWindow.console.log('Update available!')
+    }
   })
 
   autoUpdater.on('update-not-available', () => {
-    mainWindow.console.log('Update not available!')
+    if (mainWindow) {
+      mainWindow.console.log('Update not available!')
+    }
   })
 
   autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName, releaseDate, updateURL) => {
-    mainWindow.console.log(`Update downloaded! ${releaseDate}`)
+    if (mainWindow) {
+      mainWindow.console.log(`Update downloaded! ${releaseDate}`)
+    }
   })
 
   // TODO: Plumb the logged in .com user through here.
@@ -79,7 +87,9 @@ app.on('ready', () => {
     try {
       autoUpdater.checkForUpdates()
     } catch (e) {
-      mainWindow.console.error(`Error checking for updates: ${e}`)
+      if (mainWindow) {
+        mainWindow.console.error(`Error checking for updates: ${e}`)
+      }
     }
   }
 })
