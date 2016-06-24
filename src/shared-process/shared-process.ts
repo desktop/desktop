@@ -1,28 +1,22 @@
-import {ipcMain, BrowserWindow} from 'electron'
-import guid from '../lib/guid'
-
-interface SharedProcessEvent {
-  guid: string
-  name: string
-  args: Object
-}
+import {BrowserWindow} from 'electron'
+import {Message} from './message-types'
 
 export default class SharedProcess {
   private window: Electron.BrowserWindow
   private loaded = false
-  private eventQueue: SharedProcessEvent[] = []
+  private messageQueue: Message[] = []
 
   public constructor() {
     this.window = new BrowserWindow({
       width: 800,
       height: 600,
       show: false,
-      title: ''
+      title: 'SharedProcess'
     })
 
     this.window.webContents.on('did-finish-load', () => {
       this.loaded = true
-      this.flushEventQueue()
+      this.drainMessageQueue()
     })
 
     this.window.loadURL(`file://${__dirname}/../../shared.html`)
@@ -33,29 +27,18 @@ export default class SharedProcess {
     }
   }
 
-  public async send<T>(name: string, args: Object): Promise<T> {
-    const requestGuid = guid()
-    this.eventQueue.push({guid: requestGuid, name, args})
-
-    let resolve: (value: T) => void = null
-    const promise = new Promise<T>((_resolve, reject) => {
-      resolve = _resolve
-    })
-    ipcMain.once(`response-${requestGuid}`, (event, args) => {
-      resolve(args[0] as T)
-    })
-
-    this.flushEventQueue()
-    return promise
+  public send(msg: Message) {
+    this.messageQueue.push(msg)
+    this.drainMessageQueue()
   }
 
-  private flushEventQueue() {
+  private drainMessageQueue() {
     if (!this.loaded) { return }
 
-    for (const event of this.eventQueue) {
-      this.window.webContents.send('background-command', [event])
+    for (const msg of this.messageQueue) {
+      this.window.webContents.send('shared/request', [msg])
     }
 
-    this.eventQueue = []
+    this.messageQueue = []
   }
 }

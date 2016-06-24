@@ -6,6 +6,7 @@ import {buildDefaultMenu} from './menu'
 import parseURL from '../lib/parse-url'
 import {handleSquirrelEvent, getFeedURL} from './updates'
 import SharedProcess from '../shared-process/shared-process'
+import setupSharedProcessHooks from '../shared-process/main-hooks'
 
 const stats = new Stats()
 
@@ -57,6 +58,7 @@ app.on('ready', () => {
   createWindow()
 
   sharedProcess = new SharedProcess()
+  setupSharedProcessHooks(sharedProcess)
 
   Menu.setApplicationMenu(buildDefaultMenu())
 
@@ -92,12 +94,6 @@ app.on('activate', () => {
   if (!mainWindow) {
     createWindow()
   }
-
-  const p = sharedProcess.send<string>('msg', {args: 'yes'})
-  p.then(x => {
-    mainWindow.console.log('response:')
-    mainWindow.console.log(`${x}`)
-  })
 })
 
 app.on('window-all-closed', () => {
