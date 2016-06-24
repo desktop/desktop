@@ -5,7 +5,7 @@ import User from './user'
 import {Repo} from './lib/api'
 
 import {Octicon, OcticonSymbol} from './octicon'
-import send from './shared-process/send'
+import send from './main-process/shared-process/send'
 
 interface InfoProps {
   selectedRepo: Repo,

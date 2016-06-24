@@ -5,8 +5,8 @@ import Stats from './stats'
 import {buildDefaultMenu} from './menu'
 import parseURL from '../lib/parse-url'
 import {handleSquirrelEvent, getFeedURL} from './updates'
-import SharedProcess from '../shared-process/shared-process'
-import setupSharedProcessHooks from '../shared-process/main-hooks'
+import SharedProcess from './shared-process/shared-process'
+import setupSharedProcessHooks from './shared-process/main-hooks'
 
 const stats = new Stats()
 
