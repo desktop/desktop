@@ -7,10 +7,10 @@ const webpackTargetElectronRenderer = require('webpack-target-electron-renderer'
 
 const config = {
   devtool: 'cheap-module-eval-source-map',
-  entry: [
-    'webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr',
-    ...common.entry
-  ],
+  entry: {
+    renderer: ['webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr', ...common.entry.renderer],
+    background: ['webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr', ...common.entry.background]
+  },
   output: {
     filename: common.output.filename,
     path: common.output.path,

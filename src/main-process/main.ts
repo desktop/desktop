@@ -5,10 +5,12 @@ import Stats from './stats'
 import {buildDefaultMenu} from './menu'
 import parseURL from '../lib/parse-url'
 import {handleSquirrelEvent, getFeedURL} from './updates'
+import BackgroundProcess from '../background-process/background-process'
 
 const stats = new Stats()
 
 let mainWindow: AppWindow = null
+let backgroundProcess: BackgroundProcess = null
 
 app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
@@ -54,6 +56,8 @@ app.on('ready', () => {
 
   createWindow()
 
+  backgroundProcess = new BackgroundProcess()
+
   Menu.setApplicationMenu(buildDefaultMenu())
 
   autoUpdater.on('error', error => {
@@ -88,6 +92,12 @@ app.on('activate', () => {
   if (!mainWindow) {
     createWindow()
   }
+
+  const p = backgroundProcess.send('msg', {args: 'yes'})
+  p.then(x => {
+    mainWindow.console.log('response:')
+    mainWindow.console.log(`${x}`)
+  })
 })
 
 app.on('window-all-closed', () => {
