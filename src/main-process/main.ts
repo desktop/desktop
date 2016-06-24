@@ -13,6 +13,7 @@ let mainWindow: AppWindow = null
 app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
     const action = parseURL(url)
+    // TODO: We need to handle the case where the window's been closed.
     mainWindow.sendURLAction(action)
     event.preventDefault()
   })
@@ -38,6 +39,7 @@ if (process.platform !== 'darwin') {
     // callback contents and code for us to complete the signin flow
     if (commandLine.length > 1) {
       const action = parseURL(commandLine[1])
+      // TODO: We need to handle the case where the window's been closed.
       mainWindow.sendURLAction(action)
     }
   })
