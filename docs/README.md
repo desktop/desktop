@@ -5,3 +5,4 @@ This is the [GitHub Desktop](https://github.com/desktop/desktop) product develop
 ### Getting started
 
  - **[Getting started](getting-started.md)**
+ - **[Styleguide](styleguide.md)**
