@@ -1,8 +1,10 @@
-import {BrowserWindow} from 'electron'
+import {BrowserWindow, ipcMain} from 'electron'
 
 import Stats from './stats'
 import {URLActionType} from '../lib/parse-url'
+import {WindowState, windowStateChannelName} from '../lib/window-state'
 import {IPCLogEntry} from '../lib/ipc-log-entry'
+import {buildDefaultMenu} from './menu'
 
 export default class AppWindow {
   private window: Electron.BrowserWindow
@@ -14,16 +16,22 @@ export default class AppWindow {
     this.logQueue = []
     this.loaded = false
 
-    this.window = new BrowserWindow(
-    {
+    const windowOptions: Electron.BrowserWindowOptions = {
       width: 800,
       height: 600,
       show: false,
-      titleBarStyle: 'hidden',
       // This fixes subpixel aliasing on Windows
       // See https://github.com/atom/atom/commit/683bef5b9d133cb194b476938c77cc07fd05b972
       backgroundColor: '#fff'
-    })
+    }
+
+    if (process.platform === 'darwin') {
+        windowOptions.titleBarStyle = 'hidden'
+    } else if (process.platform === 'win32') {
+        windowOptions.frame = false
+    }
+
+    this.window = new BrowserWindow(windowOptions)
 
     this.stats = stats
   }
@@ -53,7 +61,48 @@ export default class AppWindow {
       this.window.show()
     })
 
+    this.registerWindowStateChangedEvents()
+
+    // We don't have a menu bar on windows so we'll cheat
+    // for now and make right-clicking on the title bar
+    // show the default menu as a context menu instead.
+    if (process.platform === 'win32') {
+      const menu = buildDefaultMenu()
+
+      ipcMain.on('show-popup-app-menu', (e, ...args) => {
+        menu.popup(this.window)
+      })
+    }
+
     this.window.loadURL(`file://${__dirname}/../../index.html`)
+  }
+
+  /* Set up message passing to the render process whenever the window
+   * state changes. We've definied 'window state' as one of minimized,
+   * normal, maximized and full-screen. These states will be sent
+   * over the window-state-changed channel
+   */
+  private registerWindowStateChangedEvents() {
+    this.window.on('enter-full-screen', () => this.sendWindowStateEvent('full-screen'))
+
+    // So this is a bit of a hack. If we call window.isFullScreen directly after
+    // receiving the leave-full-screen event it'll return true which isn't what
+    // we're after. So we'll say that we're transitioning to 'normal' even though
+    // we might be maximized. This works because electron will emit a 'maximized'
+    // event after 'leave-full-screen' if the state prior to full-screen was maximized.
+    this.window.on('leave-full-screen', () => this.sendWindowStateEvent('normal'))
+
+    this.window.on('maximize', () => this.sendWindowStateEvent('maximized'))
+    this.window.on('minimize', () => this.sendWindowStateEvent('minimized'))
+    this.window.on('unmaximize', () => this.sendWindowStateEvent('normal'))
+    this.window.on('restore', () => this.sendWindowStateEvent('normal'))
+  }
+
+  /* Short hand convenience function for sending a window state change event
+   * over the window-state-changed channel to the render process.
+   */
+  private sendWindowStateEvent(state: WindowState) {
+    this.send(windowStateChannelName, state)
   }
 
   public onClose(fn: () => void) {

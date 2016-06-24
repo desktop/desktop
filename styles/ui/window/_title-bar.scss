@@ -1,0 +1,100 @@
+@import "../../mixins";
+
+#desktop-app-title-bar {
+  -webkit-app-region: drag;
+  -webkit-user-select: none;
+  flex-shrink: 0;
+  height: 20px;
+  width: 100%;
+
+  display: flex;
+  flex-direction: row;
+
+  .app-title {
+    flex-grow: 1;
+    text-align: center;
+
+    // This is cheating a bit but we'll use this to "push" the
+    // window controls to the right on Windows. We could also
+    // display: none and do flex-direction row-reverse.
+    visibility: hidden;
+  }
+
+  // If you put a -webkit-app-region: drag element close to a window
+  // frame edge it prevents resizing so we move the title bar down
+  // 5px on windows to create a resize area equal to that of the sides
+  // and bottom of the app. We don't want to push the window controls
+  // down though so we'll compensate by giving them an equal but negative
+  // margin.
+  @include win32 {
+    margin-top: 5px;
+    height: 25px;
+    .window-controls { margin-top: -5px }
+  }
+
+  // Don't ever show the title bar when we're in full screen mode.
+  @include in-fullscreen { display: none; }
+
+  // Window controls is the container for the three buttons minimize,
+  // maximize/restore and close. On macOS the controls are added
+  // automatically even for borderless window so we only render
+  // controls on Windows.
+  .window-controls {
+
+    flex-grow: 0;
+
+    // Each button contains a single SVG element with a Windows 10-replica
+    // icon for the function it represents
+    button {
+      -webkit-app-region: no-drag;
+
+      display: inline-block;
+      position: relative;
+      width: 45px;
+      height: 29px;
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+      border: none;
+
+      color: #000;
+      background-color: transparent;
+      transition: background-color 0.25s ease;
+
+      &:hover {
+        background-color: #e7e7e7;
+
+        // Doing :hover:active as oposed to just :active is
+        // a conscious choice to match how the real Windows
+        // controls behave when someone hovers, clicks and then
+        // moves away from the hitbox.
+        &:active {
+          background-color: #cccccc;
+        }
+      }
+
+      // Close button is a special case, it needs to be red
+      // on hover and slightly lighter red on active.
+      &.close:hover {
+        background-color: #e81123;
+        fill: #fff;
+
+        &:active {
+          background-color: #f1707a;
+        }
+      }
+
+      svg {
+        position: absolute;
+
+        // These may seem arbitrary but in an uneven 45x29 box
+        // this positions the 10x10 icons centered but rounded
+        // down as opposed to rounded up which they'd be if we
+        // made the button a flexbox and told it to center the
+        // svg horizontally and vertically.
+        top: 9px;
+        left: 17px;
+      }
+    }
+  }
+}

@@ -1,9 +1,12 @@
 import * as React from 'react'
+import {ipcRenderer} from 'electron'
+
 import ReposList from './repos-list'
 import Info from './info'
 import UsersStore from './users-store'
 import User from './user'
 import NotLoggedIn from './not-logged-in'
+import {WindowControls} from './ui/window/window-controls'
 import API from './lib/api'
 import {Repo} from './lib/api'
 
@@ -59,21 +62,35 @@ export default class App extends React.Component<AppProps, AppState> {
   }
 
   private renderTitlebar() {
-    if (process.platform !== 'darwin') {
+    if (process.platform !== 'darwin' && process.platform !== 'win32') {
       return null
     }
+
+    const winControls = process.platform === 'win32'
+      ? <WindowControls />
+      : null
 
     return (
       <div id='desktop-app-title-bar'>
         <span className='app-title'>GitHub Desktop</span>
+        {winControls}
       </div>
     )
+  }
+
+  /* Put the main application menu into a context menu for now (win only)
+   */
+  private onContextMenu(e: React.MouseEvent) {
+    if (process.platform === 'win32') {
+      e.preventDefault()
+      ipcRenderer.send('show-popup-app-menu', null)
+    }
   }
 
   private renderApp() {
     const selectedRepo = this.state.repos[this.state.selectedRow]
     return (
-      <div id='desktop-app-contents'>
+      <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
         <ReposList selectedRow={this.state.selectedRow}
                    onSelectionChanged={row => this.handleSelectionChanged(row)}
                    user={this.state.user}
