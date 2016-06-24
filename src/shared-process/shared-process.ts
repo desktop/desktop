@@ -1,22 +1,23 @@
 import {ipcMain, BrowserWindow} from 'electron'
 import guid from '../lib/guid'
 
-interface BackgroundProcessEvent {
+interface SharedProcessEvent {
   guid: string
   name: string
   args: Object
 }
 
-export default class BackgroundProcess {
+export default class SharedProcess {
   private window: Electron.BrowserWindow
   private loaded = false
-  private eventQueue: BackgroundProcessEvent[] = []
+  private eventQueue: SharedProcessEvent[] = []
 
   public constructor() {
     this.window = new BrowserWindow({
       width: 800,
       height: 600,
-      show: false
+      show: false,
+      title: ''
     })
 
     this.window.webContents.on('did-finish-load', () => {
@@ -24,7 +25,7 @@ export default class BackgroundProcess {
       this.flushEventQueue()
     })
 
-    this.window.loadURL(`file://${__dirname}/../../background.html`)
+    this.window.loadURL(`file://${__dirname}/../../shared.html`)
 
     if (process.env.NODE_ENV === 'development') {
       this.window.show()
@@ -36,7 +37,7 @@ export default class BackgroundProcess {
     const requestGuid = guid()
     this.eventQueue.push({guid: requestGuid, name, args})
 
-    let resolve: Function = null
+    let resolve: (value: T) => void = null
     const promise = new Promise<T>((_resolve, reject) => {
       resolve = _resolve
     })

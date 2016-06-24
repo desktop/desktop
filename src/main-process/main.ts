@@ -5,12 +5,12 @@ import Stats from './stats'
 import {buildDefaultMenu} from './menu'
 import parseURL from '../lib/parse-url'
 import {handleSquirrelEvent, getFeedURL} from './updates'
-import BackgroundProcess from '../background-process/background-process'
+import SharedProcess from '../shared-process/shared-process'
 
 const stats = new Stats()
 
 let mainWindow: AppWindow = null
-let backgroundProcess: BackgroundProcess = null
+let sharedProcess: SharedProcess = null
 
 app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
@@ -56,7 +56,7 @@ app.on('ready', () => {
 
   createWindow()
 
-  backgroundProcess = new BackgroundProcess()
+  sharedProcess = new SharedProcess()
 
   Menu.setApplicationMenu(buildDefaultMenu())
 
@@ -93,7 +93,7 @@ app.on('activate', () => {
     createWindow()
   }
 
-  const p = backgroundProcess.send('msg', {args: 'yes'})
+  const p = sharedProcess.send<string>('msg', {args: 'yes'})
   p.then(x => {
     mainWindow.console.log('response:')
     mainWindow.console.log(`${x}`)

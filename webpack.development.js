@@ -9,7 +9,7 @@ const config = {
   devtool: 'cheap-module-eval-source-map',
   entry: {
     renderer: ['webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr', ...common.entry.renderer],
-    background: ['webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr', ...common.entry.background]
+    shared: ['webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr', ...common.entry.shared]
   },
   output: {
     filename: common.output.filename,
@@ -36,8 +36,8 @@ const config = {
 // as a blob:// uri at runtime.
 config.module.loaders.push({
   test: /\.scss$/,
-  loaders: ["style", "css?sourceMap", "sass?sourceMap"]
-});
+  loaders: ['style', 'css?sourceMap', 'sass?sourceMap']
+})
 
 config.target = webpackTargetElectronRenderer(config)
 

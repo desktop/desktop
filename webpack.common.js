@@ -6,7 +6,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 module.exports = {
   entry: {
     renderer: ['./src/index'],
-    background: ['./src/background-process/index']
+    shared: ['./src/shared-process/index']
   },
   output: {
     filename: '[name].js',
@@ -37,8 +37,8 @@ module.exports = {
       'chunks': ['renderer']
     }),
     new HtmlWebpackPlugin({
-      'filename': 'background.html',
-      'chunks': ['background']
+      'filename': 'shared.html',
+      'chunks': ['shared']
     })
   ],
   externals: function (context, request, callback) {
