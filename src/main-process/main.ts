@@ -13,6 +13,7 @@ let mainWindow: AppWindow = null
 app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
     const action = parseURL(url)
+    // TODO: We need to handle the case where the window's been closed.
     mainWindow.sendURLAction(action)
     event.preventDefault()
   })
@@ -38,6 +39,7 @@ if (process.platform !== 'darwin') {
     // callback contents and code for us to complete the signin flow
     if (commandLine.length > 1) {
       const action = parseURL(commandLine[1])
+      // TODO: We need to handle the case where the window's been closed.
       mainWindow.sendURLAction(action)
     }
   })
@@ -57,19 +59,27 @@ app.on('ready', () => {
   Menu.setApplicationMenu(buildDefaultMenu())
 
   autoUpdater.on('error', error => {
-    mainWindow.console.error(`${error}`)
+    if (mainWindow) {
+      mainWindow.console.error(`${error}`)
+    }
   })
 
   autoUpdater.on('update-available', () => {
-    mainWindow.console.log('Update available!')
+    if (mainWindow) {
+      mainWindow.console.log('Update available!')
+    }
   })
 
   autoUpdater.on('update-not-available', () => {
-    mainWindow.console.log('Update not available!')
+    if (mainWindow) {
+      mainWindow.console.log('Update not available!')
+    }
   })
 
   autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName, releaseDate, updateURL) => {
-    mainWindow.console.log(`Update downloaded! ${releaseDate}`)
+    if (mainWindow) {
+      mainWindow.console.log(`Update downloaded! ${releaseDate}`)
+    }
   })
 
   // TODO: Plumb the logged in .com user through here.
@@ -79,7 +89,9 @@ app.on('ready', () => {
     try {
       autoUpdater.checkForUpdates()
     } catch (e) {
-      mainWindow.console.error(`Error checking for updates: ${e}`)
+      if (mainWindow) {
+        mainWindow.console.error(`Error checking for updates: ${e}`)
+      }
     }
   }
 })
