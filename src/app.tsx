@@ -106,7 +106,7 @@ export default class App extends React.Component<AppProps, AppState> {
   private renderNotLoggedIn() {
     return (
       <div id='desktop-app-contents'>
-        <NotLoggedIn/>
+        <NotLoggedIn dispatcher={this.props.dispatcher}/>
       </div>
     )
   }

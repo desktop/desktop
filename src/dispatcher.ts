@@ -15,11 +15,16 @@ interface AddRepositoryAction {
   name: 'add-repository'
 }
 
+interface RequestOAuthAction {
+  name: 'request-oauth'
+}
+
 type Repository = void
 
 type State = {users: User[], repositories: Repository[]}
 
-type Action = GetUsersAction | GetRepositoriesAction | AddRepositoryAction
+type Action = GetUsersAction | GetRepositoriesAction |
+              AddRepositoryAction | RequestOAuthAction
 
 export default class Dispatcher {
   public constructor() {
@@ -54,6 +59,10 @@ export default class Dispatcher {
   public getRepositories(): Promise<Repository[]> {
     // TODO: Map from JSON => Repo
     return this.dispatch({name: 'get-repositories'}, {})
+  }
+
+  public requestOAuth(): Promise<void> {
+    return this.dispatch<void>({name: 'request-oauth'}, {})
   }
 
   public onDidUpdate(fn: (state: State) => void): Disposable {

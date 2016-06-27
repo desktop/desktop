@@ -2,7 +2,7 @@ import {ipcRenderer, remote} from 'electron'
 import {Message} from './message'
 import tokenStore from './token-store'
 import UsersStore from './users-store'
-import {requestToken, getDotComEndpoint} from '../auth'
+import {requestToken, askUserToAuth, getDotComEndpoint} from '../auth'
 import User from '../user'
 import {URLActionType, isOAuthAction} from '../lib/parse-url'
 
@@ -39,6 +39,11 @@ register('url-action', async ({action}: {action: URLActionType}) => {
   if (isOAuthAction(action)) {
     await addUserWithCode(action.args.code)
   }
+})
+
+register('request-oauth', () => {
+  askUserToAuth(getDotComEndpoint())
+  return Promise.resolve()
 })
 
 ipcRenderer.on('shared/request', (event, args) => {
