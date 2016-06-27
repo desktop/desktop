@@ -30,7 +30,7 @@ interface OcticonProps {
 }
 
 /**
- * # A React component for displaying octicon symbols in SVG format.
+ * A React component for displaying octicon symbols in SVG format.
  *
  * Note that the aspect ratios of the octicons will always be preserved
  * which is why the width and height properties specify the maximum and
@@ -47,6 +47,21 @@ export class Octicon extends React.Component<OcticonProps, void> {
     width: 16,
     height: 16,
     symbol: OcticonSymbol.markGithub
+  }
+
+  public shouldComponentUpdate(nextProps: OcticonProps, nextState: void) {
+
+    if (nextProps.width !== this.props.width || nextProps.height !== this.props.height) {
+      return true
+    }
+
+    if (nextProps.symbol.w !== this.props.symbol.w ||
+       nextProps.symbol.h !== this.props.symbol.h ||
+       nextProps.symbol.d !== this.props.symbol.d) {
+       return true
+     }
+
+     return false
   }
 
   public render() {
