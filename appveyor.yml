@@ -14,6 +14,11 @@ skip_tags: true
 version: "{build}"
 
 install:
+  - ps: $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
+  - ps: $fileContent += $env:PRIVATE_KEY.Replace(' ', "`n")
+  - ps: $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
+  - ps: Set-Content c:\users\appveyor\.ssh\id_rsa $fileContent
+  - git submodule update --init --recursive
   - ps: Install-Product node $env:nodejs_version
   - npm install
 
