@@ -81,7 +81,8 @@ function register(name: string, fn: SharedProcessFunction) {
 
 function broadcastUpdate() {
   BrowserWindow.getAllWindows().forEach(window => {
-    window.webContents.send('shared/did-update', [])
+    const state = JSON.stringify({users: usersStore.getUsers(), repositories: []})
+    window.webContents.send('shared/did-update', [{state}])
   })
 }
 

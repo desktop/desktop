@@ -11,31 +11,15 @@ interface GetRepositoriesAction {
   name: 'get-repositories'
 }
 
-interface AddUserAction {
-  name: 'add-user'
-  user: User
-}
-
-interface RemoveUserAction {
-  name: 'remove-user'
-  user: User
-}
-
 interface AddRepositoryAction {
   name: 'add-repo'
-}
-
-interface RemoveRepositoryAction {
-  name: 'remove-repo'
 }
 
 type Repository = void
 
 type State = {users: User[], repositories: Repository[]}
 
-type Action = GetUsersAction | GetRepositoriesAction |
-              AddUserAction | RemoveUserAction |
-              AddRepositoryAction | RemoveRepositoryAction
+type Action = GetUsersAction | GetRepositoriesAction | AddRepositoryAction
 
 export default class Dispatcher {
   public constructor() {
@@ -72,13 +56,16 @@ export default class Dispatcher {
     return this.dispatch({name: 'get-repositories'}, {})
   }
 
-  private getState(): State {
-    return {users: [], repositories: []}
-  }
-
   public onDidUpdate(fn: (state: State) => void): Disposable {
-    const wrappedFn = () => {
-      fn(this.getState())
+    const wrappedFn = (event: Electron.IpcRendererEvent, args: any[]) => {
+      const state = JSON.parse(args[0].state)
+      const usersJson: any[] = state.users
+      const users = usersJson.map(u => User.fromJSON(u))
+      const repositoriesJson: any[] = state.repositories
+
+      // TODO: Map this once we have a Repo type
+      const repositories = repositoriesJson
+      fn({users, repositories})
     }
     ipcRenderer.on('shared/did-update', wrappedFn)
     return new Disposable(() => {
