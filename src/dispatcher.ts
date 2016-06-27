@@ -1,6 +1,7 @@
 import {ipcRenderer} from 'electron'
 import {Disposable} from 'event-kit'
 import User from './models/user'
+import Repository from './models/repository'
 import guid from './lib/guid'
 
 interface GetUsersAction {
@@ -13,13 +14,12 @@ interface GetRepositoriesAction {
 
 interface AddRepositoryAction {
   name: 'add-repository'
+  repository: Repository
 }
 
 interface RequestOAuthAction {
   name: 'request-oauth'
 }
-
-type Repository = void
 
 type State = {users: User[], repositories: Repository[]}
 
