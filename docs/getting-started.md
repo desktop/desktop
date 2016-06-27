@@ -29,7 +29,7 @@ node-gyp is required to build some of our native npm packages (such as [keytar](
 
 ## Building
 
-* Run `npm install` to get all required dependencies on your machine.
+* Run `npm install && git submodule update --recursive --init` to get all required dependencies on your machine.
 * Run `npm start` to compile and launch the application. After it's successfully launched you can make changes which will be compiled in the background and these changes will either be hot-loaded into the app (if possible) or accessed by reloading the app (Ctrl/Command+R).
 
 ## Using Atom?
