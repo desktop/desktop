@@ -15,8 +15,7 @@ let sharedProcess: SharedProcess = null
 app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
     const action = parseURL(url)
-    // TODO: We need to handle the case where the window's been closed.
-    mainWindow.sendURLAction(action)
+    sharedProcess.sendURLAction(action)
     event.preventDefault()
   })
 })
@@ -41,8 +40,7 @@ if (process.platform !== 'darwin') {
     // callback contents and code for us to complete the signin flow
     if (commandLine.length > 1) {
       const action = parseURL(commandLine[1])
-      // TODO: We need to handle the case where the window's been closed.
-      mainWindow.sendURLAction(action)
+      sharedProcess.sendURLAction(action)
     }
   })
 
@@ -56,35 +54,27 @@ app.on('ready', () => {
 
   app.setAsDefaultProtocolClient('x-github-client')
 
-  createWindow()
-
   sharedProcess = new SharedProcess()
   sharedProcess.register()
+
+  createWindow()
 
   Menu.setApplicationMenu(buildDefaultMenu())
 
   autoUpdater.on('error', error => {
-    if (mainWindow) {
-      mainWindow.console.error(`${error}`)
-    }
+    sharedProcess.console.error(`${error}`)
   })
 
   autoUpdater.on('update-available', () => {
-    if (mainWindow) {
-      mainWindow.console.log('Update available!')
-    }
+    sharedProcess.console.log('Update available!')
   })
 
   autoUpdater.on('update-not-available', () => {
-    if (mainWindow) {
-      mainWindow.console.log('Update not available!')
-    }
+    sharedProcess.console.log('Update not available!')
   })
 
   autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName, releaseDate, updateURL) => {
-    if (mainWindow) {
-      mainWindow.console.log(`Update downloaded! ${releaseDate}`)
-    }
+    sharedProcess.console.log(`Update downloaded! ${releaseDate}`)
   })
 
   // TODO: Plumb the logged in .com user through here.
@@ -94,9 +84,7 @@ app.on('ready', () => {
     try {
       autoUpdater.checkForUpdates()
     } catch (e) {
-      if (mainWindow) {
-        mainWindow.console.error(`Error checking for updates: ${e}`)
-      }
+      sharedProcess.console.error(`Error checking for updates: ${e}`)
     }
   }
 })
@@ -114,7 +102,7 @@ app.on('window-all-closed', () => {
 })
 
 function createWindow() {
-  mainWindow = new AppWindow(stats)
+  mainWindow = new AppWindow(stats, sharedProcess)
   mainWindow.onClose(() => {
     mainWindow = null
   })

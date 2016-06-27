@@ -4,15 +4,8 @@ import * as ReactDOM from 'react-dom'
 import {ipcRenderer, remote} from 'electron'
 
 import App from './app'
-import {requestToken, getDotComEndpoint} from './auth'
-import {URLActionType, isOAuthAction} from './lib/parse-url'
 import {WindowState, getWindowState} from './lib/window-state'
-import UsersStore from './users-store'
-import User from './user'
-import tokenStore from './token-store'
-import {IPCLogEntry} from './lib/ipc-log-entry'
-
-const Octokat = require('octokat')
+import Dispatcher from './dispatcher'
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
@@ -20,26 +13,7 @@ if (!process.env.TEST_ENV) {
   require('../styles/desktop.scss')
 }
 
-ipcRenderer.on('log', (event: any, {msg, type}: IPCLogEntry) => {
-  switch (type) {
-    case 'log':
-      console.log(msg)
-      break
-    case 'error':
-      console.error(msg)
-      break
-  }
-})
-
-ipcRenderer.on('url-action', (event, msg) => {
-  const action = msg as URLActionType
-  if (isOAuthAction(action)) {
-    addUserWithCode(action.args.code)
-  }
-})
-
-const usersStore = new UsersStore(localStorage, tokenStore)
-usersStore.loadFromStore()
+const dispatcher = new Dispatcher()
 
 document.body.classList.add(`platform-${process.platform}`)
 
@@ -54,15 +28,4 @@ function updateFullScreenBodyInfo(windowState: WindowState) {
 updateFullScreenBodyInfo(getWindowState(remote.getCurrentWindow()))
 ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(args as WindowState))
 
-ReactDOM.render(<App usersStore={usersStore}/>, document.getElementById('desktop-app-container'))
-
-async function addUserWithCode(code: string) {
-  try {
-    const token = await requestToken(code)
-    const octo = new Octokat({token})
-    const user = await octo.user.fetch()
-    usersStore.addUser(new User(user.login, getDotComEndpoint(), token))
-  } catch (e) {
-    console.error(`Error adding user: ${e}`)
-  }
-}
+ReactDOM.render(<App dispatcher={dispatcher}/>, document.getElementById('desktop-app-container'))

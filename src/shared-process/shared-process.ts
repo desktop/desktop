@@ -1,5 +1,6 @@
 import {ipcMain, BrowserWindow} from 'electron'
 import {Message} from './message'
+import {URLActionType} from '../lib/parse-url'
 
 export default class SharedProcess {
   private window: Electron.BrowserWindow
@@ -39,6 +40,10 @@ export default class SharedProcess {
     this.drainMessageQueue()
   }
 
+  public sendURLAction(action: URLActionType) {
+    this.send({guid: '', name: 'url-action', args: {action}})
+  }
+
   private drainMessageQueue() {
     if (!this.loaded) { return }
 
@@ -47,5 +52,16 @@ export default class SharedProcess {
     }
 
     this.messageQueue = []
+  }
+
+  public get console() {
+    return {
+      log: (...args: any[]) => {
+        this.send({guid: '', name: 'console.log', args: {args}})
+      },
+      error: (...args: any[]) => {
+        this.send({guid: '', name: 'console.error', args: {args}})
+      }
+    }
   }
 }

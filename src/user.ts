@@ -3,6 +3,10 @@ export default class User {
   private login: string
   private endpoint: string
 
+  public static fromJSON(obj: any): User {
+    return new User(obj.login, obj.endpoint, obj.token)
+  }
+
   public constructor(login: string, endpoint: string, token: string) {
     this.login = login
     this.endpoint = endpoint
