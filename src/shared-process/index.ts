@@ -37,8 +37,6 @@ register('add-user', () => {
 
 register('get-users', () => {
   const usersJson = JSON.stringify(usersStore.getUsers())
-  console.log('json')
-  console.log(usersJson)
   return Promise.resolve(usersJson)
 })
 
@@ -72,7 +70,6 @@ function dispatch(message: Message) {
   const promise = fn(args)
   promise.then(result => {
     BrowserWindow.getAllWindows().forEach(window => {
-      console.log(`respond to ${guid}`)
       window.webContents.send(`shared/response/${guid}`, [result])
     })
   })
