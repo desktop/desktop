@@ -1,6 +1,6 @@
 import {ipcRenderer} from 'electron'
 import {Disposable} from 'event-kit'
-import User from './user'
+import User from './models/user'
 import guid from './lib/guid'
 
 interface GetUsersAction {

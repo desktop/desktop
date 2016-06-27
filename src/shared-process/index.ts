@@ -3,7 +3,7 @@ import {Message} from './message'
 import tokenStore from './token-store'
 import UsersStore from './users-store'
 import {requestToken, askUserToAuth, getDotComEndpoint} from './auth'
-import User from '../user'
+import User from '../models/user'
 import {URLActionType, isOAuthAction} from '../lib/parse-url'
 
 const {BrowserWindow} = remote

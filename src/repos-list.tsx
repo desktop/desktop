@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import List from './list'
-import User from './user'
+import User from './models/user'
 import {Repo} from './lib/api'
 
 interface ReposListProps {

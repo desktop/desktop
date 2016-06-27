@@ -1,7 +1,7 @@
 import {shell} from 'electron'
 import * as React from 'react'
 
-import User from './user'
+import User from './models/user'
 import {Repo} from './lib/api'
 
 import {Octicon, OcticonSymbol} from './ui/octicons'

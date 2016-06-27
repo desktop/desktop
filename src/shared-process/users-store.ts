@@ -1,6 +1,6 @@
 import {DataStore, SecureStore} from './stores'
 import {getKeyForUser} from './auth'
-import User from '../user'
+import User from '../models/user'
 
 export default class UsersStore {
   private dataStore: DataStore

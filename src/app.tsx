@@ -3,7 +3,7 @@ import {ipcRenderer} from 'electron'
 
 import ReposList from './repos-list'
 import Info from './info'
-import User from './user'
+import User from './models/user'
 import NotLoggedIn from './not-logged-in'
 import {WindowControls} from './ui/window/window-controls'
 import API from './lib/api'
