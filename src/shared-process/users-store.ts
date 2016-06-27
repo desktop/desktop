@@ -1,5 +1,5 @@
 import {DataStore, SecureStore} from './stores'
-import {getKeyForUser} from '../auth'
+import {getKeyForUser} from './auth'
 import User from '../user'
 
 export default class UsersStore {

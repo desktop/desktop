@@ -2,7 +2,7 @@ import {ipcRenderer, remote} from 'electron'
 import {Message} from './message'
 import tokenStore from './token-store'
 import UsersStore from './users-store'
-import {requestToken, askUserToAuth, getDotComEndpoint} from '../auth'
+import {requestToken, askUserToAuth, getDotComEndpoint} from './auth'
 import User from '../user'
 import {URLActionType, isOAuthAction} from '../lib/parse-url'
 
