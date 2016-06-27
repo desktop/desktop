@@ -30,11 +30,6 @@ register('ping', () => {
   return Promise.resolve('pong')
 })
 
-register('add-user', () => {
-  broadcastUpdate()
-  return Promise.resolve()
-})
-
 register('get-users', () => {
   const usersJson = JSON.stringify(usersStore.getUsers())
   return Promise.resolve(usersJson)

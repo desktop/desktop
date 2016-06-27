@@ -12,7 +12,7 @@ interface GetRepositoriesAction {
 }
 
 interface AddRepositoryAction {
-  name: 'add-repo'
+  name: 'add-repository'
 }
 
 type Repository = void
