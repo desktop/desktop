@@ -4,7 +4,7 @@ import * as React from 'react'
 import User from './user'
 import {Repo} from './lib/api'
 
-import {Octicon, OcticonSymbol} from './octicon'
+import {Octicon, OcticonSymbol} from './ui/octicons'
 import {console as remoteConsole, ping} from './shared-process/interface'
 
 interface InfoProps {
