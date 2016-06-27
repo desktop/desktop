@@ -27,10 +27,6 @@ type Action = GetUsersAction | GetRepositoriesAction |
               AddRepositoryAction | RequestOAuthAction
 
 export default class Dispatcher {
-  public constructor() {
-
-  }
-
   private dispatch<T>(action: Action, args: any): Promise<T> {
     return this.send(action.name, args)
   }
