@@ -30,7 +30,7 @@ interface OcticonProps {
 }
 
 /**
- * # A React component for displaying octicon symbols in SVG format.
+ * A React component for displaying octicon symbols in SVG format.
  *
  * Note that the aspect ratios of the octicons will always be preserved
  * which is why the width and height properties specify the maximum and
