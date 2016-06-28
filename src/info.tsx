@@ -51,13 +51,8 @@ export default class Info extends React.Component<InfoProps, InfoState> {
         <h1><Octicon height={32} width={32} symbol={symbol} /> {repo.name}</h1>
         Stars: {repo.stargazersCount}
 
-        <button onClick={() => this.onOpen()}>Open</button>
+        <button onClick={() => shell.openExternal(repo.htmlUrl)}>Open</button>
       </div>
     )
-  }
-
-  private async onOpen() {
-    const repo = this.props.selectedRepo
-    shell.openExternal(repo.htmlUrl)
   }
 }
