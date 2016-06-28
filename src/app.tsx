@@ -41,10 +41,12 @@ export default class App extends React.Component<AppProps, AppState> {
       repos: []
     }
 
-    this.setup()
+    // This is split out simply because TS doesn't like having an async
+    // constructor.
+    this.completeSetup()
   }
 
-  private async setup() {
+  private async completeSetup() {
     const users = await this.props.dispatcher.getUsers()
     const user = users[0]
     this.setState(Object.assign({}, this.state, {user}))

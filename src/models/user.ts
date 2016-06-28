@@ -1,8 +1,15 @@
+/**
+ * A GitHub user.
+ */
 export default class User {
   private token: string
   private login: string
   private endpoint: string
 
+  /**
+   * Create a new User from some JSON. This assumes the JSON has already been
+   * validated.
+   */
   public static fromJSON(obj: any): User {
     return new User(obj.login, obj.endpoint, obj.token)
   }

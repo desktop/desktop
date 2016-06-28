@@ -50,6 +50,10 @@ ipcRenderer.on('shared/request', (event, args) => {
   dispatch(args[0])
 })
 
+/**
+ * Dispatch the received message to the appropriate function and respond with 
+ * the return value.
+ */
 function dispatch(message: Message) {
   const name = message.name
   if (!name) {
@@ -75,10 +79,12 @@ function dispatch(message: Message) {
   })
 }
 
+/** Register a function to respond to requests with the given name. */
 function register(name: string, fn: SharedProcessFunction) {
   registeredFunctions[name] = fn
 }
 
+/** Tell all the windows that something was updated. */
 function broadcastUpdate() {
   BrowserWindow.getAllWindows().forEach(window => {
     const state = JSON.stringify({users: usersStore.getUsers(), repositories: []})
@@ -86,6 +92,7 @@ function broadcastUpdate() {
   })
 }
 
+/** Request a token, given an OAuth code, and add the user. */
 async function addUserWithCode(code: string) {
   try {
     const token = await requestToken(code)
