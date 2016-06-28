@@ -16,6 +16,7 @@ version: "{build}"
 install:
   - ps: Install-Product node $env:nodejs_version
   - npm install
+  - npm install node-gyp@3.4.0
 
 build_script:
   - npm run lint
