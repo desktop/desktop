@@ -1,5 +1,6 @@
 import Owner, {IOwner} from './owner'
 
+/** The data-only interface for GitHubRepository for transport across IPC. */
 export interface IGitHubRepository {
   name: string
   owner: IOwner

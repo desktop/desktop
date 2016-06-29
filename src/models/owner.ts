@@ -1,3 +1,4 @@
+/** The data-only interface for Owner for transport across IPC. */
 export interface IOwner {
   login: string
 }

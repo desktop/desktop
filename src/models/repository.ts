@@ -1,6 +1,6 @@
 import GitHubRepository, {IGitHubRepository} from './github-repository'
 
-/** The data-only interface for Repository. For transport across IPC and storage. */
+/** The data-only interface for Repository for transport across IPC. */
 export interface IRepository {
   path: string
   gitHubRepository: IGitHubRepository
