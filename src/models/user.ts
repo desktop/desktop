@@ -1,16 +1,21 @@
+/** The data-only interface for User. For transport across IPC and storage. */
+export interface IUser {
+  token: string
+  login: string
+  endpoint: string
+}
+
 /**
  * A GitHub user.
  */
 export default class User {
+  // TODO: These will be readonly once readonly is a thing.
   private token: string
   private login: string
   private endpoint: string
 
-  /**
-   * Create a new User from some JSON. This assumes the JSON has already been
-   * validated.
-   */
-  public static fromJSON(obj: any): User {
+  /** Create a new User from some JSON. */
+  public static fromJSON(obj: IUser): User {
     return new User(obj.login, obj.endpoint, obj.token)
   }
 

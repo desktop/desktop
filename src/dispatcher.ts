@@ -1,8 +1,9 @@
 import {ipcRenderer} from 'electron'
 import {Disposable} from 'event-kit'
-import User from './models/user'
-import Repository from './models/repository'
+import User, {IUser} from './models/user'
+import Repository, {IRepository} from './models/repository'
 import guid from './lib/guid'
+import {AppState} from './lib/app-state'
 
 interface GetUsersAction {
   name: 'get-users'
@@ -21,7 +22,10 @@ interface RequestOAuthAction {
   name: 'request-oauth'
 }
 
-type State = {users: User[], repositories: Repository[]}
+export interface AppState {
+  users: User[]
+  repositories: Repository[]
+}
 
 type Action = GetUsersAction | GetRepositoriesAction |
               AddRepositoryAction | RequestOAuthAction
@@ -52,9 +56,8 @@ export default class Dispatcher {
 
   /** Get the users */
   public async getUsers(): Promise<User[]> {
-    const json = await this.dispatch<string>({name: 'get-users'}, {})
-    const jsonArray: any[] = JSON.parse(json)
-    return jsonArray.map(u => User.fromJSON(u))
+    const json = await this.dispatch<IUser[]>({name: 'get-users'}, {})
+    return json.map(u => User.fromJSON(u))
   }
 
   /** Get the repositories the user has added to the app. */
@@ -69,15 +72,11 @@ export default class Dispatcher {
   }
 
   /** Register a listener function to be called when the state updates. */
-  public onDidUpdate(fn: (state: State) => void): Disposable {
+  public onDidUpdate(fn: (state: AppState) => void): Disposable {
     const wrappedFn = (event: Electron.IpcRendererEvent, args: any[]) => {
-      const state = JSON.parse(args[0].state)
-      const usersJson: any[] = state.users
-      const users = usersJson.map(u => User.fromJSON(u))
-      const repositoriesJson: any[] = state.repositories
-
-      // TODO: Map this once we have a Repo type
-      const repositories = repositoriesJson
+      const state: {repositories: IRepository[], users: IUser[]} = args[0].state
+      const users = state.users.map(u => User.fromJSON(u))
+      const repositories = state.repositories.map(r => Repository.fromJSON(r))
       fn({users, repositories})
     }
     ipcRenderer.on('shared/did-update', wrappedFn)
