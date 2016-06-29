@@ -22,7 +22,7 @@ export default class ReposList extends React.Component<ReposListProps, void> {
       display: 'flex',
       flexDirection: 'column',
       padding: 4,
-      backgroundColor: selected ? 'blue' : 'white',
+      backgroundColor: selected ? 'blue' : 'transparent',
       color: selected ? 'white' : 'black',
       height: RowHeight
     }
