@@ -5,6 +5,7 @@ import UsersStore from './users-store'
 import {requestToken, askUserToAuth, getDotComEndpoint} from './auth'
 import User from '../models/user'
 import {URLActionType, isOAuthAction} from '../lib/parse-url'
+import {AppState} from '../lib/app-state'
 
 const {BrowserWindow} = remote
 
@@ -31,8 +32,7 @@ register('ping', () => {
 })
 
 register('get-users', () => {
-  const usersJson = JSON.stringify(usersStore.getUsers())
-  return Promise.resolve(usersJson)
+  return Promise.resolve(usersStore.getUsers())
 })
 
 register('url-action', async ({action}: {action: URLActionType}) => {
@@ -51,7 +51,7 @@ ipcRenderer.on('shared/request', (event, args) => {
 })
 
 /**
- * Dispatch the received message to the appropriate function and respond with 
+ * Dispatch the received message to the appropriate function and respond with
  * the return value.
  */
 function dispatch(message: Message) {
@@ -87,7 +87,7 @@ function register(name: string, fn: SharedProcessFunction) {
 /** Tell all the windows that something was updated. */
 function broadcastUpdate() {
   BrowserWindow.getAllWindows().forEach(window => {
-    const state = JSON.stringify({users: usersStore.getUsers(), repositories: []})
+    const state: AppState = {users: usersStore.getUsers(), repositories: []}
     window.webContents.send('shared/did-update', [{state}])
   })
 }
