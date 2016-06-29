@@ -11,9 +11,6 @@ const projectRoot = path.join(__dirname, '..')
 const buildRoot = path.join(projectRoot, 'build')
 const appPackage = require(path.join(projectRoot, 'package.json'))
 
-const ncp = require('ncp').ncp;
-ncp.limit = 16;
-
 console.log(`Building for ${process.env.NODE_ENV}…`)
 
 console.log('Removing old distribution…')
@@ -83,7 +80,6 @@ packager(options, (error, appPaths) => {
 })
 
 function copyGitDirectory () {
-  let destination = path.join(projectRoot, 'build', 'git')
   let source = projectRoot
 
   if (process.platform === 'darwin') {
@@ -95,12 +91,7 @@ function copyGitDirectory () {
     process.exit(1)
   }
 
-  ncp(source, destination, function (err) {
-   if (err) {
-    console.error(err)
-    process.exit(1)
-   }
-  });
+  fs.copySync(source, path.join(projectRoot, 'build', 'git'));
 }
 
 function installDependencies () {
