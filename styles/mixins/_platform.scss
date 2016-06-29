@@ -12,6 +12,14 @@
   }
 }
 
+// An exact copy of the win32 mixin except that it allows for
+// writing base-level rules
+@mixin win32-context {
+  body.platform-win32 {
+    @content;
+  }
+}
+
 // A mixin which takes a content block that should only
 // be applied when the current (real or emulated) operating
 // system is macOS.
@@ -22,6 +30,14 @@
 // about them.
 @mixin darwin {
   body.platform-darwin & {
+    @content;
+  }
+}
+
+// An exact copy of the darwin mixin except that it allows for
+// writing base-level rules
+@mixin darwin-contect {
+  body.platform-darwin {
     @content;
   }
 }
