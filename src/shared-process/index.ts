@@ -5,6 +5,9 @@ import UsersStore from './users-store'
 import {requestToken, askUserToAuth, getDotComEndpoint} from './auth'
 import User from '../models/user'
 import {URLActionType, isOAuthAction} from '../lib/parse-url'
+import Database from './database'
+import RepositoriesStore from './repositories-store'
+import Repository from '../models/repository'
 
 const {BrowserWindow} = remote
 
@@ -15,6 +18,9 @@ const registeredFunctions: {[key: string]: SharedProcessFunction} = {}
 
 const usersStore = new UsersStore(localStorage, tokenStore)
 usersStore.loadFromStore()
+
+const database = new Database()
+const repositoriesStore = new RepositoriesStore(database)
 
 register('console.log', ({args}: {args: any[]}) => {
   console.log('', ...args)
@@ -35,9 +41,17 @@ register('get-users', () => {
   return Promise.resolve(usersJson)
 })
 
+register('add-repository', async ({repoJson}: {repoJson: string}) => {
+  const json = JSON.parse(repoJson)
+  const repo = Repository.fromJSON(json)
+  await repositoriesStore.addRepository(repo)
+  broadcastUpdate()
+})
+
 register('url-action', async ({action}: {action: URLActionType}) => {
   if (isOAuthAction(action)) {
     await addUserWithCode(action.args.code)
+    broadcastUpdate()
   }
 })
 
@@ -51,7 +65,7 @@ ipcRenderer.on('shared/request', (event, args) => {
 })
 
 /**
- * Dispatch the received message to the appropriate function and respond with 
+ * Dispatch the received message to the appropriate function and respond with
  * the return value.
  */
 function dispatch(message: Message) {
@@ -99,8 +113,6 @@ async function addUserWithCode(code: string) {
     const octo = new Octokat({token})
     const user = await octo.user.fetch()
     usersStore.addUser(new User(user.login, getDotComEndpoint(), token))
-
-    broadcastUpdate()
   } catch (e) {
     console.error(`Error adding user: ${e}`)
   }
