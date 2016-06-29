@@ -18,7 +18,7 @@ export default class ReposList extends React.Component<ReposListProps, void> {
   private renderRow(row: number): JSX.Element {
     const selected = row === this.props.selectedRow
     const repo = this.props.repos[row]
-    const rowStyle = {
+    const rowStyle: React.CSSProperties = {
       display: 'flex',
       flexDirection: 'column',
       padding: 4,
@@ -27,7 +27,7 @@ export default class ReposList extends React.Component<ReposListProps, void> {
       height: RowHeight
     }
 
-    const titleStyle = {
+    const titleStyle: React.CSSProperties = {
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
       overflow: 'hidden'
