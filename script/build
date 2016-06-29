@@ -19,7 +19,7 @@ fs.removeSync(path.join(projectRoot, 'dist'))
 console.log('Installing dependencies…')
 installDependencies()
 
-console.log('Packaging git.exe…')
+console.log('Packaging embedded Git…')
 copyGitDirectory()
 
 const options = {
