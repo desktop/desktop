@@ -3,7 +3,7 @@
 /** A <List> React component holding all tracked repositories in the sidebar */
 #repository-list {
 
-  // G read _scroll.scss, we're unable to extend the list items all
+  // Go read _scroll.scss, we're unable to extend the list items all
   // the way out to the edge of the list because the scrollbar forces
   // a margin that we can't get past. So on Windows we'll render with
   // a bit of a rounded right edge to make it appear as if it's intentional
