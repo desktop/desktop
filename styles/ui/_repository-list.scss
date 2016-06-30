@@ -1,22 +1,41 @@
+/** A <List> React component holding all tracked repositories in the sidebar */
 #repository-list {
 
+  /**
+   * Container for repository list items in the sidebar
+   *
+   * Contains two elements, one 16x16 <svg class='octicon'> holding an octicon
+   * representing the repository type (local, private, public, fork)
+   * and one <div class='name'> holding the repository name.
+   */
   .repository-list-item {
 
+    // 20px offset from the window edge
     padding: 0 5px 0 20px;
 
+    // Layout the icon and repository name horizontally
     display: flex;
     flex-direction: row;
+    // This makes it so that both the icon and the repo name
+    // is vertically centered.
     align-items: center;
 
+    // Necessary to limit the width of the repository
+    // name and truncate accordingly
     width: 100%;
 
     .octicon {
+      // Some room between the icon and repository name
       margin-right: 5px;
+
+      // Always let the octicon dictate the amount of space it needs
       flex-shrink: 0;
     }
 
     .name {
       font-weight: var(--font-weight-semibold);
+
+      // Long repository names truncate and ellipse
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
