@@ -5,6 +5,11 @@
   display: flex;
   flex-direction: column;
 
+  // TODO: I'm not sure if it should be the job of the sidebar
+  // to add margin to the repository view but it'll have to do
+  // for now.
+  margin-right: 20px;
+
   // Custom color scheme for the sidebar
   //
   // See _variables.scss for documentation on the variables themselves.
@@ -38,7 +43,7 @@
  * The way we do this is by applying a negative margin equal
  * to the height of the title bar _and_ a subsequent padding
  * to render the contents of the sidebar underneath the title
- * bar.  
+ * bar.
  */
 
 body.platform-darwin:not(.fullscreen) {
