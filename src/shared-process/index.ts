@@ -41,9 +41,12 @@ register('get-users', () => {
   return Promise.resolve(usersStore.getUsers())
 })
 
-register('add-repository', async ({repoJSON}: {repoJSON: IRepository}) => {
-  const repo = Repository.fromJSON(repoJSON)
-  await repositoriesStore.addRepository(repo)
+register('add-repositories', async ({repositories}: {repositories: IRepository[]}) => {
+  const inflatedRepositories = repositories.map(r => Repository.fromJSON(r))
+  for (const repo of inflatedRepositories) {
+    await repositoriesStore.addRepository(repo)
+  }
+
   broadcastUpdate()
 })
 

@@ -14,8 +14,8 @@ interface GetRepositoriesAction {
 }
 
 interface AddRepositoryAction {
-  name: 'add-repository'
-  repository: Repository
+  name: 'add-repositories'
+  repositories: Repository[]
 }
 
 interface RequestOAuthAction {
@@ -66,6 +66,12 @@ export default class Dispatcher {
   public getRepositories(): Promise<Repository[]> {
     // TODO: Map from JSON => Repo
     return this.dispatch({name: 'get-repositories'})
+  }
+
+  public addRepositories(repositories: Repository[]): Promise<void> {
+    console.log('add repos')
+    console.log(repositories)
+    return this.dispatch<void>({name: 'add-repositories', repositories})
   }
 
   /** Request the user approve our OAuth request. This will open their browser. */
