@@ -10,8 +10,8 @@ export interface IRepository {
  * A local repository.
  */
 export default class Repository {
-  public path: string
-  public gitHubRepository: GitHubRepository
+  private path: string
+  private gitHubRepository: GitHubRepository
 
   public static fromJSON(json: IRepository): Repository {
     return new Repository(json.path, GitHubRepository.fromJSON(json.gitHubRepository))
@@ -20,5 +20,13 @@ export default class Repository {
   public constructor(path: string, gitHubRepository: GitHubRepository) {
     this.path = path
     this.gitHubRepository = gitHubRepository
+  }
+
+  public getGitHubRepository(): GitHubRepository {
+    return this.gitHubRepository
+  }
+
+  public getPath(): string {
+    return this.path
   }
 }

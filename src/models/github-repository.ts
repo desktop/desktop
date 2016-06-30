@@ -7,8 +7,8 @@ export interface IGitHubRepository {
 }
 
 export default class GitHubRepository {
-  public name: string
-  public owner: Owner
+  private name: string
+  private owner: Owner
 
   public static fromJSON(json: IGitHubRepository): GitHubRepository {
     return new GitHubRepository(json.name, Owner.fromJSON(json.owner))
@@ -17,5 +17,13 @@ export default class GitHubRepository {
   public constructor(name: string, owner: Owner) {
     this.name = name
     this.owner = owner
+  }
+
+  public getName(): string {
+    return this.name
+  }
+
+  public getOwner(): Owner {
+    return this.owner
   }
 }

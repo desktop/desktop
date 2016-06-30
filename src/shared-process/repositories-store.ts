@@ -1,5 +1,7 @@
 import Dexie from 'dexie'
 import Database from './database'
+import Owner from '../models/owner'
+import GitHubRepository from '../models/github-repository'
 import Repository from '../models/repository'
 
 function deDexie<T>(promise: Dexie.Promise<T>): Promise<T> {
@@ -15,31 +17,52 @@ export default class RepositoriesStore {
     this.db = db
   }
 
-  public getRepositories(): Promise<Repository[]> {
-    return deDexie(this.db.repositories.toArray())
+  public async getRepositories(): Promise<Repository[]> {
+    // const Promise = Dexie.Promise
+    const inflatedRepos: Repository[] = []
+    const p = this.db.transaction('r', this.db.repositories, this.db.gitHubRepositories, this.db.owners, async () => {
+      const repos = await this.db.repositories.toArray()
+      for (const repo of repos) {
+        let inflatedRepo: Repository = null
+        if (repo.gitHubRepositoryID) {
+          const gitHubRepository = await this.db.gitHubRepositories.get(repo.gitHubRepositoryID)
+          const owner = await this.db.owners.get(gitHubRepository.ownerID)
+          inflatedRepo = new Repository(repo.path, new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint)))
+        } else {
+          inflatedRepo = new Repository(repo.path, null)
+        }
+        inflatedRepos.push(inflatedRepo)
+      }
+    })
+
+
+    await deDexie(p)
+    return inflatedRepos
   }
 
   public addRepository(repo: Repository): Promise<void> {
     const Promise = Dexie.Promise
     const p = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, async () => {
       let gitHubRepositoryID: number = null
-      if (repo.gitHubRepository) {
-        const existingOwner = this.db.owners.where('login').equalsIgnoreCase(repo.gitHubRepository.owner.login).limit(1)[0]
+      const gitHubRepository = repo.getGitHubRepository()
+      if (gitHubRepository) {
+        const login = gitHubRepository.getOwner().getLogin()
+        const existingOwner = await this.db.owners.where('login').equalsIgnoreCase(login).limit(1).first()
         let ownerID: number = null
         if (existingOwner) {
           ownerID = existingOwner.id
         } else {
-          ownerID = await this.db.owners.add({login: repo.gitHubRepository.owner.login})
+          ownerID = await this.db.owners.add({login, endpoint: gitHubRepository.getOwner().getEndpoint()})
         }
 
         gitHubRepositoryID = await this.db.gitHubRepositories.add({
-          name: repo.gitHubRepository.name,
+          name: gitHubRepository.getName(),
           ownerID
         })
       }
 
       await this.db.repositories.add({
-        path: repo.path,
+        path: repo.getPath(),
         gitHubRepositoryID
       })
 

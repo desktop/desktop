@@ -3,15 +3,19 @@ import Dexie from 'dexie'
 const DatabaseVersion = 1
 
 interface DatabaseOwner {
+  id?: number
   login: string
+  endpoint: string
 }
 
 interface DatabaseGitHubRepository {
+  id?: number
   ownerID: number
   name: string
 }
 
 interface DatabaseRepository {
+  id?: number
   gitHubRepositoryID?: number
   path: string
 }
