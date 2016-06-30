@@ -25,4 +25,10 @@
     flex-direction: row;
     flex-grow: 1
   }
+
+  &-sidebar {
+    width: 270px;
+    display: flex;
+    flex-direction: column;
+  }
 }
