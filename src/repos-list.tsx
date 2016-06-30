@@ -66,8 +66,7 @@ export default class ReposList extends React.Component<ReposListProps, void> {
             itemHeight={RowHeight}
             renderItem={row => this.renderRow(row)}
             selectedRow={this.props.selectedRow}
-            onSelectionChanged={row => this.props.onSelectionChanged(row)}
-            style={{width: 270}}/>
+            onSelectionChanged={row => this.props.onSelectionChanged(row)} />
     )
   }
 }
