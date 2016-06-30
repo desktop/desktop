@@ -1,3 +1,17 @@
+.list {
+
+  // The list-virtualized class is a specialization of list that uses
+  // GPU transforms and other techniques to minimize the number of DOM
+  // elements needed to visualize the list in the current viewport.
+  &-virtualized {
+
+    overflow: auto;
+    transform: translate3d(0, 0, 0);
+
+    .list-item { position: fixed; }
+  }
+}
+
 .list-item {
 
   background-color: var(--background-color);
@@ -6,9 +20,4 @@
     color: var(--list-item-selected-text-color);
     background-color: var(--list-item-selected-background-color);
   }
-}
-
-.list-virtualized .list-item {
-  position: fixed;
-  width: 100%;
 }
