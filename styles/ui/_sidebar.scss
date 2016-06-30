@@ -1,8 +1,13 @@
+@import '../mixins/platform';
+
 #desktop-app-sidebar {
   width: 270px;
   display: flex;
   flex-direction: column;
 
+  // Custom color scheme for the sidebar
+  //
+  // See _variables.scss for documentation on the variables themselves.
   --text-color: #ccc;
   --background-color: #333;
 
@@ -20,5 +25,32 @@
   // the variables.
   color: var(--text-color);
   background-color: var(--background-color);
+}
 
+/* Sidebar negative margin hackery
+ *
+ * On Windows and macOS we add an artificial title bar
+ * at the top of the window. This title bar is transparent
+ * and has no custom styling (currently) so we want the
+ * sidebar to look like it's extending all the way up to the
+ * top edge of the window.
+ *
+ * The way we do this is by applying a negative margin equal
+ * to the height of the title bar _and_ a subsequent padding
+ * to render the contents of the sidebar underneath the title
+ * bar.  
+ */
+
+body.platform-darwin:not(.fullscreen) {
+  #desktop-app-sidebar {
+    margin-top: calc(var(--darwin-title-bar-height) * -1);
+    padding-top: var(--darwin-title-bar-height);
+  }
+}
+
+body.platform-win32:not(.fullscreen) {
+  #desktop-app-sidebar {
+    margin-top: calc(var(--win32-title-bar-height) * -1);
+    padding-top: var(--win32-title-bar-height);
+  }
 }
