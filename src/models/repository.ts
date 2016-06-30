@@ -14,7 +14,12 @@ export default class Repository {
   private gitHubRepository: GitHubRepository
 
   public static fromJSON(json: IRepository): Repository {
-    return new Repository(json.path, GitHubRepository.fromJSON(json.gitHubRepository))
+    const gitHubRepository = json.gitHubRepository
+    if (gitHubRepository) {
+       return new Repository(json.path, GitHubRepository.fromJSON(json.gitHubRepository))
+    } else {
+      return new Repository(json.path, null)
+    }
   }
 
   public constructor(path: string, gitHubRepository: GitHubRepository) {
