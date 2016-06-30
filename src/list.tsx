@@ -14,7 +14,13 @@ type ListProps = {
 
 type ListState = {
   scrollPosition: number,
-  numberOfItemsToRender: number
+  numberOfItemsToRender: number,
+
+  /**
+   * Internal use only. Whether to explicitly move keyboard focus to the selected item.
+   * Used after intercepting keyboard intent to move selection (arrow keys, page up/down).
+   */
+   moveKeyboardFocusToSelectedItem?: boolean
 }
 
 export default class List extends React.Component<ListProps, ListState> {
@@ -24,6 +30,7 @@ export default class List extends React.Component<ListProps, ListState> {
   }
 
   private firstRender: boolean
+  private selectedItem: HTMLDivElement
 
   public constructor(props: ListProps) {
     super(props)
@@ -63,6 +70,7 @@ export default class List extends React.Component<ListProps, ListState> {
     }
 
     this.props.onSelectionChanged(newRow)
+    this.setState(Object.assign({}, this.state, {moveKeyboardFocusToSelectedItem: true}))
     this.scrollRowToVisible(newRow)
   }
 
@@ -91,13 +99,28 @@ export default class List extends React.Component<ListProps, ListState> {
 
   private renderItems(startPosition: number, endPosition: number): JSX.Element[] {
     const items: JSX.Element[] = []
+
+    // While it's currently impossible to deselect an item we unset
+    // this in case we decide to add deselection in the future. Windows
+    // lists, for example, always support deselection with CTLR+Click.
+    this.selectedItem = null
+
     for (let row = startPosition; row < endPosition; row++) {
       const element = this.props.renderItem(row)
       const selected = row === this.props.selectedRow
       const className = selected ? 'list-item selected' : 'list-item'
+      const tabIndex = selected ? '0' : null
+
+      // We only need to keep a reference to the selected element
+      const ref = selected
+        ? (c: HTMLDivElement) => { this.selectedItem = c }
+        : null
 
       items.push(
-        <div key={element.key} className={className}
+        <div key={element.key}
+             className={className}
+             tabIndex={tabIndex}
+             ref={ref}
              style={{
                transform: `translate3d(0px, ${row * this.props.itemHeight}px, 0px)`,
                height: this.props.itemHeight
@@ -113,6 +136,18 @@ export default class List extends React.Component<ListProps, ListState> {
 
   public componentDidUpdate() {
     this.updateVisibleRows()
+
+    // If this state is set it means that someone just used arrow keys (or pgup/down)
+    // to change the selected row. When this happens we need to explcitly shift
+    // keyboard focus to the newly selected item.
+    if (this.state.moveKeyboardFocusToSelectedItem) {
+      if (this.selectedItem) {
+        this.selectedItem.focus()
+      }
+
+      // Unset the flag so that we don't end up in a loop setting focus over and over.
+      this.setState(Object.assign({}, this.state, {moveKeyboardFocusToSelectedItem: false}))
+    }
   }
 
   private updateVisibleRows() {
