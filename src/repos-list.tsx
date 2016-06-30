@@ -61,7 +61,8 @@ export default class ReposList extends React.Component<ReposListProps, void> {
     }
 
     return (
-      <List itemCount={this.props.repos.length}
+      <List id='repository-list'
+            itemCount={this.props.repos.length}
             itemHeight={RowHeight}
             renderItem={row => this.renderRow(row)}
             selectedRow={this.props.selectedRow}
