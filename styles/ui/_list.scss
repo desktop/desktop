@@ -1,0 +1,14 @@
+.list-item {
+
+  background-color: var(--background-color);
+
+  &.selected {
+    color: var(--list-item-selected-text-color);
+    background-color: var(--list-item-selected-background-color);
+  }
+}
+
+.list-virtualized .list-item {
+  position: fixed;
+  width: 100%;
+}

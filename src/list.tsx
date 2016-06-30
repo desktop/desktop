@@ -91,12 +91,13 @@ export default class List extends React.Component<ListProps, ListState> {
     const items: JSX.Element[] = []
     for (let row = startPosition; row < endPosition; row++) {
       const element = this.props.renderItem(row)
+      const selected = row === this.props.selectedRow
+      const className = selected ? 'list-item selected' : 'list-item'
+
       items.push(
-        <div key={element.key}
+        <div key={element.key} className={className}
              style={{
-               position: 'fixed',
                transform: `translate3d(0px, ${row * this.props.itemHeight}px, 0px)`,
-               width: '100%',
                height: this.props.itemHeight
              }}
              onMouseDown={() => this.handleMouseDown(row)}>
@@ -143,8 +144,11 @@ export default class List extends React.Component<ListProps, ListState> {
 
     this.firstRender = false
 
+    const className = 'list list-virtualized'
+
     return (
       <div style={listStyle}
+           className={className}
            ref='list'
            tabIndex={-1}
            onScroll={() => this.updateScrollPosition()}
