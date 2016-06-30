@@ -2,4 +2,16 @@
   width: 270px;
   display: flex;
   flex-direction: column;
+
+  --text-color: #ccc;
+  --background-color: #333;
+
+  color: var(--text-color);
+  background-color: var(--background-color);
+
+  --scroll-bar-thumb-background-color: rgba(255, 255, 255, 0.2);
+  --scroll-bar-thumb-background-color-active: rgba(255, 255, 255, 0.5);
+
+  --list-item-selected-background-color: #696969;
+  --list-item-selected-text-color: #f9f9f9;
 }
