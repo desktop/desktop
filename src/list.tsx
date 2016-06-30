@@ -128,11 +128,6 @@ export default class List extends React.Component<ListProps, ListState> {
   public render() {
     const startPosition = Math.max(this.state.scrollPosition - this.state.numberOfItemsToRender, 0)
     const endPosition = Math.min(this.state.scrollPosition + this.state.numberOfItemsToRender, this.props.itemCount)
-    const listRequiredStyle = {
-      overflow: 'auto',
-      transform: 'translate3d(0, 0, 0)'
-    }
-    const listStyle = Object.assign({}, this.props.style, listRequiredStyle)
     const containerStyle = {
       position: 'relative',
       overflow: 'hidden',
