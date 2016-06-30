@@ -7,7 +7,10 @@ type ListProps = {
   itemHeight: number,
   selectedRow?: number,
   onSelectionChanged?: (row: number) => void,
-  style?: Object
+  style?: Object,
+
+  /** The unique identifier for the outer element of the component (optional, defaults to null) */
+  id?: string
 }
 
 type ListState = {
@@ -147,7 +150,8 @@ export default class List extends React.Component<ListProps, ListState> {
     const className = 'list list-virtualized'
 
     return (
-      <div style={listStyle}
+      <div id={this.props.id}
+           style={listStyle}
            className={className}
            ref='list'
            tabIndex={-1}
