@@ -19,6 +19,9 @@ fs.removeSync(path.join(projectRoot, 'dist'))
 console.log('Installing dependencies…')
 installDependencies()
 
+console.log('Packaging embedded Git…')
+copyGitDirectory()
+
 const options = {
   platform: process.platform,
   arch: 'x64',
@@ -51,7 +54,6 @@ const options = {
     }
   ],
   'osx-sign': true,
-  'extra-resource': [path.join(projectRoot, 'git', 'git-macos', 'git')],
 
   // Windows
   'version-string': {
@@ -76,6 +78,21 @@ packager(options, (error, appPaths) => {
     process.exit(0)
   }
 })
+
+function copyGitDirectory () {
+  let source = projectRoot
+
+  if (process.platform === 'darwin') {
+    source = path.join(projectRoot, 'git', 'git-macos', 'git')
+  } else if (process.platform === 'win32') {
+    source = path.join(projectRoot, 'git', 'git-win32', 'git')
+  } else {
+    console.error(`No Git provided for platform ${process.platform} :(`)
+    process.exit(1)
+  }
+
+  fs.copySync(source, path.join(projectRoot, 'build', 'git'));
+}
 
 function installDependencies () {
   fs.copySync(path.join(projectRoot, '.npmrc'), path.join(buildRoot, '.npmrc'))
