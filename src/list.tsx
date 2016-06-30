@@ -178,11 +178,17 @@ export default class List extends React.Component<ListProps, ListState> {
 
     const className = 'list list-virtualized'
 
+    // The currently selected list item is focusable but if
+    // there's no focused item (and there's items to switch between)
+    // the list itself needs to be focusable so that you can reach
+    // it with keyboard navigation and select an item.
+    const tabIndex = (this.props.selectedRow < 0 && this.props.itemCount > 0) ? 0 : -1
+
     return (
       <div id={this.props.id}
            className={className}
            ref='list'
-           tabIndex={-1}
+           tabIndex={tabIndex}
            onScroll={() => this.updateScrollPosition()}
            onKeyDown={e => this.handleKeyDown(e)}>
         <div style={containerStyle}>
