@@ -1,3 +1,5 @@
+import * as path from 'path'
+
 import GitHubRepository, {IGitHubRepository} from './github-repository'
 
 /** The data-only interface for Repository for transport across IPC. */
@@ -33,5 +35,9 @@ export default class Repository {
 
   public getPath(): string {
     return this.path
+  }
+
+  public getName(): string {
+    return path.basename(this.path)
   }
 }
