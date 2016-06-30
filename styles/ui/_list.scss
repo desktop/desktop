@@ -25,5 +25,11 @@
   &.selected {
     color: var(--list-item-selected-text-color);
     background-color: var(--list-item-selected-background-color);
+
+    &:focus {
+      color: var(--list-item-selected-focused-text-color);
+      background-color: var(--list-item-selected-focused-background-color);      
+    }
   }
+
 }
