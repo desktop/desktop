@@ -5,7 +5,7 @@ type ListProps = {
   renderItem: (row: number) => JSX.Element,
   itemCount: number,
   itemHeight: number,
-  selectedRow?: number,
+  selectedRow: number,
   onSelectionChanged?: (row: number) => void,
 
   /** The unique identifier for the outer element of the component (optional, defaults to null) */
