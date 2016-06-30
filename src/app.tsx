@@ -9,6 +9,7 @@ import {WindowControls} from './ui/window/window-controls'
 import API from './lib/api'
 import {Repo} from './lib/api'
 import Dispatcher from './dispatcher'
+import Repository from './models/repository'
 
 interface AppState {
   selectedRow: number,
@@ -55,6 +56,32 @@ export default class App extends React.Component<AppProps, AppState> {
       this.api = new API(user)
       this.fetchRepos()
     }
+  }
+
+  public componentDidMount() {
+    document.ondragover = document.ondrop = (e) => {
+      e.preventDefault()
+    }
+
+    document.body.ondrop = (e) => {
+      const files = e.dataTransfer.files
+      this.handleDragAndDrop(files)
+      e.preventDefault()
+    }
+  }
+
+  private handleDragAndDrop(files: FileList) {
+    const repositories: Repository[] = []
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+
+      // TODO: Ensure it's actually a git repository.
+      // TODO: Look up its GitHub repository.
+      const repo = new Repository(file.path, null)
+      repositories.push(repo)
+    }
+
+    this.props.dispatcher.addRepositories(repositories)
   }
 
   private async fetchRepos() {
