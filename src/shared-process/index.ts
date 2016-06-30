@@ -7,7 +7,7 @@ import User from '../models/user'
 import {URLActionType, isOAuthAction} from '../lib/parse-url'
 import Database from './database'
 import RepositoriesStore from './repositories-store'
-import Repository from '../models/repository'
+import Repository, {IRepository} from '../models/repository'
 import {AppState} from '../lib/app-state'
 
 const {BrowserWindow} = remote
@@ -41,9 +41,8 @@ register('get-users', () => {
   return Promise.resolve(usersStore.getUsers())
 })
 
-register('add-repository', async ({repoJson}: {repoJson: string}) => {
-  const json = JSON.parse(repoJson)
-  const repo = Repository.fromJSON(json)
+register('add-repository', async ({repoJSON}: {repoJSON: IRepository}) => {
+  const repo = Repository.fromJSON(repoJSON)
   await repositoriesStore.addRepository(repo)
   broadcastUpdate()
 })

@@ -24,12 +24,20 @@ export default class RepositoriesStore {
     const p = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, async () => {
       let gitHubRepositoryID: number = null
       if (repo.gitHubRepository) {
-        const ownerID = await this.db.owners.add({login: repo.gitHubRepository.owner.login})
+        const existingOwner = this.db.owners.where('login').equalsIgnoreCase(repo.gitHubRepository.owner.login).limit(1)[0]
+        let ownerID: number = null
+        if (existingOwner) {
+          ownerID = existingOwner.id
+        } else {
+          ownerID = await this.db.owners.add({login: repo.gitHubRepository.owner.login})
+        }
+
         gitHubRepositoryID = await this.db.gitHubRepositories.add({
           name: repo.gitHubRepository.name,
           ownerID
         })
       }
+
       await this.db.repositories.add({
         path: repo.path,
         gitHubRepositoryID
