@@ -6,12 +6,19 @@
   --text-color: #ccc;
   --background-color: #333;
 
-  color: var(--text-color);
-  background-color: var(--background-color);
-
   --scroll-bar-thumb-background-color: rgba(255, 255, 255, 0.2);
   --scroll-bar-thumb-background-color-active: rgba(255, 255, 255, 0.5);
 
   --list-item-selected-background-color: #696969;
   --list-item-selected-text-color: #f9f9f9;
+
+  // Set up inheritance of foreground/background.
+  //
+  // Elements without an explicitly declared property inherit the
+  // resolved value of variables from parents, not the indirect
+  // reference so we need to explictly set these whenever we change
+  // the variables.
+  color: var(--text-color);
+  background-color: var(--background-color);
+
 }
