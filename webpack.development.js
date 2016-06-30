@@ -29,7 +29,8 @@ const config = {
   module: common.module,
   resolve: common.resolve,
   target: 'electron',
-  externals: common.externals
+  externals: common.externals,
+  node: common.node
 }
 
 // This will cause the compiled CSS (and sourceMap) to be

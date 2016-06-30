@@ -51,5 +51,9 @@ module.exports = {
       // Node couldn't find it, so it must be user-aliased
       callback()
     }
+  },
+  node: {
+    __dirname: false,
+    __filename: false
   }
 }
