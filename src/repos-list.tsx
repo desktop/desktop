@@ -3,6 +3,7 @@ import * as React from 'react'
 import List from './list'
 import User from './user'
 import {Repo} from './lib/api'
+import {Octicon, OcticonSymbol} from './ui/octicons'
 
 interface ReposListProps {
   selectedRow: number,
@@ -16,37 +17,23 @@ const RowHeight = 40
 
 export default class ReposList extends React.Component<ReposListProps, void> {
   private renderRow(row: number): JSX.Element {
-    const selected = row === this.props.selectedRow
     const repo = this.props.repos[row]
-    const rowStyle: React.CSSProperties = {
-      display: 'flex',
-      flexDirection: 'column',
-      padding: 4,
-      backgroundColor: selected ? 'blue' : 'transparent',
-      color: selected ? 'white' : 'black',
-      height: RowHeight
-    }
-
-    const titleStyle: React.CSSProperties = {
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      overflow: 'hidden'
-    }
-
-    const whiteness = 140
-    const ownerStyle = {
-      fontSize: '0.8em',
-      color: selected ? 'white' : `rgba(${whiteness}, ${whiteness}, ${whiteness}, 1)`
-    }
+    const symbol = this.iconForRepo(repo)
 
     return (
-      <div style={rowStyle} key={row.toString()}>
-        <div style={titleStyle} title={repo.name}>{repo.name}</div>
-        <div style={ownerStyle}>
-          by {repo.owner.login} <img src={repo.owner.avatarUrl} style={{width: 12, height: 12, borderRadius: '50%'}}/>
-        </div>
+      <div className='repository-list-item' key={row.toString()} title={repo.name}>
+        <Octicon symbol={symbol} />
+        <div className='name'>{repo.name}</div>
       </div>
     )
+  }
+
+  private iconForRepo(repo: Repo): OcticonSymbol {
+
+    if (repo.private) { return OcticonSymbol.lock }
+    if (repo.fork) { return OcticonSymbol.repoForked }
+
+    return OcticonSymbol.repo
   }
 
   private renderLoading() {

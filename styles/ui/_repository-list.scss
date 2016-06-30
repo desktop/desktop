@@ -1,0 +1,19 @@
+#repository-list {
+
+  .repository-list-item {
+
+    padding: 0 5px;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .octicon {
+      margin-right: 5px;
+    }
+
+    .name {
+      font-weight: 600;
+    }
+  }
+}
