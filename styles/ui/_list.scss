@@ -16,6 +16,12 @@
 
   background-color: var(--background-color);
 
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+
+  width: 100%;
+
   &.selected {
     color: var(--list-item-selected-text-color);
     background-color: var(--list-item-selected-background-color);
