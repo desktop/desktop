@@ -35,8 +35,10 @@ type Action = GetUsersAction | GetRepositoriesAction |
  * decouples the consumer of state from where/how it is stored.
  */
 export default class Dispatcher {
-  private dispatch<T>(action: Action, args: any): Promise<T> {
-    return this.send(action.name, args)
+  private dispatch<T>(action: Action): Promise<T> {
+    const copiedAction = Object.assign({}, action)
+    delete copiedAction.name
+    return this.send(action.name, action)
   }
 
   private send<T>(name: string, args: Object): Promise<T> {
@@ -56,19 +58,19 @@ export default class Dispatcher {
 
   /** Get the users */
   public async getUsers(): Promise<User[]> {
-    const json = await this.dispatch<IUser[]>({name: 'get-users'}, {})
+    const json = await this.dispatch<IUser[]>({name: 'get-users'})
     return json.map(u => User.fromJSON(u))
   }
 
   /** Get the repositories the user has added to the app. */
   public getRepositories(): Promise<Repository[]> {
     // TODO: Map from JSON => Repo
-    return this.dispatch({name: 'get-repositories'}, {})
+    return this.dispatch({name: 'get-repositories'})
   }
 
   /** Request the user approve our OAuth request. This will open their browser. */
   public requestOAuth(): Promise<void> {
-    return this.dispatch<void>({name: 'request-oauth'}, {})
+    return this.dispatch<void>({name: 'request-oauth'})
   }
 
   /** Register a listener function to be called when the state updates. */
