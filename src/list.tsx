@@ -7,7 +7,6 @@ type ListProps = {
   itemHeight: number,
   selectedRow?: number,
   onSelectionChanged?: (row: number) => void,
-  style?: Object,
 
   /** The unique identifier for the outer element of the component (optional, defaults to null) */
   id?: string
@@ -146,7 +145,6 @@ export default class List extends React.Component<ListProps, ListState> {
 
     return (
       <div id={this.props.id}
-           style={listStyle}
            className={className}
            ref='list'
            tabIndex={-1}
