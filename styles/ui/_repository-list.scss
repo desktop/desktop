@@ -8,12 +8,17 @@
     flex-direction: row;
     align-items: center;
 
+    width: 100%;
+
     .octicon {
       margin-right: 5px;
     }
 
     .name {
       font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
   }
 }
