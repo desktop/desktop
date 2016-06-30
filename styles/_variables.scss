@@ -13,6 +13,11 @@
   --font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
   --font-family-monospace: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
+  /**
+   * Font weight to use for semibold text
+   */
+  --font-weight-semibold: 600;
+
   // Pixel value used to responsively scale all typography. Applied to the `<html>` element.
   --font-size: 16px;
 
