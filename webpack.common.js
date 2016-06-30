@@ -5,6 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   entry: {
+    main: ['./src/main-process/main'],
     renderer: ['./src/index'],
     shared: ['./src/shared-process/index']
   },

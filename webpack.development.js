@@ -8,6 +8,7 @@ const webpackTargetElectronRenderer = require('webpack-target-electron-renderer'
 const config = {
   devtool: 'cheap-module-eval-source-map',
   entry: {
+    main: common.entry.main,
     renderer: ['webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr', ...common.entry.renderer],
     shared: ['webpack-hot-middleware/client?path=http://localhost:3000/__webpack_hmr', ...common.entry.shared]
   },

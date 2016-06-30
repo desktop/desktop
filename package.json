@@ -4,7 +4,7 @@
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
   "version": "0.0.2",
-  "main": "./app/main-process/main.js",
+  "main": "./main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
@@ -18,8 +18,8 @@
     "test": "cross-env TEST_ENV=1 electron-mocha --renderer --require ts-node/register test/*.ts test/*.tsx",
     "postinstall": "typings install",
     "start": "npm run build:dev && node script/start",
-    "compile:dev": "tsc && cross-env NODE_ENV=development webpack --config webpack.development.js",
-    "compile:prod": "tsc && cross-env NODE_ENV=production webpack --config webpack.production.js",
+    "compile:dev": "cross-env NODE_ENV=development webpack --config webpack.development.js",
+    "compile:prod": "cross-env NODE_ENV=production webpack --config webpack.production.js",
     "build:dev": "npm run compile:dev && cross-env NODE_ENV=development node script/build",
     "build:prod": "npm run compile:prod && cross-env NODE_ENV=production node script/build",
     "package": "node script/package",
