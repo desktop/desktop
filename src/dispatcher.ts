@@ -63,14 +63,12 @@ export default class Dispatcher {
   }
 
   /** Get the repositories the user has added to the app. */
-  public getRepositories(): Promise<Repository[]> {
-    // TODO: Map from JSON => Repo
-    return this.dispatch({name: 'get-repositories'})
+  public async getRepositories(): Promise<Repository[]> {
+    const json = await this.dispatch<IRepository[]>({name: 'get-repositories'})
+    return json.map(r => Repository.fromJSON(r))
   }
 
   public addRepositories(repositories: Repository[]): Promise<void> {
-    console.log('add repos')
-    console.log(repositories)
     return this.dispatch<void>({name: 'add-repositories', repositories})
   }
 

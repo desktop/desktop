@@ -50,6 +50,10 @@ register('add-repositories', async ({repositories}: {repositories: IRepository[]
   broadcastUpdate()
 })
 
+register('get-repositories', () => {
+  return repositoriesStore.getRepositories()
+})
+
 register('url-action', async ({action}: {action: URLActionType}) => {
   if (isOAuthAction(action)) {
     await addUserWithCode(action.args.code)
