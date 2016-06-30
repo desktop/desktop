@@ -8,7 +8,6 @@ import {URLActionType, isOAuthAction} from '../lib/parse-url'
 import Database from './database'
 import RepositoriesStore from './repositories-store'
 import Repository, {IRepository} from '../models/repository'
-import {AppState} from '../lib/app-state'
 
 const {BrowserWindow} = remote
 
@@ -106,8 +105,9 @@ function register(name: string, fn: SharedProcessFunction) {
 
 /** Tell all the windows that something was updated. */
 function broadcastUpdate() {
-  BrowserWindow.getAllWindows().forEach(window => {
-    const state: AppState = {users: usersStore.getUsers(), repositories: []}
+  BrowserWindow.getAllWindows().forEach(async (window) => {
+    const repositories = await repositoriesStore.getRepositories()
+    const state = {users: usersStore.getUsers(), repositories}
     window.webContents.send('shared/did-update', [{state}])
   })
 }
