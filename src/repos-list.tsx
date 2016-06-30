@@ -12,7 +12,7 @@ interface ReposListProps {
   repos: Repo[]
 }
 
-const RowHeight = 44
+const RowHeight = 40
 
 export default class ReposList extends React.Component<ReposListProps, void> {
   private renderRow(row: number): JSX.Element {
