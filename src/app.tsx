@@ -7,13 +7,12 @@ import User from './models/user'
 import NotLoggedIn from './not-logged-in'
 import {WindowControls} from './ui/window/window-controls'
 import API from './lib/api'
-import {Repo} from './lib/api'
 import Dispatcher from './dispatcher'
 import Repository from './models/repository'
 
 interface AppState {
   selectedRow: number,
-  repos: Repo[],
+  repos: Repository[],
   loadingRepos: boolean,
   user: User
 }
@@ -29,10 +28,7 @@ export default class App extends React.Component<AppProps, AppState> {
     super(props)
 
     props.dispatcher.onDidUpdate(state => {
-      const user = state.users[0]
-      this.api = new API(user)
-      this.setState(Object.assign({}, this.state, {user}))
-      this.fetchRepos()
+      this.update(state.users, state.repositories)
     })
 
     this.state = {
@@ -44,17 +40,21 @@ export default class App extends React.Component<AppProps, AppState> {
 
     // This is split out simply because TS doesn't like having an async
     // constructor.
-    this.completeSetup()
+    this.fetchInitialState()
   }
 
-  private async completeSetup() {
+  private async fetchInitialState() {
     const users = await this.props.dispatcher.getUsers()
+    const repos = await this.props.dispatcher.getRepositories()
+    this.update(users, repos)
+  }
+
+  private update(users: User[], repos: Repository[]) {
     const user = users[0]
-    this.setState(Object.assign({}, this.state, {user}))
+    this.setState(Object.assign({}, this.state, {user, repos, loadingRepos: false}))
 
     if (user) {
       this.api = new API(user)
-      this.fetchRepos()
     }
   }
 
@@ -82,14 +82,6 @@ export default class App extends React.Component<AppProps, AppState> {
     }
 
     this.props.dispatcher.addRepositories(repositories)
-  }
-
-  private async fetchRepos() {
-    const repos = await this.api.fetchRepos()
-    this.setState(Object.assign({}, this.state, {
-      loadingRepos: false,
-      repos
-    }))
   }
 
   private renderTitlebar() {

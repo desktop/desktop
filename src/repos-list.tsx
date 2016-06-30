@@ -2,14 +2,14 @@ import * as React from 'react'
 
 import List from './list'
 import User from './models/user'
-import {Repo} from './lib/api'
+import Repository from './models/repository'
 
 interface ReposListProps {
   selectedRow: number,
   onSelectionChanged: (row: number) => void,
   user: User,
   loading: boolean,
-  repos: Repo[]
+  repos: Repository[]
 }
 
 const RowHeight = 44
@@ -33,18 +33,9 @@ export default class ReposList extends React.Component<ReposListProps, void> {
       overflow: 'hidden'
     }
 
-    const whiteness = 140
-    const ownerStyle = {
-      fontSize: '0.8em',
-      color: selected ? 'white' : `rgba(${whiteness}, ${whiteness}, ${whiteness}, 1)`
-    }
-
     return (
       <div style={rowStyle} key={row.toString()}>
-        <div style={titleStyle} title={repo.name}>{repo.name}</div>
-        <div style={ownerStyle}>
-          by {repo.owner.login} <img src={repo.owner.avatarUrl} style={{width: 12, height: 12, borderRadius: '50%'}}/>
-        </div>
+        <div style={titleStyle} title={repo.getName()}>{repo.getName()}</div>
       </div>
     )
   }
