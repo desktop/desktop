@@ -30,7 +30,9 @@ export default class RepositoriesStore {
         if (repo.gitHubRepositoryID) {
           const gitHubRepository = yield db.gitHubRepositories.get(repo.gitHubRepositoryID)
           const owner = yield db.owners.get(gitHubRepository.ownerID)
-          inflatedRepo = new Repository(repo.path, new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint)))
+
+          const inflatedGitHubRepository = new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint), gitHubRepository.apiID, gitHubRepository.cloneURL, gitHubRepository.gitURL, gitHubRepository.sshURL, gitHubRepository.htmlURL)
+          inflatedRepo = new Repository(repo.path, inflatedGitHubRepository)
         } else {
           inflatedRepo = new Repository(repo.path, null)
         }
@@ -50,23 +52,8 @@ export default class RepositoriesStore {
       let gitHubRepositoryID: number = null
       const gitHubRepository = repo.getGitHubRepository()
       if (gitHubRepository) {
-        const login = gitHubRepository.getOwner().getLogin()
-        const existingOwner = yield db.owners.where('login').equalsIgnoreCase(login).limit(1).first()
-        let ownerID: number = null
-        if (existingOwner) {
-          ownerID = existingOwner.id
-        } else {
-          ownerID = yield db.owners.add({login, endpoint: gitHubRepository.getOwner().getEndpoint()})
-        }
-
-        gitHubRepositoryID = yield db.gitHubRepositories.add({
-          name: gitHubRepository.getName(),
-          ownerID,
-          cloneURL: '',
-          gitURL: '',
-          sshURL: '',
-          htmlURL: '',
-        })
+        const match = yield db.gitHubRepositories.where('apiID').equals(gitHubRepository.getAPIID()).limit(1).first()
+        gitHubRepositoryID = match.id
       }
 
       yield db.repositories.add({

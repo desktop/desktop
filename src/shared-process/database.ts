@@ -11,12 +11,13 @@ interface DatabaseOwner {
 
 interface DatabaseGitHubRepository {
   id?: number
+  apiID: string
   ownerID: number
-  name: string,
-  cloneURL: string,
-  gitURL: string,
-  sshURL: string,
-  htmlURL: string,
+  name: string
+  cloneURL: string
+  gitURL: string
+  sshURL: string
+  htmlURL: string
 }
 
 interface DatabaseRepository {
@@ -41,7 +42,7 @@ export default class Database extends Dexie {
 
     this.version(DatabaseVersion).stores({
       repositories: '++id, &path',
-      gitHubRepositories: '++id, name',
+      gitHubRepositories: '++id, name, &apiID',
       owners: '++id, login'
     })
   }
