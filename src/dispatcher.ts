@@ -22,6 +22,11 @@ interface RequestOAuthAction {
   name: 'request-oauth'
 }
 
+interface FindGitHubRepositoryAction {
+  name: 'find-github-repository'
+  remoteURL: string
+}
+
 export interface AppState {
   users: User[]
   repositories: Repository[]

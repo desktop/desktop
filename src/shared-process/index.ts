@@ -8,6 +8,7 @@ import Database from './database'
 import RepositoriesStore from './repositories-store'
 import Repository, {IRepository} from '../models/repository'
 import {dispatch, register, broadcastUpdate} from './communication'
+import GitHubRepositoriesCache from './github-repositories-cache'
 
 const Octokat = require('octokat')
 
@@ -16,6 +17,7 @@ usersStore.loadFromStore()
 
 const database = new Database('Database')
 const repositoriesStore = new RepositoriesStore(database)
+const gitHubRepositoriesCache = new GitHubRepositoriesCache(database)
 
 register('console.log', ({args}: {args: any[]}) => {
   console.log('', ...args)
@@ -46,6 +48,10 @@ register('add-repositories', async ({repositories}: {repositories: IRepository[]
 
 register('get-repositories', () => {
   return repositoriesStore.getRepositories()
+})
+
+register('find-github-repository', ({remoteURL}: {remoteURL: string}) => {
+  return gitHubRepositoriesCache.findRepositoryWithRemoteURL(remoteURL)
 })
 
 register('url-action', async ({action}: {action: URLActionType}) => {
