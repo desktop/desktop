@@ -6,10 +6,12 @@ export interface IGitHubRepository {
   owner: IOwner
 }
 
+/** A GitHub repository. */
 export default class GitHubRepository {
   private name: string
   private owner: Owner
 
+  /** Create a new GitHubRepository from its data-only representation. */
   public static fromJSON(json: IGitHubRepository): GitHubRepository {
     return new GitHubRepository(json.name, Owner.fromJSON(json.owner))
   }

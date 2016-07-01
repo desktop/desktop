@@ -18,6 +18,7 @@ function deDexie<T>(promise: Dexie.Promise<T>): Promise<T> {
   })
 }
 
+/** The store for local repositories. */
 export default class RepositoriesStore {
   private db: Database
 
@@ -25,6 +26,7 @@ export default class RepositoriesStore {
     this.db = db
   }
 
+  /** Get all the local repositories. */
   public async getRepositories(): Promise<Repository[]> {
     const inflatedRepos: Repository[] = []
     const db = this.db
@@ -48,6 +50,7 @@ export default class RepositoriesStore {
     return inflatedRepos
   }
 
+  /** Add a new local repository. */
   public async addRepository(repo: Repository): Promise<void> {
     const db = this.db
     const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {

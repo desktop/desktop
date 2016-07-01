@@ -4,10 +4,12 @@ export interface IOwner {
   endpoint: string
 }
 
+/** The owner of a GitHubRepository. */
 export default class Owner {
   private login: string
   private endpoint: string
 
+  /** Create a new Owner from a data-only representation. */
   public static fromJSON(json: IOwner): Owner {
     return new Owner(json.login, json.endpoint)
   }

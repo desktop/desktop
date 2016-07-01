@@ -15,6 +15,7 @@ export default class Repository {
   private path: string
   private gitHubRepository: GitHubRepository
 
+  /** Create a new Repository from a data-only representation. */
   public static fromJSON(json: IRepository): Repository {
     const gitHubRepository = json.gitHubRepository
     if (gitHubRepository) {
