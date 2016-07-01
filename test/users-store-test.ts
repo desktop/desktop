@@ -1,8 +1,8 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import User from '../src/user'
-import UsersStore from '../src/users-store'
+import User from '../src/models/user'
+import UsersStore from '../src/shared-process/users-store'
 import InMemoryStore from './in-memory-store'
 
 describe('UsersStore', () => {
@@ -18,15 +18,6 @@ describe('UsersStore', () => {
 
       const users = usersStore.getUsers()
       expect(users[0].getLogin()).to.equal(newUserLogin)
-    })
-
-    it('notifies when a user is added', () => {
-      let changed = false
-      usersStore.onUsersChanged(() => {
-        changed = true
-      })
-      usersStore.addUser(new User('', '', ''))
-      expect(changed).to.equal(true)
     })
   })
 })

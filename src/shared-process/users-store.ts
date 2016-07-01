@@ -1,29 +1,17 @@
-import {Emitter, Disposable} from 'event-kit'
-
 import {DataStore, SecureStore} from './stores'
 import {getKeyForUser} from './auth'
-import User from './user'
+import User from '../models/user'
 
 export default class UsersStore {
   private dataStore: DataStore
   private secureStore: SecureStore
 
-  private emitter: Emitter
   private users: User[]
 
   public constructor(dataStore: DataStore, secureStore: SecureStore) {
     this.dataStore = dataStore
     this.secureStore = secureStore
-    this.emitter = new Emitter()
     this.users = []
-  }
-
-  public onUsersChanged(fn: (users: User[]) => void): Disposable {
-    return this.emitter.on('users-changed', fn)
-  }
-
-  private usersDidChange() {
-    this.emitter.emit('users-changed', this.users)
   }
 
   public getUsers(): User[] {
@@ -34,7 +22,6 @@ export default class UsersStore {
     this.secureStore.setItem(getKeyForUser(user), user.getLogin(), user.getToken())
 
     this.users.push(user)
-    this.usersDidChange()
 
     this.save()
   }
@@ -51,8 +38,6 @@ export default class UsersStore {
       return userWithoutToken.userWithToken(this.secureStore.getItem(getKeyForUser(userWithoutToken), user.login))
     })
     this.users = usersWithTokens
-
-    this.usersDidChange()
   }
 
   private save() {

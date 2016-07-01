@@ -3,12 +3,12 @@ import {ipcRenderer} from 'electron'
 
 import ReposList from './repos-list'
 import Info from './info'
-import UsersStore from './users-store'
-import User from './user'
+import User from './models/user'
 import NotLoggedIn from './not-logged-in'
 import {WindowControls} from './ui/window/window-controls'
 import API from './lib/api'
 import {Repo} from './lib/api'
+import Dispatcher from './dispatcher'
 
 interface AppState {
   selectedRow: number,
@@ -18,7 +18,7 @@ interface AppState {
 }
 
 interface AppProps {
-  usersStore: UsersStore
+  dispatcher: Dispatcher
 }
 
 export default class App extends React.Component<AppProps, AppState> {
@@ -27,23 +27,33 @@ export default class App extends React.Component<AppProps, AppState> {
   public constructor(props: AppProps) {
     super(props)
 
-    props.usersStore.onUsersChanged(users => {
-      const user = users[0]
+    props.dispatcher.onDidUpdate(state => {
+      const user = state.users[0]
       this.api = new API(user)
       this.setState(Object.assign({}, this.state, {user}))
       this.fetchRepos()
     })
 
-    const user = props.usersStore.getUsers()[0]
     this.state = {
       selectedRow: -1,
-      user,
+      user: null,
       loadingRepos: true,
       repos: []
     }
 
+    // This is split out simply because TS doesn't like having an async
+    // constructor.
+    this.completeSetup()
+  }
+
+  private async completeSetup() {
+    const users = await this.props.dispatcher.getUsers()
+    const user = users[0]
+    this.setState(Object.assign({}, this.state, {user}))
+
     if (user) {
       this.api = new API(user)
+      this.fetchRepos()
     }
   }
 
@@ -53,12 +63,6 @@ export default class App extends React.Component<AppProps, AppState> {
       loadingRepos: false,
       repos
     }))
-  }
-
-  public async componentWillMount() {
-    if (this.api) {
-      this.fetchRepos()
-    }
   }
 
   private renderTitlebar() {
@@ -104,7 +108,7 @@ export default class App extends React.Component<AppProps, AppState> {
   private renderNotLoggedIn() {
     return (
       <div id='desktop-app-contents'>
-        <NotLoggedIn/>
+        <NotLoggedIn dispatcher={this.props.dispatcher}/>
       </div>
     )
   }

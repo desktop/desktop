@@ -1,13 +1,16 @@
 import * as React from 'react'
+import Dispatcher from './dispatcher'
 
-import {askUserToAuth, getDotComEndpoint} from './auth'
+interface NotLoggedInProps {
+  dispatcher: Dispatcher
+}
 
-export default class NotLoggedIn extends React.Component<void, void> {
+export default class NotLoggedIn extends React.Component<NotLoggedInProps, void> {
   public render() {
     return (
       <div>
         <div>You don't seem to be logged in.</div>
-        <button onClick={() => askUserToAuth(getDotComEndpoint())}>Log In For Great Glory</button>
+        <button onClick={() => this.props.dispatcher.requestOAuth()}>Log In For Great Glory</button>
       </div>
     )
   }
