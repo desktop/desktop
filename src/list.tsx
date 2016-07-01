@@ -115,6 +115,9 @@ export default class List extends React.Component<ListProps, ListState> {
       const className = selected ? 'list-item selected' : 'list-item'
       const tabIndex = selected ? '0' : null
 
+      // We don't care about mouse events on the selected item
+      const onMouseDown = selected ? null : () => this.handleMouseDown(row)
+
       // We only need to keep a reference to the selected element
       const ref = selected
         ? (c: HTMLDivElement) => { this.selectedItem = c }
@@ -129,7 +132,7 @@ export default class List extends React.Component<ListProps, ListState> {
                transform: `translate3d(0px, ${row * this.props.itemHeight}px, 0px)`,
                height: this.props.itemHeight
              }}
-             onMouseDown={() => this.handleMouseDown(row)}>
+             onMouseDown={onMouseDown}>
           {element}
         </div>
       )
