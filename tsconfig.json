@@ -15,8 +15,7 @@
     "dist",
     "build",
     "typings/browser",
-    "typings/browser.d.ts",
-    "test"
+    "typings/browser.d.ts"
   ],
   "compileOnSave": false
 }

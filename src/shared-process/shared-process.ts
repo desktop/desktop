@@ -24,7 +24,7 @@ export default class SharedProcess {
       this.drainMessageQueue()
     })
 
-    this.window.loadURL(`file://${__dirname}/../../shared.html`)
+    this.window.loadURL(`file://${__dirname}/shared.html`)
 
     if (process.env.NODE_ENV === 'development') {
       this.window.show()
