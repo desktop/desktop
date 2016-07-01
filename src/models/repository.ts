@@ -18,7 +18,7 @@ export default class Repository {
   public static fromJSON(json: IRepository): Repository {
     const gitHubRepository = json.gitHubRepository
     if (gitHubRepository) {
-       return new Repository(json.path, GitHubRepository.fromJSON(json.gitHubRepository))
+       return new Repository(json.path, GitHubRepository.fromJSON(gitHubRepository))
     } else {
       return new Repository(json.path, null)
     }
