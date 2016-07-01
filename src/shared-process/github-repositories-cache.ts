@@ -1,5 +1,6 @@
 import Database from './database'
 import GitHubRepository from '../models/github-repository'
+import Owner from '../models/owner'
 
 /** The cache for the GitHub repositories the user has access to. */
 export default class GitHubRepositoriesCache {
@@ -15,7 +16,19 @@ export default class GitHubRepositoriesCache {
   }
 
   /** Find the repository with the given remote URL. */
-  public findRepositoryWithRemoteURL(remoteURL: string): Promise<GitHubRepository> {
-    return Promise.resolve(null)
+  public async findRepositoryWithRemoteURL(remoteURL: string): Promise<GitHubRepository> {
+    const match = await this.db.gitHubRepositories
+      .filter(repo => {
+        return repo.cloneURL === remoteURL || repo.gitURL === remoteURL || repo.sshURL === remoteURL
+      })
+      .limit(1)
+      .first()
+
+    if (!match) { return null }
+
+    const repoOwner = await this.db.owners.get(match.ownerID)
+    const owner = new Owner(repoOwner.login, repoOwner.endpoint)
+
+    return new GitHubRepository(match.name, owner)
   }
 }
