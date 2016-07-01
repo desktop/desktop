@@ -205,7 +205,9 @@ export default class List extends React.Component<ListProps, ListState> {
     )
   }
 
-  private handleMouseDown(row: number) {
-    this.props.onSelectionChanged(row)
+  private handleMouseDown = (row: number) => {
+    if (this.props.selectedRow !== row) {
+      this.props.onSelectionChanged(row)
+    }
   }
 }
