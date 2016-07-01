@@ -20,7 +20,7 @@ type ListState = {
    * Internal use only. Whether to explicitly move keyboard focus to the selected item.
    * Used after intercepting keyboard intent to move selection (arrow keys, page up/down).
    */
-   moveKeyboardFocusToSelectedItem?: boolean
+   moveKeyboardFocusToSelectedItem: boolean
 }
 
 export default class List extends React.Component<ListProps, ListState> {
@@ -37,7 +37,11 @@ export default class List extends React.Component<ListProps, ListState> {
 
     this.firstRender = true
 
-    this.state = {scrollPosition: 0, numberOfItemsToRender: 0}
+    this.state = {
+      scrollPosition: 0,
+      numberOfItemsToRender: 0,
+      moveKeyboardFocusToSelectedItem: false
+    }
   }
 
   private handleKeyDown(e: React.KeyboardEvent) {
