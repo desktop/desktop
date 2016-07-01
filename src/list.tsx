@@ -39,7 +39,6 @@ export default class List extends React.Component<ListProps, ListState> {
     this.state = {
       scrollPosition: 0,
       numberOfItemsToRender: 0,
-      moveKeyboardFocusToSelectedItem: false
     }
   }
 
