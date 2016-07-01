@@ -93,7 +93,9 @@ function copyGitDirectory () {
     process.exit(1)
   }
 
-  fs.copySync(source, path.join(projectRoot, 'build', 'git'));
+  const destination = path.join(projectRoot, 'build', 'git')
+  fs.removeSync(destination)
+  fs.copySync(source, destination)
 }
 
 function installDependencies () {
