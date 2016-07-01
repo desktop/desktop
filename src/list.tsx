@@ -14,13 +14,7 @@ type ListProps = {
 
 type ListState = {
   scrollPosition: number,
-  numberOfItemsToRender: number,
-
-  /**
-   * Internal use only. Whether to explicitly move keyboard focus to the selected item.
-   * Used after intercepting keyboard intent to move selection (arrow keys, page up/down).
-   */
-   moveKeyboardFocusToSelectedItem: boolean
+  numberOfItemsToRender: number
 }
 
 export default class List extends React.Component<ListProps, ListState> {
@@ -31,6 +25,11 @@ export default class List extends React.Component<ListProps, ListState> {
 
   private firstRender: boolean
   private selectedItem: HTMLDivElement
+  /**
+   * Internal use only. Whether to explicitly move keyboard focus to the selected item.
+   * Used after intercepting keyboard intent to move selection (arrow keys, page up/down).
+   */
+  private moveKeyboardFocusToSelectedItem: boolean = false
 
   public constructor(props: ListProps) {
     super(props)
@@ -74,8 +73,9 @@ export default class List extends React.Component<ListProps, ListState> {
     }
 
     this.props.onSelectionChanged(newRow)
-    this.setState(Object.assign({}, this.state, {moveKeyboardFocusToSelectedItem: true}))
     this.scrollRowToVisible(newRow)
+
+    this.moveKeyboardFocusToSelectedItem = true
   }
 
   private scrollRowToVisible(row: number) {
@@ -147,13 +147,13 @@ export default class List extends React.Component<ListProps, ListState> {
     // If this state is set it means that someone just used arrow keys (or pgup/down)
     // to change the selected row. When this happens we need to explcitly shift
     // keyboard focus to the newly selected item.
-    if (this.state.moveKeyboardFocusToSelectedItem) {
       if (this.selectedItem) {
         this.selectedItem.focus()
       }
 
+    if (this.moveKeyboardFocusToSelectedItem) {
       // Unset the flag so that we don't end up in a loop setting focus over and over.
-      this.setState(Object.assign({}, this.state, {moveKeyboardFocusToSelectedItem: false}))
+      this.moveKeyboardFocusToSelectedItem = false
     }
   }
 
