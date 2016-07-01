@@ -6,18 +6,18 @@ import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-addons-test-utils'
 
 import App from '../src/app'
-import UsersStore from '../src/users-store'
-import InMemoryStore from './in-memory-store'
+import Dispatcher from '../src/dispatcher'
+import InMemoryDispatcher from './in-memory-dispatcher'
 
 describe('App', () => {
-  let usersStore: UsersStore = null
+  let dispatcher: Dispatcher = null
 
   beforeEach(() => {
-    usersStore = new UsersStore(new InMemoryStore(), new InMemoryStore())
+    dispatcher = new InMemoryDispatcher()
   })
 
   it('renders', () => {
-    const app = TestUtils.renderIntoDocument(<App usersStore={usersStore}/>) as React.Component<any, any>
+    const app = TestUtils.renderIntoDocument(<App dispatcher={dispatcher}/>) as React.Component<any, any>
     const node = ReactDOM.findDOMNode(app)
     expect(node).not.to.equal(null)
   })
