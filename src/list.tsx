@@ -145,12 +145,11 @@ export default class List extends React.Component<ListProps, ListState> {
 
     // If this state is set it means that someone just used arrow keys (or pgup/down)
     // to change the selected row. When this happens we need to explcitly shift
-    // keyboard focus to the newly selected item.
-      if (this.selectedItem) {
-        this.selectedItem.focus()
-      }
-
+    // keyboard focus to the newly selected item. If selectedItem is null then
+    // we're probably just loading more items and we'll catch it on the next
+    // render pass.
     if (this.moveKeyboardFocusToSelectedItem) {
+      this.selectedItem.focus()
       // Unset the flag so that we don't end up in a loop setting focus over and over.
       this.moveKeyboardFocusToSelectedItem = false
     }
