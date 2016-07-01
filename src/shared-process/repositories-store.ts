@@ -68,7 +68,11 @@ export default class RepositoriesStore {
 
         gitHubRepositoryID = yield db.gitHubRepositories.add({
           name: gitHubRepository.getName(),
-          ownerID
+          ownerID,
+          cloneURL: '',
+          gitURL: '',
+          sshURL: '',
+          htmlURL: '',
         })
       }
 

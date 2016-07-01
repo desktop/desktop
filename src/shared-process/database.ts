@@ -12,7 +12,11 @@ interface DatabaseOwner {
 interface DatabaseGitHubRepository {
   id?: number
   ownerID: number
-  name: string
+  name: string,
+  cloneURL: string,
+  gitURL: string,
+  sshURL: string,
+  htmlURL: string,
 }
 
 interface DatabaseRepository {

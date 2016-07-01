@@ -5,7 +5,7 @@ const Octokat = require('octokat')
 /**
  * Information about a repository as returned by the GitHub API.
  */
-export interface Repo {
+export interface GitHubRepository {
   cloneUrl: string,
   htmlUrl: string,
   name: string
@@ -16,7 +16,9 @@ export interface Repo {
   },
   private: boolean,
   fork: boolean,
-  stargazersCount: number
+  stargazersCount: number,
+  gitUrl: string,
+  sshUrl: string,
 }
 
 /**
@@ -35,10 +37,10 @@ export default class API {
    * Loads public and private repositories across all organizations
    * as well as the user account.
    *
-   * @returns A promise yielding an array of {Repo} instances or error
+   * @returns A promise yielding an array of {GitHubRepository} instances or error
    */
-  public async fetchRepos(): Promise<Repo[]> {
-    const results: Repo[] = []
+  public async fetchRepositories(): Promise<GitHubRepository[]> {
+    const results: GitHubRepository[] = []
     let nextPage = this.client.user.repos
     while (nextPage) {
       const request = await nextPage.fetch()
