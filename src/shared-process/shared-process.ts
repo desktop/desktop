@@ -13,8 +13,8 @@ export default class SharedProcess {
 
   public constructor() {
     this.window = new BrowserWindow({
-      width: 800,
-      height: 600,
+      width: 100,
+      height: 100,
       show: false,
       title: 'SharedProcess'
     })
@@ -27,7 +27,6 @@ export default class SharedProcess {
     this.window.loadURL(`file://${__dirname}/shared.html`)
 
     if (process.env.NODE_ENV === 'development') {
-      this.window.show()
       this.window.webContents.openDevTools()
     }
   }
