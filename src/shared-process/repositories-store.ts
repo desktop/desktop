@@ -48,7 +48,7 @@ export default class RepositoriesStore {
     return inflatedRepos
   }
 
-  public addRepository(repo: Repository): Promise<void> {
+  public async addRepository(repo: Repository): Promise<void> {
     const db = this.db
     const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
       let gitHubRepositoryID: number = null
@@ -73,10 +73,8 @@ export default class RepositoriesStore {
         path: repo.getPath(),
         gitHubRepositoryID
       })
-    }).catch(e => {
-      console.error(e)
     })
 
-    return deDexie(transaction)
+    await deDexie(transaction)
   }
 }
