@@ -25,7 +25,7 @@ export default class Database extends Dexie {
   public gitHubRepositories: Dexie.Table<DatabaseGitHubRepository, number>
   public owners: Dexie.Table<DatabaseOwner, number>
 
-  public constructor(name: string = 'Database') {
+  public constructor(name: string) {
     super(name)
 
     this.version(DatabaseVersion).stores({

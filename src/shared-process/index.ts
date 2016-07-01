@@ -19,7 +19,7 @@ const registeredFunctions: {[key: string]: SharedProcessFunction} = {}
 const usersStore = new UsersStore(localStorage, tokenStore)
 usersStore.loadFromStore()
 
-const database = new Database()
+const database = new Database('Database')
 const repositoriesStore = new RepositoriesStore(database)
 
 register('console.log', ({args}: {args: any[]}) => {
