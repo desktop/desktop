@@ -5,6 +5,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   entry: {
+    main: ['./src/main-process/main'],
     renderer: ['./src/index'],
     shared: ['./src/shared-process/index']
   },
@@ -50,5 +51,9 @@ module.exports = {
       // Node couldn't find it, so it must be user-aliased
       callback()
     }
+  },
+  node: {
+    __dirname: false,
+    __filename: false
   }
 }
