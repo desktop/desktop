@@ -4,7 +4,7 @@
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
   "version": "0.0.2",
-  "main": "./app/main-process/main.js",
+  "main": "./main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
@@ -18,8 +18,8 @@
     "test": "cross-env TEST_ENV=1 electron-mocha --renderer --require ts-node/register test/*.ts test/*.tsx",
     "postinstall": "typings install",
     "start": "npm run build:dev && node script/start",
-    "compile:dev": "tsc && cross-env NODE_ENV=development webpack --config webpack.development.js",
-    "compile:prod": "tsc && cross-env NODE_ENV=production webpack --config webpack.production.js",
+    "compile:dev": "cross-env NODE_ENV=development webpack --config webpack.development.js",
+    "compile:prod": "cross-env NODE_ENV=production webpack --config webpack.production.js",
     "build:dev": "npm run compile:dev && cross-env NODE_ENV=development node script/build",
     "build:prod": "npm run compile:prod && cross-env NODE_ENV=production node script/build",
     "package": "node script/package",
@@ -32,6 +32,7 @@
   "license": "MIT",
   "dependencies": {
     "babel-runtime": "^6.6.1",
+    "dexie": "^1.4.1",
     "event-kit": "^2.0.0",
     "keytar": "^3.0.2",
     "octokat": "^0.5.0-beta.0",
@@ -57,7 +58,7 @@
     "cross-env": "^1.0.8",
     "css-loader": "^0.23.1",
     "electron-mocha": "2.1.0",
-    "electron-packager": "^7.0.1",
+    "electron-packager": "^7.2.0",
     "electron-prebuilt": "1.1.3",
     "electron-winstaller": "^2.3.0",
     "express": "^4.13.4",

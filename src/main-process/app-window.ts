@@ -1,21 +1,16 @@
 import {BrowserWindow, ipcMain} from 'electron'
 
 import Stats from './stats'
-import {URLActionType} from '../lib/parse-url'
+import SharedProcess from '../shared-process/shared-process'
 import {WindowState, windowStateChannelName} from '../lib/window-state'
-import {IPCLogEntry} from '../lib/ipc-log-entry'
 import {buildDefaultMenu} from './menu'
 
 export default class AppWindow {
   private window: Electron.BrowserWindow
+  private sharedProcess: SharedProcess
   private stats: Stats
-  private logQueue: IPCLogEntry[]
-  private loaded: boolean
 
-  public constructor(stats: Stats) {
-    this.logQueue = []
-    this.loaded = false
-
+  public constructor(stats: Stats, sharedProcess: SharedProcess) {
     const windowOptions: Electron.BrowserWindowOptions = {
       width: 800,
       height: 600,
@@ -34,6 +29,8 @@ export default class AppWindow {
     this.window = new BrowserWindow(windowOptions)
 
     this.stats = stats
+
+    this.sharedProcess = sharedProcess
   }
 
   public load() {
@@ -50,10 +47,7 @@ export default class AppWindow {
       this.window.show()
 
       const now = Date.now()
-      this.console.log(`Loading: ${now - startLoad}ms`)
-
-      this.loaded = true
-      this.flushLogQueue()
+      this.sharedProcess.console.log(`Loading: ${now - startLoad}ms`)
     })
 
     this.window.webContents.on('did-fail-load', () => {
@@ -74,7 +68,7 @@ export default class AppWindow {
       })
     }
 
-    this.window.loadURL(`file://${__dirname}/../../index.html`)
+    this.window.loadURL(`file://${__dirname}/index.html`)
   }
 
   /* Set up message passing to the render process whenever the window
@@ -102,15 +96,11 @@ export default class AppWindow {
    * over the window-state-changed channel to the render process.
    */
   private sendWindowStateEvent(state: WindowState) {
-    this.send(windowStateChannelName, state)
+    this.window.webContents.send(windowStateChannelName, state)
   }
 
   public onClose(fn: () => void) {
     this.window.on('closed', fn)
-  }
-
-  public sendURLAction(action: URLActionType) {
-    this.send('url-action', action)
   }
 
   public isMinimized() {
@@ -123,31 +113,5 @@ export default class AppWindow {
 
   public focus() {
     this.window.focus()
-  }
-
-  public get console() {
-    return {
-      log: (msg: string) => {
-        this.logQueue.push({msg, type: 'log'})
-        this.flushLogQueue()
-      },
-      error: (msg: string) => {
-        this.logQueue.push({msg, type: 'error'})
-        this.flushLogQueue()
-      }
-    }
-  }
-
-  private flushLogQueue() {
-    if (!this.loaded) { return }
-
-    for (const log of this.logQueue) {
-      this.send('log', log)
-    }
-    this.logQueue = []
-  }
-
-  private send(channel: string, args: any) {
-    this.window.webContents.send(channel, args)
   }
 }

@@ -4,11 +4,13 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
-  entry: [
-    './src/index'
-  ],
+  entry: {
+    main: ['./src/main-process/main'],
+    renderer: ['./src/index'],
+    shared: ['./src/shared-process/index']
+  },
   output: {
-    filename: 'bundle.js',
+    filename: '[name].js',
     path: path.join(__dirname, 'build'),
     libraryTarget: 'commonjs2'
   },
@@ -21,7 +23,7 @@ module.exports = {
       },
       {
         test: /\.(jpe?g|png|gif|ico)$/,
-        loaders: ["file?name=[path][name].[ext]"]
+        loaders: ['file?name=[path][name].[ext]']
       }
     ]
   },
@@ -30,7 +32,16 @@ module.exports = {
     packageMains: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main']
   },
   target: 'electron',
-  plugins: [new HtmlWebpackPlugin({ 'template': 'static/index.html' })],
+  plugins: [
+    new HtmlWebpackPlugin({
+      'template': 'static/index.html',
+      'chunks': ['renderer']
+    }),
+    new HtmlWebpackPlugin({
+      'filename': 'shared.html',
+      'chunks': ['shared']
+    })
+  ],
   externals: function (context, request, callback) {
     try {
       // Attempt to resolve the module via Node
@@ -40,5 +51,9 @@ module.exports = {
       // Node couldn't find it, so it must be user-aliased
       callback()
     }
+  },
+  node: {
+    __dirname: false,
+    __filename: false
   }
 }

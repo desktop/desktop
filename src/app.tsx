@@ -3,22 +3,22 @@ import {ipcRenderer} from 'electron'
 
 import ReposList from './repos-list'
 import Info from './info'
-import UsersStore from './users-store'
-import User from './user'
+import User from './models/user'
 import NotLoggedIn from './not-logged-in'
 import {WindowControls} from './ui/window/window-controls'
 import API from './lib/api'
-import {Repo} from './lib/api'
+import Dispatcher from './dispatcher'
+import Repository from './models/repository'
 
 interface AppState {
   selectedRow: number,
-  repos: Repo[],
+  repos: Repository[],
   loadingRepos: boolean,
   user: User
 }
 
 interface AppProps {
-  usersStore: UsersStore
+  dispatcher: Dispatcher
 }
 
 export default class App extends React.Component<AppProps, AppState> {
@@ -27,38 +27,61 @@ export default class App extends React.Component<AppProps, AppState> {
   public constructor(props: AppProps) {
     super(props)
 
-    props.usersStore.onUsersChanged(users => {
-      const user = users[0]
-      this.api = new API(user)
-      this.setState(Object.assign({}, this.state, {user}))
-      this.fetchRepos()
+    props.dispatcher.onDidUpdate(state => {
+      this.update(state.users, state.repositories)
     })
 
-    const user = props.usersStore.getUsers()[0]
     this.state = {
       selectedRow: -1,
-      user,
+      user: null,
       loadingRepos: true,
       repos: []
     }
+
+    // This is split out simply because TS doesn't like having an async
+    // constructor.
+    this.fetchInitialState()
+  }
+
+  private async fetchInitialState() {
+    const users = await this.props.dispatcher.getUsers()
+    const repos = await this.props.dispatcher.getRepositories()
+    this.update(users, repos)
+  }
+
+  private update(users: User[], repos: Repository[]) {
+    const user = users[0]
+    this.setState(Object.assign({}, this.state, {user, repos, loadingRepos: false}))
 
     if (user) {
       this.api = new API(user)
     }
   }
 
-  private async fetchRepos() {
-    const repos = await this.api.fetchRepos()
-    this.setState(Object.assign({}, this.state, {
-      loadingRepos: false,
-      repos
-    }))
+  public componentDidMount() {
+    document.ondragover = document.ondrop = (e) => {
+      e.preventDefault()
+    }
+
+    document.body.ondrop = (e) => {
+      const files = e.dataTransfer.files
+      this.handleDragAndDrop(files)
+      e.preventDefault()
+    }
   }
 
-  public async componentWillMount() {
-    if (this.api) {
-      this.fetchRepos()
+  private handleDragAndDrop(files: FileList) {
+    const repositories: Repository[] = []
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+
+      // TODO: Ensure it's actually a git repository.
+      // TODO: Look up its GitHub repository.
+      const repo = new Repository(file.path, null)
+      repositories.push(repo)
     }
+
+    this.props.dispatcher.addRepositories(repositories)
   }
 
   private renderTitlebar() {
@@ -106,7 +129,7 @@ export default class App extends React.Component<AppProps, AppState> {
   private renderNotLoggedIn() {
     return (
       <div id='desktop-app-contents'>
-        <NotLoggedIn/>
+        <NotLoggedIn dispatcher={this.props.dispatcher}/>
       </div>
     )
   }

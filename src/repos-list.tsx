@@ -1,8 +1,8 @@
 import * as React from 'react'
 
 import List from './list'
-import User from './user'
-import {Repo} from './lib/api'
+import User from './models/user'
+import Repository from './models/repository'
 import {Octicon, OcticonSymbol} from './ui/octicons'
 
 interface ReposListProps {
@@ -10,7 +10,7 @@ interface ReposListProps {
   onSelectionChanged: (row: number) => void,
   user: User,
   loading: boolean,
-  repos: Repo[]
+  repos: Repository[]
 }
 
 const RowHeight = 40
@@ -21,9 +21,9 @@ export default class ReposList extends React.Component<ReposListProps, void> {
     const symbol = this.iconForRepo(repo)
 
     return (
-      <div className='repository-list-item' key={row.toString()} title={repo.name}>
+      <div className='repository-list-item' key={row.toString()} title={repo.getName()}>
         <Octicon symbol={symbol} />
-        <div className='name'>{repo.name}</div>
+        <div className='name'>{repo.getName()}</div>
       </div>
     )
   }
