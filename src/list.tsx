@@ -124,6 +124,7 @@ export default class List extends React.Component<ListProps, ListState> {
 
       items.push(
         <div key={element.key}
+             role='button'
              className={className}
              tabIndex={tabIndex}
              ref={ref}
