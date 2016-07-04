@@ -28,7 +28,7 @@ export default class ReposList extends React.Component<ReposListProps, void> {
     )
   }
 
-  private iconForRepo(repo: Repo): OcticonSymbol {
+  private iconForRepo(repo: Repository): OcticonSymbol {
 
     if (repo.private) { return OcticonSymbol.lock }
     if (repo.fork) { return OcticonSymbol.repoForked }
