@@ -53,8 +53,6 @@
     }
 
     .name {
-      font-weight: var(--font-weight-semibold);
-
       // Long repository names truncate and ellipse
       overflow: hidden;
       text-overflow: ellipsis;
