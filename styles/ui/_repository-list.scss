@@ -1,4 +1,4 @@
-@import "../mixins/platform";
+@import "../mixins";
 
 /** A <List> React component holding all tracked repositories in the sidebar */
 #repository-list {
@@ -54,9 +54,7 @@
 
     .name {
       // Long repository names truncate and ellipse
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      @include ellipsis
     }
   }
 }
