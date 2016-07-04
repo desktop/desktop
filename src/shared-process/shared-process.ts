@@ -13,8 +13,8 @@ export default class SharedProcess {
 
   public constructor() {
     this.window = new BrowserWindow({
-      width: 800,
-      height: 600,
+      width: 100,
+      height: 100,
       show: false,
       title: 'SharedProcess'
     })

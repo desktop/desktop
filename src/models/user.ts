@@ -1,4 +1,4 @@
-/** The data-only interface for User. For transport across IPC and storage. */
+/** The data-only interface for User for transport across IPC. */
 export interface IUser {
   token: string
   login: string
