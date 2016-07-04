@@ -112,7 +112,7 @@ export default class List extends React.Component<ListProps, ListState> {
       const element = this.props.renderItem(row)
       const selected = row === this.props.selectedRow
       const className = selected ? 'list-item selected' : 'list-item'
-      const tabIndex = selected ? '0' : null
+      const tabIndex = selected ? 0 : -1
 
       // We don't care about mouse events on the selected item
       const onMouseDown = selected ? null : () => this.handleMouseDown(row)
