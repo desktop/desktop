@@ -27,6 +27,7 @@ export default class SharedProcess {
     this.window.loadURL(`file://${__dirname}/shared.html`)
 
     if (process.env.NODE_ENV === 'development') {
+      this.window.show()
       this.window.webContents.openDevTools()
     }
   }
