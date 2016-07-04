@@ -51,7 +51,11 @@ export default class App extends React.Component<AppProps, AppState> {
 
   private update(users: User[], repos: Repository[]) {
     const user = users[0]
-    this.setState(Object.assign({}, this.state, {user, repos, loadingRepos: false}))
+    // TODO: We should persist this but for now we'll select the first
+    // repository available unless we already have a selection
+    const selectedRow = (this.state.selectedRow === -1 && repos.length > 0) ? 0 : -1
+
+    this.setState(Object.assign({}, this.state, {user, repos, loadingRepos: false, selectedRow}))
 
     if (user) {
       this.api = new API(user)
