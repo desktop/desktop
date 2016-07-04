@@ -8,6 +8,14 @@
   // a margin that we can't get past. So on Windows we'll render with
   // a bit of a rounded right edge to make it appear as if it's intentional
   @include win32 {
+    // Since the scroll bar decreases the inner width of the contianer on Windows
+    // it'll appear as if the list items jump around when the scrollbar is added
+    // or removed. That coupled with the fact that the list items have a rounded
+    // forces us to always enable the scroll bar on Windows. The thumb won't be
+    // visible until the content is actually scrollable so essentially this is
+    // magic padding.
+    overflow-y: scroll;
+
     .list-item {
       border-radius: 0 5px 5px 0;
     }
