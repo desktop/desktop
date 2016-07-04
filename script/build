@@ -33,6 +33,7 @@ const options = {
   dir: path.join(projectRoot, 'build'),
   overwrite: true,
   tmpdir: false,
+  derefSymlinks: false,
   prune: false, // We only install production dependencies above.
   ignore: [
     '/node_modules/electron-prebuilt($|/)',
