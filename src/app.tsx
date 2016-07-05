@@ -51,7 +51,11 @@ export default class App extends React.Component<AppProps, AppState> {
 
   private update(users: User[], repos: Repository[]) {
     const user = users[0]
-    this.setState(Object.assign({}, this.state, {user, repos, loadingRepos: false}))
+    // TODO: We should persist this but for now we'll select the first
+    // repository available unless we already have a selection
+    const selectedRow = (this.state.selectedRow === -1 && repos.length > 0) ? 0 : -1
+
+    this.setState(Object.assign({}, this.state, {user, repos, loadingRepos: false, selectedRow}))
 
     if (user) {
       this.api = new API(user)
@@ -114,11 +118,13 @@ export default class App extends React.Component<AppProps, AppState> {
     const selectedRepo = this.state.repos[this.state.selectedRow]
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
-        <ReposList selectedRow={this.state.selectedRow}
-                   onSelectionChanged={row => this.handleSelectionChanged(row)}
-                   user={this.state.user}
-                   repos={this.state.repos}
-                   loading={this.state.loadingRepos}/>
+        <div id='desktop-app-sidebar'>
+          <ReposList selectedRow={this.state.selectedRow}
+                     onSelectionChanged={row => this.handleSelectionChanged(row)}
+                     user={this.state.user}
+                     repos={this.state.repos}
+                     loading={this.state.loadingRepos}/>
+        </div>
         <Info selectedRepo={selectedRepo} user={this.state.user}/>
       </div>
     )

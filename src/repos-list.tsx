@@ -3,6 +3,7 @@ import * as React from 'react'
 import List from './list'
 import User from './models/user'
 import Repository from './models/repository'
+import {Octicon, OcticonSymbol} from './ui/octicons'
 
 interface ReposListProps {
   selectedRow: number,
@@ -12,32 +13,31 @@ interface ReposListProps {
   repos: Repository[]
 }
 
-const RowHeight = 44
+const RowHeight = 40
 
 export default class ReposList extends React.Component<ReposListProps, void> {
   private renderRow(row: number): JSX.Element {
-    const selected = row === this.props.selectedRow
     const repo = this.props.repos[row]
-    const rowStyle = {
-      display: 'flex',
-      flexDirection: 'column',
-      padding: 4,
-      backgroundColor: selected ? 'blue' : 'transparent',
-      color: selected ? 'white' : 'black',
-      height: RowHeight
-    }
-
-    const titleStyle = {
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      overflow: 'hidden'
-    }
+    const symbol = this.iconForRepo(repo)
 
     return (
-      <div style={rowStyle} key={row.toString()}>
-        <div style={titleStyle} title={repo.getName()}>{repo.getName()}</div>
+      <div className='repository-list-item' key={row.toString()} title={repo.getName()}>
+        <Octicon symbol={symbol} />
+        <div className='name'>{repo.getName()}</div>
       </div>
     )
+  }
+
+  private iconForRepo(repo: Repository): OcticonSymbol {
+
+    return OcticonSymbol.repo
+
+    /* TODO
+    if (repo.private) { return OcticonSymbol.lock }
+    if (repo.fork) { return OcticonSymbol.repoForked }
+
+    return OcticonSymbol.repo
+    */
   }
 
   private renderLoading() {
@@ -52,12 +52,12 @@ export default class ReposList extends React.Component<ReposListProps, void> {
     }
 
     return (
-      <List itemCount={this.props.repos.length}
+      <List id='repository-list'
+            itemCount={this.props.repos.length}
             itemHeight={RowHeight}
             renderItem={row => this.renderRow(row)}
             selectedRow={this.props.selectedRow}
-            onSelectionChanged={row => this.props.onSelectionChanged(row)}
-            style={{width: 120}}/>
+            onSelectionChanged={row => this.props.onSelectionChanged(row)} />
     )
   }
 }

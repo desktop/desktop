@@ -1,24 +1,65 @@
 // Variables
 //
-// This files contains variables accessible to all other scss files.
-// Structure and naming copied largely from bootstrap, see
-// https://github.com/twbs/bootstrap/blob/bfc16c4a829ba596db28f5f42d7a3e429e6ea2e1/scss/_variables.scss
+// This files contains CSS variables accessible to all selectors
 
-// Colors
+:root {
+  // Colors
+  --text-color: #5f717f;
+  --background-color: #fff;
 
-$primary-text-color:          #5f717f;
-$primary-background-color:    #fff;
+  // Typography
+  //
+  // Font, line-height, and color for body text, headings, and more.
+  --font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-family-monospace: Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
-// Typography
-//
-// Font, line-height, and color for body text, headings, and more.
+  /**
+   * Font weight to use for semibold text
+   */
+  --font-weight-semibold: 600;
 
-$font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", Arial, sans-serif !default;
-$font-family-monospace:  Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-$font-family-base:       $font-family-sans-serif;
+  // Pixel value used to responsively scale all typography. Applied to the `<html>` element.
+  --font-size: 15px;
 
-// Pixel value used to responsively scale all typography. Applied to the `<html>` element.
-$font-size-root: 16px;
-$font-size-base: $font-size-root;
+  /**
+   * Background color for custom scroll bars.
+   * The color is applied to the thumb part of the scrollbar.
+   *
+   * Note: Only applies to win32 platforms
+   */
+  --scroll-bar-thumb-background-color: rgba(0, 0, 0, 0.2);
 
-$line-height-base: 1.5;
+  /**
+   * Background color for custom scroll bars in their active state.
+   * The color is applied to the thumb part of the scrollbar.
+   *
+   * Note: Only applies to win32 platforms
+   */
+  --scroll-bar-thumb-background-color-active: rgba(0, 0, 0, 0.5);
+
+  /**
+   * Background color for selected list items without keyboard focus
+   */
+  --list-item-selected-background-color: #f2f2f2;
+
+  /**
+   * Text color for selected list items without keyboard focus
+   */
+  --list-item-selected-text-color: #5f717f;
+
+  /**
+   * Background color for selected list items with active keyboard focus
+   */
+  --list-item-selected-active-background-color: #c9510c;
+
+  /**
+   * Text color for selected list items with active keyboard focus
+   */
+  --list-item-selected-active-text-color: #f9f9f9;
+
+  /** The height of the title bar area on Win32 platforms */
+  --win32-title-bar-height: 30px;
+
+  /** The height of the title bar area on darwin platforms */
+  --darwin-title-bar-height: 20px;
+}
