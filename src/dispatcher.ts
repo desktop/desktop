@@ -13,8 +13,6 @@ import {Action} from './actions'
  */
 export default class Dispatcher {
   private dispatch<T>(action: Action): Promise<T> {
-    const copiedAction = Object.assign({}, action)
-    delete copiedAction.name
     return this.send(action.name, action)
   }
 

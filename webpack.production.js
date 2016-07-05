@@ -21,7 +21,8 @@ const config = {
   module: common.module,
   resolve: common.resolve,
   target: common.target,
-  externals: common.externals
+  externals: common.externals,
+  node: common.node
 }
 
 // This will cause the compiled CSS to be output to a
