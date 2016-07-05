@@ -30,16 +30,29 @@ function packageOSX () {
 function packageWindows () {
   const electronInstaller = require('electron-winstaller')
   const outputDir = path.join(distPath, '..', 'installer')
-  // TODO: We'll need to sign this shit.
+  const setupCertificatePath = path.join(__dirname, 'setup-windows-certificate.ps1')
+  const cleanupCertificatePath = path.join(__dirname, 'cleanup-windows-certificate.ps1')
+
+  if (process.env.APPVEYOR) {
+    cp.execSync(`powershell ${setupCertificatePath}`)
+  }
+
+  const certificatePath =  path.join(__dirname, 'windows-certificate.pfx')
+
   electronInstaller
     .createWindowsInstaller({
       appDirectory: distPath,
       outputDirectory: outputDir,
       authors: distInfo.getCompanyName(),
-      exe: `${productName}.exe`
+      exe: `${productName}.exe`,
+      signWithParams: `/f ${certificatePath} /p ${process.env.WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256`
     })
-    .then(() => console.log(`Installers created in ${outputDir}`))
+    .then(() => {
+      console.log(`Installers created in ${outputDir}`)
+      cp.execSync(`powershell ${cleanupCertificatePath}`)
+    })
     .catch(e => {
+      cp.execSync(`powershell ${cleanupCertificatePath}`)
       console.error(`Error packaging: ${e}`)
       process.exit(1)
     })
