@@ -1,4 +1,4 @@
-import Database, {deDexie} from './database'
+import Database from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
 import Repository from '../models/repository'
@@ -40,7 +40,7 @@ export default class RepositoriesStore {
       }
     })
 
-    await deDexie(transaction)
+    await transaction
 
     return inflatedRepos
   }
@@ -62,6 +62,6 @@ export default class RepositoriesStore {
       })
     })
 
-    await deDexie(transaction)
+    await transaction
   }
 }

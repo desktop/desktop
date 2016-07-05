@@ -48,9 +48,3 @@ export default class Database extends Dexie {
     })
   }
 }
-
-export function deDexie<T>(promise: Dexie.Promise<T>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    promise.then(resolve, reject)
-  })
-}
