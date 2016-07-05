@@ -16,16 +16,16 @@ export default class GitHubRepositoriesCache {
     const transaction = this.db.transaction('rw', this.db.gitHubRepositories, this.db.owners, function*() {
       const match = yield db.gitHubRepositories
         .where('[apiID+endpoint]')
-        .equals([repo.getAPIID(), repo.getEndpoint()])
+        .equals([repo.apiID, repo.endpoint])
         .limit(1)
         .first()
 
       if (match) { return null }
 
-      const owner = repo.getOwner()
+      const owner = repo.owner
       const existing = yield db.owners
         .where('[login+endpoint]')
-        .equals([owner.getLogin(), owner.getEndpoint()])
+        .equals([owner.login, owner.endpoint])
         .limit(1)
         .first()
 
@@ -33,18 +33,18 @@ export default class GitHubRepositoriesCache {
       if (existing) {
         ownerID = existing.id
       } else {
-        ownerID = yield db.owners.add({login: owner.getLogin(), endpoint: owner.getEndpoint()})
+        ownerID = yield db.owners.add({login: owner.login, endpoint: owner.endpoint})
       }
 
       yield db.gitHubRepositories.add({
-        apiID: repo.getAPIID(),
+        apiID: repo.apiID,
         ownerID,
-        name: repo.getName(),
-        cloneURL: repo.getCloneURL(),
-        gitURL: repo.getGitURL(),
-        sshURL: repo.getSSHURL(),
-        htmlURL: repo.getHTMLURL(),
-        endpoint: owner.getEndpoint(),
+        name: repo.name,
+        cloneURL: repo.cloneURL,
+        gitURL: repo.gitURL,
+        sshURL: repo.sshURL,
+        htmlURL: repo.htmlURL,
+        endpoint: owner.endpoint,
       })
     })
 

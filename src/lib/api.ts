@@ -29,7 +29,7 @@ export default class API {
   private client: any
 
   public constructor(user: User) {
-    this.client = new Octokat({token: user.getToken(), rootURL: user.getEndpoint()})
+    this.client = new Octokat({token: user.token, rootURL: user.endpoint})
   }
 
   /**

@@ -28,7 +28,7 @@ describe('GitHubRepositoriesCache', () => {
       await cache.addRepository(repo)
 
       const repositories = await cache.getRepositories()
-      expect(repositories[0].getName()).to.equal(repoName)
+      expect(repositories[0].name).to.equal(repoName)
     })
 
     it('can find the repository by an origin URL', async () => {

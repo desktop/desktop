@@ -28,10 +28,10 @@ export default class Info extends React.Component<InfoProps, InfoState> {
       return this.renderNoSelection()
     }
 
-    const url = repo.getGitHubRepository().getHTMLURL()
+    const url = repo.gitHubRepository.htmlURL
     return (
       <div>
-        <div>{repo.getPath()}</div>
+        <div>{repo.path}</div>
         <a href={url} onClick={e => this.openGitHub(e)}>{url}</a>
       </div>
     )
@@ -39,7 +39,7 @@ export default class Info extends React.Component<InfoProps, InfoState> {
 
   private openGitHub(e: React.MouseEvent) {
     const repo = this.props.selectedRepo
-    shell.openExternal(repo.getGitHubRepository().getHTMLURL())
+    shell.openExternal(repo.gitHubRepository.htmlURL)
     e.preventDefault()
   }
 }

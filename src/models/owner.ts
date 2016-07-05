@@ -5,9 +5,9 @@ export interface IOwner {
 }
 
 /** The owner of a GitHubRepository. */
-export default class Owner {
-  private login: string
-  private endpoint: string
+export default class Owner implements IOwner {
+  private _login: string
+  private _endpoint: string
 
   /** Create a new Owner from a data-only representation. */
   public static fromJSON(json: IOwner): Owner {
@@ -15,15 +15,10 @@ export default class Owner {
   }
 
   public constructor(login: string, endpoint: string) {
-    this.login = login
-    this.endpoint = endpoint
+    this._login = login
+    this._endpoint = endpoint
   }
 
-  public getLogin(): string {
-    return this.login
-  }
-
-  public getEndpoint(): string {
-    return this.endpoint
-  }
+  public get login(): string { return this._login }
+  public get endpoint(): string { return this._endpoint }
 }

@@ -13,15 +13,15 @@ export interface IGitHubRepository {
 }
 
 /** A GitHub repository. */
-export default class GitHubRepository {
-  private name: string
-  private owner: Owner
-  private apiID: string
-  private cloneURL: string
-  private gitURL: string
-  private sshURL: string
-  private htmlURL: string
-  private dbID: number
+export default class GitHubRepository implements IGitHubRepository {
+  private _name: string
+  private _owner: Owner
+  private _apiID: string
+  private _cloneURL: string
+  private _gitURL: string
+  private _sshURL: string
+  private _htmlURL: string
+  private _dbID: number
 
   /** Create a new GitHubRepository from its data-only representation. */
   public static fromJSON(json: IGitHubRepository): GitHubRepository {
@@ -29,53 +29,29 @@ export default class GitHubRepository {
   }
 
   public constructor(name: string, owner: Owner, apiID: string, cloneURL: string, gitURL: string, sshURL: string, htmlURL: string, dbID?: number) {
-    this.name = name
-    this.owner = owner
-    this.apiID = apiID
-    this.cloneURL = cloneURL
-    this.gitURL = gitURL
-    this.sshURL = sshURL
-    this.htmlURL = htmlURL
-    this.dbID = dbID
+    this._name = name
+    this._owner = owner
+    this._apiID = apiID
+    this._cloneURL = cloneURL
+    this._gitURL = gitURL
+    this._sshURL = sshURL
+    this._htmlURL = htmlURL
+    this._dbID = dbID
   }
 
-  public getName(): string {
-    return this.name
-  }
-
-  public getOwner(): Owner {
-    return this.owner
-  }
-
-  public getAPIID(): string {
-    return this.apiID
-  }
-
-  public getCloneURL(): string {
-    return this.cloneURL
-  }
-
-  public getGitURL(): string {
-    return this.gitURL
-  }
-
-  public getSSHURL(): string {
-    return this.sshURL
-  }
-
-  public getHTMLURL(): string {
-    return this.htmlURL
-  }
+  public get name(): string { return this._name }
+  public get owner(): Owner { return this._owner }
+  public get apiID(): string { return this._apiID }
+  public get cloneURL(): string { return this._cloneURL }
+  public get gitURL(): string { return this._gitURL }
+  public get sshURL(): string { return this._sshURL }
+  public get htmlURL(): string { return this._htmlURL }
 
   /**
    * Note: this will only be defined when the repository has been fetched from
    * the database.
    */
-  public getDBID(): number {
-    return this.dbID
-  }
+  public get dbID(): number { return this._dbID }
 
-  public getEndpoint(): string {
-    return this.owner.getEndpoint()
-  }
+  public get endpoint(): string { return this._owner.endpoint }
 }
