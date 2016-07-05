@@ -50,14 +50,14 @@ export default class RepositoriesStore {
     const db = this.db
     const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
       let gitHubRepositoryID: number = null
-      const gitHubRepository = repo.getGitHubRepository()
+      const gitHubRepository = repo.gitHubRepository
       if (gitHubRepository) {
-        const match = yield db.gitHubRepositories.get(gitHubRepository.getDBID())
+        const match = yield db.gitHubRepositories.get(gitHubRepository.dbID)
         gitHubRepositoryID = match.id
       }
 
       yield db.repositories.add({
-        path: repo.getPath(),
+        path: repo.path,
         gitHubRepositoryID
       })
     })

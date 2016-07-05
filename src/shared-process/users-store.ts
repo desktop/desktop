@@ -19,7 +19,7 @@ export default class UsersStore {
   }
 
   public addUser(user: User) {
-    this.secureStore.setItem(getKeyForUser(user), user.getLogin(), user.getToken())
+    this.secureStore.setItem(getKeyForUser(user), user.login, user.token)
 
     this.users.push(user)
 

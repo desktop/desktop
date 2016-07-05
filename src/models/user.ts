@@ -8,11 +8,10 @@ export interface IUser {
 /**
  * A GitHub user.
  */
-export default class User {
-  // TODO: These will be readonly once readonly is a thing.
-  private token: string
-  private login: string
-  private endpoint: string
+export default class User implements IUser {
+  private _token: string
+  private _login: string
+  private _endpoint: string
 
   /** Create a new User from some JSON. */
   public static fromJSON(obj: IUser): User {
@@ -20,22 +19,14 @@ export default class User {
   }
 
   public constructor(login: string, endpoint: string, token: string) {
-    this.login = login
-    this.endpoint = endpoint
-    this.token = token
+    this._login = login
+    this._endpoint = endpoint
+    this._token = token
   }
 
-  public getToken(): string {
-    return this.token
-  }
-
-  public getLogin(): string {
-    return this.login
-  }
-
-  public getEndpoint(): string {
-    return this.endpoint
-  }
+  public get token(): string { return this._token }
+  public get login(): string { return this._login }
+  public get endpoint(): string { return this._endpoint }
 
   public userWithToken(token: string): User {
     return new User(this.login, this.endpoint, token)

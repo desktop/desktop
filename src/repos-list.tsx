@@ -21,9 +21,9 @@ export default class ReposList extends React.Component<ReposListProps, void> {
     const symbol = this.iconForRepo(repo)
 
     return (
-      <div className='repository-list-item' key={row.toString()} title={repo.getName()}>
+      <div className='repository-list-item' key={row.toString()} title={repo.name}>
         <Octicon symbol={symbol} />
-        <div className='name'>{repo.getName()}</div>
+        <div className='name'>{repo.name}</div>
       </div>
     )
   }

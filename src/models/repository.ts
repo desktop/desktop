@@ -11,9 +11,9 @@ export interface IRepository {
 /**
  * A local repository.
  */
-export default class Repository {
-  private path: string
-  private gitHubRepository: GitHubRepository
+export default class Repository implements IRepository {
+  private _path: string
+  private _gitHubRepository: GitHubRepository
 
   /** Create a new Repository from a data-only representation. */
   public static fromJSON(json: IRepository): Repository {
@@ -26,19 +26,11 @@ export default class Repository {
   }
 
   public constructor(path: string, gitHubRepository: GitHubRepository) {
-    this.path = path
-    this.gitHubRepository = gitHubRepository
+    this._path = path
+    this._gitHubRepository = gitHubRepository
   }
 
-  public getGitHubRepository(): GitHubRepository {
-    return this.gitHubRepository
-  }
-
-  public getPath(): string {
-    return this.path
-  }
-
-  public getName(): string {
-    return path.basename(this.path)
-  }
+  public get gitHubRepository(): GitHubRepository { return this._gitHubRepository }
+  public get path(): string { return this._path }
+  public get name(): string { return path.basename(this._path) }
 }

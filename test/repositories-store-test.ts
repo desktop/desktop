@@ -21,7 +21,7 @@ describe('RepositoriesStore', () => {
       await repositoriesStore.addRepository(new Repository(repoPath, null))
 
       const repositories = await repositoriesStore.getRepositories()
-      expect(repositories[0].getPath()).to.equal(repoPath)
+      expect(repositories[0].path).to.equal(repoPath)
     })
   })
 
@@ -41,7 +41,7 @@ describe('RepositoriesStore', () => {
       await repositoriesStore.addRepository(new Repository(repoPath, null))
 
       const repositories = await repositoriesStore.getRepositories()
-      expect(repositories[0].getName()).to.equal('path')
+      expect(repositories[0].name).to.equal('path')
     })
   })
 })
