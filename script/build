@@ -42,6 +42,7 @@ const options = {
     '/node_modules/\\.bin($|/)',
     '/node_modules/nodegit/vendor/libgit2/tests($|/)',
     '/node_modules/nodegit/build/Release/obj.target($|/)',
+    '/node_modules/nodegit/vendor($|/)',
     '/node_modules/ohnogit/spec($|/)'
   ],
 
