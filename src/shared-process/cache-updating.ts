@@ -22,6 +22,8 @@ async function updateGitHubRepositoriesCache(usersStore: UsersStore, cache: GitH
   for (let user of users) {
     const api = new API(user)
     const repos = await api.fetchRepositories()
+
+    // TODO: We need to update existing repos and delete missing repos.
     console.log(`Adding ${repos.length} repositories…`)
     for (let repo of repos) {
       const owner = new Owner(repo.owner.login, user.getEndpoint())

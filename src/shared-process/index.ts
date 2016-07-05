@@ -10,7 +10,7 @@ import Repository, {IRepository} from '../models/repository'
 import {dispatch, register, broadcastUpdate} from './communication'
 import GitHubRepositoriesCache from './github-repositories-cache'
 import {FindGitHubRepositoryAction, URLAction} from '../actions'
-import {updateCaches} from './cache-updater'
+import {updateCaches} from './cache-updating'
 
 const Octokat = require('octokat')
 
