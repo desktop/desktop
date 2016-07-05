@@ -4,36 +4,7 @@ import User, {IUser} from './models/user'
 import Repository, {IRepository} from './models/repository'
 import guid from './lib/guid'
 import {AppState} from './lib/app-state'
-
-interface GetUsersAction {
-  name: 'get-users'
-}
-
-interface GetRepositoriesAction {
-  name: 'get-repositories'
-}
-
-interface AddRepositoryAction {
-  name: 'add-repositories'
-  repositories: Repository[]
-}
-
-interface RequestOAuthAction {
-  name: 'request-oauth'
-}
-
-interface FindGitHubRepositoryAction {
-  name: 'find-github-repository'
-  remoteURL: string
-}
-
-export interface AppState {
-  users: User[]
-  repositories: Repository[]
-}
-
-type Action = GetUsersAction | GetRepositoriesAction |
-              AddRepositoryAction | RequestOAuthAction
+import {Action} from './actions'
 
 /**
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
