@@ -1,4 +1,5 @@
 import Repository from './models/repository'
+import {URLActionType} from './lib/parse-url'
 
 export interface GetUsersAction {
   name: 'get-users'
@@ -8,7 +9,7 @@ export interface GetRepositoriesAction {
   name: 'get-repositories'
 }
 
-export interface AddRepositoryAction {
+export interface AddRepositoriesAction {
   name: 'add-repositories'
   repositories: Repository[]
 }
@@ -22,6 +23,11 @@ export interface FindGitHubRepositoryAction {
   remoteURL: string
 }
 
+export interface URLAction {
+  name: 'url-action'
+  action: URLActionType
+}
+
 export type Action = GetUsersAction | GetRepositoriesAction |
-                     AddRepositoryAction | RequestOAuthAction |
-                     FindGitHubRepositoryAction
+                     AddRepositoriesAction | RequestOAuthAction |
+                     FindGitHubRepositoryAction | URLAction
