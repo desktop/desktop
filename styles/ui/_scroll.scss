@@ -65,3 +65,31 @@
     &:active { background-color: var(--scroll-bar-thumb-background-color-active); }
   }
 }
+
+@include win32-context {
+
+  &-thumb {
+
+    &:hover, &:active {
+
+    }
+
+    &:active {
+
+    }
+  }
+}
+
+@include darwin-context {
+
+  &-thumb {
+
+    &:hover, &:active {
+
+    }
+
+    &:active {
+
+    }
+  }
+}
