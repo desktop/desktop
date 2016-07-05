@@ -3,6 +3,10 @@
 /** A <List> React component holding all tracked repositories in the sidebar */
 #repository-list {
 
+  .list-item {
+    border-radius: 0 5px 5px 0;
+  }
+
   // Go read _scroll.scss, we're unable to extend the list items all
   // the way out to the edge of the list because the scrollbar forces
   // a margin that we can't get past. So on Windows we'll render with
@@ -15,10 +19,6 @@
     // visible until the content is actually scrollable so essentially this is
     // magic padding.
     overflow-y: scroll;
-
-    .list-item {
-      border-radius: 0 5px 5px 0;
-    }
   }
 
   /**
