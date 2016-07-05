@@ -6,6 +6,7 @@ const Octokat = require('octokat')
  * Information about a repository as returned by the GitHub API.
  */
 export interface GitHubRepository {
+  id: string
   cloneUrl: string
   htmlUrl: string
   name: string

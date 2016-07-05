@@ -10,8 +10,11 @@ import Repository, {IRepository} from '../models/repository'
 import {dispatch, register, broadcastUpdate} from './communication'
 import GitHubRepositoriesCache from './github-repositories-cache'
 import {FindGitHubRepositoryAction, URLAction} from '../actions'
+import {updateCaches} from './cache-updater'
 
 const Octokat = require('octokat')
+
+const CacheUpdateInterval = 1000 * 60 * 60
 
 const usersStore = new UsersStore(localStorage, tokenStore)
 usersStore.loadFromStore()
@@ -19,6 +22,10 @@ usersStore.loadFromStore()
 const database = new Database('Database')
 const repositoriesStore = new RepositoriesStore(database)
 const gitHubRepositoriesCache = new GitHubRepositoriesCache(database)
+
+updateCaches(usersStore, gitHubRepositoriesCache)
+
+setInterval(() => updateCaches(usersStore, gitHubRepositoriesCache), CacheUpdateInterval)
 
 register('console.log', ({args}: {args: any[]}) => {
   console.log('', ...args)
