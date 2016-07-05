@@ -5,7 +5,11 @@ import GitHubRepository from '../models/github-repository'
 import Owner from '../models/owner'
 
 export async function updateCaches(usersStore: UsersStore, cache: GitHubRepositoriesCache) {
+  console.log('Updating caches…')
+
   await updateGitHubRepositoriesCache(usersStore, cache)
+
+  console.log('Cache update done.')
 }
 
 async function updateGitHubRepositoriesCache(usersStore: UsersStore, cache: GitHubRepositoriesCache) {
@@ -13,6 +17,7 @@ async function updateGitHubRepositoriesCache(usersStore: UsersStore, cache: GitH
   for (let user of users) {
     const api = new API(user)
     const repos = await api.fetchRepositories()
+    console.log(`Adding ${repos.length} repositories…`)
     for (let repo of repos) {
       const owner = new Owner(repo.owner.login, user.getEndpoint())
       const ghRepo = new GitHubRepository(repo.name, owner, repo.id, repo.cloneUrl, repo.gitUrl, repo.sshUrl, repo.htmlUrl)
