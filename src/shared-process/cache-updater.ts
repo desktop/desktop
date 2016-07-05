@@ -7,7 +7,12 @@ import Owner from '../models/owner'
 export async function updateCaches(usersStore: UsersStore, cache: GitHubRepositoriesCache) {
   console.log('Updating caches…')
 
-  await updateGitHubRepositoriesCache(usersStore, cache)
+  try {
+    await updateGitHubRepositoriesCache(usersStore, cache)
+  } catch (e) {
+    console.error('Error updating cache:')
+    console.error(e)
+  }
 
   console.log('Cache update done.')
 }
