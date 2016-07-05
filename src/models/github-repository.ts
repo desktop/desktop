@@ -28,7 +28,7 @@ export default class GitHubRepository {
     return new GitHubRepository(json.name, Owner.fromJSON(json.owner), json.apiID, json.cloneURL, json.gitURL, json.sshURL, json.htmlURL, json.dbID)
   }
 
-  public constructor(name: string, owner: Owner, apiID: string, cloneURL: string, gitURL: string, sshURL: string, htmlURL: string, dbID: number) {
+  public constructor(name: string, owner: Owner, apiID: string, cloneURL: string, gitURL: string, sshURL: string, htmlURL: string, dbID?: number) {
     this.name = name
     this.owner = owner
     this.apiID = apiID
@@ -73,5 +73,9 @@ export default class GitHubRepository {
    */
   public getDBID(): number {
     return this.dbID
+  }
+
+  public getEndpoint(): string {
+    return this.owner.getEndpoint()
   }
 }
