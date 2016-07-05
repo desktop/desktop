@@ -3,12 +3,13 @@ import tokenStore from './token-store'
 import UsersStore from './users-store'
 import {requestToken, askUserToAuth, getDotComEndpoint} from './auth'
 import User from '../models/user'
-import {URLActionType, isOAuthAction} from '../lib/parse-url'
+import {isOAuthAction} from '../lib/parse-url'
 import Database from './database'
 import RepositoriesStore from './repositories-store'
 import Repository, {IRepository} from '../models/repository'
 import {dispatch, register, broadcastUpdate} from './communication'
 import GitHubRepositoriesCache from './github-repositories-cache'
+import {FindGitHubRepositoryAction, URLAction} from '../actions'
 
 const Octokat = require('octokat')
 
@@ -50,11 +51,11 @@ register('get-repositories', () => {
   return repositoriesStore.getRepositories()
 })
 
-register('find-github-repository', ({remoteURL}: {remoteURL: string}) => {
+register('find-github-repository', ({remoteURL}: FindGitHubRepositoryAction) => {
   return gitHubRepositoriesCache.findRepositoryWithRemoteURL(remoteURL)
 })
 
-register('url-action', async ({action}: {action: URLActionType}) => {
+register('url-action', async ({action}: URLAction) => {
   if (isOAuthAction(action)) {
     try {
       const token = await requestToken(action.args.code)
