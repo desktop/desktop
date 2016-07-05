@@ -2,6 +2,7 @@ import {ipcRenderer} from 'electron'
 import {Disposable} from 'event-kit'
 import User, {IUser} from './models/user'
 import Repository, {IRepository} from './models/repository'
+import GitHubRepository from './models/github-repository'
 import guid from './lib/guid'
 import {AppState} from './lib/app-state'
 import {Action} from './actions'
@@ -44,8 +45,14 @@ export default class Dispatcher {
     return json.map(r => Repository.fromJSON(r))
   }
 
+  /** Add the repositories to the app. */
   public addRepositories(repositories: Repository[]): Promise<void> {
     return this.dispatch<void>({name: 'add-repositories', repositories})
+  }
+
+  /** Find the GitHub repository with the given remote. */
+  public findGitHubRepositoryWithRemote(remote: string): Promise<GitHubRepository> {
+    return this.dispatch<GitHubRepository>({name: 'find-github-repository', remoteURL: remote})
   }
 
   /** Request the user approve our OAuth request. This will open their browser. */

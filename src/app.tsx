@@ -9,6 +9,7 @@ import {WindowControls} from './ui/window/window-controls'
 import API from './lib/api'
 import Dispatcher from './dispatcher'
 import Repository from './models/repository'
+import {Repository as GitRepository} from 'ohnogit'
 
 interface AppState {
   selectedRow: number,
@@ -74,14 +75,24 @@ export default class App extends React.Component<AppProps, AppState> {
     }
   }
 
-  private handleDragAndDrop(files: FileList) {
-    const repositories: Repository[] = []
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]
+  private async handleDragAndDrop(fileList: FileList) {
+    const paths: string[] = []
+    for (let i = 0; i < fileList.length; i++) {
+      const path = fileList[i]
+      paths.push(path.path)
+    }
 
-      // TODO: Ensure it's actually a git repository.
-      // TODO: Look up its GitHub repository.
-      const repo = new Repository(file.path, null)
+    this.addRepositories(paths)
+  }
+
+  private async addRepositories(paths: string[]) {
+    const repositories: Repository[] = []
+    for (let path of paths) {
+      const gitRepo = GitRepository.open(path)
+      // TODO: This is all kinds of wrong.
+      const remote = await gitRepo.getConfigValue('remote.origin.url')
+      const gitHubRepository = await this.props.dispatcher.findGitHubRepositoryWithRemote(remote)
+      const repo = new Repository(path, gitHubRepository)
       repositories.push(repo)
     }
 
