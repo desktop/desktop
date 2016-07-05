@@ -59,7 +59,7 @@ export default class GitHubRepositoriesCache {
     const repoOwner = await this.db.owners.get(match.ownerID)
     const owner = new Owner(repoOwner.login, repoOwner.endpoint)
 
-    return new GitHubRepository(match.name, owner, match.apiID, match.cloneURL, match.gitURL, match.sshURL, match.htmlURL)
+    return new GitHubRepository(match.name, owner, match.apiID, match.cloneURL, match.gitURL, match.sshURL, match.htmlURL, match.id)
   }
 
   public async findRepositoryID(apiID: string): Promise<number> {

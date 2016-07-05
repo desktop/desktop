@@ -42,7 +42,7 @@ export default class Database extends Dexie {
 
     this.version(DatabaseVersion).stores({
       repositories: '++id, &path',
-      gitHubRepositories: '++id, name, &apiID',
+      gitHubRepositories: '++id, name',
       owners: '++id, login'
     })
   }

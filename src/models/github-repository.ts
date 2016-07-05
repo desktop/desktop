@@ -9,6 +9,7 @@ export interface IGitHubRepository {
   gitURL: string
   sshURL: string
   htmlURL: string
+  dbID: number
 }
 
 /** A GitHub repository. */
@@ -20,13 +21,14 @@ export default class GitHubRepository {
   private gitURL: string
   private sshURL: string
   private htmlURL: string
+  private dbID: number
 
   /** Create a new GitHubRepository from its data-only representation. */
   public static fromJSON(json: IGitHubRepository): GitHubRepository {
-    return new GitHubRepository(json.name, Owner.fromJSON(json.owner), json.apiID, json.cloneURL, json.gitURL, json.sshURL, json.htmlURL)
+    return new GitHubRepository(json.name, Owner.fromJSON(json.owner), json.apiID, json.cloneURL, json.gitURL, json.sshURL, json.htmlURL, json.dbID)
   }
 
-  public constructor(name: string, owner: Owner, apiID: string, cloneURL: string, gitURL: string, sshURL: string, htmlURL: string) {
+  public constructor(name: string, owner: Owner, apiID: string, cloneURL: string, gitURL: string, sshURL: string, htmlURL: string, dbID: number) {
     this.name = name
     this.owner = owner
     this.apiID = apiID
@@ -34,6 +36,7 @@ export default class GitHubRepository {
     this.gitURL = gitURL
     this.sshURL = sshURL
     this.htmlURL = htmlURL
+    this.dbID = dbID
   }
 
   public getName(): string {
@@ -62,5 +65,13 @@ export default class GitHubRepository {
 
   public getHTMLURL(): string {
     return this.htmlURL
+  }
+
+  /**
+   * Note: this will only be defined when the repository has been fetched from
+   * the database.
+   */
+  public getDBID(): number {
+    return this.dbID
   }
 }
