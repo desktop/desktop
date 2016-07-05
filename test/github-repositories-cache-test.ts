@@ -7,24 +7,41 @@ import GitHubRepositoriesCache from '../src/shared-process/github-repositories-c
 import TestDatabase from './test-database'
 
 describe('GitHubRepositoriesCache', () => {
+  const repoName = 'oh-say-can-you-sql'
+  const ownerName = 'galinda'
+
   let cache: GitHubRepositoriesCache = null
+  let repo: GitHubRepository = null
 
   beforeEach(async () => {
     const db = new TestDatabase()
     await db.reset()
 
     cache = new GitHubRepositoriesCache(db)
+
+    const owner = new Owner(ownerName, '')
+    repo = new GitHubRepository(repoName, owner, '123', `https://github.com/${ownerName}/${repoName}.git`, `git@github.com:${ownerName}/${repoName}.git`, `git@github.com:${ownerName}/${repoName}.git`, `https://github.com/${ownerName}/${repoName}`)
   })
 
   describe('adding a new repository', () => {
     it('contains the added repository', async () => {
-      const repoName = 'oh-say-can-you-sql'
-      const owner = new Owner('galinda', '')
-      const repo = new GitHubRepository(repoName, owner, '123', `https://github.com/${owner.getLogin()}/${repoName}.git`, `git@github.com:${owner.getLogin()}/${repoName}.git`, `git@github.com:${owner.getLogin()}/${repoName}.git`, `https://github.com/${owner.getLogin()}/${repoName}`)
       await cache.addRepository(repo)
 
       const repositories = await cache.getRepositories()
       expect(repositories[0].getName()).to.equal(repoName)
+    })
+
+    it('can find the repository by an origin URL', async () => {
+      await cache.addRepository(repo)
+
+      let match = await cache.findRepositoryWithRemoteURL(`git@github.com:${ownerName}/${repoName}.git`)
+      expect(match).not.to.equal(null)
+
+      match = await cache.findRepositoryWithRemoteURL(`https://github.com/${ownerName}/${repoName}.git`)
+      expect(match).not.to.equal(null)
+
+      match = await cache.findRepositoryWithRemoteURL(`https://github.com/something/else.git`)
+      expect(match).to.equal(null)
     })
   })
 })
