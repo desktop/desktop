@@ -64,4 +64,9 @@ export default class Dispatcher {
       ipcRenderer.removeListener('shared/did-update', wrappedFn)
     })
   }
+
+  /** Refresh the repository. */
+  public refreshRepository(repository: Repository): Promise<void> {
+    return this.dispatch<void>({name: 'refresh-repository', repository})
+  }
 }

@@ -25,6 +25,13 @@ export interface URLAction {
   action: URLActionType
 }
 
+export interface RefreshRepositoryAction {
+  name: 'refresh-repository'
+  // This union is gross but until Repository can implement IRepository, it's
+  // necessary.
+  repository: Repository | IRepository
+}
+
 export type Action = GetUsersAction | GetRepositoriesAction |
                      AddRepositoriesAction | RequestOAuthAction |
-                     FindGitHubRepositoryAction | URLAction
+                     URLAction | RefreshRepositoryAction

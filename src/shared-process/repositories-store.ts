@@ -46,7 +46,7 @@ export default class RepositoriesStore {
   }
 
   /** Add a new local repository. */
-  public async addRepository(repo: Repository): Promise<number> {
+  public async addRepository(repo: Repository): Promise<Repository> {
     const db = this.db
     let id: number = null
     const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
@@ -79,7 +79,7 @@ export default class RepositoriesStore {
 
     await transaction
 
-    return id
+    return repo.repositoryWithID(id)
   }
 
   public async updateGitHubRepository(id: number, repo: APIRepository): Promise<void> {
