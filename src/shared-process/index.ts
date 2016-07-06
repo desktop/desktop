@@ -1,14 +1,15 @@
 import {ipcRenderer} from 'electron'
 import tokenStore from './token-store'
 import UsersStore from './users-store'
-import {requestToken, askUserToAuth, getDotComEndpoint} from './auth'
+import {requestToken, askUserToAuth} from './auth'
 import User from '../models/user'
 import {isOAuthAction} from '../lib/parse-url'
 import Database from './database'
 import RepositoriesStore from './repositories-store'
 import Repository, {IRepository} from '../models/repository'
 import {dispatch, register, broadcastUpdate} from './communication'
-import {URLAction} from '../actions'
+import {URLAction, AddRepositoriesAction} from '../actions'
+import {getDotComAPIEndpoint} from '../lib/api'
 
 const Octokat = require('octokat')
 
@@ -55,7 +56,7 @@ register('url-action', async ({action}: URLAction) => {
       const token = await requestToken(action.args.code)
       const octo = new Octokat({token})
       const user = await octo.user.fetch()
-      usersStore.addUser(new User(user.login, getDotComEndpoint(), token))
+      usersStore.addUser(new User(user.login, getDotComAPIEndpoint(), token))
     } catch (e) {
       console.error(`Error adding user: ${e}`)
     }
@@ -64,7 +65,7 @@ register('url-action', async ({action}: URLAction) => {
 })
 
 register('request-oauth', () => {
-  askUserToAuth(getDotComEndpoint())
+  askUserToAuth(getDotComAPIEndpoint())
   return Promise.resolve()
 })
 
