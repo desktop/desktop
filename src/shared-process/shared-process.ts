@@ -25,10 +25,10 @@ export default class SharedProcess {
     })
 
     this.window.loadURL(`file://${__dirname}/shared.html`)
+  }
 
-    if (process.env.NODE_ENV === 'development') {
-      this.window.webContents.openDevTools({ mode: 'detach' })
-    }
+  public show() {
+    this.window.webContents.openDevTools({ mode: 'detach' })
   }
 
   /** Register the shared process to receive requests. */
@@ -67,6 +67,10 @@ export default class SharedProcess {
         this.send({guid: '', name: 'console.log', args: {args}})
       },
       error: (...args: any[]) => {
+        // Pop the console whenever we see an error (in dev)
+        if (process.env.NODE_ENV === 'development') {
+          this.show()
+        }
         this.send({guid: '', name: 'console.error', args: {args}})
       }
     }
