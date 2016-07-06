@@ -1,4 +1,3 @@
-import Dexie from 'dexie'
 import Database from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
@@ -11,12 +10,6 @@ import Repository from '../models/repository'
 // TS 1.8.
 //
 // Instead of using async/await, use generator functions and `yield`.
-
-function deDexie<T>(promise: Dexie.Promise<T>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    promise.then(resolve, reject)
-  })
-}
 
 /** The store for local repositories. */
 export default class RepositoriesStore {
@@ -45,7 +38,7 @@ export default class RepositoriesStore {
       }
     })
 
-    await deDexie(transaction)
+    await transaction
 
     return inflatedRepos
   }
@@ -78,6 +71,6 @@ export default class RepositoriesStore {
       })
     })
 
-    await deDexie(transaction)
+    await transaction
   }
 }
