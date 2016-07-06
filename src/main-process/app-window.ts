@@ -61,7 +61,7 @@ export default class AppWindow {
     // for now and make right-clicking on the title bar
     // show the default menu as a context menu instead.
     if (process.platform === 'win32') {
-      const menu = buildDefaultMenu()
+      const menu = buildDefaultMenu(this.sharedProcess)
 
       ipcMain.on('show-popup-app-menu', (e, ...args) => {
         menu.popup(this.window)
