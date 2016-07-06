@@ -95,16 +95,14 @@ app.on('activate', () => {
   }
 })
 
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
-
 function createWindow() {
   mainWindow = new AppWindow(stats, sharedProcess)
   mainWindow.onClose(() => {
     mainWindow = null
+
+    if (process.platform !== 'darwin') {
+      app.quit()
+    }
   })
 
   mainWindow.load()
