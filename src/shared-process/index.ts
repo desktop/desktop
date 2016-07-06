@@ -23,12 +23,12 @@ const database = new Database('Database')
 const repositoriesStore = new RepositoriesStore(database)
 
 register('console.log', ({args}: {args: any[]}) => {
-  console.log('', ...args)
+  console.log(args[0], ...args.slice(1))
   return Promise.resolve()
 })
 
 register('console.error', ({args}: {args: any[]}) => {
-  console.error('', ...args)
+  console.error(args[0], ...args.slice(1))
   return Promise.resolve()
 })
 
