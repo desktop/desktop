@@ -32,9 +32,9 @@ export default class RepositoriesStore {
           const gitHubRepository = yield db.gitHubRepositories.get(repo.gitHubRepositoryID)
           const owner = yield db.owners.get(gitHubRepository.ownerID)
           const gitHubRepo = new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint), gitHubRepository.private, gitHubRepository.fork, gitHubRepository.htmlURL)
-          inflatedRepo = new Repository(repo.path, gitHubRepo)
+          inflatedRepo = new Repository(repo.path, gitHubRepo, repo.id)
         } else {
-          inflatedRepo = new Repository(repo.path, null)
+          inflatedRepo = new Repository(repo.path, null, repo.id)
         }
         inflatedRepos.push(inflatedRepo)
       }
