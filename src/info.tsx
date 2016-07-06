@@ -19,6 +19,22 @@ export default class Info extends React.Component<InfoProps, InfoState> {
     )
   }
 
+  private renderGitHubInfo() {
+    const gitHubRepo = this.props.selectedRepo.getGitHubRepository()
+    if (!gitHubRepo) {
+      return <div>Not a GitHub repository</div>
+    }
+
+    return (
+      <div>
+        <div>Name: {gitHubRepo.getFullName()}</div>
+        <div>URL: {gitHubRepo.getHTMLURL()}</div>
+        <div>Private: {gitHubRepo.getPrivate() ? 'true' : 'false'}</div>
+        <div>Fork: {gitHubRepo.getFork() ? 'true' : 'false'}</div>
+      </div>
+    )
+  }
+
   public render() {
     const repo = this.props.selectedRepo
     if (!repo) {
@@ -26,7 +42,10 @@ export default class Info extends React.Component<InfoProps, InfoState> {
     }
 
     return (
-      <div>{repo.getPath()}</div>
+      <div>
+        <div>Path: {repo.getPath()}</div>
+        {this.renderGitHubInfo()}
+      </div>
     )
   }
 }

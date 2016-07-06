@@ -53,4 +53,9 @@ export default class GitHubRepository {
   public getHTMLURL(): string {
     return this.htmlURL
   }
+
+  /** Get the owner/name combo. */
+  public getFullName(): string {
+    return `${this.owner.getLogin()}/${this.name}`
+  }
 }
