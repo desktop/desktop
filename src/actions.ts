@@ -1,4 +1,4 @@
-import Repository from './models/repository'
+import Repository, {IRepository} from './models/repository'
 import {URLActionType} from './lib/parse-url'
 
 export interface GetUsersAction {
@@ -11,7 +11,9 @@ export interface GetRepositoriesAction {
 
 export interface AddRepositoriesAction {
   name: 'add-repositories'
-  repositories: Repository[]
+  // This union is gross but until Repository can implement IRepository, it's
+  // necessary.
+  repositories: (Repository | IRepository)[]
 }
 
 export interface RequestOAuthAction {
