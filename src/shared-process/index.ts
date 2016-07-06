@@ -6,7 +6,7 @@ import {isOAuthAction} from '../lib/parse-url'
 import Database from './database'
 import RepositoriesStore from './repositories-store'
 import Repository, {IRepository} from '../models/repository'
-import {register, broadcastUpdate} from './communication'
+import {register, broadcastUpdate as broadcastUpdate_} from './communication'
 import {URLAction, AddRepositoriesAction} from '../actions'
 import API, {getDotComAPIEndpoint, getUserForEndpoint} from '../lib/api'
 
@@ -17,6 +17,8 @@ usersStore.loadFromStore()
 
 const database = new Database('Database')
 const repositoriesStore = new RepositoriesStore(database)
+
+const broadcastUpdate = () => broadcastUpdate_(usersStore, repositoriesStore)
 
 register('console.log', ({args}: {args: any[]}) => {
   console.log(args[0], ...args.slice(1))
@@ -43,7 +45,7 @@ register('add-repositories', async ({repositories}: AddRepositoriesAction) => {
     updateGitHubRepository(repo, id)
   }
 
-  broadcastUpdate(usersStore, repositoriesStore)
+  broadcastUpdate()
 })
 
 register('get-repositories', () => {
@@ -60,7 +62,7 @@ register('url-action', async ({action}: URLAction) => {
     } catch (e) {
       console.error(`Error adding user: ${e}`)
     }
-    broadcastUpdate(usersStore, repositoriesStore)
+    broadcastUpdate()
   }
 })
 
@@ -81,6 +83,5 @@ async function updateGitHubRepository(repository: Repository, repoID: number): P
     console.error(e)
   }
 
-  console.log('repo:')
-  console.log(repo)
+  broadcastUpdate()
 }
