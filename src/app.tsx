@@ -11,10 +11,10 @@ import Dispatcher from './dispatcher'
 import Repository from './models/repository'
 
 interface AppState {
-  selectedRow: number,
-  repos: Repository[],
-  loadingRepos: boolean,
-  user: User
+  selectedRow: number
+  repos: Repository[]
+  loadingRepos: boolean
+  users: User[]
 }
 
 interface AppProps {
@@ -22,8 +22,6 @@ interface AppProps {
 }
 
 export default class App extends React.Component<AppProps, AppState> {
-  private api: API
-
   public constructor(props: AppProps) {
     super(props)
 
@@ -33,7 +31,7 @@ export default class App extends React.Component<AppProps, AppState> {
 
     this.state = {
       selectedRow: -1,
-      user: null,
+      users: [],
       loadingRepos: true,
       repos: []
     }
@@ -50,16 +48,11 @@ export default class App extends React.Component<AppProps, AppState> {
   }
 
   private update(users: User[], repos: Repository[]) {
-    const user = users[0]
     // TODO: We should persist this but for now we'll select the first
     // repository available unless we already have a selection
     const selectedRow = (this.state.selectedRow === -1 && repos.length > 0) ? 0 : -1
 
-    this.setState(Object.assign({}, this.state, {user, repos, loadingRepos: false, selectedRow}))
-
-    if (user) {
-      this.api = new API(user)
-    }
+    this.setState(Object.assign({}, this.state, {users, repos, loadingRepos: false, selectedRow}))
   }
 
   public componentDidMount() {
@@ -142,7 +135,7 @@ export default class App extends React.Component<AppProps, AppState> {
     return (
       <div id='desktop-app-chrome'>
         {this.renderTitlebar()}
-        {this.state.user ? this.renderApp() : this.renderNotLoggedIn()}
+        {this.state.users.length > 0 ? this.renderApp() : this.renderNotLoggedIn()}
       </div>
     )
   }
