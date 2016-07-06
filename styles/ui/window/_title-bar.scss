@@ -3,6 +3,7 @@
 #desktop-app-title-bar {
   -webkit-app-region: drag;
   -webkit-user-select: none;
+  flex-grow: 0;
   flex-shrink: 0;
   width: 100%;
 
@@ -11,7 +12,9 @@
 
   .app-title {
     flex-grow: 1;
+    flex-shrink: 1;
     text-align: center;
+    @include ellipsis;
 
     // This is cheating a bit but we'll use this to "push" the
     // window controls to the right on Windows. We could also
@@ -46,6 +49,7 @@
   .window-controls {
 
     flex-grow: 0;
+    flex-shrink: 0;
 
     // Each button contains a single SVG element with a Windows 10-replica
     // icon for the function it represents

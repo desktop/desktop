@@ -1,6 +1,7 @@
 {
   "ambientDependencies": {
     "chai": "registry:dt/chai#3.4.0+20160317120654",
+    "electron-window-state": "registry:dt/electron-window-state#2.0.0+20160212171354",
     "github-electron": "registry:dt/github-electron#1.0.2+20160523035412",
     "keytar": "registry:dt/keytar#3.0.0+20160316155526",
     "mocha": "registry:dt/mocha#2.2.5+20160317120654",

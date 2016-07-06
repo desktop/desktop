@@ -5,15 +5,29 @@ import SharedProcess from '../shared-process/shared-process'
 import {WindowState, windowStateChannelName} from '../lib/window-state'
 import {buildDefaultMenu} from './menu'
 
+const windowStateKeeper:
+  (opts: ElectronWindowState.WindowStateKeeperOptions) => ElectronWindowState.WindowState =
+  require('electron-window-state')
+
 export default class AppWindow {
   private window: Electron.BrowserWindow
   private sharedProcess: SharedProcess
   private stats: Stats
 
   public constructor(stats: Stats, sharedProcess: SharedProcess) {
+
+    const savedWindowState: ElectronWindowState.WindowState = windowStateKeeper({
+      defaultWidth: 800,
+      defaultHeight: 600
+    })
+
     const windowOptions: Electron.BrowserWindowOptions = {
-      width: 800,
-      height: 600,
+      x: savedWindowState.x,
+      y: savedWindowState.y,
+      width: savedWindowState.width,
+      height: savedWindowState.height,
+      minWidth: 800,
+      minHeight: 600,
       show: false,
       // This fixes subpixel aliasing on Windows
       // See https://github.com/atom/atom/commit/683bef5b9d133cb194b476938c77cc07fd05b972
@@ -27,6 +41,7 @@ export default class AppWindow {
     }
 
     this.window = new BrowserWindow(windowOptions)
+    savedWindowState.manage(this.window)
 
     this.stats = stats
 
@@ -61,7 +76,7 @@ export default class AppWindow {
     // for now and make right-clicking on the title bar
     // show the default menu as a context menu instead.
     if (process.platform === 'win32') {
-      const menu = buildDefaultMenu()
+      const menu = buildDefaultMenu(this.sharedProcess)
 
       ipcMain.on('show-popup-app-menu', (e, ...args) => {
         menu.popup(this.window)
