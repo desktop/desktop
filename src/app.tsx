@@ -1,14 +1,16 @@
 import * as React from 'react'
 import {ipcRenderer} from 'electron'
+import {Repository as GitRepository} from 'ohnogit'
 
 import ReposList from './repos-list'
 import Info from './info'
 import User from './models/user'
+import GitHubRepository from './models/github-repository'
 import NotLoggedIn from './not-logged-in'
 import {WindowControls} from './ui/window/window-controls'
-import API from './lib/api'
 import Dispatcher from './dispatcher'
 import Repository from './models/repository'
+import {matchGitHubRepository} from './lib/repository-matching'
 
 interface AppState {
   selectedRow: number
@@ -67,15 +69,33 @@ export default class App extends React.Component<AppProps, AppState> {
     }
   }
 
-  private handleDragAndDrop(files: FileList) {
-    const repositories: Repository[] = []
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]
+  private handleDragAndDrop(fileList: FileList) {
+    const paths: string[] = []
+    for (let i = 0; i < fileList.length; i++) {
+      const path = fileList[i]
+      paths.push(path.path)
+    }
 
-      // TODO: Ensure it's actually a git repository.
-      // TODO: Look up its GitHub repository.
-      const repo = new Repository(file.path, null)
-      repositories.push(repo)
+    this.addRepositories(paths)
+  }
+
+  private async addRepositories(paths: string[]) {
+    const repositories: Repository[] = []
+    for (let path of paths) {
+      const gitRepo = GitRepository.open(path)
+      // TODO: This is all kinds of wrong.
+      const remote = await gitRepo.getConfigValue('remote.origin.url')
+      let gitHubRepository: GitHubRepository = null
+      if (remote) {
+        gitHubRepository = matchGitHubRepository(this.state.users, remote)
+      }
+
+      if (gitHubRepository) {
+        console.log(`Matched ${remote} to ${gitHubRepository.getOwner().getLogin()}/${gitHubRepository.getName()}`)
+      }
+
+      const repository = new Repository(path, gitHubRepository)
+      repositories.push(repository)
     }
 
     this.props.dispatcher.addRepositories(repositories)
