@@ -13,6 +13,9 @@ interface DatabaseGitHubRepository {
   id?: number
   ownerID: number
   name: string
+  private?: boolean
+  fork?: boolean
+  htmlURL?: string
 }
 
 interface DatabaseRepository {

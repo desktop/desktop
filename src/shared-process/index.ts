@@ -8,7 +8,7 @@ import RepositoriesStore from './repositories-store'
 import Repository, {IRepository} from '../models/repository'
 import {register, broadcastUpdate} from './communication'
 import {URLAction, AddRepositoriesAction} from '../actions'
-import {getDotComAPIEndpoint} from '../lib/api'
+import API, {getDotComAPIEndpoint, getUserForEndpoint} from '../lib/api'
 
 const Octokat = require('octokat')
 
@@ -39,7 +39,8 @@ register('get-users', () => {
 register('add-repositories', async ({repositories}: AddRepositoriesAction) => {
   const inflatedRepositories = repositories.map(r => Repository.fromJSON(r as IRepository))
   for (const repo of inflatedRepositories) {
-    await repositoriesStore.addRepository(repo)
+    const id = await repositoriesStore.addRepository(repo)
+    updateGitHubRepository(repo, id)
   }
 
   broadcastUpdate(usersStore, repositoriesStore)
@@ -67,3 +68,19 @@ register('request-oauth', () => {
   askUserToAuth(getDotComAPIEndpoint())
   return Promise.resolve()
 })
+
+async function updateGitHubRepository(repository: Repository, repoID: number): Promise<void> {
+  const gitHubRepo = repository.getGitHubRepository()
+  const users = usersStore.getUsers()
+  const user = getUserForEndpoint(users, gitHubRepo.getEndpoint())
+  const api = new API(user)
+  const repo = await api.fetchRepository(gitHubRepo.getOwner().getLogin(), gitHubRepo.getName())
+  try {
+    await repositoriesStore.updateGitHubRepository(repoID, repo)
+  } catch (e) {
+    console.error(e)
+  }
+
+  console.log('repo:')
+  console.log(repo)
+}
