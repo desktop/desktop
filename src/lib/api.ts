@@ -1,3 +1,4 @@
+import * as URL from 'url'
 import User from '../models/user'
 
 const Octokat = require('octokat')
@@ -48,4 +49,26 @@ export default class API {
 
     return results
   }
+}
+
+/**
+ * Get the URL for the HTML site. For example:
+ *
+ * https://api.github.com -> https://github.com
+ * http://github.mycompany.com/api -> http://github.mycompany.com/
+ */
+export function getHTMLURL(endpoint: string): string {
+  if (endpoint === getDotComAPIEndpoint()) {
+    // GitHub.com is A Special Snowflake in that the API lives at a subdomain
+    // but the site itself lives on the parent domain.
+    return 'https://github.com'
+  } else {
+    const parsed = URL.parse(endpoint)
+    return `${parsed.protocol}//${parsed.hostname}`
+  }
+}
+
+/** Get github.com's API endpoint. */
+export function getDotComAPIEndpoint(): string {
+  return 'https://api.github.com'
 }
