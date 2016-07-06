@@ -124,6 +124,7 @@ export default class App extends React.Component<AppProps, AppState> {
                      user={this.state.user}
                      repos={this.state.repos}
                      loading={this.state.loadingRepos}/>
+          <div className='resize-handle'></div>
         </div>
         <Info selectedRepo={selectedRepo} user={this.state.user}/>
       </div>
