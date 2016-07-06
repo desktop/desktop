@@ -1,4 +1,4 @@
-import {remote} from 'electron'
+import {remote, ipcRenderer} from 'electron'
 import {Message} from './message'
 import UsersStore from './users-store'
 import RepositoriesStore from './repositories-store'
@@ -12,7 +12,7 @@ const registeredFunctions: {[key: string]: SharedProcessFunction} = {}
  * Dispatch the received message to the appropriate function and respond with
  * the return value.
  */
-export function dispatch(message: Message) {
+function dispatch(message: Message) {
   const name = message.name
   if (!name) {
     console.error('Unnamed message sent to shared process:')
@@ -50,3 +50,7 @@ export function broadcastUpdate(usersStore: UsersStore, repositoriesStore: Repos
     window.webContents.send('shared/did-update', [{state}])
   })
 }
+
+ipcRenderer.on('shared/request', (event, args) => {
+  dispatch(args[0])
+})

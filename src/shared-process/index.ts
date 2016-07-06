@@ -1,4 +1,3 @@
-import {ipcRenderer} from 'electron'
 import tokenStore from './token-store'
 import UsersStore from './users-store'
 import {requestToken, askUserToAuth} from './auth'
@@ -7,7 +6,7 @@ import {isOAuthAction} from '../lib/parse-url'
 import Database from './database'
 import RepositoriesStore from './repositories-store'
 import Repository, {IRepository} from '../models/repository'
-import {dispatch, register, broadcastUpdate} from './communication'
+import {register, broadcastUpdate} from './communication'
 import {URLAction, AddRepositoriesAction} from '../actions'
 import {getDotComAPIEndpoint} from '../lib/api'
 
@@ -67,8 +66,4 @@ register('url-action', async ({action}: URLAction) => {
 register('request-oauth', () => {
   askUserToAuth(getDotComAPIEndpoint())
   return Promise.resolve()
-})
-
-ipcRenderer.on('shared/request', (event, args) => {
-  dispatch(args[0])
 })
