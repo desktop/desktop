@@ -2,6 +2,10 @@
 
 #desktop-app-sidebar {
   width: 270px;
+
+  min-width: 200px;
+  max-width: 330px;
+
   display: flex;
   flex-direction: column;
 
