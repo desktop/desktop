@@ -1,14 +1,12 @@
 import * as React from 'react'
 
 import List from './list'
-import User from './models/user'
 import Repository from './models/repository'
 import {Octicon, OcticonSymbol} from './ui/octicons'
 
 interface ReposListProps {
   selectedRow: number,
   onSelectionChanged: (row: number) => void,
-  user: User,
   loading: boolean,
   repos: Repository[]
 }

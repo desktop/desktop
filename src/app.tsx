@@ -114,11 +114,10 @@ export default class App extends React.Component<AppProps, AppState> {
         <div id='desktop-app-sidebar'>
           <ReposList selectedRow={this.state.selectedRow}
                      onSelectionChanged={row => this.handleSelectionChanged(row)}
-                     user={this.state.user}
                      repos={this.state.repos}
                      loading={this.state.loadingRepos}/>
         </div>
-        <Info selectedRepo={selectedRepo} user={this.state.user}/>
+        <Info selectedRepo={selectedRepo}/>
       </div>
     )
   }

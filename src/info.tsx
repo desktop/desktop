@@ -1,11 +1,9 @@
 import * as React from 'react'
 
-import User from './models/user'
 import Repository from './models/repository'
 
 interface InfoProps {
-  selectedRepo: Repository,
-  user: User
+  selectedRepo: Repository
 }
 
 interface InfoState {
