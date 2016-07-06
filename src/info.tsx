@@ -1,3 +1,4 @@
+import {shell} from 'electron'
 import * as React from 'react'
 
 import User from './models/user'
@@ -27,8 +28,18 @@ export default class Info extends React.Component<InfoProps, InfoState> {
       return this.renderNoSelection()
     }
 
+    const url = repo.getGitHubRepository().getHTMLURL()
     return (
-      <div>{repo.getPath()}</div>
+      <div>
+        <div>{repo.getPath()}</div>
+        <a href={url} onClick={e => this.openGitHub(e)}>{url}</a>
+      </div>
     )
+  }
+
+  private openGitHub(e: React.MouseEvent) {
+    const repo = this.props.selectedRepo
+    shell.openExternal(repo.getGitHubRepository().getHTMLURL())
+    e.preventDefault()
   }
 }

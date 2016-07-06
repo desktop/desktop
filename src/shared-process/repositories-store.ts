@@ -1,4 +1,3 @@
-import Dexie from 'dexie'
 import Database from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
@@ -11,12 +10,6 @@ import Repository from '../models/repository'
 // TS 1.8.
 //
 // Instead of using async/await, use generator functions and `yield`.
-
-function deDexie<T>(promise: Dexie.Promise<T>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    promise.then(resolve, reject)
-  })
-}
 
 /** The store for local repositories. */
 export default class RepositoriesStore {
@@ -37,7 +30,9 @@ export default class RepositoriesStore {
         if (repo.gitHubRepositoryID) {
           const gitHubRepository = yield db.gitHubRepositories.get(repo.gitHubRepositoryID)
           const owner = yield db.owners.get(gitHubRepository.ownerID)
-          inflatedRepo = new Repository(repo.path, new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint)))
+
+          const inflatedGitHubRepository = new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint), gitHubRepository.apiID, gitHubRepository.cloneURL, gitHubRepository.gitURL, gitHubRepository.sshURL, gitHubRepository.htmlURL, gitHubRepository.id)
+          inflatedRepo = new Repository(repo.path, inflatedGitHubRepository)
         } else {
           inflatedRepo = new Repository(repo.path, null)
         }
@@ -45,7 +40,7 @@ export default class RepositoriesStore {
       }
     })
 
-    await deDexie(transaction)
+    await transaction
 
     return inflatedRepos
   }
@@ -57,19 +52,8 @@ export default class RepositoriesStore {
       let gitHubRepositoryID: number = null
       const gitHubRepository = repo.getGitHubRepository()
       if (gitHubRepository) {
-        const login = gitHubRepository.getOwner().getLogin()
-        const existingOwner = yield db.owners.where('login').equalsIgnoreCase(login).limit(1).first()
-        let ownerID: number = null
-        if (existingOwner) {
-          ownerID = existingOwner.id
-        } else {
-          ownerID = yield db.owners.add({login, endpoint: gitHubRepository.getOwner().getEndpoint()})
-        }
-
-        gitHubRepositoryID = yield db.gitHubRepositories.add({
-          name: gitHubRepository.getName(),
-          ownerID
-        })
+        const match = yield db.gitHubRepositories.get(gitHubRepository.getDBID())
+        gitHubRepositoryID = match.id
       }
 
       yield db.repositories.add({
@@ -78,6 +62,6 @@ export default class RepositoriesStore {
       })
     })
 
-    await deDexie(transaction)
+    await transaction
   }
 }
