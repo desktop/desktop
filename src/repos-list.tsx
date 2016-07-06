@@ -5,9 +5,9 @@ import Repository from './models/repository'
 import {Octicon, OcticonSymbol} from './ui/octicons'
 
 interface ReposListProps {
-  selectedRow: number,
-  onSelectionChanged: (row: number) => void,
-  loading: boolean,
+  selectedRow: number
+  onSelectionChanged: (row: number) => void
+  loading: boolean
   repos: Repository[]
 }
 
