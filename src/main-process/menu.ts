@@ -1,6 +1,7 @@
 import {app, shell, Menu} from 'electron'
+import SharedProcess from '../shared-process/shared-process'
 
-export function buildDefaultMenu(): Electron.Menu {
+export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Object[] = [
     {
       label: 'Edit',
@@ -72,6 +73,12 @@ export function buildDefaultMenu(): Electron.Menu {
             if (focusedWindow) {
               focusedWindow.webContents.toggleDevTools()
             }
+          }
+        },
+        {
+          label: 'Debug shared process',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            sharedProcess.show()
           }
         }
       ]

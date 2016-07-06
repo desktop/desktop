@@ -59,7 +59,7 @@ app.on('ready', () => {
 
   createWindow()
 
-  Menu.setApplicationMenu(buildDefaultMenu())
+  Menu.setApplicationMenu(buildDefaultMenu(sharedProcess))
 
   autoUpdater.on('error', error => {
     sharedProcess.console.error(`${error}`)
