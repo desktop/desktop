@@ -20,11 +20,6 @@ export interface RequestOAuthAction {
   name: 'request-oauth'
 }
 
-export interface FindGitHubRepositoryAction {
-  name: 'find-github-repository'
-  remoteURL: string
-}
-
 export interface URLAction {
   name: 'url-action'
   action: URLActionType
