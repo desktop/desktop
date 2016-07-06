@@ -161,5 +161,8 @@ export default class App extends React.Component<AppProps, AppState> {
 
   private handleSelectionChanged(row: number) {
     this.setState(Object.assign({}, this.state, {selectedRow: row}))
+
+    const repo = this.state.repos[row]
+    this.props.dispatcher.refreshRepository(repo)
   }
 }
