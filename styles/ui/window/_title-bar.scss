@@ -24,6 +24,7 @@
 
   @include darwin {
     height: var(--darwin-title-bar-height);
+    z-index: 1;
   }
 
   // If you put a -webkit-app-region: drag element close to a window

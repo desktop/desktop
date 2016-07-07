@@ -35,7 +35,7 @@ export default class AppWindow {
     }
 
     if (process.platform === 'darwin') {
-        windowOptions.titleBarStyle = 'hidden'
+        windowOptions.titleBarStyle = 'hidden-inset'
     } else if (process.platform === 'win32') {
         windowOptions.frame = false
     }

@@ -2,6 +2,7 @@ import * as React from 'react'
 import {ipcRenderer} from 'electron'
 import {Repository as GitRepository} from 'ohnogit'
 
+import {Sidebar} from './ui/sidebar'
 import ReposList from './repos-list'
 import Info from './info'
 import User from './models/user'
@@ -137,12 +138,12 @@ export default class App extends React.Component<AppProps, AppState> {
     const selectedRepo = this.state.repos[this.state.selectedRow]
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
-        <div id='desktop-app-sidebar'>
+        <Sidebar>
           <ReposList selectedRow={this.state.selectedRow}
                      onSelectionChanged={row => this.handleSelectionChanged(row)}
                      repos={this.state.repos}
                      loading={this.state.loadingRepos}/>
-        </div>
+        </Sidebar>
         <Info selectedRepo={selectedRepo}/>
       </div>
     )

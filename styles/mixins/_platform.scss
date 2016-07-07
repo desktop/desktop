@@ -36,7 +36,7 @@
 
 // An exact copy of the darwin mixin except that it allows for
 // writing base-level rules
-@mixin darwin-contect {
+@mixin darwin-context {
   body.platform-darwin {
     @content;
   }
