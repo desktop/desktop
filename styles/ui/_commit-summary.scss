@@ -1,9 +1,11 @@
 @import "../mixins";
 
 /** A React component holding the selected commit's detailed information */
-#commit-detail {
+#commit-summary {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  flex: 1;
 
+  text-align: center;
   border-style: solid;
 }
