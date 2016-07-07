@@ -2,14 +2,17 @@ import {WorkingDirectoryStatus, FileStatus} from '../models/status'
 import Repository from '../models/repository'
 import {Repository as ohnogit} from 'ohnogit'
 
+/** The encapsulation of a 'git status' command */
 export class StatusResult {
   private exists: boolean
   private workingDirectory: WorkingDirectoryStatus
 
+  /** factory method when 'git status' is unsuccessful */
   public static NotFound(): StatusResult {
     return new StatusResult(false, new WorkingDirectoryStatus())
   }
 
+  /** factory method for a successful 'git status' result  */
   public static FromStatus(status: WorkingDirectoryStatus): StatusResult {
     return new StatusResult(true, status)
   }
@@ -30,11 +33,11 @@ export class StatusResult {
 
 /**
  * Interactions with a local Git repository
- * TODO: better name for this component
  */
 export default class LocalGitOperations {
 
-   /** Retrieve the status for a given repository,
+   /**
+    *  Retrieve the status for a given repository,
     *  and fail gracefully if the location is not a Git repository
     */
    public static async getStatus(repository: Repository): Promise<StatusResult> {

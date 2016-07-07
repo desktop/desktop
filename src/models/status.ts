@@ -1,3 +1,4 @@
+/** the state of the changed file in the working directory */
 export enum FileStatus {
   New,
   Modified,
@@ -6,25 +7,28 @@ export enum FileStatus {
   Unknown
 }
 
+/** encapsulate the changes to a file in the working directory  */
 export class WorkingDirectoryFileChange {
   private path: string
   private status: FileStatus
-
 
   public constructor(path: string, status: FileStatus) {
     this.path = path
     this.status = status
   }
 
+  /** the relative path to the file in the repository */
   public getPath(): string {
     return this.path
   }
 
+  /** the status of the change to the file */
   public getStatus(): number {
     return this.status
   }
 }
 
+/** the state of the working directory for a repository */
 export class WorkingDirectoryStatus {
 
   private files: WorkingDirectoryFileChange[]
