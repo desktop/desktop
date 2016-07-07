@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-export enum TabBarTab {
+export const enum TabBarTab {
   Changes = 0,
   History,
 }
