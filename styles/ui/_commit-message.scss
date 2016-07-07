@@ -1,0 +1,10 @@
+@import "../mixins";
+
+/** A React component holding the commit message entry */
+#commit-message {
+  display: flex;
+  flex-direction: row;
+  margin-top: auto;
+
+  border-style: solid;
+}
