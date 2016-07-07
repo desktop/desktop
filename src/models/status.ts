@@ -1,6 +1,14 @@
+export enum FileStatus {
+  New,
+  Modified,
+  Deleted,
+  Unknown
+}
+
 export class WorkingDirectoryFileChange {
   private path: string
   private status: number
+
 
   public constructor(path: string, status: number) {
     this.path = path
