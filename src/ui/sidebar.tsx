@@ -54,6 +54,10 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
     document.removeEventListener('mouseup', this.handleDragStop)
   }
 
+  private handleDoubleClick = () => {
+    this.setState({ width: this.props.defaultWidth })
+  }
+
   public render() {
 
     const style: React.CSSProperties = {
@@ -63,7 +67,7 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
     return (
       <div id='desktop-app-sidebar' style={style}>
         {this.props.children}
-        <div onMouseDown={this.handleDragStart} className='resize-handle'></div>
+        <div onMouseDown={this.handleDragStart} onDoubleClick={this.handleDoubleClick} className='resize-handle'></div>
       </div>
     )
   }
