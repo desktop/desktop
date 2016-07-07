@@ -52,7 +52,13 @@ export default class App extends React.Component<AppProps, AppState> {
   private update(users: User[], repos: Repository[]) {
     // TODO: We should persist this but for now we'll select the first
     // repository available unless we already have a selection
-    const selectedRow = (this.state.selectedRow === -1 && repos.length > 0) ? 0 : -1
+    const haveSelection = this.state.selectedRow > -1
+    const selectedRow = (!haveSelection && repos.length > 0) ? 0 : this.state.selectedRow
+
+    if (haveSelection) {
+      // This is less than ideal but works for now.
+      this.refreshSelectedRepository()
+    }
 
     this.setState(Object.assign({}, this.state, {users, repos, loadingRepos: false, selectedRow}))
   }
@@ -159,10 +165,16 @@ export default class App extends React.Component<AppProps, AppState> {
     )
   }
 
+  private refreshSelectedRepository() {
+    // This probably belongs in the Repository component or whatever, but until
+    // that exists...
+    const repo = this.state.repos[this.state.selectedRow]
+    this.props.dispatcher.refreshRepository(repo)
+  }
+
   private handleSelectionChanged(row: number) {
     this.setState(Object.assign({}, this.state, {selectedRow: row}))
 
-    const repo = this.state.repos[row]
-    this.props.dispatcher.refreshRepository(repo)
+    this.refreshSelectedRepository()
   }
 }
