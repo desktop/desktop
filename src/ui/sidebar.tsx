@@ -38,7 +38,6 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
   }
 
   private setPersistedWidth(newWidth: number) {
-    console.log('set', newWidth)
     clearTimeout(this.configWriteTimer)
     this.configWriteTimer = window.setTimeout(() => {
       localStorage.setItem(sidebarWidthConfigKey, newWidth.toString())
