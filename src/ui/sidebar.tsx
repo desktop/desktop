@@ -29,10 +29,11 @@ interface ISidebarState {
 /** String key used when persisting the sidebar width to localStorage */
 const sidebarWidthConfigKey = 'app-sidebar-width'
 
-/** Component abstracting the application sidebar.
-  *
-  * Handles user resizing and persistence of sidebar width.
-  */
+/**
+ * Component abstracting the application sidebar.
+ *
+ * Handles user resizing and persistence of sidebar width.
+ */
 export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
 
   public static defaultProps: ISidebarProps = {
