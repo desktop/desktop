@@ -4,7 +4,7 @@ import User from './models/user'
 import Repository from './models/repository'
 import { WorkingDirectoryStatus} from './models/status'
 
-import LocalGitOperations from './lib/repository-service'
+import LocalGitOperations from './lib/local-git-operations'
 
 import ChangedFile from './changed-file'
 
