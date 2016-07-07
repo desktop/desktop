@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import User from './models/user'
 import Repository from './models/repository'
-import { WorkingDirectoryStatus} from './models/status'
+import { WorkingDirectoryStatus, WorkingDirectoryFileChange} from './models/status'
 
 import LocalGitOperations from './lib/local-git-operations'
 
@@ -45,27 +45,27 @@ export default class Info extends React.Component<InfoProps, InfoState> {
     )
   }
 
-  private renderNotFound() {
+  private renderNotFound(repo: Repository) {
     return (
       <div>
+        <div>{repo.getPath()}</div>
+        <br />
         <div>Repository not found at this location...</div>
       </div>
     )
   }
 
+  private renderNoChanges(repo: Repository) {
+    return (
+      <div>
+        <div>{repo.getPath()}</div>
+        <br />
+        <div>No local changes...</div>
+      </div>
+    )
+  }
 
-  public render() {
-    const repo = this.props.selectedRepo
-    if (!repo) {
-      return this.renderNoSelection()
-    }
-
-    if (!this.state.exists) {
-        return this.renderNotFound()
-    }
-
-    const files = this.state.workingDirectory.getFiles()
-
+  private renderList(repo: Repository, files: WorkingDirectoryFileChange[]) {
     return (
       <div>
         <div>{repo.getPath()}</div>
@@ -77,5 +77,24 @@ export default class Info extends React.Component<InfoProps, InfoState> {
         </ul>
       </div>
     )
+  }
+
+  public render() {
+    const repo = this.props.selectedRepo
+    if (!repo) {
+      return this.renderNoSelection()
+    }
+
+    if (!this.state.exists) {
+      return this.renderNotFound(repo)
+    }
+
+    const files = this.state.workingDirectory.getFiles()
+
+    if (files.length === 0) {
+      return this.renderNoChanges(repo)
+    }
+
+    return this.renderList(repo, files)
   }
 }
