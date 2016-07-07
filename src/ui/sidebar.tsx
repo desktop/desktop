@@ -14,6 +14,8 @@ interface ISidebarState {
   width?: number
 }
 
+const sidebarWidthConfigKey = 'app-sidebar-width'
+
 export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
 
   public static defaultProps: ISidebarProps = {
@@ -24,6 +26,31 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
 
   private startWidth: number
   private startX: number
+  private configWriteTimer: number
+
+  public constructor(props: ISidebarProps) {
+    super(props)
+    this.state = { width: this.getPersistedWidth() }
+  }
+
+  private getPersistedWidth() {
+    return parseInt(localStorage.getItem(sidebarWidthConfigKey), 10)
+  }
+
+  private setPersistedWidth(newWidth: number) {
+    console.log('set', newWidth)
+    clearTimeout(this.configWriteTimer)
+    this.configWriteTimer = window.setTimeout(() => {
+      localStorage.setItem(sidebarWidthConfigKey, newWidth.toString())
+    }, 300)
+  }
+
+  private clearPersistedWidth() {
+    clearTimeout(this.configWriteTimer)
+    this.configWriteTimer = window.setTimeout(() => {
+      localStorage.removeItem(sidebarWidthConfigKey)
+    }, 300)
+  }
 
   private getCurrentWidth() {
     return (this.state && this.state.width)
@@ -46,6 +73,7 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
     const newWidthClamped = Math.max(this.props.minimumWidth, Math.min(this.props.maximumWidth, newWidth))
 
     this.setState({ width: newWidthClamped })
+    this.setPersistedWidth(newWidthClamped)
   }
 
   private handleDragStop = (e: MouseEvent) => {
@@ -54,7 +82,8 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
   }
 
   private handleDoubleClick = () => {
-    this.setState({ width: this.props.defaultWidth })
+    this.setState({ width: null })
+    this.clearPersistedWidth()
   }
 
   public render() {
