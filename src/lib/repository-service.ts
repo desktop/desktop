@@ -1,4 +1,4 @@
-import WorkingDirectoryStatus from '../models/status'
+import {WorkingDirectoryStatus} from '../models/status'
 import Repository from '../models/repository'
 import {Repository as ohnogit} from 'ohnogit'
 

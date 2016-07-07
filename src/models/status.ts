@@ -16,14 +16,19 @@ export class WorkingDirectoryFileChange {
   }
 }
 
-export default class WorkingDirectoryStatus {
-    private files: WorkingDirectoryFileChange[]
+export class WorkingDirectoryStatus {
 
-    public constructor() {
-       this.files = new Array<WorkingDirectoryFileChange>()
-    }
+  private files: WorkingDirectoryFileChange[]
 
-    public add(path: string, status: number): void {
-      this.files.push(new WorkingDirectoryFileChange(path, status))
-    }
+  public constructor() {
+     this.files = new Array<WorkingDirectoryFileChange>()
+  }
+
+  public add(path: string, status: number): void {
+    this.files.push(new WorkingDirectoryFileChange(path, status))
+  }
+
+  public getFiles(): WorkingDirectoryFileChange[] {
+    return this.files
+  }
 }
