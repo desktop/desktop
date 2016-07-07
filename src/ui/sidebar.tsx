@@ -27,7 +27,7 @@ interface ISidebarState {
 }
 
 /** String key used when persisting the sidebar width to localStorage */
-const sidebarWidthConfigKey = 'app-sidebar-width'
+const sidebarWidthConfigKey = 'sidebar-width'
 
 /**
  * Component abstracting the application sidebar.
