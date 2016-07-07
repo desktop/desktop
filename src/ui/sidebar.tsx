@@ -41,7 +41,6 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
 
   private handleDragMove = (e: MouseEvent) => {
     const deltaX = e.clientX - this.startX
-    console.log(deltaX)
 
     const newWidth = this.startWidth + deltaX
     const newWidthClamped = Math.max(this.props.minimumWidth, Math.min(this.props.maximumWidth, newWidth))
