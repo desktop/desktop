@@ -21,7 +21,7 @@ interface ISidebarProps extends React.Props<Sidebar> {
 interface ISidebarState {
   /**
    * The width of the sidebar in pixels.
-   * Optional, @default 270(px)
+   * Optional
    */
   width?: number
 }
