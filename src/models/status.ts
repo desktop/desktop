@@ -7,10 +7,10 @@ export enum FileStatus {
 
 export class WorkingDirectoryFileChange {
   private path: string
-  private status: number
+  private status: FileStatus
 
 
-  public constructor(path: string, status: number) {
+  public constructor(path: string, status: FileStatus) {
     this.path = path
     this.status = status
   }
@@ -32,7 +32,7 @@ export class WorkingDirectoryStatus {
      this.files = new Array<WorkingDirectoryFileChange>()
   }
 
-  public add(path: string, status: number): void {
+  public add(path: string, status: FileStatus): void {
     this.files.push(new WorkingDirectoryFileChange(path, status))
   }
 
