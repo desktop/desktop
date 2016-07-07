@@ -2,8 +2,19 @@ import * as React from 'react'
 import {ThrottledScheduler} from '../lib/throttled-scheduler'
 
 interface ISidebarProps extends React.Props<Sidebar> {
+  /**
+   * The default width of the sidebar.
+   *
+   * The default width is used until user first resizes the
+   * sidebar or when the custom size is explicitly reset by
+   * double clicking on the resize handle.
+   */
   defaultWidth?: number
+
+  /** The maximum width the sidebar can be resized to. */
   maximumWidth?: number
+
+  /** The minimum width the sidebar can be resized to. */
   minimumWidth?: number
 }
 
@@ -15,12 +26,20 @@ interface ISidebarState {
   width?: number
 }
 
+/** String key used when persisting the sidebar width to localStorage */
 const sidebarWidthConfigKey = 'app-sidebar-width'
 
+/** Component abstracting the application sidebar.
+  *
+  * Handles user resizing and persistence of sidebar width.
+  */
 export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
 
   public static defaultProps: ISidebarProps = {
     defaultWidth: 270,
+    // Note: Any change to the maximum or minimum width in
+    // this file should be accompanied by a corresponding
+    // change in sidebar.scss
     minimumWidth: 200,
     maximumWidth: 340,
   }
@@ -56,6 +75,13 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
       : this.props.defaultWidth
   }
 
+  /**
+   * Handler for when the user presses the mouse button over the resize
+   * handle.
+   *
+   * Note: This method is intentionally bound using `=>` so that
+   * we can avoid creating anonymous functions repeatedly in render()
+   */
   private handleDragStart = (e: React.MouseEvent) => {
     this.startX = e.clientX
     this.startWidth = this.getCurrentWidth()
@@ -64,6 +90,12 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
     document.addEventListener('mouseup', this.handleDragStop)
   }
 
+  /**
+   * Handler for when the user moves the mouse while dragging
+   *
+   * Note: This method is intentionally bound using `=>` so that
+   * we can avoid creating anonymous functions repeatedly in render()
+   */
   private handleDragMove = (e: MouseEvent) => {
     const deltaX = e.clientX - this.startX
 
@@ -74,11 +106,27 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
     this.setPersistedWidth(newWidthClamped)
   }
 
+  /**
+   * Handler for when the user lets go of the mouse button during
+   * a resize operation.
+   *
+   * Note: This method is intentionally bound using `=>` so that
+   * we can avoid creating anonymous functions repeatedly in render()
+   */
   private handleDragStop = (e: MouseEvent) => {
     document.removeEventListener('mousemove', this.handleDragMove)
     document.removeEventListener('mouseup', this.handleDragStop)
   }
 
+  /**
+   * Handler for when the resize handle is double clicked.
+   *
+   * Resets the sidebar width to its default value and clears
+   * any persisted value.
+   *
+   * Note: This method is intentionally bound using `=>` so that
+   * we can avoid creating anonymous functions repeatedly in render()
+   */
   private handleDoubleClick = () => {
     this.setState({ width: null })
     this.clearPersistedWidth()
