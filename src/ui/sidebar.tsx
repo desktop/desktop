@@ -1,4 +1,5 @@
 import * as React from 'react'
+import {ThrottledScheduler} from '../lib/throttled-scheduler'
 
 interface ISidebarProps extends React.Props<Sidebar> {
   defaultWidth?: number
@@ -26,7 +27,7 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
 
   private startWidth: number
   private startX: number
-  private configWriteTimer: number
+  private configWriteScheduler = new ThrottledScheduler(300)
 
   public constructor(props: ISidebarProps) {
     super(props)
@@ -38,17 +39,15 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
   }
 
   private setPersistedWidth(newWidth: number) {
-    clearTimeout(this.configWriteTimer)
-    this.configWriteTimer = window.setTimeout(() => {
+    this.configWriteScheduler.queue(() => {
       localStorage.setItem(sidebarWidthConfigKey, newWidth.toString())
-    }, 300)
+    })
   }
 
   private clearPersistedWidth() {
-    clearTimeout(this.configWriteTimer)
-    this.configWriteTimer = window.setTimeout(() => {
+    this.configWriteScheduler.queue(() => {
       localStorage.removeItem(sidebarWidthConfigKey)
-    }, 300)
+    })
   }
 
   private getCurrentWidth() {
