@@ -4,7 +4,7 @@ import User from './models/user'
 import Repository from './models/repository'
 import { WorkingDirectoryStatus} from './models/status'
 
-import RepositoryService from './lib/repository-service'
+import LocalGitOperations from './lib/repository-service'
 
 import ChangedFile from './changed-file'
 
@@ -14,6 +14,7 @@ interface InfoProps {
 }
 
 interface InfoState {
+  exists: boolean
   workingDirectory: WorkingDirectoryStatus
 }
 
@@ -23,13 +24,17 @@ export default class Info extends React.Component<InfoProps, InfoState> {
     super(props)
 
     this.state = {
-      workingDirectory: new WorkingDirectoryStatus()
+      workingDirectory: new WorkingDirectoryStatus(),
+      exists: true
     }
   }
 
   public componentWillReceiveProps(nextProps: InfoProps) {
-    RepositoryService.getStatus(nextProps.selectedRepo)
-      .then(directory => this.setState({ workingDirectory: directory }))
+    LocalGitOperations.getStatus(nextProps.selectedRepo)
+      .then(result => this.setState({
+        exists: result.getExists(),
+        workingDirectory: result.getWorkingDirectory()
+      }))
   }
 
   private renderNoSelection() {
@@ -40,10 +45,23 @@ export default class Info extends React.Component<InfoProps, InfoState> {
     )
   }
 
+  private renderNotFound() {
+    return (
+      <div>
+        <div>Repository not found at this location...</div>
+      </div>
+    )
+  }
+
+
   public render() {
     const repo = this.props.selectedRepo
     if (!repo) {
       return this.renderNoSelection()
+    }
+
+    if (!this.state.exists) {
+        return this.renderNotFound()
     }
 
     const files = this.state.workingDirectory.getFiles()
