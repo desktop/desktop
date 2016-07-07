@@ -8,13 +8,22 @@ interface ISidebarProps extends React.Props<Sidebar> {
    * The default width is used until user first resizes the
    * sidebar or when the custom size is explicitly reset by
    * double clicking on the resize handle.
+   *
+   * @default 270
    */
   defaultWidth?: number
 
-  /** The maximum width the sidebar can be resized to. */
+  /** The maximum width the sidebar can be resized to.
+  *
+  * @default 400
+  */
   maximumWidth?: number
 
-  /** The minimum width the sidebar can be resized to. */
+  /**
+   * The minimum width the sidebar can be resized to.
+   *
+   * @default 150
+   */
   minimumWidth?: number
 }
 
@@ -38,9 +47,6 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
 
   public static defaultProps: ISidebarProps = {
     defaultWidth: 270,
-    // Note: Any change to the maximum or minimum width in
-    // this file should be accompanied by a corresponding
-    // change in sidebar.scss
     minimumWidth: 150,
     maximumWidth: 400,
   }
@@ -136,7 +142,9 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
   public render() {
 
     const style: React.CSSProperties = {
-      width: this.getCurrentWidth()
+      width: this.getCurrentWidth(),
+      maximumWidth: this.props.maximumWidth,
+      minimumWidth: this.props.minimumWidth
     }
 
     return (

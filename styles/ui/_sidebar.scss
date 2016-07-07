@@ -1,12 +1,6 @@
 @import '../mixins/platform';
 
 #desktop-app-sidebar {
-  width: 270px;
-
-  // Note: Changing either max or min width requires updating
-  // corresponding values in ISidebarProps (sidebar.tsx)
-  min-width: 150px;
-  max-width: 400px;
 
   display: flex;
   flex-direction: column;
