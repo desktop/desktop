@@ -1,6 +1,7 @@
 import * as React from 'react'
 import {ipcRenderer} from 'electron'
 
+import {Sidebar} from './ui/sidebar'
 import ReposList from './repos-list'
 import Info from './info'
 import User from './models/user'
@@ -118,14 +119,13 @@ export default class App extends React.Component<AppProps, AppState> {
     const selectedRepo = this.state.repos[this.state.selectedRow]
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
-        <div id='desktop-app-sidebar'>
+        <Sidebar>
           <ReposList selectedRow={this.state.selectedRow}
                      onSelectionChanged={row => this.handleSelectionChanged(row)}
                      user={this.state.user}
                      repos={this.state.repos}
                      loading={this.state.loadingRepos}/>
-          <div className='resize-handle'></div>
-        </div>
+        </Sidebar>
         <Info selectedRepo={selectedRepo} user={this.state.user}/>
       </div>
     )
