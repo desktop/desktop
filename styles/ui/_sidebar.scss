@@ -3,6 +3,11 @@
 #desktop-app-sidebar {
   width: 270px;
 
+  // Note: Changing either max or min width requires updating
+  // corresponding values in ISidebarProps (sidebar.tsx)
+  min-width: 270px;
+  max-width: 340px;
+
   display: flex;
   flex-direction: column;
 
