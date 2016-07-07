@@ -41,8 +41,8 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
     // Note: Any change to the maximum or minimum width in
     // this file should be accompanied by a corresponding
     // change in sidebar.scss
-    minimumWidth: 200,
-    maximumWidth: 340,
+    minimumWidth: 150,
+    maximumWidth: 400,
   }
 
   private startWidth: number
