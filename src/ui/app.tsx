@@ -56,12 +56,6 @@ export default class App extends React.Component<AppProps, AppState> {
     // repository available unless we already have a selection
     const haveSelection = this.state.selectedRow > -1
     const selectedRow = (!haveSelection && repos.length > 0) ? 0 : this.state.selectedRow
-
-    if (haveSelection) {
-      // This is less than ideal but works for now.
-      this.refreshSelectedRepository()
-    }
-
     this.setState(Object.assign({}, this.state, {users, repos, loadingRepos: false, selectedRow}))
   }
 
@@ -153,17 +147,18 @@ export default class App extends React.Component<AppProps, AppState> {
     )
   }
 
-  private refreshSelectedRepository() {
+  private refreshRepositoryAtRow(row: number) {
     // This probably belongs in the Repository component or whatever, but until
     // that exists...
-    const repo = this.state.repos[this.state.selectedRow]
+    const repo = this.state.repos[row]
+    console.log(repo)
     this.refreshGitHubRepositoryInfo(repo)
   }
 
   private handleSelectionChanged(row: number) {
     this.setState(Object.assign({}, this.state, {selectedRow: row}))
 
-    this.refreshSelectedRepository()
+    this.refreshRepositoryAtRow(row)
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository> {
