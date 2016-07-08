@@ -93,8 +93,7 @@ export default class LocalGitOperations {
         cp.execFileSync(gitLocation, [ 'add', '-u', file.getPath() ] , { cwd: repository.getPath() })
      })
 
-     const formattedCommitTitle = '"' + title + '"'
-     const output = cp.execFileSync(gitLocation, [ 'commit', '-m', formattedCommitTitle ] , { cwd: repository.getPath(), encoding: 'utf8' })
+     cp.execFileSync(gitLocation, [ 'commit', '-m', title ] , { cwd: repository.getPath(), encoding: 'utf8' })
    }
 
     private static mapStatus(repo: ohnogit, status: number): FileStatus {
