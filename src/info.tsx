@@ -47,7 +47,7 @@ export default class Info extends React.Component<InfoProps, InfoState> {
       return file.getIncluded() === true
     })
 
-    LocalGitOperations.createCommit(title, files)
+    LocalGitOperations.createCommit(this.props.selectedRepo, title, files)
   }
 
   private renderNoSelection() {
