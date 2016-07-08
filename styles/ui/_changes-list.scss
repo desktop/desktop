@@ -1,0 +1,10 @@
+@import "../mixins";
+
+/** A React component holding the currently selected repository's changes */
+#changes-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  border-style: solid;
+}

@@ -4,7 +4,7 @@ import {Repository as GitRepository} from 'ohnogit'
 
 import {Sidebar} from './ui/sidebar'
 import ReposList from './repos-list'
-import Info from './info'
+import {default as RepositoryView} from './repository'
 import User from './models/user'
 import GitHubRepository from './models/github-repository'
 import NotLoggedIn from './not-logged-in'
@@ -144,7 +144,7 @@ export default class App extends React.Component<AppProps, AppState> {
                      repos={this.state.repos}
                      loading={this.state.loadingRepos}/>
         </Sidebar>
-        <Info selectedRepo={selectedRepo}/>
+        <RepositoryView repo={selectedRepo} user={null}/>
       </div>
     )
   }

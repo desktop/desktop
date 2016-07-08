@@ -1,0 +1,11 @@
+@import "../mixins";
+
+/** A React component holding history's commit list */
+#commit-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  text-align: center;
+  border-style: solid;
+}

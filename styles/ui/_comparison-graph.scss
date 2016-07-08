@@ -1,0 +1,11 @@
+@import "../mixins";
+
+/** A React component holding comparison graph */
+#comparison-graph {
+  display: flex;
+  flex-direction: column;
+  height: 100px;
+
+  text-align: center;
+  border-style: solid;
+}

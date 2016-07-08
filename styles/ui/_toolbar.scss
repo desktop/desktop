@@ -1,0 +1,11 @@
+@import "../mixins";
+
+/** A React component holding the toolbar */
+#toolbar {
+  display: flex;
+  flex-direction: column;
+  height: 34px;
+
+  text-align: center;
+  border-style: solid;
+}
