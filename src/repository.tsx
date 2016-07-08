@@ -6,6 +6,7 @@ import Toolbar from './toolbar'
 import Changes from './changes'
 import History from './history'
 import ComparisonGraph from './comparison-graph'
+import {TabBarTab} from './toolbar/tab-bar'
 
 interface RepositoryProps {
   repo: Repo,
@@ -13,14 +14,14 @@ interface RepositoryProps {
 }
 
 interface RepositoryState {
-  selectedTab: 'changes' | 'history'
+  selectedTab: TabBarTab
 }
 
 export default class Repository extends React.Component<RepositoryProps, RepositoryState> {
   public constructor(props: RepositoryProps) {
     super(props)
 
-    this.state = {selectedTab: 'changes'}
+    this.state = {selectedTab: TabBarTab.Changes}
   }
 
   private renderNoSelection() {
@@ -32,9 +33,9 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
   }
 
   private renderContent() {
-    if (this.state.selectedTab === 'changes') {
+    if (this.state.selectedTab === TabBarTab.Changes) {
       return <Changes/>
-    } else if (this.state.selectedTab === 'history') {
+    } else if (this.state.selectedTab === TabBarTab.History) {
       return <History/>
     } else {
       return null
@@ -49,10 +50,14 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
 
     return (
       <div id='repository'>
-        <Toolbar/>
+        <Toolbar selectedTab={this.state.selectedTab} onTabClicked={tab => this.onTabClicked(tab)}/>
         <ComparisonGraph/>
         {this.renderContent()}
       </div>
     )
+  }
+
+  private onTabClicked(tab: TabBarTab) {
+    this.setState(Object.assign({}, this.state, {selectedTab: tab}))
   }
 }
