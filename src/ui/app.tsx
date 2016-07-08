@@ -88,24 +88,7 @@ export default class App extends React.Component<AppProps, AppState> {
   }
 
   private async addRepositories(paths: string[]) {
-    const repositories: Repository[] = []
-    for (let path of paths) {
-      const gitRepo = GitRepository.open(path)
-      // TODO: This is all kinds of wrong.
-      const remote = await gitRepo.getConfigValue('remote.origin.url')
-      let gitHubRepository: GitHubRepository = null
-      if (remote) {
-        gitHubRepository = matchGitHubRepository(this.state.users, remote)
-      }
-
-      if (gitHubRepository) {
-        console.log(`Matched ${remote} to ${gitHubRepository.getOwner().getLogin()}/${gitHubRepository.getName()}`)
-      }
-
-      const repository = new Repository(path, gitHubRepository)
-      repositories.push(repository)
-    }
-
+    const repositories = paths.map(p => new Repository(p, null))
     const addedRepos = await this.props.dispatcher.addRepositories(repositories)
     for (let repo of addedRepos) {
       this.refreshGitHubRepositoryInfo(repo)
@@ -183,16 +166,31 @@ export default class App extends React.Component<AppProps, AppState> {
     this.refreshSelectedRepository()
   }
 
+  private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository> {
+    const gitRepo = GitRepository.open(repository.getPath())
+    // TODO: This is all kinds of wrong.
+    const remote = await gitRepo.getConfigValue('remote.origin.url')
+    if (!remote) { return null }
+
+    return matchGitHubRepository(this.state.users, remote)
+  }
+
   private async refreshGitHubRepositoryInfo(repository: Repository): Promise<void> {
-    const gitHubRepo = repository.getGitHubRepository()
-    if (!gitHubRepo) { return Promise.resolve() }
+    let gitHubRepository = repository.getGitHubRepository()
+    if (!gitHubRepository) {
+      gitHubRepository = await this.guessGitHubRepository(repository)
+    }
+
+    if (!gitHubRepository) { return Promise.resolve() }
 
     const users = this.state.users
-    const user = getUserForEndpoint(users, gitHubRepo.getEndpoint())
+    const user = getUserForEndpoint(users, gitHubRepository.getEndpoint())
     if (!user) { return Promise.resolve() }
 
     const api = new API(user)
-    const repo = await api.fetchRepository(gitHubRepo.getOwner().getLogin(), gitHubRepo.getName())
-    this.props.dispatcher.updateGitHubRepository(repository, repo)
+    const apiRepo = await api.fetchRepository(gitHubRepository.getOwner().getLogin(), gitHubRepository.getName())
+
+    const updatedRepository = repository.repositoryWithGitHubRepository(gitHubRepository.gitHubRepositoryWithAPI(apiRepo))
+    this.props.dispatcher.updateGitHubRepository(updatedRepository)
   }
 }

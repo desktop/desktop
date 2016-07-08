@@ -38,6 +38,14 @@ export default class Repository {
     return new Repository(this.path, this.gitHubRepository, id)
   }
 
+  /**
+   * Create a new repository the same as the receiver but with the given GitHub
+   * repository.
+   */
+  public repositoryWithGitHubRepository(gitHubRepository: GitHubRepository): Repository {
+    return new Repository(this.path, gitHubRepository, this.id)
+  }
+
   public getGitHubRepository(): GitHubRepository {
     return this.gitHubRepository
   }

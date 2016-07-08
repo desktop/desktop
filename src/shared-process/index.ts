@@ -73,8 +73,8 @@ register('request-oauth', () => {
   return Promise.resolve()
 })
 
-register('update-github-repository', async ({repository, apiRepository}: UpdateGitHubRepositoryAction) => {
+register('update-github-repository', async ({repository}: UpdateGitHubRepositoryAction) => {
   const inflatedRepository = Repository.fromJSON(repository as IRepository)
-  await repositoriesStore.updateGitHubRepository(inflatedRepository.getID(), apiRepository)
+  await repositoriesStore.updateGitHubRepository(inflatedRepository)
   broadcastUpdate()
 })

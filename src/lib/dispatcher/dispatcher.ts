@@ -5,7 +5,6 @@ import Repository, {IRepository} from '../../models/repository'
 import guid from '../guid'
 import {AppState} from '../app-state'
 import {Action} from './actions'
-import {APIRepository} from '../api'
 
 /**
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
@@ -68,7 +67,7 @@ export class Dispatcher {
   }
 
   /** Update the repository's GitHub repository. */
-  public updateGitHubRepository(repository: Repository, apiRepository: APIRepository): Promise<void> {
-    return this.dispatch<void>({name: 'update-github-repository', repository, apiRepository})
+  public updateGitHubRepository(repository: Repository): Promise<void> {
+    return this.dispatch<void>({name: 'update-github-repository', repository})
   }
 }

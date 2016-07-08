@@ -2,7 +2,6 @@ import Database from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
 import Repository from '../models/repository'
-import {APIRepository} from '../lib/api'
 
 // NB: We can't use async/await within Dexie transactions. This is because Dexie
 // uses its own Promise implementation and TypeScript doesn't know about it. See
@@ -65,9 +64,9 @@ export default class RepositoriesStore {
         gitHubRepositoryID = yield db.gitHubRepositories.add({
           name: gitHubRepository.getName(),
           ownerID,
-          private: null,
-          fork: null,
-          htmlURL: null,
+          private: gitHubRepository.getPrivate(),
+          fork: gitHubRepository.getFork(),
+          htmlURL: gitHubRepository.getHTMLURL(),
         })
       }
 
@@ -82,13 +81,26 @@ export default class RepositoriesStore {
     return repo.repositoryWithID(id)
   }
 
-  public async updateGitHubRepository(id: number, repo: APIRepository): Promise<void> {
+  public async updateGitHubRepository(repository: Repository): Promise<void> {
     const db = this.db
-    const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, function*() {
-      const localRepo = yield db.repositories.get(id)
-      const gitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)
-      const updates = {private: repo.private, fork: repo.fork, htmlURL: repo.htmlUrl}
-      yield db.gitHubRepositories.update(gitHubRepo.id, updates)
+    const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
+      const localRepo = yield db.repositories.get(repository.getID())
+      const newGitHubRepo = repository.getGitHubRepository()
+      const existingGitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)
+      let ownerID = existingGitHubRepo.ownerID
+      if (!existingGitHubRepo) {
+        const owner = newGitHubRepo.getOwner()
+        ownerID = yield db.owners.add({login: owner.getLogin(), endpoint: owner.getEndpoint()})
+      }
+
+      const info = {
+        private: newGitHubRepo.getPrivate(),
+        fork: newGitHubRepo.getFork(),
+        htmlURL: newGitHubRepo.getHTMLURL(),
+        name: newGitHubRepo.getName(),
+        ownerID,
+      }
+      yield db.gitHubRepositories.put(info, existingGitHubRepo ? existingGitHubRepo.id : null)
     })
 
     await transaction
