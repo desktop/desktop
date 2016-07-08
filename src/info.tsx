@@ -7,6 +7,7 @@ import { WorkingDirectoryStatus, WorkingDirectoryFileChange} from './models/stat
 import LocalGitOperations from './lib/local-git-operations'
 
 import ChangedFile from './changed-file'
+import CommitForm from './commit-form'
 
 interface InfoProps {
   selectedRepo: Repository,
@@ -75,6 +76,7 @@ export default class Info extends React.Component<InfoProps, InfoState> {
           return <ChangedFile path={path} status={file.getStatus()} key={path} />
         })}
         </ul>
+        <CommitForm />
       </div>
     )
   }
