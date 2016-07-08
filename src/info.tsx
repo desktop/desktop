@@ -30,12 +30,16 @@ export default class Info extends React.Component<InfoProps, InfoState> {
     }
   }
 
-  public componentWillReceiveProps(nextProps: InfoProps) {
-    LocalGitOperations.getStatus(nextProps.selectedRepo)
+  private refresh(repository: Repository) {
+    LocalGitOperations.getStatus(repository)
       .then(result => this.setState({
         exists: result.getExists(),
         workingDirectory: result.getWorkingDirectory()
       }))
+  }
+
+  public componentWillReceiveProps(nextProps: InfoProps) {
+    this.refresh(nextProps.selectedRepo)
   }
 
   private handleIncludedChange(file: WorkingDirectoryFileChange, include: boolean) {
@@ -48,6 +52,8 @@ export default class Info extends React.Component<InfoProps, InfoState> {
     })
 
     LocalGitOperations.createCommit(this.props.selectedRepo, title, files)
+
+    this.refresh(this.props.selectedRepo)
   }
 
   private renderNoSelection() {
