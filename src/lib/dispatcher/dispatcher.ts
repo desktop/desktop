@@ -33,18 +33,18 @@ export class Dispatcher {
   /** Get the users */
   public async getUsers(): Promise<User[]> {
     const json = await this.dispatch<IUser[]>({name: 'get-users'})
-    return json.map(u => User.fromJSON(u))
+    return json.map(User.fromJSON)
   }
 
   /** Get the repositories the user has added to the app. */
   public async getRepositories(): Promise<Repository[]> {
     const json = await this.dispatch<IRepository[]>({name: 'get-repositories'})
-    return json.map(r => Repository.fromJSON(r))
+    return json.map(Repository.fromJSON)
   }
 
   public async addRepositories(repositories: Repository[]): Promise<Repository[]> {
     const json = await this.dispatch<IRepository[]>({name: 'add-repositories', repositories})
-    return json.map(r => Repository.fromJSON(r))
+    return json.map(Repository.fromJSON)
   }
 
   /** Request the user approve our OAuth request. This will open their browser. */
@@ -56,8 +56,8 @@ export class Dispatcher {
   public onDidUpdate(fn: (state: AppState) => void): Disposable {
     const wrappedFn = (event: Electron.IpcRendererEvent, args: any[]) => {
       const state: {repositories: IRepository[], users: IUser[]} = args[0].state
-      const users = state.users.map(u => User.fromJSON(u))
-      const repositories = state.repositories.map(r => Repository.fromJSON(r))
+      const users = state.users.map(User.fromJSON)
+      const repositories = state.repositories.map(Repository.fromJSON)
       fn({users, repositories})
     }
     ipcRenderer.on('shared/did-update', wrappedFn)
