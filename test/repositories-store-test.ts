@@ -20,7 +20,7 @@ describe('RepositoriesStore', () => {
   describe('adding a new repository', () => {
     it('contains the added repository', async () => {
       const repoPath = '/some/cool/path'
-      await repositoriesStore.addRepository(new Repository(repoPath, null))
+      await repositoriesStore.addRepository(new Repository(repoPath))
 
       const repositories = await repositoriesStore.getRepositories()
       expect(repositories[0].getPath()).to.equal(repoPath)
@@ -29,8 +29,8 @@ describe('RepositoriesStore', () => {
 
   describe('getting all repositories', () => {
     it('returns multiple repositories', async () => {
-      await repositoriesStore.addRepository(new Repository('/some/cool/path', null))
-      await repositoriesStore.addRepository(new Repository('/some/other/path', null))
+      await repositoriesStore.addRepository(new Repository('/some/cool/path'))
+      await repositoriesStore.addRepository(new Repository('/some/other/path'))
 
       const repositories = await repositoriesStore.getRepositories()
       expect(repositories.length).to.equal(2)
@@ -39,7 +39,7 @@ describe('RepositoriesStore', () => {
 
   describe('updating a GitHub repository', () => {
     it('adds a new GitHub repository', async () => {
-      const addedRepo = await repositoriesStore.addRepository(new Repository('/some/cool/path', null))
+      const addedRepo = await repositoriesStore.addRepository(new Repository('/some/cool/path'))
 
       const gitHubRepo = new GitHubRepository('my-repo', new Owner('my-user', 'https://api.github.com'), true, false, 'https://github.com/my-user/my-repo')
       const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)

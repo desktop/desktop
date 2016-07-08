@@ -27,7 +27,7 @@ export default class Repository {
     }
   }
 
-  public constructor(path: string, gitHubRepository: GitHubRepository, id?: number) {
+  public constructor(path: string, gitHubRepository?: GitHubRepository, id?: number) {
     this.path = path
     this.gitHubRepository = gitHubRepository
     this.id = id

@@ -82,7 +82,7 @@ export default class App extends React.Component<AppProps, AppState> {
   }
 
   private async addRepositories(paths: string[]) {
-    const repositories = paths.map(p => new Repository(p, null))
+    const repositories = paths.map(p => new Repository(p))
     const addedRepos = await this.props.dispatcher.addRepositories(repositories)
     for (let repo of addedRepos) {
       this.refreshGitHubRepositoryInfo(repo)
