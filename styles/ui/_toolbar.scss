@@ -7,12 +7,27 @@
   height: 34px;
   align-items: center;
 
-  border-style: solid;
-
   /** A React component holding the tab bar */
-  #tab-bar {
-    .selected {
-      font-weight: bolder;
+  .tab-bar {
+    font-size: 12px;
+  }
+
+  .tab-bar-item {
+    background: #EBEBEB;
+    padding: 5px 10px;
+    margin-right: 1px;
+
+    &:first-child {
+      border-radius: 3px 0px 0px 3px;
     }
+
+    &:last-child {
+      border-radius: 0px 3px 3px 0px;
+    }
+  }
+
+  .tab-bar-item-selected {
+    background-color: #3D76C2;
+    color: #fff;
   }
 }
