@@ -48,39 +48,24 @@ export default class RepositoriesStore {
   public async addRepository(repo: Repository): Promise<Repository> {
     const db = this.db
     let id: number = null
-    const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
-      let gitHubRepositoryID: number = null
-      const gitHubRepository = repo.getGitHubRepository()
-      if (gitHubRepository) {
-        const login = gitHubRepository.getOwner().getLogin()
-        const existingOwner = yield db.owners.where('login').equalsIgnoreCase(login).limit(1).first()
-        let ownerID: number = null
-        if (existingOwner) {
-          ownerID = existingOwner.id
-        } else {
-          ownerID = yield db.owners.add({login, endpoint: gitHubRepository.getOwner().getEndpoint()})
-        }
-
-        gitHubRepositoryID = yield db.gitHubRepositories.add({
-          name: gitHubRepository.getName(),
-          ownerID,
-          private: gitHubRepository.getPrivate(),
-          fork: gitHubRepository.getFork(),
-          htmlURL: gitHubRepository.getHTMLURL(),
-        })
-      }
-
+    const transaction = this.db.transaction('rw', this.db.repositories, function*() {
       id = yield db.repositories.add({
         path: repo.getPath(),
-        gitHubRepositoryID
+        gitHubRepositoryID: null,
       })
     })
 
     await transaction
 
-    return repo.repositoryWithID(id)
+    const repoWithID = repo.repositoryWithID(id)
+    if (repo.getGitHubRepository()) {
+      await this.updateGitHubRepository(repoWithID)
+    }
+
+    return repoWithID
   }
 
+  /** Update or add the repository's GitHub repository. */
   public async updateGitHubRepository(repository: Repository): Promise<void> {
     const db = this.db
     const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
@@ -95,13 +80,13 @@ export default class RepositoriesStore {
         const owner = yield db.owners.get(existingGitHubRepo.ownerID)
         ownerID = owner.id
       } else {
+        const owner = newGitHubRepo.getOwner()
         let existingOwner = yield db.owners
           .where('login')
-          .equalsIgnoreCase(newGitHubRepo.getOwner().getLogin())
+          .equalsIgnoreCase(owner.getLogin())
           .limit(1)
           .first()
         if (!existingOwner) {
-          const owner = newGitHubRepo.getOwner()
           ownerID = yield db.owners.add({login: owner.getLogin(), endpoint: owner.getEndpoint()})
         }
       }
@@ -113,11 +98,12 @@ export default class RepositoriesStore {
         name: newGitHubRepo.getName(),
         ownerID,
       }
+
       if (existingGitHubRepo) {
         info.id = existingGitHubRepo.id
       }
-      const gitHubRepositoryID = yield db.gitHubRepositories.put(info)
 
+      const gitHubRepositoryID = yield db.gitHubRepositories.put(info)
       yield db.repositories.update(localRepo.id, {gitHubRepositoryID})
     })
 
