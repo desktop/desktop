@@ -1,4 +1,4 @@
-import Database from './database'
+import Database, {DatabaseGitHubRepository} from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
 import Repository from '../models/repository'
@@ -86,21 +86,39 @@ export default class RepositoriesStore {
     const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
       const localRepo = yield db.repositories.get(repository.getID())
       const newGitHubRepo = repository.getGitHubRepository()
-      const existingGitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)
-      let ownerID = existingGitHubRepo.ownerID
-      if (!existingGitHubRepo) {
-        const owner = newGitHubRepo.getOwner()
-        ownerID = yield db.owners.add({login: owner.getLogin(), endpoint: owner.getEndpoint()})
+
+      let existingGitHubRepo: DatabaseGitHubRepository = null
+      let ownerID: number = null
+      if (localRepo.gitHubRepositoryID) {
+        existingGitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)
+
+        const owner = yield db.owners.get(existingGitHubRepo.ownerID)
+        ownerID = owner.id
+      } else {
+        let existingOwner = yield db.owners
+          .where('login')
+          .equalsIgnoreCase(newGitHubRepo.getOwner().getLogin())
+          .limit(1)
+          .first()
+        if (!existingOwner) {
+          const owner = newGitHubRepo.getOwner()
+          ownerID = yield db.owners.add({login: owner.getLogin(), endpoint: owner.getEndpoint()})
+        }
       }
 
-      const info = {
+      const info: any = {
         private: newGitHubRepo.getPrivate(),
         fork: newGitHubRepo.getFork(),
         htmlURL: newGitHubRepo.getHTMLURL(),
         name: newGitHubRepo.getName(),
         ownerID,
       }
-      yield db.gitHubRepositories.put(info, existingGitHubRepo ? existingGitHubRepo.id : null)
+      if (existingGitHubRepo) {
+        info.id = existingGitHubRepo.id
+      }
+      const gitHubRepositoryID = yield db.gitHubRepositories.put(info)
+
+      yield db.repositories.update(localRepo.id, {gitHubRepositoryID})
     })
 
     await transaction
