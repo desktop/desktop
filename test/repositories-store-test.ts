@@ -37,7 +37,7 @@ describe('RepositoriesStore', () => {
     })
   })
 
-  describe('updating a github repository', () => {
+  describe('updating a GitHub repository', () => {
     it('adds a new GitHub repository', async () => {
       const addedRepo = await repositoriesStore.addRepository(new Repository('/some/cool/path', null))
 
