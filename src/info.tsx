@@ -38,6 +38,10 @@ export default class Info extends React.Component<InfoProps, InfoState> {
       }))
   }
 
+  private handleCreateCommit(title: string) {
+    console.log('got it!')
+  }
+
   private renderNoSelection() {
     return (
       <div>
@@ -76,7 +80,7 @@ export default class Info extends React.Component<InfoProps, InfoState> {
           return <ChangedFile path={path} status={file.getStatus()} key={path} />
         })}
         </ul>
-        <CommitForm />
+        <CommitForm onCreateCommit={this.handleCreateCommit}  />
       </div>
     )
   }
