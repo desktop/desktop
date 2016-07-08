@@ -8,7 +8,7 @@ interface ChangedFileProps {
 }
 
 interface ChangedFileState {
-
+  include: boolean
 }
 
 /** a changed file in the working directory for a given repository */
@@ -23,11 +23,26 @@ export default class ChangedFile extends React.Component<ChangedFileProps, Chang
 
   public constructor(props: ChangedFileProps) {
     super(props)
+
+    this.state = { include: true }
+  }
+
+  private handleChange(event: any) {
+    let state = event.target.checked
+    this.setState({
+      include: !state
+    })
   }
 
   public render() {
     return (
-        <li><em>{this.props.path}</em> - {ChangedFile.mapStatus(this.props.status)}</li>
+        <li>
+          <input
+            type='checkbox'
+            defaultChecked={this.state.include}
+            onChange={event => this.handleChange(event)}
+          />
+        <strong>{this.props.path}</strong> - {ChangedFile.mapStatus(this.props.status)}</li>
     )
   }
 }
