@@ -11,6 +11,7 @@ export enum FileStatus {
 export class WorkingDirectoryFileChange {
   private path: string
   private status: FileStatus
+  private included: boolean = true
 
   public constructor(path: string, status: FileStatus) {
     this.path = path
@@ -25,6 +26,15 @@ export class WorkingDirectoryFileChange {
   /** the status of the change to the file */
   public getStatus(): number {
     return this.status
+  }
+
+  /** whether the file should be included in the next commit */
+  public getIncluded(): boolean {
+    return this.included
+  }
+
+  public setIncluded(included: boolean) {
+    this.included = included
   }
 }
 

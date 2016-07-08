@@ -1,4 +1,4 @@
-import {WorkingDirectoryStatus, FileStatus} from '../models/status'
+import {WorkingDirectoryStatus, FileStatus, WorkingDirectoryFileChange} from '../models/status'
 import Repository from '../models/repository'
 import {Repository as ohnogit} from 'ohnogit'
 
@@ -63,6 +63,14 @@ export default class LocalGitOperations {
       }
 
       return StatusResult.FromStatus(workingDirectory)
+   }
+
+   public static createCommit(title: string, files: WorkingDirectoryFileChange[]) {
+     console.log('got it!')
+     // TODO: find path to git.exe
+     // TODO: reset index
+     // TODO: stage each file
+     // TODO: commit with message
    }
 
     private static mapStatus(repo: ohnogit, status: number): FileStatus {

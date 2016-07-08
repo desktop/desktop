@@ -4,7 +4,8 @@ import {FileStatus} from './models/status'
 
 interface ChangedFileProps {
   path: string,
-  status: FileStatus
+  status: FileStatus,
+  handleIncludedChange: (include: boolean) => void
 }
 
 interface ChangedFileState {
@@ -28,10 +29,9 @@ export default class ChangedFile extends React.Component<ChangedFileProps, Chang
   }
 
   private handleChange(event: any) {
-    let state = event.target.checked
-    this.setState({
-      include: !state
-    })
+    const include = event.target.checked
+    this.props.handleIncludedChange(include)
+    this.setState({ include: include })
   }
 
   public render() {

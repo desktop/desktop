@@ -38,8 +38,16 @@ export default class Info extends React.Component<InfoProps, InfoState> {
       }))
   }
 
+  private handleIncludedChange(file: WorkingDirectoryFileChange, include: boolean) {
+    file.setIncluded(include)
+  }
+
   private handleCreateCommit(title: string) {
-    console.log('got it!')
+    const files = this.state.workingDirectory.getFiles().filter(function(file, index, array) {
+      return file.getIncluded() === true
+    })
+
+    LocalGitOperations.createCommit(title, files)
   }
 
   private renderNoSelection() {
@@ -77,10 +85,13 @@ export default class Info extends React.Component<InfoProps, InfoState> {
         <br />
         <ul>{files.map(file => {
           const path = file.getPath()
-          return <ChangedFile path={path} status={file.getStatus()} key={path} />
+          return <ChangedFile path={path}
+                              status={file.getStatus()}
+                              key={path}
+                              handleIncludedChange={include => this.handleIncludedChange(file, include)}/>
         })}
         </ul>
-        <CommitForm onCreateCommit={this.handleCreateCommit}  />
+        <CommitForm onCreateCommit={title => this.handleCreateCommit(title)}  />
       </div>
     )
   }

@@ -11,7 +11,15 @@ interface CommitFormState {
 /** set commit details and craft a new commit */
 export default class CommitForm extends React.Component<CommitFormProps, CommitFormState> {
 
-  /** TODO: commit description form */
+  public constructor(props: CommitFormProps) {
+    super(props)
+
+    this.state = {
+      title: ''
+    }
+  }
+
+  /** TODO: commit description field */
   /** TODO: disable submit when no files selected */
 
   private handleTitleChange(event: any) {
@@ -20,15 +28,18 @@ export default class CommitForm extends React.Component<CommitFormProps, CommitF
 
   private handleSubmit(event: any) {
     this.props.onCreateCommit(this.state.title)
-    event.preventDefault()
     this.setState({title: ''})
+    event.preventDefault()
   }
 
   public render() {
     return (
-      <form className='commit-form' onSubmit={event => this.handleSubmit(event)}>
-        <input type='text' placeholder='Commit Title...' onChange={event => this.handleTitleChange(event) } />
-        <input type='submit' value='Commit' />
+      <form className='commit-form'>
+        <input type='text'
+               placeholder='Commit Title...'
+               value={this.state.title}
+               onChange={event => this.handleTitleChange(event) } />
+        <input type='button' value='Commit' onClick={event => this.handleSubmit(event)} />
       </form>
     )
   }
