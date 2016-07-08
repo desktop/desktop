@@ -5,6 +5,7 @@ import Repository, {IRepository} from '../../models/repository'
 import guid from '../guid'
 import {AppState} from '../app-state'
 import {Action} from './actions'
+import {APIRepository} from '../api'
 
 /**
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
@@ -42,8 +43,9 @@ export class Dispatcher {
     return json.map(r => Repository.fromJSON(r))
   }
 
-  public addRepositories(repositories: Repository[]): Promise<void> {
-    return this.dispatch<void>({name: 'add-repositories', repositories})
+  public async addRepositories(repositories: Repository[]): Promise<Repository[]> {
+    const json = await this.dispatch<IRepository[]>({name: 'add-repositories', repositories})
+    return json.map(r => Repository.fromJSON(r))
   }
 
   /** Request the user approve our OAuth request. This will open their browser. */
@@ -65,8 +67,8 @@ export class Dispatcher {
     })
   }
 
-  /** Refresh the repository. */
-  public refreshRepository(repository: Repository): Promise<void> {
-    return this.dispatch<void>({name: 'refresh-repository', repository})
+  /** Update the repository's GitHub repository. */
+  public updateGitHubRepository(repository: Repository, apiRepository: APIRepository): Promise<void> {
+    return this.dispatch<void>({name: 'update-github-repository', repository, apiRepository})
   }
 }

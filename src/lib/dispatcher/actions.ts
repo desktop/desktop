@@ -1,5 +1,6 @@
 import Repository, {IRepository} from '../../models/repository'
 import {URLActionType} from '../parse-url'
+import {APIRepository} from '../api'
 
 export interface GetUsersAction {
   name: 'get-users'
@@ -25,13 +26,14 @@ export interface URLAction {
   action: URLActionType
 }
 
-export interface RefreshRepositoryAction {
-  name: 'refresh-repository'
+export interface UpdateGitHubRepositoryAction {
+  name: 'update-github-repository'
   // This union is gross but until Repository can implement IRepository, it's
   // necessary.
   repository: Repository | IRepository
+  apiRepository: APIRepository
 }
 
 export type Action = GetUsersAction | GetRepositoriesAction |
                      AddRepositoriesAction | RequestOAuthAction |
-                     URLAction | RefreshRepositoryAction
+                     URLAction | UpdateGitHubRepositoryAction

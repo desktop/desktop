@@ -7,8 +7,8 @@ import Database from './database'
 import RepositoriesStore from './repositories-store'
 import Repository, {IRepository} from '../models/repository'
 import {register, broadcastUpdate as broadcastUpdate_} from './communication'
-import {URLAction, AddRepositoriesAction, RefreshRepositoryAction} from '../lib/dispatcher'
-import API, {getDotComAPIEndpoint, getUserForEndpoint} from '../lib/api'
+import {URLAction, AddRepositoriesAction, UpdateGitHubRepositoryAction} from '../lib/dispatcher'
+import {getDotComAPIEndpoint} from '../lib/api'
 
 const Octokat = require('octokat')
 
@@ -40,12 +40,14 @@ register('get-users', () => {
 
 register('add-repositories', async ({repositories}: AddRepositoriesAction) => {
   const inflatedRepositories = repositories.map(r => Repository.fromJSON(r as IRepository))
+  const addedRepos: Repository[] = []
   for (const repo of inflatedRepositories) {
     const addedRepo = await repositoriesStore.addRepository(repo)
-    updateGitHubRepository(addedRepo)
+    addedRepos.push(addedRepo)
   }
 
   broadcastUpdate()
+  return addedRepos
 })
 
 register('get-repositories', () => {
@@ -71,26 +73,8 @@ register('request-oauth', () => {
   return Promise.resolve()
 })
 
-register('refresh-repository', ({repository}: RefreshRepositoryAction) => {
+register('update-github-repository', async ({repository, apiRepository}: UpdateGitHubRepositoryAction) => {
   const inflatedRepository = Repository.fromJSON(repository as IRepository)
-  return updateGitHubRepository(inflatedRepository)
-})
-
-async function updateGitHubRepository(repository: Repository): Promise<void> {
-  const gitHubRepo = repository.getGitHubRepository()
-  if (!gitHubRepo) { return Promise.resolve() }
-
-  const users = usersStore.getUsers()
-  const user = getUserForEndpoint(users, gitHubRepo.getEndpoint())
-  if (!user) { return Promise.resolve() }
-
-  const api = new API(user)
-  const repo = await api.fetchRepository(gitHubRepo.getOwner().getLogin(), gitHubRepo.getName())
-  try {
-    await repositoriesStore.updateGitHubRepository(repository.getID(), repo)
-  } catch (e) {
-    console.error(e)
-  }
-
+  await repositoriesStore.updateGitHubRepository(inflatedRepository.getID(), apiRepository)
   broadcastUpdate()
-}
+})

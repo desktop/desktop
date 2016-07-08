@@ -12,6 +12,7 @@ import {WindowControls} from './window/window-controls'
 import {Dispatcher} from '../lib/dispatcher'
 import Repository from '../models/repository'
 import {matchGitHubRepository} from '../lib/repository-matching'
+import API, {getUserForEndpoint} from '../lib/api'
 
 interface AppState {
   selectedRow: number
@@ -105,7 +106,10 @@ export default class App extends React.Component<AppProps, AppState> {
       repositories.push(repository)
     }
 
-    this.props.dispatcher.addRepositories(repositories)
+    const addedRepos = await this.props.dispatcher.addRepositories(repositories)
+    for (let repo of addedRepos) {
+      this.refreshGitHubRepositoryInfo(repo)
+    }
   }
 
   private renderTitlebar() {
@@ -170,12 +174,25 @@ export default class App extends React.Component<AppProps, AppState> {
     // This probably belongs in the Repository component or whatever, but until
     // that exists...
     const repo = this.state.repos[this.state.selectedRow]
-    this.props.dispatcher.refreshRepository(repo)
+    this.refreshGitHubRepositoryInfo(repo)
   }
 
   private handleSelectionChanged(row: number) {
     this.setState(Object.assign({}, this.state, {selectedRow: row}))
 
     this.refreshSelectedRepository()
+  }
+
+  private async refreshGitHubRepositoryInfo(repository: Repository): Promise<void> {
+    const gitHubRepo = repository.getGitHubRepository()
+    if (!gitHubRepo) { return Promise.resolve() }
+
+    const users = this.state.users
+    const user = getUserForEndpoint(users, gitHubRepo.getEndpoint())
+    if (!user) { return Promise.resolve() }
+
+    const api = new API(user)
+    const repo = await api.fetchRepository(gitHubRepo.getOwner().getLogin(), gitHubRepo.getName())
+    this.props.dispatcher.updateGitHubRepository(repository, repo)
   }
 }
