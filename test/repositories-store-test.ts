@@ -34,14 +34,4 @@ describe('RepositoriesStore', () => {
       expect(repositories.length).to.equal(2)
     })
   })
-
-  describe('name', () => {
-    it('uses the last path component as the name', async () => {
-      const repoPath = '/some/cool/path'
-      await repositoriesStore.addRepository(new Repository(repoPath, null))
-
-      const repositories = await repositoriesStore.getRepositories()
-      expect(repositories[0].getName()).to.equal('path')
-    })
-  })
 })
