@@ -3,17 +3,17 @@ import {ipcRenderer} from 'electron'
 
 import {Sidebar} from './ui/sidebar'
 import ReposList from './repos-list'
-import Info from './info'
+import Repository from './repository'
 import User from './models/user'
 import NotLoggedIn from './not-logged-in'
 import {WindowControls} from './ui/window/window-controls'
 import API from './lib/api'
 import Dispatcher from './dispatcher'
-import Repository from './models/repository'
+import {default as Repo} from './models/repository'
 
 interface AppState {
   selectedRow: number,
-  repos: Repository[],
+  repos: Repo[],
   loadingRepos: boolean,
   user: User
 }
@@ -50,7 +50,7 @@ export default class App extends React.Component<AppProps, AppState> {
     this.update(users, repos)
   }
 
-  private update(users: User[], repos: Repository[]) {
+  private update(users: User[], repos: Repo[]) {
     const user = users[0]
     // TODO: We should persist this but for now we'll select the first
     // repository available unless we already have a selection
@@ -76,13 +76,13 @@ export default class App extends React.Component<AppProps, AppState> {
   }
 
   private handleDragAndDrop(files: FileList) {
-    const repositories: Repository[] = []
+    const repositories: Repo[] = []
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
 
       // TODO: Ensure it's actually a git repository.
       // TODO: Look up its GitHub repository.
-      const repo = new Repository(file.path, null)
+      const repo = new Repo(file.path, null)
       repositories.push(repo)
     }
 
@@ -126,7 +126,7 @@ export default class App extends React.Component<AppProps, AppState> {
                      repos={this.state.repos}
                      loading={this.state.loadingRepos}/>
         </Sidebar>
-        <Info selectedRepo={selectedRepo} user={this.state.user}/>
+        <Repository repo={selectedRepo} user={this.state.user}/>
       </div>
     )
   }
