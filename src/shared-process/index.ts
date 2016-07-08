@@ -78,8 +78,12 @@ register('refresh-repository', ({repository}: RefreshRepositoryAction) => {
 
 async function updateGitHubRepository(repository: Repository): Promise<void> {
   const gitHubRepo = repository.getGitHubRepository()
+  if (!gitHubRepo) { return Promise.resolve() }
+
   const users = usersStore.getUsers()
   const user = getUserForEndpoint(users, gitHubRepo.getEndpoint())
+  if (!user) { return Promise.resolve() }
+  
   const api = new API(user)
   const repo = await api.fetchRepository(gitHubRepo.getOwner().getLogin(), gitHubRepo.getName())
   try {
