@@ -9,7 +9,7 @@ import User from './models/user'
 import GitHubRepository from './models/github-repository'
 import NotLoggedIn from './not-logged-in'
 import {WindowControls} from './ui/window/window-controls'
-import Dispatcher from './dispatcher'
+import {Dispatcher} from './lib/dispatcher'
 import Repository from './models/repository'
 import {matchGitHubRepository} from './lib/repository-matching'
 
