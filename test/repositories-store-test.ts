@@ -42,7 +42,7 @@ describe('RepositoriesStore', () => {
       const addedRepo = await repositoriesStore.addRepository(new Repository('/some/cool/path', null))
 
       const gitHubRepo = new GitHubRepository('my-repo', new Owner('my-user', 'https://api.github.com'), true, false, 'https://github.com/my-user/my-repo')
-      const repoWithGitHub = addedRepo.repositoryWithGitHubRepository(gitHubRepo)
+      const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)
       await repositoriesStore.updateGitHubRepository(repoWithGitHub)
 
       const repositories = await repositoriesStore.getRepositories()
@@ -57,7 +57,7 @@ describe('RepositoriesStore', () => {
       const addedRepo = await repositoriesStore.addRepository(new Repository('/some/cool/path', originalGitHubRepo))
 
       const gitHubRepo = new GitHubRepository('my-repo', new Owner('my-user', 'https://api.github.com'), true, false, 'https://github.com/my-user/my-repo')
-      const repoWithGitHub = addedRepo.repositoryWithGitHubRepository(gitHubRepo)
+      const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)
       await repositoriesStore.updateGitHubRepository(repoWithGitHub)
 
       const repositories = await repositoriesStore.getRepositories()

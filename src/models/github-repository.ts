@@ -32,7 +32,7 @@ export default class GitHubRepository {
   }
 
   /** Create a new copy of the repository with the API information copied over. */
-  public gitHubRepositoryWithAPI(apiRepository: APIRepository): GitHubRepository {
+  public withAPI(apiRepository: APIRepository): GitHubRepository {
     return new GitHubRepository(this.name, this.owner, apiRepository.private, apiRepository.fork, apiRepository.htmlUrl)
   }
 

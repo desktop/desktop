@@ -34,7 +34,7 @@ export default class Repository {
   }
 
   /** Create a new repository the same as the receiver but with the given ID. */
-  public repositoryWithID(id: number): Repository {
+  public withID(id: number): Repository {
     return new Repository(this.path, this.gitHubRepository, id)
   }
 
@@ -42,7 +42,7 @@ export default class Repository {
    * Create a new repository the same as the receiver but with the given GitHub
    * repository.
    */
-  public repositoryWithGitHubRepository(gitHubRepository: GitHubRepository): Repository {
+  public withGitHubRepository(gitHubRepository: GitHubRepository): Repository {
     return new Repository(this.path, gitHubRepository, this.id)
   }
 

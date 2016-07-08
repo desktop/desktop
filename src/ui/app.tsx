@@ -185,7 +185,7 @@ export default class App extends React.Component<AppProps, AppState> {
     const api = new API(user)
     const apiRepo = await api.fetchRepository(gitHubRepository.getOwner().getLogin(), gitHubRepository.getName())
 
-    const updatedRepository = repository.repositoryWithGitHubRepository(gitHubRepository.gitHubRepositoryWithAPI(apiRepo))
+    const updatedRepository = repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
     this.props.dispatcher.updateGitHubRepository(updatedRepository)
   }
 }

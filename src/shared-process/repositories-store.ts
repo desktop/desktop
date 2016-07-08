@@ -57,7 +57,7 @@ export default class RepositoriesStore {
 
     await transaction
 
-    const repoWithID = repo.repositoryWithID(id)
+    const repoWithID = repo.withID(id)
     if (repo.getGitHubRepository()) {
       await this.updateGitHubRepository(repoWithID)
     }
