@@ -27,15 +27,23 @@ export default class Repository {
     }
   }
 
-  public constructor(path: string, gitHubRepository: GitHubRepository, id?: number) {
+  public constructor(path: string, gitHubRepository?: GitHubRepository, id?: number) {
     this.path = path
     this.gitHubRepository = gitHubRepository
     this.id = id
   }
 
   /** Create a new repository the same as the receiver but with the given ID. */
-  public repositoryWithID(id: number): Repository {
+  public withID(id: number): Repository {
     return new Repository(this.path, this.gitHubRepository, id)
+  }
+
+  /**
+   * Create a new repository the same as the receiver but with the given GitHub
+   * repository.
+   */
+  public withGitHubRepository(gitHubRepository: GitHubRepository): Repository {
+    return new Repository(this.path, gitHubRepository, this.id)
   }
 
   public getGitHubRepository(): GitHubRepository {

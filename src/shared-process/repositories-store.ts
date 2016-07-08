@@ -1,8 +1,7 @@
-import Database from './database'
+import Database, {DatabaseGitHubRepository} from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
 import Repository from '../models/repository'
-import {APIRepository} from '../lib/api'
 
 // NB: We can't use async/await within Dexie transactions. This is because Dexie
 // uses its own Promise implementation and TypeScript doesn't know about it. See
@@ -49,46 +48,65 @@ export default class RepositoriesStore {
   public async addRepository(repo: Repository): Promise<Repository> {
     const db = this.db
     let id: number = null
-    const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
-      let gitHubRepositoryID: number = null
-      const gitHubRepository = repo.getGitHubRepository()
-      if (gitHubRepository) {
-        const login = gitHubRepository.getOwner().getLogin()
-        const existingOwner = yield db.owners.where('login').equalsIgnoreCase(login).limit(1).first()
-        let ownerID: number = null
-        if (existingOwner) {
-          ownerID = existingOwner.id
-        } else {
-          ownerID = yield db.owners.add({login, endpoint: gitHubRepository.getOwner().getEndpoint()})
-        }
-
-        gitHubRepositoryID = yield db.gitHubRepositories.add({
-          name: gitHubRepository.getName(),
-          ownerID,
-          private: null,
-          fork: null,
-          htmlURL: null,
-        })
-      }
-
+    const transaction = this.db.transaction('rw', this.db.repositories, function*() {
       id = yield db.repositories.add({
         path: repo.getPath(),
-        gitHubRepositoryID
+        gitHubRepositoryID: null,
       })
     })
 
     await transaction
 
-    return repo.repositoryWithID(id)
+    const repoWithID = repo.withID(id)
+    if (repo.getGitHubRepository()) {
+      await this.updateGitHubRepository(repoWithID)
+    }
+
+    return repoWithID
   }
 
-  public async updateGitHubRepository(id: number, repo: APIRepository): Promise<void> {
+  /** Update or add the repository's GitHub repository. */
+  public async updateGitHubRepository(repository: Repository): Promise<void> {
     const db = this.db
-    const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, function*() {
-      const localRepo = yield db.repositories.get(id)
-      const gitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)
-      const updates = {private: repo.private, fork: repo.fork, htmlURL: repo.htmlUrl}
-      yield db.gitHubRepositories.update(gitHubRepo.id, updates)
+    const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
+      const localRepo = yield db.repositories.get(repository.getID())
+      const newGitHubRepo = repository.getGitHubRepository()
+
+      let existingGitHubRepo: DatabaseGitHubRepository = null
+      let ownerID: number = null
+      if (localRepo.gitHubRepositoryID) {
+        existingGitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)
+
+        const owner = yield db.owners.get(existingGitHubRepo.ownerID)
+        ownerID = owner.id
+      } else {
+        const owner = newGitHubRepo.getOwner()
+        let existingOwner = yield db.owners
+          .where('login')
+          .equalsIgnoreCase(owner.getLogin())
+          .limit(1)
+          .first()
+        if (existingOwner) {
+          ownerID = existingOwner.id
+        } else {
+          ownerID = yield db.owners.add({login: owner.getLogin(), endpoint: owner.getEndpoint()})
+        }
+      }
+
+      const info: any = {
+        private: newGitHubRepo.getPrivate(),
+        fork: newGitHubRepo.getFork(),
+        htmlURL: newGitHubRepo.getHTMLURL(),
+        name: newGitHubRepo.getName(),
+        ownerID,
+      }
+
+      if (existingGitHubRepo) {
+        info.id = existingGitHubRepo.id
+      }
+
+      const gitHubRepositoryID = yield db.gitHubRepositories.put(info)
+      yield db.repositories.update(localRepo.id, {gitHubRepositoryID})
     })
 
     await transaction

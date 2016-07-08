@@ -1,4 +1,5 @@
 import Owner, {IOwner} from './owner'
+import {APIRepository} from '../lib/api'
 
 /** The data-only interface for GitHubRepository for transport across IPC. */
 export interface IGitHubRepository {
@@ -28,6 +29,11 @@ export default class GitHubRepository {
     this.private = private_
     this.fork = fork
     this.htmlURL = htmlURL
+  }
+
+  /** Create a new copy of the repository with the API information copied over. */
+  public withAPI(apiRepository: APIRepository): GitHubRepository {
+    return new GitHubRepository(this.name, this.owner, apiRepository.private, apiRepository.fork, apiRepository.htmlUrl)
   }
 
   public getName(): string {

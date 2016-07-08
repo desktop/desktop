@@ -3,13 +3,13 @@ import Dexie from 'dexie'
 // NB: This _must_ be incremented whenever the DB key scheme changes.
 const DatabaseVersion = 1
 
-interface DatabaseOwner {
+export interface DatabaseOwner {
   id?: number
   login: string
   endpoint: string
 }
 
-interface DatabaseGitHubRepository {
+export interface DatabaseGitHubRepository {
   id?: number
   ownerID: number
   name: string
@@ -18,7 +18,7 @@ interface DatabaseGitHubRepository {
   htmlURL?: string
 }
 
-interface DatabaseRepository {
+export interface DatabaseRepository {
   id?: number
   gitHubRepositoryID?: number
   path: string

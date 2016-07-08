@@ -24,6 +24,17 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
     this.state = {selectedTab: TabBarTab.Changes}
   }
 
+  public componentDidMount() {
+    this.repositoryChanged()
+  }
+
+  public componentDidUpdate(prevProps: RepositoryProps, prevState: RepositoryState) {
+    const changed = prevProps.repo.getID() !== this.props.repo.getID()
+    if (changed) {
+      this.repositoryChanged()
+    }
+  }
+
   private renderNoSelection() {
     return (
       <div>
@@ -59,5 +70,9 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
 
   private onTabClicked(tab: TabBarTab) {
     this.setState(Object.assign({}, this.state, {selectedTab: tab}))
+  }
+
+  private repositoryChanged() {
+    this.setState(Object.assign({}, this.state, {selectedTab: TabBarTab.Changes}))
   }
 }
