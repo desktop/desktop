@@ -2,7 +2,7 @@ import Database from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
 import Repository from '../models/repository'
-import {APIRepository} from '../lib/api'
+import {IAPIRepository} from '../lib/api'
 
 // NB: We can't use async/await within Dexie transactions. This is because Dexie
 // uses its own Promise implementation and TypeScript doesn't know about it. See
@@ -82,7 +82,7 @@ export default class RepositoriesStore {
     return repo.repositoryWithID(id)
   }
 
-  public async updateGitHubRepository(id: number, repo: APIRepository): Promise<void> {
+  public async updateGitHubRepository(id: number, repo: IAPIRepository): Promise<void> {
     const db = this.db
     const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, function*() {
       const localRepo = yield db.repositories.get(id)

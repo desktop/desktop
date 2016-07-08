@@ -8,17 +8,17 @@ import History from './history'
 import ComparisonGraph from './comparison-graph'
 import {TabBarTab} from './toolbar/tab-bar'
 
-interface RepositoryProps {
+interface IRepositoryProps {
   repo: Repo,
   user: User
 }
 
-interface RepositoryState {
+interface IRepositoryState {
   selectedTab: TabBarTab
 }
 
-export default class Repository extends React.Component<RepositoryProps, RepositoryState> {
-  public constructor(props: RepositoryProps) {
+export default class Repository extends React.Component<IRepositoryProps, IRepositoryState> {
+  public constructor(props: IRepositoryProps) {
     super(props)
 
     this.state = {selectedTab: TabBarTab.Changes}

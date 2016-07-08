@@ -14,11 +14,11 @@ const DefaultHeaders: {[key: string]: string} = {
   'User-Agent': `${app.getName()}/${app.getVersion()}`
 }
 
-interface AuthState {
+interface IAuthState {
   oAuthState: string
   endpoint: string
 }
-let authState: AuthState = null
+let authState: IAuthState = null
 
 export async function requestToken(code: string): Promise<string> {
   const urlBase = getOAuthURL(authState.endpoint)
@@ -36,7 +36,7 @@ export async function requestToken(code: string): Promise<string> {
   return json.access_token
 }
 
-function getOAuthAuthorizationURL(authState: AuthState): string {
+function getOAuthAuthorizationURL(authState: IAuthState): string {
   const urlBase = getOAuthURL(authState.endpoint)
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=repo&state=${authState.oAuthState}`
 }

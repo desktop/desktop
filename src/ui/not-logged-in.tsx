@@ -1,11 +1,11 @@
 import * as React from 'react'
 import {Dispatcher} from '../lib/dispatcher'
 
-interface NotLoggedInProps {
+interface INotLoggedInProps {
   dispatcher: Dispatcher
 }
 
-export default class NotLoggedIn extends React.Component<NotLoggedInProps, void> {
+export default class NotLoggedIn extends React.Component<INotLoggedInProps, void> {
   public render() {
     return (
       <div>

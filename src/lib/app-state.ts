@@ -2,7 +2,7 @@ import User from '../models/user'
 import Repository from '../models/repository'
 
 /** All of the shared app state. */
-export interface AppState {
+export interface IAppState {
   users: User[]
   repositories: Repository[]
 }

@@ -6,7 +6,7 @@ const Octokat = require('octokat')
 /**
  * Information about a repository as returned by the GitHub API.
  */
-export interface APIRepository {
+export interface IAPIRepository {
   cloneUrl: string,
   htmlUrl: string,
   name: string
@@ -38,8 +38,8 @@ export default class API {
    *
    * @returns A promise yielding an array of {APIRepository} instances or error
    */
-  public async fetchRepos(): Promise<APIRepository[]> {
-    const results: APIRepository[] = []
+  public async fetchRepos(): Promise<IAPIRepository[]> {
+    const results: IAPIRepository[] = []
     let nextPage = this.client.user.repos
     while (nextPage) {
       const request = await nextPage.fetch()
@@ -51,7 +51,7 @@ export default class API {
   }
 
   /** Fetch a repo by its owner and name. */
-  public fetchRepository(owner: string, name: string): Promise<APIRepository> {
+  public fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
     return this.client.repos(owner, name).fetch()
   }
 }

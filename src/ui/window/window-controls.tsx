@@ -9,7 +9,7 @@ const restorePath = 'm 2,1e-5 0,2 -2,0 0,8 8,0 0,-2 2,0 0,-8 z m 1,1 6,0 0,6 -1,
 const maximizePath = 'M 0,0 0,10 10,10 10,0 Z M 1,1 9,1 9,9 1,9 Z'
 const minimizePath = 'M 0,5 10,5 10,6 0,6 Z'
 
-interface WindowControlState {
+interface IWindowControlState {
   windowState: WindowState
 }
 
@@ -25,7 +25,7 @@ interface WindowControlState {
  * every time there's a change in the window state but _may_ send duplicate
  * or out-of-bound events communicating the _current_ state as well.
  */
-export class WindowControls extends React.Component<void, WindowControlState> {
+export class WindowControls extends React.Component<void, IWindowControlState> {
 
   public componentWillMount() {
     this.setState({ windowState: getWindowState(remote.getCurrentWindow()) })
@@ -37,7 +37,7 @@ export class WindowControls extends React.Component<void, WindowControlState> {
     ipcRenderer.removeListener(windowStateChannelName, this.onWindowStateChanged)
   }
 
-  public shouldComponentUpdate(nextProps: void, nextState: WindowControlState) {
+  public shouldComponentUpdate(nextProps: void, nextState: IWindowControlState) {
     return nextState.windowState !== this.state.windowState
   }
 

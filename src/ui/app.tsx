@@ -13,19 +13,19 @@ import {Dispatcher} from '../lib/dispatcher'
 import Repository from '../models/repository'
 import {matchGitHubRepository} from '../lib/repository-matching'
 
-interface AppState {
+interface IAppState {
   selectedRow: number
   repos: Repository[]
   loadingRepos: boolean
   users: User[]
 }
 
-interface AppProps {
+interface IAppProps {
   dispatcher: Dispatcher
 }
 
-export default class App extends React.Component<AppProps, AppState> {
-  public constructor(props: AppProps) {
+export default class App extends React.Component<IAppProps, IAppState> {
+  public constructor(props: IAppProps) {
     super(props)
 
     props.dispatcher.onDidUpdate(state => {
