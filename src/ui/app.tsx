@@ -2,16 +2,16 @@ import * as React from 'react'
 import {ipcRenderer} from 'electron'
 import {Repository as GitRepository} from 'ohnogit'
 
-import {Sidebar} from './ui/sidebar'
+import {Sidebar} from './sidebar'
 import ReposList from './repos-list'
 import {default as RepositoryView} from './repository'
-import User from './models/user'
-import GitHubRepository from './models/github-repository'
+import User from '../models/user'
+import GitHubRepository from '../models/github-repository'
 import NotLoggedIn from './not-logged-in'
-import {WindowControls} from './ui/window/window-controls'
-import {Dispatcher} from './lib/dispatcher'
-import Repository from './models/repository'
-import {matchGitHubRepository} from './lib/repository-matching'
+import {WindowControls} from './window/window-controls'
+import {Dispatcher} from '../lib/dispatcher'
+import Repository from '../models/repository'
+import {matchGitHubRepository} from '../lib/repository-matching'
 
 interface AppState {
   selectedRow: number
