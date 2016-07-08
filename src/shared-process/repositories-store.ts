@@ -86,7 +86,9 @@ export default class RepositoriesStore {
           .equalsIgnoreCase(owner.getLogin())
           .limit(1)
           .first()
-        if (!existingOwner) {
+        if (existingOwner) {
+          ownerID = existingOwner.id
+        } else {
           ownerID = yield db.owners.add({login: owner.getLogin(), endpoint: owner.getEndpoint()})
         }
       }
