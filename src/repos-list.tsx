@@ -1,15 +1,13 @@
 import * as React from 'react'
 
 import List from './list'
-import User from './models/user'
 import Repository from './models/repository'
 import {Octicon, OcticonSymbol} from './ui/octicons'
 
 interface ReposListProps {
-  selectedRow: number,
-  onSelectionChanged: (row: number) => void,
-  user: User,
-  loading: boolean,
+  selectedRow: number
+  onSelectionChanged: (row: number) => void
+  loading: boolean
   repos: Repository[]
 }
 
@@ -29,15 +27,13 @@ export default class ReposList extends React.Component<ReposListProps, void> {
   }
 
   private iconForRepo(repo: Repository): OcticonSymbol {
+    const gitHubRepo = repo.getGitHubRepository()
+    if (!gitHubRepo) { return OcticonSymbol.repo }
+
+    if (gitHubRepo.getPrivate()) { return OcticonSymbol.lock }
+    if (gitHubRepo.getFork()) { return OcticonSymbol.repoForked }
 
     return OcticonSymbol.repo
-
-    /* TODO
-    if (repo.private) { return OcticonSymbol.lock }
-    if (repo.fork) { return OcticonSymbol.repoForked }
-
-    return OcticonSymbol.repo
-    */
   }
 
   private renderLoading() {

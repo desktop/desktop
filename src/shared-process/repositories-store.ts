@@ -1,8 +1,8 @@
-import Dexie from 'dexie'
 import Database from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
 import Repository from '../models/repository'
+import {APIRepository} from '../lib/api'
 
 // NB: We can't use async/await within Dexie transactions. This is because Dexie
 // uses its own Promise implementation and TypeScript doesn't know about it. See
@@ -11,12 +11,6 @@ import Repository from '../models/repository'
 // TS 1.8.
 //
 // Instead of using async/await, use generator functions and `yield`.
-
-function deDexie<T>(promise: Dexie.Promise<T>): Promise<T> {
-  return new Promise((resolve, reject) => {
-    promise.then(resolve, reject)
-  })
-}
 
 /** The store for local repositories. */
 export default class RepositoriesStore {
@@ -37,22 +31,24 @@ export default class RepositoriesStore {
         if (repo.gitHubRepositoryID) {
           const gitHubRepository = yield db.gitHubRepositories.get(repo.gitHubRepositoryID)
           const owner = yield db.owners.get(gitHubRepository.ownerID)
-          inflatedRepo = new Repository(repo.path, new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint)))
+          const gitHubRepo = new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint), gitHubRepository.private, gitHubRepository.fork, gitHubRepository.htmlURL)
+          inflatedRepo = new Repository(repo.path, gitHubRepo, repo.id)
         } else {
-          inflatedRepo = new Repository(repo.path, null)
+          inflatedRepo = new Repository(repo.path, null, repo.id)
         }
         inflatedRepos.push(inflatedRepo)
       }
     })
 
-    await deDexie(transaction)
+    await transaction
 
     return inflatedRepos
   }
 
   /** Add a new local repository. */
-  public async addRepository(repo: Repository): Promise<void> {
+  public async addRepository(repo: Repository): Promise<Repository> {
     const db = this.db
+    let id: number = null
     const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
       let gitHubRepositoryID: number = null
       const gitHubRepository = repo.getGitHubRepository()
@@ -68,16 +64,33 @@ export default class RepositoriesStore {
 
         gitHubRepositoryID = yield db.gitHubRepositories.add({
           name: gitHubRepository.getName(),
-          ownerID
+          ownerID,
+          private: null,
+          fork: null,
+          htmlURL: null,
         })
       }
 
-      yield db.repositories.add({
+      id = yield db.repositories.add({
         path: repo.getPath(),
         gitHubRepositoryID
       })
     })
 
-    await deDexie(transaction)
+    await transaction
+
+    return repo.repositoryWithID(id)
+  }
+
+  public async updateGitHubRepository(id: number, repo: APIRepository): Promise<void> {
+    const db = this.db
+    const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, function*() {
+      const localRepo = yield db.repositories.get(id)
+      const gitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)
+      const updates = {private: repo.private, fork: repo.fork, htmlURL: repo.htmlUrl}
+      yield db.gitHubRepositories.update(gitHubRepo.id, updates)
+    })
+
+    await transaction
   }
 }

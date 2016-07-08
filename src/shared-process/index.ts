@@ -1,26 +1,24 @@
-import {ipcRenderer, remote} from 'electron'
-import {Message} from './message'
 import tokenStore from './token-store'
 import UsersStore from './users-store'
-import {requestToken, askUserToAuth, getDotComEndpoint} from './auth'
+import {requestToken, askUserToAuth} from './auth'
 import User from '../models/user'
-import {URLActionType, isOAuthAction} from '../lib/parse-url'
+import {isOAuthAction} from '../lib/parse-url'
 import Database from './database'
 import RepositoriesStore from './repositories-store'
 import Repository, {IRepository} from '../models/repository'
-
-const {BrowserWindow} = remote
+import {register, broadcastUpdate as broadcastUpdate_} from './communication'
+import {URLAction, AddRepositoriesAction, RefreshRepositoryAction} from '../actions'
+import API, {getDotComAPIEndpoint, getUserForEndpoint} from '../lib/api'
 
 const Octokat = require('octokat')
-
-type SharedProcessFunction = (args: any) => Promise<any>
-const registeredFunctions: {[key: string]: SharedProcessFunction} = {}
 
 const usersStore = new UsersStore(localStorage, tokenStore)
 usersStore.loadFromStore()
 
 const database = new Database('Database')
 const repositoriesStore = new RepositoriesStore(database)
+
+const broadcastUpdate = () => broadcastUpdate_(usersStore, repositoriesStore)
 
 register('console.log', ({args}: {args: any[]}) => {
   console.log(args[0], ...args.slice(1))
@@ -40,10 +38,11 @@ register('get-users', () => {
   return Promise.resolve(usersStore.getUsers())
 })
 
-register('add-repositories', async ({repositories}: {repositories: IRepository[]}) => {
-  const inflatedRepositories = repositories.map(r => Repository.fromJSON(r))
+register('add-repositories', async ({repositories}: AddRepositoriesAction) => {
+  const inflatedRepositories = repositories.map(r => Repository.fromJSON(r as IRepository))
   for (const repo of inflatedRepositories) {
-    await repositoriesStore.addRepository(repo)
+    const addedRepo = await repositoriesStore.addRepository(repo)
+    updateGitHubRepository(addedRepo)
   }
 
   broadcastUpdate()
@@ -53,73 +52,45 @@ register('get-repositories', () => {
   return repositoriesStore.getRepositories()
 })
 
-register('url-action', async ({action}: {action: URLActionType}) => {
+register('url-action', async ({action}: URLAction) => {
   if (isOAuthAction(action)) {
-    await addUserWithCode(action.args.code)
+    try {
+      const token = await requestToken(action.args.code)
+      const octo = new Octokat({token})
+      const user = await octo.user.fetch()
+      usersStore.addUser(new User(user.login, getDotComAPIEndpoint(), token))
+    } catch (e) {
+      console.error(`Error adding user: ${e}`)
+    }
     broadcastUpdate()
   }
 })
 
 register('request-oauth', () => {
-  askUserToAuth(getDotComEndpoint())
+  askUserToAuth(getDotComAPIEndpoint())
   return Promise.resolve()
 })
 
-ipcRenderer.on('shared/request', (event, args) => {
-  dispatch(args[0])
+register('refresh-repository', ({repository}: RefreshRepositoryAction) => {
+  const inflatedRepository = Repository.fromJSON(repository as IRepository)
+  return updateGitHubRepository(inflatedRepository)
 })
 
-/**
- * Dispatch the received message to the appropriate function and respond with
- * the return value.
- */
-function dispatch(message: Message) {
-  const name = message.name
-  if (!name) {
-    console.error('Unnamed message sent to shared process:')
-    console.error(message)
-    return
-  }
+async function updateGitHubRepository(repository: Repository): Promise<void> {
+  const gitHubRepo = repository.getGitHubRepository()
+  if (!gitHubRepo) { return Promise.resolve() }
 
-  const fn = registeredFunctions[name]
-  if (!fn) {
-    console.error('No handler found for message:')
-    console.error(message)
-    return
-  }
+  const users = usersStore.getUsers()
+  const user = getUserForEndpoint(users, gitHubRepo.getEndpoint())
+  if (!user) { return Promise.resolve() }
 
-  const guid = message.guid
-  const args = message.args
-  const promise = fn(args)
-  promise.then(result => {
-    BrowserWindow.getAllWindows().forEach(window => {
-      window.webContents.send(`shared/response/${guid}`, [result])
-    })
-  })
-}
-
-/** Register a function to respond to requests with the given name. */
-function register(name: string, fn: SharedProcessFunction) {
-  registeredFunctions[name] = fn
-}
-
-/** Tell all the windows that something was updated. */
-function broadcastUpdate() {
-  BrowserWindow.getAllWindows().forEach(async (window) => {
-    const repositories = await repositoriesStore.getRepositories()
-    const state = {users: usersStore.getUsers(), repositories}
-    window.webContents.send('shared/did-update', [{state}])
-  })
-}
-
-/** Request a token, given an OAuth code, and add the user. */
-async function addUserWithCode(code: string) {
+  const api = new API(user)
+  const repo = await api.fetchRepository(gitHubRepo.getOwner().getLogin(), gitHubRepo.getName())
   try {
-    const token = await requestToken(code)
-    const octo = new Octokat({token})
-    const user = await octo.user.fetch()
-    usersStore.addUser(new User(user.login, getDotComEndpoint(), token))
+    await repositoriesStore.updateGitHubRepository(repository.getID(), repo)
   } catch (e) {
-    console.error(`Error adding user: ${e}`)
+    console.error(e)
   }
+
+  broadcastUpdate()
 }

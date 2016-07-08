@@ -1,3 +1,4 @@
+import * as URL from 'url'
 import User from '../models/user'
 
 const Octokat = require('octokat')
@@ -5,7 +6,7 @@ const Octokat = require('octokat')
 /**
  * Information about a repository as returned by the GitHub API.
  */
-export interface Repo {
+export interface APIRepository {
   cloneUrl: string,
   htmlUrl: string,
   name: string
@@ -35,10 +36,10 @@ export default class API {
    * Loads public and private repositories across all organizations
    * as well as the user account.
    *
-   * @returns A promise yielding an array of {Repo} instances or error
+   * @returns A promise yielding an array of {APIRepository} instances or error
    */
-  public async fetchRepos(): Promise<Repo[]> {
-    const results: Repo[] = []
+  public async fetchRepos(): Promise<APIRepository[]> {
+    const results: APIRepository[] = []
     let nextPage = this.client.user.repos
     while (nextPage) {
       const request = await nextPage.fetch()
@@ -48,4 +49,36 @@ export default class API {
 
     return results
   }
+
+  /** Fetch a repo by its owner and name. */
+  public fetchRepository(owner: string, name: string): Promise<APIRepository> {
+    return this.client.repos(owner, name).fetch()
+  }
+}
+
+/**
+ * Get the URL for the HTML site. For example:
+ *
+ * https://api.github.com -> https://github.com
+ * http://github.mycompany.com/api -> http://github.mycompany.com/
+ */
+export function getHTMLURL(endpoint: string): string {
+  if (endpoint === getDotComAPIEndpoint()) {
+    // GitHub.com is A Special Snowflake in that the API lives at a subdomain
+    // but the site itself lives on the parent domain.
+    return 'https://github.com'
+  } else {
+    const parsed = URL.parse(endpoint)
+    return `${parsed.protocol}//${parsed.hostname}`
+  }
+}
+
+/** Get github.com's API endpoint. */
+export function getDotComAPIEndpoint(): string {
+  return 'https://api.github.com'
+}
+
+/** Get the user for the endpoint. */
+export function getUserForEndpoint(users: User[], endpoint: string): User {
+  return users.filter(u => u.getEndpoint() === endpoint)[0]
 }

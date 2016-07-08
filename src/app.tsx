@@ -1,21 +1,23 @@
 import * as React from 'react'
 import {ipcRenderer} from 'electron'
+import {Repository as GitRepository} from 'ohnogit'
 
 import {Sidebar} from './ui/sidebar'
 import ReposList from './repos-list'
-import Repository from './repository'
+import {default as RepositoryView} from './repository'
 import User from './models/user'
+import GitHubRepository from './models/github-repository'
 import NotLoggedIn from './not-logged-in'
 import {WindowControls} from './ui/window/window-controls'
-import API from './lib/api'
 import Dispatcher from './dispatcher'
-import {default as Repo} from './models/repository'
+import Repository from './models/repository'
+import {matchGitHubRepository} from './lib/repository-matching'
 
 interface AppState {
-  selectedRow: number,
-  repos: Repo[],
-  loadingRepos: boolean,
-  user: User
+  selectedRow: number
+  repos: Repository[]
+  loadingRepos: boolean
+  users: User[]
 }
 
 interface AppProps {
@@ -23,8 +25,6 @@ interface AppProps {
 }
 
 export default class App extends React.Component<AppProps, AppState> {
-  private api: API
-
   public constructor(props: AppProps) {
     super(props)
 
@@ -34,7 +34,7 @@ export default class App extends React.Component<AppProps, AppState> {
 
     this.state = {
       selectedRow: -1,
-      user: null,
+      users: [],
       loadingRepos: true,
       repos: []
     }
@@ -50,17 +50,18 @@ export default class App extends React.Component<AppProps, AppState> {
     this.update(users, repos)
   }
 
-  private update(users: User[], repos: Repo[]) {
-    const user = users[0]
+  private update(users: User[], repos: Repository[]) {
     // TODO: We should persist this but for now we'll select the first
     // repository available unless we already have a selection
-    const selectedRow = (this.state.selectedRow === -1 && repos.length > 0) ? 0 : -1
+    const haveSelection = this.state.selectedRow > -1
+    const selectedRow = (!haveSelection && repos.length > 0) ? 0 : this.state.selectedRow
 
-    this.setState(Object.assign({}, this.state, {user, repos, loadingRepos: false, selectedRow}))
-
-    if (user) {
-      this.api = new API(user)
+    if (haveSelection) {
+      // This is less than ideal but works for now.
+      this.refreshSelectedRepository()
     }
+
+    this.setState(Object.assign({}, this.state, {users, repos, loadingRepos: false, selectedRow}))
   }
 
   public componentDidMount() {
@@ -75,15 +76,33 @@ export default class App extends React.Component<AppProps, AppState> {
     }
   }
 
-  private handleDragAndDrop(files: FileList) {
-    const repositories: Repo[] = []
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i]
+  private handleDragAndDrop(fileList: FileList) {
+    const paths: string[] = []
+    for (let i = 0; i < fileList.length; i++) {
+      const path = fileList[i]
+      paths.push(path.path)
+    }
 
-      // TODO: Ensure it's actually a git repository.
-      // TODO: Look up its GitHub repository.
-      const repo = new Repo(file.path, null)
-      repositories.push(repo)
+    this.addRepositories(paths)
+  }
+
+  private async addRepositories(paths: string[]) {
+    const repositories: Repository[] = []
+    for (let path of paths) {
+      const gitRepo = GitRepository.open(path)
+      // TODO: This is all kinds of wrong.
+      const remote = await gitRepo.getConfigValue('remote.origin.url')
+      let gitHubRepository: GitHubRepository = null
+      if (remote) {
+        gitHubRepository = matchGitHubRepository(this.state.users, remote)
+      }
+
+      if (gitHubRepository) {
+        console.log(`Matched ${remote} to ${gitHubRepository.getOwner().getLogin()}/${gitHubRepository.getName()}`)
+      }
+
+      const repository = new Repository(path, gitHubRepository)
+      repositories.push(repository)
     }
 
     this.props.dispatcher.addRepositories(repositories)
@@ -122,11 +141,10 @@ export default class App extends React.Component<AppProps, AppState> {
         <Sidebar>
           <ReposList selectedRow={this.state.selectedRow}
                      onSelectionChanged={row => this.handleSelectionChanged(row)}
-                     user={this.state.user}
                      repos={this.state.repos}
                      loading={this.state.loadingRepos}/>
         </Sidebar>
-        <Repository repo={selectedRepo} user={this.state.user}/>
+        <RepositoryView repo={selectedRepo} user={null}/>
       </div>
     )
   }
@@ -143,12 +161,21 @@ export default class App extends React.Component<AppProps, AppState> {
     return (
       <div id='desktop-app-chrome'>
         {this.renderTitlebar()}
-        {this.state.user ? this.renderApp() : this.renderNotLoggedIn()}
+        {this.state.users.length > 0 ? this.renderApp() : this.renderNotLoggedIn()}
       </div>
     )
   }
 
+  private refreshSelectedRepository() {
+    // This probably belongs in the Repository component or whatever, but until
+    // that exists...
+    const repo = this.state.repos[this.state.selectedRow]
+    this.props.dispatcher.refreshRepository(repo)
+  }
+
   private handleSelectionChanged(row: number) {
     this.setState(Object.assign({}, this.state, {selectedRow: row}))
+
+    this.refreshSelectedRepository()
   }
 }
