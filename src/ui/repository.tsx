@@ -1,7 +1,7 @@
 import * as React from 'react'
 
-import User from './models/user'
-import {default as Repo} from './models/repository'
+import User from '../models/user'
+import {default as Repo} from '../models/repository'
 import Toolbar from './toolbar'
 import Changes from './changes'
 import History from './history'

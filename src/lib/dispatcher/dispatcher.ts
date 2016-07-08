@@ -1,16 +1,16 @@
 import {ipcRenderer} from 'electron'
 import {Disposable} from 'event-kit'
-import User, {IUser} from './models/user'
-import Repository, {IRepository} from './models/repository'
-import guid from './lib/guid'
-import {AppState} from './lib/app-state'
+import User, {IUser} from '../../models/user'
+import Repository, {IRepository} from '../../models/repository'
+import guid from '../guid'
+import {AppState} from '../app-state'
 import {Action} from './actions'
 
 /**
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
  * decouples the consumer of state from where/how it is stored.
  */
-export default class Dispatcher {
+export class Dispatcher {
   private dispatch<T>(action: Action): Promise<T> {
     return this.send(action.name, action)
   }

@@ -1,8 +1,8 @@
 import * as React from 'react'
 
 import List from './list'
-import Repository from './models/repository'
-import {Octicon, OcticonSymbol} from './ui/octicons'
+import Repository from '../models/repository'
+import {Octicon, OcticonSymbol} from './octicons'
 
 interface ReposListProps {
   selectedRow: number

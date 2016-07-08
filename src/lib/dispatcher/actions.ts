@@ -1,5 +1,5 @@
-import Repository, {IRepository} from './models/repository'
-import {URLActionType} from './lib/parse-url'
+import Repository, {IRepository} from '../../models/repository'
+import {URLActionType} from '../parse-url'
 
 export interface GetUsersAction {
   name: 'get-users'
