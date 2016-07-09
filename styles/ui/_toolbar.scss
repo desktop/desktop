@@ -6,28 +6,28 @@
   flex-direction: column;
   height: 34px;
   align-items: center;
+}
 
-  /** A React component holding the tab bar */
-  .segmented-control {
-    font-size: 12px;
+/** A React component holding the tab bar */
+.segmented-control {
+  font-size: var(--font-size);
+}
+
+.segmented-control-item {
+  background: var(--light-gray);
+  padding: 5px 10px;
+  margin-right: 1px;
+
+  &:first-child {
+    border-radius: 3px 0px 0px 3px;
   }
 
-  .segmented-control-item {
-    background: #EBEBEB;
-    padding: 5px 10px;
-    margin-right: 1px;
-
-    &:first-child {
-      border-radius: 3px 0px 0px 3px;
-    }
-
-    &:last-child {
-      border-radius: 0px 3px 3px 0px;
-    }
+  &:last-child {
+    border-radius: 0px 3px 3px 0px;
   }
+}
 
-  .segmented-control-item-selected {
-    background-color: #3D76C2;
-    color: #fff;
-  }
+.segmented-control-item-selected {
+  background-color: var(--dark-gray);
+  color: var(--background-color);
 }
