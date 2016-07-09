@@ -16,14 +16,14 @@ interface ITabBarProps {
 /** The tab bar component. */
 export default class TabBar extends React.Component<ITabBarProps, void> {
   public render() {
-    const changesClassName = this.props.selectedTab === TabBarTab.Changes ? 'tab-bar-item-selected' : ''
-    const historyClassName = this.props.selectedTab === TabBarTab.History ? 'tab-bar-item-selected' : ''
+    const changesClassName = this.props.selectedTab === TabBarTab.Changes ? 'segmented-control-item-selected' : ''
+    const historyClassName = this.props.selectedTab === TabBarTab.History ? 'segmented-control-item-selected' : ''
 
     return (
-      <div className='tab-bar'>
-        <span className={'tab-bar-item ' + changesClassName}
+      <div className='segmented-control'>
+        <span className={'segmented-control-item ' + changesClassName}
               onClick={() => this.props.onTabClicked(TabBarTab.Changes)}>Changes</span>
-        <span className={'tab-bar-item ' + historyClassName}
+        <span className={'segmented-control-item ' + historyClassName}
               onClick={() => this.props.onTabClicked(TabBarTab.History)}>History</span>
       </div>
     )
