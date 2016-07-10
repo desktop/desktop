@@ -2,9 +2,44 @@
 
 /** A React component holding the commit message entry */
 #commit-message {
-  display: flex;
+  border-top: 1px solid #ccc;
   flex-direction: row;
   margin-top: auto;
+}
 
-  border-style: solid;
+.commit-form {
+  background-color: #f9f9f9;
+  padding: var(--padding);
+  width: 100%;
+}
+
+.commit-form-avatar {
+  border-radius: var(--border-radius);
+}
+
+.commit-form-textarea {
+  border: 1px solid #e3e7e9;
+  border-radius: var(--border-radius);
+  display: block;
+  font-size: var(--font-size);
+  height: 100px;
+  padding: var(--padding);
+  width: 100%;
+}
+
+.commit-form-submit-button {
+  padding: var(--padding);
+}
+
+.media {
+  display: flex;
+  align-items: flex-start;
+}
+
+.media-figure {
+  margin-right: var(--margin);
+}
+
+.media-body {
+  flex-grow: 1;
 }
