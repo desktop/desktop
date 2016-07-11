@@ -6,7 +6,7 @@ import Owner from '../models/owner'
 import {getHTMLURL} from './api'
 
 /** Try to use the list of users and a remote URL to guess a GitHub repository .*/
-export function matchGitHubRepository(users: User[], remote: string): GitHubRepository {
+export function matchGitHubRepository(users: User[], remote: string): GitHubRepository | null {
   for (let user of users) {
     const match = matchRemoteWithUser(user, remote)
     if (match) { return match }
@@ -15,7 +15,7 @@ export function matchGitHubRepository(users: User[], remote: string): GitHubRepo
   return null
 }
 
-function matchRemoteWithUser(user: User, remote: string): GitHubRepository {
+function matchRemoteWithUser(user: User, remote: string): GitHubRepository | null {
   const htmlURL = getHTMLURL(user.getEndpoint())
   const parsed = URL.parse(htmlURL)
   const host = parsed.hostname
