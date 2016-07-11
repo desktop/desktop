@@ -47,9 +47,6 @@ export class CommitMessage extends React.Component<CommitMessageProps, CommitMes
             alt='avatar' />
 
           <div className='media-body'>
-            <label className="commit-form-label">
-              Message
-            </label>
             <textarea className="commit-form-textarea"></textarea>
             <input className="commit-form-submit-button"
               type='submit'

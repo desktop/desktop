@@ -18,7 +18,7 @@
 }
 
 .commit-form-textarea {
-  border: 1px solid #e3e7e9;
+  border: 1px solid var(--form-border-colors);
   border-radius: var(--border-radius);
   display: block;
   font-size: var(--font-size);
