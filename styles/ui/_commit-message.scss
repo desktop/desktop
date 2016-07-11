@@ -18,11 +18,12 @@
 }
 
 .commit-form-textarea {
-  border: 1px solid var(--form-border-colors);
+  border: 1px solid var(--form-border-color);
   border-radius: var(--border-radius);
+  color: currentColor;
   display: block;
   font-size: var(--font-size);
-  height: 100px;
+  min-height: 100px;
   padding: var(--padding);
   width: 100%;
 }
