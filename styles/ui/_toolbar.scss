@@ -7,24 +7,3 @@
   height: 34px;
   align-items: center;
 }
-
-/** A React component holding the tab bar */
-.segmented-control-item {
-  --border-radius: 5px;
-
-  border: 1px solid var(--text-color);
-  padding: 5px 20px;
-
-  &:first-child {
-    border-radius: var(--border-radius) 0px 0px var(--border-radius);
-  }
-
-  &:last-child {
-    border-radius: 0px var(--border-radius) var(--border-radius) 0px;
-  }
-
-  &.selected {
-    background-color: var(--dark-gray);
-    color: var(--background-color);
-  }
-}
