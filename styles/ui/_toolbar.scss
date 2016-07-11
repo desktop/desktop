@@ -14,9 +14,8 @@
 }
 
 .segmented-control-item {
-  background: var(--light-gray);
+  border: 1px solid var(--text-color);
   padding: 5px 10px;
-  margin-right: 1px;
 
   &:first-child {
     border-radius: 3px 0px 0px 3px;
