@@ -21,7 +21,7 @@
     border-radius: 0px var(--border-radius) var(--border-radius) 0px;
   }
 
-  &-selected {
+  &.selected {
     background-color: var(--dark-gray);
     color: var(--background-color);
   }

@@ -16,8 +16,8 @@ interface ITabBarProps {
 /** The tab bar component. */
 export default class TabBar extends React.Component<ITabBarProps, void> {
   public render() {
-    const changesClassName = this.props.selectedTab === TabBarTab.Changes ? 'segmented-control-item-selected' : ''
-    const historyClassName = this.props.selectedTab === TabBarTab.History ? 'segmented-control-item-selected' : ''
+    const changesClassName = this.props.selectedTab === TabBarTab.Changes ? 'selected' : ''
+    const historyClassName = this.props.selectedTab === TabBarTab.History ? 'selected' : ''
 
     return (
       <div className='segmented-control'>
