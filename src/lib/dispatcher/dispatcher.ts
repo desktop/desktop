@@ -16,14 +16,14 @@ export class Dispatcher {
   }
 
   private send<T>(name: string, args: Object): Promise<T> {
-    let resolve: (value: T) => void = null
+    let resolve: ((value: T) => void) | null = null
     const promise = new Promise<T>((_resolve, reject) => {
       resolve = _resolve
     })
 
     const requestGuid = guid()
     ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
-      resolve(args[0] as T)
+      resolve!(args[0] as T)
     })
 
     ipcRenderer.send('shared/request', [{guid: requestGuid, name, args}])
