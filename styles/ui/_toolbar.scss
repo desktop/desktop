@@ -9,10 +9,6 @@
 }
 
 /** A React component holding the tab bar */
-.segmented-control {
-  font-size: var(--font-size);
-}
-
 .segmented-control-item {
   border: 1px solid var(--text-color);
   padding: 5px 20px;
@@ -24,9 +20,9 @@
   &:last-child {
     border-radius: 0px var(--border-radius) var(--border-radius) 0px;
   }
-}
 
-.segmented-control-item-selected {
-  background-color: var(--dark-gray);
-  color: var(--background-color);
+  &-selected {
+    background-color: var(--dark-gray);
+    color: var(--background-color);
+  }
 }
