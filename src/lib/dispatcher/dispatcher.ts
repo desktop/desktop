@@ -59,6 +59,11 @@ export class Dispatcher {
       } else {
         const errorInfo = (response as IError).error
         const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack)
+        if (__DEV__) {
+          console.error(`Error from IPC in response to ${name}:`)
+          console.error(error)
+        }
+
         reject(error)
       }
     })
