@@ -7,6 +7,20 @@ import {AppState} from '../app-state'
 import {Action} from './actions'
 
 /**
+ * Extend Error so that we can create new Errors with a callstack different from
+ * the callsite.
+ */
+class IPCError extends Error {
+  public message: string
+  public stack: string
+
+  public constructor(name: string, message: string, stack: string) {
+    super(name)
+    this.name = name
+    this.message = message
+    this.stack = stack
+  }
+}
 
 interface IResult<T> {
   type: 'result'
@@ -20,6 +34,7 @@ interface IError {
 
 type IPCResponse<T> = IResult<T> | IError
 
+/**
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
  * decouples the consumer of state from where/how it is stored.
  */
@@ -42,7 +57,8 @@ export class Dispatcher {
       if (response.type === 'result') {
         resolve((response as IResult<T>).result)
       } else {
-        const error = (response as IError).error
+        const errorInfo = (response as IError).error
+        const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack)
         reject(error)
       }
     })
