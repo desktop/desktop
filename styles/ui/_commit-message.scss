@@ -2,7 +2,7 @@
 
 /** A React component holding the commit message entry */
 #commit-message {
-  border-top: 1px solid #ccc;
+  border-top: 1px solid var(--input-border-color);
   flex-direction: row;
   margin-top: auto;
 }
@@ -15,17 +15,6 @@
 
 .commit-form-avatar {
   border-radius: var(--border-radius);
-}
-
-.commit-form-textarea {
-  border: 1px solid var(--form-border-color);
-  border-radius: var(--border-radius);
-  color: currentColor;
-  display: block;
-  font-size: var(--font-size);
-  min-height: 100px;
-  padding: var(--padding);
-  width: 100%;
 }
 
 .commit-form-submit-button {
