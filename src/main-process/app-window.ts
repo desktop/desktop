@@ -49,7 +49,7 @@ export default class AppWindow {
   }
 
   public load() {
-    let startLoad: number = null
+    let startLoad = 0
     this.window.webContents.on('did-start-loading', () => {
       startLoad = Date.now()
     })
