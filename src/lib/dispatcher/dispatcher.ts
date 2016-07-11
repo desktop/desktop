@@ -7,6 +7,19 @@ import {AppState} from '../app-state'
 import {Action} from './actions'
 
 /**
+
+interface IResult<T> {
+  type: 'result'
+  result: T
+}
+
+interface IError {
+  type: 'error'
+  error: Error
+}
+
+type IPCResponse<T> = IResult<T> | IError
+
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
  * decouples the consumer of state from where/how it is stored.
  */
@@ -17,13 +30,21 @@ export class Dispatcher {
 
   private send<T>(name: string, args: Object): Promise<T> {
     let resolve: (value: T) => void = null
-    const promise = new Promise<T>((_resolve, reject) => {
+    let reject: (error: Error) => void = null
+    const promise = new Promise<T>((_resolve, reject_) => {
       resolve = _resolve
+      reject = reject_
     })
 
     const requestGuid = guid()
     ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
-      resolve(args[0] as T)
+      const response: IPCResponse<T> = args[0]
+      if (response.type === 'result') {
+        resolve((response as IResult<T>).result)
+      } else {
+        const error = (response as IError).error
+        reject(error)
+      }
     })
 
     ipcRenderer.send('shared/request', [{guid: requestGuid, name, args}])
