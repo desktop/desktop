@@ -10,6 +10,8 @@
 
 /** A React component holding the tab bar */
 .segmented-control-item {
+  --border-radius: 5px;
+
   border: 1px solid var(--text-color);
   padding: 5px 20px;
 
