@@ -6,13 +6,4 @@
   flex-direction: column;
   height: 34px;
   align-items: center;
-
-  border-style: solid;
-
-  /** A React component holding the tab bar */
-  #tab-bar {
-    .selected {
-      font-weight: bolder;
-    }
-  }
 }
