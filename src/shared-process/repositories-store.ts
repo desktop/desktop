@@ -2,7 +2,7 @@ import Database, {DatabaseGitHubRepository} from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
 import Repository from '../models/repository'
-import assert from '../lib/assert'
+import fatalError from '../lib/fatal-error'
 
 // NB: We can't use async/await within Dexie transactions. This is because Dexie
 // uses its own Promise implementation and TypeScript doesn't know about it. See
@@ -70,12 +70,12 @@ export default class RepositoriesStore {
   public async updateGitHubRepository(repository: Repository): Promise<void> {
     const repoID = repository.getID()
     if (!repoID) {
-      return assert('`updateGitHubRepository` can only update a GitHub repository for a repository which has been added to the database.')
+      return fatalError('`updateGitHubRepository` can only update a GitHub repository for a repository which has been added to the database.')
     }
 
     const newGitHubRepo = repository.getGitHubRepository()
     if (!newGitHubRepo) {
-      return assert('`updateGitHubRepository` can only update a GitHub repository. It cannot remove one.')
+      return fatalError('`updateGitHubRepository` can only update a GitHub repository. It cannot remove one.')
     }
 
     const db = this.db
@@ -87,7 +87,7 @@ export default class RepositoriesStore {
       if (localRepo.gitHubRepositoryID) {
         existingGitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)
         if (!existingGitHubRepo) {
-          return assert(`Couldn't look up an existing GitHub repository.`)
+          return fatalError(`Couldn't look up an existing GitHub repository.`)
         }
 
         const owner = yield db.owners.get(existingGitHubRepo.ownerID)
