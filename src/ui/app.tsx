@@ -161,7 +161,7 @@ export default class App extends React.Component<AppProps, AppState> {
     this.refreshRepositoryAtRow(row)
   }
 
-  private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository> {
+  private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
     const gitRepo = GitRepository.open(repository.getPath())
     // TODO: This is all kinds of wrong. We shouldn't assume the remote is named
     // `origin`.

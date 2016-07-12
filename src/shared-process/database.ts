@@ -4,13 +4,13 @@ import Dexie from 'dexie'
 const DatabaseVersion = 1
 
 export interface DatabaseOwner {
-  id?: number
+  id?: number | null
   login: string
   endpoint: string
 }
 
 export interface DatabaseGitHubRepository {
-  id?: number
+  id?: number | null
   ownerID: number
   name: string
   private?: boolean
@@ -19,8 +19,8 @@ export interface DatabaseGitHubRepository {
 }
 
 export interface DatabaseRepository {
-  id?: number
-  gitHubRepositoryID?: number
+  id?: number | null
+  gitHubRepositoryID?: number | null
   path: string
 }
 

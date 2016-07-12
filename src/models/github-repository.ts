@@ -14,16 +14,16 @@ export interface IGitHubRepository {
 export default class GitHubRepository {
   private name: string
   private owner: Owner
-  private private: boolean
-  private fork: boolean
-  private htmlURL: string
+  private private: boolean | null
+  private fork: boolean | null
+  private htmlURL: string | null
 
   /** Create a new GitHubRepository from its data-only representation. */
   public static fromJSON(json: IGitHubRepository): GitHubRepository {
     return new GitHubRepository(json.name, Owner.fromJSON(json.owner), json.private, json.fork, json.htmlURL)
   }
 
-  public constructor(name: string, owner: Owner, private_?: boolean, fork?: boolean, htmlURL?: string) {
+  public constructor(name: string, owner: Owner, private_: boolean | null = null, fork: boolean | null = null, htmlURL: string | null = null) {
     this.name = name
     this.owner = owner
     this.private = private_
@@ -48,15 +48,15 @@ export default class GitHubRepository {
     return this.owner.getEndpoint()
   }
 
-  public getPrivate(): boolean {
+  public getPrivate(): boolean | null {
     return this.private
   }
 
-  public getFork(): boolean {
+  public getFork(): boolean | null {
     return this.fork
   }
 
-  public getHTMLURL(): string {
+  public getHTMLURL(): string | null {
     return this.htmlURL
   }
 

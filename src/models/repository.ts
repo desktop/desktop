@@ -13,9 +13,9 @@ export interface IRepository {
  * A local repository.
  */
 export default class Repository {
-  private id: number
+  private id: number | null
   private path: string
-  private gitHubRepository: GitHubRepository
+  private gitHubRepository: GitHubRepository | null
 
   /** Create a new Repository from a data-only representation. */
   public static fromJSON(json: IRepository): Repository {
@@ -27,7 +27,7 @@ export default class Repository {
     }
   }
 
-  public constructor(path: string, gitHubRepository?: GitHubRepository, id?: number) {
+  public constructor(path: string, gitHubRepository: GitHubRepository | null = null, id: number | null = null) {
     this.path = path
     this.gitHubRepository = gitHubRepository
     this.id = id
@@ -46,7 +46,7 @@ export default class Repository {
     return new Repository(this.path, gitHubRepository, this.id)
   }
 
-  public getGitHubRepository(): GitHubRepository {
+  public getGitHubRepository(): GitHubRepository | null {
     return this.gitHubRepository
   }
 
@@ -58,7 +58,7 @@ export default class Repository {
     return path.basename(this.path)
   }
 
-  public getID(): number {
+  public getID(): number | null {
     return this.id
   }
 }

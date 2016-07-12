@@ -2,6 +2,7 @@ import Database, {DatabaseGitHubRepository} from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
 import Repository from '../models/repository'
+import assert from '../lib/assert'
 
 // NB: We can't use async/await within Dexie transactions. This is because Dexie
 // uses its own Promise implementation and TypeScript doesn't know about it. See
@@ -26,7 +27,7 @@ export default class RepositoriesStore {
     const transaction = this.db.transaction('r', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*(){
       const repos = yield db.repositories.toArray()
       for (const repo of repos) {
-        let inflatedRepo: Repository = null
+        let inflatedRepo: Repository | null = null
         if (repo.gitHubRepositoryID) {
           const gitHubRepository = yield db.gitHubRepositories.get(repo.gitHubRepositoryID)
           const owner = yield db.owners.get(gitHubRepository.ownerID)
@@ -47,7 +48,7 @@ export default class RepositoriesStore {
   /** Add a new local repository. */
   public async addRepository(repo: Repository): Promise<Repository> {
     const db = this.db
-    let id: number = null
+    let id = -1
     const transaction = this.db.transaction('rw', this.db.repositories, function*() {
       id = yield db.repositories.add({
         path: repo.getPath(),
@@ -67,15 +68,27 @@ export default class RepositoriesStore {
 
   /** Update or add the repository's GitHub repository. */
   public async updateGitHubRepository(repository: Repository): Promise<void> {
+    const repoID = repository.getID()
+    if (!repoID) {
+      return assert('`updateGitHubRepository` can only update a GitHub repository for a repository which has been added to the database.')
+    }
+
+    const newGitHubRepo = repository.getGitHubRepository()
+    if (!newGitHubRepo) {
+      return assert('`updateGitHubRepository` can only update a GitHub repository. It cannot remove one.')
+    }
+
     const db = this.db
     const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
-      const localRepo = yield db.repositories.get(repository.getID())
-      const newGitHubRepo = repository.getGitHubRepository()
+      const localRepo = yield db.repositories.get(repoID)
 
-      let existingGitHubRepo: DatabaseGitHubRepository = null
-      let ownerID: number = null
+      let existingGitHubRepo: DatabaseGitHubRepository | null = null
+      let ownerID: number | null = null
       if (localRepo.gitHubRepositoryID) {
         existingGitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)
+        if (!existingGitHubRepo) {
+          return assert(`Couldn't look up an existing GitHub repository.`)
+        }
 
         const owner = yield db.owners.get(existingGitHubRepo.ownerID)
         ownerID = owner.id

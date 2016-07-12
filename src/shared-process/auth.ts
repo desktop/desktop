@@ -4,6 +4,7 @@ const {app} = remote
 import guid from '../lib/guid'
 import User from '../models/user'
 import {getDotComAPIEndpoint} from '../lib/api'
+import assert from '../lib/assert'
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
 const ClientSecret = '4b35aab1581a32e23af0d930f2a294ae3bb84960'
@@ -18,9 +19,13 @@ interface AuthState {
   oAuthState: string
   endpoint: string
 }
-let authState: AuthState = null
+let authState: AuthState | null = null
 
 export async function requestToken(code: string): Promise<string> {
+  if (!authState) {
+    return assert('`askUserToAuth` must be called before requesting a token.')
+  }
+
   const urlBase = getOAuthURL(authState.endpoint)
   const response = await fetch(`${urlBase}/login/oauth/access_token`, {
     method: 'post',

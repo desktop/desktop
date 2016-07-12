@@ -9,8 +9,8 @@ import ComparisonGraph from './comparison-graph'
 import {TabBarTab} from './toolbar/tab-bar'
 
 interface RepositoryProps {
-  repo: Repo,
-  user: User
+  repo: Repo
+  user: User | null
 }
 
 interface RepositoryState {
