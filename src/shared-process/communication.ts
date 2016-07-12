@@ -30,11 +30,21 @@ function dispatch(message: Message) {
   const guid = message.guid
   const args = message.args
   const promise = fn(args)
-  promise.then(result => {
-    BrowserWindow.getAllWindows().forEach(window => {
-      window.webContents.send(`shared/response/${guid}`, [result])
+  promise
+    .then(result => ({result, type: 'result'}))
+    .catch((error: Error) => {
+      const errorInfo = {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      }
+      return {error: errorInfo, type: 'error'}
     })
-  })
+    .then(response => {
+      BrowserWindow.getAllWindows().forEach(window => {
+        window.webContents.send(`shared/response/${guid}`, [response])
+      })
+    })
 }
 
 /** Register a function to respond to requests with the given name. */
