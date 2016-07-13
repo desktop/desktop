@@ -5,8 +5,8 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-addons-test-utils'
 
-import App from '../src/app'
-import Dispatcher from '../src/dispatcher'
+import App from '../src/ui/app'
+import {Dispatcher} from '../src/lib/dispatcher'
 import InMemoryDispatcher from './in-memory-dispatcher'
 
 describe('App', () => {

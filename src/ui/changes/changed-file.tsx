@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import {FileStatus} from './models/status'
+import {FileStatus} from '../../models/status'
 
 interface ChangedFileProps {
   path: string,

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {ThrottledScheduler} from '../lib/throttled-scheduler'
+import {ThrottledScheduler} from './lib/throttled-scheduler'
 
 interface ISidebarProps extends React.Props<Sidebar> {
   /**
@@ -14,9 +14,9 @@ interface ISidebarProps extends React.Props<Sidebar> {
   defaultWidth?: number
 
   /** The maximum width the sidebar can be resized to.
-  *
-  * @default 400
-  */
+   *
+   * @default 400
+   */
   maximumWidth?: number
 
   /**

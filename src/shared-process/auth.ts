@@ -3,6 +3,7 @@ const {app} = remote
 
 import guid from '../lib/guid'
 import User from '../models/user'
+import {getDotComAPIEndpoint} from '../lib/api'
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
 const ClientSecret = '4b35aab1581a32e23af0d930f2a294ae3bb84960'
@@ -41,17 +42,13 @@ function getOAuthAuthorizationURL(authState: AuthState): string {
 }
 
 function getOAuthURL(endpoint: string): string {
-  if (endpoint === getDotComEndpoint()) {
+  if (endpoint === getDotComAPIEndpoint()) {
     // GitHub.com is A Special Snowflake in that the API lives at a subdomain
     // but OAuth lives on the parent domain.
     return 'https://github.com'
   } else {
     return endpoint
   }
-}
-
-export function getDotComEndpoint(): string {
-  return 'https://api.github.com'
 }
 
 export function askUserToAuth(endpoint: string) {

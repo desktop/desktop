@@ -1,10 +1,10 @@
 import * as React from 'react'
 
-import User from './models/user'
-import Repository from './models/repository'
-import { WorkingDirectoryStatus, WorkingDirectoryFileChange} from './models/status'
+import User from '../../models/user'
+import Repository from '../../models/repository'
+import { WorkingDirectoryStatus, WorkingDirectoryFileChange} from '../../models/status'
 
-import LocalGitOperations from './lib/local-git-operations'
+import LocalGitOperations from '../../lib/local-git-operations'
 
 import ChangedFile from './changed-file'
 import CommitForm from './commit-form'
