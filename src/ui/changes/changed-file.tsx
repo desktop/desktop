@@ -13,7 +13,7 @@ interface ChangedFileState {
 }
 
 /** a changed file in the working directory for a given repository */
-export default class ChangedFile extends React.Component<ChangedFileProps, ChangedFileState> {
+export class ChangedFile extends React.Component<ChangedFileProps, ChangedFileState> {
 
   private static mapStatus(status: FileStatus): string {
     if (status === FileStatus.New) { return 'New' }

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import ChangesList from './changes-list'
+import { ChangesList } from './changes-list'
 import FileDiff from '../file-diff'
 
 import Repository from '../../models/repository'
@@ -10,7 +10,7 @@ interface ChangesProps {
 
 /** TODO: handle "repository not found" scenario */
 
-export default class Changes extends React.Component<ChangesProps, void> {
+export class Changes extends React.Component<ChangesProps, void> {
 
   public constructor(props: ChangesProps) {
     super(props)

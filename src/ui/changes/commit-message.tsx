@@ -8,7 +8,7 @@ interface CommitMessageState {
   title: string
 }
 
-export default class CommitMessage extends React.Component<CommitMessageProps, CommitMessageState> {
+export class CommitMessage extends React.Component<CommitMessageProps, CommitMessageState> {
 
   public constructor(props: CommitMessageProps) {
     super(props)

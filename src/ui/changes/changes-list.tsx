@@ -1,12 +1,11 @@
 import * as React from 'react'
-import CommitMessage from './commit-message'
-import ChangedFile from './changed-file'
+import { CommitMessage } from './commit-message'
+import { ChangedFile } from './changed-file'
 
 import Repository from '../../models/repository'
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange} from '../../models/status'
 
-
-import LocalGitOperations from '../../lib/local-git-operations'
+import { LocalGitOperations } from '../../lib/local-git-operations'
 
 interface ChangesListProps {
   repository: Repository
@@ -16,7 +15,7 @@ interface ChangesListState {
   workingDirectory: WorkingDirectoryStatus
 }
 
-export default class ChangesList extends React.Component<ChangesListProps, ChangesListState> {
+export class ChangesList extends React.Component<ChangesListProps, ChangesListState> {
 
   public constructor(props: ChangesListProps) {
     super(props)

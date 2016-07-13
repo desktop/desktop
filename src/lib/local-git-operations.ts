@@ -40,7 +40,7 @@ export class StatusResult {
 /**
  * Interactions with a local Git repository
  */
-export default class LocalGitOperations {
+export class LocalGitOperations {
 
    /**
     *  Retrieve the status for a given repository,
