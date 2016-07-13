@@ -88,25 +88,28 @@ export default class LocalGitOperations {
   private static execGitCommand(args: string[], path: string): Promise<void> {
     return new Promise<void>(function(resolve, reject) {
       const gitLocation = LocalGitOperations.resolveGit()
-      const exists = fs.statSync(gitLocation)
+      fs.stat(gitLocation, function (err, result) {
 
-      if (!exists) {
-        reject(new Error('Git does not exist at location: ' + gitLocation))
-        return
-      }
-
-      const formatArgs = 'executing: git ' + args.join(' ')
-
-      cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
         if (err) {
-          console.error(formatArgs)
           reject(err)
           return
         }
 
-        console.log(formatArgs)
-        resolve()
+        const formatArgs = 'executing: git ' + args.join(' ')
+
+        cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
+          if (err) {
+            console.error(formatArgs)
+            reject(err)
+            return
+          }
+
+          console.log(formatArgs)
+          resolve()
+        })
+
       })
+
   })
 }
 
