@@ -6,7 +6,7 @@ import * as path from 'path'
 import * as fs from 'fs'
 import * as cp from 'child_process'
 
-/** The encapsulation of a 'git status' command */
+/** The encapsulation of the result from 'git status' */
 export class StatusResult {
   private exists: boolean
   private workingDirectory: WorkingDirectoryStatus
@@ -26,10 +26,12 @@ export class StatusResult {
     this.workingDirectory = workingDirectory
   }
 
+  /** true if the repository exists at the given location */
   public getExists(): boolean {
     return this.exists
   }
 
+  /** the absolute path to the repository's working directory */
   public getWorkingDirectory(): WorkingDirectoryStatus {
     return this.workingDirectory
   }
@@ -109,43 +111,41 @@ export default class LocalGitOperations {
         })
 
       })
-
-  })
-}
+    })
+  }
 
   public static async createCommit(repository: Repository, title: string, files: WorkingDirectoryFileChange[]) {
+    // reset the index
+    await this.execGitCommand([ 'reset', 'HEAD', '--mixed' ], repository.getPath())
 
-     // reset the index
-     await this.execGitCommand([ 'reset', 'HEAD', '--mixed' ], repository.getPath())
+    // stage each of the files
+    // TODO: staging hunks needs to be done in here as well
+    await files.map(async (file, index, array) => {
+      await this.execGitCommand([ 'add', '-u', file.getPath() ], repository.getPath())
+    })
 
-     // stage each of the files
-     // TODO: staging hunks needs to be done in here as well
-     await files.map(async (file, index, array) => {
-        await this.execGitCommand([ 'add', '-u', file.getPath() ], repository.getPath())
-     })
+    // TODO: sanitize this input
+    await this.execGitCommand([ 'commit', '-m', title ] , repository.getPath())
+  }
 
-     // TODO: sanitize this input
-     await this.execGitCommand([ 'commit', '-m', title ] , repository.getPath())
-   }
-
-    private static mapStatus(repo: ohnogit, status: number): FileStatus {
-      if (repo.isStatusIgnored(status)) {
-        return FileStatus.Ignored
-      }
-
-      if (repo.isStatusDeleted(status)) {
-        return FileStatus.Deleted
-      }
-
-      if (repo.isStatusModified(status)) {
-        return FileStatus.Modified
-      }
-
-      if (repo.isStatusNew(status)) {
-        return FileStatus.New
-      }
-
-      console.log('Unknown file status encountered: ' + status)
-      return FileStatus.Unknown
+  private static mapStatus(repo: ohnogit, status: number): FileStatus {
+    if (repo.isStatusIgnored(status)) {
+      return FileStatus.Ignored
     }
+
+    if (repo.isStatusDeleted(status)) {
+      return FileStatus.Deleted
+    }
+
+    if (repo.isStatusModified(status)) {
+      return FileStatus.Modified
+    }
+
+    if (repo.isStatusNew(status)) {
+      return FileStatus.New
+    }
+
+    console.log('Unknown file status encountered: ' + status)
+    return FileStatus.Unknown
+  }
 }
