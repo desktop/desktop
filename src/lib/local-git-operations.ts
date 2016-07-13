@@ -95,14 +95,16 @@ export default class LocalGitOperations {
         return
       }
 
-      console.log('executing: git ' + args.join(' '))
+      const formatArgs = 'executing: git ' + args.join(' ')
 
       cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
         if (err) {
+          console.error(formatArgs)
           reject(err)
           return
         }
 
+        console.log(formatArgs)
         resolve()
       })
   })
