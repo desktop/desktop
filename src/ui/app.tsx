@@ -163,7 +163,7 @@ export default class App extends React.Component<AppProps, AppState> {
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
-    const gitRepo = GitRepository.open(repository.getPath())
+    const gitRepo = GitRepository.open(repository.path)
     // TODO: This is all kinds of wrong. We shouldn't assume the remote is named
     // `origin`.
     const remote = await gitRepo.getConfigValue('remote.origin.url')
@@ -173,7 +173,7 @@ export default class App extends React.Component<AppProps, AppState> {
   }
 
   private async refreshGitHubRepositoryInfo(repository: Repository): Promise<void> {
-    let gitHubRepository = repository.getGitHubRepository()
+    let gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       gitHubRepository = await this.guessGitHubRepository(repository)
     }
@@ -181,11 +181,11 @@ export default class App extends React.Component<AppProps, AppState> {
     if (!gitHubRepository) { return Promise.resolve() }
 
     const users = this.state.users
-    const user = getUserForEndpoint(users, gitHubRepository.getEndpoint())
+    const user = getUserForEndpoint(users, gitHubRepository.endpoint)
     if (!user) { return Promise.resolve() }
 
     const api = new API(user)
-    const apiRepo = await api.fetchRepository(gitHubRepository.getOwner().getLogin(), gitHubRepository.getName())
+    const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
 
     const updatedRepository = repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
     this.props.dispatcher.updateGitHubRepository(updatedRepository)

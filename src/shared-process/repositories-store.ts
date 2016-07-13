@@ -51,7 +51,7 @@ export default class RepositoriesStore {
     let id = -1
     const transaction = this.db.transaction('rw', this.db.repositories, function*() {
       id = yield db.repositories.add({
-        path: repo.getPath(),
+        path: repo.path,
         gitHubRepositoryID: null,
       })
     })
@@ -59,7 +59,7 @@ export default class RepositoriesStore {
     await transaction
 
     const repoWithID = repo.withID(id)
-    if (repo.getGitHubRepository()) {
+    if (repo.gitHubRepository) {
       await this.updateGitHubRepository(repoWithID)
     }
 
@@ -68,12 +68,12 @@ export default class RepositoriesStore {
 
   /** Update or add the repository's GitHub repository. */
   public async updateGitHubRepository(repository: Repository): Promise<void> {
-    const repoID = repository.getID()
+    const repoID = repository.id
     if (!repoID) {
       return fatalError('`updateGitHubRepository` can only update a GitHub repository for a repository which has been added to the database.')
     }
 
-    const newGitHubRepo = repository.getGitHubRepository()
+    const newGitHubRepo = repository.gitHubRepository
     if (!newGitHubRepo) {
       return fatalError('`updateGitHubRepository` can only update a GitHub repository. It cannot remove one.')
     }
@@ -93,24 +93,24 @@ export default class RepositoriesStore {
         const owner = yield db.owners.get(existingGitHubRepo.ownerID)
         ownerID = owner.id
       } else {
-        const owner = newGitHubRepo.getOwner()
+        const owner = newGitHubRepo.owner
         let existingOwner = yield db.owners
           .where('login')
-          .equalsIgnoreCase(owner.getLogin())
+          .equalsIgnoreCase(owner.login)
           .limit(1)
           .first()
         if (existingOwner) {
           ownerID = existingOwner.id
         } else {
-          ownerID = yield db.owners.add({login: owner.getLogin(), endpoint: owner.getEndpoint()})
+          ownerID = yield db.owners.add({login: owner.login, endpoint: owner.endpoint})
         }
       }
 
       const info: any = {
-        private: newGitHubRepo.getPrivate(),
-        fork: newGitHubRepo.getFork(),
-        htmlURL: newGitHubRepo.getHTMLURL(),
-        name: newGitHubRepo.getName(),
+        private: newGitHubRepo.private,
+        fork: newGitHubRepo.fork,
+        htmlURL: newGitHubRepo.htmlURL,
+        name: newGitHubRepo.name,
         ownerID,
       }
 

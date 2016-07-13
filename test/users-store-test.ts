@@ -17,7 +17,7 @@ describe('UsersStore', () => {
       usersStore!.addUser(new User(newUserLogin, '', ''))
 
       const users = usersStore!.getUsers()
-      expect(users[0].getLogin()).to.equal(newUserLogin)
+      expect(users[0].login).to.equal(newUserLogin)
     })
   })
 })

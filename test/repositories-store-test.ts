@@ -23,7 +23,7 @@ describe('RepositoriesStore', () => {
       await repositoriesStore!.addRepository(new Repository(repoPath))
 
       const repositories = await repositoriesStore!.getRepositories()
-      expect(repositories[0].getPath()).to.equal(repoPath)
+      expect(repositories[0].path).to.equal(repoPath)
     })
   })
 
@@ -47,9 +47,9 @@ describe('RepositoriesStore', () => {
 
       const repositories = await repositoriesStore!.getRepositories()
       const repo = repositories[0]
-      expect(repo.getGitHubRepository()!.getPrivate()).to.equal(true)
-      expect(repo.getGitHubRepository()!.getFork()).to.equal(false)
-      expect(repo.getGitHubRepository()!.getHTMLURL()).to.equal('https://github.com/my-user/my-repo')
+      expect(repo.gitHubRepository!.private).to.equal(true)
+      expect(repo.gitHubRepository!.fork).to.equal(false)
+      expect(repo.gitHubRepository!.htmlURL).to.equal('https://github.com/my-user/my-repo')
     })
 
     it('updates an existing GitHub repository', async () => {
@@ -62,9 +62,9 @@ describe('RepositoriesStore', () => {
 
       const repositories = await repositoriesStore!.getRepositories()
       const repo = repositories[0]
-      expect(repo.getGitHubRepository()!.getPrivate()).to.equal(true)
-      expect(repo.getGitHubRepository()!.getFork()).to.equal(false)
-      expect(repo.getGitHubRepository()!.getHTMLURL()).to.equal('https://github.com/my-user/my-repo')
+      expect(repo.gitHubRepository!.private).to.equal(true)
+      expect(repo.gitHubRepository!.fork).to.equal(false)
+      expect(repo.gitHubRepository!.htmlURL).to.equal('https://github.com/my-user/my-repo')
     })
   })
 })

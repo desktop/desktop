@@ -4,18 +4,18 @@ import GitHubRepository, {IGitHubRepository} from './github-repository'
 
 /** The data-only interface for Repository for transport across IPC. */
 export interface IRepository {
-  id?: number
+  id?: number | null
   path: string
-  gitHubRepository: IGitHubRepository
+  gitHubRepository: IGitHubRepository | null
 }
 
 /**
  * A local repository.
  */
-export default class Repository {
-  private id: number | null
-  private path: string
-  private gitHubRepository: GitHubRepository | null
+export default class Repository implements IRepository {
+  public readonly id: number | null | undefined
+  public readonly path: string
+  public readonly gitHubRepository: GitHubRepository | null
 
   /** Create a new Repository from a data-only representation. */
   public static fromJSON(json: IRepository): Repository {
@@ -46,19 +46,7 @@ export default class Repository {
     return new Repository(this.path, gitHubRepository, this.id)
   }
 
-  public getGitHubRepository(): GitHubRepository | null {
-    return this.gitHubRepository
-  }
-
-  public getPath(): string {
-    return this.path
-  }
-
-  public getName(): string {
+  public get name(): string {
     return path.basename(this.path)
-  }
-
-  public getID(): number | null {
-    return this.id
   }
 }

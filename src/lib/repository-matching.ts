@@ -16,7 +16,7 @@ export function matchGitHubRepository(users: User[], remote: string): GitHubRepo
 }
 
 function matchRemoteWithUser(user: User, remote: string): GitHubRepository | null {
-  const htmlURL = getHTMLURL(user.getEndpoint())
+  const htmlURL = getHTMLURL(user.endpoint)
   const parsed = URL.parse(htmlURL)
   const host = parsed.hostname
 
@@ -37,7 +37,7 @@ function matchRemoteWithUser(user: User, remote: string): GitHubRepository | nul
     const login = result[1]
     const name = result[2]
     if (login && name) {
-      const owner = new Owner(login, user.getEndpoint())
+      const owner = new Owner(login, user.endpoint)
       return new GitHubRepository(name, owner)
     }
   }

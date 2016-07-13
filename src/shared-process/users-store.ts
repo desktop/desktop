@@ -19,7 +19,7 @@ export default class UsersStore {
   }
 
   public addUser(user: User) {
-    this.secureStore.setItem(getKeyForUser(user), user.getLogin(), user.getToken())
+    this.secureStore.setItem(getKeyForUser(user), user.login, user.token)
 
     this.users.push(user)
 
@@ -35,13 +35,13 @@ export default class UsersStore {
     const rawUsers: any[] = JSON.parse(raw)
     const usersWithTokens = rawUsers.map(user => {
       const userWithoutToken = new User(user.login, user.endpoint, '')
-      return userWithoutToken.userWithToken(this.secureStore.getItem(getKeyForUser(userWithoutToken), user.login))
+      return userWithoutToken.withToken(this.secureStore.getItem(getKeyForUser(userWithoutToken), user.login))
     })
     this.users = usersWithTokens
   }
 
   private save() {
-    const usersWithoutTokens = this.users.map(user => user.userWithToken(''))
+    const usersWithoutTokens = this.users.map(user => user.withToken(''))
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
   }
 }

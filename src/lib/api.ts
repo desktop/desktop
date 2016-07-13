@@ -27,7 +27,7 @@ export default class API {
   private client: any
 
   public constructor(user: User) {
-    this.client = new Octokat({token: user.getToken(), rootURL: user.getEndpoint()})
+    this.client = new Octokat({token: user.token, rootURL: user.endpoint})
   }
 
   /**
@@ -80,5 +80,5 @@ export function getDotComAPIEndpoint(): string {
 
 /** Get the user for the endpoint. */
 export function getUserForEndpoint(users: User[], endpoint: string): User {
-  return users.filter(u => u.getEndpoint() === endpoint)[0]
+  return users.filter(u => u.endpoint === endpoint)[0]
 }

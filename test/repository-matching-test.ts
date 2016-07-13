@@ -8,22 +8,22 @@ describe('Repository matching', () => {
   it('matches HTTPS URLs', () => {
     const users = [new User('alovelace', 'https://api.github.com', '')]
     const repo = matchGitHubRepository(users, 'https://github.com/someuser/somerepo.git')!
-    expect(repo.getName()).to.equal('somerepo')
-    expect(repo.getOwner().getLogin()).to.equal('someuser')
+    expect(repo.name).to.equal('somerepo')
+    expect(repo.owner.login).to.equal('someuser')
   })
 
   it('matches git URLs', () => {
     const users = [new User('alovelace', 'https://api.github.com', '')]
     const repo = matchGitHubRepository(users, 'git:github.com/someuser/somerepo.git')!
-    expect(repo.getName()).to.equal('somerepo')
-    expect(repo.getOwner().getLogin()).to.equal('someuser')
+    expect(repo.name).to.equal('somerepo')
+    expect(repo.owner.login).to.equal('someuser')
   })
 
   it('matches SSH URLs', () => {
     const users = [new User('alovelace', 'https://api.github.com', '')]
     const repo = matchGitHubRepository(users, 'git@github.com:someuser/somerepo.git')!
-    expect(repo.getName()).to.equal('somerepo')
-    expect(repo.getOwner().getLogin()).to.equal('someuser')
+    expect(repo.name).to.equal('somerepo')
+    expect(repo.owner.login).to.equal('someuser')
   })
 
   it(`doesn't match if there aren't any users with that endpoint`, () => {

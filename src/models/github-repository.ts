@@ -5,18 +5,18 @@ import {APIRepository} from '../lib/api'
 export interface IGitHubRepository {
   name: string
   owner: IOwner
-  private: boolean
-  fork: boolean
-  htmlURL: string
+  private: boolean | null
+  fork: boolean | null
+  htmlURL: string | null
 }
 
 /** A GitHub repository. */
-export default class GitHubRepository {
-  private name: string
-  private owner: Owner
-  private private: boolean | null
-  private fork: boolean | null
-  private htmlURL: string | null
+export default class GitHubRepository implements IGitHubRepository {
+  public readonly name: string
+  public readonly owner: Owner
+  public readonly private: boolean | null
+  public readonly fork: boolean | null
+  public readonly htmlURL: string | null
 
   /** Create a new GitHubRepository from its data-only representation. */
   public static fromJSON(json: IGitHubRepository): GitHubRepository {
@@ -36,32 +36,12 @@ export default class GitHubRepository {
     return new GitHubRepository(this.name, this.owner, apiRepository.private, apiRepository.fork, apiRepository.htmlUrl)
   }
 
-  public getName(): string {
-    return this.name
-  }
-
-  public getOwner(): Owner {
-    return this.owner
-  }
-
-  public getEndpoint(): string {
-    return this.owner.getEndpoint()
-  }
-
-  public getPrivate(): boolean | null {
-    return this.private
-  }
-
-  public getFork(): boolean | null {
-    return this.fork
-  }
-
-  public getHTMLURL(): string | null {
-    return this.htmlURL
+  public get endpoint(): string {
+    return this.owner.endpoint
   }
 
   /** Get the owner/name combo. */
-  public getFullName(): string {
-    return `${this.owner.getLogin()}/${this.name}`
+  public get fullName(): string {
+    return `${this.owner.login}/${this.name}`
   }
 }

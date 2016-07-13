@@ -8,7 +8,7 @@ describe('Repository', () => {
     it('uses the last path component as the name', async () => {
       const repoPath = '/some/cool/path'
       const repository = new Repository(repoPath)
-      expect(repository.getName()).to.equal('path')
+      expect(repository.name).to.equal('path')
     })
   })
 })

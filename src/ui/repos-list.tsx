@@ -19,19 +19,19 @@ export default class ReposList extends React.Component<ReposListProps, void> {
     const symbol = this.iconForRepo(repo)
 
     return (
-      <div className='repository-list-item' key={row.toString()} title={repo.getName()}>
+      <div className='repository-list-item' key={row.toString()} title={repo.name}>
         <Octicon symbol={symbol} />
-        <div className='name'>{repo.getName()}</div>
+        <div className='name'>{repo.name}</div>
       </div>
     )
   }
 
   private iconForRepo(repo: Repository): OcticonSymbol {
-    const gitHubRepo = repo.getGitHubRepository()
+    const gitHubRepo = repo.gitHubRepository
     if (!gitHubRepo) { return OcticonSymbol.repo }
 
-    if (gitHubRepo.getPrivate()) { return OcticonSymbol.lock }
-    if (gitHubRepo.getFork()) { return OcticonSymbol.repoForked }
+    if (gitHubRepo.private) { return OcticonSymbol.lock }
+    if (gitHubRepo.fork) { return OcticonSymbol.repoForked }
 
     return OcticonSymbol.repo
   }
