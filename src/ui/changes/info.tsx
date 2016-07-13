@@ -103,6 +103,8 @@ export default class Info extends React.Component<InfoProps, InfoState> {
   }
 
   public render() {
+
+
     const repo = this.props.selectedRepo
     if (!repo) {
       return this.renderNoSelection()
