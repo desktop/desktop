@@ -2,6 +2,7 @@
   --border-radius: 5px;
 
   border: 1px solid var(--text-color);
+  border-right-width: 0;
   padding: 5px 20px;
 
   &:first-child {
@@ -10,6 +11,7 @@
 
   &:last-child {
     border-radius: 0px var(--border-radius) var(--border-radius) 0px;
+    border-right-width: 1px;
   }
 
   &.selected {
