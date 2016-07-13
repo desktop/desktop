@@ -9,9 +9,7 @@ export interface IRepository {
   gitHubRepository: IGitHubRepository | null
 }
 
-/**
- * A local repository.
- */
+/** A local repository. */
 export default class Repository implements IRepository {
   public readonly id: number | null | undefined
   public readonly path: string

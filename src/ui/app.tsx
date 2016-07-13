@@ -107,8 +107,7 @@ export default class App extends React.Component<AppProps, AppState> {
     )
   }
 
-  /* Put the main application menu into a context menu for now (win only)
-   */
+  /** Put the main application menu into a context menu for now (win only) */
   private onContextMenu(e: React.MouseEvent) {
     if (process.platform === 'win32') {
       e.preventDefault()
