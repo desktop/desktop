@@ -28,8 +28,8 @@ export default class ChangedFile extends React.Component<ChangedFileProps, Chang
     this.state = { include: true }
   }
 
-  private handleChange(event: any) {
-    const include = event.target.checked
+  private handleChange(event: React.FormEvent) {
+    const include = (event.target as any).checked
     this.props.onIncludedChange(include)
     this.setState({ include })
   }
