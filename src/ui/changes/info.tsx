@@ -42,11 +42,11 @@ export default class Info extends React.Component<InfoProps, InfoState> {
     this.refresh(nextProps.selectedRepo)
   }
 
-  private handleIncludedChange(file: WorkingDirectoryFileChange, include: boolean) {
+  private onIncludedChange(file: WorkingDirectoryFileChange, include: boolean) {
     file.setIncluded(include)
   }
 
-  private handleCreateCommit(title: string) {
+  private onCreateCommit(title: string) {
     const files = this.state.workingDirectory.getFiles().filter(function(file, index, array) {
       return file.getIncluded() === true
     })
@@ -94,10 +94,10 @@ export default class Info extends React.Component<InfoProps, InfoState> {
           return <ChangedFile path={path}
                               status={file.getStatus()}
                               key={path}
-                              handleIncludedChange={include => this.handleIncludedChange(file, include)}/>
+                              onIncludedChange={include => this.onIncludedChange(file, include)}/>
         })}
         </ul>
-        <CommitForm onCreateCommit={title => this.handleCreateCommit(title)}  />
+        <CommitForm onCreateCommit={title => this.onCreateCommit(title)}  />
       </div>
     )
   }
