@@ -47,7 +47,7 @@ export class LocalGitOperations {
     *  and fail gracefully if the location is not a Git repository
     */
    public static async getStatus(repository: Repository): Promise<StatusResult> {
-      const path = repository.getPath()
+      const path = repository.path
       const repo = ohnogit.open(path)
 
       await repo.refreshStatus()
@@ -114,16 +114,16 @@ export class LocalGitOperations {
     // TODO: if repository is unborn, reset to empty tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904
 
     // reset the index
-    await this.execGitCommand([ 'reset', 'HEAD', '--mixed' ], repository.getPath())
+    await this.execGitCommand([ 'reset', 'HEAD', '--mixed' ], repository.path)
 
     // stage each of the files
     // TODO: staging hunks needs to be done in here as well
     await files.map(async (file, index, array) => {
-      await this.execGitCommand([ 'add', '-u', file.getPath() ], repository.getPath())
+      await this.execGitCommand([ 'add', '-u', file.getPath() ], repository.path)
     })
 
     // TODO: sanitize this input
-    await this.execGitCommand([ 'commit', '-m', title ] , repository.getPath())
+    await this.execGitCommand([ 'commit', '-m', title ] , repository.path)
   }
 
   private static mapStatus(repo: ohnogit, status: number): FileStatus {
