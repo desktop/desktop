@@ -13,7 +13,7 @@
   }
 
   &.selected {
-    background-color: var(--dark-gray);
-    color: var(--background-color);
+    background-color: var(--box-selected-background-color);
+    color: var(--box-selected-text-color);
   }
 }

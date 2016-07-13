@@ -21,12 +21,12 @@
   width: 100%;
 
   &.selected {
-    color: var(--list-item-selected-text-color);
-    background-color: var(--list-item-selected-background-color);
+    color: var(--box-selected-text-color);
+    background-color: var(--box-selected-background-color);
 
     &:focus {
-      color: var(--list-item-selected-active-text-color);
-      background-color: var(--list-item-selected-active-background-color);
+      color: var(--box-selected-active-text-color);
+      background-color: var(--box-selected-active-background-color);
     }
   }
 
