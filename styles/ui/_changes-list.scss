@@ -7,4 +7,15 @@
   flex: 1;
 
   border-style: solid;
+
+  overflow-y: scroll;
+}
+
+#changes-list ul {
+  list-style-type: none;
+}
+
+#changes-list li {
+  margin-left: -35px;
+  white-space: nowrap;
 }

@@ -3,7 +3,7 @@ import * as React from 'react'
 import User from '../models/user'
 import {default as Repo} from '../models/repository'
 import Toolbar from './toolbar'
-import Changes from './changes'
+import {Changes} from './changes'
 import History from './history'
 import ComparisonGraph from './comparison-graph'
 import {TabBarTab} from './toolbar/tab-bar'
@@ -45,7 +45,7 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
 
   private renderContent() {
     if (this.state.selectedTab === TabBarTab.Changes) {
-      return <Changes/>
+      return <Changes selectedRepo={this.props.repo}/>
     } else if (this.state.selectedTab === TabBarTab.History) {
       return <History/>
     } else {
