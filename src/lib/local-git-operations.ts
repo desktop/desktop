@@ -110,6 +110,9 @@ export class LocalGitOperations {
   }
 
   public static async createCommit(repository: Repository, title: string, files: WorkingDirectoryFileChange[]) {
+
+    // TODO: if repository is unborn, reset to empty tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904
+
     // reset the index
     await this.execGitCommand([ 'reset', 'HEAD', '--mixed' ], repository.getPath())
 
