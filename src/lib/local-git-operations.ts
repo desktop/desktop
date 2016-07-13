@@ -67,34 +67,60 @@ export default class LocalGitOperations {
       }
 
       return StatusResult.FromStatus(workingDirectory)
-   }
+  }
 
-   private static resolveGit(): string {
-     if (process.platform === 'darwin') {
-        return path.join(__dirname, 'git/bin/git')
-     } else if (process.platform === 'win32') {
-        return path.join(__dirname, 'git/cmd/git.exe')
-     } else {
-        throw new Error('Git not supported on platform: ' + process.platform)
-     }
-   }
+  /**
+   *  Find the path to the embedded Git environment
+   */
+  private static resolveGit(): string {
+    if (process.platform === 'darwin') {
+      return path.join(__dirname, 'git/bin/git')
+    } else if (process.platform === 'win32') {
+      return path.join(__dirname, 'git/cmd/git.exe')
+    } else {
+      throw new Error('Git not supported on platform: ' + process.platform)
+    }
+  }
 
-   public static createCommit(repository: Repository, title: string, files: WorkingDirectoryFileChange[]) {
-     const gitLocation = LocalGitOperations.resolveGit()
-     const exists = fs.statSync(gitLocation)
-     console.log('exists: ' + exists.isFile())
+  /**
+   *  Execute a command using the embedded Git environment
+   */
+  private static execGitCommand(args: string[], path: string): Promise<void> {
+    return new Promise<void>(function(resolve, reject) {
+      const gitLocation = LocalGitOperations.resolveGit()
+      const exists = fs.statSync(gitLocation)
+
+      if (!exists) {
+        reject(new Error('Git does not exist at location: ' + gitLocation))
+        return
+      }
+
+      console.log('executing: git ' + args.join(' '))
+
+      cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
+        if (err) {
+          reject(err)
+          return
+        }
+
+        resolve()
+      })
+  })
+}
+
+  public static async createCommit(repository: Repository, title: string, files: WorkingDirectoryFileChange[]) {
 
      // reset the index
-     cp.execFileSync(gitLocation, [ 'reset', 'HEAD', '--mixed' ] , { cwd: repository.getPath(), encoding: 'utf8' })
+     await this.execGitCommand([ 'reset', 'HEAD', '--mixed' ], repository.getPath())
 
      // stage each of the files
      // TODO: staging hunks needs to be done in here as well
-     files.map((file, index, array) => {
-        cp.execFileSync(gitLocation, [ 'add', '-u', file.getPath() ] , { cwd: repository.getPath() })
+     await files.map(async (file, index, array) => {
+        await this.execGitCommand([ 'add', '-u', file.getPath() ], repository.getPath())
      })
 
      // TODO: sanitize this input
-     cp.execFileSync(gitLocation, [ 'commit', '-m', title ] , { cwd: repository.getPath(), encoding: 'utf8' })
+     await this.execGitCommand([ 'commit', '-m', title ] , repository.getPath())
    }
 
     private static mapStatus(repo: ohnogit, status: number): FileStatus {

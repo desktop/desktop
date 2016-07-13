@@ -41,14 +41,14 @@ export default class ChangesList extends React.Component<ChangesListProps, Chang
     file.setIncluded(include)
   }
 
-  private onCreateCommit(title: string) {
+  private async onCreateCommit(title: string) {
     const files = this.state.workingDirectory.getFiles().filter(function(file, index, array) {
       return file.getIncluded() === true
     })
 
-    LocalGitOperations.createCommit(this.props.repository, title, files)
+    await LocalGitOperations.createCommit(this.props.repository, title, files)
 
-    this.refresh(this.props.repository)
+    await this.refresh(this.props.repository)
   }
 
   public render() {
