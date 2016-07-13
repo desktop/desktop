@@ -55,9 +55,9 @@ export class Dispatcher {
     ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
       const response: IPCResponse<T> = args[0]
       if (response.type === 'result') {
-        resolve!((response as IResult<T>).result)
+        resolve!(response.result)
       } else {
-        const errorInfo = (response as IError).error
+        const errorInfo = response.error
         const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
         if (__DEV__) {
           console.error(`Error from IPC in response to ${name}:`)

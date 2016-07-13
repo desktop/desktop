@@ -30,7 +30,3 @@ export default function parseURL(url: string): URLActionType {
     return {name: 'unknown', args: {}}
   }
 }
-
-export function isOAuthAction(action: URLActionType): action is OAuthAction {
-  return action.name === 'oauth'
-}
