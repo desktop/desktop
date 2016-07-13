@@ -41,6 +41,16 @@ export default class ChangesList extends React.Component<ChangesListProps, Chang
     file.setIncluded(include)
   }
 
+  private onCreateCommit(title: string) {
+    const files = this.state.workingDirectory.getFiles().filter(function(file, index, array) {
+      return file.getIncluded() === true
+    })
+
+    LocalGitOperations.createCommit(this.props.repository, title, files)
+
+    this.refresh(this.props.repository)
+  }
+
   public render() {
 
     const files = this.state.workingDirectory.getFiles()
@@ -55,7 +65,7 @@ export default class ChangesList extends React.Component<ChangesListProps, Chang
                               onIncludedChange={include => this.onIncludedChange(file, include)}/>
         })}
         </ul>
-        <CommitMessage/>
+        <CommitMessage onCreateCommit={title => this.onCreateCommit(title)}/>
       </div>
     )
   }
