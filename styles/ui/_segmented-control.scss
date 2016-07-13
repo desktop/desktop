@@ -16,9 +16,13 @@
       border-right-width: 1px;
     }
 
+    // We intentionally swap foreground and background here to create
+    // a more intense selected state. The segmented control is kind of
+    // a special snowflake in so far that it doesn't have an active
+    // selection state, just a selected one.
     &.selected {
-      background-color: var(--box-selected-background-color);
-      color: var(--box-selected-text-color);
+      background-color: var(--box-selected-text-color);
+      color: var(--box-selected-background-color);
     }
   }
 
