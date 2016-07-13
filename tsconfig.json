@@ -7,7 +7,6 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "strictNullChecks": true,
-    "noUnusedLocals": true,
     "sourceMap": true,
     "jsx": "react",
     "outDir": "./build/app"
