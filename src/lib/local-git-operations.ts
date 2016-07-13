@@ -60,7 +60,7 @@ export default class LocalGitOperations {
       const statuses = repo.getCachedPathStatuses()
       let workingDirectory = new WorkingDirectoryStatus()
 
-      for (let path in statuses) {
+      for (const path in statuses) {
          const result = statuses[path]
          const status = this.mapStatus(repo, result)
          if (status !== FileStatus.Ignored) {
