@@ -40,6 +40,11 @@
   --scroll-bar-thumb-background-color-active: rgba(0, 0, 0, 0.5);
 
   /**
+   * ..
+   */
+  --box-border-color: #5f717f;
+
+  /**
    * Background color for selected list items without keyboard focus
    */
   --box-selected-background-color: #f2f2f2;
@@ -50,6 +55,11 @@
   --box-selected-text-color: #5f717f;
 
   /**
+   * ..
+   */
+  --box-selected-border-color: #5f717f;
+
+  /**
    * Background color for selected list items with active keyboard focus
    */
   --box-selected-active-background-color: #c9510c;
@@ -58,6 +68,11 @@
    * Text color for selected list items with active keyboard focus
    */
   --box-selected-active-text-color: #f9f9f9;
+
+  /**
+   * ..
+   */
+  --box-selected-active-border-color: #5f717f;
 
   /** The height of the title bar area on Win32 platforms */
   --win32-title-bar-height: 30px;
