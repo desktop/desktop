@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {ipcRenderer} from 'electron'
-import {Repository as GitRepository} from 'ohnogit'
 
 import {Sidebar} from './sidebar'
 import ReposList from './repos-list'
@@ -13,6 +12,8 @@ import {Dispatcher} from '../lib/dispatcher'
 import Repository from '../models/repository'
 import {matchGitHubRepository} from '../lib/repository-matching'
 import API, {getUserForEndpoint} from '../lib/api'
+
+import {Repository as GitRepository} from 'ohnogit'
 
 interface AppState {
   selectedRow: number
