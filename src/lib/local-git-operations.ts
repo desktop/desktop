@@ -93,6 +93,7 @@ export default class LocalGitOperations {
         cp.execFileSync(gitLocation, [ 'add', '-u', file.getPath() ] , { cwd: repository.getPath() })
      })
 
+     // TODO: sanitize this input
      cp.execFileSync(gitLocation, [ 'commit', '-m', title ] , { cwd: repository.getPath(), encoding: 'utf8' })
    }
 
