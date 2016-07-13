@@ -41,11 +41,7 @@ export class WorkingDirectoryFileChange {
 /** the state of the working directory for a repository */
 export class WorkingDirectoryStatus {
 
-  private files: WorkingDirectoryFileChange[]
-
-  public constructor() {
-     this.files = new Array<WorkingDirectoryFileChange>()
-  }
+  private files: WorkingDirectoryFileChange[] = []
 
   public add(path: string, status: FileStatus): void {
     this.files.push(new WorkingDirectoryFileChange(path, status))
