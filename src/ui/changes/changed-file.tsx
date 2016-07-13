@@ -31,7 +31,7 @@ export default class ChangedFile extends React.Component<ChangedFileProps, Chang
   private handleChange(event: any) {
     const include = event.target.checked
     this.props.onIncludedChange(include)
-    this.setState({ include: include })
+    this.setState({ include })
   }
 
   public render() {
