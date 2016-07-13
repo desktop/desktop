@@ -1,21 +1,25 @@
-.segmented-control-item {
-  --border-radius: 5px;
+.segmented-control {
 
-  border: 1px solid var(--box-border-color);
-  border-right-width: 0;
-  padding: 5px 20px;
+  &-item {
+    --border-radius: 5px;
 
-  &:first-child {
-    border-radius: var(--border-radius) 0px 0px var(--border-radius);
+    border: 1px solid var(--box-border-color);
+    border-right-width: 0;
+    padding: 5px 20px;
+
+    &:first-child {
+      border-radius: var(--border-radius) 0px 0px var(--border-radius);
+    }
+
+    &:last-child {
+      border-radius: 0px var(--border-radius) var(--border-radius) 0px;
+      border-right-width: 1px;
+    }
+
+    &.selected {
+      background-color: var(--box-selected-background-color);
+      color: var(--box-selected-text-color);
+    }
   }
 
-  &:last-child {
-    border-radius: 0px var(--border-radius) var(--border-radius) 0px;
-    border-right-width: 1px;
-  }
-
-  &.selected {
-    background-color: var(--box-selected-background-color);
-    color: var(--box-selected-text-color);
-  }
 }
