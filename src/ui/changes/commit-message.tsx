@@ -33,12 +33,12 @@ export default class CommitMessage extends React.Component<CommitMessageProps, C
 
   public render() {
     return (
-      <form className='commit-form'>
+      <form className='commit-form' onSubmit={event => event.stopPropagation()}>
         <input type='text'
                placeholder='Commit Title...'
                value={this.state.title}
                onChange={event => this.handleTitleChange(event) } />
-        <input type='button' value='Commit' onClick={event => this.handleSubmit(event)} />
+        <input type='submit' value='Commit' onClick={event => this.handleSubmit(event)} />
       </form>
     )
   }
