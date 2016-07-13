@@ -50,12 +50,7 @@ export class LocalGitOperations {
       const path = repository.getPath()
       const repo = ohnogit.open(path)
 
-      try {
-        await repo.refreshStatus()
-      } catch (e) {
-        console.log(e)
-        return StatusResult.NotFound()
-      }
+      await repo.refreshStatus()
 
       const statuses = repo.getCachedPathStatuses()
       let workingDirectory = new WorkingDirectoryStatus()

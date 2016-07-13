@@ -30,6 +30,12 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
       .then(result => this.setState({
         workingDirectory: result.getWorkingDirectory()
       }))
+      .catch(rejected => {
+        console.error(rejected)
+        this.setState({
+         workingDirectory: new WorkingDirectoryStatus()
+       })
+    })
   }
 
   public componentWillReceiveProps(nextProps: ChangesListProps) {
