@@ -47,8 +47,9 @@ export class CommitMessage extends React.Component<CommitMessageProps, CommitMes
             alt='avatar' />
 
           <div className='media-body'>
-            <input type='text' className='full-width' />
-            <textarea className='full-width'></textarea>
+            <input type='text' className='full-width'
+              placeholder="Summary" />
+            <textarea className='full-width' placeholder="Description"></textarea>
             <button className='btn'>Commit changes</button>
           </div>
         </form>
