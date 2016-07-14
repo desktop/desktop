@@ -19,9 +19,18 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
     this.state = {files: new Array<IFileStatus>()}
   }
 
-  public async componentDidMount() {
-    console.log('mount!!')
-    const files = await LocalGitOperations.getChangedFiles(this.props.repository, this.props.commit.sha)
+  public componentDidMount() {
+    this.update(this.props)
+  }
+
+  public componentWillReceiveProps(nextProps: ICommitSummaryProps) {
+    this.update(nextProps)
+  }
+
+  private async update(props: ICommitSummaryProps) {
+    this.setState({files: new Array<IFileStatus>()})
+
+    const files = await LocalGitOperations.getChangedFiles(props.repository, props.commit.sha)
     this.setState({files})
   }
 
@@ -33,9 +42,10 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
     return (
       <div>
         <div>{this.props.commit.summary}</div>
+        <div>&nbsp;</div>
         <div>{this.props.commit.body}</div>
         <ul>
-          {this.state.files.map(f => <li>f.name</li>)}
+          {this.state.files.map(f => <li key={f.name}>{f.name}</li>)}
         </ul>
       </div>
     )
