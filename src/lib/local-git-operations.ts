@@ -138,15 +138,15 @@ export class LocalGitOperations {
         })
         .catch(error => {
           if (error) {
-            // TODO: casting to GitError here doesn't let me access
-            //       the necessary functions - but I can get to the field
-            //       directly so wtf?
-            const code = error.errorCode
-            if (code === NotFoundErrorCode) {
-              return StatusResult.NotFound()
-            }
-            throw new Error('unable to resolve HEAD, got error code: ' + code)
-          }
+            const gitError = error as GitError
+            if (gitError) {
+                const code = gitError.errorCode
+                if (code === NotFoundErrorCode) {
+                  return false
+                }
+                throw new Error('unable to resolve HEAD, got error code: ' + code)
+              }
+           }
 
           throw new Error('unable to resolve status, got unknown error: ' + error)
         })
