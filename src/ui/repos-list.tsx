@@ -17,9 +17,14 @@ export default class ReposList extends React.Component<ReposListProps, void> {
   private renderRow(row: number): JSX.Element {
     const repo = this.props.repos[row]
     const symbol = this.iconForRepo(repo)
+    const repoPath = repo.path
+    const gitHubRepo = repo.gitHubRepository
+    const tooltip = gitHubRepo
+      ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + repoPath
+      : repoPath
 
     return (
-      <div className='repository-list-item' key={row.toString()} title={repo.name}>
+      <div className='repository-list-item' key={row.toString()} title={tooltip}>
         <Octicon symbol={symbol} />
         <div className='name'>{repo.name}</div>
       </div>
