@@ -110,16 +110,20 @@ textarea {
 }
 
 .btn {
-  background-color: #fff;
-  color: #333;
+  background-color: var(--button-background);
+  box-shadow: 0 1px 1px rgba(5, 5, 5, 0.04);
+  color: var(--text-color);
   padding: 5px 10px;
   border: 1px solid #ccc;
   border-radius: 3px;
   font-size: 12px;
-  font-weight: 600;
   margin-top: 10px;
 
   &:hover {
-    background-color: #eee;
+    background-color: var(--button-hover-background);
+  }
+
+  &:active {
+    box-shadow: inset 0 0 1px rgba(5, 5, 5, 0.15);
   }
 }
