@@ -22,7 +22,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
               itemHeight={44}
               selectedRow={this.props.selectedRow}
               renderItem={row => this.renderCommit(row)}
-              onSelectionChanged={row => this.props.onSelectionChanged}/>
+              onSelectionChanged={row => this.props.onSelectionChanged(row)}/>
       </div>
     )
   }
