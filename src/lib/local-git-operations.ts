@@ -253,7 +253,7 @@ export class LocalGitOperations {
       .then(resetArgs => {
         // reset the index
         return this.execGitCommand(resetArgs, repository.path)
-          .then(() => {
+          .then(_ => {
             // TODO: staging hunks needs to be done in here as well
             const addFiles = files.map((file, index, array) => {
 
