@@ -11,8 +11,8 @@ import {Action} from './actions'
  * the callsite.
  */
 class IPCError extends Error {
-  public message: string
-  public stack: string
+  public readonly message: string
+  public readonly stack: string
 
   public constructor(name: string, message: string, stack: string) {
     super(name)
@@ -24,12 +24,12 @@ class IPCError extends Error {
 
 interface IResult<T> {
   type: 'result'
-  result: T
+  readonly result: T
 }
 
 interface IError {
   type: 'error'
-  error: Error
+  readonly error: Error
 }
 
 type IPCResponse<T> = IResult<T> | IError
@@ -44,27 +44,27 @@ export class Dispatcher {
   }
 
   private send<T>(name: string, args: Object): Promise<T> {
-    let resolve: (value: T) => void = null
-    let reject: (error: Error) => void = null
-    const promise = new Promise<T>((_resolve, reject_) => {
+    let resolve: ((value: T) => void) | null = null
+    let reject: ((error: Error) => void) | null = null
+    const promise = new Promise<T>((_resolve, _reject) => {
       resolve = _resolve
-      reject = reject_
+      reject = _reject
     })
 
     const requestGuid = guid()
     ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
       const response: IPCResponse<T> = args[0]
       if (response.type === 'result') {
-        resolve((response as IResult<T>).result)
+        resolve!(response.result)
       } else {
-        const errorInfo = (response as IError).error
-        const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack)
+        const errorInfo = response.error
+        const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
         if (__DEV__) {
           console.error(`Error from IPC in response to ${name}:`)
           console.error(error)
         }
 
-        reject(error)
+        reject!(error)
       }
     })
 
@@ -73,19 +73,19 @@ export class Dispatcher {
   }
 
   /** Get the users */
-  public async getUsers(): Promise<User[]> {
-    const json = await this.dispatch<IUser[]>({name: 'get-users'})
+  public async getUsers(): Promise<ReadonlyArray<User>> {
+    const json = await this.dispatch<ReadonlyArray<IUser>>({name: 'get-users'})
     return json.map(User.fromJSON)
   }
 
   /** Get the repositories the user has added to the app. */
-  public async getRepositories(): Promise<Repository[]> {
-    const json = await this.dispatch<IRepository[]>({name: 'get-repositories'})
+  public async getRepositories(): Promise<ReadonlyArray<Repository>> {
+    const json = await this.dispatch<ReadonlyArray<IRepository>>({name: 'get-repositories'})
     return json.map(Repository.fromJSON)
   }
 
-  public async addRepositories(repositories: Repository[]): Promise<Repository[]> {
-    const json = await this.dispatch<IRepository[]>({name: 'add-repositories', repositories})
+  public async addRepositories(repositories: ReadonlyArray<Repository>): Promise<ReadonlyArray<Repository>> {
+    const json = await this.dispatch<ReadonlyArray<IRepository>>({name: 'add-repositories', repositories})
     return json.map(Repository.fromJSON)
   }
 
@@ -97,7 +97,7 @@ export class Dispatcher {
   /** Register a listener function to be called when the state updates. */
   public onDidUpdate(fn: (state: AppState) => void): Disposable {
     const wrappedFn = (event: Electron.IpcRendererEvent, args: any[]) => {
-      const state: {repositories: IRepository[], users: IUser[]} = args[0].state
+      const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IUser>} = args[0].state
       const users = state.users.map(User.fromJSON)
       const repositories = state.repositories.map(Repository.fromJSON)
       fn({users, repositories})

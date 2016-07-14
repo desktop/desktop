@@ -2,7 +2,6 @@ import tokenStore from './token-store'
 import UsersStore from './users-store'
 import {requestToken, askUserToAuth} from './auth'
 import User from '../models/user'
-import {isOAuthAction} from '../lib/parse-url'
 import Database from './database'
 import RepositoriesStore from './repositories-store'
 import Repository, {IRepository} from '../models/repository'
@@ -55,7 +54,7 @@ register('get-repositories', () => {
 })
 
 register('url-action', async ({action}: URLAction) => {
-  if (isOAuthAction(action)) {
+  if (action.name === 'oauth') {
     try {
       const token = await requestToken(action.args.code)
       const octo = new Octokat({token})

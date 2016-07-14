@@ -9,13 +9,13 @@ import SharedProcess from '../shared-process/shared-process'
 
 const stats = new Stats()
 
-let mainWindow: AppWindow = null
-let sharedProcess: SharedProcess = null
+let mainWindow: AppWindow | null = null
+let sharedProcess: SharedProcess | null = null
 
 app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
     const action = parseURL(url)
-    sharedProcess.sendURLAction(action)
+    sharedProcess!.sendURLAction(action)
     event.preventDefault()
   })
 })
@@ -40,7 +40,7 @@ if (process.platform !== 'darwin') {
     // callback contents and code for us to complete the signin flow
     if (commandLine.length > 1) {
       const action = parseURL(commandLine[1])
-      sharedProcess.sendURLAction(action)
+      sharedProcess!.sendURLAction(action)
     }
   })
 
@@ -62,19 +62,19 @@ app.on('ready', () => {
   Menu.setApplicationMenu(buildDefaultMenu(sharedProcess))
 
   autoUpdater.on('error', error => {
-    sharedProcess.console.error(`${error}`)
+    sharedProcess!.console.error(`${error}`)
   })
 
   autoUpdater.on('update-available', () => {
-    sharedProcess.console.log('Update available!')
+    sharedProcess!.console.log('Update available!')
   })
 
   autoUpdater.on('update-not-available', () => {
-    sharedProcess.console.log('Update not available!')
+    sharedProcess!.console.log('Update not available!')
   })
 
   autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName, releaseDate, updateURL) => {
-    sharedProcess.console.log(`Update downloaded! ${releaseDate}`)
+    sharedProcess!.console.log(`Update downloaded! ${releaseDate}`)
   })
 
   // TODO: Plumb the logged in .com user through here.
@@ -84,7 +84,7 @@ app.on('ready', () => {
     try {
       autoUpdater.checkForUpdates()
     } catch (e) {
-      sharedProcess.console.error(`Error checking for updates: ${e}`)
+      sharedProcess!.console.error(`Error checking for updates: ${e}`)
     }
   }
 })
@@ -96,8 +96,8 @@ app.on('activate', () => {
 })
 
 function createWindow() {
-  mainWindow = new AppWindow(stats, sharedProcess)
-  mainWindow.onClose(() => {
+  const window = new AppWindow(stats, sharedProcess!)
+  window.onClose(() => {
     mainWindow = null
 
     if (process.platform !== 'darwin') {
@@ -105,5 +105,7 @@ function createWindow() {
     }
   })
 
-  mainWindow.load()
+  window.load()
+
+  mainWindow = window
 }

@@ -24,7 +24,7 @@ export default class List extends React.Component<ListProps, ListState> {
   }
 
   private firstRender: boolean
-  private selectedItem: HTMLDivElement
+  private selectedItem: HTMLDivElement | null
   /**
    * Internal use only. Whether to explicitly move keyboard focus to the selected item.
    * Used after intercepting keyboard intent to move selection (arrow keys, page up/down).
@@ -71,7 +71,10 @@ export default class List extends React.Component<ListProps, ListState> {
       }
     }
 
-    this.props.onSelectionChanged(newRow)
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged(newRow)
+    }
+
     this.scrollRowToVisible(newRow)
 
     this.moveKeyboardFocusToSelectedItem = true
@@ -150,7 +153,9 @@ export default class List extends React.Component<ListProps, ListState> {
     // we're probably just loading more items and we'll catch it on the next
     // render pass.
     if (this.moveKeyboardFocusToSelectedItem) {
-      this.selectedItem.focus()
+      if (this.selectedItem) {
+        this.selectedItem.focus()
+      }
       // Unset the flag so that we don't end up in a loop setting focus over and over.
       this.moveKeyboardFocusToSelectedItem = false
     }
@@ -206,7 +211,9 @@ export default class List extends React.Component<ListProps, ListState> {
 
   private handleMouseDown = (row: number) => {
     if (this.props.selectedRow !== row) {
-      this.props.onSelectionChanged(row)
+      if (this.props.onSelectionChanged) {
+        this.props.onSelectionChanged(row)
+      }
     }
   }
 }

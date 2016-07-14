@@ -7,17 +7,17 @@ const Octokat = require('octokat')
  * Information about a repository as returned by the GitHub API.
  */
 export interface APIRepository {
-  cloneUrl: string,
-  htmlUrl: string,
-  name: string
-  owner: {
+  readonly cloneUrl: string,
+  readonly htmlUrl: string,
+  readonly name: string
+  readonly owner: {
     avatarUrl: string,
     login: string
     type: 'user' | 'org'
   },
-  private: boolean,
-  fork: boolean,
-  stargazersCount: number
+  readonly private: boolean,
+  readonly fork: boolean,
+  readonly stargazersCount: number
 }
 
 /**
@@ -27,7 +27,7 @@ export default class API {
   private client: any
 
   public constructor(user: User) {
-    this.client = new Octokat({token: user.getToken(), rootURL: user.getEndpoint()})
+    this.client = new Octokat({token: user.token, rootURL: user.endpoint})
   }
 
   /**
@@ -38,7 +38,7 @@ export default class API {
    *
    * @returns A promise yielding an array of {APIRepository} instances or error
    */
-  public async fetchRepos(): Promise<APIRepository[]> {
+  public async fetchRepos(): Promise<ReadonlyArray<APIRepository>> {
     const results: APIRepository[] = []
     let nextPage = this.client.user.repos
     while (nextPage) {
@@ -79,6 +79,6 @@ export function getDotComAPIEndpoint(): string {
 }
 
 /** Get the user for the endpoint. */
-export function getUserForEndpoint(users: User[], endpoint: string): User {
-  return users.filter(u => u.getEndpoint() === endpoint)[0]
+export function getUserForEndpoint(users: ReadonlyArray<User>, endpoint: string): User {
+  return users.filter(u => u.endpoint === endpoint)[0]
 }

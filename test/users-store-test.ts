@@ -6,7 +6,7 @@ import UsersStore from '../src/shared-process/users-store'
 import InMemoryStore from './in-memory-store'
 
 describe('UsersStore', () => {
-  let usersStore: UsersStore = null
+  let usersStore: UsersStore | null = null
   beforeEach(() => {
     usersStore = new UsersStore(new InMemoryStore(), new InMemoryStore())
   })
@@ -14,10 +14,10 @@ describe('UsersStore', () => {
   describe('adding a new user', () => {
     it('contains the added user', () => {
       const newUserLogin = 'tonald-drump'
-      usersStore.addUser(new User(newUserLogin, '', ''))
+      usersStore!.addUser(new User(newUserLogin, '', ''))
 
-      const users = usersStore.getUsers()
-      expect(users[0].getLogin()).to.equal(newUserLogin)
+      const users = usersStore!.getUsers()
+      expect(users[0].login).to.equal(newUserLogin)
     })
   })
 })

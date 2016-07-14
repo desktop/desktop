@@ -61,7 +61,7 @@ export class WindowControls extends React.Component<void, WindowControlState> {
 
     // We only know how to render fake windows-y controls
     if (process.platform !== 'win32') {
-      return null
+      return <span></span>
     }
 
     const min = this.renderButton('minimize', (e) => remote.getCurrentWindow().minimize(), minimizePath)

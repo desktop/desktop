@@ -9,8 +9,8 @@ import ComparisonGraph from './comparison-graph'
 import {TabBarTab} from './toolbar/tab-bar'
 
 interface RepositoryProps {
-  repo: Repo,
-  user: User
+  repo: Repo
+  user: User | null
 }
 
 interface RepositoryState {
@@ -29,7 +29,7 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
   }
 
   public componentDidUpdate(prevProps: RepositoryProps, prevState: RepositoryState) {
-    const changed = prevProps.repo.getID() !== this.props.repo.getID()
+    const changed = prevProps.repo.id !== this.props.repo.id
     if (changed) {
       this.repositoryChanged()
     }
