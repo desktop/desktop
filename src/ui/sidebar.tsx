@@ -9,7 +9,7 @@ interface ISidebarProps extends React.Props<Sidebar> {
    * sidebar or when the custom size is explicitly reset by
    * double clicking on the resize handle.
    *
-   * @default 270
+   * @default 250
    */
   defaultWidth?: number
 
@@ -46,9 +46,9 @@ const sidebarWidthConfigKey = 'sidebar-width'
 export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
 
   public static defaultProps: ISidebarProps = {
-    defaultWidth: 270,
+    defaultWidth: 250,
     minimumWidth: 150,
-    maximumWidth: 400,
+    maximumWidth: 350,
   }
 
   private startWidth: number | null
