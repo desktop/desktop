@@ -13,7 +13,7 @@ interface ICommitListProps {
 export default class CommitList extends React.Component<ICommitListProps, void> {
   private renderCommit(row: number) {
     const commit = this.props.commits[row]
-    return <CommitListItem commit={commit} key={commit.getSHA()}/>
+    return <CommitListItem commit={commit} key={commit.sha}/>
   }
 
   public render() {

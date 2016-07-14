@@ -28,7 +28,7 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
   private refresh(repository: Repository) {
     LocalGitOperations.getStatus(repository)
       .then(result => this.setState({
-        workingDirectory: result.getWorkingDirectory()
+        workingDirectory: result.workingDirectory
       }))
       .catch(rejected => {
         console.error(rejected)
@@ -43,12 +43,12 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
   }
 
   private onIncludedChange(file: WorkingDirectoryFileChange, include: boolean) {
-    file.setIncluded(include)
+    file.included = include
   }
 
   private async onCreateCommit(title: string) {
-    const files = this.state.workingDirectory.getFiles().filter(function(file, index, array) {
-      return file.getIncluded() === true
+    const files = this.state.workingDirectory.files.filter(function(file, index, array) {
+      return file.included === true
     })
 
     await LocalGitOperations.createCommit(this.props.repository, title, files)
@@ -58,14 +58,14 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
 
   public render() {
 
-    const files = this.state.workingDirectory.getFiles()
+    const files = this.state.workingDirectory.files
 
     return (
       <div id='changes-list'>
         <ul>{files.map(file => {
-          const path = file.getPath()
+          const path = file.path
           return <ChangedFile path={path}
-                              status={file.getStatus()}
+                              status={file.status}
                               key={path}
                               onIncludedChange={include => this.onIncludedChange(file, include)}/>
         })}
