@@ -52,7 +52,7 @@ export default class App extends React.Component<AppProps, AppState> {
     this.update(users, repos)
   }
 
-  private update(users: User[], repos: Repository[]) {
+  private update(users: ReadonlyArray<User>, repos: ReadonlyArray<Repository>) {
     // TODO: We should persist this but for now we'll select the first
     // repository available unless we already have a selection
     const haveSelection = this.state.selectedRow > -1

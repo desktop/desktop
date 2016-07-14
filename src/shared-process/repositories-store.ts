@@ -21,7 +21,7 @@ export default class RepositoriesStore {
   }
 
   /** Get all the local repositories. */
-  public async getRepositories(): Promise<Repository[]> {
+  public async getRepositories(): Promise<ReadonlyArray<Repository>> {
     const inflatedRepos: Repository[] = []
     const db = this.db
     const transaction = this.db.transaction('r', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*(){

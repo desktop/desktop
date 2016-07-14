@@ -38,7 +38,7 @@ export default class API {
    *
    * @returns A promise yielding an array of {APIRepository} instances or error
    */
-  public async fetchRepos(): Promise<APIRepository[]> {
+  public async fetchRepos(): Promise<ReadonlyArray<APIRepository>> {
     const results: APIRepository[] = []
     let nextPage = this.client.user.repos
     while (nextPage) {

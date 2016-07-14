@@ -73,14 +73,14 @@ export class Dispatcher {
   }
 
   /** Get the users */
-  public async getUsers(): Promise<User[]> {
-    const json = await this.dispatch<IUser[]>({name: 'get-users'})
+  public async getUsers(): Promise<ReadonlyArray<User>> {
+    const json = await this.dispatch<ReadonlyArray<IUser>>({name: 'get-users'})
     return json.map(User.fromJSON)
   }
 
   /** Get the repositories the user has added to the app. */
-  public async getRepositories(): Promise<Repository[]> {
-    const json = await this.dispatch<IRepository[]>({name: 'get-repositories'})
+  public async getRepositories(): Promise<ReadonlyArray<Repository>> {
+    const json = await this.dispatch<ReadonlyArray<IRepository>>({name: 'get-repositories'})
     return json.map(Repository.fromJSON)
   }
 
@@ -97,7 +97,7 @@ export class Dispatcher {
   /** Register a listener function to be called when the state updates. */
   public onDidUpdate(fn: (state: AppState) => void): Disposable {
     const wrappedFn = (event: Electron.IpcRendererEvent, args: any[]) => {
-      const state: {repositories: IRepository[], users: IUser[]} = args[0].state
+      const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IUser>} = args[0].state
       const users = state.users.map(User.fromJSON)
       const repositories = state.repositories.map(Repository.fromJSON)
       fn({users, repositories})
