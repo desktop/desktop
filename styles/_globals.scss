@@ -99,6 +99,7 @@ button {
 }
 
 textarea {
+  transition: all 0.25s;
   border: 1px solid var(--input-border-color);
   border-radius: var(--border-radius);
   color: currentColor;
@@ -107,6 +108,10 @@ textarea {
   min-height: 100px;
   padding: var(--padding);
   width: 100%;
+
+  &:focus {
+    box-shadow: 0 0 0 2px var(--input-border-hover-color);
+  }
 }
 
 .btn {
