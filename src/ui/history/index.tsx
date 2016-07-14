@@ -32,12 +32,13 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
   }
 
   public render() {
+    const commit = this.state.commits[this.state.selectedRow]
     return (
       <div id='history'>
         <CommitList commits={this.state.commits}
                     selectedRow={this.state.selectedRow}
                     onSelectionChanged={row => this.selectionChanged(row)}/>
-        <CommitSummary/>
+        <CommitSummary commit={commit}/>
         <FileDiff/>
       </div>
     )
