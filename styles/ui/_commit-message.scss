@@ -8,25 +8,7 @@
 }
 
 .commit-form {
+  display: block;
   background-color: #f9f9f9;
   padding: var(--spacing);
-  width: 100%;
-}
-
-.commit-form-avatar {
-  border-radius: var(--border-radius);
-  margin-right: var(--spacing);
-}
-
-.media {
-  display: flex;
-  align-items: flex-start;
-}
-
-.media-figure {
-  margin-right: var(--spacing);
-}
-
-.media-body {
-  flex-grow: 1;
 }
