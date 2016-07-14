@@ -43,11 +43,12 @@ export class CommitMessage extends React.Component<CommitMessageProps, CommitMes
       <div id='commit-message'>
         <form className='commit-form media'>
           <img className='commit-form-avatar media-figure'
-            src='https://avatars0.githubusercontent.com/u/1174461?v=3&s=40'
+            src='https://avatars0.githubusercontent.com/u/1174461?v=3&s=30'
             alt='avatar' />
 
           <div className='media-body'>
-            <textarea></textarea>
+            <input type='text' className='full-width' />
+            <textarea className='full-width'></textarea>
             <button className='btn'>Commit changes</button>
           </div>
         </form>

@@ -9,16 +9,13 @@
 
 .commit-form {
   background-color: #f9f9f9;
-  padding: var(--padding);
+  padding: var(--spacing);
   width: 100%;
 }
 
 .commit-form-avatar {
   border-radius: var(--border-radius);
-}
-
-.commit-form-submit-button {
-  padding: var(--padding);
+  margin-right: var(--spacing);
 }
 
 .media {
@@ -27,7 +24,7 @@
 }
 
 .media-figure {
-  margin-right: var(--margin);
+  margin-right: var(--spacing);
 }
 
 .media-body {

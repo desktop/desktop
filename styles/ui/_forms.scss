@@ -1,0 +1,17 @@
+input, textarea {
+  transition: all 0.25s;
+  border: 1px solid var(--input-border-color);
+  border-radius: var(--border-radius);
+  color: currentColor;
+  font-size: var(--font-size);
+  margin-bottom: var(--spacing);
+  padding: calc(var(--spacing) / 2);
+
+  &:focus {
+    box-shadow: 0 0 0 1px var(--input-border-hover-color);
+  }
+}
+
+textarea {
+  min-height: 100px;
+}
