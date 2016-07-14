@@ -48,38 +48,45 @@
    */
   --scroll-bar-thumb-background-color-active: rgba(0, 0, 0, 0.5);
 
+  // Box
+  //
+  // We use the term 'box' here to refer to a very high-level generic
+  // component that fits many use cases. A 'box' might be a list item
+  // or an item in a tab control header. It's up to each implementation
+  // to decide what states to support (active selection, selection, etc).
+
   /**
-   * ..
+   * Border color for boxes.
    */
   --box-border-color: $darkGray;
 
   /**
-   * Background color for selected list items without keyboard focus
+   * Background color for selected boxes without keyboard focus
    */
   --box-selected-background-color: $lightGray;
 
   /**
-   * Text color for selected list items without keyboard focus
+   * Text color for selected boxes without keyboard focus
    */
   --box-selected-text-color: $darkGray;
 
   /**
-   * ..
+   * Border color for selected boxes without keyboard focus
    */
   --box-selected-border-color: $darkGray;
 
   /**
-   * Background color for selected list items with active keyboard focus
+   * Background color for selected boxes with active keyboard focus
    */
   --box-selected-active-background-color: $orange;
 
   /**
-   * Text color for selected list items with active keyboard focus
+   * Text color for selected boxes with active keyboard focus
    */
   --box-selected-active-text-color: $lighterGray;
 
   /**
-   * ..
+   * Border color for selected boxes with active keyboard focus
    */
   --box-selected-active-border-color: $darkGray;
 
