@@ -9,6 +9,7 @@ interface ICommitListProps {
   selectedRow: number
 }
 
+/** A component which displays the list of commits. */
 export default class CommitList extends React.Component<ICommitListProps, void> {
   private renderCommit(row: number) {
     const commit = this.props.commits[row]

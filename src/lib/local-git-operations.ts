@@ -37,6 +37,7 @@ export class StatusResult {
   }
 }
 
+/** A git commit. */
 export class Commit {
   private sha: string
   private summary: string
@@ -48,14 +49,17 @@ export class Commit {
     this.body = body
   }
 
+  /** The commit's SHA. */
   public getSHA(): string {
     return this.sha
   }
 
+  /** The first line of the commit message. */
   public getSummary(): string {
     return this.summary
   }
 
+  /** The commit message without the first line and CR. */
   public getBody(): string {
     return this.body
   }
@@ -171,12 +175,13 @@ export class LocalGitOperations {
     return FileStatus.Unknown
   }
 
+  /** Get the repository's history. */
   public static async getHistory(repository: Repository): Promise<Commit[]> {
-    const commitBatchCount = 100
+    const batchCount = 100
     const delimiter = '01'
     const delimeterString = String.fromCharCode(parseInt(delimiter, 8))
     const prettyFormat = `format:%H%x${delimiter}%s%x${delimiter}%b`
-    const out = await this.execGitCommand([ 'log', `--max-count=${commitBatchCount}`, `--pretty=${prettyFormat}`, '-z' ], repository.getPath())
+    const out = await this.execGitCommand([ 'log', `--max-count=${batchCount}`, `--pretty=${prettyFormat}`, '-z' ], repository.getPath())
     const lines = out.split('\0')
     const commits = lines.map(line => {
       const pieces = line.split(delimeterString)

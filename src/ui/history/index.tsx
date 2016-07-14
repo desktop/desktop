@@ -14,6 +14,7 @@ interface IHistoryState {
   selectedRow: number
 }
 
+/** The History component. Contains the commit list, commit summary, and diff. */
 export default class History extends React.Component<IHistoryProps, IHistoryState> {
   public constructor(props: IHistoryProps) {
     super(props)
