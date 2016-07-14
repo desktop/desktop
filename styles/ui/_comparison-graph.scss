@@ -5,6 +5,7 @@
   display: flex;
   flex-direction: column;
   height: 100px;
+  flex-shrink: 0;
 
   text-align: center;
   border-style: solid;

@@ -4,6 +4,7 @@
 #toolbar {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   height: 34px;
   align-items: center;
 }
