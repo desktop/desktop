@@ -206,6 +206,9 @@ export class LocalGitOperations {
   public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<IFileStatus>> {
     const out = await this.execGitCommand([ 'show', sha, '--name-status', '--format=format:', '-z' ], repository.path)
     const lines = out.split('\0')
+    // Remove the trailing empty line
+    lines.splice(-1, 1)
+
     const files: IFileStatus[] = []
     for (let i = 0; i < lines.length; i++) {
       const status = lines[i]
