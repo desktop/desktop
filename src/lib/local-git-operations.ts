@@ -37,6 +37,30 @@ export class StatusResult {
   }
 }
 
+export class Commit {
+  private sha: string
+  private summary: string
+  private body: string
+
+  public constructor(sha: string, summary: string, body: string) {
+    this.sha = sha
+    this.summary = summary
+    this.body = body
+  }
+
+  public getSHA(): string {
+    return this.sha
+  }
+
+  public getSummary(): string {
+    return this.summary
+  }
+
+  public getBody(): string {
+    return this.body
+  }
+}
+
 /**
  * Interactions with a local Git repository
  */
@@ -145,5 +169,21 @@ export class LocalGitOperations {
 
     console.log('Unknown file status encountered: ' + status)
     return FileStatus.Unknown
+  }
+
+  public static async getHistory(repository: Repository): Promise<Commit[]> {
+    const commitBatchCount = 100
+    const prettyFormat = 'format:%H%x01%s%x01%b'
+    const out = await this.execGitCommand([ 'log', `--max-count=${commitBatchCount}`, `--pretty=${prettyFormat}`, '-z' ], repository.getPath())
+    const lines = out.split('\0')
+    const commits = lines.map(line => {
+      const pieces = line.split('\x01')
+      const sha = pieces[0]
+      const summary = pieces[1]
+      const body = pieces[2]
+      return new Commit(sha, summary, body)
+    })
+
+    return Promise.resolve(commits)
   }
 }
