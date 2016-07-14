@@ -4,8 +4,19 @@
 
 :root {
 
-  --text-color: #5f717f;
-  --background-color: #fff;
+  // Colors
+  //
+  // These are declared here to let us avoid duplicating color constants
+  // in variables. It also makes it easier to read and understand what
+  // color is being used. Note that these variables should _never_ be
+  // used outside of this scope.
+  $darkGray: #5f717f;
+  $orange: #c9510c;
+  $lightGray: #f2f2f2;
+  $lighterGray: #f9f9f9;
+
+  --text-color: $darkGray;
+  --background-color: white;
 
   // Typography
   //
@@ -40,37 +51,37 @@
   /**
    * ..
    */
-  --box-border-color: #5f717f;
+  --box-border-color: $darkGray;
 
   /**
    * Background color for selected list items without keyboard focus
    */
-  --box-selected-background-color: #f2f2f2;
+  --box-selected-background-color: $lightGray;
 
   /**
    * Text color for selected list items without keyboard focus
    */
-  --box-selected-text-color: #5f717f;
+  --box-selected-text-color: $darkGray;
 
   /**
    * ..
    */
-  --box-selected-border-color: #5f717f;
+  --box-selected-border-color: $darkGray;
 
   /**
    * Background color for selected list items with active keyboard focus
    */
-  --box-selected-active-background-color: #c9510c;
+  --box-selected-active-background-color: $orange;
 
   /**
    * Text color for selected list items with active keyboard focus
    */
-  --box-selected-active-text-color: #f9f9f9;
+  --box-selected-active-text-color: $lighterGray;
 
   /**
    * ..
    */
-  --box-selected-active-border-color: #5f717f;
+  --box-selected-active-border-color: $darkGray;
 
   /** The height of the title bar area on Win32 platforms */
   --win32-title-bar-height: 30px;
