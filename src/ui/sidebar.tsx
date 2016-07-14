@@ -51,7 +51,7 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
     maximumWidth: 400,
   }
 
-  private startWidth: number
+  private startWidth: number | null
   private startX: number
   private configWriteScheduler = new ThrottledScheduler(300)
 
@@ -91,7 +91,7 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
    */
   private handleDragStart = (e: React.MouseEvent) => {
     this.startX = e.clientX
-    this.startWidth = this.getCurrentWidth()
+    this.startWidth = this.getCurrentWidth() || null
 
     document.addEventListener('mousemove', this.handleDragMove)
     document.addEventListener('mouseup', this.handleDragStop)
@@ -107,7 +107,7 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
     const deltaX = e.clientX - this.startX
 
     const newWidth = this.startWidth + deltaX
-    const newWidthClamped = Math.max(this.props.minimumWidth, Math.min(this.props.maximumWidth, newWidth))
+    const newWidthClamped = Math.max(this.props.minimumWidth!, Math.min(this.props.maximumWidth!, newWidth))
 
     this.setState({ width: newWidthClamped })
     this.setPersistedWidth(newWidthClamped)
@@ -135,7 +135,7 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
    * we can avoid creating anonymous functions repeatedly in render()
    */
   private handleDoubleClick = () => {
-    this.setState({ width: null })
+    this.setState({ width: undefined })
     this.clearPersistedWidth()
   }
 

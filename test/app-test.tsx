@@ -10,14 +10,14 @@ import {Dispatcher} from '../src/lib/dispatcher'
 import InMemoryDispatcher from './in-memory-dispatcher'
 
 describe('App', () => {
-  let dispatcher: Dispatcher = null
+  let dispatcher: Dispatcher | null = null
 
   beforeEach(() => {
     dispatcher = new InMemoryDispatcher()
   })
 
   it('renders', () => {
-    const app = TestUtils.renderIntoDocument(<App dispatcher={dispatcher}/>) as React.Component<any, any>
+    const app = TestUtils.renderIntoDocument(<App dispatcher={dispatcher!}/>) as React.Component<any, any>
     const node = ReactDOM.findDOMNode(app)
     expect(node).not.to.equal(null)
   })

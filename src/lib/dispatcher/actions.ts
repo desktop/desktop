@@ -1,4 +1,4 @@
-import Repository, {IRepository} from '../../models/repository'
+import {IRepository} from '../../models/repository'
 import {URLActionType} from '../parse-url'
 
 export interface GetUsersAction {
@@ -11,9 +11,7 @@ export interface GetRepositoriesAction {
 
 export interface AddRepositoriesAction {
   name: 'add-repositories'
-  // This union is gross but until Repository can implement IRepository, it's
-  // necessary.
-  repositories: (Repository | IRepository)[]
+  readonly repositories: ReadonlyArray<IRepository>
 }
 
 export interface RequestOAuthAction {
@@ -22,14 +20,12 @@ export interface RequestOAuthAction {
 
 export interface URLAction {
   name: 'url-action'
-  action: URLActionType
+  readonly action: URLActionType
 }
 
 export interface UpdateGitHubRepositoryAction {
   name: 'update-github-repository'
-  // This union is gross but until Repository can implement IRepository, it's
-  // necessary.
-  repository: Repository | IRepository
+  readonly repository: IRepository
 }
 
 export type Action = GetUsersAction | GetRepositoriesAction |
