@@ -82,8 +82,8 @@ export class LocalGitOperations {
   /**
    *  Execute a command using the embedded Git environment
    */
-  private static execGitCommand(args: string[], path: string): Promise<void> {
-    return new Promise<void>(function(resolve, reject) {
+  private static execGitCommand(args: string[], path: string): Promise<string> {
+    return new Promise(function(resolve, reject) {
       const gitLocation = LocalGitOperations.resolveGit()
       fs.stat(gitLocation, function (err, result) {
 
@@ -102,7 +102,7 @@ export class LocalGitOperations {
           }
 
           console.log(formatArgs)
-          resolve()
+          resolve(output)
         })
 
       })
