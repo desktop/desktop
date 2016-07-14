@@ -33,24 +33,19 @@ export class CommitMessage extends React.Component<CommitMessageProps, CommitMes
 
   public render() {
     return (
-      <form className='commit-form' onSubmit={event => event.stopPropagation()}>
-        <input type='text'
-               placeholder='Commit Title...'
-               value={this.state.title}
-               onChange={event => this.handleTitleChange(event) } />
-        <input type='submit' value='Commit' onClick={event => this.handleSubmit(event)} />
-      </form>
       <div id='commit-message'>
-        <form className='commit-form media'>
+        <form className='commit-form media' onSubmit={event => event.stopPropagation()}>
           <img className='commit-form-avatar media-figure'
             src='https://avatars0.githubusercontent.com/u/1174461?v=3&s=30'
             alt='avatar' />
 
           <div className='media-body'>
-            <input type='text' className='full-width'
-              placeholder="Summary" />
-            <textarea className='full-width' placeholder="Description"></textarea>
-            <button className='btn'>Commit changes</button>
+            <input type='text'
+                   className='full-width'
+                   placeholder='Commit Title...'
+                   value={this.state.title}
+                   onChange={event => this.handleTitleChange(event) } />
+            <input type='submit' className='btn' value='Commit changes' onClick={event => this.handleSubmit(event)} />
           </div>
         </form>
       </div>
