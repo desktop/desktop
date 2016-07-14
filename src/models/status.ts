@@ -3,7 +3,8 @@ export enum FileStatus {
   New,
   Modified,
   Deleted,
-  Ignored,
+  Renamed,
+  Conflicted,
   Unknown
 }
 

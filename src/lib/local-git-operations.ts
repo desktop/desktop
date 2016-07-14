@@ -1,10 +1,32 @@
-import {WorkingDirectoryStatus, FileStatus, WorkingDirectoryFileChange} from '../models/status'
+import {WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus} from '../models/status'
 import Repository from '../models/repository'
-import {Repository as ohnogit} from 'ohnogit'
 
 import * as path from 'path'
-import * as fs from 'fs'
 import * as cp from 'child_process'
+
+const NotFoundErrorCode: number = 128
+
+/**
+ * Encapsulate the error from Git for callers to handle
+ */
+class GitError extends Error {
+  /**
+   * The error code returned from the Git process
+   */
+  public readonly errorCode: number
+
+  /**
+   * The error text returned from the Git process
+   */
+  public readonly errorOutput: string
+
+  public constructor(errorCode: number, errorOutput: string) {
+    super()
+
+    this.errorCode = errorCode
+    this.errorOutput = errorOutput
+  }
+}
 
 /** The encapsulation of the result from 'git status' */
 export class StatusResult {
@@ -59,28 +81,75 @@ export class Commit {
  */
 export class LocalGitOperations {
 
-   /**
-    *  Retrieve the status for a given repository,
-    *  and fail gracefully if the location is not a Git repository
-    */
-   public static async getStatus(repository: Repository): Promise<StatusResult> {
-      const path = repository.path
-      const repo = ohnogit.open(path)
+  /**
+   * map the raw status text from Git to an app-friendly value
+   * shamelessly borrowed from GitHub Desktop (Windows)
+   */
+  private static mapStatus(rawStatus: string): FileStatus {
 
-      await repo.refreshStatus()
+    const status = rawStatus.trim()
 
-      const statuses = repo.getCachedPathStatuses()
-      let workingDirectory = new WorkingDirectoryStatus()
+    if (status === 'M') { return FileStatus.Modified }      // modified
+    if (status === 'A') { return FileStatus.New }           // added
+    if (status === 'D') { return FileStatus.Deleted }       // deleted
+    if (status === 'R') { return FileStatus.Renamed }       // renamed
+    if (status === 'RM') { return FileStatus.Renamed }      // renamed in index, modified in working directory
+    if (status === 'RD') { return FileStatus.Conflicted }   // renamed in index, deleted in working directory
+    if (status === 'DD') { return FileStatus.Conflicted }   // Unmerged, both deleted
+    if (status === 'AU') { return FileStatus.Conflicted }   // Unmerged, added by us
+    if (status === 'UD') { return FileStatus.Conflicted }   // Unmerged, deleted by them
+    if (status === 'UA') { return FileStatus.Conflicted }   // Unmerged, added by them
+    if (status === 'DU') { return FileStatus.Conflicted }   // Unmerged, deleted by us
+    if (status === 'AA') { return FileStatus.Conflicted }   // Unmerged, added by both
+    if (status === 'UU') { return FileStatus.Conflicted }   // Unmerged, both modified
+    if (status === '??') { return FileStatus.New }          // untracked
 
-      for (const path in statuses) {
-         const result = statuses[path]
-         const status = this.mapStatus(repo, result)
-         if (status !== FileStatus.Ignored) {
-           workingDirectory.add(path, status)
-         }
-      }
+    return FileStatus.Modified
+  }
 
-      return StatusResult.FromStatus(workingDirectory)
+  /**
+   *  Retrieve the status for a given repository,
+   *  and fail gracefully if the location is not a Git repository
+   */
+  public static getStatus(repository: Repository): Promise<StatusResult> {
+    return this.execGitOutput([ 'status', '--untracked-files=all', '--porcelain' ], repository.path)
+        .then(output => {
+            const lines = output.split('\n')
+
+            const regex = /([\? \w]{2}) (.*)/
+            const regexGroups = { mode: 1, path: 2 }
+
+            let workingDirectory = new WorkingDirectoryStatus()
+
+            for (const index in lines) {
+              const line = lines[index]
+              const result = regex.exec(line)
+
+              if (result) {
+                const modeText = result[regexGroups.mode]
+                const path = result[regexGroups.path]
+
+                const mode = this.mapStatus(modeText)
+                workingDirectory.add(path, mode)
+              }
+            }
+
+            return StatusResult.FromStatus(workingDirectory)
+        })
+        .catch(error => {
+          if (error) {
+            // TODO: casting to GitError here doesn't let me access
+            //       the necessary functions - but I can get to the field
+            //       directly so wtf?
+            const code = error.errorCode
+            if (code === NotFoundErrorCode) {
+              return StatusResult.NotFound()
+            }
+            throw new Error('unable to resolve HEAD, got error code: ' + code)
+          }
+
+          throw new Error('unable to resolve status, got unknown error: ' + error)
+        })
   }
 
   /**
@@ -102,66 +171,113 @@ export class LocalGitOperations {
   private static execGitCommand(args: string[], path: string): Promise<string> {
     return new Promise(function(resolve, reject) {
       const gitLocation = LocalGitOperations.resolveGit()
-      fs.stat(gitLocation, function (err, result) {
+      const formatArgs = 'executing: git ' + args.join(' ')
 
+      cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
         if (err) {
+          console.error(formatArgs)
+          console.error(err)
           reject(err)
           return
         }
 
-        const formatArgs = 'executing: git ' + args.join(' ')
-
-        cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
-          if (err) {
-            console.error(formatArgs)
-            reject(err)
-            return
-          }
-
-          console.log(formatArgs)
-          resolve(output)
-        })
-
+        console.log(formatArgs)
+        resolve()
       })
     })
   }
 
-  public static async createCommit(repository: Repository, title: string, files: WorkingDirectoryFileChange[]) {
+  /**
+   *  Execute a command and read the output using the embedded Git environment
+   */
+  private static execGitOutput(args: string[], path: string): Promise<string> {
+    return new Promise<string>(function(resolve, reject) {
+      const gitLocation = LocalGitOperations.resolveGit()
+      const formatArgs = 'executing: git ' + args.join(' ')
 
-    // TODO: if repository is unborn, reset to empty tree 4b825dc642cb6eb9a060e54bf8d69288fbee4904
+      cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
+        if (!err) {
+          console.log(formatArgs)
+          resolve(output)
+          return
+        }
 
-    // reset the index
-    await this.execGitCommand([ 'reset', 'HEAD', '--mixed' ], repository.path)
+        if ((err as any).code) {
+          // TODO: handle more error codes
+          const code: number = (err as any).code
+          if (code === NotFoundErrorCode) {
+            reject(new GitError(NotFoundErrorCode, stdErr))
+            return
+          }
+        }
 
-    // stage each of the files
-    // TODO: staging hunks needs to be done in here as well
-    await files.map(async (file, index, array) => {
-      await this.execGitCommand([ 'add', '-u', file.path ], repository.path)
+        console.error(formatArgs)
+        console.error(err)
+        reject()
+      })
     })
-
-    // TODO: sanitize this input
-    await this.execGitCommand([ 'commit', '-m', title ] , repository.path)
   }
 
-  private static mapStatus(repo: ohnogit, status: number): FileStatus {
-    if (repo.isStatusIgnored(status)) {
-      return FileStatus.Ignored
-    }
+  private static async resolveHEAD(repository: Repository): Promise<boolean> {
+    return this.execGitOutput([ 'show', 'HEAD' ], repository.path)
+      .then(output => {
+        return Promise.resolve(true)
+      })
+      .catch(error => {
+        if (error) {
 
-    if (repo.isStatusDeleted(status)) {
-      return FileStatus.Deleted
-    }
+          const gitError = error as GitError
+          if (gitError) {
+              const code = gitError.errorCode
+              if (code === NotFoundErrorCode) {
+                return false
+              }
+              throw new Error('unable to resolve HEAD, got error code: ' + code)
+            }
+         }
 
-    if (repo.isStatusModified(status)) {
-      return FileStatus.Modified
-    }
+        throw new Error('unable to resolve HEAD, got unknown error: ' + error)
+      })
+  }
 
-    if (repo.isStatusNew(status)) {
-      return FileStatus.New
-    }
+  public static createCommit(repository: Repository, title: string, files: WorkingDirectoryFileChange[]) {
+    return this.resolveHEAD(repository)
+      .then(result => {
+        let resetArgs = [ 'reset' ]
+        if (result) {
+          resetArgs = resetArgs.concat([ 'HEAD', '--mixed' ])
+        }
 
-    console.log('Unknown file status encountered: ' + status)
-    return FileStatus.Unknown
+        return resetArgs
+      })
+      .then(resetArgs => {
+        // reset the index
+        return this.execGitCommand(resetArgs, repository.path)
+          .then(() => {
+            // TODO: staging hunks needs to be done in here as well
+            const addFiles = files.map((file, index, array) => {
+
+              let addFileArgs: string[] = []
+
+              if (file.status === FileStatus.New) {
+                addFileArgs = [ 'add', file.path ]
+              } else {
+                addFileArgs = [ 'add', '-u', file.path ]
+              }
+
+              return this.execGitCommand(addFileArgs, repository.path)
+            })
+
+            // TODO: pipe standard input into this command
+            return Promise.all(addFiles)
+              .then(() => {
+                return this.execGitCommand([ 'commit', '-m',  title ] , repository.path)
+              })
+          })
+        })
+      .catch(error => {
+          // TODOL ugh
+      })
   }
 
   /** Get the repository's history. */
