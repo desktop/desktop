@@ -1,6 +1,6 @@
 import * as React from 'react'
 import {Commit} from '../../lib/local-git-operations'
-import {default as CommitView} from './commit'
+import CommitListItem from './commit-list-item'
 import List from '../list'
 
 interface ICommitListProps {
@@ -13,7 +13,7 @@ interface ICommitListProps {
 export default class CommitList extends React.Component<ICommitListProps, void> {
   private renderCommit(row: number) {
     const commit = this.props.commits[row]
-    return <CommitView commit={commit} key={commit.getSHA()}/>
+    return <CommitListItem commit={commit} key={commit.getSHA()}/>
   }
 
   public render() {
