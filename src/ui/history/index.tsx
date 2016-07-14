@@ -38,7 +38,7 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
         <CommitList commits={this.state.commits}
                     selectedRow={this.state.selectedRow}
                     onSelectionChanged={row => this.selectionChanged(row)}/>
-        <CommitSummary commit={commit}/>
+        <CommitSummary repository={this.props.repository} commit={commit}/>
         <FileDiff/>
       </div>
     )

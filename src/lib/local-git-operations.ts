@@ -54,6 +54,11 @@ export class Commit {
   }
 }
 
+export interface IFileStatus {
+  name: string
+  status: any
+}
+
 /**
  * Interactions with a local Git repository
  */
@@ -196,5 +201,18 @@ export class LocalGitOperations {
     })
 
     return Promise.resolve(commits)
+  }
+
+  public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<IFileStatus>> {
+    const out = await this.execGitCommand([ 'show', sha, '--name-status', '--format=format:', '-z' ], repository.path)
+    const lines = out.split('\0')
+    const files: IFileStatus[] = []
+    for (let i = 0; i < lines.length; i++) {
+      const status = lines[i]
+      const name = lines[++i]
+      files.push({status, name})
+    }
+
+    return files
   }
 }
