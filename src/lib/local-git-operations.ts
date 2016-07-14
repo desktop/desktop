@@ -276,7 +276,7 @@ export class LocalGitOperations {
           })
         })
       .catch(error => {
-          // TODOL ugh
+          console.error('createCommit failed: ' + error)
       })
   }
 
