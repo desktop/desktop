@@ -1,7 +1,7 @@
 /** The data-only interface for Owner for transport across IPC. */
 export interface IOwner {
-  login: string
-  endpoint: string
+  readonly login: string
+  readonly endpoint: string
 }
 
 /** The owner of a GitHubRepository. */

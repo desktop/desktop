@@ -11,8 +11,8 @@ import {Action} from './actions'
  * the callsite.
  */
 class IPCError extends Error {
-  public message: string
-  public stack: string
+  public readonly message: string
+  public readonly stack: string
 
   public constructor(name: string, message: string, stack: string) {
     super(name)
@@ -24,12 +24,12 @@ class IPCError extends Error {
 
 interface IResult<T> {
   type: 'result'
-  result: T
+  readonly result: T
 }
 
 interface IError {
   type: 'error'
-  error: Error
+  readonly error: Error
 }
 
 type IPCResponse<T> = IResult<T> | IError
@@ -84,8 +84,8 @@ export class Dispatcher {
     return json.map(Repository.fromJSON)
   }
 
-  public async addRepositories(repositories: Repository[]): Promise<Repository[]> {
-    const json = await this.dispatch<IRepository[]>({name: 'add-repositories', repositories})
+  public async addRepositories(repositories: ReadonlyArray<Repository>): Promise<ReadonlyArray<Repository>> {
+    const json = await this.dispatch<ReadonlyArray<IRepository>>({name: 'add-repositories', repositories})
     return json.map(Repository.fromJSON)
   }
 

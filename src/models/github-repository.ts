@@ -3,11 +3,11 @@ import {APIRepository} from '../lib/api'
 
 /** The data-only interface for GitHubRepository for transport across IPC. */
 export interface IGitHubRepository {
-  name: string
-  owner: IOwner
-  private: boolean | null
-  fork: boolean | null
-  htmlURL: string | null
+  readonly name: string
+  readonly owner: IOwner
+  readonly private: boolean | null
+  readonly fork: boolean | null
+  readonly htmlURL: string | null
 }
 
 /** A GitHub repository. */

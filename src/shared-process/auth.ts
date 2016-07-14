@@ -16,8 +16,8 @@ const DefaultHeaders: {[key: string]: string} = {
 }
 
 interface AuthState {
-  oAuthState: string
-  endpoint: string
+  readonly oAuthState: string
+  readonly endpoint: string
 }
 let authState: AuthState | null = null
 

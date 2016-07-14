@@ -7,17 +7,17 @@ const Octokat = require('octokat')
  * Information about a repository as returned by the GitHub API.
  */
 export interface APIRepository {
-  cloneUrl: string,
-  htmlUrl: string,
-  name: string
-  owner: {
+  readonly cloneUrl: string,
+  readonly htmlUrl: string,
+  readonly name: string
+  readonly owner: {
     avatarUrl: string,
     login: string
     type: 'user' | 'org'
   },
-  private: boolean,
-  fork: boolean,
-  stargazersCount: number
+  readonly private: boolean,
+  readonly fork: boolean,
+  readonly stargazersCount: number
 }
 
 /**
@@ -79,6 +79,6 @@ export function getDotComAPIEndpoint(): string {
 }
 
 /** Get the user for the endpoint. */
-export function getUserForEndpoint(users: User[], endpoint: string): User {
+export function getUserForEndpoint(users: ReadonlyArray<User>, endpoint: string): User {
   return users.filter(u => u.endpoint === endpoint)[0]
 }
