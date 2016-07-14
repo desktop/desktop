@@ -173,9 +173,9 @@ export class LocalGitOperations {
 
   public static async getHistory(repository: Repository): Promise<Commit[]> {
     const commitBatchCount = 100
-    const delimeter = '01'
-    const delimeterString = String.fromCharCode(parseInt(delimeter, 8))
-    const prettyFormat = `format:%H%x${delimeter}%s%x${delimeter}%b`
+    const delimiter = '01'
+    const delimeterString = String.fromCharCode(parseInt(delimiter, 8))
+    const prettyFormat = `format:%H%x${delimiter}%s%x${delimiter}%b`
     const out = await this.execGitCommand([ 'log', `--max-count=${commitBatchCount}`, `--pretty=${prettyFormat}`, '-z' ], repository.getPath())
     const lines = out.split('\0')
     const commits = lines.map(line => {
