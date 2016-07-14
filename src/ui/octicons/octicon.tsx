@@ -18,10 +18,10 @@ interface OcticonProps {
   height?: number,
 
   /**
-  * An instance of an object conforming to the OcticonSymbol
-  * type. Supports custom paths as well as those provided
-  * through the static properties of the OcticonSymbol class.
-  */
+   * An instance of an object conforming to the OcticonSymbol
+   * type. Supports custom paths as well as those provided
+   * through the static properties of the OcticonSymbol class.
+   */
   symbol: OcticonSymbol
 }
 

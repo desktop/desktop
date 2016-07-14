@@ -9,9 +9,7 @@ export interface IRepository {
   gitHubRepository: IGitHubRepository
 }
 
-/**
- * A local repository.
- */
+/** A local repository. */
 export default class Repository {
   private id: number
   private path: string
