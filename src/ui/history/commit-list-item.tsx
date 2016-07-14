@@ -8,6 +8,6 @@ interface ICommitProps {
 /** A component which displays a single commit in a commit list. */
 export default class CommitListItem extends React.Component<ICommitProps, void> {
   public render() {
-    return <div className='commit'>{this.props.commit.getSummary()}</div>
+    return <div className='commit'>{this.props.commit.summary}</div>
   }
 }

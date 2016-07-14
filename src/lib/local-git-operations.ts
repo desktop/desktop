@@ -8,8 +8,11 @@ import * as cp from 'child_process'
 
 /** The encapsulation of the result from 'git status' */
 export class StatusResult {
-  private exists: boolean
-  private workingDirectory: WorkingDirectoryStatus
+  /** true if the repository exists at the given location */
+  public readonly exists: boolean
+
+  /** the absolute path to the repository's working directory */
+  public readonly workingDirectory: WorkingDirectoryStatus
 
   /** factory method when 'git status' is unsuccessful */
   public static NotFound(): StatusResult {
@@ -25,26 +28,21 @@ export class StatusResult {
     this.exists = exists
     this.workingDirectory = workingDirectory
   }
-
-  /** true if the repository exists at the given location */
-  public getExists(): boolean {
-    return this.exists
-  }
-
-  /** the absolute path to the repository's working directory */
-  public getWorkingDirectory(): WorkingDirectoryStatus {
-    return this.workingDirectory
-  }
 }
 
 /** A git commit. */
 export class Commit {
-  private sha: string
-  private summary: string
-  private body: string
-  private committerName: string
-  private committerEmail: string
-  private committerDate: Date
+  /** The commit's SHA. */
+  public readonly sha: string
+
+  /** The first line of the commit message. */
+  public readonly summary: string
+
+  /** The commit message without the first line and CR. */
+  public readonly body: string
+  public readonly committerName: string
+  public readonly committerEmail: string
+  public readonly committerDate: Date
 
   public constructor(sha: string, summary: string, body: string, committerName: string, committerEmail: string, committerDate: Date) {
     this.sha = sha
@@ -53,33 +51,6 @@ export class Commit {
     this.committerName = committerName
     this.committerEmail = committerEmail
     this.committerDate = committerDate
-  }
-
-  /** The commit's SHA. */
-  public getSHA(): string {
-    return this.sha
-  }
-
-  /** The first line of the commit message. */
-  public getSummary(): string {
-    return this.summary
-  }
-
-  /** The commit message without the first line and CR. */
-  public getBody(): string {
-    return this.body
-  }
-
-  public getCommitterName(): string {
-    return this.committerName
-  }
-
-  public getCommitterEmail(): string {
-    return this.committerEmail
-  }
-
-  public getCommitterDate(): Date {
-    return this.committerDate
   }
 }
 
@@ -165,7 +136,7 @@ export class LocalGitOperations {
     // stage each of the files
     // TODO: staging hunks needs to be done in here as well
     await files.map(async (file, index, array) => {
-      await this.execGitCommand([ 'add', '-u', file.getPath() ], repository.path)
+      await this.execGitCommand([ 'add', '-u', file.path ], repository.path)
     })
 
     // TODO: sanitize this input
@@ -206,7 +177,7 @@ export class LocalGitOperations {
       '%ce', // committer email
       '%cI', // committer date, ISO-8601
     ].join(`%x${delimiter}`)
-    const out = await this.execGitCommand([ 'log', `--max-count=${batchCount}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.getPath())
+    const out = await this.execGitCommand([ 'log', `--max-count=${batchCount}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
 
     const lines = out.split('\0')
     // Remove the trailing empty line
