@@ -11,7 +11,7 @@ export interface GetRepositoriesAction {
 
 export interface AddRepositoriesAction {
   name: 'add-repositories'
-  repositories: IRepository[]
+  readonly repositories: ReadonlyArray<IRepository>
 }
 
 export interface RequestOAuthAction {
@@ -20,12 +20,12 @@ export interface RequestOAuthAction {
 
 export interface URLAction {
   name: 'url-action'
-  action: URLActionType
+  readonly action: URLActionType
 }
 
 export interface UpdateGitHubRepositoryAction {
   name: 'update-github-repository'
-  repository: IRepository
+  readonly repository: IRepository
 }
 
 export type Action = GetUsersAction | GetRepositoriesAction |

@@ -16,14 +16,14 @@ import API, {getUserForEndpoint} from '../lib/api'
 import {Repository as GitRepository} from 'ohnogit'
 
 interface AppState {
-  selectedRow: number
-  repos: Repository[]
-  loadingRepos: boolean
-  users: User[]
+  readonly selectedRow: number
+  readonly repos: ReadonlyArray<Repository>
+  readonly loadingRepos: boolean
+  readonly users: ReadonlyArray<User>
 }
 
 interface AppProps {
-  dispatcher: Dispatcher
+  readonly dispatcher: Dispatcher
 }
 
 export default class App extends React.Component<AppProps, AppState> {
@@ -36,9 +36,9 @@ export default class App extends React.Component<AppProps, AppState> {
 
     this.state = {
       selectedRow: -1,
-      users: [],
+      users: new Array<User>(),
       loadingRepos: true,
-      repos: []
+      repos: new Array<Repository>()
     }
 
     // This is split out simply because TS doesn't like having an async
@@ -52,7 +52,7 @@ export default class App extends React.Component<AppProps, AppState> {
     this.update(users, repos)
   }
 
-  private update(users: User[], repos: Repository[]) {
+  private update(users: ReadonlyArray<User>, repos: ReadonlyArray<Repository>) {
     // TODO: We should persist this but for now we'll select the first
     // repository available unless we already have a selection
     const haveSelection = this.state.selectedRow > -1
@@ -85,9 +85,8 @@ export default class App extends React.Component<AppProps, AppState> {
   private async addRepositories(paths: string[]) {
     const repositories = paths.map(p => new Repository(p))
     const addedRepos = await this.props.dispatcher.addRepositories(repositories)
-    for (let repo of addedRepos) {
-      this.refreshGitHubRepositoryInfo(repo)
-    }
+
+    addedRepos.forEach(repo => this.refreshGitHubRepositoryInfo(repo))
   }
 
   private renderTitlebar() {

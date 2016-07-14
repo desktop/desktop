@@ -5,10 +5,10 @@ import Repository from '../models/repository'
 import {Octicon, OcticonSymbol} from './octicons'
 
 interface ReposListProps {
-  selectedRow: number
-  onSelectionChanged: (row: number) => void
-  loading: boolean
-  repos: Repository[]
+  readonly selectedRow: number
+  readonly onSelectionChanged: (row: number) => void
+  readonly loading: boolean
+  readonly repos: ReadonlyArray<Repository>
 }
 
 const RowHeight = 40

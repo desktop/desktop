@@ -4,14 +4,14 @@ import GitHubRepository, {IGitHubRepository} from './github-repository'
 
 /** The data-only interface for Repository for transport across IPC. */
 export interface IRepository {
-  id?: number | null
-  path: string
-  gitHubRepository: IGitHubRepository | null
+  readonly id: number | null
+  readonly path: string
+  readonly gitHubRepository: IGitHubRepository | null
 }
 
 /** A local repository. */
 export default class Repository implements IRepository {
-  public readonly id: number | null | undefined
+  public readonly id: number | null
   public readonly path: string
   public readonly gitHubRepository: GitHubRepository | null
 

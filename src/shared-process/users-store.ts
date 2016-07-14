@@ -14,7 +14,8 @@ export default class UsersStore {
     this.users = []
   }
 
-  public getUsers(): User[] {
+  public getUsers(): ReadonlyArray<User> {
+    // TODO: Should this be a copy/snapshot?
     return this.users
   }
 

@@ -1,8 +1,8 @@
 /** The data-only interface for User for transport across IPC. */
 export interface IUser {
-  token: string
-  login: string
-  endpoint: string
+  readonly token: string
+  readonly login: string
+  readonly endpoint: string
 }
 
 /**

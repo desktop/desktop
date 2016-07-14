@@ -3,6 +3,6 @@ import Repository from '../models/repository'
 
 /** All of the shared app state. */
 export interface AppState {
-  users: User[]
-  repositories: Repository[]
+  readonly users: ReadonlyArray<User>
+  readonly repositories: ReadonlyArray<Repository>
 }

@@ -3,14 +3,14 @@ import {Dispatcher} from '../src/lib/dispatcher'
 import User from '../src/models/user'
 import Repository from '../src/models/repository'
 
-type State = {users: User[], repositories: Repository[]}
+type State = {users: ReadonlyArray<User>, repositories: ReadonlyArray<Repository>}
 
 export default class InMemoryDispatcher extends Dispatcher {
-  public getUsers(): Promise<User[]> {
+  public getUsers(): Promise<ReadonlyArray<User>> {
     return Promise.resolve([])
   }
 
-  public getRepositories(): Promise<Repository[]> {
+  public getRepositories(): Promise<ReadonlyArray<Repository>> {
     return Promise.resolve([])
   }
 
