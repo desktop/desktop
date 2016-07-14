@@ -3,12 +3,20 @@
 // This files contains CSS variables accessible to all selectors
 
 :root {
-  // Colors
-  --dark-gray: #5f717f;
-  --light-gray: #EBEBEB;
 
-  --text-color: var(--dark-gray);
-  --background-color: #fff;
+  // Colors
+  //
+  // These are declared here to let us avoid duplicating color constants
+  // in variables. It also makes it easier to read and understand what
+  // color is being used. Note that these variables should _never_ be
+  // used outside of this scope.
+  $darkGray: #5f717f;
+  $orange: #c9510c;
+  $lightGray: #f2f2f2;
+  $lighterGray: #f9f9f9;
+
+  --text-color: $darkGray;
+  --background-color: white;
 
   // Typography
   //
@@ -40,25 +48,47 @@
    */
   --scroll-bar-thumb-background-color-active: rgba(0, 0, 0, 0.5);
 
-  /**
-   * Background color for selected list items without keyboard focus
-   */
-  --list-item-selected-background-color: #f2f2f2;
+  // Box
+  //
+  // We use the term 'box' here to refer to a very high-level generic
+  // component that fits many use cases. A 'box' might be a list item
+  // or an item in a tab control header. It's up to each implementation
+  // to decide what states to support (active selection, selection, etc).
 
   /**
-   * Text color for selected list items without keyboard focus
+   * Border color for boxes.
    */
-  --list-item-selected-text-color: #5f717f;
+  --box-border-color: $darkGray;
 
   /**
-   * Background color for selected list items with active keyboard focus
+   * Background color for selected boxes without keyboard focus
    */
-  --list-item-selected-active-background-color: #c9510c;
+  --box-selected-background-color: $lightGray;
 
   /**
-   * Text color for selected list items with active keyboard focus
+   * Text color for selected boxes without keyboard focus
    */
-  --list-item-selected-active-text-color: #f9f9f9;
+  --box-selected-text-color: $darkGray;
+
+  /**
+   * Border color for selected boxes without keyboard focus
+   */
+  --box-selected-border-color: $darkGray;
+
+  /**
+   * Background color for selected boxes with active keyboard focus
+   */
+  --box-selected-active-background-color: $orange;
+
+  /**
+   * Text color for selected boxes with active keyboard focus
+   */
+  --box-selected-active-text-color: $lighterGray;
+
+  /**
+   * Border color for selected boxes with active keyboard focus
+   */
+  --box-selected-active-border-color: $darkGray;
 
   /** The height of the title bar area on Win32 platforms */
   --win32-title-bar-height: 30px;
