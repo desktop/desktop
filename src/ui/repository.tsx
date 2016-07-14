@@ -47,7 +47,7 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
     if (this.state.selectedTab === TabBarTab.Changes) {
       return <Changes selectedRepo={this.props.repo}/>
     } else if (this.state.selectedTab === TabBarTab.History) {
-      return <History/>
+      return <History repository={this.props.repo}/>
     } else {
       return null
     }

@@ -37,6 +37,52 @@ export class StatusResult {
   }
 }
 
+/** A git commit. */
+export class Commit {
+  private sha: string
+  private summary: string
+  private body: string
+  private committerName: string
+  private committerEmail: string
+  private committerDate: Date
+
+  public constructor(sha: string, summary: string, body: string, committerName: string, committerEmail: string, committerDate: Date) {
+    this.sha = sha
+    this.summary = summary
+    this.body = body
+    this.committerName = committerName
+    this.committerEmail = committerEmail
+    this.committerDate = committerDate
+  }
+
+  /** The commit's SHA. */
+  public getSHA(): string {
+    return this.sha
+  }
+
+  /** The first line of the commit message. */
+  public getSummary(): string {
+    return this.summary
+  }
+
+  /** The commit message without the first line and CR. */
+  public getBody(): string {
+    return this.body
+  }
+
+  public getCommitterName(): string {
+    return this.committerName
+  }
+
+  public getCommitterEmail(): string {
+    return this.committerEmail
+  }
+
+  public getCommitterDate(): Date {
+    return this.committerDate
+  }
+}
+
 /**
  * Interactions with a local Git repository
  */
@@ -82,8 +128,8 @@ export class LocalGitOperations {
   /**
    *  Execute a command using the embedded Git environment
    */
-  private static execGitCommand(args: string[], path: string): Promise<void> {
-    return new Promise<void>(function(resolve, reject) {
+  private static execGitCommand(args: string[], path: string): Promise<string> {
+    return new Promise(function(resolve, reject) {
       const gitLocation = LocalGitOperations.resolveGit()
       fs.stat(gitLocation, function (err, result) {
 
@@ -102,7 +148,7 @@ export class LocalGitOperations {
           }
 
           console.log(formatArgs)
-          resolve()
+          resolve(output)
         })
 
       })
@@ -145,5 +191,39 @@ export class LocalGitOperations {
 
     console.log('Unknown file status encountered: ' + status)
     return FileStatus.Unknown
+  }
+
+  /** Get the repository's history. */
+  public static async getHistory(repository: Repository): Promise<Commit[]> {
+    const batchCount = 100
+    const delimiter = '1F'
+    const delimeterString = String.fromCharCode(parseInt(delimiter, 16))
+    const prettyFormat = [
+      '%H', // SHA
+      '%s', // summary
+      '%b', // body
+      '%cn', // committer name
+      '%ce', // committer email
+      '%cI', // committer date, ISO-8601
+    ].join(`%x${delimiter}`)
+    const out = await this.execGitCommand([ 'log', `--max-count=${batchCount}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.getPath())
+
+    const lines = out.split('\0')
+    // Remove the trailing empty line
+    lines.splice(-1, 1)
+
+    const commits = lines.map(line => {
+      const pieces = line.split(delimeterString)
+      const sha = pieces[0]
+      const summary = pieces[1]
+      const body = pieces[2]
+      const committerName = pieces[3]
+      const committerEmail = pieces[4]
+      const parsedDate = Date.parse(pieces[5])
+      const committerDate = new Date(parsedDate)
+      return new Commit(sha, summary, body, committerName, committerEmail, committerDate)
+    })
+
+    return Promise.resolve(commits)
   }
 }
