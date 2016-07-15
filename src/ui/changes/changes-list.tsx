@@ -110,7 +110,12 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
             type='checkbox'
             checked={includeAll}
             onChange={event => this.handleSelectAll(event)}
-          />
+            ref={function(input) {
+              if (input != null) {
+                input.indeterminate = (includeAll === null)
+              }
+            }}
+            />
         </div>
         <ul>{files.map(file => {
           const path = file.path
