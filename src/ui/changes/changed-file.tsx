@@ -30,14 +30,14 @@ export class ChangedFile extends React.Component<ChangedFileProps, void> {
 
   public render() {
     return (
-      <div class='changed-file'>
+      <div className='changed-file'>
           <input
             type='checkbox'
             checked={this.props.include}
             onChange={event => this.handleChange(event)}
           />
-        <span class='path'>{this.props.path}</span>
-        <span class='status'>{ChangedFile.mapStatus(this.props.status)}</span>
+        <span className='path'>{this.props.path}</span>
+        <span className='status'>{ChangedFile.mapStatus(this.props.status)}</span>
       </div>
     )
   }
