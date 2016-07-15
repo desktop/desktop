@@ -21,9 +21,12 @@
   --background-color: $white;
 
   --border-color: var(--text-color);
-  --border-radius: 3px;
 
-  --spacing: 10px;
+  --input-border-color: $lightGray;
+  --input-border-hover-color: $blue;
+
+  --button-background: $lighterGray;
+  --button-hover-background: $white;
 
   // Typography
   //
@@ -103,9 +106,7 @@
   /** The height of the title bar area on darwin platforms */
   --darwin-title-bar-height: 37px;
 
-  --input-border-color: $lightGray;
-  --input-border-hover-color: $blue;
+  --spacing: 10px;
+  --border-radius: 3px;
 
-  --button-background: $lighterGray;
-  --button-hover-background: $white;
 }
