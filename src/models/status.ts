@@ -37,7 +37,7 @@ export class WorkingDirectoryStatus {
    * Update the include checkbox state of the form
    * NOTE: we need to track this separately and perform two-way binding manually
    */
-  private includeAll: boolean
+  private includeAll: boolean | null = true
 
   /**
    * Update the include state of all files in the working directory
@@ -48,11 +48,11 @@ export class WorkingDirectoryStatus {
     })
   }
 
-  public setIncludeAll(includeAll: boolean) {
+  public setIncludeAll(includeAll: boolean | null) {
     this.includeAll = includeAll
   }
 
-  public getIncludeAll(): boolean {
+  public getIncludeAll(): boolean | null {
     return this.includeAll
   }
 
@@ -61,7 +61,11 @@ export class WorkingDirectoryStatus {
    */
   public add(path: string, status: FileStatus): void {
     const file = new WorkingDirectoryFileChange(path, status)
-    file.include = this.includeAll
+    if (this.includeAll) {
+      file.include = this.includeAll
+    } else {
+      file.include = true
+    }
     this.files.push(file)
   }
 }

@@ -70,7 +70,7 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
     } else if (!allSelected && noneSelected) {
       workingDirectory.setIncludeAll(false)
     } else {
-      // TODO: indeterminate state
+      workingDirectory.setIncludeAll(null)
     }
 
     this.setState({ workingDirectory: workingDirectory })
