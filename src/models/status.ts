@@ -38,7 +38,7 @@ export class WorkingDirectoryStatus {
    * NOTE: we need to track this separately to the file list selection
    *       and perform two-way binding manually when this changes
    */
-  private includeAll: boolean | null = true
+  public includeAll: boolean | null = true
 
   /**
    * Update the include state of all files in the working directory
@@ -60,13 +60,5 @@ export class WorkingDirectoryStatus {
       file.include = true
     }
     this.files.push(file)
-  }
-
-  public setIncludeAll(includeAll: boolean | null) {
-    this.includeAll = includeAll
-  }
-
-  public getIncludeAll(): boolean | null {
-    return this.includeAll
   }
 }

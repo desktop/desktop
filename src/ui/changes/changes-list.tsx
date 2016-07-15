@@ -66,11 +66,11 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
     })
 
     if (allSelected && !noneSelected) {
-      workingDirectory.setIncludeAll(true)
+      workingDirectory.includeAll = true
     } else if (!allSelected && noneSelected) {
-      workingDirectory.setIncludeAll(false)
+      workingDirectory.includeAll = false
     } else {
-      workingDirectory.setIncludeAll(null)
+      workingDirectory.includeAll = null
     }
 
     this.setState({ workingDirectory: workingDirectory })
@@ -81,7 +81,7 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
 
     const workingDirectory = this.state.workingDirectory
 
-    workingDirectory.setIncludeAll(include)
+    workingDirectory.includeAll = include
     workingDirectory.includeAllFiles(include)
 
     this.setState({ workingDirectory: workingDirectory })
@@ -101,7 +101,7 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
   public render() {
 
     const files = this.state.workingDirectory.files
-    const includeAll = this.state.workingDirectory.getIncludeAll()
+    const includeAll = this.state.workingDirectory.includeAll
 
     return (
       <div id='changes-list'>
