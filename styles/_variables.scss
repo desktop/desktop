@@ -13,6 +13,7 @@
   $blue: #4ca6eb;
   $darkGray: #5f717f;
   $orange: #c9510c;
+  $gray: #ccc;
   $lightGray: #f2f2f2;
   $lighterGray: #f9f9f9;
   $white: #fff;
@@ -22,7 +23,7 @@
 
   --border-color: var(--text-color);
 
-  --input-border-color: $lightGray;
+  --input-border-color: $gray;
   --input-border-hover-color: $blue;
 
   --button-background: $lighterGray;

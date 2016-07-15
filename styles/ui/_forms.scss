@@ -13,7 +13,7 @@ textarea {
   padding: calc(var(--spacing) / 2);
 
   &:focus {
-    box-shadow: 0 0 0 1px var(--input-border-hover-color);
+    border-color: var(--input-border-hover-color);
   }
 }
 
