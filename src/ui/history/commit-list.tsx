@@ -4,9 +4,9 @@ import CommitListItem from './commit-list-item'
 import List from '../list'
 
 interface ICommitListProps {
-  onSelectionChanged: (row: number) => void
-  commits: Commit[]
-  selectedRow: number
+  readonly onSelectionChanged: (row: number) => void
+  readonly commits: ReadonlyArray<Commit>
+  readonly selectedRow: number
 }
 
 /** A component which displays the list of commits. */

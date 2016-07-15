@@ -6,12 +6,12 @@ import Repository from '../../models/repository'
 import {Commit, LocalGitOperations} from '../../lib/local-git-operations'
 
 interface IHistoryProps {
-  repository: Repository
+  readonly repository: Repository
 }
 
 interface IHistoryState {
-  commits: Commit[]
-  selectedRow: number
+  readonly commits: ReadonlyArray<Commit>
+  readonly selectedRow: number
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
@@ -19,7 +19,7 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
   public constructor(props: IHistoryProps) {
     super(props)
 
-    this.state = {commits: [], selectedRow: -1}
+    this.state = {commits: new Array<Commit>(), selectedRow: -1}
   }
 
   public async componentDidMount() {

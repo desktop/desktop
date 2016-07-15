@@ -4,12 +4,12 @@ import {Commit, LocalGitOperations, IFileStatus} from '../../lib/local-git-opera
 import CommitSummary from './commit-summary'
 
 interface ICommitSummaryContainerProps {
-  repository: Repository
-  commit: Commit
+  readonly repository: Repository
+  readonly commit: Commit
 }
 
 interface ICommitSummaryContainerState {
-  files: ReadonlyArray<IFileStatus>
+  readonly files: ReadonlyArray<IFileStatus>
 }
 
 /** A component which displays a commit's summary. */

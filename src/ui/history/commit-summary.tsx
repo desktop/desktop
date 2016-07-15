@@ -2,9 +2,9 @@ import * as React from 'react'
 import {IFileStatus} from '../../lib/local-git-operations'
 
 interface ICommitSummaryProps {
-  summary: string
-  body: string
-  files: ReadonlyArray<IFileStatus>
+  readonly summary: string
+  readonly body: string
+  readonly files: ReadonlyArray<IFileStatus>
 }
 
 export default class CommitSummary extends React.Component<ICommitSummaryProps, void> {
