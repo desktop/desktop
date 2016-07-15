@@ -9,8 +9,8 @@ import { WorkingDirectoryStatus } from '../../models/status'
 const RowHeight = 20
 
 interface ChangesListProps {
-  repository: Repository
-  workingDirectory: WorkingDirectoryStatus
+  readonly repository: Repository
+  readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedRow: number
   readonly onSelectionChanged: (row: number) => void
   readonly onIncludeChanged: (row: number, include: boolean) => void
