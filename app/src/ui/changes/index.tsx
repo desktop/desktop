@@ -141,7 +141,9 @@ export class Changes extends React.Component<IChangesProps, IChangesState> {
                      onIncludeChanged={(row, include) => this.handleIncludeChanged(row, include) }
                      onSelectAll={selectAll => this.handleSelectAll(selectAll) }/>
 
-        <FileDiff path={selectedFilePath} />
+       <FileDiff selectedRepo={this.props.selectedRepo}
+                 relativePath={selectedFilePath}
+                 readOnly={false} />
       </div>
     )
   }

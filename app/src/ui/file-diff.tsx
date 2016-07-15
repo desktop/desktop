@@ -1,14 +1,32 @@
 import * as React from 'react'
 
+import { IRepository } from '../models/repository'
+
 interface IFileDiffProps {
-  path: string | null
+  readonly selectedRepo: IRepository
+  readonly readOnly: boolean
+  readonly relativePath: string | null
 }
 
 export default class FileDiff extends React.Component<IFileDiffProps, void> {
+
+  public componentWillReceiveProps(nextProps: IFileDiffProps) {
+
+    this.renderDiff(nextProps.selectedRepo, nextProps.relativePath, nextProps.readOnly)
+  }
+
+  private renderDiff(repository: IRepository, relativePath: string | null, readOnly: boolean) {
+    if (!relativePath) {
+      // TOOD: don't render anything
+    } else {
+      // LocalGitOperations.getDiff(repository.path, relativePath)
+    }
+  }
+
   public render() {
 
-    if (this.props.path) {
-      return <div id='file-diff'>Diff for '{this.props.path} goes here</div>
+    if (this.props.relativePath) {
+      return <div id='file-diff'>Diff for '{this.props.relativePath} goes here</div>
     } else {
       return <div id='file-diff'>No file selected</div>
     }
