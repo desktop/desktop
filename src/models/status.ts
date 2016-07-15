@@ -48,14 +48,6 @@ export class WorkingDirectoryStatus {
     })
   }
 
-  public setIncludeAll(includeAll: boolean | null) {
-    this.includeAll = includeAll
-  }
-
-  public getIncludeAll(): boolean | null {
-    return this.includeAll
-  }
-
   /**
    * Add a new file to the working directory list
    */
@@ -67,5 +59,13 @@ export class WorkingDirectoryStatus {
       file.include = true
     }
     this.files.push(file)
+  }
+
+  public setIncludeAll(includeAll: boolean | null) {
+    this.includeAll = includeAll
+  }
+
+  public getIncludeAll(): boolean | null {
+    return this.includeAll
   }
 }
