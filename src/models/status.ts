@@ -28,15 +28,40 @@ export class WorkingDirectoryFileChange {
 /** the state of the working directory for a repository */
 export class WorkingDirectoryStatus {
 
+  /**
+   * The list of changes in the repository's working directory
+   */
   public readonly files: WorkingDirectoryFileChange[] = []
 
-  public setIncludeAll(includeAll: boolean) {
+  /**
+   * Update the include checkbox state of the form
+   * NOTE: we need to track this separately and perform two-way binding manually
+   */
+  private includeAll: boolean
+
+  /**
+   * Update the include state of all files in the working directory
+   */
+  public includeAllFiles(includeAll: boolean) {
     this.files.forEach(file => {
       file.include = includeAll
     })
   }
 
+  public setIncludeAll(includeAll: boolean) {
+    this.includeAll = includeAll
+  }
+
+  public getIncludeAll(): boolean {
+    return this.includeAll
+  }
+
+  /**
+   * Add a new file to the working directory list
+   */
   public add(path: string, status: FileStatus): void {
-    this.files.push(new WorkingDirectoryFileChange(path, status))
+    const file = new WorkingDirectoryFileChange(path, status)
+    file.include = this.includeAll
+    this.files.push(file)
   }
 }

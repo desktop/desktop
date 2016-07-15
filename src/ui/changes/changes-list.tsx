@@ -50,13 +50,30 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
       return f.path === file.path
     })
 
-    if (foundFile) {
-      foundFile.include = include
-
-      this.setState({ workingDirectory: workingDirectory })
-    } else {
+    if (!foundFile) {
       console.error('unable to find working directory path to apply included change: ' + file.path)
+      return
     }
+
+    foundFile.include = include
+
+    const allSelected = workingDirectory.files.every((f, index, array) => {
+      return f.include
+    })
+
+    const noneSelected = workingDirectory.files.every((f, index, array) => {
+      return !f.include
+    })
+
+    if (allSelected && !noneSelected) {
+      workingDirectory.setIncludeAll(true)
+    } else if (!allSelected && noneSelected) {
+      workingDirectory.setIncludeAll(false)
+    } else {
+      // TODO: indeterminate state
+    }
+
+    this.setState({ workingDirectory: workingDirectory })
   }
 
   private handleSelectAll(event: React.FormEvent) {
@@ -65,6 +82,7 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
     const workingDirectory = this.state.workingDirectory
 
     workingDirectory.setIncludeAll(include)
+    workingDirectory.includeAllFiles(include)
 
     this.setState({ workingDirectory: workingDirectory })
   }
@@ -83,13 +101,14 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
   public render() {
 
     const files = this.state.workingDirectory.files
+    const includeAll = this.state.workingDirectory.getIncludeAll()
 
     return (
       <div id='changes-list'>
         <div id='select-all'>
           <input
             type='checkbox'
-            defaultChecked='true'
+            checked={includeAll}
             onChange={event => this.handleSelectAll(event)}
           />
         </div>
