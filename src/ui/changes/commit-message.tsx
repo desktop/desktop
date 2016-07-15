@@ -33,11 +33,11 @@ export class CommitMessage extends React.Component<CommitMessageProps, CommitMes
 
   public render() {
     return (
-      <div id='commit-message'>
+      <div id='commit-message' className='full-width'>
         <form className='commit-form full-width' onSubmit={event => event.stopPropagation()}>
           <input type='text'
                  className='full-width'
-                 placeholder='Commit Title...'
+                 placeholder='Commit summary'
                  value={this.state.title}
                  onChange={event => this.handleTitleChange(event) } />
           <input type='submit' className='btn' value='Commit changes' onClick={event => this.handleSubmit(event)} />

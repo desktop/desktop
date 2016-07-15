@@ -7,15 +7,16 @@
   flex: 1;
 
   border-style: solid;
-
-  overflow-y: scroll;
 }
 
 #changes-list ul {
   list-style-type: none;
+  align-self: stretch;
+  overflow-y: scroll;
+  margin: 0;
+  padding: 0;
 }
 
 #changes-list li {
-  margin-left: -35px;
   white-space: nowrap;
 }
