@@ -17,7 +17,7 @@ export class WorkingDirectoryFileChange {
   public readonly status: FileStatus
 
   /** whether the file should be included in the next commit */
-  public included: boolean = true
+  public include: boolean = true
 
   public constructor(path: string, status: FileStatus) {
     this.path = path
@@ -29,6 +29,12 @@ export class WorkingDirectoryFileChange {
 export class WorkingDirectoryStatus {
 
   public readonly files: WorkingDirectoryFileChange[] = []
+
+  public setIncludeAll(includeAll: boolean) {
+    this.files.forEach(file => {
+      file.include = includeAll
+    })
+  }
 
   public add(path: string, status: FileStatus): void {
     this.files.push(new WorkingDirectoryFileChange(path, status))

@@ -5,15 +5,12 @@ import {FileStatus} from '../../models/status'
 interface ChangedFileProps {
   path: string,
   status: FileStatus,
+  include: boolean,
   onIncludedChange: (include: boolean) => void
 }
 
-interface ChangedFileState {
-  include: boolean
-}
-
 /** a changed file in the working directory for a given repository */
-export class ChangedFile extends React.Component<ChangedFileProps, ChangedFileState> {
+export class ChangedFile extends React.Component<ChangedFileProps, void> {
 
   private static mapStatus(status: FileStatus): string {
     if (status === FileStatus.New) { return 'New' }
@@ -24,14 +21,11 @@ export class ChangedFile extends React.Component<ChangedFileProps, ChangedFileSt
 
   public constructor(props: ChangedFileProps) {
     super(props)
-
-    this.state = { include: true }
   }
 
   private handleChange(event: React.FormEvent) {
     const include = (event.target as any).checked
     this.props.onIncludedChange(include)
-    this.setState({ include })
   }
 
   public render() {
@@ -39,7 +33,7 @@ export class ChangedFile extends React.Component<ChangedFileProps, ChangedFileSt
         <li>
           <input
             type='checkbox'
-            defaultChecked={this.state.include}
+            checked={this.props.include}
             onChange={event => this.handleChange(event)}
           />
         <strong>{this.props.path}</strong> - {ChangedFile.mapStatus(this.props.status)}</li>

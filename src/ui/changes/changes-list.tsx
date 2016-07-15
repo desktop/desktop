@@ -43,12 +43,23 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
   }
 
   private onIncludedChange(file: WorkingDirectoryFileChange, include: boolean) {
-    file.included = include
+    file.include = include
   }
+
+  private handleSelectAll(event: React.FormEvent) {
+    const include = (event.target as any).checked
+
+    const workingDirectory = this.state.workingDirectory
+
+    workingDirectory.setIncludeAll(include)
+
+    this.setState({ workingDirectory: workingDirectory })
+  }
+
 
   private async onCreateCommit(title: string) {
     const files = this.state.workingDirectory.files.filter(function(file, index, array) {
-      return file.included === true
+      return file.include === true
     })
 
     await LocalGitOperations.createCommit(this.props.repository, title, files)
@@ -62,11 +73,19 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
 
     return (
       <div id='changes-list'>
+        <div id='select-all'>
+          <input
+            type='checkbox'
+            defaultChecked='true'
+            onChange={event => this.handleSelectAll(event)}
+          />
+        </div>
         <ul>{files.map(file => {
           const path = file.path
           return <ChangedFile path={path}
                               status={file.status}
                               key={path}
+                              include={file.include}
                               onIncludedChange={include => this.onIncludedChange(file, include)}/>
         })}
         </ul>
