@@ -6,37 +6,22 @@ import List from '../list'
 import Repository from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
 
-import { LocalGitOperations } from '../../lib/local-git-operations'
-
 const RowHeight = 20
 
 interface ChangesListProps {
-  repository: Repository,
-  workingDirectory: WorkingDirectoryStatus,
+  repository: Repository
+  workingDirectory: WorkingDirectoryStatus
   readonly selectedRow: number
   readonly onSelectionChanged: (row: number) => void
   readonly onIncludeChanged: (row: number, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
+  readonly onCreateCommit: (title: string) => void
 }
 
 export class ChangesList extends React.Component<ChangesListProps, void> {
 
   public constructor(props: ChangesListProps) {
     super(props)
-  }
-
-  private refresh(repository: Repository) {
-
-  }
-
-  private async onCreateCommit(title: string) {
-    const files = this.props.workingDirectory.files.filter(function(file, index, array) {
-      return file.include === true
-    })
-
-    await LocalGitOperations.createCommit(this.props.repository, title, files)
-
-    await this.refresh(this.props.repository)
   }
 
   private handleOnChangeEvent(event: React.FormEvent) {
@@ -82,7 +67,7 @@ export class ChangesList extends React.Component<ChangesListProps, void> {
               selectedRow={this.props.selectedRow}
               onSelectionChanged={row => this.props.onSelectionChanged(row)} />
 
-        <CommitMessage onCreateCommit={title => this.onCreateCommit(title)}/>
+        <CommitMessage onCreateCommit={title => this.props.onCreateCommit(title)}/>
       </div>
     )
   }

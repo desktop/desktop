@@ -50,6 +50,16 @@ export class Changes extends React.Component<ChangesProps, ChangesState> {
     })
   }
 
+  private async onCreateCommit(title: string) {
+    const files = this.state.workingDirectory.files.filter(function(file, index, array) {
+      return file.include === true
+    })
+
+    await LocalGitOperations.createCommit(this.props.selectedRepo, title, files)
+
+    await this.refreshWorkingDirectory(this.props.selectedRepo)
+  }
+
   private handleSelectionChanged(row: number) {
     this.setState(Object.assign({}, this.state, {selectedRow: row}))
 
@@ -127,9 +137,11 @@ export class Changes extends React.Component<ChangesProps, ChangesState> {
                      workingDirectory={this.state.workingDirectory}
                      selectedRow={this.state.selectedRow}
                      onSelectionChanged={event => this.handleSelectionChanged(event)}
+                     onCreateCommit={title => this.onCreateCommit(title)}
                      onIncludeChanged={(row, include) => this.handleIncludeChanged(row, include) }
                      onSelectAll={selectAll => this.handleSelectAll(selectAll) }/>
-                     <FileDiff path={selectedFilePath} />
+
+        <FileDiff path={selectedFilePath} />
       </div>
     )
   }
