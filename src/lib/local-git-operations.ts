@@ -187,7 +187,7 @@ export class LocalGitOperations {
         }
 
         console.log(formatArgs)
-        resolve()
+        resolve(output)
       })
     })
   }
