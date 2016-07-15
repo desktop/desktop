@@ -35,7 +35,8 @@ export class WorkingDirectoryStatus {
 
   /**
    * Update the include checkbox state of the form
-   * NOTE: we need to track this separately and perform two-way binding manually
+   * NOTE: we need to track this separately to the file list selection
+   *       and perform two-way binding manually when this changes
    */
   private includeAll: boolean | null = true
 
