@@ -43,12 +43,54 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
   }
 
   private onIncludedChange(file: WorkingDirectoryFileChange, include: boolean) {
-    file.included = include
+
+    const workingDirectory = this.state.workingDirectory
+
+    const foundFile = workingDirectory.files.find((f, index, array) => {
+      return f.path === file.path
+    })
+
+    if (!foundFile) {
+      console.error('unable to find working directory path to apply included change: ' + file.path)
+      return
+    }
+
+    foundFile.include = include
+
+    const allSelected = workingDirectory.files.every((f, index, array) => {
+      return f.include
+    })
+
+    const noneSelected = workingDirectory.files.every((f, index, array) => {
+      return !f.include
+    })
+
+    if (allSelected && !noneSelected) {
+      workingDirectory.includeAll = true
+    } else if (!allSelected && noneSelected) {
+      workingDirectory.includeAll = false
+    } else {
+      workingDirectory.includeAll = null
+    }
+
+    this.setState({ workingDirectory: workingDirectory })
   }
+
+  private handleSelectAll(event: React.FormEvent) {
+    const include = (event.target as any).checked
+
+    const workingDirectory = this.state.workingDirectory
+
+    workingDirectory.includeAll = include
+    workingDirectory.includeAllFiles(include)
+
+    this.setState({ workingDirectory: workingDirectory })
+  }
+
 
   private async onCreateCommit(title: string) {
     const files = this.state.workingDirectory.files.filter(function(file, index, array) {
-      return file.included === true
+      return file.include === true
     })
 
     await LocalGitOperations.createCommit(this.props.repository, title, files)
@@ -59,14 +101,28 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
   public render() {
 
     const files = this.state.workingDirectory.files
+    const includeAll = this.state.workingDirectory.includeAll
 
     return (
       <div id='changes-list'>
+        <div id='select-all'>
+          <input
+            type='checkbox'
+            checked={includeAll}
+            onChange={event => this.handleSelectAll(event)}
+            ref={function(input) {
+              if (input != null) {
+                input.indeterminate = (includeAll === null)
+              }
+            }}
+            />
+        </div>
         <ul>{files.map(file => {
           const path = file.path
           return <ChangedFile path={path}
                               status={file.status}
                               key={path}
+                              include={file.include}
                               onIncludedChange={include => this.onIncludedChange(file, include)}/>
         })}
         </ul>

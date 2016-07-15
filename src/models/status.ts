@@ -17,7 +17,7 @@ export class WorkingDirectoryFileChange {
   public readonly status: FileStatus
 
   /** whether the file should be included in the next commit */
-  public included: boolean = true
+  public include: boolean = true
 
   public constructor(path: string, status: FileStatus) {
     this.path = path
@@ -28,9 +28,37 @@ export class WorkingDirectoryFileChange {
 /** the state of the working directory for a repository */
 export class WorkingDirectoryStatus {
 
+  /**
+   * The list of changes in the repository's working directory
+   */
   public readonly files: WorkingDirectoryFileChange[] = []
 
+  /**
+   * Update the include checkbox state of the form
+   * NOTE: we need to track this separately to the file list selection
+   *       and perform two-way binding manually when this changes
+   */
+  public includeAll: boolean | null = true
+
+  /**
+   * Update the include state of all files in the working directory
+   */
+  public includeAllFiles(includeAll: boolean) {
+    this.files.forEach(file => {
+      file.include = includeAll
+    })
+  }
+
+  /**
+   * Add a new file to the working directory list
+   */
   public add(path: string, status: FileStatus): void {
-    this.files.push(new WorkingDirectoryFileChange(path, status))
+    const file = new WorkingDirectoryFileChange(path, status)
+    if (this.includeAll) {
+      file.include = this.includeAll
+    } else {
+      file.include = true
+    }
+    this.files.push(file)
   }
 }
