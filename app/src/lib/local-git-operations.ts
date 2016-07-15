@@ -51,6 +51,14 @@ export class Commit {
   }
 }
 
+ export class Diff {
+   private readonly lines: string[]
+
+   public constructor(lines: string[]) {
+     this.lines = lines
+   }
+ }
+
 /**
  * Interactions with a local Git repository
  */
@@ -186,6 +194,14 @@ export class LocalGitOperations {
         })
       .catch(error => {
           console.error('createCommit failed: ' + error)
+      })
+  }
+
+  public static getDiff(repository: Repository, relativePath: string): Promise<Diff> {
+    return GitProcess.execWithOutput([ 'diff', '--patch-with-raw', '-z', '--', relativePath ], repository.path)
+      .then(result => {
+        const lines = result.split('\0')
+        return Promise.resolve(new Diff(lines))
       })
   }
 

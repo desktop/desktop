@@ -1,6 +1,8 @@
 import * as React from 'react'
 
-import { IRepository } from '../models/repository'
+import IRepository from '../models/repository'
+
+import { LocalGitOperations, Diff } from '../lib/local-git-operations'
 
 interface IFileDiffProps {
   readonly repository: IRepository
@@ -8,25 +10,36 @@ interface IFileDiffProps {
   readonly relativePath: string | null
 }
 
-export default class FileDiff extends React.Component<IFileDiffProps, void> {
+interface IFileDiffState {
+  readonly diff: Diff
+}
+
+export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
+
+  public constructor(props: IFileDiffProps) {
+    super(props)
+
+    this.state = { diff: new Diff([]) }
+  }
 
   public componentWillReceiveProps(nextProps: IFileDiffProps) {
-
     this.renderDiff(nextProps.repository, nextProps.relativePath, nextProps.readOnly)
   }
 
-  private renderDiff(repository: IRepository, relativePath: string | null, readOnly: boolean) {
+  private async renderDiff(repository: IRepository, relativePath: string | null, readOnly: boolean) {
     if (!relativePath) {
       // TOOD: don't render anything
     } else {
-      // LocalGitOperations.getDiff(repository.path, relativePath)
+      const diff = await LocalGitOperations.getDiff(repository, relativePath)
+
+      this.setState(Object.assign({}, this.state, { diff }))
     }
   }
 
   public render() {
 
     if (this.props.relativePath) {
-      return <div id='file-diff'>Diff for '{this.props.relativePath} goes here</div>
+      return <div id='file-diff'>{this.state.diff}</div>
     } else {
       return <div id='file-diff'>No file selected</div>
     }
