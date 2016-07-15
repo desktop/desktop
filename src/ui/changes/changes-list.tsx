@@ -43,7 +43,20 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
   }
 
   private onIncludedChange(file: WorkingDirectoryFileChange, include: boolean) {
-    file.include = include
+
+    const workingDirectory = this.state.workingDirectory
+
+    const foundFile = workingDirectory.files.find((f, index, array) => {
+      return f.path === file.path
+    })
+
+    if (foundFile) {
+      foundFile.include = include
+
+      this.setState({ workingDirectory: workingDirectory })
+    } else {
+      console.error('unable to find working directory path to apply included change: ' + file.path)
+    }
   }
 
   private handleSelectAll(event: React.FormEvent) {
