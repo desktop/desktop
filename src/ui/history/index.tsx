@@ -1,6 +1,6 @@
 import * as React from 'react'
 import CommitList from './commit-list'
-import CommitSummary from './commit-summary'
+import CommitSummaryContainer from './commit-summary-container'
 import FileDiff from '../file-diff'
 import Repository from '../../models/repository'
 import {Commit, LocalGitOperations} from '../../lib/local-git-operations'
@@ -38,7 +38,7 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
         <CommitList commits={this.state.commits}
                     selectedRow={this.state.selectedRow}
                     onSelectionChanged={row => this.selectionChanged(row)}/>
-        <CommitSummary repository={this.props.repository} commit={commit}/>
+        <CommitSummaryContainer repository={this.props.repository} commit={commit}/>
         <FileDiff/>
       </div>
     )
