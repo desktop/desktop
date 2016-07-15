@@ -9,9 +9,14 @@ interface IHistoryProps {
   readonly repository: Repository
 }
 
+interface IHistorySelection {
+  readonly commit: Commit | null
+  readonly path: string | null
+}
+
 interface IHistoryState {
   readonly commits: ReadonlyArray<Commit>
-  readonly selectedRow: number
+  readonly selection: IHistorySelection
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
@@ -19,7 +24,7 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
   public constructor(props: IHistoryProps) {
     super(props)
 
-    this.state = {commits: new Array<Commit>(), selectedRow: -1}
+    this.state = {commits: new Array<Commit>(), selection: {commit: null, path: null}}
   }
 
   public async componentDidMount() {
@@ -27,17 +32,18 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
     this.setState(Object.assign({}, this.state, {commits}))
   }
 
-  private selectionChanged(row: number) {
-    this.setState(Object.assign({}, this.state, {selectedRow: row}))
+  private onCommitSelected(commit: Commit) {
+    const newSelection = {commit, path: null}
+    this.setState(Object.assign({}, this.state, {selection: newSelection}))
   }
 
   public render() {
-    const commit = this.state.commits[this.state.selectedRow]
+    const commit = this.state.selection.commit
     return (
       <div id='history'>
         <CommitList commits={this.state.commits}
-                    selectedRow={this.state.selectedRow}
-                    onSelectionChanged={row => this.selectionChanged(row)}/>
+                    selectedCommit={this.state.selection.commit}
+                    onCommitSelected={row => this.onCommitSelected(row)}/>
         <CommitSummaryContainer repository={this.props.repository} commit={commit}/>
         <FileDiff/>
       </div>

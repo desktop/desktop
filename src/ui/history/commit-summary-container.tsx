@@ -5,7 +5,7 @@ import CommitSummary from './commit-summary'
 
 interface ICommitSummaryContainerProps {
   readonly repository: Repository
-  readonly commit: Commit
+  readonly commit: Commit | null
 }
 
 interface ICommitSummaryContainerState {
@@ -31,11 +31,17 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
   private async reload(props: ICommitSummaryContainerProps) {
     this.setState({files: new Array<IFileStatus>()})
 
+    if (!props.commit) { return }
+
     const files = await LocalGitOperations.getChangedFiles(props.repository, props.commit.sha)
     this.setState({files})
   }
 
   private renderCommit() {
+    if (!this.props.commit) {
+      return <NoCommitSelected/>
+    }
+
     return <CommitSummary summary={this.props.commit.summary}
                           body={this.props.commit.body}
                           files={this.state.files}/>
@@ -44,7 +50,7 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
   public render() {
     return (
       <div id='commit-summary'>
-        {this.props.commit ? this.renderCommit() : <NoCommitSelected/>}
+        {this.renderCommit()}
       </div>
     )
   }

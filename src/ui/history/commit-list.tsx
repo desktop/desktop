@@ -4,9 +4,9 @@ import CommitListItem from './commit-list-item'
 import List from '../list'
 
 interface ICommitListProps {
-  readonly onSelectionChanged: (row: number) => void
+  readonly onCommitSelected: (commit: Commit) => void
   readonly commits: ReadonlyArray<Commit>
-  readonly selectedRow: number
+  readonly selectedCommit: Commit | null
 }
 
 /** A component which displays the list of commits. */
@@ -16,14 +16,33 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     return <CommitListItem commit={commit} key={commit.sha}/>
   }
 
+  private onSelectionChanged(row: number) {
+    const commit = this.props.commits[row]
+    this.props.onCommitSelected(commit)
+  }
+
+  private findRowForCommit(commit_: Commit | null): number {
+    const commit = commit_
+    if (!commit) { return -1 }
+
+    let index = 0
+    this.props.commits.forEach((c, i) => {
+      if (c.sha === commit.sha) {
+        index = i
+        return
+      }
+    })
+    return index
+  }
+
   public render() {
     return (
       <div id='commit-list'>
         <List itemCount={this.props.commits.length}
               itemHeight={44}
-              selectedRow={this.props.selectedRow}
+              selectedRow={this.findRowForCommit(this.props.selectedCommit)}
               renderItem={row => this.renderCommit(row)}
-              onSelectionChanged={row => this.props.onSelectionChanged(row)}/>
+              onSelectionChanged={row => this.onSelectionChanged(row)}/>
       </div>
     )
   }
