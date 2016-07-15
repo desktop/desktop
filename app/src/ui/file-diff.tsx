@@ -3,7 +3,7 @@ import * as React from 'react'
 import { IRepository } from '../models/repository'
 
 interface IFileDiffProps {
-  readonly selectedRepo: IRepository
+  readonly repository: IRepository
   readonly readOnly: boolean
   readonly relativePath: string | null
 }
@@ -12,7 +12,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, void> {
 
   public componentWillReceiveProps(nextProps: IFileDiffProps) {
 
-    this.renderDiff(nextProps.selectedRepo, nextProps.relativePath, nextProps.readOnly)
+    this.renderDiff(nextProps.repository, nextProps.relativePath, nextProps.readOnly)
   }
 
   private renderDiff(repository: IRepository, relativePath: string | null, readOnly: boolean) {
