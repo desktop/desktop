@@ -8,12 +8,24 @@ interface ChangesProps {
   selectedRepo: Repository
 }
 
+interface ChangesState {
+  selectedRow: number
+}
+
 /** TODO: handle "repository not found" scenario */
 
-export class Changes extends React.Component<ChangesProps, void> {
+export class Changes extends React.Component<ChangesProps, ChangesState> {
 
   public constructor(props: ChangesProps) {
     super(props)
+
+    this.state = {
+      selectedRow: -1
+    }
+  }
+
+  private handleSelectionChanged(row: number) {
+    // TODO: show file diff for selected item
   }
 
   private renderNoSelection() {
@@ -33,7 +45,9 @@ export class Changes extends React.Component<ChangesProps, void> {
 
     return (
       <div id='changes'>
-        <ChangesList repository={this.props.selectedRepo} />
+        <ChangesList repository={this.props.selectedRepo}
+                     selectedRow={this.state.selectedRow}
+                     onSelectionChanged={event => this.handleSelectionChanged(event)}/>
         <FileDiff/>
       </div>
     )

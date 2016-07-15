@@ -1,14 +1,19 @@
 import * as React from 'react'
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
+import List from '../list'
 
 import Repository from '../../models/repository'
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange} from '../../models/status'
 
 import { LocalGitOperations } from '../../lib/local-git-operations'
 
+const RowHeight = 20
+
 interface ChangesListProps {
-  repository: Repository
+  repository: Repository,
+  readonly selectedRow: number
+  readonly onSelectionChanged: (row: number) => void
 }
 
 interface ChangesListState {
@@ -42,7 +47,7 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
     this.refresh(nextProps.repository)
   }
 
-  private onIncludedChange(file: WorkingDirectoryFileChange, include: boolean) {
+  private onIncludeChanged(file: WorkingDirectoryFileChange, include: boolean) {
 
     const workingDirectory = this.state.workingDirectory
 
@@ -98,9 +103,21 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
     await this.refresh(this.props.repository)
   }
 
+  private renderRow(row: number): JSX.Element {
+    const file = this.state.workingDirectory.files[row]
+    const path = file.path
+
+    return (
+      <ChangedFile path={path}
+                   status={file.status}
+                   include={file.include}
+                   key={path}
+                   onIncludeChanged={include => this.onIncludeChanged(file, include)}/>
+    )
+  }
+
   public render() {
 
-    const files = this.state.workingDirectory.files
     const includeAll = this.state.workingDirectory.includeAll
 
     return (
@@ -114,18 +131,16 @@ export class ChangesList extends React.Component<ChangesListProps, ChangesListSt
               if (input != null) {
                 input.indeterminate = (includeAll === null)
               }
-            }}
-            />
+            }} />
         </div>
-        <ul>{files.map(file => {
-          const path = file.path
-          return <ChangedFile path={path}
-                              status={file.status}
-                              key={path}
-                              include={file.include}
-                              onIncludedChange={include => this.onIncludedChange(file, include)}/>
-        })}
-        </ul>
+
+        <List id='changes-list-list'
+              itemCount={this.state.workingDirectory.files.length}
+              itemHeight={RowHeight}
+              renderItem={row => this.renderRow(row)}
+              selectedRow={this.props.selectedRow}
+              onSelectionChanged={row => this.props.onSelectionChanged(row)} />
+
         <CommitMessage onCreateCommit={title => this.onCreateCommit(title)}/>
       </div>
     )
