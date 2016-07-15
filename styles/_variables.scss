@@ -10,10 +10,12 @@
   // in variables. It also makes it easier to read and understand what
   // color is being used. Note that these variables should _never_ be
   // used outside of this scope.
+  $blue: #4ca6eb;
   $darkGray: #5f717f;
   $orange: #c9510c;
   $lightGray: #f2f2f2;
   $lighterGray: #f9f9f9;
+  $white: #fff;
 
   --text-color: $darkGray;
   --background-color: white;
@@ -101,9 +103,9 @@
   /** The height of the title bar area on darwin platforms */
   --darwin-title-bar-height: 37px;
 
-  --input-border-color: #e3e7e9;
-  --input-border-hover-color: #4CA6EB;
+  --input-border-color: $lightGray;
+  --input-border-hover-color: $blue;
 
-  --button-background: #fafafa;
-  --button-hover-background: #fff;
+  --button-background: $lighterGray;
+  --button-hover-background: $white;
 }
