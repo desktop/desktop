@@ -25,6 +25,8 @@ export class Changes extends React.Component<ChangesProps, ChangesState> {
   }
 
   private handleSelectionChanged(row: number) {
+    this.setState(Object.assign({}, this.state, {selectedRow: row}))
+
     // TODO: show file diff for selected item
   }
 
