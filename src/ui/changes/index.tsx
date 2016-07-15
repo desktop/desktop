@@ -32,15 +32,21 @@ export class Changes extends React.Component<ChangesProps, ChangesState> {
   }
 
   public componentWillReceiveProps(nextProps: ChangesProps) {
+
+    // reset selection (if found)
+    Object.assign({}, this.state, { selectedRow: -1 })
+
     this.refreshWorkingDirectory(nextProps.selectedRepo)
   }
 
   private refreshWorkingDirectory(repository: Repository) {
     LocalGitOperations.getStatus(repository)
-      .then(result => this.setState(Object.assign({}, this.state, {workingDirectory: result.workingDirectory})))
+      .then(result => {
+        this.setState(Object.assign({}, this.state, { workingDirectory: result.workingDirectory }))
+      })
       .catch(rejected => {
         console.error(rejected)
-        this.setState(Object.assign({}, this.state, {workingDirectory: new WorkingDirectoryStatus()}))
+        this.setState(Object.assign({}, this.state, { workingDirectory: new WorkingDirectoryStatus() }))
     })
   }
 
@@ -106,6 +112,15 @@ export class Changes extends React.Component<ChangesProps, ChangesState> {
       return this.renderNoSelection()
     }
 
+    const row = this.state.selectedRow
+    let selectedFilePath: string | null = null
+    if (row > -1) {
+      const file = this.state.workingDirectory.files[row]
+      if (file) {
+        selectedFilePath = file.path
+      }
+    }
+
     return (
       <div id='changes'>
         <ChangesList repository={this.props.selectedRepo}
@@ -114,7 +129,7 @@ export class Changes extends React.Component<ChangesProps, ChangesState> {
                      onSelectionChanged={event => this.handleSelectionChanged(event)}
                      onIncludeChanged={(row, include) => this.handleIncludeChanged(row, include) }
                      onSelectAll={selectAll => this.handleSelectAll(selectAll) }/>
-        <FileDiff/>
+                     <FileDiff path={selectedFilePath} />
       </div>
     )
   }
