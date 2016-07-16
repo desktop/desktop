@@ -182,7 +182,7 @@ export class LocalGitOperations {
         }
 
         console.log(formatArgs)
-        resolve(output)
+        resolve()
       })
     })
   }
@@ -315,7 +315,7 @@ export class LocalGitOperations {
   }
 
   public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
-    const out = await this.execGitCommand([ 'show', sha, '--name-status', '--format=format:', '-z' ], repository.path)
+    const out = await this.execGitOutput([ 'show', sha, '--name-status', '--format=format:', '-z' ], repository.path)
     const lines = out.split('\0')
     // Remove the trailing empty line
     lines.splice(-1, 1)
@@ -329,5 +329,12 @@ export class LocalGitOperations {
     }
 
     return files
+  }
+
+  /** Look up a config value by name in the repository. */
+  public static async getConfigValue(repository: Repository, name: string): Promise<string> {
+    const output = await this.execGitOutput([ 'config', '-z', name ], repository.path)
+    const pieces = output.split('\0')
+    return pieces[0]
   }
 }
