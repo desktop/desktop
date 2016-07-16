@@ -38,7 +38,7 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
                     selectedRow={this.state.selectedRow}
                     onSelectionChanged={row => this.selectionChanged(row)}/>
         <CommitSummary/>
-        <FileDiff/>
+        <FileDiff path={null} />
       </div>
     )
   }
