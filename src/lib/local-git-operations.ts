@@ -313,4 +313,11 @@ export class LocalGitOperations {
 
     return Promise.resolve(commits)
   }
+
+  /** Look up a config value by name in the repository. */
+  public static async getConfigValue(repository: Repository, name: string): Promise<string> {
+    const output = await this.execGitOutput([ 'config', '-z', name ], repository.path)
+    const pieces = output.split('\0')
+    return pieces[0]
+  }
 }
