@@ -1,4 +1,4 @@
-import {WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus} from '../models/status'
+import {WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus} from '../models/status'
 import Repository from '../models/repository'
 
 import * as path from 'path'
@@ -74,11 +74,6 @@ export class Commit {
     this.committerEmail = committerEmail
     this.committerDate = committerDate
   }
-}
-
-export interface IFileStatus {
-  name: string
-  status: FileStatus
 }
 
 /**
@@ -319,18 +314,18 @@ export class LocalGitOperations {
     return Promise.resolve(commits)
   }
 
-  public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<IFileStatus>> {
+  public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
     const out = await this.execGitCommand([ 'show', sha, '--name-status', '--format=format:', '-z' ], repository.path)
     const lines = out.split('\0')
     // Remove the trailing empty line
     lines.splice(-1, 1)
 
-    const files: IFileStatus[] = []
+    const files: FileChange[] = []
     for (let i = 0; i < lines.length; i++) {
       const statusText = lines[i]
       const status = this.mapStatus(statusText)
       const name = lines[++i]
-      files.push({status, name})
+      files.push(new FileChange(name, status))
     }
 
     return files

@@ -3,7 +3,8 @@ import CommitList from './commit-list'
 import CommitSummaryContainer from './commit-summary-container'
 import FileDiff from '../file-diff'
 import Repository from '../../models/repository'
-import {Commit, LocalGitOperations, IFileStatus} from '../../lib/local-git-operations'
+import {FileChange} from '../../models/status'
+import {Commit, LocalGitOperations} from '../../lib/local-git-operations'
 
 interface IHistoryProps {
   readonly repository: Repository
@@ -11,7 +12,7 @@ interface IHistoryProps {
 
 interface IHistorySelection {
   readonly commit: Commit | null
-  readonly file: IFileStatus | null
+  readonly file: FileChange | null
 }
 
 interface IHistoryState {
@@ -37,7 +38,7 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
     this.setState(Object.assign({}, this.state, {selection: newSelection}))
   }
 
-  private onFileSelected(file: IFileStatus) {
+  private onFileSelected(file: FileChange) {
     const newSelection = {commit: this.state.selection.commit, file}
     this.setState(Object.assign({}, this.state, {selection: newSelection}))
   }
@@ -54,7 +55,7 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
                                 commit={commit}
                                 selectedFile={this.state.selection.file}
                                 onSelectedFileChanged={file => this.onFileSelected(file)}/>
-        <FileDiff path={selectedFile ? selectedFile.name : null}/>
+        <FileDiff path={selectedFile ? selectedFile.path : null}/>
       </div>
     )
   }

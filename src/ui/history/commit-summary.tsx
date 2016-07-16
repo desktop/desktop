@@ -1,13 +1,13 @@
 import * as React from 'react'
-import {IFileStatus} from '../../lib/local-git-operations'
+import {FileChange} from '../../models/status'
 import List from '../list'
 
 interface ICommitSummaryProps {
   readonly summary: string
   readonly body: string
-  readonly files: ReadonlyArray<IFileStatus>
-  readonly selectedFile: IFileStatus | null
-  readonly onSelectedFileChanged: (file: IFileStatus) => void
+  readonly files: ReadonlyArray<FileChange>
+  readonly selectedFile: FileChange | null
+  readonly onSelectedFileChanged: (file: FileChange) => void
 }
 
 export default class CommitSummary extends React.Component<ICommitSummaryProps, void> {
@@ -18,18 +18,18 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
 
   private renderFile(row: number) {
     const file = this.props.files[row]
-    return <div key={file.name}
-                title={file.name}
-                className='name'>{file.name}</div>
+    return <div key={file.path}
+                title={file.path}
+                className='path'>{file.path}</div>
   }
 
-  private rowForFile(file_: IFileStatus | null): number {
+  private rowForFile(file_: FileChange | null): number {
     const file = file_
     if (!file) { return -1 }
 
     let index = 0
     this.props.files.forEach((f, i) => {
-      if (f.name === file.name) {
+      if (f.path === file.path) {
         index = i
         return
       }

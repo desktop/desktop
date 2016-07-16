@@ -1,17 +1,18 @@
 import * as React from 'react'
 import Repository from '../../models/repository'
-import {Commit, LocalGitOperations, IFileStatus} from '../../lib/local-git-operations'
+import {FileChange} from '../../models/status'
+import {Commit, LocalGitOperations} from '../../lib/local-git-operations'
 import CommitSummary from './commit-summary'
 
 interface ICommitSummaryContainerProps {
   readonly repository: Repository
   readonly commit: Commit | null
-  readonly selectedFile: IFileStatus | null
-  readonly onSelectedFileChanged: (file: IFileStatus) => void
+  readonly selectedFile: FileChange | null
+  readonly onSelectedFileChanged: (file: FileChange) => void
 }
 
 interface ICommitSummaryContainerState {
-  readonly files: ReadonlyArray<IFileStatus>
+  readonly files: ReadonlyArray<FileChange>
 }
 
 /** A component which displays a commit's summary. */
@@ -19,7 +20,7 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
   public constructor(props: ICommitSummaryContainerProps) {
     super(props)
 
-    this.state = { files: new Array<IFileStatus>() }
+    this.state = { files: new Array<FileChange>() }
   }
 
   public componentDidMount() {
@@ -33,7 +34,7 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
   private async reload(props: ICommitSummaryContainerProps) {
     if (props.commit && this.props.commit && props.commit.sha === this.props.commit.sha) { return }
 
-    this.setState({files: new Array<IFileStatus>()})
+    this.setState({files: new Array<FileChange>()})
 
     if (!props.commit) { return }
 
