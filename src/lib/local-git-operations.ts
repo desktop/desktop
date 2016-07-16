@@ -117,7 +117,7 @@ export class LocalGitOperations {
             if (gitError) {
               const code = gitError.errorCode
               if (code === GitErrorCode.NotFound) {
-                return false
+                return StatusResult.NotFound()
               }
               throw new Error('unable to resolve HEAD, got error code: ' + code)
             }
@@ -139,7 +139,7 @@ export class LocalGitOperations {
           if (gitError) {
               const code = gitError.errorCode
               if (code === GitErrorCode.NotFound) {
-                return false
+                return Promise.resolve(false)
               }
               throw new Error('unable to resolve HEAD, got error code: ' + code)
             }
