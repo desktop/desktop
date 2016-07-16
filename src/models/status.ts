@@ -8,21 +8,23 @@ export enum FileStatus {
   Unknown
 }
 
-/** encapsulate the changes to a file in the working directory  */
-export class WorkingDirectoryFileChange {
+export class FileChange {
   /** the relative path to the file in the repository */
   public readonly path: string
 
   /** the status of the change to the file */
   public readonly status: FileStatus
 
-  /** whether the file should be included in the next commit */
-  public include: boolean = true
-
   public constructor(path: string, status: FileStatus) {
     this.path = path
     this.status = status
   }
+}
+
+/** encapsulate the changes to a file in the working directory  */
+export class WorkingDirectoryFileChange extends FileChange {
+  /** whether the file should be included in the next commit */
+  public include: boolean = true
 }
 
 /** the state of the working directory for a repository */

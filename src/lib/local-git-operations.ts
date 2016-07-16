@@ -1,4 +1,4 @@
-import {WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus} from '../models/status'
+import {WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus} from '../models/status'
 import Repository from '../models/repository'
 
 import * as path from 'path'
@@ -293,7 +293,7 @@ export class LocalGitOperations {
       '%ce', // committer email
       '%cI', // committer date, ISO-8601
     ].join(`%x${delimiter}`)
-    const out = await this.execGitCommand([ 'log', `--max-count=${batchCount}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
+    const out = await this.execGitOutput([ 'log', `--max-count=${batchCount}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
 
     const lines = out.split('\0')
     // Remove the trailing empty line
@@ -312,6 +312,24 @@ export class LocalGitOperations {
     })
 
     return Promise.resolve(commits)
+  }
+
+  /** Get the files that were changed in the given commit. */
+  public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
+    const out = await this.execGitOutput([ 'show', sha, '--name-status', '--format=format:', '-z' ], repository.path)
+    const lines = out.split('\0')
+    // Remove the trailing empty line
+    lines.splice(-1, 1)
+
+    const files: FileChange[] = []
+    for (let i = 0; i < lines.length; i++) {
+      const statusText = lines[i]
+      const status = this.mapStatus(statusText)
+      const name = lines[++i]
+      files.push(new FileChange(name, status))
+    }
+
+    return files
   }
 
   /** Look up a config value by name in the repository. */
