@@ -6,6 +6,8 @@ import CommitSummary from './commit-summary'
 interface ICommitSummaryContainerProps {
   readonly repository: Repository
   readonly commit: Commit | null
+  readonly selectedFile: IFileStatus | null
+  readonly onSelectedFileChanged: (file: IFileStatus) => void
 }
 
 interface ICommitSummaryContainerState {
@@ -29,6 +31,8 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
   }
 
   private async reload(props: ICommitSummaryContainerProps) {
+    if (props.commit && this.props.commit && props.commit.sha === this.props.commit.sha) { return }
+
     this.setState({files: new Array<IFileStatus>()})
 
     if (!props.commit) { return }
@@ -44,7 +48,9 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
 
     return <CommitSummary summary={this.props.commit.summary}
                           body={this.props.commit.body}
-                          files={this.state.files}/>
+                          files={this.state.files}
+                          selectedFile={this.props.selectedFile}
+                          onSelectedFileChanged={file => this.props.onSelectedFileChanged(file)}/>
   }
 
   public render() {

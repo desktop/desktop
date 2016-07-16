@@ -3,7 +3,7 @@ import CommitList from './commit-list'
 import CommitSummaryContainer from './commit-summary-container'
 import FileDiff from '../file-diff'
 import Repository from '../../models/repository'
-import {Commit, LocalGitOperations} from '../../lib/local-git-operations'
+import {Commit, LocalGitOperations, IFileStatus} from '../../lib/local-git-operations'
 
 interface IHistoryProps {
   readonly repository: Repository
@@ -11,7 +11,7 @@ interface IHistoryProps {
 
 interface IHistorySelection {
   readonly commit: Commit | null
-  readonly path: string | null
+  readonly file: IFileStatus | null
 }
 
 interface IHistoryState {
@@ -24,7 +24,7 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
   public constructor(props: IHistoryProps) {
     super(props)
 
-    this.state = {commits: new Array<Commit>(), selection: {commit: null, path: null}}
+    this.state = {commits: new Array<Commit>(), selection: {commit: null, file: null}}
   }
 
   public async componentDidMount() {
@@ -33,7 +33,12 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
   }
 
   private onCommitSelected(commit: Commit) {
-    const newSelection = {commit, path: null}
+    const newSelection = {commit, file: null}
+    this.setState(Object.assign({}, this.state, {selection: newSelection}))
+  }
+
+  private onFileSelected(file: IFileStatus) {
+    const newSelection = {commit: this.state.selection.commit, file}
     this.setState(Object.assign({}, this.state, {selection: newSelection}))
   }
 
@@ -44,7 +49,10 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
         <CommitList commits={this.state.commits}
                     selectedCommit={this.state.selection.commit}
                     onCommitSelected={row => this.onCommitSelected(row)}/>
-        <CommitSummaryContainer repository={this.props.repository} commit={commit}/>
+        <CommitSummaryContainer repository={this.props.repository}
+                                commit={commit}
+                                selectedFile={this.state.selection.file}
+                                onSelectedFileChanged={file => this.onFileSelected(file)}/>
         <FileDiff/>
       </div>
     )

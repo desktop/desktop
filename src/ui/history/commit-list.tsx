@@ -21,7 +21,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     this.props.onCommitSelected(commit)
   }
 
-  private findRowForCommit(commit_: Commit | null): number {
+  private rowForCommit(commit_: Commit | null): number {
     const commit = commit_
     if (!commit) { return -1 }
 
@@ -40,7 +40,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
       <div id='commit-list'>
         <List itemCount={this.props.commits.length}
               itemHeight={44}
-              selectedRow={this.findRowForCommit(this.props.selectedCommit)}
+              selectedRow={this.rowForCommit(this.props.selectedCommit)}
               renderItem={row => this.renderCommit(row)}
               onSelectionChanged={row => this.onSelectionChanged(row)}/>
       </div>

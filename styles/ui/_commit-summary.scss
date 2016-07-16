@@ -5,4 +5,12 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+
+  .files {
+    .name {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
 }
