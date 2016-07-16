@@ -52,7 +52,7 @@ export class Commit {
 }
 
  export class Diff {
-   private readonly lines: string[]
+   public readonly lines: string[]
 
    public constructor(lines: string[]) {
      this.lines = lines
@@ -201,7 +201,12 @@ export class LocalGitOperations {
     return GitProcess.execWithOutput([ 'diff', '--patch-with-raw', '-z', '--', relativePath ], repository.path)
       .then(result => {
         const lines = result.split('\0')
-        return Promise.resolve(new Diff(lines))
+        const diffHeader = lines.filter((line, row, lines) => {
+          return row < (lines.length - 1)
+        })
+        const diffText = lines[lines.length - 1].split('\n')
+        const diff = diffHeader.concat(diffText)
+        return Promise.resolve(new Diff(diff))
       })
   }
 

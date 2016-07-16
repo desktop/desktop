@@ -8,3 +8,13 @@
 
   text-align: center;
 }
+
+.diff-text {
+  font-family: monospace;
+  text-overflow: ellipsis;
+  text-align: left;
+  text-orientation: upright;
+  font-kerning: initial;
+  word-wrap: break-word;
+  word-break: break-all;
+}

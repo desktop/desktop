@@ -1,8 +1,13 @@
 import * as React from 'react'
 
+import List from './list'
+import FileDiffLine from './file-diff-line'
+
 import IRepository from '../models/repository'
 
 import { LocalGitOperations, Diff } from '../lib/local-git-operations'
+
+const RowHeight = 20
 
 interface IFileDiffProps {
   readonly repository: IRepository
@@ -36,10 +41,27 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
   }
 
+  private renderRow(row: number): JSX.Element {
+    const diffLine = this.state.diff.lines[row]
+    const id = `${this.props.relativePath} ${row}`
+
+    return (
+      <FileDiffLine text={diffLine}
+                    key={id} />
+    )
+  }
+
   public render() {
 
     if (this.props.relativePath) {
-      return <div id='file-diff'>{this.state.diff}</div>
+      return (
+        <div id='file-diff'>
+          <List id='diff-text'
+                itemCount={this.state.diff.lines.length}
+                itemHeight={RowHeight}
+                renderItem={row => this.renderRow(row)}
+                selectedRow={-1} />
+        </div>)
     } else {
       return <div id='file-diff'>No file selected</div>
     }
