@@ -95,5 +95,4 @@ export class GitProcess {
       })
     })
   }
-
 }

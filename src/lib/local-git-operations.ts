@@ -1,4 +1,4 @@
-import {WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus} from '../models/status'
+import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
 import Repository from '../models/repository'
 
 import { GitProcess, GitError, GitErrorCode } from './git-process'
@@ -115,13 +115,13 @@ export class LocalGitOperations {
           if (error) {
             const gitError = error as GitError
             if (gitError) {
-                const code = gitError.errorCode
-                if (code === GitErrorCode.NotFound) {
-                  return false
-                }
-                throw new Error('unable to resolve HEAD, got error code: ' + code)
+              const code = gitError.errorCode
+              if (code === GitErrorCode.NotFound) {
+                return false
               }
-           }
+              throw new Error('unable to resolve HEAD, got error code: ' + code)
+            }
+          }
 
           throw new Error('unable to resolve status, got unknown error: ' + error)
         })
