@@ -78,7 +78,7 @@ export class Commit {
 
 export interface IFileStatus {
   name: string
-  status: any
+  status: FileStatus
 }
 
 /**
@@ -327,7 +327,8 @@ export class LocalGitOperations {
 
     const files: IFileStatus[] = []
     for (let i = 0; i < lines.length; i++) {
-      const status = lines[i]
+      const statusText = lines[i]
+      const status = this.mapStatus(statusText)
       const name = lines[++i]
       files.push({status, name})
     }
