@@ -6,7 +6,7 @@ interface ChangedFileProps {
   path: string,
   status: FileStatus,
   include: boolean,
-  onIncludedChange: (include: boolean) => void
+  onIncludeChanged: (include: boolean) => void
 }
 
 /** a changed file in the working directory for a given repository */
@@ -25,18 +25,20 @@ export class ChangedFile extends React.Component<ChangedFileProps, void> {
 
   private handleChange(event: React.FormEvent) {
     const include = (event.target as any).checked
-    this.props.onIncludedChange(include)
+    this.props.onIncludeChanged(include)
   }
 
   public render() {
     return (
-        <li>
+      <div className='changed-file'>
           <input
             type='checkbox'
             checked={this.props.include}
             onChange={event => this.handleChange(event)}
           />
-        <strong>{this.props.path}</strong> - {ChangedFile.mapStatus(this.props.status)}</li>
+        <span className='path'>{this.props.path}</span>
+        <span className='status'>{ChangedFile.mapStatus(this.props.status)}</span>
+      </div>
     )
   }
 }

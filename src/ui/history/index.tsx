@@ -53,7 +53,7 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
                                 commit={commit}
                                 selectedFile={this.state.selection.file}
                                 onSelectedFileChanged={file => this.onFileSelected(file)}/>
-        <FileDiff/>
+        <FileDiff path={null}/>
       </div>
     )
   }
