@@ -293,7 +293,7 @@ export class LocalGitOperations {
       '%ce', // committer email
       '%cI', // committer date, ISO-8601
     ].join(`%x${delimiter}`)
-    const out = await this.execGitCommand([ 'log', `--max-count=${batchCount}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
+    const out = await this.execGitOutput([ 'log', `--max-count=${batchCount}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
 
     const lines = out.split('\0')
     // Remove the trailing empty line
