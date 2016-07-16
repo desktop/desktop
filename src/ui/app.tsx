@@ -12,8 +12,7 @@ import {Dispatcher} from '../lib/dispatcher'
 import Repository from '../models/repository'
 import {matchGitHubRepository} from '../lib/repository-matching'
 import API, {getUserForEndpoint} from '../lib/api'
-
-import {Repository as GitRepository} from 'ohnogit'
+import { LocalGitOperations } from '../lib/local-git-operations'
 
 interface AppState {
   readonly selectedRow: number
@@ -161,10 +160,9 @@ export default class App extends React.Component<AppProps, AppState> {
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
-    const gitRepo = GitRepository.open(repository.path)
     // TODO: This is all kinds of wrong. We shouldn't assume the remote is named
     // `origin`.
-    const remote = await gitRepo.getConfigValue('remote.origin.url')
+    const remote = await LocalGitOperations.getConfigValue(repository, 'remote.origin.url')
     if (!remote) { return null }
 
     return matchGitHubRepository(this.state.users, remote)
