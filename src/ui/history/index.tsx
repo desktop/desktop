@@ -44,6 +44,7 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
 
   public render() {
     const commit = this.state.selection.commit
+    const selectedFile = this.state.selection.file
     return (
       <div id='history'>
         <CommitList commits={this.state.commits}
@@ -53,7 +54,7 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
                                 commit={commit}
                                 selectedFile={this.state.selection.file}
                                 onSelectedFileChanged={file => this.onFileSelected(file)}/>
-        <FileDiff path={null}/>
+        <FileDiff path={selectedFile ? selectedFile.name : null}/>
       </div>
     )
   }
