@@ -314,6 +314,7 @@ export class LocalGitOperations {
     return Promise.resolve(commits)
   }
 
+  /** Get the files that were changed in the given commit. */
   public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
     const out = await this.execGitOutput([ 'show', sha, '--name-status', '--format=format:', '-z' ], repository.path)
     const lines = out.split('\0')
