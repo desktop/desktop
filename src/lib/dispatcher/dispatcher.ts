@@ -1,10 +1,12 @@
 import {ipcRenderer} from 'electron'
-import {Disposable} from 'event-kit'
 import User, {IUser} from '../../models/user'
 import Repository, {IRepository} from '../../models/repository'
 import guid from '../guid'
-import {AppState} from '../app-state'
+import {IHistorySelection} from '../app-state'
 import {Action} from './actions'
+import LocalStore from './local-store'
+import { LocalGitOperations } from '../local-git-operations'
+import { FileChange } from '../../models/status'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -39,6 +41,22 @@ type IPCResponse<T> = IResult<T> | IError
  * decouples the consumer of state from where/how it is stored.
  */
 export class Dispatcher {
+  private store: LocalStore
+
+  public constructor(store: LocalStore) {
+    this.store = store
+
+    this.fetchInitialState()
+  }
+
+  private async fetchInitialState() {
+    const users = await this.getUsers()
+    const repositories = await this.getRepositories()
+    this.store._users = users
+    this.store._repositories = repositories
+    this.store._emitUpdate()
+  }
+
   private dispatch<T>(action: Action): Promise<T> {
     return this.send(action.name, action)
   }
@@ -73,13 +91,13 @@ export class Dispatcher {
   }
 
   /** Get the users */
-  public async getUsers(): Promise<ReadonlyArray<User>> {
+  private async getUsers(): Promise<ReadonlyArray<User>> {
     const json = await this.dispatch<ReadonlyArray<IUser>>({name: 'get-users'})
     return json.map(User.fromJSON)
   }
 
   /** Get the repositories the user has added to the app. */
-  public async getRepositories(): Promise<ReadonlyArray<Repository>> {
+  private async getRepositories(): Promise<ReadonlyArray<Repository>> {
     const json = await this.dispatch<ReadonlyArray<IRepository>>({name: 'get-repositories'})
     return json.map(Repository.fromJSON)
   }
@@ -94,22 +112,28 @@ export class Dispatcher {
     return this.dispatch<void>({name: 'request-oauth'})
   }
 
-  /** Register a listener function to be called when the state updates. */
-  public onDidUpdate(fn: (state: AppState) => void): Disposable {
-    const wrappedFn = (event: Electron.IpcRendererEvent, args: any[]) => {
-      const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IUser>} = args[0].state
-      const users = state.users.map(User.fromJSON)
-      const repositories = state.repositories.map(Repository.fromJSON)
-      fn({users, repositories})
-    }
-    ipcRenderer.on('shared/did-update', wrappedFn)
-    return new Disposable(() => {
-      ipcRenderer.removeListener('shared/did-update', wrappedFn)
-    })
-  }
-
   /** Update the repository's GitHub repository. */
   public updateGitHubRepository(repository: Repository): Promise<void> {
     return this.dispatch<void>({name: 'update-github-repository', repository})
+  }
+
+  public async changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
+    const commitChanged = this.store._history.selection.commit !== selection.commit
+
+    if (commitChanged) {
+      this.store._history = { selection, changedFiles: new Array<FileChange>() }
+      this.store._emitUpdate()
+
+      const commit = selection.commit
+      if (!commit) { return }
+
+      const changedFiles = await LocalGitOperations.getChangedFiles(repository, commit.sha)
+
+      this.store._history = { selection, changedFiles }
+      this.store._emitUpdate()
+    } else {
+      this.store._history = { selection, changedFiles: this.store._history.changedFiles }
+      this.store._emitUpdate()
+    }
   }
 }

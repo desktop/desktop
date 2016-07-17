@@ -8,55 +8,55 @@ import User from '../models/user'
 import GitHubRepository from '../models/github-repository'
 import NotLoggedIn from './not-logged-in'
 import {WindowControls} from './window/window-controls'
-import {Dispatcher} from '../lib/dispatcher'
+import {Dispatcher, LocalStore} from '../lib/dispatcher'
 import Repository from '../models/repository'
 import {matchGitHubRepository} from '../lib/repository-matching'
 import API, {getUserForEndpoint} from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
+import { IHistoryState, AppState as GlobalAppState } from '../lib/app-state'
 
 interface AppState {
-  readonly selectedRow: number
   readonly repos: ReadonlyArray<Repository>
-  readonly loadingRepos: boolean
   readonly users: ReadonlyArray<User>
+  readonly history: IHistoryState
+
+  readonly selectedRow: number
+  readonly loadingRepos: boolean
 }
 
 interface AppProps {
   readonly dispatcher: Dispatcher
+  readonly store: LocalStore
 }
 
 export default class App extends React.Component<AppProps, AppState> {
   public constructor(props: AppProps) {
     super(props)
 
-    props.dispatcher.onDidUpdate(state => {
-      this.update(state.users, state.repositories)
-    })
+    props.store.onDidUpdate(state => this.update(state))
 
+    const {users, repositories, history} = props.store.getAppState()
     this.state = {
       selectedRow: -1,
-      users: new Array<User>(),
+      users,
       loadingRepos: true,
-      repos: new Array<Repository>()
+      repos: repositories,
+      history,
     }
-
-    // This is split out simply because TS doesn't like having an async
-    // constructor.
-    this.fetchInitialState()
   }
 
-  private async fetchInitialState() {
-    const users = await this.props.dispatcher.getUsers()
-    const repos = await this.props.dispatcher.getRepositories()
-    this.update(users, repos)
-  }
-
-  private update(users: ReadonlyArray<User>, repos: ReadonlyArray<Repository>) {
+  private update({users, repositories, history}: GlobalAppState) {
     // TODO: We should persist this but for now we'll select the first
     // repository available unless we already have a selection
     const haveSelection = this.state.selectedRow > -1
-    const selectedRow = (!haveSelection && repos.length > 0) ? 0 : this.state.selectedRow
-    this.setState(Object.assign({}, this.state, {users, repos, loadingRepos: false, selectedRow}))
+    const selectedRow = (!haveSelection && repositories.length > 0) ? 0 : this.state.selectedRow
+    this.setState(Object.assign({}, this.state, {
+      users,
+      repos: repositories,
+      loadingRepos: false,
+      selectedRow,
+      history,
+    }))
   }
 
   public componentDidMount() {
@@ -123,7 +123,7 @@ export default class App extends React.Component<AppProps, AppState> {
                      repos={this.state.repos}
                      loading={this.state.loadingRepos}/>
         </Sidebar>
-        <RepositoryView repo={selectedRepo} user={null}/>
+        <RepositoryView repo={selectedRepo} history={this.state.history} dispatcher={this.props.dispatcher}/>
       </div>
     )
   }

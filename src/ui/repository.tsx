@@ -1,16 +1,18 @@
 import * as React from 'react'
 
-import User from '../models/user'
 import {default as Repo} from '../models/repository'
 import Toolbar from './toolbar'
 import {Changes} from './changes'
 import History from './history'
 import ComparisonGraph from './comparison-graph'
 import {TabBarTab} from './toolbar/tab-bar'
+import { IHistoryState } from '../lib/app-state'
+import { Dispatcher } from '../lib/dispatcher'
 
 interface RepositoryProps {
   repo: Repo
-  user: User | null
+  history: IHistoryState
+  dispatcher: Dispatcher
 }
 
 interface RepositoryState {
@@ -47,7 +49,10 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
     if (this.state.selectedTab === TabBarTab.Changes) {
       return <Changes selectedRepo={this.props.repo}/>
     } else if (this.state.selectedTab === TabBarTab.History) {
-      return <History repository={this.props.repo}/>
+      return <History repository={this.props.repo}
+                      selection={this.props.history.selection}
+                      dispatcher={this.props.dispatcher}
+                      files={this.props.history.changedFiles}/>
     } else {
       return null
     }
