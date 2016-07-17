@@ -2,21 +2,21 @@ import * as URL from 'url'
 
 interface IURLAction<T> {
   name: string
-  args: T
+  readonly args: T
 }
 
 export interface IOAuthActionArgs {
-  code: string
+  readonly code: string
 }
 
 export interface IOAuthAction extends IURLAction<IOAuthActionArgs> {
-  name: 'oauth'
-  args: IOAuthActionArgs
+  readonly name: 'oauth'
+  readonly args: IOAuthActionArgs
 }
 
 export interface IUnknownAction extends IURLAction<{}> {
-  name: 'unknown'
-  args: {}
+  readonly name: 'unknown'
+  readonly args: {}
 }
 
 export type URLActionType = IOAuthAction | IUnknownAction
@@ -29,8 +29,4 @@ export default function parseURL(url: string): URLActionType {
   } else {
     return {name: 'unknown', args: {}}
   }
-}
-
-export function isOAuthAction(action: URLActionType): action is IOAuthAction {
-  return action.name === 'oauth'
 }

@@ -49,7 +49,7 @@ export default class AppWindow {
   }
 
   public load() {
-    let startLoad: number = null
+    let startLoad = 0
     this.window.webContents.on('did-start-loading', () => {
       startLoad = Date.now()
     })
@@ -86,10 +86,11 @@ export default class AppWindow {
     this.window.loadURL(`file://${__dirname}/index.html`)
   }
 
-  /* Set up message passing to the render process whenever the window
-   * state changes. We've definied 'window state' as one of minimized,
-   * normal, maximized and full-screen. These states will be sent
-   * over the window-state-changed channel
+  /**
+   * Sets up message passing to the render process when the window state changes.
+   *
+   * We've definied 'window state' as one of minimized, normal, maximized, and
+   * full-screen. These states will be sent over the window-state-changed channel
    */
   private registerWindowStateChangedEvents() {
     this.window.on('enter-full-screen', () => this.sendWindowStateEvent('full-screen'))
@@ -107,7 +108,8 @@ export default class AppWindow {
     this.window.on('restore', () => this.sendWindowStateEvent('normal'))
   }
 
-  /* Short hand convenience function for sending a window state change event
+  /**
+   * Short hand convenience function for sending a window state change event
    * over the window-state-changed channel to the render process.
    */
   private sendWindowStateEvent(state: WindowState) {

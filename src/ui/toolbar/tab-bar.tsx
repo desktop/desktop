@@ -20,11 +20,10 @@ export default class TabBar extends React.Component<ITabBarProps, void> {
     const historyClassName = this.props.selectedTab === TabBarTab.History ? 'selected' : ''
 
     return (
-      <div id='tab-bar'>
-        <span className={changesClassName}
+      <div className='segmented-control'>
+        <span className={'segmented-control-item ' + changesClassName}
               onClick={() => this.props.onTabClicked(TabBarTab.Changes)}>Changes</span>
-        |
-        <span className={historyClassName}
+        <span className={'segmented-control-item ' + historyClassName}
               onClick={() => this.props.onTabClicked(TabBarTab.History)}>History</span>
       </div>
     )

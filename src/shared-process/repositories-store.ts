@@ -1,8 +1,8 @@
-import Database from './database'
+import Database, {IDatabaseGitHubRepository} from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
 import Repository from '../models/repository'
-import {IAPIRepository} from '../lib/api'
+import fatalError from '../lib/fatal-error'
 
 // NB: We can't use async/await within Dexie transactions. This is because Dexie
 // uses its own Promise implementation and TypeScript doesn't know about it. See
@@ -21,13 +21,13 @@ export default class RepositoriesStore {
   }
 
   /** Get all the local repositories. */
-  public async getRepositories(): Promise<Repository[]> {
+  public async getRepositories(): Promise<ReadonlyArray<Repository>> {
     const inflatedRepos: Repository[] = []
     const db = this.db
     const transaction = this.db.transaction('r', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*(){
       const repos = yield db.repositories.toArray()
       for (const repo of repos) {
-        let inflatedRepo: Repository = null
+        let inflatedRepo: Repository | null = null
         if (repo.gitHubRepositoryID) {
           const gitHubRepository = yield db.gitHubRepositories.get(repo.gitHubRepositoryID)
           const owner = yield db.owners.get(gitHubRepository.ownerID)
@@ -48,47 +48,78 @@ export default class RepositoriesStore {
   /** Add a new local repository. */
   public async addRepository(repo: Repository): Promise<Repository> {
     const db = this.db
-    let id: number = null
-    const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
-      let gitHubRepositoryID: number = null
-      const gitHubRepository = repo.getGitHubRepository()
-      if (gitHubRepository) {
-        const login = gitHubRepository.getOwner().getLogin()
-        const existingOwner = yield db.owners.where('login').equalsIgnoreCase(login).limit(1).first()
-        let ownerID: number = null
-        if (existingOwner) {
-          ownerID = existingOwner.id
-        } else {
-          ownerID = yield db.owners.add({login, endpoint: gitHubRepository.getOwner().getEndpoint()})
-        }
-
-        gitHubRepositoryID = yield db.gitHubRepositories.add({
-          name: gitHubRepository.getName(),
-          ownerID,
-          private: null,
-          fork: null,
-          htmlURL: null,
-        })
-      }
-
+    let id = -1
+    const transaction = this.db.transaction('rw', this.db.repositories, function*() {
       id = yield db.repositories.add({
-        path: repo.getPath(),
-        gitHubRepositoryID
+        path: repo.path,
+        gitHubRepositoryID: null,
       })
     })
 
     await transaction
 
-    return repo.repositoryWithID(id)
+    const repoWithID = repo.withID(id)
+    if (repo.gitHubRepository) {
+      await this.updateGitHubRepository(repoWithID)
+    }
+
+    return repoWithID
   }
 
-  public async updateGitHubRepository(id: number, repo: IAPIRepository): Promise<void> {
+  /** Update or add the repository's GitHub repository. */
+  public async updateGitHubRepository(repository: Repository): Promise<void> {
+    const repoID = repository.id
+    if (!repoID) {
+      return fatalError('`updateGitHubRepository` can only update a GitHub repository for a repository which has been added to the database.')
+    }
+
+    const newGitHubRepo = repository.gitHubRepository
+    if (!newGitHubRepo) {
+      return fatalError('`updateGitHubRepository` can only update a GitHub repository. It cannot remove one.')
+    }
+
     const db = this.db
-    const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, function*() {
-      const localRepo = yield db.repositories.get(id)
-      const gitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)
-      const updates = {private: repo.private, fork: repo.fork, htmlURL: repo.htmlUrl}
-      yield db.gitHubRepositories.update(gitHubRepo.id, updates)
+    const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
+      const localRepo = yield db.repositories.get(repoID)
+
+      let existingGitHubRepo: IDatabaseGitHubRepository | null = null
+      let ownerID: number | null = null
+      if (localRepo.gitHubRepositoryID) {
+        existingGitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)
+        if (!existingGitHubRepo) {
+          return fatalError(`Couldn't look up an existing GitHub repository.`)
+        }
+
+        const owner = yield db.owners.get(existingGitHubRepo.ownerID)
+        ownerID = owner.id
+      } else {
+        const owner = newGitHubRepo.owner
+        let existingOwner = yield db.owners
+          .where('login')
+          .equalsIgnoreCase(owner.login)
+          .limit(1)
+          .first()
+        if (existingOwner) {
+          ownerID = existingOwner.id
+        } else {
+          ownerID = yield db.owners.add({login: owner.login, endpoint: owner.endpoint})
+        }
+      }
+
+      const info: any = {
+        private: newGitHubRepo.private,
+        fork: newGitHubRepo.fork,
+        htmlURL: newGitHubRepo.htmlURL,
+        name: newGitHubRepo.name,
+        ownerID,
+      }
+
+      if (existingGitHubRepo) {
+        info.id = existingGitHubRepo.id
+      }
+
+      const gitHubRepositoryID = yield db.gitHubRepositories.put(info)
+      yield db.repositories.update(localRepo.id, {gitHubRepositoryID})
     })
 
     await transaction

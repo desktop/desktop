@@ -4,15 +4,7 @@
 #toolbar {
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   height: 34px;
   align-items: center;
-
-  border-style: solid;
-
-  /** A React component holding the tab bar */
-  #tab-bar {
-    .selected {
-      font-weight: bolder;
-    }
-  }
 }

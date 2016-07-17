@@ -3,25 +3,25 @@ import Dexie from 'dexie'
 // NB: This _must_ be incremented whenever the DB key scheme changes.
 const DatabaseVersion = 1
 
-interface IDatabaseOwner {
-  id?: number
-  login: string
-  endpoint: string
+export interface IDatabaseOwner {
+  readonly id?: number | null
+  readonly login: string
+  readonly endpoint: string
 }
 
-interface IDatabaseGitHubRepository {
-  id?: number
-  ownerID: number
-  name: string
-  private?: boolean
-  fork?: boolean
-  htmlURL?: string
+export interface IDatabaseGitHubRepository {
+  readonly id?: number | null
+  readonly ownerID: number
+  readonly name: string
+  readonly private: boolean | null
+  readonly fork: boolean | null
+  readonly htmlURL: string | null
 }
 
-interface IDatabaseRepository {
-  id?: number
-  gitHubRepositoryID?: number
-  path: string
+export interface IDatabaseRepository {
+  readonly id?: number | null
+  readonly gitHubRepositoryID: number | null
+  readonly path: string
 }
 
 /** The app database. */

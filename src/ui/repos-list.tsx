@@ -5,10 +5,10 @@ import Repository from '../models/repository'
 import {Octicon, OcticonSymbol} from './octicons'
 
 interface IReposListProps {
-  selectedRow: number
-  onSelectionChanged: (row: number) => void
-  loading: boolean
-  repos: Repository[]
+  readonly selectedRow: number
+  readonly onSelectionChanged: (row: number) => void
+  readonly loading: boolean
+  readonly repos: ReadonlyArray<Repository>
 }
 
 const RowHeight = 40
@@ -17,21 +17,26 @@ export default class ReposList extends React.Component<IReposListProps, void> {
   private renderRow(row: number): JSX.Element {
     const repo = this.props.repos[row]
     const symbol = this.iconForRepo(repo)
+    const repoPath = repo.path
+    const gitHubRepo = repo.gitHubRepository
+    const tooltip = gitHubRepo
+      ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + repoPath
+      : repoPath
 
     return (
-      <div className='repository-list-item' key={row.toString()} title={repo.getName()}>
+      <div className='repository-list-item' key={row.toString()} title={tooltip}>
         <Octicon symbol={symbol} />
-        <div className='name'>{repo.getName()}</div>
+        <div className='name'>{repo.name}</div>
       </div>
     )
   }
 
   private iconForRepo(repo: Repository): OcticonSymbol {
-    const gitHubRepo = repo.getGitHubRepository()
+    const gitHubRepo = repo.gitHubRepository
     if (!gitHubRepo) { return OcticonSymbol.repo }
 
-    if (gitHubRepo.getPrivate()) { return OcticonSymbol.lock }
-    if (gitHubRepo.getFork()) { return OcticonSymbol.repoForked }
+    if (gitHubRepo.private) { return OcticonSymbol.lock }
+    if (gitHubRepo.fork) { return OcticonSymbol.repoForked }
 
     return OcticonSymbol.repo
   }

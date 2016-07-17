@@ -6,6 +6,11 @@
   flex-direction: column;
   flex: 1;
 
-  text-align: center;
-  border-style: solid;
+  .files {
+    .path {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
 }

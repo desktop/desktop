@@ -3,14 +3,14 @@ import * as React from 'react'
 import User from '../models/user'
 import {default as Repo} from '../models/repository'
 import Toolbar from './toolbar'
-import Changes from './changes'
+import {Changes} from './changes'
 import History from './history'
 import ComparisonGraph from './comparison-graph'
 import {TabBarTab} from './toolbar/tab-bar'
 
 interface IRepositoryProps {
-  repo: Repo,
-  user: User
+  repo: Repo
+  user: User | null
 }
 
 interface IRepositoryState {
@@ -24,6 +24,17 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
     this.state = {selectedTab: TabBarTab.Changes}
   }
 
+  public componentDidMount() {
+    this.repositoryChanged()
+  }
+
+  public componentDidUpdate(prevProps: IRepositoryProps, prevState: IRepositoryState) {
+    const changed = prevProps.repo.id !== this.props.repo.id
+    if (changed) {
+      this.repositoryChanged()
+    }
+  }
+
   private renderNoSelection() {
     return (
       <div>
@@ -34,9 +45,9 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
 
   private renderContent() {
     if (this.state.selectedTab === TabBarTab.Changes) {
-      return <Changes/>
+      return <Changes selectedRepo={this.props.repo}/>
     } else if (this.state.selectedTab === TabBarTab.History) {
-      return <History/>
+      return <History repository={this.props.repo}/>
     } else {
       return null
     }
@@ -59,5 +70,9 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
 
   private onTabClicked(tab: TabBarTab) {
     this.setState(Object.assign({}, this.state, {selectedTab: tab}))
+  }
+
+  private repositoryChanged() {
+    this.setState(Object.assign({}, this.state, {selectedTab: TabBarTab.Changes}))
   }
 }

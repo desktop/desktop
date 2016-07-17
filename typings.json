@@ -5,8 +5,8 @@
     "github-electron": "registry:dt/github-electron#1.0.2+20160523035412",
     "keytar": "registry:dt/keytar#3.0.0+20160316155526",
     "mocha": "registry:dt/mocha#2.2.5+20160317120654",
-    "node": "registry:dt/node#6.0.0+20160523035754",
-    "react": "registry:dt/react#0.14.0+20160423065914",
+    "node": "registry:dt/node#6.0.0+20160709114037",
+    "react": "registry:dt/react#0.14.0+20160630100702",
     "react-addons-test-utils": "registry:dt/react-addons-test-utils#0.14.0+20160427035638",
     "react-dom": "registry:dt/react-dom#0.14.0+20160412154040",
     "whatwg-fetch": "registry:dt/whatwg-fetch#0.0.0+20160524142046"

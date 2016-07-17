@@ -37,7 +37,6 @@
     "event-kit": "^2.0.0",
     "keytar": "^3.0.2",
     "octokat": "^0.5.0-beta.0",
-    "ohnogit": "0.0.14",
     "react": "^15.0.2",
     "react-dom": "^15.0.2"
   },
@@ -79,7 +78,7 @@
     "ts-loader": "^0.8.2",
     "ts-node": "^0.7.2",
     "tslint": "^3.9.0",
-    "typescript": "^1.8.10",
+    "typescript": "beta",
     "typings": "^0.7.12",
     "webpack": "^1.12.15",
     "webpack-dev-middleware": "^1.6.1",

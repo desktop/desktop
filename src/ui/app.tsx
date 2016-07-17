@@ -1,6 +1,5 @@
 import * as React from 'react'
 import {ipcRenderer} from 'electron'
-import {Repository as GitRepository} from 'ohnogit'
 
 import {Sidebar} from './sidebar'
 import ReposList from './repos-list'
@@ -12,16 +11,18 @@ import {WindowControls} from './window/window-controls'
 import {Dispatcher} from '../lib/dispatcher'
 import Repository from '../models/repository'
 import {matchGitHubRepository} from '../lib/repository-matching'
+import API, {getUserForEndpoint} from '../lib/api'
+import { LocalGitOperations } from '../lib/local-git-operations'
 
 interface IAppState {
-  selectedRow: number
-  repos: Repository[]
-  loadingRepos: boolean
-  users: User[]
+  readonly selectedRow: number
+  readonly repos: ReadonlyArray<Repository>
+  readonly loadingRepos: boolean
+  readonly users: ReadonlyArray<User>
 }
 
 interface IAppProps {
-  dispatcher: Dispatcher
+  readonly dispatcher: Dispatcher
 }
 
 export default class App extends React.Component<IAppProps, IAppState> {
@@ -34,9 +35,9 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
     this.state = {
       selectedRow: -1,
-      users: [],
+      users: new Array<User>(),
       loadingRepos: true,
-      repos: []
+      repos: new Array<Repository>()
     }
 
     // This is split out simply because TS doesn't like having an async
@@ -50,17 +51,11 @@ export default class App extends React.Component<IAppProps, IAppState> {
     this.update(users, repos)
   }
 
-  private update(users: User[], repos: Repository[]) {
+  private update(users: ReadonlyArray<User>, repos: ReadonlyArray<Repository>) {
     // TODO: We should persist this but for now we'll select the first
     // repository available unless we already have a selection
     const haveSelection = this.state.selectedRow > -1
     const selectedRow = (!haveSelection && repos.length > 0) ? 0 : this.state.selectedRow
-
-    if (haveSelection) {
-      // This is less than ideal but works for now.
-      this.refreshSelectedRepository()
-    }
-
     this.setState(Object.assign({}, this.state, {users, repos, loadingRepos: false, selectedRow}))
   }
 
@@ -87,25 +82,10 @@ export default class App extends React.Component<IAppProps, IAppState> {
   }
 
   private async addRepositories(paths: string[]) {
-    const repositories: Repository[] = []
-    for (let path of paths) {
-      const gitRepo = GitRepository.open(path)
-      // TODO: This is all kinds of wrong.
-      const remote = await gitRepo.getConfigValue('remote.origin.url')
-      let gitHubRepository: GitHubRepository = null
-      if (remote) {
-        gitHubRepository = matchGitHubRepository(this.state.users, remote)
-      }
+    const repositories = paths.map(p => new Repository(p))
+    const addedRepos = await this.props.dispatcher.addRepositories(repositories)
 
-      if (gitHubRepository) {
-        console.log(`Matched ${remote} to ${gitHubRepository.getOwner().getLogin()}/${gitHubRepository.getName()}`)
-      }
-
-      const repository = new Repository(path, gitHubRepository)
-      repositories.push(repository)
-    }
-
-    this.props.dispatcher.addRepositories(repositories)
+    addedRepos.forEach(repo => this.refreshGitHubRepositoryInfo(repo))
   }
 
   private renderTitlebar() {
@@ -125,8 +105,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  /* Put the main application menu into a context menu for now (win only)
-   */
+  /** Put the main application menu into a context menu for now (win only) */
   private onContextMenu(e: React.MouseEvent) {
     if (process.platform === 'win32') {
       e.preventDefault()
@@ -166,16 +145,45 @@ export default class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private refreshSelectedRepository() {
+  private refreshRepositoryAtRow(row: number) {
     // This probably belongs in the Repository component or whatever, but until
     // that exists...
-    const repo = this.state.repos[this.state.selectedRow]
-    this.props.dispatcher.refreshRepository(repo)
+    const repo = this.state.repos[row]
+    console.log(repo)
+    this.refreshGitHubRepositoryInfo(repo)
   }
 
   private handleSelectionChanged(row: number) {
     this.setState(Object.assign({}, this.state, {selectedRow: row}))
 
-    this.refreshSelectedRepository()
+    this.refreshRepositoryAtRow(row)
+  }
+
+  private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
+    // TODO: This is all kinds of wrong. We shouldn't assume the remote is named
+    // `origin`.
+    const remote = await LocalGitOperations.getConfigValue(repository, 'remote.origin.url')
+    if (!remote) { return null }
+
+    return matchGitHubRepository(this.state.users, remote)
+  }
+
+  private async refreshGitHubRepositoryInfo(repository: Repository): Promise<void> {
+    let gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) {
+      gitHubRepository = await this.guessGitHubRepository(repository)
+    }
+
+    if (!gitHubRepository) { return Promise.resolve() }
+
+    const users = this.state.users
+    const user = getUserForEndpoint(users, gitHubRepository.endpoint)
+    if (!user) { return Promise.resolve() }
+
+    const api = new API(user)
+    const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
+
+    const updatedRepository = repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
+    this.props.dispatcher.updateGitHubRepository(updatedRepository)
   }
 }

@@ -28,4 +28,4 @@ function updateFullScreenBodyInfo(windowState: WindowState) {
 updateFullScreenBodyInfo(getWindowState(remote.getCurrentWindow()))
 ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(args as WindowState))
 
-ReactDOM.render(<App dispatcher={dispatcher}/>, document.getElementById('desktop-app-container'))
+ReactDOM.render(<App dispatcher={dispatcher}/>, document.getElementById('desktop-app-container')!)

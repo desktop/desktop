@@ -4,11 +4,7 @@
 
   display: flex;
   flex-direction: column;
-
-  // TODO: I'm not sure if it should be the job of the sidebar
-  // to add margin to the repository view but it'll have to do
-  // for now.
-  margin-right: 20px;
+  flex-shrink: 0;
 
   // Custom color scheme for the sidebar
   //
@@ -19,8 +15,8 @@
   --scroll-bar-thumb-background-color: rgba(255, 255, 255, 0.2);
   --scroll-bar-thumb-background-color-active: rgba(255, 255, 255, 0.5);
 
-  --list-item-selected-background-color: #696969;
-  --list-item-selected-text-color: #f9f9f9;
+  --box-selected-background-color: #696969;
+  --box-selected-text-color: #f9f9f9;
 
   // Set up inheritance of foreground/background.
   //

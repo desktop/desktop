@@ -2,13 +2,12 @@ import tokenStore from './token-store'
 import UsersStore from './users-store'
 import {requestToken, askUserToAuth} from './auth'
 import User from '../models/user'
-import {isOAuthAction} from '../lib/parse-url'
 import Database from './database'
 import RepositoriesStore from './repositories-store'
 import Repository, {IRepository} from '../models/repository'
 import {register, broadcastUpdate as broadcastUpdate_} from './communication'
-import {IURLAction, IAddRepositoriesAction, IRefreshRepositoryAction} from '../lib/dispatcher'
-import API, {getDotComAPIEndpoint, getUserForEndpoint} from '../lib/api'
+import {IURLAction, IAddRepositoriesAction, IUpdateGitHubRepositoryAction} from '../lib/dispatcher'
+import {getDotComAPIEndpoint} from '../lib/api'
 
 const Octokat = require('octokat')
 
@@ -40,12 +39,14 @@ register('get-users', () => {
 
 register('add-repositories', async ({repositories}: IAddRepositoriesAction) => {
   const inflatedRepositories = repositories.map(r => Repository.fromJSON(r as IRepository))
+  const addedRepos: Repository[] = []
   for (const repo of inflatedRepositories) {
     const addedRepo = await repositoriesStore.addRepository(repo)
-    updateGitHubRepository(addedRepo)
+    addedRepos.push(addedRepo)
   }
 
   broadcastUpdate()
+  return addedRepos
 })
 
 register('get-repositories', () => {
@@ -53,7 +54,7 @@ register('get-repositories', () => {
 })
 
 register('url-action', async ({action}: IURLAction) => {
-  if (isOAuthAction(action)) {
+  if (action.name === 'oauth') {
     try {
       const token = await requestToken(action.args.code)
       const octo = new Octokat({token})
@@ -71,26 +72,8 @@ register('request-oauth', () => {
   return Promise.resolve()
 })
 
-register('refresh-repository', ({repository}: IRefreshRepositoryAction) => {
+register('update-github-repository', async ({repository}: IUpdateGitHubRepositoryAction) => {
   const inflatedRepository = Repository.fromJSON(repository as IRepository)
-  return updateGitHubRepository(inflatedRepository)
-})
-
-async function updateGitHubRepository(repository: Repository): Promise<void> {
-  const gitHubRepo = repository.getGitHubRepository()
-  if (!gitHubRepo) { return Promise.resolve() }
-
-  const users = usersStore.getUsers()
-  const user = getUserForEndpoint(users, gitHubRepo.getEndpoint())
-  if (!user) { return Promise.resolve() }
-
-  const api = new API(user)
-  const repo = await api.fetchRepository(gitHubRepo.getOwner().getLogin(), gitHubRepo.getName())
-  try {
-    await repositoriesStore.updateGitHubRepository(repository.getID(), repo)
-  } catch (e) {
-    console.error(e)
-  }
-
+  await repositoriesStore.updateGitHubRepository(inflatedRepository)
   broadcastUpdate()
-}
+})

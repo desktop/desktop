@@ -1,5 +1,5 @@
 export interface IMessage {
-  guid: string
-  name: string
-  args: Object
+  readonly guid: string
+  readonly name: string
+  readonly args: Object
 }

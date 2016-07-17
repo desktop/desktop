@@ -7,4 +7,10 @@
   flex: 1;
 
   border-style: solid;
+
+  overflow-y: scroll;
+}
+
+#changes-list .status {
+  margin-left: 10px;
 }
