@@ -1,32 +1,7 @@
-import {WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus} from '../models/status'
+import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
 import Repository from '../models/repository'
 
-import * as path from 'path'
-import * as cp from 'child_process'
-
-const NotFoundErrorCode: number = 128
-
-/**
- * Encapsulate the error from Git for callers to handle
- */
-class GitError extends Error {
-  /**
-   * The error code returned from the Git process
-   */
-  public readonly errorCode: number
-
-  /**
-   * The error text returned from the Git process
-   */
-  public readonly errorOutput: string
-
-  public constructor(errorCode: number, errorOutput: string) {
-    super()
-
-    this.errorCode = errorCode
-    this.errorOutput = errorOutput
-  }
-}
+import { GitProcess, GitError, GitErrorCode } from './git-process'
 
 /** The encapsulation of the result from 'git status' */
 export class StatusResult {
@@ -112,7 +87,7 @@ export class LocalGitOperations {
    *  and fail gracefully if the location is not a Git repository
    */
   public static getStatus(repository: Repository): Promise<StatusResult> {
-    return this.execGitOutput([ 'status', '--untracked-files=all', '--porcelain' ], repository.path)
+    return GitProcess.execWithOutput([ 'status', '--untracked-files=all', '--porcelain' ], repository.path)
         .then(output => {
             const lines = output.split('\n')
 
@@ -140,86 +115,20 @@ export class LocalGitOperations {
           if (error) {
             const gitError = error as GitError
             if (gitError) {
-                const code = gitError.errorCode
-                if (code === NotFoundErrorCode) {
-                  return false
-                }
-                throw new Error('unable to resolve HEAD, got error code: ' + code)
+              const code = gitError.errorCode
+              if (code === GitErrorCode.NotFound) {
+                return StatusResult.NotFound()
               }
-           }
+              throw new Error('unable to resolve HEAD, got error code: ' + code)
+            }
+          }
 
           throw new Error('unable to resolve status, got unknown error: ' + error)
         })
   }
 
-  /**
-   *  Find the path to the embedded Git environment
-   */
-  private static resolveGit(): string {
-    if (process.platform === 'darwin') {
-      return path.join(__dirname, 'git/bin/git')
-    } else if (process.platform === 'win32') {
-      return path.join(__dirname, 'git/cmd/git.exe')
-    } else {
-      throw new Error('Git not supported on platform: ' + process.platform)
-    }
-  }
-
-  /**
-   *  Execute a command using the embedded Git environment
-   */
-  private static execGitCommand(args: string[], path: string): Promise<string> {
-    return new Promise(function(resolve, reject) {
-      const gitLocation = LocalGitOperations.resolveGit()
-      const formatArgs = 'executing: git ' + args.join(' ')
-
-      cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
-        if (err) {
-          console.error(formatArgs)
-          console.error(err)
-          reject(err)
-          return
-        }
-
-        console.log(formatArgs)
-        resolve()
-      })
-    })
-  }
-
-  /**
-   *  Execute a command and read the output using the embedded Git environment
-   */
-  private static execGitOutput(args: string[], path: string): Promise<string> {
-    return new Promise<string>(function(resolve, reject) {
-      const gitLocation = LocalGitOperations.resolveGit()
-      const formatArgs = 'executing: git ' + args.join(' ')
-
-      cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
-        if (!err) {
-          console.log(formatArgs)
-          resolve(output)
-          return
-        }
-
-        if ((err as any).code) {
-          // TODO: handle more error codes
-          const code: number = (err as any).code
-          if (code === NotFoundErrorCode) {
-            reject(new GitError(NotFoundErrorCode, stdErr))
-            return
-          }
-        }
-
-        console.error(formatArgs)
-        console.error(err)
-        reject()
-      })
-    })
-  }
-
   private static async resolveHEAD(repository: Repository): Promise<boolean> {
-    return this.execGitOutput([ 'show', 'HEAD' ], repository.path)
+    return GitProcess.execWithOutput([ 'show', 'HEAD' ], repository.path)
       .then(output => {
         return Promise.resolve(true)
       })
@@ -229,8 +138,8 @@ export class LocalGitOperations {
           const gitError = error as GitError
           if (gitError) {
               const code = gitError.errorCode
-              if (code === NotFoundErrorCode) {
-                return false
+              if (code === GitErrorCode.NotFound) {
+                return Promise.resolve(false)
               }
               throw new Error('unable to resolve HEAD, got error code: ' + code)
             }
@@ -252,7 +161,7 @@ export class LocalGitOperations {
       })
       .then(resetArgs => {
         // reset the index
-        return this.execGitCommand(resetArgs, repository.path)
+        return GitProcess.exec(resetArgs, repository.path)
           .then(_ => {
             // TODO: staging hunks needs to be done in here as well
             const addFiles = files.map((file, index, array) => {
@@ -265,13 +174,13 @@ export class LocalGitOperations {
                 addFileArgs = [ 'add', '-u', file.path ]
               }
 
-              return this.execGitCommand(addFileArgs, repository.path)
+              return GitProcess.exec(addFileArgs, repository.path)
             })
 
             // TODO: pipe standard input into this command
             return Promise.all(addFiles)
               .then(() => {
-                return this.execGitCommand([ 'commit', '-m',  title ] , repository.path)
+                return GitProcess.exec([ 'commit', '-m',  title ] , repository.path)
               })
           })
         })
@@ -293,8 +202,7 @@ export class LocalGitOperations {
       '%ce', // committer email
       '%cI', // committer date, ISO-8601
     ].join(`%x${delimiter}`)
-    const out = await this.execGitOutput([ 'log', `--max-count=${batchCount}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
-
+    const out = await GitProcess.execWithOutput([ 'log', `--max-count=${batchCount}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
     const lines = out.split('\0')
     // Remove the trailing empty line
     lines.splice(-1, 1)
@@ -316,7 +224,7 @@ export class LocalGitOperations {
 
   /** Get the files that were changed in the given commit. */
   public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
-    const out = await this.execGitOutput([ 'show', sha, '--name-status', '--format=format:', '-z' ], repository.path)
+    const out = await GitProcess.execWithOutput([ 'show', sha, '--name-status', '--format=format:', '-z' ], repository.path)
     const lines = out.split('\0')
     // Remove the trailing empty line
     lines.splice(-1, 1)
@@ -334,7 +242,7 @@ export class LocalGitOperations {
 
   /** Look up a config value by name in the repository. */
   public static async getConfigValue(repository: Repository, name: string): Promise<string> {
-    const output = await this.execGitOutput([ 'config', '-z', name ], repository.path)
+    const output = await GitProcess.execWithOutput([ 'config', '-z', name ], repository.path)
     const pieces = output.split('\0')
     return pieces[0]
   }
