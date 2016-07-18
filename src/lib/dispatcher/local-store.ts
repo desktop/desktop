@@ -21,6 +21,8 @@ export default class LocalStore {
   public _users: ReadonlyArray<User> = new Array<User>()
   public _repositories: ReadonlyArray<Repository> = new Array<Repository>()
 
+  private emitQueued = false
+
   public constructor() {
     this.emitter = new Emitter()
 
@@ -35,7 +37,14 @@ export default class LocalStore {
   }
 
   public _emitUpdate() {
-    this.emitter.emit('did-update', this.getAppState())
+    if (this.emitQueued) { return }
+
+    this.emitQueued = true
+
+    window.requestAnimationFrame(() => {
+      this.emitter.emit('did-update', this.getAppState())
+      this.emitQueued = false
+    })
   }
 
   public onDidUpdate(fn: (state: AppState) => void): Disposable {
