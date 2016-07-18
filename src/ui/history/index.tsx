@@ -4,38 +4,20 @@ import CommitSummaryContainer from './commit-summary-container'
 import FileDiff from '../file-diff'
 import Repository from '../../models/repository'
 import {FileChange} from '../../models/status'
-import {Commit, LocalGitOperations} from '../../lib/local-git-operations'
-import {Dispatcher} from '../../lib/dispatcher'
+import { Commit } from '../../lib/local-git-operations'
+import { Dispatcher } from '../../lib/dispatcher'
+import { IHistorySelection } from '../../lib/app-state'
 
 interface IHistoryProps {
   readonly repository: Repository
   readonly selection: IHistorySelection
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<FileChange>
-}
-
-interface IHistorySelection {
-  readonly commit: Commit | null
-  readonly file: FileChange | null
-}
-
-interface IHistoryState {
   readonly commits: ReadonlyArray<Commit>
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
-export default class History extends React.Component<IHistoryProps, IHistoryState> {
-  public constructor(props: IHistoryProps) {
-    super(props)
-
-    this.state = {commits: new Array<Commit>() }
-  }
-
-  public async componentDidMount() {
-    const commits = await LocalGitOperations.getHistory(this.props.repository)
-    this.setState(Object.assign({}, this.state, {commits}))
-  }
-
+export default class History extends React.Component<IHistoryProps, void> {
   private onCommitSelected(commit: Commit) {
     const newSelection = {commit, file: null}
     this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
@@ -51,7 +33,7 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
     const selectedFile = this.props.selection.file
     return (
       <div id='history'>
-        <CommitList commits={this.state.commits}
+        <CommitList commits={this.props.commits}
                     selectedCommit={this.props.selection.commit}
                     onCommitSelected={row => this.onCommitSelected(row)}/>
         <CommitSummaryContainer repository={this.props.repository}

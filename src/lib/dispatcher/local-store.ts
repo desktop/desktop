@@ -4,11 +4,13 @@ import { IHistoryState, AppState } from '../app-state'
 import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
 import { FileChange } from '../../models/status'
+import { Commit } from '../local-git-operations'
 
 export default class LocalStore {
   private emitter: Emitter
 
   public _history: IHistoryState = {
+    commits: new Array<Commit>(),
     selection: {
       commit: null,
       file: null,

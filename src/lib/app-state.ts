@@ -18,5 +18,6 @@ export interface IHistorySelection {
 
 export interface IHistoryState {
   readonly selection: IHistorySelection
+  readonly commits: ReadonlyArray<Commit>
   readonly changedFiles: ReadonlyArray<FileChange>
 }

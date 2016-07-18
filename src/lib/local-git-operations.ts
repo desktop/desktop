@@ -190,7 +190,7 @@ export class LocalGitOperations {
   }
 
   /** Get the repository's history. */
-  public static async getHistory(repository: Repository): Promise<Commit[]> {
+  public static async getHistory(repository: Repository): Promise<ReadonlyArray<Commit>> {
     const batchCount = 100
     const delimiter = '1F'
     const delimeterString = String.fromCharCode(parseInt(delimiter, 16))

@@ -52,6 +52,7 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
       return <History repository={this.props.repo}
                       selection={this.props.history.selection}
                       dispatcher={this.props.dispatcher}
+                      commits={this.props.history.commits}
                       files={this.props.history.changedFiles}/>
     } else {
       return null
@@ -75,6 +76,10 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
 
   private onTabClicked(tab: TabBarTab) {
     this.setState(Object.assign({}, this.state, {selectedTab: tab}))
+
+    if (tab === TabBarTab.History) {
+      this.props.dispatcher.loadHistory(this.props.repo)
+    }
   }
 
   private repositoryChanged() {

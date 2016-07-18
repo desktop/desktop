@@ -117,11 +117,25 @@ export class Dispatcher {
     return this.dispatch<void>({name: 'update-github-repository', repository})
   }
 
+  public async loadHistory(repository: Repository): Promise<void> {
+    const commits = await LocalGitOperations.getHistory(repository)
+    this.store._history = {
+      commits,
+      selection: this.store._history.selection,
+      changedFiles: this.store._history.changedFiles,
+    }
+    this.store._emitUpdate()
+  }
+
   public async changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
     const commitChanged = this.store._history.selection.commit !== selection.commit
 
     if (commitChanged) {
-      this.store._history = { selection, changedFiles: new Array<FileChange>() }
+      this.store._history = {
+        commits: this.store._history.commits,
+        selection,
+        changedFiles: new Array<FileChange>(),
+      }
       this.store._emitUpdate()
 
       const commit = selection.commit
@@ -129,10 +143,18 @@ export class Dispatcher {
 
       const changedFiles = await LocalGitOperations.getChangedFiles(repository, commit.sha)
 
-      this.store._history = { selection, changedFiles }
+      this.store._history = {
+        commits: this.store._history.commits,
+        selection,
+        changedFiles,
+      }
       this.store._emitUpdate()
     } else {
-      this.store._history = { selection, changedFiles: this.store._history.changedFiles }
+      this.store._history = {
+        commits: this.store._history.commits,
+        selection,
+        changedFiles: this.store._history.changedFiles,
+      }
       this.store._emitUpdate()
     }
   }
