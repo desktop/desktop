@@ -125,6 +125,8 @@ export class Dispatcher {
       changedFiles: this.store._history.changedFiles,
     }
     this.store._emitUpdate()
+
+    this.store._historyByRepositoryID[repository.id!] = this.store._history
   }
 
   public async changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
@@ -158,28 +160,30 @@ export class Dispatcher {
       this.store._emitUpdate()
     }
 
-    this.store._historySelectionByRepositoryID[repository.id!] = selection
+    this.store._historyByRepositoryID[repository.id!] = this.store._history
   }
 
   public async selectRepository(repository: Repository): Promise<void> {
     this.store._selectedRepository = repository
 
-    this.store._history = {
-      commits: new Array<Commit>(),
-      selection: {
-        commit: null,
-        file: null,
-      },
-      changedFiles: new Array<FileChange>(),
+    const history = this.store._historyByRepositoryID[repository.id!]
+    if (history) {
+      this.store._history = history
+    } else {
+      this.store._history = {
+        commits: new Array<Commit>(),
+        selection: {
+          commit: null,
+          file: null,
+        },
+        changedFiles: new Array<FileChange>(),
+      }
     }
+
     this.store._emitUpdate()
 
     await this.loadHistory(repository)
-
-    const selection = this.store._historySelectionByRepositoryID[repository.id!]
-    if (selection) {
-      await this.changeHistorySelection(repository, selection)
-    }
+    this.store._emitUpdate()
 
     return Promise.resolve()
   }

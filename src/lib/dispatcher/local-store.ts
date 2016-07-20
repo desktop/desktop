@@ -1,6 +1,6 @@
 import {ipcRenderer} from 'electron'
 import {Emitter, Disposable} from 'event-kit'
-import { IHistoryState, AppState, IHistorySelection } from '../app-state'
+import { IHistoryState, AppState } from '../app-state'
 import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
 import { FileChange } from '../../models/status'
@@ -22,13 +22,13 @@ export default class LocalStore {
   public _repositories: ReadonlyArray<Repository> = new Array<Repository>()
   public _selectedRepository: Repository | null
 
-  public _historySelectionByRepositoryID: {[key: number]: IHistorySelection }
+  public _historyByRepositoryID: {[key: number]: IHistoryState }
 
   private emitQueued = false
 
   public constructor() {
     this.emitter = new Emitter()
-    this._historySelectionByRepositoryID = {}
+    this._historyByRepositoryID = {}
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
