@@ -87,7 +87,7 @@ export default class App extends React.Component<AppProps, AppState> {
 
     let index = -1
     this.state.repositories.forEach((r, i) => {
-      if (r.id === repository.id) {
+      if (r === repository) {
         index = i
         return
       }

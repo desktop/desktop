@@ -37,6 +37,25 @@ export default class LocalStore {
     const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IUser>} = args[0].state
     this._users = state.users.map(User.fromJSON)
     this._repositories = state.repositories.map(Repository.fromJSON)
+
+    // Update the selected repository. This has two goals:
+    //  1. Set it to null if the selected repository was removed.
+    //  2. Set the selected repository instance to the same instance as is in
+    //     the repositories array. This lets us check for identity instead of
+    //     equality.
+    const selectedRepository = this._selectedRepository
+    if (selectedRepository) {
+      let matchingRepository: Repository | null = null
+      this._repositories.forEach(r => {
+        if (r.id === selectedRepository.id) {
+          matchingRepository = r
+          return
+        }
+      })
+
+      this._selectedRepository = matchingRepository
+    }
+
     this._emitUpdate()
   }
 
