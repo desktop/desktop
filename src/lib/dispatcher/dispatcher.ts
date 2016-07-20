@@ -5,7 +5,7 @@ import guid from '../guid'
 import {IHistorySelection} from '../app-state'
 import {Action} from './actions'
 import LocalStore from './local-store'
-import { LocalGitOperations } from '../local-git-operations'
+import { LocalGitOperations, Commit } from '../local-git-operations'
 import { FileChange } from '../../models/status'
 
 /**
@@ -157,5 +157,30 @@ export class Dispatcher {
       }
       this.store._emitUpdate()
     }
+
+    this.store._historySelectionByRepositoryID[repository.id!] = selection
+  }
+
+  public async selectRepository(repository: Repository): Promise<void> {
+    this.store._selectedRepository = repository
+
+    this.store._history = {
+      commits: new Array<Commit>(),
+      selection: {
+        commit: null,
+        file: null,
+      },
+      changedFiles: new Array<FileChange>(),
+    }
+    this.store._emitUpdate()
+
+    await this.loadHistory(repository)
+
+    const selection = this.store._historySelectionByRepositoryID[repository.id!]
+    if (selection) {
+      await this.changeHistorySelection(repository, selection)
+    }
+
+    return Promise.resolve()
   }
 }

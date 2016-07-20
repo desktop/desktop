@@ -6,7 +6,7 @@ import {Octicon, OcticonSymbol} from './octicons'
 
 interface ReposListProps {
   readonly selectedRow: number
-  readonly onSelectionChanged: (row: number) => void
+  readonly onSelectionChanged: (repository: Repository) => void
   readonly loading: boolean
   readonly repos: ReadonlyArray<Repository>
 }
@@ -58,7 +58,12 @@ export default class ReposList extends React.Component<ReposListProps, void> {
             itemHeight={RowHeight}
             renderItem={row => this.renderRow(row)}
             selectedRow={this.props.selectedRow}
-            onSelectionChanged={row => this.props.onSelectionChanged(row)} />
+            onSelectionChanged={row => this.onSelectionChanged(row)} />
     )
+  }
+
+  private onSelectionChanged(row: number) {
+    const repository = this.props.repos[row]
+    this.props.onSelectionChanged(repository)
   }
 }

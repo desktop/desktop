@@ -1,6 +1,6 @@
 import {ipcRenderer} from 'electron'
 import {Emitter, Disposable} from 'event-kit'
-import { IHistoryState, AppState } from '../app-state'
+import { IHistoryState, AppState, IHistorySelection } from '../app-state'
 import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
 import { FileChange } from '../../models/status'
@@ -20,11 +20,15 @@ export default class LocalStore {
 
   public _users: ReadonlyArray<User> = new Array<User>()
   public _repositories: ReadonlyArray<Repository> = new Array<Repository>()
+  public _selectedRepository: Repository | null
+
+  public _historySelectionByRepositoryID: {[key: number]: IHistorySelection }
 
   private emitQueued = false
 
   public constructor() {
     this.emitter = new Emitter()
+    this._historySelectionByRepositoryID = {}
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
@@ -42,7 +46,7 @@ export default class LocalStore {
     this.emitQueued = true
 
     window.requestAnimationFrame(() => {
-      this.emitter.emit('did-update', this.getAppState())
+      this.emitter.emit('did-update', this.getState())
       this.emitQueued = false
     })
   }
@@ -51,11 +55,12 @@ export default class LocalStore {
     return this.emitter.on('did-update', fn)
   }
 
-  public getAppState(): AppState {
+  public getState(): AppState {
     return {
       users: this._users,
       repositories: this._repositories,
       history: this._history,
+      selectedRepository: this._selectedRepository,
     }
   }
 }

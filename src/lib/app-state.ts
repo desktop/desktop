@@ -7,6 +7,7 @@ import {FileChange} from '../models/status'
 export interface AppState {
   readonly users: ReadonlyArray<User>
   readonly repositories: ReadonlyArray<Repository>
+  readonly selectedRepository: Repository | null
 
   readonly history: IHistoryState
 }

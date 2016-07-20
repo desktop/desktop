@@ -10,7 +10,7 @@ import { IHistoryState } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 
 interface RepositoryProps {
-  repo: Repo
+  repository: Repo
   history: IHistoryState
   dispatcher: Dispatcher
 }
@@ -26,17 +26,6 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
     this.state = {selectedTab: TabBarTab.Changes}
   }
 
-  public componentDidMount() {
-    this.repositoryChanged()
-  }
-
-  public componentDidUpdate(prevProps: RepositoryProps, prevState: RepositoryState) {
-    const changed = prevProps.repo.id !== this.props.repo.id
-    if (changed) {
-      this.repositoryChanged()
-    }
-  }
-
   private renderNoSelection() {
     return (
       <div>
@@ -47,9 +36,9 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
 
   private renderContent() {
     if (this.state.selectedTab === TabBarTab.Changes) {
-      return <Changes selectedRepo={this.props.repo}/>
+      return <Changes selectedRepo={this.props.repository}/>
     } else if (this.state.selectedTab === TabBarTab.History) {
-      return <History repository={this.props.repo}
+      return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
                       history={this.props.history}/>
     } else {
@@ -58,7 +47,7 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
   }
 
   public render() {
-    const repo = this.props.repo
+    const repo = this.props.repository
     if (!repo) {
       return this.renderNoSelection()
     }
@@ -76,11 +65,7 @@ export default class Repository extends React.Component<RepositoryProps, Reposit
     this.setState(Object.assign({}, this.state, {selectedTab: tab}))
 
     if (tab === TabBarTab.History) {
-      this.props.dispatcher.loadHistory(this.props.repo)
+      this.props.dispatcher.loadHistory(this.props.repository)
     }
-  }
-
-  private repositoryChanged() {
-    this.setState(Object.assign({}, this.state, {selectedTab: TabBarTab.Changes}))
   }
 }

@@ -4,7 +4,6 @@ import {ipcRenderer} from 'electron'
 import {Sidebar} from './sidebar'
 import ReposList from './repos-list'
 import {default as RepositoryView} from './repository'
-import User from '../models/user'
 import GitHubRepository from '../models/github-repository'
 import NotLoggedIn from './not-logged-in'
 import {WindowControls} from './window/window-controls'
@@ -13,16 +12,7 @@ import Repository from '../models/repository'
 import {matchGitHubRepository} from '../lib/repository-matching'
 import API, {getUserForEndpoint} from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
-import { IHistoryState, AppState as GlobalAppState } from '../lib/app-state'
-
-interface AppState {
-  readonly repos: ReadonlyArray<Repository>
-  readonly users: ReadonlyArray<User>
-  readonly history: IHistoryState
-
-  readonly selectedRow: number
-  readonly loadingRepos: boolean
-}
+import { AppState } from '../lib/app-state'
 
 interface AppProps {
   readonly dispatcher: Dispatcher
@@ -33,30 +23,8 @@ export default class App extends React.Component<AppProps, AppState> {
   public constructor(props: AppProps) {
     super(props)
 
-    props.store.onDidUpdate(state => this.update(state))
-
-    const {users, repositories, history} = props.store.getAppState()
-    this.state = {
-      selectedRow: -1,
-      users,
-      loadingRepos: true,
-      repos: repositories,
-      history,
-    }
-  }
-
-  private update({users, repositories, history}: GlobalAppState) {
-    // TODO: We should persist this but for now we'll select the first
-    // repository available unless we already have a selection
-    const haveSelection = this.state.selectedRow > -1
-    const selectedRow = (!haveSelection && repositories.length > 0) ? 0 : this.state.selectedRow
-    this.setState(Object.assign({}, this.state, {
-      users,
-      repos: repositories,
-      loadingRepos: false,
-      selectedRow,
-      history,
-    }))
+    this.state = props.store.getState()
+    props.store.onDidUpdate(state => this.setState(state))
   }
 
   public componentDidMount() {
@@ -113,17 +81,35 @@ export default class App extends React.Component<AppProps, AppState> {
     }
   }
 
+  private rowForRepository(repository_: Repository | null): number {
+    const repository = repository_
+    if (!repository) { return -1 }
+
+    let index = -1
+    this.state.repositories.forEach((r, i) => {
+      if (r.id === repository.id) {
+        index = i
+        return
+      }
+    })
+    return index
+  }
+
   private renderApp() {
-    const selectedRepo = this.state.repos[this.state.selectedRow]
+    const selectedRow = this.rowForRepository(this.state.selectedRepository)
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
         <Sidebar>
-          <ReposList selectedRow={this.state.selectedRow}
-                     onSelectionChanged={row => this.handleSelectionChanged(row)}
-                     repos={this.state.repos}
-                     loading={this.state.loadingRepos}/>
+          <ReposList selectedRow={selectedRow}
+                     onSelectionChanged={repository => this.onSelectionChanged(repository)}
+                     repos={this.state.repositories}
+                     // TODO: This is wrong. Just because we have 0 repos
+                     // doesn't necessarily mean we're loading.
+                     loading={this.state.repositories.length === 0}/>
         </Sidebar>
-        <RepositoryView repo={selectedRepo} history={this.state.history} dispatcher={this.props.dispatcher}/>
+        <RepositoryView repository={this.state.selectedRepository!}
+                        history={this.state.history}
+                        dispatcher={this.props.dispatcher}/>
       </div>
     )
   }
@@ -145,18 +131,17 @@ export default class App extends React.Component<AppProps, AppState> {
     )
   }
 
-  private refreshRepositoryAtRow(row: number) {
+  private refreshRepository(repository: Repository) {
     // This probably belongs in the Repository component or whatever, but until
     // that exists...
-    const repo = this.state.repos[row]
-    console.log(repo)
-    this.refreshGitHubRepositoryInfo(repo)
+    console.log(repository)
+    this.refreshGitHubRepositoryInfo(repository)
   }
 
-  private handleSelectionChanged(row: number) {
-    this.setState(Object.assign({}, this.state, {selectedRow: row}))
+  private onSelectionChanged(repository: Repository) {
+    this.props.dispatcher.selectRepository(repository)
 
-    this.refreshRepositoryAtRow(row)
+    this.refreshRepository(repository)
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
