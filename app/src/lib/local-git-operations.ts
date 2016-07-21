@@ -197,6 +197,12 @@ export class LocalGitOperations {
       })
   }
 
+  /**
+    * Render the diff for a file within the repository
+    *
+    * A specific commit related to the file may be provided, otherwise the
+    * working directory state will be used.
+    */
   public static getDiff(repository: Repository, relativePath: string, commit: Commit | null): Promise<Diff> {
 
     let args: string[]
