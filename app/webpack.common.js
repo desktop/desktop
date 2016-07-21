@@ -5,13 +5,13 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 
 module.exports = {
   entry: {
-    main: ['./src/main-process/main'],
-    renderer: ['./src/ui/index'],
-    shared: ['./src/shared-process/index']
+    main: ['./app/src/main-process/main'],
+    renderer: ['./app/src/ui/index'],
+    shared: ['./app/src/shared-process/index']
   },
   output: {
     filename: '[name].js',
-    path: path.join(__dirname, 'build'),
+    path: path.join(__dirname, '..', 'out'),
     libraryTarget: 'commonjs2'
   },
   module: {
@@ -34,7 +34,7 @@ module.exports = {
   target: 'electron',
   plugins: [
     new HtmlWebpackPlugin({
-      'template': 'static/index.html',
+      'template': path.join(__dirname, 'static', 'index.html'),
       'chunks': ['renderer']
     }),
     new HtmlWebpackPlugin({
