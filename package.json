@@ -1,50 +1,30 @@
 {
-  "name": "desktop",
-  "productName": "GitHub",
-  "bundleID": "com.github.GitHubClient",
-  "companyName": "GitHub, Inc.",
-  "version": "0.0.2",
-  "main": "./main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
   },
-  "engines": {
-    "node": ">= 6",
-    "npm": ">= 3"
-  },
-  "description": "The People's Glorious GitHub Client",
+  "description": "The People's Glorious GitHub Client's build dependencies",
   "scripts": {
-    "test": "cross-env TEST_ENV=1 electron-mocha --renderer --require ts-node/register test/*.ts test/*.tsx",
-    "postinstall": "typings install",
+    "test": "cross-env TEST_ENV=1 electron-mocha --renderer --require ts-node/register app/test/*.ts app/test/*.tsx",
+    "postinstall": "typings install && cd app && npm install",
     "start": "npm run build:dev && node script/start",
-    "compile:dev": "cross-env NODE_ENV=development webpack --config webpack.development.js",
-    "compile:prod": "cross-env NODE_ENV=production webpack --config webpack.production.js",
+    "compile:dev": "cross-env NODE_ENV=development webpack --config app/webpack.development.js",
+    "compile:prod": "cross-env NODE_ENV=production webpack --config app/webpack.production.js",
     "build:dev": "npm run compile:dev && cross-env NODE_ENV=development node script/build",
     "build:prod": "npm run compile:prod && cross-env NODE_ENV=production node script/build",
     "package": "node script/package",
     "clean": "rimraf build",
     "rebuild:dev": "npm run clean && npm run build:dev",
     "rebuild:prod": "npm run clean && npm run build:prod",
-    "lint": "tslint ./src/**/*.ts ./src/**/*.tsx ./test/**/*.ts ./test/**/*.tsx"
+    "lint": "tslint ./app/src/**/*.ts ./app/src/**/*.tsx ./app/test/**/*.ts ./app/test/**/*.tsx"
   },
   "author": "",
   "license": "MIT",
+  "engines": {
+    "node": ">= 6",
+    "npm": ">= 3"
+  },
   "dependencies": {
-    "babel-runtime": "^6.6.1",
-    "dexie": "^1.4.1",
-    "electron-window-state": "^3.0.3",
-    "event-kit": "^2.0.0",
-    "keytar": "^3.0.2",
-    "octokat": "^0.5.0-beta.0",
-    "react": "^15.0.2",
-    "react-dom": "^15.0.2"
-  },
-  "debugDependencies": {
-    "react-transform-hmr": "^1.0.4",
-    "webpack-hot-middleware": "^2.10.0"
-  },
-  "devDependencies": {
     "aws-sdk": "^2.3.15",
     "babel-core": "^6.7.6",
     "babel-loader": "^6.2.4",
@@ -68,7 +48,6 @@
     "html-webpack-plugin": "^2.21.0",
     "mocha": "^2.4.5",
     "node-sass": "^3.7.0",
-    "react-addons-test-utils": "^15.0.2",
     "react-transform-hmr": "^1.0.4",
     "request": "^2.72.0",
     "rimraf": "^2.5.2",

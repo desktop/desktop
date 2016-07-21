@@ -1,0 +1,31 @@
+{
+  "name": "desktop",
+  "productName": "GitHub",
+  "bundleID": "com.github.GitHubClient",
+  "companyName": "GitHub, Inc.",
+  "version": "0.0.2",
+  "main": "./main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/desktop/desktop.git"
+  },
+  "description": "The People's Glorious GitHub Client",
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "babel-runtime": "^6.6.1",
+    "dexie": "^1.4.1",
+    "electron-window-state": "^3.0.3",
+    "event-kit": "^2.0.0",
+    "keytar": "^3.0.2",
+    "octokat": "^0.5.0-beta.0",
+    "react": "^15.2.1",
+    "react-dom": "^15.2.1"
+  },
+  "devDependencies": {
+    "react-addons-test-utils": "^15.2.1",
+    "react-transform-hmr": "^1.0.4",
+    "style-loader": "^0.13.1",
+    "webpack-hot-middleware": "^2.10.0"
+  }
+}
