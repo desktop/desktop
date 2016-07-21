@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import {FileStatus} from '../../models/status'
 
-interface ChangedFileProps {
+interface IChangedFileProps {
   path: string,
   status: FileStatus,
   include: boolean,
@@ -10,17 +10,13 @@ interface ChangedFileProps {
 }
 
 /** a changed file in the working directory for a given repository */
-export class ChangedFile extends React.Component<ChangedFileProps, void> {
+export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
   private static mapStatus(status: FileStatus): string {
     if (status === FileStatus.New) { return 'New' }
     if (status === FileStatus.Modified) { return 'Modified' }
     if (status === FileStatus.Deleted) { return 'Deleted' }
     return 'Unknown'
-  }
-
-  public constructor(props: ChangedFileProps) {
-    super(props)
   }
 
   private handleChange(event: React.FormEvent) {

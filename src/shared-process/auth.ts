@@ -15,11 +15,11 @@ const DefaultHeaders: {[key: string]: string} = {
   'User-Agent': `${app.getName()}/${app.getVersion()}`
 }
 
-interface AuthState {
+interface IAuthState {
   readonly oAuthState: string
   readonly endpoint: string
 }
-let authState: AuthState | null = null
+let authState: IAuthState | null = null
 
 export async function requestToken(code: string): Promise<string> {
   if (!authState) {
@@ -41,7 +41,7 @@ export async function requestToken(code: string): Promise<string> {
   return json.access_token
 }
 
-function getOAuthAuthorizationURL(authState: AuthState): string {
+function getOAuthAuthorizationURL(authState: IAuthState): string {
   const urlBase = getOAuthURL(authState.endpoint)
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=repo&state=${authState.oAuthState}`
 }

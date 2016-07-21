@@ -8,21 +8,21 @@ import { WorkingDirectoryStatus } from '../../models/status'
 
 import { LocalGitOperations } from '../../lib/local-git-operations'
 
-interface ChangesProps {
+interface IChangesProps {
   selectedRepo: Repository,
 
 }
 
-interface ChangesState {
+interface IChangesState {
   selectedRow: number,
   workingDirectory: WorkingDirectoryStatus
 }
 
 /** TODO: handle "repository not found" scenario */
 
-export class Changes extends React.Component<ChangesProps, ChangesState> {
+export class Changes extends React.Component<IChangesProps, IChangesState> {
 
-  public constructor(props: ChangesProps) {
+  public constructor(props: IChangesProps) {
     super(props)
 
     this.state = {
@@ -31,7 +31,7 @@ export class Changes extends React.Component<ChangesProps, ChangesState> {
     }
   }
 
-  public componentWillReceiveProps(nextProps: ChangesProps) {
+  public componentWillReceiveProps(nextProps: IChangesProps) {
 
     // reset selection (if found)
     Object.assign({}, this.state, { selectedRow: -1 })

@@ -1,4 +1,4 @@
-import Database, {DatabaseGitHubRepository} from './database'
+import Database, {IDatabaseGitHubRepository} from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
 import Repository from '../models/repository'
@@ -82,7 +82,7 @@ export default class RepositoriesStore {
     const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
       const localRepo = yield db.repositories.get(repoID)
 
-      let existingGitHubRepo: DatabaseGitHubRepository | null = null
+      let existingGitHubRepo: IDatabaseGitHubRepository | null = null
       let ownerID: number | null = null
       if (localRepo.gitHubRepositoryID) {
         existingGitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)

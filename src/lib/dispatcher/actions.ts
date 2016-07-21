@@ -1,33 +1,33 @@
 import {IRepository} from '../../models/repository'
 import {URLActionType} from '../parse-url'
 
-export interface GetUsersAction {
+export interface IGetUsersAction {
   name: 'get-users'
 }
 
-export interface GetRepositoriesAction {
+export interface IGetRepositoriesAction {
   name: 'get-repositories'
 }
 
-export interface AddRepositoriesAction {
+export interface IAddRepositoriesAction {
   name: 'add-repositories'
   readonly repositories: ReadonlyArray<IRepository>
 }
 
-export interface RequestOAuthAction {
+export interface IRequestOAuthAction {
   name: 'request-oauth'
 }
 
-export interface URLAction {
+export interface IURLAction {
   name: 'url-action'
   readonly action: URLActionType
 }
 
-export interface UpdateGitHubRepositoryAction {
+export interface IUpdateGitHubRepositoryAction {
   name: 'update-github-repository'
   readonly repository: IRepository
 }
 
-export type Action = GetUsersAction | GetRepositoriesAction |
-                     AddRepositoriesAction | RequestOAuthAction |
-                     URLAction | UpdateGitHubRepositoryAction
+export type Action = IGetUsersAction | IGetRepositoriesAction |
+                     IAddRepositoriesAction | IRequestOAuthAction |
+                     IURLAction | IUpdateGitHubRepositoryAction

@@ -14,19 +14,19 @@ import {matchGitHubRepository} from '../lib/repository-matching'
 import API, {getUserForEndpoint} from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
 
-interface AppState {
+interface IAppState {
   readonly selectedRow: number
   readonly repos: ReadonlyArray<Repository>
   readonly loadingRepos: boolean
   readonly users: ReadonlyArray<User>
 }
 
-interface AppProps {
+interface IAppProps {
   readonly dispatcher: Dispatcher
 }
 
-export default class App extends React.Component<AppProps, AppState> {
-  public constructor(props: AppProps) {
+export default class App extends React.Component<IAppProps, IAppState> {
+  public constructor(props: IAppProps) {
     super(props)
 
     props.dispatcher.onDidUpdate(state => {

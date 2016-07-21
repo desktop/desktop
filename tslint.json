@@ -6,6 +6,7 @@
       true,
       "spaces"
     ],
+    "interface-name": [ true, "always-prefix"],
     "member-access": [
       true,
       "check-accessor",
