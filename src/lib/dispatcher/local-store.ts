@@ -1,6 +1,6 @@
 import {ipcRenderer} from 'electron'
 import {Emitter, Disposable} from 'event-kit'
-import { IHistoryState, AppState } from '../app-state'
+import { IHistoryState, IAppState } from '../app-state'
 import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
 import { FileChange } from '../../models/status'
@@ -70,11 +70,11 @@ export default class LocalStore {
     })
   }
 
-  public onDidUpdate(fn: (state: AppState) => void): Disposable {
+  public onDidUpdate(fn: (state: IAppState) => void): Disposable {
     return this.emitter.on('did-update', fn)
   }
 
-  public getState(): AppState {
+  public getState(): IAppState {
     return {
       users: this._users,
       repositories: this._repositories,
