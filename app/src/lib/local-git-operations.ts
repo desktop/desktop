@@ -197,8 +197,17 @@ export class LocalGitOperations {
       })
   }
 
-  public static getDiff(repository: Repository, relativePath: string): Promise<Diff> {
-    return GitProcess.execWithOutput([ 'diff', '--patch-with-raw', '-z', '--', relativePath ], repository.path)
+  public static getDiff(repository: Repository, relativePath: string, commit: Commit | null): Promise<Diff> {
+
+    let args: string[]
+
+    if (commit) {
+      args = [ 'show', commit.sha, '--patch-with-raw', '-z', '--', relativePath ]
+    } else {
+      args = [ 'diff', '--patch-with-raw', '-z', '--', relativePath ]
+    }
+
+    return GitProcess.execWithOutput(args, repository.path)
       .then(result => {
         const lines = result.split('\0')
         const diffHeader = lines.filter((line, row, lines) => {

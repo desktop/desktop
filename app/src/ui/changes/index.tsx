@@ -142,7 +142,8 @@ export class Changes extends React.Component<IChangesProps, IChangesState> {
 
          <FileDiff repository={this.props.repository}
                    relativePath={selectedFilePath}
-                   readOnly={false} />
+                   readOnly={false}
+                   commit={null} />
       </div>
     )
   }

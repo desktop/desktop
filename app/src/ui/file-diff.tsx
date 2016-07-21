@@ -5,7 +5,7 @@ import FileDiffLine from './file-diff-line'
 
 import IRepository from '../models/repository'
 
-import { LocalGitOperations, Diff } from '../lib/local-git-operations'
+import { LocalGitOperations, Diff, Commit } from '../lib/local-git-operations'
 
 const RowHeight = 20
 
@@ -13,6 +13,7 @@ interface IFileDiffProps {
   readonly repository: IRepository
   readonly readOnly: boolean
   readonly relativePath: string | null
+  readonly commit: Commit | null
 }
 
 interface IFileDiffState {
@@ -35,7 +36,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     if (!relativePath) {
       // TOOD: don't render anything
     } else {
-      const diff = await LocalGitOperations.getDiff(repository, relativePath)
+
+      const diff = await LocalGitOperations.getDiff(repository, relativePath, this.props.commit)
 
       this.setState(Object.assign({}, this.state, { diff }))
     }

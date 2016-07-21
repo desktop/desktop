@@ -57,6 +57,7 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
                                 onSelectedFileChanged={file => this.onFileSelected(file)}/>
         <FileDiff repository={this.props.repository}
                   relativePath={selectedFile ? selectedFile.path : null}
+                  commit={commit}
                   readOnly={true} />
       </div>
     )
