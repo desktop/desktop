@@ -1,14 +1,14 @@
-import {DataStore, SecureStore} from './stores'
+import {IDataStore, ISecureStore} from './stores'
 import {getKeyForUser} from './auth'
 import User from '../models/user'
 
 export default class UsersStore {
-  private dataStore: DataStore
-  private secureStore: SecureStore
+  private dataStore: IDataStore
+  private secureStore: ISecureStore
 
   private users: User[]
 
-  public constructor(dataStore: DataStore, secureStore: SecureStore) {
+  public constructor(dataStore: IDataStore, secureStore: ISecureStore) {
     this.dataStore = dataStore
     this.secureStore = secureStore
     this.users = []

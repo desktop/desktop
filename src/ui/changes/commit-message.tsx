@@ -1,16 +1,16 @@
 import * as React from 'react'
 
-interface CommitMessageProps {
+interface ICommitMessageProps {
   onCreateCommit: (title: string) => void
 }
 
-interface CommitMessageState {
+interface ICommitMessageState {
   title: string
 }
 
-export class CommitMessage extends React.Component<CommitMessageProps, CommitMessageState> {
+export class CommitMessage extends React.Component<ICommitMessageProps, ICommitMessageState> {
 
-  public constructor(props: CommitMessageProps) {
+  public constructor(props: ICommitMessageProps) {
     super(props)
 
     this.state = {

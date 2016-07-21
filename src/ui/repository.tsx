@@ -9,18 +9,18 @@ import {TabBarTab} from './toolbar/tab-bar'
 import { IHistoryState } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 
-interface RepositoryProps {
+interface IRepositoryProps {
   repository: Repo
   history: IHistoryState
   dispatcher: Dispatcher
 }
 
-interface RepositoryState {
+interface IRepositoryState {
   selectedTab: TabBarTab
 }
 
-export default class Repository extends React.Component<RepositoryProps, RepositoryState> {
-  public constructor(props: RepositoryProps) {
+export default class Repository extends React.Component<IRepositoryProps, IRepositoryState> {
+  public constructor(props: IRepositoryProps) {
     super(props)
 
     this.state = {selectedTab: TabBarTab.Changes}

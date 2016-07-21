@@ -1,10 +1,10 @@
 import * as React from 'react'
 
-interface FileDiffProps {
+interface IFileDiffProps {
   path: string | null
 }
 
-export default class FileDiff extends React.Component<FileDiffProps, void> {
+export default class FileDiff extends React.Component<IFileDiffProps, void> {
   public render() {
 
     if (this.props.path) {

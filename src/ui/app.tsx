@@ -12,15 +12,15 @@ import Repository from '../models/repository'
 import {matchGitHubRepository} from '../lib/repository-matching'
 import API, {getUserForEndpoint} from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
-import { AppState } from '../lib/app-state'
+import { IAppState } from '../lib/app-state'
 
-interface AppProps {
+interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly store: LocalStore
 }
 
-export default class App extends React.Component<AppProps, AppState> {
-  public constructor(props: AppProps) {
+export default class App extends React.Component<IAppProps, IAppState> {
+  public constructor(props: IAppProps) {
     super(props)
 
     this.state = props.store.getState()

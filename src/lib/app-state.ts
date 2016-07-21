@@ -4,7 +4,7 @@ import {Commit} from './local-git-operations'
 import {FileChange} from '../models/status'
 
 /** All of the shared app state. */
-export interface AppState {
+export interface IAppState {
   readonly users: ReadonlyArray<User>
   readonly repositories: ReadonlyArray<Repository>
   readonly selectedRepository: Repository | null
