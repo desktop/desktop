@@ -1,25 +1,25 @@
 import * as URL from 'url'
 
-interface URLAction<T> {
+interface IURLAction<T> {
   name: string
   readonly args: T
 }
 
-export interface OAuthActionArgs {
+export interface IOAuthActionArgs {
   readonly code: string
 }
 
-export interface OAuthAction extends URLAction<OAuthActionArgs> {
+export interface IOAuthAction extends IURLAction<IOAuthActionArgs> {
   readonly name: 'oauth'
-  readonly args: OAuthActionArgs
+  readonly args: IOAuthActionArgs
 }
 
-export interface UnknownAction extends URLAction<{}> {
+export interface IUnknownAction extends IURLAction<{}> {
   readonly name: 'unknown'
   readonly args: {}
 }
 
-export type URLActionType = OAuthAction | UnknownAction
+export type URLActionType = IOAuthAction | IUnknownAction
 
 export default function parseURL(url: string): URLActionType {
   const parsedURL = URL.parse(url, true)

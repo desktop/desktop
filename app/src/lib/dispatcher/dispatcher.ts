@@ -3,7 +3,7 @@ import {Disposable} from 'event-kit'
 import User, {IUser} from '../../models/user'
 import Repository, {IRepository} from '../../models/repository'
 import guid from '../guid'
-import {AppState} from '../app-state'
+import {IAppState} from '../app-state'
 import {Action} from './actions'
 
 /**
@@ -95,7 +95,7 @@ export class Dispatcher {
   }
 
   /** Register a listener function to be called when the state updates. */
-  public onDidUpdate(fn: (state: AppState) => void): Disposable {
+  public onDidUpdate(fn: (state: IAppState) => void): Disposable {
     const wrappedFn = (event: Electron.IpcRendererEvent, args: any[]) => {
       const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IUser>} = args[0].state
       const users = state.users.map(User.fromJSON)

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import {OcticonSymbol} from './octicons.generated'
 
-interface OcticonProps {
+interface IOcticonProps {
 
   /**
    * The maximum width of the icon
@@ -37,15 +37,15 @@ interface OcticonProps {
  * @see OcticonProps
  * @extends React.Component<OcticonProps, void>
  */
-export class Octicon extends React.Component<OcticonProps, void> {
+export class Octicon extends React.Component<IOcticonProps, void> {
 
-  public static defaultProps: OcticonProps = {
+  public static defaultProps: IOcticonProps = {
     width: 16,
     height: 16,
     symbol: OcticonSymbol.markGithub
   }
 
-  public shouldComponentUpdate(nextProps: OcticonProps, nextState: void) {
+  public shouldComponentUpdate(nextProps: IOcticonProps, nextState: void) {
 
     if (nextProps.width !== this.props.width || nextProps.height !== this.props.height) {
       return true

@@ -8,7 +8,7 @@ import { WorkingDirectoryStatus } from '../../models/status'
 
 const RowHeight = 20
 
-interface ChangesListProps {
+interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedRow: number
@@ -18,12 +18,7 @@ interface ChangesListProps {
   readonly onCreateCommit: (title: string) => void
 }
 
-export class ChangesList extends React.Component<ChangesListProps, void> {
-
-  public constructor(props: ChangesListProps) {
-    super(props)
-  }
-
+export class ChangesList extends React.Component<IChangesListProps, void> {
   private handleOnChangeEvent(event: React.FormEvent) {
     const include = (event.target as any).checked
     this.props.onSelectAll(include)

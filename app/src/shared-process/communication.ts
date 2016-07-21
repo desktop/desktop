@@ -1,5 +1,5 @@
 import {remote, ipcRenderer} from 'electron'
-import {Message} from './message'
+import {IMessage} from './message'
 import UsersStore from './users-store'
 import RepositoriesStore from './repositories-store'
 
@@ -12,7 +12,7 @@ const registeredFunctions: {[key: string]: SharedProcessFunction} = {}
  * Dispatch the received message to the appropriate function and respond with
  * the return value.
  */
-function dispatch(message: Message) {
+function dispatch(message: IMessage) {
   const name = message.name
   if (!name) {
     console.error('Unnamed message sent to shared process:')

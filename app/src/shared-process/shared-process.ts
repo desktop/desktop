@@ -1,5 +1,5 @@
 import {ipcMain, BrowserWindow} from 'electron'
-import {Message} from './message'
+import {IMessage} from './message'
 import {URLActionType} from '../lib/parse-url'
 
 /**
@@ -9,7 +9,7 @@ import {URLActionType} from '../lib/parse-url'
 export default class SharedProcess {
   private window: Electron.BrowserWindow
   private loaded = false
-  private messageQueue: Message[] = []
+  private messageQueue: IMessage[] = []
 
   public constructor() {
     this.window = new BrowserWindow({
@@ -34,13 +34,13 @@ export default class SharedProcess {
   /** Register the shared process to receive requests. */
   public register() {
     ipcMain.on('shared/request', (event, args) => {
-      const message: Message = args[0]
+      const message: IMessage = args[0]
       this.send(message)
     })
   }
 
   /** Send a message to the shared process' renderer. */
-  public send(msg: Message) {
+  public send(msg: IMessage) {
     this.messageQueue.push(msg)
     this.drainMessageQueue()
   }
