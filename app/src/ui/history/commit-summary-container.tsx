@@ -36,10 +36,15 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
 
     this.setState({files: new Array<FileChange>()})
 
-    if (!props.commit) { return }
+    requestIdleCallback(async () => {
+      const commit = props.commit
+      if (!commit) { return }
 
-    const files = await LocalGitOperations.getChangedFiles(props.repository, props.commit.sha)
-    this.setState({files})
+      const files = await LocalGitOperations.getChangedFiles(props.repository, commit.sha)
+      if (this.props.commit && commit.sha !== this.props.commit.sha) { return }
+
+      this.setState({files})
+    })
   }
 
   private renderCommit() {
