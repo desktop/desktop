@@ -51,13 +51,29 @@ export class Commit {
   }
 }
 
- export class Diff {
-   public readonly lines: string[]
+export class DiffSection {
+  public readonly oldStartLine: number
+  public readonly oldEndLine: number
+  public readonly newStartLine: number
+  public readonly newEndLine: number
+  public readonly lines: string[]
 
-   public constructor(lines: string[]) {
-     this.lines = lines
+  public constructor(oldStartLine: number, oldEndLine: number, newStartLine: number, newEndLine: number, lines: string[]) {
+    this.oldStartLine = oldStartLine
+    this.oldEndLine = oldEndLine
+    this.newStartLine = newStartLine
+    this.newEndLine = newEndLine
+    this.lines = lines
+  }
+}
+
+export class Diff {
+   public readonly sections: DiffSection[]
+
+   public constructor(sections: DiffSection[]) {
+     this.sections = sections
    }
- }
+}
 
 /**
  * Interactions with a local Git repository
@@ -216,12 +232,60 @@ export class LocalGitOperations {
     return GitProcess.execWithOutput(args, repository.path)
       .then(result => {
         const lines = result.split('\0')
-        const diffHeader = lines.filter((line, row, lines) => {
-          return row < (lines.length - 1)
-        })
-        const diffText = lines[lines.length - 1].split('\n')
-        const diff = diffHeader.concat(diffText)
-        return Promise.resolve(new Diff(diff))
+
+        const sectionRegex = /^@@ -(\d+)(,+(\d+))? \+(\d+)(,(\d+))? @@ ?(.*)$/m
+        const regexGroups = { oldFileStart: 1, oldFileEnd: 3, newFileStart: 4, newFileEnd: 6 }
+
+        const diffText = lines[lines.length - 1]
+
+        let diffSections = new Array<DiffSection>()
+
+        let diffTextTemp = diffText
+        let sectionPrefixIndex = diffTextTemp.indexOf('@@')
+        let prefixFound = sectionPrefixIndex > -1
+
+        while (prefixFound) {
+
+          diffTextTemp = diffTextTemp.substr(sectionPrefixIndex)
+
+          const match = sectionRegex.exec(diffTextTemp)
+
+          let oldStartLine: number = -1
+          let oldEndLine: number = -1
+          let newStartLine: number = -1
+          let newEndLine: number = -1
+
+          if (match) {
+            const first = match[regexGroups.oldFileStart]
+            oldStartLine = parseInt(first, 10)
+            const second = match[regexGroups.oldFileEnd]
+            oldEndLine = parseInt(second, 10)
+            const third = match[regexGroups.newFileStart]
+            newStartLine = parseInt(third, 10)
+            const fourth = match[regexGroups.newFileEnd]
+            newEndLine = parseInt(fourth, 10)
+          }
+
+          const endOfThisLine = diffTextTemp.indexOf('\n')
+          sectionPrefixIndex = diffTextTemp.indexOf('@@', endOfThisLine + 1)
+          prefixFound = sectionPrefixIndex > -1
+
+          let diffBody: string
+          if (prefixFound) {
+            diffBody = diffTextTemp.substr(0, sectionPrefixIndex)
+          } else {
+            diffBody = diffTextTemp
+          }
+
+          console.log(`diff - ${diffBody}`)
+
+          const diffBodyLines = diffBody.split('\n')
+          const section = new DiffSection(oldStartLine, oldEndLine, newStartLine, newEndLine, diffBodyLines)
+
+          diffSections.push(section)
+        }
+
+        return Promise.resolve(new Diff(diffSections))
       })
   }
 

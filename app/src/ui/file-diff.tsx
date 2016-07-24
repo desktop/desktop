@@ -44,7 +44,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private renderRow(row: number): JSX.Element {
-    const diffLine = this.state.diff.lines[row]
+    const diffLine = '' // this.state.diff.sections.lines[row]
     const id = `${this.props.relativePath} ${row}`
 
     return (
@@ -59,7 +59,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       return (
         <div id='file-diff'>
           <List id='diff-text'
-                itemCount={this.state.diff.lines.length}
+                itemCount={0}
                 itemHeight={RowHeight}
                 renderItem={row => this.renderRow(row)}
                 selectedRow={-1} />
