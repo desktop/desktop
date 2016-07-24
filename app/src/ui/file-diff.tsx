@@ -5,7 +5,7 @@ import FileDiffLine from './file-diff-line'
 
 import IRepository from '../models/repository'
 
-import { LocalGitOperations, Diff, DiffLine, Commit } from '../lib/local-git-operations'
+import { LocalGitOperations, Diff, Commit } from '../lib/local-git-operations'
 
 const RowHeight = 20
 
@@ -18,7 +18,6 @@ interface IFileDiffProps {
 
 interface IFileDiffState {
   readonly diff: Diff
-  readonly lines: DiffLine[]
 }
 
 export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
@@ -26,7 +25,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   public constructor(props: IFileDiffProps) {
     super(props)
 
-    this.state = { diff: new Diff([]), lines: [] }
+    this.state = { diff: new Diff([]) }
   }
 
   public componentWillReceiveProps(nextProps: IFileDiffProps) {
@@ -40,19 +39,12 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
       const diff = await LocalGitOperations.getDiff(repository, relativePath, this.props.commit)
 
-      // TODO: perhaps there's a better way to flatten the diff sections
-      //       so they can be drawn in a virtualized list
-      let lines: DiffLine[] = []
-      diff.sections.forEach(s => {
-        s.lines.forEach(l => lines.push(l))
-      })
-
-      this.setState(Object.assign({}, this.state, { diff, lines }))
+      this.setState(Object.assign({}, this.state, { diff }))
     }
   }
 
   private renderRow(row: number): JSX.Element {
-    const line = this.state.lines[row]
+    const line = this.state.diff.lines[row]
     const id = `${this.props.relativePath} ${row}`
 
     return (
@@ -67,7 +59,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       return (
         <div id='file-diff'>
           <List id='diff-text'
-                itemCount={this.state.lines.length}
+                itemCount={this.state.diff.lines.length}
                 itemHeight={RowHeight}
                 renderItem={row => this.renderRow(row)}
                 selectedRow={-1} />

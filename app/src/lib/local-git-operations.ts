@@ -90,9 +90,19 @@ export class DiffSection {
 
 export class Diff {
    public readonly sections: DiffSection[]
+   public readonly lines: DiffLine[]
 
    public constructor(sections: DiffSection[]) {
      this.sections = sections
+
+     // TODO: perhaps there's a better way to flatten the diff sections
+     //       so they can be drawn in a virtualized list
+     let lines: DiffLine[] = []
+     sections.forEach(s => {
+       s.lines.forEach(l => lines.push(l))
+     })
+
+     this.lines = lines
    }
 }
 
