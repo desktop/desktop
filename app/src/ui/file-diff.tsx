@@ -40,6 +40,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
       const diff = await LocalGitOperations.getDiff(repository, relativePath, this.props.commit)
 
+      // TODO: perhaps there's a better way to flatten the diff sections
+      //       so they can be drawn in a virtualized list
       let lines: string[] = []
       diff.sections.forEach(s => {
         s.lines.forEach(l => lines.push(l))
