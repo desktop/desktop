@@ -51,14 +51,35 @@ export class Commit {
   }
 }
 
+export enum DiffLineType {
+  Context, Add, Delete
+}
+
+export class DiffLine {
+  public readonly text: string
+  public readonly type: DiffLineType
+
+  public constructor(text: string) {
+    this.text = text
+
+    if (text.startsWith('-')) {
+        this.type = DiffLineType.Delete
+    } else if (text.startsWith('+')) {
+        this.type = DiffLineType.Add
+    } else {
+        this.type = DiffLineType.Context
+    }
+  }
+}
+
 export class DiffSection {
   public readonly oldStartLine: number
   public readonly oldEndLine: number
   public readonly newStartLine: number
   public readonly newEndLine: number
-  public readonly lines: string[]
+  public readonly lines: DiffLine[]
 
-  public constructor(oldStartLine: number, oldEndLine: number, newStartLine: number, newEndLine: number, lines: string[]) {
+  public constructor(oldStartLine: number, oldEndLine: number, newStartLine: number, newEndLine: number, lines: DiffLine[]) {
     this.oldStartLine = oldStartLine
     this.oldEndLine = oldEndLine
     this.newStartLine = newStartLine
@@ -279,7 +300,7 @@ export class LocalGitOperations {
 
           console.log(`diff - ${diffBody}`)
 
-          const diffBodyLines = diffBody.split('\n')
+          const diffBodyLines = diffBody.split('\n').map(text => new DiffLine(text))
           const section = new DiffSection(oldStartLine, oldEndLine, newStartLine, newEndLine, diffBodyLines)
 
           diffSections.push(section)

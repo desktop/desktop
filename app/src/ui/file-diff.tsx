@@ -5,7 +5,7 @@ import FileDiffLine from './file-diff-line'
 
 import IRepository from '../models/repository'
 
-import { LocalGitOperations, Diff, Commit } from '../lib/local-git-operations'
+import { LocalGitOperations, Diff, DiffLine, Commit } from '../lib/local-git-operations'
 
 const RowHeight = 20
 
@@ -18,7 +18,7 @@ interface IFileDiffProps {
 
 interface IFileDiffState {
   readonly diff: Diff
-  readonly lines: string[]
+  readonly lines: DiffLine[]
 }
 
 export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
@@ -42,7 +42,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
       // TODO: perhaps there's a better way to flatten the diff sections
       //       so they can be drawn in a virtualized list
-      let lines: string[] = []
+      let lines: DiffLine[] = []
       diff.sections.forEach(s => {
         s.lines.forEach(l => lines.push(l))
       })
@@ -52,11 +52,11 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private renderRow(row: number): JSX.Element {
-    const text = this.state.lines[row]
+    const line = this.state.lines[row]
     const id = `${this.props.relativePath} ${row}`
 
     return (
-      <FileDiffLine text={text}
+      <FileDiffLine text={line.text}
                     key={id} />
     )
   }
