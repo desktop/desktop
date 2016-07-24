@@ -18,6 +18,7 @@ interface IFileDiffProps {
 
 interface IFileDiffState {
   readonly diff: Diff
+  readonly lines: string[]
 }
 
 export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
@@ -25,7 +26,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   public constructor(props: IFileDiffProps) {
     super(props)
 
-    this.state = { diff: new Diff([]) }
+    this.state = { diff: new Diff([]), lines: [] }
   }
 
   public componentWillReceiveProps(nextProps: IFileDiffProps) {
@@ -39,16 +40,21 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
       const diff = await LocalGitOperations.getDiff(repository, relativePath, this.props.commit)
 
-      this.setState(Object.assign({}, this.state, { diff }))
+      let lines: string[] = []
+      diff.sections.forEach(s => {
+        s.lines.forEach(l => lines.push(l))
+      })
+
+      this.setState(Object.assign({}, this.state, { diff, lines }))
     }
   }
 
   private renderRow(row: number): JSX.Element {
-    const diffLine = '' // this.state.diff.sections.lines[row]
+    const text = this.state.lines[row]
     const id = `${this.props.relativePath} ${row}`
 
     return (
-      <FileDiffLine text={diffLine}
+      <FileDiffLine text={text}
                     key={id} />
     )
   }
@@ -59,7 +65,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       return (
         <div id='file-diff'>
           <List id='diff-text'
-                itemCount={0}
+                itemCount={this.state.lines.length}
                 itemHeight={RowHeight}
                 renderItem={row => this.renderRow(row)}
                 selectedRow={-1} />
