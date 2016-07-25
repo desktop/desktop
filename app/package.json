@@ -23,6 +23,7 @@
     "react-dom": "^15.2.1"
   },
   "devDependencies": {
+    "react-addons-perf": "^15.2.1",
     "react-addons-test-utils": "^15.2.1",
     "react-transform-hmr": "^1.0.4",
     "style-loader": "^0.13.1",

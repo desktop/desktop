@@ -3,6 +3,7 @@ import Repository from '../../models/repository'
 import {FileChange} from '../../models/status'
 import {Commit, LocalGitOperations} from '../../lib/local-git-operations'
 import CommitSummary from './commit-summary'
+import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
 interface ICommitSummaryContainerProps {
   readonly repository: Repository
@@ -17,6 +18,8 @@ interface ICommitSummaryContainerState {
 
 /** A component which displays a commit's summary. */
 export default class CommitSummaryContainer extends React.Component<ICommitSummaryContainerProps, ICommitSummaryContainerState> {
+  private changedFilesScheduler = new ThrottledScheduler(200)
+
   public constructor(props: ICommitSummaryContainerProps) {
     super(props)
 
@@ -25,6 +28,10 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
 
   public componentDidMount() {
     this.reload(this.props)
+  }
+
+  public componentWillUnmount() {
+    this.changedFilesScheduler.clear()
   }
 
   public componentWillReceiveProps(nextProps: ICommitSummaryContainerProps) {
@@ -36,10 +43,15 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
 
     this.setState({files: new Array<FileChange>()})
 
-    if (!props.commit) { return }
+    this.changedFilesScheduler.queue(async () => {
+      const commit = props.commit
+      if (!commit) { return }
 
-    const files = await LocalGitOperations.getChangedFiles(props.repository, props.commit.sha)
-    this.setState({files})
+      const files = await LocalGitOperations.getChangedFiles(props.repository, commit.sha)
+      if (this.props.commit && commit.sha !== this.props.commit.sha) { return }
+
+      this.setState({files})
+    })
   }
 
   private renderCommit() {

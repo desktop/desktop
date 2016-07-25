@@ -10,4 +10,8 @@ export default class CommitListItem extends React.Component<ICommitProps, void> 
   public render() {
     return <div className='commit'>{this.props.commit.summary}</div>
   }
+
+  public shouldComponentUpdate(nextProps: ICommitProps, nextState: void): boolean {
+    return this.props.commit.sha !== nextProps.commit.sha
+  }
 }
