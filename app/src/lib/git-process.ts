@@ -99,7 +99,7 @@ export class GitProcess {
 
         console.error(formatArgs)
         console.error(err)
-        reject()
+        reject(err)
       })
     })
   }
