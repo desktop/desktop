@@ -5,7 +5,7 @@ input[type='submit'] {
   color: var(--text-color);
   font-size: var(--font-size);
   padding: calc(var(--spacing) / 2) var(--spacing);
-  border: 1px solid #ccc;
+  border: 1px solid var(--box-border-color);
   border-radius: var(--border-radius);
 
   &:hover {

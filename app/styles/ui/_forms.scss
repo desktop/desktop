@@ -5,7 +5,7 @@ input[type='range'],
 input[type='search'],
 textarea {
   transition: border-color 0.25s;
-  border: 1px solid var(--input-border-color);
+  border: 1px solid var(--box-border-color);
   border-radius: var(--border-radius);
   color: currentColor;
   font-size: var(--font-size);
