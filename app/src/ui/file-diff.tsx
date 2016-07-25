@@ -49,6 +49,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     return (
       <FileDiffLine text={line.text}
+                    type={line.type}
                     key={id} />
     )
   }
