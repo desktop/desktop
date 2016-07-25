@@ -21,7 +21,6 @@
   --text-color: $darkGray;
   --background-color: $white;
 
-  --input-border-hover-color: $blue;
 
   --button-background: $lighterGray;
   --button-hover-background: $white;
@@ -67,6 +66,7 @@
    * Border color for boxes.
    */
   --box-border-color: $gray;
+  --box-border-accent-color: $blue;
 
   /**
    * Background color for selected boxes without keyboard focus
