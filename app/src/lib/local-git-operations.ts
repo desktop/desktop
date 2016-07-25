@@ -56,35 +56,78 @@ export enum DiffLineType {
 }
 
 export class DiffLine {
+
   public readonly text: string
   public readonly type: DiffLineType
+  public readonly oldLineNumber: number | null
+  public readonly newLineNumber: number | null
 
-  public constructor(text: string) {
+  public constructor(text: string, type: DiffLineType, oldLineNumber: number | null, newLineNuber: number | null) {
     this.text = text
-
-    if (text.startsWith('-')) {
-        this.type = DiffLineType.Delete
-    } else if (text.startsWith('+')) {
-        this.type = DiffLineType.Add
-    } else {
-        this.type = DiffLineType.Context
-    }
+    this.type = type
+    this.oldLineNumber = oldLineNumber
+    this.newLineNumber = newLineNuber
   }
 }
 
-export class DiffSection {
+export class DiffSectionRange {
   public readonly oldStartLine: number
   public readonly oldEndLine: number
   public readonly newStartLine: number
   public readonly newEndLine: number
-  public readonly lines: DiffLine[]
 
-  public constructor(oldStartLine: number, oldEndLine: number, newStartLine: number, newEndLine: number, lines: DiffLine[]) {
+  public constructor(oldStartLine: number, oldEndLine: number, newStartLine: number, newEndLine: number) {
     this.oldStartLine = oldStartLine
     this.oldEndLine = oldEndLine
     this.newStartLine = newStartLine
     this.newEndLine = newEndLine
-    this.lines = lines
+  }
+}
+
+export class DiffSection {
+  public readonly range: DiffSectionRange
+  public readonly lines: DiffLine[]
+
+  private static mapToDiffLineType(text: string) {
+    if (text.startsWith('-')) {
+        return DiffLineType.Delete
+    } else if (text.startsWith('+')) {
+        return DiffLineType.Add
+    } else {
+        return DiffLineType.Context
+    }
+  }
+
+  public constructor(range: DiffSectionRange, lines: string[]) {
+    this.range = range
+
+    const diffLines = lines.map((text, index, lines) => {
+      // TODO: use range here to set line endings
+
+      const type = DiffSection.mapToDiffLineType(text)
+
+      let beforeLineNumber: number | null = null
+      let afterLineNumber: number | null = null
+
+      if (!text.startsWith('@@')) {
+        const start = range.oldStartLine
+
+        if (type === DiffLineType.Delete) {
+          // if line removed, do not show afterLineNumber
+          beforeLineNumber = start + index
+        } else if (type === DiffLineType.Add) {
+          // if line added, do not show beforeLineNumber
+          afterLineNumber = range.newStartLine + index
+        } else {
+          beforeLineNumber = start + index
+          afterLineNumber = range.newStartLine + index
+        }
+      }
+
+      return new DiffLine(text, type, beforeLineNumber, afterLineNumber)
+    })
+
+    this.lines = diffLines
   }
 }
 
@@ -297,6 +340,8 @@ export class LocalGitOperations {
             newEndLine = parseInt(fourth, 10)
           }
 
+          const range = new DiffSectionRange(oldStartLine, oldEndLine, newStartLine, newEndLine)
+
           const endOfThisLine = diffTextTemp.indexOf('\n')
           sectionPrefixIndex = diffTextTemp.indexOf('@@', endOfThisLine + 1)
           prefixFound = sectionPrefixIndex > -1
@@ -310,8 +355,7 @@ export class LocalGitOperations {
 
           console.log(`diff - ${diffBody}`)
 
-          const diffBodyLines = diffBody.split('\n').map(text => new DiffLine(text))
-          const section = new DiffSection(oldStartLine, oldEndLine, newStartLine, newEndLine, diffBodyLines)
+          const section = new DiffSection(range, diffBody.split('\n'))
 
           diffSections.push(section)
         }

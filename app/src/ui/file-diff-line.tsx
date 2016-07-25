@@ -5,6 +5,8 @@ import { DiffLineType } from '../lib/local-git-operations'
 interface IFileDiffLineProps {
   readonly text: string
   readonly type: DiffLineType
+  readonly oldLineNumber: number | null
+  readonly newLineNumber: number | null
 }
 
 export default class FileDiffLine extends React.Component<IFileDiffLineProps, void> {
@@ -23,7 +25,9 @@ export default class FileDiffLine extends React.Component<IFileDiffLineProps, vo
 
     return (
       <div className={className}>
-        {this.props.text}
+          <span className='before'>{this.props.oldLineNumber}</span>
+          <span className='after'>{this.props.newLineNumber}</span>
+        <span className='text'>{this.props.text}</span>
       </div >)
   }
 }

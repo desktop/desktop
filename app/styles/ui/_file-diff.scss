@@ -19,6 +19,10 @@
   word-break: break-all;
 }
 
+.diff-text .before, .diff-text .after  {
+  color: #CCC
+}
+
 .diff-add {
   background: #EAFFEA;
 }
