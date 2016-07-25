@@ -1,0 +1,10 @@
+@import "../mixins";
+
+/** A React component holding a file diff */
+#file-diff {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  text-align: center;
+}

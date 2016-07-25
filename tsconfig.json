@@ -11,14 +11,15 @@
     "strictNullChecks": true,
     "sourceMap": true,
     "jsx": "react",
-    "outDir": "./build/app"
+    "outDir": "./out"
   },
   "exclude": [
     "node_modules",
     "dist",
-    "build",
+    "out",
     "typings/browser",
-    "typings/browser.d.ts"
+    "typings/browser.d.ts",
+    "app/node_modules"
   ],
   "compileOnSave": false
 }

@@ -1,0 +1,16 @@
+@import "../mixins";
+
+/** A React component holding the selected commit's detailed information */
+#commit-summary {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .files {
+    .path {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
+}

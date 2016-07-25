@@ -3,7 +3,7 @@
 const path = require('path')
 
 const projectRoot = path.join(__dirname, '..')
-const appPackage = require(path.join(projectRoot, 'package.json'))
+const appPackage = require(path.join(projectRoot, 'app', 'package.json'))
 
 function getDistPath () {
   return path.join(projectRoot, 'dist', `${appPackage.productName}-${process.platform}-x64`)

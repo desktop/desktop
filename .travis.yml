@@ -29,6 +29,8 @@ cache:
   timeout: 600
   directories:
     - node_modules
+    - app/node_modules
+    - $HOME/.electron
 
 install:
   - npm install

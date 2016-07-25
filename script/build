@@ -8,19 +8,25 @@ const fs = require('fs-extra')
 const packager = require('electron-packager')
 
 const projectRoot = path.join(__dirname, '..')
-const buildRoot = path.join(projectRoot, 'build')
-const appPackage = require(path.join(projectRoot, 'package.json'))
+const outRoot = path.join(projectRoot, 'out')
+const appPackagePath = path.join(projectRoot, 'app', 'package.json')
+const appPackage = require(appPackagePath)
 
 console.log(`Building for ${process.env.NODE_ENV}…`)
 
 console.log('Removing old distribution…')
 fs.removeSync(path.join(projectRoot, 'dist'))
 
-console.log('Installing dependencies…')
-installDependencies()
+console.log('Copying dependencies…')
+copyDependencies()
 
 console.log('Packaging embedded Git…')
 copyGitDirectory()
+
+if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
+  console.log('Setting up keychain…')
+  cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
+}
 
 const options = {
   platform: process.platform,
@@ -29,21 +35,17 @@ const options = {
   'build-version': appPackage.version,
   asar: false, // TODO: Probably wanna enable this down the road.
   out: path.join(projectRoot, 'dist'),
-  icon: path.join(projectRoot, 'static', 'icon'),
-  dir: path.join(projectRoot, 'build'),
+  icon: path.join(projectRoot, 'app', 'static', 'icon'),
+  dir: outRoot,
   overwrite: true,
   tmpdir: false,
   derefSymlinks: false,
-  prune: false, // We only install production dependencies above.
+  prune: false, // We'll prune them ourselves below.
   ignore: [
     '/node_modules/electron-prebuilt($|/)',
     '/node_modules/electron-packager($|/)',
     '/\\.git($|/)',
-    '/node_modules/\\.bin($|/)',
-    '/node_modules/nodegit/vendor/libgit2/tests($|/)',
-    '/node_modules/nodegit/build/Release/obj.target($|/)',
-    '/node_modules/nodegit/vendor($|/)',
-    '/node_modules/ohnogit/spec($|/)'
+    '/node_modules/\\.bin($|/)'
   ],
 
   // macOS
@@ -69,10 +71,7 @@ const options = {
   }
 }
 
-if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
-  cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
-}
-
+console.log('Packaging…')
 packager(options, (error, appPaths) => {
   if (error) {
     console.error(error)
@@ -95,42 +94,23 @@ function copyGitDirectory () {
     process.exit(1)
   }
 
-  const destination = path.join(projectRoot, 'build', 'git')
+  const destination = path.join(outRoot, 'git')
   fs.removeSync(destination)
   fs.copySync(source, destination)
 }
 
-function installDependencies () {
-  fs.copySync(path.join(projectRoot, '.npmrc'), path.join(buildRoot, '.npmrc'))
+function copyDependencies () {
+  let destination = path.join(outRoot, 'package.json')
+  fs.removeSync(destination)
+  fs.copySync(path.join(projectRoot, 'app', 'package.json'), destination)
 
-  let packageJson = appPackage
-  if (process.env.NODE_ENV === 'development') {
-    packageJson = debugPackageJson(packageJson)
-  } else {
-    packageJson = releasePackageJson(packageJson)
+  destination = path.join(outRoot, 'node_modules')
+  fs.removeSync(destination)
+  fs.copySync(path.join(projectRoot, 'app', 'node_modules'), destination)
+
+  const isProductionBuild = process.env.NODE_ENV === 'production'
+  if (isProductionBuild) {
+    console.log('Pruning dev dependencies…')
+    cp.execSync('npm prune --production', {cwd: outRoot, env: process.env})
   }
-
-  fs.removeSync(path.join(buildRoot, 'package.json'))
-  fs.writeJsonSync(path.join(buildRoot, 'package.json'), packageJson)
-  cp.execSync('npm install', {cwd: buildRoot, env: process.env})
-}
-
-function distPackageJson (appPackage) {
-  const releasePackage = Object.assign({}, appPackage)
-  delete releasePackage['scripts']
-  delete releasePackage['devDependencies']
-  return releasePackage
-}
-
-function releasePackageJson (appPackage) {
-  const releasePackage = Object.assign({}, distPackageJson(appPackage))
-  delete releasePackage['debugDependencies']
-  return releasePackage
-}
-
-function debugPackageJson (appPackage) {
-  const releasePackage = Object.assign({}, distPackageJson(appPackage))
-  releasePackage.dependencies = Object.assign({}, releasePackage.dependencies, releasePackage.debugDependencies)
-  delete releasePackage['debugDependencies']
-  return releasePackage
 }

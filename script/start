@@ -4,7 +4,7 @@
 
 const express = require('express')
 const webpack = require('webpack')
-const config = require('../webpack.development')
+const config = require('../app/webpack.development')
 const run = require('./run')
 
 const server = express()
