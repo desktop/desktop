@@ -4,7 +4,7 @@ input[type='email'],
 input[type='range'],
 input[type='search'],
 textarea {
-  transition: all 0.25s;
+  transition: border-color 0.25s;
   border: 1px solid var(--input-border-color);
   border-radius: var(--border-radius);
   color: currentColor;
