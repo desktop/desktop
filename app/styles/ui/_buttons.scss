@@ -5,7 +5,7 @@
   font-size: var(--font-size);
   padding: calc(var(--spacing) / 2) var(--spacing);
   border: 1px solid #ccc;
-  border-radius: 3px;
+  border-radius: var(--border-radius);
 
   &:hover {
     background-color: var(--button-hover-background);
