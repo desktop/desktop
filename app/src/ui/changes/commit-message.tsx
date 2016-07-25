@@ -33,19 +33,17 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
   public render() {
     return (
-      <div id='commit-message' className='full-width'>
-        <form className='commit-form full-width' onSubmit={event => event.stopPropagation()}>
-          <input type='text'
-                 className='full-width'
-                 placeholder='Commit summary'
-                 value={this.state.title}
-                 onChange={event => this.handleTitleChange(event) } />
+      <form id='commit-message' className='full-width' onSubmit={event => event.stopPropagation()}>
+        <input type='text'
+               className='full-width'
+               placeholder='Commit summary'
+               value={this.state.title}
+               onChange={event => this.handleTitleChange(event) } />
 
-          <button onClick={event => this.handleSubmit(event)}>
-            Commit Changes
-          </button>
-        </form>
-      </div>
+        <button onClick={event => this.handleSubmit(event)}>
+          Commit Changes
+        </button>
+      </form>
     )
   }
 }
