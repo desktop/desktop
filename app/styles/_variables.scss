@@ -62,6 +62,8 @@
   // or an item in a tab control header. It's up to each implementation
   // to decide what states to support (active selection, selection, etc).
 
+  --box-alt-background-color: $lighterGray;
+
   /**
    * Border color for boxes.
    */
