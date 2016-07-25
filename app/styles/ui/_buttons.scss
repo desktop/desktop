@@ -1,4 +1,5 @@
-.btn {
+button,
+input[type='submit'] {
   background-color: var(--button-background);
   box-shadow: 0 1px 1px rgba(5, 5, 5, 0.04);
   color: var(--text-color);

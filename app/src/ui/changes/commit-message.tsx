@@ -40,7 +40,10 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
                  placeholder='Commit summary'
                  value={this.state.title}
                  onChange={event => this.handleTitleChange(event) } />
-          <input type='submit' className='btn' value='Commit changes' onClick={event => this.handleSubmit(event)} />
+
+          <button onClick={event => this.handleSubmit(event)}>
+            Commit Changes
+          </button>
         </form>
       </div>
     )
