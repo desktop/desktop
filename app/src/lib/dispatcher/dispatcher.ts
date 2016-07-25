@@ -129,36 +129,39 @@ export class Dispatcher {
     this.store._historyByRepositoryID[repository.id!] = this.store._history
   }
 
+  public async loadChangedFilesForCurrentSelection(repository: Repository): Promise<void> {
+    const selection = this.store._history.selection
+    const currentCommit = selection.commit
+    if (!currentCommit) { return }
+
+    const changedFiles = await LocalGitOperations.getChangedFiles(repository, currentCommit.sha)
+
+    // The selection could have changed between when we started loading the
+    // changed files and we finished.
+    if (currentCommit !== this.store._history.selection.commit) {
+      return
+    }
+
+    this.store._history = {
+      commits: this.store._history.commits,
+      selection,
+      changedFiles,
+    }
+    this.store._emitUpdate()
+
+    this.store._historyByRepositoryID[repository.id!] = this.store._history
+  }
+
   public async changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
     const commitChanged = this.store._history.selection.commit !== selection.commit
+    const changedFiles = commitChanged ? new Array<FileChange>() : this.store._history.changedFiles
 
-    if (commitChanged) {
-      this.store._history = {
-        commits: this.store._history.commits,
-        selection,
-        changedFiles: new Array<FileChange>(),
-      }
-      this.store._emitUpdate()
-
-      const commit = selection.commit
-      if (!commit) { return }
-
-      const changedFiles = await LocalGitOperations.getChangedFiles(repository, commit.sha)
-
-      this.store._history = {
-        commits: this.store._history.commits,
-        selection,
-        changedFiles,
-      }
-      this.store._emitUpdate()
-    } else {
-      this.store._history = {
-        commits: this.store._history.commits,
-        selection,
-        changedFiles: this.store._history.changedFiles,
-      }
-      this.store._emitUpdate()
+    this.store._history = {
+      commits: this.store._history.commits,
+      selection,
+      changedFiles,
     }
+    this.store._emitUpdate()
 
     this.store._historyByRepositoryID[repository.id!] = this.store._history
   }

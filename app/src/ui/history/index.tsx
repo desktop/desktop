@@ -7,6 +7,7 @@ import {FileChange} from '../../models/status'
 import { Commit } from '../../lib/local-git-operations'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
+import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
 interface IHistoryProps {
   readonly repository: Repository
@@ -16,14 +17,24 @@ interface IHistoryProps {
 
 /** The History component. Contains the commit list, commit summary, and diff. */
 export default class History extends React.Component<IHistoryProps, void> {
+  private loadChangedFilesScheduler = new ThrottledScheduler(200)
+
   private onCommitSelected(commit: Commit) {
     const newSelection = {commit, file: null}
     this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
+
+    this.loadChangedFilesScheduler.queue(() => {
+      this.props.dispatcher.loadChangedFilesForCurrentSelection(this.props.repository)
+    })
   }
 
   private onFileSelected(file: FileChange) {
     const newSelection = {commit: this.props.history.selection.commit, file}
     this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
+  }
+
+  public componentWillUnmount() {
+    this.loadChangedFilesScheduler.clear()
   }
 
   public render() {
