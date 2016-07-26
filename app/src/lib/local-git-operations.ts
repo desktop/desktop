@@ -109,42 +109,28 @@ export class DiffSection {
     let rollingDiffAfterCounter = range.newStartLine
 
     const diffLines = lines.map(text => {
-      const type = DiffSection.mapToDiffLineType(text)
-
-      let beforeLineNumber: number | null = null
-      let afterLineNumber: number | null = null
-
       // the unified patch format considers these lines to be headers
       // -> exclude them from the line counts
-      if (!text.startsWith('@@')) {
-        if (type === DiffLineType.Delete) {
-          // increment old value
-          const temp = rollingDiffBeforeCounter + 1
-          beforeLineNumber = temp
-          rollingDiffBeforeCounter = temp
-
-          // do not set afterLineNumber as line dpes not exist
-        } else if (type === DiffLineType.Add) {
-          // do not set beforeLineNumber as line did not exist
-
-          // increment new value
-          const temp = rollingDiffAfterCounter + 1
-          afterLineNumber = temp
-          rollingDiffAfterCounter = temp
-        } else {
-          // increment old value
-          const tempOld = rollingDiffBeforeCounter + 1
-          beforeLineNumber = tempOld
-          rollingDiffBeforeCounter = tempOld
-
-          // increment new value
-          const tempNew = rollingDiffAfterCounter + 1
-          afterLineNumber = tempNew
-          rollingDiffAfterCounter = tempNew
-        }
+      if (text.startsWith('@@')) {
+        return new DiffLine(text, DiffLineType.Context, null, null)
       }
 
-      return new DiffLine(text, type, beforeLineNumber, afterLineNumber)
+      const type = DiffSection.mapToDiffLineType(text)
+
+      if (type === DiffLineType.Delete) {
+        rollingDiffBeforeCounter = rollingDiffBeforeCounter + 1
+
+        return new DiffLine(text, type, rollingDiffBeforeCounter, null)
+      } else if (type === DiffLineType.Add) {
+        rollingDiffAfterCounter = rollingDiffAfterCounter + 1
+
+        return new DiffLine(text, type, null, rollingDiffAfterCounter)
+      } else {
+        rollingDiffBeforeCounter = rollingDiffBeforeCounter + 1
+        rollingDiffAfterCounter = rollingDiffAfterCounter + 1
+
+        return new DiffLine(text, type, rollingDiffBeforeCounter, rollingDiffAfterCounter)
+      }
     })
 
     this.lines = diffLines
