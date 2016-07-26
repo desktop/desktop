@@ -323,15 +323,20 @@ export class LocalGitOperations {
 
         let diffSections = new Array<DiffSection>()
 
-        let diffTextTemp = diffText
-        let sectionPrefixIndex = diffTextTemp.indexOf('@@')
+        // track the remaining text in the raw diff to parse
+        let diffTextBuffer = diffText
+        // each diff section starts with these two characters
+        let sectionPrefixIndex = diffTextBuffer.indexOf('@@')
+        // continue to iterate while these sections exist
         let prefixFound = sectionPrefixIndex > -1
 
         while (prefixFound) {
 
-          diffTextTemp = diffTextTemp.substr(sectionPrefixIndex)
+          // trim any preceding text
+          diffTextBuffer = diffTextBuffer.substr(sectionPrefixIndex)
 
-          const match = sectionRegex.exec(diffTextTemp)
+          // extract the diff section numbers
+          const match = sectionRegex.exec(diffTextBuffer)
 
           let oldStartLine: number = -1
           let oldEndLine: number = -1
@@ -351,20 +356,19 @@ export class LocalGitOperations {
 
           const range = new DiffSectionRange(oldStartLine, oldEndLine, newStartLine, newEndLine)
 
-          const endOfThisLine = diffTextTemp.indexOf('\n')
-          sectionPrefixIndex = diffTextTemp.indexOf('@@', endOfThisLine + 1)
+          // re-evaluate whether other sections exist to parse
+          const endOfThisLine = diffTextBuffer.indexOf('\n')
+          sectionPrefixIndex = diffTextBuffer.indexOf('@@', endOfThisLine + 1)
           prefixFound = sectionPrefixIndex > -1
 
-          let diffBody: string
+          // add new section based on the remaining text in the raw diff
           if (prefixFound) {
-            diffBody = diffTextTemp.substr(0, sectionPrefixIndex)
+            const diffBody = diffTextBuffer.substr(0, sectionPrefixIndex)
+            diffSections.push(new DiffSection(range, diffBody.split('\n')))
           } else {
-            diffBody = diffTextTemp
+            const diffBody = diffTextBuffer
+            diffSections.push(new DiffSection(range, diffBody.split('\n')))
           }
-
-          const section = new DiffSection(range, diffBody.split('\n'))
-
-          diffSections.push(section)
         }
 
         return Promise.resolve(new Diff(diffSections))
