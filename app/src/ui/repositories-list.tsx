@@ -4,7 +4,7 @@ import List from './list'
 import Repository from '../models/repository'
 import {Octicon, OcticonSymbol} from './octicons'
 
-interface IReposListProps {
+interface IRepositoriesListProps {
   readonly selectedRow: number
   readonly onSelectionChanged: (row: number) => void
   readonly loading: boolean
@@ -13,7 +13,7 @@ interface IReposListProps {
 
 const RowHeight = 40
 
-export default class ReposList extends React.Component<IReposListProps, void> {
+export default class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
   private renderRow(row: number): JSX.Element {
     const repo = this.props.repos[row]
     const symbol = this.iconForRepo(repo)

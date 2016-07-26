@@ -2,7 +2,7 @@ import * as React from 'react'
 import {ipcRenderer} from 'electron'
 
 import {Sidebar} from './sidebar'
-import ReposList from './repos-list'
+import RepositoriesList from './repositories-list'
 import {default as RepositoryView} from './repository'
 import User from '../models/user'
 import GitHubRepository from '../models/github-repository'
@@ -118,10 +118,10 @@ export default class App extends React.Component<IAppProps, IAppState> {
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
         <Sidebar>
-          <ReposList selectedRow={this.state.selectedRow}
-                     onSelectionChanged={row => this.handleSelectionChanged(row)}
-                     repos={this.state.repos}
-                     loading={this.state.loadingRepos}/>
+          <RepositoriesList selectedRow={this.state.selectedRow}
+                            onSelectionChanged={row => this.handleSelectionChanged(row)}
+                            repos={this.state.repos}
+                            loading={this.state.loadingRepos}/>
         </Sidebar>
         <RepositoryView repo={selectedRepo} user={null}/>
       </div>
