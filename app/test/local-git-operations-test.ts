@@ -35,12 +35,10 @@ describe('LocalGitOperations', () => {
       const file = files[0]
       expect(file.path).to.equal('README.md')
       expect(file.status).to.equal(FileStatus.Modified)
-      console.log(repository!.path)
     })
 
     it('returns an empty array when there are no changes', async () => {
       const status = await LocalGitOperations.getStatus(repository!)
-      console.log(repository!.path)
       const files = status.workingDirectory.files
       expect(files.length).to.equal(0)
     })
