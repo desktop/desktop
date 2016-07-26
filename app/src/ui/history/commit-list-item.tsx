@@ -1,6 +1,8 @@
 import * as React from 'react'
 import {Commit} from '../../lib/local-git-operations'
 
+import * as moment from 'moment'
+
 interface ICommitProps {
   commit: Commit
 }
@@ -8,7 +10,16 @@ interface ICommitProps {
 /** A component which displays a single commit in a commit list. */
 export default class CommitListItem extends React.Component<ICommitProps, void> {
   public render() {
-    return <div className='commit'>{this.props.commit.summary}</div>
+    const relative = moment(this.props.commit.committerDate).fromNow()
+    return (
+      <div className='commit'>
+        <img className='avatar' src='https://github.com/hubot.png'/>
+        <div className='info'>
+          <div className='summary'>{this.props.commit.summary}</div>
+          <div className='byline' title={this.props.commit.committerDate.toString()}>{relative} by {this.props.commit.committerName}</div>
+        </div>
+      </div>
+    )
   }
 
   public shouldComponentUpdate(nextProps: ICommitProps, nextState: void): boolean {

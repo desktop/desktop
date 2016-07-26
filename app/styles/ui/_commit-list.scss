@@ -7,6 +7,34 @@
   flex: 1;
 
   .commit {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
 
+    .avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 4px;
+      align-self: center;
+    }
+
+    .info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      margin: auto 0;
+      margin-left: 4px;
+
+      .summary {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .byline {
+        font-size: 9pt;
+      }
+    }
   }
 }
