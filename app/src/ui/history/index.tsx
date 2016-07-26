@@ -50,12 +50,15 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
       <div id='history'>
         <CommitList commits={this.state.commits}
                     selectedCommit={this.state.selection.commit}
-                    onCommitSelected={row => this.onCommitSelected(row)}/>
+                    onCommitSelected={commit => this.onCommitSelected(commit) } />
         <CommitSummaryContainer repository={this.props.repository}
                                 commit={commit}
                                 selectedFile={this.state.selection.file}
                                 onSelectedFileChanged={file => this.onFileSelected(file)}/>
-        <FileDiff path={selectedFile ? selectedFile.path : null}/>
+        <FileDiff repository={this.props.repository}
+                  relativePath={selectedFile ? selectedFile.path : null}
+                  commit={commit}
+                  readOnly={true} />
       </div>
     )
   }
