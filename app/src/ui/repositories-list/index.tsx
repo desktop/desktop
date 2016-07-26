@@ -47,6 +47,11 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
     }
   }
 
+  private canSelectRow(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
+    const item = groupedItems[row]
+    return item.kind === 'repository'
+  }
+
   public render() {
     if (this.props.loading) {
       return <Loading/>
@@ -59,7 +64,8 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
             itemHeight={RowHeight}
             renderItem={row => this.renderRow(grouped, row)}
             selectedRow={this.selectedRow(grouped)}
-            onSelectionChanged={row => this.onSelectionChanged(grouped, row)} />
+            onSelectionChanged={row => this.onSelectionChanged(grouped, row)}
+            canSelectRow={row => this.canSelectRow(grouped, row)}/>
     )
   }
 }
