@@ -25,8 +25,8 @@ export default class FileDiffLine extends React.Component<IFileDiffLineProps, vo
 
     return (
       <div className={className}>
-          <span className='before'>{this.props.oldLineNumber}</span>
-          <span className='after'>{this.props.newLineNumber}</span>
+        <span className='before'>{this.props.oldLineNumber}</span>
+        <span className='after'>{this.props.newLineNumber}</span>
         <span className='text'>{this.props.text}</span>
       </div >)
   }

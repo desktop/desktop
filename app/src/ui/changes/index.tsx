@@ -9,11 +9,11 @@ import { WorkingDirectoryStatus } from '../../models/status'
 import { LocalGitOperations } from '../../lib/local-git-operations'
 
 interface IChangesProps {
-  repository: Repository,
+  repository: Repository
 }
 
 interface IChangesState {
-  selectedRow: number,
+  selectedRow: number
   workingDirectory: WorkingDirectoryStatus
 }
 
