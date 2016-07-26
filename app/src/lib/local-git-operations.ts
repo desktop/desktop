@@ -37,17 +37,17 @@ export class Commit {
 
   /** The commit message without the first line and CR. */
   public readonly body: string
-  public readonly committerName: string
-  public readonly committerEmail: string
-  public readonly committerDate: Date
+  public readonly authorName: string
+  public readonly authorEmail: string
+  public readonly authorDate: Date
 
-  public constructor(sha: string, summary: string, body: string, committerName: string, committerEmail: string, committerDate: Date) {
+  public constructor(sha: string, summary: string, body: string, authorName: string, authorEmail: string, authorDate: Date) {
     this.sha = sha
     this.summary = summary
     this.body = body
-    this.committerName = committerName
-    this.committerEmail = committerEmail
-    this.committerDate = committerDate
+    this.authorName = authorName
+    this.authorEmail = authorEmail
+    this.authorDate = authorDate
   }
 }
 
@@ -384,9 +384,9 @@ export class LocalGitOperations {
       '%H', // SHA
       '%s', // summary
       '%b', // body
-      '%cn', // committer name
-      '%ce', // committer email
-      '%cI', // committer date, ISO-8601
+      '%an', // author name
+      '%ae', // author email
+      '%aI', // author date, ISO-8601
     ].join(`%x${delimiter}`)
     const out = await GitProcess.execWithOutput([ 'log', `--max-count=${batchCount}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
     const lines = out.split('\0')
