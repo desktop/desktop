@@ -101,26 +101,40 @@ export class DiffSection {
   public constructor(range: DiffSectionRange, lines: string[]) {
     this.range = range
 
-    const diffLines = lines.map((text, index, lines) => {
-      // TODO: use range here to set line endings
+    let rollingDiffBeforeCounter = range.oldStartLine
+    let rollingDiffAfterCounter = range.newStartLine
 
+    const diffLines = lines.map(text => {
       const type = DiffSection.mapToDiffLineType(text)
 
       let beforeLineNumber: number | null = null
       let afterLineNumber: number | null = null
 
       if (!text.startsWith('@@')) {
-        const start = range.oldStartLine
-
         if (type === DiffLineType.Delete) {
-          // if line removed, do not show afterLineNumber
-          beforeLineNumber = start + index
+          // increment old value
+          const temp = rollingDiffBeforeCounter + 1
+          beforeLineNumber = temp
+          rollingDiffBeforeCounter = temp
+
+          // do not set afterLineNumber as line dpes not exist
         } else if (type === DiffLineType.Add) {
-          // if line added, do not show beforeLineNumber
-          afterLineNumber = range.newStartLine + index
+          // do not set beforeLineNumber as line did not exist
+
+          // increment new value
+          const temp = rollingDiffAfterCounter + 1
+          afterLineNumber = temp
+          rollingDiffAfterCounter = temp
         } else {
-          beforeLineNumber = start + index
-          afterLineNumber = range.newStartLine + index
+          // increment old value
+          const tempOld = rollingDiffBeforeCounter + 1
+          beforeLineNumber = tempOld
+          rollingDiffBeforeCounter = tempOld
+
+          // increment new value
+          const tempNew = rollingDiffAfterCounter + 1
+          afterLineNumber = tempNew
+          rollingDiffAfterCounter = tempNew
         }
       }
 
@@ -352,8 +366,6 @@ export class LocalGitOperations {
           } else {
             diffBody = diffTextTemp
           }
-
-          console.log(`diff - ${diffBody}`)
 
           const section = new DiffSection(range, diffBody.split('\n'))
 
