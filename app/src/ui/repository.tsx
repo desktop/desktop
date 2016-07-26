@@ -36,7 +36,7 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
 
   private renderContent() {
     if (this.state.selectedTab === TabBarTab.Changes) {
-      return <Changes selectedRepo={this.props.repository}/>
+      return <Changes repository={this.props.repository}/>
     } else if (this.state.selectedTab === TabBarTab.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}

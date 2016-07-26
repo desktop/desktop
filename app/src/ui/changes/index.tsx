@@ -9,12 +9,11 @@ import { WorkingDirectoryStatus } from '../../models/status'
 import { LocalGitOperations } from '../../lib/local-git-operations'
 
 interface IChangesProps {
-  selectedRepo: Repository,
-
+  repository: Repository
 }
 
 interface IChangesState {
-  selectedRow: number,
+  selectedRow: number
   workingDirectory: WorkingDirectoryStatus
 }
 
@@ -36,7 +35,7 @@ export class Changes extends React.Component<IChangesProps, IChangesState> {
     // reset selection (if found)
     Object.assign({}, this.state, { selectedRow: -1 })
 
-    this.refreshWorkingDirectory(nextProps.selectedRepo)
+    this.refreshWorkingDirectory(nextProps.repository)
   }
 
   private refreshWorkingDirectory(repository: Repository) {
@@ -55,9 +54,9 @@ export class Changes extends React.Component<IChangesProps, IChangesState> {
       return file.include === true
     })
 
-    await LocalGitOperations.createCommit(this.props.selectedRepo, title, files)
+    await LocalGitOperations.createCommit(this.props.repository, title, files)
 
-    await this.refreshWorkingDirectory(this.props.selectedRepo)
+    await this.refreshWorkingDirectory(this.props.repository)
   }
 
   private handleSelectionChanged(row: number) {
@@ -117,7 +116,7 @@ export class Changes extends React.Component<IChangesProps, IChangesState> {
 
   public render() {
 
-    const repo = this.props.selectedRepo
+    const repo = this.props.repository
     if (!repo) {
       return this.renderNoSelection()
     }
@@ -133,7 +132,7 @@ export class Changes extends React.Component<IChangesProps, IChangesState> {
 
     return (
       <div id='changes'>
-        <ChangesList repository={this.props.selectedRepo}
+        <ChangesList repository={this.props.repository}
                      workingDirectory={this.state.workingDirectory}
                      selectedRow={this.state.selectedRow}
                      onSelectionChanged={event => this.handleSelectionChanged(event)}
@@ -141,7 +140,10 @@ export class Changes extends React.Component<IChangesProps, IChangesState> {
                      onIncludeChanged={(row, include) => this.handleIncludeChanged(row, include) }
                      onSelectAll={selectAll => this.handleSelectAll(selectAll) }/>
 
-        <FileDiff path={selectedFilePath} />
+         <FileDiff repository={this.props.repository}
+                   relativePath={selectedFilePath}
+                   readOnly={false}
+                   commit={null} />
       </div>
     )
   }
