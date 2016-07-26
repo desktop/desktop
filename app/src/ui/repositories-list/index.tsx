@@ -5,8 +5,8 @@ import RepositoryListItem from './repository-list-item'
 import Repository from '../../models/repository'
 
 interface IRepositoriesListProps {
-  readonly selectedRow: number
-  readonly onSelectionChanged: (row: number) => void
+  readonly selectedRepository: Repository
+  readonly onSelectionChanged: (repository: Repository) => void
   readonly loading: boolean
   readonly repos: ReadonlyArray<Repository>
 }
@@ -15,20 +15,31 @@ const RowHeight = 42
 
 /** The list of user-added repositories. */
 export default class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
-  private renderLoading() {
-    return (
-      <div>Loading…</div>
-    )
-  }
-
   private renderRow(row: number) {
     const repository = this.props.repos[row]
     return <RepositoryListItem key={row} repository={repository}/>
   }
 
+  private get selectedRow(): number {
+    let index = -1
+    this.props.repos.forEach((repository, i) => {
+      if (repository.id === this.props.selectedRepository.id) {
+        index = i
+        return
+      }
+    })
+
+    return index
+  }
+
+  private onSelectionChanged(row: number) {
+    const repository = this.props.repos[row]
+    this.props.onSelectionChanged(repository)
+  }
+
   public render() {
     if (this.props.loading) {
-      return this.renderLoading()
+      return <Loading/>
     }
 
     return (
@@ -36,8 +47,12 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
             itemCount={this.props.repos.length}
             itemHeight={RowHeight}
             renderItem={row => this.renderRow(row)}
-            selectedRow={this.props.selectedRow}
-            onSelectionChanged={row => this.props.onSelectionChanged(row)} />
+            selectedRow={this.selectedRow}
+            onSelectionChanged={row => this.onSelectionChanged(row)} />
     )
   }
+}
+
+function Loading() {
+  return <div>Loading…</div>
 }
