@@ -61,7 +61,7 @@ describe('LocalGitOperations', () => {
       expect(files.length).to.equal(0)
 
       const commits = await LocalGitOperations.getHistory(repository!)
-      expect(commits.length).to.equal(4)
+      expect(commits.length).to.equal(6)
       expect(commits[0].summary).to.equal('Special commit')
     })
   })
@@ -69,7 +69,7 @@ describe('LocalGitOperations', () => {
   describe('history', () => {
     it('loads history', async () => {
       const commits = await LocalGitOperations.getHistory(repository!)
-      expect(commits.length).to.equal(3)
+      expect(commits.length).to.equal(5)
 
       const firstCommit = commits[commits.length - 1]
       expect(firstCommit.summary).to.equal('first')
