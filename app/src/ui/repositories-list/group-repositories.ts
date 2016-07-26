@@ -30,7 +30,11 @@ export function groupRepositories(repositories: ReadonlyArray<Repository>): Read
   })
 
   const flattened = new Array<RepositoryListItem>()
-  grouped.forEach((repositories, group) => {
+
+  const addGroup = (group: RepositoryGroup) => {
+    const repositories = grouped.get(group)
+    if (!repositories || repositories.length === 0) { return }
+
     let label = 'Other'
     if (group === 'github') {
       label = 'GitHub'
@@ -42,7 +46,11 @@ export function groupRepositories(repositories: ReadonlyArray<Repository>): Read
     for (const repository of repositories) {
       flattened.push({ kind: 'repository', repository })
     }
-  })
+  }
+
+  addGroup('github')
+  addGroup('enterprise')
+  addGroup('other')
 
   return flattened
 }
