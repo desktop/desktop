@@ -62,6 +62,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const repository = this.state.selectedRepository
     if (!repository) { return }
 
+    // TODO: Publish branch to the default remote.
+
     console.log('Starting push…')
     await LocalGitOperations.push(repository)
     console.log('Finished push')
@@ -70,6 +72,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
   private async pull() {
     const repository = this.state.selectedRepository
     if (!repository) { return }
+
+    // TODO: Do something if there's no tracking branch.
 
     console.log('Starting pull…')
     await LocalGitOperations.pull(repository)
