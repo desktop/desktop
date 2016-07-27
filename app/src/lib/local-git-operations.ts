@@ -445,10 +445,12 @@ export class LocalGitOperations {
     return pieces[0]
   }
 
+  /** Pull from the remote to the branch. */
   public static pull(repository: Repository, remote: string, branch: string): Promise<void> {
     return GitProcess.exec([ 'pull', remote, branch ], repository.path)
   }
 
+  /** Push from the remote to the branch, optionally setting the upstream. */
   public static push(repository: Repository, remote: string, branch: string, setUpstream: boolean): Promise<void> {
     const args = [ 'push', remote, branch, '--set-upstream' ]
     if (setUpstream) {
@@ -458,6 +460,7 @@ export class LocalGitOperations {
     return GitProcess.exec(args, repository.path)
   }
 
+  /** Get the remote names. */
   private static async getRemotes(repository: Repository): Promise<ReadonlyArray<string>> {
     const lines = await GitProcess.execWithOutput([ 'remote' ], repository.path)
     return lines.split('\n')

@@ -132,6 +132,7 @@ export default class AppWindow {
     this.window.focus()
   }
 
+  /** Send the menu event to the renderer. */
   public sendMenuEvent(name: MenuEvent) {
     this.window.webContents.send('menu-event', { name })
   }
