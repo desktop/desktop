@@ -480,12 +480,12 @@ export class LocalGitOperations {
   /** Get the name of the tracking branch for the current branch. */
   public static async getTrackingBranch(repository: Repository): Promise<string | null> {
     const name = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}' ], repository.path)
-    return name
+    return name.trim()
   }
 
   /** Get the name of the current branch. */
   public static async getBranch(repository: Repository): Promise<string | null> {
     const name = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path)
-    return name
+    return name.trim()
   }
 }
