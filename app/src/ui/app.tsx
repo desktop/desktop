@@ -13,6 +13,7 @@ import Repository from '../models/repository'
 import {matchGitHubRepository} from '../lib/repository-matching'
 import API, {getUserForEndpoint} from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
+import { MenuEvent } from '../main-process/menu'
 
 interface IAppState {
   readonly selectedRepository: Repository | null
@@ -43,6 +44,23 @@ export default class App extends React.Component<IAppProps, IAppState> {
     // This is split out simply because TS doesn't like having an async
     // constructor.
     this.fetchInitialState()
+
+    ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => this.onMenuEvent(name))
+  }
+
+  private onMenuEvent(name: MenuEvent) {
+    switch (name) {
+      case 'push': return this.push()
+      case 'pull': return this.pull()
+    }
+  }
+
+  private push() {
+    console.log('push!')
+  }
+
+  private pull() {
+    console.log('pull!')
   }
 
   private async fetchInitialState() {

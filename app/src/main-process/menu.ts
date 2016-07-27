@@ -1,5 +1,7 @@
-import {app, shell, Menu} from 'electron'
+import {app, shell, Menu, ipcMain} from 'electron'
 import SharedProcess from '../shared-process/shared-process'
+
+export type MenuEvent = 'push' | 'pull'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Object[] = [
@@ -79,6 +81,25 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           label: 'Debug shared process',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             sharedProcess.show()
+          }
+        }
+      ]
+    },
+    {
+      label: 'Repository',
+      submenu: [
+        {
+          label: 'Push',
+          accelerator: 'CmdOrCtrl+P',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            ipcMain.emit('menu-event', { name: 'push' })
+          }
+        },
+        {
+          label: 'Pull',
+          accelerator: 'CmdOrCtrl+Shift+P',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            ipcMain.emit('menu-event', { name: 'pull' })
           }
         }
       ]

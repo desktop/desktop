@@ -1,8 +1,8 @@
-import {app, Menu, autoUpdater} from 'electron'
+import {app, Menu, autoUpdater, ipcMain} from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
-import {buildDefaultMenu} from './menu'
+import { buildDefaultMenu, MenuEvent } from './menu'
 import parseURL from '../lib/parse-url'
 import {handleSquirrelEvent, getFeedURL} from './updates'
 import SharedProcess from '../shared-process/shared-process'
@@ -87,6 +87,13 @@ app.on('ready', () => {
       sharedProcess!.console.error(`Error checking for updates: ${e}`)
     }
   }
+
+  ipcMain.on('menu-event', (event, args) => {
+    const { name }: { name: MenuEvent } = event as any
+    if (mainWindow) {
+      mainWindow.sendMenuEvent(name)
+    }
+  })
 })
 
 app.on('activate', () => {
