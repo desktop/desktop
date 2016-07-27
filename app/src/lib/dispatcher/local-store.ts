@@ -5,6 +5,7 @@ import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../local-git-operations'
+import findIndex from '../find-index'
 
 export default class LocalStore {
   private emitter: Emitter
@@ -45,15 +46,12 @@ export default class LocalStore {
     //     equality.
     const selectedRepository = this._selectedRepository
     if (selectedRepository) {
-      let matchingRepository: Repository | null = null
-      this._repositories.forEach(r => {
-        if (r.id === selectedRepository.id) {
-          matchingRepository = r
-          return
-        }
-      })
-
-      this._selectedRepository = matchingRepository
+      const i = findIndex(this._repositories, r => r.id === selectedRepository.id)
+      if (i > -1) {
+        this._selectedRepository = this._repositories[i]
+      } else {
+        this._selectedRepository = null
+      }
     }
 
     this._emitUpdate()
