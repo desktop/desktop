@@ -449,8 +449,12 @@ export class LocalGitOperations {
     return GitProcess.exec([ 'pull' ], repository.path)
   }
 
-  public static push(repository: Repository): Promise<void> {
-    return GitProcess.exec([ 'push' ], repository.path)
+  public static push(repository: Repository, remote: string, branch?: string): Promise<void> {
+    if (branch) {
+      return GitProcess.exec([ 'push', remote, branch, '--set-upstream' ], repository.path)
+    } else {
+      return GitProcess.exec([ 'push', remote ], repository.path)
+    }
   }
 
   private static async getRemotes(repository: Repository): Promise<ReadonlyArray<string>> {
