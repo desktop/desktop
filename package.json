@@ -5,9 +5,9 @@
   },
   "description": "The People's Glorious GitHub Client's build dependencies",
   "scripts": {
-    "test": "cross-env TEST_ENV=1 electron-mocha --renderer --require ts-node/register app/test/*.ts app/test/*.tsx",
-    "postinstall": "typings install && cd app && npm install",
-    "start": "npm run build:dev && node script/start",
+    "test": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 electron-mocha --renderer --require ts-node/register app/test/*.ts app/test/*.tsx",
+    "postinstall": "typings install && cd app && npm install && cd .. && git submodule update --recursive --init",
+    "start": "node script/start",
     "compile:dev": "cross-env NODE_ENV=development webpack --config app/webpack.development.js",
     "compile:prod": "cross-env NODE_ENV=production webpack --config app/webpack.production.js",
     "build:dev": "npm run compile:dev && cross-env NODE_ENV=development node script/build",

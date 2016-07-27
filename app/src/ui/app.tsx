@@ -2,7 +2,7 @@ import * as React from 'react'
 import {ipcRenderer} from 'electron'
 
 import {Sidebar} from './sidebar'
-import ReposList from './repos-list'
+import RepositoriesList from './repositories-list'
 import {default as RepositoryView} from './repository'
 import User from '../models/user'
 import GitHubRepository from '../models/github-repository'
@@ -15,7 +15,7 @@ import API, {getUserForEndpoint} from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
 
 interface IAppState {
-  readonly selectedRow: number
+  readonly selectedRepository: Repository | null
   readonly repos: ReadonlyArray<Repository>
   readonly loadingRepos: boolean
   readonly users: ReadonlyArray<User>
@@ -34,7 +34,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
     })
 
     this.state = {
-      selectedRow: -1,
+      selectedRepository: null,
       users: new Array<User>(),
       loadingRepos: true,
       repos: new Array<Repository>()
@@ -54,9 +54,9 @@ export default class App extends React.Component<IAppProps, IAppState> {
   private update(users: ReadonlyArray<User>, repos: ReadonlyArray<Repository>) {
     // TODO: We should persist this but for now we'll select the first
     // repository available unless we already have a selection
-    const haveSelection = this.state.selectedRow > -1
-    const selectedRow = (!haveSelection && repos.length > 0) ? 0 : this.state.selectedRow
-    this.setState(Object.assign({}, this.state, {users, repos, loadingRepos: false, selectedRow}))
+    const haveSelection = Boolean(this.state.selectedRepository)
+    const selectedRepository = (!haveSelection && repos.length > 0) ? repos[0] : this.state.selectedRepository
+    this.setState(Object.assign({}, this.state, {users, repos, loadingRepos: false, selectedRepository}))
   }
 
   public componentDidMount() {
@@ -114,16 +114,16 @@ export default class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderApp() {
-    const selectedRepo = this.state.repos[this.state.selectedRow]
+    const selectedRepository = this.state.selectedRepository!
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
         <Sidebar>
-          <ReposList selectedRow={this.state.selectedRow}
-                     onSelectionChanged={row => this.handleSelectionChanged(row)}
-                     repos={this.state.repos}
-                     loading={this.state.loadingRepos}/>
+          <RepositoriesList selectedRepository={selectedRepository}
+                            onSelectionChanged={repository => this.onSelectionChanged(repository)}
+                            repos={this.state.repos}
+                            loading={this.state.loadingRepos}/>
         </Sidebar>
-        <RepositoryView repo={selectedRepo} user={null}/>
+        <RepositoryView repo={selectedRepository} user={null}/>
       </div>
     )
   }
@@ -145,18 +145,17 @@ export default class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private refreshRepositoryAtRow(row: number) {
+  private refreshRepository(repository: Repository) {
     // This probably belongs in the Repository component or whatever, but until
     // that exists...
-    const repo = this.state.repos[row]
-    console.log(repo)
-    this.refreshGitHubRepositoryInfo(repo)
+    console.log(repository)
+    this.refreshGitHubRepositoryInfo(repository)
   }
 
-  private handleSelectionChanged(row: number) {
-    this.setState(Object.assign({}, this.state, {selectedRow: row}))
+  private onSelectionChanged(repository: Repository) {
+    this.setState(Object.assign({}, this.state, {selectedRepository: repository}))
 
-    this.refreshRepositoryAtRow(row)
+    this.refreshRepository(repository)
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {

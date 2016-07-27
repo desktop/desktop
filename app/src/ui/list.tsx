@@ -7,6 +7,7 @@ type ListProps = {
   itemHeight: number,
   selectedRow: number,
   onSelectionChanged?: (row: number) => void,
+  canSelectRow?: (row: number) => boolean,
 
   /** The unique identifier for the outer element of the component (optional, defaults to null) */
   id?: string
@@ -57,19 +58,33 @@ export default class List extends React.Component<ListProps, ListState> {
     e.preventDefault()
   }
 
-  private moveSelection(direction: 'up' | 'down') {
-    let newRow = this.props.selectedRow
+  private nextSelectableRow(direction: 'up' | 'down', row: number): number {
+    let newRow = row
     if (direction === 'up') {
-      newRow = this.props.selectedRow - 1
+      newRow = row - 1
       if (newRow < 0) {
         newRow = this.props.itemCount - 1
       }
     } else {
-      newRow = this.props.selectedRow + 1
+      newRow = row + 1
       if (newRow > this.props.itemCount - 1) {
         newRow = 0
       }
     }
+
+    if (this.props.canSelectRow) {
+      if (this.props.canSelectRow(newRow)) {
+        return newRow
+      } else {
+        return this.nextSelectableRow(direction, newRow)
+      }
+    } else {
+      return newRow
+    }
+  }
+
+  private moveSelection(direction: 'up' | 'down') {
+    let newRow = this.nextSelectableRow(direction, this.props.selectedRow)
 
     if (this.props.onSelectionChanged) {
       this.props.onSelectionChanged(newRow)
@@ -211,7 +226,12 @@ export default class List extends React.Component<ListProps, ListState> {
 
   private handleMouseDown = (row: number) => {
     if (this.props.selectedRow !== row) {
-      if (this.props.onSelectionChanged) {
+      let canSelect = true
+      if (this.props.canSelectRow) {
+        canSelect = this.props.canSelectRow(row)
+      }
+
+      if (canSelect && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row)
       }
     }
