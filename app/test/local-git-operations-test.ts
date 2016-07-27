@@ -95,4 +95,36 @@ describe('LocalGitOperations', () => {
       expect(value).to.equal(null)
     })
   })
+
+  describe('diff', () => {
+
+    beforeEach(() => {
+      const testRepoName = 'repo-with-changes'
+      const testRepoFixturePath = path.join(__dirname, 'fixtures', testRepoName)
+      const testRepoPath = temp.mkdirSync('desktop-git-test-')
+      fs.copySync(testRepoFixturePath, testRepoPath)
+
+      fs.renameSync(path.join(testRepoPath, '_git'), path.join(testRepoPath, '.git'))
+
+      repository = new Repository(testRepoPath, null, null)
+    })
+
+    it('counts lines for new file', async () => {
+      const diff = await LocalGitOperations.getDiff(repository!, 'new-file.md', null)
+      // TODO: what to assert?
+      expect(diff.lines.length).to.be.greaterThan(0)
+    })
+
+    it('counts lines for modified file', async () => {
+      const diff = await LocalGitOperations.getDiff(repository!, 'modified-file.md', null)
+      // TODO: what to assert?
+      expect(diff.lines.length).to.be.greaterThan(0)
+    })
+
+    it('counts lines for staged file', async () => {
+      const diff = await LocalGitOperations.getDiff(repository!, 'staged-file.md', null)
+      // TODO: what to assert?
+      expect(diff.lines.length).to.be.greaterThan(0)
+    })
+  })
 })
