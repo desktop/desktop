@@ -68,17 +68,17 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
+    const branch = await LocalGitOperations.getBranch(repository)
+    if (!branch) {
+      console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
+      return
+    }
+
     const trackingBranch = await LocalGitOperations.getTrackingBranch(repository)
     if (trackingBranch) {
-      await LocalGitOperations.push(repository, remote)
+      await LocalGitOperations.push(repository, remote, branch, false)
     } else {
-      const branch = await LocalGitOperations.getBranch(repository)
-      if (!branch) {
-        console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
-        return
-      }
-
-      await LocalGitOperations.push(repository, remote, branch)
+      await LocalGitOperations.push(repository, remote, branch, true)
     }
   }
 
