@@ -452,4 +452,30 @@ export class LocalGitOperations {
   public static push(repository: Repository): Promise<void> {
     return GitProcess.exec([ 'push' ], repository.path)
   }
+
+  private static async getRemotes(repository: Repository): Promise<ReadonlyArray<string>> {
+    const lines = await GitProcess.execWithOutput([ 'remote' ], repository.path)
+    return lines.split('\n')
+  }
+
+  /** Get the name of the default remote. */
+  public static async getDefaultRemote(repository: Repository): Promise<string | null> {
+    const remotes = await LocalGitOperations.getRemotes(repository)
+    if (remotes.length === 0) {
+      return null
+    }
+
+    const index = remotes.indexOf('origin')
+    if (index > -1) {
+      return remotes[index]
+    } else {
+      return remotes[0]
+    }
+  }
+
+  /** Get the name of the tracking branch for the current branch. */
+  public static async getTrackingBranch(repository: Repository): Promise<string | null> {
+    const name = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}' ], repository.path)
+    return name
+  }
 }
