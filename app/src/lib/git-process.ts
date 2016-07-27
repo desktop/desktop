@@ -34,13 +34,21 @@ export class GitProcess {
    *  Find the path to the embedded Git environment
    */
   private static resolveGit(): string {
-    if (process.platform === 'darwin') {
-      return path.join(__dirname, 'git/bin/git')
-    } else if (process.platform === 'win32') {
-      return path.join(__dirname, 'git/cmd/git.exe')
+    if (process.env.TEST_ENV) {
+      if (process.platform === 'darwin') {
+        return path.join(__dirname, '..', '..', '..', 'git', 'git-macos', 'git', 'bin', 'git')
+      } else if (process.platform === 'win32') {
+        return path.join(__dirname, '..', '..', '..', 'git', 'git-win32', 'git', 'cmd', 'git.exe')
+      }
     } else {
-      throw new Error('Git not supported on platform: ' + process.platform)
+      if (process.platform === 'darwin') {
+        return path.join(__dirname, 'git/bin/git')
+      } else if (process.platform === 'win32') {
+        return path.join(__dirname, 'git/cmd/git.exe')
+      }
     }
+
+    throw new Error('Git not supported on platform: ' + process.platform)
   }
 
   /**
@@ -91,7 +99,7 @@ export class GitProcess {
 
         console.error(formatArgs)
         console.error(err)
-        reject()
+        reject(err)
       })
     })
   }

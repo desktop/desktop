@@ -2,7 +2,7 @@ import * as React from 'react'
 import {ipcRenderer} from 'electron'
 
 import {Sidebar} from './sidebar'
-import ReposList from './repos-list'
+import RepositoriesList from './repositories-list'
 import {default as RepositoryView} from './repository'
 import GitHubRepository from '../models/github-repository'
 import NotLoggedIn from './not-logged-in'
@@ -81,31 +81,17 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private rowForRepository(repository_: Repository | null): number {
-    const repository = repository_
-    if (!repository) { return -1 }
-
-    let index = -1
-    this.state.repositories.forEach((r, i) => {
-      if (r === repository) {
-        index = i
-        return
-      }
-    })
-    return index
-  }
-
   private renderApp() {
-    const selectedRow = this.rowForRepository(this.state.selectedRepository)
+    const selectedRepository = this.state.selectedRepository!
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
         <Sidebar>
-          <ReposList selectedRow={selectedRow}
-                     onSelectionChanged={repository => this.onSelectionChanged(repository)}
-                     repos={this.state.repositories}
-                     // TODO: This is wrong. Just because we have 0 repos
-                     // doesn't necessarily mean we're loading.
-                     loading={this.state.repositories.length === 0}/>
+          <RepositoriesList selectedRepository={selectedRepository}
+                            onSelectionChanged={repository => this.onSelectionChanged(repository)}
+                            repos={this.state.repositories}
+                            // TODO: This is wrong. Just because we have 0 repos
+                            // doesn't necessarily mean we're loading.
+                            loading={this.state.repositories.length === 0}/>
         </Sidebar>
         <RepositoryView repository={this.state.selectedRepository!}
                         history={this.state.history}
