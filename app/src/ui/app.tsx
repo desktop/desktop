@@ -14,6 +14,7 @@ import {matchGitHubRepository} from '../lib/repository-matching'
 import API, {getUserForEndpoint} from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
 import { MenuEvent } from '../main-process/menu'
+import fatalError from '../lib/fatal-error'
 
 interface IAppState {
   readonly selectedRepository: Repository | null
@@ -48,19 +49,31 @@ export default class App extends React.Component<IAppProps, IAppState> {
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => this.onMenuEvent(name))
   }
 
-  private onMenuEvent(name: MenuEvent) {
+  private onMenuEvent(name: MenuEvent): Promise<void> {
     switch (name) {
       case 'push': return this.push()
       case 'pull': return this.pull()
     }
+
+    return fatalError(`Unknown menu event name: ${name}`)
   }
 
-  private push() {
-    console.log('push!')
+  private async push() {
+    const repository = this.state.selectedRepository
+    if (!repository) { return }
+
+    console.log('Starting push…')
+    await LocalGitOperations.push(repository)
+    console.log('Finished push')
   }
 
-  private pull() {
-    console.log('pull!')
+  private async pull() {
+    const repository = this.state.selectedRepository
+    if (!repository) { return }
+
+    console.log('Starting pull…')
+    await LocalGitOperations.pull(repository)
+    console.log('Finished pull')
   }
 
   private async fetchInitialState() {

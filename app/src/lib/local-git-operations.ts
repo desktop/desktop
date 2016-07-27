@@ -444,4 +444,12 @@ export class LocalGitOperations {
     const pieces = output.split('\0')
     return pieces[0]
   }
+
+  public static pull(repository: Repository): Promise<void> {
+    return GitProcess.exec([ 'pull' ], repository.path)
+  }
+
+  public static push(repository: Repository): Promise<void> {
+    return GitProcess.exec([ 'push' ], repository.path)
+  }
 }
