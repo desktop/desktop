@@ -1,0 +1,15 @@
+@import "~primer-support/index.scss";
+
+// We need to import each utility file manually since webpack breaks when
+// trying to use `@import "~primer-utilities/index.scss";` because the import
+// statement doesn't know where `"primer-utilities/index.scss"` exists.
+//
+// https://github.com/primer/utilities/blob/master/index.scss
+// https://github.com/jtangelder/sass-loader#imports
+
+@import "~primer-utilities/lib/border.scss";
+@import "~primer-utilities/lib/colors.scss";
+@import "~primer-utilities/lib/layout.scss";
+@import "~primer-utilities/lib/margin.scss";
+@import "~primer-utilities/lib/padding.scss";
+@import "~primer-utilities/lib/typography.scss";

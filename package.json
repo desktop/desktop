@@ -48,6 +48,8 @@
     "html-webpack-plugin": "^2.21.0",
     "mocha": "^2.4.5",
     "node-sass": "^3.7.0",
+    "primer-support": "^0.5.0",
+    "primer-utilities": "^0.5.0",
     "react-transform-hmr": "^1.0.4",
     "request": "^2.72.0",
     "rimraf": "^2.5.2",
