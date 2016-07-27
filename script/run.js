@@ -2,6 +2,7 @@
 
 const path = require('path')
 const cp = require('child_process')
+const fs = require('fs')
 const distInfo = require('./dist-info')
 
 const distPath = distInfo.getDistPath()
@@ -18,6 +19,15 @@ if (process.platform === 'darwin') {
 }
 
 module.exports = function () {
+  try {
+    const stats = fs.statSync(binaryPath)
+    if (!stats.isFile()) {
+      return null
+    }
+  } catch (e) {
+    return null
+  }
+
   const env = Object.assign({}, process.env, {NODE_ENV: 'development'})
   return cp.spawn(binaryPath, [], {env})
 }
