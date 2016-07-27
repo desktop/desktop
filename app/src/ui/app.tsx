@@ -62,11 +62,24 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const repository = this.state.selectedRepository
     if (!repository) { return }
 
-    // TODO: Publish branch to the default remote.
+    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    if (!remote) {
+      console.error('This repo has no remotes ¯\_(ツ)_/¯')
+      return
+    }
 
-    console.log('Starting push…')
-    await LocalGitOperations.push(repository)
-    console.log('Finished push')
+    const trackingBranch = await LocalGitOperations.getTrackingBranch(repository)
+    if (trackingBranch) {
+      await LocalGitOperations.push(repository, remote)
+    } else {
+      const branch = await LocalGitOperations.getBranch(repository)
+      if (!branch) {
+        console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
+        return
+      }
+
+      await LocalGitOperations.push(repository, remote, branch)
+    }
   }
 
   private async pull() {
