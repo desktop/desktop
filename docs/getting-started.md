@@ -29,8 +29,9 @@ node-gyp is required to build some of our native npm packages (such as [keytar](
 
 ## Building
 
-* Run `npm install` and `git submodule update --recursive --init` to get all required dependencies on your machine.
-* Run `npm start` to compile and launch the application. After it's successfully launched you can make changes which will be compiled in the background and these changes will either be hot-loaded into the app (if possible) or accessed by reloading the app (Ctrl/Command+R).
+* Run `npm install` to get all required dependencies on your machine.
+* Run `npm run build:dev` to make a development build of the app.
+* Run `npm start` to launch the application. After it's successfully launched you can make changes which will be compiled in the background and these changes will either be hot-loaded into the app (if possible) or accessed by reloading the app (Ctrl/Command+R).
 
 ## Using Atom?
 
@@ -54,6 +55,6 @@ Then switch to atom and follow these steps
 2. Go to Packages
 3. Locate the atom-typescript package and select settings
 4. Under settings, locate the textbox with the label 'Full path to a custom 'typescriptServices.js'
-5. Provide the path 
+5. Provide the path
  * For Mac: `/usr/local/lib/node_modules/typescript/lib/typescriptServices.js`
  * For Windows: `C:\Users\[YOUR USERNAME]\AppData\Roaming\npm\node_modules\typescript\lib\typescriptServices.js`
