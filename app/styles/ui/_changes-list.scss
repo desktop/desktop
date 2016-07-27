@@ -5,20 +5,19 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-}
 
-#changes-list ul {
-  list-style-type: none;
-  align-self: stretch;
-  overflow-y: scroll;
-  margin: 0;
-  padding: 0;
-}
+  ul {
+    list-style-type: none;
+    overflow-y: scroll;
+    margin: 0;
+    padding: 0;
+  }
 
-#changes-list li {
-  white-space: nowrap;
-}
+  li {
+    white-space: nowrap;
+  }
 
-#changes-list .status {
-  margin-left: 10px;
+  .status {
+    margin-left: 10px;
+  }
 }
