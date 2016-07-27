@@ -445,8 +445,8 @@ export class LocalGitOperations {
     return pieces[0]
   }
 
-  public static pull(repository: Repository): Promise<void> {
-    return GitProcess.exec([ 'pull' ], repository.path)
+  public static pull(repository: Repository, remote: string, branch: string): Promise<void> {
+    return GitProcess.exec([ 'pull', remote, branch ], repository.path)
   }
 
   public static push(repository: Repository, remote: string, branch: string, setUpstream: boolean): Promise<void> {

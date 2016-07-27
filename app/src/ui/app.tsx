@@ -86,11 +86,19 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const repository = this.state.selectedRepository
     if (!repository) { return }
 
-    // TODO: Do something if there's no tracking branch.
+    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    if (!remote) {
+      console.error('This repo has no remotes ¯\_(ツ)_/¯')
+      return
+    }
 
-    console.log('Starting pull…')
-    await LocalGitOperations.pull(repository)
-    console.log('Finished pull')
+    const branch = await LocalGitOperations.getBranch(repository)
+    if (!branch) {
+      console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
+      return
+    }
+
+    await LocalGitOperations.pull(repository, remote, branch)
   }
 
   private async fetchInitialState() {
