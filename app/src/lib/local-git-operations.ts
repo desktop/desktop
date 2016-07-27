@@ -309,7 +309,13 @@ export class LocalGitOperations {
     if (commit) {
       args = [ 'show', commit.sha, '--patch-with-raw', '-z', '--', relativePath ]
     } else {
-      args = [ 'diff', '--patch-with-raw', '-z', '--', relativePath ]
+
+      // TODO: untracked file needs to do a `git add -N relativePath` before
+      //       so that this will render a diff correctly. alternatively, note
+      //       that the file is untracked and then read the contents into the
+      //       diff
+
+      args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', relativePath ]
     }
 
     return GitProcess.execWithOutput(args, repository.path)
