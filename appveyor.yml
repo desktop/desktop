@@ -5,7 +5,6 @@ environment:
 
 cache:
   - node_modules
-  - app\node_modules
   - '%USERPROFILE%\.electron'
 
 branches:
