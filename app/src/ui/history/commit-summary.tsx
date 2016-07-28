@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {FileChange} from '../../models/status'
+import { FileChange } from '../../models/status'
 import List from '../list'
 
 interface ICommitSummaryProps {

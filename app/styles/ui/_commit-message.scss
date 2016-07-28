@@ -2,9 +2,12 @@
 
 /** A React component holding the commit message entry */
 #commit-message {
-  display: flex;
-  flex-direction: row;
+  border-top: 1px solid var(--box-border-color);
+  flex-direction: column;
+  flex-shrink: 0;
   margin-top: auto;
 
-  border-style: solid;
+  display: flex;
+  background-color: var(--box-alt-background-color);
+  padding: var(--spacing);
 }

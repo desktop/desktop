@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 
-import {ipcRenderer, remote} from 'electron'
+import { ipcRenderer, remote } from 'electron'
 
 import App from './app'
-import {WindowState, getWindowState} from '../lib/window-state'
-import {Dispatcher} from '../lib/dispatcher'
+import { WindowState, getWindowState } from '../lib/window-state'
+import { Dispatcher, LocalStore } from '../lib/dispatcher'
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
@@ -13,7 +13,9 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
-const dispatcher = new Dispatcher()
+const store = new LocalStore()
+const dispatcher = new Dispatcher(store)
+dispatcher.loadInitialState()
 
 document.body.classList.add(`platform-${process.platform}`)
 
@@ -28,4 +30,4 @@ function updateFullScreenBodyInfo(windowState: WindowState) {
 updateFullScreenBodyInfo(getWindowState(remote.getCurrentWindow()))
 ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(args as WindowState))
 
-ReactDOM.render(<App dispatcher={dispatcher}/>, document.getElementById('desktop-app-container')!)
+ReactDOM.render(<App dispatcher={dispatcher} store={store}/>, document.getElementById('desktop-app-container')!)

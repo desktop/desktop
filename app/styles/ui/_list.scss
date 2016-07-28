@@ -7,8 +7,9 @@
 
     overflow: auto;
     transform: translate3d(0, 0, 0);
+    position: relative;
 
-    .list-item { position: fixed; }
+    .list-item { position: absolute; }
   }
 }
 

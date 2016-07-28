@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {OcticonSymbol} from './octicons.generated'
+import { OcticonSymbol } from './octicons.generated'
 
 interface IOcticonProps {
 

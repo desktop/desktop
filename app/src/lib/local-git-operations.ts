@@ -151,7 +151,7 @@ export class Diff {
      // so it can be drawn  easily in a virtualized list
      //
      // TODO: may not be necessary in the future
-     let lines: DiffLine[] = []
+     const lines: DiffLine[] = []
      sections.forEach(s => {
        s.lines.forEach(l => lines.push(l))
      })
@@ -203,7 +203,7 @@ export class LocalGitOperations {
             const regex = /([\? \w]{2}) (.*)/
             const regexGroups = { mode: 1, path: 2 }
 
-            let workingDirectory = new WorkingDirectoryStatus()
+            const workingDirectory = new WorkingDirectoryStatus()
 
             for (const index in lines) {
               const line = lines[index]
@@ -349,7 +349,7 @@ export class LocalGitOperations {
 
         const diffText = lines[lines.length - 1]
 
-        let diffSections = new Array<DiffSection>()
+        const diffSections = new Array<DiffSection>()
 
         // track the remaining text in the raw diff to parse
         let diffTextBuffer = diffText
@@ -404,7 +404,7 @@ export class LocalGitOperations {
   }
 
   /** Get the repository's history. */
-  public static async getHistory(repository: Repository): Promise<Commit[]> {
+  public static async getHistory(repository: Repository): Promise<ReadonlyArray<Commit>> {
     const batchCount = 100
     const delimiter = '1F'
     const delimeterString = String.fromCharCode(parseInt(delimiter, 16))
