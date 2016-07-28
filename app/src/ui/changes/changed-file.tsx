@@ -33,7 +33,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
             onChange={event => this.handleChange(event)}
           />
         <span className='path'>{this.props.path}</span>
-        <span className='status'>{ChangedFile.mapStatus(this.props.status)}</span>
+        <span className='ml-3'>{ChangedFile.mapStatus(this.props.status)}</span>
       </div>
     )
   }

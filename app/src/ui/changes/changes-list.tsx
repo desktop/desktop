@@ -6,7 +6,7 @@ import List from '../list'
 import Repository from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
 
-const RowHeight = 20
+const RowHeight = 30
 
 interface IChangesListProps {
   readonly repository: Repository
