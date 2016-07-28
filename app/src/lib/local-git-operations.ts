@@ -1,7 +1,5 @@
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
 import Repository from '../models/repository'
-import * as fs from 'fs'
-import * as path from 'path'
 
 import { GitProcess, GitError, GitErrorCode } from './git-process'
 
@@ -308,34 +306,10 @@ export class LocalGitOperations {
 
     let args: string[]
 
-    if (file.status === FileStatus.New) {
-
-      const fullPath = path.join(repository.path, file.path)
-
-      return new Promise<Diff>((resolve, reject) => {
-        fs.readFile(fullPath, (err, data) => {
-          // TODO: if not text file, ?????
-
-          if (err) {
-            reject(err)
-          } else {
-            // super-hacky way of formatting the patch
-            // probably utterly broken somehow
-            const contents = data.toString().split('\n').map(s => '+' + s)
-            const rows = contents.length - 1
-            const header = `@@ -0,0 +1,${rows} @@`
-            const range = new DiffSectionRange(0, 0, 0, rows)
-            const sections = new Array<DiffSection>()
-            const lines = [ header ].concat(contents)
-            sections.push(new DiffSection(range, lines))
-            resolve(new Diff(sections))
-          }
-        })
-      })
-    }
-
     if (commit) {
       args = [ 'show', commit.sha, '--patch-with-raw', '-z', '--', file.path ]
+    } else if (file.status === FileStatus.New) {
+      args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
     } else {
       args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
     }
