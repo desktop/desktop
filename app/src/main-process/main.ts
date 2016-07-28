@@ -1,4 +1,4 @@
-import { app, Menu, autoUpdater } from 'electron'
+import { app, Menu, autoUpdater, ipcMain } from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
