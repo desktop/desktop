@@ -17,7 +17,7 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
       : path
 
     return (
-      <div className='repository-list-item' title={tooltip}>
+      <div className='repository-list-item pl-3' title={tooltip}>
         <Octicon symbol={iconForRepository(repository)} />
         <div className='name'>{repository.name}</div>
       </div>

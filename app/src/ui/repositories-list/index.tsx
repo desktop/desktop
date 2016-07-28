@@ -12,7 +12,7 @@ interface IRepositoriesListProps {
   readonly repos: ReadonlyArray<Repository>
 }
 
-const RowHeight = 42
+const RowHeight = 30
 
 /** The list of user-added repositories. */
 export default class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
@@ -21,7 +21,7 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
     if (item.kind === 'repository') {
       return <RepositoryListItem key={row} repository={item.repository}/>
     } else {
-      return <div key={row} className='repository-group-label'>{item.label}</div>
+      return <div key={row} className='mt-4 mb-3 pl-3 text-uppercase'>{item.label}</div>
     }
   }
 

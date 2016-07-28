@@ -28,9 +28,6 @@
    */
   .repository-list-item {
 
-    // 20px offset from the window edge
-    padding: 0 5px 0 20px;
-
     // Layout the icon and repository name horizontally
     display: flex;
     flex-direction: row;
@@ -54,10 +51,5 @@
       // Long repository names truncate and ellipse
       @include ellipsis
     }
-  }
-
-  .repository-group-label {
-    padding: 0 5px 0 20px;
-    font-weight: bold;
   }
 }
