@@ -14,7 +14,7 @@
   $darkGray: #5f717f;
   $orange: #c9510c;
   $gray: #ccc;
-  $lightGray: #f2f2f2;
+  $lightGray: #E3E7E9;
   $lighterGray: #f9f9f9;
   $white: #fff;
 
@@ -67,8 +67,12 @@
   /**
    * Border color for boxes.
    */
+<<<<<<< b7c275010960dcef5853893c672abd4806811e90
   --box-border-color: $gray;
   --box-border-accent-color: $blue;
+=======
+  --box-border-color: $lightGray;
+>>>>>>> Update border color and light gray color
 
   /**
    * Background color for selected boxes without keyboard focus
