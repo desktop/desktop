@@ -8,20 +8,17 @@ import { LocalGitOperations, Commit } from '../local-git-operations'
 import findIndex from '../find-index'
 
 export default class AppStore {
-  private emitter: Emitter
+  private emitter = new Emitter()
 
   private users: ReadonlyArray<User> = new Array<User>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
   private selectedRepository: Repository | null
 
-  private repositoryStateByRepositoryID: {[key: number]: IRepositoryState }
+  private repositoryState = new Map<number, IRepositoryState>()
 
   private emitQueued = false
 
   public constructor() {
-    this.emitter = new Emitter()
-    this.repositoryStateByRepositoryID = {}
-
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
 
@@ -64,7 +61,7 @@ export default class AppStore {
   }
 
   private getRepositoryState(repository: Repository): IRepositoryState {
-    let state = this.repositoryStateByRepositoryID[repository.id!]
+    let state = this.repositoryState.get(repository.id!)
     if (state) { return state }
 
     state = {
@@ -77,12 +74,12 @@ export default class AppStore {
         changedFiles: new Array<FileChange>(),
       }
     }
-    this.repositoryStateByRepositoryID[repository.id!] = state
+    this.repositoryState.set(repository.id!, state)
     return state
   }
 
   private updateHistoryState(repository: Repository, historyState: IHistoryState) {
-    this.repositoryStateByRepositoryID[repository.id!] = { historyState }
+    this.repositoryState.set(repository.id!, { historyState })
   }
 
   private getCurrentRepositoryState(): IRepositoryState | null {
