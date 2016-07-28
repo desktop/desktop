@@ -7,8 +7,8 @@ input[type='submit'] {
 
   // TODO: Add varaibles for half and third spacing
   padding: calc(var(--spacing) / 2) var(--spacing);
-  
-  border: 1px solid var(--box-border-color);
+
+  border: 1px solid var(--button-border-color);
   border-radius: var(--border-radius);
 
   &:hover {
