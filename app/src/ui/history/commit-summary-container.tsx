@@ -28,7 +28,7 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
 
   public render() {
     return (
-      <div id='commit-summary'>
+      <div className='panel'>
         {this.renderCommit()}
       </div>
     )
@@ -36,5 +36,5 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
 }
 
 function NoCommitSelected() {
-  return <div>No commit selected</div>
+  return <div className='panel'>No commit selected</div>
 }
