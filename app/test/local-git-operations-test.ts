@@ -10,17 +10,22 @@ import Repository from '../src/models/repository'
 import { LocalGitOperations } from '../src/lib/local-git-operations'
 import { FileStatus, FileChange } from '../src/models/status'
 
+
 describe('LocalGitOperations', () => {
   let repository: Repository | null = null
 
-  beforeEach(() => {
-    const testRepoName = 'test-repo'
-    const testRepoFixturePath = path.join(__dirname, 'fixtures', testRepoName)
+  function setupTestRepository(repositoryName: string): string {
+    const testRepoFixturePath = path.join(__dirname, 'fixtures', repositoryName)
     const testRepoPath = temp.mkdirSync('desktop-git-test-')
     fs.copySync(testRepoFixturePath, testRepoPath)
 
     fs.renameSync(path.join(testRepoPath, '_git'), path.join(testRepoPath, '.git'))
 
+    return testRepoPath
+  }
+
+  beforeEach(() => {
+    const testRepoPath = setupTestRepository('test-repo')
     repository = new Repository(testRepoPath, null, null)
   })
 
@@ -99,13 +104,7 @@ describe('LocalGitOperations', () => {
   describe('diff', () => {
 
     beforeEach(() => {
-      const testRepoName = 'repo-with-changes'
-      const testRepoFixturePath = path.join(__dirname, 'fixtures', testRepoName)
-      const testRepoPath = temp.mkdirSync('desktop-git-test-')
-      fs.copySync(testRepoFixturePath, testRepoPath)
-
-      fs.renameSync(path.join(testRepoPath, '_git'), path.join(testRepoPath, '.git'))
-
+      const testRepoPath = setupTestRepository('repo-with-changes')
       repository = new Repository(testRepoPath, null, null)
     })
 
