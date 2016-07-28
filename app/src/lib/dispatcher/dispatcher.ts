@@ -1,10 +1,10 @@
 import { ipcRenderer } from 'electron'
-import { Disposable } from 'event-kit'
 import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
 import guid from '../guid'
-import { IAppState } from '../app-state'
+import { IHistorySelection } from '../app-state'
 import { Action } from './actions'
+import AppStore from './app-store'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -39,7 +39,19 @@ type IPCResponse<T> = IResult<T> | IError
  * decouples the consumer of state from where/how it is stored.
  */
 export class Dispatcher {
-  private dispatch<T>(action: Action): Promise<T> {
+  private store: AppStore
+
+  public constructor(store: AppStore) {
+    this.store = store
+  }
+
+  public async loadInitialState(): Promise<void> {
+    const users = await this.loadUsers()
+    const repositories = await this.loadRepositories()
+    this.store._loadInitialState(users, repositories)
+  }
+
+  private dispatchToSharedProcess<T>(action: Action): Promise<T> {
     return this.send(action.name, action)
   }
 
@@ -73,43 +85,45 @@ export class Dispatcher {
   }
 
   /** Get the users */
-  public async getUsers(): Promise<ReadonlyArray<User>> {
-    const json = await this.dispatch<ReadonlyArray<IUser>>({ name: 'get-users' })
+  private async loadUsers(): Promise<ReadonlyArray<User>> {
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IUser>>({ name: 'get-users' })
     return json.map(User.fromJSON)
   }
 
   /** Get the repositories the user has added to the app. */
-  public async getRepositories(): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatch<ReadonlyArray<IRepository>>({ name: 'get-repositories' })
+  private async loadRepositories(): Promise<ReadonlyArray<Repository>> {
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'get-repositories' })
     return json.map(Repository.fromJSON)
   }
 
   public async addRepositories(repositories: ReadonlyArray<Repository>): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatch<ReadonlyArray<IRepository>>({ name: 'add-repositories', repositories })
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', repositories })
     return json.map(Repository.fromJSON)
   }
 
   /** Request the user approve our OAuth request. This will open their browser. */
   public requestOAuth(): Promise<void> {
-    return this.dispatch<void>({ name: 'request-oauth' })
-  }
-
-  /** Register a listener function to be called when the state updates. */
-  public onDidUpdate(fn: (state: IAppState) => void): Disposable {
-    const wrappedFn = (event: Electron.IpcRendererEvent, args: any[]) => {
-      const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IUser>} = args[0].state
-      const users = state.users.map(User.fromJSON)
-      const repositories = state.repositories.map(Repository.fromJSON)
-      fn({ users, repositories })
-    }
-    ipcRenderer.on('shared/did-update', wrappedFn)
-    return new Disposable(() => {
-      ipcRenderer.removeListener('shared/did-update', wrappedFn)
-    })
+    return this.dispatchToSharedProcess<void>({ name: 'request-oauth' })
   }
 
   /** Update the repository's GitHub repository. */
   public updateGitHubRepository(repository: Repository): Promise<void> {
-    return this.dispatch<void>({ name: 'update-github-repository', repository })
+    return this.dispatchToSharedProcess<void>({ name: 'update-github-repository', repository })
+  }
+
+  public loadHistory(repository: Repository): Promise<void> {
+    return this.store._loadHistory(repository)
+  }
+
+  public loadChangedFilesForCurrentSelection(repository: Repository): Promise<void> {
+    return this.store._loadChangedFilesForCurrentSelection(repository)
+  }
+
+  public changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
+    return this.store._changeHistorySelection(repository, selection)
+  }
+
+  public selectRepository(repository: Repository): Promise<void> {
+    return this.store._selectRepository(repository)
   }
 }

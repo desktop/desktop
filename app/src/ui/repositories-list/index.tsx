@@ -6,7 +6,7 @@ import Repository from '../../models/repository'
 import { groupRepositories, RepositoryListItem as RepositoryListItemModel } from './group-repositories'
 
 interface IRepositoriesListProps {
-  readonly selectedRepository: Repository
+  readonly selectedRepository: Repository | null
   readonly onSelectionChanged: (repository: Repository) => void
   readonly loading: boolean
   readonly repos: ReadonlyArray<Repository>
@@ -26,11 +26,14 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
   }
 
   private selectedRow(groupedItems: ReadonlyArray<RepositoryListItemModel>): number {
+    const selectedRepository = this.props.selectedRepository
+    if (!selectedRepository) { return -1 }
+
     let index = -1
     groupedItems.forEach((item, i) => {
       if (item.kind === 'repository') {
         const repository = item.repository
-        if (repository.id === this.props.selectedRepository.id) {
+        if (repository.id === selectedRepository.id) {
           index = i
           return
         }

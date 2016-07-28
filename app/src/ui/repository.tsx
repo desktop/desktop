@@ -1,16 +1,17 @@
 import * as React from 'react'
-
-import User from '../models/user'
 import { default as Repo } from '../models/repository'
 import Toolbar from './toolbar'
 import { Changes } from './changes'
 import History from './history'
 import ComparisonGraph from './comparison-graph'
 import { TabBarTab } from './toolbar/tab-bar'
+import { IHistoryState } from '../lib/app-state'
+import { Dispatcher } from '../lib/dispatcher'
 
 interface IRepositoryProps {
-  repo: Repo
-  user: User | null
+  repository: Repo
+  history: IHistoryState
+  dispatcher: Dispatcher
 }
 
 interface IRepositoryState {
@@ -24,17 +25,6 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
     this.state = { selectedTab: TabBarTab.Changes }
   }
 
-  public componentDidMount() {
-    this.repositoryChanged()
-  }
-
-  public componentDidUpdate(prevProps: IRepositoryProps, prevState: IRepositoryState) {
-    const changed = prevProps.repo.id !== this.props.repo.id
-    if (changed) {
-      this.repositoryChanged()
-    }
-  }
-
   private renderNoSelection() {
     return (
       <div>
@@ -45,16 +35,18 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
 
   private renderContent() {
     if (this.state.selectedTab === TabBarTab.Changes) {
-      return <Changes repository={this.props.repo}/>
+      return <Changes repository={this.props.repository}/>
     } else if (this.state.selectedTab === TabBarTab.History) {
-      return <History repository={this.props.repo}/>
+      return <History repository={this.props.repository}
+                      dispatcher={this.props.dispatcher}
+                      history={this.props.history}/>
     } else {
       return null
     }
   }
 
   public render() {
-    const repo = this.props.repo
+    const repo = this.props.repository
     if (!repo) {
       return this.renderNoSelection()
     }
@@ -70,9 +62,9 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
 
   private onTabClicked(tab: TabBarTab) {
     this.setState(Object.assign({}, this.state, { selectedTab: tab }))
-  }
 
-  private repositoryChanged() {
-    this.setState(Object.assign({}, this.state, { selectedTab: TabBarTab.Changes }))
+    if (tab === TabBarTab.History) {
+      this.props.dispatcher.loadHistory(this.props.repository)
+    }
   }
 }
