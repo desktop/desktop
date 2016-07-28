@@ -1,5 +1,7 @@
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
 import Repository from '../models/repository'
+import * as fs from 'fs'
+import * as path from 'path'
 
 import { GitProcess, GitError, GitErrorCode } from './git-process'
 
@@ -302,20 +304,37 @@ export class LocalGitOperations {
     * A specific commit related to the file may be provided, otherwise the
     * working directory state will be used.
     */
-  public static getDiff(repository: Repository, relativePath: string, commit: Commit | null): Promise<Diff> {
+  public static getDiff(repository: Repository, file: FileChange, commit: Commit | null): Promise<Diff> {
 
     let args: string[]
 
+    if (file.status === FileStatus.New) {
+
+      const fullPath = path.join(repository.path, file.path)
+
+      return new Promise<Diff>((resolve, reject) => {
+        fs.readFile(fullPath, (err, data) => {
+          // TODO: if not text file, ?????
+
+          if (err) {
+            reject(err)
+          } else {
+            // super-hacky way of formatting the patch
+            // probably utterly broken somehow
+            const contents = data.toString().split('\n').map(s => '+ ' + s)
+            const range = new DiffSectionRange(0, 0, 0, contents.length)
+            const sections = new Array<DiffSection>()
+            sections.push(new DiffSection(range, contents))
+            resolve(new Diff(sections))
+          }
+        })
+      })
+    }
+
     if (commit) {
-      args = [ 'show', commit.sha, '--patch-with-raw', '-z', '--', relativePath ]
+      args = [ 'show', commit.sha, '--patch-with-raw', '-z', '--', file.path ]
     } else {
-
-      // TODO: untracked file needs to do a `git add -N relativePath` before
-      //       so that this will render a diff correctly. alternatively, note
-      //       that the file is untracked and then read the contents into the
-      //       diff
-
-      args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', relativePath ]
+      args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
     }
 
     return GitProcess.execWithOutput(args, repository.path)

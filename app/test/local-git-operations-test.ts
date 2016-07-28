@@ -8,7 +8,7 @@ const temp = require('temp').track()
 
 import Repository from '../src/models/repository'
 import { LocalGitOperations } from '../src/lib/local-git-operations'
-import { FileStatus } from '../src/models/status'
+import { FileStatus, FileChange } from '../src/models/status'
 
 describe('LocalGitOperations', () => {
   let repository: Repository | null = null
@@ -110,19 +110,22 @@ describe('LocalGitOperations', () => {
     })
 
     it('counts lines for new file', async () => {
-      const diff = await LocalGitOperations.getDiff(repository!, 'new-file.md', null)
+      const file = new FileChange('new-file.md', FileStatus.New)
+      const diff = await LocalGitOperations.getDiff(repository!, file, null)
       // TODO: what to assert?
       expect(diff.lines.length).to.be.greaterThan(0)
     })
 
     it('counts lines for modified file', async () => {
-      const diff = await LocalGitOperations.getDiff(repository!, 'modified-file.md', null)
+      const file = new FileChange('modified-file.md', FileStatus.Modified)
+      const diff = await LocalGitOperations.getDiff(repository!, file, null)
       // TODO: what to assert?
       expect(diff.lines.length).to.be.greaterThan(0)
     })
 
     it('counts lines for staged file', async () => {
-      const diff = await LocalGitOperations.getDiff(repository!, 'staged-file.md', null)
+      const file = new FileChange('staged-file.md', FileStatus.Modified)
+      const diff = await LocalGitOperations.getDiff(repository!, file, null)
       // TODO: what to assert?
       expect(diff.lines.length).to.be.greaterThan(0)
     })

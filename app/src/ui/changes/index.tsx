@@ -3,7 +3,7 @@ import { ChangesList } from './changes-list'
 import FileDiff from '../file-diff'
 
 import Repository from '../../models/repository'
-import { WorkingDirectoryStatus } from '../../models/status'
+import { WorkingDirectoryStatus, FileChange } from '../../models/status'
 
 
 import { LocalGitOperations } from '../../lib/local-git-operations'
@@ -122,11 +122,11 @@ export class Changes extends React.Component<IChangesProps, IChangesState> {
     }
 
     const row = this.state.selectedRow
-    let selectedFilePath: string | null = null
+    let selectedFile: FileChange | null = null
     if (row > -1) {
       const file = this.state.workingDirectory.files[row]
       if (file) {
-        selectedFilePath = file.path
+        selectedFile = file
       }
     }
 
@@ -141,7 +141,7 @@ export class Changes extends React.Component<IChangesProps, IChangesState> {
                      onSelectAll={selectAll => this.handleSelectAll(selectAll) }/>
 
          <FileDiff repository={this.props.repository}
-                   relativePath={selectedFilePath}
+                   file={selectedFile}
                    readOnly={false}
                    commit={null} />
       </div>
