@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
-import { IHistoryState, IHistorySelection, IAppState } from '../app-state'
+import { IRepositoryState, IHistoryState, IHistorySelection, IAppState } from '../app-state'
 import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
 import { FileChange } from '../../models/status'
@@ -10,26 +10,17 @@ import findIndex from '../find-index'
 export default class AppStore {
   private emitter: Emitter
 
-  private history: IHistoryState = {
-    commits: new Array<Commit>(),
-    selection: {
-      commit: null,
-      file: null,
-    },
-    changedFiles: new Array<FileChange>(),
-  }
-
   private users: ReadonlyArray<User> = new Array<User>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
   private selectedRepository: Repository | null
 
-  private historyByRepositoryID: {[key: number]: IHistoryState }
+  private repositoryStateByRepositoryID: {[key: number]: IRepositoryState }
 
   private emitQueued = false
 
   public constructor() {
     this.emitter = new Emitter()
-    this.historyByRepositoryID = {}
+    this.repositoryStateByRepositoryID = {}
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
@@ -72,11 +63,40 @@ export default class AppStore {
     return this.emitter.on('did-update', fn)
   }
 
+  private getRepositoryState(repository: Repository): IRepositoryState {
+    let state = this.repositoryStateByRepositoryID[repository.id!]
+    if (state) { return state }
+
+    state = {
+      historyState: {
+        selection: {
+          commit: null,
+          file: null,
+        },
+        commits: new Array<Commit>(),
+        changedFiles: new Array<FileChange>(),
+      }
+    }
+    this.repositoryStateByRepositoryID[repository.id!] = state
+    return state
+  }
+
+  private updateHistoryState(repository: Repository, historyState: IHistoryState) {
+    this.repositoryStateByRepositoryID[repository.id!] = { historyState }
+  }
+
+  private getCurrentRepositoryState(): IRepositoryState | null {
+    const repository = this.selectedRepository
+    if (!repository) { return null }
+
+    return this.getRepositoryState(repository)
+  }
+
   public getState(): IAppState {
     return {
       users: this.users,
       repositories: this.repositories,
-      history: this.history,
+      repositoryState: this.getCurrentRepositoryState(),
       selectedRepository: this.selectedRepository,
     }
   }
@@ -84,79 +104,65 @@ export default class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadHistory(repository: Repository): Promise<void> {
     const commits = await LocalGitOperations.getHistory(repository)
-    this.history = {
-      commits,
-      selection: this.history.selection,
-      changedFiles: this.history.changedFiles,
-    }
-    this.emitUpdate()
+    const state = this.getRepositoryState(repository)
+    const historyState = state.historyState
 
-    this.historyByRepositoryID[repository.id!] = this.history
+    const newHistory = {
+      commits,
+      selection: historyState.selection,
+      changedFiles: historyState.changedFiles,
+    }
+    this.updateHistoryState(repository, newHistory)
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadChangedFilesForCurrentSelection(repository: Repository): Promise<void> {
-    const selection = this.history.selection
+    const state = this.getRepositoryState(repository)
+    const selection = state.historyState.selection
     const currentCommit = selection.commit
     if (!currentCommit) { return }
 
     const changedFiles = await LocalGitOperations.getChangedFiles(repository, currentCommit.sha)
 
     // The selection could have changed between when we started loading the
-    // changed files and we finished.
-    if (currentCommit !== this.history.selection.commit) {
+    // changed files and we finished. We might wanna store the changed files per
+    // SHA/path.
+    if (currentCommit !== state.historyState.selection.commit) {
       return
     }
 
-    this.history = {
-      commits: this.history.commits,
+    const newHistory = {
+      commits: state.historyState.commits,
       selection,
       changedFiles,
     }
+    this.updateHistoryState(repository, newHistory)
     this.emitUpdate()
-
-    this.historyByRepositoryID[repository.id!] = this.history
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
-    const commitChanged = this.history.selection.commit !== selection.commit
-    const changedFiles = commitChanged ? new Array<FileChange>() : this.history.changedFiles
+    const state = this.getRepositoryState(repository)
+    const commitChanged = state.historyState.selection.commit !== selection.commit
+    const changedFiles = commitChanged ? new Array<FileChange>() : state.historyState.changedFiles
 
-    this.history = {
-      commits: this.history.commits,
+    const newHistory = {
+      commits: state.historyState.commits,
       selection,
       changedFiles,
     }
+    this.updateHistoryState(repository, newHistory)
     this.emitUpdate()
-
-    this.historyByRepositoryID[repository.id!] = this.history
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _selectRepository(repository: Repository): Promise<void> {
     this.selectedRepository = repository
-
-    const history = this.historyByRepositoryID[repository.id!]
-    if (history) {
-      this.history = history
-    } else {
-      this.history = {
-        commits: new Array<Commit>(),
-        selection: {
-          commit: null,
-          file: null,
-        },
-        changedFiles: new Array<FileChange>(),
-      }
-    }
-
     this.emitUpdate()
 
     await this._loadHistory(repository)
     this.emitUpdate()
-
-    return Promise.resolve()
   }
 
   public _loadInitialState(users: ReadonlyArray<User>, repositories: ReadonlyArray<Repository>) {

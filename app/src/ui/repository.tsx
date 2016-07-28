@@ -5,12 +5,12 @@ import { Changes } from './changes'
 import History from './history'
 import ComparisonGraph from './comparison-graph'
 import { TabBarTab } from './toolbar/tab-bar'
-import { IHistoryState } from '../lib/app-state'
+import { IRepositoryState as IRepositoryModelState } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 
 interface IRepositoryProps {
   repository: Repo
-  history: IHistoryState
+  state: IRepositoryModelState
   dispatcher: Dispatcher
 }
 
@@ -39,7 +39,7 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
     } else if (this.state.selectedTab === TabBarTab.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
-                      history={this.props.history}/>
+                      history={this.props.state.historyState}/>
     } else {
       return null
     }
