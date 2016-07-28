@@ -1,7 +1,7 @@
 import User from '../models/user'
 import Repository from '../models/repository'
-import {Commit} from './local-git-operations'
-import {FileChange} from '../models/status'
+import { Commit } from './local-git-operations'
+import { FileChange } from '../models/status'
 
 /** All of the shared app state. */
 export interface IAppState {

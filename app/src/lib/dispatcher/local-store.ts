@@ -1,5 +1,5 @@
-import {ipcRenderer} from 'electron'
-import {Emitter, Disposable} from 'event-kit'
+import { ipcRenderer } from 'electron'
+import { Emitter, Disposable } from 'event-kit'
 import { IHistoryState, IAppState } from '../app-state'
 import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
