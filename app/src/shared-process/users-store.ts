@@ -1,5 +1,5 @@
-import {IDataStore, ISecureStore} from './stores'
-import {getKeyForUser} from './auth'
+import { IDataStore, ISecureStore } from './stores'
+import { getKeyForUser } from './auth'
 import User from '../models/user'
 
 export default class UsersStore {

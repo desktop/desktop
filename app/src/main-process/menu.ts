@@ -1,4 +1,4 @@
-import {app, shell, Menu} from 'electron'
+import { app, shell, Menu } from 'electron'
 import SharedProcess from '../shared-process/shared-process'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {

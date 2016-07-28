@@ -1,11 +1,11 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 
-import {ipcRenderer, remote} from 'electron'
+import { ipcRenderer, remote } from 'electron'
 
 import App from './app'
-import {WindowState, getWindowState} from '../lib/window-state'
-import {Dispatcher} from '../lib/dispatcher'
+import { WindowState, getWindowState } from '../lib/window-state'
+import { Dispatcher } from '../lib/dispatcher'
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile

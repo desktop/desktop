@@ -1,9 +1,9 @@
-import {remote, ipcRenderer} from 'electron'
-import {IMessage} from './message'
+import { remote, ipcRenderer } from 'electron'
+import { IMessage } from './message'
 import UsersStore from './users-store'
 import RepositoriesStore from './repositories-store'
 
-const {BrowserWindow} = remote
+const { BrowserWindow } = remote
 
 type SharedProcessFunction = (args: any) => Promise<any>
 const registeredFunctions: {[key: string]: SharedProcessFunction} = {}
@@ -31,18 +31,18 @@ function dispatch(message: IMessage) {
   const args = message.args
   const promise = fn(args)
   promise
-    .then(result => ({result, type: 'result'}))
+    .then(result => ({ result, type: 'result' }))
     .catch((error: Error) => {
       const errorInfo = {
         name: error.name,
         message: error.message,
         stack: error.stack,
       }
-      return {error: errorInfo, type: 'error'}
+      return { error: errorInfo, type: 'error' }
     })
     .then(response => {
       BrowserWindow.getAllWindows().forEach(window => {
-        window.webContents.send(`shared/response/${guid}`, [response])
+        window.webContents.send(`shared/response/${guid}`, [ response ])
       })
     })
 }
@@ -56,8 +56,8 @@ export function register(name: string, fn: SharedProcessFunction) {
 export function broadcastUpdate(usersStore: UsersStore, repositoriesStore: RepositoriesStore) {
   BrowserWindow.getAllWindows().forEach(async (window) => {
     const repositories = await repositoriesStore.getRepositories()
-    const state = {users: usersStore.getUsers(), repositories}
-    window.webContents.send('shared/did-update', [{state}])
+    const state = { users: usersStore.getUsers(), repositories }
+    window.webContents.send('shared/did-update', [ { state } ])
   })
 }
 

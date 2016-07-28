@@ -1,5 +1,5 @@
-import Owner, {IOwner} from './owner'
-import {IAPIRepository} from '../lib/api'
+import Owner, { IOwner } from './owner'
+import { IAPIRepository } from '../lib/api'
 
 /** The data-only interface for GitHubRepository for transport across IPC. */
 export interface IGitHubRepository {

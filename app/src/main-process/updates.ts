@@ -1,4 +1,4 @@
-import {app} from 'electron'
+import { app } from 'electron'
 
 export function getFeedURL(username: string): string {
   return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${app.getVersion()}&username=${username}`

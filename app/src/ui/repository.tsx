@@ -1,12 +1,12 @@
 import * as React from 'react'
 
 import User from '../models/user'
-import {default as Repo} from '../models/repository'
+import { default as Repo } from '../models/repository'
 import Toolbar from './toolbar'
-import {Changes} from './changes'
+import { Changes } from './changes'
 import History from './history'
 import ComparisonGraph from './comparison-graph'
-import {TabBarTab} from './toolbar/tab-bar'
+import { TabBarTab } from './toolbar/tab-bar'
 
 interface IRepositoryProps {
   repo: Repo
@@ -21,7 +21,7 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
   public constructor(props: IRepositoryProps) {
     super(props)
 
-    this.state = {selectedTab: TabBarTab.Changes}
+    this.state = { selectedTab: TabBarTab.Changes }
   }
 
   public componentDidMount() {
@@ -69,10 +69,10 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
   }
 
   private onTabClicked(tab: TabBarTab) {
-    this.setState(Object.assign({}, this.state, {selectedTab: tab}))
+    this.setState(Object.assign({}, this.state, { selectedTab: tab }))
   }
 
   private repositoryChanged() {
-    this.setState(Object.assign({}, this.state, {selectedTab: TabBarTab.Changes}))
+    this.setState(Object.assign({}, this.state, { selectedTab: TabBarTab.Changes }))
   }
 }
