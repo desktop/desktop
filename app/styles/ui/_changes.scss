@@ -2,7 +2,5 @@
 
 /** A React component holding the currently selected repository's changes */
 #changes {
-  display: flex;
-  flex-direction: row;
-  flex: 1;
+  border-style: solid;
 }

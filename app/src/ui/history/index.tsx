@@ -41,7 +41,7 @@ export default class History extends React.Component<IHistoryProps, void> {
     const commit = this.props.history.selection.commit
     const selectedFile = this.props.history.selection.file
     return (
-      <div id='history'>
+      <div className='panel-container' id='history'>
         <CommitList commits={this.props.history.commits}
                     selectedCommit={commit}
                     onCommitSelected={commit => this.onCommitSelected(commit)}/>

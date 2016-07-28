@@ -131,7 +131,7 @@ export class Changes extends React.Component<IChangesProps, IChangesState> {
     }
 
     return (
-      <div id='changes'>
+      <div className='panel-container' id='changes'>
         <ChangesList repository={this.props.repository}
                      workingDirectory={this.state.workingDirectory}
                      selectedRow={this.state.selectedRow}
