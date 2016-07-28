@@ -59,6 +59,7 @@
     "tslint": "^3.14.0",
     "typescript": "beta",
     "typings": "^0.7.12",
+    "vrsource-tslint-rules": "^0.12.0",
     "webpack": "^1.12.15",
     "webpack-dev-middleware": "^1.6.1",
     "webpack-hot-middleware": "^2.10.0",
