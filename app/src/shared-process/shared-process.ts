@@ -1,6 +1,6 @@
-import {ipcMain, BrowserWindow} from 'electron'
-import {IMessage} from './message'
-import {URLActionType} from '../lib/parse-url'
+import { ipcMain, BrowserWindow } from 'electron'
+import { IMessage } from './message'
+import { URLActionType } from '../lib/parse-url'
 
 /**
  * The SharedProcess acts as the owner of all shared state across the app. Most
@@ -47,14 +47,14 @@ export default class SharedProcess {
 
   /** Send a URL action to the shared process' renderer to handle. */
   public sendURLAction(action: URLActionType) {
-    this.send({guid: '', name: 'url-action', args: {action}})
+    this.send({ guid: '', name: 'url-action', args: { action } })
   }
 
   private drainMessageQueue() {
     if (!this.loaded) { return }
 
     for (const msg of this.messageQueue) {
-      this.window.webContents.send('shared/request', [msg])
+      this.window.webContents.send('shared/request', [ msg ])
     }
 
     this.messageQueue = []
@@ -64,14 +64,14 @@ export default class SharedProcess {
   public get console() {
     return {
       log: (...args: any[]) => {
-        this.send({guid: '', name: 'console.log', args: {args}})
+        this.send({ guid: '', name: 'console.log', args: { args } })
       },
       error: (...args: any[]) => {
         // Pop the console whenever we see an error (in dev)
         if (process.env.NODE_ENV === 'development') {
           this.show()
         }
-        this.send({guid: '', name: 'console.error', args: {args}})
+        this.send({ guid: '', name: 'console.error', args: { args } })
       }
     }
   }

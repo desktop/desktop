@@ -22,12 +22,12 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   /** TODO: disable submit when no files selected */
 
   private handleTitleChange(event: any) {
-    this.setState({title: event.target.value})
+    this.setState({ title: event.target.value })
   }
 
   private handleSubmit(event: any) {
     this.props.onCreateCommit(this.state.title)
-    this.setState({title: ''})
+    this.setState({ title: '' })
     event.preventDefault()
   }
 

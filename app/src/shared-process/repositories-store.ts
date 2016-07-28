@@ -1,4 +1,4 @@
-import Database, {IDatabaseGitHubRepository} from './database'
+import Database, { IDatabaseGitHubRepository } from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
 import Repository from '../models/repository'
@@ -94,7 +94,7 @@ export default class RepositoriesStore {
         ownerID = owner.id
       } else {
         const owner = newGitHubRepo.owner
-        let existingOwner = yield db.owners
+        const existingOwner = yield db.owners
           .where('login')
           .equalsIgnoreCase(owner.login)
           .limit(1)
@@ -102,7 +102,7 @@ export default class RepositoriesStore {
         if (existingOwner) {
           ownerID = existingOwner.id
         } else {
-          ownerID = yield db.owners.add({login: owner.login, endpoint: owner.endpoint})
+          ownerID = yield db.owners.add({ login: owner.login, endpoint: owner.endpoint })
         }
       }
 
@@ -119,7 +119,7 @@ export default class RepositoriesStore {
       }
 
       const gitHubRepositoryID = yield db.gitHubRepositories.put(info)
-      yield db.repositories.update(localRepo.id, {gitHubRepositoryID})
+      yield db.repositories.update(localRepo.id, { gitHubRepositoryID })
     })
 
     await transaction

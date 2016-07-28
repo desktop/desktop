@@ -3,8 +3,8 @@ import CommitList from './commit-list'
 import CommitSummaryContainer from './commit-summary-container'
 import FileDiff from '../file-diff'
 import Repository from '../../models/repository'
-import {FileChange} from '../../models/status'
-import {Commit, LocalGitOperations} from '../../lib/local-git-operations'
+import { FileChange } from '../../models/status'
+import { Commit, LocalGitOperations } from '../../lib/local-git-operations'
 
 interface IHistoryProps {
   readonly repository: Repository
@@ -25,22 +25,22 @@ export default class History extends React.Component<IHistoryProps, IHistoryStat
   public constructor(props: IHistoryProps) {
     super(props)
 
-    this.state = {commits: new Array<Commit>(), selection: {commit: null, file: null}}
+    this.state = { commits: new Array<Commit>(), selection: { commit: null, file: null } }
   }
 
   public async componentDidMount() {
     const commits = await LocalGitOperations.getHistory(this.props.repository)
-    this.setState(Object.assign({}, this.state, {commits}))
+    this.setState(Object.assign({}, this.state, { commits }))
   }
 
   private onCommitSelected(commit: Commit) {
-    const newSelection = {commit, file: null}
-    this.setState(Object.assign({}, this.state, {selection: newSelection}))
+    const newSelection = { commit, file: null }
+    this.setState(Object.assign({}, this.state, { selection: newSelection }))
   }
 
   private onFileSelected(file: FileChange) {
-    const newSelection = {commit: this.state.selection.commit, file}
-    this.setState(Object.assign({}, this.state, {selection: newSelection}))
+    const newSelection = { commit: this.state.selection.commit, file }
+    this.setState(Object.assign({}, this.state, { selection: newSelection }))
   }
 
   public render() {
