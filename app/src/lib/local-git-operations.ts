@@ -483,13 +483,31 @@ export class LocalGitOperations {
 
   /** Get the name of the tracking branch for the current branch. */
   public static async getTrackingBranch(repository: Repository): Promise<string | null> {
-    const name = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}' ], repository.path)
-    return name.trim()
+    try {
+      const name = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}' ], repository.path)
+      return name.trim()
+    } catch (e) {
+      // Git exits with 1 if there's no upstream. We should do more specific
+      // error parsing than this, but for now it'll do.
+      if (e.code !== 1) {
+        throw e
+      }
+      return null
+    }
   }
 
   /** Get the name of the current branch. */
   public static async getBranch(repository: Repository): Promise<string | null> {
-    const name = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path)
-    return name.trim()
+    try {
+      const name = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path)
+      return name.trim()
+    } catch (e) {
+      // Git exits with 1 if there's the branch is unborn. We should do more
+      // specific error parsing than this, but for now it'll do.
+      if (e.code !== 1) {
+        throw e
+      }
+      return null
+    }
   }
 }
