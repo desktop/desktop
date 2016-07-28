@@ -1,9 +1,9 @@
-import {ipcRenderer} from 'electron'
-import User, {IUser} from '../../models/user'
-import Repository, {IRepository} from '../../models/repository'
+import { ipcRenderer } from 'electron'
+import User, { IUser } from '../../models/user'
+import Repository, { IRepository } from '../../models/repository'
 import guid from '../guid'
 import { IHistorySelection } from '../app-state'
-import {Action} from './actions'
+import { Action } from './actions'
 import LocalStore from './local-store'
 import { LocalGitOperations, Commit } from '../local-git-operations'
 import { FileChange } from '../../models/status'
@@ -86,35 +86,35 @@ export class Dispatcher {
       }
     })
 
-    ipcRenderer.send('shared/request', [{guid: requestGuid, name, args}])
+    ipcRenderer.send('shared/request', [ { guid: requestGuid, name, args } ])
     return promise
   }
 
   /** Get the users */
   private async getUsers(): Promise<ReadonlyArray<User>> {
-    const json = await this.dispatch<ReadonlyArray<IUser>>({name: 'get-users'})
+    const json = await this.dispatch<ReadonlyArray<IUser>>({ name: 'get-users' })
     return json.map(User.fromJSON)
   }
 
   /** Get the repositories the user has added to the app. */
   private async getRepositories(): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatch<ReadonlyArray<IRepository>>({name: 'get-repositories'})
+    const json = await this.dispatch<ReadonlyArray<IRepository>>({ name: 'get-repositories' })
     return json.map(Repository.fromJSON)
   }
 
   public async addRepositories(repositories: ReadonlyArray<Repository>): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatch<ReadonlyArray<IRepository>>({name: 'add-repositories', repositories})
+    const json = await this.dispatch<ReadonlyArray<IRepository>>({ name: 'add-repositories', repositories })
     return json.map(Repository.fromJSON)
   }
 
   /** Request the user approve our OAuth request. This will open their browser. */
   public requestOAuth(): Promise<void> {
-    return this.dispatch<void>({name: 'request-oauth'})
+    return this.dispatch<void>({ name: 'request-oauth' })
   }
 
   /** Update the repository's GitHub repository. */
   public updateGitHubRepository(repository: Repository): Promise<void> {
-    return this.dispatch<void>({name: 'update-github-repository', repository})
+    return this.dispatch<void>({ name: 'update-github-repository', repository })
   }
 
   public async loadHistory(repository: Repository): Promise<void> {

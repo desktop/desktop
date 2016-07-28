@@ -1,11 +1,10 @@
 import * as React from 'react'
-
-import {default as Repo} from '../models/repository'
+import { default as Repo } from '../models/repository'
 import Toolbar from './toolbar'
-import {Changes} from './changes'
+import { Changes } from './changes'
 import History from './history'
 import ComparisonGraph from './comparison-graph'
-import {TabBarTab} from './toolbar/tab-bar'
+import { TabBarTab } from './toolbar/tab-bar'
 import { IHistoryState } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 
@@ -23,7 +22,7 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
   public constructor(props: IRepositoryProps) {
     super(props)
 
-    this.state = {selectedTab: TabBarTab.Changes}
+    this.state = { selectedTab: TabBarTab.Changes }
   }
 
   private renderNoSelection() {
@@ -62,7 +61,7 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
   }
 
   private onTabClicked(tab: TabBarTab) {
-    this.setState(Object.assign({}, this.state, {selectedTab: tab}))
+    this.setState(Object.assign({}, this.state, { selectedTab: tab }))
 
     if (tab === TabBarTab.History) {
       this.props.dispatcher.loadHistory(this.props.repository)

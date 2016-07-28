@@ -1,6 +1,6 @@
 import * as React from 'react'
-import {ipcRenderer, remote} from 'electron'
-import {WindowState, getWindowState, windowStateChannelName} from '../../lib/window-state'
+import { ipcRenderer, remote } from 'electron'
+import { WindowState, getWindowState, windowStateChannelName } from '../../lib/window-state'
 
 // These paths are all drawn to a 10x10 view box and replicate the symbols
 // seen on Windows 10 window controls.

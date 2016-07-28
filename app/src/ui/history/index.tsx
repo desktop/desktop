@@ -3,7 +3,7 @@ import CommitList from './commit-list'
 import CommitSummaryContainer from './commit-summary-container'
 import FileDiff from '../file-diff'
 import Repository from '../../models/repository'
-import {FileChange} from '../../models/status'
+import { FileChange } from '../../models/status'
 import { Commit } from '../../lib/local-git-operations'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
@@ -20,7 +20,7 @@ export default class History extends React.Component<IHistoryProps, void> {
   private loadChangedFilesScheduler = new ThrottledScheduler(200)
 
   private onCommitSelected(commit: Commit) {
-    const newSelection = {commit, file: null}
+    const newSelection = { commit, file: null }
     this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
 
     this.loadChangedFilesScheduler.queue(() => {
@@ -29,7 +29,7 @@ export default class History extends React.Component<IHistoryProps, void> {
   }
 
   private onFileSelected(file: FileChange) {
-    const newSelection = {commit: this.props.history.selection.commit, file}
+    const newSelection = { commit: this.props.history.selection.commit, file }
     this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
   }
 

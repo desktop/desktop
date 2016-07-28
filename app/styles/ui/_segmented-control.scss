@@ -2,6 +2,7 @@
 
   &-item {
     --border-radius: 5px;
+    --box-border-color: var(--box-selected-text-color);
 
     border: 1px solid var(--box-border-color);
 

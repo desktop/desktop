@@ -3,7 +3,7 @@ import * as URL from 'url'
 import GitHubRepository from '../models/github-repository'
 import User from '../models/user'
 import Owner from '../models/owner'
-import {getHTMLURL} from './api'
+import { getHTMLURL } from './api'
 
 /** Try to use the list of users and a remote URL to guess a GitHub repository .*/
 export function matchGitHubRepository(users: ReadonlyArray<User>, remote: string): GitHubRepository | null {
@@ -30,7 +30,7 @@ function matchRemoteWithUser(user: User, remote: string): GitHubRepository | nul
     new RegExp(`git:${host}/(.+)/(.+)(?:.git)`),
   ]
 
-  for (let regex of regexes) {
+  for (const regex of regexes) {
     const result = remote.match(regex)
     if (!result) { continue }
 

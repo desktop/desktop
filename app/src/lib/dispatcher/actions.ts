@@ -1,5 +1,5 @@
-import {IRepository} from '../../models/repository'
-import {URLActionType} from '../parse-url'
+import { IRepository } from '../../models/repository'
+import { URLActionType } from '../parse-url'
 
 export interface IGetUsersAction {
   name: 'get-users'
