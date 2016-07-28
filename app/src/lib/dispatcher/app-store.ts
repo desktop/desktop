@@ -27,17 +27,10 @@ export default class AppStore {
     this.users = state.users.map(User.fromJSON)
     this.repositories = state.repositories.map(Repository.fromJSON)
 
-    // Update the selected repository. This has two goals:
-    //  1. Set it to null if the selected repository was removed.
-    //  2. Set the selected repository instance to the same instance as is in
-    //     the repositories array. This lets us check for identity instead of
-    //     equality.
     const selectedRepository = this.selectedRepository
     if (selectedRepository) {
       const i = findIndex(this.repositories, r => r.id === selectedRepository.id)
-      if (i > -1) {
-        this.selectedRepository = this.repositories[i]
-      } else {
+      if (i === -1) {
         this.selectedRepository = null
       }
     }
