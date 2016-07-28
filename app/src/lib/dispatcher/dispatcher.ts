@@ -1,10 +1,10 @@
-import {ipcRenderer} from 'electron'
-import {Disposable} from 'event-kit'
-import User, {IUser} from '../../models/user'
-import Repository, {IRepository} from '../../models/repository'
+import { ipcRenderer } from 'electron'
+import { Disposable } from 'event-kit'
+import User, { IUser } from '../../models/user'
+import Repository, { IRepository } from '../../models/repository'
 import guid from '../guid'
-import {IAppState} from '../app-state'
-import {Action} from './actions'
+import { IAppState } from '../app-state'
+import { Action } from './actions'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -68,30 +68,30 @@ export class Dispatcher {
       }
     })
 
-    ipcRenderer.send('shared/request', [{guid: requestGuid, name, args}])
+    ipcRenderer.send('shared/request', [ { guid: requestGuid, name, args } ])
     return promise
   }
 
   /** Get the users */
   public async getUsers(): Promise<ReadonlyArray<User>> {
-    const json = await this.dispatch<ReadonlyArray<IUser>>({name: 'get-users'})
+    const json = await this.dispatch<ReadonlyArray<IUser>>({ name: 'get-users' })
     return json.map(User.fromJSON)
   }
 
   /** Get the repositories the user has added to the app. */
   public async getRepositories(): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatch<ReadonlyArray<IRepository>>({name: 'get-repositories'})
+    const json = await this.dispatch<ReadonlyArray<IRepository>>({ name: 'get-repositories' })
     return json.map(Repository.fromJSON)
   }
 
   public async addRepositories(repositories: ReadonlyArray<Repository>): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatch<ReadonlyArray<IRepository>>({name: 'add-repositories', repositories})
+    const json = await this.dispatch<ReadonlyArray<IRepository>>({ name: 'add-repositories', repositories })
     return json.map(Repository.fromJSON)
   }
 
   /** Request the user approve our OAuth request. This will open their browser. */
   public requestOAuth(): Promise<void> {
-    return this.dispatch<void>({name: 'request-oauth'})
+    return this.dispatch<void>({ name: 'request-oauth' })
   }
 
   /** Register a listener function to be called when the state updates. */
@@ -100,7 +100,7 @@ export class Dispatcher {
       const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IUser>} = args[0].state
       const users = state.users.map(User.fromJSON)
       const repositories = state.repositories.map(Repository.fromJSON)
-      fn({users, repositories})
+      fn({ users, repositories })
     }
     ipcRenderer.on('shared/did-update', wrappedFn)
     return new Disposable(() => {
@@ -110,6 +110,6 @@ export class Dispatcher {
 
   /** Update the repository's GitHub repository. */
   public updateGitHubRepository(repository: Repository): Promise<void> {
-    return this.dispatch<void>({name: 'update-github-repository', repository})
+    return this.dispatch<void>({ name: 'update-github-repository', repository })
   }
 }

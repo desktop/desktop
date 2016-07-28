@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Repository from '../../models/repository'
-import {FileChange} from '../../models/status'
-import {Commit, LocalGitOperations} from '../../lib/local-git-operations'
+import { FileChange } from '../../models/status'
+import { Commit, LocalGitOperations } from '../../lib/local-git-operations'
 import CommitSummary from './commit-summary'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
@@ -41,7 +41,7 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
   private async reload(props: ICommitSummaryContainerProps) {
     if (props.commit && this.props.commit && props.commit.sha === this.props.commit.sha) { return }
 
-    this.setState({files: new Array<FileChange>()})
+    this.setState({ files: new Array<FileChange>() })
 
     this.changedFilesScheduler.queue(async () => {
       const commit = props.commit
@@ -50,7 +50,7 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
       const files = await LocalGitOperations.getChangedFiles(props.repository, commit.sha)
       if (this.props.commit && commit.sha !== this.props.commit.sha) { return }
 
-      this.setState({files})
+      this.setState({ files })
     })
   }
 
