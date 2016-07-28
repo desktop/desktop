@@ -1,4 +1,5 @@
 {
+  "rulesDirectory": ["node_modules/vrsource-tslint-rules/rules"],
   "rules": {
     "class-name": true,
     "curly": true,
@@ -7,6 +8,13 @@
       "spaces"
     ],
     "interface-name": [ true, "always-prefix"],
+    "literal-spacing": [
+      true,
+      {
+        "array": ["always"],
+        "object": ["always"]
+      }
+    ],
     "member-access": [
       true,
       "check-accessor",
@@ -33,6 +41,7 @@
       "check-open-brace",
       "check-whitespace"
     ],
+    "prefer-const": true,
     "quotemark": [
       true,
       "single"

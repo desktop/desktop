@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {ThrottledScheduler} from './lib/throttled-scheduler'
+import { ThrottledScheduler } from './lib/throttled-scheduler'
 
 interface ISidebarProps extends React.Props<Sidebar> {
   /**

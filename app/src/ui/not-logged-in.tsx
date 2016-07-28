@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Dispatcher} from '../lib/dispatcher'
+import { Dispatcher } from '../lib/dispatcher'
 
 interface INotLoggedInProps {
   dispatcher: Dispatcher

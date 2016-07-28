@@ -1,4 +1,4 @@
-import {app, shell, Menu, ipcMain} from 'electron'
+import { app, shell, Menu, ipcMain } from 'electron'
 import SharedProcess from '../shared-process/shared-process'
 
 export type MenuEvent = 'push' | 'pull'

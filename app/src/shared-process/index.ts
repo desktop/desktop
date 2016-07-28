@@ -1,13 +1,13 @@
 import tokenStore from './token-store'
 import UsersStore from './users-store'
-import {requestToken, askUserToAuth} from './auth'
+import { requestToken, askUserToAuth } from './auth'
 import User from '../models/user'
 import Database from './database'
 import RepositoriesStore from './repositories-store'
-import Repository, {IRepository} from '../models/repository'
-import {register, broadcastUpdate as broadcastUpdate_} from './communication'
-import {IURLAction, IAddRepositoriesAction, IUpdateGitHubRepositoryAction} from '../lib/dispatcher'
-import {getDotComAPIEndpoint} from '../lib/api'
+import Repository, { IRepository } from '../models/repository'
+import { register, broadcastUpdate as broadcastUpdate_ } from './communication'
+import { IURLAction, IAddRepositoriesAction, IUpdateGitHubRepositoryAction } from '../lib/dispatcher'
+import { getDotComAPIEndpoint } from '../lib/api'
 
 const Octokat = require('octokat')
 
@@ -19,12 +19,12 @@ const repositoriesStore = new RepositoriesStore(database)
 
 const broadcastUpdate = () => broadcastUpdate_(usersStore, repositoriesStore)
 
-register('console.log', ({args}: {args: any[]}) => {
+register('console.log', ({ args }: {args: any[]}) => {
   console.log(args[0], ...args.slice(1))
   return Promise.resolve()
 })
 
-register('console.error', ({args}: {args: any[]}) => {
+register('console.error', ({ args }: {args: any[]}) => {
   console.error(args[0], ...args.slice(1))
   return Promise.resolve()
 })
@@ -37,7 +37,7 @@ register('get-users', () => {
   return Promise.resolve(usersStore.getUsers())
 })
 
-register('add-repositories', async ({repositories}: IAddRepositoriesAction) => {
+register('add-repositories', async ({ repositories }: IAddRepositoriesAction) => {
   const inflatedRepositories = repositories.map(r => Repository.fromJSON(r as IRepository))
   const addedRepos: Repository[] = []
   for (const repo of inflatedRepositories) {
@@ -53,11 +53,11 @@ register('get-repositories', () => {
   return repositoriesStore.getRepositories()
 })
 
-register('url-action', async ({action}: IURLAction) => {
+register('url-action', async ({ action }: IURLAction) => {
   if (action.name === 'oauth') {
     try {
       const token = await requestToken(action.args.code)
-      const octo = new Octokat({token})
+      const octo = new Octokat({ token })
       const user = await octo.user.fetch()
       usersStore.addUser(new User(user.login, getDotComAPIEndpoint(), token))
     } catch (e) {
@@ -72,7 +72,7 @@ register('request-oauth', () => {
   return Promise.resolve()
 })
 
-register('update-github-repository', async ({repository}: IUpdateGitHubRepositoryAction) => {
+register('update-github-repository', async ({ repository }: IUpdateGitHubRepositoryAction) => {
   const inflatedRepository = Repository.fromJSON(repository as IRepository)
   await repositoriesStore.updateGitHubRepository(inflatedRepository)
   broadcastUpdate()

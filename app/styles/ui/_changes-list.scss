@@ -6,11 +6,18 @@
   flex-direction: column;
   flex: 1;
 
-  border-style: solid;
+  ul {
+    list-style-type: none;
+    overflow-y: scroll;
+    margin: 0;
+    padding: 0;
+  }
 
-  overflow-y: scroll;
-}
+  li {
+    white-space: nowrap;
+  }
 
-#changes-list .status {
-  margin-left: 10px;
+  .status {
+    margin-left: 10px;
+  }
 }

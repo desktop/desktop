@@ -1,5 +1,5 @@
 import * as React from 'react'
-import TabBar, {TabBarTab} from './tab-bar'
+import TabBar, { TabBarTab } from './tab-bar'
 
 interface IToolbarProps {
   /** The currently selected tab. */

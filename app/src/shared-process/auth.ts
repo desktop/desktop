@@ -1,9 +1,9 @@
-import {shell, remote} from 'electron'
-const {app} = remote
+import { shell, remote } from 'electron'
+const { app } = remote
 
 import guid from '../lib/guid'
 import User from '../models/user'
-import {getDotComAPIEndpoint} from '../lib/api'
+import { getDotComAPIEndpoint } from '../lib/api'
 import fatalError from '../lib/fatal-error'
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
@@ -57,7 +57,7 @@ function getOAuthURL(endpoint: string): string {
 }
 
 export function askUserToAuth(endpoint: string) {
-  authState = {oAuthState: guid(), endpoint}
+  authState = { oAuthState: guid(), endpoint }
 
   shell.openExternal(getOAuthAuthorizationURL(authState))
 }
