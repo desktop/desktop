@@ -1,3 +1,3 @@
-export {Dispatcher} from './dispatcher'
+export { Dispatcher } from './dispatcher'
 export * from './actions'
-export {default as LocalStore} from './local-store'
+export { default as LocalStore } from './app-store'

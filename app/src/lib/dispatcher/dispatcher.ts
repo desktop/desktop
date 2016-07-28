@@ -4,7 +4,7 @@ import Repository, { IRepository } from '../../models/repository'
 import guid from '../guid'
 import { IHistorySelection } from '../app-state'
 import { Action } from './actions'
-import LocalStore from './local-store'
+import AppStore from './app-store'
 import { LocalGitOperations, Commit } from '../local-git-operations'
 import { FileChange } from '../../models/status'
 
@@ -41,9 +41,9 @@ type IPCResponse<T> = IResult<T> | IError
  * decouples the consumer of state from where/how it is stored.
  */
 export class Dispatcher {
-  private store: LocalStore
+  private store: AppStore
 
-  public constructor(store: LocalStore) {
+  public constructor(store: AppStore) {
     this.store = store
 
     this.fetchInitialState()

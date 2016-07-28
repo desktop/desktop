@@ -7,7 +7,7 @@ import { FileChange } from '../../models/status'
 import { Commit } from '../local-git-operations'
 import findIndex from '../find-index'
 
-export default class LocalStore {
+export default class AppStore {
   private emitter: Emitter
 
   public _history: IHistoryState = {
