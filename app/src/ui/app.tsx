@@ -1,17 +1,17 @@
 import * as React from 'react'
-import {ipcRenderer} from 'electron'
+import { ipcRenderer } from 'electron'
 
-import {Sidebar} from './sidebar'
+import { Sidebar } from './sidebar'
 import RepositoriesList from './repositories-list'
-import {default as RepositoryView} from './repository'
+import { default as RepositoryView } from './repository'
 import User from '../models/user'
 import GitHubRepository from '../models/github-repository'
 import NotLoggedIn from './not-logged-in'
-import {WindowControls} from './window/window-controls'
-import {Dispatcher} from '../lib/dispatcher'
+import { WindowControls } from './window/window-controls'
+import { Dispatcher } from '../lib/dispatcher'
 import Repository from '../models/repository'
-import {matchGitHubRepository} from '../lib/repository-matching'
-import API, {getUserForEndpoint} from '../lib/api'
+import { matchGitHubRepository } from '../lib/repository-matching'
+import API, { getUserForEndpoint } from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
 
 interface IAppState {
@@ -56,7 +56,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
     // repository available unless we already have a selection
     const haveSelection = Boolean(this.state.selectedRepository)
     const selectedRepository = (!haveSelection && repos.length > 0) ? repos[0] : this.state.selectedRepository
-    this.setState(Object.assign({}, this.state, {users, repos, loadingRepos: false, selectedRepository}))
+    this.setState(Object.assign({}, this.state, { users, repos, loadingRepos: false, selectedRepository }))
   }
 
   public componentDidMount() {
@@ -153,7 +153,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onSelectionChanged(repository: Repository) {
-    this.setState(Object.assign({}, this.state, {selectedRepository: repository}))
+    this.setState(Object.assign({}, this.state, { selectedRepository: repository }))
 
     this.refreshRepository(repository)
   }

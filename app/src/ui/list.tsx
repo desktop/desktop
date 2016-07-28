@@ -84,7 +84,7 @@ export default class List extends React.Component<ListProps, ListState> {
   }
 
   private moveSelection(direction: 'up' | 'down') {
-    let newRow = this.nextSelectableRow(direction, this.props.selectedRow)
+    const newRow = this.nextSelectableRow(direction, this.props.selectedRow)
 
     if (this.props.onSelectionChanged) {
       this.props.onSelectionChanged(newRow)
@@ -114,7 +114,7 @@ export default class List extends React.Component<ListProps, ListState> {
     const difference = Math.abs(this.state.scrollPosition - newScrollPosition)
 
     if (difference >= this.state.numberOfItemsToRender / 5) {
-      this.setState({scrollPosition: newScrollPosition, numberOfItemsToRender: this.state.numberOfItemsToRender})
+      this.setState({ scrollPosition: newScrollPosition, numberOfItemsToRender: this.state.numberOfItemsToRender })
     }
   }
 
@@ -181,7 +181,7 @@ export default class List extends React.Component<ListProps, ListState> {
     const numberOfVisibleRows = Math.ceil(element.clientHeight / this.props.itemHeight)
     const numberOfRowsToRender = numberOfVisibleRows * 3
     if (numberOfRowsToRender !== this.state.numberOfItemsToRender) {
-      this.setState({scrollPosition: this.state.scrollPosition, numberOfItemsToRender: numberOfRowsToRender})
+      this.setState({ scrollPosition: this.state.scrollPosition, numberOfItemsToRender: numberOfRowsToRender })
     }
   }
 

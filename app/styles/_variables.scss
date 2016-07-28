@@ -10,13 +10,20 @@
   // in variables. It also makes it easier to read and understand what
   // color is being used. Note that these variables should _never_ be
   // used outside of this scope.
+  $blue: #4ca6eb;
   $darkGray: #5f717f;
   $orange: #c9510c;
+  $gray: #ccc;
   $lightGray: #f2f2f2;
   $lighterGray: #f9f9f9;
+  $white: #fff;
 
   --text-color: $darkGray;
-  --background-color: white;
+  --background-color: $white;
+
+
+  --button-background: $lighterGray;
+  --button-hover-background: $white;
 
   // Typography
   //
@@ -55,10 +62,13 @@
   // or an item in a tab control header. It's up to each implementation
   // to decide what states to support (active selection, selection, etc).
 
+  --box-alt-background-color: $lighterGray;
+
   /**
    * Border color for boxes.
    */
-  --box-border-color: $darkGray;
+  --box-border-color: $gray;
+  --box-border-accent-color: $blue;
 
   /**
    * Background color for selected boxes without keyboard focus
@@ -95,4 +105,8 @@
 
   /** The height of the title bar area on darwin platforms */
   --darwin-title-bar-height: 37px;
+
+  --spacing: 10px;
+  --border-radius: 3px;
+
 }

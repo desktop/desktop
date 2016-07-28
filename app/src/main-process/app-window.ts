@@ -1,9 +1,9 @@
-import {BrowserWindow, ipcMain} from 'electron'
+import { BrowserWindow, ipcMain } from 'electron'
 
 import Stats from './stats'
 import SharedProcess from '../shared-process/shared-process'
-import {WindowState, windowStateChannelName} from '../lib/window-state'
-import {buildDefaultMenu} from './menu'
+import { WindowState, windowStateChannelName } from '../lib/window-state'
+import { buildDefaultMenu } from './menu'
 
 const windowStateKeeper:
   (opts: ElectronWindowState.WindowStateKeeperOptions) => ElectronWindowState.WindowState =

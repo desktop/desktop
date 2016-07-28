@@ -1,10 +1,10 @@
-import {app, Menu, autoUpdater} from 'electron'
+import { app, Menu, autoUpdater } from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
-import {buildDefaultMenu} from './menu'
+import { buildDefaultMenu } from './menu'
 import parseURL from '../lib/parse-url'
-import {handleSquirrelEvent, getFeedURL} from './updates'
+import { handleSquirrelEvent, getFeedURL } from './updates'
 import SharedProcess from '../shared-process/shared-process'
 
 const stats = new Stats()

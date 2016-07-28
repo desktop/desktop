@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as moment from 'moment'
-import {Commit} from '../../lib/local-git-operations'
+import { Commit } from '../../lib/local-git-operations'
 
 interface ICommitProps {
   commit: Commit
