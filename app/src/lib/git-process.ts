@@ -67,7 +67,7 @@ export class GitProcess {
           return
         }
 
-        console.log(formatArgs)
+        console.debug(formatArgs)
         resolve()
       })
     })
@@ -83,7 +83,7 @@ export class GitProcess {
 
       cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
         if (!err) {
-          console.log(formatArgs)
+          console.debug(formatArgs)
           resolve(output)
           return
         }
