@@ -33,7 +33,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
   public render() {
     return (
-      <form id='commit-message' onSubmit={event => event.stopPropagation()}>
+      <form className='commit-form show-border' onSubmit={event => event.stopPropagation()}>
         <input type='text'
                placeholder='Commit summary'
                value={this.state.title}

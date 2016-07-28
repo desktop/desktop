@@ -2,14 +2,15 @@
 
 /** A React component holding the currently selected repository's changes */
 #changes-list {
+  overflow-y: scroll;
+
   ul {
     list-style-type: none;
     overflow-y: scroll;
     margin: 0;
     padding: 0;
   }
-  border-style: solid;
-
+  
   li {
     white-space: nowrap;
   }

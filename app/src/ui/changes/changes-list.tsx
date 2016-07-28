@@ -42,7 +42,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     const includeAll = this.props.workingDirectory.includeAll
 
     return (
-      <div className='panel' id='changes-list'>
+      <div className='panel show-border' id='changes-list'>
         <div id='select-all'>
           <input
             type='checkbox'
