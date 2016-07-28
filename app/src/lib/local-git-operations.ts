@@ -452,7 +452,7 @@ export class LocalGitOperations {
 
   /** Push from the remote to the branch, optionally setting the upstream. */
   public static push(repository: Repository, remote: string, branch: string, setUpstream: boolean): Promise<void> {
-    const args = [ 'push', remote, branch, '--set-upstream' ]
+    const args = [ 'push', remote, branch ]
     if (setUpstream) {
       args.push('--set-upstream')
     }
