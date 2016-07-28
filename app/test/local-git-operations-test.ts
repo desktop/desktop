@@ -29,6 +29,10 @@ describe('LocalGitOperations', () => {
     repository = new Repository(testRepoPath, null, null)
   })
 
+  after(() => {
+    temp.cleanupSync()
+  })
+
   describe('status', () => {
     it('parses changed files', async () => {
       fs.writeFileSync(path.join(repository!.path, 'README.md'), 'Hi world\n')
