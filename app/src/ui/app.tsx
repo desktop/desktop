@@ -4,47 +4,29 @@ import { ipcRenderer } from 'electron'
 import { Sidebar } from './sidebar'
 import RepositoriesList from './repositories-list'
 import { default as RepositoryView } from './repository'
-import User from '../models/user'
 import GitHubRepository from '../models/github-repository'
 import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
-import { Dispatcher } from '../lib/dispatcher'
+import { Dispatcher, LocalStore } from '../lib/dispatcher'
 import Repository from '../models/repository'
 import { matchGitHubRepository } from '../lib/repository-matching'
 import API, { getUserForEndpoint } from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
-
-interface IAppState {
-  readonly selectedRepository: Repository | null
-  readonly repos: ReadonlyArray<Repository>
-  readonly loadingRepos: boolean
-  readonly users: ReadonlyArray<User>
-}
+import { IAppState } from '../lib/app-state'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
+  readonly store: LocalStore
 }
 
 export default class App extends React.Component<IAppProps, IAppState> {
   public constructor(props: IAppProps) {
     super(props)
 
-    props.dispatcher.onDidUpdate(state => {
-      this.update(state.users, state.repositories)
-    })
-
-    this.state = {
-      selectedRepository: null,
-      users: new Array<User>(),
-      loadingRepos: true,
-      repos: new Array<Repository>()
-    }
-
-    // This is split out simply because TS doesn't like having an async
-    // constructor.
-    this.fetchInitialState()
+    this.state = props.store.getState()
+    props.store.onDidUpdate(state => this.setState(state))
 
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => this.onMenuEvent(name))
   }
@@ -99,20 +81,6 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
 
     await LocalGitOperations.pull(repository, remote, branch)
-  }
-
-  private async fetchInitialState() {
-    const users = await this.props.dispatcher.getUsers()
-    const repos = await this.props.dispatcher.getRepositories()
-    this.update(users, repos)
-  }
-
-  private update(users: ReadonlyArray<User>, repos: ReadonlyArray<Repository>) {
-    // TODO: We should persist this but for now we'll select the first
-    // repository available unless we already have a selection
-    const haveSelection = Boolean(this.state.selectedRepository)
-    const selectedRepository = (!haveSelection && repos.length > 0) ? repos[0] : this.state.selectedRepository
-    this.setState(Object.assign({}, this.state, { users, repos, loadingRepos: false, selectedRepository }))
   }
 
   public componentDidMount() {
@@ -176,10 +144,14 @@ export default class App extends React.Component<IAppProps, IAppState> {
         <Sidebar>
           <RepositoriesList selectedRepository={selectedRepository}
                             onSelectionChanged={repository => this.onSelectionChanged(repository)}
-                            repos={this.state.repos}
-                            loading={this.state.loadingRepos}/>
+                            repos={this.state.repositories}
+                            // TODO: This is wrong. Just because we have 0 repos
+                            // doesn't necessarily mean we're loading.
+                            loading={this.state.repositories.length === 0}/>
         </Sidebar>
-        <RepositoryView repo={selectedRepository} user={null}/>
+        <RepositoryView repository={this.state.selectedRepository!}
+                        history={this.state.history}
+                        dispatcher={this.props.dispatcher}/>
       </div>
     )
   }
@@ -209,7 +181,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onSelectionChanged(repository: Repository) {
-    this.setState(Object.assign({}, this.state, { selectedRepository: repository }))
+    this.props.dispatcher.selectRepository(repository)
 
     this.refreshRepository(repository)
   }
