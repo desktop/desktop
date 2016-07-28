@@ -42,17 +42,21 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     const includeAll = this.props.workingDirectory.includeAll
 
     return (
-      <div className='panel' id='changes-list'>
-        <div id='select-all'>
-          <input
-            type='checkbox'
-            checked={includeAll}
-            onChange={event => this.handleOnChangeEvent(event) }
-            ref={function(input) {
-              if (input != null) {
-                input.indeterminate = (includeAll === null)
-              }
-            }} />
+      <div className='panel border-right border-top' id='changes-list'>
+        <div className='border-bottom px-1 py-2' id='select-all'>
+          <label>
+            <input
+              type='checkbox'
+              checked={includeAll}
+              onChange={event => this.handleOnChangeEvent(event) }
+              ref={function(input) {
+                if (input != null) {
+                  input.indeterminate = (includeAll === null)
+                }
+              }} />
+
+              Select all changes
+          </label>
         </div>
 
         <List id='changes-list-list'

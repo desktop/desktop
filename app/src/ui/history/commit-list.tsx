@@ -37,7 +37,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
 
   public render() {
     return (
-      <div className='panel' id='commit-list'>
+      <div className='panel border-top border-right' id='commit-list'>
         <List itemCount={this.props.commits.length}
               itemHeight={68}
               selectedRow={this.rowForCommit(this.props.selectedCommit)}
