@@ -15,6 +15,7 @@ if (!process.env.TEST_ENV) {
 
 const store = new LocalStore()
 const dispatcher = new Dispatcher(store)
+dispatcher.loadInitialState()
 
 document.body.classList.add(`platform-${process.platform}`)
 

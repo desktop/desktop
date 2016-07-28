@@ -5,8 +5,6 @@ import guid from '../guid'
 import { IHistorySelection } from '../app-state'
 import { Action } from './actions'
 import AppStore from './app-store'
-import { LocalGitOperations, Commit } from '../local-git-operations'
-import { FileChange } from '../../models/status'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -45,19 +43,15 @@ export class Dispatcher {
 
   public constructor(store: AppStore) {
     this.store = store
-
-    this.fetchInitialState()
   }
 
-  private async fetchInitialState() {
-    const users = await this.getUsers()
-    const repositories = await this.getRepositories()
-    this.store._users = users
-    this.store._repositories = repositories
-    this.store._emitUpdate()
+  public async loadInitialState(): Promise<void> {
+    const users = await this.loadUsers()
+    const repositories = await this.loadRepositories()
+    this.store._loadInitialState(users, repositories)
   }
 
-  private dispatch<T>(action: Action): Promise<T> {
+  private dispatchToSharedProcess<T>(action: Action): Promise<T> {
     return this.send(action.name, action)
   }
 
@@ -91,103 +85,45 @@ export class Dispatcher {
   }
 
   /** Get the users */
-  private async getUsers(): Promise<ReadonlyArray<User>> {
-    const json = await this.dispatch<ReadonlyArray<IUser>>({ name: 'get-users' })
+  private async loadUsers(): Promise<ReadonlyArray<User>> {
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IUser>>({ name: 'get-users' })
     return json.map(User.fromJSON)
   }
 
   /** Get the repositories the user has added to the app. */
-  private async getRepositories(): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatch<ReadonlyArray<IRepository>>({ name: 'get-repositories' })
+  private async loadRepositories(): Promise<ReadonlyArray<Repository>> {
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'get-repositories' })
     return json.map(Repository.fromJSON)
   }
 
   public async addRepositories(repositories: ReadonlyArray<Repository>): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatch<ReadonlyArray<IRepository>>({ name: 'add-repositories', repositories })
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', repositories })
     return json.map(Repository.fromJSON)
   }
 
   /** Request the user approve our OAuth request. This will open their browser. */
   public requestOAuth(): Promise<void> {
-    return this.dispatch<void>({ name: 'request-oauth' })
+    return this.dispatchToSharedProcess<void>({ name: 'request-oauth' })
   }
 
   /** Update the repository's GitHub repository. */
   public updateGitHubRepository(repository: Repository): Promise<void> {
-    return this.dispatch<void>({ name: 'update-github-repository', repository })
+    return this.dispatchToSharedProcess<void>({ name: 'update-github-repository', repository })
   }
 
-  public async loadHistory(repository: Repository): Promise<void> {
-    const commits = await LocalGitOperations.getHistory(repository)
-    this.store._history = {
-      commits,
-      selection: this.store._history.selection,
-      changedFiles: this.store._history.changedFiles,
-    }
-    this.store._emitUpdate()
-
-    this.store._historyByRepositoryID[repository.id!] = this.store._history
+  public loadHistory(repository: Repository): Promise<void> {
+    return this.store._loadHistory(repository)
   }
 
-  public async loadChangedFilesForCurrentSelection(repository: Repository): Promise<void> {
-    const selection = this.store._history.selection
-    const currentCommit = selection.commit
-    if (!currentCommit) { return }
-
-    const changedFiles = await LocalGitOperations.getChangedFiles(repository, currentCommit.sha)
-
-    // The selection could have changed between when we started loading the
-    // changed files and we finished.
-    if (currentCommit !== this.store._history.selection.commit) {
-      return
-    }
-
-    this.store._history = {
-      commits: this.store._history.commits,
-      selection,
-      changedFiles,
-    }
-    this.store._emitUpdate()
-
-    this.store._historyByRepositoryID[repository.id!] = this.store._history
+  public loadChangedFilesForCurrentSelection(repository: Repository): Promise<void> {
+    return this.store._loadChangedFilesForCurrentSelection(repository)
   }
 
-  public async changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
-    const commitChanged = this.store._history.selection.commit !== selection.commit
-    const changedFiles = commitChanged ? new Array<FileChange>() : this.store._history.changedFiles
-
-    this.store._history = {
-      commits: this.store._history.commits,
-      selection,
-      changedFiles,
-    }
-    this.store._emitUpdate()
-
-    this.store._historyByRepositoryID[repository.id!] = this.store._history
+  public changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
+    return this.store._changeHistorySelection(repository, selection)
   }
 
-  public async selectRepository(repository: Repository): Promise<void> {
-    this.store._selectedRepository = repository
-
-    const history = this.store._historyByRepositoryID[repository.id!]
-    if (history) {
-      this.store._history = history
-    } else {
-      this.store._history = {
-        commits: new Array<Commit>(),
-        selection: {
-          commit: null,
-          file: null,
-        },
-        changedFiles: new Array<FileChange>(),
-      }
-    }
-
-    this.store._emitUpdate()
-
-    await this.loadHistory(repository)
-    this.store._emitUpdate()
-
-    return Promise.resolve()
+  public selectRepository(repository: Repository): Promise<void> {
+    return this.store._selectRepository(repository)
   }
 }
