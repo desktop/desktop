@@ -321,10 +321,13 @@ export class LocalGitOperations {
           } else {
             // super-hacky way of formatting the patch
             // probably utterly broken somehow
-            const contents = data.toString().split('\n').map(s => '+ ' + s)
-            const range = new DiffSectionRange(0, 0, 0, contents.length)
+            const contents = data.toString().split('\n').map(s => '+' + s)
+            const rows = contents.length - 1
+            const header = `@@ -0,0 +1,${rows} @@`
+            const range = new DiffSectionRange(0, 0, 0, rows)
             const sections = new Array<DiffSection>()
-            sections.push(new DiffSection(range, contents))
+            const lines = [ header ].concat(contents)
+            sections.push(new DiffSection(range, lines))
             resolve(new Diff(sections))
           }
         })
