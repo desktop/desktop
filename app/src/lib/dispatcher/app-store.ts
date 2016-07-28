@@ -1,8 +1,7 @@
-import { ipcRenderer } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { IRepositoryState, IHistoryState, IHistorySelection, IAppState } from '../app-state'
-import User, { IUser } from '../../models/user'
-import Repository, { IRepository } from '../../models/repository'
+import User from '../../models/user'
+import Repository from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { LocalGitOperations, Commit } from '../local-git-operations'
 import findIndex from '../find-index'
@@ -17,26 +16,6 @@ export default class AppStore {
   private repositoryState = new Map<number, IRepositoryState>()
 
   private emitQueued = false
-
-  public constructor() {
-    ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
-  }
-
-  private onSharedDidUpdate(event: Electron.IpcRendererEvent, args: any[]) {
-    const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IUser>} = args[0].state
-    this.users = state.users.map(User.fromJSON)
-    this.repositories = state.repositories.map(Repository.fromJSON)
-
-    const selectedRepository = this.selectedRepository
-    if (selectedRepository) {
-      const i = findIndex(this.repositories, r => r.id === selectedRepository.id)
-      if (i === -1) {
-        this.selectedRepository = null
-      }
-    }
-
-    this.emitUpdate()
-  }
 
   private emitUpdate() {
     if (this.emitQueued) { return }
@@ -155,9 +134,22 @@ export default class AppStore {
     this.emitUpdate()
   }
 
-  public _loadInitialState(users: ReadonlyArray<User>, repositories: ReadonlyArray<Repository>) {
+  public _loadFromSharedProcess(users: ReadonlyArray<User>, repositories: ReadonlyArray<Repository>) {
     this.users = users
     this.repositories = repositories
+
+    const selectedRepository = this.selectedRepository
+    if (selectedRepository) {
+      const i = findIndex(this.repositories, r => r.id === selectedRepository.id)
+      if (i === -1) {
+        this.selectedRepository = null
+      }
+    }
+
+    if (!this.selectedRepository && this.repositories.length > 0) {
+      this.selectedRepository = this.repositories[0]
+    }
+
     this.emitUpdate()
   }
 }
