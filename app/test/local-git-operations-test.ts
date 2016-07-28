@@ -119,8 +119,20 @@ describe('LocalGitOperations', () => {
     it('counts lines for modified file', async () => {
       const file = new FileChange('modified-file.md', FileStatus.Modified)
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
-      // TODO: what to assert?
-      expect(diff.lines.length).to.be.greaterThan(0)
+
+      expect(diff.lines[0].text).to.have.string('@@ -4,10 +4,6 @@')
+
+      expect(diff.lines[4].text).to.have.string('-Aliquam leo ipsum')
+      expect(diff.lines[5].text).to.have.string('-nisl eget hendrerit')
+      expect(diff.lines[6].text).to.have.string('-eleifend mi.')
+      expect(diff.lines[7].text).to.have.string('-')
+
+      expect(diff.lines[12].text).to.have.string('@@ -21,6 +17,10 @@')
+
+      expect(diff.lines[16].text).to.have.string('+Aliquam leo ipsum')
+      expect(diff.lines[17].text).to.have.string('+nisl eget hendrerit')
+      expect(diff.lines[18].text).to.have.string('+eleifend mi.')
+      expect(diff.lines[19].text).to.have.string('+')
     })
 
     it('counts lines for staged file', async () => {
