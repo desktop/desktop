@@ -15,7 +15,7 @@ interface IChangesProps {
 
 export class Changes extends React.Component<IChangesProps, void> {
   private onCreateCommit(title: string) {
-    this.props.dispatcher.commitSelectedChanges(this.props.repository, title)
+    this.props.dispatcher.commitIncludedChanges(this.props.repository, title)
   }
 
   private onSelectionChanged(row: number) {
@@ -25,21 +25,13 @@ export class Changes extends React.Component<IChangesProps, void> {
 
   private onIncludeChanged(row: number, include: boolean) {
     const workingDirectory = this.props.changes.workingDirectory
-    const foundFile = workingDirectory.files[row]
-    if (!foundFile) {
+    const file = workingDirectory.files[row]
+    if (!file) {
       console.error('unable to find working directory path to apply included change: ' + row)
       return
     }
 
-    const newFiles = this.props.changes.workingDirectory.files.map(f => {
-      if (f.id === foundFile.id) {
-        return f.withInclude(include)
-      } else {
-        return f
-      }
-    })
-
-    this.props.dispatcher.changeChangedFiles(this.props.repository, newFiles)
+    this.props.dispatcher.changeFileIncluded(this.props.repository, file, include)
   }
 
   private onSelectAll(selectAll: boolean) {

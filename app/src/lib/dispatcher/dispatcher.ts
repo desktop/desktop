@@ -149,12 +149,16 @@ export class Dispatcher {
     return this.store._changeChangesSelection(repository, selectedFile)
   }
 
-  public commitSelectedChanges(repository: Repository, title: string): Promise<void> {
-    return this.store._commitSelectedChanges(repository, title)
+  /**
+   * Commit the changes which were marked for inclusion, using the given commit
+   * title.
+   */
+  public commitIncludedChanges(repository: Repository, title: string): Promise<void> {
+    return this.store._commitIncludedChanges(repository, title)
   }
 
-  public changeChangedFiles(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
-    return this.store._changeChangedFiles(repository, files)
+  public changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
+    return this.store._changeFileIncluded(repository, file, include)
   }
 
   public changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {

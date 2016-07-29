@@ -234,7 +234,7 @@ export default class AppStore {
     return Promise.resolve()
   }
 
-  public async _commitSelectedChanges(repository: Repository, title: string): Promise<void> {
+  public async _commitIncludedChanges(repository: Repository, title: string): Promise<void> {
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
       return file.include === true
@@ -245,16 +245,19 @@ export default class AppStore {
     return this._loadStatus(repository)
   }
 
-  public async _changeChangedFiles(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+  public _changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
     const state = this.getRepositoryState(repository)
 
-    const allSelected = files.every((f, index, array) => {
-      return f.include
+    const newFiles = state.changesState.workingDirectory.files.map(f => {
+      if (f.id === file.id) {
+        return f.withInclude(include)
+      } else {
+        return f
+      }
     })
 
-    const noneSelected = files.every((f, index, array) => {
-      return !f.include
-    })
+    const allSelected = newFiles.every(f => f.include)
+    const noneSelected = newFiles.every(f => !f.include)
 
     let includeAll: boolean | null = null
     if (allSelected) {
@@ -266,7 +269,7 @@ export default class AppStore {
     const newState: IRepositoryState = {
       selectedSection: state.selectedSection,
       changesState: {
-        workingDirectory: new WorkingDirectoryStatus(files, includeAll),
+        workingDirectory: new WorkingDirectoryStatus(newFiles, includeAll),
         selectedFile: state.changesState.selectedFile,
       },
       historyState: state.historyState,
