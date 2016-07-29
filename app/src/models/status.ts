@@ -20,6 +20,7 @@ export class FileChange {
     this.status = status
   }
 
+  /** An ID for the file change. */
   public get id(): string {
     return `${this.status}+${this.path}`
   }
@@ -36,6 +37,7 @@ export class WorkingDirectoryFileChange extends FileChange {
     this.include = include
   }
 
+  /** Create a new WorkingDirectoryFileChange with the given includedness. */
   public withInclude(include: boolean): WorkingDirectoryFileChange {
     return new WorkingDirectoryFileChange(this.path, this.status, include)
   }
