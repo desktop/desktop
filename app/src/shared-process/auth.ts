@@ -63,5 +63,5 @@ export function askUserToAuth(endpoint: string) {
 }
 
 export function getKeyForUser(user: User): string {
-  return `GitHub – ${user.endpoint}`
+  return `GitHub - ${user.endpoint}`
 }

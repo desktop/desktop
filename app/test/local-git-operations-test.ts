@@ -8,20 +8,29 @@ const temp = require('temp').track()
 
 import Repository from '../src/models/repository'
 import { LocalGitOperations } from '../src/lib/local-git-operations'
-import { FileStatus } from '../src/models/status'
+import { FileStatus, FileChange } from '../src/models/status'
+
 
 describe('LocalGitOperations', () => {
   let repository: Repository | null = null
 
-  beforeEach(() => {
-    const testRepoName = 'test-repo'
-    const testRepoFixturePath = path.join(__dirname, 'fixtures', testRepoName)
+  function setupTestRepository(repositoryName: string): string {
+    const testRepoFixturePath = path.join(__dirname, 'fixtures', repositoryName)
     const testRepoPath = temp.mkdirSync('desktop-git-test-')
     fs.copySync(testRepoFixturePath, testRepoPath)
 
     fs.renameSync(path.join(testRepoPath, '_git'), path.join(testRepoPath, '.git'))
 
+    return testRepoPath
+  }
+
+  beforeEach(() => {
+    const testRepoPath = setupTestRepository('test-repo')
     repository = new Repository(testRepoPath, null, null)
+  })
+
+  after(() => {
+    temp.cleanupSync()
   })
 
   describe('status', () => {
@@ -93,6 +102,62 @@ describe('LocalGitOperations', () => {
     it('returns null for undefined values', async () => {
       const value = await LocalGitOperations.getConfigValue(repository!, 'core.the-meaning-of-life')
       expect(value).to.equal(null)
+    })
+  })
+
+  describe('diff', () => {
+
+    beforeEach(() => {
+      const testRepoPath = setupTestRepository('repo-with-changes')
+      repository = new Repository(testRepoPath, null, null)
+    })
+
+    it('counts lines for new file', async () => {
+      const file = new FileChange('new-file.md', FileStatus.New)
+      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+
+      expect(diff.lines[0].text).to.have.string('@@ -0,0 +1,33 @@')
+
+      expect(diff.lines[1].text).to.have.string('+Lorem ipsum dolor sit amet,')
+      expect(diff.lines[2].text).to.have.string('+ullamcorper sit amet tellus eget, ')
+
+      expect(diff.lines[33].text).to.have.string('+ urna, ac porta justo leo sed magna.')
+    })
+
+    it('counts lines for modified file', async () => {
+      const file = new FileChange('modified-file.md', FileStatus.Modified)
+      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+
+      expect(diff.lines[0].text).to.have.string('@@ -4,10 +4,6 @@')
+
+      expect(diff.lines[4].text).to.have.string('-Aliquam leo ipsum')
+      expect(diff.lines[5].text).to.have.string('-nisl eget hendrerit')
+      expect(diff.lines[6].text).to.have.string('-eleifend mi.')
+      expect(diff.lines[7].text).to.have.string('-')
+
+      expect(diff.lines[12].text).to.have.string('@@ -21,6 +17,10 @@')
+
+      expect(diff.lines[16].text).to.have.string('+Aliquam leo ipsum')
+      expect(diff.lines[17].text).to.have.string('+nisl eget hendrerit')
+      expect(diff.lines[18].text).to.have.string('+eleifend mi.')
+      expect(diff.lines[19].text).to.have.string('+')
+    })
+
+    it('counts lines for staged file', async () => {
+      const file = new FileChange('staged-file.md', FileStatus.Modified)
+      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+
+      expect(diff.lines[0].text).to.have.string('@@ -2,7 +2,7 @@ ')
+
+      expect(diff.lines[4].text).to.have.string('-tortor placerat facilisis. Ut sed ex tortor. Duis consectetur at ex vel mattis.')
+      expect(diff.lines[5].text).to.have.string('+tortor placerat facilisis.')
+
+      expect(diff.lines[10].text).to.have.string('@@ -17,9 +17,7 @@ ')
+
+      expect(diff.lines[14].text).to.have.string('-vel sagittis nisl rutrum. ')
+      expect(diff.lines[15].text).to.have.string('-tempor a ligula. Proin pretium ipsum ')
+      expect(diff.lines[16].text).to.have.string('-elementum neque id tellus gravida rhoncus.')
+      expect(diff.lines[17].text).to.have.string('+vel sagittis nisl rutrum.')
     })
   })
 })

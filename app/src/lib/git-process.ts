@@ -2,6 +2,7 @@ import * as path from 'path'
 import * as cp from 'child_process'
 
 const gitNotFoundErrorCode: number = 128
+const gitChangesExistErrorCode: number = 1
 
 export enum GitErrorCode {
   NotFound
@@ -67,7 +68,7 @@ export class GitProcess {
           return
         }
 
-        console.log(formatArgs)
+        console.debug(formatArgs)
         resolve()
       })
     })
@@ -83,7 +84,7 @@ export class GitProcess {
 
       cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
         if (!err) {
-          console.log(formatArgs)
+          console.debug(formatArgs)
           resolve(output)
           return
         }
@@ -94,6 +95,21 @@ export class GitProcess {
           if (code === gitNotFoundErrorCode) {
             reject(new GitError(GitErrorCode.NotFound, stdErr))
             return
+          }
+
+          if (code === gitChangesExistErrorCode && output !== '') {
+            // `git diff` seems to emulate the exit codes from `diff`
+            // irrespective of whether you set --exit-code
+            //
+            // this is the behaviour:
+            // - 0 if no changes found
+            // - 1 if changes found
+            // -   and error otherwise
+            //
+            // citation in source:
+            // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
+            console.debug(formatArgs)
+            resolve(output)
           }
         }
 

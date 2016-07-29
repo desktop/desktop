@@ -79,6 +79,10 @@ export class Changes extends React.Component<IChangesProps, void> {
       return this.renderNoSelection()
     }
 
+    const selectedFile = this.props.changes.workingDirectory.files.find(f => {
+      return f.path === this.props.changes.selectedPath
+    })
+
     return (
       <div id='changes'>
         <ChangesList repository={this.props.repository}
@@ -90,7 +94,7 @@ export class Changes extends React.Component<IChangesProps, void> {
                      onSelectAll={selectAll => this.onSelectAll(selectAll) }/>
 
          <FileDiff repository={this.props.repository}
-                   relativePath={this.props.changes.selectedPath}
+                   file={selectedFile ? selectedFile : null}
                    readOnly={false}
                    commit={null} />
       </div>
