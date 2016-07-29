@@ -33,7 +33,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     }
 
     const newFiles = this.props.changes.workingDirectory.files.map(f => {
-      if (f === foundFile) {
+      if (f.id === foundFile.id) {
         return f.withInclude(include)
       } else {
         return f
