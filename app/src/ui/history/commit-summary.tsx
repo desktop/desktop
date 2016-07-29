@@ -44,9 +44,9 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
         <div>&nbsp;</div>
         <div>{this.props.body}</div>
         <div className='files'>
-          <List renderItem={row => this.renderFile(row)}
-                itemCount={this.props.files.length}
-                itemHeight={22}
+          <List rowRenderer={row => this.renderFile(row)}
+                rowCount={this.props.files.length}
+                rowHeight={22}
                 selectedRow={this.rowForFile(this.props.selectedFile)}
                 onSelectionChanged={row => this.onSelectionChanged(row)}/>
         </div>

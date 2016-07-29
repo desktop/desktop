@@ -56,9 +56,9 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         </div>
 
         <List id='changes-list-list'
-              itemCount={this.props.workingDirectory.files.length}
-              itemHeight={RowHeight}
-              renderItem={row => this.renderRow(row)}
+              rowCount={this.props.workingDirectory.files.length}
+              rowHeight={RowHeight}
+              rowRenderer={row => this.renderRow(row)}
               selectedRow={this.props.selectedRow}
               onSelectionChanged={row => this.props.onSelectionChanged(row)} />
 

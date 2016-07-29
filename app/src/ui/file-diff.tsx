@@ -63,9 +63,9 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       return (
         <div id='file-diff'>
           <List id='diff-text'
-                itemCount={this.state.diff.lines.length}
-                itemHeight={RowHeight}
-                renderItem={row => this.renderRow(row)}
+                rowCount={this.state.diff.lines.length}
+                rowHeight={RowHeight}
+                rowRenderer={row => this.renderRow(row)}
                 selectedRow={-1} />
         </div>)
     } else {
