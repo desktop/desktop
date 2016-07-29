@@ -68,15 +68,4 @@ export class WorkingDirectoryStatus {
     const newFiles = this.files.map(f => f.withInclude(includeAll))
     return new WorkingDirectoryStatus(newFiles, includeAll)
   }
-
-  public withFiles(files: ReadonlyArray<WorkingDirectoryFileChange>): WorkingDirectoryStatus {
-    let newFiles: ReadonlyArray<WorkingDirectoryFileChange> | null = null
-    const includeAll = this.includeAll
-    if (includeAll) {
-      newFiles = this.files.map(f => f.withInclude(includeAll))
-    } else {
-      newFiles = this.files.map(f => f.withInclude(true))
-    }
-    return new WorkingDirectoryStatus(newFiles!, this.includeAll)
-  }
 }
