@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { IRepositoryState, IHistoryState, IHistorySelection, IAppState } from '../app-state'
+import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import { FileChange } from '../../models/status'
@@ -44,14 +44,25 @@ export default class AppStore {
         },
         commits: new Array<Commit>(),
         changedFiles: new Array<FileChange>(),
-      }
+      },
+      selectedSection: RepositorySection.History,
     }
     this.repositoryState.set(repository.id!, state)
     return state
   }
 
+  private updateRepositoryState(repository: Repository, state: IRepositoryState) {
+    this.repositoryState.set(repository.id!, state)
+  }
+
   private updateHistoryState(repository: Repository, historyState: IHistoryState) {
-    this.repositoryState.set(repository.id!, { historyState })
+    const currentState = this.getRepositoryState(repository)
+    const newState: IRepositoryState = {
+      historyState,
+      selectedSection: currentState.selectedSection,
+    }
+
+    this.updateRepositoryState(repository, newState)
   }
 
   private getCurrentRepositoryState(): IRepositoryState | null {
@@ -151,5 +162,20 @@ export default class AppStore {
     }
 
     this.emitUpdate()
+  }
+  public async _changeRepositorySection(repository: Repository, section: RepositorySection): Promise<void> {
+    const currentState = this.getRepositoryState(repository)
+    const newState: IRepositoryState = {
+      historyState: currentState.historyState,
+      selectedSection: section,
+    }
+    this.updateRepositoryState(repository, newState)
+    this.emitUpdate()
+
+    if (section === RepositorySection.History) {
+      return this._loadHistory(repository)
+    } else if (section === RepositorySection.Changes) {
+      return this._loadStatus(repository)
+    }
   }
 }

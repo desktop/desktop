@@ -2,7 +2,7 @@ import { ipcRenderer } from 'electron'
 import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
 import guid from '../guid'
-import { IHistorySelection } from '../app-state'
+import { IHistorySelection, RepositorySection } from '../app-state'
 import { Action } from './actions'
 import AppStore from './app-store'
 
@@ -134,5 +134,9 @@ export class Dispatcher {
 
   public selectRepository(repository: Repository): Promise<void> {
     return this.store._selectRepository(repository)
+  }
+
+  public changeRepositorySection(repository: Repository, section: RepositorySection): Promise<void> {
+    return this.store._changeRepositorySection(repository, section)
   }
 }

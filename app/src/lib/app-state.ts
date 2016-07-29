@@ -12,8 +12,14 @@ export interface IAppState {
   readonly repositoryState: IRepositoryState | null
 }
 
+export enum RepositorySection {
+  Changes,
+  History
+}
+
 export interface IRepositoryState {
   readonly historyState: IHistoryState
+  readonly selectedSection: RepositorySection
 }
 
 export interface IHistorySelection {
