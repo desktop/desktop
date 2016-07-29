@@ -13,3 +13,22 @@
 @import "~primer-utilities/lib/margin.scss";
 @import "~primer-utilities/lib/padding.scss";
 @import "~primer-utilities/lib/typography.scss";
+
+// TODO: Remove when the next version of primer is released
+//
+// Porting utilities these font-weigth utilties until primer gets updated
+// https://github.com/primer/utilities/blob/master/lib/typography.scss
+//
+// load missing variables
+// https://github.com/primer/support/blob/master/lib/variables.scss#L122
+$h00-size: 48px !default;
+$h0-size: 40px !default;
+$font-weight-light: 300 !default;
+//
+// Type utils with light weight that match type scale
+.f00-light { font-size: $h00-size !important; font-weight: $font-weight-light !important; }
+.f0-light { font-size: $h0-size !important; font-weight: $font-weight-light !important; }
+.f1-light { font-size: $h1-size !important; font-weight: $font-weight-light !important; }
+.f2-light { font-size: $h2-size !important; font-weight: $font-weight-light !important; }
+// Same size and weight as .lead but without color property
+.f3-light { font-size: $h3-size !important; font-weight: $font-weight-light !important; }
