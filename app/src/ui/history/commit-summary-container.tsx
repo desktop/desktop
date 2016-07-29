@@ -28,7 +28,7 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
 
   public render() {
     return (
-      <div id='commit-summary'>
+      <div id='commit-summary-container'>
         {this.renderCommit()}
       </div>
     )
