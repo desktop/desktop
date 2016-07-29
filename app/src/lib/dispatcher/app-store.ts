@@ -155,6 +155,7 @@ export default class AppStore {
     }
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _loadFromSharedProcess(users: ReadonlyArray<User>, repositories: ReadonlyArray<Repository>) {
     this.users = users
     this.repositories = repositories
@@ -179,6 +180,7 @@ export default class AppStore {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadStatus(repository: Repository): Promise<void> {
     let workingDirectory = new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true)
     try {
@@ -201,6 +203,7 @@ export default class AppStore {
     this.emitUpdate()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeRepositorySection(repository: Repository, section: RepositorySection): Promise<void> {
     const currentState = this.getRepositoryState(repository)
     const newState: IRepositoryState = {
@@ -218,6 +221,7 @@ export default class AppStore {
     }
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
     const currentState = this.getRepositoryState(repository)
     const newState: IRepositoryState = {
@@ -234,6 +238,7 @@ export default class AppStore {
     return Promise.resolve()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _commitIncludedChanges(repository: Repository, title: string): Promise<void> {
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
@@ -245,6 +250,7 @@ export default class AppStore {
     return this._loadStatus(repository)
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
     const state = this.getRepositoryState(repository)
 
@@ -281,6 +287,7 @@ export default class AppStore {
     return Promise.resolve()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
     const state = this.getRepositoryState(repository)
     const newState: IRepositoryState = {

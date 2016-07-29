@@ -121,30 +121,37 @@ export class Dispatcher {
     return this.dispatchToSharedProcess<void>({ name: 'update-github-repository', repository })
   }
 
+  /** Load the history for the repository. */
   public loadHistory(repository: Repository): Promise<void> {
     return this.store._loadHistory(repository)
   }
 
+  /** Load the changed files for the current history selection. */
   public loadChangedFilesForCurrentSelection(repository: Repository): Promise<void> {
     return this.store._loadChangedFilesForCurrentSelection(repository)
   }
 
+  /** Change the history selection. */
   public changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
     return this.store._changeHistorySelection(repository, selection)
   }
 
+  /** Select the repository. */
   public selectRepository(repository: Repository): Promise<void> {
     return this.store._selectRepository(repository)
   }
 
+  /** Load the working directory status. */
   public loadStatus(repository: Repository): Promise<void> {
     return this.store._loadStatus(repository)
   }
 
+  /** Change the selected section in the repository. */
   public changeRepositorySection(repository: Repository, section: RepositorySection): Promise<void> {
     return this.store._changeRepositorySection(repository, section)
   }
 
+  /** Change the currently selected file in Changes. */
   public changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
     return this.store._changeChangesSelection(repository, selectedFile)
   }
@@ -157,10 +164,12 @@ export class Dispatcher {
     return this.store._commitIncludedChanges(repository, title)
   }
 
+  /** Change the file's includedness. */
   public changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
     return this.store._changeFileIncluded(repository, file, include)
   }
 
+  /** Change the Include All state. */
   public changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
     return this.store._changeIncludeAllFiles(repository, includeAll)
   }
