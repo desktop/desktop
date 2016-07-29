@@ -146,12 +146,13 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _selectRepository(repository: Repository): Promise<void> {
+  public async _selectRepository(repository: Repository | null): Promise<void> {
     this.selectedRepository = repository
     this.emitUpdate()
 
-    await this._loadHistory(repository)
-    this.emitUpdate()
+    if (repository) {
+      this._changeRepositorySection(repository, this.getCurrentRepositoryState()!.selectedSection)
+    }
   }
 
   public _loadFromSharedProcess(users: ReadonlyArray<User>, repositories: ReadonlyArray<Repository>) {
