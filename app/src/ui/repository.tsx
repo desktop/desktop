@@ -27,8 +27,8 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
 
   private renderNoSelection() {
     return (
-      <div>
-        <div>No repo selected!</div>
+      <div className='blankslate'>
+        <p className='f3-light'>No repo selected!</p>
       </div>
     )
   }

@@ -2,8 +2,7 @@
 
 /** A React component holding the commit message entry */
 .commit-form {
+  display: flex;
   flex-direction: column;
   margin-top: auto;
-
-  display: flex;
 }

@@ -109,3 +109,11 @@ button {
 .bg-alt {
   background-color: var(--box-alt-background-color);
 }
+
+.blankslate {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}

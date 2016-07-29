@@ -108,8 +108,8 @@ export class Changes extends React.Component<IChangesProps, IChangesState> {
 
   private renderNoSelection() {
     return (
-      <div id='changes'>
-        <div>No repo selected!</div>
+      <div className='blankslate' id='changes'>
+        <p className='f3-light'>No repo selected!</p>
       </div>
     )
   }

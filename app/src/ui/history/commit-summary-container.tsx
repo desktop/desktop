@@ -35,5 +35,11 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
   }
 }
 function NoCommitSelected() {
-  return <div>No commit selected</div>
+  return (
+    <div className='blankslate'>
+      <p className='f3-light'>
+        No commit selected
+      </p>
+    </div>
+  )
 }
