@@ -43,7 +43,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
 
     return (
       <div className='panel border-right border-top' id='changes-list'>
-        <div className='border-bottom px-1 py-2' id='select-all'>
+        <div className='border-bottom px-3 py-2 shrink-0' id='select-all'>
           <label>
             <input
               type='checkbox'

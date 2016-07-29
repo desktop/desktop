@@ -98,8 +98,12 @@ button {
   width: 100%;
 }
 
+.shrink-0 {
+  flex-shrink: 0 !important;
+}
+
 .hide-when-empty:empty {
-  display: none;
+  display: none !important;
 }
 
 .bg-alt {

@@ -40,14 +40,14 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
   public render() {
     return (
       <div className='panel'>
-        <div className='f3-light border-bottom p-2'>{this.props.summary}</div>
-        <div className='ff-monospace border-bottom p-2 hide-when-empty'>
+        <div className='f3-light border-bottom p-3'>{this.props.summary}</div>
+        <div className='ff-monospace border-bottom p-3 hide-when-empty'>
           {this.props.body}
         </div>
         <div className='files'>
           <List renderItem={row => this.renderFile(row)}
                 itemCount={this.props.files.length}
-                itemHeight={22}
+                itemHeight={30}
                 selectedRow={this.rowForFile(this.props.selectedFile)}
                 onSelectionChanged={row => this.onSelectionChanged(row)}/>
         </div>
