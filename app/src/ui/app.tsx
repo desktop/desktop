@@ -12,6 +12,8 @@ import Repository from '../models/repository'
 import { matchGitHubRepository } from '../lib/repository-matching'
 import API, { getUserForEndpoint } from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
+import { MenuEvent } from '../main-process/menu'
+import fatalError from '../lib/fatal-error'
 import { IAppState } from '../lib/app-state'
 
 interface IAppProps {
@@ -25,6 +27,60 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
     this.state = props.store.getState()
     props.store.onDidUpdate(state => this.setState(state))
+
+    ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => this.onMenuEvent(name))
+  }
+
+  private onMenuEvent(name: MenuEvent): Promise<void> {
+    switch (name) {
+      case 'push': return this.push()
+      case 'pull': return this.pull()
+    }
+
+    return fatalError(`Unknown menu event name: ${name}`)
+  }
+
+  private async push() {
+    const repository = this.state.selectedRepository
+    if (!repository) { return }
+
+    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    if (!remote) {
+      console.error('This repo has no remotes ¯\_(ツ)_/¯')
+      return
+    }
+
+    const branch = await LocalGitOperations.getBranch(repository)
+    if (!branch) {
+      console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
+      return
+    }
+
+    const trackingBranch = await LocalGitOperations.getTrackingBranch(repository)
+    if (trackingBranch) {
+      await LocalGitOperations.push(repository, remote, branch, false)
+    } else {
+      await LocalGitOperations.push(repository, remote, branch, true)
+    }
+  }
+
+  private async pull() {
+    const repository = this.state.selectedRepository
+    if (!repository) { return }
+
+    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    if (!remote) {
+      console.error('This repo has no remotes ¯\_(ツ)_/¯')
+      return
+    }
+
+    const branch = await LocalGitOperations.getBranch(repository)
+    if (!branch) {
+      console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
+      return
+    }
+
+    await LocalGitOperations.pull(repository, remote, branch)
   }
 
   public componentDidMount() {

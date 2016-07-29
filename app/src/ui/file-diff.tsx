@@ -4,6 +4,7 @@ import List from './list'
 import FileDiffLine from './file-diff-line'
 
 import IRepository from '../models/repository'
+import { FileChange } from '../models/status'
 
 import { LocalGitOperations, Diff, Commit } from '../lib/local-git-operations'
 
@@ -12,7 +13,7 @@ const RowHeight = 20
 interface IFileDiffProps {
   readonly repository: IRepository
   readonly readOnly: boolean
-  readonly relativePath: string | null
+  readonly file: FileChange | null
   readonly commit: Commit | null
 }
 
@@ -29,15 +30,15 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   public componentWillReceiveProps(nextProps: IFileDiffProps) {
-    this.renderDiff(nextProps.repository, nextProps.relativePath, nextProps.readOnly)
+    this.renderDiff(nextProps.repository, nextProps.file, nextProps.readOnly)
   }
 
-  private async renderDiff(repository: IRepository, relativePath: string | null, readOnly: boolean) {
-    if (!relativePath) {
+  private async renderDiff(repository: IRepository, file: FileChange | null, readOnly: boolean) {
+    if (!file) {
       // TOOD: don't render anything
     } else {
 
-      const diff = await LocalGitOperations.getDiff(repository, relativePath, this.props.commit)
+      const diff = await LocalGitOperations.getDiff(repository, file, this.props.commit)
 
       this.setState(Object.assign({}, this.state, { diff }))
     }
@@ -45,7 +46,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   private renderRow(row: number): JSX.Element {
     const line = this.state.diff.lines[row]
-    const id = `${this.props.relativePath} ${row}`
+    const id = `${this.props.file!.path} ${row}`
 
     return (
       <FileDiffLine text={line.text}
@@ -58,7 +59,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   public render() {
 
-    if (this.props.relativePath) {
+    if (this.props.file) {
       return (
         <div id='file-diff'>
           <List id='diff-text'

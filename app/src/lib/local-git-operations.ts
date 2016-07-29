@@ -302,14 +302,16 @@ export class LocalGitOperations {
     * A specific commit related to the file may be provided, otherwise the
     * working directory state will be used.
     */
-  public static getDiff(repository: Repository, relativePath: string, commit: Commit | null): Promise<Diff> {
+  public static getDiff(repository: Repository, file: FileChange, commit: Commit | null): Promise<Diff> {
 
     let args: string[]
 
     if (commit) {
-      args = [ 'show', commit.sha, '--patch-with-raw', '-z', '--', relativePath ]
+      args = [ 'show', commit.sha, '--patch-with-raw', '-z', '--', file.path ]
+    } else if (file.status === FileStatus.New) {
+      args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
     } else {
-      args = [ 'diff', '--patch-with-raw', '-z', '--', relativePath ]
+      args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
     }
 
     return GitProcess.execWithOutput(args, repository.path)
@@ -443,5 +445,71 @@ export class LocalGitOperations {
 
     const pieces = output.split('\0')
     return pieces[0]
+  }
+
+  /** Pull from the remote to the branch. */
+  public static pull(repository: Repository, remote: string, branch: string): Promise<void> {
+    return GitProcess.exec([ 'pull', remote, branch ], repository.path)
+  }
+
+  /** Push from the remote to the branch, optionally setting the upstream. */
+  public static push(repository: Repository, remote: string, branch: string, setUpstream: boolean): Promise<void> {
+    const args = [ 'push', remote, branch ]
+    if (setUpstream) {
+      args.push('--set-upstream')
+    }
+
+    return GitProcess.exec(args, repository.path)
+  }
+
+  /** Get the remote names. */
+  private static async getRemotes(repository: Repository): Promise<ReadonlyArray<string>> {
+    const lines = await GitProcess.execWithOutput([ 'remote' ], repository.path)
+    return lines.split('\n')
+  }
+
+  /** Get the name of the default remote. */
+  public static async getDefaultRemote(repository: Repository): Promise<string | null> {
+    const remotes = await LocalGitOperations.getRemotes(repository)
+    if (remotes.length === 0) {
+      return null
+    }
+
+    const index = remotes.indexOf('origin')
+    if (index > -1) {
+      return remotes[index]
+    } else {
+      return remotes[0]
+    }
+  }
+
+  /** Get the name of the tracking branch for the current branch. */
+  public static async getTrackingBranch(repository: Repository): Promise<string | null> {
+    try {
+      const name = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}' ], repository.path)
+      return name.trim()
+    } catch (e) {
+      // Git exits with 1 if there's no upstream. We should do more specific
+      // error parsing than this, but for now it'll do.
+      if (e.code !== 1) {
+        throw e
+      }
+      return null
+    }
+  }
+
+  /** Get the name of the current branch. */
+  public static async getBranch(repository: Repository): Promise<string | null> {
+    try {
+      const name = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path)
+      return name.trim()
+    } catch (e) {
+      // Git exits with 1 if there's the branch is unborn. We should do more
+      // specific error parsing than this, but for now it'll do.
+      if (e.code !== 1) {
+        throw e
+      }
+      return null
+    }
   }
 }
