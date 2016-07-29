@@ -37,6 +37,11 @@
       "from": "brace-expansion@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.6.tgz"
     },
+    "classnames": {
+      "version": "2.2.5",
+      "from": "classnames@>=2.2.3 <3.0.0",
+      "resolved": "https://registry.npmjs.org/classnames/-/classnames-2.2.5.tgz"
+    },
     "concat-map": {
       "version": "0.0.1",
       "from": "concat-map@0.0.1",
@@ -56,6 +61,11 @@
       "version": "1.4.1",
       "from": "dexie@>=1.4.1 <2.0.0",
       "resolved": "https://registry.npmjs.org/dexie/-/dexie-1.4.1.tgz"
+    },
+    "dom-helpers": {
+      "version": "2.4.0",
+      "from": "dom-helpers@>=2.4.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/dom-helpers/-/dom-helpers-2.4.0.tgz"
     },
     "dom-walk": {
       "version": "0.1.1",
@@ -254,6 +264,11 @@
       "from": "path-is-absolute@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/path-is-absolute/-/path-is-absolute-1.0.0.tgz"
     },
+    "performance-now": {
+      "version": "0.2.0",
+      "from": "performance-now@>=0.2.0 <0.3.0",
+      "resolved": "https://registry.npmjs.org/performance-now/-/performance-now-0.2.0.tgz"
+    },
     "process": {
       "version": "0.5.2",
       "from": "process@>=0.5.1 <0.6.0",
@@ -269,10 +284,20 @@
       "from": "querystring@>=0.2.0 <0.3.0",
       "resolved": "https://registry.npmjs.org/querystring/-/querystring-0.2.0.tgz"
     },
+    "raf": {
+      "version": "3.2.0",
+      "from": "raf@>=3.1.0 <4.0.0",
+      "resolved": "https://registry.npmjs.org/raf/-/raf-3.2.0.tgz"
+    },
     "react": {
-      "version": "15.2.1",
-      "from": "react@>=15.0.2 <16.0.0",
-      "resolved": "https://registry.npmjs.org/react/-/react-15.2.1.tgz"
+      "version": "15.3.0",
+      "from": "react@>=15.2.1 <16.0.0",
+      "resolved": "https://registry.npmjs.org/react/-/react-15.3.0.tgz"
+    },
+    "react-addons-shallow-compare": {
+      "version": "15.3.0",
+      "from": "react-addons-shallow-compare@latest",
+      "resolved": "https://registry.npmjs.org/react-addons-shallow-compare/-/react-addons-shallow-compare-15.3.0.tgz"
     },
     "react-deep-force-update": {
       "version": "1.0.1",
@@ -280,9 +305,9 @@
       "resolved": "https://registry.npmjs.org/react-deep-force-update/-/react-deep-force-update-1.0.1.tgz"
     },
     "react-dom": {
-      "version": "15.2.1",
-      "from": "react-dom@>=15.0.2 <16.0.0",
-      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.2.1.tgz"
+      "version": "15.3.0",
+      "from": "react-dom@>=15.2.1 <16.0.0",
+      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.3.0.tgz"
     },
     "react-proxy": {
       "version": "1.1.8",
@@ -295,6 +320,11 @@
           "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.13.1.tgz"
         }
       }
+    },
+    "react-virtualized": {
+      "version": "7.16.0",
+      "from": "react-virtualized@latest",
+      "resolved": "https://registry.npmjs.org/react-virtualized/-/react-virtualized-7.16.0.tgz"
     },
     "regenerator-runtime": {
       "version": "0.9.5",
