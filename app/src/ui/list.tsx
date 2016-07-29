@@ -134,16 +134,17 @@ export default class List extends React.Component<IListProps, void> {
   }
 
   public render() {
-    // const className = 'list list-virtualized'
+    const className = 'list list-virtualized'
     // The currently selected list item is focusable but if
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
     // it with keyboard navigation and select an item.
-    // const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : -1
+    const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : -1
     return (
-      <div id='hey there'
+      <div id={this.props.id}
+           className={className}
            ref='list'
-           tabIndex={9}
+           tabIndex={tabIndex}
            onKeyDown={e => this.handleKeyDown(e)}
            style={{ display: 'flex', flex: '1 1 auto' }}>
         <AutoSizer>
@@ -154,6 +155,9 @@ export default class List extends React.Component<IListProps, void> {
               rowCount={this.props.rowCount}
               rowHeight={this.props.rowHeight}
               rowRenderer={this.renderRow}
+              // VirtualScroll doesn't actually _do_ anything with
+              // `selectedRow`. We're just passing it through so that
+              // VirtualScroll will re-render when it changes.
               selectedRow={this.props.selectedRow}/>
           )}
         </AutoSizer>
