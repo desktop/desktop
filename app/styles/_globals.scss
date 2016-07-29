@@ -97,3 +97,7 @@ button {
   height: 100%;
   width: 100%;
 }
+
+.hide-when-empty:empty {
+  display: none;
+}

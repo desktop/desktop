@@ -40,9 +40,10 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
   public render() {
     return (
       <div className='panel'>
-        <div>{this.props.summary}</div>
-        <div>&nbsp;</div>
-        <div>{this.props.body}</div>
+        <div className='f3-light border-bottom p-2'>{this.props.summary}</div>
+        <div className='ff-monospace border-bottom p-2 hide-when-empty'>
+          {this.props.body}
+        </div>
         <div className='files'>
           <List renderItem={row => this.renderFile(row)}
                 itemCount={this.props.files.length}
