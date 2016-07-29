@@ -17,7 +17,7 @@
   // forces us to always enable the scroll bar. The thumb won't be
   // visible until the content is actually scrollable so essentially this is
   // magic padding.
-  overflow-y: scroll;
+  // overflow-y: scroll;
 
   /**
    * Container for repository list items in the sidebar
