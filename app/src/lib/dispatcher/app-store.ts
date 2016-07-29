@@ -2,7 +2,7 @@ import { Emitter, Disposable } from 'event-kit'
 import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
-import { FileChange, WorkingDirectoryStatus } from '../../models/status'
+import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { LocalGitOperations, Commit } from '../local-git-operations'
 import { findIndex } from '../find'
 
@@ -43,7 +43,7 @@ export default class AppStore {
         changedFiles: new Array<FileChange>(),
       },
       changesState: {
-        workingDirectory: new WorkingDirectoryStatus(),
+        workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
         selectedPath: null,
       },
       selectedSection: RepositorySection.History,
@@ -180,7 +180,7 @@ export default class AppStore {
   }
 
   public async _loadStatus(repository: Repository): Promise<void> {
-    let workingDirectory = new WorkingDirectoryStatus()
+    let workingDirectory = new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true)
     try {
       const status = await LocalGitOperations.getStatus(repository)
       workingDirectory = status.workingDirectory
@@ -198,6 +198,7 @@ export default class AppStore {
       selectedSection: currentState.selectedSection,
     }
     this.updateRepositoryState(repository, newState)
+    this.emitUpdate()
   }
 
   public async _changeRepositorySection(repository: Repository, section: RepositorySection): Promise<void> {
@@ -242,5 +243,56 @@ export default class AppStore {
     await LocalGitOperations.createCommit(repository, title, files)
 
     return this._loadStatus(repository)
+  }
+
+  public async _changeChangedFiles(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+    const state = this.getRepositoryState(repository)
+
+    const workingDirectory = state.changesState.workingDirectory
+    const allSelected = workingDirectory.files.every((f, index, array) => {
+      return f.include
+    })
+
+    const noneSelected = workingDirectory.files.every((f, index, array) => {
+      return !f.include
+    })
+
+    let includeAll: boolean | null = null
+    if (allSelected && !noneSelected) {
+      includeAll = true
+    } else if (!allSelected && noneSelected) {
+      includeAll = false
+    }
+
+    const newState: IRepositoryState = {
+      selectedSection: state.selectedSection,
+      changesState: {
+        workingDirectory: new WorkingDirectoryStatus(files, includeAll),
+        selectedPath: state.changesState.selectedPath,
+      },
+      historyState: state.historyState,
+    }
+
+    this.updateRepositoryState(repository, newState)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
+    const state = this.getRepositoryState(repository)
+    const newState: IRepositoryState = {
+      selectedSection: state.selectedSection,
+      changesState: {
+        workingDirectory: state.changesState.workingDirectory.withIncludeAllFiles(includeAll),
+        selectedPath: state.changesState.selectedPath,
+      },
+      historyState: state.historyState,
+    }
+
+    this.updateRepositoryState(repository, newState)
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }

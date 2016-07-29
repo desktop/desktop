@@ -2,6 +2,7 @@ import * as React from 'react'
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
 import List from '../list'
+import { findIndex } from '../../lib/find'
 
 import Repository from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
@@ -40,7 +41,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
   public render() {
 
     const includeAll = this.props.workingDirectory.includeAll
-    const selectedRow = this.props.workingDirectory.files.findIndex(file => file.path === this.props.selectedPath)
+    const selectedRow = findIndex(this.props.workingDirectory.files, file => file.path === this.props.selectedPath)
     return (
       <div id='changes-list'>
         <div id='select-all'>

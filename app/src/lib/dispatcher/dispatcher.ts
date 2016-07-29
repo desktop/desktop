@@ -1,6 +1,7 @@
 import { ipcRenderer } from 'electron'
 import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
+import { WorkingDirectoryFileChange } from '../../models/status'
 import guid from '../guid'
 import { IHistorySelection, RepositorySection } from '../app-state'
 import { Action } from './actions'
@@ -150,5 +151,13 @@ export class Dispatcher {
 
   public commitSelectedChanges(repository: Repository, title: string): Promise<void> {
     return this.store._commitSelectedChanges(repository, title)
+  }
+
+  public changeChangedFiles(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+    return this.store._changeChangedFiles(repository, files)
+  }
+
+  public changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
+    return this.store._changeIncludeAllFiles(repository, includeAll)
   }
 }

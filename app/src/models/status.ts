@@ -19,12 +19,26 @@ export class FileChange {
     this.path = path
     this.status = status
   }
+
+  public get id(): string {
+    return `${this.status}+${this.path}`
+  }
 }
 
 /** encapsulate the changes to a file in the working directory  */
 export class WorkingDirectoryFileChange extends FileChange {
   /** whether the file should be included in the next commit */
-  public include: boolean = true
+  public readonly include: boolean = true
+
+  public constructor(path: string, status: FileStatus, include: boolean) {
+    super(path, status)
+
+    this.include = include
+  }
+
+  public withInclude(include: boolean): WorkingDirectoryFileChange {
+    return new WorkingDirectoryFileChange(this.path, this.status, include)
+  }
 }
 
 /** the state of the working directory for a repository */
@@ -33,34 +47,36 @@ export class WorkingDirectoryStatus {
   /**
    * The list of changes in the repository's working directory
    */
-  public readonly files: WorkingDirectoryFileChange[] = []
+  public readonly files: ReadonlyArray<WorkingDirectoryFileChange> = new Array<WorkingDirectoryFileChange>()
 
   /**
    * Update the include checkbox state of the form
    * NOTE: we need to track this separately to the file list selection
    *       and perform two-way binding manually when this changes
    */
-  public includeAll: boolean | null = true
+  public readonly includeAll: boolean | null = true
+
+  public constructor(files: ReadonlyArray<WorkingDirectoryFileChange>, includeAll: boolean | null) {
+    this.files = files
+    this.includeAll = includeAll
+  }
 
   /**
    * Update the include state of all files in the working directory
    */
-  public includeAllFiles(includeAll: boolean) {
-    this.files.forEach(file => {
-      file.include = includeAll
-    })
+  public withIncludeAllFiles(includeAll: boolean): WorkingDirectoryStatus {
+    const newFiles = this.files.map(f => f.withInclude(includeAll))
+    return new WorkingDirectoryStatus(newFiles, includeAll)
   }
 
-  /**
-   * Add a new file to the working directory list
-   */
-  public add(path: string, status: FileStatus): void {
-    const file = new WorkingDirectoryFileChange(path, status)
-    if (this.includeAll) {
-      file.include = this.includeAll
+  public withFiles(files: ReadonlyArray<WorkingDirectoryFileChange>): WorkingDirectoryStatus {
+    let newFiles: ReadonlyArray<WorkingDirectoryFileChange> | null = null
+    const includeAll = this.includeAll
+    if (includeAll) {
+      newFiles = this.files.map(f => f.withInclude(includeAll))
     } else {
-      file.include = true
+      newFiles = this.files.map(f => f.withInclude(true))
     }
-    this.files.push(file)
+    return new WorkingDirectoryStatus(newFiles!, this.includeAll)
   }
 }

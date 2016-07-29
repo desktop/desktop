@@ -4,6 +4,7 @@ import FileDiff from '../file-diff'
 import { IChangesState } from '../../lib/app-state'
 import Repository from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
+import { find } from '../../lib/find'
 
 interface IChangesProps {
   repository: Repository
@@ -24,44 +25,26 @@ export class Changes extends React.Component<IChangesProps, void> {
   }
 
   private onIncludeChanged(row: number, include: boolean) {
-
     const workingDirectory = this.props.changes.workingDirectory
-
     const foundFile = workingDirectory.files[row]
-
     if (!foundFile) {
       console.error('unable to find working directory path to apply included change: ' + row)
       return
     }
 
-    foundFile.include = include
-
-    const allSelected = workingDirectory.files.every((f, index, array) => {
-      return f.include
+    const newFiles = this.props.changes.workingDirectory.files.map(f => {
+      if (f === foundFile) {
+        return f.withInclude(include)
+      } else {
+        return f
+      }
     })
 
-    const noneSelected = workingDirectory.files.every((f, index, array) => {
-      return !f.include
-    })
-
-    if (allSelected && !noneSelected) {
-      workingDirectory.includeAll = true
-    } else if (!allSelected && noneSelected) {
-      workingDirectory.includeAll = false
-    } else {
-      workingDirectory.includeAll = null
-    }
-
-    this.setState(Object.assign({}, this.state, { workingDirectory: workingDirectory }))
+    this.props.dispatcher.changeChangedFiles(this.props.repository, newFiles)
   }
 
   private onSelectAll(selectAll: boolean) {
-    const workingDirectory = this.props.changes.workingDirectory
-
-    workingDirectory.includeAll = selectAll
-    workingDirectory.includeAllFiles(selectAll)
-
-    this.setState(Object.assign({}, this.state, { workingDirectory: workingDirectory }))
+    this.props.dispatcher.changeIncludeAllFiles(this.props.repository, selectAll)
   }
 
   private renderNoSelection() {
@@ -79,7 +62,7 @@ export class Changes extends React.Component<IChangesProps, void> {
       return this.renderNoSelection()
     }
 
-    const selectedFile = this.props.changes.workingDirectory.files.find(f => {
+    const selectedFile = find(this.props.changes.workingDirectory.files, f => {
       return f.path === this.props.changes.selectedPath
     })
 
