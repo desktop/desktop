@@ -173,4 +173,11 @@ export class Dispatcher {
   public changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
     return this.store._changeIncludeAllFiles(repository, includeAll)
   }
+
+  /**
+   * Refresh the repository. This would be used, e.g., when the app gains focus.
+   */
+  public refreshRepository(repository: Repository): Promise<void> {
+    return this.store._refreshRepository(repository)
+  }
 }
