@@ -160,15 +160,20 @@ export default class AppStore {
     this.repositories = repositories
 
     const selectedRepository = this.selectedRepository
+    let newSelectedRepository: Repository | null = this.selectedRepository
     if (selectedRepository) {
       const i = findIndex(this.repositories, r => r.id === selectedRepository.id)
       if (i === -1) {
-        this.selectedRepository = null
+        newSelectedRepository = null
       }
     }
 
     if (!this.selectedRepository && this.repositories.length > 0) {
-      this.selectedRepository = this.repositories[0]
+      newSelectedRepository = this.repositories[0]
+    }
+
+    if (newSelectedRepository !== selectedRepository) {
+      this._selectRepository(newSelectedRepository)
     }
 
     this.emitUpdate()
