@@ -202,7 +202,6 @@ export class LocalGitOperations {
             const regexGroups = { mode: 1, path: 2 }
 
             const files = new Array<WorkingDirectoryFileChange>()
-            const workingDirectory = new WorkingDirectoryStatus(files, true)
 
             for (const index in lines) {
               const line = lines[index]
@@ -217,7 +216,7 @@ export class LocalGitOperations {
               }
             }
 
-            return StatusResult.FromStatus(workingDirectory)
+            return StatusResult.FromStatus(new WorkingDirectoryStatus(files, true))
         })
         .catch(error => {
           if (error) {
