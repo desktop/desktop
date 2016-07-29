@@ -1,73 +1,31 @@
 import * as React from 'react'
 import { ChangesList } from './changes-list'
 import FileDiff from '../file-diff'
-
+import { IChangesState } from '../../lib/app-state'
 import Repository from '../../models/repository'
-import { WorkingDirectoryStatus } from '../../models/status'
-
-
-import { LocalGitOperations } from '../../lib/local-git-operations'
+import { Dispatcher } from '../../lib/dispatcher'
 
 interface IChangesProps {
   repository: Repository
-}
-
-interface IChangesState {
-  selectedRow: number
-  workingDirectory: WorkingDirectoryStatus
+  changes: IChangesState
+  dispatcher: Dispatcher
 }
 
 /** TODO: handle "repository not found" scenario */
 
-export class Changes extends React.Component<IChangesProps, IChangesState> {
-
-  public constructor(props: IChangesProps) {
-    super(props)
-
-    this.state = {
-      selectedRow: -1,
-      workingDirectory: new WorkingDirectoryStatus()
-    }
-  }
-
-  public componentWillReceiveProps(nextProps: IChangesProps) {
-
-    // reset selection (if found)
-    Object.assign({}, this.state, { selectedRow: -1 })
-
-    this.refreshWorkingDirectory(nextProps.repository)
-  }
-
-  private refreshWorkingDirectory(repository: Repository) {
-    LocalGitOperations.getStatus(repository)
-      .then(result => {
-        this.setState(Object.assign({}, this.state, { workingDirectory: result.workingDirectory }))
-      })
-      .catch(rejected => {
-        console.error(rejected)
-        this.setState(Object.assign({}, this.state, { workingDirectory: new WorkingDirectoryStatus() }))
-    })
-  }
-
-  private async onCreateCommit(title: string) {
-    const files = this.state.workingDirectory.files.filter(function(file, index, array) {
-      return file.include === true
-    })
-
-    await LocalGitOperations.createCommit(this.props.repository, title, files)
-
-    await this.refreshWorkingDirectory(this.props.repository)
+export class Changes extends React.Component<IChangesProps, void> {
+  private onCreateCommit(title: string) {
+    this.props.dispatcher.commitSelectedChanges(this.props.repository, title)
   }
 
   private handleSelectionChanged(row: number) {
-    this.setState(Object.assign({}, this.state, { selectedRow: row }))
-
-    // TODO: show file diff for selected item
+    const file = this.props.changes.workingDirectory.files[row]
+    this.props.dispatcher.changeChangesSelection(this.props.repository, file.path)
   }
 
   private handleIncludeChanged(row: number, include: boolean) {
 
-    const workingDirectory = this.state.workingDirectory
+    const workingDirectory = this.props.changes.workingDirectory
 
     const foundFile = workingDirectory.files[row]
 
@@ -98,7 +56,7 @@ export class Changes extends React.Component<IChangesProps, IChangesState> {
   }
 
   private handleSelectAll(selectAll: boolean) {
-    const workingDirectory = this.state.workingDirectory
+    const workingDirectory = this.props.changes.workingDirectory
 
     workingDirectory.includeAll = selectAll
     workingDirectory.includeAllFiles(selectAll)
@@ -121,27 +79,18 @@ export class Changes extends React.Component<IChangesProps, IChangesState> {
       return this.renderNoSelection()
     }
 
-    const row = this.state.selectedRow
-    let selectedFilePath: string | null = null
-    if (row > -1) {
-      const file = this.state.workingDirectory.files[row]
-      if (file) {
-        selectedFilePath = file.path
-      }
-    }
-
     return (
       <div id='changes'>
         <ChangesList repository={this.props.repository}
-                     workingDirectory={this.state.workingDirectory}
-                     selectedRow={this.state.selectedRow}
+                     workingDirectory={this.props.changes.workingDirectory}
+                     selectedPath={this.props.changes.selectedPath!}
                      onSelectionChanged={event => this.handleSelectionChanged(event)}
                      onCreateCommit={title => this.onCreateCommit(title)}
                      onIncludeChanged={(row, include) => this.handleIncludeChanged(row, include) }
                      onSelectAll={selectAll => this.handleSelectAll(selectAll) }/>
 
          <FileDiff repository={this.props.repository}
-                   relativePath={selectedFilePath}
+                   relativePath={this.props.changes.selectedPath}
                    readOnly={false}
                    commit={null} />
       </div>

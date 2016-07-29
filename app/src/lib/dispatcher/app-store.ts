@@ -172,6 +172,28 @@ export default class AppStore {
 
     this.emitUpdate()
   }
+
+  public async _loadStatus(repository: Repository): Promise<void> {
+    let workingDirectory = new WorkingDirectoryStatus()
+    try {
+      const status = await LocalGitOperations.getStatus(repository)
+      workingDirectory = status.workingDirectory
+    } catch (e) {
+      console.error(e)
+    }
+
+    const currentState = this.getRepositoryState(repository)
+    const newState: IRepositoryState = {
+      historyState: currentState.historyState,
+      changesState: {
+        workingDirectory,
+        selectedPath: null,
+      },
+      selectedSection: currentState.selectedSection,
+    }
+    this.updateRepositoryState(repository, newState)
+  }
+
   public async _changeRepositorySection(repository: Repository, section: RepositorySection): Promise<void> {
     const currentState = this.getRepositoryState(repository)
     const newState: IRepositoryState = {
@@ -187,5 +209,32 @@ export default class AppStore {
     } else if (section === RepositorySection.Changes) {
       return this._loadStatus(repository)
     }
+  }
+
+  public _changeChangesSelection(repository: Repository, selectedPath: string | null): Promise<void> {
+    const currentState = this.getRepositoryState(repository)
+    const newState: IRepositoryState = {
+      historyState: currentState.historyState,
+      changesState: {
+        workingDirectory: currentState.changesState.workingDirectory,
+        selectedPath,
+      },
+      selectedSection: currentState.selectedSection,
+    }
+    this.updateRepositoryState(repository, newState)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public async _commitSelectedChanges(repository: Repository, title: string): Promise<void> {
+    const state = this.getRepositoryState(repository)
+    const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
+      return file.include === true
+    })
+
+    await LocalGitOperations.createCommit(repository, title, files)
+
+    return this._loadStatus(repository)
   }
 }

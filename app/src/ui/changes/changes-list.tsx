@@ -11,7 +11,7 @@ const RowHeight = 20
 interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
-  readonly selectedRow: number
+  readonly selectedPath: string
   readonly onSelectionChanged: (row: number) => void
   readonly onIncludeChanged: (row: number, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
@@ -40,7 +40,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
   public render() {
 
     const includeAll = this.props.workingDirectory.includeAll
-
+    const selectedRow = this.props.workingDirectory.files.findIndex(file => file.path === this.props.selectedPath)
     return (
       <div id='changes-list'>
         <div id='select-all'>
@@ -59,7 +59,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               itemCount={this.props.workingDirectory.files.length}
               itemHeight={RowHeight}
               renderItem={row => this.renderRow(row)}
-              selectedRow={this.props.selectedRow}
+              selectedRow={selectedRow}
               onSelectionChanged={row => this.props.onSelectionChanged(row)} />
 
         <CommitMessage onCreateCommit={title => this.props.onCreateCommit(title)}/>

@@ -136,7 +136,19 @@ export class Dispatcher {
     return this.store._selectRepository(repository)
   }
 
+  public loadStatus(repository: Repository): Promise<void> {
+    return this.store._loadStatus(repository)
+  }
+
   public changeRepositorySection(repository: Repository, section: RepositorySection): Promise<void> {
     return this.store._changeRepositorySection(repository, section)
+  }
+
+  public changeChangesSelection(repository: Repository, selectedPath: string | null): Promise<void> {
+    return this.store._changeChangesSelection(repository, selectedPath)
+  }
+
+  public commitSelectedChanges(repository: Repository, title: string): Promise<void> {
+    return this.store._commitSelectedChanges(repository, title)
   }
 }
