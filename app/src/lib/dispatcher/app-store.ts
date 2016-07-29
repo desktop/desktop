@@ -248,19 +248,18 @@ export default class AppStore {
   public async _changeChangedFiles(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
     const state = this.getRepositoryState(repository)
 
-    const workingDirectory = state.changesState.workingDirectory
-    const allSelected = workingDirectory.files.every((f, index, array) => {
+    const allSelected = files.every((f, index, array) => {
       return f.include
     })
 
-    const noneSelected = workingDirectory.files.every((f, index, array) => {
+    const noneSelected = files.every((f, index, array) => {
       return !f.include
     })
 
     let includeAll: boolean | null = null
-    if (allSelected && !noneSelected) {
+    if (allSelected) {
       includeAll = true
-    } else if (!allSelected && noneSelected) {
+    } else if (noneSelected) {
       includeAll = false
     }
 
