@@ -37,7 +37,7 @@ const config = {
 // embedded within the compiled javascript bundle and added
 // as a blob:// uri at runtime.
 config.module.loaders.push({
-  test: /\.scss$/,
+  test: /\.(scss|css)$/,
   loaders: ['style', 'css?sourceMap', 'sass?sourceMap']
 })
 
