@@ -2,7 +2,7 @@ import { Emitter, Disposable } from 'event-kit'
 import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
-import { FileChange } from '../../models/status'
+import { FileChange, WorkingDirectoryStatus } from '../../models/status'
 import { LocalGitOperations, Commit } from '../local-git-operations'
 import findIndex from '../find-index'
 
@@ -32,11 +32,8 @@ export default class AppStore {
     return this.emitter.on('did-update', fn)
   }
 
-  private getRepositoryState(repository: Repository): IRepositoryState {
-    let state = this.repositoryState.get(repository.id!)
-    if (state) { return state }
-
-    state = {
+  private getInitialRepositoryState(): IRepositoryState {
+    return {
       historyState: {
         selection: {
           commit: null,
@@ -45,8 +42,19 @@ export default class AppStore {
         commits: new Array<Commit>(),
         changedFiles: new Array<FileChange>(),
       },
+      changesState: {
+        workingDirectory: new WorkingDirectoryStatus(),
+        selectedPath: null,
+      },
       selectedSection: RepositorySection.History,
     }
+  }
+
+  private getRepositoryState(repository: Repository): IRepositoryState {
+    let state = this.repositoryState.get(repository.id!)
+    if (state) { return state }
+
+    state = this.getInitialRepositoryState()
     this.repositoryState.set(repository.id!, state)
     return state
   }
@@ -59,6 +67,7 @@ export default class AppStore {
     const currentState = this.getRepositoryState(repository)
     const newState: IRepositoryState = {
       historyState,
+      changesState: currentState.changesState,
       selectedSection: currentState.selectedSection,
     }
 
@@ -167,6 +176,7 @@ export default class AppStore {
     const currentState = this.getRepositoryState(repository)
     const newState: IRepositoryState = {
       historyState: currentState.historyState,
+      changesState: currentState.changesState,
       selectedSection: section,
     }
     this.updateRepositoryState(repository, newState)
