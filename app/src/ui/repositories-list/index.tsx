@@ -4,7 +4,7 @@ import List from '../list'
 import RepositoryListItem from './repository-list-item'
 import Repository from '../../models/repository'
 import { groupRepositories, RepositoryListItem as RepositoryListItemModel } from './group-repositories'
-import findIndex from '../../lib/find-index'
+import { findIndex } from '../../lib/find'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repository | null

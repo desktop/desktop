@@ -4,7 +4,7 @@ import User from '../../models/user'
 import Repository from '../../models/repository'
 import { FileChange, WorkingDirectoryStatus } from '../../models/status'
 import { LocalGitOperations, Commit } from '../local-git-operations'
-import findIndex from '../find-index'
+import { findIndex } from '../find'
 
 export default class AppStore {
   private emitter = new Emitter()
