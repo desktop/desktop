@@ -101,3 +101,7 @@ button {
 .hide-when-empty:empty {
   display: none;
 }
+
+.bg-alt {
+  background-color: var(--box-alt-background-color);
+}
