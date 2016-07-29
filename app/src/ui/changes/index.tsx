@@ -18,12 +18,12 @@ export class Changes extends React.Component<IChangesProps, void> {
     this.props.dispatcher.commitSelectedChanges(this.props.repository, title)
   }
 
-  private handleSelectionChanged(row: number) {
+  private onSelectionChanged(row: number) {
     const file = this.props.changes.workingDirectory.files[row]
     this.props.dispatcher.changeChangesSelection(this.props.repository, file.path)
   }
 
-  private handleIncludeChanged(row: number, include: boolean) {
+  private onIncludeChanged(row: number, include: boolean) {
 
     const workingDirectory = this.props.changes.workingDirectory
 
@@ -55,7 +55,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     this.setState(Object.assign({}, this.state, { workingDirectory: workingDirectory }))
   }
 
-  private handleSelectAll(selectAll: boolean) {
+  private onSelectAll(selectAll: boolean) {
     const workingDirectory = this.props.changes.workingDirectory
 
     workingDirectory.includeAll = selectAll
@@ -84,10 +84,10 @@ export class Changes extends React.Component<IChangesProps, void> {
         <ChangesList repository={this.props.repository}
                      workingDirectory={this.props.changes.workingDirectory}
                      selectedPath={this.props.changes.selectedPath!}
-                     onSelectionChanged={event => this.handleSelectionChanged(event)}
+                     onSelectionChanged={event => this.onSelectionChanged(event)}
                      onCreateCommit={title => this.onCreateCommit(title)}
-                     onIncludeChanged={(row, include) => this.handleIncludeChanged(row, include) }
-                     onSelectAll={selectAll => this.handleSelectAll(selectAll) }/>
+                     onIncludeChanged={(row, include) => this.onIncludeChanged(row, include) }
+                     onSelectAll={selectAll => this.onSelectAll(selectAll) }/>
 
          <FileDiff repository={this.props.repository}
                    relativePath={this.props.changes.selectedPath}
