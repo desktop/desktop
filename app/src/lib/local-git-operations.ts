@@ -302,14 +302,16 @@ export class LocalGitOperations {
     * A specific commit related to the file may be provided, otherwise the
     * working directory state will be used.
     */
-  public static getDiff(repository: Repository, relativePath: string, commit: Commit | null): Promise<Diff> {
+  public static getDiff(repository: Repository, file: FileChange, commit: Commit | null): Promise<Diff> {
 
     let args: string[]
 
     if (commit) {
-      args = [ 'show', commit.sha, '--patch-with-raw', '-z', '--', relativePath ]
+      args = [ 'show', commit.sha, '--patch-with-raw', '-z', '--', file.path ]
+    } else if (file.status === FileStatus.New) {
+      args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
     } else {
-      args = [ 'diff', '--patch-with-raw', '-z', '--', relativePath ]
+      args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
     }
 
     return GitProcess.execWithOutput(args, repository.path)
