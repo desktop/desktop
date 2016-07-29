@@ -1,7 +1,7 @@
 import User from '../models/user'
 import Repository from '../models/repository'
 import { Commit } from './local-git-operations'
-import { FileChange, WorkingDirectoryStatus } from '../models/status'
+import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 
 /** All of the shared app state. */
 export interface IAppState {
@@ -36,5 +36,5 @@ export interface IHistoryState {
 
 export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
-  readonly selectedPath: string | null
+  readonly selectedFile: WorkingDirectoryFileChange | null
 }

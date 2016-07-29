@@ -145,8 +145,8 @@ export class Dispatcher {
     return this.store._changeRepositorySection(repository, section)
   }
 
-  public changeChangesSelection(repository: Repository, selectedPath: string | null): Promise<void> {
-    return this.store._changeChangesSelection(repository, selectedPath)
+  public changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
+    return this.store._changeChangesSelection(repository, selectedFile)
   }
 
   public commitSelectedChanges(repository: Repository, title: string): Promise<void> {

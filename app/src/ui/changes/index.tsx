@@ -4,7 +4,6 @@ import FileDiff from '../file-diff'
 import { IChangesState } from '../../lib/app-state'
 import Repository from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
-import { find } from '../../lib/find'
 
 interface IChangesProps {
   repository: Repository
@@ -21,7 +20,7 @@ export class Changes extends React.Component<IChangesProps, void> {
 
   private onSelectionChanged(row: number) {
     const file = this.props.changes.workingDirectory.files[row]
-    this.props.dispatcher.changeChangesSelection(this.props.repository, file.path)
+    this.props.dispatcher.changeChangesSelection(this.props.repository, file)
   }
 
   private onIncludeChanged(row: number, include: boolean) {
@@ -62,22 +61,19 @@ export class Changes extends React.Component<IChangesProps, void> {
       return this.renderNoSelection()
     }
 
-    const selectedFile = find(this.props.changes.workingDirectory.files, f => {
-      return f.path === this.props.changes.selectedPath
-    })
-
+    const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
     return (
       <div id='changes'>
         <ChangesList repository={this.props.repository}
                      workingDirectory={this.props.changes.workingDirectory}
-                     selectedPath={this.props.changes.selectedPath!}
+                     selectedPath={selectedPath}
                      onSelectionChanged={event => this.onSelectionChanged(event)}
                      onCreateCommit={title => this.onCreateCommit(title)}
                      onIncludeChanged={(row, include) => this.onIncludeChanged(row, include) }
                      onSelectAll={selectAll => this.onSelectAll(selectAll) }/>
 
          <FileDiff repository={this.props.repository}
-                   file={selectedFile ? selectedFile : null}
+                   file={this.props.changes.selectedFile}
                    readOnly={false}
                    commit={null} />
       </div>

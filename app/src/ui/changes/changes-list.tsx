@@ -12,7 +12,7 @@ const RowHeight = 20
 interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
-  readonly selectedPath: string
+  readonly selectedPath: string | null
   readonly onSelectionChanged: (row: number) => void
   readonly onIncludeChanged: (row: number, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void

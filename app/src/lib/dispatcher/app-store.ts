@@ -44,7 +44,7 @@ export default class AppStore {
       },
       changesState: {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
-        selectedPath: null,
+        selectedFile: null,
       },
       selectedSection: RepositorySection.History,
     }
@@ -193,7 +193,7 @@ export default class AppStore {
       historyState: currentState.historyState,
       changesState: {
         workingDirectory,
-        selectedPath: null,
+        selectedFile: null,
       },
       selectedSection: currentState.selectedSection,
     }
@@ -218,13 +218,13 @@ export default class AppStore {
     }
   }
 
-  public _changeChangesSelection(repository: Repository, selectedPath: string | null): Promise<void> {
+  public _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
     const currentState = this.getRepositoryState(repository)
     const newState: IRepositoryState = {
       historyState: currentState.historyState,
       changesState: {
         workingDirectory: currentState.changesState.workingDirectory,
-        selectedPath,
+        selectedFile,
       },
       selectedSection: currentState.selectedSection,
     }
@@ -267,7 +267,7 @@ export default class AppStore {
       selectedSection: state.selectedSection,
       changesState: {
         workingDirectory: new WorkingDirectoryStatus(files, includeAll),
-        selectedPath: state.changesState.selectedPath,
+        selectedFile: state.changesState.selectedFile,
       },
       historyState: state.historyState,
     }
@@ -284,7 +284,7 @@ export default class AppStore {
       selectedSection: state.selectedSection,
       changesState: {
         workingDirectory: state.changesState.workingDirectory.withIncludeAllFiles(includeAll),
-        selectedPath: state.changesState.selectedPath,
+        selectedFile: state.changesState.selectedFile,
       },
       historyState: state.historyState,
     }
