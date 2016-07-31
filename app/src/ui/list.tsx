@@ -154,7 +154,15 @@ export default class List extends React.Component<IListProps, void> {
               autoContainerWidth
               width={width}
               height={height}
-              columnWidth={width}
+              // Hack:
+              // The autosizer doesn't take custom scrollbars into account and
+              // will thus give us the outer dimensions of the list. Our items,
+              // however simply can't render all the way out to the edge due
+              // to limitations in webkit custom scrollbars which enforces a
+              // padding. This results in content being clipped. By reducing
+              // the width of columns (rows in our case) we avoid rendering
+              // where our scrollbar clips us. See also _scroll.scss.
+              columnWidth={width - 10}
               columnCount={1}
               rowCount={this.props.rowCount}
               rowHeight={this.props.rowHeight}
