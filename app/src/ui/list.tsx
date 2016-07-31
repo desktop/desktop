@@ -147,7 +147,7 @@ export default class List extends React.Component<IListProps, void> {
            ref='list'
            tabIndex={tabIndex}
            onKeyDown={e => this.handleKeyDown(e)}
-           style={{ display: 'flex', flex: '1 1 auto' }}>
+           style={{ flexGrow: 1, flexShrink: 0 }}>
         <AutoSizer>
           {({ width, height }: { width: number, height: number }) => (
             <Grid
