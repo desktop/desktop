@@ -1,5 +1,5 @@
 import * as React from 'react'
-const { VirtualScroll, AutoSizer } = require('react-virtualized')
+const { Grid, AutoSizer } = require('react-virtualized')
 
 interface IListProps {
   rowRenderer: (row: number) => JSX.Element
@@ -149,15 +149,18 @@ export default class List extends React.Component<IListProps, void> {
            style={{ display: 'flex', flex: '1 1 auto' }}>
         <AutoSizer>
           {({ width, height }: { width: number, height: number }) => (
-            <VirtualScroll
+            <Grid
+              autoContainerWidth
               width={width}
               height={height}
+              columnWidth={width}
+              columnCount={1}
               rowCount={this.props.rowCount}
               rowHeight={this.props.rowHeight}
-              rowRenderer={this.renderRow}
-              // VirtualScroll doesn't actually _do_ anything with
+              cellRenderer={this.renderRow}
+              // Grid doesn't actually _do_ anything with
               // `selectedRow`. We're just passing it through so that
-              // VirtualScroll will re-render when it changes.
+              // Grid will re-render when it changes.
               selectedRow={this.props.selectedRow}/>
           )}
         </AutoSizer>
