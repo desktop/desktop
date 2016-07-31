@@ -150,7 +150,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
                             loading={this.state.repositories.length === 0}/>
         </Sidebar>
         <RepositoryView repository={this.state.selectedRepository!}
-                        history={this.state.history}
+                        state={this.state.repositoryState!}
                         dispatcher={this.props.dispatcher}/>
       </div>
     )

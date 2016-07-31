@@ -4,6 +4,7 @@ import List from '../list'
 import RepositoryListItem from './repository-list-item'
 import Repository from '../../models/repository'
 import { groupRepositories, RepositoryListItem as RepositoryListItemModel } from './group-repositories'
+import findIndex from '../../lib/find-index'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repository | null
@@ -29,18 +30,14 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
     const selectedRepository = this.props.selectedRepository
     if (!selectedRepository) { return -1 }
 
-    let index = -1
-    groupedItems.forEach((item, i) => {
+    return findIndex(groupedItems, item => {
       if (item.kind === 'repository') {
         const repository = item.repository
-        if (repository.id === selectedRepository.id) {
-          index = i
-          return
-        }
+        return repository.id === selectedRepository.id
+      } else {
+        return false
       }
     })
-
-    return index
   }
 
   private onSelectionChanged(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {

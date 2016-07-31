@@ -43,12 +43,14 @@ export class Dispatcher {
 
   public constructor(store: AppStore) {
     this.store = store
+
+    ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
 
   public async loadInitialState(): Promise<void> {
     const users = await this.loadUsers()
     const repositories = await this.loadRepositories()
-    this.store._loadInitialState(users, repositories)
+    this.store._loadFromSharedProcess(users, repositories)
   }
 
   private dispatchToSharedProcess<T>(action: Action): Promise<T> {
@@ -82,6 +84,13 @@ export class Dispatcher {
 
     ipcRenderer.send('shared/request', [ { guid: requestGuid, name, args } ])
     return promise
+  }
+
+  private onSharedDidUpdate(event: Electron.IpcRendererEvent, args: any[]) {
+    const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IUser>} = args[0].state
+    const inflatedUsers = state.users.map(User.fromJSON)
+    const inflatedRepositories = state.repositories.map(Repository.fromJSON)
+    this.store._loadFromSharedProcess(inflatedUsers, inflatedRepositories)
   }
 
   /** Get the users */

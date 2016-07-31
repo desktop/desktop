@@ -9,7 +9,11 @@ export interface IAppState {
   readonly repositories: ReadonlyArray<Repository>
   readonly selectedRepository: Repository | null
 
-  readonly history: IHistoryState
+  readonly repositoryState: IRepositoryState | null
+}
+
+export interface IRepositoryState {
+  readonly historyState: IHistoryState
 }
 
 export interface IHistorySelection {
