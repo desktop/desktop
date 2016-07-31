@@ -5,7 +5,7 @@ import { Changes } from './changes'
 import History from './history'
 import ComparisonGraph from './comparison-graph'
 import { TabBarTab } from './toolbar/tab-bar'
-import { IRepositoryState as IRepositoryModelState } from '../lib/app-state'
+import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 
 interface IRepositoryProps {
@@ -14,17 +14,7 @@ interface IRepositoryProps {
   dispatcher: Dispatcher
 }
 
-interface IRepositoryState {
-  selectedTab: TabBarTab
-}
-
-export default class Repository extends React.Component<IRepositoryProps, IRepositoryState> {
-  public constructor(props: IRepositoryProps) {
-    super(props)
-
-    this.state = { selectedTab: TabBarTab.Changes }
-  }
-
+export default class Repository extends React.Component<IRepositoryProps, void> {
   private renderNoSelection() {
     return (
       <div>
@@ -34,9 +24,11 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
   }
 
   private renderContent() {
-    if (this.state.selectedTab === TabBarTab.Changes) {
-      return <Changes repository={this.props.repository}/>
-    } else if (this.state.selectedTab === TabBarTab.History) {
+    if (this.props.state.selectedSection === RepositorySection.Changes) {
+      return <Changes repository={this.props.repository}
+                      dispatcher={this.props.dispatcher}
+                      changes={this.props.state.changesState}/>
+    } else if (this.props.state.selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
                       history={this.props.state.historyState}/>
@@ -51,9 +43,10 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
       return this.renderNoSelection()
     }
 
+    const selectedTab = this.props.state.selectedSection === RepositorySection.History ? TabBarTab.History : TabBarTab.Changes
     return (
       <div id='repository'>
-        <Toolbar selectedTab={this.state.selectedTab} onTabClicked={tab => this.onTabClicked(tab)}/>
+        <Toolbar selectedTab={selectedTab} onTabClicked={tab => this.onTabClicked(tab)}/>
         <ComparisonGraph/>
         {this.renderContent()}
       </div>
@@ -61,10 +54,7 @@ export default class Repository extends React.Component<IRepositoryProps, IRepos
   }
 
   private onTabClicked(tab: TabBarTab) {
-    this.setState(Object.assign({}, this.state, { selectedTab: tab }))
-
-    if (tab === TabBarTab.History) {
-      this.props.dispatcher.loadHistory(this.props.repository)
-    }
+    const section = tab === TabBarTab.History ? RepositorySection.History : RepositorySection.Changes
+    this.props.dispatcher.changeRepositorySection(this.props.repository, section)
   }
 }

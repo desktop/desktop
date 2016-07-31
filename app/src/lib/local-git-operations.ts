@@ -13,7 +13,7 @@ export class StatusResult {
 
   /** factory method when 'git status' is unsuccessful */
   public static NotFound(): StatusResult {
-    return new StatusResult(false, new WorkingDirectoryStatus())
+    return new StatusResult(false, new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true))
   }
 
   /** factory method for a successful 'git status' result  */
@@ -201,7 +201,7 @@ export class LocalGitOperations {
             const regex = /([\? \w]{2}) (.*)/
             const regexGroups = { mode: 1, path: 2 }
 
-            const workingDirectory = new WorkingDirectoryStatus()
+            const files = new Array<WorkingDirectoryFileChange>()
 
             for (const index in lines) {
               const line = lines[index]
@@ -211,12 +211,12 @@ export class LocalGitOperations {
                 const modeText = result[regexGroups.mode]
                 const path = result[regexGroups.path]
 
-                const mode = this.mapStatus(modeText)
-                workingDirectory.add(path, mode)
+                const status = this.mapStatus(modeText)
+                files.push(new WorkingDirectoryFileChange(path, status, true))
               }
             }
 
-            return StatusResult.FromStatus(workingDirectory)
+            return StatusResult.FromStatus(new WorkingDirectoryStatus(files, true))
         })
         .catch(error => {
           if (error) {
@@ -256,7 +256,7 @@ export class LocalGitOperations {
       })
   }
 
-  public static createCommit(repository: Repository, title: string, files: WorkingDirectoryFileChange[]) {
+  public static createCommit(repository: Repository, title: string, files: ReadonlyArray<WorkingDirectoryFileChange>) {
     return this.resolveHEAD(repository)
       .then(result => {
         let resetArgs = [ 'reset' ]
