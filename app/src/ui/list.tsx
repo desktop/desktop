@@ -107,20 +107,21 @@ export default class List extends React.Component<IListProps, void> {
     }
   }
 
-  private renderRow = ({ index }: { index: number }) => {
-    const selected = index === this.props.selectedRow
+  private renderRow = ({ rowIndex }: { rowIndex: number }) => {
+
+    const selected = rowIndex === this.props.selectedRow
     const className = selected ? 'list-item selected' : 'list-item'
     const tabIndex = selected ? 0 : -1
 
     // We don't care about mouse events on the selected item
-    const onMouseDown = selected ? null : () => this.handleMouseDown(index)
+    const onMouseDown = selected ? null : () => this.handleMouseDown(rowIndex)
 
     // We only need to keep a reference to the selected element
     const ref = selected
       ? (c: HTMLDivElement) => { this.selectedItem = c }
       : null
 
-    const element = this.props.rowRenderer(index)
+    const element = this.props.rowRenderer(rowIndex)
     return (
       <div key={element.key}
            role='button'
