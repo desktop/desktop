@@ -63,7 +63,11 @@
       padding: 0;
       margin: 0;
       overflow: hidden;
+
+      // Reset styles from global buttons
       border: none;
+      box-shadow: none;
+      border-radius: 0;
 
       color: #000;
       background-color: transparent;
