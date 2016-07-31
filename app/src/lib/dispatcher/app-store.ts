@@ -304,4 +304,17 @@ export default class AppStore {
 
     return Promise.resolve()
   }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _refreshRepository(repository: Repository): Promise<void> {
+    const state = this.getRepositoryState(repository)
+
+    if (state.selectedSection === RepositorySection.History) {
+      return this._loadHistory(repository)
+    } else if (state.selectedSection === RepositorySection.Changes) {
+      return this._loadStatus(repository)
+    }
+
+    return Promise.resolve()
+  }
 }

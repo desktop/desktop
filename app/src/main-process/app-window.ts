@@ -70,6 +70,10 @@ export default class AppWindow {
       this.window.show()
     })
 
+    this.window.on('focus', () => {
+      this.window.webContents.send('focus')
+    })
+
     this.registerWindowStateChangedEvents()
 
     // We don't have a menu bar on windows so we'll cheat
