@@ -512,4 +512,19 @@ export class LocalGitOperations {
       return null
     }
   }
+
+  /** Get the number of commits in HEAD. */
+  public static async getCommitCount(repository: Repository): Promise<number> {
+    try {
+      const count = await GitProcess.execWithOutput([ 'rev-list', '--count', 'HEAD' ], repository.path)
+      return parseInt(count.trim(), 10)
+    } catch (e) {
+      // Git exits with 1 if there's the branch is unborn. We should do more
+      // specific error parsing than this, but for now it'll do.
+      if (e.code !== 1) {
+        throw e
+      }
+      return 0
+    }
+  }
 }
