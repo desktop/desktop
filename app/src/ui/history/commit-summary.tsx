@@ -50,7 +50,7 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
 
           <ul className='commit-summary-meta'>
             <li className='commit-summary-meta-item byline' aria-label='Author'>
-              <span className='commit-summary-meta-icon'aria-hidden='true'>
+              <span aria-hidden='true'>
                 <Octicon symbol={OcticonSymbol.person} />
               </span>
 
@@ -58,14 +58,14 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
             </li>
 
             <li className='commit-summary-meta-item byline' aria-label='SHA'>
-              <span className='commit-summary-meta-icon' aria-hidden='true'>
+              <span aria-hidden='true'>
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
               {this.props.sha.slice(0,7)}
             </li>
 
             <li className='commit-summary-meta-item byline'>
-              <span className='commit-summary-meta-icon' aria-hidden='true'>
+              <span aria-hidden='true'>
                 <Octicon symbol={OcticonSymbol.diff} />
               </span>
               {this.props.files.length} changed files

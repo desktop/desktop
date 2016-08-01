@@ -49,9 +49,9 @@
   &-meta-item {
     float: left;
     margin-right: var(--spacing);
-  }
 
-  &-meta-icon svg {
-    vertical-align: bottom;
+    .octicon {
+      vertical-align: bottom;
+    }
   }
 }
