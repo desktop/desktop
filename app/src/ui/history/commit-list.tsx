@@ -7,6 +7,7 @@ interface ICommitListProps {
   readonly onCommitSelected: (commit: Commit) => void
   readonly commits: ReadonlyArray<Commit>
   readonly selectedCommit: Commit | null
+  readonly commitCount: number
 }
 
 /** A component which displays the list of commits. */
@@ -38,7 +39,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
   public render() {
     return (
       <div className='panel' id='commit-list'>
-        <List rowCount={this.props.commits.length}
+        <List rowCount={this.props.commitCount}
               rowHeight={68}
               selectedRow={this.rowForCommit(this.props.selectedCommit)}
               rowRenderer={row => this.renderCommit(row)}

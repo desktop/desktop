@@ -43,6 +43,7 @@ export default class History extends React.Component<IHistoryProps, void> {
     return (
       <div className='panel-container' id='history'>
         <CommitList commits={this.props.history.commits}
+                    commitCount={this.props.history.commitCount}
                     selectedCommit={commit}
                     onCommitSelected={commit => this.onCommitSelected(commit)}/>
         <CommitSummaryContainer repository={this.props.repository}
