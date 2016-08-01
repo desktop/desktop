@@ -47,6 +47,7 @@ export default class AppStore {
         selectedFile: null,
       },
       selectedSection: RepositorySection.History,
+      branch: null,
     }
   }
 
@@ -69,6 +70,7 @@ export default class AppStore {
       historyState,
       changesState: currentState.changesState,
       selectedSection: currentState.selectedSection,
+      branch: currentState.branch,
     }
 
     this.updateRepositoryState(repository, newState)
@@ -198,6 +200,7 @@ export default class AppStore {
         selectedFile: null,
       },
       selectedSection: currentState.selectedSection,
+      branch: currentState.branch,
     }
     this.updateRepositoryState(repository, newState)
     this.emitUpdate()
@@ -210,6 +213,7 @@ export default class AppStore {
       historyState: currentState.historyState,
       changesState: currentState.changesState,
       selectedSection: section,
+      branch: currentState.branch,
     }
     this.updateRepositoryState(repository, newState)
     this.emitUpdate()
@@ -231,6 +235,7 @@ export default class AppStore {
         selectedFile,
       },
       selectedSection: currentState.selectedSection,
+      branch: currentState.branch,
     }
     this.updateRepositoryState(repository, newState)
     this.emitUpdate()
@@ -279,6 +284,7 @@ export default class AppStore {
         selectedFile: state.changesState.selectedFile,
       },
       historyState: state.historyState,
+      branch: state.branch,
     }
 
     this.updateRepositoryState(repository, newState)
@@ -297,6 +303,7 @@ export default class AppStore {
         selectedFile: state.changesState.selectedFile,
       },
       historyState: state.historyState,
+      branch: state.branch,
     }
 
     this.updateRepositoryState(repository, newState)
