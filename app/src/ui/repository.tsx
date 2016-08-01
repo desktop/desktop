@@ -27,7 +27,8 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
     if (this.props.state.selectedSection === RepositorySection.Changes) {
       return <Changes repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
-                      changes={this.props.state.changesState}/>
+                      changes={this.props.state.changesState}
+                      branch={this.props.state.branch}/>
     } else if (this.props.state.selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
