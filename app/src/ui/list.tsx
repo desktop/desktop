@@ -1,5 +1,5 @@
 import * as React from 'react'
-const { VirtualScroll, AutoSizer } = require('react-virtualized')
+const { Grid, AutoSizer } = require('react-virtualized')
 
 interface IListProps {
   rowRenderer: (row: number) => JSX.Element
@@ -107,20 +107,21 @@ export default class List extends React.Component<IListProps, void> {
     }
   }
 
-  private renderRow = ({ index }: { index: number }) => {
-    const selected = index === this.props.selectedRow
+  private renderRow = ({ rowIndex }: { rowIndex: number }) => {
+
+    const selected = rowIndex === this.props.selectedRow
     const className = selected ? 'list-item selected' : 'list-item'
     const tabIndex = selected ? 0 : -1
 
     // We don't care about mouse events on the selected item
-    const onMouseDown = selected ? null : () => this.handleMouseDown(index)
+    const onMouseDown = selected ? null : () => this.handleMouseDown(rowIndex)
 
     // We only need to keep a reference to the selected element
     const ref = selected
       ? (c: HTMLDivElement) => { this.selectedItem = c }
       : null
 
-    const element = this.props.rowRenderer(index)
+    const element = this.props.rowRenderer(rowIndex)
     return (
       <div key={element.key}
            role='button'
@@ -134,7 +135,6 @@ export default class List extends React.Component<IListProps, void> {
   }
 
   public render() {
-    const className = 'list list-virtualized'
     // The currently selected list item is focusable but if
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
@@ -142,22 +142,33 @@ export default class List extends React.Component<IListProps, void> {
     const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : -1
     return (
       <div id={this.props.id}
-           className={className}
+           className='list'
            ref='list'
            tabIndex={tabIndex}
            onKeyDown={e => this.handleKeyDown(e)}
-           style={{ display: 'flex', flex: '1 1 auto' }}>
+           style={{ flexGrow: 1 }}>
         <AutoSizer>
           {({ width, height }: { width: number, height: number }) => (
-            <VirtualScroll
+            <Grid
+              autoContainerWidth
               width={width}
               height={height}
+              // Hack:
+              // The autosizer doesn't take custom scrollbars into account and
+              // will thus give us the outer dimensions of the list. Our items,
+              // however simply can't render all the way out to the edge due
+              // to limitations in webkit custom scrollbars which enforces a
+              // padding. This results in content being clipped. By reducing
+              // the width of columns (rows in our case) we avoid rendering
+              // where our scrollbar clips us. See also _scroll.scss.
+              columnWidth={width - 10}
+              columnCount={1}
               rowCount={this.props.rowCount}
               rowHeight={this.props.rowHeight}
-              rowRenderer={this.renderRow}
-              // VirtualScroll doesn't actually _do_ anything with
+              cellRenderer={this.renderRow}
+              // Grid doesn't actually _do_ anything with
               // `selectedRow`. We're just passing it through so that
-              // VirtualScroll will re-render when it changes.
+              // Grid will re-render when it changes.
               selectedRow={this.props.selectedRow}/>
           )}
         </AutoSizer>

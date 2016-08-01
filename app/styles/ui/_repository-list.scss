@@ -11,14 +11,6 @@
     border-radius: 0 5px 5px 0;
   }
 
-  // Since the scroll bar decreases the inner width of the contianer
-  // it'll appear as if the list items jump around when the scrollbar is added
-  // or removed. That coupled with the fact that the list items have a rounded
-  // forces us to always enable the scroll bar. The thumb won't be
-  // visible until the content is actually scrollable so essentially this is
-  // magic padding.
-  // overflow-y: scroll;
-
   /**
    * Container for repository list items in the sidebar
    *
