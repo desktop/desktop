@@ -146,13 +146,13 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _selectRepository(repository: Repository | null): Promise<void> {
+  public _selectRepository(repository: Repository | null): Promise<void> {
     this.selectedRepository = repository
     this.emitUpdate()
 
-    if (repository) {
-      this._changeRepositorySection(repository, this.getCurrentRepositoryState()!.selectedSection)
-    }
+    if (!repository) { return Promise.resolve() }
+
+    return this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -306,15 +306,17 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _refreshRepository(repository: Repository): Promise<void> {
+  public async _refreshRepository(repository: Repository): Promise<void> {
     const state = this.getRepositoryState(repository)
 
-    if (state.selectedSection === RepositorySection.History) {
-      return this._loadHistory(repository)
-    } else if (state.selectedSection === RepositorySection.Changes) {
-      return this._loadStatus(repository)
-    }
+    // When refreshing we *always* load Changes so that we can update the
+    // changes indicator in the tab bar. But we only load History if it's
+    // selected.
+    await this._loadStatus(repository)
 
-    return Promise.resolve()
+    const section = state.selectedSection
+    if (section === RepositorySection.History) {
+      return this._loadHistory(repository)
+    }
   }
 }

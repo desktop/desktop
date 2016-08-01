@@ -28,6 +28,20 @@
     &.selected {
       background-color: var(--box-selected-text-color);
       color: var(--box-selected-background-color);
+
+      .indicator {
+        background-color: var(--box-selected-background-color);
+      }
+    }
+
+    .indicator {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      margin-left: 4px;
+
+      background-color: var(--box-border-color);
+      border-radius: 50%;
     }
   }
 
