@@ -1,0 +1,16 @@
+.panel {
+  border-right: 1px solid var(--box-border-color);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.panel-container {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+}

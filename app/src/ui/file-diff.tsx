@@ -61,16 +61,17 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     if (this.props.file) {
       return (
-        <div id='file-diff'>
+        <div className='panel' id='file-diff'>
           <List id='diff-text'
                 itemCount={this.state.diff.lines.length}
                 itemHeight={RowHeight}
                 renderItem={row => this.renderRow(row)}
                 selectedRow={-1} />
-        </div>)
+        </div>
+      )
     } else {
       return (
-        <div className='blankslate' id='file-diff'>
+        <div className='panel blankslate' id='file-diff'>
           No file selected
         </div>
       )

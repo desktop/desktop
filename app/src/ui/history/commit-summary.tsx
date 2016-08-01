@@ -39,7 +39,7 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
 
   public render() {
     return (
-      <div>
+      <div className='panel'>
         <div>{this.props.summary}</div>
         <div>&nbsp;</div>
         <div>{this.props.body}</div>

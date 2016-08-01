@@ -41,7 +41,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     const includeAll = this.props.workingDirectory.includeAll
     const selectedRow = findIndex(this.props.workingDirectory.files, file => file.path === this.props.selectedPath)
     return (
-      <div id='changes-list'>
+      <div className='panel' id='changes-list'>
         <div id='select-all'>
           <input
             type='checkbox'

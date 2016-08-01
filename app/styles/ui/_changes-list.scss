@@ -2,10 +2,6 @@
 
 /** A React component holding the currently selected repository's changes */
 #changes-list {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-
   ul {
     list-style-type: none;
     overflow-y: scroll;
