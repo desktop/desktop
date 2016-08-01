@@ -46,11 +46,7 @@ module.exports = {
     try {
       // Attempt to resolve the module via Node
       require.resolve(request)
-      if (request.endsWith('.css')) {
-        callback()
-      } else {
-        callback(null, request)
-      }
+      callback(null, request)
     } catch (e) {
       // Node couldn't find it, so it must be user-aliased
       callback()
