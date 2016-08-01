@@ -23,12 +23,12 @@ export default class TabBar extends React.Component<ITabBarProps, void> {
       <div className='segmented-control'>
         <TabBarItem title='Changes'
                     selected={this.props.selectedTab === TabBarTab.Changes}
-                    onClick={() => this.props.onTabClicked(TabBarTab.Changes)}
-                    showIndicator={this.props.hasChanges}/>
+                    onClick={() => this.props.onTabClicked(TabBarTab.Changes)}>
+          {this.props.hasChanges ? <span className='indicator'/> : null}
+        </TabBarItem>
         <TabBarItem title='History'
                     selected={this.props.selectedTab === TabBarTab.History}
-                    onClick={() => this.props.onTabClicked(TabBarTab.History)}
-                    showIndicator={false}/>
+                    onClick={() => this.props.onTabClicked(TabBarTab.History)}/>
       </div>
     )
   }
@@ -38,16 +38,16 @@ interface ITabBarItemProps {
   title: string
   selected: boolean
   onClick: () => void
-  showIndicator: boolean
+  children?: JSX.Element[]
 }
 
-function TabBarItem({ title, selected, onClick, showIndicator }: ITabBarItemProps) {
+function TabBarItem({ title, selected, onClick, children }: ITabBarItemProps) {
   const className = selected ? 'selected' : ''
   return (
     <span className={'segmented-control-item ' + className}
          onClick={onClick}>
       <span>{title}</span>
-      {showIndicator ? <span className='indicator'/> : null}
+      {children}
     </span>
   )
 }
