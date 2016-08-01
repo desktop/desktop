@@ -71,7 +71,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       )
     } else {
       return (
-        <div className='panel' id='file-diff'>
+        <div className='panel blankslate' id='file-diff'>
           No file selected
         </div>
       )
