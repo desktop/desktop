@@ -55,7 +55,7 @@ export class Changes extends React.Component<IChangesProps, void> {
 
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
     return (
-      <div className='panel-container' id='changes'>
+      <div className='panel-container'>
         <ChangesList repository={this.props.repository}
                      workingDirectory={this.props.changes.workingDirectory}
                      selectedPath={selectedPath}
