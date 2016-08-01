@@ -40,6 +40,7 @@ export default class AppStore {
           file: null,
         },
         commits: new Array<Commit>(),
+        commitCount: 0,
         changedFiles: new Array<FileChange>(),
       },
       changesState: {
@@ -121,10 +122,11 @@ export default class AppStore {
       return
     }
 
-    const newHistory = {
+    const newHistory: IHistoryState = {
       commits: state.historyState.commits,
       selection,
       changedFiles,
+      commitCount: state.historyState.commitCount,
     }
     this.updateHistoryState(repository, newHistory)
     this.emitUpdate()
@@ -136,10 +138,11 @@ export default class AppStore {
     const commitChanged = state.historyState.selection.commit !== selection.commit
     const changedFiles = commitChanged ? new Array<FileChange>() : state.historyState.changedFiles
 
-    const newHistory = {
+    const newHistory: IHistoryState = {
       commits: state.historyState.commits,
       selection,
       changedFiles,
+      commitCount: state.historyState.commitCount,
     }
     this.updateHistoryState(repository, newHistory)
     this.emitUpdate()
