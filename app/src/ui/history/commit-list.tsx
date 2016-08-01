@@ -38,10 +38,10 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
   public render() {
     return (
       <div className='panel' id='commit-list'>
-        <List itemCount={this.props.commits.length}
-              itemHeight={68}
+        <List rowCount={this.props.commits.length}
+              rowHeight={68}
               selectedRow={this.rowForCommit(this.props.selectedCommit)}
-              renderItem={row => this.renderCommit(row)}
+              rowRenderer={row => this.renderCommit(row)}
               onSelectionChanged={row => this.onSelectionChanged(row)}/>
       </div>
     )

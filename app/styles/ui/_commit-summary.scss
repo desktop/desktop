@@ -3,10 +3,19 @@
 /** A React component holding the selected commit's detailed information */
 #commit-summary {
   .files {
+    display: flex;
+    flex: 1;
+
     .path {
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow: hidden;
     }
   }
+}
+
+#commit-summary-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
 }

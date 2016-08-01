@@ -29,8 +29,8 @@ const config = {
 // styles.css and a <link rel="stylesheet"> tag to be
 // appended to the index.html HEAD at compile time
 config.module.loaders.push({
-  test: /\.scss$/,
-  loader:  ExtractTextPlugin.extract('style-loader', 'css-loader!sass-loader')
+  test: /\.(scss|css)$/,
+  loader: ExtractTextPlugin.extract('style-loader', 'css-loader!sass-loader')
 })
 
 // Necessary to be able to use ExtractTextPlugin as a loader.

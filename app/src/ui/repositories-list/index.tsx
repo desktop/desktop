@@ -60,9 +60,9 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
     const grouped = groupRepositories(this.props.repos)
     return (
       <List id='repository-list'
-            itemCount={grouped.length}
-            itemHeight={RowHeight}
-            renderItem={row => this.renderRow(grouped, row)}
+            rowCount={grouped.length}
+            rowHeight={RowHeight}
+            rowRenderer={row => this.renderRow(grouped, row)}
             selectedRow={this.selectedRow(grouped)}
             onSelectionChanged={row => this.onSelectionChanged(grouped, row)}
             canSelectRow={row => this.canSelectRow(grouped, row)}/>
