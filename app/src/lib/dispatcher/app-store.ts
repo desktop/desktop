@@ -312,9 +312,26 @@ export default class AppStore {
     return Promise.resolve()
   }
 
+  private async refreshCurrentBranch(repository: Repository): Promise<void> {
+    const branch = await LocalGitOperations.getCurrentBranch(repository)
+
+    const state = this.getRepositoryState(repository)
+    const newState: IRepositoryState = {
+      selectedSection: state.selectedSection,
+      changesState: state.changesState,
+      historyState: state.historyState,
+      branch,
+    }
+
+    this.updateRepositoryState(repository, newState)
+    this.emitUpdate()
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _refreshRepository(repository: Repository): Promise<void> {
     const state = this.getRepositoryState(repository)
+
+    await this.refreshCurrentBranch(repository)
 
     // When refreshing we *always* load Changes so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
