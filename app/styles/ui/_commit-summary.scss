@@ -14,6 +14,27 @@
   }
 }
 
+.commit-summary {
+  &-title,
+  &-description {
+    border-bottom: 1px solid var(--box-border-color);
+    padding: 10px;
+  }
+
+  &-title {
+    font-size: 18px;
+    font-weight: 300;
+  }
+
+  &-description {
+    font-family: var(--font-family-monospace);
+
+    &:empty {
+      display: none;  
+    }
+  }
+}
+
 #commit-summary-container {
   display: flex;
   flex-direction: column;
