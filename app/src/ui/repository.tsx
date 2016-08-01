@@ -46,7 +46,9 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
     const selectedTab = this.props.state.selectedSection === RepositorySection.History ? TabBarTab.History : TabBarTab.Changes
     return (
       <div id='repository'>
-        <Toolbar selectedTab={selectedTab} onTabClicked={tab => this.onTabClicked(tab)}/>
+        <Toolbar selectedTab={selectedTab}
+                 onTabClicked={tab => this.onTabClicked(tab)}
+                 hasChanges={this.props.state.changesState.workingDirectory.files.length > 0}/>
         <ComparisonGraph/>
         {this.renderContent()}
       </div>
