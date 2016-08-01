@@ -31,4 +31,11 @@ function updateFullScreenBodyInfo(windowState: WindowState) {
 updateFullScreenBodyInfo(getWindowState(remote.getCurrentWindow()))
 ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(args as WindowState))
 
+ipcRenderer.on('focus', () => {
+  const repository = store.getState().selectedRepository
+  if (!repository) { return }
+
+  dispatcher.refreshRepository(repository)
+})
+
 ReactDOM.render(<App dispatcher={dispatcher} store={store}/>, document.getElementById('desktop-app-container')!)
