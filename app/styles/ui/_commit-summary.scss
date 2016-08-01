@@ -6,6 +6,11 @@
     display: flex;
     flex: 1;
 
+    .list-item {
+      border-bottom: 1px solid var(--box-border-color);
+      padding: 10px;
+    }
+
     .path {
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -30,7 +35,7 @@
     font-family: var(--font-family-monospace);
 
     &:empty {
-      display: none;  
+      display: none;
     }
   }
 }
