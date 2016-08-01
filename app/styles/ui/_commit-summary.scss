@@ -23,7 +23,7 @@
   &-title,
   &-description {
     border-bottom: 1px solid var(--box-border-color);
-    padding: 10px;
+    padding: var(--spacing);
   }
 
   &-title {
