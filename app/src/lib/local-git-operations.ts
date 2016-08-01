@@ -377,9 +377,10 @@ export class LocalGitOperations {
       })
   }
 
-  /** Get the repository's history. */
-  public static async getHistory(repository: Repository): Promise<ReadonlyArray<Commit>> {
-    const batchCount = 100
+  /**
+   * Get the repository's history, starting from `start` and limited to `limit`
+   */
+  public static async getHistory(repository: Repository, start: string, limit: number): Promise<ReadonlyArray<Commit>> {
     const delimiter = '1F'
     const delimeterString = String.fromCharCode(parseInt(delimiter, 16))
     const prettyFormat = [
@@ -390,7 +391,8 @@ export class LocalGitOperations {
       '%ae', // author email
       '%aI', // author date, ISO-8601
     ].join(`%x${delimiter}`)
-    const out = await GitProcess.execWithOutput([ 'log', `--max-count=${batchCount}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
+
+    const out = await GitProcess.execWithOutput([ 'log', start, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
     const lines = out.split('\0')
     // Remove the trailing empty line
     lines.splice(-1, 1)

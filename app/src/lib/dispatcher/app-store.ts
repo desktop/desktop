@@ -93,14 +93,17 @@ export default class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadHistory(repository: Repository): Promise<void> {
-    const commits = await LocalGitOperations.getHistory(repository)
+    const commits = await LocalGitOperations.getHistory(repository, 'HEAD', 100)
+    const commitCount = await LocalGitOperations.getCommitCount(repository)
+
     const state = this.getRepositoryState(repository)
     const historyState = state.historyState
 
-    const newHistory = {
+    const newHistory: IHistoryState = {
       commits,
       selection: historyState.selection,
       changedFiles: historyState.changedFiles,
+      commitCount,
     }
     this.updateHistoryState(repository, newHistory)
     this.emitUpdate()
