@@ -49,7 +49,8 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
           </div>
 
           <ul className='commit-summary-meta byline'>
-            <li className='commit-summary-meta-item' aria-label='Author'>
+            <li className='commit-summary-meta-item'
+              title={this.props.authorName} aria-label='Author'>
               <span aria-hidden='true'>
                 <Octicon symbol={OcticonSymbol.person} />
               </span>
@@ -57,14 +58,16 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
               {this.props.authorName}
             </li>
 
-            <li className='commit-summary-meta-item' aria-label='SHA'>
+            <li className='commit-summary-meta-item'
+              title={this.props.sha.slice(0,7)} aria-label='SHA'>
               <span aria-hidden='true'>
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
               {this.props.sha.slice(0,7)}
             </li>
 
-            <li className='commit-summary-meta-item'>
+            <li className='commit-summary-meta-item'
+              title={this.props.files.length + ' changed files'}>
               <span aria-hidden='true'>
                 <Octicon symbol={OcticonSymbol.diff} />
               </span>
