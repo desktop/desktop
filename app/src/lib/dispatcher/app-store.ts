@@ -7,7 +7,7 @@ import { LocalGitOperations, Commit } from '../local-git-operations'
 import { findIndex } from '../find'
 
 /** The number of commits to load from history per batch. */
-const CommitBatchSize = 100
+const CommitBatchSize = 10
 
 export default class AppStore {
   private emitter = new Emitter()
@@ -45,7 +45,7 @@ export default class AppStore {
         commits: new Array<Commit>(),
         commitCount: 0,
         changedFiles: new Array<FileChange>(),
-        loading: true,
+        loadsInProgress: 1,
       },
       changesState: {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
@@ -118,7 +118,7 @@ export default class AppStore {
         selection: state.selection,
         changedFiles: state.changedFiles,
         commitCount: state.commitCount,
-        loading: true
+        loadsInProgress: state.loadsInProgress + 1
       }
     })
     this.emitUpdate()
@@ -132,7 +132,7 @@ export default class AppStore {
         selection: state.selection,
         changedFiles: state.changedFiles,
         commitCount,
-        loading: false,
+        loadsInProgress: state.loadsInProgress - 1
       }
     })
     this.emitUpdate()
@@ -141,7 +141,7 @@ export default class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadNextHistoryBatch(repository: Repository): Promise<void> {
     const state = this.getRepositoryState(repository)
-    if (state.historyState.loading) {
+    if (state.historyState.loadsInProgress > 0) {
       return
     }
 
@@ -151,7 +151,7 @@ export default class AppStore {
         selection: state.selection,
         changedFiles: state.changedFiles,
         commitCount: state.commitCount,
-        loading: true
+        loadsInProgress: state.loadsInProgress + 1,
       }
     })
     this.emitUpdate()
@@ -165,7 +165,7 @@ export default class AppStore {
         selection: state.selection,
         changedFiles: state.changedFiles,
         commitCount: state.commitCount,
-        loading: false,
+        loadsInProgress: state.loadsInProgress - 1,
       }
     })
     this.emitUpdate()
@@ -193,7 +193,7 @@ export default class AppStore {
         selection,
         changedFiles,
         commitCount: state.commitCount,
-        loading: state.loading,
+        loadsInProgress: state.loadsInProgress,
       }
     })
     this.emitUpdate()
@@ -210,7 +210,7 @@ export default class AppStore {
         selection,
         changedFiles,
         commitCount: state.commitCount,
-        loading: state.loading,
+        loadsInProgress: state.loadsInProgress,
       }
     })
     this.emitUpdate()
