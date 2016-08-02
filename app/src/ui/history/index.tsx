@@ -38,6 +38,7 @@ export default class History extends React.Component<IHistoryProps, void> {
     const lastVisibleCommit: Commit | null = commits[end]
     if (!lastVisibleCommit) {
       console.log('LOAD MORE')
+      this.props.dispatcher.loadNextHistoryBatch(this.props.repository)
     }
   }
 

@@ -6,6 +6,9 @@ import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '
 import { LocalGitOperations, Commit } from '../local-git-operations'
 import { findIndex } from '../find'
 
+/** The number of commits to load from history per batch. */
+const CommitBatchSize = 100
+
 export default class AppStore {
   private emitter = new Emitter()
 
@@ -108,7 +111,7 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadHistory(repository: Repository, ref: string): Promise<void> {
+  public async _loadHistory(repository: Repository): Promise<void> {
     this.updateHistoryState(repository, state => {
       return {
         commits: state.commits,
@@ -120,7 +123,7 @@ export default class AppStore {
     })
     this.emitUpdate()
 
-    const commits = await LocalGitOperations.getHistory(repository, ref, 100)
+    const commits = await LocalGitOperations.getHistory(repository, 'HEAD', CommitBatchSize)
     const commitCount = await LocalGitOperations.getCommitCount(repository)
 
     this.updateHistoryState(repository, state => {
@@ -129,6 +132,39 @@ export default class AppStore {
         selection: state.selection,
         changedFiles: state.changedFiles,
         commitCount,
+        loading: false,
+      }
+    })
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _loadNextHistoryBatch(repository: Repository): Promise<void> {
+    if (this.getRepositoryState(repository).historyState.loading) {
+      return
+    }
+
+    this.updateHistoryState(repository, state => {
+      return {
+        commits: state.commits,
+        selection: state.selection,
+        changedFiles: state.changedFiles,
+        commitCount: state.commitCount,
+        loading: true
+      }
+    })
+    this.emitUpdate()
+
+    const state = this.getRepositoryState(repository).historyState
+    const lastCommit = state.commits[state.commits.length - 1]
+    const commits = await LocalGitOperations.getHistory(repository, `${lastCommit.sha}^`, CommitBatchSize)
+
+    this.updateHistoryState(repository, state => {
+      return {
+        commits: state.commits.concat(commits),
+        selection: state.selection,
+        changedFiles: state.changedFiles,
+        commitCount: state.commitCount,
         loading: false,
       }
     })
@@ -247,7 +283,7 @@ export default class AppStore {
     this.emitUpdate()
 
     if (section === RepositorySection.History) {
-      return this._loadHistory(repository, 'HEAD')
+      return this._loadHistory(repository)
     } else if (section === RepositorySection.Changes) {
       return this._loadStatus(repository)
     }
@@ -354,7 +390,7 @@ export default class AppStore {
 
     const section = state.selectedSection
     if (section === RepositorySection.History) {
-      return this._loadHistory(repository, 'HEAD')
+      return this._loadHistory(repository)
     }
   }
 }
