@@ -19,14 +19,10 @@ export default class List extends React.Component<IListProps, void> {
     list: Element
   }
 
-  private selectedItem: HTMLDivElement | null = null
-  /**
-   * Internal use only. Whether to explicitly move keyboard focus to the selected item.
-   * Used after intercepting keyboard intent to move selection (arrow keys, page up/down).
-   */
-  private moveKeyboardFocusToSelectedItem = false
+  private focusItem: HTMLDivElement | null = null
 
   private scrollToRow = -1
+  private focusRow = -1
 
   private handleKeyDown(e: React.KeyboardEvent) {
     let direction: 'up' | 'down'
@@ -75,42 +71,40 @@ export default class List extends React.Component<IListProps, void> {
       this.props.onSelectionChanged(newRow)
     }
 
-    this.moveKeyboardFocusToSelectedItem = true
     this.scrollRowToVisible(newRow)
   }
 
   private scrollRowToVisible(row: number) {
     this.scrollToRow = row
+    this.focusRow = row
     this.forceUpdate()
   }
 
   public componentDidUpdate() {
     // If this state is set it means that someone just used arrow keys (or pgup/down)
     // to change the selected row. When this happens we need to explcitly shift
-    // keyboard focus to the newly selected item. If selectedItem is null then
+    // keyboard focus to the newly selected item. If focusItem is null then
     // we're probably just loading more items and we'll catch it on the next
     // render pass.
-    if (this.moveKeyboardFocusToSelectedItem) {
-      if (this.selectedItem) {
-        this.selectedItem.focus()
-      }
-      // Unset the flag so that we don't end up in a loop setting focus over and over.
-      this.moveKeyboardFocusToSelectedItem = false
+    if (this.focusRow >= 0 && this.focusItem) {
+      this.focusItem.focus()
+      this.focusRow = -1
+      this.forceUpdate()
     }
   }
 
   private renderRow = ({ rowIndex }: { rowIndex: number }) => {
-
     const selected = rowIndex === this.props.selectedRow
+    const focused = rowIndex === this.focusRow
     const className = selected ? 'list-item selected' : 'list-item'
-    const tabIndex = selected ? 0 : -1
+    const tabIndex = focused ? 0 : -1
 
     // We don't care about mouse events on the selected item
     const onMouseDown = selected ? null : () => this.handleMouseDown(rowIndex)
 
-    // We only need to keep a reference to the selected element
-    const ref = selected
-      ? (c: HTMLDivElement) => { this.selectedItem = c }
+    // We only need to keep a reference to the focused element
+    const ref = focused
+      ? (c: HTMLDivElement) => { this.focusItem = c }
       : null
 
     const element = this.props.rowRenderer(rowIndex)
@@ -127,13 +121,13 @@ export default class List extends React.Component<IListProps, void> {
   }
 
   public render() {
+    const scrollToRow = this.scrollToRow
+    this.scrollToRow = -1
+
     // The currently selected list item is focusable but if
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
     // it with keyboard navigation and select an item.
-    const scrollToRow = this.scrollToRow
-    this.scrollToRow = -1
-
     const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : -1
     return (
       <div id={this.props.id}
