@@ -47,10 +47,16 @@
   }
 
   &-meta-item {
+    @include ellipsis;
     float: left;
     margin-right: var(--spacing);
+    // Ensures that the commit meta info doesn't break
+    // onto a new line by taking the margin into consideration
+    // when calculating the max width.
+    max-width: calc(33% - var(--spacing));
 
     .octicon {
+      margin-right: 2px;
       vertical-align: bottom;
     }
   }
