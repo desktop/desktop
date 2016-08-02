@@ -8,6 +8,7 @@ interface IListProps {
   selectedRow: number
   onSelectionChanged?: (row: number) => void
   canSelectRow?: (row: number) => boolean
+  onScroll?: (scrollTop: number, clientHeight: number) => void
 
   /** The unique identifier for the outer element of the component (optional, defaults to null) */
   id?: string
@@ -166,6 +167,7 @@ export default class List extends React.Component<IListProps, void> {
               rowCount={this.props.rowCount}
               rowHeight={this.props.rowHeight}
               cellRenderer={this.renderRow}
+              onScroll={this.onScroll}
               // Grid doesn't actually _do_ anything with
               // `selectedRow`. We're just passing it through so that
               // Grid will re-render when it changes.
@@ -186,6 +188,12 @@ export default class List extends React.Component<IListProps, void> {
       if (canSelect && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row)
       }
+    }
+  }
+
+  private onScroll = ({ scrollTop, clientHeight }: { scrollTop: number, clientHeight: number }) => {
+    if (this.props.onScroll) {
+      this.props.onScroll(scrollTop, clientHeight)
     }
   }
 }
