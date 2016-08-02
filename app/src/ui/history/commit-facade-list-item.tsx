@@ -5,7 +5,7 @@ export default class CommitFacadeListItem extends React.Component<void, void> {
   public render() {
     return (
       <div className='commit facade'>
-        <img className='avatar'/>
+        <div className='avatar'/>
         <div className='info'>
           <div className='summary'/>
           <div className='byline' title='Loading…'/>
