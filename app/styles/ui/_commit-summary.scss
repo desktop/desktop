@@ -56,7 +56,7 @@
     max-width: calc(33% - var(--spacing));
 
     .octicon {
-      margin-right: 2px;
+      margin-right: var(--spacing-third);
       vertical-align: bottom;
     }
   }
