@@ -7,7 +7,7 @@ import { findIndex } from '../../lib/find'
 import Repository from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
 
-const RowHeight = 20
+const RowHeight = 30
 
 interface IChangesListProps {
   readonly repository: Repository
@@ -42,17 +42,21 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     const includeAll = this.props.workingDirectory.includeAll
     const selectedRow = findIndex(this.props.workingDirectory.files, file => file.path === this.props.selectedPath)
     return (
-      <div className='panel' id='changes-list'>
-        <div id='select-all'>
-          <input
-            type='checkbox'
-            checked={includeAll}
-            onChange={event => this.handleOnChangeEvent(event) }
-            ref={function(input) {
-              if (input != null) {
-                input.indeterminate = (includeAll === null)
-              }
-            }} />
+      <div className='panel changes-panel' id='changes-list'>
+        <div id='select-all' className='changes-panel-header'>
+          <label>
+            <input
+              type='checkbox'
+              checked={includeAll}
+              onChange={event => this.handleOnChangeEvent(event) }
+              ref={function(input) {
+                if (input != null) {
+                  input.indeterminate = (includeAll === null)
+                }
+              }} />
+
+              Select all changes
+          </label>
         </div>
 
         <List id='changes-list-list'

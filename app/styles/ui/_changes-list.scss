@@ -17,3 +17,16 @@
     margin-left: 10px;
   }
 }
+
+.changes-panel {
+  &-header {
+    border-bottom: 1px solid var(--box-border-color);
+    box-shadow: 0 2px 2px #f0f0f0;
+    padding: var(--spacing-half);
+  }
+
+  .list-item {
+    padding: var(--spacing-half);
+    border-bottom: var(--base-border);
+  }
+}
