@@ -45,7 +45,7 @@ export default class AppStore {
         commits: new Array<Commit>(),
         commitCount: 0,
         changedFiles: new Array<FileChange>(),
-        loading: false,
+        loading: true,
       },
       changesState: {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
