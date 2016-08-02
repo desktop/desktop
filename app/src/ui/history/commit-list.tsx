@@ -3,6 +3,7 @@ import { Commit } from '../../lib/local-git-operations'
 import CommitListItem from './commit-list-item'
 import List from '../list'
 import CommitFacadeListItem from './commit-facade-list-item'
+import { findIndex } from '../../lib/find'
 
 interface ICommitListProps {
   readonly onCommitSelected: (commit: Commit) => void
@@ -36,14 +37,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     const commit = commit_
     if (!commit) { return -1 }
 
-    let index = 0
-    this.props.commits.forEach((c, i) => {
-      if (c.sha === commit.sha) {
-        index = i
-        return
-      }
-    })
-    return index
+    return findIndex(this.props.commits, c => c.sha === commit.sha)
   }
 
   public render() {
