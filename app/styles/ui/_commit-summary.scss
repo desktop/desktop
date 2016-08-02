@@ -6,6 +6,11 @@
     display: flex;
     flex: 1;
 
+    .list-item {
+      border-bottom: 1px solid var(--box-border-color);
+      padding: var(--spacing);
+    }
+
     .path {
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -14,8 +19,23 @@
   }
 }
 
-#commit-summary-container {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+.commit-summary {
+  &-title,
+  &-description {
+    border-bottom: 1px solid var(--box-border-color);
+    padding: var(--spacing);
+  }
+
+  &-title {
+    font-size: 16px;
+    font-weight: var(--font-weight-light);
+  }
+
+  &-description {
+    font-family: var(--font-family-monospace);
+
+    &:empty {
+      display: none;
+    }
+  }
 }

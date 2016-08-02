@@ -37,6 +37,11 @@
    */
   --font-weight-semibold: 600;
 
+  /**
+   * Font weight to use for light text
+   */
+  --font-weight-light: 300;
+
   // Pixel value used to responsively scale all typography. Applied to the `<html>` element.
   --font-size: 13px;
 
