@@ -9,10 +9,11 @@ interface IListProps {
   onSelectionChanged?: (row: number) => void
   canSelectRow?: (row: number) => boolean
 
-  /** List's underlying implementation acts as a pure component based on the
-    * above props. So if there are any other properties that also determine
-    * whether the list should re-render, List must know about them.
-    */
+  /**
+   * List's underlying implementation acts as a pure component based on the
+   * above props. So if there are any other properties that also determine
+   * whether the list should re-render, List must know about them.
+   */
   invalidationProps?: any
 
   /** The unique identifier for the outer element of the component (optional, defaults to null) */
