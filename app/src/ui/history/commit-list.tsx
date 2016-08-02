@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Commit } from '../../lib/local-git-operations'
 import CommitListItem from './commit-list-item'
 import List from '../list'
+import CommitFacadeListItem from './commit-facade-list-item'
 
 interface ICommitListProps {
   readonly onCommitSelected: (commit: Commit) => void
@@ -14,7 +15,11 @@ interface ICommitListProps {
 export default class CommitList extends React.Component<ICommitListProps, void> {
   private renderCommit(row: number) {
     const commit = this.props.commits[row]
-    return <CommitListItem commit={commit} key={commit.sha}/>
+    if (commit) {
+      return <CommitListItem commit={commit} key={commit.sha}/>
+    } else {
+      return <CommitFacadeListItem key={row}/>
+    }
   }
 
   private onSelectionChanged(row: number) {
