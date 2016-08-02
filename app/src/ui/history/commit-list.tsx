@@ -27,6 +27,11 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     this.props.onCommitSelected(commit)
   }
 
+  private onScroll(scrollTop: number, clientHeight: number) {
+    console.log('scrollTop: ' + scrollTop)
+    console.log('clientHeight: ' + clientHeight)
+  }
+
   private rowForCommit(commit_: Commit | null): number {
     const commit = commit_
     if (!commit) { return -1 }
@@ -48,7 +53,8 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
               rowHeight={68}
               selectedRow={this.rowForCommit(this.props.selectedCommit)}
               rowRenderer={row => this.renderCommit(row)}
-              onSelectionChanged={row => this.onSelectionChanged(row)}/>
+              onSelectionChanged={row => this.onSelectionChanged(row)}
+              onScroll={(scrollTop, clientHeight) => this.onScroll(scrollTop, clientHeight)}/>
       </div>
     )
   }
