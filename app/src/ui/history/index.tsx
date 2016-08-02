@@ -33,16 +33,16 @@ export default class History extends React.Component<IHistoryProps, void> {
     this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
   }
 
-  public componentWillUnmount() {
-    this.loadChangedFilesScheduler.clear()
-  }
-
   private onScroll(start: number, end: number) {
     const commits = this.props.history.commits
     const lastVisibleCommit: Commit | null = commits[end]
     if (!lastVisibleCommit) {
       console.log('LOAD MORE')
     }
+  }
+
+  public componentWillUnmount() {
+    this.loadChangedFilesScheduler.clear()
   }
 
   public render() {
