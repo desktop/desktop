@@ -26,6 +26,8 @@ export default class List extends React.Component<IListProps, void> {
    */
   private moveKeyboardFocusToSelectedItem = false
 
+  private scrollToRow = -1
+
   private handleKeyDown(e: React.KeyboardEvent) {
     let direction: 'up' | 'down'
     if (e.key === 'ArrowDown') {
@@ -73,23 +75,13 @@ export default class List extends React.Component<IListProps, void> {
       this.props.onSelectionChanged(newRow)
     }
 
-    this.scrollRowToVisible(newRow)
-
     this.moveKeyboardFocusToSelectedItem = true
+    this.scrollRowToVisible(newRow)
   }
 
   private scrollRowToVisible(row: number) {
-    const top = row * this.props.rowHeight
-    const bottom = top + this.props.rowHeight
-    const list = this.refs.list
-    const rangeStart = list.scrollTop
-    const rangeEnd = list.scrollTop + list.clientHeight
-
-    if (top < rangeStart) {
-      this.refs.list.scrollTop = top
-    } else if (bottom > rangeEnd) {
-      this.refs.list.scrollTop = bottom - list.clientHeight
-    }
+    this.scrollToRow = row
+    this.forceUpdate()
   }
 
   public componentDidUpdate() {
@@ -139,6 +131,9 @@ export default class List extends React.Component<IListProps, void> {
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
     // it with keyboard navigation and select an item.
+    const scrollToRow = this.scrollToRow
+    this.scrollToRow = -1
+
     const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : -1
     return (
       <div id={this.props.id}
@@ -166,6 +161,8 @@ export default class List extends React.Component<IListProps, void> {
               rowCount={this.props.rowCount}
               rowHeight={this.props.rowHeight}
               cellRenderer={this.renderRow}
+              scrollToRow={scrollToRow}
+              overscanRowCount={4}
               // Grid doesn't actually _do_ anything with
               // `selectedRow`. We're just passing it through so that
               // Grid will re-render when it changes.
