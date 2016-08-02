@@ -1,10 +1,13 @@
 import * as React from 'react'
 import { FileChange } from '../../models/status'
 import List from '../list'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface ICommitSummaryProps {
   readonly summary: string
   readonly body: string
+  readonly sha: string
+  readonly authorName: string
   readonly files: ReadonlyArray<FileChange>
   readonly selectedFile: FileChange | null
   readonly onSelectedFileChanged: (file: FileChange) => void
@@ -40,7 +43,40 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
   public render() {
     return (
       <div className='panel' id='commit-summary'>
-        <div className='commit-summary-title'>{this.props.summary}</div>
+        <div className='commit-summary-header'>
+          <div className='commit-summary-title'>
+            {this.props.summary}
+          </div>
+
+          <ul className='commit-summary-meta byline'>
+            <li className='commit-summary-meta-item'
+              title={this.props.authorName} aria-label='Author'>
+              <span aria-hidden='true'>
+                <Octicon symbol={OcticonSymbol.person} />
+              </span>
+
+              {this.props.authorName}
+            </li>
+
+            <li className='commit-summary-meta-item'
+              title={this.props.sha.slice(0,7)} aria-label='SHA'>
+              <span aria-hidden='true'>
+                <Octicon symbol={OcticonSymbol.gitCommit} />
+              </span>
+
+              {this.props.sha.slice(0,7)}
+            </li>
+
+            <li className='commit-summary-meta-item'
+              title={this.props.files.length + ' changed files'}>
+              <span aria-hidden='true'>
+                <Octicon symbol={OcticonSymbol.diff} />
+              </span>
+
+              {this.props.files.length} changed files
+            </li>
+          </ul>
+        </div>
         <div className='commit-summary-description'>{this.props.body}</div>
         <div className='files'>
           <List rowRenderer={row => this.renderFile(row)}
