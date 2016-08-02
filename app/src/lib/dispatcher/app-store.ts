@@ -45,7 +45,7 @@ export default class AppStore {
         commits: new Array<Commit>(),
         commitCount: 0,
         changedFiles: new Array<FileChange>(),
-        loading: true,
+        loading: false,
       },
       changesState: {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
@@ -140,7 +140,8 @@ export default class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadNextHistoryBatch(repository: Repository): Promise<void> {
-    if (this.getRepositoryState(repository).historyState.loading) {
+    const state = this.getRepositoryState(repository)
+    if (state.historyState.loading) {
       return
     }
 
@@ -155,8 +156,7 @@ export default class AppStore {
     })
     this.emitUpdate()
 
-    const state = this.getRepositoryState(repository).historyState
-    const lastCommit = state.commits[state.commits.length - 1]
+    const lastCommit = state.historyState.commits[state.historyState.commits.length - 1]
     const commits = await LocalGitOperations.getHistory(repository, `${lastCommit.sha}^`, CommitBatchSize)
 
     this.updateHistoryState(repository, state => {
