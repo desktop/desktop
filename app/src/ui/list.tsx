@@ -14,11 +14,6 @@ interface IListProps {
 }
 
 export default class List extends React.Component<IListProps, void> {
-  public refs: {
-    [key: string]: any,
-    list: Element
-  }
-
   private focusItem: HTMLDivElement | null = null
 
   private scrollToRow = -1
@@ -132,7 +127,6 @@ export default class List extends React.Component<IListProps, void> {
     return (
       <div id={this.props.id}
            className='list'
-           ref='list'
            tabIndex={tabIndex}
            onKeyDown={e => this.handleKeyDown(e)}
            style={{ flexGrow: 1 }}>
