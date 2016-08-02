@@ -1,4 +1,4 @@
-import { app, shell, Menu, ipcMain } from 'electron'
+import { shell, Menu, ipcMain } from 'electron'
 import SharedProcess from '../shared-process/shared-process'
 
 export type MenuEvent = 'push' | 'pull'
@@ -9,36 +9,24 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       label: 'Edit',
       submenu: [
         {
-          label: 'Undo',
-          accelerator: 'CmdOrCtrl+Z',
           role: 'undo'
         },
         {
-          label: 'Redo',
-          accelerator: 'Shift+CmdOrCtrl+Z',
           role: 'redo'
         },
         {
           type: 'separator'
         },
         {
-          label: 'Cut',
-          accelerator: 'CmdOrCtrl+X',
           role: 'cut'
         },
         {
-          label: 'Copy',
-          accelerator: 'CmdOrCtrl+C',
           role: 'copy'
         },
         {
-          label: 'Paste',
-          accelerator: 'CmdOrCtrl+V',
           role: 'paste'
         },
         {
-          label: 'Select All',
-          accelerator: 'CmdOrCtrl+A',
           role: 'selectall'
         }
       ]
@@ -56,15 +44,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           }
         },
         {
-          label: 'Toggle Full Screen',
-          accelerator: (() => {
-            return (process.platform === 'darwin') ? 'Ctrl+Command+F' : 'F11'
-          })(),
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            if (focusedWindow) {
-              focusedWindow.setFullScreen(!focusedWindow.isFullScreen())
-            }
-          }
+          role: 'togglefullscreen',
         },
         {
           label: 'Toggle Developer Tools',
@@ -105,23 +85,17 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       ]
     },
     {
-      label: 'Window',
       role: 'window',
       submenu: [
         {
-          label: 'Minimize',
-          accelerator: 'CmdOrCtrl+M',
           role: 'minimize'
         },
         {
-          label: 'Close',
-          accelerator: 'CmdOrCtrl+W',
           role: 'close'
         }
       ]
     },
     {
-      label: 'Help',
       role: 'help',
       submenu: [
         {
@@ -139,14 +113,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       label: 'GitHub',
       submenu: [
         {
-          label: 'About GitHub',
           role: 'about'
         },
         {
           type: 'separator'
         },
         {
-          label: 'Services',
           role: 'services',
           submenu: []
         },
@@ -154,26 +126,19 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           type: 'separator'
         },
         {
-          label: 'Hide GitHub',
-          accelerator: 'Command+H',
           role: 'hide'
         },
         {
-          label: 'Hide Others',
-          accelerator: 'Command+Alt+H',
           role: 'hideothers'
         },
         {
-          label: 'Show All',
           role: 'unhide'
         },
         {
           type: 'separator'
         },
         {
-          label: 'Quit',
-          accelerator: 'Command+Q',
-          click () { app.quit() }
+          role: 'quit'
         }
       ]
     })
@@ -185,7 +150,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         type: 'separator'
       },
       {
-        label: 'Bring All to Front',
         role: 'front'
       }
     )
