@@ -9,6 +9,7 @@ const RowHeight = 68
 
 interface ICommitListProps {
   readonly onCommitSelected: (commit: Commit) => void
+  readonly onScroll: (start: number, end: number) => void
   readonly commits: ReadonlyArray<Commit>
   readonly selectedCommit: Commit | null
   readonly commitCount: number
@@ -34,11 +35,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     const numberOfRows = Math.ceil(clientHeight / RowHeight)
     const top = Math.floor(scrollTop / RowHeight)
     const bottom = top + numberOfRows
-
-    const lastVisibleCommit: Commit | null = this.props.commits[bottom]
-    if (!lastVisibleCommit) {
-      console.log('LOAD MORE')
-    }
+    this.props.onScroll(top, bottom)
   }
 
   private rowForCommit(commit_: Commit | null): number {

@@ -37,6 +37,14 @@ export default class History extends React.Component<IHistoryProps, void> {
     this.loadChangedFilesScheduler.clear()
   }
 
+  private onScroll(start: number, end: number) {
+    const commits = this.props.history.commits
+    const lastVisibleCommit: Commit | null = commits[end]
+    if (!lastVisibleCommit) {
+      console.log('LOAD MORE')
+    }
+  }
+
   public render() {
     const commit = this.props.history.selection.commit
     const selectedFile = this.props.history.selection.file
@@ -45,7 +53,8 @@ export default class History extends React.Component<IHistoryProps, void> {
         <CommitList commits={this.props.history.commits}
                     commitCount={this.props.history.commitCount}
                     selectedCommit={commit}
-                    onCommitSelected={commit => this.onCommitSelected(commit)}/>
+                    onCommitSelected={commit => this.onCommitSelected(commit)}
+                    onScroll={(start, end) => this.onScroll(start, end)}/>
         <CommitSummaryContainer repository={this.props.repository}
                                 commit={commit}
                                 files={this.props.history.changedFiles}
