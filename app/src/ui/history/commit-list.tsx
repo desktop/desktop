@@ -5,6 +5,8 @@ import List from '../list'
 import CommitFacadeListItem from './commit-facade-list-item'
 import { findIndex } from '../../lib/find'
 
+const RowHeight = 68
+
 interface ICommitListProps {
   readonly onCommitSelected: (commit: Commit) => void
   readonly commits: ReadonlyArray<Commit>
@@ -15,7 +17,7 @@ interface ICommitListProps {
 /** A component which displays the list of commits. */
 export default class CommitList extends React.Component<ICommitListProps, void> {
   private renderCommit(row: number) {
-    const commit = this.props.commits[row]
+    const commit: Commit | null = this.props.commits[row]
     if (commit) {
       return <CommitListItem commit={commit} key={commit.sha}/>
     } else {
@@ -29,8 +31,14 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
   }
 
   private onScroll(scrollTop: number, clientHeight: number) {
-    console.log('scrollTop: ' + scrollTop)
-    console.log('clientHeight: ' + clientHeight)
+    const numberOfRows = Math.ceil(clientHeight / RowHeight)
+    const top = Math.floor(scrollTop / RowHeight)
+    const bottom = top + numberOfRows
+
+    const lastVisibleCommit: Commit | null = this.props.commits[bottom]
+    if (!lastVisibleCommit) {
+      console.log('LOAD MORE')
+    }
   }
 
   private rowForCommit(commit_: Commit | null): number {
@@ -44,7 +52,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     return (
       <div className='panel' id='commit-list'>
         <List rowCount={this.props.commitCount}
-              rowHeight={68}
+              rowHeight={RowHeight}
               selectedRow={this.rowForCommit(this.props.selectedCommit)}
               rowRenderer={row => this.renderCommit(row)}
               onSelectionChanged={row => this.onSelectionChanged(row)}
