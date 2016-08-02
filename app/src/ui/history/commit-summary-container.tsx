@@ -21,6 +21,8 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
 
     return <CommitSummary summary={this.props.commit.summary}
                           body={this.props.commit.body}
+                          sha={this.props.commit.sha}
+                          authorName={this.props.commit.authorName}
                           files={this.props.files}
                           selectedFile={this.props.selectedFile}
                           onSelectedFileChanged={file => this.props.onSelectedFileChanged(file)}/>
