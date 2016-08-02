@@ -499,7 +499,7 @@ export class LocalGitOperations {
   }
 
   /** Get the name of the current branch. */
-  public static async getBranch(repository: Repository): Promise<string | null> {
+  public static async getCurrentBranch(repository: Repository): Promise<string | null> {
     try {
       const name = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path)
       return name.trim()

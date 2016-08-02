@@ -2,6 +2,7 @@ import * as React from 'react'
 
 interface ICommitMessageProps {
   onCreateCommit: (title: string) => void
+  branch: string | null
 }
 
 interface ICommitMessageState {
@@ -32,6 +33,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   }
 
   public render() {
+    const branchName = this.props.branch ? this.props.branch : 'master'
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>
         <input type='text'
@@ -40,7 +42,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
                onChange={event => this.handleTitleChange(event) } />
 
         <button onClick={event => this.handleSubmit(event)}>
-          Commit Changes
+          Commit to <strong>{branchName}</strong>
         </button>
       </form>
     )
