@@ -33,6 +33,7 @@ export interface IHistoryState {
   readonly selection: IHistorySelection
   readonly commits: ReadonlyArray<Commit>
   readonly commitCount: number
+  readonly loading: boolean
 
   readonly changedFiles: ReadonlyArray<FileChange>
 }

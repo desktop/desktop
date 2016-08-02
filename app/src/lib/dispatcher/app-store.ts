@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection } from '../app-state'
+import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
@@ -42,6 +42,7 @@ export default class AppStore {
         commits: new Array<Commit>(),
         commitCount: 0,
         changedFiles: new Array<FileChange>(),
+        loading: true,
       },
       changesState: {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
@@ -61,20 +62,33 @@ export default class AppStore {
     return state
   }
 
-  private updateRepositoryState(repository: Repository, state: IRepositoryState) {
-    this.repositoryState.set(repository.id!, state)
+  private updateRepositoryState(repository: Repository, fn: (state: IRepositoryState) => IRepositoryState) {
+    const currentState = this.getRepositoryState(repository)
+    this.repositoryState.set(repository.id!, fn(currentState))
   }
 
-  private updateHistoryState(repository: Repository, historyState: IHistoryState) {
-    const currentState = this.getRepositoryState(repository)
-    const newState: IRepositoryState = {
-      historyState,
-      changesState: currentState.changesState,
-      selectedSection: currentState.selectedSection,
-      branch: currentState.branch,
-    }
+  private updateHistoryState(repository: Repository, fn: (historyState: IHistoryState) => IHistoryState) {
+    this.updateRepositoryState(repository, state => {
+      const historyState = fn(state.historyState)
+      return {
+        historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        branch: state.branch,
+      }
+    })
+  }
 
-    this.updateRepositoryState(repository, newState)
+  private updateChangesState(repository: Repository, fn: (changesState: IChangesState) => IChangesState) {
+    this.updateRepositoryState(repository, state => {
+      const changesState = fn(state.changesState)
+      return {
+        historyState: state.historyState,
+        changesState,
+        selectedSection: state.selectedSection,
+        branch: state.branch,
+      }
+    })
   }
 
   private getCurrentRepositoryState(): IRepositoryState | null {
@@ -94,20 +108,30 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadHistory(repository: Repository): Promise<void> {
-    const commits = await LocalGitOperations.getHistory(repository, 'HEAD', 100)
+  public async _loadHistory(repository: Repository, ref: string): Promise<void> {
+    this.updateHistoryState(repository, state => {
+      return {
+        commits: state.commits,
+        selection: state.selection,
+        changedFiles: state.changedFiles,
+        commitCount: state.commitCount,
+        loading: true
+      }
+    })
+    this.emitUpdate()
+
+    const commits = await LocalGitOperations.getHistory(repository, ref, 100)
     const commitCount = await LocalGitOperations.getCommitCount(repository)
 
-    const state = this.getRepositoryState(repository)
-    const historyState = state.historyState
-
-    const newHistory: IHistoryState = {
-      commits,
-      selection: historyState.selection,
-      changedFiles: historyState.changedFiles,
-      commitCount,
-    }
-    this.updateHistoryState(repository, newHistory)
+    this.updateHistoryState(repository, state => {
+      return {
+        commits,
+        selection: state.selection,
+        changedFiles: state.changedFiles,
+        commitCount,
+        loading: false,
+      }
+    })
     this.emitUpdate()
   }
 
@@ -127,29 +151,32 @@ export default class AppStore {
       return
     }
 
-    const newHistory: IHistoryState = {
-      commits: state.historyState.commits,
-      selection,
-      changedFiles,
-      commitCount: state.historyState.commitCount,
-    }
-    this.updateHistoryState(repository, newHistory)
+    this.updateHistoryState(repository, state => {
+      return {
+        commits: state.commits,
+        selection,
+        changedFiles,
+        commitCount: state.commitCount,
+        loading: state.loading,
+      }
+    })
     this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
-    const state = this.getRepositoryState(repository)
-    const commitChanged = state.historyState.selection.commit !== selection.commit
-    const changedFiles = commitChanged ? new Array<FileChange>() : state.historyState.changedFiles
+    this.updateHistoryState(repository, state => {
+      const commitChanged = state.selection.commit !== selection.commit
+      const changedFiles = commitChanged ? new Array<FileChange>() : state.changedFiles
 
-    const newHistory: IHistoryState = {
-      commits: state.historyState.commits,
-      selection,
-      changedFiles,
-      commitCount: state.historyState.commitCount,
-    }
-    this.updateHistoryState(repository, newHistory)
+      return {
+        commits: state.commits,
+        selection,
+        changedFiles,
+        commitCount: state.commitCount,
+        loading: state.loading,
+      }
+    })
     this.emitUpdate()
   }
 
@@ -198,34 +225,29 @@ export default class AppStore {
       console.error(e)
     }
 
-    const currentState = this.getRepositoryState(repository)
-    const newState: IRepositoryState = {
-      historyState: currentState.historyState,
-      changesState: {
+    this.updateChangesState(repository, state => {
+      return {
         workingDirectory,
         selectedFile: null,
-      },
-      selectedSection: currentState.selectedSection,
-      branch: currentState.branch,
-    }
-    this.updateRepositoryState(repository, newState)
+      }
+    })
     this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeRepositorySection(repository: Repository, section: RepositorySection): Promise<void> {
-    const currentState = this.getRepositoryState(repository)
-    const newState: IRepositoryState = {
-      historyState: currentState.historyState,
-      changesState: currentState.changesState,
-      selectedSection: section,
-      branch: currentState.branch,
-    }
-    this.updateRepositoryState(repository, newState)
+    this.updateRepositoryState(repository, state => {
+      return {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: section,
+        branch: state.branch,
+      }
+    })
     this.emitUpdate()
 
     if (section === RepositorySection.History) {
-      return this._loadHistory(repository)
+      return this._loadHistory(repository, 'HEAD')
     } else if (section === RepositorySection.Changes) {
       return this._loadStatus(repository)
     }
@@ -233,17 +255,12 @@ export default class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
-    const currentState = this.getRepositoryState(repository)
-    const newState: IRepositoryState = {
-      historyState: currentState.historyState,
-      changesState: {
-        workingDirectory: currentState.changesState.workingDirectory,
+    this.updateChangesState(repository, state => {
+      return {
+        workingDirectory: state.workingDirectory,
         selectedFile,
-      },
-      selectedSection: currentState.selectedSection,
-      branch: currentState.branch,
-    }
-    this.updateRepositoryState(repository, newState)
+      }
+    })
     this.emitUpdate()
 
     return Promise.resolve()
@@ -263,37 +280,35 @@ export default class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
-    const state = this.getRepositoryState(repository)
+    this.updateRepositoryState(repository, state => {
+      const newFiles = state.changesState.workingDirectory.files.map(f => {
+        if (f.id === file.id) {
+          return f.withInclude(include)
+        } else {
+          return f
+        }
+      })
 
-    const newFiles = state.changesState.workingDirectory.files.map(f => {
-      if (f.id === file.id) {
-        return f.withInclude(include)
-      } else {
-        return f
+      const allSelected = newFiles.every(f => f.include)
+      const noneSelected = newFiles.every(f => !f.include)
+
+      let includeAll: boolean | null = null
+      if (allSelected) {
+        includeAll = true
+      } else if (noneSelected) {
+        includeAll = false
+      }
+
+      return {
+        selectedSection: state.selectedSection,
+        changesState: {
+          workingDirectory: new WorkingDirectoryStatus(newFiles, includeAll),
+          selectedFile: state.changesState.selectedFile,
+        },
+        historyState: state.historyState,
+        branch: state.branch,
       }
     })
-
-    const allSelected = newFiles.every(f => f.include)
-    const noneSelected = newFiles.every(f => !f.include)
-
-    let includeAll: boolean | null = null
-    if (allSelected) {
-      includeAll = true
-    } else if (noneSelected) {
-      includeAll = false
-    }
-
-    const newState: IRepositoryState = {
-      selectedSection: state.selectedSection,
-      changesState: {
-        workingDirectory: new WorkingDirectoryStatus(newFiles, includeAll),
-        selectedFile: state.changesState.selectedFile,
-      },
-      historyState: state.historyState,
-      branch: state.branch,
-    }
-
-    this.updateRepositoryState(repository, newState)
     this.emitUpdate()
 
     return Promise.resolve()
@@ -301,18 +316,12 @@ export default class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
-    const state = this.getRepositoryState(repository)
-    const newState: IRepositoryState = {
-      selectedSection: state.selectedSection,
-      changesState: {
-        workingDirectory: state.changesState.workingDirectory.withIncludeAllFiles(includeAll),
-        selectedFile: state.changesState.selectedFile,
-      },
-      historyState: state.historyState,
-      branch: state.branch,
-    }
-
-    this.updateRepositoryState(repository, newState)
+    this.updateChangesState(repository, state => {
+      return {
+        workingDirectory: state.workingDirectory.withIncludeAllFiles(includeAll),
+        selectedFile: state.selectedFile,
+      }
+    })
     this.emitUpdate()
 
     return Promise.resolve()
@@ -321,15 +330,14 @@ export default class AppStore {
   private async refreshCurrentBranch(repository: Repository): Promise<void> {
     const branch = await LocalGitOperations.getCurrentBranch(repository)
 
-    const state = this.getRepositoryState(repository)
-    const newState: IRepositoryState = {
-      selectedSection: state.selectedSection,
-      changesState: state.changesState,
-      historyState: state.historyState,
-      branch,
-    }
-
-    this.updateRepositoryState(repository, newState)
+    this.updateRepositoryState(repository, state => {
+      return {
+        selectedSection: state.selectedSection,
+        changesState: state.changesState,
+        historyState: state.historyState,
+        branch,
+      }
+    })
     this.emitUpdate()
   }
 
@@ -346,7 +354,7 @@ export default class AppStore {
 
     const section = state.selectedSection
     if (section === RepositorySection.History) {
-      return this._loadHistory(repository)
+      return this._loadHistory(repository, 'HEAD')
     }
   }
 }
