@@ -41,6 +41,7 @@
   }
 
   &-meta {
+    display: flex;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -48,12 +49,8 @@
 
   &-meta-item {
     @include ellipsis;
-    float: left;
+    flex: 1 0 max-content;
     margin-right: var(--spacing);
-    // Ensures that the commit meta info doesn't break
-    // onto a new line by taking the margin into consideration
-    // when calculating the max width.
-    max-width: calc(33% - var(--spacing));
 
     .octicon {
       margin-right: var(--spacing-third);

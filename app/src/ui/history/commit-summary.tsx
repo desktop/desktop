@@ -63,6 +63,7 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
               <span aria-hidden='true'>
                 <Octicon symbol={OcticonSymbol.gitCommit} />
               </span>
+
               {this.props.sha.slice(0,7)}
             </li>
 
@@ -71,6 +72,7 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
               <span aria-hidden='true'>
                 <Octicon symbol={OcticonSymbol.diff} />
               </span>
+
               {this.props.files.length} changed files
             </li>
           </ul>
