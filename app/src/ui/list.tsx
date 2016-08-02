@@ -9,6 +9,12 @@ interface IListProps {
   onSelectionChanged?: (row: number) => void
   canSelectRow?: (row: number) => boolean
 
+  /** List's underlying implementation acts as a pure component based on the
+    * above props. So if there are any other properties that also determine
+    * whether the list should re-render, List must know about them.
+    */
+  invalidationProps?: any
+
   /** The unique identifier for the outer element of the component (optional, defaults to null) */
   id?: string
 }
@@ -169,7 +175,8 @@ export default class List extends React.Component<IListProps, void> {
               // Grid doesn't actually _do_ anything with
               // `selectedRow`. We're just passing it through so that
               // Grid will re-render when it changes.
-              selectedRow={this.props.selectedRow}/>
+              selectedRow={this.props.selectedRow}
+              invalidationProps={this.props.invalidationProps}/>
           )}
         </AutoSizer>
       </div>
