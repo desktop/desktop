@@ -36,12 +36,15 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
   public render() {
     return (
       <div className='changed-file'>
+        <label className='path'>
           <input
             type='checkbox'
             checked={this.props.include}
             onChange={event => this.handleChange(event)}
           />
-        <span className='path'>{this.props.path}</span>
+          {this.props.path}
+        </label>
+
         <span className='status' title={ChangedFile.mapStatus(this.props.status)}>
           <Octicon symbol={ChangedFile.iconForStatus(this.props.status)} />
         </span>

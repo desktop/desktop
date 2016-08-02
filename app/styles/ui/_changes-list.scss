@@ -12,10 +12,6 @@
   li {
     white-space: nowrap;
   }
-
-  .status {
-    margin-left: 10px;
-  }
 }
 
 .changes-panel {
@@ -28,5 +24,19 @@
   .list-item {
     padding: var(--spacing-half);
     border-bottom: var(--base-border);
+  }
+}
+
+.changed-file {
+  display: flex;
+  flex-grow: 1;
+
+  .status {
+    flex-grow: 1;
+    text-align: right;
+  }
+
+  .octicon {
+    vertical-align: text-bottom;    
   }
 }
