@@ -9,6 +9,7 @@ interface IChangesProps {
   repository: Repository
   changes: IChangesState
   dispatcher: Dispatcher
+  branch: string | null
 }
 
 /** TODO: handle "repository not found" scenario */
@@ -62,7 +63,8 @@ export class Changes extends React.Component<IChangesProps, void> {
                      onSelectionChanged={event => this.onSelectionChanged(event)}
                      onCreateCommit={title => this.onCreateCommit(title)}
                      onIncludeChanged={(row, include) => this.onIncludeChanged(row, include) }
-                     onSelectAll={selectAll => this.onSelectAll(selectAll) }/>
+                     onSelectAll={selectAll => this.onSelectAll(selectAll) }
+                     branch={this.props.branch}/>
 
          <FileDiff repository={this.props.repository}
                    file={this.props.changes.selectedFile}

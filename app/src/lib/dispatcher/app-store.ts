@@ -48,6 +48,7 @@ export default class AppStore {
         selectedFile: null,
       },
       selectedSection: RepositorySection.History,
+      branch: null,
     }
   }
 
@@ -70,6 +71,7 @@ export default class AppStore {
       historyState,
       changesState: currentState.changesState,
       selectedSection: currentState.selectedSection,
+      branch: currentState.branch,
     }
 
     this.updateRepositoryState(repository, newState)
@@ -152,13 +154,13 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _selectRepository(repository: Repository | null): Promise<void> {
+  public _selectRepository(repository: Repository | null): Promise<void> {
     this.selectedRepository = repository
     this.emitUpdate()
 
-    if (repository) {
-      this._changeRepositorySection(repository, this.getCurrentRepositoryState()!.selectedSection)
-    }
+    if (!repository) { return Promise.resolve() }
+
+    return this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -204,6 +206,7 @@ export default class AppStore {
         selectedFile: null,
       },
       selectedSection: currentState.selectedSection,
+      branch: currentState.branch,
     }
     this.updateRepositoryState(repository, newState)
     this.emitUpdate()
@@ -216,6 +219,7 @@ export default class AppStore {
       historyState: currentState.historyState,
       changesState: currentState.changesState,
       selectedSection: section,
+      branch: currentState.branch,
     }
     this.updateRepositoryState(repository, newState)
     this.emitUpdate()
@@ -237,6 +241,7 @@ export default class AppStore {
         selectedFile,
       },
       selectedSection: currentState.selectedSection,
+      branch: currentState.branch,
     }
     this.updateRepositoryState(repository, newState)
     this.emitUpdate()
@@ -285,6 +290,7 @@ export default class AppStore {
         selectedFile: state.changesState.selectedFile,
       },
       historyState: state.historyState,
+      branch: state.branch,
     }
 
     this.updateRepositoryState(repository, newState)
@@ -303,6 +309,7 @@ export default class AppStore {
         selectedFile: state.changesState.selectedFile,
       },
       historyState: state.historyState,
+      branch: state.branch,
     }
 
     this.updateRepositoryState(repository, newState)
@@ -311,16 +318,35 @@ export default class AppStore {
     return Promise.resolve()
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public _refreshRepository(repository: Repository): Promise<void> {
-    const state = this.getRepositoryState(repository)
+  private async refreshCurrentBranch(repository: Repository): Promise<void> {
+    const branch = await LocalGitOperations.getCurrentBranch(repository)
 
-    if (state.selectedSection === RepositorySection.History) {
-      return this._loadHistory(repository)
-    } else if (state.selectedSection === RepositorySection.Changes) {
-      return this._loadStatus(repository)
+    const state = this.getRepositoryState(repository)
+    const newState: IRepositoryState = {
+      selectedSection: state.selectedSection,
+      changesState: state.changesState,
+      historyState: state.historyState,
+      branch,
     }
 
-    return Promise.resolve()
+    this.updateRepositoryState(repository, newState)
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _refreshRepository(repository: Repository): Promise<void> {
+    const state = this.getRepositoryState(repository)
+
+    await this.refreshCurrentBranch(repository)
+
+    // When refreshing we *always* load Changes so that we can update the
+    // changes indicator in the tab bar. But we only load History if it's
+    // selected.
+    await this._loadStatus(repository)
+
+    const section = state.selectedSection
+    if (section === RepositorySection.History) {
+      return this._loadHistory(repository)
+    }
   }
 }

@@ -7,6 +7,9 @@ interface IToolbarProps {
 
   /** A function which is called when a tab is clicked on. */
   onTabClicked: (tab: TabBarTab) => void
+
+  /** Whether there are uncommitted changes. */
+  hasChanges: boolean
 }
 
 /** The toolbar at the top of the window. */
@@ -14,7 +17,9 @@ export default class Toolbar extends React.Component<IToolbarProps, void> {
   public render() {
     return (
       <div id='toolbar'>
-        <TabBar selectedTab={this.props.selectedTab} onTabClicked={this.props.onTabClicked}/>
+        <TabBar selectedTab={this.props.selectedTab}
+                onTabClicked={this.props.onTabClicked}
+                hasChanges={this.props.hasChanges}/>
       </div>
     )
   }

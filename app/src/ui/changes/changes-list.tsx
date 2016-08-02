@@ -17,6 +17,7 @@ interface IChangesListProps {
   readonly onIncludeChanged: (row: number, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (title: string) => void
+  readonly branch: string | null
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
@@ -61,7 +62,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               selectedRow={selectedRow}
               onSelectionChanged={row => this.props.onSelectionChanged(row)} />
 
-        <CommitMessage onCreateCommit={title => this.props.onCreateCommit(title)}/>
+        <CommitMessage onCreateCommit={title => this.props.onCreateCommit(title)} branch={this.props.branch}/>
       </div>
     )
   }
