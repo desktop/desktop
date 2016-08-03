@@ -407,7 +407,7 @@ export class LocalGitOperations {
       return new Commit(sha, summary, body, authorName, authorEmail, authorDate)
     })
 
-    return Promise.resolve(commits)
+    return commits
   }
 
   /** Get the files that were changed in the given commit. */
