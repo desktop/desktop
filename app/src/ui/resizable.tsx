@@ -152,7 +152,7 @@ export class Resizable extends React.Component<IResizableProps, IResizableState>
     }
 
     return (
-      <div id={this.props.id} style={style}>
+      <div id={this.props.id} className='resizable-component' style={style}>
         {this.props.children}
         <div onMouseDown={this.handleDragStart} onDoubleClick={this.handleDoubleClick} className='resize-handle'></div>
       </div>
