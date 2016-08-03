@@ -4,6 +4,7 @@ import FileDiff from '../file-diff'
 import { IChangesState } from '../../lib/app-state'
 import Repository from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
+import { Sidebar } from '../sidebar'
 
 interface IChangesProps {
   repository: Repository
@@ -57,14 +58,16 @@ export class Changes extends React.Component<IChangesProps, void> {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
     return (
       <div className='panel-container'>
-        <ChangesList repository={this.props.repository}
-                     workingDirectory={this.props.changes.workingDirectory}
-                     selectedPath={selectedPath}
-                     onSelectionChanged={event => this.onSelectionChanged(event)}
-                     onCreateCommit={title => this.onCreateCommit(title)}
-                     onIncludeChanged={(row, include) => this.onIncludeChanged(row, include) }
-                     onSelectAll={selectAll => this.onSelectAll(selectAll) }
-                     branch={this.props.branch}/>
+        <Sidebar configKey='changes-width'>
+          <ChangesList repository={this.props.repository}
+                       workingDirectory={this.props.changes.workingDirectory}
+                       selectedPath={selectedPath}
+                       onSelectionChanged={event => this.onSelectionChanged(event)}
+                       onCreateCommit={title => this.onCreateCommit(title)}
+                       onIncludeChanged={(row, include) => this.onIncludeChanged(row, include) }
+                       onSelectAll={selectAll => this.onSelectAll(selectAll) }
+                       branch={this.props.branch}/>
+         </Sidebar>
 
          <FileDiff repository={this.props.repository}
                    file={this.props.changes.selectedFile}
