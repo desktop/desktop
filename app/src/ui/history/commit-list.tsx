@@ -42,7 +42,8 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
               rowHeight={68}
               selectedRow={this.rowForCommit(this.props.selectedCommit)}
               rowRenderer={row => this.renderCommit(row)}
-              onSelectionChanged={row => this.onSelectionChanged(row)}/>
+              onSelectionChanged={row => this.onSelectionChanged(row)}
+              invalidationProps={this.props.commits}/>
       </div>
     )
   }
