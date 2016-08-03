@@ -146,9 +146,31 @@ export default class AppStore {
         commits = Array.from(headCommits)
       }
 
+      let newSelection = state.selection
+      const selectedCommit = state.selection.commit
+      if (selectedCommit) {
+        const index = commits.findIndex(c => c.sha === selectedCommit.sha)
+        // Our selected SHA disappeared, so clear the selection.
+        if (index < 0) {
+          newSelection = {
+            commit: null,
+            file: null,
+          }
+        }
+      }
+
+      if (!newSelection.commit && commits.length > 0) {
+        newSelection = {
+          commit: commits[0],
+          file: null,
+        }
+        this._changeHistorySelection(repository, newSelection)
+        this._loadChangedFilesForCurrentSelection(repository)
+      }
+
       return {
         commits,
-        selection: state.selection,
+        selection: newSelection,
         changedFiles: state.changedFiles,
         commitCount,
         loading: false,
