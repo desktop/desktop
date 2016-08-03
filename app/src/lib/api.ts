@@ -21,6 +21,17 @@ export interface IAPIRepository {
 }
 
 /**
+ * Information about a commit as returned by the GitHub API.
+ */
+export interface IAPICommit {
+  readonly sha: string
+  readonly author: {
+    readonly login: string,
+    readonly avatarUrl: string,
+  }
+}
+
+/**
  * An object for making authenticated requests to the GitHub API
  */
 export default class API {
@@ -53,6 +64,16 @@ export default class API {
   /** Fetch a repo by its owner and name. */
   public fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
     return this.client.repos(owner, name).fetch()
+  }
+
+  /** Fetch a commit from the repository. */
+  public async fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
+    try {
+      const commit = await this.client.repos(owner, name).commits(sha).fetch()
+      return commit
+    } catch (e) {
+      return null
+    }
   }
 }
 
