@@ -126,9 +126,9 @@ export default class AppStore {
     const headCommits = await LocalGitOperations.getHistory(repository, 'HEAD', CommitBatchSize)
     const commitCount = await LocalGitOperations.getCommitCount(repository)
 
-    let commits = new Array<Commit>()
     this.updateHistoryState(repository, state => {
       const existingCommits = state.commits
+      let commits = new Array<Commit>()
       if (existingCommits.length > 0) {
         const mostRecent = existingCommits[0]
         const index = findIndex(headCommits, c => c.sha === mostRecent.sha)
@@ -146,36 +146,39 @@ export default class AppStore {
         commits = Array.from(headCommits)
       }
 
-      let newSelection = state.selection
-      const selectedCommit = state.selection.commit
-      if (selectedCommit) {
-        const index = commits.findIndex(c => c.sha === selectedCommit.sha)
-        // Our selected SHA disappeared, so clear the selection.
-        if (index < 0) {
-          newSelection = {
-            commit: null,
-            file: null,
-          }
-        }
-      }
-
-      if (!newSelection.commit && commits.length > 0) {
-        newSelection = {
-          commit: commits[0],
-          file: null,
-        }
-        this._changeHistorySelection(repository, newSelection)
-        this._loadChangedFilesForCurrentSelection(repository)
-      }
-
       return {
         commits,
-        selection: newSelection,
+        selection: state.selection,
         changedFiles: state.changedFiles,
         commitCount,
         loading: false,
       }
     })
+
+    const state = this.getRepositoryState(repository).historyState
+    let newSelection = state.selection
+    const commits = state.commits
+    const selectedCommit = state.selection.commit
+    if (selectedCommit) {
+      const index = findIndex(commits, c => c.sha === selectedCommit.sha)
+      // Our selected SHA disappeared, so clear the selection.
+      if (index < 0) {
+        newSelection = {
+          commit: null,
+          file: null,
+        }
+      }
+    }
+
+    if (!newSelection.commit && commits.length > 0) {
+      newSelection = {
+        commit: commits[0],
+        file: null,
+      }
+      this._changeHistorySelection(repository, newSelection)
+      this._loadChangedFilesForCurrentSelection(repository)
+    }
+
     this.emitUpdate()
   }
 
