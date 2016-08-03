@@ -2,28 +2,28 @@ import * as React from 'react'
 import { ThrottledScheduler } from './lib/throttled-scheduler'
 
 interface IResizableProps extends React.Props<Resizable> {
-  /** String key used when persisting the sidebar width to localStorage */
+  /** String key used when persisting the panel width to localStorage */
   configKey: string
 
   /**
-   * The default width of the sidebar.
+   * The default width of the panel.
    *
    * The default width is used until user first resizes the
-   * sidebar or when the custom size is explicitly reset by
+   * panel or when the custom size is explicitly reset by
    * double clicking on the resize handle.
    *
    * @default 250
    */
   defaultWidth?: number
 
-  /** The maximum width the sidebar can be resized to.
+  /** The maximum width the panel can be resized to.
    *
    * @default 400
    */
   maximumWidth?: number
 
   /**
-   * The minimum width the sidebar can be resized to.
+   * The minimum width the panel can be resized to.
    *
    * @default 150
    */
@@ -35,7 +35,7 @@ interface IResizableProps extends React.Props<Resizable> {
 
 interface IResizableState {
   /**
-   * The width of the sidebar in pixels.
+   * The width of the panel in pixels.
    * Optional
    */
   width?: number
@@ -49,7 +49,7 @@ interface IResizableState {
 export class Resizable extends React.Component<IResizableProps, IResizableState> {
 
   public static defaultProps: IResizableProps = {
-    configKey: 'sidebar-width',
+    configKey: 'resizable-width',
     defaultWidth: 250,
     minimumWidth: 150,
     maximumWidth: 350,
@@ -132,7 +132,7 @@ export class Resizable extends React.Component<IResizableProps, IResizableState>
   /**
    * Handler for when the resize handle is double clicked.
    *
-   * Resets the sidebar width to its default value and clears
+   * Resets the panel width to its default value and clears
    * any persisted value.
    *
    * Note: This method is intentionally bound using `=>` so that
