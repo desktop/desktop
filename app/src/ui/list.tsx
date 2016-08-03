@@ -10,22 +10,22 @@ interface IListProps {
   canSelectRow?: (row: number) => boolean
   onScroll?: (scrollTop: number, clientHeight: number) => void
 
+  /**
+   * List's underlying implementation acts as a pure component based on the
+   * above props. So if there are any other properties that also determine
+   * whether the list should re-render, List must know about them.
+   */
+  invalidationProps?: any
+
   /** The unique identifier for the outer element of the component (optional, defaults to null) */
   id?: string
 }
 
 export default class List extends React.Component<IListProps, void> {
-  public refs: {
-    [key: string]: any,
-    list: Element
-  }
+  private focusItem: HTMLDivElement | null = null
 
-  private selectedItem: HTMLDivElement | null = null
-  /**
-   * Internal use only. Whether to explicitly move keyboard focus to the selected item.
-   * Used after intercepting keyboard intent to move selection (arrow keys, page up/down).
-   */
-  private moveKeyboardFocusToSelectedItem = false
+  private scrollToRow = -1
+  private focusRow = -1
 
   private handleKeyDown(e: React.KeyboardEvent) {
     let direction: 'up' | 'down'
@@ -75,51 +75,39 @@ export default class List extends React.Component<IListProps, void> {
     }
 
     this.scrollRowToVisible(newRow)
-
-    this.moveKeyboardFocusToSelectedItem = true
   }
 
   private scrollRowToVisible(row: number) {
-    const top = row * this.props.rowHeight
-    const bottom = top + this.props.rowHeight
-    const list = this.refs.list
-    const rangeStart = list.scrollTop
-    const rangeEnd = list.scrollTop + list.clientHeight
-
-    if (top < rangeStart) {
-      this.refs.list.scrollTop = top
-    } else if (bottom > rangeEnd) {
-      this.refs.list.scrollTop = bottom - list.clientHeight
-    }
+    this.scrollToRow = row
+    this.focusRow = row
+    this.forceUpdate()
   }
 
   public componentDidUpdate() {
     // If this state is set it means that someone just used arrow keys (or pgup/down)
     // to change the selected row. When this happens we need to explcitly shift
-    // keyboard focus to the newly selected item. If selectedItem is null then
+    // keyboard focus to the newly selected item. If focusItem is null then
     // we're probably just loading more items and we'll catch it on the next
     // render pass.
-    if (this.moveKeyboardFocusToSelectedItem) {
-      if (this.selectedItem) {
-        this.selectedItem.focus()
-      }
-      // Unset the flag so that we don't end up in a loop setting focus over and over.
-      this.moveKeyboardFocusToSelectedItem = false
+    if (this.focusRow >= 0 && this.focusItem) {
+      this.focusItem.focus()
+      this.focusRow = -1
+      this.forceUpdate()
     }
   }
 
   private renderRow = ({ rowIndex }: { rowIndex: number }) => {
-
     const selected = rowIndex === this.props.selectedRow
+    const focused = rowIndex === this.focusRow
     const className = selected ? 'list-item selected' : 'list-item'
-    const tabIndex = selected ? 0 : -1
+    const tabIndex = focused ? 0 : -1
 
     // We don't care about mouse events on the selected item
     const onMouseDown = selected ? null : () => this.handleMouseDown(rowIndex)
 
-    // We only need to keep a reference to the selected element
-    const ref = selected
-      ? (c: HTMLDivElement) => { this.selectedItem = c }
+    // We only need to keep a reference to the focused element
+    const ref = focused
+      ? (c: HTMLDivElement) => { this.focusItem = c }
       : null
 
     const element = this.props.rowRenderer(rowIndex)
@@ -136,6 +124,9 @@ export default class List extends React.Component<IListProps, void> {
   }
 
   public render() {
+    const scrollToRow = this.scrollToRow
+    this.scrollToRow = -1
+
     // The currently selected list item is focusable but if
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
@@ -144,7 +135,6 @@ export default class List extends React.Component<IListProps, void> {
     return (
       <div id={this.props.id}
            className='list'
-           ref='list'
            tabIndex={tabIndex}
            onKeyDown={e => this.handleKeyDown(e)}
            style={{ flexGrow: 1 }}>
@@ -168,10 +158,13 @@ export default class List extends React.Component<IListProps, void> {
               rowHeight={this.props.rowHeight}
               cellRenderer={this.renderRow}
               onScroll={this.onScroll}
+              scrollToRow={scrollToRow}
+              overscanRowCount={4}
               // Grid doesn't actually _do_ anything with
               // `selectedRow`. We're just passing it through so that
               // Grid will re-render when it changes.
-              selectedRow={this.props.selectedRow}/>
+              selectedRow={this.props.selectedRow}
+              invalidationProps={this.props.invalidationProps}/>
           )}
         </AutoSizer>
       </div>
