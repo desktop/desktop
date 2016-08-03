@@ -41,6 +41,9 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
   }
 
   public render() {
+    const fileCount = this.props.files.length
+    const filesSuffix = fileCount === 1 ? 'file' : 'files'
+    const filesDescription = `${fileCount} changed ${filesSuffix}`
     return (
       <div className='panel' id='commit-summary'>
         <div className='commit-summary-header'>
@@ -68,12 +71,12 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
             </li>
 
             <li className='commit-summary-meta-item'
-              title={this.props.files.length + ' changed files'}>
+              title={filesDescription}>
               <span aria-hidden='true'>
                 <Octicon symbol={OcticonSymbol.diff} />
               </span>
 
-              {this.props.files.length} changed files
+              {filesDescription}
             </li>
           </ul>
         </div>
