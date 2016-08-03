@@ -123,10 +123,29 @@ export default class AppStore {
     })
     this.emitUpdate()
 
-    const commits = await LocalGitOperations.getHistory(repository, 'HEAD', CommitBatchSize)
+    const headCommits = await LocalGitOperations.getHistory(repository, 'HEAD', CommitBatchSize)
     const commitCount = await LocalGitOperations.getCommitCount(repository)
 
+    let commits = new Array<Commit>()
     this.updateHistoryState(repository, state => {
+      const existingCommits = state.commits
+      if (existingCommits.length > 0) {
+        const mostRecent = existingCommits[0]
+        const index = findIndex(headCommits, c => c.sha === mostRecent.sha)
+        if (index > -1) {
+          const newCommits = headCommits.slice(0, index)
+          commits = commits.concat(newCommits)
+          // TODO: This is gross and deserves a TS bug report.
+          commits = commits.concat(Array.from(existingCommits))
+        } else {
+          commits = Array.from(headCommits)
+          // The commits we already had are outside the first batch, so who
+          // knows how far they are from HEAD now. Start over fresh.
+        }
+      } else {
+        commits = Array.from(headCommits)
+      }
+
       return {
         commits,
         selection: state.selection,
