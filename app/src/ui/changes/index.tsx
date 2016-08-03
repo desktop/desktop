@@ -4,7 +4,7 @@ import FileDiff from '../file-diff'
 import { IChangesState } from '../../lib/app-state'
 import Repository from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
-import { Sidebar } from '../sidebar'
+import { Resizable } from '../resizable'
 
 interface IChangesProps {
   repository: Repository
@@ -58,7 +58,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
     return (
       <div className='panel-container'>
-        <Sidebar configKey='changes-width'>
+        <Resizable configKey='changes-width'>
           <ChangesList repository={this.props.repository}
                        workingDirectory={this.props.changes.workingDirectory}
                        selectedPath={selectedPath}
@@ -67,12 +67,12 @@ export class Changes extends React.Component<IChangesProps, void> {
                        onIncludeChanged={(row, include) => this.onIncludeChanged(row, include) }
                        onSelectAll={selectAll => this.onSelectAll(selectAll) }
                        branch={this.props.branch}/>
-         </Sidebar>
+        </Resizable>
 
-         <FileDiff repository={this.props.repository}
-                   file={this.props.changes.selectedFile}
-                   readOnly={false}
-                   commit={null} />
+        <FileDiff repository={this.props.repository}
+                  file={this.props.changes.selectedFile}
+                  readOnly={false}
+                  commit={null} />
       </div>
     )
   }

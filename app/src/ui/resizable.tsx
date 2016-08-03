@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ThrottledScheduler } from './lib/throttled-scheduler'
 
-interface ISidebarProps extends React.Props<Sidebar> {
+interface IResizableProps extends React.Props<Resizable> {
   /** String key used when persisting the sidebar width to localStorage */
   configKey: string
 
@@ -33,7 +33,7 @@ interface ISidebarProps extends React.Props<Sidebar> {
   id?: string
 }
 
-interface ISidebarState {
+interface IResizableState {
   /**
    * The width of the sidebar in pixels.
    * Optional
@@ -42,13 +42,13 @@ interface ISidebarState {
 }
 
 /**
- * Component abstracting the application sidebar.
+ * Component abstracting a resizable panel.
  *
- * Handles user resizing and persistence of sidebar width.
+ * Handles user resizing and persistence of the width.
  */
-export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
+export class Resizable extends React.Component<IResizableProps, IResizableState> {
 
-  public static defaultProps: ISidebarProps = {
+  public static defaultProps: IResizableProps = {
     configKey: 'sidebar-width',
     defaultWidth: 250,
     minimumWidth: 150,
@@ -59,7 +59,7 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
   private startX: number
   private configWriteScheduler = new ThrottledScheduler(300)
 
-  public constructor(props: ISidebarProps) {
+  public constructor(props: IResizableProps) {
     super(props)
     this.state = { width: this.getPersistedWidth() }
   }
