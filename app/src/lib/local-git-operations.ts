@@ -3,6 +3,8 @@ import Repository from '../models/repository'
 
 import { GitProcess, GitError, GitErrorCode } from './git-process'
 
+import { IAPICommit } from './api'
+
 /** The encapsulation of the result from 'git status' */
 export class StatusResult {
   /** true if the repository exists at the given location */
@@ -40,14 +42,21 @@ export class Commit {
   public readonly authorName: string
   public readonly authorEmail: string
   public readonly authorDate: Date
+  public readonly apiCommit: IAPICommit | null
 
-  public constructor(sha: string, summary: string, body: string, authorName: string, authorEmail: string, authorDate: Date) {
+  public constructor(sha: string, summary: string, body: string, authorName: string, authorEmail: string, authorDate: Date, apiCommit?: IAPICommit) {
     this.sha = sha
     this.summary = summary
     this.body = body
     this.authorName = authorName
     this.authorEmail = authorEmail
     this.authorDate = authorDate
+    this.apiCommit = apiCommit ? apiCommit : null
+  }
+
+  /** Create a new copy of the commit with the given API commit. */
+  public withAPICommit(apiCommit: IAPICommit | null): Commit {
+    return new Commit(this.sha, this.summary, this.body, this.authorName, this.authorEmail, this.authorDate, apiCommit ? apiCommit : undefined)
   }
 }
 
