@@ -11,7 +11,8 @@
     "strictNullChecks": true,
     "sourceMap": true,
     "jsx": "react",
-    "outDir": "./out"
+    "outDir": "./out",
+    "types": ["mocha", "whatwg-fetch", "electron-window-state"]
   },
   "exclude": [
     "node_modules",
