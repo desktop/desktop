@@ -42,8 +42,8 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
 
   public render() {
     const fileCount = this.props.files.length
-    const filesSuffix = fileCount === 1 ? 'file' : 'files'
-    const filesDescription = `${fileCount} changed ${filesSuffix}`
+    const filesPlural = fileCount === 1 ? 'file' : 'files'
+    const filesDescription = `${fileCount} changed ${filesPlural}`
     return (
       <div className='panel' id='commit-summary'>
         <div className='commit-summary-header'>
