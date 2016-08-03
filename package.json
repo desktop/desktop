@@ -6,7 +6,7 @@
   "description": "The People's Glorious GitHub Client's build dependencies",
   "scripts": {
     "test": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 electron-mocha --renderer --require ts-node/register app/test/*.ts app/test/*.tsx",
-    "postinstall": "typings install && cd app && npm install && cd .. && git submodule update --recursive --init",
+    "postinstall": "cd app && npm install && cd .. && git submodule update --recursive --init",
     "start": "node script/start",
     "compile:dev": "cross-env NODE_ENV=development webpack --config app/webpack.development.js",
     "compile:prod": "cross-env NODE_ENV=production webpack --config app/webpack.production.js",
@@ -58,7 +58,6 @@
     "ts-node": "^0.7.2",
     "tslint": "^3.14.0",
     "typescript": "beta",
-    "typings": "^0.7.12",
     "vrsource-tslint-rules": "^0.12.0",
     "webpack": "^1.12.15",
     "webpack-dev-middleware": "^1.6.1",
