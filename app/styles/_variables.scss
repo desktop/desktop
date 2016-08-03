@@ -11,12 +11,19 @@
   // color is being used. Note that these variables should _never_ be
   // used outside of this scope.
   $blue: #4ca6eb;
-  $darkGray: #5f717f;
   $orange: #c9510c;
+  $yellow: #d0b44c;
+  $red: #d0b44c;
+  $green: #6cc644;
+  $darkGray: #5f717f;
   $gray: #ccc;
   $lightGray: #f2f2f2;
   $lighterGray: #f9f9f9;
   $white: #fff;
+
+  --color-new: $green;
+  --color-removed: $red;
+  --color-modified: $yellow;
 
   --text-color: $darkGray;
   --background-color: $white;

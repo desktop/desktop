@@ -34,9 +34,21 @@
   .status {
     flex-grow: 1;
     text-align: right;
+
+    &-new .octicon {
+      fill: var(--color-new);
+    }
+
+    &-modified .octicon {
+      fill: var(--color-modified);
+    }
+
+    &-deleted .octicon {
+      fill: var(--color-deleted);
+    }
   }
 
   .octicon {
-    vertical-align: text-bottom;    
+    vertical-align: text-bottom;
   }
 }
