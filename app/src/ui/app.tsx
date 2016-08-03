@@ -153,7 +153,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const selectedRepository = this.state.selectedRepository!
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
-        <Sidebar>
+        <Sidebar id='desktop-app-sidebar' configKey='repositories-list-width'>
           <RepositoriesList selectedRepository={selectedRepository}
                             onSelectionChanged={repository => this.onSelectionChanged(repository)}
                             repos={this.state.repositories}

@@ -28,6 +28,9 @@ interface ISidebarProps extends React.Props<Sidebar> {
    * @default 150
    */
   minimumWidth?: number
+
+  /** The optional ID for the root element. */
+  id?: string
 }
 
 interface ISidebarState {
@@ -149,7 +152,7 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
     }
 
     return (
-      <div id='desktop-app-sidebar' style={style}>
+      <div id={this.props.id} style={style}>
         {this.props.children}
         <div onMouseDown={this.handleDragStart} onDoubleClick={this.handleDoubleClick} className='resize-handle'></div>
       </div>
