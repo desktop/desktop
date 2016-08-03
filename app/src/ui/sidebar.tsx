@@ -2,6 +2,9 @@ import * as React from 'react'
 import { ThrottledScheduler } from './lib/throttled-scheduler'
 
 interface ISidebarProps extends React.Props<Sidebar> {
+  /** String key used when persisting the sidebar width to localStorage */
+  configKey: string
+
   /**
    * The default width of the sidebar.
    *
@@ -35,9 +38,6 @@ interface ISidebarState {
   width?: number
 }
 
-/** String key used when persisting the sidebar width to localStorage */
-const sidebarWidthConfigKey = 'sidebar-width'
-
 /**
  * Component abstracting the application sidebar.
  *
@@ -46,6 +46,7 @@ const sidebarWidthConfigKey = 'sidebar-width'
 export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
 
   public static defaultProps: ISidebarProps = {
+    configKey: 'sidebar-width',
     defaultWidth: 250,
     minimumWidth: 150,
     maximumWidth: 350,
@@ -61,18 +62,18 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
   }
 
   private getPersistedWidth() {
-    return parseInt(localStorage.getItem(sidebarWidthConfigKey), 10)
+    return parseInt(localStorage.getItem(this.props.configKey), 10)
   }
 
   private setPersistedWidth(newWidth: number) {
     this.configWriteScheduler.queue(() => {
-      localStorage.setItem(sidebarWidthConfigKey, newWidth.toString())
+      localStorage.setItem(this.props.configKey, newWidth.toString())
     })
   }
 
   private clearPersistedWidth() {
     this.configWriteScheduler.queue(() => {
-      localStorage.removeItem(sidebarWidthConfigKey)
+      localStorage.removeItem(this.props.configKey)
     })
   }
 
