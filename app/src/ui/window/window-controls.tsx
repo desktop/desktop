@@ -45,12 +45,12 @@ export class WindowControls extends React.Component<void, IWindowControlState> {
     this.setState({ windowState: args as WindowState })
   }
 
-  private renderButton(name: string, onClick: React.EventHandler<React.MouseEvent>, path: string) {
+  private renderButton(name: string, onClick: React.EventHandler<React.MouseEvent<any>>, path: string) {
     const className = `window-control ${name}`
     const title = name[0].toUpperCase() + name.substring(1)
 
     return (
-      <button aria-label={name} title={title} tabIndex='-1' className={className} onClick={onClick}>
+      <button aria-label={name} title={title} tabIndex={-1} className={className} onClick={onClick}>
         <svg aria-hidden='true' role='img' version='1.1' width='10' height='10'>
           <path d={path}></path>
         </svg>

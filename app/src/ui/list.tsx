@@ -26,7 +26,7 @@ export default class List extends React.Component<IListProps, void> {
   private scrollToRow = -1
   private focusRow = -1
 
-  private handleKeyDown(e: React.KeyboardEvent) {
+  private handleKeyDown(e: React.KeyboardEvent<any>) {
     let direction: 'up' | 'down'
     if (e.key === 'ArrowDown') {
       direction = 'down'
@@ -102,12 +102,12 @@ export default class List extends React.Component<IListProps, void> {
     const tabIndex = focused ? 0 : -1
 
     // We don't care about mouse events on the selected item
-    const onMouseDown = selected ? null : () => this.handleMouseDown(rowIndex)
+    const onMouseDown = selected ? undefined : () => this.handleMouseDown(rowIndex)
 
     // We only need to keep a reference to the focused element
     const ref = focused
       ? (c: HTMLDivElement) => { this.focusItem = c }
-      : null
+      : undefined
 
     const element = this.props.rowRenderer(rowIndex)
     return (
