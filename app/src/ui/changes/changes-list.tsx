@@ -37,14 +37,14 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     )
   }
 
-  private changedFilesHeaderText(numberOfFilesChanged: number) {
-    if (numberOfFilesChanged === 1) { return '1 change' }
-    return numberOfFilesChanged + ' changes'
-  }
-
   public render() {
     const includeAll = this.props.workingDirectory.includeAll
     const selectedRow = findIndex(this.props.workingDirectory.files, file => file.path === this.props.selectedPath)
+
+    const fileCount = this.props.workingDirectory.files.length
+    const filesPlural = fileCount === 1 ? 'file' : 'files'
+    const filesDescription = `${fileCount} changed ${filesPlural}`
+
     return (
       <div className='panel changes-panel' id='changes-list'>
         <div id='select-all' className='changes-panel-header'>
@@ -59,7 +59,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
             }} />
 
           <label className='changes-panel-header-label'>
-            {this.changedFilesHeaderText(this.props.workingDirectory.files.length)}
+            {filesDescription}
           </label>
         </div>
 
