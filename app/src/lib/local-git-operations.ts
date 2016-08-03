@@ -400,11 +400,11 @@ export class LocalGitOperations {
       const sha = pieces[0]
       const summary = pieces[1]
       const body = pieces[2]
-      const committerName = pieces[3]
-      const committerEmail = pieces[4]
+      const authorName = pieces[3]
+      const authorEmail = pieces[4]
       const parsedDate = Date.parse(pieces[5])
-      const committerDate = new Date(parsedDate)
-      return new Commit(sha, summary, body, committerName, committerEmail, committerDate)
+      const authorDate = new Date(parsedDate)
+      return new Commit(sha, summary, body, authorName, authorEmail, authorDate)
     })
 
     return Promise.resolve(commits)
