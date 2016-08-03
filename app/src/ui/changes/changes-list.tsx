@@ -68,7 +68,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               rowHeight={RowHeight}
               rowRenderer={row => this.renderRow(row)}
               selectedRow={selectedRow}
-              onSelectionChanged={row => this.props.onSelectionChanged(row)} />
+              onSelectionChanged={row => this.props.onSelectionChanged(row)}
+              invalidationProps={this.props.workingDirectory}/>
 
         <CommitMessage onCreateCommit={title => this.props.onCreateCommit(title)} branch={this.props.branch}/>
       </div>

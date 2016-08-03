@@ -277,10 +277,11 @@ export default class AppStore {
       includeAll = false
     }
 
+    const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
     const newState: IRepositoryState = {
       selectedSection: state.selectedSection,
       changesState: {
-        workingDirectory: new WorkingDirectoryStatus(newFiles, includeAll),
+        workingDirectory,
         selectedFile: state.changesState.selectedFile,
       },
       historyState: state.historyState,
