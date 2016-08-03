@@ -22,6 +22,10 @@
     padding: var(--spacing-half);
   }
 
+  &-header-label {
+    font-weight: var(--font-weight-semibold);
+  }
+
   .list-item {
     padding: var(--spacing-half);
     border-bottom: var(--base-border);

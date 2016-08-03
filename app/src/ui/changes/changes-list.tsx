@@ -37,14 +37,18 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     )
   }
 
-  public render() {
+  private changedFilesHeaderText(numberOfFilesChanged: number) {
+    if (numberOfFilesChanged === 1) { return '1 change' }
+    return numberOfFilesChanged + ' changes'
+  }
 
+  public render() {
     const includeAll = this.props.workingDirectory.includeAll
     const selectedRow = findIndex(this.props.workingDirectory.files, file => file.path === this.props.selectedPath)
     return (
       <div className='panel changes-panel' id='changes-list'>
         <div id='select-all' className='changes-panel-header'>
-          <label>
+          <label className='changes-panel-header-label'>
             <input
               type='checkbox'
               checked={includeAll}
@@ -54,8 +58,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
                   input.indeterminate = (includeAll === null)
                 }
               }} />
-
-              Select all changes
+              {this.changedFilesHeaderText(this.props.workingDirectory.files.length)}
           </label>
         </div>
 
