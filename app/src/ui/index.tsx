@@ -38,4 +38,4 @@ ipcRenderer.on('focus', () => {
   dispatcher.refreshRepository(repository)
 })
 
-ReactDOM.render(<App dispatcher={dispatcher} store={store}/>, document.getElementById('desktop-app-container')!)
+ReactDOM.render(<App dispatcher={dispatcher} store={store} gitUserStore={gitUserStore}/>, document.getElementById('desktop-app-container')!)
