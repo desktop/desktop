@@ -25,14 +25,6 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     this.props.onIncludeChanged(include)
   }
 
-  private static iconForStatus(status: FileStatus): OcticonSymbol {
-    if (status === FileStatus.New) { return OcticonSymbol.diffAdded }
-    if (status === FileStatus.Modified) { return OcticonSymbol.diffModified }
-    if (status === FileStatus.Deleted) { return OcticonSymbol.diffRemoved }
-
-    return OcticonSymbol.diffModified
-  }
-
   public render() {
     return (
       <div className='changed-file'>
@@ -46,9 +38,17 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
         </label>
 
         <span className={'status status-' + ChangedFile.mapStatus(this.props.status).toLowerCase()} title={ChangedFile.mapStatus(this.props.status)}>
-          <Octicon symbol={ChangedFile.iconForStatus(this.props.status)} />
+          <Octicon symbol={iconForStatus(this.props.status)} />
         </span>
       </div>
     )
   }
+}
+
+function iconForStatus(status: FileStatus): OcticonSymbol {
+  if (status === FileStatus.New) { return OcticonSymbol.diffAdded }
+  if (status === FileStatus.Modified) { return OcticonSymbol.diffModified }
+  if (status === FileStatus.Deleted) { return OcticonSymbol.diffRemoved }
+
+  return OcticonSymbol.diffModified
 }
