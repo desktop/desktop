@@ -54,7 +54,7 @@ export default class GitUserStore {
   }
 
   /** Not to be called externally. See `Dispatcher`. */
-  public async _loadUser(users: ReadonlyArray<User>, repository: Repository, sha: string, email: string) {
+  public async _attemptToDivineUser(users: ReadonlyArray<User>, repository: Repository, sha: string, email: string) {
     const key = keyForRequest(repository, email)
     if (this.requestsInFlight.has(key)) { return }
 
