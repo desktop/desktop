@@ -198,7 +198,6 @@ export default class List extends React.Component<IListProps, void> {
 
     const grid = this.grid
     if (grid) {
-      console.log('force update!')
       grid.forceUpdate()
     }
   }
