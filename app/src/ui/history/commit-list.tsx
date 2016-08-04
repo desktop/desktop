@@ -5,10 +5,15 @@ import CommitListItem from './commit-list-item'
 import List from '../list'
 import CommitFacadeListItem from './commit-facade-list-item'
 import { findIndex } from '../../lib/find'
-import { Dispatcher, GitUserStore } from '../../lib/dispatcher'
+import { Dispatcher, GitUserStore, IGitUser } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 
 const RowHeight = 68
+
+const DefaultGitUser: IGitUser = {
+  login: null,
+  avatarURL: 'https://github.com/hubot.png',
+}
 
 interface ICommitListProps {
   readonly onCommitSelected: (commit: Commit) => void
@@ -39,9 +44,11 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
   private renderCommit(row: number) {
     const commit: Commit | null = this.props.commits[row]
     if (commit) {
-      const gitUser = this.props.gitUserStore.getUser(this.props.repository, commit.authorEmail)
-      if (!gitUser.login) {
-        this.props.dispatcher.loadUser(this.props.repository, commit.sha, commit.authorEmail)
+      let gitUser = this.props.gitUserStore.getUser(this.props.repository, commit.authorEmail)
+      if (!gitUser) {
+        gitUser = DefaultGitUser
+
+        this.props.dispatcher.attemptToDivineUser(this.props.repository, commit.sha, commit.authorEmail)
       }
 
       return <CommitListItem key={commit.sha} commit={commit} gitUser={gitUser}/>
