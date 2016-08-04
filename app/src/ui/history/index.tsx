@@ -1,11 +1,12 @@
 import * as React from 'react'
+import { CompositeDisposable } from 'event-kit'
 import CommitList from './commit-list'
 import CommitSummaryContainer from './commit-summary-container'
 import FileDiff from '../file-diff'
 import Repository from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../lib/local-git-operations'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher, GitUserStore } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { Resizable } from '../resizable'
@@ -14,11 +15,18 @@ interface IHistoryProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly history: IHistoryState
+  readonly gitUserStore: GitUserStore
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
 export default class History extends React.Component<IHistoryProps, void> {
-  private loadChangedFilesScheduler = new ThrottledScheduler(200)
+  private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
+  private disposable: CompositeDisposable
+
+  public componentDidMount() {
+    this.disposable = new CompositeDisposable()
+    this.disposable.add(this.props.gitUserStore.onDidUpdate(() => this.forceUpdate()))
+  }
 
   private onCommitSelected(commit: Commit) {
     const newSelection = { commit, file: null }
@@ -43,6 +51,7 @@ export default class History extends React.Component<IHistoryProps, void> {
   }
 
   public componentWillUnmount() {
+    this.disposable.dispose()
     this.loadChangedFilesScheduler.clear()
   }
 
@@ -56,7 +65,10 @@ export default class History extends React.Component<IHistoryProps, void> {
                       commitCount={this.props.history.commitCount}
                       selectedCommit={commit}
                       onCommitSelected={commit => this.onCommitSelected(commit)}
-                      onScroll={(start, end) => this.onScroll(start, end)}/>
+                      onScroll={(start, end) => this.onScroll(start, end)}
+                      repository={this.props.repository}
+                      gitUserStore={this.props.gitUserStore}
+                      dispatcher={this.props.dispatcher}/>
         </Resizable>
         <Resizable configKey='commit-summary-width'>
           <CommitSummaryContainer repository={this.props.repository}

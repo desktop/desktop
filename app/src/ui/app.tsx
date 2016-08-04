@@ -28,7 +28,6 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
     this.state = props.store.getState()
     props.store.onDidUpdate(state => this.setState(state))
-    props.gitUserStore.onDidUpdate(() => this.forceUpdate())
 
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => this.onMenuEvent(name))
   }
@@ -181,7 +180,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
         </Resizable>
         <RepositoryView repository={this.state.selectedRepository!}
                         state={this.state.repositoryState!}
-                        dispatcher={this.props.dispatcher}/>
+                        dispatcher={this.props.dispatcher}
+                        gitUserStore={this.props.gitUserStore}/>
       </div>
     )
   }

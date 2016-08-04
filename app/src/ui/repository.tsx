@@ -6,12 +6,13 @@ import History from './history'
 import ComparisonGraph from './comparison-graph'
 import { TabBarTab } from './toolbar/tab-bar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
-import { Dispatcher } from '../lib/dispatcher'
+import { Dispatcher, GitUserStore } from '../lib/dispatcher'
 
 interface IRepositoryProps {
-  repository: Repo
-  state: IRepositoryModelState
-  dispatcher: Dispatcher
+  readonly repository: Repo
+  readonly state: IRepositoryModelState
+  readonly dispatcher: Dispatcher
+  readonly gitUserStore: GitUserStore
 }
 
 export default class Repository extends React.Component<IRepositoryProps, void> {
@@ -32,7 +33,8 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
     } else if (this.props.state.selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
-                      history={this.props.state.historyState}/>
+                      history={this.props.state.historyState}
+                      gitUserStore={this.props.gitUserStore}/>
     } else {
       return null
     }

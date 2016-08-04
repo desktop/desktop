@@ -46,6 +46,7 @@ export class Dispatcher {
 
   public constructor(store: AppStore, gitUserStore: GitUserStore) {
     this.store = store
+    this.gitUserStore = gitUserStore
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
