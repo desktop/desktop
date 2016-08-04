@@ -9,6 +9,7 @@ chai.use(chaiAsPromised)
 
 describe('App', function (this: any) {
   if (process.env.CI) {
+    /* tslint:disable:no-invalid-this */
     this.timeout(30000)
   }
 
