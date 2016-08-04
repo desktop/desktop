@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { CompositeDisposable } from 'event-kit'
 import { Commit } from '../../lib/local-git-operations'
 import CommitListItem from './commit-list-item'
 import List from '../list'
@@ -22,6 +23,19 @@ interface ICommitListProps {
 
 /** A component which displays the list of commits. */
 export default class CommitList extends React.Component<ICommitListProps, void> {
+  private disposable: CompositeDisposable
+
+  private list: List | null
+
+  public componentDidMount() {
+    this.disposable = new CompositeDisposable()
+    this.disposable.add(this.props.gitUserStore.onDidUpdate(() => this.forceUpdate()))
+  }
+
+  public componentWillUnmount() {
+    this.disposable.dispose()
+  }
+
   private renderCommit(row: number) {
     const commit: Commit | null = this.props.commits[row]
     if (commit) {
@@ -55,10 +69,20 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     return findIndex(this.props.commits, c => c.sha === commit.sha)
   }
 
+  public forceUpdate() {
+    super.forceUpdate()
+
+    const list = this.list
+    if (list) {
+      list.forceUpdate()
+    }
+  }
+
   public render() {
     return (
       <div className='panel' id='commit-list'>
-        <List rowCount={this.props.commitCount}
+        <List ref={ref => this.list = ref}
+              rowCount={this.props.commitCount}
               rowHeight={RowHeight}
               selectedRow={this.rowForCommit(this.props.selectedCommit)}
               rowRenderer={row => this.renderCommit(row)}

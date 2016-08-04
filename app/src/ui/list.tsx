@@ -27,6 +27,8 @@ export default class List extends React.Component<IListProps, void> {
   private scrollToRow = -1
   private focusRow = -1
 
+  private grid: React.Component<any, any> | null
+
   private handleKeyDown(e: React.KeyboardEvent<any>) {
     let direction: 'up' | 'down'
     if (e.key === 'ArrowDown') {
@@ -141,6 +143,7 @@ export default class List extends React.Component<IListProps, void> {
         <AutoSizer>
           {({ width, height }: { width: number, height: number }) => (
             <Grid
+              ref={(ref: React.Component<any, any>) => this.grid = ref}
               autoContainerWidth
               width={width}
               height={height}
@@ -187,6 +190,16 @@ export default class List extends React.Component<IListProps, void> {
   private onScroll = ({ scrollTop, clientHeight }: { scrollTop: number, clientHeight: number }) => {
     if (this.props.onScroll) {
       this.props.onScroll(scrollTop, clientHeight)
+    }
+  }
+
+  public forceUpdate(callback?: () => any) {
+    super.forceUpdate(callback)
+
+    const grid = this.grid
+    if (grid) {
+      console.log('force update!')
+      grid.forceUpdate()
     }
   }
 }

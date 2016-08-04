@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { CompositeDisposable } from 'event-kit'
 import CommitList from './commit-list'
 import CommitSummaryContainer from './commit-summary-container'
 import FileDiff from '../file-diff'
@@ -21,12 +20,6 @@ interface IHistoryProps {
 /** The History component. Contains the commit list, commit summary, and diff. */
 export default class History extends React.Component<IHistoryProps, void> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
-  private disposable: CompositeDisposable
-
-  public componentDidMount() {
-    this.disposable = new CompositeDisposable()
-    this.disposable.add(this.props.gitUserStore.onDidUpdate(() => this.forceUpdate()))
-  }
 
   private onCommitSelected(commit: Commit) {
     const newSelection = { commit, file: null }
@@ -51,7 +44,6 @@ export default class History extends React.Component<IHistoryProps, void> {
   }
 
   public componentWillUnmount() {
-    this.disposable.dispose()
     this.loadChangedFilesScheduler.clear()
   }
 
