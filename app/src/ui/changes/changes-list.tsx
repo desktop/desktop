@@ -21,7 +21,7 @@ interface IChangesListProps {
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
-  private handleOnChangeEvent(event: React.FormEvent) {
+  private handleOnChangeEvent(event: React.FormEvent<any>) {
     const include = (event.target as any).checked
     this.props.onSelectAll(include)
   }
@@ -50,7 +50,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         <div id='select-all' className='changes-panel-header'>
           <input
             type='checkbox'
-            checked={includeAll}
+            checked={includeAll == null ? undefined : includeAll}
             onChange={event => this.handleOnChangeEvent(event) }
             ref={function(input) {
               if (input != null) {

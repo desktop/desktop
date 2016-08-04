@@ -126,6 +126,11 @@ export class Dispatcher {
     return this.store._loadHistory(repository)
   }
 
+  /** Load the next batch of history for the repository. */
+  public loadNextHistoryBatch(repository: Repository): Promise<void> {
+    return this.store._loadNextHistoryBatch(repository)
+  }
+
   /** Load the changed files for the current history selection. */
   public loadChangedFilesForCurrentSelection(repository: Repository): Promise<void> {
     return this.store._loadChangedFilesForCurrentSelection(repository)

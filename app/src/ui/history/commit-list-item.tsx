@@ -3,7 +3,7 @@ import * as moment from 'moment'
 import { Commit } from '../../lib/local-git-operations'
 
 interface ICommitProps {
-  commit: Commit
+  readonly commit: Commit
 }
 
 /** A component which displays a single commit in a commit list. */
