@@ -1,7 +1,7 @@
 import { shell, Menu, ipcMain } from 'electron'
 import SharedProcess from '../shared-process/shared-process'
 
-export type MenuEvent = 'push' | 'pull'
+export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Object[] = [
@@ -34,6 +34,23 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     {
       label: 'View',
       submenu: [
+        {
+          label: 'Changes',
+          accelerator: 'CmdOrCtrl+1',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('select-changes')
+          }
+        },
+        {
+          label: 'History',
+          accelerator: 'CmdOrCtrl+2',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('select-history')
+          }
+        },
+        {
+          type: 'separator'
+        },
         {
           label: 'Reload',
           accelerator: 'CmdOrCtrl+R',
@@ -72,14 +89,14 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           label: 'Push',
           accelerator: 'CmdOrCtrl+P',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
-            ipcMain.emit('menu-event', { name: 'push' })
+            emitMenuEvent('push')
           }
         },
         {
           label: 'Pull',
           accelerator: 'CmdOrCtrl+Shift+P',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
-            ipcMain.emit('menu-event', { name: 'pull' })
+            emitMenuEvent('pull')
           }
         }
       ]
@@ -156,4 +173,8 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   }
 
   return Menu.buildFromTemplate(template)
+}
+
+function emitMenuEvent(name: MenuEvent) {
+  ipcMain.emit('menu-event', { name })
 }
