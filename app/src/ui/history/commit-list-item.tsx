@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as moment from 'moment'
 import { Commit } from '../../lib/local-git-operations'
-import { IGitUser } from '../../lib/dispatcher/git-user-store'
+import { IGitUser } from '../../lib/dispatcher'
 
 interface ICommitProps {
   readonly commit: Commit
