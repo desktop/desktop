@@ -6,20 +6,22 @@ import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-addons-test-utils'
 
 import App from '../src/ui/app'
-import { Dispatcher, LocalStore } from '../src/lib/dispatcher'
+import { Dispatcher, AppStore, GitUserStore } from '../src/lib/dispatcher'
 import InMemoryDispatcher from './in-memory-dispatcher'
 
 describe('App', () => {
-  let store: LocalStore | null = null
+  let store: AppStore | null = null
+  let gitUserStore: GitUserStore | null = null
   let dispatcher: Dispatcher | null = null
 
   beforeEach(() => {
-    store = new LocalStore()
-    dispatcher = new InMemoryDispatcher(store)
+    store = new AppStore()
+    gitUserStore = new GitUserStore()
+    dispatcher = new InMemoryDispatcher(store, gitUserStore)
   })
 
   it('renders', () => {
-    const app = TestUtils.renderIntoDocument(<App dispatcher={dispatcher!} store={store!}/>) as React.Component<any, any>
+    const app = TestUtils.renderIntoDocument(<App dispatcher={dispatcher!} store={store!} gitUserStore={gitUserStore!}/>) as React.Component<any, any>
     const node = ReactDOM.findDOMNode(app)
     expect(node).not.to.equal(null)
   })
