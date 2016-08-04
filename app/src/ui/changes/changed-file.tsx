@@ -28,12 +28,12 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
   public render() {
     return (
       <div className='changed-file'>
+        <input
+          type='checkbox'
+          checked={this.props.include}
+          onChange={event => this.handleChange(event)}/>
+
         <label className='path'>
-          <input
-            type='checkbox'
-            checked={this.props.include}
-            onChange={event => this.handleChange(event)}
-          />
           {this.props.path}
         </label>
 
