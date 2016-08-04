@@ -8,6 +8,31 @@
     width: 100%;
     height: 100%;
 
+    padding-left: 2px;
+
+    &.facade {
+      .avatar {
+        background-color: lightGray;
+        border-radius: 4px;
+      }
+
+      .info {
+        width: 100%;
+
+        .summary {
+          background-color: rgb(220, 220, 220);
+          width: 90%;
+          height: 1em;
+        }
+
+        .byline {
+          background-color: rgb(240, 240, 240);
+          width: 75%;
+          height: 1em;
+        }
+      }
+    }
+
     .avatar {
       width: 48px;
       height: 48px;
