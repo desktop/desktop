@@ -4,6 +4,8 @@ import CommitListItem from './commit-list-item'
 import List from '../list'
 import CommitFacadeListItem from './commit-facade-list-item'
 import { findIndex } from '../../lib/find'
+import { Dispatcher, GitUserStore } from '../../lib/dispatcher'
+import Repository from '../../models/repository'
 
 const RowHeight = 68
 
@@ -13,6 +15,9 @@ interface ICommitListProps {
   readonly commits: ReadonlyArray<Commit>
   readonly selectedCommit: Commit | null
   readonly commitCount: number
+  readonly gitUserStore: GitUserStore
+  readonly repository: Repository
+  readonly dispatcher: Dispatcher
 }
 
 /** A component which displays the list of commits. */
@@ -20,7 +25,12 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
   private renderCommit(row: number) {
     const commit: Commit | null = this.props.commits[row]
     if (commit) {
-      return <CommitListItem commit={commit} key={commit.sha}/>
+      const gitUser = this.props.gitUserStore.getUser(this.props.repository, commit.authorEmail)
+      if (!gitUser.login) {
+        this.props.dispatcher.loadUser(this.props.repository, commit.sha, commit.authorEmail)
+      }
+
+      return <CommitListItem key={commit.sha} commit={commit} gitUser={gitUser}/>
     } else {
       return <CommitFacadeListItem key={row}/>
     }
