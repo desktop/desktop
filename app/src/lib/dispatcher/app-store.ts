@@ -193,10 +193,26 @@ export default class AppStore {
     }
 
     const currentState = this.getRepositoryState(repository)
+    const filesByID = new Map<string, WorkingDirectoryFileChange>()
+    currentState.changesState.workingDirectory.files.forEach(file => {
+      filesByID.set(file.id, file)
+    })
+
+    const mergedFiles = workingDirectory.files.map(file => {
+      const existingFile = filesByID.get(file.id)
+      if (existingFile) {
+        return file.withInclude(existingFile.include)
+      } else {
+        return file
+      }
+    })
+
+    const includeAll = this.getIncludeAllState(mergedFiles)
+
     const newState: IRepositoryState = {
       historyState: currentState.historyState,
       changesState: {
-        workingDirectory,
+        workingDirectory: new WorkingDirectoryStatus(mergedFiles, includeAll),
         selectedFile: null,
       },
       selectedSection: currentState.selectedSection,
@@ -255,6 +271,20 @@ export default class AppStore {
     return this._loadStatus(repository)
   }
 
+  private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {
+    const allSelected = files.every(f => f.include)
+    const noneSelected = files.every(f => !f.include)
+
+    let includeAll: boolean | null = null
+    if (allSelected) {
+      includeAll = true
+    } else if (noneSelected) {
+      includeAll = false
+    }
+
+    return includeAll
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
     const state = this.getRepositoryState(repository)
@@ -267,15 +297,7 @@ export default class AppStore {
       }
     })
 
-    const allSelected = newFiles.every(f => f.include)
-    const noneSelected = newFiles.every(f => !f.include)
-
-    let includeAll: boolean | null = null
-    if (allSelected) {
-      includeAll = true
-    } else if (noneSelected) {
-      includeAll = false
-    }
+    const includeAll = this.getIncludeAllState(newFiles)
 
     const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
     const newState: IRepositoryState = {

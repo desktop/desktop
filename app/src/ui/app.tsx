@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ipcRenderer } from 'electron'
 
-import { Sidebar } from './sidebar'
+import { Resizable } from './resizable'
 import RepositoriesList from './repositories-list'
 import { default as RepositoryView } from './repository'
 import GitHubRepository from '../models/github-repository'
@@ -14,7 +14,7 @@ import API, { getUserForEndpoint } from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
-import { IAppState } from '../lib/app-state'
+import { IAppState, RepositorySection } from '../lib/app-state'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -35,9 +35,25 @@ export default class App extends React.Component<IAppProps, IAppState> {
     switch (name) {
       case 'push': return this.push()
       case 'pull': return this.pull()
+      case 'select-changes': return this.selectChanges()
+      case 'select-history': return this.selectHistory()
     }
 
     return fatalError(`Unknown menu event name: ${name}`)
+  }
+
+  private selectChanges(): Promise<void> {
+    const repository = this.state.selectedRepository
+    if (!repository) { return Promise.resolve() }
+
+    return this.props.dispatcher.changeRepositorySection(repository, RepositorySection.Changes)
+  }
+
+  private selectHistory(): Promise<void> {
+    const repository = this.state.selectedRepository
+    if (!repository) { return Promise.resolve() }
+
+    return this.props.dispatcher.changeRepositorySection(repository, RepositorySection.History)
   }
 
   private async push() {
@@ -153,14 +169,14 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const selectedRepository = this.state.selectedRepository!
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
-        <Sidebar>
+        <Resizable id='desktop-app-sidebar' configKey='repositories-list-width'>
           <RepositoriesList selectedRepository={selectedRepository}
                             onSelectionChanged={repository => this.onSelectionChanged(repository)}
                             repos={this.state.repositories}
                             // TODO: This is wrong. Just because we have 0 repos
                             // doesn't necessarily mean we're loading.
                             loading={this.state.repositories.length === 0}/>
-        </Sidebar>
+        </Resizable>
         <RepositoryView repository={this.state.selectedRepository!}
                         state={this.state.repositoryState!}
                         dispatcher={this.props.dispatcher}/>
