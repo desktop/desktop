@@ -158,7 +158,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
   }
 
   /** Put the main application menu into a context menu for now (win only) */
-  private onContextMenu(e: React.MouseEvent) {
+  private onContextMenu(e: React.MouseEvent<any>) {
     if (process.platform === 'win32') {
       e.preventDefault()
       ipcRenderer.send('show-popup-app-menu', null)

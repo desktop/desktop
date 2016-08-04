@@ -93,7 +93,7 @@ export class Resizable extends React.Component<IResizableProps, IResizableState>
    * Note: This method is intentionally bound using `=>` so that
    * we can avoid creating anonymous functions repeatedly in render()
    */
-  private handleDragStart = (e: React.MouseEvent) => {
+  private handleDragStart = (e: React.MouseEvent<any>) => {
     this.startX = e.clientX
     this.startWidth = this.getCurrentWidth() || null
 
