@@ -5,7 +5,6 @@ import Repository from '../../models/repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { LocalGitOperations, Commit } from '../local-git-operations'
 import { findIndex } from '../find'
-import API, { getUserForEndpoint } from '../api'
 
 export default class AppStore {
   private emitter = new Emitter()
@@ -106,44 +105,6 @@ export default class AppStore {
     }
     this.updateHistoryState(repository, newHistory)
     this.emitUpdate()
-
-    const commitsWithAPICommits = await this.matchCommitsToAPICommits(repository, commits)
-    const newerHistory = {
-      commits: commitsWithAPICommits,
-      selection: historyState.selection,
-      changedFiles: historyState.changedFiles,
-    }
-    this.updateHistoryState(repository, newerHistory)
-    console.log('done loading history')
-    this.emitUpdate()
-  }
-
-  private async matchCommitsToAPICommits(repository: Repository, commits: ReadonlyArray<Commit>): Promise<ReadonlyArray<Commit>> {
-    const gitHubRepository = repository.gitHubRepository
-    // Big ol' shrug if there's no GitHub repository. Maybe try Gravatar instead?
-    if (!gitHubRepository) {
-      return commits
-    }
-
-    const users = this.users
-    const user = getUserForEndpoint(users, gitHubRepository.endpoint)
-    // Same as above. If they aren't logged in, maybe try Gravatar?
-    if (!user) {
-      return commits
-    }
-
-    const api = new API(user)
-    const commitsWithAPICommit = new Array<Commit>()
-    for (const commit of Array.from(commits)) {
-      const apiCommit = await api.fetchCommit(gitHubRepository.owner.login, gitHubRepository.name, commit.sha)
-      if (apiCommit) {
-        commitsWithAPICommit.push(commit.withAPICommit(apiCommit))
-      } else {
-        commitsWithAPICommit.push(commit)
-      }
-    }
-
-    return commitsWithAPICommit
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
