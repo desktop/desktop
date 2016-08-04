@@ -12,8 +12,55 @@
   li {
     white-space: nowrap;
   }
+}
+
+.changes-panel {
+  &-header {
+    background: var(--alt-background-color);
+    border-bottom: 1px solid var(--box-border-color);
+    display: flex;
+    padding: var(--spacing-half);
+  }
+
+  &-header-input {
+    font-weight: var(--font-weight-semibold);
+    flex-grow: 0;
+  }
+
+  &-header-label {
+    font-weight: var(--font-weight-semibold);
+    flex-grow: 1;
+    text-align: center;
+  }
+
+  .list-item {
+    padding: var(--spacing-half);
+    border-bottom: var(--base-border);
+  }
+}
+
+.changed-file {
+  display: flex;
+  flex-grow: 1;
 
   .status {
-    margin-left: 10px;
+    flex-grow: 1;
+    text-align: right;
+
+    &-new .octicon {
+      fill: var(--color-new);
+    }
+
+    &-modified .octicon {
+      fill: var(--color-modified);
+    }
+
+    &-deleted .octicon {
+      fill: var(--color-deleted);
+    }
+  }
+
+  .octicon {
+    vertical-align: text-bottom;
   }
 }
