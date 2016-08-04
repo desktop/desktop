@@ -5,9 +5,7 @@ import SharedProcess from '../shared-process/shared-process'
 import { WindowState, windowStateChannelName } from '../lib/window-state'
 import { buildDefaultMenu, MenuEvent } from './menu'
 
-const windowStateKeeper:
-  (opts: ElectronWindowState.WindowStateKeeperOptions) => ElectronWindowState.WindowState =
-  require('electron-window-state')
+const windowStateKeeper = require('electron-window-state')
 
 export default class AppWindow {
   private window: Electron.BrowserWindow
@@ -16,7 +14,7 @@ export default class AppWindow {
 
   public constructor(stats: Stats, sharedProcess: SharedProcess) {
 
-    const savedWindowState: ElectronWindowState.WindowState = windowStateKeeper({
+    const savedWindowState = windowStateKeeper({
       defaultWidth: 800,
       defaultHeight: 600
     })

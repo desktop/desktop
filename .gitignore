@@ -1,6 +1,5 @@
 out/
 dist/
-typings/
 node_modules/
 npm-debug.log
 app/node_modules/

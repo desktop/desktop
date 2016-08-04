@@ -11,15 +11,14 @@
     "strictNullChecks": true,
     "sourceMap": true,
     "jsx": "react",
-    "outDir": "./out"
+    "outDir": "./out",
+    "types": ["mocha", "whatwg-fetch", "electron-window-state"]
   },
   "exclude": [
     "node_modules",
+    "app/node_modules",
     "dist",
-    "out",
-    "typings/browser",
-    "typings/browser.d.ts",
-    "app/node_modules"
+    "out"
   ],
   "compileOnSave": false
 }
