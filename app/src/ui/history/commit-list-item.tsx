@@ -24,6 +24,9 @@ export default class CommitListItem extends React.Component<ICommitProps, void> 
   }
 
   public shouldComponentUpdate(nextProps: ICommitProps, nextState: void): boolean {
-    return this.props.commit.sha !== nextProps.commit.sha
+    return (
+      this.props.commit.sha !== nextProps.commit.sha ||
+      this.props.gitUser.avatarURL !== nextProps.gitUser.avatarURL
+    )
   }
 }
