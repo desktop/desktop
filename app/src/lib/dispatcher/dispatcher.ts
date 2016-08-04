@@ -190,7 +190,7 @@ export class Dispatcher {
   }
 
   /** Try to find the git user for the repository, SHA, and email. */
-  public attemptToDivineUser(repository: Repository, sha: string, email: string): Promise<void> {
-    return this.gitUserStore._attemptToDivineUser(this.store.getState().users, repository, sha, email)
+  public loadAndCacheUser(repository: Repository, sha: string, email: string): Promise<void> {
+    return this.gitUserStore._loadAndCacheUser(this.store.getState().users, repository, sha, email)
   }
 }

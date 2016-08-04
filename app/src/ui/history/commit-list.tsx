@@ -48,7 +48,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
       if (!gitUser) {
         gitUser = DefaultGitUser
 
-        this.props.dispatcher.attemptToDivineUser(this.props.repository, commit.sha, commit.authorEmail)
+        this.props.dispatcher.loadAndCacheUser(this.props.repository, commit.sha, commit.authorEmail)
       }
 
       return <CommitListItem key={commit.sha} commit={commit} gitUser={gitUser}/>
