@@ -306,8 +306,24 @@ export default class AppStore {
     }
 
     this.updateChangesState(repository, state => {
+      const filesByID = new Map<string, WorkingDirectoryFileChange>()
+      state.workingDirectory.files.forEach(file => {
+        filesByID.set(file.id, file)
+      })
+
+      const mergedFiles = workingDirectory.files.map(file => {
+        const existingFile = filesByID.get(file.id)
+        if (existingFile) {
+          return file.withInclude(existingFile.include)
+        } else {
+          return file
+        }
+      })
+
+      const includeAll = this.getIncludeAllState(mergedFiles)
+
       return {
-        workingDirectory,
+        workingDirectory: new WorkingDirectoryStatus(mergedFiles, includeAll),
         selectedFile: null,
       }
     })
@@ -358,6 +374,20 @@ export default class AppStore {
     return this._loadStatus(repository)
   }
 
+  private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {
+    const allSelected = files.every(f => f.include)
+    const noneSelected = files.every(f => !f.include)
+
+    let includeAll: boolean | null = null
+    if (allSelected) {
+      includeAll = true
+    } else if (noneSelected) {
+      includeAll = false
+    }
+
+    return includeAll
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
     this.updateRepositoryState(repository, state => {
@@ -369,15 +399,7 @@ export default class AppStore {
         }
       })
 
-      const allSelected = newFiles.every(f => f.include)
-      const noneSelected = newFiles.every(f => !f.include)
-
-      let includeAll: boolean | null = null
-      if (allSelected) {
-        includeAll = true
-      } else if (noneSelected) {
-        includeAll = false
-      }
+      const includeAll = this.getIncludeAllState(newFiles)
 
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
       return {
