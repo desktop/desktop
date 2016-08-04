@@ -58,8 +58,6 @@ export default class GitUserStore {
     const key = keyForRequest(repository, email)
     if (this.requestsInFlight.has(key)) { return }
 
-    this.requestsInFlight.add(key)
-
     const gitHubRepository = repository.gitHubRepository
     // Big ol' shrug if there's no GitHub repository. Maybe try Gravatar instead?
     if (!gitHubRepository) {
@@ -72,6 +70,13 @@ export default class GitUserStore {
       return
     }
 
+    this.requestsInFlight.add(key)
+
+    const done = () => {
+      this.requestsInFlight.delete(key)
+      this.emitUpdate()
+    }
+
     const api = new API(user)
     const apiCommit = await api.fetchCommit(gitHubRepository.owner.login, gitHubRepository.name, sha)
     if (apiCommit) {
@@ -80,11 +85,20 @@ export default class GitUserStore {
         avatarURL: apiCommit.author.avatarUrl,
       }
       this.users.set(key, gitUser)
+      done()
+      return
     }
 
-    this.requestsInFlight.delete(key)
+    const matchingUser = await api.searchForUserWithEmail(email)
+    if (matchingUser) {
+      const gitUser: IGitUser = {
+        login: matchingUser.login,
+        avatarURL: matchingUser.avatarUrl,
+      }
+      this.users.set(key, gitUser)
+    }
 
-    this.emitUpdate()
+    done()
   }
 }
 
