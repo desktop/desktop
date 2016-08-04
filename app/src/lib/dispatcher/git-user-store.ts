@@ -59,13 +59,14 @@ export default class GitUserStore {
     if (this.requestsInFlight.has(key)) { return }
 
     const gitHubRepository = repository.gitHubRepository
-    // Big ol' shrug if there's no GitHub repository. Maybe try Gravatar instead?
+    // TODO: Big ol' shrug if there's no GitHub repository. Maybe try Gravatar
+    // instead?
     if (!gitHubRepository) {
       return
     }
 
     const user = getUserForEndpoint(users, gitHubRepository.endpoint)
-    // Same as above. If they aren't logged in, maybe try Gravatar?
+    // TODO: Same as above. If they aren't logged in, maybe try Gravatar?
     if (!user) {
       return
     }
