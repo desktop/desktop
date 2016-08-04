@@ -6,6 +6,7 @@ import guid from '../guid'
 import { IHistorySelection, RepositorySection } from '../app-state'
 import { Action } from './actions'
 import AppStore from './app-store'
+import GitUserStore from './git-user-store'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -41,8 +42,9 @@ type IPCResponse<T> = IResult<T> | IError
  */
 export class Dispatcher {
   private store: AppStore
+  private gitUserStore: GitUserStore
 
-  public constructor(store: AppStore) {
+  public constructor(store: AppStore, gitUserStore: GitUserStore) {
     this.store = store
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
@@ -184,5 +186,10 @@ export class Dispatcher {
    */
   public refreshRepository(repository: Repository): Promise<void> {
     return this.store._refreshRepository(repository)
+  }
+
+  /** Load the git user for the repository, SHA, and email. */
+  public loadUser(repository: Repository, sha: string, email: string): Promise<void> {
+    return this.gitUserStore._loadUser(this.store.getState().users, repository, sha, email)
   }
 }
