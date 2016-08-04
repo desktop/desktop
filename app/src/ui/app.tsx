@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ipcRenderer } from 'electron'
 
-import { Sidebar } from './sidebar'
+import { Resizable } from './resizable'
 import RepositoriesList from './repositories-list'
 import { default as RepositoryView } from './repository'
 import GitHubRepository from '../models/github-repository'
@@ -169,14 +169,14 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const selectedRepository = this.state.selectedRepository!
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
-        <Sidebar>
+        <Resizable id='desktop-app-sidebar' configKey='repositories-list-width'>
           <RepositoriesList selectedRepository={selectedRepository}
                             onSelectionChanged={repository => this.onSelectionChanged(repository)}
                             repos={this.state.repositories}
                             // TODO: This is wrong. Just because we have 0 repos
                             // doesn't necessarily mean we're loading.
                             loading={this.state.repositories.length === 0}/>
-        </Sidebar>
+        </Resizable>
         <RepositoryView repository={this.state.selectedRepository!}
                         state={this.state.repositoryState!}
                         dispatcher={this.props.dispatcher}/>

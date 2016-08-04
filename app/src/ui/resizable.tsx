@@ -1,51 +1,55 @@
 import * as React from 'react'
 import { ThrottledScheduler } from './lib/throttled-scheduler'
 
-interface ISidebarProps extends React.Props<Sidebar> {
+interface IResizableProps extends React.Props<Resizable> {
+  /** String key used when persisting the panel width to localStorage */
+  configKey: string
+
   /**
-   * The default width of the sidebar.
+   * The default width of the panel.
    *
    * The default width is used until user first resizes the
-   * sidebar or when the custom size is explicitly reset by
+   * panel or when the custom size is explicitly reset by
    * double clicking on the resize handle.
    *
    * @default 250
    */
   defaultWidth?: number
 
-  /** The maximum width the sidebar can be resized to.
+  /** The maximum width the panel can be resized to.
    *
    * @default 400
    */
   maximumWidth?: number
 
   /**
-   * The minimum width the sidebar can be resized to.
+   * The minimum width the panel can be resized to.
    *
    * @default 150
    */
   minimumWidth?: number
+
+  /** The optional ID for the root element. */
+  id?: string
 }
 
-interface ISidebarState {
+interface IResizableState {
   /**
-   * The width of the sidebar in pixels.
+   * The width of the panel in pixels.
    * Optional
    */
   width?: number
 }
 
-/** String key used when persisting the sidebar width to localStorage */
-const sidebarWidthConfigKey = 'sidebar-width'
-
 /**
- * Component abstracting the application sidebar.
+ * Component abstracting a resizable panel.
  *
- * Handles user resizing and persistence of sidebar width.
+ * Handles user resizing and persistence of the width.
  */
-export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
+export class Resizable extends React.Component<IResizableProps, IResizableState> {
 
-  public static defaultProps: ISidebarProps = {
+  public static defaultProps: IResizableProps = {
+    configKey: 'resizable-width',
     defaultWidth: 250,
     minimumWidth: 150,
     maximumWidth: 350,
@@ -55,24 +59,24 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
   private startX: number
   private configWriteScheduler = new ThrottledScheduler(300)
 
-  public constructor(props: ISidebarProps) {
+  public constructor(props: IResizableProps) {
     super(props)
     this.state = { width: this.getPersistedWidth() }
   }
 
   private getPersistedWidth() {
-    return parseInt(localStorage.getItem(sidebarWidthConfigKey), 10)
+    return parseInt(localStorage.getItem(this.props.configKey), 10)
   }
 
   private setPersistedWidth(newWidth: number) {
     this.configWriteScheduler.queue(() => {
-      localStorage.setItem(sidebarWidthConfigKey, newWidth.toString())
+      localStorage.setItem(this.props.configKey, newWidth.toString())
     })
   }
 
   private clearPersistedWidth() {
     this.configWriteScheduler.queue(() => {
-      localStorage.removeItem(sidebarWidthConfigKey)
+      localStorage.removeItem(this.props.configKey)
     })
   }
 
@@ -128,7 +132,7 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
   /**
    * Handler for when the resize handle is double clicked.
    *
-   * Resets the sidebar width to its default value and clears
+   * Resets the panel width to its default value and clears
    * any persisted value.
    *
    * Note: This method is intentionally bound using `=>` so that
@@ -148,7 +152,7 @@ export class Sidebar extends React.Component<ISidebarProps, ISidebarState> {
     }
 
     return (
-      <div id='desktop-app-sidebar' style={style}>
+      <div id={this.props.id} className='resizable-component' style={style}>
         {this.props.children}
         <div onMouseDown={this.handleDragStart} onDoubleClick={this.handleDoubleClick} className='resize-handle'></div>
       </div>
