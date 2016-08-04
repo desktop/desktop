@@ -8,11 +8,6 @@ export interface IGitUser {
   avatarURL: string
 }
 
-const DefaultGitUser: IGitUser = {
-  login: null,
-  avatarURL: 'https://github.com/hubot.png',
-}
-
 /**
  * The store for git users. This is used to match commit authors to GitHub
  * users and avatars.
@@ -43,14 +38,10 @@ export default class GitUserStore {
   }
 
   /** Get the cached git user for the repository and email. */
-  public getUser(repository: Repository, email: string): IGitUser {
+  public getUser(repository: Repository, email: string): IGitUser | null {
     const key = keyForRequest(repository, email)
     const user = this.users.get(key)
-    if (user) {
-      return user
-    } else {
-      return DefaultGitUser
-    }
+    return user ? user : null
   }
 
   /** Not to be called externally. See `Dispatcher`. */
