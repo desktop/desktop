@@ -41,7 +41,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
                value={this.state.title}
                onChange={event => this.handleTitleChange(event) } />
 
-        <button onClick={event => this.handleSubmit(event)}>
+        <button className='commit-button' onClick={event => this.handleSubmit(event)}>
           Commit to <strong>{branchName}</strong>
         </button>
       </form>
