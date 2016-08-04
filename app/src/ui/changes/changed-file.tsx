@@ -1,6 +1,7 @@
 import * as React from 'react'
 
 import { FileStatus } from '../../models/status'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IChangedFileProps {
   path: string,
@@ -27,14 +28,27 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
   public render() {
     return (
       <div className='changed-file'>
+        <label className='path'>
           <input
             type='checkbox'
             checked={this.props.include}
             onChange={event => this.handleChange(event)}
           />
-        <span className='path'>{this.props.path}</span>
-        <span className='status'>{ChangedFile.mapStatus(this.props.status)}</span>
+          {this.props.path}
+        </label>
+
+        <span className={'status status-' + ChangedFile.mapStatus(this.props.status).toLowerCase()} title={ChangedFile.mapStatus(this.props.status)}>
+          <Octicon symbol={iconForStatus(this.props.status)} />
+        </span>
       </div>
     )
   }
+}
+
+function iconForStatus(status: FileStatus): OcticonSymbol {
+  if (status === FileStatus.New) { return OcticonSymbol.diffAdded }
+  if (status === FileStatus.Modified) { return OcticonSymbol.diffModified }
+  if (status === FileStatus.Deleted) { return OcticonSymbol.diffRemoved }
+
+  return OcticonSymbol.diffModified
 }
