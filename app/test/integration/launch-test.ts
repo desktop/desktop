@@ -7,7 +7,11 @@ const path = require('path')
 chai.should()
 chai.use(chaiAsPromised)
 
-describe('App', () => {
+describe('App', function (this: any) {
+  if (process.env.CI) {
+    this.timeout(30000)
+  }
+
   let app: any
 
   beforeEach(function () {
