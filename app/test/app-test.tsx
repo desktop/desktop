@@ -8,15 +8,20 @@ import * as TestUtils from 'react-addons-test-utils'
 import App from '../src/ui/app'
 import { Dispatcher, AppStore, GitUserStore } from '../src/lib/dispatcher'
 import InMemoryDispatcher from './in-memory-dispatcher'
+import TestGitUserDatabase from './test-git-user-database'
 
 describe('App', () => {
   let store: AppStore | null = null
   let gitUserStore: GitUserStore | null = null
   let dispatcher: Dispatcher | null = null
 
-  beforeEach(() => {
+  beforeEach(async () => {
     store = new AppStore()
-    gitUserStore = new GitUserStore()
+
+    const db = new TestGitUserDatabase()
+    await db.reset()
+
+    gitUserStore = new GitUserStore(db)
     dispatcher = new InMemoryDispatcher(store, gitUserStore)
   })
 

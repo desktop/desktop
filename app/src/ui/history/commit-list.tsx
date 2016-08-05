@@ -11,6 +11,8 @@ import Repository from '../../models/repository'
 const RowHeight = 68
 
 const DefaultGitUser: IGitUser = {
+  endpoint: '',
+  email: '',
   login: null,
   avatarURL: 'https://github.com/hubot.png',
 }

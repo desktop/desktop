@@ -5,7 +5,7 @@ import { ipcRenderer, remote } from 'electron'
 
 import App from './app'
 import { WindowState, getWindowState } from '../lib/window-state'
-import { Dispatcher, AppStore, GitUserStore } from '../lib/dispatcher'
+import { Dispatcher, AppStore, GitUserStore, GitUserDatabase } from '../lib/dispatcher'
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
@@ -14,7 +14,7 @@ if (!process.env.TEST_ENV) {
 }
 
 const store = new AppStore()
-const gitUserStore = new GitUserStore()
+const gitUserStore = new GitUserStore(new GitUserDatabase('GitUserDatabase'))
 const dispatcher = new Dispatcher(store, gitUserStore)
 dispatcher.loadInitialState()
 

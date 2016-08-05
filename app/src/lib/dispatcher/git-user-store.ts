@@ -1,25 +1,28 @@
 import { Emitter, Disposable } from 'event-kit'
 import Repository from '../../models/repository'
 import User from '../../models/user'
+import GitHubRepository from '../../models/github-repository'
 import API, { getUserForEndpoint } from '../api'
-
-export interface IGitUser {
-  login: string | null
-  avatarURL: string
-}
+import { GitUserDatabase, IGitUser } from './git-user-database'
 
 /**
  * The store for git users. This is used to match commit authors to GitHub
  * users and avatars.
  */
 export default class GitUserStore {
-  private emitter = new Emitter()
+  private readonly emitter = new Emitter()
 
-  private requestsInFlight = new Set<string>()
+  private readonly requestsInFlight = new Set<string>()
 
-  private users = new Map<string, IGitUser>()
+  private readonly inMemoryCache = new Map<string, IGitUser>()
 
   private emitQueued = false
+
+  private readonly database: GitUserDatabase
+
+  public constructor(database: GitUserDatabase) {
+    this.database = database
+  }
 
   private emitUpdate() {
     if (this.emitQueued) { return }
@@ -40,7 +43,7 @@ export default class GitUserStore {
   /** Get the cached git user for the repository and email. */
   public getUser(repository: Repository, email: string): IGitUser | null {
     const key = keyForRequest(repository, email)
-    const user = this.users.get(key)
+    const user = this.inMemoryCache.get(key)
     return user ? user : null
   }
 
@@ -64,33 +67,47 @@ export default class GitUserStore {
 
     this.requestsInFlight.add(key)
 
-    const done = () => {
-      this.requestsInFlight.delete(key)
-      this.emitUpdate()
+    let gitUser: IGitUser | null = await this.database.users.where('[endpoint+email]').equals([ user.endpoint, email ]).limit(1).first()
+
+    if (!gitUser) {
+      gitUser = await this.findUserWithAPI(user, gitHubRepository, sha, email)
     }
 
+    if (gitUser) {
+      this.inMemoryCache.set(key, gitUser)
+
+      if (!gitUser.id) {
+        await this.database.users.add(gitUser)
+      }
+    }
+
+    this.requestsInFlight.delete(key)
+    this.emitUpdate()
+  }
+
+  private async findUserWithAPI(user: User, gitHubRepository: GitHubRepository, sha: string, email: string): Promise<IGitUser | null> {
     const api = new API(user)
     const apiCommit = await api.fetchCommit(gitHubRepository.owner.login, gitHubRepository.name, sha)
     if (apiCommit) {
-      const gitUser: IGitUser = {
+      return {
+        email,
         login: apiCommit.author.login,
         avatarURL: apiCommit.author.avatarUrl,
+        endpoint: user.endpoint,
       }
-      this.users.set(key, gitUser)
-      done()
-      return
     }
 
     const matchingUser = await api.searchForUserWithEmail(email)
     if (matchingUser) {
-      const gitUser: IGitUser = {
+      return {
+        email,
         login: matchingUser.login,
         avatarURL: matchingUser.avatarUrl,
+        endpoint: user.endpoint,
       }
-      this.users.set(key, gitUser)
     }
 
-    done()
+    return null
   }
 }
 
