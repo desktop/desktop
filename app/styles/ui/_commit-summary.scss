@@ -34,6 +34,7 @@
 
   &-description {
     font-family: var(--font-family-monospace);
+    word-wrap: break-word;
 
     &:empty {
       display: none;
