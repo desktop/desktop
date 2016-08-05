@@ -10,4 +10,8 @@
   display: flex;
   background-color: var(--box-alt-background-color);
   padding: var(--spacing);
+
+  .commit-button {
+    @include ellipsis
+  }
 }
