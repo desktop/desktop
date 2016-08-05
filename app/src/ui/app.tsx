@@ -79,7 +79,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const branch = state.branch
+    const branch = state.currentBranch
     if (!branch) {
       console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
       return
@@ -109,7 +109,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const branch = state.branch
+    const branch = state.currentBranch
     if (!branch) {
       console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
       return

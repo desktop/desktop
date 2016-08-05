@@ -54,7 +54,7 @@ export default class AppStore {
         selectedFile: null,
       },
       selectedSection: RepositorySection.History,
-      branch: null,
+      currentBranch: null,
     }
   }
 
@@ -79,7 +79,7 @@ export default class AppStore {
         historyState,
         changesState: state.changesState,
         selectedSection: state.selectedSection,
-        branch: state.branch,
+        currentBranch: state.currentBranch,
       }
     })
   }
@@ -91,7 +91,7 @@ export default class AppStore {
         historyState: state.historyState,
         changesState,
         selectedSection: state.selectedSection,
-        branch: state.branch,
+        currentBranch: state.currentBranch,
       }
     })
   }
@@ -340,7 +340,7 @@ export default class AppStore {
         historyState: state.historyState,
         changesState: state.changesState,
         selectedSection: section,
-        branch: state.branch,
+        currentBranch: state.currentBranch,
       }
     })
     this.emitUpdate()
@@ -412,7 +412,7 @@ export default class AppStore {
           selectedFile: state.changesState.selectedFile,
         },
         historyState: state.historyState,
-        branch: state.branch,
+        currentBranch: state.currentBranch,
       }
     })
     this.emitUpdate()
@@ -434,14 +434,14 @@ export default class AppStore {
   }
 
   private async refreshCurrentBranch(repository: Repository): Promise<void> {
-    const branch = await LocalGitOperations.getCurrentBranch(repository)
+    const currentBranch = await LocalGitOperations.getCurrentBranch(repository)
 
     this.updateRepositoryState(repository, state => {
       return {
         selectedSection: state.selectedSection,
         changesState: state.changesState,
         historyState: state.historyState,
-        branch,
+        currentBranch,
       }
     })
     this.emitUpdate()

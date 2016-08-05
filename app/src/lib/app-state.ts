@@ -27,7 +27,7 @@ export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
   readonly selectedSection: RepositorySection
-  readonly branch: string | null
+  readonly currentBranch: string | null
 }
 
 export interface IHistorySelection {
