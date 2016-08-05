@@ -37,6 +37,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       case 'pull': return this.pull()
       case 'select-changes': return this.selectChanges()
       case 'select-history': return this.selectHistory()
+      case 'add-local-repository': return this.showFileBrowser()
     }
 
     return fatalError(`Unknown menu event name: ${name}`)
@@ -131,6 +132,10 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.addRepositories(paths)
+  }
+
+  private async showFileBrowser() {
+    console.log('show that file browser now')
   }
 
   private async addRepositories(paths: string[]) {
