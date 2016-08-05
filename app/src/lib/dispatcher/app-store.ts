@@ -55,6 +55,7 @@ export default class AppStore {
       },
       selectedSection: RepositorySection.History,
       currentBranch: null,
+      branches: new Array<string>(),
     }
   }
 
@@ -80,6 +81,7 @@ export default class AppStore {
         changesState: state.changesState,
         selectedSection: state.selectedSection,
         currentBranch: state.currentBranch,
+        branches: state.branches,
       }
     })
   }
@@ -92,6 +94,7 @@ export default class AppStore {
         changesState,
         selectedSection: state.selectedSection,
         currentBranch: state.currentBranch,
+        branches: state.branches,
       }
     })
   }
@@ -341,6 +344,7 @@ export default class AppStore {
         changesState: state.changesState,
         selectedSection: section,
         currentBranch: state.currentBranch,
+        branches: state.branches,
       }
     })
     this.emitUpdate()
@@ -413,6 +417,7 @@ export default class AppStore {
         },
         historyState: state.historyState,
         currentBranch: state.currentBranch,
+        branches: state.branches,
       }
     })
     this.emitUpdate()
@@ -442,6 +447,7 @@ export default class AppStore {
         changesState: state.changesState,
         historyState: state.historyState,
         currentBranch,
+        branches: state.branches,
       }
     })
     this.emitUpdate()
