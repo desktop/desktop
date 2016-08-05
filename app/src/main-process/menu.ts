@@ -1,10 +1,23 @@
 import { shell, Menu, ipcMain } from 'electron'
 import SharedProcess from '../shared-process/shared-process'
 
-export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history'
+export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
+                        'create-branch'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Object[] = [
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'New Branch…',
+          accelerator: 'CmdOrCtrl+Shift+N',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('create-branch')
+          }
+        },
+      ]
+    },
     {
       label: 'Edit',
       submenu: [
