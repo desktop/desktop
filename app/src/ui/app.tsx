@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 
 import { Resizable } from './resizable'
 import RepositoriesList from './repositories-list'
@@ -135,7 +135,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
   }
 
   private async showFileBrowser() {
-    console.log('show that file browser now')
+    const directories = remote.dialog.showOpenDialog({ properties: ['openDirectory', 'multiSelections'] })
+    this.addRepositories(directories)
   }
 
   private async addRepositories(paths: string[]) {
