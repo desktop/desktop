@@ -67,7 +67,10 @@ export default class GitUserStore {
 
     this.requestsInFlight.add(key)
 
-    let gitUser: IGitUser | null = await this.database.users.where('[endpoint+email]').equals([ user.endpoint, email ]).limit(1).first()
+    let gitUser: IGitUser | null = await this.database.users.where('[endpoint+email]')
+      .equals([ user.endpoint, email ])
+      .limit(1)
+      .first()
 
     // TODO: Invalidate the stored user in the db after ... some reasonable time
     // period.
