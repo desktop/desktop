@@ -71,5 +71,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
     })
   }
 
+  private createBranch() {
+    this.props.dispatcher.closePopup()
   }
 }
