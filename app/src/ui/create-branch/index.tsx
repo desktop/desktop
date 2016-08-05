@@ -13,6 +13,7 @@ interface ICreateBranchProps {
 interface ICreateBranchState {
   readonly currentError: Error | null
   readonly proposedName: string | null
+  readonly baseBranch: string | null
 }
 
 export default class CreateBranch extends React.Component<ICreateBranchProps, ICreateBranchState> {
@@ -22,6 +23,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
     this.state = {
       currentError: null,
       proposedName: null,
+      baseBranch: null,
     }
   }
 
@@ -33,11 +35,12 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
         <div className='header'>Create New Branch</div>
         <hr/>
 
-        <label>Name <input type='text' onChange={event => this.onChange(event)}/></label>
+        <label>Name <input type='text' onChange={event => this.onBranchNameChange(event)}/></label>
 
         <label>From
           <select>
             {this.props.branches.map(branch => <option key={branch} value={branch}>{branch}</option>)}
+          <select onChange={event => this.onBaseBranchChange(event)} defaultValue={currentBranch ? currentBranch : undefined}>
           </select>
         </label>
 
@@ -47,15 +50,23 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
     )
   }
 
-  private onChange(event: React.FormEvent<HTMLInputElement>) {
+  private onBranchNameChange(event: React.FormEvent<HTMLInputElement>) {
     const str = event.target.value
     this.setState({
       currentError: this.state.currentError,
       proposedName: str,
+      baseBranch: this.state.baseBranch,
     })
   }
 
-  private createBranch() {
+  private onBaseBranchChange(event: React.FormEvent<HTMLSelectElement>) {
+    const baseBranch = event.target.value
+    this.setState({
+      currentError: this.state.currentError,
+      proposedName: this.state.proposedName,
+      baseBranch,
+    })
+  }
 
   }
 }
