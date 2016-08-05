@@ -27,7 +27,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
       currentError: null,
       proposedName: null,
       sanitizedName: null,
-      baseBranch: null,
+      baseBranch: this.props.currentBranch,
     }
   }
 
