@@ -180,7 +180,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
     switch (popup) {
       case Popup.CreateBranch:
         content = <CreateBranch repository={this.state.selectedRepository!}
-                                dispatcher={this.props.dispatcher}/>
+                                dispatcher={this.props.dispatcher}
+                                branches={this.state.repositoryState!.branches}/>
         break
     }
 
