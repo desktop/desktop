@@ -529,4 +529,12 @@ export class LocalGitOperations {
       return 0
     }
   }
+
+  /** Get all the branch. */
+  public static async getBranches(repository: Repository): Promise<ReadonlyArray<string>> {
+    const names = await GitProcess.execWithOutput([ 'branch', '--list', '--no-color' ], repository.path)
+    const lines = names.split('\n')
+    // Output is prefixed with 2 spaces.
+    return lines.map(line => line.substr(2, line.length - 2))
+  }
 }
