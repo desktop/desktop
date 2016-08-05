@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import Repository from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
-import sanitizeBranchName from './sanitize-branch-name'
+import sanitizedBranchName from './sanitized-branch-name'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -67,7 +67,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
 
   private onBranchNameChange(event: React.FormEvent<HTMLInputElement>) {
     const str = event.target.value
-    const sanitizedName = sanitizeBranchName(str)
+    const sanitizedName = sanitizedBranchName(str)
     this.setState({
       currentError: this.state.currentError,
       proposedName: str,
