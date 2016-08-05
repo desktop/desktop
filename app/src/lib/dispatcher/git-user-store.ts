@@ -69,6 +69,8 @@ export default class GitUserStore {
 
     let gitUser: IGitUser | null = await this.database.users.where('[endpoint+email]').equals([ user.endpoint, email ]).limit(1).first()
 
+    // TODO: Invalidate the stored user in the db after ... some reasonable time
+    // period.
     if (!gitUser) {
       gitUser = await this.findUserWithAPI(user, gitHubRepository, sha, email)
     }
