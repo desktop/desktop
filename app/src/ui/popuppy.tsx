@@ -1,5 +1,9 @@
 import * as React from 'react'
 
+/**
+ * A terrible, horrible, no good, very bad component for presenting modal
+ * popups.
+ */
 export default class Popuppy extends React.Component<any, any> {
   public render() {
     const style: React.CSSProperties = {
@@ -13,7 +17,7 @@ export default class Popuppy extends React.Component<any, any> {
     }
     return (
       <div style={style}>
-        <div><strong>🔥 This is fine 🔥</strong></div>
+        <div><strong><em>🔥 This is fine 🔥</em></strong></div>
         <div>&nbsp;</div>
         {this.props.children}
       </div>

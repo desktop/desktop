@@ -18,6 +18,7 @@ interface ICreateBranchState {
   readonly baseBranch: string | null
 }
 
+/** The Create Branch component. */
 export default class CreateBranch extends React.Component<ICreateBranchProps, ICreateBranchState> {
   public constructor(props: ICreateBranchProps) {
     super(props)
@@ -40,7 +41,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
 
   public render() {
     const proposedName = this.state.proposedName
-    const disabled = !proposedName
+    const disabled = !proposedName || !!this.state.currentError
     const currentBranch = this.props.currentBranch
     return (
       <div id='create-branch' className='panel'>
@@ -52,10 +53,9 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
         {this.renderSanitizedName()}
 
         <label>From
-          <select onChange={event => this.onBaseBranchChange(event)} defaultValue={currentBranch ? currentBranch : undefined}>
-            {this.props.branches.map(branch => {
-              return <option key={branch} value={branch}>{branch}</option>
-            })}
+          <select onChange={event => this.onBaseBranchChange(event)}
+                  defaultValue={currentBranch ? currentBranch : undefined}>
+            {this.props.branches.map(branch => <option key={branch} value={branch}>{branch}</option>)}
           </select>
         </label>
 
