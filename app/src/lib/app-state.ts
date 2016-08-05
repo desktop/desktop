@@ -7,9 +7,15 @@ import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '
 export interface IAppState {
   readonly users: ReadonlyArray<User>
   readonly repositories: ReadonlyArray<Repository>
-  readonly selectedRepository: Repository | null
 
+  readonly selectedRepository: Repository | null
   readonly repositoryState: IRepositoryState | null
+
+  readonly currentPopup: Popup | null
+}
+
+export enum Popup {
+  CreateBranch = 1
 }
 
 export enum RepositorySection {

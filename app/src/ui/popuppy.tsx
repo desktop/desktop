@@ -8,12 +8,14 @@ export default class Popuppy extends React.Component<any, any> {
       width: '50%',
       height: '50%',
       margin: 'auto',
-      backgroundColor: 'red',
+      backgroundColor: 'rgb(255, 210, 210)',
       position: 'absolute'
     }
     return (
       <div style={style}>
-        This puppy
+        <div><strong>🔥 This is fine 🔥</strong></div>
+        <div>&nbsp;</div>
+        {this.props.children}
       </div>
     )
   }

@@ -3,7 +3,7 @@ import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import guid from '../guid'
-import { IHistorySelection, RepositorySection } from '../app-state'
+import { IHistorySelection, RepositorySection, Popup } from '../app-state'
 import { Action } from './actions'
 import AppStore from './app-store'
 
@@ -184,5 +184,9 @@ export class Dispatcher {
    */
   public refreshRepository(repository: Repository): Promise<void> {
     return this.store._refreshRepository(repository)
+  }
+
+  public showPopup(popup: Popup): Promise<void> {
+    return this.store._showPopup(popup)
   }
 }

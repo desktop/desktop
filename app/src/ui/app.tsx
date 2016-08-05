@@ -14,7 +14,8 @@ import API, { getUserForEndpoint } from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
-import { IAppState, RepositorySection } from '../lib/app-state'
+import { IAppState, RepositorySection, Popup } from '../lib/app-state'
+import Popuppy from './popuppy'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -31,15 +32,20 @@ export default class App extends React.Component<IAppProps, IAppState> {
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => this.onMenuEvent(name))
   }
 
-  private onMenuEvent(name: MenuEvent): Promise<void> {
+  private onMenuEvent(name: MenuEvent): any {
     switch (name) {
       case 'push': return this.push()
       case 'pull': return this.pull()
       case 'select-changes': return this.selectChanges()
       case 'select-history': return this.selectHistory()
+      case 'create-branch': return this.createBranch()
     }
 
     return fatalError(`Unknown menu event name: ${name}`)
+  }
+
+  private createBranch() {
+    this.props.dispatcher.showPopup(Popup.CreateBranch)
   }
 
   private selectChanges(): Promise<void> {
@@ -165,6 +171,18 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private renderPopup(): JSX.Element | null {
+    const popup = this.state.currentPopup
+    if (!popup) { return null }
+
+    switch (popup) {
+      case Popup.CreateBranch:
+        return <Popuppy><span>test</span></Popuppy>
+    }
+
+    return fatalError(`Unknown popup: ${popup}`)
+  }
+
   private renderApp() {
     const selectedRepository = this.state.selectedRepository!
     return (
@@ -180,6 +198,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
         <RepositoryView repository={this.state.selectedRepository!}
                         state={this.state.repositoryState!}
                         dispatcher={this.props.dispatcher}/>
+
+        {this.renderPopup()}
       </div>
     )
   }

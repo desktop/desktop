@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState } from '../app-state'
+import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
@@ -14,9 +14,11 @@ export default class AppStore {
 
   private users: ReadonlyArray<User> = new Array<User>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
-  private selectedRepository: Repository | null
 
+  private selectedRepository: Repository | null = null
   private repositoryState = new Map<number, IRepositoryState>()
+
+  private currentPopup: Popup | null = null
 
   private emitQueued = false
 
@@ -107,6 +109,7 @@ export default class AppStore {
       repositories: this.repositories,
       repositoryState: this.getCurrentRepositoryState(),
       selectedRepository: this.selectedRepository,
+      currentPopup: this.currentPopup,
     }
   }
 
@@ -459,5 +462,12 @@ export default class AppStore {
     if (section === RepositorySection.History) {
       return this._loadHistory(repository)
     }
+  }
+
+  public _showPopup(popup: Popup): Promise<void> {
+    this.currentPopup = popup
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }
