@@ -137,7 +137,9 @@ export default class App extends React.Component<IAppProps, IAppState> {
   private async showFileBrowser() {
     const directories = remote.dialog.
         showOpenDialog({ properties: [ 'openDirectory', 'multiSelections' ] })
-    this.addRepositories(directories)
+    if (directories && directories.length > 0) {
+      this.addRepositories(directories)
+    }
   }
 
   private async addRepositories(paths: string[]) {
