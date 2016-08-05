@@ -541,4 +541,14 @@ export class LocalGitOperations {
     // Output is prefixed with 2 spaces.
     return lines.map(line => line.substr(2, line.length - 2))
   }
+
+  /** Create a new branch from the given start point. */
+  public static createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
+    return GitProcess.exec([ 'branch', name, startPoint ], repository.path)
+  }
+
+  /** Check out the given branch. */
+  public static checkoutBranch(repository: Repository, name: string): Promise<void> {
+    return GitProcess.exec([ 'checkout', name, '--' ], repository.path)
+  }
 }
