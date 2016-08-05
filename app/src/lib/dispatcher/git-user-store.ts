@@ -90,9 +90,9 @@ export default class GitUserStore {
     this.emitUpdate()
   }
 
-  private async findUserWithAPI(user: User, gitHubRepository: GitHubRepository, sha: string, email: string): Promise<IGitUser | null> {
+  private async findUserWithAPI(user: User, repository: GitHubRepository, sha: string, email: string): Promise<IGitUser | null> {
     const api = new API(user)
-    const apiCommit = await api.fetchCommit(gitHubRepository.owner.login, gitHubRepository.name, sha)
+    const apiCommit = await api.fetchCommit(repository.owner.login, repository.name, sha)
     if (apiCommit) {
       return {
         email,
