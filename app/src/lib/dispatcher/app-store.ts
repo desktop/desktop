@@ -501,4 +501,16 @@ export default class AppStore {
 
     return Promise.resolve()
   }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
+    return LocalGitOperations.createBranch(repository, name, startPoint)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _checkoutBranch(repository: Repository, name: string): Promise<void> {
+    await LocalGitOperations.checkoutBranch(repository, name)
+
+    return this._refreshRepository(repository)
+  }
 }

@@ -195,4 +195,14 @@ export class Dispatcher {
   public closePopup(): Promise<void> {
     return this.store._closePopup()
   }
+
+  /** Create a new branch from the given starting point. */
+  public createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
+    return this.store._createBranch(repository, name, startPoint)
+  }
+
+  /** Check out the given branch. */
+  public checkoutBranch(repository: Repository, name: string): Promise<void> {
+    return this.store._checkoutBranch(repository, name)
+  }
 }
