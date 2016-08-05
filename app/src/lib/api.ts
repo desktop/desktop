@@ -7,17 +7,30 @@ const Octokat = require('octokat')
  * Information about a repository as returned by the GitHub API.
  */
 export interface IAPIRepository {
-  readonly cloneUrl: string,
-  readonly htmlUrl: string,
+  readonly cloneUrl: string
+  readonly htmlUrl: string
   readonly name: string
-  readonly owner: {
-    avatarUrl: string,
-    login: string
-    type: 'user' | 'org'
-  },
-  readonly private: boolean,
-  readonly fork: boolean,
+  readonly owner: IAPIUser
+  readonly private: boolean
+  readonly fork: boolean
   readonly stargazersCount: number
+}
+
+/**
+ * Information about a commit as returned by the GitHub API.
+ */
+export interface IAPICommit {
+  readonly sha: string
+  readonly author: IAPIUser
+}
+
+/**
+ * Information about a user as returned by the GitHub API.
+ */
+export interface IAPIUser {
+  type: 'user' | 'org'
+  readonly login: string
+  readonly avatarUrl: string
 }
 
 /**
@@ -53,6 +66,29 @@ export default class API {
   /** Fetch a repo by its owner and name. */
   public fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
     return this.client.repos(owner, name).fetch()
+  }
+
+  /** Fetch a commit from the repository. */
+  public async fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
+    try {
+      const commit = await this.client.repos(owner, name).commits(sha).fetch()
+      return commit
+    } catch (e) {
+      return null
+    }
+  }
+
+  /** Search for a user with the given public email. */
+  public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
+    try {
+      const result = await this.client.search.users.fetch({ q: `${email} in:email type:user` })
+      // The results are sorted by score, best to worst. So the first result is
+      // our best match.
+      const user = result.items[0]
+      return user
+    } catch (e) {
+      return null
+    }
   }
 }
 

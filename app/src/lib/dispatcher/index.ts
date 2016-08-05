@@ -1,3 +1,5 @@
 export { Dispatcher } from './dispatcher'
 export * from './actions'
-export { default as LocalStore } from './app-store'
+export { default as AppStore } from './app-store'
+export { default as GitUserStore } from './git-user-store'
+export * from './git-user-database'

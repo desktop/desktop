@@ -7,7 +7,7 @@ import { default as RepositoryView } from './repository'
 import GitHubRepository from '../models/github-repository'
 import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
-import { Dispatcher, LocalStore } from '../lib/dispatcher'
+import { Dispatcher, AppStore, GitUserStore } from '../lib/dispatcher'
 import Repository from '../models/repository'
 import { matchGitHubRepository } from '../lib/repository-matching'
 import API, { getUserForEndpoint } from '../lib/api'
@@ -20,15 +20,16 @@ import CreateBranch from './create-branch'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
-  readonly store: LocalStore
+  readonly appStore: AppStore
+  readonly gitUserStore: GitUserStore
 }
 
 export default class App extends React.Component<IAppProps, IAppState> {
   public constructor(props: IAppProps) {
     super(props)
 
-    this.state = props.store.getState()
-    props.store.onDidUpdate(state => this.setState(state))
+    this.state = props.appStore.getState()
+    props.appStore.onDidUpdate(state => this.setState(state))
 
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => this.onMenuEvent(name))
   }
@@ -207,7 +208,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
         </Resizable>
         <RepositoryView repository={this.state.selectedRepository!}
                         state={this.state.repositoryState!}
-                        dispatcher={this.props.dispatcher}/>
+                        dispatcher={this.props.dispatcher}
+                        gitUserStore={this.props.gitUserStore}/>
 
         {this.renderPopup()}
       </div>
