@@ -534,6 +534,10 @@ export class LocalGitOperations {
   public static async getBranches(repository: Repository): Promise<ReadonlyArray<string>> {
     const names = await GitProcess.execWithOutput([ 'branch', '--list', '--no-color' ], repository.path)
     const lines = names.split('\n')
+
+    // Remove the trailing newline
+    lines.splice(-1, 1)
+
     // Output is prefixed with 2 spaces.
     return lines.map(line => line.substr(2, line.length - 2))
   }
