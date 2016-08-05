@@ -7,6 +7,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 interface ICreateBranchProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
+  readonly branches: ReadonlyArray<string>
 }
 
 interface ICreateBranchState {
@@ -36,7 +37,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
 
         <label>From
           <select>
-            <option value='master'>master</option>
+            {this.props.branches.map(branch => <option key={branch} value={branch}>{branch}</option>)}
           </select>
         </label>
 
