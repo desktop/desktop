@@ -18,7 +18,7 @@ import { IAppState, RepositorySection } from '../lib/app-state'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
-  readonly store: AppStore
+  readonly appStore: AppStore
   readonly gitUserStore: GitUserStore
 }
 
@@ -26,8 +26,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
   public constructor(props: IAppProps) {
     super(props)
 
-    this.state = props.store.getState()
-    props.store.onDidUpdate(state => this.setState(state))
+    this.state = props.appStore.getState()
+    props.appStore.onDidUpdate(state => this.setState(state))
 
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => this.onMenuEvent(name))
   }

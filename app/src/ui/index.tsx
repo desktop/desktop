@@ -13,9 +13,9 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
-const store = new AppStore()
+const appStore = new AppStore()
 const gitUserStore = new GitUserStore(new GitUserDatabase('GitUserDatabase'))
-const dispatcher = new Dispatcher(store, gitUserStore)
+const dispatcher = new Dispatcher(appStore, gitUserStore)
 dispatcher.loadInitialState()
 
 document.body.classList.add(`platform-${process.platform}`)
@@ -32,10 +32,10 @@ updateFullScreenBodyInfo(getWindowState(remote.getCurrentWindow()))
 ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(args as WindowState))
 
 ipcRenderer.on('focus', () => {
-  const repository = store.getState().selectedRepository
+  const repository = appStore.getState().selectedRepository
   if (!repository) { return }
 
   dispatcher.refreshRepository(repository)
 })
 
-ReactDOM.render(<App dispatcher={dispatcher} store={store} gitUserStore={gitUserStore}/>, document.getElementById('desktop-app-container')!)
+ReactDOM.render(<App dispatcher={dispatcher} appStore={appStore} gitUserStore={gitUserStore}/>, document.getElementById('desktop-app-container')!)
