@@ -470,12 +470,28 @@ export default class AppStore {
     }
   }
 
+  private async loadBranches(repository: Repository): Promise<void> {
+    const branches = await LocalGitOperations.getBranches(repository)
+    this.updateRepositoryState(repository, state => {
+      return {
+        selectedSection: state.selectedSection,
+        changesState: state.changesState,
+        historyState: state.historyState,
+        currentBranch: state.currentBranch,
+        branches,
+      }
+    })
+    this.emitUpdate()
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _showPopup(popup: Popup): Promise<void> {
+  public async _showPopup(popup: Popup, repository: Repository | null): Promise<void> {
     this.currentPopup = popup
     this.emitUpdate()
 
-    return Promise.resolve()
+    if (popup === Popup.CreateBranch) {
+      await this.loadBranches(repository!)
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

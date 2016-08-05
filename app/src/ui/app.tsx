@@ -46,7 +46,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
   }
 
   private createBranch() {
-    this.props.dispatcher.showPopup(Popup.CreateBranch)
+    this.props.dispatcher.showPopup(Popup.CreateBranch, this.state.selectedRepository)
   }
 
   private selectChanges(): Promise<void> {
