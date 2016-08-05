@@ -16,6 +16,7 @@ import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
 import { IAppState, RepositorySection, Popup } from '../lib/app-state'
 import Popuppy from './popuppy'
+import CreateBranch from './create-branch'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -175,12 +176,19 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const popup = this.state.currentPopup
     if (!popup) { return null }
 
+    let content: JSX.Element | null = null
     switch (popup) {
       case Popup.CreateBranch:
-        return <Popuppy><span>test</span></Popuppy>
+        content = <CreateBranch repository={this.state.selectedRepository!}
+                                dispatcher={this.props.dispatcher}/>
+        break
     }
 
-    return fatalError(`Unknown popup: ${popup}`)
+    if (!content) {
+      return fatalError(`Unknown popup: ${popup}`)
+    }
+
+    return <Popuppy>{content}</Popuppy>
   }
 
   private renderApp() {

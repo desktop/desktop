@@ -464,8 +464,17 @@ export default class AppStore {
     }
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _showPopup(popup: Popup): Promise<void> {
     this.currentPopup = popup
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _closePopup(): Promise<void> {
+    this.currentPopup = null
     this.emitUpdate()
 
     return Promise.resolve()

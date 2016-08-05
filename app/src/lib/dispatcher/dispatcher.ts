@@ -186,7 +186,13 @@ export class Dispatcher {
     return this.store._refreshRepository(repository)
   }
 
+  /** Show the popup. This will close any current popup. */
   public showPopup(popup: Popup): Promise<void> {
     return this.store._showPopup(popup)
+  }
+
+  /** Close the current popup. */
+  public closePopup(): Promise<void> {
+    return this.store._closePopup()
   }
 }
