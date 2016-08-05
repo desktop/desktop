@@ -41,11 +41,11 @@ type IPCResponse<T> = IResult<T> | IError
  * decouples the consumer of state from where/how it is stored.
  */
 export class Dispatcher {
-  private store: AppStore
+  private appStore: AppStore
   private gitUserStore: GitUserStore
 
-  public constructor(store: AppStore, gitUserStore: GitUserStore) {
-    this.store = store
+  public constructor(appStore: AppStore, gitUserStore: GitUserStore) {
+    this.appStore = appStore
     this.gitUserStore = gitUserStore
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
@@ -54,7 +54,7 @@ export class Dispatcher {
   public async loadInitialState(): Promise<void> {
     const users = await this.loadUsers()
     const repositories = await this.loadRepositories()
-    this.store._loadFromSharedProcess(users, repositories)
+    this.appStore._loadFromSharedProcess(users, repositories)
   }
 
   private dispatchToSharedProcess<T>(action: Action): Promise<T> {
@@ -94,7 +94,7 @@ export class Dispatcher {
     const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IUser>} = args[0].state
     const inflatedUsers = state.users.map(User.fromJSON)
     const inflatedRepositories = state.repositories.map(Repository.fromJSON)
-    this.store._loadFromSharedProcess(inflatedUsers, inflatedRepositories)
+    this.appStore._loadFromSharedProcess(inflatedUsers, inflatedRepositories)
   }
 
   /** Get the users */
@@ -126,42 +126,42 @@ export class Dispatcher {
 
   /** Load the history for the repository. */
   public loadHistory(repository: Repository): Promise<void> {
-    return this.store._loadHistory(repository)
+    return this.appStore._loadHistory(repository)
   }
 
   /** Load the next batch of history for the repository. */
   public loadNextHistoryBatch(repository: Repository): Promise<void> {
-    return this.store._loadNextHistoryBatch(repository)
+    return this.appStore._loadNextHistoryBatch(repository)
   }
 
   /** Load the changed files for the current history selection. */
   public loadChangedFilesForCurrentSelection(repository: Repository): Promise<void> {
-    return this.store._loadChangedFilesForCurrentSelection(repository)
+    return this.appStore._loadChangedFilesForCurrentSelection(repository)
   }
 
   /** Change the history selection. */
   public changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
-    return this.store._changeHistorySelection(repository, selection)
+    return this.appStore._changeHistorySelection(repository, selection)
   }
 
   /** Select the repository. */
   public selectRepository(repository: Repository): Promise<void> {
-    return this.store._selectRepository(repository)
+    return this.appStore._selectRepository(repository)
   }
 
   /** Load the working directory status. */
   public loadStatus(repository: Repository): Promise<void> {
-    return this.store._loadStatus(repository)
+    return this.appStore._loadStatus(repository)
   }
 
   /** Change the selected section in the repository. */
   public changeRepositorySection(repository: Repository, section: RepositorySection): Promise<void> {
-    return this.store._changeRepositorySection(repository, section)
+    return this.appStore._changeRepositorySection(repository, section)
   }
 
   /** Change the currently selected file in Changes. */
   public changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
-    return this.store._changeChangesSelection(repository, selectedFile)
+    return this.appStore._changeChangesSelection(repository, selectedFile)
   }
 
   /**
@@ -169,28 +169,28 @@ export class Dispatcher {
    * title.
    */
   public commitIncludedChanges(repository: Repository, title: string): Promise<void> {
-    return this.store._commitIncludedChanges(repository, title)
+    return this.appStore._commitIncludedChanges(repository, title)
   }
 
   /** Change the file's includedness. */
   public changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
-    return this.store._changeFileIncluded(repository, file, include)
+    return this.appStore._changeFileIncluded(repository, file, include)
   }
 
   /** Change the Include All state. */
   public changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
-    return this.store._changeIncludeAllFiles(repository, includeAll)
+    return this.appStore._changeIncludeAllFiles(repository, includeAll)
   }
 
   /**
    * Refresh the repository. This would be used, e.g., when the app gains focus.
    */
   public refreshRepository(repository: Repository): Promise<void> {
-    return this.store._refreshRepository(repository)
+    return this.appStore._refreshRepository(repository)
   }
 
   /** Try to find the git user for the repository, SHA, and email. */
   public loadAndCacheUser(repository: Repository, sha: string, email: string): Promise<void> {
-    return this.gitUserStore._loadAndCacheUser(this.store.getState().users, repository, sha, email)
+    return this.gitUserStore._loadAndCacheUser(this.appStore.getState().users, repository, sha, email)
   }
 }
