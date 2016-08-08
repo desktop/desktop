@@ -59,7 +59,7 @@ register('url-action', async ({ action }: IURLAction) => {
       const token = await requestToken(action.args.code)
       const octo = new Octokat({ token })
       const user = await octo.user.fetch()
-      usersStore.addUser(new User(user.login, getDotComAPIEndpoint(), token))
+      usersStore.addUser(new User(user.login, getDotComAPIEndpoint(), token, user.email, user.avatarUrl))
     } catch (e) {
       console.error(`Error adding user: ${e}`)
     }
