@@ -3,6 +3,7 @@ import * as React from 'react'
 import Repository from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import sanitizedBranchName from './sanitized-branch-name'
+import { findIndex } from '../../lib/find'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -31,12 +32,17 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
     }
   }
 
-  private renderSanitizedName() {
-    if (this.state.proposedName === this.state.sanitizedName) { return null }
+  private renderError() {
+    const error = this.state.currentError
+    if (error) {
+      return <div>{error.message}</div>
+    } else {
+      if (this.state.proposedName === this.state.sanitizedName) { return null }
 
-    return (
-      <div>Will be created as {this.state.sanitizedName}</div>
-    )
+      return (
+        <div>Will be created as {this.state.sanitizedName}</div>
+      )
+    }
   }
 
   public render() {
@@ -50,7 +56,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
 
         <label>Name <input type='text' onChange={event => this.onBranchNameChange(event)}/></label>
 
-        {this.renderSanitizedName()}
+        {this.renderError()}
 
         <label>From
           <select onChange={event => this.onBaseBranchChange(event)}
@@ -68,8 +74,14 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
   private onBranchNameChange(event: React.FormEvent<HTMLInputElement>) {
     const str = event.target.value
     const sanitizedName = sanitizedBranchName(str)
+    const alreadyExists = findIndex(this.props.branches, b => b === sanitizedName) > -1
+    let currentError: Error | null = null
+    if (alreadyExists) {
+      currentError = new Error(`A branch named ${sanitizedName} already exists`)
+    }
+
     this.setState({
-      currentError: this.state.currentError,
+      currentError,
       proposedName: str,
       baseBranch: this.state.baseBranch,
       sanitizedName,
