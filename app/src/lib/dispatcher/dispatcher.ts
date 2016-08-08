@@ -196,21 +196,21 @@ export class Dispatcher {
 
   /** Show the popup. This will close any current popup. */
   public showPopup(popup: Popup, repository: Repository | null): Promise<void> {
-    return this.store._showPopup(popup, repository)
+    return this.appStore._showPopup(popup, repository)
   }
 
   /** Close the current popup. */
   public closePopup(): Promise<void> {
-    return this.store._closePopup()
+    return this.appStore._closePopup()
   }
 
   /** Create a new branch from the given starting point. */
   public createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
-    return this.store._createBranch(repository, name, startPoint)
+    return this.appStore._createBranch(repository, name, startPoint)
   }
 
   /** Check out the given branch. */
   public checkoutBranch(repository: Repository, name: string): Promise<void> {
-    return this.store._checkoutBranch(repository, name)
+    return this.appStore._checkoutBranch(repository, name)
   }
 }
