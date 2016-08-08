@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 
 import { Resizable } from './resizable'
 import RepositoriesList from './repositories-list'
@@ -40,6 +40,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       case 'pull': return this.pull()
       case 'select-changes': return this.selectChanges()
       case 'select-history': return this.selectHistory()
+      case 'add-local-repository': return this.showFileBrowser()
       case 'create-branch': return this.createBranch()
     }
 
@@ -139,6 +140,14 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.addRepositories(paths)
+  }
+
+  private showFileBrowser() {
+    const directories = remote.dialog.
+        showOpenDialog({ properties: [ 'openDirectory', 'multiSelections' ] })
+    if (directories && directories.length > 0) {
+      this.addRepositories(directories)
+    }
   }
 
   private async addRepositories(paths: string[]) {

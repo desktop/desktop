@@ -2,7 +2,7 @@ import { shell, Menu, ipcMain } from 'electron'
 import SharedProcess from '../shared-process/shared-process'
 
 export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
-                        'create-branch'
+                        'add-local-repository' | 'create-branch'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Object[] = [
@@ -16,6 +16,16 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
             emitMenuEvent('create-branch')
           }
         },
+        {
+          type: 'separator'
+        },
+        {
+          label: 'Add Local Repository…',
+          accelerator: 'CmdOrCtrl+O',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('add-local-repository')
+          }
+        }
       ]
     },
     {
