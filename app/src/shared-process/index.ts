@@ -7,7 +7,7 @@ import RepositoriesStore from './repositories-store'
 import Repository, { IRepository } from '../models/repository'
 import { register, broadcastUpdate as broadcastUpdate_ } from './communication'
 import { IURLAction, IAddRepositoriesAction, IUpdateGitHubRepositoryAction } from '../lib/dispatcher'
-import { getDotComAPIEndpoint } from '../lib/api'
+import API, { getDotComAPIEndpoint } from '../lib/api'
 
 const Octokat = require('octokat')
 
@@ -18,6 +18,17 @@ const database = new Database('Database')
 const repositoriesStore = new RepositoriesStore(database)
 
 const broadcastUpdate = () => broadcastUpdate_(usersStore, repositoriesStore)
+
+updateUsers()
+
+async function updateUsers() {
+  await usersStore.map(async (user: User) => {
+    const api = new API(user)
+    const updatedUser = await api.fetchUser()
+    return new User(updatedUser.login, user.endpoint, user.token, updatedUser.email, updatedUser.avatarUrl)
+  })
+  broadcastUpdate()
+}
 
 register('console.log', ({ args }: {args: any[]}) => {
   console.log(args[0], ...args.slice(1))
