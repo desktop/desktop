@@ -33,15 +33,15 @@
   .after {
     border-width: 3px;
   }
+
+  .text {
+    padding: 0 6px;
+    flex-grow: 1;
+  }
 }
 
 .diff-hunk {
   background-color: #f8f8ff;
-}
-
-.diff-text .text {
-  padding: 0 6px;
-  flex-grow: 1;
 }
 
 .diff-add {
