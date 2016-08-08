@@ -23,9 +23,9 @@ export default class Branches extends React.Component<IBranchesProps, void> {
 
   private onSelectionChanged(row: number) {
     const branch = this.props.branches[row]
-    console.log(`Check out ${branch}`)
 
     this.props.dispatcher.closePopup()
+    this.props.dispatcher.checkoutBranch(this.props.repository, branch)
   }
 
   public render() {
