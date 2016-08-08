@@ -24,7 +24,9 @@
     border-right: 1px solid #e5e5e5;
     color: #CCC;
     display: inline-block;
-    width: 24px;
+    // Use `em` because we want the min-width to be based on
+    // the number of characters
+    flex: 0 0 3em;
     text-align: center;
   }
 
