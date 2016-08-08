@@ -2,8 +2,6 @@
 
 /** A React component holding a file diff */
 #file-diff {
-  text-align: center;
-
   .list-item {
     display: block;
   }
@@ -27,6 +25,7 @@
   color: #CCC;
   display: inline-block;
   min-width: 24px;
+  text-align: center;
 }
 
 .diff-hunk {
