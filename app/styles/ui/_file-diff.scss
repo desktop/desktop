@@ -21,6 +21,12 @@
   tab-size: 4;
 
   .before,
+  .after,
+  .text {
+    padding: 3px 6px;
+  }
+
+  .before,
   .after {
     border-right: 1px solid;
     color: #CCC;
@@ -36,7 +42,6 @@
   }
 
   .text {
-    padding: 0 6px;
     flex-grow: 1;
   }
 }
