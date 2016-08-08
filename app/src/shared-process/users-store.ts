@@ -15,8 +15,7 @@ export default class UsersStore {
   }
 
   public getUsers(): ReadonlyArray<User> {
-    // TODO: Should this be a copy/snapshot?
-    return this.users
+    return this.users.slice()
   }
 
   public addUser(user: User) {
