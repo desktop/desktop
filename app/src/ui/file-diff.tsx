@@ -8,7 +8,7 @@ import { FileChange } from '../models/status'
 
 import { LocalGitOperations, Diff, Commit } from '../lib/local-git-operations'
 
-const RowHeight = 20
+const RowHeight = 19
 
 interface IFileDiffProps {
   readonly repository: IRepository
