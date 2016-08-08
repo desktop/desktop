@@ -5,7 +5,7 @@ import { ipcRenderer, remote } from 'electron'
 
 import App from './app'
 import { WindowState, getWindowState } from '../lib/window-state'
-import { Dispatcher, LocalStore } from '../lib/dispatcher'
+import { Dispatcher, AppStore, GitUserStore, GitUserDatabase } from '../lib/dispatcher'
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
@@ -13,8 +13,9 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
-const store = new LocalStore()
-const dispatcher = new Dispatcher(store)
+const appStore = new AppStore()
+const gitUserStore = new GitUserStore(new GitUserDatabase('GitUserDatabase'))
+const dispatcher = new Dispatcher(appStore, gitUserStore)
 dispatcher.loadInitialState()
 
 document.body.classList.add(`platform-${process.platform}`)
@@ -31,10 +32,10 @@ updateFullScreenBodyInfo(getWindowState(remote.getCurrentWindow()))
 ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(args as WindowState))
 
 ipcRenderer.on('focus', () => {
-  const repository = store.getState().selectedRepository
+  const repository = appStore.getState().selectedRepository
   if (!repository) { return }
 
   dispatcher.refreshRepository(repository)
 })
 
-ReactDOM.render(<App dispatcher={dispatcher} store={store}/>, document.getElementById('desktop-app-container')!)
+ReactDOM.render(<App dispatcher={dispatcher} appStore={appStore} gitUserStore={gitUserStore}/>, document.getElementById('desktop-app-container')!)

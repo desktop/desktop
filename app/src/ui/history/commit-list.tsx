@@ -1,11 +1,21 @@
 import * as React from 'react'
+import { CompositeDisposable } from 'event-kit'
 import { Commit } from '../../lib/local-git-operations'
 import CommitListItem from './commit-list-item'
 import List from '../list'
 import CommitFacadeListItem from './commit-facade-list-item'
 import { findIndex } from '../../lib/find'
+import { Dispatcher, GitUserStore, IGitUser } from '../../lib/dispatcher'
+import Repository from '../../models/repository'
 
 const RowHeight = 68
+
+const DefaultGitUser: IGitUser = {
+  endpoint: '',
+  email: '',
+  login: null,
+  avatarURL: 'https://github.com/hubot.png',
+}
 
 interface ICommitListProps {
   readonly onCommitSelected: (commit: Commit) => void
@@ -13,14 +23,37 @@ interface ICommitListProps {
   readonly commits: ReadonlyArray<Commit>
   readonly selectedCommit: Commit | null
   readonly commitCount: number
+  readonly gitUserStore: GitUserStore
+  readonly repository: Repository
+  readonly dispatcher: Dispatcher
 }
 
 /** A component which displays the list of commits. */
 export default class CommitList extends React.Component<ICommitListProps, void> {
+  private disposable: CompositeDisposable
+
+  private list: List | null
+
+  public componentDidMount() {
+    this.disposable = new CompositeDisposable()
+    this.disposable.add(this.props.gitUserStore.onDidUpdate(() => this.forceUpdate()))
+  }
+
+  public componentWillUnmount() {
+    this.disposable.dispose()
+  }
+
   private renderCommit(row: number) {
     const commit: Commit | null = this.props.commits[row]
     if (commit) {
-      return <CommitListItem commit={commit} key={commit.sha}/>
+      let gitUser = this.props.gitUserStore.getUser(this.props.repository, commit.authorEmail)
+      if (!gitUser) {
+        gitUser = DefaultGitUser
+
+        this.props.dispatcher.loadAndCacheUser(this.props.repository, commit.sha, commit.authorEmail)
+      }
+
+      return <CommitListItem key={commit.sha} commit={commit} gitUser={gitUser}/>
     } else {
       return <CommitFacadeListItem key={row}/>
     }
@@ -45,10 +78,20 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     return findIndex(this.props.commits, c => c.sha === commit.sha)
   }
 
+  public forceUpdate() {
+    super.forceUpdate()
+
+    const list = this.list
+    if (list) {
+      list.forceUpdate()
+    }
+  }
+
   public render() {
     return (
       <div className='panel' id='commit-list'>
-        <List rowCount={this.props.commitCount}
+        <List ref={ref => this.list = ref}
+              rowCount={this.props.commitCount}
               rowHeight={RowHeight}
               selectedRow={this.rowForCommit(this.props.selectedCommit)}
               rowRenderer={row => this.renderCommit(row)}

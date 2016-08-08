@@ -1,10 +1,22 @@
 import { shell, Menu, ipcMain } from 'electron'
 import SharedProcess from '../shared-process/shared-process'
 
-export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history'
+export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' | 'add-local-repository'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Object[] = [
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'Add Local Repository…',
+          accelerator: 'CmdOrCtrl+O',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('add-local-repository')
+          }
+        }
+      ]
+    },
     {
       label: 'Edit',
       submenu: [

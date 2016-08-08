@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 
 import { Resizable } from './resizable'
 import RepositoriesList from './repositories-list'
@@ -7,7 +7,7 @@ import { default as RepositoryView } from './repository'
 import GitHubRepository from '../models/github-repository'
 import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
-import { Dispatcher, LocalStore } from '../lib/dispatcher'
+import { Dispatcher, AppStore, GitUserStore } from '../lib/dispatcher'
 import Repository from '../models/repository'
 import { matchGitHubRepository } from '../lib/repository-matching'
 import API, { getUserForEndpoint } from '../lib/api'
@@ -18,15 +18,16 @@ import { IAppState, RepositorySection } from '../lib/app-state'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
-  readonly store: LocalStore
+  readonly appStore: AppStore
+  readonly gitUserStore: GitUserStore
 }
 
 export default class App extends React.Component<IAppProps, IAppState> {
   public constructor(props: IAppProps) {
     super(props)
 
-    this.state = props.store.getState()
-    props.store.onDidUpdate(state => this.setState(state))
+    this.state = props.appStore.getState()
+    props.appStore.onDidUpdate(state => this.setState(state))
 
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => this.onMenuEvent(name))
   }
@@ -37,6 +38,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       case 'pull': return this.pull()
       case 'select-changes': return this.selectChanges()
       case 'select-history': return this.selectHistory()
+      case 'add-local-repository': return this.showFileBrowser()
     }
 
     return fatalError(`Unknown menu event name: ${name}`)
@@ -133,6 +135,14 @@ export default class App extends React.Component<IAppProps, IAppState> {
     this.addRepositories(paths)
   }
 
+  private async showFileBrowser() {
+    const directories = remote.dialog.
+        showOpenDialog({ properties: [ 'openDirectory', 'multiSelections' ] })
+    if (directories && directories.length > 0) {
+      this.addRepositories(directories)
+    }
+  }
+
   private async addRepositories(paths: string[]) {
     const repositories = paths.map(p => new Repository(p))
     const addedRepos = await this.props.dispatcher.addRepositories(repositories)
@@ -179,7 +189,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
         </Resizable>
         <RepositoryView repository={this.state.selectedRepository!}
                         state={this.state.repositoryState!}
-                        dispatcher={this.props.dispatcher}/>
+                        dispatcher={this.props.dispatcher}
+                        gitUserStore={this.props.gitUserStore}/>
       </div>
     )
   }
