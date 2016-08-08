@@ -25,7 +25,7 @@
 .diff-text .after  {
   color: #CCC;
   display: inline-block;
-  flex: 0 1 24px;
+  min-width: 24px;
 }
 
 .diff-text .text {
