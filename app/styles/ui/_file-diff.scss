@@ -10,17 +10,26 @@
 }
 
 .diff-text {
+  display: flex;
   font-family: monospace;
   text-overflow: ellipsis;
   text-align: left;
   text-orientation: upright;
   font-kerning: initial;
   word-wrap: break-word;
+  white-space: pre;
   word-break: break-all;
 }
 
-.diff-text .before, .diff-text .after  {
-  color: #CCC
+.diff-text .before,
+.diff-text .after  {
+  color: #CCC;
+  display: inline-block;
+  flex: 0 1 24px;
+}
+
+.diff-text .text {
+  flex-grow: 1;
 }
 
 .diff-add {
