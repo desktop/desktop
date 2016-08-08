@@ -87,11 +87,11 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const trackingBranch = await LocalGitOperations.getTrackingBranch(repository)
-    if (trackingBranch) {
-      await LocalGitOperations.push(repository, remote, branch, false)
+    const upstream = branch.upstream
+    if (upstream) {
+      await LocalGitOperations.push(repository, remote, branch.name, false)
     } else {
-      await LocalGitOperations.push(repository, remote, branch, true)
+      await LocalGitOperations.push(repository, remote, branch.name, true)
     }
   }
 
@@ -117,7 +117,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    await LocalGitOperations.pull(repository, remote, branch)
+    await LocalGitOperations.pull(repository, remote, branch.name)
   }
 
   public componentDidMount() {
@@ -188,12 +188,12 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
     let content: JSX.Element | null = null
     switch (popup) {
-      case Popup.CreateBranch:
+      case Popup.CreateBranch: {
         content = <CreateBranch repository={this.state.selectedRepository!}
                                 dispatcher={this.props.dispatcher}
                                 branches={this.state.repositoryState!.branches}
                                 currentBranch={this.state.repositoryState!.currentBranch}/>
-        break
+        } break
     }
 
     if (!content) {

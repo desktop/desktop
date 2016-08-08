@@ -3,7 +3,7 @@ import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, Reposito
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
-import { LocalGitOperations, Commit } from '../local-git-operations'
+import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
 import { findIndex } from '../find'
 
 /** The number of commits to load from history per batch. */
@@ -55,7 +55,7 @@ export default class AppStore {
       },
       selectedSection: RepositorySection.History,
       currentBranch: null,
-      branches: new Array<string>(),
+      branches: new Array<Branch>(),
     }
   }
 

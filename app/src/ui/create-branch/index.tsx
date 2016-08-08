@@ -3,20 +3,21 @@ import * as React from 'react'
 import Repository from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import sanitizedBranchName from './sanitized-branch-name'
-import { findIndex } from '../../lib/find'
+import { find, findIndex } from '../../lib/find'
+import { Branch } from '../../lib/local-git-operations'
 
 interface ICreateBranchProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
-  readonly branches: ReadonlyArray<string>
-  readonly currentBranch: string | null
+  readonly branches: ReadonlyArray<Branch>
+  readonly currentBranch: Branch | null
 }
 
 interface ICreateBranchState {
   readonly currentError: Error | null
   readonly proposedName: string | null
   readonly sanitizedName: string | null
-  readonly baseBranch: string | null
+  readonly baseBranch: Branch | null
 }
 
 /** The Create Branch component. */
@@ -60,8 +61,8 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
 
         <label>From
           <select onChange={event => this.onBaseBranchChange(event)}
-                  defaultValue={currentBranch ? currentBranch : undefined}>
-            {this.props.branches.map(branch => <option key={branch} value={branch}>{branch}</option>)}
+                  defaultValue={currentBranch ? currentBranch.name : undefined}>
+            {this.props.branches.map(branch => <option key={branch.name} value={branch.name}>{branch.name}</option>)}
           </select>
         </label>
 
@@ -74,7 +75,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
   private onBranchNameChange(event: React.FormEvent<HTMLInputElement>) {
     const str = event.target.value
     const sanitizedName = sanitizedBranchName(str)
-    const alreadyExists = findIndex(this.props.branches, b => b === sanitizedName) > -1
+    const alreadyExists = findIndex(this.props.branches, b => b.name === sanitizedName) > -1
     let currentError: Error | null = null
     if (alreadyExists) {
       currentError = new Error(`A branch named ${sanitizedName} already exists`)
@@ -89,7 +90,8 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
   }
 
   private onBaseBranchChange(event: React.FormEvent<HTMLSelectElement>) {
-    const baseBranch = event.target.value
+    const baseBranchName = event.target.value
+    const baseBranch = find(this.props.branches, b => b.name === baseBranchName)!
     this.setState({
       currentError: this.state.currentError,
       proposedName: this.state.proposedName,
@@ -102,7 +104,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
     const name = this.state.sanitizedName
     const baseBranch = this.state.baseBranch
     if (name && name.length > 0 && baseBranch) {
-      this.props.dispatcher.createBranch(this.props.repository, name, baseBranch)
+      this.props.dispatcher.createBranch(this.props.repository, name, baseBranch.name)
     }
 
     this.props.dispatcher.closePopup()

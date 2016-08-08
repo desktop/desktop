@@ -1,6 +1,6 @@
 import User from '../models/user'
 import Repository from '../models/repository'
-import { Commit } from './local-git-operations'
+import { Commit, Branch } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 
 /** All of the shared app state. */
@@ -27,8 +27,8 @@ export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
   readonly selectedSection: RepositorySection
-  readonly currentBranch: string | null
-  readonly branches: ReadonlyArray<string>
+  readonly currentBranch: Branch | null
+  readonly branches: ReadonlyArray<Branch>
 }
 
 export interface IHistorySelection {
