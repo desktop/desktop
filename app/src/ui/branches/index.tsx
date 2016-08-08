@@ -1,11 +1,13 @@
 import * as React from 'react'
 import List from '../list'
+import { Dispatcher } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 
 const RowHeight = 22
 
 interface IBranchesProps {
   readonly branches: ReadonlyArray<string>
+  readonly dispatcher: Dispatcher
   readonly repository: Repository
 }
 
@@ -22,15 +24,19 @@ export default class Branches extends React.Component<IBranchesProps, void> {
   private onSelectionChanged(row: number) {
     const branch = this.props.branches[row]
     console.log(`Check out ${branch}`)
+
+    this.props.dispatcher.closePopup()
   }
 
   public render() {
     return (
-      <List rowCount={this.props.branches.length}
-            rowRenderer={row => this.renderRow(row)}
-            rowHeight={RowHeight}
-            selectedRow={-1}
-            onSelectionChanged={row => this.onSelectionChanged(row)}/>
+      <div id='branches' className='panel'>
+        <List rowCount={this.props.branches.length}
+              rowRenderer={row => this.renderRow(row)}
+              rowHeight={RowHeight}
+              selectedRow={-1}
+              onSelectionChanged={row => this.onSelectionChanged(row)}/>
+      </div>
     )
   }
 }
