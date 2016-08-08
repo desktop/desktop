@@ -69,6 +69,11 @@ export default class API {
     return this.client.repos(owner, name).fetch()
   }
 
+  /** Fetch the logged in user. */
+  public fetchUser(): Promise<IAPIUser> {
+    return this.client.user.fetch()
+  }
+
   /** Fetch a commit from the repository. */
   public async fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
     try {
