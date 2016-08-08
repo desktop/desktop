@@ -18,14 +18,19 @@
   white-space: pre;
   word-break: break-all;
   tab-size: 4;
-}
 
-.diff-text .before,
-.diff-text .after  {
-  color: #CCC;
-  display: inline-block;
-  min-width: 24px;
-  text-align: center;
+  .before,
+  .after {
+    border-right: 1px solid #e5e5e5;
+    color: #CCC;
+    display: inline-block;
+    width: 24px;
+    text-align: center;
+  }
+
+  .after {
+    border-width: 3px;
+  }
 }
 
 .diff-hunk {
