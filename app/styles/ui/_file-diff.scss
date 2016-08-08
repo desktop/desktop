@@ -9,7 +9,8 @@
 
 .diff-text {
   display: flex;
-  font-family: monospace;
+  font-family: var(--font-family-monospace);
+  font-size: 11px;
   text-overflow: ellipsis;
   text-align: left;
   text-orientation: upright;
