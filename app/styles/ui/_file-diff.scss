@@ -21,7 +21,7 @@
 
   .before,
   .after {
-    border-right: 1px solid #e5e5e5;
+    border-right: 1px solid;
     color: #CCC;
     display: inline-block;
     // Use `em` because we want the min-width to be based on
@@ -40,14 +40,36 @@
   }
 }
 
+.diff-context {
+  .before,
+  .after {
+    border-color: #e5e5e5;
+  }
+}
+
 .diff-hunk {
   background-color: #f8f8ff;
+
+  .before,
+  .after {
+    border-color: #e4e4fe;
+  }
 }
 
 .diff-add {
   background: #EAFFEA;
+
+  .before,
+  .after {
+    border-color: #c6ecc6;
+  }
 }
 
 .diff-delete {
   background: #FFECEC;
+
+  .before,
+  .after {
+    border-color: #f4d7d7;
+  }
 }
