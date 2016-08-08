@@ -213,4 +213,9 @@ export class Dispatcher {
   public checkoutBranch(repository: Repository, name: string): Promise<void> {
     return this.appStore._checkoutBranch(repository, name)
   }
+
+  /** Load the branches in the repository. */
+  public loadBranches(repository: Repository): Promise<void> {
+    return this.appStore._loadBranches(repository)
+  }
 }
