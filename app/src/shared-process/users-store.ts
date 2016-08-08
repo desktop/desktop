@@ -26,6 +26,18 @@ export default class UsersStore {
     this.save()
   }
 
+  /** Change the users in the store by mapping over them. */
+  public async map(fn: (user: User) => Promise<User>) {
+    const users = new Array<User>()
+    for (const user of users) {
+      const newUser = await fn(user)
+      users.push(newUser)
+    }
+
+    this.users = users
+    this.save()
+  }
+
   public loadFromStore() {
     const raw = this.dataStore.getItem('users')
     if (!raw || !raw.length) {
