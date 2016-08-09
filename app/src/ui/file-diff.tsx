@@ -81,6 +81,26 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
   }
 
+  private onMouseEnterHandler(target: any) {
+    target.classList.add('hover')
+  }
+
+  private onMouseLeaveHandler(target: any) {
+    target.classList.remove('hover')
+  }
+
+  private editableSidebar(diffType: DiffLineType, innerClassName: string, value: number | null) {
+    const classNames = this.map(diffType)
+
+    return (
+      <div className={classNames}
+           onMouseEnter={event => this.onMouseEnterHandler(event.currentTarget)}
+           onMouseLeave={event => this.onMouseLeaveHandler(event.currentTarget)}>
+        <span className={innerClassName}>{this.formatIfNotSet(value)}</span>
+      </div>
+    )
+  }
+
   private readOnlySidebar(diffType: DiffLineType, innerClassName: string, value: number | null) {
     const classNames = this.map(diffType)
 
@@ -97,7 +117,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     if (this.props.readOnly) {
       return this.readOnlySidebar(datum.type, 'before', datum.oldLineNumber)
     } else {
-      return this.readOnlySidebar(datum.type, 'before', datum.oldLineNumber)
+      return this.editableSidebar(datum.type, 'before', datum.oldLineNumber)
     }
   }
 
@@ -107,7 +127,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     if (this.props.readOnly) {
       return this.readOnlySidebar(datum.type, 'after', datum.newLineNumber)
     } else {
-      return this.readOnlySidebar(datum.type, 'after', datum.newLineNumber)
+      return this.editableSidebar(datum.type, 'after', datum.newLineNumber)
     }
   }
 
