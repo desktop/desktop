@@ -7,7 +7,8 @@ interface ICommitMessageProps {
 }
 
 interface ICommitMessageState {
-  readonly title: string
+  readonly summary: string
+  readonly description: string
 }
 
 export class CommitMessage extends React.Component<ICommitMessageProps, ICommitMessageState> {
@@ -16,20 +17,34 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     super(props)
 
     this.state = {
-      title: ''
+      summary: '',
+      description: '',
     }
   }
 
   /** TODO: commit description field */
   /** TODO: disable submit when no files selected */
 
-  private handleTitleChange(event: any) {
-    this.setState({ title: event.target.value })
+  private handleSummaryChange(event: React.FormEvent<HTMLInputElement>) {
+    this.setState({
+      summary: event.target.value,
+      description: this.state.description,
+    })
+  }
+
+  private handleDescriptionChange(event: React.FormEvent<HTMLTextAreaElement>) {
+    this.setState({
+      summary: this.state.summary,
+      description: event.target.value,
+    })
   }
 
   private handleSubmit(event: any) {
     this.props.onCreateCommit(this.state.title)
-    this.setState({ title: '' })
+    this.setState({
+      summary: '',
+      description: '',
+    })
     event.preventDefault()
   }
 
@@ -42,10 +57,15 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
           <input className='summary-field'
                  type='text'
-                 placeholder='Commit summary'
-                 value={this.state.title}
-                 onChange={event => this.handleTitleChange(event) } />
+                 placeholder='Summary'
+                 value={this.state.summary}
+                 onChange={event => this.handleSummaryChange(event)}/>
         </div>
+
+        <textarea className='summary-description'
+                  placeholder='Description'
+                  value={this.state.description}
+                  onChange={event => this.handleDescriptionChange(event)}/>
 
         <button className='commit-button' onClick={event => this.handleSubmit(event)}>
           Commit to <strong>{branchName}</strong>
