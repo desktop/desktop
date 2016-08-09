@@ -470,7 +470,8 @@ export default class AppStore {
     }
   }
 
-  private async loadBranches(repository: Repository): Promise<void> {
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _loadBranches(repository: Repository): Promise<void> {
     const branches = await LocalGitOperations.getBranches(repository)
     this.updateRepositoryState(repository, state => {
       return {
@@ -488,10 +489,6 @@ export default class AppStore {
   public async _showPopup(popup: Popup, repository: Repository | null): Promise<void> {
     this.currentPopup = popup
     this.emitUpdate()
-
-    if (popup === Popup.CreateBranch) {
-      await this.loadBranches(repository!)
-    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

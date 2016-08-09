@@ -17,6 +17,7 @@ import fatalError from '../lib/fatal-error'
 import { IAppState, RepositorySection, Popup } from '../lib/app-state'
 import Popuppy from './popuppy'
 import CreateBranch from './create-branch'
+import Branches from './branches'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -42,6 +43,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       case 'select-history': return this.selectHistory()
       case 'add-local-repository': return this.showFileBrowser()
       case 'create-branch': return this.createBranch()
+      case 'show-branches': return this.showBranches()
     }
 
     return fatalError(`Unknown menu event name: ${name}`)
@@ -49,6 +51,10 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
   private createBranch() {
     this.props.dispatcher.showPopup(Popup.CreateBranch, this.state.selectedRepository)
+  }
+
+  private showBranches() {
+    this.props.dispatcher.showPopup(Popup.ShowBranches, this.state.selectedRepository)
   }
 
   private selectChanges(): Promise<void> {
@@ -193,6 +199,12 @@ export default class App extends React.Component<IAppProps, IAppState> {
                                 dispatcher={this.props.dispatcher}
                                 branches={this.state.repositoryState!.branches}
                                 currentBranch={this.state.repositoryState!.currentBranch}/>
+        break
+
+      case Popup.ShowBranches:
+        content = <Branches branches={this.state.repositoryState!.branches}
+                            dispatcher={this.props.dispatcher}
+                            repository={this.state.selectedRepository!}/>
         break
     }
 
