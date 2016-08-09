@@ -53,7 +53,7 @@ export class Commit {
 
 /** indicate what a line in the diff represents */
 export enum DiffLineType {
-  Context, Add, Delete
+  Context, Add, Delete, Hunk
 }
 
 /** track details related to each line in the diff */
@@ -112,7 +112,7 @@ export class DiffSection {
       // the unified patch format considers these lines to be headers
       // -> exclude them from the line counts
       if (text.startsWith('@@')) {
-        return new DiffLine(text, DiffLineType.Context, null, null)
+        return new DiffLine(text, DiffLineType.Hunk, null, null)
       }
 
       const type = DiffSection.mapToDiffLineType(text)
