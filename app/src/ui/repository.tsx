@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { default as Repo } from '../models/repository'
+import User from '../models/user'
 import Toolbar from './toolbar'
 import { Changes } from './changes'
 import History from './history'
@@ -13,6 +14,7 @@ interface IRepositoryProps {
   readonly state: IRepositoryModelState
   readonly dispatcher: Dispatcher
   readonly gitUserStore: GitUserStore
+  readonly user: User | null
 }
 
 export default class Repository extends React.Component<IRepositoryProps, void> {
@@ -29,7 +31,8 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
       return <Changes repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
                       changes={this.props.state.changesState}
-                      branch={this.props.state.branch}/>
+                      branch={this.props.state.branch}
+                      user={this.props.user}/>
     } else if (this.props.state.selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}

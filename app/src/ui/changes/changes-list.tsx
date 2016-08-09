@@ -18,6 +18,7 @@ interface IChangesListProps {
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (title: string) => void
   readonly branch: string | null
+  readonly avatarURL: string
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
@@ -71,7 +72,9 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               onSelectionChanged={row => this.props.onSelectionChanged(row)}
               invalidationProps={this.props.workingDirectory}/>
 
-        <CommitMessage onCreateCommit={title => this.props.onCreateCommit(title)} branch={this.props.branch}/>
+        <CommitMessage onCreateCommit={title => this.props.onCreateCommit(title)}
+                       branch={this.props.branch}
+                       avatarURL={this.props.avatarURL}/>
       </div>
     )
   }

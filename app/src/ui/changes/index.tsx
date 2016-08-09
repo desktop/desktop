@@ -3,6 +3,7 @@ import { ChangesList } from './changes-list'
 import FileDiff from '../file-diff'
 import { IChangesState } from '../../lib/app-state'
 import Repository from '../../models/repository'
+import User from '../../models/user'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
 
@@ -11,6 +12,7 @@ interface IChangesProps {
   changes: IChangesState
   dispatcher: Dispatcher
   branch: string | null
+  user: User | null
 }
 
 /** TODO: handle "repository not found" scenario */
@@ -56,6 +58,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     }
 
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
+    const avatarURL = this.props.user ? this.props.user.avatarURL : 'https://github.com/hubot.png'
     return (
       <div className='panel-container'>
         <Resizable configKey='changes-width'>
@@ -66,7 +69,8 @@ export class Changes extends React.Component<IChangesProps, void> {
                        onCreateCommit={title => this.onCreateCommit(title)}
                        onIncludeChanged={(row, include) => this.onIncludeChanged(row, include) }
                        onSelectAll={selectAll => this.onSelectAll(selectAll) }
-                       branch={this.props.branch}/>
+                       branch={this.props.branch}
+                       avatarURL={avatarURL}/>
         </Resizable>
 
         <FileDiff repository={this.props.repository}

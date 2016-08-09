@@ -1,12 +1,13 @@
 import * as React from 'react'
 
 interface ICommitMessageProps {
-  onCreateCommit: (title: string) => void
-  branch: string | null
+  readonly onCreateCommit: (title: string) => void
+  readonly branch: string | null
+  readonly avatarURL: string
 }
 
 interface ICommitMessageState {
-  title: string
+  readonly title: string
 }
 
 export class CommitMessage extends React.Component<ICommitMessageProps, ICommitMessageState> {
@@ -37,7 +38,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>
         <div className='summary'>
-          <img className='avatar' src='https://github.com/hubot.png'/>
+          <img className='avatar' src={this.props.avatarURL}/>
 
           <input className='summary-field'
                  type='text'

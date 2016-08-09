@@ -9,6 +9,7 @@ import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
 import { Dispatcher, AppStore, GitUserStore } from '../lib/dispatcher'
 import Repository from '../models/repository'
+import User from '../models/user'
 import { matchGitHubRepository } from '../lib/repository-matching'
 import API, { getUserForEndpoint } from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
@@ -177,6 +178,12 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
   private renderApp() {
     const selectedRepository = this.state.selectedRepository!
+    let user: User | null = null
+    const gitHubRepository = selectedRepository.gitHubRepository
+    if (gitHubRepository) {
+      user = getUserForEndpoint(this.state.users, gitHubRepository.endpoint)
+    }
+
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
         <Resizable id='desktop-app-sidebar' configKey='repositories-list-width'>
@@ -190,7 +197,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
         <RepositoryView repository={this.state.selectedRepository!}
                         state={this.state.repositoryState!}
                         dispatcher={this.props.dispatcher}
-                        gitUserStore={this.props.gitUserStore}/>
+                        gitUserStore={this.props.gitUserStore}
+                        user={user}/>
       </div>
     )
   }
