@@ -7,7 +7,7 @@ import { LocalGitOperations, Diff, Commit, DiffLine, DiffLineType } from '../lib
 
 const { Grid, AutoSizer } = require('react-virtualized')
 
-const RowHeight = 20
+const RowHeight = 22
 
 interface IFileDiffProps {
   readonly repository: IRepository
