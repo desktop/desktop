@@ -56,13 +56,13 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   private getColumnWidth ({ index, availableWidth }: { index: number, availableWidth: number }) {
     switch (index) {
-      case 2:
+      case 1:
         // TODO: how is this going to work with wrapping again?
         return (availableWidth - 100)
       default:
         // TODO: we know the number of lines in the diff, we should adjust this
         //       value so that > 3 character line counts are visible
-        return 50
+        return 100
     }
   }
 
@@ -91,45 +91,37 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     target.classList.remove(hoverClassName)
   }
 
-  private editableSidebar(diffType: DiffLineType, innerClassName: string, value: number | null) {
-    const className = this.map(diffType)
+  private editableSidebar(diff: DiffLine) {
+    const className = this.map(diff.type)
 
     return (
       <div className={className}
            onMouseEnter={event => this.onMouseEnterHandler(event.currentTarget, className)}
            onMouseLeave={event => this.onMouseLeaveHandler(event.currentTarget, className)}>
-        <span className={innerClassName}>{this.formatIfNotSet(value)}</span>
+        <div className='before'>{this.formatIfNotSet(diff.oldLineNumber)}</div>
+        <div className='after'>{this.formatIfNotSet(diff.newLineNumber)}</div>
       </div>
     )
   }
 
-  private readOnlySidebar(diffType: DiffLineType, innerClassName: string, value: number | null) {
-    const classNames = this.map(diffType)
+  private readOnlySidebar(diff: DiffLine) {
+    const classNames = this.map(diff.type)
 
     return (
       <div className={classNames}>
-        <span className={innerClassName}>{this.formatIfNotSet(value)}</span>
+        <span className='before'>{this.formatIfNotSet(diff.oldLineNumber)}</span>
+        <span className='after'>{this.formatIfNotSet(diff.newLineNumber)}</span>
       </div>
     )
   }
 
-  private renderLeftSideCell = ({ rowIndex }: { rowIndex: number }) => {
+  private renderSidebar = ({ rowIndex }: { rowIndex: number }) => {
     const datum = this.getDatum(rowIndex)
 
     if (this.props.readOnly) {
-      return this.readOnlySidebar(datum.type, 'before', datum.oldLineNumber)
+      return this.readOnlySidebar(datum)
     } else {
-      return this.editableSidebar(datum.type, 'before', datum.oldLineNumber)
-    }
-  }
-
-  private renderRightSideCell = ({ rowIndex }: { rowIndex: number }) => {
-    const datum = this.getDatum(rowIndex)
-
-    if (this.props.readOnly) {
-      return this.readOnlySidebar(datum.type, 'after', datum.newLineNumber)
-    } else {
-      return this.editableSidebar(datum.type, 'after', datum.newLineNumber)
+      return this.editableSidebar(datum)
     }
   }
 
@@ -147,9 +139,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   private cellRenderer = ({ columnIndex, rowIndex }: { columnIndex: number, rowIndex: number }) => {
     if (columnIndex === 0) {
-      return this.renderLeftSideCell({ rowIndex })
-    } else if (columnIndex === 1) {
-      return this.renderRightSideCell({ rowIndex })
+      return this.renderSidebar({ rowIndex })
     } else {
       return this.renderBodyCell({ rowIndex })
     }
@@ -169,7 +159,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
               autoContainerWidth
               cellRenderer={this.cellRenderer}
               className='diff-text'
-              columnCount={3}
+              columnCount={2}
               columnWidth={ ({ index }: { index: number }) => this.getColumnWidth( { index, availableWidth: width }) }
               height={height}
               rowHeight={RowHeight}

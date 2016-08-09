@@ -16,7 +16,13 @@
 }
 
 .diff-text .before, .diff-text .after  {
-  color: #CCC
+  color: #CCC;
+  width: 50px;
+  text-align: center;
+}
+
+.diff-text .after  {
+  margin-left: 50px;
 }
 
 .diff-add {
@@ -24,7 +30,7 @@
 }
 
 .diff-add-hover {
-  background: red;
+  background: green; // TODO: actual colour goes here
 }
 
 .diff-delete {
@@ -32,5 +38,5 @@
 }
 
 .diff-delete-hover {
-  background: green;
+  background: red; // TODO: actual colour goes here
 }
