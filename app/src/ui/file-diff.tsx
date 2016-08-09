@@ -70,26 +70,35 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       return this.state.diff.lines[index]
   }
 
+  private formatIfNotSet(value: number | null): string {
+    // JSX will encode markup as part of rendering, so this
+    // value for &nbsp; needs to be done as it's unicode number
+    // citation: https://facebook.github.io/react/docs/jsx-gotchas.html#html-entities
+    if (value === null) {
+      return '\u00A0'
+    } else {
+      return value.toString()
+    }
+  }
+
   private renderLeftSideCell = ({ rowIndex }: { rowIndex: number }) => {
     const datum = this.getDatum(rowIndex)
-
     const classNames = this.map(datum.type)
 
     return (
       <div className={classNames}>
-        <span className='before'>{datum.oldLineNumber}</span>
+        <span className='before'>{this.formatIfNotSet(datum.oldLineNumber)}</span>
       </div>
     )
   }
 
   private renderRightSideCell = ({ rowIndex }: { rowIndex: number }) => {
     const datum = this.getDatum(rowIndex)
-
     const classNames = this.map(datum.type)
 
     return (
       <div className={classNames}>
-        <span className='after'>{datum.newLineNumber}</span>
+        <span className='after'>{this.formatIfNotSet(datum.newLineNumber)}</span>
       </div>
     )
   }
