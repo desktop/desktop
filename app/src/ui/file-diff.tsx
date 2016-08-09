@@ -55,9 +55,14 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private getColumnWidth ({ index, availableWidth }: { index: number, availableWidth: number }) {
+    console.debug('computing width: ' + availableWidth)
     switch (index) {
+      case 0:
+        return 50
       case 1:
-        return 300
+        return 50
+      case 2:
+        return (availableWidth - 110)
       default:
         return 50
     }
@@ -65,7 +70,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   private getDatum(index: number): DiffLine {
       return this.state.diff.lines[index]
-    }
+  }
 
   private renderLeftSideCell = ({ rowIndex }: { rowIndex: number }) => {
     const datum = this.getDatum(rowIndex)
@@ -75,6 +80,17 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     return (
       <div className={classNames}>
         <span className='before'>{datum.oldLineNumber}</span>
+      </div>
+    )
+  }
+
+  private renderRightSideCell = ({ rowIndex }: { rowIndex: number }) => {
+    const datum = this.getDatum(rowIndex)
+
+    const classNames = this.map(datum.type)
+
+    return (
+      <div className={classNames}>
         <span className='after'>{datum.newLineNumber}</span>
       </div>
     )
@@ -92,10 +108,11 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     )
   }
 
-
   private cellRenderer = ({ columnIndex, rowIndex }: { columnIndex: number, rowIndex: number }) => {
     if (columnIndex === 0) {
       return this.renderLeftSideCell({ rowIndex })
+    } else if (columnIndex === 1) {
+      return this.renderRightSideCell({ rowIndex })
     } else {
       return this.renderBodyCell({ rowIndex })
     }
@@ -104,6 +121,9 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   public render() {
 
     if (this.props.file) {
+
+      const invalidationProps = this.props.file!.path
+
       return (
         <div className='panel' id='file-diff'>
         <AutoSizer>
@@ -111,13 +131,14 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
             <Grid
               autoContainerWidth
               cellRenderer={this.cellRenderer}
-              className='diff-text'
-              columnCount={2}
-              columnWidth={ (index: number) => this.getColumnWidth( { index, availableWidth: width }) }
+              className=  'diff-text'
+              columnCount={3}
+              columnWidth={ ({ index }: { index: number }) => this.getColumnWidth( { index, availableWidth: width }) }
               height={height}
               rowHeight={RowHeight}
               rowCount={this.state.diff.lines.length}
               width={width}
+              invalidationProps={invalidationProps}
             />
           )}
         </AutoSizer>
