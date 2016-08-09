@@ -1,12 +1,11 @@
 import * as React from 'react'
 
-import List from './list'
-import FileDiffLine from './file-diff-line'
-
 import IRepository from '../models/repository'
 import { FileChange } from '../models/status'
 
-import { LocalGitOperations, Diff, Commit } from '../lib/local-git-operations'
+import { LocalGitOperations, Diff, Commit, DiffLine, DiffLineType } from '../lib/local-git-operations'
+
+const { Grid, AutoSizer } = require('react-virtualized')
 
 const RowHeight = 20
 
@@ -44,17 +43,62 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
   }
 
-  private renderRow(row: number): JSX.Element {
-    const line = this.state.diff.lines[row]
-    const id = `${this.props.file!.path} ${row}`
+  private map(type: DiffLineType): string {
+    if (type === DiffLineType.Add) {
+      return 'diff-add'
+    } else if (type === DiffLineType.Delete) {
+      return 'diff-delete'
+    } else if (type === DiffLineType.Hunk) {
+      return 'diff-hunk'
+    }
+    return 'diff-context'
+  }
+
+  private getColumnWidth ({ index, availableWidth }: { index: number, availableWidth: number }) {
+    switch (index) {
+      case 1:
+        return 300
+      default:
+        return 50
+    }
+  }
+
+  private getDatum(index: number): DiffLine {
+      return this.state.diff.lines[index]
+    }
+
+  private renderLeftSideCell = ({ rowIndex }: { rowIndex: number }) => {
+    const datum = this.getDatum(rowIndex)
+
+    const classNames = this.map(datum.type)
 
     return (
-      <FileDiffLine text={line.text}
-                    type={line.type}
-                    oldLineNumber={line.oldLineNumber}
-                    newLineNumber={line.newLineNumber}
-                    key={id} />
+      <div className={classNames}>
+        <span className='before'>{datum.oldLineNumber}</span>
+        <span className='after'>{datum.newLineNumber}</span>
+      </div>
     )
+  }
+
+  private renderBodyCell = ({ rowIndex }: { rowIndex: number }) => {
+    const datum = this.getDatum(rowIndex)
+
+    const classNames = this.map(datum.type)
+
+    return (
+      <div className={classNames}>
+        <span className='text'>{datum.text}</span>
+      </div>
+    )
+  }
+
+
+  private cellRenderer = ({ columnIndex, rowIndex }: { columnIndex: number, rowIndex: number }) => {
+    if (columnIndex === 0) {
+      return this.renderLeftSideCell({ rowIndex })
+    } else {
+      return this.renderBodyCell({ rowIndex })
+    }
   }
 
   public render() {
@@ -62,11 +106,22 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     if (this.props.file) {
       return (
         <div className='panel' id='file-diff'>
-          <List id='diff-text'
-                rowCount={this.state.diff.lines.length}
-                rowHeight={RowHeight}
-                rowRenderer={row => this.renderRow(row)}
-                selectedRow={-1} />
+        <AutoSizer>
+          {({ width, height }: { width: number, height: number }) => (
+            <Grid
+              autoContainerWidth
+              cellRenderer={this.cellRenderer}
+              className='diff-text'
+              columnCount={2}
+              columnWidth={ (index: number) => this.getColumnWidth( { index, availableWidth: width }) }
+              height={height}
+              rowHeight={RowHeight}
+              rowCount={this.state.diff.lines.length}
+              width={width}
+            />
+          )}
+        </AutoSizer>
+
         </div>
       )
     } else {
