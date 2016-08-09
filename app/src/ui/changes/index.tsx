@@ -40,7 +40,21 @@ export class Changes extends React.Component<IChangesProps, void> {
     this.props.dispatcher.changeIncludeAllFiles(this.props.repository, selectAll)
   }
 
+  private renderNoSelection() {
+    return (
+      <div className='blankslate' id='changes'>
+        No repo selected!
+      </div>
+    )
+  }
+
   public render() {
+
+    const repo = this.props.repository
+    if (!repo) {
+      return this.renderNoSelection()
+    }
+
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
     return (
       <div className='panel-container'>
