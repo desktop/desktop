@@ -11,6 +11,27 @@
   background-color: var(--box-alt-background-color);
   padding: var(--spacing);
 
+  .summary {
+    display: flex;
+    flex-direction: row;
+
+    .summary-field {
+      flex: 1;
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+
+      margin-right: 4px;
+
+      border-color: lightGray;
+      border-width: 1px;
+      border-style: solid;
+      border-radius: 3px;
+    }
+  }
+
   .commit-button {
     @include ellipsis
   }
