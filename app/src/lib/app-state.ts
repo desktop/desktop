@@ -15,7 +15,8 @@ export interface IAppState {
 }
 
 export enum Popup {
-  CreateBranch = 1
+  CreateBranch = 1,
+  ShowBranches,
 }
 
 export enum RepositorySection {

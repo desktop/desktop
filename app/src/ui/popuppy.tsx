@@ -7,7 +7,8 @@ import * as React from 'react'
 export default class Popuppy extends React.Component<any, any> {
   public render() {
     const style: React.CSSProperties = {
-      display: 'block',
+      display: 'flex',
+      flexDirection: 'column',
       zIndex: 99,
       width: '50%',
       height: '50%',
