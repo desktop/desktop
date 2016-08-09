@@ -42,14 +42,14 @@ export default class GitUserStore {
 
   /** Get the cached git user for the repository and email. */
   public getUser(repository: Repository, email: string): IGitUser | null {
-    const key = keyForRequest(repository, email)
+    const key = keyForRequest(email, repository.gitHubRepository ? repository.gitHubRepository.endpoint : null)
     const user = this.inMemoryCache.get(key)
     return user ? user : null
   }
 
   /** Not to be called externally. See `Dispatcher`. */
   public async _loadAndCacheUser(users: ReadonlyArray<User>, repository: Repository, sha: string, email: string) {
-    const key = keyForRequest(repository, email)
+    const key = keyForRequest(email, repository.gitHubRepository ? repository.gitHubRepository.endpoint : null)
     if (this.requestsInFlight.has(key)) { return }
 
     const gitHubRepository = repository.gitHubRepository
@@ -79,11 +79,7 @@ export default class GitUserStore {
     }
 
     if (gitUser) {
-      this.inMemoryCache.set(key, gitUser)
-
-      if (!gitUser.id) {
-        await this.database.users.add(gitUser)
-      }
+      this.cacheUser(gitUser)
     }
 
     this.requestsInFlight.delete(key)
@@ -114,8 +110,31 @@ export default class GitUserStore {
 
     return null
   }
+
+  /** Store the user in the cache. */
+  public async cacheUser(user: IGitUser): Promise<void> {
+    const key = keyForRequest(user.email, user.endpoint)
+    this.inMemoryCache.set(key, user)
+
+    const db = this.database
+    await this.database.transaction('rw', this.database.users, function*() {
+      const existing: IGitUser | null = yield db.users.where('[endpoint+email]')
+        .equals([ user.endpoint, user.email ])
+        .limit(1)
+        .first()
+      if (existing) {
+        user = Object.assign({}, user, { id: existing.id })
+      }
+
+      yield db.users.put(user)
+    })
+  }
 }
 
-function keyForRequest(repository: Repository, email: string): string {
-  return `${repository.id}/${email}`
+function keyForRequest(email: string, endpoint: string | null): string {
+  if (endpoint) {
+    return `${endpoint}/${email}`
+  } else {
+    return email
+  }
 }

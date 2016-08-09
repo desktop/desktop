@@ -28,9 +28,17 @@ export default class App extends React.Component<IAppProps, IAppState> {
     super(props)
 
     this.state = props.appStore.getState()
-    props.appStore.onDidUpdate(state => this.setState(state))
+    props.appStore.onDidUpdate(state => {
+      state.users.forEach(user => {
+        this.props.gitUserStore.cacheUser(user)
+      })
 
-    ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => this.onMenuEvent(name))
+      this.setState(state)
+    })
+
+    ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
+      this.onMenuEvent(name)
+    })
   }
 
   private onMenuEvent(name: MenuEvent): Promise<void> {
