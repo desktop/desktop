@@ -9,7 +9,7 @@ import { IRepositoryState as IRepositoryModelState, RepositorySection } from '..
 import { Dispatcher, GitUserStore } from '../lib/dispatcher'
 
 interface IRepositoryProps {
-  readonly repository: Repo
+  readonly repository: Repo | null
   readonly state: IRepositoryModelState
   readonly dispatcher: Dispatcher
   readonly gitUserStore: GitUserStore
@@ -26,12 +26,12 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
 
   private renderContent() {
     if (this.props.state.selectedSection === RepositorySection.Changes) {
-      return <Changes repository={this.props.repository}
+      return <Changes repository={this.props.repository!}
                       dispatcher={this.props.dispatcher}
                       changes={this.props.state.changesState}
                       branch={this.props.state.branch}/>
     } else if (this.props.state.selectedSection === RepositorySection.History) {
-      return <History repository={this.props.repository}
+      return <History repository={this.props.repository!}
                       dispatcher={this.props.dispatcher}
                       history={this.props.state.historyState}
                       gitUserStore={this.props.gitUserStore}/>
@@ -60,6 +60,6 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
 
   private onTabClicked(tab: TabBarTab) {
     const section = tab === TabBarTab.History ? RepositorySection.History : RepositorySection.Changes
-    this.props.dispatcher.changeRepositorySection(this.props.repository, section)
+    this.props.dispatcher.changeRepositorySection(this.props.repository!, section)
   }
 }
