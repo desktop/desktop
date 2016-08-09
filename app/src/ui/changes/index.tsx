@@ -18,8 +18,8 @@ interface IChangesProps {
 /** TODO: handle "repository not found" scenario */
 
 export class Changes extends React.Component<IChangesProps, void> {
-  private onCreateCommit(title: string) {
-    this.props.dispatcher.commitIncludedChanges(this.props.repository, title)
+  private onCreateCommit(summary: string, description: string) {
+    this.props.dispatcher.commitIncludedChanges(this.props.repository, summary, description)
   }
 
   private onSelectionChanged(row: number) {
@@ -66,7 +66,7 @@ export class Changes extends React.Component<IChangesProps, void> {
                        workingDirectory={this.props.changes.workingDirectory}
                        selectedPath={selectedPath}
                        onSelectionChanged={event => this.onSelectionChanged(event)}
-                       onCreateCommit={title => this.onCreateCommit(title)}
+                       onCreateCommit={(summary, description) => this.onCreateCommit(summary, description)}
                        onIncludeChanged={(row, include) => this.onIncludeChanged(row, include) }
                        onSelectAll={selectAll => this.onSelectAll(selectAll) }
                        branch={this.props.branch}

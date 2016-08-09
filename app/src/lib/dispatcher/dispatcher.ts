@@ -166,10 +166,10 @@ export class Dispatcher {
 
   /**
    * Commit the changes which were marked for inclusion, using the given commit
-   * title.
+   * summary and description.
    */
-  public commitIncludedChanges(repository: Repository, title: string): Promise<void> {
-    return this.appStore._commitIncludedChanges(repository, title)
+  public commitIncludedChanges(repository: Repository, summary: string, description: string): Promise<void> {
+    return this.appStore._commitIncludedChanges(repository, summary, description)
   }
 
   /** Change the file's includedness. */

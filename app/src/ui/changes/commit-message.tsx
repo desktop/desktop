@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 interface ICommitMessageProps {
-  readonly onCreateCommit: (title: string) => void
+  readonly onCreateCommit: (summary: string, description: string) => void
   readonly branch: string | null
   readonly avatarURL: string
 }
@@ -22,7 +22,6 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     }
   }
 
-  /** TODO: commit description field */
   /** TODO: disable submit when no files selected */
 
   private handleSummaryChange(event: React.FormEvent<HTMLInputElement>) {
@@ -40,7 +39,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   }
 
   private handleSubmit(event: any) {
-    this.props.onCreateCommit(this.state.title)
+    this.props.onCreateCommit(this.state.summary, this.state.description)
     this.setState({
       summary: '',
       description: '',

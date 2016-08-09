@@ -363,13 +363,13 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _commitIncludedChanges(repository: Repository, title: string): Promise<void> {
+  public async _commitIncludedChanges(repository: Repository, summary: string, description: string): Promise<void> {
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
       return file.include === true
     })
 
-    await LocalGitOperations.createCommit(repository, title, files)
+    await LocalGitOperations.createCommit(repository, summary, description, files)
 
     return this._loadStatus(repository)
   }

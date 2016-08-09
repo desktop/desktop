@@ -256,7 +256,7 @@ export class LocalGitOperations {
       })
   }
 
-  public static createCommit(repository: Repository, title: string, files: ReadonlyArray<WorkingDirectoryFileChange>) {
+  public static createCommit(repository: Repository, summary: string, description: string, files: ReadonlyArray<WorkingDirectoryFileChange>) {
     return this.resolveHEAD(repository)
       .then(result => {
         let resetArgs = [ 'reset' ]
@@ -287,7 +287,8 @@ export class LocalGitOperations {
             // TODO: pipe standard input into this command
             return Promise.all(addFiles)
               .then(() => {
-                return GitProcess.exec([ 'commit', '-m',  title ] , repository.path)
+                const message = `${summary}\n\n${description}`
+                return GitProcess.exec([ 'commit', '-m',  message ] , repository.path)
               })
           })
         })
