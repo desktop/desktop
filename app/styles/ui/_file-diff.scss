@@ -23,10 +23,14 @@
   background: #EAFFEA;
 }
 
+.diff-add-hover {
+  background: red;
+}
+
 .diff-delete {
   background: #FFECEC;
 }
 
-.hover {
-  background: red
+.diff-delete-hover {
+  background: green;
 }

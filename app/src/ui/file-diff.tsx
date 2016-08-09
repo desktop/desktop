@@ -81,21 +81,23 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
   }
 
-  private onMouseEnterHandler(target: any) {
-    target.classList.add('hover')
+  private onMouseEnterHandler(target: any, className: string) {
+    const hoverClassName = className + '-hover'
+    target.classList.add(hoverClassName)
   }
 
-  private onMouseLeaveHandler(target: any) {
-    target.classList.remove('hover')
+  private onMouseLeaveHandler(target: any, className: string) {
+    const hoverClassName = className + '-hover'
+    target.classList.remove(hoverClassName)
   }
 
   private editableSidebar(diffType: DiffLineType, innerClassName: string, value: number | null) {
-    const classNames = this.map(diffType)
+    const className = this.map(diffType)
 
     return (
-      <div className={classNames}
-           onMouseEnter={event => this.onMouseEnterHandler(event.currentTarget)}
-           onMouseLeave={event => this.onMouseLeaveHandler(event.currentTarget)}>
+      <div className={className}
+           onMouseEnter={event => this.onMouseEnterHandler(event.currentTarget, className)}
+           onMouseLeave={event => this.onMouseLeaveHandler(event.currentTarget, className)}>
         <span className={innerClassName}>{this.formatIfNotSet(value)}</span>
       </div>
     )
