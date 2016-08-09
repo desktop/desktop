@@ -81,26 +81,34 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
   }
 
-  private renderLeftSideCell = ({ rowIndex }: { rowIndex: number }) => {
-    const datum = this.getDatum(rowIndex)
-    const classNames = this.map(datum.type)
+  private readOnlySidebar(diffType: DiffLineType, innerClassName: string, value: number | null) {
+    const classNames = this.map(diffType)
 
     return (
       <div className={classNames}>
-        <span className='before'>{this.formatIfNotSet(datum.oldLineNumber)}</span>
+        <span className={innerClassName}>{this.formatIfNotSet(value)}</span>
       </div>
     )
   }
 
+  private renderLeftSideCell = ({ rowIndex }: { rowIndex: number }) => {
+    const datum = this.getDatum(rowIndex)
+
+    if (this.props.readOnly) {
+      return this.readOnlySidebar(datum.type, 'before', datum.oldLineNumber)
+    } else {
+      return this.readOnlySidebar(datum.type, 'before', datum.oldLineNumber)
+    }
+  }
+
   private renderRightSideCell = ({ rowIndex }: { rowIndex: number }) => {
     const datum = this.getDatum(rowIndex)
-    const classNames = this.map(datum.type)
 
-    return (
-      <div className={classNames}>
-        <span className='after'>{this.formatIfNotSet(datum.newLineNumber)}</span>
-      </div>
-    )
+    if (this.props.readOnly) {
+      return this.readOnlySidebar(datum.type, 'after', datum.newLineNumber)
+    } else {
+      return this.readOnlySidebar(datum.type, 'after', datum.newLineNumber)
+    }
   }
 
   private renderBodyCell = ({ rowIndex }: { rowIndex: number }) => {
