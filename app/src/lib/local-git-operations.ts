@@ -287,7 +287,11 @@ export class LocalGitOperations {
             // TODO: pipe standard input into this command
             return Promise.all(addFiles)
               .then(() => {
-                const message = `${summary}\n\n${description}`
+                let message = summary
+                if (description.length > 0) {
+                  message = `${summary}\n\n${description}`
+                }
+
                 return GitProcess.exec([ 'commit', '-m',  message ] , repository.path)
               })
           })
