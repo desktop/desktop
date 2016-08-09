@@ -25,10 +25,8 @@
 
       margin-right: 4px;
 
-      border-color: lightGray;
-      border-width: 1px;
-      border-style: solid;
-      border-radius: 3px;
+      border: var(--base-border);
+      border-radius: var(--border-radius);
     }
   }
 
