@@ -55,15 +55,13 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private getColumnWidth ({ index, availableWidth }: { index: number, availableWidth: number }) {
-    console.debug('computing width: ' + availableWidth)
     switch (index) {
-      case 0:
-        return 50
-      case 1:
-        return 50
       case 2:
-        return (availableWidth - 110)
+        // TODO: how is this going to work with wrapping again?
+        return (availableWidth - 100)
       default:
+        // TODO: we know the number of lines in the diff, we should adjust this
+        //       value so that > 3 character line counts are visible
         return 50
     }
   }
@@ -131,7 +129,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
             <Grid
               autoContainerWidth
               cellRenderer={this.cellRenderer}
-              className=  'diff-text'
+              className='diff-text'
               columnCount={3}
               columnWidth={ ({ index }: { index: number }) => this.getColumnWidth( { index, availableWidth: width }) }
               height={height}
