@@ -61,7 +61,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
                  onChange={event => this.handleSummaryChange(event)}/>
         </div>
 
-        <textarea className='summary-description'
+        <textarea className='description-field'
                   placeholder='Description'
                   value={this.state.description}
                   onChange={event => this.handleDescriptionChange(event)}/>
