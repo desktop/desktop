@@ -1,9 +1,9 @@
 import { Emitter, Disposable } from 'event-kit'
-import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState } from '../app-state'
+import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
-import { LocalGitOperations, Commit } from '../local-git-operations'
+import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
 import { findIndex } from '../find'
 
 /** The number of commits to load from history per batch. */
@@ -14,9 +14,11 @@ export default class AppStore {
 
   private users: ReadonlyArray<User> = new Array<User>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
-  private selectedRepository: Repository | null
 
+  private selectedRepository: Repository | null = null
   private repositoryState = new Map<number, IRepositoryState>()
+
+  private currentPopup: Popup | null = null
 
   private emitQueued = false
 
@@ -52,7 +54,9 @@ export default class AppStore {
         selectedFile: null,
       },
       selectedSection: RepositorySection.History,
-      branch: null,
+      currentBranch: null,
+      branches: new Array<Branch>(),
+      committerEmail: null,
     }
   }
 
@@ -77,7 +81,9 @@ export default class AppStore {
         historyState,
         changesState: state.changesState,
         selectedSection: state.selectedSection,
-        branch: state.branch,
+        currentBranch: state.currentBranch,
+        branches: state.branches,
+        committerEmail: state.committerEmail,
       }
     })
   }
@@ -89,7 +95,9 @@ export default class AppStore {
         historyState: state.historyState,
         changesState,
         selectedSection: state.selectedSection,
-        branch: state.branch,
+        currentBranch: state.currentBranch,
+        branches: state.branches,
+        committerEmail: state.committerEmail,
       }
     })
   }
@@ -107,6 +115,7 @@ export default class AppStore {
       repositories: this.repositories,
       repositoryState: this.getCurrentRepositoryState(),
       selectedRepository: this.selectedRepository,
+      currentPopup: this.currentPopup,
     }
   }
 
@@ -337,7 +346,9 @@ export default class AppStore {
         historyState: state.historyState,
         changesState: state.changesState,
         selectedSection: section,
-        branch: state.branch,
+        currentBranch: state.currentBranch,
+        branches: state.branches,
+        committerEmail: state.committerEmail,
       }
     })
     this.emitUpdate()
@@ -409,7 +420,9 @@ export default class AppStore {
           selectedFile: state.changesState.selectedFile,
         },
         historyState: state.historyState,
-        branch: state.branch,
+        currentBranch: state.currentBranch,
+        branches: state.branches,
+        committerEmail: state.committerEmail,
       }
     })
     this.emitUpdate()
@@ -431,14 +444,16 @@ export default class AppStore {
   }
 
   private async refreshCurrentBranch(repository: Repository): Promise<void> {
-    const branch = await LocalGitOperations.getCurrentBranch(repository)
+    const currentBranch = await LocalGitOperations.getCurrentBranch(repository)
 
     this.updateRepositoryState(repository, state => {
       return {
         selectedSection: state.selectedSection,
         changesState: state.changesState,
         historyState: state.historyState,
-        branch,
+        currentBranch,
+        branches: state.branches,
+        committerEmail: state.committerEmail,
       }
     })
     this.emitUpdate()
@@ -455,9 +470,68 @@ export default class AppStore {
     // selected.
     await this._loadStatus(repository)
 
+    await this.refreshCommitterEmail(repository)
+
     const section = state.selectedSection
     if (section === RepositorySection.History) {
       return this._loadHistory(repository)
     }
+  }
+
+  private async refreshCommitterEmail(repository: Repository): Promise<void> {
+    const email = await LocalGitOperations.getConfigValue(repository, 'user.email')
+    this.updateRepositoryState(repository, state => {
+      return {
+        selectedSection: state.selectedSection,
+        changesState: state.changesState,
+        historyState: state.historyState,
+        currentBranch: state.currentBranch,
+        branches: state.branches,
+        committerEmail: email,
+      }
+    })
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _loadBranches(repository: Repository): Promise<void> {
+    const branches = await LocalGitOperations.getBranches(repository)
+    this.updateRepositoryState(repository, state => {
+      return {
+        selectedSection: state.selectedSection,
+        changesState: state.changesState,
+        historyState: state.historyState,
+        currentBranch: state.currentBranch,
+        branches,
+        committerEmail: state.committerEmail,
+      }
+    })
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _showPopup(popup: Popup, repository: Repository | null): Promise<void> {
+    this.currentPopup = popup
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _closePopup(): Promise<void> {
+    this.currentPopup = null
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
+    return LocalGitOperations.createBranch(repository, name, startPoint)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _checkoutBranch(repository: Repository, name: string): Promise<void> {
+    await LocalGitOperations.checkoutBranch(repository, name)
+
+    return this._refreshRepository(repository)
   }
 }

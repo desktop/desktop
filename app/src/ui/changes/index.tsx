@@ -3,16 +3,16 @@ import { ChangesList } from './changes-list'
 import FileDiff from '../file-diff'
 import { IChangesState } from '../../lib/app-state'
 import Repository from '../../models/repository'
-import User from '../../models/user'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher, GitUserStore, IGitUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
 
 interface IChangesProps {
   repository: Repository
   changes: IChangesState
   dispatcher: Dispatcher
+  gitUserStore: GitUserStore
+  committerEmail: string | null
   branch: string | null
-  user: User | null
 }
 
 /** TODO: handle "repository not found" scenario */
@@ -58,7 +58,17 @@ export class Changes extends React.Component<IChangesProps, void> {
     }
 
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
-    const avatarURL = this.props.user ? this.props.user.avatarURL : 'https://github.com/hubot.png'
+
+    const email = this.props.committerEmail
+    let user: IGitUser | null = null
+    if (email) {
+      user = this.props.gitUserStore.getUser(this.props.repository, email)
+      if (!user) {
+        this.props.dispatcher.loadAndCacheUser(this.props.repository, null, email)
+      }
+    }
+
+    const avatarURL = user ? user.avatarURL : 'https://github.com/hubot.png'
     return (
       <div className='panel-container'>
         <Resizable configKey='changes-width'>

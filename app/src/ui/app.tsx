@@ -9,13 +9,15 @@ import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
 import { Dispatcher, AppStore, GitUserStore } from '../lib/dispatcher'
 import Repository from '../models/repository'
-import User from '../models/user'
 import { matchGitHubRepository } from '../lib/repository-matching'
 import API, { getUserForEndpoint } from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
-import { IAppState, RepositorySection } from '../lib/app-state'
+import { IAppState, RepositorySection, Popup } from '../lib/app-state'
+import Popuppy from './popuppy'
+import CreateBranch from './create-branch'
+import Branches from './branches'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -30,7 +32,25 @@ export default class App extends React.Component<IAppProps, IAppState> {
     this.state = props.appStore.getState()
     props.appStore.onDidUpdate(state => {
       state.users.forEach(user => {
-        this.props.gitUserStore.cacheUser(user)
+        // In theory a user should _always_ have an array of emails (even if
+        // it's empty). But in practice, if the user had run old dev builds this
+        // may not be the case. So for now we need to guard this. We should
+        // remove this check in the not too distant future.
+        // @joshaber (August 10, 2016)
+        if (!user.emails) { return }
+
+        const gitUsers = user.emails.map(email => {
+          return {
+            endpoint: user.endpoint,
+            email,
+            login: user.login,
+            avatarURL: user.avatarURL,
+          }
+        })
+
+        for (const user of gitUsers) {
+          this.props.gitUserStore.cacheUser(user)
+        }
       })
 
       this.setState(state)
@@ -41,16 +61,26 @@ export default class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private onMenuEvent(name: MenuEvent): Promise<void> {
+  private onMenuEvent(name: MenuEvent): any {
     switch (name) {
       case 'push': return this.push()
       case 'pull': return this.pull()
       case 'select-changes': return this.selectChanges()
       case 'select-history': return this.selectHistory()
       case 'add-local-repository': return this.showFileBrowser()
+      case 'create-branch': return this.createBranch()
+      case 'show-branches': return this.showBranches()
     }
 
     return fatalError(`Unknown menu event name: ${name}`)
+  }
+
+  private createBranch() {
+    this.props.dispatcher.showPopup(Popup.CreateBranch, this.state.selectedRepository)
+  }
+
+  private showBranches() {
+    this.props.dispatcher.showPopup(Popup.ShowBranches, this.state.selectedRepository)
   }
 
   private selectChanges(): Promise<void> {
@@ -83,17 +113,17 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const branch = state.branch
+    const branch = state.currentBranch
     if (!branch) {
       console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
       return
     }
 
-    const trackingBranch = await LocalGitOperations.getTrackingBranch(repository)
-    if (trackingBranch) {
-      await LocalGitOperations.push(repository, remote, branch, false)
+    const upstream = branch.upstream
+    if (upstream) {
+      await LocalGitOperations.push(repository, remote, branch.name, false)
     } else {
-      await LocalGitOperations.push(repository, remote, branch, true)
+      await LocalGitOperations.push(repository, remote, branch.name, true)
     }
   }
 
@@ -113,13 +143,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const branch = state.branch
+    const branch = state.currentBranch
     if (!branch) {
       console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
       return
     }
 
-    await LocalGitOperations.pull(repository, remote, branch)
+    await LocalGitOperations.pull(repository, remote, branch.name)
   }
 
   public componentDidMount() {
@@ -144,7 +174,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
     this.addRepositories(paths)
   }
 
-  private async showFileBrowser() {
+  private showFileBrowser() {
     const directories = remote.dialog.
         showOpenDialog({ properties: [ 'openDirectory', 'multiSelections' ] })
     if (directories && directories.length > 0) {
@@ -184,14 +214,35 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private renderApp() {
-    const selectedRepository = this.state.selectedRepository!
-    let user: User | null = null
-    const gitHubRepository = selectedRepository.gitHubRepository
-    if (gitHubRepository) {
-      user = getUserForEndpoint(this.state.users, gitHubRepository.endpoint)
+  private renderPopup(): JSX.Element | null {
+    const popup = this.state.currentPopup
+    if (!popup) { return null }
+
+    let content: JSX.Element | null = null
+    switch (popup) {
+      case Popup.CreateBranch:
+        content = <CreateBranch repository={this.state.selectedRepository!}
+                                dispatcher={this.props.dispatcher}
+                                branches={this.state.repositoryState!.branches}
+                                currentBranch={this.state.repositoryState!.currentBranch}/>
+        break
+
+      case Popup.ShowBranches:
+        content = <Branches branches={this.state.repositoryState!.branches}
+                            dispatcher={this.props.dispatcher}
+                            repository={this.state.selectedRepository!}/>
+        break
     }
 
+    if (!content) {
+      return fatalError(`Unknown popup: ${popup}`)
+    }
+
+    return <Popuppy>{content}</Popuppy>
+  }
+
+  private renderApp() {
+    const selectedRepository = this.state.selectedRepository!
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
         <Resizable id='desktop-app-sidebar' configKey='repositories-list-width'>
@@ -205,8 +256,9 @@ export default class App extends React.Component<IAppProps, IAppState> {
         <RepositoryView repository={this.state.selectedRepository!}
                         state={this.state.repositoryState!}
                         dispatcher={this.props.dispatcher}
-                        gitUserStore={this.props.gitUserStore}
-                        user={user}/>
+                        gitUserStore={this.props.gitUserStore}/>
+
+        {this.renderPopup()}
       </div>
     )
   }

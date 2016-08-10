@@ -158,6 +158,20 @@ export class Diff {
    }
 }
 
+/** A branch as loaded from Git. */
+export class Branch {
+  /** The short name of the branch. E.g., `master`. */
+  public readonly name: string
+
+  /** The origin-prefixed upstream name. E.g., `origin/master`. */
+  public readonly upstream: string | null
+
+  public constructor(name: string, upstream: string | null) {
+    this.name = name
+    this.upstream = upstream
+  }
+}
+
 /**
  * Interactions with a local Git repository
  */
@@ -490,26 +504,16 @@ export class LocalGitOperations {
     }
   }
 
-  /** Get the name of the tracking branch for the current branch. */
-  public static async getTrackingBranch(repository: Repository): Promise<string | null> {
-    try {
-      const name = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', '--symbolic-full-name', '@{u}' ], repository.path)
-      return name.trim()
-    } catch (e) {
-      // Git exits with 1 if there's no upstream. We should do more specific
-      // error parsing than this, but for now it'll do.
-      if (e.code !== 1) {
-        throw e
-      }
-      return null
-    }
-  }
-
   /** Get the name of the current branch. */
-  public static async getCurrentBranch(repository: Repository): Promise<string | null> {
+  public static async getCurrentBranch(repository: Repository): Promise<Branch | null> {
     try {
-      const name = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path)
-      return name.trim()
+      const untrimmedName = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path)
+      const name = untrimmedName.trim()
+
+      const untrimmedUpstream = await GitProcess.execWithOutput([ 'for-each-ref', `--format=%(upstream:short)`, `refs/heads/${name}` ], repository.path)
+      const upstream = untrimmedUpstream.trim()
+
+      return new Branch(name, upstream.length > 0 ? upstream : null)
     } catch (e) {
       // Git exits with 1 if there's the branch is unborn. We should do more
       // specific error parsing than this, but for now it'll do.
@@ -533,5 +537,37 @@ export class LocalGitOperations {
       }
       return 0
     }
+  }
+
+  /** Get all the branches. */
+  public static async getBranches(repository: Repository): Promise<ReadonlyArray<Branch>> {
+    const format = [
+      '%(refname:short)',
+      '%(upstream:short)',
+    ].join('%00')
+    const names = await GitProcess.execWithOutput([ 'for-each-ref', `--format=${format}` ], repository.path)
+    const lines = names.split('\n')
+
+    // Remove the trailing newline
+    lines.splice(-1, 1)
+
+    const branches = lines.map(line => {
+      const pieces = line.split('\0')
+      const name = pieces[0]
+      const upstream = pieces[1]
+      return new Branch(name, upstream.length > 0 ? upstream : null)
+    })
+
+    return branches
+  }
+
+  /** Create a new branch from the given start point. */
+  public static createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
+    return GitProcess.exec([ 'branch', name, startPoint ], repository.path)
+  }
+
+  /** Check out the given branch. */
+  public static checkoutBranch(repository: Repository, name: string): Promise<void> {
+    return GitProcess.exec([ 'checkout', name, '--' ], repository.path)
   }
 }
