@@ -565,4 +565,27 @@ export class LocalGitOperations {
   public static checkoutBranch(repository: Repository, name: string): Promise<void> {
     return GitProcess.exec([ 'checkout', name, '--' ], repository.path)
   }
+
+  public static async getRecentBranches(repository: Repository): Promise<void> {
+    // "git reflog show" is just an alias for "git log -g --abbrev-commit --pretty=oneline"
+		// but by using log we can give it a max number which should prevent us from balling out
+		// of control when there's ginormous reflogs around (as in e.g. github/github).
+    const regex = new RegExp(/.* checkout: moving from .* to (.*)$/i)
+    const output = await GitProcess.execWithOutput([ 'log', '-g', '--abbrev-commit', '--pretty=oneline', 'HEAD', '-n', '2500' ], repository.path)
+    const lines = output.split('\n')
+    const names = new Set<string>()
+    for (const line of lines) {
+      const result = regex.exec(line)
+      if (result && result.length === 2) {
+        const branchName = result[1]
+        names.add(branchName)
+      }
+
+      if (names.size === 5) {
+        break
+      }
+    }
+
+    console.log(Array.from(names))
+  }
 }

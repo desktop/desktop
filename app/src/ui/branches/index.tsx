@@ -2,9 +2,17 @@ import * as React from 'react'
 import List from '../list'
 import { Dispatcher } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
-import { Branch } from '../../lib/local-git-operations'
+import { LocalGitOperations, Branch } from '../../lib/local-git-operations'
 
 const RowHeight = 22
+
+// interface IGrouped {
+//   readonly current: Branch
+//   readonly recent: ReadonlyArray<Branch>
+//   readonly other: ReadonlyArray<Branch>
+// }
+
+const groupedBranches = new Map<number, number>()
 
 interface IBranchesProps {
   readonly branches: ReadonlyArray<Branch>
@@ -30,6 +38,11 @@ export default class Branches extends React.Component<IBranchesProps, void> {
   }
 
   public render() {
+    const grouped = groupedBranches.get(this.props.repository.id!)
+    if (!grouped) {
+      groupBranches(this.props.repository, this.props.branches).then(() => this.forceUpdate())
+    }
+
     return (
       <div id='branches' className='panel'>
         <List rowCount={this.props.branches.length}
@@ -40,4 +53,9 @@ export default class Branches extends React.Component<IBranchesProps, void> {
       </div>
     )
   }
+}
+
+async function groupBranches(repository: Repository, branches: ReadonlyArray<Branch>): Promise<void> {
+  await LocalGitOperations.getRecentBranches(repository)
+  groupedBranches.set(repository.id!, 1)
 }
