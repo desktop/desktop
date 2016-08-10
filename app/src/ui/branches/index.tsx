@@ -2,11 +2,12 @@ import * as React from 'react'
 import List from '../list'
 import { Dispatcher } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
+import { Branch } from '../../lib/local-git-operations'
 
 const RowHeight = 22
 
 interface IBranchesProps {
-  readonly branches: ReadonlyArray<string>
+  readonly branches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 }
@@ -18,14 +19,14 @@ export default class Branches extends React.Component<IBranchesProps, void> {
 
   private renderRow(row: number) {
     const branch = this.props.branches[row]
-    return <div>{branch}</div>
+    return <div>{branch.name}</div>
   }
 
   private onSelectionChanged(row: number) {
     const branch = this.props.branches[row]
 
     this.props.dispatcher.closePopup()
-    this.props.dispatcher.checkoutBranch(this.props.repository, branch)
+    this.props.dispatcher.checkoutBranch(this.props.repository, branch.name)
   }
 
   public render() {
