@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { default as Repo } from '../models/repository'
-import User from '../models/user'
 import Toolbar from './toolbar'
 import { Changes } from './changes'
 import History from './history'
@@ -14,7 +13,6 @@ interface IRepositoryProps {
   readonly state: IRepositoryModelState
   readonly dispatcher: Dispatcher
   readonly gitUserStore: GitUserStore
-  readonly user: User | null
 }
 
 export default class Repository extends React.Component<IRepositoryProps, void> {
