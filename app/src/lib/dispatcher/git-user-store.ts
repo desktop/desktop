@@ -2,7 +2,7 @@ import { Emitter, Disposable } from 'event-kit'
 import Repository from '../../models/repository'
 import User from '../../models/user'
 import GitHubRepository from '../../models/github-repository'
-import API, { getUserForEndpoint } from '../api'
+import API, { getUserForEndpoint, getDotComAPIEndpoint } from '../api'
 import { GitUserDatabase, IGitUser } from './git-user-database'
 
 /**
@@ -42,14 +42,14 @@ export default class GitUserStore {
 
   /** Get the cached git user for the repository and email. */
   public getUser(repository: Repository, email: string): IGitUser | null {
-    const key = keyForRequest(email, repository.gitHubRepository ? repository.gitHubRepository.endpoint : null)
+    const key = keyForRequest(email, repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint())
     const user = this.inMemoryCache.get(key)
     return user ? user : null
   }
 
   /** Not to be called externally. See `Dispatcher`. */
   public async _loadAndCacheUser(users: ReadonlyArray<User>, repository: Repository, sha: string | null, email: string) {
-    const key = keyForRequest(email, repository.gitHubRepository ? repository.gitHubRepository.endpoint : null)
+    const key = keyForRequest(email, repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint())
     if (this.requestsInFlight.has(key)) { return }
 
     const gitHubRepository = repository.gitHubRepository
@@ -133,10 +133,6 @@ export default class GitUserStore {
   }
 }
 
-function keyForRequest(email: string, endpoint: string | null): string {
-  if (endpoint) {
-    return `${endpoint}/${email}`
-  } else {
-    return email
-  }
+function keyForRequest(email: string, endpoint: string): string {
+  return `${endpoint}/${email}`
 }
