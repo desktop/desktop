@@ -30,6 +30,7 @@ export interface IRepositoryState {
   readonly selectedSection: RepositorySection
   readonly currentBranch: Branch | null
   readonly branches: ReadonlyArray<Branch>
+  readonly committerEmail: string | null
 }
 
 export interface IHistorySelection {

@@ -48,7 +48,7 @@ export default class GitUserStore {
   }
 
   /** Not to be called externally. See `Dispatcher`. */
-  public async _loadAndCacheUser(users: ReadonlyArray<User>, repository: Repository, sha: string, email: string) {
+  public async _loadAndCacheUser(users: ReadonlyArray<User>, repository: Repository, sha: string | null, email: string) {
     const key = keyForRequest(email, repository.gitHubRepository ? repository.gitHubRepository.endpoint : null)
     if (this.requestsInFlight.has(key)) { return }
 
@@ -86,15 +86,17 @@ export default class GitUserStore {
     this.emitUpdate()
   }
 
-  private async findUserWithAPI(user: User, repository: GitHubRepository, sha: string, email: string): Promise<IGitUser | null> {
+  private async findUserWithAPI(user: User, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitUser | null> {
     const api = new API(user)
-    const apiCommit = await api.fetchCommit(repository.owner.login, repository.name, sha)
-    if (apiCommit) {
-      return {
-        email,
-        login: apiCommit.author.login,
-        avatarURL: apiCommit.author.avatarUrl,
-        endpoint: user.endpoint,
+    if (sha) {
+      const apiCommit = await api.fetchCommit(repository.owner.login, repository.name, sha)
+      if (apiCommit) {
+        return {
+          email,
+          login: apiCommit.author.login,
+          avatarURL: apiCommit.author.avatarUrl,
+          endpoint: user.endpoint,
+        }
       }
     }
 

@@ -190,7 +190,7 @@ export class Dispatcher {
   }
 
   /** Try to find the git user for the repository, SHA, and email. */
-  public loadAndCacheUser(repository: Repository, sha: string, email: string): Promise<void> {
+  public loadAndCacheUser(repository: Repository, sha: string | null, email: string): Promise<void> {
     return this.gitUserStore._loadAndCacheUser(this.appStore.getState().users, repository, sha, email)
   }
 
