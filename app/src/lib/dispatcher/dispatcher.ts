@@ -3,7 +3,7 @@ import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import guid from '../guid'
-import { IHistorySelection, RepositorySection } from '../app-state'
+import { IHistorySelection, RepositorySection, Popup } from '../app-state'
 import { Action } from './actions'
 import AppStore from './app-store'
 import GitUserStore from './git-user-store'
@@ -192,5 +192,30 @@ export class Dispatcher {
   /** Try to find the git user for the repository, SHA, and email. */
   public loadAndCacheUser(repository: Repository, sha: string, email: string): Promise<void> {
     return this.gitUserStore._loadAndCacheUser(this.appStore.getState().users, repository, sha, email)
+  }
+
+  /** Show the popup. This will close any current popup. */
+  public showPopup(popup: Popup, repository: Repository | null): Promise<void> {
+    return this.appStore._showPopup(popup, repository)
+  }
+
+  /** Close the current popup. */
+  public closePopup(): Promise<void> {
+    return this.appStore._closePopup()
+  }
+
+  /** Create a new branch from the given starting point. */
+  public createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
+    return this.appStore._createBranch(repository, name, startPoint)
+  }
+
+  /** Check out the given branch. */
+  public checkoutBranch(repository: Repository, name: string): Promise<void> {
+    return this.appStore._checkoutBranch(repository, name)
+  }
+
+  /** Load the branches in the repository. */
+  public loadBranches(repository: Repository): Promise<void> {
+    return this.appStore._loadBranches(repository)
   }
 }

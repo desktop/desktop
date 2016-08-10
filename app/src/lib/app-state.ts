@@ -1,15 +1,22 @@
 import User from '../models/user'
 import Repository from '../models/repository'
-import { Commit } from './local-git-operations'
+import { Commit, Branch } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 
 /** All of the shared app state. */
 export interface IAppState {
   readonly users: ReadonlyArray<User>
   readonly repositories: ReadonlyArray<Repository>
-  readonly selectedRepository: Repository | null
 
+  readonly selectedRepository: Repository | null
   readonly repositoryState: IRepositoryState | null
+
+  readonly currentPopup: Popup | null
+}
+
+export enum Popup {
+  CreateBranch = 1,
+  ShowBranches,
 }
 
 export enum RepositorySection {
@@ -21,7 +28,8 @@ export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
   readonly selectedSection: RepositorySection
-  readonly branch: string | null
+  readonly currentBranch: Branch | null
+  readonly branches: ReadonlyArray<Branch>
 }
 
 export interface IHistorySelection {
