@@ -16,6 +16,8 @@ export default class FileDiffLine extends React.Component<IFileDiffLineProps, vo
       return 'diff-add'
     } else if (type === DiffLineType.Delete) {
       return 'diff-delete'
+    } else if (type === DiffLineType.Hunk) {
+      return 'diff-hunk'
     }
     return 'diff-context'
   }
