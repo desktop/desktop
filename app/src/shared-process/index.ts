@@ -25,7 +25,9 @@ async function updateUsers() {
   await usersStore.map(async (user: User) => {
     const api = new API(user)
     const updatedUser = await api.fetchUser()
-    return new User(updatedUser.login, user.endpoint, user.token, updatedUser.email, updatedUser.avatarUrl)
+    const emails = await api.fetchEmails()
+    const justTheEmails = emails.map(e => e.email)
+    return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl)
   })
   broadcastUpdate()
 }
@@ -70,7 +72,8 @@ register('url-action', async ({ action }: IURLAction) => {
       const token = await requestToken(action.args.code)
       const octo = new Octokat({ token })
       const user = await octo.user.fetch()
-      usersStore.addUser(new User(user.login, getDotComAPIEndpoint(), token, user.email, user.avatarUrl))
+      usersStore.addUser(new User(user.login, getDotComAPIEndpoint(), token, new Array<string>(), user.avatarUrl))
+      updateUsers()
     } catch (e) {
       console.error(`Error adding user: ${e}`)
     }
