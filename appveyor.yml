@@ -17,6 +17,7 @@ skip_tags: true
 version: "{build}"
 
 install:
+  - npm install -g npm
   - ps: $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
   - ps: $fileContent += $env:PRIVATE_KEY.Replace(' ', "`n")
   - ps: $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
