@@ -1,12 +1,13 @@
 import * as React from 'react'
 
 interface ICommitMessageProps {
-  onCreateCommit: (title: string) => void
-  branch: string | null
+  readonly onCreateCommit: (title: string) => void
+  readonly branch: string | null
+  readonly avatarURL: string
 }
 
 interface ICommitMessageState {
-  title: string
+  readonly title: string
 }
 
 export class CommitMessage extends React.Component<ICommitMessageProps, ICommitMessageState> {
@@ -36,10 +37,15 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     const branchName = this.props.branch ? this.props.branch : 'master'
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>
-        <input type='text'
-               placeholder='Commit summary'
-               value={this.state.title}
-               onChange={event => this.handleTitleChange(event) } />
+        <div className='summary'>
+          <img className='avatar' src={this.props.avatarURL}/>
+
+          <input className='summary-field'
+                 type='text'
+                 placeholder='Commit summary'
+                 value={this.state.title}
+                 onChange={event => this.handleTitleChange(event) } />
+        </div>
 
         <button className='commit-button' onClick={event => this.handleSubmit(event)}>
           Commit to <strong>{branchName}</strong>

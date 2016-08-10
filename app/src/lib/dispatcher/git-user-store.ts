@@ -2,7 +2,7 @@ import { Emitter, Disposable } from 'event-kit'
 import Repository from '../../models/repository'
 import User from '../../models/user'
 import GitHubRepository from '../../models/github-repository'
-import API, { getUserForEndpoint } from '../api'
+import API, { getUserForEndpoint, getDotComAPIEndpoint } from '../api'
 import { GitUserDatabase, IGitUser } from './git-user-database'
 
 /**
@@ -42,14 +42,14 @@ export default class GitUserStore {
 
   /** Get the cached git user for the repository and email. */
   public getUser(repository: Repository, email: string): IGitUser | null {
-    const key = keyForRequest(repository, email)
+    const key = keyForRequest(email, repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint())
     const user = this.inMemoryCache.get(key)
     return user ? user : null
   }
 
   /** Not to be called externally. See `Dispatcher`. */
-  public async _loadAndCacheUser(users: ReadonlyArray<User>, repository: Repository, sha: string, email: string) {
-    const key = keyForRequest(repository, email)
+  public async _loadAndCacheUser(users: ReadonlyArray<User>, repository: Repository, sha: string | null, email: string) {
+    const key = keyForRequest(email, repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint())
     if (this.requestsInFlight.has(key)) { return }
 
     const gitHubRepository = repository.gitHubRepository
@@ -79,26 +79,24 @@ export default class GitUserStore {
     }
 
     if (gitUser) {
-      this.inMemoryCache.set(key, gitUser)
-
-      if (!gitUser.id) {
-        await this.database.users.add(gitUser)
-      }
+      this.cacheUser(gitUser)
     }
 
     this.requestsInFlight.delete(key)
     this.emitUpdate()
   }
 
-  private async findUserWithAPI(user: User, repository: GitHubRepository, sha: string, email: string): Promise<IGitUser | null> {
+  private async findUserWithAPI(user: User, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitUser | null> {
     const api = new API(user)
-    const apiCommit = await api.fetchCommit(repository.owner.login, repository.name, sha)
-    if (apiCommit) {
-      return {
-        email,
-        login: apiCommit.author.login,
-        avatarURL: apiCommit.author.avatarUrl,
-        endpoint: user.endpoint,
+    if (sha) {
+      const apiCommit = await api.fetchCommit(repository.owner.login, repository.name, sha)
+      if (apiCommit) {
+        return {
+          email,
+          login: apiCommit.author.login,
+          avatarURL: apiCommit.author.avatarUrl,
+          endpoint: user.endpoint,
+        }
       }
     }
 
@@ -114,8 +112,27 @@ export default class GitUserStore {
 
     return null
   }
+
+  /** Store the user in the cache. */
+  public async cacheUser(user: IGitUser): Promise<void> {
+    const key = keyForRequest(user.email, user.endpoint)
+    this.inMemoryCache.set(key, user)
+
+    const db = this.database
+    await this.database.transaction('rw', this.database.users, function*() {
+      const existing: IGitUser | null = yield db.users.where('[endpoint+email]')
+        .equals([ user.endpoint, user.email ])
+        .limit(1)
+        .first()
+      if (existing) {
+        user = Object.assign({}, user, { id: existing.id })
+      }
+
+      yield db.users.put(user)
+    })
+  }
 }
 
-function keyForRequest(repository: Repository, email: string): string {
-  return `${repository.id}/${email}`
+function keyForRequest(email: string, endpoint: string): string {
+  return `${endpoint}/${email}`
 }
