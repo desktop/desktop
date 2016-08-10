@@ -243,7 +243,6 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
   private renderApp() {
     const selectedRepository = this.state.selectedRepository!
-
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
         <Resizable id='desktop-app-sidebar' configKey='repositories-list-width'>
