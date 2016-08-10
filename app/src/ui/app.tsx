@@ -14,7 +14,10 @@ import API, { getUserForEndpoint } from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
-import { IAppState, RepositorySection } from '../lib/app-state'
+import { IAppState, RepositorySection, Popup } from '../lib/app-state'
+import Popuppy from './popuppy'
+import CreateBranch from './create-branch'
+import Branches from './branches'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -32,16 +35,26 @@ export default class App extends React.Component<IAppProps, IAppState> {
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => this.onMenuEvent(name))
   }
 
-  private onMenuEvent(name: MenuEvent): Promise<void> {
+  private onMenuEvent(name: MenuEvent): any {
     switch (name) {
       case 'push': return this.push()
       case 'pull': return this.pull()
       case 'select-changes': return this.selectChanges()
       case 'select-history': return this.selectHistory()
       case 'add-local-repository': return this.showFileBrowser()
+      case 'create-branch': return this.createBranch()
+      case 'show-branches': return this.showBranches()
     }
 
     return fatalError(`Unknown menu event name: ${name}`)
+  }
+
+  private createBranch() {
+    this.props.dispatcher.showPopup(Popup.CreateBranch, this.state.selectedRepository)
+  }
+
+  private showBranches() {
+    this.props.dispatcher.showPopup(Popup.ShowBranches, this.state.selectedRepository)
   }
 
   private selectChanges(): Promise<void> {
@@ -74,17 +87,17 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const branch = state.branch
+    const branch = state.currentBranch
     if (!branch) {
       console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
       return
     }
 
-    const trackingBranch = await LocalGitOperations.getTrackingBranch(repository)
-    if (trackingBranch) {
-      await LocalGitOperations.push(repository, remote, branch, false)
+    const upstream = branch.upstream
+    if (upstream) {
+      await LocalGitOperations.push(repository, remote, branch.name, false)
     } else {
-      await LocalGitOperations.push(repository, remote, branch, true)
+      await LocalGitOperations.push(repository, remote, branch.name, true)
     }
   }
 
@@ -104,13 +117,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const branch = state.branch
+    const branch = state.currentBranch
     if (!branch) {
       console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
       return
     }
 
-    await LocalGitOperations.pull(repository, remote, branch)
+    await LocalGitOperations.pull(repository, remote, branch.name)
   }
 
   public componentDidMount() {
@@ -135,7 +148,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
     this.addRepositories(paths)
   }
 
-  private async showFileBrowser() {
+  private showFileBrowser() {
     const directories = remote.dialog.
         showOpenDialog({ properties: [ 'openDirectory', 'multiSelections' ] })
     if (directories && directories.length > 0) {
@@ -175,6 +188,33 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private renderPopup(): JSX.Element | null {
+    const popup = this.state.currentPopup
+    if (!popup) { return null }
+
+    let content: JSX.Element | null = null
+    switch (popup) {
+      case Popup.CreateBranch:
+        content = <CreateBranch repository={this.state.selectedRepository!}
+                                dispatcher={this.props.dispatcher}
+                                branches={this.state.repositoryState!.branches}
+                                currentBranch={this.state.repositoryState!.currentBranch}/>
+        break
+
+      case Popup.ShowBranches:
+        content = <Branches branches={this.state.repositoryState!.branches}
+                            dispatcher={this.props.dispatcher}
+                            repository={this.state.selectedRepository!}/>
+        break
+    }
+
+    if (!content) {
+      return fatalError(`Unknown popup: ${popup}`)
+    }
+
+    return <Popuppy>{content}</Popuppy>
+  }
+
   private renderApp() {
     const selectedRepository = this.state.selectedRepository!
     return (
@@ -191,6 +231,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
                         state={this.state.repositoryState!}
                         dispatcher={this.props.dispatcher}
                         gitUserStore={this.props.gitUserStore}/>
+
+        {this.renderPopup()}
       </div>
     )
   }

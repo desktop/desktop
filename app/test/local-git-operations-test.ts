@@ -160,4 +160,23 @@ describe('LocalGitOperations', () => {
       expect(diff.lines[17].text).to.have.string('+vel sagittis nisl rutrum.')
     })
   })
+
+  describe('branches', () => {
+    describe('current branch', () => {
+      it('should get the current branch', async () => {
+        const branch = await LocalGitOperations.getCurrentBranch(repository!)
+        expect(branch!.name).to.equal('master')
+        expect(branch!.upstream).to.equal(null)
+      })
+    })
+
+    describe('all branches', () => {
+      it('should list all branches', async () => {
+        const branches = await LocalGitOperations.getBranches(repository!)
+        expect(branches.length).to.equal(1)
+        expect(branches[0].name).to.equal('master')
+        expect(branches[0].upstream).to.equal(null)
+      })
+    })
+  })
 })
