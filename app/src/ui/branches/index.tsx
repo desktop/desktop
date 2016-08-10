@@ -19,7 +19,7 @@ export default class Branches extends React.Component<IBranchesProps, void> {
 
   private renderRow(row: number) {
     const branch = this.props.branches[row]
-    return <div>{branch}</div>
+    return <div>{branch.name}</div>
   }
 
   private onSelectionChanged(row: number) {
