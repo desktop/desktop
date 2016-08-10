@@ -38,6 +38,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
         // may not be the case. So for now we need to guard this. We should
         // remove this check in the not too distant future.
         // @joshaber (August 10, 2016)
+        if (!user.emails) { return }
 
         const gitUsers = user.emails.map(email => {
           return {
