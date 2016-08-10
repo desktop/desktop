@@ -15,8 +15,7 @@ export default class UsersStore {
   }
 
   public getUsers(): ReadonlyArray<User> {
-    // TODO: Should this be a copy/snapshot?
-    return this.users
+    return this.users.slice()
   }
 
   public addUser(user: User) {
@@ -24,6 +23,18 @@ export default class UsersStore {
 
     this.users.push(user)
 
+    this.save()
+  }
+
+  /** Change the users in the store by mapping over them. */
+  public async map(fn: (user: User) => Promise<User>) {
+    const users = new Array<User>()
+    for (const user of this.users) {
+      const newUser = await fn(user)
+      users.push(newUser)
+    }
+
+    this.users = users
     this.save()
   }
 
@@ -35,7 +46,7 @@ export default class UsersStore {
 
     const rawUsers: any[] = JSON.parse(raw)
     const usersWithTokens = rawUsers.map(user => {
-      const userWithoutToken = new User(user.login, user.endpoint, '')
+      const userWithoutToken = new User(user.login, user.endpoint, '', user.email, user.avatarURL)
       return userWithoutToken.withToken(this.secureStore.getItem(getKeyForUser(userWithoutToken), user.login))
     })
     this.users = usersWithTokens

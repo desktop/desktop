@@ -28,9 +28,18 @@ export interface IAPICommit {
  * Information about a user as returned by the GitHub API.
  */
 export interface IAPIUser {
-  type: 'user' | 'org'
+  readonly type: 'user' | 'org'
   readonly login: string
   readonly avatarUrl: string
+}
+
+/**
+ * Information about a user's email as returned by the GitHub API.
+ */
+export interface IAPIEmail {
+  readonly email: string
+  readonly verified: boolean
+  readonly primary: boolean
 }
 
 /**
@@ -66,6 +75,17 @@ export default class API {
   /** Fetch a repo by its owner and name. */
   public fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
     return this.client.repos(owner, name).fetch()
+  }
+
+  /** Fetch the logged in user. */
+  public fetchUser(): Promise<IAPIUser> {
+    return this.client.user.fetch()
+  }
+
+  /** Fetch the user's emails. */
+  public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
+    const result = await this.client.user.emails.fetch()
+    return result.items
   }
 
   /** Fetch a commit from the repository. */

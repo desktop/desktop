@@ -56,6 +56,7 @@ export default class AppStore {
       selectedSection: RepositorySection.History,
       currentBranch: null,
       branches: new Array<Branch>(),
+      committerEmail: null,
     }
   }
 
@@ -82,6 +83,7 @@ export default class AppStore {
         selectedSection: state.selectedSection,
         currentBranch: state.currentBranch,
         branches: state.branches,
+        committerEmail: state.committerEmail,
       }
     })
   }
@@ -95,6 +97,7 @@ export default class AppStore {
         selectedSection: state.selectedSection,
         currentBranch: state.currentBranch,
         branches: state.branches,
+        committerEmail: state.committerEmail,
       }
     })
   }
@@ -345,6 +348,7 @@ export default class AppStore {
         selectedSection: section,
         currentBranch: state.currentBranch,
         branches: state.branches,
+        committerEmail: state.committerEmail,
       }
     })
     this.emitUpdate()
@@ -418,6 +422,7 @@ export default class AppStore {
         historyState: state.historyState,
         currentBranch: state.currentBranch,
         branches: state.branches,
+        committerEmail: state.committerEmail,
       }
     })
     this.emitUpdate()
@@ -448,6 +453,7 @@ export default class AppStore {
         historyState: state.historyState,
         currentBranch,
         branches: state.branches,
+        committerEmail: state.committerEmail,
       }
     })
     this.emitUpdate()
@@ -464,10 +470,27 @@ export default class AppStore {
     // selected.
     await this._loadStatus(repository)
 
+    await this.refreshCommitterEmail(repository)
+
     const section = state.selectedSection
     if (section === RepositorySection.History) {
       return this._loadHistory(repository)
     }
+  }
+
+  private async refreshCommitterEmail(repository: Repository): Promise<void> {
+    const email = await LocalGitOperations.getConfigValue(repository, 'user.email')
+    this.updateRepositoryState(repository, state => {
+      return {
+        selectedSection: state.selectedSection,
+        changesState: state.changesState,
+        historyState: state.historyState,
+        currentBranch: state.currentBranch,
+        branches: state.branches,
+        committerEmail: email,
+      }
+    })
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -480,6 +503,7 @@ export default class AppStore {
         historyState: state.historyState,
         currentBranch: state.currentBranch,
         branches,
+        committerEmail: state.committerEmail,
       }
     })
     this.emitUpdate()

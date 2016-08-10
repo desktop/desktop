@@ -30,9 +30,35 @@ export default class App extends React.Component<IAppProps, IAppState> {
     super(props)
 
     this.state = props.appStore.getState()
-    props.appStore.onDidUpdate(state => this.setState(state))
+    props.appStore.onDidUpdate(state => {
+      state.users.forEach(user => {
+        // In theory a user should _always_ have an array of emails (even if
+        // it's empty). But in practice, if the user had run old dev builds this
+        // may not be the case. So for now we need to guard this. We should
+        // remove this check in the not too distant future.
+        // @joshaber (August 10, 2016)
+        if (!user.emails) { return }
 
-    ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => this.onMenuEvent(name))
+        const gitUsers = user.emails.map(email => {
+          return {
+            endpoint: user.endpoint,
+            email,
+            login: user.login,
+            avatarURL: user.avatarURL,
+          }
+        })
+
+        for (const user of gitUsers) {
+          this.props.gitUserStore.cacheUser(user)
+        }
+      })
+
+      this.setState(state)
+    })
+
+    ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
+      this.onMenuEvent(name)
+    })
   }
 
   private onMenuEvent(name: MenuEvent): any {
