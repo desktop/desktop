@@ -30,7 +30,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
     this.state = props.appStore.getState()
     props.appStore.onDidUpdate(state => {
       state.users.forEach(user => {
-        this.props.gitUserStore.cacheUser(user)
+        // In theory a user should _always_ have an email. But in practice, if
+        // the user had run old dev builds this may not be the case. So for now
+        // we need to guard this. We should remove this check in the not too
+        // distant future. @joshaber (August 10, 2016)
+        if (user.email) {
+          this.props.gitUserStore.cacheUser(user)
+        }
       })
 
       this.setState(state)
