@@ -113,7 +113,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const branch = state.currentBranch
+    const branch = state.branchesState.currentBranch
     if (!branch) {
       console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
       return
@@ -143,7 +143,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const branch = state.currentBranch
+    const branch = state.branchesState.currentBranch
     if (!branch) {
       console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
       return
@@ -223,14 +223,14 @@ export default class App extends React.Component<IAppProps, IAppState> {
       case Popup.CreateBranch:
         content = <CreateBranch repository={this.state.selectedRepository!}
                                 dispatcher={this.props.dispatcher}
-                                branches={this.state.repositoryState!.branches}
-                                currentBranch={this.state.repositoryState!.currentBranch}/>
+                                branches={this.state.repositoryState!.branchesState.allBranches}
+                                currentBranch={this.state.repositoryState!.branchesState.currentBranch}/>
         break
 
       case Popup.ShowBranches:
-        content = <Branches allBranches={this.state.repositoryState!.branches}
-                            recentBranches={this.state.repositoryState!.recentBranches}
-                            currentBranch={this.state.repositoryState!.currentBranch}
+        content = <Branches allBranches={this.state.repositoryState!.branchesState.allBranches}
+                            recentBranches={this.state.repositoryState!.branchesState.recentBranches}
+                            currentBranch={this.state.repositoryState!.branchesState.currentBranch}
                             dispatcher={this.props.dispatcher}
                             repository={this.state.selectedRepository!}/>
         break
