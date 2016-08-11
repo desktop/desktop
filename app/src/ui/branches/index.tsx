@@ -66,16 +66,20 @@ function groupedBranches(currentBranch: Branch | null, allBranches: ReadonlyArra
   items.push({ kind: 'branch', branch: currentBranch! })
 
   items.push({ kind: 'label', label: 'Recent Branches' })
+  const recentBranchNames = new Set<string>()
   const currentBranchName = currentBranch ? currentBranch.name : null
   recentBranches.forEach(branch => {
     if (branch.name !== currentBranchName) {
       items.push({ kind: 'branch', branch: branch })
     }
+    recentBranchNames.add(branch.name)
   })
 
   items.push({ kind: 'label', label: 'Other Branches' })
   allBranches.forEach(branch => {
-    items.push({ kind: 'branch', branch: branch })
+    if (!recentBranchNames.has(branch.name)) {
+      items.push({ kind: 'branch', branch: branch })
+    }
   })
 
   return items
