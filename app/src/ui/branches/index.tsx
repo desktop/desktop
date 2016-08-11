@@ -2,7 +2,7 @@ import * as React from 'react'
 import List from '../list'
 import { Dispatcher } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
-import { LocalGitOperations, Branch } from '../../lib/local-git-operations'
+import { Branch } from '../../lib/local-git-operations'
 
 const RowHeight = 22
 
@@ -12,10 +12,10 @@ const RowHeight = 22
 //   readonly other: ReadonlyArray<Branch>
 // }
 
-const groupedBranches = new Map<number, number>()
-
 interface IBranchesProps {
-  readonly branches: ReadonlyArray<Branch>
+  readonly currentBranch: Branch | null
+  readonly allBranches: ReadonlyArray<Branch>
+  readonly recentBranches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 }
@@ -25,37 +25,55 @@ export default class Branches extends React.Component<IBranchesProps, void> {
     this.props.dispatcher.loadBranches(this.props.repository)
   }
 
-  private renderRow(row: number) {
-    const branch = this.props.branches[row]
-    return <div>{branch.name}</div>
+  private renderRow(branchItems: ReadonlyArray<BranchListItem>, row: number) {
+    const item = branchItems[row]
+    if (item.kind === 'branch') {
+      const branch = item.branch
+      return <div>{branch.name}</div>
+    } else {
+      return <div><strong>{item.label}</strong></div>
+    }
   }
 
-  private onSelectionChanged(row: number) {
-    const branch = this.props.branches[row]
+  private onSelectionChanged(branchItems: ReadonlyArray<BranchListItem>, row: number) {
+    const item = branchItems[row]
+    if (item.kind !== 'branch') { return }
 
+    const branch = item.branch
     this.props.dispatcher.closePopup()
     this.props.dispatcher.checkoutBranch(this.props.repository, branch.name)
   }
 
   public render() {
-    const grouped = groupedBranches.get(this.props.repository.id!)
-    if (!grouped) {
-      groupBranches(this.props.repository, this.props.branches).then(() => this.forceUpdate())
-    }
-
+    const branchItems = groupedBranches(this.props.currentBranch, this.props.allBranches, this.props.recentBranches)
     return (
       <div id='branches' className='panel'>
-        <List rowCount={this.props.branches.length}
-              rowRenderer={row => this.renderRow(row)}
+        <List rowCount={branchItems.length}
+              rowRenderer={row => this.renderRow(branchItems, row)}
               rowHeight={RowHeight}
               selectedRow={-1}
-              onSelectionChanged={row => this.onSelectionChanged(row)}/>
+              onSelectionChanged={row => this.onSelectionChanged(branchItems, row)}/>
       </div>
     )
   }
 }
 
-async function groupBranches(repository: Repository, branches: ReadonlyArray<Branch>): Promise<void> {
-  await LocalGitOperations.getRecentBranches(repository)
-  groupedBranches.set(repository.id!, 1)
+type BranchListItem = { kind: 'branch', branch: Branch } | { kind: 'label', label: string }
+
+function groupedBranches(currentBranch: Branch | null, allBranches: ReadonlyArray<Branch>, recentBranches: ReadonlyArray<Branch>): ReadonlyArray<BranchListItem> {
+  const items = new Array<BranchListItem>()
+  items.push({ kind: 'label', label: 'Default Branch' })
+  items.push({ kind: 'branch', branch: currentBranch! })
+
+  items.push({ kind: 'label', label: 'Recent Branches' })
+  recentBranches.forEach(branch => {
+    items.push({ kind: 'branch', branch: branch })
+  })
+
+  items.push({ kind: 'label', label: 'Other Branches' })
+  allBranches.forEach(branch => {
+    items.push({ kind: 'branch', branch: branch })
+  })
+
+  return items
 }

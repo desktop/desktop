@@ -228,7 +228,9 @@ export default class App extends React.Component<IAppProps, IAppState> {
         break
 
       case Popup.ShowBranches:
-        content = <Branches branches={this.state.repositoryState!.branches}
+        content = <Branches allBranches={this.state.repositoryState!.branches}
+                            recentBranches={this.state.repositoryState!.recentBranches}
+                            currentBranch={this.state.repositoryState!.currentBranch}
                             dispatcher={this.props.dispatcher}
                             repository={this.state.selectedRepository!}/>
         break
