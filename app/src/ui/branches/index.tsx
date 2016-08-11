@@ -6,12 +6,6 @@ import { Branch } from '../../lib/local-git-operations'
 
 const RowHeight = 22
 
-// interface IGrouped {
-//   readonly current: Branch
-//   readonly recent: ReadonlyArray<Branch>
-//   readonly other: ReadonlyArray<Branch>
-// }
-
 interface IBranchesProps {
   readonly currentBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
