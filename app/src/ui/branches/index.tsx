@@ -7,6 +7,7 @@ import { Branch } from '../../lib/local-git-operations'
 const RowHeight = 22
 
 interface IBranchesProps {
+  readonly defaultBranch: Branch | null
   readonly currentBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly recentBranches: ReadonlyArray<Branch>
@@ -39,7 +40,7 @@ export default class Branches extends React.Component<IBranchesProps, void> {
   }
 
   public render() {
-    const branchItems = groupedBranches(this.props.currentBranch, this.props.allBranches, this.props.recentBranches)
+    const branchItems = groupedBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches)
     return (
       <div id='branches' className='panel'>
         <List rowCount={branchItems.length}
@@ -54,10 +55,13 @@ export default class Branches extends React.Component<IBranchesProps, void> {
 
 type BranchListItem = { kind: 'branch', branch: Branch } | { kind: 'label', label: string }
 
-function groupedBranches(currentBranch: Branch | null, allBranches: ReadonlyArray<Branch>, recentBranches: ReadonlyArray<Branch>): ReadonlyArray<BranchListItem> {
+function groupedBranches(defaultBranch: Branch | null, currentBranch: Branch | null, allBranches: ReadonlyArray<Branch>, recentBranches: ReadonlyArray<Branch>): ReadonlyArray<BranchListItem> {
   const items = new Array<BranchListItem>()
-  items.push({ kind: 'label', label: 'Default Branch' })
-  items.push({ kind: 'branch', branch: currentBranch! })
+
+  if (defaultBranch) {
+    items.push({ kind: 'label', label: 'Default Branch' })
+    items.push({ kind: 'branch', branch: defaultBranch })
+  }
 
   items.push({ kind: 'label', label: 'Recent Branches' })
   const recentBranchNames = new Set<string>()

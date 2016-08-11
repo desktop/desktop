@@ -25,7 +25,7 @@ export default class GitHubRepository implements IGitHubRepository {
     return new GitHubRepository(json.name, Owner.fromJSON(json.owner), json.private, json.fork, json.htmlURL, json.defaultBranch)
   }
 
-  public constructor(name: string, owner: Owner, private_: boolean | null = null, fork: boolean | null = null, htmlURL: string | null = null, defaultBranch: string | null) {
+  public constructor(name: string, owner: Owner, private_: boolean | null = null, fork: boolean | null = null, htmlURL: string | null = null, defaultBranch: string | null = 'master') {
     this.name = name
     this.owner = owner
     this.private = private_

@@ -231,6 +231,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
         content = <Branches allBranches={this.state.repositoryState!.branchesState.allBranches}
                             recentBranches={this.state.repositoryState!.branchesState.recentBranches}
                             currentBranch={this.state.repositoryState!.branchesState.currentBranch}
+                            defaultBranch={this.state.repositoryState!.branchesState.defaultBranch}
                             dispatcher={this.props.dispatcher}
                             repository={this.state.selectedRepository!}/>
         break
