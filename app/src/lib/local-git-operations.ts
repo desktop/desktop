@@ -566,7 +566,10 @@ export class LocalGitOperations {
     return GitProcess.exec([ 'checkout', name, '--' ], repository.path)
   }
 
-  public static async getRecentBranches(repository: Repository): Promise<void> {
+  /** Get the `limit` most recently checked out branches. */
+  public static async getRecentBranches(repository: Repository, branches: ReadonlyArray<Branch>, limit: number): Promise<ReadonlyArray<Branch>> {
+    const branchesByName = branches.reduce((map, branch) => map.set(branch.name, branch), new Map<string, Branch>())
+
     // "git reflog show" is just an alias for "git log -g --abbrev-commit --pretty=oneline"
 		// but by using log we can give it a max number which should prevent us from balling out
 		// of control when there's ginormous reflogs around (as in e.g. github/github).
@@ -581,11 +584,22 @@ export class LocalGitOperations {
         names.add(branchName)
       }
 
-      if (names.size === 5) {
+      if (names.size === limit) {
         break
       }
     }
 
-    console.log(Array.from(names))
+    const recentBranches = new Array<Branch>()
+    for (const name of names) {
+      const branch = branchesByName.get(name)
+      if (branch) {
+        recentBranches.push(branch)
+      } else {
+        // TODO: Maybe this is ok and we don't need to bother logging?
+        console.error(`Couldn't find a branch with name ${name}`)
+      }
+    }
+
+    return recentBranches
   }
 }
