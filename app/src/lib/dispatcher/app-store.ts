@@ -4,7 +4,7 @@ import User from '../../models/user'
 import Repository from '../../models/repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
-import { findIndex } from '../find'
+import { findIndex, find } from '../find'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -509,10 +509,19 @@ export default class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadBranches(repository: Repository): Promise<void> {
     const allBranches = await LocalGitOperations.getBranches(repository)
+
+    let defaultBranchName: string | null = 'master'
+    const gitHubRepository = repository.gitHubRepository
+    if (gitHubRepository && gitHubRepository.defaultBranch) {
+      defaultBranchName = gitHubRepository.defaultBranch
+    }
+
+    const defaultBranch = find(allBranches, b => b.name === defaultBranchName)
+
     this.updateBranchesState(repository, state => {
       return {
         currentBranch: state.currentBranch,
-        defaultBranch: state.defaultBranch,
+        defaultBranch: defaultBranch ? defaultBranch : null,
         allBranches,
         recentBranches: state.recentBranches,
       }
