@@ -9,6 +9,9 @@ import { findIndex } from '../find'
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
 
+/** The max number of recent branches to find. */
+const RecentBranchesLimit = 5
+
 export default class AppStore {
   private emitter = new Emitter()
 
@@ -57,6 +60,7 @@ export default class AppStore {
       currentBranch: null,
       branches: new Array<Branch>(),
       committerEmail: null,
+      recentBranches: new Array<Branch>(),
     }
   }
 
@@ -84,6 +88,7 @@ export default class AppStore {
         currentBranch: state.currentBranch,
         branches: state.branches,
         committerEmail: state.committerEmail,
+        recentBranches: state.recentBranches,
       }
     })
   }
@@ -98,6 +103,7 @@ export default class AppStore {
         currentBranch: state.currentBranch,
         branches: state.branches,
         committerEmail: state.committerEmail,
+        recentBranches: state.recentBranches,
       }
     })
   }
@@ -349,6 +355,7 @@ export default class AppStore {
         currentBranch: state.currentBranch,
         branches: state.branches,
         committerEmail: state.committerEmail,
+        recentBranches: state.recentBranches,
       }
     })
     this.emitUpdate()
@@ -423,6 +430,7 @@ export default class AppStore {
         currentBranch: state.currentBranch,
         branches: state.branches,
         committerEmail: state.committerEmail,
+        recentBranches: state.recentBranches,
       }
     })
     this.emitUpdate()
@@ -454,6 +462,7 @@ export default class AppStore {
         currentBranch,
         branches: state.branches,
         committerEmail: state.committerEmail,
+        recentBranches: state.recentBranches,
       }
     })
     this.emitUpdate()
@@ -488,6 +497,7 @@ export default class AppStore {
         currentBranch: state.currentBranch,
         branches: state.branches,
         committerEmail: email,
+        recentBranches: state.recentBranches,
       }
     })
     this.emitUpdate()
@@ -504,9 +514,12 @@ export default class AppStore {
         currentBranch: state.currentBranch,
         branches,
         committerEmail: state.committerEmail,
+        recentBranches: state.recentBranches,
       }
     })
     this.emitUpdate()
+
+    this.calculateRecentBranches(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -533,5 +546,22 @@ export default class AppStore {
     await LocalGitOperations.checkoutBranch(repository, name)
 
     return this._refreshRepository(repository)
+  }
+
+  private async calculateRecentBranches(repository: Repository): Promise<void> {
+    const state = this.getRepositoryState(repository)
+    const recentBranches = await LocalGitOperations.getRecentBranches(repository, state.branches, RecentBranchesLimit)
+    this.updateRepositoryState(repository, state => {
+      return {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        currentBranch: state.currentBranch,
+        branches: state.branches,
+        committerEmail: state.committerEmail,
+        recentBranches,
+      }
+    })
+    this.emitUpdate()
   }
 }
