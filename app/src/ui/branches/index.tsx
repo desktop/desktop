@@ -65,9 +65,9 @@ function groupedBranches(defaultBranch: Branch | null, currentBranch: Branch | n
 
   items.push({ kind: 'label', label: 'Recent Branches' })
   const recentBranchNames = new Set<string>()
-  const currentBranchName = currentBranch ? currentBranch.name : null
+  const defaultBranchName = defaultBranch ? defaultBranch.name : null
   recentBranches.forEach(branch => {
-    if (branch.name !== currentBranchName) {
+    if (branch.name !== defaultBranchName) {
       items.push({ kind: 'branch', branch: branch })
     }
     recentBranchNames.add(branch.name)
