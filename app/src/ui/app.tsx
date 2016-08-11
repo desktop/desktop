@@ -242,24 +242,35 @@ export default class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderApp() {
-    const selectedRepository = this.state.selectedRepository!
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
         <Resizable id='desktop-app-sidebar' configKey='repositories-list-width'>
-          <RepositoriesList selectedRepository={selectedRepository}
+          <RepositoriesList selectedRepository={this.state.selectedRepository}
                             onSelectionChanged={repository => this.onSelectionChanged(repository)}
                             repos={this.state.repositories}
                             // TODO: This is wrong. Just because we have 0 repos
                             // doesn't necessarily mean we're loading.
                             loading={this.state.repositories.length === 0}/>
         </Resizable>
-        <RepositoryView repository={this.state.selectedRepository!}
-                        state={this.state.repositoryState!}
-                        dispatcher={this.props.dispatcher}
-                        gitUserStore={this.props.gitUserStore}/>
+
+        {this.renderRepository()}
 
         {this.renderPopup()}
       </div>
+    )
+  }
+
+  private renderRepository() {
+    const selectedRepository = this.state.selectedRepository
+    if (!selectedRepository) {
+      return <NoRepositorySelected/>
+    }
+
+    return (
+      <RepositoryView repository={selectedRepository}
+                      state={this.state.repositoryState!}
+                      dispatcher={this.props.dispatcher}
+                      gitUserStore={this.props.gitUserStore}/>
     )
   }
 
@@ -320,4 +331,12 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const updatedRepository = repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
     this.props.dispatcher.updateGitHubRepository(updatedRepository)
   }
+}
+
+function NoRepositorySelected() {
+  return (
+    <div className='panel blankslate'>
+      No repository selected
+    </div>
+  )
 }

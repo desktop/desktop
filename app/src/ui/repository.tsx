@@ -16,14 +16,6 @@ interface IRepositoryProps {
 }
 
 export default class Repository extends React.Component<IRepositoryProps, void> {
-  private renderNoSelection() {
-    return (
-      <div className='blankslate'>
-        No repo selected!
-      </div>
-    )
-  }
-
   private renderContent() {
     if (this.props.state.selectedSection === RepositorySection.Changes) {
       const branch = this.props.state.currentBranch
@@ -44,11 +36,6 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
   }
 
   public render() {
-    const repo = this.props.repository
-    if (!repo) {
-      return this.renderNoSelection()
-    }
-
     const selectedTab = this.props.state.selectedSection === RepositorySection.History ? TabBarTab.History : TabBarTab.Changes
     return (
       <div id='repository'>
