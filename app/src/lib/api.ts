@@ -14,6 +14,7 @@ export interface IAPIRepository {
   readonly private: boolean
   readonly fork: boolean
   readonly stargazersCount: number
+  readonly defaultBranch: string
 }
 
 /**
