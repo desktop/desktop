@@ -61,7 +61,7 @@ describe('LocalGitOperations', () => {
       let files = status.workingDirectory.files
       expect(files.length).to.equal(1)
 
-      await LocalGitOperations.createCommit(repository!, 'Special commit', files)
+      await LocalGitOperations.createCommit(repository!, 'Special commit', '', files)
 
       status = await LocalGitOperations.getStatus(repository!)
       files = status.workingDirectory.files
