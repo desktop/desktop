@@ -573,7 +573,7 @@ export class LocalGitOperations {
     // "git reflog show" is just an alias for "git log -g --abbrev-commit --pretty=oneline"
     // but by using log we can give it a max number which should prevent us from balling out
     // of control when there's ginormous reflogs around (as in e.g. github/github).
-    const regex = new RegExp(/.* checkout: moving from .* to (.*)$/i)
+    const regex = new RegExp(/.*? checkout: moving from .*? to (.*?)$/i)
     const output = await GitProcess.execWithOutput([ 'log', '-g', '--abbrev-commit', '--pretty=oneline', 'HEAD', '-n', '2500' ], repository.path)
     const lines = output.split('\n')
     const names = new Set<string>()
