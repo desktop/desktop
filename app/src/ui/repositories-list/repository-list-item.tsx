@@ -42,7 +42,6 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
   }
 
   private onContextMenu(event: React.MouseEvent<any>) {
-    console.log('right clicked repo')
     event.preventDefault()
     this.contextMenu.popup(remote.getCurrentWindow())
   }
