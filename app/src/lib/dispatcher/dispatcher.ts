@@ -114,6 +114,7 @@ export class Dispatcher {
     return json.map(Repository.fromJSON)
   }
 
+  /** Remove the repositories represented by the given IDs from local storage. */
   public async removeRepositories(repositoryIDs: number[]): Promise<void> {
     await this.dispatchToSharedProcess<number[]>({ name: 'remove-repositories', repositoryIDs })
   }
