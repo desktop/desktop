@@ -285,7 +285,6 @@ export default class AppStore {
   public _loadFromSharedProcess(users: ReadonlyArray<User>, repositories: ReadonlyArray<Repository>) {
     this.users = users
     this.repositories = repositories
-
     this.loading = this.repositories.length === 0 && this.users.length === 0
 
     const selectedRepository = this.selectedRepository
