@@ -43,7 +43,9 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
 
   private onContextMenu(event: React.MouseEvent<any>) {
     event.preventDefault()
-    this.contextMenu.popup(remote.getCurrentWindow())
+    if (process.platform !== 'win32') {
+      this.contextMenu.popup(remote.getCurrentWindow())
+    }
   }
 
   private removeRepository() {
