@@ -16,7 +16,7 @@ export interface IAddRepositoriesAction {
 
 export interface IRemoveRepositoriesAction {
   name: 'remove-repositories'
-  readonly repositoryIDs: number[]
+  readonly repositoryIDs: ReadonlyArray<number>
 }
 
 export interface IRequestOAuthAction {

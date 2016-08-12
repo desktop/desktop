@@ -64,7 +64,7 @@ register('add-repositories', async ({ repositories }: IAddRepositoriesAction) =>
 
 register('remove-repositories', async ({ repositoryIDs }: IRemoveRepositoriesAction) => {
   const removedRepoIDs: number[] = []
-  for (const repoID of repositoryIDs) {
+  for (const repoID of Array.from(repositoryIDs)) {
     await repositoriesStore.removeRepository(repoID)
     removedRepoIDs.push(repoID)
   }
