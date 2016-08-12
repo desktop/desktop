@@ -286,9 +286,7 @@ export default class AppStore {
     this.users = users
     this.repositories = repositories
 
-    // TODO: This is wrong. Just because we have 0 repos
-    // doesn't necessarily mean we're loading.
-    this.loading = this.repositories.length === 0
+    this.loading = this.repositories.length === 0 && this.users.length === 0
 
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | null = this.selectedRepository
