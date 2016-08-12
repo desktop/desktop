@@ -16,7 +16,17 @@ interface IBranchesProps {
   readonly repository: Repository
 }
 
-export default class Branches extends React.Component<IBranchesProps, void> {
+interface IBranchesState {
+  readonly filter: string
+}
+
+export default class Branches extends React.Component<IBranchesProps, IBranchesState> {
+  public constructor(props: IBranchesProps) {
+    super(props)
+
+    this.state = { filter: '' }
+  }
+
   public componentDidMount() {
     this.props.dispatcher.loadBranches(this.props.repository)
   }
@@ -40,10 +50,44 @@ export default class Branches extends React.Component<IBranchesProps, void> {
     this.props.dispatcher.checkoutBranch(this.props.repository, branch.name)
   }
 
+  private onFilterChanged(event: React.FormEvent<HTMLInputElement>) {
+    const text = event.target.value
+    this.setState({ filter: text })
+  }
+
+  private groupedAndFilteredBranches(): ReadonlyArray<BranchListItem> {
+    if (this.state.filter.length < 1) {
+      return groupedBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches)
+    }
+
+    let defaultBranch = this.props.defaultBranch
+    if (defaultBranch) {
+      if (!defaultBranch.name.includes(this.state.filter)) {
+        defaultBranch = null
+      }
+    }
+
+    let currentBranch = this.props.currentBranch
+    if (currentBranch) {
+      if (!currentBranch.name.includes(this.state.filter)) {
+        currentBranch = null
+      }
+    }
+
+    const allBranches = this.props.allBranches.filter(b => b.name.includes(this.state.filter))
+    const recentBranches = this.props.recentBranches.filter(b => b.name.includes(this.state.filter))
+
+    return groupedBranches(defaultBranch, currentBranch, allBranches, recentBranches)
+  }
+
   public render() {
-    const branchItems = groupedBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches)
+    const branchItems = this.groupedAndFilteredBranches()
     return (
       <div id='branches' className='panel'>
+        <input type='search' autoFocus={true} placeholder='Filter' onChange={event => this.onFilterChanged(event)}/>
+
+        <hr/>
+
         <List rowCount={branchItems.length}
               rowRenderer={row => this.renderRow(branchItems, row)}
               rowHeight={RowHeight}
