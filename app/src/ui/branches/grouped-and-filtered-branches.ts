@@ -2,7 +2,30 @@ import { Branch } from '../../lib/local-git-operations'
 
 export type BranchListItem = { kind: 'branch', branch: Branch } | { kind: 'label', label: string }
 
-export function groupedBranches(defaultBranch: Branch | null, currentBranch: Branch | null, allBranches: ReadonlyArray<Branch>, recentBranches: ReadonlyArray<Branch>): ReadonlyArray<BranchListItem> {
+export function groupedAndFilteredBranches(defaultBranch: Branch | null, currentBranch: Branch | null, allBranches: ReadonlyArray<Branch>, recentBranches: ReadonlyArray<Branch>, filter: string): ReadonlyArray<BranchListItem> {
+  if (filter.length < 1) {
+    return groupedBranches(defaultBranch, currentBranch, allBranches, recentBranches)
+  }
+
+  if (defaultBranch) {
+    if (!defaultBranch.name.includes(filter)) {
+      defaultBranch = null
+    }
+  }
+
+  if (currentBranch) {
+    if (!currentBranch.name.includes(filter)) {
+      currentBranch = null
+    }
+  }
+
+  allBranches = allBranches.filter(b => b.name.includes(filter))
+  recentBranches = recentBranches.filter(b => b.name.includes(filter))
+
+  return groupedBranches(defaultBranch, currentBranch, allBranches, recentBranches)
+}
+
+function groupedBranches(defaultBranch: Branch | null, currentBranch: Branch | null, allBranches: ReadonlyArray<Branch>, recentBranches: ReadonlyArray<Branch>): ReadonlyArray<BranchListItem> {
   const items = new Array<BranchListItem>()
 
   if (defaultBranch) {

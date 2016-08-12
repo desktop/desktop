@@ -3,7 +3,7 @@ import List from '../list'
 import { Dispatcher } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 import { Branch } from '../../lib/local-git-operations'
-import { groupedBranches, BranchListItem } from './grouped-branches'
+import { groupedAndFilteredBranches, BranchListItem } from './grouped-and-filtered-branches'
 
 const RowHeight = 22
 
@@ -55,33 +55,8 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
     this.setState({ filter: text })
   }
 
-  private groupedAndFilteredBranches(): ReadonlyArray<BranchListItem> {
-    if (this.state.filter.length < 1) {
-      return groupedBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches)
-    }
-
-    let defaultBranch = this.props.defaultBranch
-    if (defaultBranch) {
-      if (!defaultBranch.name.includes(this.state.filter)) {
-        defaultBranch = null
-      }
-    }
-
-    let currentBranch = this.props.currentBranch
-    if (currentBranch) {
-      if (!currentBranch.name.includes(this.state.filter)) {
-        currentBranch = null
-      }
-    }
-
-    const allBranches = this.props.allBranches.filter(b => b.name.includes(this.state.filter))
-    const recentBranches = this.props.recentBranches.filter(b => b.name.includes(this.state.filter))
-
-    return groupedBranches(defaultBranch, currentBranch, allBranches, recentBranches)
-  }
-
   public render() {
-    const branchItems = this.groupedAndFilteredBranches()
+    const branchItems = groupedAndFilteredBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches, this.state.filter)
     return (
       <div id='branches' className='panel'>
         <input type='search' autoFocus={true} placeholder='Filter' onChange={event => this.onFilterChanged(event)}/>
