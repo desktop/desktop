@@ -249,9 +249,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
                             onSelectionChanged={repository => this.onSelectionChanged(repository)}
                             dispatcher={this.props.dispatcher}
                             repos={this.state.repositories}
-                            // TODO: This is wrong. Just because we have 0 repos
-                            // doesn't necessarily mean we're loading.
-                            loading={this.state.repositories.length === 0}/>
+                            loading={this.state.loading}/>
         </Resizable>
 
         {this.renderRepository()}
