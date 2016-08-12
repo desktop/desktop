@@ -68,7 +68,7 @@ export default class GitUserStore {
     this.requestsInFlight.add(key)
 
     let gitUser: IGitUser | null = await this.database.users.where('[endpoint+email]')
-      .equals([ user.endpoint, email ])
+      .equals([ user.endpoint, email.toLowerCase() ])
       .limit(1)
       .first()
 
@@ -115,6 +115,8 @@ export default class GitUserStore {
 
   /** Store the user in the cache. */
   public async cacheUser(user: IGitUser): Promise<void> {
+    user = lowerCaseUser(user)
+
     const key = keyForRequest(user.email, user.endpoint)
     this.inMemoryCache.set(key, user)
 
@@ -133,6 +135,10 @@ export default class GitUserStore {
   }
 }
 
+function lowerCaseUser(user: IGitUser): IGitUser {
+  return Object.assign({}, user, { email: user.email.toLowerCase() })
+}
+
 function keyForRequest(email: string, endpoint: string): string {
-  return `${endpoint}/${email}`
+  return `${endpoint}/${email.toLowerCase()}`
 }
