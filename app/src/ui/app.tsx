@@ -70,6 +70,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       case 'add-local-repository': return this.showFileBrowser()
       case 'create-branch': return this.createBranch()
       case 'show-branches': return this.showBranches()
+      case 'remove-repository': return this.removeRepository()
     }
 
     return fatalError(`Unknown menu event name: ${name}`)
@@ -180,6 +181,17 @@ export default class App extends React.Component<IAppProps, IAppState> {
     if (directories && directories.length > 0) {
       this.addRepositories(directories)
     }
+  }
+
+  private removeRepository() {
+    const repository = this.state.selectedRepository
+    if (repository) {
+      this.removeRepositories([repository.id as number])
+    }
+  }
+
+  private async removeRepositories(ids: number[]) {
+    await this.props.dispatcher.removeRepositories(ids)
   }
 
   private async addRepositories(paths: string[]) {
