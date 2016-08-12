@@ -56,22 +56,7 @@ export class GitProcess {
    *  Execute a command using the embedded Git environment
    */
   public static exec(args: string[], path: string): Promise<void> {
-    return new Promise(function(resolve, reject) {
-      const gitLocation = GitProcess.resolveGit()
-      const formatArgs = 'executing: git ' + args.join(' ')
-
-      cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
-        if (err) {
-          console.error(formatArgs)
-          console.error(err)
-          reject(err)
-          return
-        }
-
-        console.debug(formatArgs)
-        resolve()
-      })
-    })
+    return this.execWithOutput(args, path)
   }
 
   /**
