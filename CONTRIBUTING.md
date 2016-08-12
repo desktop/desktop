@@ -14,4 +14,4 @@ The usual flow:
 8. The **contributor** responds to feedback, makes changes, etc.
 9. When the **contributor** is ready for the **reviewer** to re-review, they comment on the PR with an emoji, meme, pokémon, or words.
 10. Goto 6 until both parties are happy with the PR.
-11. The **reviewer** merges the PR and deletes the branch.
+11. The **reviewer** hits the big green merge button and deletes the branch.
