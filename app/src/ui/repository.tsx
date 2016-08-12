@@ -18,7 +18,7 @@ interface IRepositoryProps {
 export default class Repository extends React.Component<IRepositoryProps, void> {
   private renderContent() {
     if (this.props.state.selectedSection === RepositorySection.Changes) {
-      const branch = this.props.state.currentBranch
+      const branch = this.props.state.branchesState.currentBranch
       return <Changes repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
                       changes={this.props.state.changesState}

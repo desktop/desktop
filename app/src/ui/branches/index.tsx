@@ -3,11 +3,15 @@ import List from '../list'
 import { Dispatcher } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 import { Branch } from '../../lib/local-git-operations'
+import { groupedBranches, BranchListItem } from './grouped-branches'
 
 const RowHeight = 22
 
 interface IBranchesProps {
-  readonly branches: ReadonlyArray<Branch>
+  readonly defaultBranch: Branch | null
+  readonly currentBranch: Branch | null
+  readonly allBranches: ReadonlyArray<Branch>
+  readonly recentBranches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 }
@@ -17,26 +21,34 @@ export default class Branches extends React.Component<IBranchesProps, void> {
     this.props.dispatcher.loadBranches(this.props.repository)
   }
 
-  private renderRow(row: number) {
-    const branch = this.props.branches[row]
-    return <div>{branch.name}</div>
+  private renderRow(branchItems: ReadonlyArray<BranchListItem>, row: number) {
+    const item = branchItems[row]
+    if (item.kind === 'branch') {
+      const branch = item.branch
+      return <div>{branch.name}</div>
+    } else {
+      return <div><strong>{item.label}</strong></div>
+    }
   }
 
-  private onSelectionChanged(row: number) {
-    const branch = this.props.branches[row]
+  private onSelectionChanged(branchItems: ReadonlyArray<BranchListItem>, row: number) {
+    const item = branchItems[row]
+    if (item.kind !== 'branch') { return }
 
+    const branch = item.branch
     this.props.dispatcher.closePopup()
     this.props.dispatcher.checkoutBranch(this.props.repository, branch.name)
   }
 
   public render() {
+    const branchItems = groupedBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches)
     return (
       <div id='branches' className='panel'>
-        <List rowCount={this.props.branches.length}
-              rowRenderer={row => this.renderRow(row)}
+        <List rowCount={branchItems.length}
+              rowRenderer={row => this.renderRow(branchItems, row)}
               rowHeight={RowHeight}
               selectedRow={-1}
-              onSelectionChanged={row => this.onSelectionChanged(row)}/>
+              onSelectionChanged={row => this.onSelectionChanged(branchItems, row)}/>
       </div>
     )
   }

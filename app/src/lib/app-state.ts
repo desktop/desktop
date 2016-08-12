@@ -28,9 +28,15 @@ export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
   readonly selectedSection: RepositorySection
-  readonly currentBranch: Branch | null
-  readonly branches: ReadonlyArray<Branch>
   readonly committerEmail: string | null
+  readonly branchesState: IBranchesState
+}
+
+export interface IBranchesState {
+  readonly currentBranch: Branch | null
+  readonly defaultBranch: Branch | null
+  readonly allBranches: ReadonlyArray<Branch>
+  readonly recentBranches: ReadonlyArray<Branch>
 }
 
 export interface IHistorySelection {

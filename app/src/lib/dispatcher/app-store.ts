@@ -1,13 +1,16 @@
 import { Emitter, Disposable } from 'event-kit'
-import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup } from '../app-state'
+import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup, IBranchesState } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
-import { findIndex } from '../find'
+import { findIndex, find } from '../find'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
+
+/** The max number of recent branches to find. */
+const RecentBranchesLimit = 5
 
 export default class AppStore {
   private emitter = new Emitter()
@@ -54,8 +57,12 @@ export default class AppStore {
         selectedFile: null,
       },
       selectedSection: RepositorySection.History,
-      currentBranch: null,
-      branches: new Array<Branch>(),
+      branchesState: {
+        currentBranch: null,
+        defaultBranch: null,
+        allBranches: new Array<Branch>(),
+        recentBranches: new Array<Branch>(),
+      },
       committerEmail: null,
     }
   }
@@ -81,9 +88,8 @@ export default class AppStore {
         historyState,
         changesState: state.changesState,
         selectedSection: state.selectedSection,
-        currentBranch: state.currentBranch,
-        branches: state.branches,
         committerEmail: state.committerEmail,
+        branchesState: state.branchesState,
       }
     })
   }
@@ -95,9 +101,21 @@ export default class AppStore {
         historyState: state.historyState,
         changesState,
         selectedSection: state.selectedSection,
-        currentBranch: state.currentBranch,
-        branches: state.branches,
         committerEmail: state.committerEmail,
+        branchesState: state.branchesState,
+      }
+    })
+  }
+
+  private updateBranchesState(repository: Repository, fn: (branchesState: IBranchesState) => IBranchesState) {
+    this.updateRepositoryState(repository, state => {
+      const branchesState = fn(state.branchesState)
+      return {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        committerEmail: state.committerEmail,
+        branchesState,
       }
     })
   }
@@ -346,9 +364,8 @@ export default class AppStore {
         historyState: state.historyState,
         changesState: state.changesState,
         selectedSection: section,
-        currentBranch: state.currentBranch,
-        branches: state.branches,
         committerEmail: state.committerEmail,
+        branchesState: state.branchesState,
       }
     })
     this.emitUpdate()
@@ -420,9 +437,8 @@ export default class AppStore {
           selectedFile: state.changesState.selectedFile,
         },
         historyState: state.historyState,
-        currentBranch: state.currentBranch,
-        branches: state.branches,
         committerEmail: state.committerEmail,
+        branchesState: state.branchesState,
       }
     })
     this.emitUpdate()
@@ -446,14 +462,12 @@ export default class AppStore {
   private async refreshCurrentBranch(repository: Repository): Promise<void> {
     const currentBranch = await LocalGitOperations.getCurrentBranch(repository)
 
-    this.updateRepositoryState(repository, state => {
+    this.updateBranchesState(repository, state => {
       return {
-        selectedSection: state.selectedSection,
-        changesState: state.changesState,
-        historyState: state.historyState,
         currentBranch,
-        branches: state.branches,
-        committerEmail: state.committerEmail,
+        defaultBranch: state.defaultBranch,
+        allBranches: state.allBranches,
+        recentBranches: state.recentBranches,
       }
     })
     this.emitUpdate()
@@ -485,9 +499,8 @@ export default class AppStore {
         selectedSection: state.selectedSection,
         changesState: state.changesState,
         historyState: state.historyState,
-        currentBranch: state.currentBranch,
-        branches: state.branches,
         committerEmail: email,
+        branchesState: state.branchesState,
       }
     })
     this.emitUpdate()
@@ -495,18 +508,27 @@ export default class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadBranches(repository: Repository): Promise<void> {
-    const branches = await LocalGitOperations.getBranches(repository)
-    this.updateRepositoryState(repository, state => {
+    const allBranches = await LocalGitOperations.getBranches(repository)
+
+    let defaultBranchName: string | null = 'master'
+    const gitHubRepository = repository.gitHubRepository
+    if (gitHubRepository && gitHubRepository.defaultBranch) {
+      defaultBranchName = gitHubRepository.defaultBranch
+    }
+
+    const defaultBranch = find(allBranches, b => b.name === defaultBranchName)
+
+    this.updateBranchesState(repository, state => {
       return {
-        selectedSection: state.selectedSection,
-        changesState: state.changesState,
-        historyState: state.historyState,
         currentBranch: state.currentBranch,
-        branches,
-        committerEmail: state.committerEmail,
+        defaultBranch: defaultBranch ? defaultBranch : null,
+        allBranches,
+        recentBranches: state.recentBranches,
       }
     })
     this.emitUpdate()
+
+    this.calculateRecentBranches(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -533,5 +555,19 @@ export default class AppStore {
     await LocalGitOperations.checkoutBranch(repository, name)
 
     return this._refreshRepository(repository)
+  }
+
+  private async calculateRecentBranches(repository: Repository): Promise<void> {
+    const state = this.getRepositoryState(repository).branchesState
+    const recentBranches = await LocalGitOperations.getRecentBranches(repository, state.allBranches, RecentBranchesLimit)
+    this.updateBranchesState(repository, state => {
+      return {
+        currentBranch: state.currentBranch,
+        defaultBranch: state.defaultBranch,
+        allBranches: state.allBranches,
+        recentBranches,
+      }
+    })
+    this.emitUpdate()
   }
 }
