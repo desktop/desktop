@@ -10,22 +10,24 @@ export function groupedBranches(defaultBranch: Branch | null, currentBranch: Bra
     items.push({ kind: 'branch', branch: defaultBranch })
   }
 
-  items.push({ kind: 'label', label: 'Recent Branches' })
   const recentBranchNames = new Set<string>()
   const defaultBranchName = defaultBranch ? defaultBranch.name : null
-  recentBranches.forEach(branch => {
-    if (branch.name !== defaultBranchName) {
+  const recentBranchesWithoutDefault = recentBranches.filter(b => b.name !== defaultBranchName)
+  if (recentBranchesWithoutDefault.length > 0) {
+    items.push({ kind: 'label', label: 'Recent Branches' })
+    for (const branch of recentBranchesWithoutDefault) {
       items.push({ kind: 'branch', branch: branch })
+      recentBranchNames.add(branch.name)
     }
-    recentBranchNames.add(branch.name)
-  })
+  }
 
-  items.push({ kind: 'label', label: 'Other Branches' })
-  allBranches.forEach(branch => {
-    if (!recentBranchNames.has(branch.name)) {
+  const remainingBranches = allBranches.filter(b => b.name !== defaultBranchName && !recentBranchNames.has(b.name))
+  if (remainingBranches.length > 0) {
+    items.push({ kind: 'label', label: 'Other Branches' })
+    for (const branch of remainingBranches) {
       items.push({ kind: 'branch', branch: branch })
     }
-  })
+  }
 
   return items
 }
