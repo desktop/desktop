@@ -1,6 +1,7 @@
 import * as React from 'react'
 import Repository from '../../models/repository'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { remote } from 'electron'
 
 interface IRepositoryListItemProps {
   repository: Repository
@@ -8,6 +9,18 @@ interface IRepositoryListItemProps {
 
 /** A repository item. */
 export default class RepositoryListItem extends React.Component<IRepositoryListItemProps, void> {
+  private readonly contextMenu = new remote.Menu()
+
+  constructor() {
+    super()
+    this.contextMenu.append(new remote.MenuItem({
+      label: 'Remove',
+      click (item: any, focusedWindow: Electron.BrowserWindow) {
+        console.log('clicked remove')
+      }
+    }))
+  }
+
   public render() {
     const repository = this.props.repository
     const path = repository.path
@@ -17,11 +30,17 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
       : path
 
     return (
-      <div className='repository-list-item' title={tooltip}>
+      <div onContextMenu={e => this.onContextMenu(e)} className='repository-list-item' title={tooltip}>
         <Octicon symbol={iconForRepository(repository)} />
         <div className='name'>{repository.name}</div>
       </div>
     )
+  }
+
+  onContextMenu(event: React.MouseEvent<any>) {
+    console.log('right clicked repo')
+    event.preventDefault()
+    this.contextMenu.popup(remote.getCurrentWindow())
   }
 
   public shouldComponentUpdate(nextProps: IRepositoryListItemProps, nextState: void): boolean {
