@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Repository from '../../models/repository'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { remote } from 'electron'
+import { ipcMain, remote } from 'electron'
 
 interface IRepositoryListItemProps {
   repository: Repository
@@ -11,12 +11,12 @@ interface IRepositoryListItemProps {
 export default class RepositoryListItem extends React.Component<IRepositoryListItemProps, void> {
   private readonly contextMenu = new remote.Menu()
 
-  constructor() {
+  public constructor() {
     super()
     this.contextMenu.append(new remote.MenuItem({
       label: 'Remove',
-      click (item: any, focusedWindow: Electron.BrowserWindow) {
-        console.log('clicked remove')
+      async click (item: any, focusedWindow: Electron.BrowserWindow) {
+        ipcMain.emit('menu-event', { name: 'remove-repository' })
       }
     }))
   }
