@@ -46,9 +46,9 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
     this.contextMenu.popup(remote.getCurrentWindow())
   }
 
-  private async removeRepository() {
+  private removeRepository() {
     const repoID: number = this.props.repository.id!
-    await this.props.dispatcher.removeRepositories([ repoID ])
+    this.props.dispatcher.removeRepositories([ repoID ])
   }
 }
 
