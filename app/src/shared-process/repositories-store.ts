@@ -70,11 +70,7 @@ export default class RepositoriesStore {
     if (!repoID) {
       return fatalError('`removeRepository` can only remove a GitHub repository that has been added to the database.')
     }
-    const db = this.db
-    const transaction = this.db.transaction('rw', this.db.repositories, function*() {
-      yield db.repositories.delete(repoID)
-    })
-    await transaction
+    await this.db.repositories.delete(repoID)
   }
 
   /** Update or add the repository's GitHub repository. */
