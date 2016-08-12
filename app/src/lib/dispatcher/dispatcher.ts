@@ -114,6 +114,10 @@ export class Dispatcher {
     return json.map(Repository.fromJSON)
   }
 
+  public async removeRepositories(repositoryIDs: ReadonlyArray<number>): Promise<void> {
+    await this.dispatchToSharedProcess<ReadonlyArray<number>>({ name: 'remove-repositories', repositoryIDs })
+  }
+
   /** Request the user approve our OAuth request. This will open their browser. */
   public requestOAuth(): Promise<void> {
     return this.dispatchToSharedProcess<void>({ name: 'request-oauth' })
