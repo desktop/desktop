@@ -75,8 +75,8 @@ export default class AppWindow {
     this.registerWindowStateChangedEvents()
 
     // We don't have a menu bar on windows so we'll cheat
-    // for now and make right-clicking on the title bar
-    // show the default menu as a context menu instead.
+    // for now and make right-clicking in the app show the
+    // default menu as a context menu instead.
     if (process.platform === 'win32') {
       const menu = buildDefaultMenu(this.sharedProcess)
 
