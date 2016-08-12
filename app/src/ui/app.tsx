@@ -70,7 +70,6 @@ export default class App extends React.Component<IAppProps, IAppState> {
       case 'add-local-repository': return this.showFileBrowser()
       case 'create-branch': return this.createBranch()
       case 'show-branches': return this.showBranches()
-      case 'remove-repository': return this.removeRepository()
     }
 
     return fatalError(`Unknown menu event name: ${name}`)
@@ -183,17 +182,6 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private removeRepository() {
-    const repository = this.state.selectedRepository
-    if (repository) {
-      this.removeRepositories([repository.id as number])
-    }
-  }
-
-  private async removeRepositories(ids: number[]) {
-    await this.props.dispatcher.removeRepositories(ids)
-  }
-
   private async addRepositories(paths: string[]) {
     const repositories = paths.map(p => new Repository(p))
     const addedRepos = await this.props.dispatcher.addRepositories(repositories)
@@ -259,6 +247,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
         <Resizable id='desktop-app-sidebar' configKey='repositories-list-width'>
           <RepositoriesList selectedRepository={this.state.selectedRepository}
                             onSelectionChanged={repository => this.onSelectionChanged(repository)}
+                            dispatcher={this.props.dispatcher}
                             repos={this.state.repositories}
                             // TODO: This is wrong. Just because we have 0 repos
                             // doesn't necessarily mean we're loading.

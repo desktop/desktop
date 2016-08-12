@@ -5,10 +5,12 @@ import RepositoryListItem from './repository-list-item'
 import Repository from '../../models/repository'
 import { groupRepositories, RepositoryListItem as RepositoryListItemModel } from './group-repositories'
 import { findIndex } from '../../lib/find'
+import { Dispatcher } from '../../lib/dispatcher'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repository | null
   readonly onSelectionChanged: (repository: Repository) => void
+  readonly dispatcher: Dispatcher
   readonly loading: boolean
   readonly repos: ReadonlyArray<Repository>
 }
@@ -20,7 +22,8 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
   private renderRow(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
     const item = groupedItems[row]
     if (item.kind === 'repository') {
-      return <RepositoryListItem key={row} repository={item.repository}/>
+      return <RepositoryListItem key={row} repository={item.repository}
+                                 dispatcher={this.props.dispatcher} />
     } else {
       return <div key={row} className='repository-group-label'>{item.label}</div>
     }

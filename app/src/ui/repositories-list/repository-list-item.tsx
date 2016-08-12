@@ -1,10 +1,12 @@
 import * as React from 'react'
 import Repository from '../../models/repository'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { ipcMain, remote } from 'electron'
+import { remote } from 'electron'
+import { Dispatcher } from '../../lib/dispatcher'
 
 interface IRepositoryListItemProps {
   repository: Repository
+  readonly dispatcher: Dispatcher
 }
 
 /** A repository item. */
@@ -15,9 +17,7 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
     super()
     this.contextMenu.append(new remote.MenuItem({
       label: 'Remove',
-      async click (item: any, focusedWindow: Electron.BrowserWindow) {
-        ipcMain.emit('menu-event', { name: 'remove-repository' })
-      }
+      click: () => this.removeRepository()
     }))
   }
 
@@ -37,14 +37,19 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
     )
   }
 
+  public shouldComponentUpdate(nextProps: IRepositoryListItemProps, nextState: void): boolean {
+    return nextProps.repository.id !== this.props.repository.id
+  }
+
   onContextMenu(event: React.MouseEvent<any>) {
     console.log('right clicked repo')
     event.preventDefault()
     this.contextMenu.popup(remote.getCurrentWindow())
   }
 
-  public shouldComponentUpdate(nextProps: IRepositoryListItemProps, nextState: void): boolean {
-    return nextProps.repository.id !== this.props.repository.id
+  async removeRepository() {
+    const repoID: number = this.props.repository.id!
+    await this.props.dispatcher.removeRepositories([repoID])
   }
 }
 
