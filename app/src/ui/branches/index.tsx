@@ -27,7 +27,7 @@ export default class Branches extends React.Component<IBranchesProps, void> {
       const branch = item.branch
       return <div>{branch.name}</div>
     } else {
-      return <div><strong>{item.label}</strong></div>
+      return <div className='branches-list-label'>{item.label}</div>
     }
   }
 
@@ -43,7 +43,7 @@ export default class Branches extends React.Component<IBranchesProps, void> {
   public render() {
     const branchItems = groupedBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches)
     return (
-      <div id='branches' className='panel'>
+      <div id='branches' className='panel branches-popup'>
         <List rowCount={branchItems.length}
               rowRenderer={row => this.renderRow(branchItems, row)}
               rowHeight={RowHeight}

@@ -1,0 +1,13 @@
+.branches-popup {
+  .list-item {
+    padding: var(--spacing-half) var(--spacing);
+  }
+}
+
+.branches-list-label {
+  background: #F9F9F9;
+  border-top: 1px solid #E2E6E8;
+  border-bottom: 1px solid #E2E6E8;
+  display: block;
+  flex-grow: 1;
+}
