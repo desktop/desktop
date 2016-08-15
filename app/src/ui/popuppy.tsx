@@ -10,6 +10,7 @@ export default class Popuppy extends React.Component<any, any> {
       display: 'flex',
       flexDirection: 'column',
       zIndex: 99,
+      maxWidth: '400px',
       width: '50%',
       height: '50%',
       margin: 'auto',
