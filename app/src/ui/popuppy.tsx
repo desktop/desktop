@@ -13,8 +13,11 @@ export default class Popuppy extends React.Component<any, any> {
       width: '50%',
       height: '50%',
       margin: 'auto',
-      backgroundColor: 'rgb(255, 210, 210)',
-      position: 'absolute'
+      backgroundColor: '#f9f9f9',
+      position: 'absolute',
+      boxShadow: '0 0 7px rgba(0,0,0,0.08)',
+      border: '1px solid #E2E6E8',
+      borderRadius: '3px'
     }
     return (
       <div style={style}>
