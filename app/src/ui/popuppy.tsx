@@ -21,8 +21,6 @@ export default class Popuppy extends React.Component<any, any> {
     }
     return (
       <div style={style}>
-        <div><strong><em>🔥 This is fine 🔥</em></strong></div>
-        <div>&nbsp;</div>
         {this.props.children}
       </div>
     )
