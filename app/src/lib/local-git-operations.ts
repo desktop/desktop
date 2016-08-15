@@ -62,12 +62,14 @@ export class DiffLine {
   public readonly type: DiffLineType
   public readonly oldLineNumber: number | null
   public readonly newLineNumber: number | null
+  public selected: Boolean
 
   public constructor(text: string, type: DiffLineType, oldLineNumber: number | null, newLineNuber: number | null) {
     this.text = text
     this.type = type
     this.oldLineNumber = oldLineNumber
     this.newLineNumber = newLineNuber
+    this.selected = false
   }
 }
 
@@ -155,6 +157,12 @@ export class Diff {
      })
 
      this.lines = lines
+   }
+
+   public setAllLines(include: boolean) {
+     this.lines
+      .filter(f => f.type === DiffLineType.Add || f.type === DiffLineType.Delete)
+      .forEach(l => l.selected = include)
    }
 }
 

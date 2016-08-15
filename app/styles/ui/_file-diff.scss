@@ -29,12 +29,20 @@
   background: #EAFFEA;
 }
 
+.diff-add-selected {
+  background: blue; // TODO: actual colour goes here
+}
+
 .diff-add-hover {
   background: green; // TODO: actual colour goes here
 }
 
 .diff-delete {
   background: #FFECEC;
+}
+
+.diff-delete-selected {
+  background: orange; // TODO: actual colour goes here
 }
 
 .diff-delete-hover {

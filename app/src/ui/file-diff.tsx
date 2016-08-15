@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import IRepository from '../models/repository'
-import { FileChange } from '../models/status'
+import { FileChange, WorkingDirectoryFileChange } from '../models/status'
 
 import { LocalGitOperations, Diff, Commit, DiffLine, DiffLineType } from '../lib/local-git-operations'
 
@@ -38,6 +38,12 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     } else {
 
       const diff = await LocalGitOperations.getDiff(repository, file, this.props.commit)
+
+      const workingDirectoryChange = file as WorkingDirectoryFileChange
+
+      if (workingDirectoryChange && workingDirectoryChange.include) {
+        diff.setAllLines(workingDirectoryChange.include)
+      }
 
       this.setState(Object.assign({}, this.state, { diff }))
     }
@@ -91,13 +97,23 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     target.classList.remove(hoverClassName)
   }
 
+  private onMouseDownHandler(diff: DiffLine) {
+
+  }
+
   private editableSidebar(diff: DiffLine) {
-    const className = this.map(diff.type)
+    const baseClassName = this.map(diff.type)
+    const className = diff.selected ? baseClassName + '-selected' : baseClassName
+
+    // TODO: depending on cursor position, highlight hunk rather than line
+    // TODO: external callback to change diff state
+    // TODO: diff state needs to trigger repainting of diff contents
 
     return (
       <div className={className}
-           onMouseEnter={event => this.onMouseEnterHandler(event.currentTarget, className)}
-           onMouseLeave={event => this.onMouseLeaveHandler(event.currentTarget, className)}>
+           onMouseEnter={event => this.onMouseEnterHandler(event.currentTarget, baseClassName)}
+           onMouseLeave={event => this.onMouseLeaveHandler(event.currentTarget, baseClassName)}
+           onMouseDown={event => this.onMouseDownHandler(diff)}>
         <div className='before'>{this.formatIfNotSet(diff.oldLineNumber)}</div>
         <div className='after'>{this.formatIfNotSet(diff.newLineNumber)}</div>
       </div>
@@ -105,10 +121,10 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private readOnlySidebar(diff: DiffLine) {
-    const classNames = this.map(diff.type)
+    const baseClassName = this.map(diff.type)
 
     return (
-      <div className={classNames}>
+      <div className={baseClassName}>
         <span className='before'>{this.formatIfNotSet(diff.oldLineNumber)}</span>
         <span className='after'>{this.formatIfNotSet(diff.newLineNumber)}</span>
       </div>
@@ -126,13 +142,14 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private renderBodyCell = ({ rowIndex }: { rowIndex: number }) => {
-    const datum = this.getDatum(rowIndex)
+    const diff = this.getDatum(rowIndex)
 
-    const classNames = this.map(datum.type)
+    const baseClassName = this.map(diff.type)
+    const className = diff.selected ? baseClassName + '-selected' : baseClassName
 
     return (
-      <div className={classNames}>
-        <span className='text'>{datum.text}</span>
+      <div className={className}>
+        <span className='text'>{diff.text}</span>
       </div>
     )
   }
@@ -149,7 +166,13 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     if (this.props.file) {
 
-      const invalidationProps = this.props.file!.path
+      const workingDirectoryChange = this.props.file as WorkingDirectoryFileChange
+
+      let invalidationProps = { path: this.props.file!.path, include: false }
+
+      if (workingDirectoryChange && workingDirectoryChange.include) {
+        invalidationProps = { path: this.props.file!.path, include: workingDirectoryChange.include }
+      }
 
       return (
         <div className='panel' id='file-diff'>
