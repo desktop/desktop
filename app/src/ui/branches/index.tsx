@@ -5,7 +5,7 @@ import Repository from '../../models/repository'
 import { Branch } from '../../lib/local-git-operations'
 import { groupedBranches, BranchListItem } from './grouped-branches'
 
-const RowHeight = 22
+const RowHeight = 25
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -25,9 +25,9 @@ export default class Branches extends React.Component<IBranchesProps, void> {
     const item = branchItems[row]
     if (item.kind === 'branch') {
       const branch = item.branch
-      return <div>{branch.name}</div>
+      return <div className='branches-list-content branches-list-item'>{branch.name}</div>
     } else {
-      return <div><strong>{item.label}</strong></div>
+      return <div className='branches-list-content branches-list-label'>{item.label}</div>
     }
   }
 
@@ -43,7 +43,7 @@ export default class Branches extends React.Component<IBranchesProps, void> {
   public render() {
     const branchItems = groupedBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches)
     return (
-      <div id='branches' className='panel'>
+      <div id='branches' className='panel branches-popup'>
         <List rowCount={branchItems.length}
               rowRenderer={row => this.renderRow(branchItems, row)}
               rowHeight={RowHeight}
