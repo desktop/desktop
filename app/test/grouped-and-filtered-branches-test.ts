@@ -55,4 +55,16 @@ describe('Branches grouping', () => {
     expect(results[i].kind).to.equal('branch')
     expect((results[i] as any).branch).to.equal(otherBranch)
   })
+
+  it('should be case-insensitive', () => {
+    const results = groupedAndFilteredBranches(defaultBranch, currentBranch, allBranches, recentBranches, 'oT')
+    expect(results.length).to.equal(2)
+
+    let i = 0
+    expect(results[i].kind).to.equal('label')
+    i++
+
+    expect(results[i].kind).to.equal('branch')
+    expect((results[i] as any).branch).to.equal(otherBranch)
+  })
 })
