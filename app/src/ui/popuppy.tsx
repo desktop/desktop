@@ -20,8 +20,10 @@ export default class Popuppy extends React.Component<any, any> {
       borderRadius: '3px'
     }
     return (
-      <div style={style}>
-        {this.props.children}
+      <div className='popup' style={style}>
+        <div className='panel popup-content'>
+          {this.props.children}
+        </div>
       </div>
     )
   }

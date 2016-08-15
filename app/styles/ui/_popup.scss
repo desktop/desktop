@@ -1,0 +1,10 @@
+.popup {
+  padding: var(--spacing);
+
+  &-content {
+    border: 1px solid #E3E7E9;
+    border-radius: var(--border-radius);
+    background: var(--background-color);
+    padding-left: var(--spacing);
+  }
+}
