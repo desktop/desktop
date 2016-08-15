@@ -25,7 +25,7 @@ export default class Branches extends React.Component<IBranchesProps, void> {
     const item = branchItems[row]
     if (item.kind === 'branch') {
       const branch = item.branch
-      return <div className='branches-list-content'>{branch.name}</div>
+      return <div className='branches-list-content branches-list-item'>{branch.name}</div>
     } else {
       return <div className='branches-list-content branches-list-label'>{item.label}</div>
     }

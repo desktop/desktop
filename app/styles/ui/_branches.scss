@@ -13,9 +13,17 @@
   }
 }
 
+.branches-list-item,
+.branches-list-label {
+  flex-grow: 1;
+}
+
+.branches-list-item:hover {
+  background: var(--box-alt-background-color);
+}
+
 .branches-list-label {
   background: var(--box-alt-background-color);
   border-top: var(--base-border);
   border-bottom: var(--base-border);
-  flex-grow: 1;
 }
