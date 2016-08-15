@@ -5,6 +5,14 @@
   }
 }
 
+// Prevent borders from stacking if the first
+// row is a group label
+.Grid__cell:first-child {
+  .branches-list-label {
+    border-top: none;
+  }
+}
+
 .branches-list-label {
   background: var(--box-alt-background-color);
   border-top: var(--base-border);
