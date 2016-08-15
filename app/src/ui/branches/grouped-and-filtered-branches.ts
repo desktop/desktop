@@ -7,20 +7,22 @@ export function groupedAndFilteredBranches(defaultBranch: Branch | null, current
     return groupedBranches(defaultBranch, currentBranch, allBranches, recentBranches)
   }
 
+  filter = filter.toLowerCase()
+
   if (defaultBranch) {
-    if (!defaultBranch.name.includes(filter)) {
+    if (!defaultBranch.name.toLowerCase().includes(filter)) {
       defaultBranch = null
     }
   }
 
   if (currentBranch) {
-    if (!currentBranch.name.includes(filter)) {
+    if (!currentBranch.name.toLowerCase().includes(filter)) {
       currentBranch = null
     }
   }
 
-  allBranches = allBranches.filter(b => b.name.includes(filter))
-  recentBranches = recentBranches.filter(b => b.name.includes(filter))
+  allBranches = allBranches.filter(b => b.name.toLowerCase().includes(filter))
+  recentBranches = recentBranches.filter(b => b.name.toLowerCase().includes(filter))
 
   return groupedBranches(defaultBranch, currentBranch, allBranches, recentBranches)
 }
