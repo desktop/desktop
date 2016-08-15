@@ -6,8 +6,8 @@
 }
 
 .branches-list-label {
-  background: #F9F9F9;
-  border-top: 1px solid #E2E6E8;
-  border-bottom: 1px solid #E2E6E8;
+  background: var(--box-alt-background-color);
+  border-top: var(--base-border);
+  border-bottom: var(--base-border);
   flex-grow: 1;
 }
