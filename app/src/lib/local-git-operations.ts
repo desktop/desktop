@@ -607,4 +607,10 @@ export class LocalGitOperations {
 
     return recentBranches
   }
+
+  /** Get the commit for the given ref. */
+  public static async getCommit(repository: Repository, ref: string): Promise<Commit> {
+    const commits = await LocalGitOperations.getHistory(repository, ref, 1)
+    return commits[0]
+  }
 }
