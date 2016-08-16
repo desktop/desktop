@@ -67,9 +67,6 @@ export default class RepositoriesStore {
   }
 
   public async removeRepository(repoID: number): Promise<void> {
-    if (!repoID) {
-      return fatalError('`removeRepository` can only remove a GitHub repository that has been added to the database.')
-    }
     await this.db.repositories.delete(repoID)
   }
 
