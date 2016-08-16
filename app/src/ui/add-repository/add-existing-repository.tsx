@@ -2,6 +2,7 @@ import { remote } from 'electron'
 import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
+import { LocalGitOperations } from '../../lib/local-git-operations'
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -9,13 +10,16 @@ interface IAddExistingRepositoryProps {
 
 interface IAddExistingRepositoryState {
   readonly path: string
+  readonly isGitRepository: boolean
 }
 
 export default class AddExistingRepository extends React.Component<IAddExistingRepositoryProps, IAddExistingRepositoryState> {
+  private checkGitRepositoryToken = 0
+
   public constructor(props: IAddExistingRepositoryProps) {
     super(props)
 
-    this.state = { path: '' }
+    this.state = { path: '', isGitRepository: false }
   }
 
   public render() {
@@ -33,18 +37,37 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
 
         <hr/>
 
-        <button>Add Repository</button>
+        <button disabled={this.state.path.length === 0}>
+          {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
+        </button>
       </div>
     )
   }
 
   private onPathChanged(event: React.FormEvent<HTMLInputElement>) {
     const path = event.target.value
-    this.setState({ path })
+    this.setState({ path, isGitRepository: this.state.isGitRepository })
+
+    this.checkIfPathIsRepository(path)
   }
 
   private showFilePicker() {
     const directory = remote.dialog.showOpenDialog({ properties: [ 'openDirectory' ] })
-    this.setState({ path: directory[0] })
+    const path = directory[0]
+    this.setState({ path, isGitRepository: this.state.isGitRepository })
+
+    this.checkIfPathIsRepository(path)
+  }
+
+  private async checkIfPathIsRepository(path: string) {
+    const token = ++this.checkGitRepositoryToken
+
+    const isGitRepository = await LocalGitOperations.isGitRepository(path)
+
+    // Another path check was requested so don't update state based on the old
+    // path.
+    if (token !== this.checkGitRepositoryToken) { return }
+
+    this.setState({ path: this.state.path, isGitRepository })
   }
 }
