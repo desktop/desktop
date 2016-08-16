@@ -1,0 +1,29 @@
+.branches-popup {
+  .branches-list-content {
+    padding: var(--spacing-third) var(--spacing);
+    font-size: 11px;
+  }
+}
+
+// Prevent borders from stacking if the first
+// row is a group label
+.Grid__cell:first-child {
+  .branches-list-label {
+    border-top: none;
+  }
+}
+
+.branches-list-item,
+.branches-list-label {
+  flex-grow: 1;
+}
+
+.branches-list-item:hover {
+  background: var(--box-alt-background-color);
+}
+
+.branches-list-label {
+  background: var(--box-alt-background-color);
+  border-top: var(--base-border);
+  border-bottom: var(--base-border);
+}
