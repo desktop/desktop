@@ -1,3 +1,4 @@
+import { remote } from 'electron'
 import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
@@ -19,12 +20,20 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
 
   public render() {
     return (
-      <div className='panel'>
-        <input value={this.state.path} onChange={event => this.onPathChanged(event)}>
-          <label>Local Path</label>
-        </input>
+      <div id='add-existing-repository' className='panel'>
+        <div className='file-picker'>
+          <label>Local Path
+            <input value={this.state.path}
+                   placeholder='repository path'
+                   onChange={event => this.onPathChanged(event)}/>
+          </label>
 
-        <button onClick={() => this.showFilePicker()}>Choose…</button>
+          <button onClick={() => this.showFilePicker()}>Choose…</button>
+        </div>
+
+        <hr/>
+
+        <button>Add Repository</button>
       </div>
     )
   }
@@ -35,6 +44,7 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
   }
 
   private showFilePicker() {
-
+    const directory = remote.dialog.showOpenDialog({ properties: [ 'openDirectory' ] })
+    this.setState({ path: directory[0] })
   }
 }
