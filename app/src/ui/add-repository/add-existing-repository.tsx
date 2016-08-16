@@ -11,7 +11,7 @@ interface IAddExistingRepositoryProps {
 
 interface IAddExistingRepositoryState {
   readonly path: string
-  readonly isGitRepository: boolean
+  readonly isGitRepository: boolean | null
 }
 
 export default class AddExistingRepository extends React.Component<IAddExistingRepositoryProps, IAddExistingRepositoryState> {
@@ -24,6 +24,7 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
   }
 
   public render() {
+    const disabled = this.state.path.length === 0 || this.state.isGitRepository == null
     return (
       <div id='add-existing-repository' className='panel'>
         <div className='file-picker'>
@@ -38,7 +39,7 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
 
         <hr/>
 
-        <button disabled={this.state.path.length === 0} onClick={() => this.addRepository()}>
+        <button disabled={disabled} onClick={() => this.addRepository()}>
           {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
         </button>
       </div>
@@ -47,8 +48,6 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
 
   private onPathChanged(event: React.FormEvent<HTMLInputElement>) {
     const path = event.target.value
-    this.setState({ path, isGitRepository: this.state.isGitRepository })
-
     this.checkIfPathIsRepository(path)
   }
 
@@ -57,12 +56,12 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
     if (!directory) { return }
 
     const path = directory[0]
-    this.setState({ path, isGitRepository: this.state.isGitRepository })
-
     this.checkIfPathIsRepository(path)
   }
 
   private async checkIfPathIsRepository(path: string) {
+    this.setState({ path, isGitRepository: null })
+
     const token = ++this.checkGitRepositoryToken
 
     const isGitRepository = await LocalGitOperations.isGitRepository(path)
