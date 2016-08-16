@@ -5,12 +5,12 @@ import { groupedAndFilteredBranches } from '../src/ui/branches/grouped-and-filte
 import { Branch } from '../src/lib/local-git-operations'
 
 describe('Branches grouping', () => {
-  const currentBranch = new Branch('master', null)
-  const defaultBranch = new Branch('master', null)
+  const currentBranch = new Branch('master', null, '')
+  const defaultBranch = new Branch('master', null, '')
   const recentBranches = [
-    new Branch('some-recent-branch', null),
+    new Branch('some-recent-branch', null, ''),
   ]
-  const otherBranch = new Branch('other-branch', null)
+  const otherBranch = new Branch('other-branch', null, '')
 
   const allBranches = [
     currentBranch,
