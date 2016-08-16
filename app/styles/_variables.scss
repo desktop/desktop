@@ -32,6 +32,10 @@
 
   --button-background: $lighterGray;
   --button-hover-background: $white;
+  --button-primary-background-color: $green;
+  --button-primary-hover-background-color: darken($green, 5%);
+  --button-primary-text-color: $white;
+
 
   // Typography
   //
