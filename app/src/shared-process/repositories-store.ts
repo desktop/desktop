@@ -46,24 +46,12 @@ export default class RepositoriesStore {
   }
 
   /** Add a new local repository. */
-  public async addRepository(repo: Repository): Promise<Repository> {
-    const db = this.db
-    let id = -1
-    const transaction = this.db.transaction('rw', this.db.repositories, function*() {
-      id = yield db.repositories.add({
-        path: repo.path,
-        gitHubRepositoryID: null,
-      })
+  public async addRepository(path: string): Promise<Repository> {
+    const id = await this.db.repositories.add({
+      path,
+      gitHubRepositoryID: null,
     })
-
-    await transaction
-
-    const repoWithID = repo.withID(id)
-    if (repo.gitHubRepository) {
-      await this.updateGitHubRepository(repoWithID)
-    }
-
-    return repoWithID
+    return new Repository(path, id)
   }
 
   /** Update or add the repository's GitHub repository. */
