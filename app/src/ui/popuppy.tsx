@@ -8,9 +8,7 @@ export default class Popuppy extends React.Component<any, any> {
   public render() {
     return (
       <div className='popup'>
-        <div className='panel popup-content'>
-          {this.props.children}
-        </div>
+        {this.props.children}
       </div>
     )
   }
