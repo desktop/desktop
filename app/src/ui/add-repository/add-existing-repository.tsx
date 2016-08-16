@@ -5,6 +5,8 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { LocalGitOperations } from '../../lib/local-git-operations'
 import Repository from '../../models/repository'
 
+const untildify: (str: string) => string = require('untildify')
+
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
 }
@@ -60,6 +62,8 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
   }
 
   private async checkIfPathIsRepository(path: string) {
+    path = untildify(path)
+
     this.setState({ path, isGitRepository: null })
 
     const token = ++this.checkGitRepositoryToken
