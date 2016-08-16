@@ -53,7 +53,9 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
   }
 
   private showFilePicker() {
-    const directory = remote.dialog.showOpenDialog({ properties: [ 'openDirectory' ] })
+    const directory: string[] | null = remote.dialog.showOpenDialog({ properties: [ 'openDirectory' ] })
+    if (!directory) { return }
+
     const path = directory[0]
     this.setState({ path, isGitRepository: this.state.isGitRepository })
 
