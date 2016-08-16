@@ -4,6 +4,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 import { Branch } from '../../lib/local-git-operations'
 import { groupedAndFilteredBranches, BranchListItem } from './grouped-and-filtered-branches'
+import { default as BranchView } from './branch'
 
 const RowHeight = 25
 
@@ -35,7 +36,10 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
     const item = branchItems[row]
     if (item.kind === 'branch') {
       const branch = item.branch
-      return <div className='branches-list-content branches-list-item'>{branch.name}</div>
+      const currentBranchName = this.props.currentBranch ? this.props.currentBranch.name : null
+      return <BranchView name={branch.name}
+                         isCurrentBranch={branch.name === currentBranchName}
+                         lastCommitDate={new Date()}/>
     } else {
       return <div className='branches-list-content branches-list-label'>{item.label}</div>
     }
