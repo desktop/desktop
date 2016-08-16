@@ -607,4 +607,14 @@ export class LocalGitOperations {
 
     return recentBranches
   }
+
+  /** Is the path a git repository? */
+  public static async isGitRepository(path: string): Promise<boolean> {
+    try {
+      await GitProcess.exec([ 'rev-parse', '--git-dir' ], path)
+      return true
+    } catch (e) {
+      return false
+    }
+  }
 }
