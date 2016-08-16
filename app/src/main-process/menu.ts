@@ -2,7 +2,8 @@ import { shell, Menu, ipcMain } from 'electron'
 import SharedProcess from '../shared-process/shared-process'
 
 export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
-                        'add-local-repository' | 'create-branch' | 'show-branches'
+                        'add-local-repository' | 'create-branch' |
+                        'show-branches' | 'remove-repository'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Object[] = [
@@ -130,6 +131,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           accelerator: 'CmdOrCtrl+Shift+P',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('pull')
+          }
+        },
+        {
+          label: 'Remove',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('remove-repository')
           }
         }
       ]

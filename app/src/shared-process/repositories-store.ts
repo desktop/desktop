@@ -54,6 +54,10 @@ export default class RepositoriesStore {
     return new Repository(path, id)
   }
 
+  public async removeRepository(repoID: number): Promise<void> {
+    await this.db.repositories.delete(repoID)
+  }
+
   /** Update or add the repository's GitHub repository. */
   public async updateGitHubRepository(repository: Repository): Promise<void> {
     const repoID = repository.id
