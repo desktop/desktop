@@ -621,8 +621,10 @@ export class LocalGitOperations {
   }
 
   /** Get the commit for the given ref. */
-  public static async getCommit(repository: Repository, ref: string): Promise<Commit> {
+  public static async getCommit(repository: Repository, ref: string): Promise<Commit | null> {
     const commits = await LocalGitOperations.getHistory(repository, ref, 1)
+    if (commits.length < 1) { return null }
+
     return commits[0]
   }
 }
