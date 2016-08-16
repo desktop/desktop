@@ -6,7 +6,7 @@ import Database from './database'
 import RepositoriesStore from './repositories-store'
 import Repository, { IRepository } from '../models/repository'
 import { register, broadcastUpdate as broadcastUpdate_ } from './communication'
-import { IURLAction, IAddRepositoriesAction, IUpdateGitHubRepositoryAction } from '../lib/dispatcher'
+import { IURLAction, IAddRepositoriesAction, IUpdateGitHubRepositoryAction, IRemoveRepositoriesAction } from '../lib/dispatcher'
 import API, { getDotComAPIEndpoint } from '../lib/api'
 
 const Octokat = require('octokat')
@@ -60,6 +60,17 @@ register('add-repositories', async ({ repositories }: IAddRepositoriesAction) =>
 
   broadcastUpdate()
   return addedRepos
+})
+
+register('remove-repositories', async ({ repositoryIDs }: IRemoveRepositoriesAction) => {
+  const removedRepoIDs: number[] = []
+  for (const repoID of Array.from(repositoryIDs)) {
+    await repositoriesStore.removeRepository(repoID)
+    removedRepoIDs.push(repoID)
+  }
+
+  broadcastUpdate()
+  return removedRepoIDs
 })
 
 register('get-repositories', () => {
