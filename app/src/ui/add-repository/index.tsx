@@ -21,6 +21,10 @@ enum AddRepositoryTab {
   Clone
 }
 
+/**
+ * The component for adding a local repository, creating a new repository, or
+ * cloning an existing repository.
+ */
 export default class AddRepository extends React.Component<IAddRepositoryProps, IAddRepositoryState> {
   public constructor(props: IAddRepositoryProps) {
     super(props)

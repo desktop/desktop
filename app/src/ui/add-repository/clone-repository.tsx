@@ -6,6 +6,7 @@ interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
 }
 
+/** The component for cloning an existing GitHub repository. */
 export default class CloneRepository extends React.Component<ICloneRepositoryProps, void> {
   public render() {
     return (
