@@ -3,6 +3,7 @@ import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
 import { LocalGitOperations } from '../../lib/local-git-operations'
+import Repository from '../../models/repository'
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -37,7 +38,7 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
 
         <hr/>
 
-        <button disabled={this.state.path.length === 0}>
+        <button disabled={this.state.path.length === 0} onClick={() => this.addRepository()}>
           {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
         </button>
       </div>
@@ -69,5 +70,14 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
     if (token !== this.checkGitRepositoryToken) { return }
 
     this.setState({ path: this.state.path, isGitRepository })
+  }
+
+  private async addRepository() {
+    if (!this.state.isGitRepository) {
+      await LocalGitOperations.initGitRepository(this.state.path)
+    }
+
+    const repository = new Repository(this.state.path)
+    this.props.dispatcher.addRepositories([ repository ])
   }
 }

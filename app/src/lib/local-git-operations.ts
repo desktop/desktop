@@ -617,4 +617,9 @@ export class LocalGitOperations {
       return false
     }
   }
+
+  /** Init a new git repository in the given path. */
+  public static initGitRepository(path: string): Promise<void> {
+    return GitProcess.exec([ 'init' ], path)
+  }
 }
