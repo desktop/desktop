@@ -1,17 +1,17 @@
 import * as React from 'react'
 
-interface ITabBarProps<ValueType> {
+interface ITabBarProps {
   /** The currently selected tab. */
-  readonly selectedValue: ValueType
+  readonly selectedIndex: number
 
   /** A function which is called when a tab is clicked on. */
-  readonly onTabClicked: (value: ValueType) => void
+  readonly onTabClicked: (index: number) => void
 
-  readonly children?: ReadonlyArray<TabBarItem<ValueType>>
+  readonly children?: ReadonlyArray<JSX.Element>
 }
 
 /** The tab bar component. */
-export class TabBar<ValueType> extends React.Component<ITabBarProps<ValueType>, void> {
+export default class TabBar extends React.Component<ITabBarProps, void> {
   public render() {
     return (
       <div className='tab-bar'>
@@ -21,31 +21,19 @@ export class TabBar<ValueType> extends React.Component<ITabBarProps<ValueType>, 
   }
 
   private renderItems() {
-    const children = this.props.children as (ReadonlyArray<TabBarItem<ValueType>> | null)
+    const children = this.props.children as (ReadonlyArray<JSX.Element> | null)
     if (!children) { return null }
 
     return children.map((child, index) => {
-      const value = child.props.value
-      const selected = child.props.value === this.props.selectedValue
+      const selected = index === this.props.selectedIndex
       const className = selected ? 'selected' : ''
       return (
         <span key={index}
               className={'tab-bar-item ' + className}
-              onClick={() => this.props.onTabClicked(value)}>
+              onClick={() => this.props.onTabClicked(index)}>
           {child}
         </span>
       )
     })
-  }
-}
-
-interface ITabBarItemProps<ValueType> {
-  readonly value: ValueType
-  readonly children?: ReadonlyArray<JSX.Element>
-}
-
-export class TabBarItem<ValueType> extends React.Component<ITabBarItemProps<ValueType>, void> {
-  public render() {
-    return <span>{this.props.children}</span>
   }
 }
