@@ -189,7 +189,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const repoID: number = repository.id!
+    const repoID: number = repository.id
     this.props.dispatcher.removeRepositories([ repoID ])
   }
 
