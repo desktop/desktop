@@ -80,5 +80,6 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
 
     const repository = new Repository(this.state.path)
     this.props.dispatcher.addRepositories([ repository ])
+    this.props.dispatcher.closePopup()
   }
 }
