@@ -9,9 +9,9 @@ import { getDotComAPIEndpoint } from '../src/lib/api'
 
 describe('Repository grouping', () => {
   const repositories = [
-    new Repository('repo1', null),
-    new Repository('repo2', new GitHubRepository('my-repo2', new Owner('', getDotComAPIEndpoint()))),
-    new Repository('repo3', new GitHubRepository('my-repo3', new Owner('', ''))),
+    new Repository('repo1', 1),
+    new Repository('repo2', 2, new GitHubRepository('my-repo2', new Owner('', getDotComAPIEndpoint()))),
+    new Repository('repo3', 3, new GitHubRepository('my-repo3', new Owner('', ''))),
   ]
 
   it('groups repositories by GitHub/Enterprise/Other', () => {
