@@ -10,7 +10,6 @@ textarea {
   color: currentColor;
   font-size: var(--font-size);
   font-family: var(--font-family-sans-serif);
-  margin-bottom: var(--spacing);
   padding: calc(var(--spacing) / 2);
 
   &:focus {

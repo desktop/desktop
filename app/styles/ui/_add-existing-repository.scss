@@ -2,6 +2,15 @@
   .file-picker {
     display: flex;
     flex-direction: row;
-    margin: var(--spacing) 0;
+
+    input {
+      flex-grow: 2;
+      margin-right: var(--spacing);
+    }
+  }
+
+  .add-repo-form {
+    padding: 0 var(--spacing);
+    margin-bottom: var(--spacing);
   }
 }

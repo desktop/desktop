@@ -1,5 +1,4 @@
 .popup {
-  padding: var(--spacing);
   display: flex;
   flex-direction: column;
   max-width: 400px;
@@ -14,12 +13,18 @@
 }
 
 .popup-content {
+  padding: var(--spacing);
+}
+
+.popup-content-container {
   border: var(--base-border);
   border-radius: var(--border-radius);
   background: var(--background-color);
 }
 
 .popup-navigation {
+  padding: var(--spacing);
+
   .tab-bar-item {
     display: inline-block;
     padding: 3px 20px;
@@ -30,4 +35,6 @@
 
 .popup-actions {
   border-top: var(--base-border);
+  padding: var(--spacing);
+  text-align: right;
 }
