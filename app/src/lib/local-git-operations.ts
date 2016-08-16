@@ -166,9 +166,13 @@ export class Branch {
   /** The origin-prefixed upstream name. E.g., `origin/master`. */
   public readonly upstream: string | null
 
-  public constructor(name: string, upstream: string | null) {
+  /** The SHA for the tip of the branch. */
+  public readonly sha: string
+
+  public constructor(name: string, upstream: string | null, sha: string) {
     this.name = name
     this.upstream = upstream
+    this.sha = sha
   }
 }
 
@@ -510,10 +514,16 @@ export class LocalGitOperations {
       const untrimmedName = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path)
       const name = untrimmedName.trim()
 
-      const untrimmedUpstream = await GitProcess.execWithOutput([ 'for-each-ref', `--format=%(upstream:short)`, `refs/heads/${name}` ], repository.path)
-      const upstream = untrimmedUpstream.trim()
+      const format = [
+        '%(upstream:short)',
+        '%(objectname)', // SHA
+      ].join('%00')
 
-      return new Branch(name, upstream.length > 0 ? upstream : null)
+      const line = await GitProcess.execWithOutput([ 'for-each-ref', `--format=${format}`, `refs/heads/${name}` ], repository.path)
+      const pieces = line.split('\0')
+      const upstream = pieces[0]
+      const sha = pieces[1]
+      return new Branch(name, upstream.length > 0 ? upstream : null, sha)
     } catch (e) {
       // Git exits with 1 if there's the branch is unborn. We should do more
       // specific error parsing than this, but for now it'll do.
@@ -544,6 +554,7 @@ export class LocalGitOperations {
     const format = [
       '%(refname:short)',
       '%(upstream:short)',
+      '%(objectname)', // SHA
     ].join('%00')
     const names = await GitProcess.execWithOutput([ 'for-each-ref', `--format=${format}` ], repository.path)
     const lines = names.split('\n')
@@ -555,7 +566,8 @@ export class LocalGitOperations {
       const pieces = line.split('\0')
       const name = pieces[0]
       const upstream = pieces[1]
-      return new Branch(name, upstream.length > 0 ? upstream : null)
+      const sha = pieces[2]
+      return new Branch(name, upstream.length > 0 ? upstream : null, sha)
     })
 
     return branches
