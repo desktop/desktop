@@ -61,7 +61,7 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
       <div id='branches' className='panel'>
         <input type='search' autoFocus={true} placeholder='Filter' onChange={event => this.onFilterChanged(event)}/>
 
-        <div className='panel popup-content branches-popup'>
+        <div className='panel popup-content branches-list-container'>
           <List rowCount={branchItems.length}
                 rowRenderer={row => this.renderRow(branchItems, row)}
                 rowHeight={RowHeight}
