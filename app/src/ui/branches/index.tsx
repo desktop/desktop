@@ -3,9 +3,9 @@ import List from '../list'
 import { Dispatcher } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 import { Branch } from '../../lib/local-git-operations'
-import { groupedBranches, BranchListItem } from './grouped-branches'
+import { groupedAndFilteredBranches, BranchListItem } from './grouped-and-filtered-branches'
 
-const RowHeight = 22
+const RowHeight = 25
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -16,7 +16,17 @@ interface IBranchesProps {
   readonly repository: Repository
 }
 
-export default class Branches extends React.Component<IBranchesProps, void> {
+interface IBranchesState {
+  readonly filter: string
+}
+
+export default class Branches extends React.Component<IBranchesProps, IBranchesState> {
+  public constructor(props: IBranchesProps) {
+    super(props)
+
+    this.state = { filter: '' }
+  }
+
   public componentDidMount() {
     this.props.dispatcher.loadBranches(this.props.repository)
   }
@@ -25,9 +35,9 @@ export default class Branches extends React.Component<IBranchesProps, void> {
     const item = branchItems[row]
     if (item.kind === 'branch') {
       const branch = item.branch
-      return <div>{branch.name}</div>
+      return <div className='branches-list-content branches-list-item'>{branch.name}</div>
     } else {
-      return <div><strong>{item.label}</strong></div>
+      return <div className='branches-list-content branches-list-label'>{item.label}</div>
     }
   }
 
@@ -40,10 +50,19 @@ export default class Branches extends React.Component<IBranchesProps, void> {
     this.props.dispatcher.checkoutBranch(this.props.repository, branch.name)
   }
 
+  private onFilterChanged(event: React.FormEvent<HTMLInputElement>) {
+    const text = event.target.value
+    this.setState({ filter: text })
+  }
+
   public render() {
-    const branchItems = groupedBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches)
+    const branchItems = groupedAndFilteredBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches, this.state.filter)
     return (
-      <div id='branches' className='panel'>
+      <div id='branches' className='panel branches-popup'>
+        <input type='search' autoFocus={true} placeholder='Filter' onChange={event => this.onFilterChanged(event)}/>
+
+        <hr/>
+
         <List rowCount={branchItems.length}
               rowRenderer={row => this.renderRow(branchItems, row)}
               rowHeight={RowHeight}
