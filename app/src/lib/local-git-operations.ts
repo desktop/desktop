@@ -522,7 +522,7 @@ export class LocalGitOperations {
       const line = await GitProcess.execWithOutput([ 'for-each-ref', `--format=${format}`, `refs/heads/${name}` ], repository.path)
       const pieces = line.split('\0')
       const upstream = pieces[0]
-      const sha = pieces[1]
+      const sha = pieces[1].trim()
       return new Branch(name, upstream.length > 0 ? upstream : null, sha)
     } catch (e) {
       // Git exits with 1 if there's the branch is unborn. We should do more
