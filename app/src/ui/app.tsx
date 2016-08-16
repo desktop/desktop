@@ -184,7 +184,11 @@ export default class App extends React.Component<IAppProps, IAppState> {
   }
 
   private removeRepository() {
-    const repository = this.state.selectedRepository!
+    const repository = this.state.selectedRepository
+    if (!repository) {
+      return
+    }
+
     const repoID: number = repository.id!
     this.props.dispatcher.removeRepositories([ repoID ])
   }
