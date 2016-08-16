@@ -597,12 +597,12 @@ export class LocalGitOperations {
     const recentBranches = new Array<Branch>()
     for (const name of names) {
       const branch = branchesByName.get(name)
-      if (branch) {
-        recentBranches.push(branch)
-      } else {
-        // TODO: Maybe this is ok and we don't need to bother logging?
-        console.error(`Couldn't find a branch with name ${name}`)
+      if (!branch) {
+        // This means the recent branch has been deleted. That's fine.
+        continue
       }
+
+      recentBranches.push(branch)
     }
 
     return recentBranches
