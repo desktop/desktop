@@ -44,7 +44,7 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
         </div>
 
         <div className='popup-actions'>
-          <button className='btn-primary' disabled={disabled} onClick={() => this.addRepository()}>
+          <button disabled={disabled} onClick={() => this.addRepository()}>
             {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
           </button>
         </div>
