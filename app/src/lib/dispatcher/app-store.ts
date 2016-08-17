@@ -522,7 +522,7 @@ export default class AppStore {
     })
 
     remoteBranches.forEach(branch => {
-      // This means we alreay added the local checkout of this remote branch, so
+      // This means we already added the local branch of this remote branch, so
       // we don't need to add it again.
       if (upstreamBranchesAdded.has(branch.name)) { return }
 
