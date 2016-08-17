@@ -68,8 +68,6 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
     const list = this.list
     if (!list) { return }
 
-    console.log(event.key)
-
     let nextRow = this.state.selectedRow
     if (event.key === 'ArrowDown') {
       nextRow = list.nextSelectableRow('down', this.state.selectedRow)
