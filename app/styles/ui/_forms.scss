@@ -13,6 +13,8 @@ textarea {
   margin-bottom: var(--spacing);
   padding: calc(var(--spacing) / 2);
 
+  resize: none;
+
   &:focus {
     border-color: var(--box-border-accent-color);
   }
