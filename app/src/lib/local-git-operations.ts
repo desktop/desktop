@@ -540,12 +540,12 @@ export class LocalGitOperations {
   }
 
   /** Get all the branches. */
-  public static async getBranches(repository: Repository): Promise<ReadonlyArray<Branch>> {
+  public static async getBranches(repository: Repository, prefix: string): Promise<ReadonlyArray<Branch>> {
     const format = [
       '%(refname:short)',
       '%(upstream:short)',
     ].join('%00')
-    const names = await GitProcess.execWithOutput([ 'for-each-ref', `--format=${format}` ], repository.path)
+    const names = await GitProcess.execWithOutput([ 'for-each-ref', `--format=${format}`, prefix ], repository.path)
     const lines = names.split('\n')
 
     // Remove the trailing newline
