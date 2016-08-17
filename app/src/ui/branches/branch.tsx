@@ -14,12 +14,12 @@ interface IBranchProps {
 /** The branch component. */
 export default function Branch({ name, isCurrentBranch, lastCommitDate }: IBranchProps) {
   const date = lastCommitDate ? moment(lastCommitDate).fromNow() : ''
+  const info = isCurrentBranch ? <Octicon symbol={OcticonSymbol.check} /> : date
+  const infoTitle = isCurrentBranch ? 'Current branch' : (lastCommitDate ? lastCommitDate.toString() : '')
   return (
     <div className='branches-list-content'>
       <span className='branches-list-item'>{name}</span>
-      <span>
-        {isCurrentBranch ? <Octicon symbol={OcticonSymbol.check} /> : date}
-      </span>
+      <span title={infoTitle}>{info}</span>
     </div>
   )
 }

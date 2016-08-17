@@ -581,6 +581,7 @@ export default class AppStore {
     const state = this.getRepositoryState(repository).branchesState
     const commits = state.commits
     for (const branch of Array.from(state.allBranches)) {
+      // Immutable 4 lyfe
       if (commits.has(branch.sha)) {
         continue
       }
