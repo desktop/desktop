@@ -4,7 +4,7 @@ import User from '../../models/user'
 import Repository from '../../models/repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
-import { findIndex, find } from '../find'
+import { findIndex } from '../find'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -508,7 +508,26 @@ export default class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadBranches(repository: Repository): Promise<void> {
-    const allBranches = await LocalGitOperations.getBranches(repository)
+    const localBranches = await LocalGitOperations.getBranches(repository, 'refs/heads')
+    const remoteBranches = await LocalGitOperations.getBranches(repository, 'refs/remotes')
+
+    const upstreamBranchesAdded = new Set<string>()
+    const allBranches = new Array<Branch>()
+    localBranches.forEach(branch => {
+      allBranches.push(branch)
+
+      if (branch.upstream) {
+        upstreamBranchesAdded.add(branch.upstream)
+      }
+    })
+
+    remoteBranches.forEach(branch => {
+      // This means we alreay added the local checkout of this remote branch, so
+      // we don't need to add it again.
+      if (upstreamBranchesAdded.has(branch.name)) { return }
+
+      allBranches.push(branch)
+    })
 
     let defaultBranchName: string | null = 'master'
     const gitHubRepository = repository.gitHubRepository
@@ -516,7 +535,7 @@ export default class AppStore {
       defaultBranchName = gitHubRepository.defaultBranch
     }
 
-    const defaultBranch = find(allBranches, b => b.name === defaultBranchName)
+    const defaultBranch = allBranches.find(b => b.name === defaultBranchName)
 
     this.updateBranchesState(repository, state => {
       return {
