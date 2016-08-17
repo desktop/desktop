@@ -591,9 +591,10 @@ export default class AppStore {
       }
     }
 
-    // NB: Because `state.commits` is mutable, changing in place, sadness, etc.
-    // we don't have to update the state. This feels gross. We may wanna use
-    // some immutable thing.
+    // NB: Because the `commits` map is mutable, changing in place, sadness,
+    // etc. we don't have to update the state. This feels gross, but concretely
+    // it doesn't matter since commits themselves are immutable and we only ever
+    // add to the map.
     this.emitUpdate()
   }
 }
