@@ -44,7 +44,11 @@ export default class List extends React.Component<IListProps, void> {
     e.preventDefault()
   }
 
-  private nextSelectableRow(direction: 'up' | 'down', row: number): number {
+  /**
+   * Determine the next selectable row, given the direction and row. This will
+   * take `canSelectRow` into account.
+   */
+  public nextSelectableRow(direction: 'up' | 'down', row: number): number {
     let newRow = row
     if (direction === 'up') {
       newRow = row - 1
