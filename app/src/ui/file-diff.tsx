@@ -22,6 +22,8 @@ interface IFileDiffState {
 
 export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
 
+  private grid: React.Component<any, any> | null
+
   public constructor(props: IFileDiffProps) {
     super(props)
 
@@ -30,6 +32,13 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   public componentWillReceiveProps(nextProps: IFileDiffProps) {
     this.renderDiff(nextProps.repository, nextProps.file, nextProps.readOnly)
+  }
+
+  private handleResize() {
+    const grid: any = this.grid
+    if (grid) {
+      grid.recomputeGridSize({ columnIndex: 0, rowIndex: 0 })
+    }
   }
 
   private async renderDiff(repository: IRepository, file: FileChange | null, readOnly: boolean) {
@@ -166,9 +175,9 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     if (this.props.file) {
 
-      const workingDirectoryChange = this.props.file as WorkingDirectoryFileChange
-
       let invalidationProps = { path: this.props.file!.path, include: false }
+
+      const workingDirectoryChange = this.props.file as WorkingDirectoryFileChange
 
       if (workingDirectoryChange && workingDirectoryChange.include) {
         invalidationProps = { path: this.props.file!.path, include: workingDirectoryChange.include }
@@ -176,23 +185,22 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
       return (
         <div className='panel' id='file-diff'>
-        <AutoSizer>
+          <AutoSizer onResize={ () => this.handleResize() }>
           {({ width, height }: { width: number, height: number }) => (
             <Grid
               autoContainerWidth
-              cellRenderer={this.cellRenderer}
+              ref={(ref: React.Component<any, any>) => this.grid = ref}
+              cellRenderer={ ({ columnIndex, rowIndex }: { columnIndex: number, rowIndex: number }) => this.cellRenderer({ columnIndex, rowIndex }) }
               className='diff-text'
               columnCount={2}
               columnWidth={ ({ index }: { index: number }) => this.getColumnWidth( { index, availableWidth: width }) }
+              width={width}
               height={height}
               rowHeight={RowHeight}
               rowCount={this.state.diff.lines.length}
-              width={width}
-              invalidationProps={invalidationProps}
             />
           )}
-        </AutoSizer>
-
+          </AutoSizer>
         </div>
       )
     } else {
