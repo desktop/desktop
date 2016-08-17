@@ -2,9 +2,12 @@ import { Emitter, Disposable } from 'event-kit'
 import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup, IBranchesState } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
+import GitHubRepository from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
 import { findIndex, find } from '../find'
+import { matchGitHubRepository } from '../../lib/repository-matching'
+import API, { getUserForEndpoint } from '../../lib/api'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -569,5 +572,31 @@ export default class AppStore {
       }
     })
     this.emitUpdate()
+  }
+
+  public async repositoryWithRefreshedGitHubRepository(repository: Repository): Promise<Repository> {
+    let gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) {
+      gitHubRepository = await this.guessGitHubRepository(repository)
+    }
+
+    if (!gitHubRepository) { return repository }
+
+    const users = this.users
+    const user = getUserForEndpoint(users, gitHubRepository.endpoint)
+    if (!user) { return repository }
+
+    const api = new API(user)
+    const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
+    return repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
+  }
+
+  private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
+    // TODO: This is all kinds of wrong. We shouldn't assume the remote is named
+    // `origin`.
+    const remote = await LocalGitOperations.getConfigValue(repository, 'remote.origin.url')
+    if (!remote) { return null }
+
+    return matchGitHubRepository(this.users, remote)
   }
 }

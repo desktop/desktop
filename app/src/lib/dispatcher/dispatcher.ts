@@ -111,7 +111,12 @@ export class Dispatcher {
 
   public async addRepositories(repositories: ReadonlyArray<Repository>): Promise<ReadonlyArray<Repository>> {
     const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', repositories })
-    return json.map(Repository.fromJSON)
+    const addedRepositories = json.map(Repository.fromJSON)
+    for (const repository of addedRepositories) {
+      this.refreshGitHubRepositoryInfo(repository)
+    }
+
+    return addedRepositories
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
@@ -124,9 +129,12 @@ export class Dispatcher {
     return this.dispatchToSharedProcess<void>({ name: 'request-oauth' })
   }
 
-  /** Update the repository's GitHub repository. */
-  public updateGitHubRepository(repository: Repository): Promise<void> {
-    return this.dispatchToSharedProcess<void>({ name: 'update-github-repository', repository })
+  /** Refresh the associated GitHub repository. */
+  public async refreshGitHubRepositoryInfo(repository: Repository): Promise<void> {
+    const refreshedRepository = await this.appStore.repositoryWithRefreshedGitHubRepository(repository)
+    if (refreshedRepository === repository) { return }
+
+    return this.dispatchToSharedProcess<void>({ name: 'update-github-repository', repository: refreshedRepository })
   }
 
   /** Load the history for the repository. */

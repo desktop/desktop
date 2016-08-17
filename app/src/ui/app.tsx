@@ -4,13 +4,10 @@ import { ipcRenderer, remote } from 'electron'
 import { Resizable } from './resizable'
 import RepositoriesList from './repositories-list'
 import { default as RepositoryView } from './repository'
-import GitHubRepository from '../models/github-repository'
 import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
 import { Dispatcher, AppStore, GitUserStore } from '../lib/dispatcher'
 import Repository from '../models/repository'
-import { matchGitHubRepository } from '../lib/repository-matching'
-import API, { getUserForEndpoint } from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
@@ -193,11 +190,9 @@ export default class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.removeRepositories([ repoID ])
   }
 
-  private async addRepositories(paths: string[]) {
+  private addRepositories(paths: string[]) {
     const repositories = paths.map(p => new Repository(p))
-    const addedRepos = await this.props.dispatcher.addRepositories(repositories)
-
-    addedRepos.forEach(repo => this.refreshGitHubRepositoryInfo(repo))
+    this.props.dispatcher.addRepositories(repositories)
   }
 
   private renderTitlebar() {
@@ -310,41 +305,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
     // This probably belongs in the Repository component or whatever, but until
     // that exists...
     console.log(repository)
-    this.refreshGitHubRepositoryInfo(repository)
+    this.props.dispatcher.refreshGitHubRepositoryInfo(repository)
   }
 
   private onSelectionChanged(repository: Repository) {
     this.props.dispatcher.selectRepository(repository)
 
     this.refreshRepository(repository)
-  }
-
-  private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
-    // TODO: This is all kinds of wrong. We shouldn't assume the remote is named
-    // `origin`.
-    const remote = await LocalGitOperations.getConfigValue(repository, 'remote.origin.url')
-    if (!remote) { return null }
-
-    return matchGitHubRepository(this.state.users, remote)
-  }
-
-  private async refreshGitHubRepositoryInfo(repository: Repository): Promise<void> {
-    let gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) {
-      gitHubRepository = await this.guessGitHubRepository(repository)
-    }
-
-    if (!gitHubRepository) { return Promise.resolve() }
-
-    const users = this.state.users
-    const user = getUserForEndpoint(users, gitHubRepository.endpoint)
-    if (!user) { return Promise.resolve() }
-
-    const api = new API(user)
-    const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
-
-    const updatedRepository = repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
-    this.props.dispatcher.updateGitHubRepository(updatedRepository)
   }
 }
 
