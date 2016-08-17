@@ -172,7 +172,7 @@ describe('LocalGitOperations', () => {
 
     describe('all branches', () => {
       it('should list all branches', async () => {
-        const branches = await LocalGitOperations.getBranches(repository!)
+        const branches = await LocalGitOperations.getBranches(repository!, 'refs/heads')
         expect(branches.length).to.equal(1)
         expect(branches[0].name).to.equal('master')
         expect(branches[0].upstream).to.equal(null)
