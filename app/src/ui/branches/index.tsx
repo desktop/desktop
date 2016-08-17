@@ -2,7 +2,7 @@ import * as React from 'react'
 import List from '../list'
 import { Dispatcher } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
-import { Branch } from '../../lib/local-git-operations'
+import { Branch, Commit } from '../../lib/local-git-operations'
 import { groupedAndFilteredBranches, BranchListItem } from './grouped-and-filtered-branches'
 import { default as BranchView } from './branch'
 
@@ -15,6 +15,7 @@ interface IBranchesProps {
   readonly recentBranches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
+  readonly commits: Map<string, Commit>
 }
 
 interface IBranchesState {
@@ -36,10 +37,11 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
     const item = branchItems[row]
     if (item.kind === 'branch') {
       const branch = item.branch
+      const commit = this.props.commits.get(branch.sha)
       const currentBranchName = this.props.currentBranch ? this.props.currentBranch.name : null
       return <BranchView name={branch.name}
                          isCurrentBranch={branch.name === currentBranchName}
-                         lastCommitDate={new Date()}/>
+                         lastCommitDate={commit ? commit.authorDate : null}/>
     } else {
       return <div className='branches-list-content branches-list-label'>{item.label}</div>
     }
@@ -70,7 +72,8 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
                 rowRenderer={row => this.renderRow(branchItems, row)}
                 rowHeight={RowHeight}
                 selectedRow={-1}
-                onSelectionChanged={row => this.onSelectionChanged(branchItems, row)}/>
+                onSelectionChanged={row => this.onSelectionChanged(branchItems, row)}
+                invalidationProps={this.props}/>
         </div>
       </div>
     )
