@@ -62,6 +62,7 @@ export default class AppStore {
         defaultBranch: null,
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
+        commits: new Map<string, Commit>(),
       },
       committerEmail: null,
     }
@@ -468,6 +469,7 @@ export default class AppStore {
         defaultBranch: state.defaultBranch,
         allBranches: state.allBranches,
         recentBranches: state.recentBranches,
+        commits: state.commits,
       }
     })
     this.emitUpdate()
@@ -524,11 +526,14 @@ export default class AppStore {
         defaultBranch: defaultBranch ? defaultBranch : null,
         allBranches,
         recentBranches: state.recentBranches,
+        commits: state.commits,
       }
     })
     this.emitUpdate()
 
     this.calculateRecentBranches(repository)
+
+    this.loadBranchTips(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -566,8 +571,29 @@ export default class AppStore {
         defaultBranch: state.defaultBranch,
         allBranches: state.allBranches,
         recentBranches,
+        commits: state.commits,
       }
     })
+    this.emitUpdate()
+  }
+
+  private async loadBranchTips(repository: Repository): Promise<void> {
+    const state = this.getRepositoryState(repository).branchesState
+    const commits = state.commits
+    for (const branch of Array.from(state.allBranches)) {
+      if (commits.has(branch.sha)) {
+        continue
+      }
+
+      const commit = await LocalGitOperations.getCommit(repository, branch.sha)
+      if (commit) {
+        commits.set(branch.sha, commit)
+      }
+    }
+
+    // NB: Because `state.commits` is mutable, changing in place, sadness, etc.
+    // we don't have to update the state. This feels gross. We may wanna use
+    // some immutable thing.
     this.emitUpdate()
   }
 }

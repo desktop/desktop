@@ -37,6 +37,7 @@ export interface IBranchesState {
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly recentBranches: ReadonlyArray<Branch>
+  readonly commits: Map<string, Commit>
 }
 
 export interface IHistorySelection {
