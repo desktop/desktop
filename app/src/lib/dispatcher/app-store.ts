@@ -3,7 +3,7 @@ import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, Reposito
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
-import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
+import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { findIndex } from '../find'
 
 /** The number of commits to load from history per batch. */
@@ -508,8 +508,8 @@ export default class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadBranches(repository: Repository): Promise<void> {
-    const localBranches = await LocalGitOperations.getBranches(repository, 'refs/heads')
-    const remoteBranches = await LocalGitOperations.getBranches(repository, 'refs/remotes')
+    const localBranches = await LocalGitOperations.getBranches(repository, 'refs/heads', BranchType.Local)
+    const remoteBranches = await LocalGitOperations.getBranches(repository, 'refs/remotes', BranchType.Remote)
 
     const upstreamBranchesAdded = new Set<string>()
     const allBranches = new Array<Branch>()
