@@ -11,14 +11,11 @@
   box-shadow: 0 0 7px rgba(0,0,0,0.15);
 }
 
-.popup-content {
-  padding: var(--spacing);
-}
-
 .popup-content-container {
   border: var(--base-border);
   border-radius: var(--border-radius);
   background: var(--background-color);
+  margin: var(--spacing);
 }
 
 .popup-navigation {
