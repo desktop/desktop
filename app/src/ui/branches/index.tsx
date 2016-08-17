@@ -18,13 +18,17 @@ interface IBranchesProps {
 
 interface IBranchesState {
   readonly filter: string
+  readonly selectedRow: number
 }
 
 export default class Branches extends React.Component<IBranchesProps, IBranchesState> {
+  private list: List | null = null
+  private scrollToRow = -1
+
   public constructor(props: IBranchesProps) {
     super(props)
 
-    this.state = { filter: '' }
+    this.state = { filter: '', selectedRow: -1 }
   }
 
   public componentDidMount() {
@@ -50,23 +54,59 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
     this.props.dispatcher.checkoutBranch(this.props.repository, branch.name)
   }
 
+  private canSelectRow(branchItems: ReadonlyArray<BranchListItem>, row: number) {
+    const item = branchItems[row]
+    return item.kind === 'branch'
+  }
+
   private onFilterChanged(event: React.FormEvent<HTMLInputElement>) {
     const text = event.target.value
-    this.setState({ filter: text })
+    this.setState({ filter: text, selectedRow: this.state.selectedRow })
+  }
+
+  private onKeyDown(branchItems: ReadonlyArray<BranchListItem>, event: React.KeyboardEvent<HTMLInputElement>) {
+    const list = this.list
+    if (!list) { return }
+
+    console.log(event.key)
+
+    let nextRow = this.state.selectedRow
+    if (event.key === 'ArrowDown') {
+      nextRow = list.nextSelectableRow('down', this.state.selectedRow)
+    } else if (event.key === 'ArrowUp') {
+      nextRow = list.nextSelectableRow('up', this.state.selectedRow)
+    } else if (event.key === 'Enter') {
+      this.onSelectionChanged(branchItems, this.state.selectedRow)
+    } else {
+      return
+    }
+
+    this.scrollToRow = nextRow
+    this.setState({ selectedRow: nextRow, filter: this.state.filter })
   }
 
   public render() {
+    const scrollToRow = this.scrollToRow
+    this.scrollToRow = -1
+
     const branchItems = groupedAndFilteredBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches, this.state.filter)
     return (
       <div id='branches' className='panel'>
-        <input type='search' autoFocus={true} placeholder='Filter' onChange={event => this.onFilterChanged(event)}/>
+        <input type='search'
+               autoFocus={true}
+               placeholder='Filter'
+               onChange={event => this.onFilterChanged(event)}
+               onKeyDown={event => this.onKeyDown(branchItems, event)}/>
 
         <div className='panel popup-content branches-list-container'>
           <List rowCount={branchItems.length}
                 rowRenderer={row => this.renderRow(branchItems, row)}
                 rowHeight={RowHeight}
-                selectedRow={-1}
-                onSelectionChanged={row => this.onSelectionChanged(branchItems, row)}/>
+                selectedRow={this.state.selectedRow}
+                onSelectionChanged={row => this.onSelectionChanged(branchItems, row)}
+                canSelectRow={row => this.canSelectRow(branchItems, row)}
+                scrollToRow={scrollToRow}
+                ref={ref => this.list = ref}/>
         </div>
       </div>
     )
