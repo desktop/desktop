@@ -77,6 +77,11 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
       nextRow = list.nextSelectableRow('up', this.state.selectedRow)
     } else if (event.key === 'Enter') {
       this.onSelectionChanged(branchItems, this.state.selectedRow)
+    } else if (event.key === 'Escape') {
+      if (this.state.filter.length === 0) {
+        this.props.dispatcher.closePopup()
+        return
+      }
     } else {
       return
     }
