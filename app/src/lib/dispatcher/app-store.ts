@@ -605,6 +605,7 @@ export default class AppStore {
     return matchGitHubRepository(this.users, remote)
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _postError(error: IAppError): Promise<void> {
     const newErrors = Array.from(this.errors)
     newErrors.push(error)
@@ -614,6 +615,7 @@ export default class AppStore {
     return Promise.resolve()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public _clearError(error: IAppError): Promise<void> {
     const newErrors = Array.from(this.errors)
     const index = newErrors.findIndex(e => e === error)
@@ -626,6 +628,7 @@ export default class AppStore {
     return Promise.resolve()
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _validateRepository(path: string): Promise<string | null> {
     const gitDir = await LocalGitOperations.getGitDir(path)
     if (!gitDir) { return null }

@@ -109,6 +109,10 @@ export class Dispatcher {
     return json.map(Repository.fromJSON)
   }
 
+  /**
+   * Add the repositories at the given paths. If a path isn't a repository, then
+   * this will post an error to that affect.
+   */
   public async addRepositories(paths: ReadonlyArray<string>): Promise<ReadonlyArray<Repository>> {
     const validatedPaths = new Array<string>()
     for (const path of Array.from(paths)) {
@@ -242,10 +246,12 @@ export class Dispatcher {
     return this.appStore._loadBranches(repository)
   }
 
+  /** Post the given error. */
   public postError(error: IAppError): Promise<void> {
     return this.appStore._postError(error)
   }
 
+  /** Clear the given error. */
   public clearError(error: IAppError): Promise<void> {
     return this.appStore._clearError(error)
   }
