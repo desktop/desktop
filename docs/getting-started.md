@@ -58,3 +58,35 @@ Then switch to atom and follow these steps
 5. Provide the path
  * For Mac: `/usr/local/lib/node_modules/typescript/lib/typescriptServices.js`
  * For Windows: `C:\Users\[YOUR USERNAME]\AppData\Roaming\npm\node_modules\typescript\lib\typescriptServices.js`
+
+## Troubleshooting
+
+### Issues compiling node-keytar on Windows
+
+If keytar fails to build on Windows with the following error during `npm install`:
+
+```
+npm ERR! keytar@3.0.2 install: `node-gyp rebuild`
+npm ERR! Exit status 1
+npm ERR!
+npm ERR! Failed at the keytar@3.0.2 install script 'node-gyp rebuild'.
+npm ERR! Make sure you have the latest version of node.js and npm installed.
+npm ERR! If you do, this is most likely a problem with the keytar package,
+npm ERR! not with npm itself.
+npm ERR! Tell the author that this fails on your system:
+npm ERR!     node-gyp rebuild
+npm ERR! You can get information on how to open an issue for this project with:
+npm ERR!     npm bugs keytar
+npm ERR! Or if that isn't available, you can get their info via:
+npm ERR!     npm owner ls keytar
+```
+
+Install the latest (unstable) version of `npm`:
+
+```
+PS> npm -g install npm@next
+```
+
+and run `npm install`
+
+(See https://github.com/atom/node-keytar/issues/45 and https://github.com/nodejs/node-gyp/issues/972)
