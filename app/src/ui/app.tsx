@@ -15,6 +15,7 @@ import { IAppState, RepositorySection, Popup } from '../lib/app-state'
 import Popuppy from './popuppy'
 import CreateBranch from './create-branch'
 import Branches from './branches'
+import AddRepository from './add-repository'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -68,9 +69,14 @@ export default class App extends React.Component<IAppProps, IAppState> {
       case 'create-branch': return this.createBranch()
       case 'show-branches': return this.showBranches()
       case 'remove-repository': return this.removeRepository()
+      case 'add-repository': return this.addRepository()
     }
 
     return fatalError(`Unknown menu event name: ${name}`)
+  }
+
+  private addRepository() {
+    this.props.dispatcher.showPopup(Popup.AddRepository, null)
   }
 
   private createBranch() {
@@ -186,13 +192,12 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const repoID: number = repository.id!
+    const repoID: number = repository.id
     this.props.dispatcher.removeRepositories([ repoID ])
   }
 
   private addRepositories(paths: string[]) {
-    const repositories = paths.map(p => new Repository(p))
-    this.props.dispatcher.addRepositories(repositories)
+    this.props.dispatcher.addRepositories(paths)
   }
 
   private renderTitlebar() {
@@ -240,6 +245,10 @@ export default class App extends React.Component<IAppProps, IAppState> {
                             defaultBranch={this.state.repositoryState!.branchesState.defaultBranch}
                             dispatcher={this.props.dispatcher}
                             repository={this.state.selectedRepository!}/>
+        break
+
+      case Popup.AddRepository:
+        content = <AddRepository dispatcher={this.props.dispatcher}/>
         break
     }
 
