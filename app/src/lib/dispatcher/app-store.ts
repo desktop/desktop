@@ -629,7 +629,7 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _validateRepository(path: string): Promise<string | null> {
+  public async _validatedRepositoryPath(path: string): Promise<string | null> {
     const gitDir = await LocalGitOperations.getGitDir(path)
     if (!gitDir) { return null }
 
