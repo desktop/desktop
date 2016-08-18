@@ -131,7 +131,7 @@ export class Dispatcher {
 
   /** Refresh the associated GitHub repository. */
   public async refreshGitHubRepositoryInfo(repository: Repository): Promise<void> {
-    const refreshedRepository = await this.appStore.repositoryWithRefreshedGitHubRepository(repository)
+    const refreshedRepository = await this.appStore._repositoryWithRefreshedGitHubRepository(repository)
     if (refreshedRepository === repository) { return }
 
     return this.dispatchToSharedProcess<void>({ name: 'update-github-repository', repository: refreshedRepository })

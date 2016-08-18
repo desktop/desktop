@@ -575,7 +575,7 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async repositoryWithRefreshedGitHubRepository(repository: Repository): Promise<Repository> {
+  public async _repositoryWithRefreshedGitHubRepository(repository: Repository): Promise<Repository> {
     let gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
       gitHubRepository = await this.guessGitHubRepository(repository)
