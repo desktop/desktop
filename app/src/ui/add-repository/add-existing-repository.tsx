@@ -30,21 +30,24 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
     const disabled = this.state.path.length === 0 || this.state.isGitRepository == null
     return (
       <div id='add-existing-repository' className='panel'>
-        <div className='file-picker'>
-          <label>Local Path
+        <div className='add-repo-form'>
+          <label>Local Path</label>
+
+          <div className='file-picker'>
             <input value={this.state.path}
+                   type='text'
                    placeholder='repository path'
                    onChange={event => this.onPathChanged(event)}/>
-          </label>
 
-          <button onClick={() => this.showFilePicker()}>Choose…</button>
+            <button onClick={() => this.showFilePicker()}>Choose…</button>
+          </div>
         </div>
 
-        <hr/>
-
-        <button disabled={disabled} onClick={() => this.addRepository()}>
-          {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
-        </button>
+        <div className='popup-actions'>
+          <button disabled={disabled} onClick={() => this.addRepository()}>
+            {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
+          </button>
+        </div>
       </div>
     )
   }

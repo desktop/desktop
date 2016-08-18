@@ -195,14 +195,12 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const repoID: number = repository.id!
+    const repoID: number = repository.id
     this.props.dispatcher.removeRepositories([ repoID ])
   }
 
   private async addRepositories(paths: string[]) {
-    const repositories = paths.map(p => new Repository(p))
-    const addedRepos = await this.props.dispatcher.addRepositories(repositories)
-
+    const addedRepos = await this.props.dispatcher.addRepositories(paths)
     addedRepos.forEach(repo => this.refreshGitHubRepositoryInfo(repo))
   }
 
