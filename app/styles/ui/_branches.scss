@@ -1,4 +1,6 @@
 .branches-list-container {
+  height: 200px;
+
   .branches-list-content {
     display: flex;
     flex: 1;
@@ -29,4 +31,9 @@
   background: var(--box-alt-background-color);
   border-top: var(--base-border);
   border-bottom: var(--base-border);
+}
+
+.branch-filter-input {
+  margin: var(--spacing);
+  margin-bottom: 0;
 }

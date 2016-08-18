@@ -69,17 +69,17 @@ export default class AppStore {
   }
 
   private getRepositoryState(repository: Repository): IRepositoryState {
-    let state = this.repositoryState.get(repository.id!)
+    let state = this.repositoryState.get(repository.id)
     if (state) { return state }
 
     state = this.getInitialRepositoryState()
-    this.repositoryState.set(repository.id!, state)
+    this.repositoryState.set(repository.id, state)
     return state
   }
 
   private updateRepositoryState(repository: Repository, fn: (state: IRepositoryState) => IRepositoryState) {
     const currentState = this.getRepositoryState(repository)
-    this.repositoryState.set(repository.id!, fn(currentState))
+    this.repositoryState.set(repository.id, fn(currentState))
   }
 
   private updateHistoryState(repository: Repository, fn: (historyState: IHistoryState) => IHistoryState) {

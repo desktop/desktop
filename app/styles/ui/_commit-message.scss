@@ -17,13 +17,14 @@
 
     .summary-field {
       flex: 1;
+      margin-bottom: var(--spacing);
     }
 
     .avatar {
       width: 28px;
       height: 28px;
 
-      margin-right: 4px;
+      margin-right: var(--spacing-half);
 
       border: var(--base-border);
       border-radius: var(--border-radius);
@@ -32,5 +33,6 @@
 
   .commit-button {
     @include ellipsis
+    margin-top: var(--spacing);
   }
 }

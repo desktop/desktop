@@ -26,7 +26,7 @@ describe('LocalGitOperations', () => {
 
   beforeEach(() => {
     const testRepoPath = setupTestRepository('test-repo')
-    repository = new Repository(testRepoPath, null, null)
+    repository = new Repository(testRepoPath, -1, null)
   })
 
   after(() => {
@@ -109,7 +109,7 @@ describe('LocalGitOperations', () => {
 
     beforeEach(() => {
       const testRepoPath = setupTestRepository('repo-with-changes')
-      repository = new Repository(testRepoPath, null, null)
+      repository = new Repository(testRepoPath, -1, null)
     })
 
     it('counts lines for new file', async () => {

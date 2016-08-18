@@ -627,4 +627,19 @@ export class LocalGitOperations {
 
     return commits[0]
   }
+
+  /** Is the path a git repository? */
+  public static async isGitRepository(path: string): Promise<boolean> {
+    try {
+      await GitProcess.exec([ 'rev-parse', '--git-dir' ], path)
+      return true
+    } catch (e) {
+      return false
+    }
+  }
+
+  /** Init a new git repository in the given path. */
+  public static initGitRepository(path: string): Promise<void> {
+    return GitProcess.exec([ 'init' ], path)
+  }
 }
