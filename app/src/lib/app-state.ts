@@ -13,7 +13,15 @@ export interface IAppState {
 
   readonly currentPopup: Popup | null
 
-  readonly errors: Map<ErrorID, Error>
+  readonly errors: ReadonlyArray<IAppError>
+}
+
+export interface IAppError {
+  /** The name of the error. This is for application use only. */
+  readonly name: string
+
+  /** The user-facing message. */
+  readonly message: string
 }
 
 export enum Popup {
@@ -26,8 +34,6 @@ export enum RepositorySection {
   Changes,
   History
 }
-
-export type ErrorID = 'add-repository'
 
 export interface IRepositoryState {
   readonly historyState: IHistoryState

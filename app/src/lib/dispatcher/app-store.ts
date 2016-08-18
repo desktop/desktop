@@ -1,6 +1,6 @@
 import { Emitter, Disposable } from 'event-kit'
 import * as Path from 'path'
-import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup, IBranchesState, ErrorID } from '../app-state'
+import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup, IBranchesState, IAppError } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import GitHubRepository from '../../models/github-repository'
@@ -27,7 +27,7 @@ export default class AppStore {
 
   private currentPopup: Popup | null = null
 
-  private errors = new Map<ErrorID, Error>()
+  private errors: ReadonlyArray<IAppError> = new Array<IAppError>()
 
   private emitQueued = false
 
@@ -605,16 +605,23 @@ export default class AppStore {
     return matchGitHubRepository(this.users, remote)
   }
 
-  public _postError(id: ErrorID, error: Error): Promise<void> {
-    this.errors.set(id, error)
+  public _postError(error: IAppError): Promise<void> {
+    const newErrors = Array.from(this.errors)
+    newErrors.push(error)
+    this.errors = newErrors
     this.emitUpdate()
 
     return Promise.resolve()
   }
 
-  public _clearError(id: ErrorID): Promise<void> {
-    this.errors.delete(id)
-    this.emitUpdate()
+  public _clearError(error: IAppError): Promise<void> {
+    const newErrors = Array.from(this.errors)
+    const index = newErrors.findIndex(e => e === error)
+    if (index > -1) {
+      newErrors.splice(index, 1)
+      this.errors = newErrors
+      this.emitUpdate()
+    }
 
     return Promise.resolve()
   }
