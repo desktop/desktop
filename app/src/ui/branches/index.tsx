@@ -95,13 +95,14 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
     const branchItems = groupedAndFilteredBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches, this.state.filter)
     return (
       <div id='branches' className='panel'>
-        <input type='search'
+        <input className='branch-filter-input'
+               type='search'
                autoFocus={true}
                placeholder='Filter'
                onChange={event => this.onFilterChanged(event)}
-               onKeyDown={event => this.onKeyDown(branchItems, event)}/>
+               onKeyDown={event => this.onKeyDown(branchItems, event)}/>/>
 
-        <div className='panel popup-content branches-list-container'>
+        <div className='panel popup-content-container branches-list-container'>
           <List rowCount={branchItems.length}
                 rowRenderer={row => this.renderRow(branchItems, row)}
                 rowHeight={RowHeight}

@@ -1,4 +1,6 @@
 .branches-list-container {
+  height: 200px;
+
   .branches-list-content {
     padding: var(--spacing-third) var(--spacing);
     font-size: 11px;
@@ -26,4 +28,9 @@
   background: var(--box-alt-background-color);
   border-top: var(--base-border);
   border-bottom: var(--base-border);
+}
+
+.branch-filter-input {
+  margin: var(--spacing);
+  margin-bottom: 0;
 }

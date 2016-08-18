@@ -1,7 +1,6 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import Repository from '../src/models/repository'
 import RepositoriesStore from '../src/shared-process/repositories-store'
 import TestDatabase from './test-database'
 import GitHubRepository from '../src/models/github-repository'
@@ -20,7 +19,7 @@ describe('RepositoriesStore', () => {
   describe('adding a new repository', () => {
     it('contains the added repository', async () => {
       const repoPath = '/some/cool/path'
-      await repositoriesStore!.addRepository(new Repository(repoPath))
+      await repositoriesStore!.addRepository(repoPath)
 
       const repositories = await repositoriesStore!.getRepositories()
       expect(repositories[0].path).to.equal(repoPath)
@@ -29,8 +28,8 @@ describe('RepositoriesStore', () => {
 
   describe('getting all repositories', () => {
     it('returns multiple repositories', async () => {
-      await repositoriesStore!.addRepository(new Repository('/some/cool/path'))
-      await repositoriesStore!.addRepository(new Repository('/some/other/path'))
+      await repositoriesStore!.addRepository('/some/cool/path')
+      await repositoriesStore!.addRepository('/some/other/path')
 
       const repositories = await repositoriesStore!.getRepositories()
       expect(repositories.length).to.equal(2)
@@ -39,7 +38,7 @@ describe('RepositoriesStore', () => {
 
   describe('updating a GitHub repository', () => {
     it('adds a new GitHub repository', async () => {
-      const addedRepo = await repositoriesStore!.addRepository(new Repository('/some/cool/path'))
+      const addedRepo = await repositoriesStore!.addRepository('/some/cool/path')
 
       const gitHubRepo = new GitHubRepository('my-repo', new Owner('my-user', 'https://api.github.com'), true, false, 'https://github.com/my-user/my-repo')
       const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)
@@ -53,8 +52,7 @@ describe('RepositoriesStore', () => {
     })
 
     it('updates an existing GitHub repository', async () => {
-      const originalGitHubRepo = new GitHubRepository('my-repo', new Owner('my-user', 'https://api.github.com'))
-      const addedRepo = await repositoriesStore!.addRepository(new Repository('/some/cool/path', originalGitHubRepo))
+      const addedRepo = await repositoriesStore!.addRepository('/some/cool/path')
 
       const gitHubRepo = new GitHubRepository('my-repo', new Owner('my-user', 'https://api.github.com'), true, false, 'https://github.com/my-user/my-repo')
       const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)

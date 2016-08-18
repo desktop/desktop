@@ -109,8 +109,8 @@ export class Dispatcher {
     return json.map(Repository.fromJSON)
   }
 
-  public async addRepositories(repositories: ReadonlyArray<Repository>): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', repositories })
+  public async addRepositories(paths: ReadonlyArray<string>): Promise<ReadonlyArray<Repository>> {
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', paths })
     return json.map(Repository.fromJSON)
   }
 

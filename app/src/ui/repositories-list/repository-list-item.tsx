@@ -49,7 +49,7 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
   }
 
   private removeRepository() {
-    const repoID: number = this.props.repository.id!
+    const repoID: number = this.props.repository.id
     this.props.dispatcher.removeRepositories([ repoID ])
   }
 }
