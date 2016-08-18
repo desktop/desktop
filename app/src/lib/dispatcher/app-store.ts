@@ -600,4 +600,11 @@ export default class AppStore {
 
     return matchGitHubRepository(this.users, remote)
   }
+
+  public async _validateRepository(path: string): Promise<string | null> {
+    const gitDir = await LocalGitOperations.getGitDir(path)
+    if (!gitDir) { return null }
+
+    return Path.dirname(gitDir)
+  }
 }

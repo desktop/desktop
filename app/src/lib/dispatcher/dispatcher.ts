@@ -110,7 +110,15 @@ export class Dispatcher {
   }
 
   public async addRepositories(paths: ReadonlyArray<string>): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', paths })
+    const validatedPaths = new Array<string>()
+    for (const path of Array.from(paths)) {
+      const validatedPath = await this.appStore._validateRepository(path)
+      if (validatedPath) {
+        validatedPaths.push(validatedPath)
+      }
+    }
+
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', paths: validatedPaths })
     const addedRepositories = json.map(Repository.fromJSON)
     for (const repository of addedRepositories) {
       this.refreshGitHubRepositoryInfo(repository)
