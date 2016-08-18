@@ -608,14 +608,19 @@ export class LocalGitOperations {
     return recentBranches
   }
 
+  /** Get the git dir of the path. */
+  public static async getGitDir(path: string): Promise<string | null> {
+    try {
+      const gitDir = await GitProcess.execWithOutput([ 'rev-parse', '--git-dir' ], path)
+      return gitDir.trim()
+    } catch (e) {
+      return null
+    }
+  }
+
   /** Is the path a git repository? */
   public static async isGitRepository(path: string): Promise<boolean> {
-    try {
-      await GitProcess.exec([ 'rev-parse', '--git-dir' ], path)
-      return true
-    } catch (e) {
-      return false
-    }
+    return !!this.getGitDir(path)
   }
 
   /** Init a new git repository in the given path. */
