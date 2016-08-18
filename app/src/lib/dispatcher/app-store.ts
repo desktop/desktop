@@ -441,12 +441,18 @@ export default class AppStore {
 
       const includeAll = this.getIncludeAllState(newFiles)
 
+      let selectedFile: WorkingDirectoryFileChange | undefined
+      if (state.changesState.selectedFile) {
+          const f = state.changesState.selectedFile!
+          selectedFile = newFiles.find(file => file.id === f.id)
+      }
+
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
       return {
         selectedSection: state.selectedSection,
         changesState: {
           workingDirectory,
-          selectedFile: state.changesState.selectedFile,
+          selectedFile: selectedFile || null,
         },
         historyState: state.historyState,
         committerEmail: state.committerEmail,
