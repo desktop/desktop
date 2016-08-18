@@ -32,9 +32,9 @@ export default class RepositoriesStore {
           const gitHubRepository = yield db.gitHubRepositories.get(repo.gitHubRepositoryID)
           const owner = yield db.owners.get(gitHubRepository.ownerID)
           const gitHubRepo = new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint), gitHubRepository.private, gitHubRepository.fork, gitHubRepository.htmlURL, gitHubRepository.defaultBranch)
-          inflatedRepo = new Repository(repo.path, gitHubRepo, repo.id)
+          inflatedRepo = new Repository(repo.path, repo.id, gitHubRepo)
         } else {
-          inflatedRepo = new Repository(repo.path, null, repo.id)
+          inflatedRepo = new Repository(repo.path, repo.id)
         }
         inflatedRepos.push(inflatedRepo)
       }
@@ -46,24 +46,12 @@ export default class RepositoriesStore {
   }
 
   /** Add a new local repository. */
-  public async addRepository(repo: Repository): Promise<Repository> {
-    const db = this.db
-    let id = -1
-    const transaction = this.db.transaction('rw', this.db.repositories, function*() {
-      id = yield db.repositories.add({
-        path: repo.path,
-        gitHubRepositoryID: null,
-      })
+  public async addRepository(path: string): Promise<Repository> {
+    const id = await this.db.repositories.add({
+      path,
+      gitHubRepositoryID: null,
     })
-
-    await transaction
-
-    const repoWithID = repo.withID(id)
-    if (repo.gitHubRepository) {
-      await this.updateGitHubRepository(repoWithID)
-    }
-
-    return repoWithID
+    return new Repository(path, id)
   }
 
   public async removeRepository(repoID: number): Promise<void> {
