@@ -6,7 +6,6 @@ import * as FS from 'fs'
 
 import { Dispatcher } from '../../lib/dispatcher'
 import { LocalGitOperations } from '../../lib/local-git-operations'
-import Repository from '../../models/repository'
 
 const untildify: (str: string) => string = require('untildify')
 
@@ -63,8 +62,7 @@ export default class CreateRepository extends React.Component<ICreateRepositoryP
       FS.mkdir(resolvedPath, async () => {
         await LocalGitOperations.initGitRepository(resolvedPath)
 
-        const repository = new Repository(resolvedPath)
-        this.props.dispatcher.addRepositories([ repository ])
+        this.props.dispatcher.addRepositories([ resolvedPath ])
         this.props.dispatcher.closePopup()
       })
     })
