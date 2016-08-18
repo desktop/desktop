@@ -4,7 +4,7 @@ import Toolbar from './toolbar'
 import { Changes } from './changes'
 import History from './history'
 import ComparisonGraph from './comparison-graph'
-import { TabBarTab } from './toolbar/tab-bar'
+import { ToolbarTab } from './toolbar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
 import { Dispatcher, GitUserStore } from '../lib/dispatcher'
 
@@ -36,7 +36,7 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
   }
 
   public render() {
-    const selectedTab = this.props.state.selectedSection === RepositorySection.History ? TabBarTab.History : TabBarTab.Changes
+    const selectedTab = this.props.state.selectedSection === RepositorySection.History ? ToolbarTab.History : ToolbarTab.Changes
     return (
       <div id='repository'>
         <Toolbar selectedTab={selectedTab}
@@ -48,8 +48,8 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
     )
   }
 
-  private onTabClicked(tab: TabBarTab) {
-    const section = tab === TabBarTab.History ? RepositorySection.History : RepositorySection.Changes
+  private onTabClicked(tab: ToolbarTab) {
+    const section = tab === ToolbarTab.History ? RepositorySection.History : RepositorySection.Changes
     this.props.dispatcher.changeRepositorySection(this.props.repository, section)
   }
 }
