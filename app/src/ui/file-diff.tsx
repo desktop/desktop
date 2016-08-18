@@ -198,6 +198,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
               height={height}
               rowHeight={RowHeight}
               rowCount={this.state.diff.lines.length}
+              invalidationProps={invalidationProps}
             />
           )}
           </AutoSizer>
