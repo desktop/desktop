@@ -2,15 +2,15 @@
 
   &-item {
     --border-radius: 5px;
-    --box-border-color: var(--box-selected-text-color);
 
-    border: 1px solid var(--box-border-color);
+    background: var(--tab-bar-background-color);
 
     // This makes it so that we never render a double-width item border.
     // It has the unintended consequence of making it impossible to have a tab
     // bar with just one item but we can live with that.
     border-right-width: 0;
     padding: 5px 20px;
+    margin-right: 1px;
 
     &:first-child {
       border-radius: var(--border-radius) 0px 0px var(--border-radius);
@@ -26,7 +26,7 @@
     // in so far that it doesn't have an active selection state, just a selected
     // one.
     &.selected {
-      background-color: var(--box-selected-text-color);
+      background-color: var(--tab-bar-active-color);
       color: var(--box-selected-background-color);
 
       .indicator {
@@ -40,9 +40,8 @@
       height: 9px;
       margin-left: 4px;
 
-      background-color: var(--box-border-color);
+      background-color: var(--tab-bar-active-color);
       border-radius: 50%;
     }
   }
-
 }
