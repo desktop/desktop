@@ -11,7 +11,7 @@ import Repository from '../models/repository'
 import { LocalGitOperations } from '../lib/local-git-operations'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
-import { IAppState, RepositorySection, Popup } from '../lib/app-state'
+import { IAppState, RepositorySection, Popup, ErrorID } from '../lib/app-state'
 import Popuppy from './popuppy'
 import CreateBranch from './create-branch'
 import Branches from './branches'
@@ -259,6 +259,32 @@ export default class App extends React.Component<IAppProps, IAppState> {
     return <Popuppy>{content}</Popuppy>
   }
 
+  private renderError() {
+    if (!this.state.errors.size) { return null }
+
+    const msgs = new Array<JSX.Element>()
+    const errorIDs = new Array<ErrorID>()
+    for (const pair of this.state.errors) {
+      errorIDs.push(pair[0])
+
+      const error = pair[1]
+      msgs.push(<div key={error.name}>{error.message}</div>)
+    }
+
+    const clearErrors = () => {
+      for (const id of errorIDs) {
+        this.props.dispatcher.clearError(id)
+      }
+    }
+
+    return (
+      <Popuppy>
+        <div>{msgs}</div>
+        <button onClick={clearErrors}>OK</button>
+      </Popuppy>
+    )
+  }
+
   private renderApp() {
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
@@ -275,6 +301,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
         {this.renderRepository()}
 
         {this.renderPopup()}
+
+        {this.renderError()}
       </div>
     )
   }

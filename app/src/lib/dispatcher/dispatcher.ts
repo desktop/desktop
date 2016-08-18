@@ -3,7 +3,7 @@ import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import guid from '../guid'
-import { IHistorySelection, RepositorySection, Popup } from '../app-state'
+import { IHistorySelection, RepositorySection, Popup, ErrorID } from '../app-state'
 import { Action } from './actions'
 import AppStore from './app-store'
 import GitUserStore from './git-user-store'
@@ -115,6 +115,8 @@ export class Dispatcher {
       const validatedPath = await this.appStore._validateRepository(path)
       if (validatedPath) {
         validatedPaths.push(validatedPath)
+      } else {
+        this.postError('add-repository', new Error(`${path} isn't a git repository.`))
       }
     }
 
@@ -238,5 +240,13 @@ export class Dispatcher {
   /** Load the branches in the repository. */
   public loadBranches(repository: Repository): Promise<void> {
     return this.appStore._loadBranches(repository)
+  }
+
+  public postError(id: ErrorID, error: Error): Promise<void> {
+    return this.appStore._postError(id, error)
+  }
+
+  public clearError(id: ErrorID): Promise<void> {
+    return this.appStore._clearError(id)
   }
 }

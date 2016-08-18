@@ -1,5 +1,6 @@
 import { Emitter, Disposable } from 'event-kit'
-import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup, IBranchesState } from '../app-state'
+import * as Path from 'path'
+import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup, IBranchesState, ErrorID } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import GitHubRepository from '../../models/github-repository'
@@ -25,6 +26,8 @@ export default class AppStore {
   private repositoryState = new Map<number, IRepositoryState>()
 
   private currentPopup: Popup | null = null
+
+  private errors = new Map<ErrorID, Error>()
 
   private emitQueued = false
 
@@ -137,6 +140,7 @@ export default class AppStore {
       repositoryState: this.getCurrentRepositoryState(),
       selectedRepository: this.selectedRepository,
       currentPopup: this.currentPopup,
+      errors: this.errors,
     }
   }
 
@@ -599,6 +603,20 @@ export default class AppStore {
     if (!remote) { return null }
 
     return matchGitHubRepository(this.users, remote)
+  }
+
+  public _postError(id: ErrorID, error: Error): Promise<void> {
+    this.errors.set(id, error)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _clearError(id: ErrorID): Promise<void> {
+    this.errors.delete(id)
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 
   public async _validateRepository(path: string): Promise<string | null> {

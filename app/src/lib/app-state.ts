@@ -12,6 +12,8 @@ export interface IAppState {
   readonly repositoryState: IRepositoryState | null
 
   readonly currentPopup: Popup | null
+
+  readonly errors: Map<ErrorID, Error>
 }
 
 export enum Popup {
@@ -24,6 +26,8 @@ export enum RepositorySection {
   Changes,
   History
 }
+
+export type ErrorID = 'add-repository'
 
 export interface IRepositoryState {
   readonly historyState: IHistoryState
