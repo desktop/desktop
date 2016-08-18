@@ -259,7 +259,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
     return <Popuppy>{content}</Popuppy>
   }
 
-  private renderError() {
+  private renderErrors() {
     const errors = this.state.errors
     if (!errors.length) { return null }
 
@@ -295,7 +295,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
         {this.renderPopup()}
 
-        {this.renderError()}
+        {this.renderErrors()}
       </div>
     )
   }
