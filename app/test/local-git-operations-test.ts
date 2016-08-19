@@ -7,7 +7,7 @@ const fs = require('fs-extra')
 const temp = require('temp').track()
 
 import Repository from '../src/models/repository'
-import { LocalGitOperations } from '../src/lib/local-git-operations'
+import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
 import { FileStatus, FileChange } from '../src/models/status'
 
 
@@ -168,16 +168,18 @@ describe('LocalGitOperations', () => {
         expect(branch!.name).to.equal('master')
         expect(branch!.sha).to.equal('04c7629c588c74659f03dda5e5fb3dd8d6862dfa')
         expect(branch!.upstream).to.equal(null)
+        expect(branch!.type).to.equal(BranchType.Local)
       })
     })
 
     describe('all branches', () => {
       it('should list all branches', async () => {
-        const branches = await LocalGitOperations.getBranches(repository!)
+        const branches = await LocalGitOperations.getBranches(repository!, 'refs/heads', BranchType.Local)
         expect(branches.length).to.equal(1)
         expect(branches[0].name).to.equal('master')
         expect(branches[0].sha).to.equal('04c7629c588c74659f03dda5e5fb3dd8d6862dfa')
         expect(branches[0].upstream).to.equal(null)
+        expect(branches[0].type).to.equal(BranchType.Local)
       })
     })
   })

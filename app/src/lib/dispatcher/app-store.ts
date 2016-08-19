@@ -3,8 +3,8 @@ import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, Reposito
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
-import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
-import { findIndex, find } from '../find'
+import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
+import { findIndex } from '../find'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -350,9 +350,17 @@ export default class AppStore {
 
       const includeAll = this.getIncludeAllState(mergedFiles)
 
+      let selectedFile: WorkingDirectoryFileChange | undefined
+
+      if (state.selectedFile) {
+        selectedFile = mergedFiles.find(function(file) {
+          return file.id === state.selectedFile!.id
+        })
+      }
+
       return {
         workingDirectory: new WorkingDirectoryStatus(mergedFiles, includeAll),
-        selectedFile: null,
+        selectedFile: selectedFile || null,
       }
     })
     this.emitUpdate()
@@ -510,7 +518,26 @@ export default class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadBranches(repository: Repository): Promise<void> {
-    const allBranches = await LocalGitOperations.getBranches(repository)
+    const localBranches = await LocalGitOperations.getBranches(repository, 'refs/heads', BranchType.Local)
+    const remoteBranches = await LocalGitOperations.getBranches(repository, 'refs/remotes', BranchType.Remote)
+
+    const upstreamBranchesAdded = new Set<string>()
+    const allBranches = new Array<Branch>()
+    localBranches.forEach(branch => {
+      allBranches.push(branch)
+
+      if (branch.upstream) {
+        upstreamBranchesAdded.add(branch.upstream)
+      }
+    })
+
+    remoteBranches.forEach(branch => {
+      // This means we already added the local branch of this remote branch, so
+      // we don't need to add it again.
+      if (upstreamBranchesAdded.has(branch.name)) { return }
+
+      allBranches.push(branch)
+    })
 
     let defaultBranchName: string | null = 'master'
     const gitHubRepository = repository.gitHubRepository
@@ -518,7 +545,7 @@ export default class AppStore {
       defaultBranchName = gitHubRepository.defaultBranch
     }
 
-    const defaultBranch = find(allBranches, b => b.name === defaultBranchName)
+    const defaultBranch = allBranches.find(b => b.name === defaultBranchName)
 
     this.updateBranchesState(repository, state => {
       return {
