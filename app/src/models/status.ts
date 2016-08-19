@@ -49,7 +49,16 @@ export class DiffSelection {
     } else {
       const toArray = Array.from(this.selectedLines.values())
       const allSelected = toArray.every(k => k === true)
-      return allSelected
+      const noneSelected = toArray.every(k => k === false)
+
+      let includeAll: boolean | null = null
+      if (allSelected) {
+        includeAll = true
+      } else if (noneSelected) {
+        includeAll = false
+      }
+
+      return includeAll
     }
   }
 }
