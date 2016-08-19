@@ -166,6 +166,7 @@ describe('LocalGitOperations', () => {
       it('should get the current branch', async () => {
         const branch = await LocalGitOperations.getCurrentBranch(repository!)
         expect(branch!.name).to.equal('master')
+        expect(branch!.sha).to.equal('04c7629c588c74659f03dda5e5fb3dd8d6862dfa')
         expect(branch!.upstream).to.equal(null)
         expect(branch!.type).to.equal(BranchType.Local)
       })
@@ -176,6 +177,7 @@ describe('LocalGitOperations', () => {
         const branches = await LocalGitOperations.getBranches(repository!, 'refs/heads', BranchType.Local)
         expect(branches.length).to.equal(1)
         expect(branches[0].name).to.equal('master')
+        expect(branches[0].sha).to.equal('04c7629c588c74659f03dda5e5fb3dd8d6862dfa')
         expect(branches[0].upstream).to.equal(null)
         expect(branches[0].type).to.equal(BranchType.Local)
       })

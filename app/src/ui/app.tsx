@@ -235,21 +235,24 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
     let content: JSX.Element | null = null
     switch (popup) {
-      case Popup.CreateBranch:
+      case Popup.CreateBranch: {
+        const state = this.state.repositoryState!.branchesState
         content = <CreateBranch repository={this.state.selectedRepository!}
                                 dispatcher={this.props.dispatcher}
-                                branches={this.state.repositoryState!.branchesState.allBranches}
-                                currentBranch={this.state.repositoryState!.branchesState.currentBranch}/>
-        break
+                                branches={state.allBranches}
+                                currentBranch={state.currentBranch}/>
+      } break
 
-      case Popup.ShowBranches:
-        content = <Branches allBranches={this.state.repositoryState!.branchesState.allBranches}
-                            recentBranches={this.state.repositoryState!.branchesState.recentBranches}
-                            currentBranch={this.state.repositoryState!.branchesState.currentBranch}
-                            defaultBranch={this.state.repositoryState!.branchesState.defaultBranch}
+      case Popup.ShowBranches: {
+        const state = this.state.repositoryState!.branchesState
+        content = <Branches allBranches={state.allBranches}
+                            recentBranches={state.recentBranches}
+                            currentBranch={state.currentBranch}
+                            defaultBranch={state.defaultBranch}
                             dispatcher={this.props.dispatcher}
-                            repository={this.state.selectedRepository!}/>
-        break
+                            repository={this.state.selectedRepository!}
+                            commits={state.commits}/>
+      } break
 
       case Popup.AddRepository:
         content = <AddRepository dispatcher={this.props.dispatcher}/>
