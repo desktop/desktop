@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 import User from '../../models/user'
+import API, { IAPIUser, getDotComAPIEndpoint } from '../../lib/api'
 
 interface IPublishRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -13,6 +14,7 @@ interface IPublishRepositoryState {
   readonly name: string
   readonly description: string
   readonly private: boolean
+  readonly groupedUsers: Map<User, ReadonlyArray<IAPIUser>>
 }
 
 export default class PublishRepository extends React.Component<IPublishRepositoryProps, IPublishRepositoryState> {
@@ -23,7 +25,24 @@ export default class PublishRepository extends React.Component<IPublishRepositor
       name: props.repository.name,
       description: '',
       private: true,
+      groupedUsers: new Map<User, ReadonlyArray<IAPIUser>>(),
     }
+  }
+
+  public async componentWillMount() {
+    const orgsByUser = new Map<User, ReadonlyArray<IAPIUser>>()
+    for (const user of Array.from(this.props.users)) {
+      const api = new API(user)
+      const orgs = await api.fetchOrgs()
+      orgsByUser.set(user, orgs)
+    }
+
+    this.setState({
+      name: this.state.name,
+      description: this.state.description,
+      private: this.state.private,
+      groupedUsers: orgsByUser,
+    })
   }
 
   private onNameChange(event: React.FormEvent<HTMLInputElement>) {
@@ -31,6 +50,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
       name: event.target.value,
       description: this.state.description,
       private: this.state.private,
+      groupedUsers: this.state.groupedUsers,
     })
   }
 
@@ -39,6 +59,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
       name: this.state.name,
       description: event.target.value,
       private: this.state.private,
+      groupedUsers: this.state.groupedUsers,
     })
   }
 
@@ -47,6 +68,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
       name: this.state.name,
       description: this.state.description,
       private: event.target.checked,
+      groupedUsers: this.state.groupedUsers,
     })
   }
 
@@ -54,6 +76,29 @@ export default class PublishRepository extends React.Component<IPublishRepositor
     event.preventDefault()
 
     this.props.dispatcher.closePopup()
+  }
+
+  private renderAccounts() {
+    const optionGroups = new Array<JSX.Element>()
+    for (const user of this.state.groupedUsers.keys()) {
+      const orgs = this.state.groupedUsers.get(user)!
+      const label = user.endpoint === getDotComAPIEndpoint() ? 'GitHub.com' : user.endpoint
+      const options = [
+        <option value={user.login} key={user.login}>{user.login}</option>,
+        ...orgs.map((u, i) => <option value={u.login} key={u.login}>{u.login}</option>),
+      ]
+      optionGroups.push(
+        <optgroup key={user.endpoint} label={label}>
+          {options}
+        </optgroup>
+      )
+    }
+
+    return (
+      <select>
+        {optionGroups}
+      </select>
+    )
   }
 
   public render() {
@@ -79,9 +124,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
 
         <label>
           Account:
-          <select>
-            {this.props.users.map(u => <option value={u.login} key={u.login}>{u.login}</option>)}
-          </select>
+          {this.renderAccounts()}
         </label>
 
         <button type='submit' disabled={disabled}>Publish Repository</button>
