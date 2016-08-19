@@ -225,6 +225,12 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
         invalidationProps = { path: this.props.file!.path, include: includeAll }
       }
 
+      let diffLineCount: number = 0
+
+      this.state.diff.sections
+        .map(s => s.lines.length)
+        .forEach(c => diffLineCount += c)
+
       return (
         <div className='panel' id='file-diff'>
           <AutoSizer onResize={ () => this.handleResize() }>
@@ -239,7 +245,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
               width={width}
               height={height}
               rowHeight={RowHeight}
-              rowCount={this.state.diff.lines.length}
+              rowCount={diffLineCount}
               invalidationProps={invalidationProps}
             />
           )}
