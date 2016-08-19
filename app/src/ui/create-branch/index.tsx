@@ -55,7 +55,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
     const disabled = !proposedName.length || !!this.state.currentError
     const currentBranch = this.props.currentBranch
     return (
-      <div id='create-branch' className='panel'>
+      <form id='create-branch' className='panel' onSubmit={event => this.createBranch(event)}>
         <div className='header'>Create New Branch</div>
         <hr/>
 
@@ -76,8 +76,8 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
         </label>
 
         <hr/>
-        <button onClick={() => this.createBranch()} disabled={disabled}>Create Branch</button>
-      </div>
+        <button type='submit' disabled={disabled}>Create Branch</button>
+      </form>
     )
   }
 
@@ -115,7 +115,9 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
     })
   }
 
-  private createBranch() {
+  private createBranch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
     const name = this.state.sanitizedName
     const baseBranch = this.state.baseBranch
     if (name.length > 0 && baseBranch) {
