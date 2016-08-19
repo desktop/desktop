@@ -116,48 +116,54 @@ describe('LocalGitOperations', () => {
       const file = new FileChange('new-file.md', FileStatus.New)
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
-      expect(diff.lines[0].text).to.have.string('@@ -0,0 +1,33 @@')
+      const section = diff.sections[0]
 
-      expect(diff.lines[1].text).to.have.string('+Lorem ipsum dolor sit amet,')
-      expect(diff.lines[2].text).to.have.string('+ullamcorper sit amet tellus eget, ')
+      expect(section.lines[0].text).to.have.string('@@ -0,0 +1,33 @@')
 
-      expect(diff.lines[33].text).to.have.string('+ urna, ac porta justo leo sed magna.')
+      expect(section.lines[1].text).to.have.string('+Lorem ipsum dolor sit amet,')
+      expect(section.lines[2].text).to.have.string('+ullamcorper sit amet tellus eget, ')
+
+      expect(section.lines[33].text).to.have.string('+ urna, ac porta justo leo sed magna.')
     })
 
     it('counts lines for modified file', async () => {
       const file = new FileChange('modified-file.md', FileStatus.Modified)
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
-      expect(diff.lines[0].text).to.have.string('@@ -4,10 +4,6 @@')
+      const first = diff.sections[0]
+      expect(first.lines[0].text).to.have.string('@@ -4,10 +4,6 @@')
 
-      expect(diff.lines[4].text).to.have.string('-Aliquam leo ipsum')
-      expect(diff.lines[5].text).to.have.string('-nisl eget hendrerit')
-      expect(diff.lines[6].text).to.have.string('-eleifend mi.')
-      expect(diff.lines[7].text).to.have.string('-')
+      expect(first.lines[4].text).to.have.string('-Aliquam leo ipsum')
+      expect(first.lines[5].text).to.have.string('-nisl eget hendrerit')
+      expect(first.lines[6].text).to.have.string('-eleifend mi.')
+      expect(first.lines[7].text).to.have.string('-')
 
-      expect(diff.lines[12].text).to.have.string('@@ -21,6 +17,10 @@')
+      const second = diff.sections[1]
+      expect(second.lines[0].text).to.have.string('@@ -21,6 +17,10 @@')
 
-      expect(diff.lines[16].text).to.have.string('+Aliquam leo ipsum')
-      expect(diff.lines[17].text).to.have.string('+nisl eget hendrerit')
-      expect(diff.lines[18].text).to.have.string('+eleifend mi.')
-      expect(diff.lines[19].text).to.have.string('+')
+      expect(second.lines[4].text).to.have.string('+Aliquam leo ipsum')
+      expect(second.lines[5].text).to.have.string('+nisl eget hendrerit')
+      expect(second.lines[6].text).to.have.string('+eleifend mi.')
+      expect(second.lines[7].text).to.have.string('+')
     })
 
     it('counts lines for staged file', async () => {
       const file = new FileChange('staged-file.md', FileStatus.Modified)
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
-      expect(diff.lines[0].text).to.have.string('@@ -2,7 +2,7 @@ ')
+      const first = diff.sections[0]
+      expect(first.lines[0].text).to.have.string('@@ -2,7 +2,7 @@ ')
 
-      expect(diff.lines[4].text).to.have.string('-tortor placerat facilisis. Ut sed ex tortor. Duis consectetur at ex vel mattis.')
-      expect(diff.lines[5].text).to.have.string('+tortor placerat facilisis.')
+      expect(first.lines[4].text).to.have.string('-tortor placerat facilisis. Ut sed ex tortor. Duis consectetur at ex vel mattis.')
+      expect(first.lines[5].text).to.have.string('+tortor placerat facilisis.')
 
-      expect(diff.lines[10].text).to.have.string('@@ -17,9 +17,7 @@ ')
+      const second = diff.sections[1]
+      expect(second.lines[0].text).to.have.string('@@ -17,9 +17,7 @@ ')
 
-      expect(diff.lines[14].text).to.have.string('-vel sagittis nisl rutrum. ')
-      expect(diff.lines[15].text).to.have.string('-tempor a ligula. Proin pretium ipsum ')
-      expect(diff.lines[16].text).to.have.string('-elementum neque id tellus gravida rhoncus.')
-      expect(diff.lines[17].text).to.have.string('+vel sagittis nisl rutrum.')
+      expect(second.lines[4].text).to.have.string('-vel sagittis nisl rutrum. ')
+      expect(second.lines[5].text).to.have.string('-tempor a ligula. Proin pretium ipsum ')
+      expect(second.lines[6].text).to.have.string('-elementum neque id tellus gravida rhoncus.')
+      expect(second.lines[7].text).to.have.string('+vel sagittis nisl rutrum.')
     })
   })
 
