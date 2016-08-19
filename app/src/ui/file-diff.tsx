@@ -5,6 +5,8 @@ import { FileChange, WorkingDirectoryFileChange } from '../models/status'
 
 import { LocalGitOperations, Diff, Commit, DiffLine, DiffLineType } from '../lib/local-git-operations'
 
+import { find } from '../lib/find'
+
 const { Grid, AutoSizer } = require('react-virtualized')
 
 const RowHeight = 22
@@ -58,8 +60,10 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       const includeAll = diffSelection.isIncludeAll()
       if (includeAll === null) {
         diffSelection.selectedLines.forEach((value, index) => {
-          if (value) {
-            diff.lines[index].selected = value!
+          const section = find(diff.sections, s => index >= s.startDiffSection && index < s.endDiffSection)
+          if (section) {
+            const diffLine = section.lines[index]
+            diffLine.selected = value
           }
         })
       } else {
@@ -94,26 +98,14 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private getDiffLineFromSection(index: number): DiffLine | null {
+    const diff = find(this.state.diff.sections, s => index >= s.startDiffSection && index < s.endDiffSection)
 
-    let pointer: number = 0
-    let found: DiffLine | null = null
+    if (diff) {
+      const relativeIndex = index - diff.startDiffSection
+      return diff.lines[relativeIndex]
+    }
 
-    this.state.diff.sections.forEach(s => {
-      const length = s.lines.length
-      if (found) {
-        return
-      }
-
-      const end = pointer + length
-      if (index <= end) {
-        const relativeIndex = index - pointer // ????
-        found = s.lines[relativeIndex]
-      } else {
-        pointer += length
-      }
-    })
-
-    return found
+    return null
   }
 
   private formatIfNotSet(value: number | null): string {
@@ -152,16 +144,16 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       const newDiff: Map<number, boolean> = new Map<number, boolean>()
 
       // populate the current state of the diff
-      this.state.diff.lines
-        .forEach((line, index) => {
+      this.state.diff.sections.forEach(s => {
+        s.lines.forEach((line, index) => {
           if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
-            console.debug(`line [${index}] is type ${line.type} and is selected: ${line.selected}`)
-            newDiff.set(index, line.selected)
+            const absoluteIndex = s.startDiffSection + index
+            newDiff.set(absoluteIndex, line.selected)
           }
         })
+      })
 
       const include = !diff.selected
-      console.debug(`lines [${startLine},${endLine}] should be set to ${include}`)
 
       // apply the requested change
       for (let i = startLine; i <= endLine; i++) {
@@ -201,12 +193,12 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private renderSidebar = (rowIndex: number) => {
-    const datum = this.getDiffLineFromSection(rowIndex)!
+    const diffLine = this.getDiffLineFromSection(rowIndex)!
 
     if (this.props.readOnly) {
-      return this.readOnlySidebar(datum)
+      return this.readOnlySidebar(diffLine)
     } else {
-      return this.editableSidebar(datum, rowIndex)
+      return this.editableSidebar(diffLine, rowIndex)
     }
   }
 
