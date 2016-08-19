@@ -59,7 +59,12 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
         <div className='header'>Create New Branch</div>
         <hr/>
 
-        <label>Name <input type='text' onChange={event => this.onBranchNameChange(event)}/></label>
+        <label>Name
+          <input type='text'
+                 autoFocus={true}
+                 onChange={event => this.onBranchNameChange(event)}
+                 onKeyDown={event => this.onKeyDown(event)}/>
+        </label>
 
         {this.renderError()}
 
@@ -74,6 +79,12 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
         <button onClick={() => this.createBranch()} disabled={disabled}>Create Branch</button>
       </div>
     )
+  }
+
+  private onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Escape' && !this.state.proposedName.length) {
+      this.props.dispatcher.closePopup()
+    }
   }
 
   private onBranchNameChange(event: React.FormEvent<HTMLInputElement>) {
