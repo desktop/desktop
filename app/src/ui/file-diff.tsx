@@ -181,7 +181,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     )
   }
 
-  private renderSidebar = ({ rowIndex }: { rowIndex: number }) => {
+  private renderSidebar = (rowIndex: number) => {
     const datum = this.getDatum(rowIndex)
 
     if (this.props.readOnly) {
@@ -191,7 +191,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
   }
 
-  private renderBodyCell = ({ rowIndex }: { rowIndex: number }) => {
+  private renderBodyCell = (rowIndex: number) => {
     const diff = this.getDatum(rowIndex)
 
     const baseClassName = this.map(diff.type)
@@ -206,9 +206,9 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   private cellRenderer = ({ columnIndex, rowIndex }: { columnIndex: number, rowIndex: number }) => {
     if (columnIndex === 0) {
-      return this.renderSidebar({ rowIndex })
+      return this.renderSidebar(rowIndex)
     } else {
-      return this.renderBodyCell({ rowIndex })
+      return this.renderBodyCell(rowIndex)
     }
   }
 
