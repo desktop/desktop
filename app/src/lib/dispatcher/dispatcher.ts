@@ -243,7 +243,9 @@ export class Dispatcher {
     return this.appStore._pull(repository)
   }
 
-  public publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
-    return this.appStore._publishRepository(repository, name, description, private_, account, org)
+  /** Publish the repository to GitHub with the given properties. */
+  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
+    await this.appStore._publishRepository(repository, name, description, private_, account, org)
+    return this.refreshGitHubRepositoryInfo(repository)
   }
 }

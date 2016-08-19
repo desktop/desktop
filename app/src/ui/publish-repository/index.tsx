@@ -101,8 +101,6 @@ export default class PublishRepository extends React.Component<IPublishRepositor
       }
     }
 
-    console.log(owningAccount)
-
     this.props.dispatcher.publishRepository(this.props.repository, this.state.name, this.state.description, this.state.private, owningAccount!, this.state.selectedUser)
     this.props.dispatcher.closePopup()
   }

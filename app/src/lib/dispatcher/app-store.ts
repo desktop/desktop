@@ -694,10 +694,15 @@ export default class AppStore {
     return LocalGitOperations.pull(repository, remote, branch.name)
   }
 
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
-    // API create repo
-    // Push
-    // Set upstream
-    // Refresh github info
+    const api = new API(account)
+    const apiRepository = await api.createRepository(org, name, description, private_)
+
+    await LocalGitOperations.addRemote(repository.path, 'origin', apiRepository.cloneUrl)
+
+    // TODO: Write to the .git/description file?
+
+    await this._push(repository)
   }
 }
