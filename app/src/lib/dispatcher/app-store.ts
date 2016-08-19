@@ -581,8 +581,9 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
-    return LocalGitOperations.createBranch(repository, name, startPoint)
+  public async _createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
+    await LocalGitOperations.createBranch(repository, name, startPoint)
+    return this._checkoutBranch(repository, name)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
