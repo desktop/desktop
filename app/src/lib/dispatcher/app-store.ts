@@ -2,7 +2,10 @@ import { Emitter, Disposable } from 'event-kit'
 import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup, IBranchesState } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
+import GitHubRepository from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
+import { matchGitHubRepository } from '../../lib/repository-matching'
+import API, { getUserForEndpoint } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { findIndex } from '../find'
 
@@ -602,6 +605,33 @@ export default class AppStore {
       }
     })
     this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _repositoryWithRefreshedGitHubRepository(repository: Repository): Promise<Repository> {
+    let gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) {
+      gitHubRepository = await this.guessGitHubRepository(repository)
+    }
+
+    if (!gitHubRepository) { return repository }
+
+    const users = this.users
+    const user = getUserForEndpoint(users, gitHubRepository.endpoint)
+    if (!user) { return repository }
+
+    const api = new API(user)
+    const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
+    return repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
+  }
+
+  private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
+    // TODO: This is all kinds of wrong. We shouldn't assume the remote is named
+    // `origin`.
+    const remote = await LocalGitOperations.getConfigValue(repository, 'remote.origin.url')
+    if (!remote) { return null }
+
+    return matchGitHubRepository(this.users, remote)
   }
 
   private async loadBranchTips(repository: Repository): Promise<void> {
