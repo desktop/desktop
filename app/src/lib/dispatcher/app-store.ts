@@ -349,9 +349,17 @@ export default class AppStore {
 
       const includeAll = this.getIncludeAllState(mergedFiles)
 
+      let selectedFile: WorkingDirectoryFileChange | undefined
+
+      if (state.selectedFile) {
+        selectedFile = mergedFiles.find(function(file) {
+          return file.id === state.selectedFile!.id
+        })
+      }
+
       return {
         workingDirectory: new WorkingDirectoryStatus(mergedFiles, includeAll),
-        selectedFile: null,
+        selectedFile: selectedFile || null,
       }
     })
     this.emitUpdate()
