@@ -406,7 +406,7 @@ export default class AppStore {
   public async _commitIncludedChanges(repository: Repository, summary: string, description: string): Promise<void> {
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
-      return file.diffSelection.includeAll === true
+      return file.diffSelection.isIncludeAll() !== false
     })
 
     await LocalGitOperations.createCommit(repository, summary, description, files)

@@ -30,7 +30,7 @@ export class FileChange {
 /** encapsulate the selection of changes to a modified file in the working directory  */
 export class DiffSelection {
   /** by default, the diff selection to include all lines */
-  public readonly includeAll: boolean | null = true
+  private readonly includeAll: boolean | null = true
   /**
       once the user has started selecting specific lines to include,
       these selections are tracked here
@@ -42,22 +42,15 @@ export class DiffSelection {
     this.selectedLines = selectedLines
   }
 
-  // TODO: do we need these at all?
-
   /** check if all lines are selected in the diff */
   public isIncludeAll(): boolean | null {
-    if (this.selectedLines.keys.length === 0) {
+    if (this.selectedLines.size === 0) {
       return this.includeAll
     } else {
       const toArray = Array.from(this.selectedLines.values())
       const allSelected = toArray.every(k => k === true)
       return allSelected
     }
-  }
-
-  /** a quick check to indicate if this diff is a partial commit */
-  public isPartial(): boolean {
-    return this.includeAll === null
   }
 }
 

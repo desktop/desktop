@@ -54,17 +54,15 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     const change = file as WorkingDirectoryFileChange
 
     if (change) {
-      if (change.diffSelection.includeAll === null) {
-        const lines = change.diffSelection.selectedLines
-
-        Array.from(lines.keys()).forEach(key => {
-          const value = lines.get(key)
+      const diffSelection = change.diffSelection
+      const includeAll = diffSelection.isIncludeAll()
+      if (includeAll === null) {
+        diffSelection.selectedLines.forEach((value, index) => {
           if (value) {
-            diff.lines[key].selected = value!
+            diff.lines[index].selected = value!
           }
         })
       } else {
-        const includeAll = change.diffSelection.includeAll!
         diff.setAllLines(includeAll)
       }
     }
@@ -218,12 +216,13 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     if (this.props.file) {
 
-      let invalidationProps = { path: this.props.file!.path, include: false }
+      let invalidationProps: { path: string, include: boolean | null } = { path: this.props.file!.path, include: false }
 
       const workingDirectoryChange = this.props.file as WorkingDirectoryFileChange
 
-      if (workingDirectoryChange && workingDirectoryChange.diffSelection.includeAll) {
-        invalidationProps = { path: this.props.file!.path, include: workingDirectoryChange.diffSelection.includeAll }
+      if (workingDirectoryChange) {
+        const includeAll = workingDirectoryChange.diffSelection.isIncludeAll()
+        invalidationProps = { path: this.props.file!.path, include: includeAll }
       }
 
       return (
