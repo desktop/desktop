@@ -14,6 +14,7 @@ interface IFileDiffProps {
   readonly readOnly: boolean
   readonly file: FileChange | null
   readonly commit: Commit | null
+  readonly onIncludeChanged: ((diffSelection: Map<number, boolean>) => void) | null
 }
 
 interface IFileDiffState {
@@ -43,19 +44,32 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   private async renderDiff(repository: IRepository, file: FileChange | null, readOnly: boolean) {
     if (!file) {
-      // TOOD: don't render anything
-    } else {
-
-      const diff = await LocalGitOperations.getDiff(repository, file, this.props.commit)
-
-      const workingDirectoryChange = file as WorkingDirectoryFileChange
-
-      if (workingDirectoryChange && workingDirectoryChange.include) {
-        diff.setAllLines(workingDirectoryChange.include)
-      }
-
-      this.setState(Object.assign({}, this.state, { diff }))
+      // clear whatever existing state
+      this.setState(Object.assign({}, this.state, { diff: new Diff([]) }))
+      return
     }
+
+    const diff = await LocalGitOperations.getDiff(repository, file, this.props.commit)
+
+    const change = file as WorkingDirectoryFileChange
+
+    if (change) {
+      if (change.diffSelection.includeAll === null) {
+        const lines = change.diffSelection.selectedLines
+
+        Array.from(lines.keys()).forEach(key => {
+          const value = lines.get(key)
+          if (value) {
+            diff.lines[key].selected = value!
+          }
+        })
+      } else {
+        const includeAll = change.diffSelection.includeAll!
+        diff.setAllLines(includeAll)
+      }
+    }
+
+    this.setState(Object.assign({}, this.state, { diff }))
   }
 
   private map(type: DiffLineType): string {
@@ -107,7 +121,38 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private onMouseDownHandler(diff: DiffLine) {
+    if (this.props.onIncludeChanged) {
+      const startLine = this.state.diff.lines.indexOf(diff)
+      const endLine = startLine
 
+      const f = this.props.file as WorkingDirectoryFileChange
+
+      if (!f) {
+        console.error('cannot change selected lines when selection is not a working directory change')
+        return
+      }
+
+      const newDiff: Map<number, boolean> = new Map<number, boolean>()
+
+      // populate the current state of the diff
+      this.state.diff.lines
+        .forEach((line, index) => {
+          if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
+            console.debug(`line [${index}] is type ${line.type} and is selected: ${line.selected}`)
+            newDiff.set(index, line.selected)
+          }
+        })
+
+      const include = !diff.selected
+      console.debug(`lines [${startLine},${endLine}] should be set to ${include}`)
+
+      // apply the requested change
+      for (let i = startLine; i <= endLine; i++) {
+        newDiff.set(i, include)
+      }
+
+      this.props.onIncludeChanged!(newDiff)
+    }
   }
 
   private editableSidebar(diff: DiffLine) {
@@ -115,8 +160,6 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     const className = diff.selected ? baseClassName + '-selected' : baseClassName
 
     // TODO: depending on cursor position, highlight hunk rather than line
-    // TODO: external callback to change diff state
-    // TODO: diff state needs to trigger repainting of diff contents
 
     return (
       <div className={className}
@@ -179,8 +222,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
       const workingDirectoryChange = this.props.file as WorkingDirectoryFileChange
 
-      if (workingDirectoryChange && workingDirectoryChange.include) {
-        invalidationProps = { path: this.props.file!.path, include: workingDirectoryChange.include }
+      if (workingDirectoryChange && workingDirectoryChange.diffSelection.includeAll) {
+        invalidationProps = { path: this.props.file!.path, include: workingDirectoryChange.diffSelection.includeAll }
       }
 
       return (

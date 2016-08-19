@@ -345,7 +345,7 @@ export default class AppStore {
       const mergedFiles = workingDirectory.files.map(file => {
         const existingFile = filesByID.get(file.id)
         if (existingFile) {
-          return file.withInclude(existingFile.include)
+          return file.withDiffSelection(existingFile.diffSelection)
         } else {
           return file
         }
@@ -406,7 +406,7 @@ export default class AppStore {
   public async _commitIncludedChanges(repository: Repository, summary: string, description: string): Promise<void> {
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
-      return file.include === true
+      return file.diffSelection.includeAll === true
     })
 
     await LocalGitOperations.createCommit(repository, summary, description, files)
@@ -415,8 +415,8 @@ export default class AppStore {
   }
 
   private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {
-    const allSelected = files.every(f => f.include)
-    const noneSelected = files.every(f => !f.include)
+    const allSelected = files.every(f => f.diffSelection.isIncludeAll() === true)
+    const noneSelected = files.every(f => !f.diffSelection.isIncludeAll() === false)
 
     let includeAll: boolean | null = null
     if (allSelected) {
@@ -433,7 +433,44 @@ export default class AppStore {
     this.updateRepositoryState(repository, state => {
       const newFiles = state.changesState.workingDirectory.files.map(f => {
         if (f.id === file.id) {
-          return f.withInclude(include)
+          return f.withIncludeAll(include)
+        } else {
+          return f
+        }
+      })
+
+      const includeAll = this.getIncludeAllState(newFiles)
+
+      let selectedFile: WorkingDirectoryFileChange | undefined
+      if (state.changesState.selectedFile) {
+          const f = state.changesState.selectedFile!
+          selectedFile = newFiles.find(file => file.id === f.id)
+      }
+
+      const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
+      return {
+        selectedSection: state.selectedSection,
+        changesState: {
+          workingDirectory,
+          selectedFile: selectedFile || null,
+        },
+        historyState: state.historyState,
+        committerEmail: state.committerEmail,
+        branchesState: state.branchesState,
+      }
+    })
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: Map<number, boolean>): Promise<void> {
+    this.updateRepositoryState(repository, state => {
+
+      const newFiles = state.changesState.workingDirectory.files.map(f => {
+        if (f.id === file.id) {
+          return f.withDiffLinesSelection(diffSelection)
         } else {
           return f
         }

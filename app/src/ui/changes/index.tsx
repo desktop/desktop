@@ -42,6 +42,16 @@ export class Changes extends React.Component<IChangesProps, void> {
     this.props.dispatcher.changeIncludeAllFiles(this.props.repository, selectAll)
   }
 
+  private onDiffLineIncludeChanged(diffSelection: Map<number, boolean>) {
+    const file = this.props.changes.selectedFile
+    if (!file) {
+      console.error('diff line selection changed despite no file error - what?')
+      return
+    }
+
+    this.props.dispatcher.changeFileLineSelection(this.props.repository, file, diffSelection)
+  }
+
   public render() {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
 
@@ -72,7 +82,8 @@ export class Changes extends React.Component<IChangesProps, void> {
         <FileDiff repository={this.props.repository}
                   file={this.props.changes.selectedFile}
                   readOnly={false}
-                  commit={null} />
+                  commit={null}
+                  onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)} />
       </div>
     )
   }

@@ -1,4 +1,4 @@
-import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
+import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus, DiffSelection } from '../models/status'
 import Repository from '../models/repository'
 
 import { GitProcess, GitError, GitErrorCode } from './git-process'
@@ -62,7 +62,7 @@ export class DiffLine {
   public readonly type: DiffLineType
   public readonly oldLineNumber: number | null
   public readonly newLineNumber: number | null
-  public selected: Boolean
+  public selected: boolean
 
   public constructor(text: string, type: DiffLineType, oldLineNumber: number | null, newLineNuber: number | null) {
     this.text = text
@@ -247,7 +247,8 @@ export class LocalGitOperations {
                 const path = result[regexGroups.path]
 
                 const status = this.mapStatus(modeText)
-                files.push(new WorkingDirectoryFileChange(path, status, true))
+                const diffSelection = new DiffSelection(true, new Map<number, boolean>())
+                files.push(new WorkingDirectoryFileChange(path, status, diffSelection))
               }
             }
 

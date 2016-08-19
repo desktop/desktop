@@ -72,7 +72,8 @@ export default class History extends React.Component<IHistoryProps, void> {
         <FileDiff repository={this.props.repository}
                   file={selectedFile}
                   commit={commit}
-                  readOnly={true} />
+                  readOnly={true}
+                  onIncludeChanged={null} />
       </div>
     )
   }

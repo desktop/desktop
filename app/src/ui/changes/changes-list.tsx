@@ -29,10 +29,26 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
 
   private renderRow(row: number): JSX.Element {
     const file = this.props.workingDirectory.files[row]
+
+    let includeAll: boolean | null = file.diffSelection.includeAll
+
+    if (file.diffSelection.selectedLines.size > 0) {
+
+      const toArray = Array.from(file.diffSelection.selectedLines.values())
+      const allSelected = toArray.every(k => k === true)
+      const noneSelected = toArray.every(k => k === false)
+
+      if (allSelected) {
+        includeAll = true
+      } else if (noneSelected) {
+        includeAll = false
+      }
+    }
+
     return (
       <ChangedFile path={file.path}
                    status={file.status}
-                   include={file.include}
+                   include={includeAll}
                    key={file.id}
                    onIncludeChanged={include => this.props.onIncludeChanged(row, include)}/>
     )

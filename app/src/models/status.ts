@@ -26,20 +26,83 @@ export class FileChange {
   }
 }
 
+
+/** encapsulate the selection of changes to a modified file in the working directory  */
+export class DiffSelection {
+  /** by default, the diff selection to include all lines */
+  public readonly includeAll: boolean | null = true
+  /**
+      once the user has started selecting specific lines to include,
+      these selections are tracked here
+  */
+  public readonly selectedLines: Map<number, boolean>
+
+  public constructor(includeAll: boolean | null, selectedLines: Map<number, boolean>) {
+    this.includeAll = includeAll
+    this.selectedLines = selectedLines
+  }
+
+  // TODO: do we need these at all?
+
+  /** check if all lines are selected in the diff */
+  public isIncludeAll(): boolean | null {
+    if (this.selectedLines.keys.length === 0) {
+      return this.includeAll
+    } else {
+      const toArray = Array.from(this.selectedLines.values())
+      const allSelected = toArray.every(k => k === true)
+      return allSelected
+    }
+  }
+
+  /** a quick check to indicate if this diff is a partial commit */
+  public isPartial(): boolean {
+    return this.includeAll === null
+  }
+}
+
 /** encapsulate the changes to a file in the working directory  */
 export class WorkingDirectoryFileChange extends FileChange {
-  /** whether the file should be included in the next commit */
-  public readonly include: boolean = true
 
-  public constructor(path: string, status: FileStatus, include: boolean) {
+  /** whether the file should be included in the next commit */
+  public readonly diffSelection: DiffSelection
+  public constructor(path: string, status: FileStatus, diffSelection: DiffSelection) {
     super(path, status)
 
-    this.include = include
+    this.diffSelection = diffSelection
   }
 
   /** Create a new WorkingDirectoryFileChange with the given includedness. */
-  public withInclude(include: boolean): WorkingDirectoryFileChange {
-    return new WorkingDirectoryFileChange(this.path, this.status, include)
+  public withIncludeAll(include: boolean): WorkingDirectoryFileChange {
+    const selection = new DiffSelection(include, new Map<number, boolean>())
+    return this.withDiffSelection(selection)
+  }
+
+  /** Create a new WorkingDirectoryFileChange with the given diff selection. */
+  public withDiffSelection(selection: DiffSelection): WorkingDirectoryFileChange {
+    return new WorkingDirectoryFileChange(this.path, this.status, selection)
+  }
+
+  /** Create a new WorkingDirectoryFileChange with the given line selection. */
+  public withDiffLinesSelection(diffLines: Map<number, boolean>): WorkingDirectoryFileChange {
+
+    // TODO: we've duplicated this is in some places
+    //       evaluate if we can :fire: this and move it into DiffSelection
+
+    const toArray = Array.from(diffLines.values())
+
+    const allSelected = toArray.every(k => k === true)
+    const noneSelected = toArray.every(k => k === false)
+
+    let includeAll: boolean | null = null
+    if (allSelected) {
+      includeAll = true
+    } else if (noneSelected) {
+      includeAll = false
+    }
+
+    const selection = new DiffSelection(includeAll, diffLines)
+    return this.withDiffSelection(selection)
   }
 }
 
@@ -67,7 +130,7 @@ export class WorkingDirectoryStatus {
    * Update the include state of all files in the working directory
    */
   public withIncludeAllFiles(includeAll: boolean): WorkingDirectoryStatus {
-    const newFiles = this.files.map(f => f.withInclude(includeAll))
+    const newFiles = this.files.map(f => f.withIncludeAll(includeAll))
     return new WorkingDirectoryStatus(newFiles, includeAll)
   }
 }

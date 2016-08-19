@@ -190,6 +190,11 @@ export class Dispatcher {
     return this.appStore._changeFileIncluded(repository, file, include)
   }
 
+  /** Change the file's selected state. */
+  public changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: Map<number, boolean>): Promise<void> {
+    return this.appStore._changeFileLineSelection(repository, file, diffSelection)
+  }
+
   /** Change the Include All state. */
   public changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
     return this.appStore._changeIncludeAllFiles(repository, includeAll)
