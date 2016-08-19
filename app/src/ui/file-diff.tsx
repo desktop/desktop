@@ -204,9 +204,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   private renderBodyCell = (rowIndex: number) => {
     const diff = this.getDiffLineFromSection(rowIndex)!
-
-    const baseClassName = this.map(diff.type)
-    const className = diff.selected ? baseClassName + '-selected' : baseClassName
+    const className = this.map(diff.type)
 
     return (
       <div className={className}>
