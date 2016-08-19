@@ -29,6 +29,8 @@ export interface IAPICommit {
  * Information about a user as returned by the GitHub API.
  */
 export interface IAPIUser {
+  readonly id: number
+  readonly url: string
   readonly type: 'user' | 'org'
   readonly login: string
   readonly avatarUrl: string
