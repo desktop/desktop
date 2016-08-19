@@ -111,6 +111,12 @@ export default class API {
       return null
     }
   }
+
+  /** Fetch all the orgs to which the user belongs. */
+  public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
+    const result = await this.client.user.orgs.fetch()
+    return result.items
+  }
 }
 
 /**
