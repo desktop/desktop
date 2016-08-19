@@ -231,4 +231,14 @@ export class Dispatcher {
   public loadBranches(repository: Repository): Promise<void> {
     return this.appStore._loadBranches(repository)
   }
+
+  /** Push the current branch. */
+  public push(repository: Repository): Promise<void> {
+    return this.appStore._push(repository)
+  }
+
+  /** Pull the current branch. */
+  public pull(repository: Repository): Promise<void> {
+    return this.appStore._pull(repository)
+  }
 }

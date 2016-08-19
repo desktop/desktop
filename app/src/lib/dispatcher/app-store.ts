@@ -655,4 +655,41 @@ export default class AppStore {
     // add to the map.
     this.emitUpdate()
   }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _push(repository: Repository): Promise<void> {
+    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    if (!remote) {
+      return Promise.reject(new Error('The repository has no remotes.'))
+    }
+
+    const state = this.getRepositoryState(repository)
+    const branch = state.branchesState.currentBranch
+    if (!branch) {
+      return Promise.reject(new Error('The current branch is unborn.'))
+    }
+
+    const upstream = branch.upstream
+    if (upstream) {
+      return LocalGitOperations.push(repository, remote, branch.name, false)
+    } else {
+      return LocalGitOperations.push(repository, remote, branch.name, true)
+    }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _pull(repository: Repository): Promise<void> {
+    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    if (!remote) {
+      return Promise.reject(new Error('The repository has no remotes.'))
+    }
+
+    const state = this.getRepositoryState(repository)
+    const branch = state.branchesState.currentBranch
+    if (!branch) {
+      return Promise.reject(new Error('The current branch is unborn.'))
+    }
+
+    return LocalGitOperations.pull(repository, remote, branch.name)
+  }
 }

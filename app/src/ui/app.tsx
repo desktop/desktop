@@ -8,7 +8,6 @@ import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
 import { Dispatcher, AppStore, GitUserStore } from '../lib/dispatcher'
 import Repository from '../models/repository'
-import { LocalGitOperations } from '../lib/local-git-operations'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
 import { IAppState, RepositorySection, Popup } from '../lib/app-state'
@@ -101,59 +100,18 @@ export default class App extends React.Component<IAppProps, IAppState> {
     return this.props.dispatcher.changeRepositorySection(repository, RepositorySection.History)
   }
 
-  private async push() {
+  private push() {
     const repository = this.state.selectedRepository
     if (!repository) { return }
 
-    const remote = await LocalGitOperations.getDefaultRemote(repository)
-    if (!remote) {
-      console.error('This repo has no remotes ¯\_(ツ)_/¯')
-      return
-    }
-
-    const state = this.state.repositoryState
-    if (!state) {
-      console.error('¯\_(ツ)_/¯')
-      return
-    }
-
-    const branch = state.branchesState.currentBranch
-    if (!branch) {
-      console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
-      return
-    }
-
-    const upstream = branch.upstream
-    if (upstream) {
-      await LocalGitOperations.push(repository, remote, branch.name, false)
-    } else {
-      await LocalGitOperations.push(repository, remote, branch.name, true)
-    }
+    this.props.dispatcher.push(repository)
   }
 
   private async pull() {
     const repository = this.state.selectedRepository
     if (!repository) { return }
 
-    const remote = await LocalGitOperations.getDefaultRemote(repository)
-    if (!remote) {
-      console.error('This repo has no remotes ¯\_(ツ)_/¯')
-      return
-    }
-
-    const state = this.state.repositoryState
-    if (!state) {
-      console.error('¯\_(ツ)_/¯')
-      return
-    }
-
-    const branch = state.branchesState.currentBranch
-    if (!branch) {
-      console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
-      return
-    }
-
-    await LocalGitOperations.pull(repository, remote, branch.name)
+    this.props.dispatcher.pull(repository)
   }
 
   public componentDidMount() {
@@ -313,17 +271,9 @@ export default class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private refreshRepository(repository: Repository) {
-    // This probably belongs in the Repository component or whatever, but until
-    // that exists...
-    console.log(repository)
-    this.props.dispatcher.refreshGitHubRepositoryInfo(repository)
-  }
-
   private onSelectionChanged(repository: Repository) {
     this.props.dispatcher.selectRepository(repository)
-
-    this.refreshRepository(repository)
+    this.props.dispatcher.refreshGitHubRepositoryInfo(repository)
   }
 }
 
