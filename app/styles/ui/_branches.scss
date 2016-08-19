@@ -1,0 +1,39 @@
+.branches-list-container {
+  height: 200px;
+
+  .branches-list-content {
+    display: flex;
+    flex: 1;
+
+    padding: var(--spacing-third) var(--spacing);
+    font-size: 11px;
+  }
+
+  .branches-list-content:hover {
+    background: var(--box-alt-background-color);
+  }
+}
+
+// Prevent borders from stacking if the first
+// row is a group label
+.Grid__cell:first-child {
+  .branches-list-label {
+    border-top: none;
+  }
+}
+
+.branches-list-item,
+.branches-list-label {
+  flex-grow: 1;
+}
+
+.branches-list-label {
+  background: var(--box-alt-background-color);
+  border-top: var(--base-border);
+  border-bottom: var(--base-border);
+}
+
+.branch-filter-input {
+  margin: var(--spacing);
+  margin-bottom: 0;
+}

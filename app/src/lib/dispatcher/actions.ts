@@ -11,12 +11,12 @@ export interface IGetRepositoriesAction {
 
 export interface IAddRepositoriesAction {
   name: 'add-repositories'
-  readonly repositories: ReadonlyArray<IRepository>
+  readonly paths: ReadonlyArray<string>
 }
 
 export interface IRemoveRepositoriesAction {
   name: 'remove-repositories'
-  readonly repositoryIDs: number[]
+  readonly repositoryIDs: ReadonlyArray<number>
 }
 
 export interface IRequestOAuthAction {

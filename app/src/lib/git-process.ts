@@ -56,22 +56,7 @@ export class GitProcess {
    *  Execute a command using the embedded Git environment
    */
   public static exec(args: string[], path: string): Promise<void> {
-    return new Promise(function(resolve, reject) {
-      const gitLocation = GitProcess.resolveGit()
-      const formatArgs = 'executing: git ' + args.join(' ')
-
-      cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
-        if (err) {
-          console.error(formatArgs)
-          console.error(err)
-          reject(err)
-          return
-        }
-
-        console.debug(formatArgs)
-        resolve()
-      })
-    })
+    return this.execWithOutput(args, path)
   }
 
   /**
@@ -80,11 +65,15 @@ export class GitProcess {
   public static execWithOutput(args: string[], path: string): Promise<string> {
     return new Promise<string>(function(resolve, reject) {
       const gitLocation = GitProcess.resolveGit()
-      const formatArgs = 'executing: git ' + args.join(' ')
+      const startTime = performance.now()
+      const logMessage = () => {
+        const time = ((performance.now() - startTime) / 1000).toFixed(2)
+        return `executing: git ${args.join(' ')} (took ${time}s)`
+      }
 
       cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
         if (!err) {
-          console.debug(formatArgs)
+          console.debug(logMessage())
           resolve(output)
           return
         }
@@ -108,12 +97,12 @@ export class GitProcess {
             //
             // citation in source:
             // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
-            console.debug(formatArgs)
+            console.debug(logMessage())
             resolve(output)
           }
         }
 
-        console.error(formatArgs)
+        console.error(logMessage())
         console.error(err)
         reject(err)
       })

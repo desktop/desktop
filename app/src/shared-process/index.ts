@@ -50,11 +50,10 @@ register('get-users', () => {
   return Promise.resolve(usersStore.getUsers())
 })
 
-register('add-repositories', async ({ repositories }: IAddRepositoriesAction) => {
-  const inflatedRepositories = repositories.map(r => Repository.fromJSON(r as IRepository))
+register('add-repositories', async ({ paths }: IAddRepositoriesAction) => {
   const addedRepos: Repository[] = []
-  for (const repo of inflatedRepositories) {
-    const addedRepo = await repositoriesStore.addRepository(repo)
+  for (const path of Array.from(paths)) {
+    const addedRepo = await repositoriesStore.addRepository(path)
     addedRepos.push(addedRepo)
   }
 
@@ -64,7 +63,7 @@ register('add-repositories', async ({ repositories }: IAddRepositoriesAction) =>
 
 register('remove-repositories', async ({ repositoryIDs }: IRemoveRepositoriesAction) => {
   const removedRepoIDs: number[] = []
-  for (const repoID of repositoryIDs) {
+  for (const repoID of Array.from(repositoryIDs)) {
     await repositoriesStore.removeRepository(repoID)
     removedRepoIDs.push(repoID)
   }

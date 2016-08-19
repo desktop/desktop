@@ -7,7 +7,7 @@ const fs = require('fs-extra')
 const temp = require('temp').track()
 
 import Repository from '../src/models/repository'
-import { LocalGitOperations } from '../src/lib/local-git-operations'
+import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
 import { FileStatus, FileChange } from '../src/models/status'
 
 
@@ -26,7 +26,7 @@ describe('LocalGitOperations', () => {
 
   beforeEach(() => {
     const testRepoPath = setupTestRepository('test-repo')
-    repository = new Repository(testRepoPath, null, null)
+    repository = new Repository(testRepoPath, -1, null)
   })
 
   after(() => {
@@ -109,7 +109,7 @@ describe('LocalGitOperations', () => {
 
     beforeEach(() => {
       const testRepoPath = setupTestRepository('repo-with-changes')
-      repository = new Repository(testRepoPath, null, null)
+      repository = new Repository(testRepoPath, -1, null)
     })
 
     it('counts lines for new file', async () => {
@@ -166,16 +166,20 @@ describe('LocalGitOperations', () => {
       it('should get the current branch', async () => {
         const branch = await LocalGitOperations.getCurrentBranch(repository!)
         expect(branch!.name).to.equal('master')
+        expect(branch!.sha).to.equal('04c7629c588c74659f03dda5e5fb3dd8d6862dfa')
         expect(branch!.upstream).to.equal(null)
+        expect(branch!.type).to.equal(BranchType.Local)
       })
     })
 
     describe('all branches', () => {
       it('should list all branches', async () => {
-        const branches = await LocalGitOperations.getBranches(repository!)
+        const branches = await LocalGitOperations.getBranches(repository!, 'refs/heads', BranchType.Local)
         expect(branches.length).to.equal(1)
         expect(branches[0].name).to.equal('master')
+        expect(branches[0].sha).to.equal('04c7629c588c74659f03dda5e5fb3dd8d6862dfa')
         expect(branches[0].upstream).to.equal(null)
+        expect(branches[0].type).to.equal(BranchType.Local)
       })
     })
   })

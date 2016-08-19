@@ -4,13 +4,10 @@ import { ipcRenderer, remote } from 'electron'
 import { Resizable } from './resizable'
 import RepositoriesList from './repositories-list'
 import { default as RepositoryView } from './repository'
-import GitHubRepository from '../models/github-repository'
 import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
 import { Dispatcher, AppStore, GitUserStore } from '../lib/dispatcher'
 import Repository from '../models/repository'
-import { matchGitHubRepository } from '../lib/repository-matching'
-import API, { getUserForEndpoint } from '../lib/api'
 import { LocalGitOperations } from '../lib/local-git-operations'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
@@ -18,6 +15,7 @@ import { IAppState, RepositorySection, Popup } from '../lib/app-state'
 import Popuppy from './popuppy'
 import CreateBranch from './create-branch'
 import Branches from './branches'
+import AddRepository from './add-repository'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -70,9 +68,15 @@ export default class App extends React.Component<IAppProps, IAppState> {
       case 'add-local-repository': return this.showFileBrowser()
       case 'create-branch': return this.createBranch()
       case 'show-branches': return this.showBranches()
+      case 'remove-repository': return this.removeRepository()
+      case 'add-repository': return this.addRepository()
     }
 
     return fatalError(`Unknown menu event name: ${name}`)
+  }
+
+  private addRepository() {
+    this.props.dispatcher.showPopup(Popup.AddRepository, null)
   }
 
   private createBranch() {
@@ -113,7 +117,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const branch = state.currentBranch
+    const branch = state.branchesState.currentBranch
     if (!branch) {
       console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
       return
@@ -143,7 +147,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const branch = state.currentBranch
+    const branch = state.branchesState.currentBranch
     if (!branch) {
       console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
       return
@@ -182,11 +186,18 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private async addRepositories(paths: string[]) {
-    const repositories = paths.map(p => new Repository(p))
-    const addedRepos = await this.props.dispatcher.addRepositories(repositories)
+  private removeRepository() {
+    const repository = this.state.selectedRepository
+    if (!repository) {
+      return
+    }
 
-    addedRepos.forEach(repo => this.refreshGitHubRepositoryInfo(repo))
+    const repoID: number = repository.id
+    this.props.dispatcher.removeRepositories([ repoID ])
+  }
+
+  private addRepositories(paths: string[]) {
+    this.props.dispatcher.addRepositories(paths)
   }
 
   private renderTitlebar() {
@@ -220,17 +231,27 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
     let content: JSX.Element | null = null
     switch (popup) {
-      case Popup.CreateBranch:
+      case Popup.CreateBranch: {
+        const state = this.state.repositoryState!.branchesState
         content = <CreateBranch repository={this.state.selectedRepository!}
                                 dispatcher={this.props.dispatcher}
-                                branches={this.state.repositoryState!.branches}
-                                currentBranch={this.state.repositoryState!.currentBranch}/>
-        break
+                                branches={state.allBranches}
+                                currentBranch={state.currentBranch}/>
+      } break
 
-      case Popup.ShowBranches:
-        content = <Branches branches={this.state.repositoryState!.branches}
+      case Popup.ShowBranches: {
+        const state = this.state.repositoryState!.branchesState
+        content = <Branches allBranches={state.allBranches}
+                            recentBranches={state.recentBranches}
+                            currentBranch={state.currentBranch}
+                            defaultBranch={state.defaultBranch}
                             dispatcher={this.props.dispatcher}
-                            repository={this.state.selectedRepository!}/>
+                            repository={this.state.selectedRepository!}
+                            commits={state.commits}/>
+      } break
+
+      case Popup.AddRepository:
+        content = <AddRepository dispatcher={this.props.dispatcher}/>
         break
     }
 
@@ -294,41 +315,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
     // This probably belongs in the Repository component or whatever, but until
     // that exists...
     console.log(repository)
-    this.refreshGitHubRepositoryInfo(repository)
+    this.props.dispatcher.refreshGitHubRepositoryInfo(repository)
   }
 
   private onSelectionChanged(repository: Repository) {
     this.props.dispatcher.selectRepository(repository)
 
     this.refreshRepository(repository)
-  }
-
-  private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
-    // TODO: This is all kinds of wrong. We shouldn't assume the remote is named
-    // `origin`.
-    const remote = await LocalGitOperations.getConfigValue(repository, 'remote.origin.url')
-    if (!remote) { return null }
-
-    return matchGitHubRepository(this.state.users, remote)
-  }
-
-  private async refreshGitHubRepositoryInfo(repository: Repository): Promise<void> {
-    let gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) {
-      gitHubRepository = await this.guessGitHubRepository(repository)
-    }
-
-    if (!gitHubRepository) { return Promise.resolve() }
-
-    const users = this.state.users
-    const user = getUserForEndpoint(users, gitHubRepository.endpoint)
-    if (!user) { return Promise.resolve() }
-
-    const api = new API(user)
-    const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
-
-    const updatedRepository = repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
-    this.props.dispatcher.updateGitHubRepository(updatedRepository)
   }
 }
 

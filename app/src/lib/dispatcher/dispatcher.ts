@@ -109,13 +109,19 @@ export class Dispatcher {
     return json.map(Repository.fromJSON)
   }
 
-  public async addRepositories(repositories: ReadonlyArray<Repository>): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', repositories })
-    return json.map(Repository.fromJSON)
+  public async addRepositories(paths: ReadonlyArray<string>): Promise<ReadonlyArray<Repository>> {
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', paths })
+    const addedRepositories = json.map(Repository.fromJSON)
+    for (const repository of addedRepositories) {
+      this.refreshGitHubRepositoryInfo(repository)
+    }
+
+    return addedRepositories
   }
 
-  public async removeRepositories(repositoryIDs: number[]): Promise<void> {
-    await this.dispatchToSharedProcess<number[]>({ name: 'remove-repositories', repositoryIDs })
+  /** Remove the repositories represented by the given IDs from local storage. */
+  public async removeRepositories(repositoryIDs: ReadonlyArray<number>): Promise<void> {
+    await this.dispatchToSharedProcess<ReadonlyArray<number>>({ name: 'remove-repositories', repositoryIDs })
   }
 
   /** Request the user approve our OAuth request. This will open their browser. */
@@ -123,9 +129,12 @@ export class Dispatcher {
     return this.dispatchToSharedProcess<void>({ name: 'request-oauth' })
   }
 
-  /** Update the repository's GitHub repository. */
-  public updateGitHubRepository(repository: Repository): Promise<void> {
-    return this.dispatchToSharedProcess<void>({ name: 'update-github-repository', repository })
+  /** Refresh the associated GitHub repository. */
+  public async refreshGitHubRepositoryInfo(repository: Repository): Promise<void> {
+    const refreshedRepository = await this.appStore._repositoryWithRefreshedGitHubRepository(repository)
+    if (refreshedRepository === repository) { return }
+
+    return this.dispatchToSharedProcess<void>({ name: 'update-github-repository', repository: refreshedRepository })
   }
 
   /** Load the history for the repository. */

@@ -1,0 +1,36 @@
+.popup {
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+  width: 50%;
+  margin: auto;
+  background-color: var(--box-alt-background-color);
+  position: absolute;
+  border: var(--base-border);
+  border-radius: var(--border-radius);
+  box-shadow: 0 0 7px rgba(0,0,0,0.15);
+}
+
+.popup-content-container {
+  border: var(--base-border);
+  border-radius: var(--border-radius);
+  background: var(--background-color);
+  margin: var(--spacing);
+}
+
+.popup-navigation {
+  padding: var(--spacing);
+
+  .tab-bar-item {
+    display: inline-block;
+    padding: 3px 20px;
+    text-align: center;
+    width: 33%;
+  }
+}
+
+.popup-actions {
+  border-top: var(--base-border);
+  padding: var(--spacing);
+  text-align: right;
+}

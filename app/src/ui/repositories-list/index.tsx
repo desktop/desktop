@@ -72,7 +72,8 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
             rowRenderer={row => this.renderRow(grouped, row)}
             selectedRow={this.selectedRow(grouped)}
             onSelectionChanged={row => this.onSelectionChanged(grouped, row)}
-            canSelectRow={row => this.canSelectRow(grouped, row)}/>
+            canSelectRow={row => this.canSelectRow(grouped, row)}
+            invalidationProps={this.props.repos}/>
     )
   }
 }

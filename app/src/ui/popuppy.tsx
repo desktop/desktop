@@ -6,20 +6,8 @@ import * as React from 'react'
  */
 export default class Popuppy extends React.Component<any, any> {
   public render() {
-    const style: React.CSSProperties = {
-      display: 'flex',
-      flexDirection: 'column',
-      zIndex: 99,
-      width: '50%',
-      height: '50%',
-      margin: 'auto',
-      backgroundColor: 'rgb(255, 210, 210)',
-      position: 'absolute'
-    }
     return (
-      <div style={style}>
-        <div><strong><em>🔥 This is fine 🔥</em></strong></div>
-        <div>&nbsp;</div>
+      <div className='popup'>
         {this.props.children}
       </div>
     )

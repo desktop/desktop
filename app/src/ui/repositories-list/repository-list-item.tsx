@@ -42,14 +42,15 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
   }
 
   private onContextMenu(event: React.MouseEvent<any>) {
-    console.log('right clicked repo')
     event.preventDefault()
-    this.contextMenu.popup(remote.getCurrentWindow())
+    if (process.platform !== 'win32') {
+      this.contextMenu.popup(remote.getCurrentWindow())
+    }
   }
 
-  private async removeRepository() {
-    const repoID: number = this.props.repository.id!
-    await this.props.dispatcher.removeRepositories([ repoID ])
+  private removeRepository() {
+    const repoID: number = this.props.repository.id
+    this.props.dispatcher.removeRepositories([ repoID ])
   }
 }
 

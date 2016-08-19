@@ -1,13 +1,19 @@
 import { Emitter, Disposable } from 'event-kit'
-import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup } from '../app-state'
+import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup, IBranchesState } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
+import GitHubRepository from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
-import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
+import { matchGitHubRepository } from '../../lib/repository-matching'
+import API, { getUserForEndpoint } from '../../lib/api'
+import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { findIndex } from '../find'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
+
+/** The max number of recent branches to find. */
+const RecentBranchesLimit = 5
 
 export default class AppStore {
   private emitter = new Emitter()
@@ -55,24 +61,29 @@ export default class AppStore {
         selectedFile: null,
       },
       selectedSection: RepositorySection.History,
-      currentBranch: null,
-      branches: new Array<Branch>(),
+      branchesState: {
+        currentBranch: null,
+        defaultBranch: null,
+        allBranches: new Array<Branch>(),
+        recentBranches: new Array<Branch>(),
+        commits: new Map<string, Commit>(),
+      },
       committerEmail: null,
     }
   }
 
   private getRepositoryState(repository: Repository): IRepositoryState {
-    let state = this.repositoryState.get(repository.id!)
+    let state = this.repositoryState.get(repository.id)
     if (state) { return state }
 
     state = this.getInitialRepositoryState()
-    this.repositoryState.set(repository.id!, state)
+    this.repositoryState.set(repository.id, state)
     return state
   }
 
   private updateRepositoryState(repository: Repository, fn: (state: IRepositoryState) => IRepositoryState) {
     const currentState = this.getRepositoryState(repository)
-    this.repositoryState.set(repository.id!, fn(currentState))
+    this.repositoryState.set(repository.id, fn(currentState))
   }
 
   private updateHistoryState(repository: Repository, fn: (historyState: IHistoryState) => IHistoryState) {
@@ -82,9 +93,8 @@ export default class AppStore {
         historyState,
         changesState: state.changesState,
         selectedSection: state.selectedSection,
-        currentBranch: state.currentBranch,
-        branches: state.branches,
         committerEmail: state.committerEmail,
+        branchesState: state.branchesState,
       }
     })
   }
@@ -96,9 +106,21 @@ export default class AppStore {
         historyState: state.historyState,
         changesState,
         selectedSection: state.selectedSection,
-        currentBranch: state.currentBranch,
-        branches: state.branches,
         committerEmail: state.committerEmail,
+        branchesState: state.branchesState,
+      }
+    })
+  }
+
+  private updateBranchesState(repository: Repository, fn: (branchesState: IBranchesState) => IBranchesState) {
+    this.updateRepositoryState(repository, state => {
+      const branchesState = fn(state.branchesState)
+      return {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        committerEmail: state.committerEmail,
+        branchesState,
       }
     })
   }
@@ -334,9 +356,17 @@ export default class AppStore {
 
       const includeAll = this.getIncludeAllState(mergedFiles)
 
+      let selectedFile: WorkingDirectoryFileChange | undefined
+
+      if (state.selectedFile) {
+        selectedFile = mergedFiles.find(function(file) {
+          return file.id === state.selectedFile!.id
+        })
+      }
+
       return {
         workingDirectory: new WorkingDirectoryStatus(mergedFiles, includeAll),
-        selectedFile: null,
+        selectedFile: selectedFile || null,
       }
     })
     this.emitUpdate()
@@ -349,9 +379,8 @@ export default class AppStore {
         historyState: state.historyState,
         changesState: state.changesState,
         selectedSection: section,
-        currentBranch: state.currentBranch,
-        branches: state.branches,
         committerEmail: state.committerEmail,
+        branchesState: state.branchesState,
       }
     })
     this.emitUpdate()
@@ -423,9 +452,8 @@ export default class AppStore {
           selectedFile: state.changesState.selectedFile,
         },
         historyState: state.historyState,
-        currentBranch: state.currentBranch,
-        branches: state.branches,
         committerEmail: state.committerEmail,
+        branchesState: state.branchesState,
       }
     })
     this.emitUpdate()
@@ -449,14 +477,13 @@ export default class AppStore {
   private async refreshCurrentBranch(repository: Repository): Promise<void> {
     const currentBranch = await LocalGitOperations.getCurrentBranch(repository)
 
-    this.updateRepositoryState(repository, state => {
+    this.updateBranchesState(repository, state => {
       return {
-        selectedSection: state.selectedSection,
-        changesState: state.changesState,
-        historyState: state.historyState,
         currentBranch,
-        branches: state.branches,
-        committerEmail: state.committerEmail,
+        defaultBranch: state.defaultBranch,
+        allBranches: state.allBranches,
+        recentBranches: state.recentBranches,
+        commits: state.commits,
       }
     })
     this.emitUpdate()
@@ -488,9 +515,8 @@ export default class AppStore {
         selectedSection: state.selectedSection,
         changesState: state.changesState,
         historyState: state.historyState,
-        currentBranch: state.currentBranch,
-        branches: state.branches,
         committerEmail: email,
+        branchesState: state.branchesState,
       }
     })
     this.emitUpdate()
@@ -498,18 +524,49 @@ export default class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadBranches(repository: Repository): Promise<void> {
-    const branches = await LocalGitOperations.getBranches(repository)
-    this.updateRepositoryState(repository, state => {
+    const localBranches = await LocalGitOperations.getBranches(repository, 'refs/heads', BranchType.Local)
+    const remoteBranches = await LocalGitOperations.getBranches(repository, 'refs/remotes', BranchType.Remote)
+
+    const upstreamBranchesAdded = new Set<string>()
+    const allBranches = new Array<Branch>()
+    localBranches.forEach(branch => {
+      allBranches.push(branch)
+
+      if (branch.upstream) {
+        upstreamBranchesAdded.add(branch.upstream)
+      }
+    })
+
+    remoteBranches.forEach(branch => {
+      // This means we already added the local branch of this remote branch, so
+      // we don't need to add it again.
+      if (upstreamBranchesAdded.has(branch.name)) { return }
+
+      allBranches.push(branch)
+    })
+
+    let defaultBranchName: string | null = 'master'
+    const gitHubRepository = repository.gitHubRepository
+    if (gitHubRepository && gitHubRepository.defaultBranch) {
+      defaultBranchName = gitHubRepository.defaultBranch
+    }
+
+    const defaultBranch = allBranches.find(b => b.name === defaultBranchName)
+
+    this.updateBranchesState(repository, state => {
       return {
-        selectedSection: state.selectedSection,
-        changesState: state.changesState,
-        historyState: state.historyState,
         currentBranch: state.currentBranch,
-        branches,
-        committerEmail: state.committerEmail,
+        defaultBranch: defaultBranch ? defaultBranch : null,
+        allBranches,
+        recentBranches: state.recentBranches,
+        commits: state.commits,
       }
     })
     this.emitUpdate()
+
+    this.calculateRecentBranches(repository)
+
+    this.loadBranchTips(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -536,5 +593,69 @@ export default class AppStore {
     await LocalGitOperations.checkoutBranch(repository, name)
 
     return this._refreshRepository(repository)
+  }
+
+  private async calculateRecentBranches(repository: Repository): Promise<void> {
+    const state = this.getRepositoryState(repository).branchesState
+    const recentBranches = await LocalGitOperations.getRecentBranches(repository, state.allBranches, RecentBranchesLimit)
+    this.updateBranchesState(repository, state => {
+      return {
+        currentBranch: state.currentBranch,
+        defaultBranch: state.defaultBranch,
+        allBranches: state.allBranches,
+        recentBranches,
+        commits: state.commits,
+      }
+    })
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _repositoryWithRefreshedGitHubRepository(repository: Repository): Promise<Repository> {
+    let gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) {
+      gitHubRepository = await this.guessGitHubRepository(repository)
+    }
+
+    if (!gitHubRepository) { return repository }
+
+    const users = this.users
+    const user = getUserForEndpoint(users, gitHubRepository.endpoint)
+    if (!user) { return repository }
+
+    const api = new API(user)
+    const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
+    return repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
+  }
+
+  private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
+    // TODO: This is all kinds of wrong. We shouldn't assume the remote is named
+    // `origin`.
+    const remote = await LocalGitOperations.getConfigValue(repository, 'remote.origin.url')
+    if (!remote) { return null }
+
+    return matchGitHubRepository(this.users, remote)
+  }
+
+  private async loadBranchTips(repository: Repository): Promise<void> {
+    const state = this.getRepositoryState(repository).branchesState
+    const commits = state.commits
+    for (const branch of Array.from(state.allBranches)) {
+      // Immutable 4 lyfe
+      if (commits.has(branch.sha)) {
+        continue
+      }
+
+      const commit = await LocalGitOperations.getCommit(repository, branch.sha)
+      if (commit) {
+        commits.set(branch.sha, commit)
+      }
+    }
+
+    // NB: Because the `commits` map is mutable, changing in place, sadness,
+    // etc. we don't have to update the state. This feels gross, but concretely
+    // it doesn't matter since commits themselves are immutable and we only ever
+    // add to the map.
+    this.emitUpdate()
   }
 }
