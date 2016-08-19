@@ -19,6 +19,9 @@ interface IListProps {
 
   /** The unique identifier for the outer element of the component (optional, defaults to null) */
   id?: string
+
+  /** The row that should be scrolled to when the list is rendered. */
+  scrollToRow?: number
 }
 
 export default class List extends React.Component<IListProps, void> {
@@ -44,7 +47,11 @@ export default class List extends React.Component<IListProps, void> {
     e.preventDefault()
   }
 
-  private nextSelectableRow(direction: 'up' | 'down', row: number): number {
+  /**
+   * Determine the next selectable row, given the direction and row. This will
+   * take `canSelectRow` into account.
+   */
+  public nextSelectableRow(direction: 'up' | 'down', row: number): number {
     let newRow = row
     if (direction === 'up') {
       newRow = row - 1
@@ -126,7 +133,10 @@ export default class List extends React.Component<IListProps, void> {
   }
 
   public render() {
-    const scrollToRow = this.scrollToRow
+    let scrollToRow = this.props.scrollToRow
+    if (!scrollToRow) {
+      scrollToRow = this.scrollToRow
+    }
     this.scrollToRow = -1
 
     // The currently selected list item is focusable but if
