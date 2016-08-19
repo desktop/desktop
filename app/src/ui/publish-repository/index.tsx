@@ -81,6 +81,29 @@ export default class PublishRepository extends React.Component<IPublishRepositor
   private publishRepository(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
+    const selectedUser = this.state.selectedUser
+    let owningAccount: User | null = null
+    for (const [ user, orgs ] of this.state.groupedUsers) {
+      const apiUser = userToAPIUser(user)
+      if (apiUser.id === selectedUser.id && apiUser.url === selectedUser.url) {
+        owningAccount = user
+        break
+      }
+
+      orgs.forEach(org => {
+        if (org.id === selectedUser.id && org.url === selectedUser.url) {
+          owningAccount = user
+        }
+      })
+
+      if (owningAccount) {
+        break
+      }
+    }
+
+    console.log(owningAccount)
+
+    this.props.dispatcher.publishRepository(this.props.repository, this.state.name, this.state.description, this.state.private, owningAccount!, this.state.selectedUser)
     this.props.dispatcher.closePopup()
   }
 

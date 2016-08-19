@@ -7,6 +7,7 @@ import { IHistorySelection, RepositorySection, Popup } from '../app-state'
 import { Action } from './actions'
 import AppStore from './app-store'
 import GitUserStore from './git-user-store'
+import { IAPIUser } from '../../lib/api'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -240,5 +241,9 @@ export class Dispatcher {
   /** Pull the current branch. */
   public pull(repository: Repository): Promise<void> {
     return this.appStore._pull(repository)
+  }
+
+  public publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
+    return this.appStore._publishRepository(repository, name, description, private_, account, org)
   }
 }

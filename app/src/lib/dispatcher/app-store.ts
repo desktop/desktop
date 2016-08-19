@@ -5,7 +5,7 @@ import Repository from '../../models/repository'
 import GitHubRepository from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { matchGitHubRepository } from '../../lib/repository-matching'
-import API, { getUserForEndpoint } from '../../lib/api'
+import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { findIndex } from '../find'
 
@@ -692,5 +692,12 @@ export default class AppStore {
     }
 
     return LocalGitOperations.pull(repository, remote, branch.name)
+  }
+
+  public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
+    // API create repo
+    // Push
+    // Set upstream
+    // Refresh github info
   }
 }
