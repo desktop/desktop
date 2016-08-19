@@ -158,6 +158,11 @@ export class Diff {
    }
 }
 
+export enum BranchType {
+  Local,
+  Remote,
+}
+
 /** A branch as loaded from Git. */
 export class Branch {
   /** The short name of the branch. E.g., `master`. */
@@ -166,9 +171,12 @@ export class Branch {
   /** The origin-prefixed upstream name. E.g., `origin/master`. */
   public readonly upstream: string | null
 
-  public constructor(name: string, upstream: string | null) {
+  public readonly type: BranchType
+
+  public constructor(name: string, upstream: string | null, type: BranchType) {
     this.name = name
     this.upstream = upstream
+    this.type = type
   }
 }
 
@@ -513,7 +521,7 @@ export class LocalGitOperations {
       const untrimmedUpstream = await GitProcess.execWithOutput([ 'for-each-ref', `--format=%(upstream:short)`, `refs/heads/${name}` ], repository.path)
       const upstream = untrimmedUpstream.trim()
 
-      return new Branch(name, upstream.length > 0 ? upstream : null)
+      return new Branch(name, upstream.length > 0 ? upstream : null, BranchType.Local)
     } catch (e) {
       // Git exits with 1 if there's the branch is unborn. We should do more
       // specific error parsing than this, but for now it'll do.
@@ -540,12 +548,12 @@ export class LocalGitOperations {
   }
 
   /** Get all the branches. */
-  public static async getBranches(repository: Repository): Promise<ReadonlyArray<Branch>> {
+  public static async getBranches(repository: Repository, prefix: string, type: BranchType): Promise<ReadonlyArray<Branch>> {
     const format = [
       '%(refname:short)',
       '%(upstream:short)',
     ].join('%00')
-    const names = await GitProcess.execWithOutput([ 'for-each-ref', `--format=${format}` ], repository.path)
+    const names = await GitProcess.execWithOutput([ 'for-each-ref', `--format=${format}`, prefix ], repository.path)
     const lines = names.split('\n')
 
     // Remove the trailing newline
@@ -555,7 +563,7 @@ export class LocalGitOperations {
       const pieces = line.split('\0')
       const name = pieces[0]
       const upstream = pieces[1]
-      return new Branch(name, upstream.length > 0 ? upstream : null)
+      return new Branch(name, upstream.length > 0 ? upstream : null, type)
     })
 
     return branches
