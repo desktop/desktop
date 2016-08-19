@@ -292,19 +292,19 @@ export class LocalGitOperations {
       })
   }
 
-  private static addFileToIndex(repository: Repository, path: string, status: FileStatus): Promise<void> {
+  private static addFileToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
     let addFileArgs: string[] = []
 
-    if (status === FileStatus.New) {
-      addFileArgs = [ 'add', path ]
+    if (file.status === FileStatus.New) {
+      addFileArgs = [ 'add', file.path ]
     } else {
-      addFileArgs = [ 'add', '-u', path ]
+      addFileArgs = [ 'add', '-u', file.path ]
     }
 
     return GitProcess.exec(addFileArgs, repository.path)
   }
 
-  private static applyPatchToIndex(repository: Repository, path: string, diffSelection: DiffSelection): Promise<void> {
+  private static applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
     const addFileArgs: string[] = []
 
     // TODO: actually thing the thing
@@ -327,14 +327,11 @@ export class LocalGitOperations {
         // reset the index
         return GitProcess.exec(resetArgs, repository.path)
           .then(_ => {
-
-            // TODO: staging hunks needs to be done in here as well
             const addFiles = files.map((file, index, array) => {
-
               if (file.diffSelection.isIncludeAll() === true) {
-                return this.addFileToIndex(repository, file.path, file.status)
+                return this.addFileToIndex(repository, file)
               } else {
-                return this.applyPatchToIndex(repository, file.path, file.diffSelection)
+                return this.applyPatchToIndex(repository, file)
               }
             })
 
