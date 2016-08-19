@@ -660,7 +660,8 @@ export default class AppStore {
   public async _push(repository: Repository): Promise<void> {
     const remote = await LocalGitOperations.getDefaultRemote(repository)
     if (!remote) {
-      return Promise.reject(new Error('The repository has no remotes.'))
+      this._showPopup(Popup.PublishRepository, repository)
+      return
     }
 
     const state = this.getRepositoryState(repository)
