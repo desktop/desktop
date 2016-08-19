@@ -2,8 +2,15 @@
   height: 200px;
 
   .branches-list-content {
+    display: flex;
+    flex: 1;
+
     padding: var(--spacing-third) var(--spacing);
     font-size: 11px;
+  }
+
+  .branches-list-content:hover {
+    background: var(--box-alt-background-color);
   }
 }
 
@@ -18,10 +25,6 @@
 .branches-list-item,
 .branches-list-label {
   flex-grow: 1;
-}
-
-.branches-list-item:hover {
-  background: var(--box-alt-background-color);
 }
 
 .branches-list-label {
