@@ -38,13 +38,24 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     })
   }
 
-  private handleSubmit(event: any) {
+  private handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {
+    this.createCommit()
+    event.preventDefault()
+  }
+
+  private createCommit() {
     this.props.onCreateCommit(this.state.summary, this.state.description)
     this.setState({
       summary: '',
       description: '',
     })
-    event.preventDefault()
+  }
+
+  private onKeyDown(event: React.KeyboardEvent<Element>) {
+    const isShortcutKey = process.platform === 'darwin' ? event.metaKey : event.ctrlKey
+    if (isShortcutKey && event.key === 'Enter') {
+      this.createCommit()
+    }
   }
 
   public render() {
@@ -58,13 +69,15 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
                  type='text'
                  placeholder='Summary'
                  value={this.state.summary}
-                 onChange={event => this.handleSummaryChange(event)}/>
+                 onChange={event => this.handleSummaryChange(event)}
+                 onKeyDown={event => this.onKeyDown(event)}/>
         </div>
 
         <textarea className='description-field'
                   placeholder='Description'
                   value={this.state.description}
-                  onChange={event => this.handleDescriptionChange(event)}/>
+                  onChange={event => this.handleDescriptionChange(event)}
+                  onKeyDown={event => this.onKeyDown(event)}/>
 
         <button className='commit-button' onClick={event => this.handleSubmit(event)}>
           Commit to <strong>{branchName}</strong>
