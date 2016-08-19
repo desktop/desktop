@@ -93,8 +93,27 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
   }
 
-  private getDatum(index: number): DiffLine {
-      return this.state.diff.lines[index]
+  private getDiffLineFromSection(index: number): DiffLine | null {
+
+    let pointer: number = 0
+    let found: DiffLine | null = null
+
+    this.state.diff.sections.forEach(s => {
+      const length = s.lines.length
+      if (found) {
+        return
+      }
+
+      const end = pointer + length
+      if (index <= end) {
+        const relativeIndex = index - pointer // ????
+        found = s.lines[relativeIndex]
+      } else {
+        pointer += length
+      }
+    })
+
+    return found
   }
 
   private formatIfNotSet(value: number | null): string {
@@ -118,9 +137,9 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     target.classList.remove(hoverClassName)
   }
 
-  private onMouseDownHandler(diff: DiffLine) {
+  private onMouseDownHandler(diff: DiffLine, rowIndex: number) {
     if (this.props.onIncludeChanged) {
-      const startLine = this.state.diff.lines.indexOf(diff)
+      const startLine = rowIndex
       const endLine = startLine
 
       const f = this.props.file as WorkingDirectoryFileChange
@@ -153,7 +172,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
   }
 
-  private editableSidebar(diff: DiffLine) {
+  private editableSidebar(diff: DiffLine, rowIndex: number) {
     const baseClassName = this.map(diff.type)
     const className = diff.selected ? baseClassName + '-selected' : baseClassName
 
@@ -163,7 +182,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       <div className={className}
            onMouseEnter={event => this.onMouseEnterHandler(event.currentTarget, baseClassName)}
            onMouseLeave={event => this.onMouseLeaveHandler(event.currentTarget, baseClassName)}
-           onMouseDown={event => this.onMouseDownHandler(diff)}>
+           onMouseDown={event => this.onMouseDownHandler(diff, rowIndex)}>
         <div className='before'>{this.formatIfNotSet(diff.oldLineNumber)}</div>
         <div className='after'>{this.formatIfNotSet(diff.newLineNumber)}</div>
       </div>
@@ -182,17 +201,17 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private renderSidebar = (rowIndex: number) => {
-    const datum = this.getDatum(rowIndex)
+    const datum = this.getDiffLineFromSection(rowIndex)!
 
     if (this.props.readOnly) {
       return this.readOnlySidebar(datum)
     } else {
-      return this.editableSidebar(datum)
+      return this.editableSidebar(datum, rowIndex)
     }
   }
 
   private renderBodyCell = (rowIndex: number) => {
-    const diff = this.getDatum(rowIndex)
+    const diff = this.getDiffLineFromSection(rowIndex)!
 
     const baseClassName = this.map(diff.type)
     const className = diff.selected ? baseClassName + '-selected' : baseClassName
