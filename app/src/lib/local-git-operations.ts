@@ -147,22 +147,8 @@ export class DiffSection {
 export class Diff {
    public readonly sections: ReadonlyArray<DiffSection>
 
-   // TODO: :fire: this duplicated logic
-   public readonly lines: ReadonlyArray<DiffLine>
-
    public constructor(sections: DiffSection[]) {
      this.sections = sections
-
-     // flatten the contents of each diff section
-     // so it can be drawn  easily in a virtualized list
-     //
-     // TODO: may not be necessary in the future
-     const lines: DiffLine[] = []
-     sections.forEach(s => {
-       s.lines.forEach(l => lines.push(l))
-     })
-
-     this.lines = lines
    }
 
    public setAllLines(include: boolean) {
