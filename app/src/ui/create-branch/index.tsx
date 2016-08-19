@@ -82,7 +82,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
   }
 
   private onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.key === 'Escape' && !this.state.proposedName.length) {
+    if (event.key === 'Escape') {
       this.props.dispatcher.closePopup()
     }
   }
