@@ -79,9 +79,9 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
 }
 
 function Loading() {
-  return <div className="sidebar-message">Loading…</div>
+  return <div className='sidebar-message'>Loading…</div>
 }
 
 function NoRepositories() {
-  return <div className="sidebar-message">No repositories</div>
+  return <div className='sidebar-message'>No repositories</div>
 }
