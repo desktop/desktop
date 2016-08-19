@@ -701,8 +701,6 @@ export default class AppStore {
 
     await LocalGitOperations.addRemote(repository.path, 'origin', apiRepository.cloneUrl)
 
-    // TODO: Write to the .git/description file?
-
     await this._push(repository)
   }
 }
