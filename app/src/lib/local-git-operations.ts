@@ -92,6 +92,8 @@ export class DiffSectionRange {
 export class DiffSection {
   public readonly range: DiffSectionRange
   public readonly lines: ReadonlyArray<DiffLine>
+  public readonly startDiffSection: number
+  public readonly endDiffSection: number
 
   /** infer the type of a diff line based on the prefix */
   private static mapToDiffLineType(text: string) {
@@ -104,8 +106,10 @@ export class DiffSection {
     }
   }
 
-  public constructor(range: DiffSectionRange, lines: string[]) {
+  public constructor(range: DiffSectionRange, lines: string[], startDiffSection: number, endDiffSection: number) {
     this.range = range
+    this.startDiffSection = startDiffSection
+    this.endDiffSection = endDiffSection
 
     let rollingDiffBeforeCounter = range.oldStartLine
     let rollingDiffAfterCounter = range.newStartLine
@@ -395,6 +399,8 @@ export class LocalGitOperations {
         // continue to iterate while these sections exist
         let prefixFound = sectionPrefixIndex > -1
 
+        let pointer: number = 0
+
         while (prefixFound) {
 
           // trim any preceding text
@@ -429,10 +435,40 @@ export class LocalGitOperations {
           // add new section based on the remaining text in the raw diff
           if (prefixFound) {
             const diffBody = diffTextBuffer.substr(0, sectionPrefixIndex)
-            diffSections.push(new DiffSection(range, diffBody.split('\n')))
+
+            let startDiffSection: number = 0
+            let endDiffSection: number = 0
+
+            const diffLines = diffBody.split('\n')
+
+            if (diffSections.length === 0) {
+              startDiffSection = 0
+              endDiffSection = diffLines.length
+            } else {
+              startDiffSection = pointer + 1
+              endDiffSection = startDiffSection + diffLines.length
+            }
+
+            pointer += diffLines.length
+
+            diffSections.push(new DiffSection(range, diffLines, startDiffSection, endDiffSection))
           } else {
             const diffBody = diffTextBuffer
-            diffSections.push(new DiffSection(range, diffBody.split('\n')))
+
+            let startDiffSection: number = 0
+            let endDiffSection: number = 0
+
+            const diffLines = diffBody.split('\n')
+
+            if (diffSections.length === 0) {
+              startDiffSection = 0
+              endDiffSection = diffLines.length
+            } else {
+              startDiffSection = pointer
+              endDiffSection = startDiffSection + diffLines.length
+            }
+
+            diffSections.push(new DiffSection(range, diffLines, startDiffSection, endDiffSection))
           }
         }
 
