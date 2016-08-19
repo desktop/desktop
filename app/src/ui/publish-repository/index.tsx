@@ -157,7 +157,7 @@ function userToAPIUser(user: User): IAPIUser {
     login: user.login,
     avatarUrl: user.avatarURL,
     type: 'user',
-    id: -1,
-    url: '',
+    id: user.id,
+    url: user.endpoint,
   }
 }
