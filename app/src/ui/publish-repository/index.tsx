@@ -15,6 +15,7 @@ interface IPublishRepositoryState {
   readonly description: string
   readonly private: boolean
   readonly groupedUsers: Map<User, ReadonlyArray<IAPIUser>>
+  readonly selectedUser: IAPIUser
 }
 
 export default class PublishRepository extends React.Component<IPublishRepositoryProps, IPublishRepositoryState> {
@@ -26,6 +27,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
       description: '',
       private: true,
       groupedUsers: new Map<User, ReadonlyArray<IAPIUser>>(),
+      selectedUser: userToAPIUser(this.props.users[0]),
     }
   }
 
@@ -42,6 +44,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
       description: this.state.description,
       private: this.state.private,
       groupedUsers: orgsByUser,
+      selectedUser: this.state.selectedUser,
     })
   }
 
@@ -51,6 +54,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
       description: this.state.description,
       private: this.state.private,
       groupedUsers: this.state.groupedUsers,
+      selectedUser: this.state.selectedUser,
     })
   }
 
@@ -60,6 +64,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
       description: event.target.value,
       private: this.state.private,
       groupedUsers: this.state.groupedUsers,
+      selectedUser: this.state.selectedUser,
     })
   }
 
@@ -69,6 +74,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
       description: this.state.description,
       private: event.target.checked,
       groupedUsers: this.state.groupedUsers,
+      selectedUser: this.state.selectedUser,
     })
   }
 
@@ -78,14 +84,27 @@ export default class PublishRepository extends React.Component<IPublishRepositor
     this.props.dispatcher.closePopup()
   }
 
+  private onAccountChange(event: React.FormEvent<HTMLSelectElement>) {
+    const value = event.target.value
+    const selectedUser = JSON.parse(value)
+
+    this.setState({
+      name: this.state.name,
+      description: this.state.description,
+      private: this.state.private,
+      groupedUsers: this.state.groupedUsers,
+      selectedUser,
+    })
+  }
+
   private renderAccounts() {
     const optionGroups = new Array<JSX.Element>()
     for (const user of this.state.groupedUsers.keys()) {
       const orgs = this.state.groupedUsers.get(user)!
       const label = user.endpoint === getDotComAPIEndpoint() ? 'GitHub.com' : user.endpoint
       const options = [
-        <option value={user.login} key={user.login}>{user.login}</option>,
-        ...orgs.map((u, i) => <option value={u.login} key={u.login}>{u.login}</option>),
+        <option value={JSON.stringify(userToAPIUser(user))} key={user.login}>{user.login}</option>,
+        ...orgs.map((u, i) => <option value={JSON.stringify(u)} key={u.login}>{u.login}</option>),
       ]
       optionGroups.push(
         <optgroup key={user.endpoint} label={label}>
@@ -95,7 +114,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
     }
 
     return (
-      <select>
+      <select value={JSON.stringify(this.state.selectedUser)} onChange={event => this.onAccountChange(event)}>
         {optionGroups}
       </select>
     )
@@ -130,5 +149,15 @@ export default class PublishRepository extends React.Component<IPublishRepositor
         <button type='submit' disabled={disabled}>Publish Repository</button>
       </form>
     )
+  }
+}
+
+function userToAPIUser(user: User): IAPIUser {
+  return {
+    login: user.login,
+    avatarUrl: user.avatarURL,
+    type: 'user',
+    id: -1,
+    url: '',
   }
 }
