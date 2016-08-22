@@ -8,8 +8,9 @@ const temp = require('temp').track()
 
 import Repository from '../src/models/repository'
 import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
-import { FileStatus, FileChange } from '../src/models/status'
+import { FileStatus, FileChange,  DiffSelection, WorkingDirectoryFileChange } from '../src/models/status'
 
+import { find } from '../src/lib/find'
 
 describe('LocalGitOperations', () => {
   let repository: Repository | null = null
@@ -70,6 +71,53 @@ describe('LocalGitOperations', () => {
       const commits = await LocalGitOperations.getHistory(repository!, 'HEAD', 100)
       expect(commits.length).to.equal(6)
       expect(commits[0].summary).to.equal('Special commit')
+    })
+  })
+
+  describe('partial commits', () => {
+
+    beforeEach(() => {
+      const testRepoPath = setupTestRepository('repo-with-changes')
+      repository = new Repository(testRepoPath, -1, null)
+    })
+
+    it('can commit some lines from new file', async () => {
+
+      const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+
+      const lines = new Map<number, boolean>()
+
+      for (let i = 0; i < 33; i++) {
+        lines.set(i, (i < 6))
+      }
+
+      // select first few lines
+      const newFileName = 'new-file.md'
+      const selectedLines = new Map<number, boolean>(lines)
+      const selection = new DiffSelection(null, selectedLines)
+      const file = new WorkingDirectoryFileChange(newFileName, FileStatus.New, selection)
+
+      // commit just this change, ignore everything else
+      await LocalGitOperations.createCommit(repository!, 'title', '', [ file ])
+
+      // verify that the HEAD of the repository has moved
+      const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      expect(newTip.sha).to.not.equal(previousTip.sha)
+      expect(newTip.summary).to.equal('title')
+
+      // verify that the contents of this new commit are just the new file
+      const changedFiles = await LocalGitOperations.getChangedFiles(repository!, newTip.sha)
+      expect(changedFiles.length).to.equal(1)
+      expect(changedFiles[0].path).to.equal(newFileName)
+
+      // verify that changes remain for this new file
+      const status = await LocalGitOperations.getStatus(repository!)
+      expect(status.workingDirectory.files.length).to.equal(3)
+
+      // verify that the file is now tracked
+      const fileChange = find(status.workingDirectory.files, f => f.path === newFileName)
+      expect(fileChange).to.not.be.undefined
+      expect(fileChange!.status).to.equal(FileStatus.Modified)
     })
   })
 
