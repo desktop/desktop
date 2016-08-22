@@ -195,4 +195,16 @@ describe('LocalGitOperations', () => {
       expect(result).to.equal(false)
     })
   })
+
+  describe('getGitDir', () => {
+    it('should return the git dir path for a repository', async () => {
+      const result = await LocalGitOperations.getGitDir(repository!.path)
+      expect(result).to.equal(path.join(repository!.path, '.git'))
+    })
+
+    it('should return null for a directory', async () => {
+      const result = await LocalGitOperations.getGitDir(path.basename(repository!.path))
+      expect(result).to.equal(null)
+    })
+  })
 })
