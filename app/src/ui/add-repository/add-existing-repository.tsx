@@ -76,7 +76,7 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
 
     const token = ++this.checkGitRepositoryToken
 
-    const isGitRepository = await LocalGitOperations.isGitRepository(this.resolvedPath)
+    const isGitRepository = await LocalGitOperations.isGitRepository(this.resolvedPath(path))
 
     // Another path check was requested so don't update state based on the old
     // path.
@@ -85,12 +85,12 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
     this.setState({ path: this.state.path, isGitRepository })
   }
 
-  private get resolvedPath(): string {
-    return untildify(this.state.path)
+  private resolvedPath(path: string): string {
+    return untildify(path)
   }
 
   private async addRepository() {
-    const resolvedPath = this.resolvedPath
+    const resolvedPath = this.resolvedPath(this.state.path)
     if (!this.state.isGitRepository) {
       await LocalGitOperations.initGitRepository(resolvedPath)
     }
