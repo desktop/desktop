@@ -1,3 +1,5 @@
+import * as Path from 'path'
+
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
 import Repository from '../models/repository'
 
@@ -641,7 +643,8 @@ export class LocalGitOperations {
   public static async getGitDir(path: string): Promise<string | null> {
     try {
       const gitDir = await GitProcess.execWithOutput([ 'rev-parse', '--git-dir' ], path)
-      return gitDir.trim()
+      const trimmedDir = gitDir.trim()
+      return Path.join(path, trimmedDir)
     } catch (e) {
       return null
     }
