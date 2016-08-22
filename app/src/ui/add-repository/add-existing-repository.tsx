@@ -36,7 +36,8 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
             <input value={this.state.path}
                    type='text'
                    placeholder='repository path'
-                   onChange={event => this.onPathChanged(event)}/>
+                   onChange={event => this.onPathChanged(event)}
+                   onKeyDown={event => this.onKeyDown(event)}/>
 
             <button onClick={() => this.showFilePicker()}>Choose…</button>
           </div>
@@ -54,6 +55,12 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
   private onPathChanged(event: React.FormEvent<HTMLInputElement>) {
     const path = event.target.value
     this.checkIfPathIsRepository(path)
+  }
+
+  private onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Escape') {
+      this.props.dispatcher.closePopup()
+    }
   }
 
   private showFilePicker() {
