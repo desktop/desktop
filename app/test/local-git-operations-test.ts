@@ -183,4 +183,16 @@ describe('LocalGitOperations', () => {
       })
     })
   })
+
+  describe('isGitRepository', () => {
+    it('should return true for a repository', async () => {
+      const result = await LocalGitOperations.isGitRepository(repository!.path)
+      expect(result).to.equal(true)
+    })
+
+    it('should return false for a directory', async () => {
+      const result = await LocalGitOperations.isGitRepository(path.basename(repository!.path))
+      expect(result).to.equal(false)
+    })
+  })
 })
