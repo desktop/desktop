@@ -262,6 +262,25 @@ export default class App extends React.Component<IAppProps, IAppState> {
     return <Popuppy>{content}</Popuppy>
   }
 
+  private renderErrors() {
+    const errors = this.state.errors
+    if (!errors.length) { return null }
+
+    const clearErrors = () => {
+      for (const error of Array.from(errors)) {
+        this.props.dispatcher.clearError(error)
+      }
+    }
+
+    const msgs = errors.map(e => e.message)
+    return (
+      <Popuppy>
+        <div>{msgs.map(msg => <span>{msg}</span>)}</div>
+        <button onClick={clearErrors}>OK</button>
+      </Popuppy>
+    )
+  }
+
   private renderApp() {
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
@@ -276,6 +295,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
         {this.renderRepository()}
 
         {this.renderPopup()}
+
+        {this.renderErrors()}
       </div>
     )
   }
