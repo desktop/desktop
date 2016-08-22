@@ -301,14 +301,51 @@ export class LocalGitOperations {
     return GitProcess.exec(addFileArgs, repository.path)
   }
 
-  private static applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
-    const addFileArgs: string[] = []
+  private static async applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
+    const applyArgs: string[] = [ 'apply', '--cached', '--unidiff-zero', '--whitespace=nowarn', '-' ]
 
-    // TODO: actually thing the thing
+    const diff = await LocalGitOperations.getDiff(repository, file, null)
+    const selection = file.diffSelection.selectedLines
 
-    return GitProcess.exec(addFileArgs, repository.path)
+    const tasks = diff.sections.map(s => {
+      const entries = Array.from(selection.entries())
+
+      const matches = entries.filter(entry => {
+        const key = entry[0]
+        return key >= s.startDiffSection && key < s.endDiffSection
+      })
+
+      let linesSkipped: number = 0
+
+      matches
+        .filter(entry => entry[1] === false)
+        .forEach(s => linesSkipped += 1)
+
+      const header = s.lines[0]
+      const headerText = header.text
+      const additionalTextIndex = headerText.lastIndexOf('@@')
+      const additionalText = headerText.substring(additionalTextIndex + 2)
+
+      const newLineCount = s.range.newEndLine - linesSkipped
+
+      let input: string = `@@ -${s.range.oldStartLine},${s.range.oldEndLine} +${s.range.newStartLine},${newLineCount} @@ ${additionalText}`
+
+      s.lines
+        .slice(1, s.lines.length - 1) // ignore the header
+        .forEach((line, index) => {
+          if (selection.has(index)) {
+            const include = selection.get(index)
+            if (include) {
+              input += line.text
+            }
+          }
+        })
+
+      return GitProcess.exec(applyArgs, repository.path, input)
+    })
+
+    return Promise.all(tasks).then(() => { })
   }
-
 
   public static createCommit(repository: Repository, summary: string, description: string, files: ReadonlyArray<WorkingDirectoryFileChange>) {
     return this.resolveHEAD(repository)
