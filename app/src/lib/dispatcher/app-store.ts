@@ -23,6 +23,7 @@ export default class AppStore {
 
   private selectedRepository: Repository | null = null
   private repositoryState = new Map<number, IRepositoryState>()
+  private loading = false
 
   private currentPopup: Popup | null = null
 
@@ -138,6 +139,7 @@ export default class AppStore {
       repositoryState: this.getCurrentRepositoryState(),
       selectedRepository: this.selectedRepository,
       currentPopup: this.currentPopup,
+      loading: this.loading
     }
   }
 
@@ -305,6 +307,7 @@ export default class AppStore {
   public _loadFromSharedProcess(users: ReadonlyArray<User>, repositories: ReadonlyArray<Repository>) {
     this.users = users
     this.repositories = repositories
+    this.loading = this.repositories.length === 0 && this.users.length === 0
 
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | null = this.selectedRepository
