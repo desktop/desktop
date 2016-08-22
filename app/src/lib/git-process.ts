@@ -34,19 +34,40 @@ export class GitProcess {
   /**
    *  Find the path to the embedded Git environment
    */
-  private static resolveGit(): string {
+  private static resolveGitDir(): string {
+    let base = __dirname
     if (process.env.TEST_ENV) {
       if (process.platform === 'darwin') {
-        return path.join(__dirname, '..', '..', '..', 'git', 'git-macos', 'git', 'bin', 'git')
+        base = path.join(__dirname, '..', '..', '..', 'git', 'git-macos')
       } else if (process.platform === 'win32') {
-        return path.join(__dirname, '..', '..', '..', 'git', 'git-win32', 'git', 'cmd', 'git.exe')
+        base = path.join(__dirname, '..', '..', '..', 'git', 'git-win32')
       }
-    } else {
-      if (process.platform === 'darwin') {
-        return path.join(__dirname, 'git/bin/git')
-      } else if (process.platform === 'win32') {
-        return path.join(__dirname, 'git/cmd/git.exe')
-      }
+    }
+
+    return path.join(base, 'git')
+  }
+
+  /**
+   *  Find the path to the embedded Git binary
+   */
+  private static resolveGitBinary(): string {
+    const gitDir = GitProcess.resolveGitDir()
+    if (process.platform === 'darwin') {
+      return path.join(gitDir, 'bin', 'git')
+    } else if (process.platform === 'win32') {
+      return path.join(gitDir, 'cmd', 'git.exe')
+    }
+
+    throw new Error('Git not supported on platform: ' + process.platform)
+  }
+
+  /** Find the path to the embedded git exec path. */
+  private static resolveGitExecPath(): string {
+    const gitDir = GitProcess.resolveGitDir()
+    if (process.platform === 'darwin') {
+      return path.join(gitDir, 'libexec', 'git-core')
+    } else if (process.platform === 'win32') {
+      return path.join(gitDir, 'mingw64', 'libexec', 'git-core')
     }
 
     throw new Error('Git not supported on platform: ' + process.platform)
@@ -64,14 +85,17 @@ export class GitProcess {
    */
   public static execWithOutput(args: string[], path: string): Promise<string> {
     return new Promise<string>(function(resolve, reject) {
-      const gitLocation = GitProcess.resolveGit()
+      const gitLocation = GitProcess.resolveGitBinary()
       const startTime = performance.now()
       const logMessage = () => {
-        const time = ((performance.now() - startTime) / 1000).toFixed(2)
+        const time = ((performance.now() - startTime) / 1000).toFixed(3)
         return `executing: git ${args.join(' ')} (took ${time}s)`
       }
+      const env = Object.assign({}, process.env, {
+        GIT_EXEC_PATH: GitProcess.resolveGitExecPath(),
+      })
 
-      cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
+      cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8', env }, function(err, output, stdErr) {
         if (!err) {
           console.debug(logMessage())
           resolve(output)
