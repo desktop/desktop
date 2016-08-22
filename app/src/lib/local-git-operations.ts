@@ -301,11 +301,59 @@ export class LocalGitOperations {
     return GitProcess.exec(addFileArgs, repository.path)
   }
 
+  private static createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Diff): string {
+
+    const selection = file.diffSelection.selectedLines
+
+    let input: string = ''
+
+    diff.sections.map(s => {
+
+      let linesCounted: number = 0
+      let patchBody: string = ''
+
+      s.lines
+        .slice(1, s.lines.length - 1) // ignore the header
+        .forEach((line, i) => {
+          if (line.type === DiffLineType.Context) {
+            patchBody += line.text + '\n'
+          } else {
+            const index = i + 1 // inner list is now off-by-one
+            if (selection.has(index)) {
+              const include = selection.get(index)
+              if (include) {
+                patchBody += line.text + '\n'
+                linesCounted += 1
+              }
+            }
+          }
+        })
+
+      const header = s.lines[0]
+      const headerText = header.text
+      const additionalTextIndex = headerText.lastIndexOf('@@')
+      const additionalText = headerText.substring(additionalTextIndex + 2)
+
+      const newLineCount = linesCounted
+
+      const patchHeader: string = `--- /dev/null\n+++ b/${file.path}\n@@ -${s.range.oldStartLine},${s.range.oldEndLine} +${s.range.newStartLine},${newLineCount} @@ ${additionalText}\n`
+
+      input += patchHeader + patchBody
+    })
+
+    return input
+  }
+
   private static async applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
     const applyArgs: string[] = [ 'apply', '--cached', '--unidiff-zero', '--whitespace=nowarn', '-' ]
 
     const diff = await LocalGitOperations.getDiff(repository, file, null)
     const selection = file.diffSelection.selectedLines
+
+    if (file.status === FileStatus.New) {
+      const input = await LocalGitOperations.createPatchForNewFile(file, diff)
+      return GitProcess.exec(applyArgs, repository.path, input).then(() => { })
+    }
 
     const tasks = diff.sections.map(s => {
 
