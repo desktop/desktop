@@ -308,38 +308,46 @@ export class LocalGitOperations {
     const selection = file.diffSelection.selectedLines
 
     const tasks = diff.sections.map(s => {
-      const entries = Array.from(selection.entries())
-
-      const matches = entries.filter(entry => {
-        const key = entry[0]
-        return key >= s.startDiffSection && key < s.endDiffSection
-      })
 
       let linesSkipped: number = 0
+      let patchBody: string = ''
 
-      matches
-        .filter(entry => entry[1] === false)
-        .forEach(s => linesSkipped += 1)
+      s.lines
+        .slice(1, s.lines.length - 1) // ignore the header
+        .forEach((line, i) => {
+          if (line.type === DiffLineType.Context) {
+            patchBody += line.text + '\n'
+          } else {
+            const index = i + 1 // inner list is now off-by-one
+            if (selection.has(index)) {
+              const include = selection.get(index)
+              if (include) {
+                patchBody += line.text + '\n'
+              } else if (line.type === DiffLineType.Delete) {
+                // need to generate the correct patch here
+                patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
+                linesSkipped -= 1
+              } else {
+                // ignore this line when creating the patch
+                linesSkipped += 1
+              }
+            }
+          }
+        })
 
       const header = s.lines[0]
       const headerText = header.text
       const additionalTextIndex = headerText.lastIndexOf('@@')
       const additionalText = headerText.substring(additionalTextIndex + 2)
 
-      const newLineCount = s.range.newEndLine - linesSkipped
+      const newLineCount = s.range.oldEndLine - linesSkipped
 
-      let input: string = `@@ -${s.range.oldStartLine},${s.range.oldEndLine} +${s.range.newStartLine},${newLineCount} @@ ${additionalText}`
+      // TODO: a new file here will have no path defined for ---
+      // TODO: handle deleting of a full file
 
-      s.lines
-        .slice(1, s.lines.length - 1) // ignore the header
-        .forEach((line, index) => {
-          if (selection.has(index)) {
-            const include = selection.get(index)
-            if (include) {
-              input += line.text
-            }
-          }
-        })
+      const patchHeader: string = `--- a/${file.path}\n+++ b/${file.path}\n@@ -${s.range.oldStartLine},${s.range.oldEndLine} +${s.range.newStartLine},${newLineCount} @@ ${additionalText}\n`
+
+      const input = patchHeader + patchBody
 
       return GitProcess.exec(applyArgs, repository.path, input)
     })
