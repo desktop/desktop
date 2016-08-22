@@ -106,7 +106,7 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
                autoFocus={true}
                placeholder='Filter'
                onChange={event => this.onFilterChanged(event)}
-               onKeyDown={event => this.onKeyDown(branchItems, event)}/>/>
+               onKeyDown={event => this.onKeyDown(branchItems, event)}/>
 
         <div className='panel popup-content-container branches-list-container'>
           <List rowCount={branchItems.length}

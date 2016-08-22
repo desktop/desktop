@@ -11,6 +11,7 @@ export interface IAppState {
   readonly selectedRepository: Repository | null
   readonly repositoryState: IRepositoryState | null
 
+  readonly loading: boolean
   readonly currentPopup: Popup | null
 
   readonly errors: ReadonlyArray<IAppError>
