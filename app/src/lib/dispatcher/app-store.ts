@@ -1,5 +1,6 @@
 import { Emitter, Disposable } from 'event-kit'
-import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup, IBranchesState } from '../app-state'
+import * as Path from 'path'
+import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup, IBranchesState, IAppError } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import GitHubRepository from '../../models/github-repository'
@@ -23,8 +24,11 @@ export default class AppStore {
 
   private selectedRepository: Repository | null = null
   private repositoryState = new Map<number, IRepositoryState>()
+  private loading = false
 
   private currentPopup: Popup | null = null
+
+  private errors: ReadonlyArray<IAppError> = new Array<IAppError>()
 
   private emitQueued = false
 
@@ -138,6 +142,8 @@ export default class AppStore {
       repositoryState: this.getCurrentRepositoryState(),
       selectedRepository: this.selectedRepository,
       currentPopup: this.currentPopup,
+      errors: this.errors,
+      loading: this.loading,
     }
   }
 
@@ -305,6 +311,7 @@ export default class AppStore {
   public _loadFromSharedProcess(users: ReadonlyArray<User>, repositories: ReadonlyArray<Repository>) {
     this.users = users
     this.repositories = repositories
+    this.loading = this.repositories.length === 0 && this.users.length === 0
 
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | null = this.selectedRepository
@@ -632,6 +639,37 @@ export default class AppStore {
     if (!remote) { return null }
 
     return matchGitHubRepository(this.users, remote)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _postError(error: IAppError): Promise<void> {
+    const newErrors = Array.from(this.errors)
+    newErrors.push(error)
+    this.errors = newErrors
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _clearError(error: IAppError): Promise<void> {
+    const newErrors = Array.from(this.errors)
+    const index = newErrors.findIndex(e => e === error)
+    if (index > -1) {
+      newErrors.splice(index, 1)
+      this.errors = newErrors
+      this.emitUpdate()
+    }
+
+    return Promise.resolve()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _validatedRepositoryPath(path: string): Promise<string | null> {
+    const gitDir = await LocalGitOperations.getGitDir(path)
+    if (!gitDir) { return null }
+
+    return Path.dirname(gitDir)
   }
 
   private async loadBranchTips(repository: Repository): Promise<void> {

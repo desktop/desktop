@@ -60,6 +60,10 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
       return <Loading/>
     }
 
+    if (this.props.repos.length < 1) {
+      return <NoRepositories/>
+    }
+
     const grouped = groupRepositories(this.props.repos)
     return (
       <List id='repository-list'
@@ -75,5 +79,9 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
 }
 
 function Loading() {
-  return <div>Loading…</div>
+  return <div className='sidebar-message'>Loading…</div>
+}
+
+function NoRepositories() {
+  return <div className='sidebar-message'>No repositories</div>
 }

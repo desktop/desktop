@@ -3,7 +3,7 @@ import User, { IUser } from '../../models/user'
 import Repository, { IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import guid from '../guid'
-import { IHistorySelection, RepositorySection, Popup } from '../app-state'
+import { IHistorySelection, RepositorySection, Popup, IAppError } from '../app-state'
 import { Action } from './actions'
 import AppStore from './app-store'
 import GitUserStore from './git-user-store'
@@ -110,8 +110,22 @@ export class Dispatcher {
     return json.map(Repository.fromJSON)
   }
 
+  /**
+   * Add the repositories at the given paths. If a path isn't a repository, then
+   * this will post an error to that affect.
+   */
   public async addRepositories(paths: ReadonlyArray<string>): Promise<ReadonlyArray<Repository>> {
-    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', paths })
+    const validatedPaths = new Array<string>()
+    for (const path of Array.from(paths)) {
+      const validatedPath = await this.appStore._validatedRepositoryPath(path)
+      if (validatedPath) {
+        validatedPaths.push(validatedPath)
+      } else {
+        this.postError({ name: 'add-repository', message: `${path} isn't a git repository.` })
+      }
+    }
+
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', paths: validatedPaths })
     const addedRepositories = json.map(Repository.fromJSON)
     for (const repository of addedRepositories) {
       this.refreshGitHubRepositoryInfo(repository)
@@ -247,5 +261,15 @@ export class Dispatcher {
   public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
     await this.appStore._publishRepository(repository, name, description, private_, account, org)
     return this.refreshGitHubRepositoryInfo(repository)
+  }
+
+  /** Post the given error. */
+  public postError(error: IAppError): Promise<void> {
+    return this.appStore._postError(error)
+  }
+
+  /** Clear the given error. */
+  public clearError(error: IAppError): Promise<void> {
+    return this.appStore._clearError(error)
   }
 }

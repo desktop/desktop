@@ -55,3 +55,7 @@ body.platform-win32:not(.fullscreen) {
     padding-top: var(--win32-title-bar-height);
   }
 }
+
+.sidebar-message {
+  padding: 10px 5px 0 20px;
+}
