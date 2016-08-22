@@ -6,8 +6,7 @@ import * as FS from 'fs'
 
 import { Dispatcher } from '../../lib/dispatcher'
 import { LocalGitOperations } from '../../lib/local-git-operations'
-
-const untildify: (str: string) => string = require('untildify')
+import sanitizedRepositoryName from './sanitized-repository-name'
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -15,6 +14,7 @@ interface ICreateRepositoryProps {
 
 interface ICreateRepositoryState {
   readonly path: string
+  readonly name: string
 }
 
 /** The Create New Repository component. */
@@ -22,28 +22,17 @@ export default class CreateRepository extends React.Component<ICreateRepositoryP
   public constructor(props: ICreateRepositoryProps) {
     super(props)
 
-    this.state = { path: defaultPath() }
+    this.state = { path: defaultPath(), name: '' }
   }
 
   private onPathChanged(event: React.FormEvent<HTMLInputElement>) {
     const path = event.target.value
-    if (path[path.length - 1] === Path.sep) {
-      name = ''
-    } else {
-      const pieces = path.split(Path.sep)
-      name = pieces[pieces.length - 1]
-    }
-
-    this.setState({ path })
+    this.setState({ path, name: this.state.name })
   }
 
   private onNameChanged(event: React.FormEvent<HTMLInputElement>) {
     const name = event.target.value
-    const pathComponents = this.state.path.split(Path.sep)
-    pathComponents.pop()
-
-    const path = Path.join(pathComponents.join(Path.sep), name.length > 0 ? name : Path.sep)
-    this.setState({ path })
+    this.setState({ path: this.state.path, name })
   }
 
   private showFilePicker() {
@@ -51,48 +40,45 @@ export default class CreateRepository extends React.Component<ICreateRepositoryP
     if (!directory) { return }
 
     const path = directory[0]
-    this.setState({ path })
+    this.setState({ path, name: this.state.name })
   }
 
   private async createRepository() {
-    const resolvedPath = this.resolvedPath
+    const fullPath = Path.join(this.state.path, sanitizedRepositoryName(this.state.name))
 
     // NB: This exists & create check is race-y :(
-    FS.exists(resolvedPath, exists => {
-      FS.mkdir(resolvedPath, async () => {
-        await LocalGitOperations.initGitRepository(resolvedPath)
+    FS.exists(fullPath, exists => {
+      FS.mkdir(fullPath, async () => {
+        await LocalGitOperations.initGitRepository(fullPath)
 
-        this.props.dispatcher.addRepositories([ resolvedPath ])
+        this.props.dispatcher.addRepositories([ fullPath ])
         this.props.dispatcher.closePopup()
       })
     })
   }
 
-  private get name(): string {
-    const path = this.state.path
-    if (path[path.length - 1] === Path.sep) {
-      return ''
-    } else {
-      const pieces = path.split(Path.sep)
-      return pieces[pieces.length - 1]
-    }
-  }
+  private renderError() {
+    const sanitizedName = sanitizedRepositoryName(this.state.name)
+    if (this.state.name === sanitizedName) { return null }
 
-  private get resolvedPath(): string {
-    return untildify(this.state.path)
+    return (
+      <div>Will be created as {sanitizedName}</div>
+    )
   }
 
   public render() {
-    const disabled = this.state.path.length === 0 || this.name.length === 0
+    const disabled = this.state.path.length === 0 || this.state.name.length === 0
     return (
       <div id='create-repository' className='panel'>
         <div>
           <label>Name
-            <input value={this.name}
+            <input value={this.state.name}
                    placeholder='repository name'
                    onChange={event => this.onNameChanged(event)}/>
           </label>
         </div>
+
+        {this.renderError()}
 
         <div className='file-picker'>
           <label>Local Path
