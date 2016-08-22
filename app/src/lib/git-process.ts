@@ -113,8 +113,9 @@ export class GitProcess {
         reject(err)
       })
 
-      if (input) {
+      if (input !== undefined) {
         process.stdin.write(input)
+        process.stdin.end()
       }
     })
   }
