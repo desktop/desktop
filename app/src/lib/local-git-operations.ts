@@ -313,12 +313,15 @@ export class LocalGitOperations {
       let patchBody: string = ''
 
       s.lines
-        .slice(1, s.lines.length - 1) // ignore the header
-        .forEach((line, i) => {
+        .forEach((line, index) => {
+          if (line.type === DiffLineType.Hunk) {
+            // ignore the header
+            return
+          }
+
           if (line.type === DiffLineType.Context) {
             patchBody += line.text + '\n'
           } else {
-            const index = i + 1 // inner list is now off-by-one
             if (selection.has(index)) {
               const include = selection.get(index)
               if (include) {
@@ -361,12 +364,15 @@ export class LocalGitOperations {
       let patchBody: string = ''
 
       s.lines
-        .slice(1, s.lines.length - 1) // ignore the header
-        .forEach((line, i) => {
+        .forEach((line, index) => {
+          if (line.type === DiffLineType.Hunk) {
+            // ignore the header
+            return
+          }
+
           if (line.type === DiffLineType.Context) {
             patchBody += line.text + '\n'
           } else {
-            const index = i + 1 // inner list is now off-by-one
             if (selection.has(index)) {
               const include = selection.get(index)
               if (include) {
