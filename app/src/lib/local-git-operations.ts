@@ -653,7 +653,7 @@ export class LocalGitOperations {
   /** Is the path a git repository? */
   public static async isGitRepository(path: string): Promise<boolean> {
     const result = await this.getGitDir(path)
-    return result == null ? false : true
+    return !!result
   }
 
   /** Init a new git repository in the given path. */
