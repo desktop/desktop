@@ -25,6 +25,12 @@ interface IFileDiffState {
 
 export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
 
+  // TODO: how is this going to work with wrapping again?
+
+  // TODO: we know the number of lines in the diff, we should adjust this
+  //       value so that > 3 character line counts are visible
+  private defaultSidebarWidth = 100
+
   private grid: React.Component<any, any> | null
 
   public constructor(props: IFileDiffProps) {
@@ -89,12 +95,9 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   private getColumnWidth ({ index, availableWidth }: { index: number, availableWidth: number }) {
     switch (index) {
       case 1:
-        // TODO: how is this going to work with wrapping again?
-        return (availableWidth - 100)
+        return (availableWidth - this.defaultSidebarWidth)
       default:
-        // TODO: we know the number of lines in the diff, we should adjust this
-        //       value so that > 3 character line counts are visible
-        return 100
+        return this.defaultSidebarWidth
     }
   }
 
