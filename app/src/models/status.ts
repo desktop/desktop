@@ -1,3 +1,5 @@
+import { DiffSelectionType, DiffSelection } from './diff'
+
 /** the state of the changed file in the working directory */
 export enum FileStatus {
   New,
@@ -26,54 +28,12 @@ export class FileChange {
   }
 }
 
-export enum DiffSelectionType {
-  All,
-  Partial,
-  None
-}
-
-/** encapsulate the selection of changes to a modified file in the working directory  */
-export class DiffSelection {
-
-  /** by default, the diff selection to include all lines */
-  private readonly include: DiffSelectionType = DiffSelectionType.All
-
-  /**
-      once the user has started selecting specific lines to include,
-      these selections are tracked here
-  */
-  public readonly selectedLines: Map<number, boolean>
-
-  public constructor(include: DiffSelectionType, selectedLines: Map<number, boolean>) {
-    this.include = include
-    this.selectedLines = selectedLines
-  }
-
-  /**  return the selected state of the diff */
-  public getSelectionType(): DiffSelectionType {
-    if (this.selectedLines.size === 0) {
-      return this.include
-    } else {
-      const toArray = Array.from(this.selectedLines.values())
-      const allSelected = toArray.every(k => k === true)
-      const noneSelected = toArray.every(k => k === false)
-
-      if (allSelected) {
-        return DiffSelectionType.All
-      } else if (noneSelected) {
-        return DiffSelectionType.None
-      }
-
-      return DiffSelectionType.Partial
-    }
-  }
-}
-
 /** encapsulate the changes to a file in the working directory  */
 export class WorkingDirectoryFileChange extends FileChange {
 
-  /** whether the file should be included in the next commit */
+  /** contains the selection details for this file - all, nothing or partial */
   public readonly diffSelection: DiffSelection
+
   public constructor(path: string, status: FileStatus, diffSelection: DiffSelection) {
     super(path, status)
 

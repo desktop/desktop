@@ -8,8 +8,8 @@ const temp = require('temp').track()
 
 import Repository from '../src/models/repository'
 import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
-import { FileStatus, FileChange,  DiffSelection, DiffSelectionType, WorkingDirectoryFileChange } from '../src/models/status'
-
+import { FileStatus, FileChange, WorkingDirectoryFileChange } from '../src/models/status'
+import { DiffSelectionType, DiffSelection } from '../src/models/diff'
 import { find } from '../src/lib/find'
 
 describe('LocalGitOperations', () => {

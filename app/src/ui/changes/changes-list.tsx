@@ -5,7 +5,8 @@ import List from '../list'
 import { findIndex } from '../../lib/find'
 
 import Repository from '../../models/repository'
-import { WorkingDirectoryStatus, DiffSelectionType } from '../../models/status'
+import { WorkingDirectoryStatus } from '../../models/status'
+import { DiffSelectionType } from '../../models/diff'
 
 const RowHeight = 30
 

@@ -1,6 +1,7 @@
 import * as Path from 'path'
 
-import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus, DiffSelection, DiffSelectionType } from '../models/status'
+import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
+import { DiffSelectionType, DiffSelection } from '../models/diff'
 import Repository from '../models/repository'
 
 import { GitProcess, GitError, GitErrorCode } from './git-process'
