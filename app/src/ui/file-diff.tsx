@@ -130,38 +130,40 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private onMouseDownHandler(diff: DiffLine, rowIndex: number) {
-    if (this.props.onIncludeChanged) {
-      const startLine = rowIndex
-      const endLine = startLine
-
-      const f = this.props.file as WorkingDirectoryFileChange
-
-      if (!f) {
-        console.error('cannot change selected lines when selection is not a working directory change')
-        return
-      }
-
-      const newDiff: Map<number, boolean> = new Map<number, boolean>()
-
-      // populate the current state of the diff
-      this.state.diff.sections.forEach(s => {
-        s.lines.forEach((line, index) => {
-          if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
-            const absoluteIndex = s.startDiffSection + index
-            newDiff.set(absoluteIndex, line.selected)
-          }
-        })
-      })
-
-      const include = !diff.selected
-
-      // apply the requested change
-      for (let i = startLine; i <= endLine; i++) {
-        newDiff.set(i, include)
-      }
-
-      this.props.onIncludeChanged!(newDiff)
+    if (!this.props.onIncludeChanged) {
+      return
     }
+
+    const startLine = rowIndex
+    const endLine = startLine
+
+    const f = this.props.file as WorkingDirectoryFileChange
+
+    if (!f) {
+      console.error('cannot change selected lines when selected file is not a WorkingDirectoryFileChange')
+      return
+    }
+
+    const newDiff: Map<number, boolean> = new Map<number, boolean>()
+
+    // populate the current state of the diff
+    this.state.diff.sections.forEach(s => {
+      s.lines.forEach((line, index) => {
+        if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
+          const absoluteIndex = s.startDiffSection + index
+          newDiff.set(absoluteIndex, line.selected)
+        }
+      })
+    })
+
+    const include = !diff.selected
+
+    // apply the requested change
+    for (let i = startLine; i <= endLine; i++) {
+      newDiff.set(i, include)
+    }
+
+    this.props.onIncludeChanged(newDiff)
   }
 
   private editableSidebar(diff: DiffLine, rowIndex: number) {
