@@ -196,6 +196,23 @@ export class Branch {
 
     return pieces[1]
   }
+
+  /**
+   * The name of the branch without the remote prefix. If the branch is a local
+   * branch, this is the same as its `name`.
+   */
+  public get nameWithoutRemote(): string {
+    if (this.type === BranchType.Local) {
+      return this.name
+    } else {
+      const pieces = this.name.match(/.*?\/(.*)/)
+      if (!pieces || pieces.length < 2) {
+         return this.name
+      }
+
+      return pieces[1]
+    }
+  }
 }
 
 /**
