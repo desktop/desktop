@@ -697,6 +697,6 @@ export default class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _deleteBranch(repository: Repository, branch: Branch): Promise<void> {
-
+    return LocalGitOperations.deleteBranch(repository, branch)
   }
 }
