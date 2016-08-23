@@ -36,7 +36,8 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
             <input value={this.state.path}
                    type='text'
                    placeholder='repository path'
-                   onChange={event => this.onPathChanged(event)}/>
+                   onChange={event => this.onPathChanged(event)}
+                   onKeyDown={event => this.onKeyDown(event)}/>
 
             <button onClick={() => this.showFilePicker()}>Choose…</button>
           </div>
@@ -56,6 +57,12 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
     this.checkIfPathIsRepository(path)
   }
 
+  private onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Escape') {
+      this.props.dispatcher.closePopup()
+    }
+  }
+
   private showFilePicker() {
     const directory: string[] | null = remote.dialog.showOpenDialog({ properties: [ 'createDirectory', 'openDirectory' ] })
     if (!directory) { return }
@@ -69,7 +76,7 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
 
     const token = ++this.checkGitRepositoryToken
 
-    const isGitRepository = await LocalGitOperations.isGitRepository(this.resolvedPath)
+    const isGitRepository = await LocalGitOperations.isGitRepository(this.resolvedPath(path))
 
     // Another path check was requested so don't update state based on the old
     // path.
@@ -78,12 +85,12 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
     this.setState({ path: this.state.path, isGitRepository })
   }
 
-  private get resolvedPath(): string {
-    return untildify(this.state.path)
+  private resolvedPath(path: string): string {
+    return untildify(path)
   }
 
   private async addRepository() {
-    const resolvedPath = this.resolvedPath
+    const resolvedPath = this.resolvedPath(this.state.path)
     if (!this.state.isGitRepository) {
       await LocalGitOperations.initGitRepository(resolvedPath)
     }
