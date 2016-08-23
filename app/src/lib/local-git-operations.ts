@@ -301,6 +301,54 @@ export class LocalGitOperations {
     return GitProcess.exec(addFileArgs, repository.path)
   }
 
+  private static createPatchesForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): ReadonlyArray<string> {
+
+    const selection = file.diffSelection.selectedLines
+
+    return diff.sections.map(s => {
+
+      let linesSkipped: number = 0
+      let patchBody: string = ''
+
+      s.lines
+        .forEach((line, index) => {
+          if (line.type === DiffLineType.Hunk) {
+            // ignore the header
+            return
+          }
+
+          if (line.type === DiffLineType.Context) {
+            patchBody += line.text + '\n'
+          } else {
+            if (selection.has(index)) {
+              const include = selection.get(index)
+              if (include) {
+                patchBody += line.text + '\n'
+              } else if (line.type === DiffLineType.Delete) {
+                // need to generate the correct patch here
+                patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
+                linesSkipped -= 1
+              } else {
+                // ignore this line when creating the patch
+                linesSkipped += 1
+              }
+            }
+          }
+        })
+
+      const header = s.lines[0]
+      const headerText = header.text
+      const additionalTextIndex = headerText.lastIndexOf('@@')
+      const additionalText = headerText.substring(additionalTextIndex + 2)
+
+      const newLineCount = s.range.oldEndLine - linesSkipped
+
+      const patchHeader: string = `--- a/${file.path}\n+++ b/${file.path}\n@@ -${s.range.oldStartLine},${s.range.oldEndLine} +${s.range.newStartLine},${newLineCount} @@ ${additionalText}\n`
+
+      return patchHeader + patchBody
+    })
+  }
+
   private static createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Diff): string {
 
     const selection = file.diffSelection.selectedLines
@@ -351,62 +399,23 @@ export class LocalGitOperations {
     const applyArgs: string[] = [ 'apply', '--cached', '--unidiff-zero', '--whitespace=nowarn', '-' ]
 
     const diff = await LocalGitOperations.getDiff(repository, file, null)
-    const selection = file.diffSelection.selectedLines
 
     if (file.status === FileStatus.New) {
       const input = await LocalGitOperations.createPatchForNewFile(file, diff)
       return GitProcess.exec(applyArgs, repository.path, input).then(() => { })
     }
 
-    const tasks = diff.sections.map(s => {
+    if (file.status === FileStatus.Modified) {
+      const patches = await LocalGitOperations.createPatchesForModifiedFile(file, diff)
+      const tasks = patches.map(patch => {
+          return GitProcess.exec(applyArgs, repository.path, patch)
+      })
+      return Promise.all(tasks).then(() => { })
+    }
 
-      let linesSkipped: number = 0
-      let patchBody: string = ''
+    // TODO: handle partially committing a deleted file
 
-      s.lines
-        .forEach((line, index) => {
-          if (line.type === DiffLineType.Hunk) {
-            // ignore the header
-            return
-          }
-
-          if (line.type === DiffLineType.Context) {
-            patchBody += line.text + '\n'
-          } else {
-            if (selection.has(index)) {
-              const include = selection.get(index)
-              if (include) {
-                patchBody += line.text + '\n'
-              } else if (line.type === DiffLineType.Delete) {
-                // need to generate the correct patch here
-                patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
-                linesSkipped -= 1
-              } else {
-                // ignore this line when creating the patch
-                linesSkipped += 1
-              }
-            }
-          }
-        })
-
-      const header = s.lines[0]
-      const headerText = header.text
-      const additionalTextIndex = headerText.lastIndexOf('@@')
-      const additionalText = headerText.substring(additionalTextIndex + 2)
-
-      const newLineCount = s.range.oldEndLine - linesSkipped
-
-      // TODO: a new file here will have no path defined for ---
-      // TODO: handle deleting of a full file
-
-      const patchHeader: string = `--- a/${file.path}\n+++ b/${file.path}\n@@ -${s.range.oldStartLine},${s.range.oldEndLine} +${s.range.newStartLine},${newLineCount} @@ ${additionalText}\n`
-
-      const input = patchHeader + patchBody
-
-      return GitProcess.exec(applyArgs, repository.path, input)
-    })
-
-    return Promise.all(tasks).then(() => { })
+    return Promise.resolve()
   }
 
   public static createCommit(repository: Repository, summary: string, description: string, files: ReadonlyArray<WorkingDirectoryFileChange>) {
