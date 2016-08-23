@@ -53,8 +53,14 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
   }
 
   private onPathChanged(event: React.FormEvent<HTMLInputElement>) {
-    const path = event.target.value
-    this.checkIfPathIsRepository(path)
+    // TODO: event.target should be a generic value
+    // see https://github.com/desktop/desktop/issues/297 for details
+    const input = event.target as HTMLInputElement
+
+    if (input) {
+      const path = input.value
+      this.checkIfPathIsRepository(path)
+    }
   }
 
   private onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {

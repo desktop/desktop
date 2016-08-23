@@ -26,13 +26,25 @@ export default class CreateRepository extends React.Component<ICreateRepositoryP
   }
 
   private onPathChanged(event: React.FormEvent<HTMLInputElement>) {
-    const path = event.target.value
-    this.setState({ path, name: this.state.name })
+    // TODO: event.target should be a generic value
+    // see https://github.com/desktop/desktop/issues/297 for details
+    const input = event.target as HTMLInputElement
+
+    if (input) {
+      const path = input.value
+      this.setState({ path, name: this.state.name })
+    }
   }
 
   private onNameChanged(event: React.FormEvent<HTMLInputElement>) {
-    const name = event.target.value
-    this.setState({ path: this.state.path, name })
+    // TODO: event.target should be a generic value
+    // see https://github.com/desktop/desktop/issues/297 for details
+    const input = event.target as HTMLInputElement
+
+    if (input) {
+      const name = input.value
+      this.setState({ path: this.state.path, name })
+    }
   }
 
   private showFilePicker() {
