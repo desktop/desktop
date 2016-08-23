@@ -335,8 +335,8 @@ export class LocalGitOperations {
 
     return diff.sections.map(s => {
 
-      let linesSkipped: number = 0
-      let patchBody: string = ''
+      let linesSkipped = 0
+      let patchBody = ''
 
       s.lines
         .forEach((line, index) => {
