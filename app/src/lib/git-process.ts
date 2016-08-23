@@ -52,22 +52,16 @@ export class GitProcess {
     throw new Error('Git not supported on platform: ' + process.platform)
   }
 
-  public static exec(args: string[], path: string): Promise<string>;
-  public static exec(args: string[], path: string, input: string): Promise<string>;
-
   /**
    *  Execute a command using the embedded Git environment
    */
-  public static exec(args: string[], path: string, input?: string): Promise<void> {
+  public static exec(args: string[], path: string, input: string | undefined = undefined): Promise<void> {
     return GitProcess.execWithOutput(args, path, input)
   }
 
   /**
    *  Execute a command and read the output using the embedded Git environment
    */
-  public static execWithOutput(args: string[], path: string): Promise<string>;
-  public static execWithOutput(args: string[], path: string, input: string | undefined): Promise<string>;
-
   public static execWithOutput(args: string[], path: string, input: string | undefined = undefined): Promise<string> {
     return new Promise<string>(function(resolve, reject) {
       const gitLocation = GitProcess.resolveGit()
