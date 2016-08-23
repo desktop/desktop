@@ -62,14 +62,13 @@ export class DiffLine {
   public readonly type: DiffLineType
   public readonly oldLineNumber: number | null
   public readonly newLineNumber: number | null
-  public selected: boolean
+  public selected: boolean = false
 
   public constructor(text: string, type: DiffLineType, oldLineNumber: number | null, newLineNuber: number | null) {
     this.text = text
     this.type = type
     this.oldLineNumber = oldLineNumber
     this.newLineNumber = newLineNuber
-    this.selected = false
   }
 }
 
@@ -353,7 +352,7 @@ export class LocalGitOperations {
 
     const selection = file.diffSelection.selectedLines
 
-    let input: string = ''
+    let input = ''
 
     diff.sections.map(s => {
 

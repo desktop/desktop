@@ -144,14 +144,14 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       return
     }
 
-    const newDiff: Map<number, boolean> = new Map<number, boolean>()
+    const newDiffSelection: Map<number, boolean> = new Map<number, boolean>()
 
     // populate the current state of the diff
     this.state.diff.sections.forEach(s => {
       s.lines.forEach((line, index) => {
         if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
           const absoluteIndex = s.startDiffSection + index
-          newDiff.set(absoluteIndex, line.selected)
+          newDiffSelection.set(absoluteIndex, line.selected)
         }
       })
     })
@@ -160,10 +160,10 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     // apply the requested change
     for (let i = startLine; i <= endLine; i++) {
-      newDiff.set(i, include)
+      newDiffSelection.set(i, include)
     }
 
-    this.props.onIncludeChanged(newDiff)
+    this.props.onIncludeChanged(newDiffSelection)
   }
 
   private editableSidebar(diff: DiffLine, rowIndex: number) {
