@@ -1,10 +1,12 @@
 import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
+import Repository from '../../models/repository'
 import { Branch } from '../../lib/local-git-operations'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
+  readonly repository: Repository
   readonly branch: Branch
 }
 
@@ -28,6 +30,7 @@ export default class DeleteBranch extends React.Component<IDeleteBranchProps, vo
   }
 
   private deleteBranch() {
-
+    this.props.dispatcher.deleteBranch(this.props.repository, this.props.branch)
+    this.props.dispatcher.closePopup()
   }
 }
