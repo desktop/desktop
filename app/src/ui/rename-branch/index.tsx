@@ -67,6 +67,8 @@ export default class RenameBranch extends React.Component<IRenameBranchProps, IR
   private renameBranch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
+    const name = sanitizedBranchName(this.state.newName)
+    this.props.dispatcher.renameBranch(this.props.repository, this.props.branch, name)
     this.props.dispatcher.closePopup()
   }
 }

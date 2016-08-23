@@ -660,4 +660,9 @@ export class LocalGitOperations {
   public static initGitRepository(path: string): Promise<void> {
     return GitProcess.exec([ 'init' ], path)
   }
+
+  /** Rename the given branch to a new name. */
+  public static renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
+    return GitProcess.exec([ 'branch', '-m', branch.name, newName ], repository.path)
+  }
 }

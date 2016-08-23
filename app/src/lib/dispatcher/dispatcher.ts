@@ -7,6 +7,7 @@ import { IHistorySelection, RepositorySection, Popup, IAppError } from '../app-s
 import { Action } from './actions'
 import AppStore from './app-store'
 import GitUserStore from './git-user-store'
+import { Branch } from '../../lib/local-git-operations'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -254,5 +255,10 @@ export class Dispatcher {
   /** Clear the given error. */
   public clearError(error: IAppError): Promise<void> {
     return this.appStore._clearError(error)
+  }
+
+  /** Rename the branch to a new name. */
+  public renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
+    return this.appStore._renameBranch(repository, branch, newName)
   }
 }

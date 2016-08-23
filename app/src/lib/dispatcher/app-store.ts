@@ -694,4 +694,11 @@ export default class AppStore {
     // add to the map.
     this.emitUpdate()
   }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
+    await LocalGitOperations.renameBranch(repository, branch, newName)
+
+    return this._refreshRepository(repository)
+  }
 }
