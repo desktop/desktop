@@ -193,7 +193,11 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private renderSidebar = (rowIndex: number) => {
-    const diffLine = this.getDiffLineFromSection(rowIndex)!
+    const diffLine = this.getDiffLineFromSection(rowIndex)
+
+    if (!diffLine) {
+      return null
+    }
 
     if (this.props.readOnly) {
       return this.readOnlySidebar(diffLine)
@@ -203,12 +207,17 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private renderBodyCell = (rowIndex: number) => {
-    const diff = this.getDiffLineFromSection(rowIndex)!
-    const className = this.map(diff.type)
+    const diffLine = this.getDiffLineFromSection(rowIndex)
+
+    if (!diffLine) {
+      return null
+    }
+
+    const className = this.map(diffLine.type)
 
     return (
       <div className={className}>
-        <span className='text'>{diff.text}</span>
+        <span className='text'>{diffLine.text}</span>
       </div>
     )
   }
