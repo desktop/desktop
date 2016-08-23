@@ -1,6 +1,6 @@
 import * as Path from 'path'
 
-import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus, DiffSelection } from '../models/status'
+import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus, DiffSelection, DiffSelectionType } from '../models/status'
 import Repository from '../models/repository'
 
 import { GitProcess, GitError, GitErrorCode } from './git-process'
@@ -245,7 +245,7 @@ export class LocalGitOperations {
                 const path = result[regexGroups.path]
 
                 const status = this.mapStatus(modeText)
-                const diffSelection = new DiffSelection(true, new Map<number, boolean>())
+                const diffSelection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
                 files.push(new WorkingDirectoryFileChange(path, status, diffSelection))
               }
             }
@@ -434,7 +434,7 @@ export class LocalGitOperations {
         return GitProcess.exec(resetArgs, repository.path)
           .then(_ => {
             const addFiles = files.map((file, index, array) => {
-              if (file.diffSelection.isIncludeAll() === true) {
+              if (file.diffSelection.getSelectionType() === DiffSelectionType.All) {
                 return this.addFileToIndex(repository, file)
               } else {
                 return this.applyPatchToIndex(repository, file)

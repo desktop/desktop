@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import IRepository from '../models/repository'
-import { FileChange, WorkingDirectoryFileChange } from '../models/status'
+import { FileChange, WorkingDirectoryFileChange, DiffSelectionType } from '../models/status'
 
 import { LocalGitOperations, Diff, Commit, DiffLine, DiffLineType } from '../lib/local-git-operations'
 
@@ -57,8 +57,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     if (change) {
       const diffSelection = change.diffSelection
-      const includeAll = diffSelection.isIncludeAll()
-      if (includeAll === null) {
+      const selectionType = diffSelection.getSelectionType()
+      if (selectionType === DiffSelectionType.Partial) {
         diffSelection.selectedLines.forEach((value, index) => {
           const section = find(diff.sections, s => index >= s.startDiffSection && index < s.endDiffSection)
           if (section) {
@@ -67,6 +67,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
           }
         })
       } else {
+        const includeAll = selectionType === DiffSelectionType.All ? true : false
         diff.setAllLines(includeAll)
       }
     }
@@ -232,13 +233,13 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     if (this.props.file) {
 
-      let invalidationProps: { path: string, include: boolean | null } = { path: this.props.file!.path, include: false }
+      let invalidationProps = { path: this.props.file!.path, selection: DiffSelectionType.None }
 
-      const workingDirectoryChange = this.props.file as WorkingDirectoryFileChange
+      const change = this.props.file as WorkingDirectoryFileChange
 
-      if (workingDirectoryChange) {
-        const includeAll = workingDirectoryChange.diffSelection.isIncludeAll()
-        invalidationProps = { path: this.props.file!.path, include: includeAll }
+      if (change) {
+        const selectionType = change.diffSelection.getSelectionType()
+        invalidationProps = { path: this.props.file!.path, selection: selectionType }
       }
 
       let diffLineCount: number = 0

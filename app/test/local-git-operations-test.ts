@@ -8,7 +8,7 @@ const temp = require('temp').track()
 
 import Repository from '../src/models/repository'
 import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
-import { FileStatus, FileChange,  DiffSelection, WorkingDirectoryFileChange } from '../src/models/status'
+import { FileStatus, FileChange,  DiffSelection, DiffSelectionType, WorkingDirectoryFileChange } from '../src/models/status'
 
 import { find } from '../src/lib/find'
 
@@ -94,7 +94,7 @@ describe('LocalGitOperations', () => {
       // select first few lines
       const newFileName = 'new-file.md'
       const selectedLines = new Map<number, boolean>(lines)
-      const selection = new DiffSelection(null, selectedLines)
+      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
       const file = new WorkingDirectoryFileChange(newFileName, FileStatus.New, selection)
 
       // commit just this change, ignore everything else

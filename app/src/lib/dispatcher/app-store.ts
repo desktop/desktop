@@ -4,7 +4,7 @@ import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, Reposito
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import GitHubRepository from '../../models/github-repository'
-import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
+import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, DiffSelectionType } from '../../models/status'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import API, { getUserForEndpoint } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
@@ -413,7 +413,7 @@ export default class AppStore {
   public async _commitIncludedChanges(repository: Repository, summary: string, description: string): Promise<void> {
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
-      return file.diffSelection.isIncludeAll() !== false
+      return file.diffSelection.getSelectionType() !== DiffSelectionType.None
     })
 
     await LocalGitOperations.createCommit(repository, summary, description, files)
@@ -422,8 +422,8 @@ export default class AppStore {
   }
 
   private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {
-    const allSelected = files.every(f => f.diffSelection.isIncludeAll() === true)
-    const noneSelected = files.every(f => !f.diffSelection.isIncludeAll() === false)
+    const allSelected = files.every(f => f.diffSelection.getSelectionType() === DiffSelectionType.All)
+    const noneSelected = files.every(f => f.diffSelection.getSelectionType() === DiffSelectionType.None)
 
     let includeAll: boolean | null = null
     if (allSelected) {

@@ -26,39 +26,45 @@ export class FileChange {
   }
 }
 
+export enum DiffSelectionType {
+  All,
+  Partial,
+  None
+}
 
 /** encapsulate the selection of changes to a modified file in the working directory  */
 export class DiffSelection {
+
   /** by default, the diff selection to include all lines */
-  private readonly includeAll: boolean | null = true
+  private readonly include: DiffSelectionType = DiffSelectionType.All
+
   /**
       once the user has started selecting specific lines to include,
       these selections are tracked here
   */
   public readonly selectedLines: Map<number, boolean>
 
-  public constructor(includeAll: boolean | null, selectedLines: Map<number, boolean>) {
-    this.includeAll = includeAll
+  public constructor(include: DiffSelectionType, selectedLines: Map<number, boolean>) {
+    this.include = include
     this.selectedLines = selectedLines
   }
 
-  /** check if all lines are selected in the diff */
-  public isIncludeAll(): boolean | null {
+  /**  return the selected state of the diff */
+  public getSelectionType(): DiffSelectionType {
     if (this.selectedLines.size === 0) {
-      return this.includeAll
+      return this.include
     } else {
       const toArray = Array.from(this.selectedLines.values())
       const allSelected = toArray.every(k => k === true)
       const noneSelected = toArray.every(k => k === false)
 
-      let includeAll: boolean | null = null
       if (allSelected) {
-        includeAll = true
+        return DiffSelectionType.All
       } else if (noneSelected) {
-        includeAll = false
+        return DiffSelectionType.None
       }
 
-      return includeAll
+      return DiffSelectionType.Partial
     }
   }
 }
@@ -76,7 +82,8 @@ export class WorkingDirectoryFileChange extends FileChange {
 
   /** Create a new WorkingDirectoryFileChange with the given includedness. */
   public withIncludeAll(include: boolean): WorkingDirectoryFileChange {
-    const selection = new DiffSelection(include, new Map<number, boolean>())
+    const type = include ? DiffSelectionType.All : DiffSelectionType.None
+    const selection = new DiffSelection(type, new Map<number, boolean>())
     return this.withDiffSelection(selection)
   }
 
@@ -96,11 +103,11 @@ export class WorkingDirectoryFileChange extends FileChange {
     const allSelected = toArray.every(k => k === true)
     const noneSelected = toArray.every(k => k === false)
 
-    let includeAll: boolean | null = null
+    let includeAll = DiffSelectionType.Partial
     if (allSelected) {
-      includeAll = true
+      includeAll = DiffSelectionType.All
     } else if (noneSelected) {
-      includeAll = false
+      includeAll = DiffSelectionType.None
     }
 
     const selection = new DiffSelection(includeAll, diffLines)
