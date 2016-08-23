@@ -695,7 +695,7 @@ export class LocalGitOperations {
    */
   public static async deleteBranch(repository: Repository, branch: Branch): Promise<void> {
     const deleteRemoteBranch = (branch: Branch, remote: string) => {
-      return GitProcess.exec([ 'push', remote, `:${branch.name}` ], repository.path)
+      return GitProcess.exec([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path)
     }
 
     if (branch.type === BranchType.Local) {
