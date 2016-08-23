@@ -15,8 +15,8 @@ interface ICreateBranchProps {
 
 interface ICreateBranchState {
   readonly currentError: Error | null
-  readonly proposedName: string | null
-  readonly sanitizedName: string | null
+  readonly proposedName: string
+  readonly sanitizedName: string
   readonly baseBranch: Branch | null
 }
 
@@ -27,8 +27,8 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
 
     this.state = {
       currentError: null,
-      proposedName: null,
-      sanitizedName: null,
+      proposedName: '',
+      sanitizedName: '',
       baseBranch: this.props.currentBranch,
     }
   }
@@ -52,14 +52,19 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
 
   public render() {
     const proposedName = this.state.proposedName
-    const disabled = !proposedName || !!this.state.currentError
+    const disabled = !proposedName.length || !!this.state.currentError
     const currentBranch = this.props.currentBranch
     return (
-      <div id='create-branch' className='panel'>
+      <form id='create-branch' className='panel' onSubmit={event => this.createBranch(event)}>
         <div className='header'>Create New Branch</div>
         <hr/>
 
-        <label>Name <input type='text' onChange={event => this.onBranchNameChange(event)}/></label>
+        <label>Name
+          <input type='text'
+                 autoFocus={true}
+                 onChange={event => this.onBranchNameChange(event)}
+                 onKeyDown={event => this.onKeyDown(event)}/>
+        </label>
 
         {this.renderError()}
 
@@ -71,9 +76,15 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
         </label>
 
         <hr/>
-        <button onClick={() => this.createBranch()} disabled={disabled}>Create Branch</button>
-      </div>
+        <button type='submit' disabled={disabled}>Create Branch</button>
+      </form>
     )
+  }
+
+  private onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+    if (event.key === 'Escape') {
+      this.props.dispatcher.closePopup()
+    }
   }
 
   private onBranchNameChange(event: React.FormEvent<HTMLInputElement>) {
@@ -104,10 +115,12 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
     })
   }
 
-  private createBranch() {
+  private createBranch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
     const name = this.state.sanitizedName
     const baseBranch = this.state.baseBranch
-    if (name && name.length > 0 && baseBranch) {
+    if (name.length > 0 && baseBranch) {
       this.props.dispatcher.createBranch(this.props.repository, name, baseBranch.name)
     }
 
