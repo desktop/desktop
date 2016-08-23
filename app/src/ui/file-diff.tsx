@@ -64,12 +64,20 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     if (change) {
       const diffSelection = change.diffSelection
       const selectionType = diffSelection.getSelectionType()
+
+
       if (selectionType === DiffSelectionType.Partial) {
         diffSelection.selectedLines.forEach((value, index) => {
-          const section = find(diff.sections, s => index >= s.startDiffSection && index < s.endDiffSection)
+          const section = find(diff.sections, s => {
+            return index >= s.startDiffSection && index < s.endDiffSection
+          })
+
           if (section) {
-            const diffLine = section.lines[index]
-            diffLine.selected = value
+            const relativeIndex = index - section.startDiffSection
+            const diffLine = section.lines[relativeIndex]
+            if (diffLine) {
+              diffLine.selected = value
+            }
           }
         })
       } else {
