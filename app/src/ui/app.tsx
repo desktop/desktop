@@ -16,6 +16,7 @@ import Popuppy from './popuppy'
 import CreateBranch from './create-branch'
 import Branches from './branches'
 import AddRepository from './add-repository'
+import DeleteBranch from './delete-branch'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -70,9 +71,14 @@ export default class App extends React.Component<IAppProps, IAppState> {
       case 'show-branches': return this.showBranches()
       case 'remove-repository': return this.removeRepository()
       case 'add-repository': return this.addRepository()
+      case 'delete-branch': return this.deleteBranch()
     }
 
     return fatalError(`Unknown menu event name: ${name}`)
+  }
+
+  private deleteBranch() {
+    this.props.dispatcher.showPopup(Popup.DeleteBranch, this.state.selectedRepository)
   }
 
   private addRepository() {
@@ -253,6 +259,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
       case Popup.AddRepository:
         content = <AddRepository dispatcher={this.props.dispatcher}/>
         break
+
+      case Popup.DeleteBranch: {
+        const state = this.state.repositoryState!.branchesState
+        content = <DeleteBranch dispatcher={this.props.dispatcher}
+                                repository={this.state.selectedRepository!}
+                                branch={state.currentBranch!}/>
+        } break
     }
 
     if (!content) {
