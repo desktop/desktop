@@ -327,7 +327,7 @@ export class LocalGitOperations {
     const fromText = from ? `a/${from}` : '/dev/null'
     const toText = to ? `b/${to}` : '/dev/null'
 
-    return `--- ${fromText}\n+++ ${toText}\n@@ -${beforeStart},${beforeLength} +${afterStart},${afterLength} @@ ${afterText}\n`
+    return `--- ${fromText}\n+++ ${toText}\n@@ -${beforeStart},${beforeLength} +${afterStart},${afterLength} @@${afterText}\n`
   }
 
   private static createPatchesForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): ReadonlyArray<string> {
