@@ -7,6 +7,7 @@ import { IHistorySelection, RepositorySection, Popup, IAppError } from '../app-s
 import { Action } from './actions'
 import AppStore from './app-store'
 import GitUserStore from './git-user-store'
+import { Branch } from '../local-git-operations'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -254,5 +255,13 @@ export class Dispatcher {
   /** Clear the given error. */
   public clearError(error: IAppError): Promise<void> {
     return this.appStore._clearError(error)
+  }
+
+  /**
+   * Delete the branch. This will delete both the local branch and the remote
+   * branch, and then check out the default branch.
+   */
+  public deleteBranch(repository: Repository, branch: Branch): Promise<void> {
+    return this.appStore._deleteBranch(repository, branch)
   }
 }

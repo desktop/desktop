@@ -693,4 +693,9 @@ export default class AppStore {
     // add to the map.
     this.emitUpdate()
   }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _deleteBranch(repository: Repository, branch: Branch): Promise<void> {
+
+  }
 }
