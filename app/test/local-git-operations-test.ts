@@ -119,6 +119,52 @@ describe('LocalGitOperations', () => {
       expect(fileChange).to.not.be.undefined
       expect(fileChange!.status).to.equal(FileStatus.Modified)
     })
+
+
+    it('can commit second hunk from modified file', async () => {
+
+      const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+
+      const lines = new Map<number, boolean>()
+
+      // skip first hunk
+      for (let i = 4; i <= 7; i++) {
+        lines.set(i, false)
+      }
+
+      // select second hunk
+      for (let i = 16; i <= 19; i++) {
+        lines.set(i, true)
+      }
+
+      // select first few lines
+      const modifiedFile = 'modified-file.md'
+      const selectedLines = new Map<number, boolean>(lines)
+      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+
+      // commit just this change, ignore everything else
+      await LocalGitOperations.createCommit(repository!, 'title', '', [ file ])
+
+      // verify that the HEAD of the repository has moved
+      const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      expect(newTip.sha).to.not.equal(previousTip.sha)
+      expect(newTip.summary).to.equal('title')
+
+      // verify that the contents of this new commit are just the modified file
+      const changedFiles = await LocalGitOperations.getChangedFiles(repository!, newTip.sha)
+      expect(changedFiles.length).to.equal(1)
+      expect(changedFiles[0].path).to.equal(modifiedFile)
+
+      // verify that changes remain for this modified file
+      const status = await LocalGitOperations.getStatus(repository!)
+      expect(status.workingDirectory.files.length).to.equal(3)
+
+      // verify that the file is still marked as modified
+      const fileChange = find(status.workingDirectory.files, f => f.path === modifiedFile)
+      expect(fileChange).to.not.be.undefined
+      expect(fileChange!.status).to.equal(FileStatus.Modified)
+    })
   })
 
   describe('history', () => {
