@@ -6,13 +6,27 @@ export enum DiffSelectionType {
 }
 
 export class DiffSelectionParser {
-  public static parse(selection: Map<number, boolean>): { allSelected: boolean, noneSelected: boolean } {
+  /** iterate over the selected values and determine the all/none state  */
+  private static parse(selection: Map<number, boolean>): { allSelected: boolean, noneSelected: boolean } {
       const toArray = Array.from(selection.values())
 
       const allSelected = toArray.every(k => k === true)
       const noneSelected = toArray.every(k => k === false)
 
       return { allSelected, noneSelected }
+  }
+
+  /** determine the selection state based on the selected lines */
+  public static getState(selection: Map<number, boolean>): DiffSelectionType {
+    const { allSelected, noneSelected } = DiffSelectionParser.parse(selection)
+
+    if (allSelected) {
+      return DiffSelectionType.All
+    } else if (noneSelected) {
+      return DiffSelectionType.None
+    }
+
+    return  DiffSelectionType.Partial
   }
 }
 
@@ -46,15 +60,7 @@ export class DiffSelection {
     if (this.selectedLines.size === 0) {
       return this.include
     } else {
-
-      const { allSelected, noneSelected } = DiffSelectionParser.parse(this.selectedLines)
-      if (allSelected) {
-        return DiffSelectionType.All
-      } else if (noneSelected) {
-        return DiffSelectionType.None
-      }
-
-      return DiffSelectionType.Partial
+      return DiffSelectionParser.getState(this.selectedLines)
     }
   }
 }

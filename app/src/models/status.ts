@@ -54,15 +54,7 @@ export class WorkingDirectoryFileChange extends FileChange {
 
   /** Create a new WorkingDirectoryFileChange with the given line selection. */
   public withDiffLinesSelection(diffLines: Map<number, boolean>): WorkingDirectoryFileChange {
-    const { allSelected, noneSelected } = DiffSelectionParser.parse(diffLines)
-
-    let includeAll = DiffSelectionType.Partial
-    if (allSelected) {
-      includeAll = DiffSelectionType.All
-    } else if (noneSelected) {
-      includeAll = DiffSelectionType.None
-    }
-
+    const includeAll = DiffSelectionParser.getState(diffLines)
     const selection = new DiffSelection(includeAll, diffLines)
     return this.withSelection(selection)
   }
