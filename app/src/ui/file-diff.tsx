@@ -74,7 +74,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     this.setState(Object.assign({}, this.state, { diff }))
   }
 
-  private map(type: DiffLineType): string {
+  private getClassName(type: DiffLineType): string {
     if (type === DiffLineType.Add) {
       return 'diff-add'
     } else if (type === DiffLineType.Delete) {
@@ -165,7 +165,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private editableSidebar(diff: DiffLine, rowIndex: number) {
-    const baseClassName = this.map(diff.type)
+    const baseClassName = this.getClassName(diff.type)
     const className = diff.selected ? baseClassName + '-selected' : baseClassName
 
     // TODO: depending on cursor position, highlight hunk rather than line
@@ -182,10 +182,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private readOnlySidebar(diff: DiffLine) {
-    const baseClassName = this.map(diff.type)
-
     return (
-      <div className={baseClassName}>
+      <div className={this.getClassName(diff.type)}>
         <span className='before'>{this.formatIfNotSet(diff.oldLineNumber)}</span>
         <span className='after'>{this.formatIfNotSet(diff.newLineNumber)}</span>
       </div>
@@ -213,10 +211,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       return null
     }
 
-    const className = this.map(diffLine.type)
-
     return (
-      <div className={className}>
+      <div className={this.getClassName(diffLine.type)}>
         <span className='text'>{diffLine.text}</span>
       </div>
     )
