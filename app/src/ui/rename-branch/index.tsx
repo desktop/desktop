@@ -6,7 +6,7 @@ import { Branch } from '../../lib/local-git-operations'
 import sanitizedBranchName from '../create-branch/sanitized-branch-name'
 
 interface IRenameBranchProps {
-  readonly dispacher: Dispatcher
+  readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branch: Branch
 }
@@ -52,7 +52,7 @@ export default class RenameBranch extends React.Component<IRenameBranchProps, IR
 
   private onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'Escape') {
-      this.props.dispacher.closePopup()
+      this.props.dispatcher.closePopup()
     }
   }
 
@@ -61,12 +61,12 @@ export default class RenameBranch extends React.Component<IRenameBranchProps, IR
   }
 
   private cancel() {
-    this.props.dispacher.closePopup()
+    this.props.dispatcher.closePopup()
   }
 
   private renameBranch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    this.props.dispacher.closePopup()
+    this.props.dispatcher.closePopup()
   }
 }
