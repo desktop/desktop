@@ -302,8 +302,35 @@ export class LocalGitOperations {
     return GitProcess.exec(addFileArgs, repository.path)
   }
 
-  private static createPatchesForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): ReadonlyArray<string> {
+  private static extractAdditionalText(hunkHeader: string): string {
+    const additionalTextIndex = hunkHeader.lastIndexOf('@@')
 
+    // guard against being sent only one instance of @@ in the text
+    if (additionalTextIndex <= 0) {
+      return ''
+    }
+
+    // return everything after the found '@@'
+    return hunkHeader.substring(additionalTextIndex + 2)
+  }
+
+  private static formatPatchHeader(
+    from: string | null,
+    to: string | null,
+    beforeStart: number,
+    beforeLength: number,
+    afterStart: number,
+    afterLength: number,
+    afterText: string
+  ): string {
+
+    const fromText = from ? `a/${from}` : '/dev/null'
+    const toText = to ? `b/${to}` : '/dev/null'
+
+    return `--- ${fromText}\n+++ ${toText}\n@@ -${beforeStart},${beforeLength} +${afterStart},${afterLength} @@ ${afterText}\n`
+  }
+
+  private static createPatchesForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): ReadonlyArray<string> {
     const selection = file.diffSelection.selectedLines
 
     return diff.sections.map(s => {
@@ -338,22 +365,24 @@ export class LocalGitOperations {
         })
 
       const header = s.lines[0]
-      const headerText = header.text
-      const additionalTextIndex = headerText.lastIndexOf('@@')
-      const additionalText = headerText.substring(additionalTextIndex + 2)
-
+      const additionalText = LocalGitOperations.extractAdditionalText(header.text)
       const newLineCount = s.range.oldEndLine - linesSkipped
 
-      const patchHeader: string = `--- a/${file.path}\n+++ b/${file.path}\n@@ -${s.range.oldStartLine},${s.range.oldEndLine} +${s.range.newStartLine},${newLineCount} @@ ${additionalText}\n`
+      const patchHeader = LocalGitOperations.formatPatchHeader(
+        file.path,
+        file.path,
+        s.range.oldStartLine,
+        s.range.oldEndLine,
+        s.range.newStartLine,
+        newLineCount,
+        additionalText)
 
       return patchHeader + patchBody
     })
   }
 
   private static createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Diff): string {
-
     const selection = file.diffSelection.selectedLines
-
     let input = ''
 
     diff.sections.map(s => {
@@ -382,13 +411,16 @@ export class LocalGitOperations {
         })
 
       const header = s.lines[0]
-      const headerText = header.text
-      const additionalTextIndex = headerText.lastIndexOf('@@')
-      const additionalText = headerText.substring(additionalTextIndex + 2)
+      const additionalText = LocalGitOperations.extractAdditionalText(header.text)
 
-      const newLineCount = linesCounted
-
-      const patchHeader: string = `--- /dev/null\n+++ b/${file.path}\n@@ -${s.range.oldStartLine},${s.range.oldEndLine} +${s.range.newStartLine},${newLineCount} @@ ${additionalText}\n`
+      const patchHeader = LocalGitOperations.formatPatchHeader(
+        null,
+        file.path,
+        s.range.oldStartLine,
+        s.range.oldEndLine,
+        s.range.newStartLine,
+        linesCounted,
+        additionalText)
 
       input += patchHeader + patchBody
     })
