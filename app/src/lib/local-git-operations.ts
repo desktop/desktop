@@ -1,10 +1,11 @@
 import * as Path from 'path'
 
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
-import { DiffSelectionType, DiffSelection, DiffLineType, Diff, DiffSection, DiffSectionRange } from '../models/diff'
+import { DiffSelectionType, DiffSelection, Diff, DiffSection, DiffSectionRange } from '../models/diff'
 import Repository from '../models/repository'
 
 import { GitProcess, GitError, GitErrorCode } from './git-process'
+import { createPatchesForModifiedFile, createPatchForNewFile } from './patch-formatter'
 
 /** The encapsulation of the result from 'git status' */
 export class StatusResult {
@@ -192,166 +193,18 @@ export class LocalGitOperations {
     return GitProcess.exec(addFileArgs, repository.path)
   }
 
-  private static extractAdditionalText(hunkHeader: string): string {
-    const additionalTextIndex = hunkHeader.lastIndexOf('@@')
-
-    // guard against being sent only one instance of @@ in the text
-    if (additionalTextIndex <= 0) {
-      return ''
-    }
-
-    // return everything after the found '@@'
-    return hunkHeader.substring(additionalTextIndex + 2)
-  }
-
-  private static formatPatchHeader(
-    from: string | null,
-    to: string | null,
-    beforeStart: number,
-    beforeLength: number,
-    afterStart: number,
-    afterLength: number,
-    afterText: string
-  ): string {
-
-    const fromText = from ? `a/${from}` : '/dev/null'
-    const toText = to ? `b/${to}` : '/dev/null'
-
-    return `--- ${fromText}\n+++ ${toText}\n@@ -${beforeStart},${beforeLength} +${afterStart},${afterLength} @@${afterText}\n`
-  }
-
-  private static createPatchesForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): ReadonlyArray<string | undefined> {
-    const selection = file.selection.selectedLines
-
-    let globalLinesSkipped = 0
-
-    return diff.sections.map(s => {
-
-      let linesSkipped = 0
-      let linesIncluded = 0
-      let patchBody = ''
-
-      const selectedLinesArray = Array.from(file.selection.selectedLines)
-
-      const selectedLines = selectedLinesArray.filter(a => a[0] >= s.unifiedDiffStart && a[0] < s.unifiedDiffEnd)
-
-      if (selectedLines.every(l => l[1] === false)) {
-        globalLinesSkipped += selectedLines.length
-        return undefined
-      }
-
-      s.lines
-        .forEach((line, index) => {
-          if (line.type === DiffLineType.Hunk) {
-            // ignore the header
-            return
-          }
-
-          if (line.type === DiffLineType.Context) {
-            patchBody += line.text + '\n'
-          } else {
-            const absoluteIndex = s.unifiedDiffStart + index
-            if (selection.has(absoluteIndex)) {
-              const include = selection.get(absoluteIndex)
-              if (include) {
-                patchBody += line.text + '\n'
-                if (line.type === DiffLineType.Add) {
-                  linesIncluded += 1
-                }
-              } else if (line.type === DiffLineType.Delete) {
-                // need to generate the correct patch here
-                patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
-                linesSkipped -= 1
-                globalLinesSkipped -= 1
-              } else {
-                // ignore this line when creating the patch
-                linesSkipped += 1
-                // and for subsequent patches
-                globalLinesSkipped += 1
-              }
-            }
-          }
-        })
-
-      const header = s.lines[0]
-      const additionalText = LocalGitOperations.extractAdditionalText(header.text)
-      const newLineStart = s.range.oldStartLine + globalLinesSkipped
-      const newDiffEnd = s.range.newStartLine - globalLinesSkipped + linesIncluded
-      const newLineCount = s.range.oldEndLine - linesSkipped + globalLinesSkipped
-
-      const patchHeader = LocalGitOperations.formatPatchHeader(
-        file.path,
-        file.path,
-        newLineStart,
-        s.range.oldEndLine,
-        newDiffEnd,
-        newLineCount,
-        additionalText)
-
-      return patchHeader + patchBody
-    })
-  }
-
-  private static createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Diff): string {
-    const selection = file.selection.selectedLines
-    let input = ''
-
-    diff.sections.map(s => {
-
-      let linesCounted: number = 0
-      let patchBody: string = ''
-
-      s.lines
-        .forEach((line, index) => {
-          if (line.type === DiffLineType.Hunk) {
-            // ignore the header
-            return
-          }
-
-          if (line.type === DiffLineType.Context) {
-            patchBody += line.text + '\n'
-          } else {
-            // TODO: this is always just one patch
-            if (selection.has(index)) {
-              const include = selection.get(index)
-              if (include) {
-                patchBody += line.text + '\n'
-                linesCounted += 1
-              }
-            }
-          }
-        })
-
-      const header = s.lines[0]
-      const additionalText = LocalGitOperations.extractAdditionalText(header.text)
-
-      const patchHeader = LocalGitOperations.formatPatchHeader(
-        null,
-        file.path,
-        s.range.oldStartLine,
-        s.range.oldEndLine,
-        s.range.newStartLine,
-        linesCounted,
-        additionalText)
-
-      input += patchHeader + patchBody
-    })
-
-    return input
-  }
-
   private static async applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
     const applyArgs: string[] = [ 'apply', '--cached', '--unidiff-zero', '--whitespace=nowarn', '-' ]
 
     const diff = await LocalGitOperations.getDiff(repository, file, null)
 
     if (file.status === FileStatus.New) {
-      const input = await LocalGitOperations.createPatchForNewFile(file, diff)
+      const input = await createPatchForNewFile(file, diff)
       return GitProcess.exec(applyArgs, repository.path, input).then(() => { })
     }
 
     if (file.status === FileStatus.Modified) {
-      const patches = await LocalGitOperations.createPatchesForModifiedFile(file, diff)
+      const patches = await createPatchesForModifiedFile(file, diff)
       const tasks = patches.map(patch => {
           if (patch) {
             return GitProcess.exec(applyArgs, repository.path, patch)
