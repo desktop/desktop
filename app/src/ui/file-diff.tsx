@@ -2,9 +2,9 @@ import * as React from 'react'
 
 import IRepository from '../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../models/status'
-import { DiffSelectionType } from '../models/diff'
+import { DiffSelectionType, DiffLine, DiffLineType, Diff } from '../models/diff'
 
-import { LocalGitOperations, Diff, Commit, DiffLine, DiffLineType } from '../lib/local-git-operations'
+import { LocalGitOperations, Commit } from '../lib/local-git-operations'
 
 import { find } from '../lib/find'
 
