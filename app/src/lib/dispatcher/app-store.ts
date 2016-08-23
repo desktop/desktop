@@ -450,7 +450,7 @@ export default class AppStore {
 
       let selectedFile: WorkingDirectoryFileChange | undefined
       if (state.changesState.selectedFile) {
-          const f = state.changesState.selectedFile!
+          const f = state.changesState.selectedFile
           selectedFile = newFiles.find(file => file.id === f.id)
       }
 
@@ -487,7 +487,7 @@ export default class AppStore {
 
       let selectedFile: WorkingDirectoryFileChange | undefined
       if (state.changesState.selectedFile) {
-          const f = state.changesState.selectedFile!
+          const f = state.changesState.selectedFile
           selectedFile = newFiles.find(file => file.id === f.id)
       }
 
