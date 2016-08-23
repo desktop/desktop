@@ -69,11 +69,11 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       if (selectionType === DiffSelectionType.Partial) {
         diffSelection.selectedLines.forEach((value, index) => {
           const section = find(diff.sections, s => {
-            return index >= s.startDiffSection && index < s.endDiffSection
+            return index >= s.unifiedDiffStart && index < s.unifiedDiffEnd
           })
 
           if (section) {
-            const relativeIndex = index - section.startDiffSection
+            const relativeIndex = index - section.unifiedDiffStart
             const diffLine = section.lines[relativeIndex]
             if (diffLine) {
               diffLine.selected = value
@@ -110,10 +110,10 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private getDiffLineFromSection(index: number): DiffLine | null {
-    const diff = find(this.state.diff.sections, s => index >= s.startDiffSection && index < s.endDiffSection)
+    const diff = find(this.state.diff.sections, s => index >= s.unifiedDiffStart && index < s.unifiedDiffEnd)
 
     if (diff) {
-      const relativeIndex = index - diff.startDiffSection
+      const relativeIndex = index - diff.unifiedDiffStart
       return diff.lines[relativeIndex]
     }
 
@@ -162,7 +162,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     this.state.diff.sections.forEach(s => {
       s.lines.forEach((line, index) => {
         if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
-          const absoluteIndex = s.startDiffSection + index
+          const absoluteIndex = s.unifiedDiffStart + index
           newDiffSelection.set(absoluteIndex, line.selected)
         }
       })

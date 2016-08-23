@@ -92,10 +92,14 @@ export class DiffSectionRange {
 
 /** each diff is made up of a number of sections */
 export class DiffSection {
+  /** details from the diff section about the line start and patch length */
   public readonly range: DiffSectionRange
+  /** the contents - context and changes - of the diff setion */
   public readonly lines: ReadonlyArray<DiffLine>
-  public readonly startDiffSection: number
-  public readonly endDiffSection: number
+  /** the diff section's start position in the overall file diff */
+  public readonly unifiedDiffStart: number
+  /** the diff section's end position in the overall file diff */
+  public readonly unifiedDiffEnd: number
 
   /** infer the type of a diff line based on the prefix */
   private static mapToDiffLineType(text: string) {
@@ -108,10 +112,10 @@ export class DiffSection {
     }
   }
 
-  public constructor(range: DiffSectionRange, lines: string[], startDiffSection: number, endDiffSection: number) {
+  public constructor(range: DiffSectionRange, lines: string[], unifiedDiffStart: number, unifiedDiffEnd: number) {
     this.range = range
-    this.startDiffSection = startDiffSection
-    this.endDiffSection = endDiffSection
+    this.unifiedDiffStart = unifiedDiffStart
+    this.unifiedDiffEnd = unifiedDiffEnd
 
     let rollingDiffBeforeCounter = range.oldStartLine
     let rollingDiffAfterCounter = range.newStartLine
@@ -344,7 +348,7 @@ export class LocalGitOperations {
 
       const selectedLinesArray = Array.from(file.selection.selectedLines)
 
-      const selectedLines = selectedLinesArray.filter(a => a[0] >= s.startDiffSection && a[0] < s.endDiffSection)
+      const selectedLines = selectedLinesArray.filter(a => a[0] >= s.unifiedDiffStart && a[0] < s.unifiedDiffEnd)
 
       if (selectedLines.every(l => l[1] === false)) {
         globalLinesSkipped += selectedLines.length
@@ -361,7 +365,7 @@ export class LocalGitOperations {
           if (line.type === DiffLineType.Context) {
             patchBody += line.text + '\n'
           } else {
-            const absoluteIndex = s.startDiffSection + index
+            const absoluteIndex = s.unifiedDiffStart + index
             if (selection.has(absoluteIndex)) {
               const include = selection.get(absoluteIndex)
               if (include) {
