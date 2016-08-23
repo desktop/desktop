@@ -332,7 +332,7 @@ export class LocalGitOperations {
   }
 
   private static createPatchesForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): ReadonlyArray<string | undefined> {
-    const selection = file.diffSelection.selectedLines
+    const selection = file.selection.selectedLines
 
     let globalLinesSkipped = 0
 
@@ -342,7 +342,7 @@ export class LocalGitOperations {
       let linesIncluded = 0
       let patchBody = ''
 
-      const selectedLinesArray = Array.from(file.diffSelection.selectedLines)
+      const selectedLinesArray = Array.from(file.selection.selectedLines)
 
       const selectedLines = selectedLinesArray.filter(a => a[0] >= s.startDiffSection && a[0] < s.endDiffSection)
 
@@ -404,7 +404,7 @@ export class LocalGitOperations {
   }
 
   private static createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Diff): string {
-    const selection = file.diffSelection.selectedLines
+    const selection = file.selection.selectedLines
     let input = ''
 
     diff.sections.map(s => {
@@ -494,7 +494,7 @@ export class LocalGitOperations {
         return GitProcess.exec(resetArgs, repository.path)
           .then(_ => {
             const addFiles = files.map((file, index, array) => {
-              if (file.diffSelection.getSelectionType() === DiffSelectionType.All) {
+              if (file.selection.getSelectionType() === DiffSelectionType.All) {
                 return this.addFileToIndex(repository, file)
               } else {
                 return this.applyPatchToIndex(repository, file)

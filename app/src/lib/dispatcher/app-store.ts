@@ -353,7 +353,7 @@ export default class AppStore {
       const mergedFiles = workingDirectory.files.map(file => {
         const existingFile = filesByID.get(file.id)
         if (existingFile) {
-          return file.withDiffSelection(existingFile.diffSelection)
+          return file.withSelection(existingFile.selection)
         } else {
           return file
         }
@@ -414,7 +414,7 @@ export default class AppStore {
   public async _commitIncludedChanges(repository: Repository, summary: string, description: string): Promise<void> {
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
-      return file.diffSelection.getSelectionType() !== DiffSelectionType.None
+      return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
     await LocalGitOperations.createCommit(repository, summary, description, files)
@@ -423,8 +423,8 @@ export default class AppStore {
   }
 
   private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {
-    const allSelected = files.every(f => f.diffSelection.getSelectionType() === DiffSelectionType.All)
-    const noneSelected = files.every(f => f.diffSelection.getSelectionType() === DiffSelectionType.None)
+    const allSelected = files.every(f => f.selection.getSelectionType() === DiffSelectionType.All)
+    const noneSelected = files.every(f => f.selection.getSelectionType() === DiffSelectionType.None)
 
     let includeAll: boolean | null = null
     if (allSelected) {

@@ -32,23 +32,23 @@ export class FileChange {
 export class WorkingDirectoryFileChange extends FileChange {
 
   /** contains the selection details for this file - all, nothing or partial */
-  public readonly diffSelection: DiffSelection
+  public readonly selection: DiffSelection
 
-  public constructor(path: string, status: FileStatus, diffSelection: DiffSelection) {
+  public constructor(path: string, status: FileStatus, selection: DiffSelection) {
     super(path, status)
 
-    this.diffSelection = diffSelection
+    this.selection = selection
   }
 
   /** Create a new WorkingDirectoryFileChange with the given includedness. */
   public withIncludeAll(include: boolean): WorkingDirectoryFileChange {
     const type = include ? DiffSelectionType.All : DiffSelectionType.None
     const selection = new DiffSelection(type, new Map<number, boolean>())
-    return this.withDiffSelection(selection)
+    return this.withSelection(selection)
   }
 
   /** Create a new WorkingDirectoryFileChange with the given diff selection. */
-  public withDiffSelection(selection: DiffSelection): WorkingDirectoryFileChange {
+  public withSelection(selection: DiffSelection): WorkingDirectoryFileChange {
     return new WorkingDirectoryFileChange(this.path, this.status, selection)
   }
 
@@ -71,7 +71,7 @@ export class WorkingDirectoryFileChange extends FileChange {
     }
 
     const selection = new DiffSelection(includeAll, diffLines)
-    return this.withDiffSelection(selection)
+    return this.withSelection(selection)
   }
 }
 

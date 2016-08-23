@@ -63,7 +63,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     const change = file as WorkingDirectoryFileChange
 
     if (change) {
-      const diffSelection = change.diffSelection
+      const diffSelection = change.selection
       const selectionType = diffSelection.getSelectionType()
 
       if (selectionType === DiffSelectionType.Partial) {
@@ -249,7 +249,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       const change = this.props.file as WorkingDirectoryFileChange
 
       if (change) {
-        const selectionType = change.diffSelection.getSelectionType()
+        const selectionType = change.selection.getSelectionType()
         invalidationProps = { path: this.props.file!.path, selection: selectionType }
       }
 
