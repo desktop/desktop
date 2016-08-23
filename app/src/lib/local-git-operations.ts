@@ -1,3 +1,5 @@
+import * as Path from 'path'
+
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus, DiffSelection } from '../models/status'
 import Repository from '../models/repository'
 
@@ -797,14 +799,21 @@ export class LocalGitOperations {
     return commits[0]
   }
 
+  /** Get the git dir of the path. */
+  public static async getGitDir(path: string): Promise<string | null> {
+    try {
+      const gitDir = await GitProcess.execWithOutput([ 'rev-parse', '--git-dir' ], path)
+      const trimmedDir = gitDir.trim()
+      return Path.join(path, trimmedDir)
+    } catch (e) {
+      return null
+    }
+  }
+
   /** Is the path a git repository? */
   public static async isGitRepository(path: string): Promise<boolean> {
-    try {
-      await GitProcess.exec([ 'rev-parse', '--git-dir' ], path)
-      return true
-    } catch (e) {
-      return false
-    }
+    const result = await this.getGitDir(path)
+    return !!result
   }
 
   /** Init a new git repository in the given path. */

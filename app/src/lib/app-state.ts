@@ -11,7 +11,18 @@ export interface IAppState {
   readonly selectedRepository: Repository | null
   readonly repositoryState: IRepositoryState | null
 
+  readonly loading: boolean
   readonly currentPopup: Popup | null
+
+  readonly errors: ReadonlyArray<IAppError>
+}
+
+export interface IAppError {
+  /** The name of the error. This is for application use only. */
+  readonly name: string
+
+  /** The user-facing message. */
+  readonly message: string
 }
 
 export enum Popup {
