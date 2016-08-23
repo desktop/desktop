@@ -1,4 +1,4 @@
-import { DiffSelectionType, DiffSelection } from './diff'
+import { DiffSelectionType, DiffSelection, DiffSelectionParser } from './diff'
 
 /** the state of the changed file in the working directory */
 export enum FileStatus {
@@ -54,14 +54,7 @@ export class WorkingDirectoryFileChange extends FileChange {
 
   /** Create a new WorkingDirectoryFileChange with the given line selection. */
   public withDiffLinesSelection(diffLines: Map<number, boolean>): WorkingDirectoryFileChange {
-
-    // TODO: we've duplicated this is in some places
-    //       evaluate if we can :fire: this and move it into DiffSelection
-
-    const toArray = Array.from(diffLines.values())
-
-    const allSelected = toArray.every(k => k === true)
-    const noneSelected = toArray.every(k => k === false)
+    const { allSelected, noneSelected } = DiffSelectionParser.parse(diffLines)
 
     let includeAll = DiffSelectionType.Partial
     if (allSelected) {

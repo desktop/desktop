@@ -5,6 +5,17 @@ export enum DiffSelectionType {
   None
 }
 
+export class DiffSelectionParser {
+  public static parse(selection: Map<number, boolean>): { allSelected: boolean, noneSelected: boolean } {
+      const toArray = Array.from(selection.values())
+
+      const allSelected = toArray.every(k => k === true)
+      const noneSelected = toArray.every(k => k === false)
+
+      return { allSelected, noneSelected }
+  }
+}
+
 
 /** encapsulate the selection of changes to a modified file in the working directory  */
 export class DiffSelection {
@@ -35,10 +46,8 @@ export class DiffSelection {
     if (this.selectedLines.size === 0) {
       return this.include
     } else {
-      const toArray = Array.from(this.selectedLines.values())
-      const allSelected = toArray.every(k => k === true)
-      const noneSelected = toArray.every(k => k === false)
 
+      const { allSelected, noneSelected } = DiffSelectionParser.parse(this.selectedLines)
       if (allSelected) {
         return DiffSelectionType.All
       } else if (noneSelected) {
