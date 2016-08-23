@@ -82,16 +82,13 @@ describe('LocalGitOperations', () => {
     })
 
     it('can commit some lines from new file', async () => {
-
       const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
-
       const lines = new Map<number, boolean>()
-
+      // select first six lines of file
       for (let i = 0; i < 33; i++) {
         lines.set(i, (i < 6))
       }
 
-      // select first few lines
       const newFileName = 'new-file.md'
       const selectedLines = new Map<number, boolean>(lines)
       const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
