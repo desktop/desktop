@@ -330,13 +330,25 @@ export class LocalGitOperations {
     return `--- ${fromText}\n+++ ${toText}\n@@ -${beforeStart},${beforeLength} +${afterStart},${afterLength} @@${afterText}\n`
   }
 
-  private static createPatchesForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): ReadonlyArray<string> {
+  private static createPatchesForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): ReadonlyArray<string | undefined> {
     const selection = file.diffSelection.selectedLines
+
+    let globalLinesSkipped = 0
 
     return diff.sections.map(s => {
 
       let linesSkipped = 0
+      let linesIncluded = 0
       let patchBody = ''
+
+      const selectedLinesArray = Array.from(file.diffSelection.selectedLines)
+
+      const selectedLines = selectedLinesArray.filter(a => a[0] >= s.startDiffSection && a[0] < s.endDiffSection)
+
+      if (selectedLines.every(l => l[1] === false)) {
+        globalLinesSkipped += selectedLines.length
+        return undefined
+      }
 
       s.lines
         .forEach((line, index) => {
@@ -348,17 +360,24 @@ export class LocalGitOperations {
           if (line.type === DiffLineType.Context) {
             patchBody += line.text + '\n'
           } else {
-            if (selection.has(index)) {
-              const include = selection.get(index)
+            const absoluteIndex = s.startDiffSection + index
+            if (selection.has(absoluteIndex)) {
+              const include = selection.get(absoluteIndex)
               if (include) {
                 patchBody += line.text + '\n'
+                if (line.type === DiffLineType.Add) {
+                  linesIncluded += 1
+                }
               } else if (line.type === DiffLineType.Delete) {
                 // need to generate the correct patch here
                 patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
                 linesSkipped -= 1
+                globalLinesSkipped -= 1
               } else {
                 // ignore this line when creating the patch
                 linesSkipped += 1
+                // and for subsequent patches
+                globalLinesSkipped += 1
               }
             }
           }
@@ -366,14 +385,16 @@ export class LocalGitOperations {
 
       const header = s.lines[0]
       const additionalText = LocalGitOperations.extractAdditionalText(header.text)
-      const newLineCount = s.range.oldEndLine - linesSkipped
+      const newLineStart = s.range.oldStartLine + globalLinesSkipped
+      const newDiffEnd = s.range.newStartLine - globalLinesSkipped + linesIncluded
+      const newLineCount = s.range.oldEndLine - linesSkipped + globalLinesSkipped
 
       const patchHeader = LocalGitOperations.formatPatchHeader(
         file.path,
         file.path,
-        s.range.oldStartLine,
+        newLineStart,
         s.range.oldEndLine,
-        s.range.newStartLine,
+        newDiffEnd,
         newLineCount,
         additionalText)
 
@@ -400,6 +421,7 @@ export class LocalGitOperations {
           if (line.type === DiffLineType.Context) {
             patchBody += line.text + '\n'
           } else {
+            // TODO: this is always just one patch
             if (selection.has(index)) {
               const include = selection.get(index)
               if (include) {
@@ -441,7 +463,12 @@ export class LocalGitOperations {
     if (file.status === FileStatus.Modified) {
       const patches = await LocalGitOperations.createPatchesForModifiedFile(file, diff)
       const tasks = patches.map(patch => {
-          return GitProcess.exec(applyArgs, repository.path, patch)
+          if (patch) {
+            return GitProcess.exec(applyArgs, repository.path, patch)
+          } else {
+            // patch wasn't selected, just skip it
+            return Promise.resolve()
+          }
       })
       return Promise.all(tasks).then(() => { })
     }
