@@ -66,8 +66,14 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
   }
 
   private onFilterChanged(event: React.FormEvent<HTMLInputElement>) {
-    const text = event.target.value
-    this.setState({ filter: text, selectedRow: this.state.selectedRow })
+    // TODO: event.target should be a generic value
+    // see https://github.com/desktop/desktop/issues/297 for details
+    const input = event.target as HTMLInputElement
+
+    if (input) {
+      const text = input.value
+      this.setState({ filter: text, selectedRow: this.state.selectedRow })
+    }
   }
 
   private onKeyDown(branchItems: ReadonlyArray<BranchListItem>, event: React.KeyboardEvent<HTMLInputElement>) {

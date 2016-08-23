@@ -25,17 +25,29 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   /** TODO: disable submit when no files selected */
 
   private handleSummaryChange(event: React.FormEvent<HTMLInputElement>) {
-    this.setState({
-      summary: event.target.value,
-      description: this.state.description,
-    })
+    // TODO: event.target should be a generic value
+    // see https://github.com/desktop/desktop/issues/297 for details
+    const input = event.target as HTMLInputElement
+
+    if (input) {
+      this.setState({
+        summary: input.value,
+        description: this.state.description,
+      })
+    }
   }
 
   private handleDescriptionChange(event: React.FormEvent<HTMLTextAreaElement>) {
-    this.setState({
-      summary: this.state.summary,
-      description: event.target.value,
-    })
+    // TODO: event.target should be a generic value
+    // see https://github.com/desktop/desktop/issues/297 for details
+    const input = event.target as HTMLTextAreaElement
+
+    if (input) {
+      this.setState({
+        summary: this.state.summary,
+        description: input.value,
+      })
+    }
   }
 
   private handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {

@@ -77,31 +77,43 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
   }
 
   private onBranchNameChange(event: React.FormEvent<HTMLInputElement>) {
-    const str = event.target.value
-    const sanitizedName = sanitizedBranchName(str)
-    const alreadyExists = findIndex(this.props.branches, b => b.name === sanitizedName) > -1
-    let currentError: Error | null = null
-    if (alreadyExists) {
-      currentError = new Error(`A branch named ${sanitizedName} already exists`)
-    }
+    // TODO: event.target should be a generic value
+    // see https://github.com/desktop/desktop/issues/297 for details
+    const input = event.target as HTMLInputElement
 
-    this.setState({
-      currentError,
-      proposedName: str,
-      baseBranch: this.state.baseBranch,
-      sanitizedName,
-    })
+    if (input) {
+      const str = input.value
+      const sanitizedName = sanitizedBranchName(str)
+      const alreadyExists = findIndex(this.props.branches, b => b.name === sanitizedName) > -1
+      let currentError: Error | null = null
+      if (alreadyExists) {
+        currentError = new Error(`A branch named ${sanitizedName} already exists`)
+      }
+
+      this.setState({
+        currentError,
+        proposedName: str,
+        baseBranch: this.state.baseBranch,
+        sanitizedName,
+      })
+    }
   }
 
   private onBaseBranchChange(event: React.FormEvent<HTMLSelectElement>) {
-    const baseBranchName = event.target.value
-    const baseBranch = find(this.props.branches, b => b.name === baseBranchName)!
-    this.setState({
-      currentError: this.state.currentError,
-      proposedName: this.state.proposedName,
-      baseBranch,
-      sanitizedName: this.state.sanitizedName,
-    })
+    // TODO: event.target should be a generic value
+    // see https://github.com/desktop/desktop/issues/297 for details
+    const input = event.target as HTMLSelectElement
+
+    if (input) {
+      const baseBranchName = input.value
+      const baseBranch = find(this.props.branches, b => b.name === baseBranchName)!
+      this.setState({
+        currentError: this.state.currentError,
+        proposedName: this.state.proposedName,
+        baseBranch,
+        sanitizedName: this.state.sanitizedName,
+      })
+    }
   }
 
   private createBranch() {
