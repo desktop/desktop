@@ -2,27 +2,80 @@
 
 /** A React component holding a file diff */
 #file-diff {
-  text-align: center;
+  .list-item {
+    display: block;
+  }
 }
 
 .diff-text {
-  font-family: monospace;
+  display: flex;
+  font-family: var(--font-family-monospace);
+  font-size: 11px;
   text-overflow: ellipsis;
   text-align: left;
   text-orientation: upright;
   font-kerning: initial;
   word-wrap: break-word;
+  white-space: pre;
   word-break: break-all;
+  tab-size: 4;
+
+  .before,
+  .after,
+  .text {
+    padding: 3px 6px;
+  }
+
+  .before,
+  .after {
+    border-right: 1px solid;
+    color: #CCC;
+    display: inline-block;
+    // Use `em` because we want the min-width to be based on
+    // the number of characters
+    flex: 0 0 3em;
+    text-align: center;
+  }
+
+  .after {
+    border-width: 3px;
+  }
+
+  .text {
+    flex-grow: 1;
+  }
 }
 
-.diff-text .before, .diff-text .after  {
-  color: #CCC
+.diff-context {
+  .before,
+  .after {
+    border-color: #e5e5e5;
+  }
+}
+
+.diff-hunk {
+  background-color: #f8f8ff;
+
+  .before,
+  .after {
+    border-color: #e4e4fe;
+  }
 }
 
 .diff-add {
   background: #EAFFEA;
+
+  .before,
+  .after {
+    border-color: #c6ecc6;
+  }
 }
 
 .diff-delete {
   background: #FFECEC;
+
+  .before,
+  .after {
+    border-color: #f4d7d7;
+  }
 }
