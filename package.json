@@ -49,7 +49,7 @@
     "fs-extra": "^0.30.0",
     "got": "^6.3.0",
     "html-webpack-plugin": "^2.21.0",
-    "mocha": "^2.4.5",
+    "mocha": "^3.0.2",
     "node-sass": "^3.7.0",
     "react-transform-hmr": "^1.0.4",
     "request": "^2.72.0",
