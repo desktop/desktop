@@ -55,14 +55,14 @@ export class GitProcess {
   /**
    *  Execute a command using the embedded Git environment
    */
-  public static exec(args: string[], path: string): Promise<void> {
-    return this.execWithOutput(args, path)
+  public static exec(args: string[], path: string, input: string | undefined = undefined): Promise<void> {
+    return GitProcess.execWithOutput(args, path, input)
   }
 
   /**
    *  Execute a command and read the output using the embedded Git environment
    */
-  public static execWithOutput(args: string[], path: string): Promise<string> {
+  public static execWithOutput(args: string[], path: string, input: string | undefined = undefined): Promise<string> {
     return new Promise<string>(function(resolve, reject) {
       const gitLocation = GitProcess.resolveGit()
       const startTime = performance.now()
@@ -71,7 +71,7 @@ export class GitProcess {
         return `executing: git ${args.join(' ')} (took ${time}s)`
       }
 
-      cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
+      const process = cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8' }, function(err, output, stdErr) {
         if (!err) {
           console.debug(logMessage())
           resolve(output)
@@ -106,6 +106,11 @@ export class GitProcess {
         console.error(err)
         reject(err)
       })
+
+      if (input !== undefined) {
+        process.stdin.write(input)
+        process.stdin.end()
+      }
     })
   }
 }
