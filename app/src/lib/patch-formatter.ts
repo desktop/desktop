@@ -91,17 +91,18 @@ export function createPatchesForModifiedFile(file: WorkingDirectoryFileChange, d
 
     const header = s.lines[0]
     const additionalText = extractAdditionalText(header.text)
-    const newLineStart = s.range.oldStartLine
-    const newDiffEnd = s.range.newStartLine - globalLinesSkipped + linesIncluded
-    const newLineCount = s.range.oldEndLine - linesSkipped - linesRemoved + globalLinesSkipped
+    const beforeStart = s.range.oldStartLine
+    const beforeEnd = s.range.oldEndLine
+    const afterStart = s.range.newStartLine - globalLinesSkipped + linesIncluded
+    const afterEnd = s.range.oldEndLine - linesSkipped - linesRemoved + globalLinesSkipped
 
     const patchHeader = formatPatchHeader(
       file.path,
       file.path,
-      newLineStart,
-      s.range.oldEndLine,
-      newDiffEnd,
-      newLineCount,
+      beforeStart,
+      beforeEnd,
+      afterStart,
+      afterEnd,
       additionalText)
 
     return patchHeader + patchBody
@@ -127,14 +128,14 @@ export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Di
 
         if (line.type === DiffLineType.Context) {
           patchBody += line.text + '\n'
-        } else {
-          // TODO: this is always just one patch
-          if (selection.has(index)) {
-            const include = selection.get(index)
-            if (include) {
-              patchBody += line.text + '\n'
-              linesCounted += 1
-            }
+          return
+        }
+
+        if (selection.has(index)) {
+          const include = selection.get(index)
+          if (include) {
+            patchBody += line.text + '\n'
+            linesCounted += 1
           }
         }
       })
