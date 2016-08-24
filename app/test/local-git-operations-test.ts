@@ -10,6 +10,7 @@ import Repository from '../src/models/repository'
 import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
 import { FileStatus, FileChange, WorkingDirectoryFileChange } from '../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../src/models/diff'
+import { selectLinesInSection, mergeSelections } from './diff-selection-helper'
 import { find } from '../src/lib/find'
 
 describe('LocalGitOperations', () => {
@@ -122,26 +123,25 @@ describe('LocalGitOperations', () => {
 
       const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
 
-      const lines = new Map<number, boolean>()
+      const modifiedFile = 'modified-file.md'
+
+      const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
+
+      const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
       // skip first hunk
-      for (let i = 4; i <= 7; i++) {
-        lines.set(i, false)
-      }
-
+      const first = selectLinesInSection(diff, 0, false)
       // select second hunk
-      for (let i = 16; i <= 19; i++) {
-        lines.set(i, true)
-      }
+      const second = selectLinesInSection(diff, 1, true)
 
-      // select first few lines
-      const modifiedFile = 'modified-file.md'
-      const selectedLines = new Map<number, boolean>(lines)
+      const selectedLines = mergeSelections([ first, second ])
+
       const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
-      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
       // commit just this change, ignore everything else
-      await LocalGitOperations.createCommit(repository!, 'title', '', [ file ])
+      await LocalGitOperations.createCommit(repository!, 'title', '', [ updatedFile ])
 
       // verify that the HEAD of the repository has moved
       const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
