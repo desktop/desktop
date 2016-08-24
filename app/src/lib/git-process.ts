@@ -95,7 +95,7 @@ export class GitProcess {
         GIT_EXEC_PATH: GitProcess.resolveGitExecPath(),
       })
 
-      const process = cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8', env }, function(err, output, stdErr) {
+      const spawnedProcess = cp.execFile(gitLocation, args, { cwd: path, encoding: 'utf8', env }, function(err, output, stdErr) {
         if (!err) {
           console.debug(logMessage())
           resolve(output)
@@ -132,8 +132,8 @@ export class GitProcess {
       })
 
       if (input !== undefined) {
-        process.stdin.write(input)
-        process.stdin.end()
+        spawnedProcess.stdin.write(input)
+        spawnedProcess.stdin.end()
       }
     })
   }
