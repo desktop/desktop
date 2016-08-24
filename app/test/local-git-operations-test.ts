@@ -118,7 +118,6 @@ describe('LocalGitOperations', () => {
       expect(fileChange!.status).to.equal(FileStatus.Modified)
     })
 
-
     it('can commit second hunk from modified file', async () => {
 
       const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
@@ -136,6 +135,52 @@ describe('LocalGitOperations', () => {
       const second = selectLinesInSection(diff, 1, true)
 
       const selectedLines = mergeSelections([ first, second ])
+
+      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+
+      // commit just this change, ignore everything else
+      await LocalGitOperations.createCommit(repository!, 'title', '', [ updatedFile ])
+
+      // verify that the HEAD of the repository has moved
+      const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      expect(newTip.sha).to.not.equal(previousTip.sha)
+      expect(newTip.summary).to.equal('title')
+
+      // verify that the contents of this new commit are just the modified file
+      const changedFiles = await LocalGitOperations.getChangedFiles(repository!, newTip.sha)
+      expect(changedFiles.length).to.equal(1)
+      expect(changedFiles[0].path).to.equal(modifiedFile)
+
+      // verify that changes remain for this modified file
+      const status = await LocalGitOperations.getStatus(repository!)
+      expect(status.workingDirectory.files.length).to.equal(3)
+
+      // verify that the file is still marked as modified
+      const fileChange = find(status.workingDirectory.files, f => f.path === modifiedFile)
+      expect(fileChange).to.not.be.undefined
+      expect(fileChange!.status).to.equal(FileStatus.Modified)
+    })
+
+    it('can commit multiple hunks from modified file', async () => {
+
+      const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+
+      const modifiedFile = 'modified-file.md'
+
+      const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
+
+      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+
+      // select first hunk
+      const first = selectLinesInSection(diff, 0, true)
+      // skip second hunk
+      const second = selectLinesInSection(diff, 1, false)
+      // select third hunk
+      const third = selectLinesInSection(diff, 2, true)
+
+      const selectedLines = mergeSelections([ first, second, third ])
 
       const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)

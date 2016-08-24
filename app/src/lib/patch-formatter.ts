@@ -29,25 +29,27 @@ function formatPatchHeader(
   return `--- ${fromText}\n+++ ${toText}\n@@ -${beforeStart},${beforeLength} +${afterStart},${afterLength} @@${afterText}\n`
 }
 
-export function createPatchesForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): ReadonlyArray<string | undefined> {
+export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): string {
   const selection = file.selection.selectedLines
+  const selectedLinesArray = Array.from(selection)
 
   let globalLinesSkipped = 0
 
-  return diff.sections.map(s => {
+  let input = ''
+
+  diff.sections.forEach(s => {
 
     let linesSkipped = 0
     let linesIncluded = 0
     let linesRemoved = 0
     let patchBody = ''
 
-    const selectedLinesArray = Array.from(file.selection.selectedLines)
-
     const selectedLines = selectedLinesArray.filter(a => a[0] >= s.unifiedDiffStart && a[0] < s.unifiedDiffEnd)
 
+    // don't generate a patch if no lines are selected
     if (selectedLines.every(l => l[1] === false)) {
       globalLinesSkipped += selectedLines.length
-      return undefined
+      return
     }
 
     s.lines
@@ -73,10 +75,7 @@ export function createPatchesForModifiedFile(file: WorkingDirectoryFileChange, d
               linesRemoved += 1
             }
           }
-          return
-        }
-
-        if (line.type === DiffLineType.Delete) {
+        } else if (line.type === DiffLineType.Delete) {
           // need to generate the correct patch here
           patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
           linesSkipped -= 1
@@ -93,8 +92,8 @@ export function createPatchesForModifiedFile(file: WorkingDirectoryFileChange, d
     const additionalText = extractAdditionalText(header.text)
     const beforeStart = s.range.oldStartLine
     const beforeEnd = s.range.oldEndLine
-    const afterStart = s.range.newStartLine - globalLinesSkipped + linesIncluded
-    const afterEnd = s.range.oldEndLine - linesSkipped - linesRemoved + globalLinesSkipped
+    const afterStart = s.range.newStartLine
+    const afterEnd = s.range.newEndLine + linesSkipped
 
     const patchHeader = formatPatchHeader(
       file.path,
@@ -105,8 +104,10 @@ export function createPatchesForModifiedFile(file: WorkingDirectoryFileChange, d
       afterEnd,
       additionalText)
 
-    return patchHeader + patchBody
+      input += patchHeader + patchBody
   })
+
+  return input
 }
 
 

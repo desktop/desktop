@@ -5,7 +5,7 @@ import { DiffSelectionType, DiffSelection, Diff } from '../models/diff'
 import Repository from '../models/repository'
 
 import { GitProcess, GitError, GitErrorCode } from './git-process'
-import { createPatchesForModifiedFile, createPatchForNewFile } from './patch-formatter'
+import { createPatchForModifiedFile, createPatchForNewFile } from './patch-formatter'
 import { parseRawDiff } from './diff-parser'
 
 /** The encapsulation of the result from 'git status' */
@@ -205,16 +205,9 @@ export class LocalGitOperations {
     }
 
     if (file.status === FileStatus.Modified) {
-      const patches = await createPatchesForModifiedFile(file, diff)
-      const tasks = patches.map(patch => {
-          if (patch) {
-            return GitProcess.exec(applyArgs, repository.path, patch)
-          } else {
-            // patch wasn't selected, just skip it
-            return Promise.resolve()
-          }
-      })
-      return Promise.all(tasks).then(() => { })
+      const patch = await createPatchForModifiedFile(file, diff)
+      const task = GitProcess.exec(applyArgs, repository.path, patch)
+      return task.then(() => { })
     }
 
     // TODO: handle partially committing a deleted file

@@ -9,7 +9,7 @@ const temp = require('temp').track()
 import Repository from '../src/models/repository'
 import { WorkingDirectoryFileChange, FileStatus } from '../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../src/models/diff'
-import { createPatchesForModifiedFile } from '../src/lib/patch-formatter'
+import { createPatchForModifiedFile } from '../src/lib/patch-formatter'
 import { selectLinesInSection, mergeSelections } from './diff-selection-helper'
 import { LocalGitOperations } from '../src/lib/local-git-operations'
 
@@ -56,14 +56,11 @@ describe('patch formatting', () => {
       const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
-      const patches = createPatchesForModifiedFile(updatedFile, diff)
+      const patch = createPatchForModifiedFile(updatedFile, diff)
 
-      expect(patches[0]).to.not.be.undefined
-      expect(patches[0]).to.have.string('--- a/modified-file.md\n')
-      expect(patches[0]).to.have.string('+++ b/modified-file.md\n')
-      expect(patches[0]).to.have.string('@@ -4,10 +4,6 @@ ')
-
-      expect(patches[1]).to.be.undefined
+      expect(patch).to.have.string('--- a/modified-file.md\n')
+      expect(patch).to.have.string('+++ b/modified-file.md\n')
+      expect(patch).to.have.string('@@ -4,10 +4,6 @@ ')
     })
 
     it('creates right patch when second hunk is selected', async () => {
@@ -84,14 +81,39 @@ describe('patch formatting', () => {
       const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
-      const patches = createPatchesForModifiedFile(updatedFile, diff)
+      const patch = createPatchForModifiedFile(updatedFile, diff)
 
-      expect(patches[0]).to.be.undefined
+      expect(patch).to.have.string('--- a/modified-file.md\n')
+      expect(patch).to.have.string('+++ b/modified-file.md\n')
+      expect(patch).to.have.string('@@ -21,6 +17,10 @@')
+    })
 
-      expect(patches[1]).to.not.be.undefined
-      expect(patches[1]).to.have.string('--- a/modified-file.md\n')
-      expect(patches[1]).to.have.string('+++ b/modified-file.md\n')
-      expect(patches[1]).to.have.string('@@ -21,6 +17,10 @@')
+    it('creates right patch when first and third hunk is selected', async () => {
+
+      const modifiedFile = 'modified-file.md'
+
+      const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
+
+      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+
+      // select first hunk
+      const first = selectLinesInSection(diff, 0, true)
+      // skip second hunk
+      const second = selectLinesInSection(diff, 1, false)
+      // select third hunk
+      const third = selectLinesInSection(diff, 2, true)
+
+      const selectedLines = mergeSelections([ first, second, third ])
+
+      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+
+      const patch = createPatchForModifiedFile(updatedFile, diff)
+
+      expect(patch).to.have.string('--- a/modified-file.md\n')
+      expect(patch).to.have.string('+++ b/modified-file.md\n')
+      expect(patch).to.have.string('@@ -31,3 +31,8 @@')
     })
   })
 })
