@@ -158,3 +158,57 @@ export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Di
 
   return input
 }
+
+export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff: Diff): string {
+  const selection = file.selection.selectedLines
+  let input = ''
+  let linesIncluded = 0
+
+  diff.sections.map(s => {
+
+    let patchBody: string = ''
+
+    s.lines
+      .forEach((line, index) => {
+        if (line.type === DiffLineType.Hunk) {
+          // ignore the header
+          return
+        }
+
+        if (line.type === DiffLineType.Context) {
+          patchBody += line.text + '\n'
+          return
+        }
+
+        if (selection.has(index)) {
+          const include = selection.get(index)
+          if (include) {
+            patchBody += line.text + '\n'
+            linesIncluded += 1
+          } else {
+            patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
+          }
+        } else {
+          patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
+        }
+      })
+
+    const header = s.lines[0]
+    const additionalText = extractAdditionalText(header.text)
+
+    const remainingLines = s.range.oldEndLine - linesIncluded
+
+    const patchHeader = formatPatchHeader(
+      file.path,
+      file.path,
+      s.range.oldStartLine,
+      s.range.oldEndLine,
+      1,
+      remainingLines,
+      additionalText)
+
+    input += patchHeader + patchBody
+  })
+
+  return input
+}

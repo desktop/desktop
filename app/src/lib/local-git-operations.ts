@@ -5,7 +5,7 @@ import { DiffSelectionType, DiffSelection, Diff } from '../models/diff'
 import Repository from '../models/repository'
 
 import { GitProcess, GitError, GitErrorCode } from './git-process'
-import { createPatchForModifiedFile, createPatchForNewFile } from './patch-formatter'
+import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDeletedFile } from './patch-formatter'
 import { parseRawDiff } from './diff-parser'
 
 /** The encapsulation of the result from 'git status' */
@@ -201,16 +201,18 @@ export class LocalGitOperations {
 
     if (file.status === FileStatus.New) {
       const input = await createPatchForNewFile(file, diff)
-      return GitProcess.exec(applyArgs, repository.path, input).then(() => { })
+      return GitProcess.exec(applyArgs, repository.path, input)
     }
 
     if (file.status === FileStatus.Modified) {
       const patch = await createPatchForModifiedFile(file, diff)
-      const task = GitProcess.exec(applyArgs, repository.path, patch)
-      return task.then(() => { })
+      return GitProcess.exec(applyArgs, repository.path, patch)
     }
 
-    // TODO: handle partially committing a deleted file
+    if (file.status === FileStatus.Deleted) {
+      const patch = await createPatchForDeletedFile(file, diff)
+      return GitProcess.exec(applyArgs, repository.path, patch)
+    }
 
     return Promise.resolve()
   }
@@ -250,7 +252,7 @@ export class LocalGitOperations {
           })
         })
       .catch(error => {
-          console.error('createCommit failed: ' + error)
+        console.error('createCommit failed: ' + error)
       })
   }
 
