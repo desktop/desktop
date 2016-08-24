@@ -527,4 +527,8 @@ export class LocalGitOperations {
   public static initGitRepository(path: string): Promise<void> {
     return GitProcess.exec([ 'init' ], path)
   }
+
+  public static clone(url: string, path: string, progress: (progress: number) => void): Promise<void> {
+    return GitProcess.exec([ 'clone', url, path ], path)
+  }
 }
