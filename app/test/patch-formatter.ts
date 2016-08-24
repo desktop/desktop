@@ -8,7 +8,7 @@ const temp = require('temp').track()
 
 import Repository from '../src/models/repository'
 import { WorkingDirectoryFileChange, FileStatus } from '../src/models/status'
-import { DiffSelection, DiffSelectionType } from '../src/models/diff'
+import { Diff, DiffSelection, DiffSelectionType, DiffLineType } from '../src/models/diff'
 import { createPatchesForModifiedFile } from '../src/lib/patch-formatter'
 import { LocalGitOperations } from '../src/lib/local-git-operations'
 
@@ -23,6 +23,36 @@ describe('patch formatting', () => {
     fs.renameSync(path.join(testRepoPath, '_git'), path.join(testRepoPath, '.git'))
 
     return testRepoPath
+  }
+
+  function selectLinesInSection(diff: Diff, index: number, selected: boolean): Map<number, boolean> {
+
+      const selectedLines = new Map<number, boolean>()
+
+      const section = diff.sections[index]
+      section.lines.forEach((line, index) => {
+        if (line.type === DiffLineType.Context || line.type === DiffLineType.Hunk) {
+          return
+        }
+
+        const absoluteIndex = section.unifiedDiffStart + index
+        selectedLines.set(absoluteIndex, selected)
+      })
+
+      return selectedLines
+  }
+
+  function mergeSelections(array: ReadonlyArray<Map<number, boolean>>): Map<number, boolean> {
+    const selectedLines = new Map<number, boolean>()
+
+    for (let i = 0; i < array.length; i++) {
+      const a = array[i]
+      for (const v of a.entries()) {
+        selectedLines.set(v[0], v[1])
+      }
+    }
+
+    return selectedLines
   }
 
   after(() => {
@@ -68,25 +98,23 @@ describe('patch formatting', () => {
 
     it('creates right patch when second hunk is selected', async () => {
 
-      const lines = new Map<number, boolean>()
-
-      // skip first hunk
-      for (let i = 4; i <= 7; i++) {
-        lines.set(i, false)
-      }
-
-      // select second hunk
-      for (let i = 16; i <= 19; i++) {
-        lines.set(i, true)
-      }
-
       const modifiedFile = 'modified-file.md'
-      const selectedLines = new Map<number, boolean>(lines)
-      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
-      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+      const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
-      const patches = createPatchesForModifiedFile(file, diff)
+
+      // skip first hunk
+      const first = selectLinesInSection(diff, 0, false)
+      // select second hunk
+      const second = selectLinesInSection(diff, 1, true)
+
+      const selectedLines = mergeSelections([ first, second ])
+
+      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+
+      const patches = createPatchesForModifiedFile(updatedFile, diff)
 
       expect(patches[0]).to.be.undefined
 
