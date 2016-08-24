@@ -263,7 +263,7 @@ export class Dispatcher {
     return this.appStore._clearError(error)
   }
 
-  /** */
+  /** Handle the URL action. */
   public async handleURLAction(action: URLActionType): Promise<void> {
     const handled = await this.dispatchToSharedProcess<boolean>({ name: 'url-action', action })
     if (handled) { return }
