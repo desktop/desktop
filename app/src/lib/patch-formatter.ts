@@ -38,6 +38,7 @@ export function createPatchesForModifiedFile(file: WorkingDirectoryFileChange, d
 
     let linesSkipped = 0
     let linesIncluded = 0
+    let linesRemoved = 0
     let patchBody = ''
 
     const selectedLinesArray = Array.from(file.selection.selectedLines)
@@ -66,6 +67,8 @@ export function createPatchesForModifiedFile(file: WorkingDirectoryFileChange, d
               patchBody += line.text + '\n'
               if (line.type === DiffLineType.Add) {
                 linesIncluded += 1
+              } else if (line.type === DiffLineType.Delete) {
+                linesRemoved += 1
               }
             } else if (line.type === DiffLineType.Delete) {
               // need to generate the correct patch here
@@ -86,7 +89,7 @@ export function createPatchesForModifiedFile(file: WorkingDirectoryFileChange, d
     const additionalText = extractAdditionalText(header.text)
     const newLineStart = s.range.oldStartLine + globalLinesSkipped
     const newDiffEnd = s.range.newStartLine - globalLinesSkipped + linesIncluded
-    const newLineCount = s.range.oldEndLine - linesSkipped + globalLinesSkipped
+    const newLineCount = s.range.oldEndLine - linesSkipped - linesRemoved + globalLinesSkipped
 
     const patchHeader = formatPatchHeader(
       file.path,
