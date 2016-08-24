@@ -88,6 +88,8 @@ register('url-action', async ({ action }: IURLAction) => {
       console.error(`Error adding user: ${e}`)
     }
     broadcastUpdate()
+  } else if (action.name === 'open-repository') {
+    console.log(action.args)
   }
 })
 
