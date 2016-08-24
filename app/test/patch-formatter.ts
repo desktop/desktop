@@ -68,25 +68,24 @@ describe('patch formatting', () => {
 
     it('creates right patch when first hunk is selected', async () => {
 
-      const lines = new Map<number, boolean>()
-
-      // select first hunk
-      for (let i = 4; i <= 7; i++) {
-        lines.set(i, true)
-      }
-
-      // skip second hunk
-      for (let i = 16; i <= 19; i++) {
-        lines.set(i, false)
-      }
-
       const modifiedFile = 'modified-file.md'
-      const selectedLines = new Map<number, boolean>(lines)
-      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
-      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+
+      const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
-      const patches = createPatchesForModifiedFile(file, diff)
+
+      // select first hunk
+      const first = selectLinesInSection(diff, 0, true)
+      // skip second hunk
+      const second = selectLinesInSection(diff, 1, false)
+
+      const selectedLines = mergeSelections([ first, second ])
+
+      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+
+      const patches = createPatchesForModifiedFile(updatedFile, diff)
 
       expect(patches[0]).to.not.be.undefined
       expect(patches[0]).to.have.string('--- a/modified-file.md\n')
