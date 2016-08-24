@@ -110,7 +110,7 @@ describe('LocalGitOperations', () => {
 
       // verify that changes remain for this new file
       const status = await LocalGitOperations.getStatus(repository!)
-      expect(status.workingDirectory.files.length).to.equal(3)
+      expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is now tracked
       const fileChange = find(status.workingDirectory.files, f => f.path === newFileName)
@@ -154,7 +154,7 @@ describe('LocalGitOperations', () => {
 
       // verify that changes remain for this modified file
       const status = await LocalGitOperations.getStatus(repository!)
-      expect(status.workingDirectory.files.length).to.equal(3)
+      expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is still marked as modified
       const fileChange = find(status.workingDirectory.files, f => f.path === modifiedFile)
@@ -200,7 +200,7 @@ describe('LocalGitOperations', () => {
 
       // verify that changes remain for this modified file
       const status = await LocalGitOperations.getStatus(repository!)
-      expect(status.workingDirectory.files.length).to.equal(3)
+      expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is still marked as modified
       const fileChange = find(status.workingDirectory.files, f => f.path === modifiedFile)
