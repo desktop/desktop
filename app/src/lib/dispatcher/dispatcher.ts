@@ -204,7 +204,7 @@ export class Dispatcher {
     return this.appStore._changeFileIncluded(repository, file, include)
   }
 
-  /** Change the file's selected state. */
+  /** Change the file's line selection state. */
   public changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: Map<number, boolean>): Promise<void> {
     return this.appStore._changeFileLineSelection(repository, file, diffSelection)
   }
