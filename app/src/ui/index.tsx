@@ -55,6 +55,8 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
 
     if (existingRepository) {
       dispatcher.selectRepository(existingRepository)
+    } else {
+      // TODO: CLOME
     }
   }
 })
