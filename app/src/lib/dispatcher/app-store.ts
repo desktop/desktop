@@ -335,7 +335,7 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadStatus(repository: Repository): Promise<void> {
+  public async _loadStatus(repository: Repository, clearPartialState: boolean = false): Promise<void> {
     let workingDirectory = new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true)
     try {
       const status = await LocalGitOperations.getStatus(repository)
@@ -353,6 +353,13 @@ export default class AppStore {
       const mergedFiles = workingDirectory.files.map(file => {
         const existingFile = filesByID.get(file.id)
         if (existingFile) {
+
+          if (clearPartialState) {
+            if (existingFile.selection.getSelectionType() === DiffSelectionType.Partial) {
+              return file.withIncludeAll(false)
+            }
+          }
+
           return file.withSelection(existingFile.selection)
         } else {
           return file
@@ -419,7 +426,7 @@ export default class AppStore {
 
     await LocalGitOperations.createCommit(repository, summary, description, files)
 
-    return this._loadStatus(repository)
+    return this._loadStatus(repository, true)
   }
 
   private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {
