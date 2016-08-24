@@ -8,8 +8,9 @@ const temp = require('temp').track()
 
 import Repository from '../src/models/repository'
 import { WorkingDirectoryFileChange, FileStatus } from '../src/models/status'
-import { Diff, DiffSelection, DiffSelectionType, DiffLineType } from '../src/models/diff'
+import { DiffSelection, DiffSelectionType } from '../src/models/diff'
 import { createPatchesForModifiedFile } from '../src/lib/patch-formatter'
+import { selectLinesInSection, mergeSelections } from './diff-selection-helper'
 import { LocalGitOperations } from '../src/lib/local-git-operations'
 
 describe('patch formatting', () => {
@@ -23,36 +24,6 @@ describe('patch formatting', () => {
     fs.renameSync(path.join(testRepoPath, '_git'), path.join(testRepoPath, '.git'))
 
     return testRepoPath
-  }
-
-  function selectLinesInSection(diff: Diff, index: number, selected: boolean): Map<number, boolean> {
-
-      const selectedLines = new Map<number, boolean>()
-
-      const section = diff.sections[index]
-      section.lines.forEach((line, index) => {
-        if (line.type === DiffLineType.Context || line.type === DiffLineType.Hunk) {
-          return
-        }
-
-        const absoluteIndex = section.unifiedDiffStart + index
-        selectedLines.set(absoluteIndex, selected)
-      })
-
-      return selectedLines
-  }
-
-  function mergeSelections(array: ReadonlyArray<Map<number, boolean>>): Map<number, boolean> {
-    const selectedLines = new Map<number, boolean>()
-
-    for (let i = 0; i < array.length; i++) {
-      const a = array[i]
-      for (const v of a.entries()) {
-        selectedLines.set(v[0], v[1])
-      }
-    }
-
-    return selectedLines
   }
 
   after(() => {
