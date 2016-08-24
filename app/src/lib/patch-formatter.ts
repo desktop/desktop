@@ -91,7 +91,7 @@ export function createPatchesForModifiedFile(file: WorkingDirectoryFileChange, d
 
     const header = s.lines[0]
     const additionalText = extractAdditionalText(header.text)
-    const newLineStart = s.range.oldStartLine + globalLinesSkipped
+    const newLineStart = s.range.oldStartLine
     const newDiffEnd = s.range.newStartLine - globalLinesSkipped + linesIncluded
     const newLineCount = s.range.oldEndLine - linesSkipped - linesRemoved + globalLinesSkipped
 
