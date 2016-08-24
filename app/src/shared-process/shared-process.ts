@@ -1,6 +1,5 @@
 import { ipcMain, BrowserWindow } from 'electron'
 import { IMessage } from './message'
-import { URLActionType } from '../lib/parse-url'
 
 /**
  * The SharedProcess acts as the owner of all shared state across the app. Most
@@ -43,11 +42,6 @@ export default class SharedProcess {
   public send(msg: IMessage) {
     this.messageQueue.push(msg)
     this.drainMessageQueue()
-  }
-
-  /** Send a URL action to the shared process' renderer to handle. */
-  public sendURLAction(action: URLActionType) {
-    this.send({ guid: '', name: 'url-action', args: { action } })
   }
 
   private drainMessageQueue() {

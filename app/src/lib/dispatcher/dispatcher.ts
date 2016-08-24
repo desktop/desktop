@@ -7,6 +7,7 @@ import { IHistorySelection, RepositorySection, Popup, IAppError } from '../app-s
 import { Action } from './actions'
 import AppStore from './app-store'
 import GitUserStore from './git-user-store'
+import { URLActionType } from '../parse-url'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -259,5 +260,13 @@ export class Dispatcher {
   /** Clear the given error. */
   public clearError(error: IAppError): Promise<void> {
     return this.appStore._clearError(error)
+  }
+
+  /**
+   * Ask the shared process to handle the URL action. Returns whether the shared
+   * process handled it.
+   */
+  public async handleURLAction(action: URLActionType): Promise<boolean> {
+    return this.dispatchToSharedProcess<boolean>({ name: 'url-action', action })
   }
 }
