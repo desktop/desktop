@@ -17,7 +17,7 @@ interface IFileDiffProps {
   readonly readOnly: boolean
   readonly file: FileChange | null
   readonly commit: Commit | null
-  readonly onIncludeChanged: ((diffSelection: Map<number, boolean>) => void) | null
+  readonly onIncludeChanged?: (diffSelection: Map<number, boolean>) => void
 }
 
 interface IFileDiffState {
@@ -26,10 +26,6 @@ interface IFileDiffState {
 
 export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
 
-  // TODO: how is this going to work with wrapping again?
-
-  // TODO: we know the number of lines in the diff, we should adjust this
-  //       value so that > 3 character line counts are visible
   private defaultSidebarWidth = 100
 
   private grid: React.Component<any, any> | null
@@ -54,7 +50,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   private async renderDiff(repository: IRepository, file: FileChange | null, readOnly: boolean) {
     if (!file) {
       // clear whatever existing state
-      this.setState(Object.assign({}, this.state, { diff: new Diff([]) }))
+      this.setState({ diff: new Diff([]) })
       return
     }
 
@@ -103,6 +99,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   private getColumnWidth ({ index, availableWidth }: { index: number, availableWidth: number }) {
     switch (index) {
       case 1:
+        // TODO: how is this going to work with wrapping?
+        //       or a variable-width sidebar ala #306
         return (availableWidth - this.defaultSidebarWidth)
       default:
         return this.defaultSidebarWidth
