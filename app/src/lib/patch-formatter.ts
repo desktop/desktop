@@ -59,29 +59,33 @@ export function createPatchesForModifiedFile(file: WorkingDirectoryFileChange, d
 
         if (line.type === DiffLineType.Context) {
           patchBody += line.text + '\n'
-        } else {
-          const absoluteIndex = s.unifiedDiffStart + index
-          if (selection.has(absoluteIndex)) {
-            const include = selection.get(absoluteIndex)
-            if (include) {
-              patchBody += line.text + '\n'
-              if (line.type === DiffLineType.Add) {
-                linesIncluded += 1
-              } else if (line.type === DiffLineType.Delete) {
-                linesRemoved += 1
-              }
+          return
+        }
+
+        const absoluteIndex = s.unifiedDiffStart + index
+        if (selection.has(absoluteIndex)) {
+          const include = selection.get(absoluteIndex)
+          if (include) {
+            patchBody += line.text + '\n'
+            if (line.type === DiffLineType.Add) {
+              linesIncluded += 1
             } else if (line.type === DiffLineType.Delete) {
-              // need to generate the correct patch here
-              patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
-              linesSkipped -= 1
-              globalLinesSkipped -= 1
-            } else {
-              // ignore this line when creating the patch
-              linesSkipped += 1
-              // and for subsequent patches
-              globalLinesSkipped += 1
+              linesRemoved += 1
             }
           }
+          return
+        }
+
+        if (line.type === DiffLineType.Delete) {
+          // need to generate the correct patch here
+          patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
+          linesSkipped -= 1
+          globalLinesSkipped -= 1
+        } else {
+          // ignore this line when creating the patch
+          linesSkipped += 1
+          // and for subsequent patches
+          globalLinesSkipped += 1
         }
       })
 
