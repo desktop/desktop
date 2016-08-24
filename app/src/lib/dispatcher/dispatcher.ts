@@ -8,6 +8,7 @@ import { Action } from './actions'
 import AppStore from './app-store'
 import GitUserStore from './git-user-store'
 import { URLActionType } from '../parse-url'
+import { find } from '../find'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -262,11 +263,25 @@ export class Dispatcher {
     return this.appStore._clearError(error)
   }
 
-  /**
-   * Ask the shared process to handle the URL action. Returns whether the shared
-   * process handled it.
-   */
-  public async handleURLAction(action: URLActionType): Promise<boolean> {
-    return this.dispatchToSharedProcess<boolean>({ name: 'url-action', action })
+  /** */
+  public async handleURLAction(action: URLActionType): Promise<void> {
+    const handled = await this.dispatchToSharedProcess<boolean>({ name: 'url-action', action })
+    if (handled) { return }
+
+    if (action.name === 'open-repository') {
+      const repositories = this.appStore.getState().repositories
+      const repositoryUrl = action.args
+      const existingRepository = find(repositories, r => {
+        const gitHubRepository = r.gitHubRepository
+        if (!gitHubRepository) { return false }
+        return gitHubRepository.htmlURL === repositoryUrl
+      })
+
+      if (existingRepository) {
+        this.selectRepository(existingRepository)
+      } else {
+        // TODO: CLOME
+      }
+    }
   }
 }
