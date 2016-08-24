@@ -6,7 +6,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 interface IChangedFileProps {
   path: string,
   status: FileStatus,
-  include: boolean,
+  include: boolean | null,
   onIncludeChanged: (include: boolean) => void
 }
 
@@ -26,12 +26,19 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
   }
 
   public render() {
+    const includeFile = this.props.include
+
     return (
       <div className='changed-file'>
         <input
           type='checkbox'
-          checked={this.props.include}
-          onChange={event => this.handleChange(event)}/>
+          checked={includeFile == null ? undefined : includeFile}
+          onChange={event => this.handleChange(event)}
+          ref={function(input) {
+            if (input != null) {
+              input.indeterminate = (includeFile === null)
+            }
+          }}/>
 
         <label className='path'>
           {this.props.path}
