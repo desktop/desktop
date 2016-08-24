@@ -53,6 +53,12 @@ app.on('ready', () => {
   stats.readyTime = Date.now()
 
   app.setAsDefaultProtocolClient('x-github-client')
+  // Also support Desktop Classic's protocols.
+  if (process.platform === 'darwin') {
+    app.setAsDefaultProtocolClient('github-mac')
+  } else if (process.platform === 'win32') {
+    app.setAsDefaultProtocolClient('github-windows')
+  }
 
   sharedProcess = new SharedProcess()
   sharedProcess.register()
