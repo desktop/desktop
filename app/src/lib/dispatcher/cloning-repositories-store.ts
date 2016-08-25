@@ -21,7 +21,7 @@ export class CloningRepository {
 export class CloningRepositoriesStore {
   private readonly emitter = new Emitter()
 
-  private readonly repositoryProgress = new Map<CloningRepository, number>()
+  private readonly repositoryProgress = new Map<CloningRepository, string>()
 
   private emitQueued = false
 
@@ -44,7 +44,7 @@ export class CloningRepositoriesStore {
   public async clone(url: string, path: string) {
     const cloningRepository = new CloningRepository(path, url)
 
-    this.repositoryProgress.set(cloningRepository, 0)
+    this.repositoryProgress.set(cloningRepository, 'Cloning…')
     this.emitUpdate()
 
     await LocalGitOperations.clone(url, path, progress => {
@@ -60,7 +60,7 @@ export class CloningRepositoriesStore {
     return Array.from(this.repositoryProgress.keys())
   }
 
-  public getProgress(repository: CloningRepository): number | null {
+  public getProgress(repository: CloningRepository): string | null {
     const progress = this.repositoryProgress.get(repository)
     return progress ? progress : null
   }
