@@ -29,6 +29,8 @@ export interface IAPICommit {
  * Information about a user as returned by the GitHub API.
  */
 export interface IAPIUser {
+  readonly id: number
+  readonly url: string
   readonly type: 'user' | 'org'
   readonly login: string
   readonly avatarUrl: string
@@ -109,6 +111,21 @@ export default class API {
       return user
     } catch (e) {
       return null
+    }
+  }
+
+  /** Fetch all the orgs to which the user belongs. */
+  public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
+    const result = await this.client.user.orgs.fetch()
+    return result.items
+  }
+
+  /** Create a new GitHub repository with the given properties. */
+  public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository> {
+    if (org) {
+      return this.client.orgs(org.login).repos.create({ name, description, private: private_ })
+    } else {
+      return this.client.user.repos.create({ name, description, private: private_ })
     }
   }
 }

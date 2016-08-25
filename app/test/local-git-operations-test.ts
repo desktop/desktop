@@ -8,8 +8,10 @@ const temp = require('temp').track()
 
 import Repository from '../src/models/repository'
 import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
-import { FileStatus, FileChange } from '../src/models/status'
-
+import { FileStatus, FileChange, WorkingDirectoryFileChange } from '../src/models/status'
+import { DiffSelectionType, DiffSelection } from '../src/models/diff'
+import { selectLinesInSection, mergeSelections } from './diff-selection-helper'
+import { find } from '../src/lib/find'
 
 describe('LocalGitOperations', () => {
   let repository: Repository | null = null
@@ -73,6 +75,176 @@ describe('LocalGitOperations', () => {
     })
   })
 
+  describe('partial commits', () => {
+
+    beforeEach(() => {
+      const testRepoPath = setupTestRepository('repo-with-changes')
+      repository = new Repository(testRepoPath, -1, null)
+    })
+
+    it('can commit some lines from new file', async () => {
+      const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      const lines = new Map<number, boolean>()
+      // select first six lines of file
+      for (let i = 0; i < 33; i++) {
+        lines.set(i, (i < 6))
+      }
+
+      const newFileName = 'new-file.md'
+      const selectedLines = new Map<number, boolean>(lines)
+      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
+      const file = new WorkingDirectoryFileChange(newFileName, FileStatus.New, selection)
+
+      // commit just this change, ignore everything else
+      await LocalGitOperations.createCommit(repository!, 'title', '', [ file ])
+
+      // verify that the HEAD of the repository has moved
+      const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      expect(newTip.sha).to.not.equal(previousTip.sha)
+      expect(newTip.summary).to.equal('title')
+
+      // verify that the contents of this new commit are just the new file
+      const changedFiles = await LocalGitOperations.getChangedFiles(repository!, newTip.sha)
+      expect(changedFiles.length).to.equal(1)
+      expect(changedFiles[0].path).to.equal(newFileName)
+
+      // verify that changes remain for this new file
+      const status = await LocalGitOperations.getStatus(repository!)
+      expect(status.workingDirectory.files.length).to.equal(4)
+
+      // verify that the file is now tracked
+      const fileChange = find(status.workingDirectory.files, f => f.path === newFileName)
+      expect(fileChange).to.not.be.undefined
+      expect(fileChange!.status).to.equal(FileStatus.Modified)
+    })
+
+    it('can commit second hunk from modified file', async () => {
+
+      const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+
+      const modifiedFile = 'modified-file.md'
+
+      const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
+
+      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+
+      // skip first hunk
+      const first = selectLinesInSection(diff, 0, false)
+      // select second hunk
+      const second = selectLinesInSection(diff, 1, true)
+
+      const selectedLines = mergeSelections([ first, second ])
+
+      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+
+      // commit just this change, ignore everything else
+      await LocalGitOperations.createCommit(repository!, 'title', '', [ updatedFile ])
+
+      // verify that the HEAD of the repository has moved
+      const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      expect(newTip.sha).to.not.equal(previousTip.sha)
+      expect(newTip.summary).to.equal('title')
+
+      // verify that the contents of this new commit are just the modified file
+      const changedFiles = await LocalGitOperations.getChangedFiles(repository!, newTip.sha)
+      expect(changedFiles.length).to.equal(1)
+      expect(changedFiles[0].path).to.equal(modifiedFile)
+
+      // verify that changes remain for this modified file
+      const status = await LocalGitOperations.getStatus(repository!)
+      expect(status.workingDirectory.files.length).to.equal(4)
+
+      // verify that the file is still marked as modified
+      const fileChange = find(status.workingDirectory.files, f => f.path === modifiedFile)
+      expect(fileChange).to.not.be.undefined
+      expect(fileChange!.status).to.equal(FileStatus.Modified)
+    })
+
+    it('can commit multiple hunks from modified file', async () => {
+
+      const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+
+      const modifiedFile = 'modified-file.md'
+
+      const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
+
+      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+
+      // select first hunk
+      const first = selectLinesInSection(diff, 0, true)
+      // skip second hunk
+      const second = selectLinesInSection(diff, 1, false)
+      // select third hunk
+      const third = selectLinesInSection(diff, 2, true)
+
+      const selectedLines = mergeSelections([ first, second, third ])
+
+      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+
+      // commit just this change, ignore everything else
+      await LocalGitOperations.createCommit(repository!, 'title', '', [ updatedFile ])
+
+      // verify that the HEAD of the repository has moved
+      const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      expect(newTip.sha).to.not.equal(previousTip.sha)
+      expect(newTip.summary).to.equal('title')
+
+      // verify that the contents of this new commit are just the modified file
+      const changedFiles = await LocalGitOperations.getChangedFiles(repository!, newTip.sha)
+      expect(changedFiles.length).to.equal(1)
+      expect(changedFiles[0].path).to.equal(modifiedFile)
+
+      // verify that changes remain for this modified file
+      const status = await LocalGitOperations.getStatus(repository!)
+      expect(status.workingDirectory.files.length).to.equal(4)
+
+      // verify that the file is still marked as modified
+      const fileChange = find(status.workingDirectory.files, f => f.path === modifiedFile)
+      expect(fileChange).to.not.be.undefined
+      expect(fileChange!.status).to.equal(FileStatus.Modified)
+    })
+
+    it('can commit some lines from deleted file', async () => {
+      const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      const lines = new Map<number, boolean>()
+      // select first six lines of file
+      for (let i = 0; i < 33; i++) {
+        lines.set(i, (i < 6))
+      }
+
+      const deletedFile = 'deleted-file.md'
+      const selectedLines = new Map<number, boolean>(lines)
+      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
+      const file = new WorkingDirectoryFileChange(deletedFile, FileStatus.Deleted, selection)
+
+      // commit just this change, ignore everything else
+      await LocalGitOperations.createCommit(repository!, 'title', '', [ file ])
+
+      // verify that the HEAD of the repository has moved
+      const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      expect(newTip.sha).to.not.equal(previousTip.sha)
+      expect(newTip.summary).to.equal('title')
+
+      // verify that the contents of this new commit are just the new file
+      const changedFiles = await LocalGitOperations.getChangedFiles(repository!, newTip.sha)
+      expect(changedFiles.length).to.equal(1)
+      expect(changedFiles[0].path).to.equal(deletedFile)
+
+      // verify that changes remain for this new file
+      const status = await LocalGitOperations.getStatus(repository!)
+      expect(status.workingDirectory.files.length).to.equal(4)
+
+      // verify that the file is now tracked
+      const fileChange = find(status.workingDirectory.files, f => f.path === deletedFile)
+      expect(fileChange).to.not.be.undefined
+      expect(fileChange!.status).to.equal(FileStatus.Deleted)
+    })
+  })
+
   describe('history', () => {
     it('loads history', async () => {
       const commits = await LocalGitOperations.getHistory(repository!, 'HEAD', 100)
@@ -116,48 +288,54 @@ describe('LocalGitOperations', () => {
       const file = new FileChange('new-file.md', FileStatus.New)
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
-      expect(diff.lines[0].text).to.have.string('@@ -0,0 +1,33 @@')
+      const section = diff.sections[0]
 
-      expect(diff.lines[1].text).to.have.string('+Lorem ipsum dolor sit amet,')
-      expect(diff.lines[2].text).to.have.string('+ullamcorper sit amet tellus eget, ')
+      expect(section.lines[0].text).to.have.string('@@ -0,0 +1,33 @@')
 
-      expect(diff.lines[33].text).to.have.string('+ urna, ac porta justo leo sed magna.')
+      expect(section.lines[1].text).to.have.string('+Lorem ipsum dolor sit amet,')
+      expect(section.lines[2].text).to.have.string('+ullamcorper sit amet tellus eget, ')
+
+      expect(section.lines[33].text).to.have.string('+ urna, ac porta justo leo sed magna.')
     })
 
     it('counts lines for modified file', async () => {
       const file = new FileChange('modified-file.md', FileStatus.Modified)
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
-      expect(diff.lines[0].text).to.have.string('@@ -4,10 +4,6 @@')
+      const first = diff.sections[0]
+      expect(first.lines[0].text).to.have.string('@@ -4,10 +4,6 @@')
 
-      expect(diff.lines[4].text).to.have.string('-Aliquam leo ipsum')
-      expect(diff.lines[5].text).to.have.string('-nisl eget hendrerit')
-      expect(diff.lines[6].text).to.have.string('-eleifend mi.')
-      expect(diff.lines[7].text).to.have.string('-')
+      expect(first.lines[4].text).to.have.string('-Aliquam leo ipsum')
+      expect(first.lines[5].text).to.have.string('-nisl eget hendrerit')
+      expect(first.lines[6].text).to.have.string('-eleifend mi.')
+      expect(first.lines[7].text).to.have.string('-')
 
-      expect(diff.lines[12].text).to.have.string('@@ -21,6 +17,10 @@')
+      const second = diff.sections[1]
+      expect(second.lines[0].text).to.have.string('@@ -21,6 +17,10 @@')
 
-      expect(diff.lines[16].text).to.have.string('+Aliquam leo ipsum')
-      expect(diff.lines[17].text).to.have.string('+nisl eget hendrerit')
-      expect(diff.lines[18].text).to.have.string('+eleifend mi.')
-      expect(diff.lines[19].text).to.have.string('+')
+      expect(second.lines[4].text).to.have.string('+Aliquam leo ipsum')
+      expect(second.lines[5].text).to.have.string('+nisl eget hendrerit')
+      expect(second.lines[6].text).to.have.string('+eleifend mi.')
+      expect(second.lines[7].text).to.have.string('+')
     })
 
     it('counts lines for staged file', async () => {
       const file = new FileChange('staged-file.md', FileStatus.Modified)
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
-      expect(diff.lines[0].text).to.have.string('@@ -2,7 +2,7 @@ ')
+      const first = diff.sections[0]
+      expect(first.lines[0].text).to.have.string('@@ -2,7 +2,7 @@ ')
 
-      expect(diff.lines[4].text).to.have.string('-tortor placerat facilisis. Ut sed ex tortor. Duis consectetur at ex vel mattis.')
-      expect(diff.lines[5].text).to.have.string('+tortor placerat facilisis.')
+      expect(first.lines[4].text).to.have.string('-tortor placerat facilisis. Ut sed ex tortor. Duis consectetur at ex vel mattis.')
+      expect(first.lines[5].text).to.have.string('+tortor placerat facilisis.')
 
-      expect(diff.lines[10].text).to.have.string('@@ -17,9 +17,7 @@ ')
+      const second = diff.sections[1]
+      expect(second.lines[0].text).to.have.string('@@ -17,9 +17,7 @@ ')
 
-      expect(diff.lines[14].text).to.have.string('-vel sagittis nisl rutrum. ')
-      expect(diff.lines[15].text).to.have.string('-tempor a ligula. Proin pretium ipsum ')
-      expect(diff.lines[16].text).to.have.string('-elementum neque id tellus gravida rhoncus.')
-      expect(diff.lines[17].text).to.have.string('+vel sagittis nisl rutrum.')
+      expect(second.lines[4].text).to.have.string('-vel sagittis nisl rutrum. ')
+      expect(second.lines[5].text).to.have.string('-tempor a ligula. Proin pretium ipsum ')
+      expect(second.lines[6].text).to.have.string('-elementum neque id tellus gravida rhoncus.')
+      expect(second.lines[7].text).to.have.string('+vel sagittis nisl rutrum.')
     })
   })
 

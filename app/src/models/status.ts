@@ -1,3 +1,5 @@
+import { DiffSelectionType, DiffSelection, DiffSelectionParser } from './diff'
+
 /** the state of the changed file in the working directory */
 export enum FileStatus {
   New,
@@ -28,18 +30,33 @@ export class FileChange {
 
 /** encapsulate the changes to a file in the working directory  */
 export class WorkingDirectoryFileChange extends FileChange {
-  /** whether the file should be included in the next commit */
-  public readonly include: boolean = true
 
-  public constructor(path: string, status: FileStatus, include: boolean) {
+  /** contains the selection details for this file - all, nothing or partial */
+  public readonly selection: DiffSelection
+
+  public constructor(path: string, status: FileStatus, selection: DiffSelection) {
     super(path, status)
 
-    this.include = include
+    this.selection = selection
   }
 
   /** Create a new WorkingDirectoryFileChange with the given includedness. */
-  public withInclude(include: boolean): WorkingDirectoryFileChange {
-    return new WorkingDirectoryFileChange(this.path, this.status, include)
+  public withIncludeAll(include: boolean): WorkingDirectoryFileChange {
+    const type = include ? DiffSelectionType.All : DiffSelectionType.None
+    const selection = new DiffSelection(type, new Map<number, boolean>())
+    return this.withSelection(selection)
+  }
+
+  /** Create a new WorkingDirectoryFileChange with the given diff selection. */
+  public withSelection(selection: DiffSelection): WorkingDirectoryFileChange {
+    return new WorkingDirectoryFileChange(this.path, this.status, selection)
+  }
+
+  /** Create a new WorkingDirectoryFileChange with the given line selection. */
+  public withDiffLinesSelection(diffLines: Map<number, boolean>): WorkingDirectoryFileChange {
+    const includeAll = DiffSelectionParser.getState(diffLines)
+    const selection = new DiffSelection(includeAll, diffLines)
+    return this.withSelection(selection)
   }
 }
 
@@ -67,7 +84,7 @@ export class WorkingDirectoryStatus {
    * Update the include state of all files in the working directory
    */
   public withIncludeAllFiles(includeAll: boolean): WorkingDirectoryStatus {
-    const newFiles = this.files.map(f => f.withInclude(includeAll))
+    const newFiles = this.files.map(f => f.withIncludeAll(includeAll))
     return new WorkingDirectoryStatus(newFiles, includeAll)
   }
 }
