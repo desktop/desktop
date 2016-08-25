@@ -12,6 +12,13 @@ describe('Repository matching', () => {
     expect(repo.owner.login).to.equal('someuser')
   })
 
+  it('matches HTTPS URLs without the git extension', () => {
+    const users = [ new User('alovelace', 'https://api.github.com', '', new Array<string>(), '', 1) ]
+    const repo = matchGitHubRepository(users, 'https://github.com/someuser/somerepo')!
+    expect(repo.name).to.equal('somerepo')
+    expect(repo.owner.login).to.equal('someuser')
+  })
+
   it('matches git URLs', () => {
     const users = [ new User('alovelace', 'https://api.github.com', '', new Array<string>(), '', 1) ]
     const repo = matchGitHubRepository(users, 'git:github.com/someuser/somerepo.git')!

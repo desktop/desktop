@@ -25,6 +25,7 @@ function matchRemoteWithUser(user: User, remote: string): GitHubRepository | nul
   // git@github.com:octocat/Hello-World.git
   // git:github.com/octocat/Hello-World.git
   const regexes = [
+    new RegExp(`https://${host}/(.+)/(.+)(?:.git)`),
     new RegExp(`https://${host}/(.+)/(.+)(?:.git)?`),
     new RegExp(`git@${host}:(.+)/(.+)(?:.git)`),
     new RegExp(`git:${host}/(.+)/(.+)(?:.git)`),
