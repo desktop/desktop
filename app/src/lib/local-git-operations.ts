@@ -529,7 +529,7 @@ export class LocalGitOperations {
   }
 
   public static clone(url: string, path: string, progress: (progress: number) => void): Promise<void> {
-    return GitProcess.exec([ 'clone', '--progress', '--', url, path ], path, undefined, process => {
+    return GitProcess.exec([ 'clone', '--progress', '--', url, path ], __dirname, undefined, process => {
       process.stderr.on('data', (chunk: string) => {
         console.log('chunk')
         console.log(chunk)
