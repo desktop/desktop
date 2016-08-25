@@ -12,7 +12,7 @@ interface IRepositoriesListProps {
   readonly onSelectionChanged: (repository: Repository) => void
   readonly dispatcher: Dispatcher
   readonly loading: boolean
-  readonly repos: ReadonlyArray<Repository>
+  readonly repositories: ReadonlyArray<Repository>
 }
 
 const RowHeight = 42
@@ -60,11 +60,11 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
       return <Loading/>
     }
 
-    if (this.props.repos.length < 1) {
+    if (this.props.repositories.length < 1) {
       return <NoRepositories/>
     }
 
-    const grouped = groupRepositories(this.props.repos)
+    const grouped = groupRepositories(this.props.repositories)
     return (
       <List id='repository-list'
             rowCount={grouped.length}
@@ -73,7 +73,7 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
             selectedRow={this.selectedRow(grouped)}
             onSelectionChanged={row => this.onSelectionChanged(grouped, row)}
             canSelectRow={row => this.canSelectRow(grouped, row)}
-            invalidationProps={this.props.repos}/>
+            invalidationProps={this.props.repositories}/>
     )
   }
 }

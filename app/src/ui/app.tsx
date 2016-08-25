@@ -253,7 +253,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
           <RepositoriesList selectedRepository={this.state.selectedRepository}
                             onSelectionChanged={repository => this.onSelectionChanged(repository)}
                             dispatcher={this.props.dispatcher}
-                            repos={this.state.repositories}
+                            repositories={this.state.repositories}
                             loading={this.state.loading}/>
         </Resizable>
 
