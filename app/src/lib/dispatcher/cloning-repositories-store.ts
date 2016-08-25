@@ -1,7 +1,6 @@
 import { Emitter, Disposable } from 'event-kit'
 
 import { LocalGitOperations } from '../local-git-operations'
-import { Dispatcher } from './dispatcher'
 
 export class CloningRepository {
   public readonly path: string
@@ -13,15 +12,10 @@ export class CloningRepository {
 
 export class CloningRepositoriesStore {
   private readonly emitter = new Emitter()
-  private readonly dispatcher: Dispatcher
 
   private readonly repositoryProgress = new Map<CloningRepository, number>()
 
   private emitQueued = false
-
-  public constructor(dispatcher: Dispatcher) {
-    this.dispatcher = dispatcher
-  }
 
   private emitUpdate() {
     if (this.emitQueued) { return }
@@ -45,7 +39,6 @@ export class CloningRepositoriesStore {
     this.repositoryProgress.set(cloningRepository, 0)
     this.emitUpdate()
 
-      this.dispatcher.addRepositories([ path ])
     await LocalGitOperations.clone(url, path, progress => {
       this.repositoryProgress.set(cloningRepository, progress)
       this.emitUpdate()
