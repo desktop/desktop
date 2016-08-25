@@ -531,4 +531,9 @@ export class LocalGitOperations {
   public static clone(url: string, path: string, progress: (progress: number) => void): Promise<void> {
     return GitProcess.exec([ 'clone', url, path ], path)
   }
+
+  /** Add a new remote with the given URL. */
+  public static addRemote(path: string, name: string, url: string): Promise<void> {
+    return GitProcess.exec([ 'remote', 'add', name, url ], path)
+  }
 }

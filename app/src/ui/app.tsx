@@ -8,7 +8,6 @@ import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
 import { Dispatcher, AppStore, GitUserStore } from '../lib/dispatcher'
 import Repository from '../models/repository'
-import { LocalGitOperations } from '../lib/local-git-operations'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
 import { IAppState, RepositorySection, Popup } from '../lib/app-state'
@@ -16,6 +15,7 @@ import Popuppy from './popuppy'
 import CreateBranch from './create-branch'
 import Branches from './branches'
 import AddRepository from './add-repository'
+import PublishRepository from './publish-repository'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -101,59 +101,18 @@ export default class App extends React.Component<IAppProps, IAppState> {
     return this.props.dispatcher.changeRepositorySection(repository, RepositorySection.History)
   }
 
-  private async push() {
+  private push() {
     const repository = this.state.selectedRepository
     if (!repository) { return }
 
-    const remote = await LocalGitOperations.getDefaultRemote(repository)
-    if (!remote) {
-      console.error('This repo has no remotes ¯\_(ツ)_/¯')
-      return
-    }
-
-    const state = this.state.repositoryState
-    if (!state) {
-      console.error('¯\_(ツ)_/¯')
-      return
-    }
-
-    const branch = state.branchesState.currentBranch
-    if (!branch) {
-      console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
-      return
-    }
-
-    const upstream = branch.upstream
-    if (upstream) {
-      await LocalGitOperations.push(repository, remote, branch.name, false)
-    } else {
-      await LocalGitOperations.push(repository, remote, branch.name, true)
-    }
+    this.props.dispatcher.push(repository)
   }
 
   private async pull() {
     const repository = this.state.selectedRepository
     if (!repository) { return }
 
-    const remote = await LocalGitOperations.getDefaultRemote(repository)
-    if (!remote) {
-      console.error('This repo has no remotes ¯\_(ツ)_/¯')
-      return
-    }
-
-    const state = this.state.repositoryState
-    if (!state) {
-      console.error('¯\_(ツ)_/¯')
-      return
-    }
-
-    const branch = state.branchesState.currentBranch
-    if (!branch) {
-      console.error('This repo is on an unborn branch ¯\_(ツ)_/¯')
-      return
-    }
-
-    await LocalGitOperations.pull(repository, remote, branch.name)
+    this.props.dispatcher.pull(repository)
   }
 
   public componentDidMount() {
@@ -225,39 +184,45 @@ export default class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private renderPopup(): JSX.Element | null {
+  private currentPopupContent(): JSX.Element | null {
     const popup = this.state.currentPopup
     if (!popup) { return null }
 
-    let content: JSX.Element | null = null
     switch (popup) {
       case Popup.CreateBranch: {
         const state = this.state.repositoryState!.branchesState
-        content = <CreateBranch repository={this.state.selectedRepository!}
-                                dispatcher={this.props.dispatcher}
-                                branches={state.allBranches}
-                                currentBranch={state.currentBranch}/>
-      } break
+        return <CreateBranch repository={this.state.selectedRepository!}
+                             dispatcher={this.props.dispatcher}
+                             branches={state.allBranches}
+                             currentBranch={state.currentBranch}/>
+      }
 
       case Popup.ShowBranches: {
         const state = this.state.repositoryState!.branchesState
-        content = <Branches allBranches={state.allBranches}
-                            recentBranches={state.recentBranches}
-                            currentBranch={state.currentBranch}
-                            defaultBranch={state.defaultBranch}
-                            dispatcher={this.props.dispatcher}
-                            repository={this.state.selectedRepository!}
-                            commits={state.commits}/>
-      } break
+        return <Branches allBranches={state.allBranches}
+                         recentBranches={state.recentBranches}
+                         currentBranch={state.currentBranch}
+                         defaultBranch={state.defaultBranch}
+                         dispatcher={this.props.dispatcher}
+                         repository={this.state.selectedRepository!}
+                         commits={state.commits}/>
+      }
 
       case Popup.AddRepository:
-        content = <AddRepository dispatcher={this.props.dispatcher}/>
-        break
+        return <AddRepository dispatcher={this.props.dispatcher}/>
+
+      case Popup.PublishRepository:
+        return <PublishRepository repository={this.state.selectedRepository!}
+                                  dispatcher={this.props.dispatcher}
+                                  users={this.props.appStore.getState().users}/>
     }
 
-    if (!content) {
-      return fatalError(`Unknown popup: ${popup}`)
-    }
+    return fatalError(`Unknown popup type: ${popup}`)
+  }
+
+  private renderPopup(): JSX.Element | null {
+    const content = this.currentPopupContent()
+    if (!content) { return null }
 
     return <Popuppy>{content}</Popuppy>
   }
@@ -332,17 +297,9 @@ export default class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private refreshRepository(repository: Repository) {
-    // This probably belongs in the Repository component or whatever, but until
-    // that exists...
-    console.log(repository)
-    this.props.dispatcher.refreshGitHubRepositoryInfo(repository)
-  }
-
   private onSelectionChanged(repository: Repository) {
     this.props.dispatcher.selectRepository(repository)
-
-    this.refreshRepository(repository)
+    this.props.dispatcher.refreshGitHubRepositoryInfo(repository)
   }
 }
 
