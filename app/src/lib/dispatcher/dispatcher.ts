@@ -7,6 +7,7 @@ import { IHistorySelection, RepositorySection, Popup, IAppError } from '../app-s
 import { Action } from './actions'
 import AppStore from './app-store'
 import GitUserStore from './git-user-store'
+import { IAPIUser } from '../../lib/api'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -204,6 +205,11 @@ export class Dispatcher {
     return this.appStore._changeFileIncluded(repository, file, include)
   }
 
+  /** Change the file's line selection state. */
+  public changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: Map<number, boolean>): Promise<void> {
+    return this.appStore._changeFileLineSelection(repository, file, diffSelection)
+  }
+
   /** Change the Include All state. */
   public changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
     return this.appStore._changeIncludeAllFiles(repository, includeAll)
@@ -244,6 +250,22 @@ export class Dispatcher {
   /** Load the branches in the repository. */
   public loadBranches(repository: Repository): Promise<void> {
     return this.appStore._loadBranches(repository)
+  }
+
+  /** Push the current branch. */
+  public push(repository: Repository): Promise<void> {
+    return this.appStore._push(repository)
+  }
+
+  /** Pull the current branch. */
+  public pull(repository: Repository): Promise<void> {
+    return this.appStore._pull(repository)
+  }
+
+  /** Publish the repository to GitHub with the given properties. */
+  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
+    await this.appStore._publishRepository(repository, name, description, private_, account, org)
+    return this.refreshGitHubRepositoryInfo(repository)
   }
 
   /** Post the given error. */
