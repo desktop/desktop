@@ -288,7 +288,11 @@ export class Dispatcher {
   }
 
   public async clone(url: string, path: string): Promise<void> {
-    await this.cloningRepositoriesStore.clone(url, path)
-    await this.addRepositories([ path ])
+    const cloningRepository = await this.cloningRepositoriesStore.clone(url, path)
+    await this.selectRepository(cloningRepository)
+    await this.cloningRepositoriesStore.getPromise(cloningRepository)
+
+    const addedRepositories = await this.addRepositories([ path ])
+    await this.selectRepository(addedRepositories[0])
   }
 }

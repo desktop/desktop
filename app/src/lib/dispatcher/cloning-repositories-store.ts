@@ -22,6 +22,7 @@ export class CloningRepositoriesStore {
   private readonly emitter = new Emitter()
 
   private readonly repositoryProgress = new Map<CloningRepository, string>()
+  private readonly repositoryPromise = new Map<CloningRepository, Promise<void>>()
 
   private emitQueued = false
 
@@ -41,19 +42,26 @@ export class CloningRepositoriesStore {
     return this.emitter.on('did-update', fn)
   }
 
-  public async clone(url: string, path: string) {
+  public clone(url: string, path: string): Promise<CloningRepository> {
     const cloningRepository = new CloningRepository(path, url)
 
     this.repositoryProgress.set(cloningRepository, 'Cloning…')
+
+    const promise = LocalGitOperations
+      .clone(url, path, progress => {
+        this.repositoryProgress.set(cloningRepository, progress)
+        this.emitUpdate()
+      })
+      .then(() => {
+        this.repositoryProgress.delete(cloningRepository)
+        this.repositoryPromise.delete(cloningRepository)
+        this.emitUpdate()
+      })
+    this.repositoryPromise.set(cloningRepository, promise)
+
     this.emitUpdate()
 
-    await LocalGitOperations.clone(url, path, progress => {
-      this.repositoryProgress.set(cloningRepository, progress)
-      this.emitUpdate()
-    })
-
-    this.repositoryProgress.delete(cloningRepository)
-    this.emitUpdate()
+    return Promise.resolve(cloningRepository)
   }
 
   public get repositories(): ReadonlyArray<CloningRepository> {
@@ -63,5 +71,10 @@ export class CloningRepositoriesStore {
   public getProgress(repository: CloningRepository): string | null {
     const progress = this.repositoryProgress.get(repository)
     return progress ? progress : null
+  }
+
+  public getPromise(repository: CloningRepository): Promise<void> | null {
+    const promise = this.repositoryPromise.get(repository)
+    return promise ? promise : null
   }
 }
