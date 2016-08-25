@@ -1,5 +1,7 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import * as Path from 'path'
+import * as Url from 'url'
 
 import { ipcRenderer, remote } from 'electron'
 
@@ -8,6 +10,8 @@ import { WindowState, getWindowState } from '../lib/window-state'
 import { Dispatcher, AppStore, GitUserStore, GitUserDatabase, CloningRepositoriesStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import Repository from '../models/repository'
+import { find } from '../lib/find'
+import { getDefaultDir } from './lib/default-dir'
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
@@ -41,9 +45,36 @@ ipcRenderer.on('focus', () => {
   dispatcher.refreshRepository(repository)
 })
 
-ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
-  dispatcher.handleURLAction(action)
+ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
+  const handled = await dispatcher.handleURLAction(action)
+  if (handled) { return }
+
+  if (action.name === 'open-repository') {
+    openRepository(action.args)
+  }
 })
+
+function openRepository(url: string) {
+  const repositories = appStore.getState().repositories
+  const existingRepository = find(repositories, r => {
+    const gitHubRepository = r.gitHubRepository
+    if (!gitHubRepository) { return false }
+    return gitHubRepository.htmlURL === url
+  })
+
+  if (existingRepository) {
+    return dispatcher.selectRepository(existingRepository)
+  } else {
+    const defaultName = Path.basename(Url.parse(url)!.path!)
+    const path: string | null = remote.dialog.showSaveDialog({
+      buttonLabel: 'Clone',
+      defaultPath: Path.join(getDefaultDir(), defaultName),
+    })
+    if (!path) { return }
+
+    return dispatcher.clone(url, path)
+  }
+}
 
 ReactDOM.render(
   <App dispatcher={dispatcher} appStore={appStore} gitUserStore={gitUserStore} cloningRepositoriesStore={cloningRepositoriesStore}/>, document.getElementById('desktop-app-container')!)
