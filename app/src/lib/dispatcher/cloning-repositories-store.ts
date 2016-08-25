@@ -79,4 +79,10 @@ export class CloningRepositoriesStore {
     const info = this.repositoryInfo.get(repository)
     return info ? info.promise : null
   }
+
+  /** Remove the repository. */
+  public remove(repository: CloningRepository) {
+    this.repositoryInfo.delete(repository)
+    this.emitUpdate()
+  }
 }
