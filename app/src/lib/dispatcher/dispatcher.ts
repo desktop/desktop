@@ -287,6 +287,7 @@ export class Dispatcher {
     return this.dispatchToSharedProcess<boolean>({ name: 'url-action', action })
   }
 
+  /** Clone the repository to the path. */
   public async clone(url: string, path: string): Promise<void> {
     const cloningRepository = await this.cloningRepositoriesStore.clone(url, path)
     await this.selectRepository(cloningRepository)

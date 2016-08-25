@@ -9,6 +9,7 @@ interface ICloningRepositoryInfo {
   readonly promise: Promise<void>
 }
 
+/** A repository which is currently being cloned. */
 export class CloningRepository {
   public readonly path: string
   public readonly url: string
@@ -23,6 +24,7 @@ export class CloningRepository {
   }
 }
 
+/** The store in charge of repository currently being cloned. */
 export class CloningRepositoriesStore {
   private readonly emitter = new Emitter()
 
@@ -46,9 +48,9 @@ export class CloningRepositoriesStore {
     return this.emitter.on('did-update', fn)
   }
 
+  /** Clone the repository at the URL to the path. */
   public clone(url: string, path: string): Promise<CloningRepository> {
     const cloningRepository = new CloningRepository(path, url)
-
     const promise = LocalGitOperations
       .clone(url, path, progress => {
         const existing = this.repositoryInfo.get(cloningRepository)!
@@ -56,8 +58,7 @@ export class CloningRepositoriesStore {
         this.emitUpdate()
       })
       .then(() => {
-        this.repositoryInfo.delete(cloningRepository)
-        this.emitUpdate()
+        this.remove(cloningRepository)
       })
 
     this.repositoryInfo.set(cloningRepository, { progress: '', promise })
@@ -66,15 +67,18 @@ export class CloningRepositoriesStore {
     return Promise.resolve(cloningRepository)
   }
 
+  /** Get the repositories currently being cloned. */
   public get repositories(): ReadonlyArray<CloningRepository> {
     return Array.from(this.repositoryInfo.keys())
   }
 
+  /** Get the current progress. */
   public getProgress(repository: CloningRepository): string | null {
     const info = this.repositoryInfo.get(repository)
     return info ? info.progress : null
   }
 
+  /** Get the promise for the clone's completion. */
   public getPromise(repository: CloningRepository): Promise<void> | null {
     const info = this.repositoryInfo.get(repository)
     return info ? info.promise : null
