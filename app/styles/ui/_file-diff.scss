@@ -13,13 +13,18 @@
   font-kerning: initial;
   word-wrap: break-word;
   word-break: break-all;
+  white-space: pre;
 
   .before {
-    border-right: 1px solid;
+    border-right: 1px solid #e5e5e5;
   }
 
   .after {
-    border-right: 5px solid;
+    border-right: 4px solid #e5e5e5;
+  }
+
+  .before, .after, .text {
+    padding: 3px 6px;
   }
 }
 
