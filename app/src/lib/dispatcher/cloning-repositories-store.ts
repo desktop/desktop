@@ -4,6 +4,11 @@ import { Emitter, Disposable } from 'event-kit'
 
 import { LocalGitOperations } from '../local-git-operations'
 
+interface ICloningRepositoryInfo {
+  readonly progress: string
+  readonly promise: Promise<void>
+}
+
 export class CloningRepository {
   public readonly path: string
   public readonly url: string
@@ -21,8 +26,7 @@ export class CloningRepository {
 export class CloningRepositoriesStore {
   private readonly emitter = new Emitter()
 
-  private readonly repositoryProgress = new Map<CloningRepository, string>()
-  private readonly repositoryPromise = new Map<CloningRepository, Promise<void>>()
+  private readonly repositoryInfo = new Map<CloningRepository, ICloningRepositoryInfo>()
 
   private emitQueued = false
 
@@ -45,36 +49,34 @@ export class CloningRepositoriesStore {
   public clone(url: string, path: string): Promise<CloningRepository> {
     const cloningRepository = new CloningRepository(path, url)
 
-    this.repositoryProgress.set(cloningRepository, 'Cloning…')
-
     const promise = LocalGitOperations
       .clone(url, path, progress => {
-        this.repositoryProgress.set(cloningRepository, progress)
+        const existing = this.repositoryInfo.get(cloningRepository)!
+        this.repositoryInfo.set(cloningRepository, { progress, promise: existing.promise })
         this.emitUpdate()
       })
       .then(() => {
-        this.repositoryProgress.delete(cloningRepository)
-        this.repositoryPromise.delete(cloningRepository)
+        this.repositoryInfo.delete(cloningRepository)
         this.emitUpdate()
       })
-    this.repositoryPromise.set(cloningRepository, promise)
 
+    this.repositoryInfo.set(cloningRepository, { progress: '', promise })
     this.emitUpdate()
 
     return Promise.resolve(cloningRepository)
   }
 
   public get repositories(): ReadonlyArray<CloningRepository> {
-    return Array.from(this.repositoryProgress.keys())
+    return Array.from(this.repositoryInfo.keys())
   }
 
   public getProgress(repository: CloningRepository): string | null {
-    const progress = this.repositoryProgress.get(repository)
-    return progress ? progress : null
+    const info = this.repositoryInfo.get(repository)
+    return info ? info.progress : null
   }
 
   public getPromise(repository: CloningRepository): Promise<void> | null {
-    const promise = this.repositoryPromise.get(repository)
-    return promise ? promise : null
+    const info = this.repositoryInfo.get(repository)
+    return info ? info.promise : null
   }
 }
