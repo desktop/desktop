@@ -53,12 +53,7 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
   }
 
   private removeRepository() {
-    if (this.props.repository instanceof Repository) {
-      const repoID: number = this.props.repository.id
-      this.props.dispatcher.removeRepositories([ repoID ])
-    } else {
-      // TODO: stop cloning
-    }
+    this.props.dispatcher.removeRepositories([ this.props.repository ])
   }
 }
 

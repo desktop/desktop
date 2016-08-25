@@ -139,7 +139,14 @@ export class Dispatcher {
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
-  public async removeRepositories(repositoryIDs: ReadonlyArray<number>): Promise<void> {
+  public async removeRepositories(repositories: ReadonlyArray<Repository | CloningRepository>): Promise<void> {
+    const localRepositories = repositories.filter(r => r instanceof Repository) as ReadonlyArray<Repository>
+    const cloningRepositories = repositories.filter(r => r instanceof CloningRepository) as ReadonlyArray<CloningRepository>
+    cloningRepositories.forEach(r => {
+      this.cloningRepositoriesStore.remove(r)
+    })
+
+    const repositoryIDs = localRepositories.map(r => r.id)
     await this.dispatchToSharedProcess<ReadonlyArray<number>>({ name: 'remove-repositories', repositoryIDs })
   }
 

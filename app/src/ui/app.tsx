@@ -159,11 +159,9 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
   private removeRepository() {
     const repository = this.state.selectedRepository
-    if (!repository || !(repository instanceof Repository)) { return }
+    if (!repository) { return }
 
-    // TODO: remove cloning repository
-    const repoID = repository.id
-    this.props.dispatcher.removeRepositories([ repoID ])
+    this.props.dispatcher.removeRepositories([ repository ])
   }
 
   private addRepositories(paths: string[]) {
