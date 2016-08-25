@@ -13,6 +13,14 @@
   font-kerning: initial;
   word-wrap: break-word;
   word-break: break-all;
+
+  .before {
+    border-right: 1px solid;
+  }
+
+  .after {
+    border-right: 5px solid;
+  }
 }
 
 .diff-text .before,
@@ -31,12 +39,32 @@
   background: #5A93E0;
 }
 
+.diff-add-selected,
+.diff-delete-selected {
+  .before,
+  .after {
+    border-color: #4f86d5;
+  }
+}
+
+.diff-add {
+  .before,
+  .after {
+    border-color: #b3e3b2;
+  }
+}
+
 .diff-add-hover {
   background: #116CD6;
 }
 
 .diff-delete {
   background: #FFECEC;
+
+  .before,
+  .after {
+    border-color: #eaaead;
+  }
 }
 
 .diff-delete-selected {
