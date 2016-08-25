@@ -1,5 +1,4 @@
 import { Emitter, Disposable } from 'event-kit'
-import * as FS from 'fs'
 
 import { LocalGitOperations } from '../local-git-operations'
 import { Dispatcher } from './dispatcher'
@@ -41,21 +40,19 @@ export class CloningRepositoriesStore {
   }
 
   public async clone(url: string, path: string) {
-    FS.mkdir(path, async () => {
-      const cloningRepository = new CloningRepository(path)
+    const cloningRepository = new CloningRepository(path)
 
-      this.repositoryProgress.set(cloningRepository, 0)
-      this.emitUpdate()
-
-      await LocalGitOperations.clone(url, path, progress => {
-        this.repositoryProgress.set(cloningRepository, progress)
-        this.emitUpdate()
-      })
+    this.repositoryProgress.set(cloningRepository, 0)
+    this.emitUpdate()
 
       this.dispatcher.addRepositories([ path ])
-      this.repositoryProgress.delete(cloningRepository)
+    await LocalGitOperations.clone(url, path, progress => {
+      this.repositoryProgress.set(cloningRepository, progress)
       this.emitUpdate()
     })
+
+    this.repositoryProgress.delete(cloningRepository)
+    this.emitUpdate()
   }
 
   public get repositories(): ReadonlyArray<CloningRepository> {
