@@ -6,9 +6,11 @@ import { LocalGitOperations } from '../local-git-operations'
 
 export class CloningRepository {
   public readonly path: string
+  public readonly url: string
 
-  public constructor(path: string) {
+  public constructor(path: string, url: string) {
     this.path = path
+    this.url = url
   }
 
   public get name(): string {
@@ -40,7 +42,7 @@ export class CloningRepositoriesStore {
   }
 
   public async clone(url: string, path: string) {
-    const cloningRepository = new CloningRepository(path)
+    const cloningRepository = new CloningRepository(path, url)
 
     this.repositoryProgress.set(cloningRepository, 0)
     this.emitUpdate()
