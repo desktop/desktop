@@ -77,7 +77,7 @@ export class GitProcess {
    *  Execute a command using the embedded Git environment
    */
   public static exec(args: string[], path: string, input?: string, processCb?: (process: cp.ChildProcess) => void): Promise<void> {
-    return GitProcess.execWithOutput(args, path, input)
+    return GitProcess.execWithOutput(args, path, input, processCb)
   }
 
   /**
