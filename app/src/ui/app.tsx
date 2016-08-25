@@ -16,6 +16,7 @@ import CreateBranch from './create-branch'
 import Branches from './branches'
 import AddRepository from './add-repository'
 import PublishRepository from './publish-repository'
+import { default as CloningRepositoryView } from './cloning-repository'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -290,7 +291,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
                         gitUserStore={this.props.gitUserStore}/>
       )
     } else if (selectedRepository instanceof CloningRepository) {
-      return <div>This repo is cloning!</div>
+      const progress = this.props.cloningRepositoriesStore.getProgress(selectedRepository)
+      return <CloningRepositoryView repository={selectedRepository} progress={progress ? progress : ''}/>
     } else {
       return <NoRepositorySelected/>
     }
