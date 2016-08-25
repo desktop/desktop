@@ -38,7 +38,7 @@ export default function parseURL(url: string): URLActionType {
   } else if (actionName === 'openrepo') {
     // The `path` will be: /https://github.com/user/repo, so we need to take a
     // substring from the first character on.
-    return { name: 'open-repository', args: parsedURL.path!.substr(1) }
+    return { name: 'open-repository', args: `${parsedURL.path!.substr(1)}.git` }
   } else {
     return unknown
   }
