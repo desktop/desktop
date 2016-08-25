@@ -40,8 +40,13 @@
   background: #EAFFEA;
 }
 
-.diff-add-selected {
-  background: #5A93E0;
+.diff-add-selected,
+.diff-delete-selected {
+  .before,
+  .after {
+    background: #5A93E0;
+    color: white;
+  }
 }
 
 .diff-add-selected,
@@ -70,11 +75,6 @@
   .after {
     border-color: #eaaead;
   }
-}
-
-.diff-delete-selected {
-  background: #5A93E0;
-  display: flex;
 }
 
 .diff-delete-hover {
