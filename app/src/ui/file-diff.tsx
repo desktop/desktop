@@ -56,10 +56,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     const diff = await LocalGitOperations.getDiff(repository, file, this.props.commit)
 
-    const change = file as WorkingDirectoryFileChange
-
-    if (change.selection) {
-      const diffSelection = change.selection
+    if (file instanceof WorkingDirectoryFileChange) {
+      const diffSelection = file.selection
       const selectionType = diffSelection.getSelectionType()
 
       if (selectionType === DiffSelectionType.Partial) {
@@ -242,12 +240,10 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     if (this.props.file) {
 
-      let invalidationProps = { path: this.props.file!.path, selection: DiffSelectionType.None }
+      let invalidationProps = { path: this.props.file.path, selection: DiffSelectionType.None }
 
-      const change = this.props.file as WorkingDirectoryFileChange
-
-      if (change.selection) {
-        const selectionType = change.selection.getSelectionType()
+      if (this.props.file instanceof WorkingDirectoryFileChange) {
+        const selectionType = this.props.file.selection.getSelectionType()
         invalidationProps = { path: this.props.file!.path, selection: selectionType }
       }
 
