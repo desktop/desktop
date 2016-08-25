@@ -298,10 +298,11 @@ export class Dispatcher {
       })
 
       if (existingRepository) {
-        this.selectRepository(existingRepository)
+        return this.selectRepository(existingRepository)
       } else {
-        this.cloningRepositoriesStore.clone(repositoryUrl, '/Users/joshaber/Desktop/cloned')
-        // TODO: CLOME
+        const dest = '/Users/joshaber/Desktop/cloned'
+        await this.cloningRepositoriesStore.clone(repositoryUrl, dest)
+        await this.addRepositories([ dest ])
       }
     }
   }
