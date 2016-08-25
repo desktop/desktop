@@ -527,4 +527,9 @@ export class LocalGitOperations {
   public static initGitRepository(path: string): Promise<void> {
     return GitProcess.exec([ 'init' ], path)
   }
+
+  /** Add a new remote with the given URL. */
+  public static addRemote(path: string, name: string, url: string): Promise<void> {
+    return GitProcess.exec([ 'remote', 'add', name, url ], path)
+  }
 }

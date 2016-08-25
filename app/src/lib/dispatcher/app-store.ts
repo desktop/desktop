@@ -7,7 +7,7 @@ import GitHubRepository from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
-import API, { getUserForEndpoint } from '../../lib/api'
+import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { findIndex } from '../find'
 
@@ -744,5 +744,53 @@ export default class AppStore {
     // it doesn't matter since commits themselves are immutable and we only ever
     // add to the map.
     this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _push(repository: Repository): Promise<void> {
+    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    if (!remote) {
+      this._showPopup(Popup.PublishRepository, repository)
+      return
+    }
+
+    const state = this.getRepositoryState(repository)
+    const branch = state.branchesState.currentBranch
+    if (!branch) {
+      return Promise.reject(new Error('The current branch is unborn.'))
+    }
+
+    const upstream = branch.upstream
+    if (upstream) {
+      return LocalGitOperations.push(repository, remote, branch.name, false)
+    } else {
+      return LocalGitOperations.push(repository, remote, branch.name, true)
+    }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _pull(repository: Repository): Promise<void> {
+    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    if (!remote) {
+      return Promise.reject(new Error('The repository has no remotes.'))
+    }
+
+    const state = this.getRepositoryState(repository)
+    const branch = state.branchesState.currentBranch
+    if (!branch) {
+      return Promise.reject(new Error('The current branch is unborn.'))
+    }
+
+    return LocalGitOperations.pull(repository, remote, branch.name)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
+    const api = new API(account)
+    const apiRepository = await api.createRepository(org, name, description, private_)
+
+    await LocalGitOperations.addRemote(repository.path, 'origin', apiRepository.cloneUrl)
+
+    return this._push(repository)
   }
 }
