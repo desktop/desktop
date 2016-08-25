@@ -5,8 +5,9 @@ import User from '../../models/user'
 import Repository from '../../models/repository'
 import GitHubRepository from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
+import { DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
-import API, { getUserForEndpoint } from '../../lib/api'
+import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { findIndex } from '../find'
 
@@ -334,7 +335,7 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadStatus(repository: Repository): Promise<void> {
+  public async _loadStatus(repository: Repository, clearPartialState: boolean = false): Promise<void> {
     let workingDirectory = new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true)
     try {
       const status = await LocalGitOperations.getStatus(repository)
@@ -352,7 +353,14 @@ export default class AppStore {
       const mergedFiles = workingDirectory.files.map(file => {
         const existingFile = filesByID.get(file.id)
         if (existingFile) {
-          return file.withInclude(existingFile.include)
+
+          if (clearPartialState) {
+            if (existingFile.selection.getSelectionType() === DiffSelectionType.Partial) {
+              return file.withIncludeAll(false)
+            }
+          }
+
+          return file.withSelection(existingFile.selection)
         } else {
           return file
         }
@@ -413,17 +421,17 @@ export default class AppStore {
   public async _commitIncludedChanges(repository: Repository, summary: string, description: string): Promise<void> {
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
-      return file.include === true
+      return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
     await LocalGitOperations.createCommit(repository, summary, description, files)
 
-    return this._loadStatus(repository)
+    return this._loadStatus(repository, true)
   }
 
   private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {
-    const allSelected = files.every(f => f.include)
-    const noneSelected = files.every(f => !f.include)
+    const allSelected = files.every(f => f.selection.getSelectionType() === DiffSelectionType.All)
+    const noneSelected = files.every(f => f.selection.getSelectionType() === DiffSelectionType.None)
 
     let includeAll: boolean | null = null
     if (allSelected) {
@@ -440,7 +448,7 @@ export default class AppStore {
     this.updateRepositoryState(repository, state => {
       const newFiles = state.changesState.workingDirectory.files.map(f => {
         if (f.id === file.id) {
-          return f.withInclude(include)
+          return f.withIncludeAll(include)
         } else {
           return f
         }
@@ -448,12 +456,55 @@ export default class AppStore {
 
       const includeAll = this.getIncludeAllState(newFiles)
 
+      let selectedFile: WorkingDirectoryFileChange | undefined
+      if (state.changesState.selectedFile) {
+          const f = state.changesState.selectedFile
+          selectedFile = newFiles.find(file => file.id === f.id)
+      }
+
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
       return {
         selectedSection: state.selectedSection,
         changesState: {
           workingDirectory,
-          selectedFile: state.changesState.selectedFile,
+          selectedFile: selectedFile || null,
+        },
+        historyState: state.historyState,
+        committerEmail: state.committerEmail,
+        branchesState: state.branchesState,
+      }
+    })
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: Map<number, boolean>): Promise<void> {
+    this.updateRepositoryState(repository, state => {
+
+      const newFiles = state.changesState.workingDirectory.files.map(f => {
+        if (f.id === file.id) {
+          return f.withDiffLinesSelection(diffSelection)
+        } else {
+          return f
+        }
+      })
+
+      const includeAll = this.getIncludeAllState(newFiles)
+
+      let selectedFile: WorkingDirectoryFileChange | undefined
+      if (state.changesState.selectedFile) {
+          const f = state.changesState.selectedFile
+          selectedFile = newFiles.find(file => file.id === f.id)
+      }
+
+      const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
+      return {
+        selectedSection: state.selectedSection,
+        changesState: {
+          workingDirectory,
+          selectedFile: selectedFile || null,
         },
         historyState: state.historyState,
         committerEmail: state.committerEmail,
@@ -713,5 +764,52 @@ export default class AppStore {
     await LocalGitOperations.deleteBranch(repository, branch)
 
     return this._refreshRepository(repository)
+  }
+
+  public async _push(repository: Repository): Promise<void> {
+    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    if (!remote) {
+      this._showPopup(Popup.PublishRepository, repository)
+      return
+    }
+
+    const state = this.getRepositoryState(repository)
+    const branch = state.branchesState.currentBranch
+    if (!branch) {
+      return Promise.reject(new Error('The current branch is unborn.'))
+    }
+
+    const upstream = branch.upstream
+    if (upstream) {
+      return LocalGitOperations.push(repository, remote, branch.name, false)
+    } else {
+      return LocalGitOperations.push(repository, remote, branch.name, true)
+    }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _pull(repository: Repository): Promise<void> {
+    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    if (!remote) {
+      return Promise.reject(new Error('The repository has no remotes.'))
+    }
+
+    const state = this.getRepositoryState(repository)
+    const branch = state.branchesState.currentBranch
+    if (!branch) {
+      return Promise.reject(new Error('The current branch is unborn.'))
+    }
+
+    return LocalGitOperations.pull(repository, remote, branch.name)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
+    const api = new API(account)
+    const apiRepository = await api.createRepository(org, name, description, private_)
+
+    await LocalGitOperations.addRemote(repository.path, 'origin', apiRepository.cloneUrl)
+
+    return this._push(repository)
   }
 }

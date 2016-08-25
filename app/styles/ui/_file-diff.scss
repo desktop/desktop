@@ -16,13 +16,35 @@
 }
 
 .diff-text .before, .diff-text .after  {
-  color: #CCC
+  color: #CCC;
+  width: 50px;
+  text-align: center;
+}
+
+.diff-text .after  {
+  margin-left: 50px;
 }
 
 .diff-add {
   background: #EAFFEA;
 }
 
+.diff-add-selected {
+  background: #5A93E0;
+}
+
+.diff-add-hover {
+  background: #116CD6;
+}
+
 .diff-delete {
   background: #FFECEC;
+}
+
+.diff-delete-selected {
+  background: #5A93E0;
+}
+
+.diff-delete-hover {
+  background: #116CD6;
 }

@@ -6,6 +6,7 @@ import { findIndex } from '../../lib/find'
 
 import Repository from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
+import { DiffSelectionType } from '../../models/diff'
 
 const RowHeight = 30
 
@@ -29,10 +30,16 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
 
   private renderRow(row: number): JSX.Element {
     const file = this.props.workingDirectory.files[row]
+    const selection = file.selection.getSelectionType()
+
+    const includeAll = selection === DiffSelectionType.All
+      ? true
+      : (selection === DiffSelectionType.None ? false : null)
+
     return (
       <ChangedFile path={file.path}
                    status={file.status}
-                   include={file.include}
+                   include={includeAll}
                    key={file.id}
                    onIncludeChanged={include => this.props.onIncludeChanged(row, include)}/>
     )
