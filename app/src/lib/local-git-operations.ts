@@ -529,7 +529,12 @@ export class LocalGitOperations {
   }
 
   public static clone(url: string, path: string, progress: (progress: number) => void): Promise<void> {
-    return GitProcess.exec([ 'clone', url, path ], path)
+    return GitProcess.exec([ 'clone', '--progress', '--', url, path ], path, undefined, process => {
+      process.stderr.on('data', (chunk: string) => {
+        console.log('chunk')
+        console.log(chunk)
+      })
+    })
   }
 
   /** Add a new remote with the given URL. */
