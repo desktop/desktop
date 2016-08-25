@@ -1,14 +1,17 @@
 import Repository from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { CloningRepository } from '../../lib/dispatcher'
 
 export type RepositoryGroup = 'github' | 'enterprise' | 'other'
 
-export type RepositoryListItem = { kind: 'repository', repository: Repository } | { kind: 'label', label: string }
+export type Repositoryish = Repository | CloningRepository
 
-export function groupRepositories(repositories: ReadonlyArray<Repository>): ReadonlyArray<RepositoryListItem> {
-  const grouped = new Map<RepositoryGroup, Repository[]>()
+export type RepositoryListItem = { kind: 'repository', repository: Repositoryish } | { kind: 'label', label: string }
+
+export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): ReadonlyArray<RepositoryListItem> {
+  const grouped = new Map<RepositoryGroup, Repositoryish[]>()
   repositories.forEach(repository => {
-    const gitHubRepository = repository.gitHubRepository
+    const gitHubRepository = repository instanceof Repository ? repository.gitHubRepository : null
     let group: RepositoryGroup = 'other'
     if (gitHubRepository) {
       if (gitHubRepository.endpoint === getDotComAPIEndpoint()) {

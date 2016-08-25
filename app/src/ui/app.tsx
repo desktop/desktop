@@ -6,7 +6,7 @@ import RepositoriesList from './repositories-list'
 import { default as RepositoryView } from './repository'
 import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
-import { Dispatcher, AppStore, GitUserStore } from '../lib/dispatcher'
+import { Dispatcher, AppStore, GitUserStore, CloningRepositoriesStore, CloningRepository } from '../lib/dispatcher'
 import Repository from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
@@ -21,6 +21,7 @@ interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
   readonly gitUserStore: GitUserStore
+  readonly cloningRepositoriesStore: CloningRepositoriesStore
 }
 
 export default class App extends React.Component<IAppProps, IAppState> {
@@ -54,6 +55,10 @@ export default class App extends React.Component<IAppProps, IAppState> {
       this.setState(state)
     })
 
+    props.cloningRepositoriesStore.onDidUpdate(() => {
+      this.forceUpdate()
+    })
+
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
       this.onMenuEvent(name)
     })
@@ -80,37 +85,43 @@ export default class App extends React.Component<IAppProps, IAppState> {
   }
 
   private createBranch() {
-    this.props.dispatcher.showPopup(Popup.CreateBranch, this.state.selectedRepository)
+    const repository = this.state.selectedRepository
+    if (!repository || !(repository instanceof Repository)) { return }
+
+    this.props.dispatcher.showPopup(Popup.CreateBranch, repository)
   }
 
   private showBranches() {
-    this.props.dispatcher.showPopup(Popup.ShowBranches, this.state.selectedRepository)
+    const repository = this.state.selectedRepository
+    if (!repository || !(repository instanceof Repository)) { return }
+
+    this.props.dispatcher.showPopup(Popup.ShowBranches, repository)
   }
 
-  private selectChanges(): Promise<void> {
+  private selectChanges() {
     const repository = this.state.selectedRepository
-    if (!repository) { return Promise.resolve() }
+    if (!repository || !(repository instanceof Repository)) { return }
 
-    return this.props.dispatcher.changeRepositorySection(repository, RepositorySection.Changes)
+    this.props.dispatcher.changeRepositorySection(repository, RepositorySection.Changes)
   }
 
-  private selectHistory(): Promise<void> {
+  private selectHistory() {
     const repository = this.state.selectedRepository
-    if (!repository) { return Promise.resolve() }
+    if (!repository || !(repository instanceof Repository)) { return }
 
-    return this.props.dispatcher.changeRepositorySection(repository, RepositorySection.History)
+    this.props.dispatcher.changeRepositorySection(repository, RepositorySection.History)
   }
 
   private push() {
     const repository = this.state.selectedRepository
-    if (!repository) { return }
+    if (!repository || !(repository instanceof Repository)) { return }
 
     this.props.dispatcher.push(repository)
   }
 
   private async pull() {
     const repository = this.state.selectedRepository
-    if (!repository) { return }
+    if (!repository || !(repository instanceof Repository)) { return }
 
     this.props.dispatcher.pull(repository)
   }
@@ -147,11 +158,10 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
   private removeRepository() {
     const repository = this.state.selectedRepository
-    if (!repository) {
-      return
-    }
+    if (!repository || !(repository instanceof Repository)) { return }
 
-    const repoID: number = repository.id
+    // TODO: remove cloning repository
+    const repoID = repository.id
     this.props.dispatcher.removeRepositories([ repoID ])
   }
 
@@ -191,7 +201,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
     switch (popup) {
       case Popup.CreateBranch: {
         const state = this.state.repositoryState!.branchesState
-        return <CreateBranch repository={this.state.selectedRepository!}
+        const repository = this.state.selectedRepository! as Repository
+        return <CreateBranch repository={repository}
                              dispatcher={this.props.dispatcher}
                              branches={state.allBranches}
                              currentBranch={state.currentBranch}/>
@@ -199,12 +210,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
       case Popup.ShowBranches: {
         const state = this.state.repositoryState!.branchesState
+        const repository = this.state.selectedRepository! as Repository
         return <Branches allBranches={state.allBranches}
                          recentBranches={state.recentBranches}
                          currentBranch={state.currentBranch}
                          defaultBranch={state.defaultBranch}
                          dispatcher={this.props.dispatcher}
-                         repository={this.state.selectedRepository!}
+                         repository={repository}
                          commits={state.commits}/>
       }
 
@@ -212,7 +224,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
         return <AddRepository dispatcher={this.props.dispatcher}/>
 
       case Popup.PublishRepository:
-        return <PublishRepository repository={this.state.selectedRepository!}
+        const repository = this.state.selectedRepository! as Repository
+        return <PublishRepository repository={repository}
                                   dispatcher={this.props.dispatcher}
                                   users={this.props.appStore.getState().users}/>
     }
@@ -254,6 +267,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
                             onSelectionChanged={repository => this.onSelectionChanged(repository)}
                             dispatcher={this.props.dispatcher}
                             repositories={this.state.repositories}
+                            cloningRepositories={this.props.cloningRepositoriesStore.repositories}
                             loading={this.state.loading}/>
         </Resizable>
 
@@ -268,16 +282,18 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepository() {
     const selectedRepository = this.state.selectedRepository
-    if (!selectedRepository) {
+    if (selectedRepository instanceof Repository) {
+      return (
+        <RepositoryView repository={selectedRepository}
+                        state={this.state.repositoryState!}
+                        dispatcher={this.props.dispatcher}
+                        gitUserStore={this.props.gitUserStore}/>
+      )
+    } else if (selectedRepository instanceof CloningRepository) {
+      return <div>This repo is cloning!</div>
+    } else {
       return <NoRepositorySelected/>
     }
-
-    return (
-      <RepositoryView repository={selectedRepository}
-                      state={this.state.repositoryState!}
-                      dispatcher={this.props.dispatcher}
-                      gitUserStore={this.props.gitUserStore}/>
-    )
   }
 
   private renderNotLoggedIn() {
@@ -297,9 +313,12 @@ export default class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onSelectionChanged(repository: Repository) {
+  private onSelectionChanged(repository: Repository | CloningRepository) {
     this.props.dispatcher.selectRepository(repository)
-    this.props.dispatcher.refreshGitHubRepositoryInfo(repository)
+
+    if (repository instanceof Repository) {
+      this.props.dispatcher.refreshGitHubRepositoryInfo(repository)
+    }
   }
 }
 

@@ -26,7 +26,9 @@ describe('App', () => {
   })
 
   it('renders', () => {
-    const app = TestUtils.renderIntoDocument(<App dispatcher={dispatcher!} appStore={appStore!} gitUserStore={gitUserStore!}/>) as React.Component<any, any>
+    const app = TestUtils.renderIntoDocument(
+      <App dispatcher={dispatcher!} appStore={appStore!} gitUserStore={gitUserStore!} cloningRepositoriesStore={new CloningRepositoriesStore()}/>
+    ) as React.Component<any, any>
     const node = ReactDOM.findDOMNode(app)
     expect(node).not.to.equal(null)
   })

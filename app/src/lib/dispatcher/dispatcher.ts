@@ -7,7 +7,7 @@ import { IHistorySelection, RepositorySection, Popup, IAppError } from '../app-s
 import { Action } from './actions'
 import AppStore from './app-store'
 import GitUserStore from './git-user-store'
-import { CloningRepositoriesStore } from './cloning-repositories-store'
+import { CloningRepositoriesStore, CloningRepository } from './cloning-repositories-store'
 import { URLActionType } from '../parse-url'
 import { find } from '../find'
 import { IAPIUser } from '../../lib/api'
@@ -178,7 +178,7 @@ export class Dispatcher {
   }
 
   /** Select the repository. */
-  public selectRepository(repository: Repository): Promise<void> {
+  public selectRepository(repository: Repository | CloningRepository): Promise<void> {
     return this.appStore._selectRepository(repository)
   }
 

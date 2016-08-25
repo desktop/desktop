@@ -7,6 +7,7 @@ import App from './app'
 import { WindowState, getWindowState } from '../lib/window-state'
 import { Dispatcher, AppStore, GitUserStore, GitUserDatabase, CloningRepositoriesStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
+import Repository from '../models/repository'
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
@@ -35,7 +36,7 @@ ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(arg
 
 ipcRenderer.on('focus', () => {
   const repository = appStore.getState().selectedRepository
-  if (!repository) { return }
+  if (!repository || !(repository instanceof Repository)) { return }
 
   dispatcher.refreshRepository(repository)
 })
@@ -44,4 +45,5 @@ ipcRenderer.on('url-action', (event: Electron.IpcRendererEvent, { action }: { ac
   dispatcher.handleURLAction(action)
 })
 
-ReactDOM.render(<App dispatcher={dispatcher} appStore={appStore} gitUserStore={gitUserStore}/>, document.getElementById('desktop-app-container')!)
+ReactDOM.render(
+  <App dispatcher={dispatcher} appStore={appStore} gitUserStore={gitUserStore} cloningRepositoriesStore={cloningRepositoriesStore}/>, document.getElementById('desktop-app-container')!)

@@ -1,3 +1,5 @@
+import * as Path from 'path'
+
 import { Emitter, Disposable } from 'event-kit'
 
 import { LocalGitOperations } from '../local-git-operations'
@@ -7,6 +9,10 @@ export class CloningRepository {
 
   public constructor(path: string) {
     this.path = path
+  }
+
+  public get name(): string {
+    return Path.basename(this.path)
   }
 }
 

@@ -10,6 +10,7 @@ import { matchGitHubRepository } from '../../lib/repository-matching'
 import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { findIndex } from '../find'
+import { CloningRepository } from './cloning-repositories-store'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -23,7 +24,7 @@ export default class AppStore {
   private users: ReadonlyArray<User> = new Array<User>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
 
-  private selectedRepository: Repository | null = null
+  private selectedRepository: Repository | CloningRepository | null = null
   private repositoryState = new Map<number, IRepositoryState>()
   private loading = false
 
@@ -131,7 +132,7 @@ export default class AppStore {
 
   private getCurrentRepositoryState(): IRepositoryState | null {
     const repository = this.selectedRepository
-    if (!repository) { return null }
+    if (!repository || !(repository instanceof Repository)) { return null }
 
     return this.getRepositoryState(repository)
   }
@@ -299,13 +300,17 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _selectRepository(repository: Repository | null): Promise<void> {
+  public _selectRepository(repository: Repository | CloningRepository | null): Promise<void> {
     this.selectedRepository = repository
     this.emitUpdate()
 
     if (!repository) { return Promise.resolve() }
 
-    return this._refreshRepository(repository)
+    if (repository instanceof Repository) {
+      return this._refreshRepository(repository)
+    } else {
+      return Promise.resolve()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -315,9 +320,15 @@ export default class AppStore {
     this.loading = this.repositories.length === 0 && this.users.length === 0
 
     const selectedRepository = this.selectedRepository
-    let newSelectedRepository: Repository | null = this.selectedRepository
+    let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
     if (selectedRepository) {
-      const i = findIndex(this.repositories, r => r.id === selectedRepository.id)
+      const i = findIndex(this.repositories, r => {
+        if (selectedRepository instanceof Repository && r instanceof Repository) {
+          return r.id === selectedRepository.id
+        } else {
+          return r === selectedRepository
+        }
+      })
       if (i === -1) {
         newSelectedRepository = null
       }

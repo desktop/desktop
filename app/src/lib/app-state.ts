@@ -2,13 +2,14 @@ import User from '../models/user'
 import Repository from '../models/repository'
 import { Commit, Branch } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
+import { CloningRepository } from './dispatcher'
 
 /** All of the shared app state. */
 export interface IAppState {
   readonly users: ReadonlyArray<User>
   readonly repositories: ReadonlyArray<Repository>
 
-  readonly selectedRepository: Repository | null
+  readonly selectedRepository: Repository | CloningRepository | null
   readonly repositoryState: IRepositoryState | null
 
   readonly loading: boolean

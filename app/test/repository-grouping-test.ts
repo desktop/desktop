@@ -6,9 +6,10 @@ import Repository from '../src/models/repository'
 import GitHubRepository from '../src/models/github-repository'
 import Owner from '../src/models/owner'
 import { getDotComAPIEndpoint } from '../src/lib/api'
+import { CloningRepository } from '../src/lib/dispatcher'
 
 describe('Repository grouping', () => {
-  const repositories = [
+  const repositories: Array<Repository | CloningRepository> = [
     new Repository('repo1', 1),
     new Repository('repo2', 2, new GitHubRepository('my-repo2', new Owner('', getDotComAPIEndpoint()))),
     new Repository('repo3', 3, new GitHubRepository('my-repo3', new Owner('', ''))),
