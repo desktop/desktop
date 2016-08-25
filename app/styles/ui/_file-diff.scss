@@ -48,3 +48,13 @@
 .diff-delete-hover {
   background: #116CD6;
 }
+
+.diff-hunk {
+  background-color: #f8f8ff;
+  height: 100%;
+
+  .before,
+  .after {
+    border-color: #e4e4fe;
+  }
+}
