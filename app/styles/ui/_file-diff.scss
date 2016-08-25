@@ -17,6 +17,7 @@
 
 .diff-text .before, .diff-text .after  {
   color: #CCC;
+  display: inline;
   width: 50px;
   text-align: center;
 }
@@ -27,6 +28,7 @@
 
 .diff-add {
   background: #EAFFEA;
+  height: 100%;
 }
 
 .diff-add-selected {
@@ -39,6 +41,7 @@
 
 .diff-delete {
   background: #FFECEC;
+  height: 100%;
 }
 
 .diff-delete-selected {
