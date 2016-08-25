@@ -7,6 +7,7 @@ import { IHistorySelection, RepositorySection, Popup, IAppError } from '../app-s
 import { Action } from './actions'
 import AppStore from './app-store'
 import GitUserStore from './git-user-store'
+import { CloningRepositoriesStore } from './cloning-repositories-store'
 import { URLActionType } from '../parse-url'
 import { find } from '../find'
 import { IAPIUser } from '../../lib/api'
@@ -46,10 +47,12 @@ type IPCResponse<T> = IResult<T> | IError
 export class Dispatcher {
   private appStore: AppStore
   private gitUserStore: GitUserStore
+  private cloningRepositoriesStore: CloningRepositoriesStore
 
-  public constructor(appStore: AppStore, gitUserStore: GitUserStore) {
+  public constructor(appStore: AppStore, gitUserStore: GitUserStore, cloningRepositoriesStore: CloningRepositoriesStore) {
     this.appStore = appStore
     this.gitUserStore = gitUserStore
+    this.cloningRepositoriesStore = cloningRepositoriesStore
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
@@ -297,6 +300,7 @@ export class Dispatcher {
       if (existingRepository) {
         this.selectRepository(existingRepository)
       } else {
+        this.cloningRepositoriesStore.clone(repositoryUrl, '/Users/joshaber/Desktop/cloned')
         // TODO: CLOME
       }
     }
