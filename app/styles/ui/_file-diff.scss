@@ -15,20 +15,16 @@
   word-break: break-all;
 }
 
-.diff-text .before, .diff-text .after  {
+.diff-text .before,
+.diff-text .after  {
   color: #CCC;
-  display: inline;
+  flex: 1;
   width: 50px;
   text-align: center;
 }
 
-.diff-text .after  {
-  margin-left: 50px;
-}
-
 .diff-add {
   background: #EAFFEA;
-  height: 100%;
 }
 
 .diff-add-selected {
@@ -41,11 +37,11 @@
 
 .diff-delete {
   background: #FFECEC;
-  height: 100%;
 }
 
 .diff-delete-selected {
   background: #5A93E0;
+  display: flex;
 }
 
 .diff-delete-hover {
@@ -54,10 +50,19 @@
 
 .diff-hunk {
   background-color: #f8f8ff;
-  height: 100%;
 
   .before,
   .after {
     border-color: #e4e4fe;
   }
+}
+
+.diff-add,
+.diff-delete,
+.diff-add-selected,
+.diff-delete-selected,
+.diff-hunk,
+.diff-context {
+  display: flex;
+  height: 100%;
 }
