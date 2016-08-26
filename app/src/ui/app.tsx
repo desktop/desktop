@@ -86,7 +86,10 @@ export default class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renameBranch() {
-    this.props.dispatcher.showPopup(Popup.RenameBranch, this.state.selectedRepository)
+    const repository = this.state.selectedRepository
+    if (!repository || !(repository instanceof Repository)) { return }
+
+    this.props.dispatcher.showPopup(Popup.RenameBranch, repository)
   }
 
   private deleteBranch() {
@@ -239,9 +242,10 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
       case Popup.RenameBranch: {
         const state = this.state.repositoryState!.branchesState
+        const repository = this.state.selectedRepository! as Repository
         return <RenameBranch dispatcher={this.props.dispatcher}
-                                repository={this.state.selectedRepository!}
-                                branch={state.currentBranch!}/>
+                             repository={repository}
+                             branch={state.currentBranch!}/>
       }
 
       case Popup.DeleteBranch: {
