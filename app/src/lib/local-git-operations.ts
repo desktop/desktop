@@ -565,6 +565,11 @@ export class LocalGitOperations {
     })
   }
 
+  /** Rename the given branch to a new name. */
+  public static renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
+    return GitProcess.exec([ 'branch', '-m', branch.nameWithoutRemote, newName ], repository.path)
+  }
+
   /**
    * Delete the branch. If the branch has a remote branch, it too will be
    * deleted.

@@ -305,6 +305,11 @@ export class Dispatcher {
     await this.selectRepository(addedRepositories[0])
   }
 
+  /** Rename the branch to a new name. */
+  public renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
+    return this.appStore._renameBranch(repository, branch, newName)
+  }
+
   /**
    * Delete the branch. This will delete both the local branch and the remote
    * branch, and then check out the default branch.

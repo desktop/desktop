@@ -30,6 +30,7 @@ export enum Popup {
   CreateBranch = 1,
   ShowBranches,
   AddRepository,
+  RenameBranch,
   PublishRepository,
   DeleteBranch,
 }
