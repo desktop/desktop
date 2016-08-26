@@ -331,7 +331,9 @@ export default class AppStore {
       const lastSelectedID = parseInt(localStorage.getItem(LastSelectedRepositoryIDKey), 10)
       if (lastSelectedID) {
         newSelectedRepository = find(this.repositories, r => r.id === lastSelectedID) || null
-      } else {
+      }
+
+      if (!newSelectedRepository) {
         newSelectedRepository = this.repositories[0]
       }
     }
