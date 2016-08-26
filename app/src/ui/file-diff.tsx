@@ -241,10 +241,9 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     const file = this.props.file
     if (file) {
 
-      let invalidationProps = { path: file.path, selection: DiffSelectionType.None }
+      const invalidationProps = { path: file.path, selection: DiffSelectionType.None }
       if (file instanceof WorkingDirectoryFileChange) {
-        const selectionType = file.selection.getSelectionType()
-        invalidationProps = { path: file.path, selection: selectionType }
+        invalidationProps.selection = file.selection.getSelectionType()
       }
 
       let diffLineCount: number = 0
