@@ -182,7 +182,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     const unselectedClassName = `${baseClassName} ${typeClassName}`
     const selectedClassName = `${unselectedClassName} ${typeClassName}-selected`
 
-    const className = diff.selected ? unselectedClassName : selectedClassName
+    const className = diff.selected ? selectedClassName : unselectedClassName
 
     // TODO: depending on cursor position, highlight hunk rather than line
 
