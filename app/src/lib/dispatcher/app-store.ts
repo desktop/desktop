@@ -550,6 +550,8 @@ export default class AppStore {
 
     await this.refreshCurrentBranch(repository)
 
+    await this.loadBranches(repository)
+
     // When refreshing we *always* load Changes so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
     // selected.
@@ -577,8 +579,7 @@ export default class AppStore {
     this.emitUpdate()
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadBranches(repository: Repository): Promise<void> {
+  private async loadBranches(repository: Repository): Promise<void> {
     const localBranches = await LocalGitOperations.getBranches(repository, 'refs/heads', BranchType.Local)
     const remoteBranches = await LocalGitOperations.getBranches(repository, 'refs/remotes', BranchType.Remote)
 
