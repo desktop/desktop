@@ -8,5 +8,5 @@ export function showPopupAppMenu() {
 
 /** Set the menu item's enabledness. */
 export function setMenuEnabled(id: MenuIDs, enabled: boolean) {
-  ipcRenderer.send('set-menu-enabled', { id, enabled })
+  ipcRenderer.send('set-menu-enabled', [ { id, enabled } ])
 }
