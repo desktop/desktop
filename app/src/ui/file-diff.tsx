@@ -180,7 +180,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     const baseClassName = 'diff-line-column'
     const typeClassName = this.getClassName(diff.type)
     const unselectedClassName = `${baseClassName} ${typeClassName}`
-    const selectedClassName = `${unselectedClassName} ${baseClassName}-selected`
+    const selectedClassName = `${unselectedClassName} ${typeClassName}-selected`
 
     const className = diff.selected ? unselectedClassName : selectedClassName
 
