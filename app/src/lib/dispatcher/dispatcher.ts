@@ -279,6 +279,11 @@ export class Dispatcher {
     return this.appStore._clearError(error)
   }
 
+  /** Rename the branch to a new name. */
+  public renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
+    return this.appStore._renameBranch(repository, branch, newName)
+  }
+
   /**
    * Delete the branch. This will delete both the local branch and the remote
    * branch, and then check out the default branch.
