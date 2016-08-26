@@ -188,8 +188,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     return (
       <div className={className}
-           onMouseEnter={event => this.onMouseEnterHandler(event.currentTarget, baseClassName)}
-           onMouseLeave={event => this.onMouseLeaveHandler(event.currentTarget, baseClassName)}
+           onMouseEnter={event => this.onMouseEnterHandler(event.currentTarget, typeClassName)}
+           onMouseLeave={event => this.onMouseLeaveHandler(event.currentTarget, typeClassName)}
            onMouseDown={event => this.onMouseDownHandler(diff, rowIndex)}>
         <div className='diff-line-number before'>{this.formatIfNotSet(diff.oldLineNumber)}</div>
         <div className='diff-line-number after'>{this.formatIfNotSet(diff.newLineNumber)}</div>
