@@ -18,6 +18,7 @@ import AddRepository from './add-repository'
 import RenameBranch from './rename-branch'
 import DeleteBranch from './delete-branch'
 import PublishRepository from './publish-repository'
+import { showPopupAppMenu } from './main-process-proxy'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -192,7 +193,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
   private onContextMenu(e: React.MouseEvent<any>) {
     if (process.platform === 'win32') {
       e.preventDefault()
-      ipcRenderer.send('show-popup-app-menu', null)
+      showPopupAppMenu()
     }
   }
 
