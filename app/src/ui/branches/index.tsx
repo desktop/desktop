@@ -57,7 +57,7 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
 
     const branch = item.branch
     this.props.dispatcher.closePopup()
-    this.props.dispatcher.checkoutBranch(this.props.repository, branch.name)
+    this.props.dispatcher.checkoutBranch(this.props.repository, branch.nameWithoutRemote)
   }
 
   private canSelectRow(branchItems: ReadonlyArray<BranchListItem>, row: number) {

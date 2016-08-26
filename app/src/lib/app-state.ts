@@ -30,6 +30,7 @@ export enum Popup {
   ShowBranches,
   AddRepository,
   PublishRepository,
+  DeleteBranch,
 }
 
 export enum RepositorySection {
