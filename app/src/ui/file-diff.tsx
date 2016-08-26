@@ -177,7 +177,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private editableSidebar(diff: DiffLine, rowIndex: number) {
-    const baseClassName = this.getClassName(diff.type)
+    const baseClassName = 'diff-line-column ' + this.getClassName(diff.type)
     const className = diff.selected ? baseClassName + '-selected' : baseClassName
 
     // TODO: depending on cursor position, highlight hunk rather than line
@@ -187,8 +187,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
            onMouseEnter={event => this.onMouseEnterHandler(event.currentTarget, baseClassName)}
            onMouseLeave={event => this.onMouseLeaveHandler(event.currentTarget, baseClassName)}
            onMouseDown={event => this.onMouseDownHandler(diff, rowIndex)}>
-        <div className='before'>{this.formatIfNotSet(diff.oldLineNumber)}</div>
-        <div className='after'>{this.formatIfNotSet(diff.newLineNumber)}</div>
+        <div className='diff-line-number before'>{this.formatIfNotSet(diff.oldLineNumber)}</div>
+        <div className='diff-line-number after'>{this.formatIfNotSet(diff.newLineNumber)}</div>
       </div>
     )
   }

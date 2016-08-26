@@ -91,12 +91,7 @@
   }
 }
 
-.diff-add,
-.diff-delete,
-.diff-add-selected,
-.diff-delete-selected,
-.diff-hunk,
-.diff-context {
+.diff-line-column {
   display: flex;
   height: 100%;
 }
