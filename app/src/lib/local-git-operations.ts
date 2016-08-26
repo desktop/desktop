@@ -66,7 +66,7 @@ export class Branch {
   /** The short name of the branch. E.g., `master`. */
   public readonly name: string
 
-  /** The origin-prefixed upstream name. E.g., `origin/master`. */
+  /** The remote-prefixed upstream name. E.g., `origin/master`. */
   public readonly upstream: string | null
 
   /** The SHA for the tip of the branch. */
@@ -80,6 +80,34 @@ export class Branch {
     this.upstream = upstream
     this.sha = sha
     this.type = type
+  }
+
+  /** The name of the upstream's remote. */
+  public get remote(): string | null {
+    const upstream = this.upstream
+    if (!upstream) { return null }
+
+    const pieces = upstream.match(/(.*?)\/.*/)
+    if (!pieces || pieces.length < 2) { return null }
+
+    return pieces[1]
+  }
+
+  /**
+   * The name of the branch without the remote prefix. If the branch is a local
+   * branch, this is the same as its `name`.
+   */
+  public get nameWithoutRemote(): string {
+    if (this.type === BranchType.Local) {
+      return this.name
+    } else {
+      const pieces = this.name.match(/.*?\/(.*)/)
+      if (!pieces || pieces.length < 2) {
+         return this.name
+      }
+
+      return pieces[1]
+    }
   }
 }
 
@@ -535,6 +563,25 @@ export class LocalGitOperations {
         progress(chunk)
       })
     })
+  }
+
+  /**
+   * Delete the branch. If the branch has a remote branch, it too will be
+   * deleted.
+   */
+  public static async deleteBranch(repository: Repository, branch: Branch): Promise<void> {
+    const deleteRemoteBranch = (branch: Branch, remote: string) => {
+      return GitProcess.exec([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path)
+    }
+
+    if (branch.type === BranchType.Local) {
+      await GitProcess.exec([ 'branch', '-D', branch.name ], repository.path)
+    }
+
+    const remote = branch.remote
+    if (remote) {
+      return deleteRemoteBranch(branch, remote)
+    }
   }
 
   /** Add a new remote with the given URL. */

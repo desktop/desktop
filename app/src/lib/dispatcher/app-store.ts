@@ -758,6 +758,18 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _deleteBranch(repository: Repository, branch: Branch): Promise<void> {
+    const defaultBranch = this.getRepositoryState(repository).branchesState.defaultBranch
+    if (!defaultBranch) {
+      return Promise.reject(new Error(`No default branch!`))
+    }
+
+    await LocalGitOperations.checkoutBranch(repository, defaultBranch.name)
+    await LocalGitOperations.deleteBranch(repository, branch)
+
+    return this._refreshRepository(repository)
+  }
+
   public async _push(repository: Repository): Promise<void> {
     const remote = await LocalGitOperations.getDefaultRemote(repository)
     if (!remote) {

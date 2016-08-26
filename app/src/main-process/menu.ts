@@ -3,7 +3,8 @@ import SharedProcess from '../shared-process/shared-process'
 
 export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
                         'add-local-repository' | 'create-branch' |
-                        'show-branches' | 'remove-repository' | 'add-repository'
+                        'show-branches' | 'remove-repository' | 'add-repository' |
+                        'delete-branch'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Object[] = [
@@ -143,6 +144,17 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           label: 'Remove',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('remove-repository')
+          }
+        }
+      ]
+    },
+    {
+      label: 'Branch',
+      submenu: [
+        {
+          label: 'Delete…',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('delete-branch')
           }
         }
       ]

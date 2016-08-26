@@ -9,6 +9,7 @@ import AppStore from './app-store'
 import GitUserStore from './git-user-store'
 import { CloningRepositoriesStore, CloningRepository } from './cloning-repositories-store'
 import { URLActionType } from '../parse-url'
+import { Branch } from '../local-git-operations'
 import { IAPIUser } from '../../lib/api'
 
 /**
@@ -302,5 +303,13 @@ export class Dispatcher {
 
     const addedRepositories = await this.addRepositories([ path ])
     await this.selectRepository(addedRepositories[0])
+  }
+
+  /**
+   * Delete the branch. This will delete both the local branch and the remote
+   * branch, and then check out the default branch.
+   */
+  public deleteBranch(repository: Repository, branch: Branch): Promise<void> {
+    return this.appStore._deleteBranch(repository, branch)
   }
 }
