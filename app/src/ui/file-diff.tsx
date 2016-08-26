@@ -227,9 +227,11 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       return null
     }
 
+    const diffLineClassName = `diff-line-content ${this.getClassName(diffLine.type)}`
+
     return (
-      <div className={this.getClassName(diffLine.type)}>
-        <span className='text'>{diffLine.text}</span>
+      <div className={diffLineClassName}>
+        <span>{diffLine.text}</span>
       </div>
     )
   }
