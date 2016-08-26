@@ -84,7 +84,10 @@ export default class App extends React.Component<IAppProps, IAppState> {
   }
 
   private deleteBranch() {
-    this.props.dispatcher.showPopup(Popup.DeleteBranch, this.state.selectedRepository)
+    const repository = this.state.selectedRepository
+    if (!repository || !(repository instanceof Repository)) { return }
+
+    this.props.dispatcher.showPopup(Popup.DeleteBranch, repository)
   }
 
   private addRepository() {
@@ -230,10 +233,11 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
       case Popup.DeleteBranch: {
         const state = this.state.repositoryState!.branchesState
+        const repository = this.state.selectedRepository! as Repository
         return <DeleteBranch dispatcher={this.props.dispatcher}
-                             repository={this.state.selectedRepository!}
+                             repository={repository}
                              branch={state.currentBranch!}/>
-        }
+      }
 
       case Popup.PublishRepository:
         const repository = this.state.selectedRepository! as Repository
