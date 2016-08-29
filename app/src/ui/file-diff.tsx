@@ -197,9 +197,9 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   private readOnlySidebar(diff: DiffLine) {
     return (
-      <div className={this.getClassName(diff.type)}>
-        <span className='before'>{this.formatIfNotSet(diff.oldLineNumber)}</span>
-        <span className='after'>{this.formatIfNotSet(diff.newLineNumber)}</span>
+      <div className={`diff-line-column ${this.getClassName(diff.type)}`}>
+        <span className='diff-line-number before'>{this.formatIfNotSet(diff.oldLineNumber)}</span>
+        <span className='diff-line-number after'>{this.formatIfNotSet(diff.newLineNumber)}</span>
       </div>
     )
   }
