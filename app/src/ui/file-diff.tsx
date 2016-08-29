@@ -229,7 +229,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     return (
       <div className={diffLineClassName}>
-        <span>{diffLine.text}</span>
+        <span className='diff-content-text'>{diffLine.text}</span>
       </div>
     )
   }
