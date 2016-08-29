@@ -19,3 +19,13 @@ input[type='submit'] {
     box-shadow: inset 0 0 1px rgba(5, 5, 5, 0.15);
   }
 }
+
+.btn-danger {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+
+  &:hover {
+    background: var(--color-danger);
+    color: var(--button-background)
+  }
+}
