@@ -9,8 +9,10 @@ import { DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
-import { findIndex } from '../find'
 import { CloningRepository } from './cloning-repositories-store'
+import { findIndex, find } from '../find'
+
+const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -307,6 +309,7 @@ export default class AppStore {
     if (!repository) { return Promise.resolve() }
 
     if (repository instanceof Repository) {
+      localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
       return this._refreshRepository(repository)
     } else {
       return Promise.resolve()
@@ -335,7 +338,14 @@ export default class AppStore {
     }
 
     if (!this.selectedRepository && this.repositories.length > 0) {
-      newSelectedRepository = this.repositories[0]
+      const lastSelectedID = parseInt(localStorage.getItem(LastSelectedRepositoryIDKey), 10)
+      if (lastSelectedID) {
+        newSelectedRepository = find(this.repositories, r => r.id === lastSelectedID) || null
+      }
+
+      if (!newSelectedRepository) {
+        newSelectedRepository = this.repositories[0]
+      }
     }
 
     if (newSelectedRepository !== selectedRepository) {
