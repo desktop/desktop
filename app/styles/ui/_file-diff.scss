@@ -27,6 +27,12 @@
   .before, .after, .diff-content-text {
     padding: var(--spacing-third) var(--spacing-half);
   }
+
+  .Grid__innerScrollContainer {
+    // We use a box shadow instead of a border so that it doesn't
+    // 'double' up if the vertical content is scrollable
+    box-shadow: 0 1px 0 var(--diff-border-color);
+  }
 }
 
 .diff-line-content,
