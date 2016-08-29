@@ -29,8 +29,19 @@
   }
 }
 
-.popup-actions {
-  border-top: var(--base-border);
+.popup-content {
   padding: var(--spacing);
-  text-align: right;
+}
+
+.popup-actions {
+  padding: 0 var(--spacing) var(--spacing);
+  text-align: left;
+
+  button {
+    margin-right: var(--spacing);
+  }
+}
+
+.popup-title {
+  font-weight: var(--font-weight-semibold);
 }

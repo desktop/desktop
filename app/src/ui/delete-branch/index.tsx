@@ -14,11 +14,18 @@ export default class DeleteBranch extends React.Component<IDeleteBranchProps, vo
   public render() {
     return (
       <form className='panel' onSubmit={event => this.cancel(event)}>
-        <div>Delete branch "{this.props.branch.name}"?</div>
-        <div>This cannot be undone.</div>
+        <div className='popup-content'>
+          <div className='popup-title'>
+            Delete branch "{this.props.branch.name}"?
+          </div>
 
-        <button type='submit'>Cancel</button>
-        <button onClick={() => this.deleteBranch()}>Delete</button>
+          <div>This cannot be undone.</div>
+        </div>
+
+        <div className='popup-actions'>
+          <button className='btn-danger' onClick={() => this.deleteBranch()}>Delete</button>
+          <button type='submit'>Cancel</button>
+        </div>
       </form>
     )
   }
