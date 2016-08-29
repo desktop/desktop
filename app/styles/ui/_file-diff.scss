@@ -6,45 +6,87 @@
 }
 
 .diff-text {
-  font-family: monospace;
+  font-family: var(--font-family-monospace);
+  font-size: 11px;
   text-overflow: ellipsis;
   text-align: left;
   text-orientation: upright;
   font-kerning: initial;
   word-wrap: break-word;
   word-break: break-all;
+  white-space: pre;
+
+  .before {
+    border-right: 1px solid var(--diff-border-color);
+  }
+
+  .after {
+    border-right: 3px solid var(--diff-border-color);
+  }
+
+  .before, .after, .diff-content-text {
+    padding: var(--spacing-third) var(--spacing-half);
+  }
+
+  .Grid__innerScrollContainer {
+    // We use a box shadow instead of a border so that it doesn't
+    // 'double' up if the vertical content is scrollable
+    box-shadow: 0 1px 0 var(--diff-border-color);
+  }
 }
 
-.diff-text .before, .diff-text .after  {
-  color: #CCC;
-  width: 50px;
-  text-align: center;
+.diff-line-content,
+.diff-line-column {
+  display: flex;
+  height: 100%;
 }
 
+.diff-text .before,
 .diff-text .after  {
-  margin-left: 50px;
+  color: var(--diff-line-number-color);
+  flex: 1;
+  width: var(--diff-line-number-column-width);
+  text-align: right;
 }
 
 .diff-add {
-  background: #EAFFEA;
-}
+  background: var(--diff-add-background-color);
 
-.diff-add-selected {
-  background: #5A93E0;
-}
-
-.diff-add-hover {
-  background: #116CD6;
+  .diff-line-number {
+    border-color: var(--diff-add-border-color);
+  }
 }
 
 .diff-delete {
-  background: #FFECEC;
+  background: var(--diff-delete-background-color);
+
+  .diff-line-number {
+    border-color: var(--diff-delete-border-color);
+  }
 }
 
+.diff-hunk {
+  background: var(--diff-hunk-background-color);
+
+  .diff-line-number {
+    border-color: var(--diff-hunk-border-color);
+  }
+}
+
+.diff-add-selected,
 .diff-delete-selected {
-  background: #5A93E0;
+  .diff-line-number {
+    background: var(--diff-selected-background-color);
+    border-color: var(--diff-selected-border-color);
+    color: var(--diff-selected-text-color);
+  }
 }
 
+.diff-add-hover,
 .diff-delete-hover {
-  background: #116CD6;
+  .diff-line-number {
+    background: var(--diff-hover-background-color);
+    border-color: var(--diff-hover-border-color);
+    color: var(--background-color);
+  }
 }

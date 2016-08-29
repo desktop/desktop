@@ -175,27 +175,31 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private editableSidebar(diff: DiffLine, rowIndex: number) {
-    const baseClassName = this.getClassName(diff.type)
-    const className = diff.selected ? baseClassName + '-selected' : baseClassName
+    const baseClassName = 'diff-line-column'
+    const typeClassName = this.getClassName(diff.type)
+    const unselectedClassName = `${baseClassName} ${typeClassName}`
+    const selectedClassName = `${unselectedClassName} ${typeClassName}-selected`
+
+    const className = diff.selected ? selectedClassName : unselectedClassName
 
     // TODO: depending on cursor position, highlight hunk rather than line
 
     return (
       <div className={className}
-           onMouseEnter={event => this.onMouseEnterHandler(event.currentTarget, baseClassName)}
-           onMouseLeave={event => this.onMouseLeaveHandler(event.currentTarget, baseClassName)}
+           onMouseEnter={event => this.onMouseEnterHandler(event.currentTarget, typeClassName)}
+           onMouseLeave={event => this.onMouseLeaveHandler(event.currentTarget, typeClassName)}
            onMouseDown={event => this.onMouseDownHandler(diff, rowIndex)}>
-        <div className='before'>{this.formatIfNotSet(diff.oldLineNumber)}</div>
-        <div className='after'>{this.formatIfNotSet(diff.newLineNumber)}</div>
+        <div className='diff-line-number before'>{this.formatIfNotSet(diff.oldLineNumber)}</div>
+        <div className='diff-line-number after'>{this.formatIfNotSet(diff.newLineNumber)}</div>
       </div>
     )
   }
 
   private readOnlySidebar(diff: DiffLine) {
     return (
-      <div className={this.getClassName(diff.type)}>
-        <span className='before'>{this.formatIfNotSet(diff.oldLineNumber)}</span>
-        <span className='after'>{this.formatIfNotSet(diff.newLineNumber)}</span>
+      <div className={`diff-line-column ${this.getClassName(diff.type)}`}>
+        <span className='diff-line-number before'>{this.formatIfNotSet(diff.oldLineNumber)}</span>
+        <span className='diff-line-number after'>{this.formatIfNotSet(diff.newLineNumber)}</span>
       </div>
     )
   }
@@ -221,9 +225,11 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       return null
     }
 
+    const diffLineClassName = `diff-line-content ${this.getClassName(diffLine.type)}`
+
     return (
-      <div className={this.getClassName(diffLine.type)}>
-        <span className='text'>{diffLine.text}</span>
+      <div className={diffLineClassName}>
+        <span className='diff-content-text'>{diffLine.text}</span>
       </div>
     )
   }
