@@ -17,15 +17,15 @@
   white-space: pre;
 
   .before {
-    border-right: 1px solid #e5e5e5;
+    border-right: 1px solid var(--diff-border-color);
   }
 
   .after {
-    border-right: 4px solid #e5e5e5;
+    border-right: 3px solid var(--diff-border-color);
   }
 
   .before, .after, .text {
-    padding: 3px 6px;
+    padding: var(--spacing-third) var(--spacing-half);
   }
 }
 
@@ -37,52 +37,50 @@
 
 .diff-text .before,
 .diff-text .after  {
-  color: #CCC;
+  color: var(--diff-line-number-color);
   flex: 1;
-  width: 50px;
-  text-align: center;
+  width: var(--diff-line-number-column-width);
+  text-align: right;
 }
 
 .diff-add {
-  background: #EAFFEA;
-}
+  background: var(--diff-add-background-color);
 
-.diff-add {
   .diff-line-number {
-    border-color: #b3e3b2;
+    border-color: var(--diff-add-border-color);
   }
 }
 
 .diff-delete {
-  background: #FFECEC;
+  background: var(--diff-delete-background-color);
 
   .diff-line-number {
-    border-color: #eaaead;
+    border-color: var(--diff-delete-border-color);
   }
 }
 
 .diff-hunk {
-  background-color: #f8f8ff;
+  background: var(--diff-hunk-background-color);
 
   .diff-line-number {
-    border-color: #e4e4fe;
+    border-color: var(--diff-hunk-border-color);
   }
 }
 
 .diff-add-selected,
 .diff-delete-selected {
   .diff-line-number {
-    background: #5A93E0;
-    border-color: #4f86d5;
-    color: white;
+    background: var(--diff-selected-background-color);
+    border-color: var(--diff-selected-border-color);
+    color: var(--diff-selected-text-color);
   }
 }
 
 .diff-add-hover,
 .diff-delete-hover {
   .diff-line-number {
-    background: #96b8ec;
-    border-color: #89a9dc;
-    color: white;
+    background: var(--diff-hover-background-color);
+    border-color: var(--diff-hover-border-color);
+    color: var(--background-color);
   }
 }

@@ -128,4 +128,32 @@
 
   --tab-bar-active-color: #3D76C2;
   --tab-bar-background-color: #EDEDED;
+
+  /**
+   * Diff view
+   */
+
+  --diff-border-color: #e5e5e5;
+  --diff-line-number-color: $gray;
+  --diff-line-number-column-width: 50px;
+
+  --diff-selected-background-color: #5A93E0;
+  --diff-selected-border-color: #4f86d5;
+  --diff-selected-text-color: var(--background-color);
+
+  --diff-add-background-color: #EAFFEA;
+  --diff-add-border-color: #b3e3b2;
+  --diff-add-text-color: $gray;
+
+  --diff-delete-background-color: #FFECEC;
+  --diff-delete-border-color: #eaaead;
+  --diff-delete-text-color: $gray;
+
+  --diff-hunk-background-color: #f8f8ff;
+  --diff-hunk-border-color: #e4e4fe;
+  --diff-hunk-text-color: $gray;
+
+  --diff-hover-background-color: #96b8ec;
+  --diff-hover-border-color: #89a9dc;
+  --diff-hover-text-color: var(--background-color);
 }
