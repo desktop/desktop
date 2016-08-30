@@ -26,6 +26,11 @@ import API from './api'
    readonly avatarUrl: string
  }
 
+interface IGraphQLResponse<T> {
+  readonly status: number
+  readonly value: T
+}
+
  /**
   * An object for making authenticated requests to the GitHub API
   */
@@ -47,6 +52,27 @@ export default class GraphAPI {
    *
    * @returns A promise yielding an array of {APIRepository} instances or error
    */
+
+   private async makeRequest<T>(payload: string): Promise<IGraphQLResponse<T>> {
+     const headers = new Headers()
+     headers.append('Authorization', `Bearer ${this.token}`)
+     headers.append('Content-Type', 'application/json')
+
+     const request = new Request(this.rootURL, {
+       method: 'POST',
+       headers: headers,
+       body: JSON.stringify(payload)
+     })
+
+     const response = await window.fetch(request)
+
+     const status = response.status
+
+     const json = await response.json()
+     const contents = json.data as any
+
+     return { status: status, value: contents }
+   }
 
   public async fetchRepos(): Promise<ReadonlyArray<IGraphAPIRepository>> {
     const results: IGraphAPIRepository[] = []
@@ -76,30 +102,17 @@ export default class GraphAPI {
         }
       }
 
-    const headers = new Headers()
-    headers.append('Authorization', `Bearer ${this.token}`)
-    headers.append('Content-Type', 'application/json')
+    const response = await this.makeRequest<any>(JSON.stringify(payload))
 
-    const request = new Request(this.rootURL, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(payload)
-    })
-
-    const response = await window.fetch(request)
-
-    if (response.status === 404) {
-      // may not exist, or may not be open to usage here
-      // fall back to existing method
+   if (response.status === 404) {
+      console.debug(`[fetchRepository] - unable to access repository ${owner}/${name}`)
       return this.api.fetchRepository(owner, name)
     }
 
-    const json = await response.json()
-    const contents = json.data as any
+    const contents = response.value
 
     if (contents.repositoryOwner === null) {
-      // may not exist, or may not be open to usage here
-      // fall back to existing method
+      console.debug(`[fetchRepository] - no repository owner found for ${owner}/${name}`)
       return this.api.fetchRepository(owner, name)
     }
 
