@@ -33,10 +33,6 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
     }
   }
 
-  public componentDidMount() {
-    this.props.dispatcher.loadBranches(this.props.repository)
-  }
-
   private renderError() {
     const error = this.state.currentError
     if (error) {

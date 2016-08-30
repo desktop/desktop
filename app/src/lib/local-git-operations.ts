@@ -418,7 +418,9 @@ export class LocalGitOperations {
   public static async getCurrentBranch(repository: Repository): Promise<Branch | null> {
     try {
       const untrimmedName = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path)
-      const name = untrimmedName.trim()
+      let name = untrimmedName.trim()
+      // New branches have a `heads/` prefix.
+      name = name.replace(/^heads\//, '')
 
       const format = [
         '%(upstream:short)',
