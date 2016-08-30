@@ -8,6 +8,7 @@ import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '
 import { DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
+import GraphAPI from '../../lib/graph-api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { CloningRepository } from './cloning-repositories-store'
 import { findIndex, find } from '../find'
@@ -701,7 +702,7 @@ export default class AppStore {
     const user = getUserForEndpoint(users, gitHubRepository.endpoint)
     if (!user) { return repository }
 
-    const api = new API(user)
+    const api = new GraphAPI(user)
     const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
     return repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
   }
