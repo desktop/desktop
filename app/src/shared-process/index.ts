@@ -88,6 +88,9 @@ register('url-action', async ({ action }: IURLAction) => {
       console.error(`Error adding user: ${e}`)
     }
     broadcastUpdate()
+    return true
+  } else {
+    return false
   }
 })
 

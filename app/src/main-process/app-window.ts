@@ -4,6 +4,7 @@ import Stats from './stats'
 import SharedProcess from '../shared-process/shared-process'
 import { WindowState, windowStateChannelName } from '../lib/window-state'
 import { buildDefaultMenu, MenuEvent } from './menu'
+import { URLActionType } from '../lib/parse-url'
 
 const windowStateKeeper = require('electron-window-state')
 
@@ -137,5 +138,10 @@ export default class AppWindow {
   /** Send the menu event to the renderer. */
   public sendMenuEvent(name: MenuEvent) {
     this.window.webContents.send('menu-event', { name })
+  }
+
+  /** Send the URL action to the renderer. */
+  public sendURLAction(action: URLActionType) {
+    this.window.webContents.send('url-action', { action })
   }
 }

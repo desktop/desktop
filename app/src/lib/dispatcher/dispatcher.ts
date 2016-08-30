@@ -7,6 +7,8 @@ import { IHistorySelection, RepositorySection, Popup, IAppError } from '../app-s
 import { Action } from './actions'
 import AppStore from './app-store'
 import GitUserStore from './git-user-store'
+import { CloningRepositoriesStore, CloningRepository } from './cloning-repositories-store'
+import { URLActionType } from '../parse-url'
 import { Branch } from '../local-git-operations'
 import { IAPIUser } from '../../lib/api'
 
@@ -45,10 +47,12 @@ type IPCResponse<T> = IResult<T> | IError
 export class Dispatcher {
   private appStore: AppStore
   private gitUserStore: GitUserStore
+  private cloningRepositoriesStore: CloningRepositoriesStore
 
-  public constructor(appStore: AppStore, gitUserStore: GitUserStore) {
+  public constructor(appStore: AppStore, gitUserStore: GitUserStore, cloningRepositoriesStore: CloningRepositoriesStore) {
     this.appStore = appStore
     this.gitUserStore = gitUserStore
+    this.cloningRepositoriesStore = cloningRepositoriesStore
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
@@ -136,7 +140,14 @@ export class Dispatcher {
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
-  public async removeRepositories(repositoryIDs: ReadonlyArray<number>): Promise<void> {
+  public async removeRepositories(repositories: ReadonlyArray<Repository | CloningRepository>): Promise<void> {
+    const localRepositories = repositories.filter(r => r instanceof Repository) as ReadonlyArray<Repository>
+    const cloningRepositories = repositories.filter(r => r instanceof CloningRepository) as ReadonlyArray<CloningRepository>
+    cloningRepositories.forEach(r => {
+      this.cloningRepositoriesStore.remove(r)
+    })
+
+    const repositoryIDs = localRepositories.map(r => r.id)
     await this.dispatchToSharedProcess<ReadonlyArray<number>>({ name: 'remove-repositories', repositoryIDs })
   }
 
@@ -174,7 +185,7 @@ export class Dispatcher {
   }
 
   /** Select the repository. */
-  public selectRepository(repository: Repository): Promise<void> {
+  public selectRepository(repository: Repository | CloningRepository): Promise<void> {
     return this.appStore._selectRepository(repository)
   }
 
@@ -272,6 +283,21 @@ export class Dispatcher {
   /** Clear the given error. */
   public clearError(error: IAppError): Promise<void> {
     return this.appStore._clearError(error)
+  }
+
+  /** Handle the URL action. Returns whether the shared process handled it. */
+  public handleURLAction(action: URLActionType): Promise<boolean> {
+    return this.dispatchToSharedProcess<boolean>({ name: 'url-action', action })
+  }
+
+  /** Clone the repository to the path. */
+  public async clone(url: string, path: string): Promise<void> {
+    const cloningRepository = await this.cloningRepositoriesStore.clone(url, path)
+    await this.selectRepository(cloningRepository)
+    await this.cloningRepositoriesStore.getPromise(cloningRepository)
+
+    const addedRepositories = await this.addRepositories([ path ])
+    await this.selectRepository(addedRepositories[0])
   }
 
   /** Rename the branch to a new name. */

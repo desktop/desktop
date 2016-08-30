@@ -558,6 +558,15 @@ export class LocalGitOperations {
     return GitProcess.exec([ 'init' ], path)
   }
 
+  /** Clone the repository to the path. */
+  public static clone(url: string, path: string, progress: (progress: string) => void): Promise<void> {
+    return GitProcess.exec([ 'clone', '--progress', '--', url, path ], __dirname, undefined, process => {
+      process.stderr.on('data', (chunk: string) => {
+        progress(chunk)
+      })
+    })
+  }
+
   /** Rename the given branch to a new name. */
   public static renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
     return GitProcess.exec([ 'branch', '-m', branch.nameWithoutRemote, newName ], repository.path)

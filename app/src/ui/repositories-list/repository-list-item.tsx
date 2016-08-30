@@ -2,10 +2,10 @@ import * as React from 'react'
 import Repository from '../../models/repository'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { remote } from 'electron'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
 
 interface IRepositoryListItemProps {
-  repository: Repository
+  readonly repository: Repository | CloningRepository
   readonly dispatcher: Dispatcher
 }
 
@@ -24,7 +24,7 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
   public render() {
     const repository = this.props.repository
     const path = repository.path
-    const gitHubRepo = repository.gitHubRepository
+    const gitHubRepo = repository instanceof Repository ? repository.gitHubRepository : null
     const tooltip = gitHubRepo
       ? gitHubRepo.fullName + '\n' + gitHubRepo.htmlURL + '\n' + path
       : path
@@ -38,7 +38,11 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
   }
 
   public shouldComponentUpdate(nextProps: IRepositoryListItemProps, nextState: void): boolean {
-    return nextProps.repository.id !== this.props.repository.id
+    if (nextProps.repository instanceof Repository && this.props.repository instanceof Repository) {
+      return nextProps.repository.id !== this.props.repository.id
+    } else {
+      return true
+    }
   }
 
   private onContextMenu(event: React.MouseEvent<any>) {
@@ -49,13 +53,12 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
   }
 
   private removeRepository() {
-    const repoID: number = this.props.repository.id
-    this.props.dispatcher.removeRepositories([ repoID ])
+    this.props.dispatcher.removeRepositories([ this.props.repository ])
   }
 }
 
-function iconForRepository(repository: Repository): OcticonSymbol {
-  const gitHubRepo = repository.gitHubRepository
+function iconForRepository(repository: Repository | CloningRepository): OcticonSymbol {
+  const gitHubRepo = repository instanceof Repository ? repository.gitHubRepository : null
   if (!gitHubRepo) { return OcticonSymbol.repo }
 
   if (gitHubRepo.private) { return OcticonSymbol.lock }

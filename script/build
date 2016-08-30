@@ -53,7 +53,8 @@ const options = {
     {
       name: 'GitHub Auth',
       schemes: [
-        'x-github-client'
+        'x-github-client',
+        'github-mac'
       ]
     }
   ],

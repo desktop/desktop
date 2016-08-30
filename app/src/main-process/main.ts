@@ -15,9 +15,10 @@ let sharedProcess: SharedProcess | null = null
 
 app.on('will-finish-launching', () => {
   app.on('open-url', (event, url) => {
-    const action = parseURL(url)
-    sharedProcess!.sendURLAction(action)
     event.preventDefault()
+
+    const action = parseURL(url)
+    getMainWindow().sendURLAction(action)
   })
 })
 
@@ -41,7 +42,7 @@ if (process.platform !== 'darwin') {
     // callback contents and code for us to complete the signin flow
     if (commandLine.length > 1) {
       const action = parseURL(commandLine[1])
-      sharedProcess!.sendURLAction(action)
+      getMainWindow().sendURLAction(action)
     }
   })
 
@@ -54,6 +55,12 @@ app.on('ready', () => {
   stats.readyTime = Date.now()
 
   app.setAsDefaultProtocolClient('x-github-client')
+  // Also support Desktop Classic's protocols.
+  if (process.platform === 'darwin') {
+    app.setAsDefaultProtocolClient('github-mac')
+  } else if (process.platform === 'win32') {
+    app.setAsDefaultProtocolClient('github-windows')
+  }
 
   sharedProcess = new SharedProcess()
   sharedProcess.register()
@@ -126,4 +133,13 @@ function createWindow() {
   window.load()
 
   mainWindow = window
+}
+
+/** Get the main window, creating it if necessary. */
+function getMainWindow(): AppWindow {
+  if (!mainWindow) {
+    createWindow()
+  }
+
+  return mainWindow!
 }
