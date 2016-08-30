@@ -33,10 +33,6 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
     this.state = { filter: '', selectedRow: -1 }
   }
 
-  public componentDidMount() {
-    this.props.dispatcher.loadBranches(this.props.repository)
-  }
-
   private renderRow(branchItems: ReadonlyArray<BranchListItem>, row: number) {
     const item = branchItems[row]
     if (item.kind === 'branch') {

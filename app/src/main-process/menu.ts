@@ -6,6 +6,8 @@ export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
                         'show-branches' | 'remove-repository' | 'add-repository' |
                         'rename-branch' | 'delete-branch'
 
+export type MenuIDs = 'rename-branch' | 'delete-branch'
+
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Object[] = [
     {
@@ -153,12 +155,14 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       submenu: [
         {
           label: 'Rename…',
+          id: 'rename-branch',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('rename-branch')
           }
         },
         {
           label: 'Delete…',
+          id: 'delete-branch',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('delete-branch')
           }
@@ -241,4 +245,24 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
 
 function emitMenuEvent(name: MenuEvent) {
   ipcMain.emit('menu-event', { name })
+}
+
+/** Find the menu item with the given ID. */
+export function findMenuItemByID(menu: Electron.Menu, id: string): Electron.MenuItem | null {
+  const items = menu.items
+  for (const item of items) {
+    // The electron type definition doesn't include the `id` field :(
+    if ((item as any).id === id) {
+      return item
+    }
+
+    // We're assuming we're working with an already created menu.
+    const submenu = item.submenu as Electron.Menu
+    if (submenu) {
+      const found = findMenuItemByID(submenu, id)
+      if (found) { return found }
+    }
+  }
+
+  return null
 }

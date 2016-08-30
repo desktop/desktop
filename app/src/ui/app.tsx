@@ -19,6 +19,7 @@ import RenameBranch from './rename-branch'
 import DeleteBranch from './delete-branch'
 import PublishRepository from './publish-repository'
 import { default as CloningRepositoryView } from './cloning-repository'
+import { showPopupAppMenu, setMenuEnabled } from './main-process-proxy'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -56,6 +57,26 @@ export default class App extends React.Component<IAppProps, IAppState> {
       })
 
       this.setState(state)
+
+      const repositoryState = state.repositoryState
+      let haveBranch = false
+      if (repositoryState) {
+        const currentBranch = repositoryState.branchesState.currentBranch
+        const defaultBranch = repositoryState.branchesState.defaultBranch
+        // If we are:
+        //  1. on the default branch, or
+        //  2. on an unborn branch, or
+        //  3. on a detached HEAD
+        // there's not much we can do.
+        if (!currentBranch || !defaultBranch || currentBranch.name === defaultBranch.name) {
+          haveBranch = false
+        } else {
+          haveBranch = true
+        }
+      }
+
+      setMenuEnabled('rename-branch', haveBranch)
+      setMenuEnabled('delete-branch', haveBranch)
     })
 
     props.cloningRepositoriesStore.onDidUpdate(() => {
@@ -207,7 +228,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
   private onContextMenu(e: React.MouseEvent<any>) {
     if (process.platform === 'win32') {
       e.preventDefault()
-      ipcRenderer.send('show-popup-app-menu', null)
+      showPopupAppMenu()
     }
   }
 

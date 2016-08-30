@@ -2,10 +2,11 @@ import { app, Menu, autoUpdater, ipcMain } from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
-import { buildDefaultMenu, MenuEvent } from './menu'
+import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import parseURL from '../lib/parse-url'
 import { handleSquirrelEvent, getFeedURL } from './updates'
 import SharedProcess from '../shared-process/shared-process'
+import fatalError from '../lib/fatal-error'
 
 const stats = new Stats()
 
@@ -66,7 +67,8 @@ app.on('ready', () => {
 
   createWindow()
 
-  Menu.setApplicationMenu(buildDefaultMenu(sharedProcess))
+  const menu = buildDefaultMenu(sharedProcess)
+  Menu.setApplicationMenu(menu)
 
   autoUpdater.on('error', error => {
     sharedProcess!.console.error(`${error}`)
@@ -99,6 +101,15 @@ app.on('ready', () => {
     const { name }: { name: MenuEvent } = event as any
     if (mainWindow) {
       mainWindow.sendMenuEvent(name)
+    }
+  })
+
+  ipcMain.on('set-menu-enabled', (event: Electron.IpcMainEvent, [ { id, enabled } ]: [ { id: string, enabled: boolean } ]) => {
+    const menuItem = findMenuItemByID(menu, id)
+    if (menuItem) {
+      menuItem.enabled = enabled
+    } else {
+      fatalError(`Unknown menu id: ${id}`)
     }
   })
 })
