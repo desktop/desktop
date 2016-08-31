@@ -65,7 +65,7 @@ function openRepository(url: string) {
   if (existingRepository) {
     return dispatcher.selectRepository(existingRepository)
   } else {
-    const defaultName = Path.basename(Url.parse(url)!.path!)
+    const defaultName = Path.basename(Url.parse(url)!.path!, '.git')
     const path: string | null = remote.dialog.showSaveDialog({
       buttonLabel: 'Clone',
       defaultPath: Path.join(getDefaultDir(), defaultName),
