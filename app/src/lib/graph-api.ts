@@ -81,19 +81,22 @@ export default class GraphAPI {
 
   public async fetchRepository(owner: string, name: string): Promise<IGraphAPIRepository> {
     const query = `
-      query ($owner: String!, $name: String!) {
-        repositoryOwner(login: $owner) {
-          repository(name: $name) {
-            id
-            name
-            owner {
-              login
-            }
-            isFork
-            isPrivate
+    query ($owner: String!, $name: String!) {
+      repositoryOwner(login: $owner) {
+        repository(name: $name) {
+          id
+          name
+          owner {
+            login
+          }
+          isFork
+          isPrivate
+          stars(first: 1) {
+            totalCount
           }
         }
-      }`
+      }
+    }`
     const payload = { operationName: null,
       query: query,
       variables: {
@@ -104,13 +107,12 @@ export default class GraphAPI {
 
     const response = await this.makeRequest<any>(JSON.stringify(payload))
 
-   if (response.status === 404) {
+    if (response.status === 404) {
       console.debug(`[fetchRepository] - unable to access repository ${owner}/${name}`)
       return this.api.fetchRepository(owner, name)
     }
 
     const contents = response.value
-
     if (contents.repositoryOwner === null) {
       console.debug(`[fetchRepository] - no repository owner found for ${owner}/${name}`)
       return this.api.fetchRepository(owner, name)
@@ -131,7 +133,7 @@ export default class GraphAPI {
       },
       private: repository.isPrivate,
       fork: repository.isFork,
-      stargazersCount: -1,
+      stargazersCount: repository.stars.totalCount,
       defaultBranch: repository.defaultBranch
     }
   }
