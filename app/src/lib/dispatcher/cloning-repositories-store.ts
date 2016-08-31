@@ -76,7 +76,7 @@ export class CloningRepositoriesStore {
 
   /** Get the repositories currently being cloned. */
   public get repositories(): ReadonlyArray<CloningRepository> {
-    return Array.from(this.repositories)
+    return Array.from(this.repositoriesByURL.values())
   }
 
   /** Remove the repository. */
