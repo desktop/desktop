@@ -11,6 +11,7 @@ import { CloningRepositoriesStore, CloningRepository } from './cloning-repositor
 import { URLActionType } from '../parse-url'
 import { Branch } from '../local-git-operations'
 import { IAPIUser } from '../../lib/api'
+import { find } from '../find'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -293,7 +294,7 @@ export class Dispatcher {
   /** Clone the repository to the path. */
   public async clone(url: string, path: string): Promise<void> {
     const promise = this.cloningRepositoriesStore.clone(url, path)
-    const cloningRepository = this.cloningRepositoriesStore.repositories.find(r => r.url === url && r.path === path)!
+    const cloningRepository = find(this.cloningRepositoriesStore.repositories, r => r.url === url && r.path === path)!
     await this.selectRepository(cloningRepository)
     await promise
 
