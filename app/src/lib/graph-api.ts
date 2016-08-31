@@ -219,49 +219,104 @@ export default class GraphAPI {
   /** Search for a user with the given public email. */
   public async searchForUserWithEmail(email: string): Promise<IGraphAPIUser | null> {
 
-        return this.api.searchForUserWithEmail(email)
+    const query = `
+    query ($email: String!) {
+      search(first: 1, type: USER, query: $email) {
+       edges {
+         node {
+           // TODO: seems incomplete
+          }
+        }
+      }
+    }`
+    const payload = { operationName: null,
+      query: query,
+      variables: {
+        'email': email
+        }
+      }
 
-//        const query = `
-//        query ($email: String!) {
-//          search(first: 1, type: USER, query: $email) {
-//           edges {
-//            	node {
-//               // TODO: seems incomplete
-//              }
-//        	  }
-//          }
-//        }`
-//        const payload = { operationName: null,
-//          query: query,
-//          variables: {
-//            'email': email
-//            }
-//          }
+    const response = await this.makeRequest<any>(payload)
 
-//        const response = await this.makeRequest<any>(payload)
+    if (response.status === 404) {
+      console.debug(`[searchForUserWithEmail] - unable to find match for ${email}`)
+      return this.api.searchForUserWithEmail(email)
+    }
 
-//        if (response.status === 404) {
-//          console.debug(`[searchForUserWithEmail] - unable to find match for ${email}`)
-//          return this.api.searchForUserWithEmail(email)
-//        }
+    // TODO: need to handle the pagination-esque payload here
 
-//        const contents = response.value
-//        if (contents.repositoryOwner === null) {
-//          console.debug(`[searchForUserWithEmail] - unable to find match for ${email}`)
-//          return this.api.searchForUserWithEmail(email)
-//        }
+    const contents = response.value
+    if (contents.repositoryOwner === null) {
+      console.debug(`[searchForUserWithEmail] - result doesn't exit for ${email}`)
+      return this.api.searchForUserWithEmail(email)
+    }
 
-//        const commit = contents.repositoryOwner.repository.commit
+    const commit = contents.repositoryOwner.repository.commit
 
-//        return {
-//          sha: commit.oid,
-//          author: {
-//            id: -1,
-//            url: commit.user.websiteURL,
-//            type: 'user',
-//            login: commit.user.login,
-//            avatarUrl: commit.user.avatarURL
-//          }
-//        }
+    return {
+        id: -1,
+        url: commit.user.websiteURL,
+        type: 'user',
+        login: commit.user.login,
+        avatarUrl: commit.user.avatarURL
+    }
+  }
+
+  public async fetchOrgs(): Promise<ReadonlyArray<IGraphAPIUser>> {
+
+    // TODO: handle pagination
+
+    const query = `
+    query {
+      viewer {
+        organizations(first: 30) {
+          edges {
+            cursor
+            node {
+              id
+              login
+              name
+              avatarURL
+            }
+          }
+        }
+      }
+    }`
+    const payload = {
+      query: query,
+      variables: ''
+    }
+
+    const response = await this.makeRequest<any>(payload)
+
+    if (response.status === 404) {
+      console.debug(`[fetchOrgs] - unable to fetch orgs for current user`)
+      return this.api.fetchOrgs()
+    }
+
+    const contents = response.value
+    if (contents.viewer === null) {
+      console.debug(`[fetchOrgs] - user does not exist`)
+      return this.api.fetchOrgs()
+    }
+
+    const organizations = contents.viewer.organizations.edges
+
+    const results: IGraphAPIUser[] = []
+
+    for (let i = 0; i < organizations.length; i++) {
+
+      const organization = organizations[i]
+
+      results.push({
+        id: -1, // no numeric identifier currently available
+        url: organization.node.websiteURL, // undefined
+        type: 'org',
+        login: organization.node.login,
+        avatarUrl: organization.node.avatarURL
+      })
+    }
+
+    return results
   }
 }
