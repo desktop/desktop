@@ -26,6 +26,28 @@ import API from './api'
    readonly avatarUrl: string
  }
 
+ /**
+  * Information about a commit as returned by the GitHub API.
+  */
+ export interface IGraphAPICommit {
+   readonly sha: string
+   readonly author: IGraphAPIUser
+ }
+
+ /**
+  * Information about a user as returned by the GitHub API.
+  */
+ export interface IGraphAPIUser {
+   readonly id: number
+   readonly url: string
+   readonly type: 'user' | 'org'
+   readonly login: string
+   readonly avatarUrl: string
+ }
+
+/**
+ * A wrapper for the response from the GraphQL endpoint
+ */
 interface IGraphQLResponse<T> {
   readonly status: number
   readonly value: T
@@ -135,6 +157,62 @@ export default class GraphAPI {
       fork: repository.isFork,
       stargazersCount: repository.stars.totalCount,
       defaultBranch: repository.defaultBranch
+    }
+  }
+
+  public async fetchCommit(owner: string, name: string, sha: string): Promise<IGraphAPICommit | null> {
+
+    const query = `
+    query ($owner: String!, $name: String!, $sha: GitObjectID!) {
+      repositoryOwner(login: $owner) {
+        repository(name: $name) {
+          commit(oid: $sha) {
+            oid
+            author {
+              user {
+                id
+                websiteURL
+                login
+                avatarURL
+              }
+            }
+          }
+        }
+      }
+    }`
+    const payload = { operationName: null,
+      query: query,
+      variables: {
+        'owner': owner,
+        'name': name,
+        'sha': sha
+        }
+      }
+
+    const response = await this.makeRequest<any>(JSON.stringify(payload))
+
+    if (response.status === 404) {
+      console.debug(`[fetchCommit] - unable to access commit ${owner}/${name}@${sha}`)
+      return this.api.fetchCommit(owner, name, sha)
+    }
+
+    const contents = response.value
+    if (contents.repositoryOwner === null) {
+      console.debug(`[fetchCommit] - no commit found for ${owner}/${name}@${sha}`)
+      return this.api.fetchCommit(owner, name, sha)
+    }
+
+    const commit = contents.repositoryOwner.repository.commit
+
+    return {
+      sha: commit.oid,
+      author: {
+        id: -1,
+        url: commit.user.websiteURL,
+        type: 'user',
+        login: commit.user.login,
+        avatarUrl: commit.user.avatarURL
+      }
     }
   }
 }
