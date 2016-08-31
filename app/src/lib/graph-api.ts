@@ -109,10 +109,7 @@ export default class GraphAPI {
           id
           name
           owner {
-            id
-            websiteURL
             login
-            avatarURL
           }
           isFork
           isPrivate
@@ -150,11 +147,11 @@ export default class GraphAPI {
       htmlUrl: '',
       name: repository.name,
       owner: {
-        id: repository.owner.id,
-        url: repository.owner.websiteURL,
+        id: '',
+        url: '',
         type: 'user',
         login: repository.owner.login,
-        avatarUrl: repository.owner.avatarURL
+        avatarUrl: ''
       },
       private: repository.isPrivate,
       fork: repository.isFork,
