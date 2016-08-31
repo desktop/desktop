@@ -2,15 +2,19 @@ import User from '../models/user'
 import Repository from '../models/repository'
 import { Commit, Branch } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
-import { CloningRepository } from './dispatcher'
+import { CloningRepository, ICloningRepositoryState } from './dispatcher'
+
+export { ICloningRepositoryState } from './dispatcher'
+
+export type PossibleSelections = { kind: 'repository', repository: Repository, state: IRepositoryState } |
+                                 { kind: 'cloning-repository', repository: CloningRepository, state: ICloningRepositoryState }
 
 /** All of the shared app state. */
 export interface IAppState {
   readonly users: ReadonlyArray<User>
-  readonly repositories: ReadonlyArray<Repository>
+  readonly repositories: ReadonlyArray<Repository | CloningRepository>
 
-  readonly selectedRepository: Repository | CloningRepository | null
-  readonly repositoryState: IRepositoryState | null
+  readonly selectedState: PossibleSelections | null
 
   readonly loading: boolean
   readonly currentPopup: Popup | null

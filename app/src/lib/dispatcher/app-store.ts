@@ -1,6 +1,17 @@
 import { Emitter, Disposable } from 'event-kit'
 import * as Path from 'path'
-import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup, IBranchesState, IAppError } from '../app-state'
+import {
+  IRepositoryState,
+  IHistoryState,
+  IHistorySelection,
+  IAppState,
+  RepositorySection,
+  IChangesState,
+  Popup,
+  IBranchesState,
+  IAppError,
+  PossibleSelections,
+} from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import GitHubRepository from '../../models/github-repository'
@@ -9,7 +20,7 @@ import { DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
-import { CloningRepository } from './cloning-repositories-store'
+import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { findIndex, find } from '../find'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -35,6 +46,14 @@ export default class AppStore {
   private errors: ReadonlyArray<IAppError> = new Array<IAppError>()
 
   private emitQueued = false
+
+  private readonly cloningRepositoriesStore = new CloningRepositoriesStore()
+
+  public constructor() {
+    this.cloningRepositoriesStore.onDidUpdate(() => {
+      this.emitUpdate()
+    })
+  }
 
   private emitUpdate() {
     if (this.emitQueued) { return }
@@ -132,19 +151,36 @@ export default class AppStore {
     })
   }
 
-  private getCurrentRepositoryState(): IRepositoryState | null {
+  private getSelectedState(): PossibleSelections | null {
     const repository = this.selectedRepository
-    if (!repository || !(repository instanceof Repository)) { return null }
+    if (!repository) { return null }
 
-    return this.getRepositoryState(repository)
+    if (repository instanceof Repository) {
+      return {
+        kind: 'repository',
+        repository,
+        state: this.getRepositoryState(repository),
+      }
+    } else {
+      const cloningState = this.cloningRepositoriesStore.getRepositoryState(repository)
+      if (!cloningState) { return null }
+
+      return {
+        kind: 'cloning-repository',
+        repository,
+        state: cloningState,
+      }
+    }
   }
 
   public getState(): IAppState {
     return {
       users: this.users,
-      repositories: this.repositories,
-      repositoryState: this.getCurrentRepositoryState(),
-      selectedRepository: this.selectedRepository,
+      repositories: [
+        ...this.repositories,
+        ...this.cloningRepositoriesStore.repositories,
+      ],
+      selectedState: this.getSelectedState(),
       currentPopup: this.currentPopup,
       errors: this.errors,
       loading: this.loading,

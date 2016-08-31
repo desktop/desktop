@@ -4,48 +4,39 @@ import { Emitter, Disposable } from 'event-kit'
 
 import { LocalGitOperations } from '../local-git-operations'
 
-let CloningRepositoryID = 0
+let CloningRepositoryID = 1
 
 /** A repository which is currently being cloned. */
 export class CloningRepository {
-  public readonly id: number
+  public readonly id = CloningRepositoryID++
   public readonly path: string
   public readonly url: string
-  public readonly progress: string
 
-  public constructor(path: string, url: string, progress?: string, id?: number) {
-    this.id = id || CloningRepositoryID++
+  public constructor(path: string, url: string) {
     this.path = path
     this.url = url
-    this.progress = progress || ''
   }
 
   public get name(): string {
     return Path.basename(this.path)
   }
+}
 
-  public withProgress(progress: string): CloningRepository {
-    return new CloningRepository(this.path, this.url, progress, this.id)
-  }
+/** The cloning progress of a repository. */
+export interface ICloningRepositoryState {
+  /** The raw progress output from the clone task. */
+  readonly output: string
 }
 
 /** The store in charge of repository currently being cloned. */
 export class CloningRepositoriesStore {
   private readonly emitter = new Emitter()
 
-  private readonly repositoriesByURL = new Map<number, CloningRepository>()
-
-  private emitQueued = false
+  private readonly _repositories = new Array<CloningRepository>()
+  private readonly stateByID = new Map<number, ICloningRepositoryState>()
 
   private emitUpdate() {
-    if (this.emitQueued) { return }
-
-    this.emitQueued = true
-
-    window.requestAnimationFrame(() => {
-      this.emitter.emit('did-update', {})
-      this.emitQueued = false
-    })
+    this.emitter.emit('did-update', {})
   }
 
   /** Register a function to be called when the store updates. */
@@ -56,13 +47,12 @@ export class CloningRepositoriesStore {
   /** Clone the repository at the URL to the path. */
   public clone(url: string, path: string): Promise<void> {
     const repository = new CloningRepository(path, url)
-    this.repositoriesByURL.set(repository.id, repository)
+    this._repositories.push(repository)
+    this.stateByID.set(repository.id, { output: '' })
 
     const promise = LocalGitOperations
       .clone(url, path, progress => {
-        const existing = this.repositoriesByURL.get(repository.id)!
-        const newRepo = existing.withProgress(progress)
-        this.repositoriesByURL.set(repository.id, newRepo)
+        this.stateByID.set(repository.id, { output: progress })
         this.emitUpdate()
       })
       .then(() => {
@@ -76,12 +66,23 @@ export class CloningRepositoriesStore {
 
   /** Get the repositories currently being cloned. */
   public get repositories(): ReadonlyArray<CloningRepository> {
-    return Array.from(this.repositoriesByURL.values())
+    return Array.from(this._repositories)
+  }
+
+  /** Get the state of the repository. */
+  public getRepositoryState(repository: CloningRepository): ICloningRepositoryState | null {
+    return this.stateByID.get(repository.id) || null
   }
 
   /** Remove the repository. */
   public remove(repository: CloningRepository) {
-    this.repositoriesByURL.delete(repository.id)
+    this.stateByID.delete(repository.id)
+
+    const repoIndex = this._repositories.findIndex(r => r.id === repository.id)
+    if (repoIndex > -1) {
+      this._repositories.splice(repoIndex, 1)
+    }
+
     this.emitUpdate()
   }
 }

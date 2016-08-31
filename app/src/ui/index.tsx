@@ -39,10 +39,10 @@ updateFullScreenBodyInfo(getWindowState(remote.getCurrentWindow()))
 ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(args as WindowState))
 
 ipcRenderer.on('focus', () => {
-  const repository = appStore.getState().selectedRepository
-  if (!repository || !(repository instanceof Repository)) { return }
+  const state = appStore.getState().selectedState
+  if (!state || state.kind === 'cloning-repository') { return }
 
-  dispatcher.refreshRepository(repository)
+  dispatcher.refreshRepository(state.repository)
 })
 
 ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
@@ -57,9 +57,13 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
 function openRepository(url: string) {
   const repositories = appStore.getState().repositories
   const existingRepository = find(repositories, r => {
-    const gitHubRepository = r.gitHubRepository
-    if (!gitHubRepository) { return false }
-    return gitHubRepository.htmlURL === url
+    if (r instanceof Repository) {
+      const gitHubRepository = r.gitHubRepository
+      if (!gitHubRepository) { return false }
+      return gitHubRepository.htmlURL === url
+    } else {
+      return false
+    }
   })
 
   if (existingRepository) {
@@ -77,6 +81,6 @@ function openRepository(url: string) {
 }
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore} gitUserStore={gitUserStore} cloningRepositoriesStore={cloningRepositoriesStore}/>,
+  <App dispatcher={dispatcher} appStore={appStore} gitUserStore={gitUserStore}/>,
   document.getElementById('desktop-app-container')!
 )
