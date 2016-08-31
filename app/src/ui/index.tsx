@@ -10,6 +10,7 @@ import { WindowState, getWindowState } from '../lib/window-state'
 import { Dispatcher, AppStore, GitUserStore, GitUserDatabase, CloningRepositoriesStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import Repository from '../models/repository'
+import { find } from '../lib/find'
 import { getDefaultDir } from './lib/default-dir'
 
 if (!process.env.TEST_ENV) {
@@ -55,7 +56,7 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
 
 function openRepository(url: string) {
   const repositories = appStore.getState().repositories
-  const existingRepository = repositories.find(r => {
+  const existingRepository = find(repositories, r => {
     const gitHubRepository = r.gitHubRepository
     if (!gitHubRepository) { return false }
     return gitHubRepository.htmlURL === url

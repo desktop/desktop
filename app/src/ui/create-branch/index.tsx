@@ -3,6 +3,7 @@ import * as React from 'react'
 import Repository from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import sanitizedBranchName from './sanitized-branch-name'
+import { find, findIndex } from '../../lib/find'
 import { Branch } from '../../lib/local-git-operations'
 
 interface ICreateBranchProps {
@@ -85,7 +86,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
   private onBranchNameChange(event: React.FormEvent<HTMLInputElement>) {
     const str = event.target.value
     const sanitizedName = sanitizedBranchName(str)
-    const alreadyExists = this.props.branches.findIndex(b => b.name === sanitizedName) > -1
+    const alreadyExists = findIndex(this.props.branches, b => b.name === sanitizedName) > -1
     let currentError: Error | null = null
     if (alreadyExists) {
       currentError = new Error(`A branch named ${sanitizedName} already exists`)
@@ -101,7 +102,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
 
   private onBaseBranchChange(event: React.FormEvent<HTMLSelectElement>) {
     const baseBranchName = event.target.value
-    const baseBranch = this.props.branches.find(b => b.name === baseBranchName)!
+    const baseBranch = find(this.props.branches, b => b.name === baseBranchName)!
     this.setState({
       currentError: this.state.currentError,
       proposedName: this.state.proposedName,

@@ -299,7 +299,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
     if (!errors.length) { return null }
 
     const clearErrors = () => {
-      for (const error of errors) {
+      for (const error of Array.from(errors)) {
         this.props.dispatcher.clearError(error)
       }
     }

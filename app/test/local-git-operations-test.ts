@@ -11,6 +11,7 @@ import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
 import { FileStatus, FileChange, WorkingDirectoryFileChange } from '../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../src/models/diff'
 import { selectLinesInSection, mergeSelections } from './diff-selection-helper'
+import { find } from '../src/lib/find'
 
 describe('LocalGitOperations', () => {
   let repository: Repository | null = null
@@ -112,7 +113,7 @@ describe('LocalGitOperations', () => {
       expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is now tracked
-      const fileChange = status.workingDirectory.files.find(f => f.path === newFileName)
+      const fileChange = find(status.workingDirectory.files, f => f.path === newFileName)
       expect(fileChange).to.not.be.undefined
       expect(fileChange!.status).to.equal(FileStatus.Modified)
     })
@@ -156,7 +157,7 @@ describe('LocalGitOperations', () => {
       expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is still marked as modified
-      const fileChange = status.workingDirectory.files.find(f => f.path === modifiedFile)
+      const fileChange = find(status.workingDirectory.files, f => f.path === modifiedFile)
       expect(fileChange).to.not.be.undefined
       expect(fileChange!.status).to.equal(FileStatus.Modified)
     })
@@ -202,7 +203,7 @@ describe('LocalGitOperations', () => {
       expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is still marked as modified
-      const fileChange = status.workingDirectory.files.find(f => f.path === modifiedFile)
+      const fileChange = find(status.workingDirectory.files, f => f.path === modifiedFile)
       expect(fileChange).to.not.be.undefined
       expect(fileChange!.status).to.equal(FileStatus.Modified)
     })
@@ -238,7 +239,7 @@ describe('LocalGitOperations', () => {
       expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is now tracked
-      const fileChange = status.workingDirectory.files.find(f => f.path === deletedFile)
+      const fileChange = find(status.workingDirectory.files, f => f.path === deletedFile)
       expect(fileChange).to.not.be.undefined
       expect(fileChange!.status).to.equal(FileStatus.Deleted)
     })

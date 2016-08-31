@@ -33,7 +33,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
 
   public async componentWillMount() {
     const orgsByUser = new Map<User, ReadonlyArray<IAPIUser>>()
-    for (const user of this.props.users) {
+    for (const user of Array.from(this.props.users)) {
       const api = new API(user)
       const orgs = await api.fetchOrgs()
       orgsByUser.set(user, orgs)

@@ -4,6 +4,7 @@ import List from '../list'
 import RepositoryListItem from './repository-list-item'
 import Repository from '../../models/repository'
 import { groupRepositories, RepositoryListItem as RepositoryListItemModel, Repositoryish } from './group-repositories'
+import { findIndex } from '../../lib/find'
 import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
 
 interface IRepositoriesListProps {
@@ -34,7 +35,7 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
     const selectedRepository = this.props.selectedRepository
     if (!selectedRepository) { return -1 }
 
-    return groupedItems.findIndex(item => {
+    return findIndex(groupedItems, item => {
       if (item.kind === 'repository') {
         const repository = item.repository
         if (repository instanceof Repository && selectedRepository instanceof Repository) {
@@ -70,8 +71,8 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
     }
 
     const allRepositories: ReadonlyArray<Repositoryish> = [
-      ...this.props.repositories,
-      ...this.props.cloningRepositories,
+      ...Array.from(this.props.repositories),
+      ...Array.from(this.props.cloningRepositories),
     ]
     const grouped = groupRepositories(allRepositories)
     return (
