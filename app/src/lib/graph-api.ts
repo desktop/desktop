@@ -215,4 +215,53 @@ export default class GraphAPI {
       }
     }
   }
+
+  /** Search for a user with the given public email. */
+  public async searchForUserWithEmail(email: string): Promise<IGraphAPIUser | null> {
+
+        return this.api.searchForUserWithEmail(email)
+
+//        const query = `
+//        query ($email: String!) {
+//          search(first: 1, type: USER, query: $email) {
+//           edges {
+//            	node {
+//               // TODO: seems incomplete
+//              }
+//        	  }
+//          }
+//        }`
+//        const payload = { operationName: null,
+//          query: query,
+//          variables: {
+//            'email': email
+//            }
+//          }
+
+//        const response = await this.makeRequest<any>(JSON.stringify(payload))
+
+//        if (response.status === 404) {
+//          console.debug(`[searchForUserWithEmail] - unable to find match for ${email}`)
+//          return this.api.searchForUserWithEmail(email)
+//        }
+
+//        const contents = response.value
+//        if (contents.repositoryOwner === null) {
+//          console.debug(`[searchForUserWithEmail] - unable to find match for ${email}`)
+//          return this.api.searchForUserWithEmail(email)
+//        }
+
+//        const commit = contents.repositoryOwner.repository.commit
+
+//        return {
+//          sha: commit.oid,
+//          author: {
+//            id: -1,
+//            url: commit.user.websiteURL,
+//            type: 'user',
+//            login: commit.user.login,
+//            avatarUrl: commit.user.avatarURL
+//          }
+//        }
+  }
 }
