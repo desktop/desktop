@@ -344,8 +344,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
                         gitUserStore={this.props.gitUserStore}/>
       )
     } else if (selectedRepository instanceof CloningRepository) {
-      const progress = this.props.cloningRepositoriesStore.getProgress(selectedRepository)
-      return <CloningRepositoryView repository={selectedRepository} progress={progress ? progress : ''}/>
+      return <CloningRepositoryView repository={selectedRepository}/>
     } else {
       return <NoRepositorySelected/>
     }
