@@ -65,7 +65,12 @@ export class Resizable extends React.Component<IResizableProps, IResizableState>
   }
 
   private getPersistedWidth() {
-    return parseInt(localStorage.getItem(this.props.configKey), 10)
+    const storedWidth = parseInt(localStorage.getItem(this.props.configKey) || '', 10)
+    if (!storedWidth || isNaN(storedWidth)) {
+      return this.props.defaultWidth
+    }
+
+    return storedWidth
   }
 
   private setPersistedWidth(newWidth: number) {
