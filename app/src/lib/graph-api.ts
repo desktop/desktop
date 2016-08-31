@@ -75,7 +75,7 @@ export default class GraphAPI {
    * @returns A promise yielding an array of {APIRepository} instances or error
    */
 
-   private async makeRequest<T>(payload: string): Promise<IGraphQLResponse<T>> {
+   private async makeRequest<T>(payload: any): Promise<IGraphQLResponse<T>> {
      const headers = new Headers()
      headers.append('Authorization', `Bearer ${this.token}`)
      headers.append('Content-Type', 'application/json')
@@ -127,7 +127,7 @@ export default class GraphAPI {
         }
       }
 
-    const response = await this.makeRequest<any>(JSON.stringify(payload))
+    const response = await this.makeRequest<any>(payload)
 
     if (response.status === 404) {
       console.debug(`[fetchRepository] - unable to access repository ${owner}/${name}`)
@@ -189,7 +189,7 @@ export default class GraphAPI {
         }
       }
 
-    const response = await this.makeRequest<any>(JSON.stringify(payload))
+    const response = await this.makeRequest<any>(payload)
 
     if (response.status === 404) {
       console.debug(`[fetchCommit] - unable to access commit ${owner}/${name}@${sha}`)
@@ -238,7 +238,7 @@ export default class GraphAPI {
 //            }
 //          }
 
-//        const response = await this.makeRequest<any>(JSON.stringify(payload))
+//        const response = await this.makeRequest<any>(payload)
 
 //        if (response.status === 404) {
 //          console.debug(`[searchForUserWithEmail] - unable to find match for ${email}`)
