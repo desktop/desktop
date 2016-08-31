@@ -11,6 +11,7 @@ import {
   IBranchesState,
   IAppError,
   PossibleSelections,
+  PopupType,
 } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
@@ -679,7 +680,7 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _showPopup(popup: Popup, repository: Repository | null): Promise<void> {
+  public async _showPopup(popup: Popup): Promise<void> {
     this.currentPopup = popup
     this.emitUpdate()
   }
@@ -823,7 +824,10 @@ export default class AppStore {
   public async _push(repository: Repository): Promise<void> {
     const remote = await LocalGitOperations.getDefaultRemote(repository)
     if (!remote) {
-      this._showPopup(Popup.PublishRepository, repository)
+      this._showPopup({
+        type: PopupType.PublishRepository,
+        repository
+      })
       return
     }
 
@@ -865,5 +869,16 @@ export default class AppStore {
     await LocalGitOperations.addRemote(repository.path, 'origin', apiRepository.cloneUrl)
 
     return this._push(repository)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _clone(url: string, path: string): { promise: Promise<void>, repository: CloningRepository } {
+    const promise = this.cloningRepositoriesStore.clone(url, path)
+    const repository = find(this.cloningRepositoriesStore.repositories, r => r.url === url && r.path === path)!
+    return { promise, repository }
+  }
+
+  public _removeCloningRepository(repository: CloningRepository) {
+    this.cloningRepositoriesStore.remove(repository)
   }
 }

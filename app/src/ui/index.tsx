@@ -7,7 +7,7 @@ import { ipcRenderer, remote } from 'electron'
 
 import App from './app'
 import { WindowState, getWindowState } from '../lib/window-state'
-import { Dispatcher, AppStore, GitUserStore, GitUserDatabase, CloningRepositoriesStore } from '../lib/dispatcher'
+import { Dispatcher, AppStore, GitUserStore, GitUserDatabase } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import Repository from '../models/repository'
 import { find } from '../lib/find'
@@ -21,8 +21,7 @@ if (!process.env.TEST_ENV) {
 
 const appStore = new AppStore()
 const gitUserStore = new GitUserStore(new GitUserDatabase('GitUserDatabase'))
-const cloningRepositoriesStore = new CloningRepositoriesStore()
-const dispatcher = new Dispatcher(appStore, gitUserStore, cloningRepositoriesStore)
+const dispatcher = new Dispatcher(appStore, gitUserStore)
 dispatcher.loadInitialState()
 
 document.body.classList.add(`platform-${process.platform}`)

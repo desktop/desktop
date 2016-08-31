@@ -30,7 +30,7 @@ export interface IAppError {
   readonly message: string
 }
 
-export enum Popup {
+export enum PopupType {
   CreateBranch = 1,
   ShowBranches,
   AddRepository,
@@ -38,6 +38,13 @@ export enum Popup {
   PublishRepository,
   DeleteBranch,
 }
+
+export type Popup = { type: PopupType.CreateBranch, repository: Repository, branchesState: IBranchesState } |
+                    { type: PopupType.ShowBranches, repository: Repository, branchesState: IBranchesState } |
+                    { type: PopupType.AddRepository } |
+                    { type: PopupType.RenameBranch, repository: Repository, branchesState: IBranchesState } |
+                    { type: PopupType.PublishRepository, repository: Repository } |
+                    { type: PopupType.DeleteBranch, repository: Repository, branchesState: IBranchesState }
 
 export enum RepositorySection {
   Changes,

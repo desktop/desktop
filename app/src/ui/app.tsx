@@ -10,7 +10,7 @@ import { Dispatcher, AppStore, GitUserStore, CloningRepository } from '../lib/di
 import Repository from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
-import { IAppState, RepositorySection, Popup } from '../lib/app-state'
+import { IAppState, RepositorySection, PopupType } from '../lib/app-state'
 import Popuppy from './popuppy'
 import CreateBranch from './create-branch'
 import Branches from './branches'
@@ -105,32 +105,50 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const state = this.state.selectedState
     if (!state || state.kind !== 'repository') { return }
 
-    this.props.dispatcher.showPopup(Popup.RenameBranch, state.repository)
+    this.props.dispatcher.showPopup({
+      type: PopupType.RenameBranch,
+      repository: state.repository,
+      branchesState: state.state.branchesState,
+    })
   }
 
   private deleteBranch() {
     const state = this.state.selectedState
     if (!state || state.kind !== 'repository') { return }
 
-    this.props.dispatcher.showPopup(Popup.DeleteBranch, state.repository)
+    this.props.dispatcher.showPopup({
+      type: PopupType.DeleteBranch,
+      repository: state.repository,
+      branchesState: state.state.branchesState,
+    })
   }
 
   private addRepository() {
-    this.props.dispatcher.showPopup(Popup.AddRepository, null)
+    this.props.dispatcher.showPopup({
+      type: PopupType.AddRepository,
+    })
   }
 
   private createBranch() {
     const state = this.state.selectedState
     if (!state || state.kind !== 'repository') { return }
 
-    this.props.dispatcher.showPopup(Popup.CreateBranch, state.repository)
+    this.props.dispatcher.showPopup({
+      type: PopupType.CreateBranch,
+      repository: state.repository,
+      branchesState: state.state.branchesState,
+    })
   }
 
   private showBranches() {
     const state = this.state.selectedState
     if (!state || state.kind !== 'repository') { return }
 
-    this.props.dispatcher.showPopup(Popup.ShowBranches, state.repository)
+    this.props.dispatcher.showPopup({
+      type: PopupType.ShowBranches,
+      repository: state.repository,
+      branchesState: state.state.branchesState,
+    })
   }
 
   private selectChanges() {
@@ -231,52 +249,33 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const popup = this.state.currentPopup
     if (!popup) { return null }
 
-    switch (popup) {
-      case Popup.CreateBranch: {
-        const state = this.state.repositoryState!.branchesState
-        const repository = this.state.selectedRepository! as Repository
-        return <CreateBranch repository={repository}
-                             dispatcher={this.props.dispatcher}
-                             branches={state.allBranches}
-                             currentBranch={state.currentBranch}/>
-      }
-
-      case Popup.ShowBranches: {
-        const state = this.state.repositoryState!.branchesState
-        const repository = this.state.selectedRepository! as Repository
-        return <Branches allBranches={state.allBranches}
-                         recentBranches={state.recentBranches}
-                         currentBranch={state.currentBranch}
-                         defaultBranch={state.defaultBranch}
-                         dispatcher={this.props.dispatcher}
-                         repository={repository}
-                         commits={state.commits}/>
-      }
-
-      case Popup.AddRepository:
-        return <AddRepository dispatcher={this.props.dispatcher}/>
-
-      case Popup.RenameBranch: {
-        const state = this.state.repositoryState!.branchesState
-        const repository = this.state.selectedRepository! as Repository
-        return <RenameBranch dispatcher={this.props.dispatcher}
-                             repository={repository}
-                             branch={state.currentBranch!}/>
-      }
-
-      case Popup.DeleteBranch: {
-        const state = this.state.repositoryState!.branchesState
-        const repository = this.state.selectedRepository! as Repository
-        return <DeleteBranch dispatcher={this.props.dispatcher}
-                             repository={repository}
-                             branch={state.currentBranch!}/>
-      }
-
-      case Popup.PublishRepository:
-        const repository = this.state.selectedRepository! as Repository
-        return <PublishRepository repository={repository}
-                                  dispatcher={this.props.dispatcher}
-                                  users={this.props.appStore.getState().users}/>
+    if (popup.type === PopupType.CreateBranch) {
+      return <CreateBranch repository={popup.repository}
+                           dispatcher={this.props.dispatcher}
+                           branches={popup.branchesState.allBranches}
+                           currentBranch={popup.branchesState.currentBranch}/>
+    } else if (popup.type === PopupType.ShowBranches) {
+      return <Branches allBranches={popup.branchesState.allBranches}
+                       recentBranches={popup.branchesState.recentBranches}
+                       currentBranch={popup.branchesState.currentBranch}
+                       defaultBranch={popup.branchesState.defaultBranch}
+                       dispatcher={this.props.dispatcher}
+                       repository={popup.repository}
+                       commits={popup.branchesState.commits}/>
+    } else if (popup.type === PopupType.AddRepository) {
+      return <AddRepository dispatcher={this.props.dispatcher}/>
+    } else if (popup.type === PopupType.RenameBranch) {
+      return <RenameBranch dispatcher={this.props.dispatcher}
+                           repository={popup.repository}
+                           branch={popup.branchesState.currentBranch!}/>
+    } else if (popup.type === PopupType.DeleteBranch) {
+      return <DeleteBranch dispatcher={this.props.dispatcher}
+                           repository={popup.repository}
+                           branch={popup.branchesState.currentBranch!}/>
+    } else if (popup.type === PopupType.PublishRepository) {
+      return <PublishRepository repository={popup.repository}
+                                dispatcher={this.props.dispatcher}
+                                users={this.state.users}/>
     }
 
     return fatalError(`Unknown popup type: ${popup}`)
