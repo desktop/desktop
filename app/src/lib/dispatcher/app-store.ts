@@ -10,7 +10,6 @@ import { matchGitHubRepository } from '../../lib/repository-matching'
 import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { CloningRepository } from './cloning-repositories-store'
-import { findIndex, find } from '../find'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -172,7 +171,7 @@ export default class AppStore {
       let commits = new Array<Commit>()
       if (existingCommits.length > 0) {
         const mostRecent = existingCommits[0]
-        const index = findIndex(headCommits, c => c.sha === mostRecent.sha)
+        const index = headCommits.findIndex(c => c.sha === mostRecent.sha)
         if (index > -1) {
           const newCommits = headCommits.slice(0, index)
           commits = commits.concat(newCommits)
@@ -201,7 +200,7 @@ export default class AppStore {
     const commits = state.commits
     const selectedCommit = state.selection.commit
     if (selectedCommit) {
-      const index = findIndex(commits, c => c.sha === selectedCommit.sha)
+      const index = commits.findIndex(c => c.sha === selectedCommit.sha)
       // Our selected SHA disappeared, so clear the selection.
       if (index < 0) {
         newSelection = {
@@ -325,7 +324,7 @@ export default class AppStore {
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
     if (selectedRepository) {
-      const i = findIndex(this.repositories, r => {
+      const i = this.repositories.findIndex(r => {
         if (selectedRepository instanceof Repository && r instanceof Repository) {
           return r.id === selectedRepository.id
         } else {
@@ -338,9 +337,9 @@ export default class AppStore {
     }
 
     if (!this.selectedRepository && this.repositories.length > 0) {
-      const lastSelectedID = parseInt(localStorage.getItem(LastSelectedRepositoryIDKey), 10)
-      if (lastSelectedID) {
-        newSelectedRepository = find(this.repositories, r => r.id === lastSelectedID) || null
+      const lastSelectedID = parseInt(localStorage.getItem(LastSelectedRepositoryIDKey) || '', 10)
+      if (lastSelectedID && !isNaN(lastSelectedID)) {
+        newSelectedRepository = this.repositories.find(r => r.id === lastSelectedID) || null
       }
 
       if (!newSelectedRepository) {
@@ -749,7 +748,7 @@ export default class AppStore {
   private async loadBranchTips(repository: Repository): Promise<void> {
     const state = this.getRepositoryState(repository).branchesState
     const commits = state.commits
-    for (const branch of Array.from(state.allBranches)) {
+    for (const branch of state.allBranches) {
       // Immutable 4 lyfe
       if (commits.has(branch.sha)) {
         continue

@@ -121,7 +121,7 @@ export class Dispatcher {
    */
   public async addRepositories(paths: ReadonlyArray<string>): Promise<ReadonlyArray<Repository>> {
     const validatedPaths = new Array<string>()
-    for (const path of Array.from(paths)) {
+    for (const path of paths) {
       const validatedPath = await this.appStore._validatedRepositoryPath(path)
       if (validatedPath) {
         validatedPaths.push(validatedPath)
