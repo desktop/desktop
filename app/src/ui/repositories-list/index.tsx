@@ -38,11 +38,7 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
     return findIndex(groupedItems, item => {
       if (item.kind === 'repository') {
         const repository = item.repository
-        if (repository instanceof Repository && selectedRepository instanceof Repository) {
-          return repository.id === selectedRepository.id
-        } else {
-          return repository === selectedRepository
-        }
+        return repository.constructor === selectedRepository.constructor && repository.id === selectedRepository.id
       } else {
         return false
       }

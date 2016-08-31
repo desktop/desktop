@@ -326,11 +326,7 @@ export default class AppStore {
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
     if (selectedRepository) {
       const i = findIndex(this.repositories, r => {
-        if (selectedRepository instanceof Repository && r instanceof Repository) {
-          return r.id === selectedRepository.id
-        } else {
-          return r === selectedRepository
-        }
+        return selectedRepository.constructor === r.constructor && r.id === selectedRepository.id
       })
       if (i === -1) {
         newSelectedRepository = null
