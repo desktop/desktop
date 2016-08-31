@@ -19,7 +19,7 @@ import API from './api'
   * Information about a user as returned by the GitHub API.
   */
  export interface IGraphAPIUser {
-   readonly id: number
+   readonly id: string
    readonly url: string
    readonly type: 'user' | 'org'
    readonly login: string
@@ -38,7 +38,7 @@ import API from './api'
   * Information about a user as returned by the GitHub API.
   */
  export interface IGraphAPIUser {
-   readonly id: number
+   readonly id: string
    readonly url: string
    readonly type: 'user' | 'org'
    readonly login: string
@@ -101,7 +101,7 @@ export default class GraphAPI {
     return results
   }
 
-  public async fetchRepository(owner: string, name: string): Promise<IGraphAPIRepository> {
+  public async fetchRepository(owner: string, name: string): Promise<IGraphAPIRepository | null> {
     const query = `
     query ($owner: String!, $name: String!) {
       repositoryOwner(login: $owner) {
@@ -109,7 +109,10 @@ export default class GraphAPI {
           id
           name
           owner {
+            id
+            websiteURL
             login
+            avatarURL
           }
           isFork
           isPrivate
@@ -130,14 +133,14 @@ export default class GraphAPI {
     const response = await this.makeRequest<any>(payload)
 
     if (response.status === 404) {
-      console.debug(`[fetchRepository] - unable to access repository ${owner}/${name}`)
-      return this.api.fetchRepository(owner, name)
+      console.error(`[fetchRepository] - unable to access repository ${owner}/${name}`)
+      return null
     }
 
     const contents = response.value
     if (contents.repositoryOwner === null) {
-      console.debug(`[fetchRepository] - no repository owner found for ${owner}/${name}`)
-      return this.api.fetchRepository(owner, name)
+      console.error(`[fetchRepository] - no repository owner found for ${owner}/${name}`)
+      return null
     }
 
     const repository = contents.repositoryOwner.repository
@@ -147,11 +150,11 @@ export default class GraphAPI {
       htmlUrl: '',
       name: repository.name,
       owner: {
-        id: 1,
-        url: '',
+        id: repository.owner.id,
+        url: repository.owner.websiteURL,
         type: 'user',
         login: repository.owner.login,
-        avatarUrl: 'https://github.com/hubot.png'
+        avatarUrl: repository.owner.avatarURL
       },
       private: repository.isPrivate,
       fork: repository.isFork,
@@ -192,14 +195,14 @@ export default class GraphAPI {
     const response = await this.makeRequest<any>(payload)
 
     if (response.status === 404) {
-      console.debug(`[fetchCommit] - unable to access commit ${owner}/${name}@${sha}`)
-      return this.api.fetchCommit(owner, name, sha)
+      console.error(`[fetchCommit] - unable to access commit ${owner}/${name}@${sha}`)
+      return null
     }
 
     const contents = response.value
     if (contents.repositoryOwner === null) {
-      console.debug(`[fetchCommit] - no commit found for ${owner}/${name}@${sha}`)
-      return this.api.fetchCommit(owner, name, sha)
+      console.error(`[fetchCommit] - no commit found for ${owner}/${name}@${sha}`)
+      return null
     }
 
     const commit = contents.repositoryOwner.repository.commit
@@ -207,7 +210,7 @@ export default class GraphAPI {
     return {
       sha: commit.oid,
       author: {
-        id: -1,
+        id: commit.user.id,
         url: commit.user.websiteURL,
         type: 'user',
         login: commit.user.login,
@@ -239,22 +242,22 @@ export default class GraphAPI {
     const response = await this.makeRequest<any>(payload)
 
     if (response.status === 404) {
-      console.debug(`[searchForUserWithEmail] - unable to find match for ${email}`)
-      return this.api.searchForUserWithEmail(email)
+      console.error(`[searchForUserWithEmail] - unable to find match for ${email}`)
+      return null
     }
 
     // TODO: need to handle the pagination-esque payload here
 
     const contents = response.value
     if (contents.repositoryOwner === null) {
-      console.debug(`[searchForUserWithEmail] - result doesn't exit for ${email}`)
-      return this.api.searchForUserWithEmail(email)
+      console.error(`[searchForUserWithEmail] - result doesn't exit for ${email}`)
+      return null
     }
 
     const commit = contents.repositoryOwner.repository.commit
 
     return {
-        id: -1,
+        id: commit.id,
         url: commit.user.websiteURL,
         type: 'user',
         login: commit.user.login,
@@ -289,31 +292,31 @@ export default class GraphAPI {
 
     const response = await this.makeRequest<any>(payload)
 
+    const results: IGraphAPIUser[] = []
+
     if (response.status === 404) {
       console.debug(`[fetchOrgs] - unable to fetch orgs for current user`)
-      return this.api.fetchOrgs()
+      return results
     }
 
     const contents = response.value
     if (contents.viewer === null) {
       console.debug(`[fetchOrgs] - user does not exist`)
-      return this.api.fetchOrgs()
+      return results
     }
 
     const organizations = contents.viewer.organizations.edges
 
-    const results: IGraphAPIUser[] = []
-
     for (let i = 0; i < organizations.length; i++) {
 
-      const organization = organizations[i]
+      const organization = organizations[i].node
 
       results.push({
-        id: -1, // no numeric identifier currently available
-        url: organization.node.websiteURL, // undefined
+        id: organization,
+        url: organization.websiteURL, // undefined
         type: 'org',
-        login: organization.node.login,
-        avatarUrl: organization.node.avatarURL
+        login: organization.login,
+        avatarUrl: organization.avatarURL
       })
     }
 
