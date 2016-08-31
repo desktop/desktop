@@ -873,7 +873,7 @@ export default class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _clone(url: string, path: string): { promise: Promise<void>, repository: CloningRepository } {
     const promise = this.cloningRepositoriesStore.clone(url, path)
-    const repository = find(this.cloningRepositoriesStore.repositories, r => r.url === url && r.path === path)!
+    const repository = this.cloningRepositoriesStore.repositories.find(r => r.url === url && r.path === path)!
     return { promise, repository }
   }
 
