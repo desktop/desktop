@@ -1,11 +1,10 @@
 import * as React from 'react'
-import { CompositeDisposable } from 'event-kit'
 import { Commit } from '../../lib/local-git-operations'
 import CommitListItem from './commit-list-item'
 import List from '../list'
 import CommitFacadeListItem from './commit-facade-list-item'
 import { findIndex } from '../../lib/find'
-import { Dispatcher, GitHubUserStore, IGitHubUser } from '../../lib/dispatcher'
+import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 
 const RowHeight = 68
@@ -23,34 +22,21 @@ interface ICommitListProps {
   readonly commits: ReadonlyArray<Commit>
   readonly selectedCommit: Commit | null
   readonly commitCount: number
-  readonly gitHubUserStore: GitHubUserStore
+  readonly gitHubUsers: Map<string, IGitHubUser>
   readonly repository: Repository
   readonly dispatcher: Dispatcher
 }
 
 /** A component which displays the list of commits. */
 export default class CommitList extends React.Component<ICommitListProps, void> {
-  private disposable: CompositeDisposable
-
   private list: List | null
-
-  public componentDidMount() {
-    this.disposable = new CompositeDisposable()
-    this.disposable.add(this.props.gitHubUserStore.onDidUpdate(() => this.forceUpdate()))
-  }
-
-  public componentWillUnmount() {
-    this.disposable.dispose()
-  }
 
   private renderCommit(row: number) {
     const commit: Commit | null = this.props.commits[row]
     if (commit) {
-      let gitHubUser = this.props.gitHubUserStore.getUser(this.props.repository, commit.authorEmail)
+      let gitHubUser = this.props.gitHubUsers.get(commit.authorEmail)
       if (!gitHubUser) {
         gitHubUser = DefaultGitHubUser
-
-        this.props.dispatcher.loadAndCacheUser(this.props.repository, commit.sha, commit.authorEmail)
       }
 
       return <CommitListItem key={commit.sha} commit={commit} gitHubUser={gitHubUser}/>

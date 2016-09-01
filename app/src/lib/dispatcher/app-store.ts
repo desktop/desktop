@@ -11,7 +11,8 @@ import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { CloningRepository } from './cloning-repositories-store'
 import { findIndex, find } from '../find'
-import { IGitHubUser } from './github-user-database'
+import { GitHubUserDatabase, IGitHubUser } from './github-user-database'
+import GitHubUserStore from './github-user-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -36,6 +37,8 @@ export default class AppStore {
   private errors: ReadonlyArray<IAppError> = new Array<IAppError>()
 
   private emitQueued = false
+
+  private gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
 
   private emitUpdate() {
     if (this.emitQueued) { return }
@@ -326,6 +329,28 @@ export default class AppStore {
     this.users = users
     this.repositories = repositories
     this.loading = this.repositories.length === 0 && this.users.length === 0
+
+    users.forEach(user => {
+      // In theory a user should _always_ have an array of emails (even if it's
+      // empty). But in practice, if the user had run old dev builds this may
+      // not be the case. So for now we need to guard this. We should remove
+      // this check in the not too distant future.
+      // @joshaber (August 10, 2016)
+      if (!user.emails) { return }
+
+      const gitUsers = user.emails.map(email => {
+        return {
+          endpoint: user.endpoint,
+          email,
+          login: user.login,
+          avatarURL: user.avatarURL,
+        }
+      })
+
+      for (const user of gitUsers) {
+        this.gitHubUserStore.cacheUser(user)
+      }
+    })
 
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository

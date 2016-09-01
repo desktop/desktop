@@ -3,16 +3,16 @@ import { ChangesList } from './changes-list'
 import FileDiff from '../file-diff'
 import { IChangesState } from '../../lib/app-state'
 import Repository from '../../models/repository'
-import { Dispatcher, GitHubUserStore, IGitHubUser } from '../../lib/dispatcher'
+import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
 
 interface IChangesProps {
-  repository: Repository
-  changes: IChangesState
-  dispatcher: Dispatcher
-  gitHubUserStore: GitHubUserStore
-  committerEmail: string | null
-  branch: string | null
+  readonly repository: Repository
+  readonly changes: IChangesState
+  readonly dispatcher: Dispatcher
+  readonly committerEmail: string | null
+  readonly branch: string | null
+  readonly gitHubUsers: Map<string, IGitHubUser>
 }
 
 /** TODO: handle "repository not found" scenario */
@@ -58,10 +58,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     const email = this.props.committerEmail
     let user: IGitHubUser | null = null
     if (email) {
-      user = this.props.gitHubUserStore.getUser(this.props.repository, email)
-      if (!user) {
-        this.props.dispatcher.loadAndCacheUser(this.props.repository, null, email)
-      }
+      user = this.props.gitHubUsers.get(email) || null
     }
 
     const avatarURL = user ? user.avatarURL : 'https://github.com/hubot.png'

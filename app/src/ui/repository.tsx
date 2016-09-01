@@ -6,13 +6,12 @@ import History from './history'
 import ComparisonGraph from './comparison-graph'
 import { ToolbarTab } from './toolbar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
-import { Dispatcher, GitHubUserStore } from '../lib/dispatcher'
+import { Dispatcher } from '../lib/dispatcher'
 
 interface IRepositoryProps {
   readonly repository: Repo
   readonly state: IRepositoryModelState
   readonly dispatcher: Dispatcher
-  readonly gitHubUserStore: GitHubUserStore
 }
 
 export default class Repository extends React.Component<IRepositoryProps, void> {
@@ -23,13 +22,13 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
                       dispatcher={this.props.dispatcher}
                       changes={this.props.state.changesState}
                       branch={branch ? branch.name : null}
-                      gitHubUserStore={this.props.gitHubUserStore}
-                      committerEmail={this.props.state.committerEmail}/>
+                      committerEmail={this.props.state.committerEmail}
+                      gitHubUsers={this.props.state.gitHubUsers}/>
     } else if (this.props.state.selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
                       history={this.props.state.historyState}
-                      gitHubUserStore={this.props.gitHubUserStore}/>
+                      gitHubUsers={this.props.state.gitHubUsers}/>
     } else {
       return null
     }
