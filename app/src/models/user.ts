@@ -5,7 +5,7 @@ export interface IUser {
   readonly endpoint: string
   readonly emails: ReadonlyArray<string>
   readonly avatarURL: string
-  readonly id: number
+  readonly id: string
 }
 
 /**
