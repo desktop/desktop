@@ -208,7 +208,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     const diffLine = this.getDiffLineFromSection(rowIndex)
 
     if (!diffLine) {
-      return null
+      return <span></span>
     }
 
     if (this.props.readOnly) {
@@ -222,7 +222,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     const diffLine = this.getDiffLineFromSection(rowIndex)
 
     if (!diffLine) {
-      return null
+      return <span></span>
     }
 
     const diffLineClassName = `diff-line-content ${this.getClassName(diffLine.type)}`
