@@ -243,11 +243,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private cellRenderer = ({ columnIndex, rowIndex }: { columnIndex: number, rowIndex: number }) => {
-    if (columnIndex === 0) {
-      return this.renderSidebar(rowIndex)
-    } else {
-      return this.renderBodyCell(rowIndex)
-    }
+    const content = columnIndex === 0 ? this.renderSidebar(rowIndex) : this.renderBodyCell(rowIndex)
+    return <div className='diff-text'>{content}</div>
   }
 
   public render() {
@@ -287,7 +284,6 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
                 // autoContainerWidth
                 ref={(ref: React.Component<any, any>) => this.grid = ref}
                 cellRenderer={cellRenderer}
-                className='diff-text'
                 columnCount={2}
                 columnWidth={getColumnWidth}
                 width={width}
