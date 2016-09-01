@@ -158,7 +158,7 @@ export default class GraphAPI {
      const hasNextPage = repositories.pageInfo.hasNextPage
 
      return  { results: results, hasNextPage: hasNextPage, endCursor: lastCursor }
-   }
+  }
 
 
  /**
@@ -185,10 +185,46 @@ export default class GraphAPI {
     return results
   }
 
-  /** Fetch the logged in user. */
-  public fetchUser(): Promise<IGraphAPIUser> {
-    return Promise.reject('TODO')
-  }
+    /** Fetch the logged in user. */
+    public async fetchUser(): Promise<IGraphAPIUser> {
+      const query = `
+      {
+        viewer {
+          id
+          login
+          name
+          avatarURL
+          websiteURL
+        }
+      }`
+      const payload = { operationName: null,
+        query: query,
+        variables: ''
+      }
+
+      const response = await this.makeRequest<any>(payload)
+
+      if (response.status === 404) {
+        console.error(`[fetchUser] - unable to get current user`)
+        return Promise.reject(`unable to get current user`)
+      }
+
+      const contents = response.value
+      if (contents.viewer === null) {
+        console.error(`[fetchUser] - invalid response for current user`)
+        return Promise.reject(`invalid response when fetching current user`)
+      }
+
+      const user = contents.viewer
+
+      return {
+        id: user.id,
+        type: 'user',
+        login: user.login,
+        avatarUrl: user.avatarUrl,
+        url: `https://api.github.com/users/${user.login}`
+      }
+    }
 
   /** Fetch a repo by its owner and name. */
   public async fetchRepository(owner: string, name: string): Promise<IGraphAPIRepository> {
