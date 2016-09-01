@@ -11,6 +11,7 @@ import { Dispatcher, AppStore, GitUserStore, GitUserDatabase } from '../lib/disp
 import { URLActionType } from '../lib/parse-url'
 import Repository from '../models/repository'
 import { getDefaultDir } from './lib/default-dir'
+import { SelectionType } from '../lib/app-state'
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
@@ -38,7 +39,7 @@ ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(arg
 
 ipcRenderer.on('focus', () => {
   const state = appStore.getState().selectedState
-  if (!state || state.kind === 'cloning-repository') { return }
+  if (!state || state.type === SelectionType.CloningRepository) { return }
 
   dispatcher.refreshRepository(state.repository)
 })

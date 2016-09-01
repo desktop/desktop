@@ -12,6 +12,7 @@ import {
   IAppError,
   PossibleSelections,
   PopupType,
+  SelectionType,
 } from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
@@ -157,7 +158,7 @@ export default class AppStore {
 
     if (repository instanceof Repository) {
       return {
-        kind: 'repository',
+        type: SelectionType.Repository,
         repository,
         state: this.getRepositoryState(repository),
       }
@@ -166,7 +167,7 @@ export default class AppStore {
       if (!cloningState) { return null }
 
       return {
-        kind: 'cloning-repository',
+        type: SelectionType.CloningRepository,
         repository,
         state: cloningState,
       }

@@ -10,7 +10,7 @@ import { Dispatcher, AppStore, GitUserStore, CloningRepository } from '../lib/di
 import Repository from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
-import { IAppState, RepositorySection, PopupType } from '../lib/app-state'
+import { IAppState, RepositorySection, PopupType, SelectionType } from '../lib/app-state'
 import Popuppy from './popuppy'
 import CreateBranch from './create-branch'
 import Branches from './branches'
@@ -59,7 +59,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
       const selectedState = state.selectedState
       let haveBranch = false
-      if (selectedState && selectedState.kind === 'repository') {
+      if (selectedState && selectedState.type === SelectionType.Repository) {
         const currentBranch = selectedState.state.branchesState.currentBranch
         const defaultBranch = selectedState.state.branchesState.defaultBranch
         // If we are:
@@ -103,7 +103,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
   private renameBranch() {
     const state = this.state.selectedState
-    if (!state || state.kind !== 'repository') { return }
+    if (!state || state.type !== SelectionType.Repository) { return }
 
     this.props.dispatcher.showPopup({
       type: PopupType.RenameBranch,
@@ -114,7 +114,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
   private deleteBranch() {
     const state = this.state.selectedState
-    if (!state || state.kind !== 'repository') { return }
+    if (!state || state.type !== SelectionType.Repository) { return }
 
     this.props.dispatcher.showPopup({
       type: PopupType.DeleteBranch,
@@ -131,7 +131,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
   private createBranch() {
     const state = this.state.selectedState
-    if (!state || state.kind !== 'repository') { return }
+    if (!state || state.type !== SelectionType.Repository) { return }
 
     this.props.dispatcher.showPopup({
       type: PopupType.CreateBranch,
@@ -142,7 +142,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
   private showBranches() {
     const state = this.state.selectedState
-    if (!state || state.kind !== 'repository') { return }
+    if (!state || state.type !== SelectionType.Repository) { return }
 
     this.props.dispatcher.showPopup({
       type: PopupType.ShowBranches,
@@ -153,28 +153,28 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
   private selectChanges() {
     const state = this.state.selectedState
-    if (!state || state.kind !== 'repository') { return }
+    if (!state || state.type !== SelectionType.Repository) { return }
 
     this.props.dispatcher.changeRepositorySection(state.repository, RepositorySection.Changes)
   }
 
   private selectHistory() {
     const state = this.state.selectedState
-    if (!state || state.kind !== 'repository') { return }
+    if (!state || state.type !== SelectionType.Repository) { return }
 
     this.props.dispatcher.changeRepositorySection(state.repository, RepositorySection.History)
   }
 
   private push() {
     const state = this.state.selectedState
-    if (!state || state.kind !== 'repository') { return }
+    if (!state || state.type !== SelectionType.Repository) { return }
 
     this.props.dispatcher.push(state.repository)
   }
 
   private async pull() {
     const state = this.state.selectedState
-    if (!state || state.kind !== 'repository') { return }
+    if (!state || state.type !== SelectionType.Repository) { return }
 
     this.props.dispatcher.pull(state.repository)
   }
@@ -334,14 +334,14 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return <NoRepositorySelected/>
     }
 
-    if (selectedState.kind === 'repository') {
+    if (selectedState.type === SelectionType.Repository) {
       return (
         <RepositoryView repository={selectedState.repository}
                         state={selectedState.state}
                         dispatcher={this.props.dispatcher}
                         gitUserStore={this.props.gitUserStore}/>
       )
-    } else if (selectedState.kind === 'cloning-repository') {
+    } else if (selectedState.type === SelectionType.CloningRepository) {
       return <CloningRepositoryView repository={selectedState.repository}
                                     state={selectedState.state}/>
     } else {

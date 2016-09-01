@@ -6,8 +6,13 @@ import { CloningRepository, ICloningRepositoryState } from './dispatcher'
 
 export { ICloningRepositoryState } from './dispatcher'
 
-export type PossibleSelections = { kind: 'repository', repository: Repository, state: IRepositoryState } |
-                                 { kind: 'cloning-repository', repository: CloningRepository, state: ICloningRepositoryState }
+export enum SelectionType {
+  Repository,
+  CloningRepository,
+}
+
+export type PossibleSelections = { type: SelectionType.Repository, repository: Repository, state: IRepositoryState } |
+                                 { type: SelectionType.CloningRepository, repository: CloningRepository, state: ICloningRepositoryState }
 
 /** All of the shared app state. */
 export interface IAppState {
