@@ -34,23 +34,19 @@ import API from './api'
    readonly author: IGraphAPIUser
  }
 
- /**
-  * Information about a user as returned by the GitHub API.
-  */
- export interface IGraphAPIUser {
-   readonly id: string
-   readonly url: string
-   readonly type: 'user' | 'org'
-   readonly login: string
-   readonly avatarUrl: string
- }
-
 /**
  * A wrapper for the response from the GraphQL endpoint
  */
 interface IGraphQLResponse<T> {
   readonly status: number
   readonly value: T
+}
+
+
+interface IPaginationResult<T> {
+  readonly results: ReadonlyArray<T>
+  readonly hasNextPage: boolean
+  readonly endCursor: string | null
 }
 
  /**
@@ -147,11 +143,11 @@ export default class GraphAPI {
       htmlUrl: '',
       name: repository.name,
       owner: {
-        id: '',
-        url: '',
+        id: repository.owner.id,
         type: 'user',
         login: repository.owner.login,
-        avatarUrl: ''
+        avatarUrl: repository.owner.avatarUrl,
+        url: `https://api.github.com/users/${repository.owner.login}`
       },
       private: repository.isPrivate,
       fork: repository.isFork,
@@ -269,14 +265,14 @@ export default class GraphAPI {
     }
   }
 
-  public async fetchOrgs(): Promise<ReadonlyArray<IGraphAPIUser>> {
-
-    // TODO: handle pagination
-
+  private async fetchPageOfOrgs(size: number, since: string | null): Promise<IPaginationResult<IGraphAPIUser>> {
     const query = `
-    query {
+    {
       viewer {
-        organizations(first: 30) {
+        organizations(first: ${size} ${ since ? 'after: ' + since : '' }) {
+          pageInfo {
+            hasNextPage
+          }
           edges {
             cursor
             node {
@@ -300,30 +296,62 @@ export default class GraphAPI {
 
     if (response.status === 404) {
       console.debug(`[fetchOrgs] - unable to fetch orgs for current user`)
-      return results
+      return  { results: results, hasNextPage: false, endCursor: null }
     }
 
     const contents = response.value
     if (contents.viewer === null) {
       console.debug(`[fetchOrgs] - user does not exist`)
-      return results
+      return  { results: results, hasNextPage: false, endCursor: null }
     }
 
+    let lastCursor = ''
     const organizations = contents.viewer.organizations.edges
 
     for (let i = 0; i < organizations.length; i++) {
 
-      const organization = organizations[i].node
+      const result = organizations[i]
+      lastCursor = result.cursor
+
+      const organization = result.node
 
       results.push({
         id: organization,
-        url: organization.websiteURL, // undefined
         type: 'org',
         login: organization.login,
-        avatarUrl: organization.avatarURL
+        avatarUrl: organization.avatarURL,
+        url: `https://api.github.com/users/${organization.login}`
       })
     }
 
+    const hasNextPage = contents.viewer.organizations.hasNextPage
+
+    return  { results: results, hasNextPage: hasNextPage, endCursor: lastCursor }
+  }
+
+  public async fetchOrgs(): Promise<ReadonlyArray<IGraphAPIUser>> {
+    const results: IGraphAPIUser[] = []
+    let cursor: string | null = null
+
+    debugger
+
+    while (true) {
+      const page: IPaginationResult<IGraphAPIUser> = await this.fetchPageOfOrgs(5, cursor)
+      page.results.forEach(r => results.push(r))
+      cursor = page.endCursor
+      if (!page.hasNextPage) {
+        break
+      }
+    }
+
     return results
+  }
+
+  public async createRepository(org: IGraphAPIUser | null, name: string, description: string, private_: boolean): Promise<IGraphAPIRepository> {
+    if (org) {
+      return Promise.reject('TODO')
+    } else {
+      return Promise.reject('TODO')
+    }
   }
 }
