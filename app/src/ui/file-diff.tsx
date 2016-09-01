@@ -8,7 +8,7 @@ import { LocalGitOperations, Commit } from '../lib/local-git-operations'
 
 import { find } from '../lib/find'
 
-const { Grid, AutoSizer } = require('react-virtualized')
+const { Grid, AutoSizer, CellMeasurer } = require('react-virtualized')
 
 const RowHeight = 22
 
@@ -258,23 +258,37 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
         .map(s => s.lines.length)
         .forEach(c => diffLineCount += c)
 
+      const cellRenderer = ({ columnIndex, rowIndex }: { columnIndex: number, rowIndex: number }) => this.cellRenderer({ columnIndex, rowIndex })
+      const columnWidth = (width: number) => ({ index }: { index: number }) => this.getColumnWidth( { index, availableWidth: width })
+      columnWidth
+      // console.log(columnWidth)
+
       return (
         <div className='panel' id='file-diff'>
           <AutoSizer onResize={ () => this.handleResize() }>
           {({ width, height }: { width: number, height: number }) => (
-            <Grid
-              autoContainerWidth
-              ref={(ref: React.Component<any, any>) => this.grid = ref}
-              cellRenderer={ ({ columnIndex, rowIndex }: { columnIndex: number, rowIndex: number }) => this.cellRenderer({ columnIndex, rowIndex }) }
-              className='diff-text'
+            <CellMeasurer
+              cellRenderer={cellRenderer}
               columnCount={2}
-              columnWidth={ ({ index }: { index: number }) => this.getColumnWidth( { index, availableWidth: width }) }
-              width={width}
-              height={height}
-              rowHeight={RowHeight}
               rowCount={diffLineCount}
-              invalidationProps={invalidationProps}
-            />
+              height={height}>
+              {({ getColumnWidth, resetMeasurements }: any) => {
+                // console.log(getColumnWidth(1))
+              return (<Grid
+                // autoContainerWidth
+                ref={(ref: React.Component<any, any>) => this.grid = ref}
+                cellRenderer={cellRenderer}
+                className='diff-text'
+                columnCount={2}
+                columnWidth={getColumnWidth}
+                width={width}
+                height={height}
+                rowHeight={RowHeight}
+                rowCount={diffLineCount}
+                invalidationProps={invalidationProps}
+              />)
+            }}
+            </CellMeasurer>
           )}
           </AutoSizer>
         </div>
