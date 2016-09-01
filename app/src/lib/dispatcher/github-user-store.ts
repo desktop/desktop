@@ -14,9 +14,8 @@ export default class GitHubUserStore {
 
   private readonly requestsInFlight = new Set<string>()
 
-  private readonly inMemoryCache = new Map<string, IGitHubUser>()
-
-  private emitQueued = false
+  /** The outer map is keyed by the endpoint, the inner map is keyed by email. */
+  private readonly usersByEndpoint = new Map<string, Map<string, IGitHubUser>>()
 
   private readonly database: GitHubUserDatabase
 
@@ -25,14 +24,7 @@ export default class GitHubUserStore {
   }
 
   private emitUpdate() {
-    if (this.emitQueued) { return }
-
-    this.emitQueued = true
-
-    window.requestAnimationFrame(() => {
-      this.emitter.emit('did-update', {})
-      this.emitQueued = false
-    })
+    this.emitter.emit('did-update', {})
   }
 
   /** Register a function to be called when the store updates. */
@@ -40,16 +32,20 @@ export default class GitHubUserStore {
     return this.emitter.on('did-update', fn)
   }
 
-  /** Get the cached GitHub user for the repository and email. */
-  public getUser(repository: Repository, email: string): IGitHubUser | null {
-    const key = keyForRequest(email, repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint())
-    const user = this.inMemoryCache.get(key)
-    return user ? user : null
+  private getUsersForEndpoint(endpoint: string): Map<string, IGitHubUser> | null {
+    return this.usersByEndpoint.get(endpoint) || null
+  }
+
+  /** Get the map of users for the repository. */
+  public getUsersForRepository(repository: Repository): Map<string, IGitHubUser> | null {
+    const endpoint = repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint()
+    return this.getUsersForEndpoint(endpoint)
   }
 
   /** Not to be called externally. See `Dispatcher`. */
   public async _loadAndCacheUser(users: ReadonlyArray<User>, repository: Repository, sha: string | null, email: string) {
-    const key = keyForRequest(email, repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint())
+    const endpoint = repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint()
+    const key = `${endpoint}+${email.toLowerCase()}`
     if (this.requestsInFlight.has(key)) { return }
 
     const gitHubRepository = repository.gitHubRepository
@@ -114,8 +110,13 @@ export default class GitHubUserStore {
   public async cacheUser(user: IGitHubUser): Promise<void> {
     user = lowerCaseUser(user)
 
-    const key = keyForRequest(user.email, user.endpoint)
-    this.inMemoryCache.set(key, user)
+    let userMap = this.getUsersForEndpoint(user.endpoint)
+    if (!userMap) {
+      userMap = new Map<string, IGitHubUser>()
+      this.usersByEndpoint.set(user.endpoint, userMap)
+    }
+
+    userMap.set(user.email, user)
 
     const db = this.database
     await this.database.transaction('rw', this.database.users, function*() {
@@ -134,8 +135,4 @@ export default class GitHubUserStore {
 
 function lowerCaseUser(user: IGitHubUser): IGitHubUser {
   return Object.assign({}, user, { email: user.email.toLowerCase() })
-}
-
-function keyForRequest(email: string, endpoint: string): string {
-  return `${endpoint}/${email.toLowerCase()}`
 }
