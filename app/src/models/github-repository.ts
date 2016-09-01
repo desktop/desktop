@@ -1,5 +1,5 @@
 import Owner, { IOwner } from './owner'
-import { IAPIRepository } from '../lib/api'
+import { IGraphAPIRepository } from '../lib/graph-api'
 
 /** The data-only interface for GitHubRepository for transport across IPC. */
 export interface IGitHubRepository {
@@ -35,7 +35,7 @@ export default class GitHubRepository implements IGitHubRepository {
   }
 
   /** Create a new copy of the repository with the API information copied over. */
-  public withAPI(apiRepository: IAPIRepository): GitHubRepository {
+  public withAPI(apiRepository: IGraphAPIRepository): GitHubRepository {
     return new GitHubRepository(this.name, this.owner, apiRepository.private, apiRepository.fork, apiRepository.htmlUrl, apiRepository.defaultBranch)
   }
 

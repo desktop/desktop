@@ -2,7 +2,8 @@ import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 import User from '../../models/user'
-import API, { IAPIUser, getDotComAPIEndpoint } from '../../lib/api'
+import { getDotComAPIEndpoint } from '../../lib/api'
+import GraphAPI, { IGraphAPIUser } from '../../lib/graph-api'
 
 interface IPublishRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -14,8 +15,8 @@ interface IPublishRepositoryState {
   readonly name: string
   readonly description: string
   readonly private: boolean
-  readonly groupedUsers: Map<User, ReadonlyArray<IAPIUser>>
-  readonly selectedUser: IAPIUser
+  readonly groupedUsers: Map<User, ReadonlyArray<IGraphAPIUser>>
+  readonly selectedUser: IGraphAPIUser
 }
 
 export default class PublishRepository extends React.Component<IPublishRepositoryProps, IPublishRepositoryState> {
@@ -26,15 +27,15 @@ export default class PublishRepository extends React.Component<IPublishRepositor
       name: props.repository.name,
       description: '',
       private: true,
-      groupedUsers: new Map<User, ReadonlyArray<IAPIUser>>(),
+      groupedUsers: new Map<User, ReadonlyArray<IGraphAPIUser>>(),
       selectedUser: userToAPIUser(this.props.users[0]),
     }
   }
 
   public async componentWillMount() {
-    const orgsByUser = new Map<User, ReadonlyArray<IAPIUser>>()
+    const orgsByUser = new Map<User, ReadonlyArray<IGraphAPIUser>>()
     for (const user of Array.from(this.props.users)) {
-      const api = new API(user)
+      const api = new GraphAPI(user)
       const orgs = await api.fetchOrgs()
       orgsByUser.set(user, orgs)
     }
@@ -101,7 +102,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
     return null
   }
 
-  private get selectedOrg(): IAPIUser | null {
+  private get selectedOrg(): IGraphAPIUser | null {
     if (this.state.selectedUser.type === 'user') { return null }
 
     return this.state.selectedUser
@@ -183,7 +184,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
   }
 }
 
-function userToAPIUser(user: User): IAPIUser {
+function userToAPIUser(user: User): IGraphAPIUser {
   return {
     login: user.login,
     avatarUrl: user.avatarURL,
