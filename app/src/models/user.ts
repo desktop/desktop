@@ -17,14 +17,14 @@ export default class User implements IUser {
   public readonly endpoint: string
   public readonly emails: ReadonlyArray<string>
   public readonly avatarURL: string
-  public readonly id: number
+  public readonly id: string
 
   /** Create a new User from some JSON. */
   public static fromJSON(obj: IUser): User {
     return new User(obj.login, obj.endpoint, obj.token, obj.emails, obj.avatarURL, obj.id)
   }
 
-  public constructor(login: string, endpoint: string, token: string, emails: ReadonlyArray<string>, avatarURL: string, id: number) {
+  public constructor(login: string, endpoint: string, token: string, emails: ReadonlyArray<string>, avatarURL: string, id: string) {
     this.login = login
     this.endpoint = endpoint
     this.token = token

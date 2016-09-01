@@ -27,7 +27,7 @@ async function updateUsers() {
     const updatedUser = await api.fetchUser()
     const emails = await api.fetchEmails()
     const justTheEmails = emails.map(e => e.email)
-    return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl, updatedUser.id)
+    return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl, updatedUser.id.toString())
   })
   broadcastUpdate()
 }
