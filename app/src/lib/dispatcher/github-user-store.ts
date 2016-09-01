@@ -3,24 +3,24 @@ import Repository from '../../models/repository'
 import User from '../../models/user'
 import GitHubRepository from '../../models/github-repository'
 import API, { getUserForEndpoint, getDotComAPIEndpoint } from '../api'
-import { GitUserDatabase, IGitUser } from './git-user-database'
+import { GitHubUserDatabase, IGitHubUser } from './github-user-database'
 
 /**
- * The store for git users. This is used to match commit authors to GitHub
+ * The store for GitHub users. This is used to match commit authors to GitHub
  * users and avatars.
  */
-export default class GitUserStore {
+export default class GitHubUserStore {
   private readonly emitter = new Emitter()
 
   private readonly requestsInFlight = new Set<string>()
 
-  private readonly inMemoryCache = new Map<string, IGitUser>()
+  private readonly inMemoryCache = new Map<string, IGitHubUser>()
 
   private emitQueued = false
 
-  private readonly database: GitUserDatabase
+  private readonly database: GitHubUserDatabase
 
-  public constructor(database: GitUserDatabase) {
+  public constructor(database: GitHubUserDatabase) {
     this.database = database
   }
 
@@ -40,8 +40,8 @@ export default class GitUserStore {
     return this.emitter.on('did-update', fn)
   }
 
-  /** Get the cached git user for the repository and email. */
-  public getUser(repository: Repository, email: string): IGitUser | null {
+  /** Get the cached GitHub user for the repository and email. */
+  public getUser(repository: Repository, email: string): IGitHubUser | null {
     const key = keyForRequest(email, repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint())
     const user = this.inMemoryCache.get(key)
     return user ? user : null
@@ -53,21 +53,18 @@ export default class GitUserStore {
     if (this.requestsInFlight.has(key)) { return }
 
     const gitHubRepository = repository.gitHubRepository
-    // TODO: Big ol' shrug if there's no GitHub repository. Maybe try Gravatar
-    // instead?
     if (!gitHubRepository) {
       return
     }
 
     const user = getUserForEndpoint(users, gitHubRepository.endpoint)
-    // TODO: Same as above. If they aren't logged in, maybe try Gravatar?
     if (!user) {
       return
     }
 
     this.requestsInFlight.add(key)
 
-    let gitUser: IGitUser | null = await this.database.users.where('[endpoint+email]')
+    let gitUser: IGitHubUser | null = await this.database.users.where('[endpoint+email]')
       .equals([ user.endpoint, email.toLowerCase() ])
       .limit(1)
       .first()
@@ -86,7 +83,7 @@ export default class GitUserStore {
     this.emitUpdate()
   }
 
-  private async findUserWithAPI(user: User, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitUser | null> {
+  private async findUserWithAPI(user: User, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitHubUser | null> {
     const api = new API(user)
     if (sha) {
       const apiCommit = await api.fetchCommit(repository.owner.login, repository.name, sha)
@@ -114,7 +111,7 @@ export default class GitUserStore {
   }
 
   /** Store the user in the cache. */
-  public async cacheUser(user: IGitUser): Promise<void> {
+  public async cacheUser(user: IGitHubUser): Promise<void> {
     user = lowerCaseUser(user)
 
     const key = keyForRequest(user.email, user.endpoint)
@@ -122,7 +119,7 @@ export default class GitUserStore {
 
     const db = this.database
     await this.database.transaction('rw', this.database.users, function*() {
-      const existing: IGitUser | null = yield db.users.where('[endpoint+email]')
+      const existing: IGitHubUser | null = yield db.users.where('[endpoint+email]')
         .equals([ user.endpoint, user.email ])
         .limit(1)
         .first()
@@ -135,7 +132,7 @@ export default class GitUserStore {
   }
 }
 
-function lowerCaseUser(user: IGitUser): IGitUser {
+function lowerCaseUser(user: IGitHubUser): IGitHubUser {
   return Object.assign({}, user, { email: user.email.toLowerCase() })
 }
 

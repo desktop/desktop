@@ -11,6 +11,7 @@ import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { CloningRepository } from './cloning-repositories-store'
 import { findIndex, find } from '../find'
+import { IGitHubUser } from './github-user-database'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -62,6 +63,7 @@ export default class AppStore {
         commitCount: 0,
         changedFiles: new Array<FileChange>(),
         loading: true,
+        commitAuthors: new Map<Commit, IGitHubUser>(),
       },
       changesState: {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
@@ -159,7 +161,8 @@ export default class AppStore {
         selection: state.selection,
         changedFiles: state.changedFiles,
         commitCount: state.commitCount,
-        loading: true
+        loading: true,
+        commitAuthors: state.commitAuthors,
       }
     })
     this.emitUpdate()
@@ -193,6 +196,7 @@ export default class AppStore {
         changedFiles: state.changedFiles,
         commitCount,
         loading: false,
+        commitAuthors: state.commitAuthors,
       }
     })
 
@@ -236,7 +240,8 @@ export default class AppStore {
         selection: state.selection,
         changedFiles: state.changedFiles,
         commitCount: state.commitCount,
-        loading: true
+        loading: true,
+        commitAuthors: state.commitAuthors,
       }
     })
     this.emitUpdate()
@@ -251,6 +256,7 @@ export default class AppStore {
         changedFiles: state.changedFiles,
         commitCount: state.commitCount,
         loading: false,
+        commitAuthors: state.commitAuthors,
       }
     })
     this.emitUpdate()
@@ -279,6 +285,7 @@ export default class AppStore {
         changedFiles,
         commitCount: state.commitCount,
         loading: state.loading,
+        commitAuthors: state.commitAuthors,
       }
     })
     this.emitUpdate()
@@ -296,6 +303,7 @@ export default class AppStore {
         changedFiles,
         commitCount: state.commitCount,
         loading: state.loading,
+        commitAuthors: state.commitAuthors,
       }
     })
     this.emitUpdate()

@@ -5,7 +5,7 @@ import FileDiff from '../file-diff'
 import Repository from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../lib/local-git-operations'
-import { Dispatcher, GitUserStore } from '../../lib/dispatcher'
+import { Dispatcher, GitHubUserStore } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { Resizable } from '../resizable'
@@ -14,7 +14,7 @@ interface IHistoryProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly history: IHistoryState
-  readonly gitUserStore: GitUserStore
+  readonly gitHubUserStore: GitHubUserStore
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
@@ -59,7 +59,7 @@ export default class History extends React.Component<IHistoryProps, void> {
                       onCommitSelected={commit => this.onCommitSelected(commit)}
                       onScroll={(start, end) => this.onScroll(start, end)}
                       repository={this.props.repository}
-                      gitUserStore={this.props.gitUserStore}
+                      gitHubUserStore={this.props.gitHubUserStore}
                       dispatcher={this.props.dispatcher}/>
         </Resizable>
         <Resizable configKey='commit-summary-width'>

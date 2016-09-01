@@ -2,7 +2,7 @@ import User from '../models/user'
 import Repository from '../models/repository'
 import { Commit, Branch } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
-import { CloningRepository } from './dispatcher'
+import { CloningRepository, IGitHubUser } from './dispatcher'
 
 /** All of the shared app state. */
 export interface IAppState {
@@ -70,6 +70,12 @@ export interface IHistoryState {
   readonly loading: boolean
 
   readonly changedFiles: ReadonlyArray<FileChange>
+
+  /**
+   * Map from commits to their associated git user. Note that a commit may not
+   * have a git user author.
+   */
+  readonly commitAuthors: Map<Commit, IGitHubUser>
 }
 
 export interface IChangesState {

@@ -7,7 +7,7 @@ import { ipcRenderer, remote } from 'electron'
 
 import App from './app'
 import { WindowState, getWindowState } from '../lib/window-state'
-import { Dispatcher, AppStore, GitUserStore, GitUserDatabase, CloningRepositoriesStore } from '../lib/dispatcher'
+import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import Repository from '../models/repository'
 import { find } from '../lib/find'
@@ -20,9 +20,9 @@ if (!process.env.TEST_ENV) {
 }
 
 const appStore = new AppStore()
-const gitUserStore = new GitUserStore(new GitUserDatabase('GitUserDatabase'))
+const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
 const cloningRepositoriesStore = new CloningRepositoriesStore()
-const dispatcher = new Dispatcher(appStore, gitUserStore, cloningRepositoriesStore)
+const dispatcher = new Dispatcher(appStore, gitHubUserStore, cloningRepositoriesStore)
 dispatcher.loadInitialState()
 
 document.body.classList.add(`platform-${process.platform}`)
@@ -77,6 +77,6 @@ function openRepository(url: string) {
 }
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore} gitUserStore={gitUserStore} cloningRepositoriesStore={cloningRepositoriesStore}/>,
+  <App dispatcher={dispatcher} appStore={appStore} gitHubUserStore={gitHubUserStore} cloningRepositoriesStore={cloningRepositoriesStore}/>,
   document.getElementById('desktop-app-container')!
 )

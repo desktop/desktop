@@ -6,7 +6,7 @@ import guid from '../guid'
 import { IHistorySelection, RepositorySection, Popup, IAppError } from '../app-state'
 import { Action } from './actions'
 import AppStore from './app-store'
-import GitUserStore from './git-user-store'
+import GitHubUserStore from './github-user-store'
 import { CloningRepositoriesStore, CloningRepository } from './cloning-repositories-store'
 import { URLActionType } from '../parse-url'
 import { Branch } from '../local-git-operations'
@@ -46,12 +46,12 @@ type IPCResponse<T> = IResult<T> | IError
  */
 export class Dispatcher {
   private appStore: AppStore
-  private gitUserStore: GitUserStore
+  private gitHubUserStore: GitHubUserStore
   private cloningRepositoriesStore: CloningRepositoriesStore
 
-  public constructor(appStore: AppStore, gitUserStore: GitUserStore, cloningRepositoriesStore: CloningRepositoriesStore) {
+  public constructor(appStore: AppStore, gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore) {
     this.appStore = appStore
-    this.gitUserStore = gitUserStore
+    this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
@@ -234,9 +234,9 @@ export class Dispatcher {
     return this.appStore._refreshRepository(repository)
   }
 
-  /** Try to find the git user for the repository, SHA, and email. */
+  /** Try to find the GitHub user for the repository, SHA, and email. */
   public loadAndCacheUser(repository: Repository, sha: string | null, email: string): Promise<void> {
-    return this.gitUserStore._loadAndCacheUser(this.appStore.getState().users, repository, sha, email)
+    return this.gitHubUserStore._loadAndCacheUser(this.appStore.getState().users, repository, sha, email)
   }
 
   /** Show the popup. This will close any current popup. */

@@ -5,12 +5,12 @@ import CommitListItem from './commit-list-item'
 import List from '../list'
 import CommitFacadeListItem from './commit-facade-list-item'
 import { findIndex } from '../../lib/find'
-import { Dispatcher, GitUserStore, IGitUser } from '../../lib/dispatcher'
+import { Dispatcher, GitHubUserStore, IGitHubUser } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 
 const RowHeight = 68
 
-const DefaultGitUser: IGitUser = {
+const DefaultGitHubUser: IGitHubUser = {
   endpoint: '',
   email: '',
   login: null,
@@ -23,7 +23,7 @@ interface ICommitListProps {
   readonly commits: ReadonlyArray<Commit>
   readonly selectedCommit: Commit | null
   readonly commitCount: number
-  readonly gitUserStore: GitUserStore
+  readonly gitHubUserStore: GitHubUserStore
   readonly repository: Repository
   readonly dispatcher: Dispatcher
 }
@@ -36,7 +36,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
 
   public componentDidMount() {
     this.disposable = new CompositeDisposable()
-    this.disposable.add(this.props.gitUserStore.onDidUpdate(() => this.forceUpdate()))
+    this.disposable.add(this.props.gitHubUserStore.onDidUpdate(() => this.forceUpdate()))
   }
 
   public componentWillUnmount() {
@@ -46,14 +46,14 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
   private renderCommit(row: number) {
     const commit: Commit | null = this.props.commits[row]
     if (commit) {
-      let gitUser = this.props.gitUserStore.getUser(this.props.repository, commit.authorEmail)
-      if (!gitUser) {
-        gitUser = DefaultGitUser
+      let gitHubUser = this.props.gitHubUserStore.getUser(this.props.repository, commit.authorEmail)
+      if (!gitHubUser) {
+        gitHubUser = DefaultGitHubUser
 
         this.props.dispatcher.loadAndCacheUser(this.props.repository, commit.sha, commit.authorEmail)
       }
 
-      return <CommitListItem key={commit.sha} commit={commit} gitUser={gitUser}/>
+      return <CommitListItem key={commit.sha} commit={commit} gitHubUser={gitHubUser}/>
     } else {
       return <CommitFacadeListItem key={row}/>
     }

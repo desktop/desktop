@@ -3,14 +3,14 @@ import { ChangesList } from './changes-list'
 import FileDiff from '../file-diff'
 import { IChangesState } from '../../lib/app-state'
 import Repository from '../../models/repository'
-import { Dispatcher, GitUserStore, IGitUser } from '../../lib/dispatcher'
+import { Dispatcher, GitHubUserStore, IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
 
 interface IChangesProps {
   repository: Repository
   changes: IChangesState
   dispatcher: Dispatcher
-  gitUserStore: GitUserStore
+  gitHubUserStore: GitHubUserStore
   committerEmail: string | null
   branch: string | null
 }
@@ -56,9 +56,9 @@ export class Changes extends React.Component<IChangesProps, void> {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
 
     const email = this.props.committerEmail
-    let user: IGitUser | null = null
+    let user: IGitHubUser | null = null
     if (email) {
-      user = this.props.gitUserStore.getUser(this.props.repository, email)
+      user = this.props.gitHubUserStore.getUser(this.props.repository, email)
       if (!user) {
         this.props.dispatcher.loadAndCacheUser(this.props.repository, null, email)
       }

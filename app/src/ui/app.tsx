@@ -6,7 +6,7 @@ import RepositoriesList from './repositories-list'
 import { default as RepositoryView } from './repository'
 import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
-import { Dispatcher, AppStore, GitUserStore, CloningRepositoriesStore, CloningRepository } from '../lib/dispatcher'
+import { Dispatcher, AppStore, GitHubUserStore, CloningRepositoriesStore, CloningRepository } from '../lib/dispatcher'
 import Repository from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
@@ -24,7 +24,7 @@ import { showPopupAppMenu, setMenuEnabled } from './main-process-proxy'
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
-  readonly gitUserStore: GitUserStore
+  readonly gitHubUserStore: GitHubUserStore
   readonly cloningRepositoriesStore: CloningRepositoriesStore
 }
 
@@ -52,7 +52,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
         })
 
         for (const user of gitUsers) {
-          this.props.gitUserStore.cacheUser(user)
+          this.props.gitHubUserStore.cacheUser(user)
         }
       })
 
@@ -341,7 +341,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
         <RepositoryView repository={selectedRepository}
                         state={this.state.repositoryState!}
                         dispatcher={this.props.dispatcher}
-                        gitUserStore={this.props.gitUserStore}/>
+                        gitHubUserStore={this.props.gitHubUserStore}/>
       )
     } else if (selectedRepository instanceof CloningRepository) {
       const progress = this.props.cloningRepositoriesStore.getProgress(selectedRepository)
