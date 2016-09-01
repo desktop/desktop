@@ -239,6 +239,10 @@ export default class AppStore {
     }
 
     this.emitUpdate()
+
+    for (const commit of commits) {
+      this.gitHubUserStore._loadAndCacheUser(this.users, repository, commit.sha, commit.authorEmail)
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
