@@ -10,7 +10,7 @@ import GitUserStore from './git-user-store'
 import { CloningRepositoriesStore, CloningRepository } from './cloning-repositories-store'
 import { URLActionType } from '../parse-url'
 import { Branch } from '../local-git-operations'
-import { IAPIUser } from '../../lib/api'
+import { IGraphAPIUser } from '../../lib/graph-api'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -270,7 +270,7 @@ export class Dispatcher {
   }
 
   /** Publish the repository to GitHub with the given properties. */
-  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
+  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IGraphAPIUser | null): Promise<void> {
     await this.appStore._publishRepository(repository, name, description, private_, account, org)
     return this.refreshGitHubRepositoryInfo(repository)
   }

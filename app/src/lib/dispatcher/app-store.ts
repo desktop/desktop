@@ -7,8 +7,8 @@ import GitHubRepository from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
-import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
-import GraphAPI from '../../lib/graph-api'
+import { getUserForEndpoint } from '../../lib/api'
+import GraphAPI, { IGraphAPIUser } from '../../lib/graph-api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { CloningRepository } from './cloning-repositories-store'
 import { findIndex, find } from '../find'
@@ -827,8 +827,8 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
-    const api = new API(account)
+  public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IGraphAPIUser | null): Promise<void> {
+    const api = new GraphAPI(account)
     const apiRepository = await api.createRepository(org, name, description, private_)
 
     await LocalGitOperations.addRemote(repository.path, 'origin', apiRepository.cloneUrl)
