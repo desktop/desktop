@@ -101,7 +101,7 @@ export default class GraphAPI {
     return results
   }
 
-  public async fetchRepository(owner: string, name: string): Promise<IGraphAPIRepository | null> {
+  public async fetchRepository(owner: string, name: string): Promise<IGraphAPIRepository> {
     const query = `
     query ($owner: String!, $name: String!) {
       repositoryOwner(login: $owner) {
@@ -131,13 +131,13 @@ export default class GraphAPI {
 
     if (response.status === 404) {
       console.error(`[fetchRepository] - unable to access repository ${owner}/${name}`)
-      return null
+      return Promise.reject(`unable to fetch repository information for ${owner}/${name}`)
     }
 
     const contents = response.value
     if (contents.repositoryOwner === null) {
-      console.error(`[fetchRepository] - no repository owner found for ${owner}/${name}`)
-      return null
+      console.error(`[fetchRepository] - invalid response for ${owner}/${name}`)
+      return Promise.reject(`invalid response when fetching repository ${owner}/${name}`)
     }
 
     const repository = contents.repositoryOwner.repository
@@ -220,11 +220,19 @@ export default class GraphAPI {
   public async searchForUserWithEmail(email: string): Promise<IGraphAPIUser | null> {
 
     const query = `
-    query ($email: String!) {
-      search(first: 1, type: USER, query: $email) {
-       edges {
-         node {
-           // TODO: seems incomplete
+    query ($query: String!) {
+      search(first: 1, type: USER, query: $query) {
+        userCount
+        edges {
+          cursor
+          node {
+            ... on User {
+              id
+              login
+              avatarURL
+              websiteURL
+              name
+            }
           }
         }
       }
@@ -232,7 +240,7 @@ export default class GraphAPI {
     const payload = { operationName: null,
       query: query,
       variables: {
-        'email': email
+        'query': `in:email ${email}`
         }
       }
 
@@ -243,22 +251,21 @@ export default class GraphAPI {
       return null
     }
 
-    // TODO: need to handle the pagination-esque payload here
+    const results = response.value.search
 
-    const contents = response.value
-    if (contents.repositoryOwner === null) {
+    if (results.userCount === 0) {
       console.error(`[searchForUserWithEmail] - result doesn't exit for ${email}`)
       return null
     }
 
-    const commit = contents.repositoryOwner.repository.commit
+    const user = results.edges[0].node
 
     return {
-        id: commit.id,
-        url: commit.user.websiteURL,
+        id: user.id,
+        url: user.websiteURL,
         type: 'user',
-        login: commit.user.login,
-        avatarUrl: commit.user.avatarURL
+        login: user.login,
+        avatarUrl: user.avatarURL
     }
   }
 
