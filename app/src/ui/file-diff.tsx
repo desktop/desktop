@@ -25,12 +25,9 @@ interface IFileDiffState {
 }
 
 export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
-
-  private defaultSidebarWidth = 100
-
   private grid: React.Component<any, any> | null
 
-  private resetMeasurements: any
+  private resetMeasurements: () => void
 
   public constructor(props: IFileDiffProps) {
     super(props)
@@ -42,15 +39,14 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     this.renderDiff(nextProps.repository, nextProps.file, nextProps.readOnly)
   }
 
-  private handleResize() {
+  private forceResize() {
     if (this.resetMeasurements) {
-      console.log('reset!')
       this.resetMeasurements()
     }
+
     const grid: any = this.grid
     if (grid) {
       grid.recomputeGridSize({ columnIndex: 0, rowIndex: 0 })
-      grid.recomputeGridSize({ columnIndex: 1, rowIndex: 0 })
     }
   }
 
@@ -88,7 +84,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
 
     this.setState(Object.assign({}, this.state, { diff }))
-    this.handleResize()
+    this.forceResize()
   }
 
   private getClassName(type: DiffLineType): string {
@@ -100,17 +96,6 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       return 'diff-hunk'
     }
     return 'diff-context'
-  }
-
-  private getColumnWidth ({ index, availableWidth }: { index: number, availableWidth: number }) {
-    switch (index) {
-      case 1:
-        // TODO: how is this going to work with wrapping?
-        //       or a variable-width sidebar ala #306
-        return (availableWidth - this.defaultSidebarWidth)
-      default:
-        return this.defaultSidebarWidth
-    }
   }
 
   private getDiffLineFromSection(index: number): DiffLine | null {
@@ -248,10 +233,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   public render() {
-
     const file = this.props.file
     if (file) {
-
       const invalidationProps = { path: file.path, selection: DiffSelectionType.None }
       if (file instanceof WorkingDirectoryFileChange) {
         invalidationProps.selection = file.selection.getSelectionType()
@@ -264,35 +247,30 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
         .forEach(c => diffLineCount += c)
 
       const cellRenderer = ({ columnIndex, rowIndex }: { columnIndex: number, rowIndex: number }) => this.cellRenderer({ columnIndex, rowIndex })
-      const columnWidth = (width: number) => ({ index }: { index: number }) => this.getColumnWidth( { index, availableWidth: width })
-      columnWidth
-      // console.log(columnWidth)
 
       return (
         <div className='panel' id='file-diff'>
-          <AutoSizer onResize={ () => this.handleResize() }>
+          <AutoSizer onResize={() => this.forceResize()}>
           {({ width, height }: { width: number, height: number }) => (
             <CellMeasurer
               cellRenderer={cellRenderer}
               columnCount={2}
               rowCount={diffLineCount}
               height={height}>
-              {({ getColumnWidth, resetMeasurements }: any) => {
-                // console.log(getColumnWidth(1))
+              {({ getColumnWidth, resetMeasurements }: { getColumnWidth: Function, resetMeasurements: () => void }) => {
                 this.resetMeasurements = resetMeasurements
-              return (<Grid
-                // autoContainerWidth
-                ref={(ref: React.Component<any, any>) => this.grid = ref}
-                cellRenderer={cellRenderer}
-                columnCount={2}
-                columnWidth={getColumnWidth}
-                width={width}
-                height={height}
-                rowHeight={RowHeight}
-                rowCount={diffLineCount}
-                invalidationProps={invalidationProps}
-              />)
-            }}
+                return (<Grid
+                  ref={(ref: React.Component<any, any>) => this.grid = ref}
+                  cellRenderer={cellRenderer}
+                  columnCount={2}
+                  columnWidth={getColumnWidth}
+                  width={width}
+                  height={height}
+                  rowHeight={RowHeight}
+                  rowCount={diffLineCount}
+                  invalidationProps={invalidationProps}
+                />)
+              }}
             </CellMeasurer>
           )}
           </AutoSizer>
