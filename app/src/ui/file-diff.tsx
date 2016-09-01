@@ -27,7 +27,7 @@ interface IFileDiffState {
 export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
   private grid: React.Component<any, any> | null
 
-  private resetMeasurements: () => void
+  private resetMeasurements: (() => void) | null = null
 
   public constructor(props: IFileDiffProps) {
     super(props)
