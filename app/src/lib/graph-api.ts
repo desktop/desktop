@@ -269,7 +269,7 @@ export default class GraphAPI {
     const query = `
     {
       viewer {
-        organizations(first: ${size} ${ since ? 'after: ' + since : '' }) {
+        organizations(first: ${size} ${ since ? 'after: \"' + since + '\"' : '' }) {
           pageInfo {
             hasNextPage
           }
@@ -295,22 +295,23 @@ export default class GraphAPI {
     const results: IGraphAPIUser[] = []
 
     if (response.status === 404) {
-      console.debug(`[fetchOrgs] - unable to fetch orgs for current user`)
+      console.debug(`[fetchPageOfOrgs] - unable to fetch orgs for current user`)
       return  { results: results, hasNextPage: false, endCursor: null }
     }
 
-    const contents = response.value
-    if (contents.viewer === null) {
-      console.debug(`[fetchOrgs] - user does not exist`)
+    const data = response.value
+    if (data.viewer === null) {
+      console.debug(`[fetchPageOfOrgs] - user does not exist`)
       return  { results: results, hasNextPage: false, endCursor: null }
     }
 
     let lastCursor = ''
-    const organizations = contents.viewer.organizations.edges
+    const organizations = data.viewer.organizations
+    const edges = organizations.edges
 
-    for (let i = 0; i < organizations.length; i++) {
+    for (let i = 0; i < edges.length; i++) {
 
-      const result = organizations[i]
+      const result = edges[i]
       lastCursor = result.cursor
 
       const organization = result.node
@@ -324,7 +325,7 @@ export default class GraphAPI {
       })
     }
 
-    const hasNextPage = contents.viewer.organizations.hasNextPage
+    const hasNextPage = organizations.pageInfo.hasNextPage
 
     return  { results: results, hasNextPage: hasNextPage, endCursor: lastCursor }
   }
@@ -332,8 +333,6 @@ export default class GraphAPI {
   public async fetchOrgs(): Promise<ReadonlyArray<IGraphAPIUser>> {
     const results: IGraphAPIUser[] = []
     let cursor: string | null = null
-
-    debugger
 
     while (true) {
       const page: IPaginationResult<IGraphAPIUser> = await this.fetchPageOfOrgs(5, cursor)
