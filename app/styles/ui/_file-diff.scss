@@ -37,8 +37,40 @@
 
 .diff-line-content,
 .diff-line-column {
-  display: flex;
+  // display: flex;
+  width: 100%;
   height: 100%;
+
+  font-family: var(--font-family-monospace);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  text-align: left;
+  text-orientation: upright;
+  font-kerning: initial;
+  word-wrap: break-word;
+  word-break: break-all;
+  white-space: pre;
+
+  .before, .after, .diff-content-text {
+    padding: var(--spacing-third) var(--spacing-half);
+  }
+}
+.diff-content-text {
+  padding: var(--spacing-third) var(--spacing-half);
+}
+
+.diff-line-number {
+  .before {
+    border-right: 1px solid var(--diff-border-color);
+  }
+
+  .after {
+    border-right: 3px solid var(--diff-border-color);
+  }
+
+  .before, .after, .diff-content-text {
+    padding: var(--spacing-third) var(--spacing-half);
+  }
 }
 
 .diff-text .before,
