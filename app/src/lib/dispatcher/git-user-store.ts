@@ -2,7 +2,8 @@ import { Emitter, Disposable } from 'event-kit'
 import Repository from '../../models/repository'
 import User from '../../models/user'
 import GitHubRepository from '../../models/github-repository'
-import API, { getUserForEndpoint, getDotComAPIEndpoint } from '../api'
+import { getUserForEndpoint, getDotComAPIEndpoint } from '../api'
+import GraphAPI from '../graph-api'
 import { GitUserDatabase, IGitUser } from './git-user-database'
 
 /**
@@ -87,7 +88,7 @@ export default class GitUserStore {
   }
 
   private async findUserWithAPI(user: User, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitUser | null> {
-    const api = new API(user)
+    const api = new GraphAPI(user)
     if (sha) {
       const apiCommit = await api.fetchCommit(repository.owner.login, repository.name, sha)
       if (apiCommit) {
