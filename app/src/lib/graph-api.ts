@@ -92,8 +92,99 @@ export default class GraphAPI {
      return { status: status, value: contents }
    }
 
+   private async fetchPageOfRepos(size: number, since: string | null): Promise<IPaginationResult<IGraphAPIRepository>> {
+     const query = `
+     {
+        viewer {
+          repositories(first: ${size} ${ since ? 'after: \"' + since + '\"' : '' }) {
+            pageInfo {
+              hasNextPage
+            }
+            edges {
+              cursor
+              node {
+                id
+                name
+                owner {
+                  login
+                }
+                isFork
+                isPrivate
+                stars(first: 1) {
+                  totalCount
+                }
+              }
+            }
+          }
+        }
+      }`
+     const payload = {
+       query: query,
+       variables: ''
+     }
+
+     const response = await this.makeRequest<any>(payload)
+
+     const results: IGraphAPIRepository[] = []
+
+     if (response.status === 404) {
+       console.debug(`[fetchPageOfRepos] - unable to fetch repositories for current user`)
+       return  { results: results, hasNextPage: false, endCursor: null }
+     }
+
+     const data = response.value
+     if (data.viewer === null) {
+       console.debug(`[fetchPageOfRepos] - user does not exist`)
+       return  { results: results, hasNextPage: false, endCursor: null }
+     }
+
+     let lastCursor = ''
+     const repositories = data.viewer.repositories
+     const edges = repositories.edges
+
+     for (let i = 0; i < edges.length; i++) {
+
+       const result = edges[i]
+       lastCursor = result.cursor
+
+       const repository = result.node
+
+       results.push({
+         cloneUrl: '',
+         htmlUrl: '',
+         name: repository.name,
+         owner: {
+           id: repository.owner.id,
+           type: 'user',
+           login: repository.owner.login,
+           avatarUrl: repository.owner.avatarUrl,
+           url: `https://api.github.com/users/${repository.owner.login}`
+         },
+         private: repository.isPrivate,
+         fork: repository.isFork,
+         stargazersCount: repository.stars.totalCount,
+         defaultBranch: repository.defaultBranch
+       })
+     }
+
+     const hasNextPage = repositories.pageInfo.hasNextPage
+
+     return  { results: results, hasNextPage: hasNextPage, endCursor: lastCursor }
+   }
+
   public async fetchRepos(): Promise<ReadonlyArray<IGraphAPIRepository>> {
     const results: IGraphAPIRepository[] = []
+    let cursor: string | null = null
+
+    while (true) {
+      const page: IPaginationResult<IGraphAPIRepository> = await this.fetchPageOfRepos(30, cursor)
+      page.results.forEach(r => results.push(r))
+      cursor = page.endCursor
+      if (!page.hasNextPage) {
+        break
+      }
+    }
+
     return results
   }
 
