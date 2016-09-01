@@ -40,6 +40,12 @@ export default class AppStore {
 
   private gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
 
+  public constructor() {
+    this.gitHubUserStore.onDidUpdate(() => {
+      this.emitUpdate()
+    })
+  }
+
   private emitUpdate() {
     if (this.emitQueued) { return }
 
