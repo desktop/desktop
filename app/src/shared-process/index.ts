@@ -8,6 +8,7 @@ import Repository, { IRepository } from '../models/repository'
 import { register, broadcastUpdate as broadcastUpdate_ } from './communication'
 import { IURLAction, IAddRepositoriesAction, IUpdateGitHubRepositoryAction, IRemoveRepositoriesAction } from '../lib/dispatcher'
 import API, { getDotComAPIEndpoint } from '../lib/api'
+import GraphAPI from '../lib/graph-api'
 
 const Octokat = require('octokat')
 
@@ -24,7 +25,8 @@ updateUsers()
 async function updateUsers() {
   await usersStore.map(async (user: User) => {
     const api = new API(user)
-    const updatedUser = await api.fetchUser()
+    const graphApi = new GraphAPI(user)
+    const updatedUser = await graphApi.fetchUser()
     const emails = await api.fetchEmails()
     const justTheEmails = emails.map(e => e.email)
     return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl, updatedUser.id.toString())

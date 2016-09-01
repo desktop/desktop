@@ -1,5 +1,4 @@
 import User from '../models/user'
-import API from './api'
 
  /**
   * Information about a repository as returned by the GitHub API.
@@ -55,21 +54,10 @@ interface IPaginationResult<T> {
 export default class GraphAPI {
   private readonly rootURL = 'https://api.github.com/graphql'
   private readonly token: string
-  private readonly api: API
 
   public constructor(user: User) {
     this.token = user.token
-    this.api = new API(user)
   }
-
-  /**
-   * Loads all repositories accessible to the current user.
-   *
-   * Loads public and private repositories across all organizations
-   * as well as the user account.
-   *
-   * @returns A promise yielding an array of {APIRepository} instances or error
-   */
 
    private async makeRequest<T>(payload: any): Promise<IGraphQLResponse<T>> {
      const headers = new Headers()
@@ -172,6 +160,15 @@ export default class GraphAPI {
      return  { results: results, hasNextPage: hasNextPage, endCursor: lastCursor }
    }
 
+
+ /**
+  * Loads all repositories accessible to the current user.
+  *
+  * Loads public and private repositories across all organizations
+  * as well as the user account.
+  *
+  * @returns A promise yielding an array of {APIRepository} instances or error
+  */
   public async fetchRepos(): Promise<ReadonlyArray<IGraphAPIRepository>> {
     const results: IGraphAPIRepository[] = []
     let cursor: string | null = null
@@ -188,6 +185,12 @@ export default class GraphAPI {
     return results
   }
 
+  /** Fetch the logged in user. */
+  public fetchUser(): Promise<IGraphAPIUser> {
+    return Promise.reject('TODO')
+  }
+
+  /** Fetch a repo by its owner and name. */
   public async fetchRepository(owner: string, name: string): Promise<IGraphAPIRepository> {
     const query = `
     query ($owner: String!, $name: String!) {
@@ -437,6 +440,7 @@ export default class GraphAPI {
     return results
   }
 
+  /** Create a new GitHub repository with the given properties. */
   public async createRepository(org: IGraphAPIUser | null, name: string, description: string, private_: boolean): Promise<IGraphAPIRepository> {
     if (org) {
       return Promise.reject('TODO')
