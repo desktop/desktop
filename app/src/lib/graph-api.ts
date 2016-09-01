@@ -317,7 +317,7 @@ export default class GraphAPI {
       const organization = result.node
 
       results.push({
-        id: organization,
+        id: organization.id,
         type: 'org',
         login: organization.login,
         avatarUrl: organization.avatarURL,
@@ -335,7 +335,7 @@ export default class GraphAPI {
     let cursor: string | null = null
 
     while (true) {
-      const page: IPaginationResult<IGraphAPIUser> = await this.fetchPageOfOrgs(5, cursor)
+      const page: IPaginationResult<IGraphAPIUser> = await this.fetchPageOfOrgs(30, cursor)
       page.results.forEach(r => results.push(r))
       cursor = page.endCursor
       if (!page.hasNextPage) {
