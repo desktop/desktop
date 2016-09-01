@@ -30,6 +30,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   private grid: React.Component<any, any> | null
 
+  private resetMeasurements: any
+
   public constructor(props: IFileDiffProps) {
     super(props)
 
@@ -41,9 +43,14 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private handleResize() {
+    if (this.resetMeasurements) {
+      console.log('reset!')
+      this.resetMeasurements()
+    }
     const grid: any = this.grid
     if (grid) {
       grid.recomputeGridSize({ columnIndex: 0, rowIndex: 0 })
+      grid.recomputeGridSize({ columnIndex: 1, rowIndex: 0 })
     }
   }
 
@@ -81,6 +88,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
 
     this.setState(Object.assign({}, this.state, { diff }))
+    this.handleResize()
   }
 
   private getClassName(type: DiffLineType): string {
@@ -274,6 +282,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
               height={height}>
               {({ getColumnWidth, resetMeasurements }: any) => {
                 // console.log(getColumnWidth(1))
+                this.resetMeasurements = resetMeasurements
               return (<Grid
                 // autoContainerWidth
                 ref={(ref: React.Component<any, any>) => this.grid = ref}
