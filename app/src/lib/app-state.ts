@@ -46,6 +46,13 @@ export interface IRepositoryState {
   readonly selectedSection: RepositorySection
   readonly committerEmail: string | null
   readonly branchesState: IBranchesState
+
+  /**
+   * Mapping from email addresses to the associated GitHub user. Note that an
+   * email address may not have an associated GitHub user, or the user may still
+   * be loading.
+   */
+  readonly gitHubUsers: Map<string, IGitHubUser>
 }
 
 export interface IBranchesState {
@@ -70,12 +77,6 @@ export interface IHistoryState {
   readonly loading: boolean
 
   readonly changedFiles: ReadonlyArray<FileChange>
-
-  /**
-   * Map from commits to their associated git user. Note that a commit may not
-   * have a git user author.
-   */
-  readonly commitAuthors: Map<Commit, IGitHubUser>
 }
 
 export interface IChangesState {

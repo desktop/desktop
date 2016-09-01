@@ -63,7 +63,6 @@ export default class AppStore {
         commitCount: 0,
         changedFiles: new Array<FileChange>(),
         loading: true,
-        commitAuthors: new Map<Commit, IGitHubUser>(),
       },
       changesState: {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
@@ -78,6 +77,7 @@ export default class AppStore {
         commits: new Map<string, Commit>(),
       },
       committerEmail: null,
+      gitHubUsers: new Map<string, IGitHubUser>(),
     }
   }
 
@@ -104,6 +104,7 @@ export default class AppStore {
         selectedSection: state.selectedSection,
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
   }
@@ -117,6 +118,7 @@ export default class AppStore {
         selectedSection: state.selectedSection,
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
   }
@@ -130,6 +132,7 @@ export default class AppStore {
         selectedSection: state.selectedSection,
         committerEmail: state.committerEmail,
         branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
   }
@@ -162,7 +165,6 @@ export default class AppStore {
         changedFiles: state.changedFiles,
         commitCount: state.commitCount,
         loading: true,
-        commitAuthors: state.commitAuthors,
       }
     })
     this.emitUpdate()
@@ -196,7 +198,6 @@ export default class AppStore {
         changedFiles: state.changedFiles,
         commitCount,
         loading: false,
-        commitAuthors: state.commitAuthors,
       }
     })
 
@@ -241,7 +242,6 @@ export default class AppStore {
         changedFiles: state.changedFiles,
         commitCount: state.commitCount,
         loading: true,
-        commitAuthors: state.commitAuthors,
       }
     })
     this.emitUpdate()
@@ -256,7 +256,6 @@ export default class AppStore {
         changedFiles: state.changedFiles,
         commitCount: state.commitCount,
         loading: false,
-        commitAuthors: state.commitAuthors,
       }
     })
     this.emitUpdate()
@@ -285,7 +284,6 @@ export default class AppStore {
         changedFiles,
         commitCount: state.commitCount,
         loading: state.loading,
-        commitAuthors: state.commitAuthors,
       }
     })
     this.emitUpdate()
@@ -303,7 +301,6 @@ export default class AppStore {
         changedFiles,
         commitCount: state.commitCount,
         loading: state.loading,
-        commitAuthors: state.commitAuthors,
       }
     })
     this.emitUpdate()
@@ -422,6 +419,7 @@ export default class AppStore {
         selectedSection: section,
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
     this.emitUpdate()
@@ -501,6 +499,7 @@ export default class AppStore {
         historyState: state.historyState,
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
     this.emitUpdate()
@@ -538,6 +537,7 @@ export default class AppStore {
         historyState: state.historyState,
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
     this.emitUpdate()
@@ -603,6 +603,7 @@ export default class AppStore {
         historyState: state.historyState,
         committerEmail: email,
         branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
     this.emitUpdate()
