@@ -11,6 +11,7 @@ import { Dispatcher, AppStore, CloningRepositoriesStore } from '../lib/dispatche
 import { URLActionType } from '../lib/parse-url'
 import Repository from '../models/repository'
 import { getDefaultDir } from './lib/default-dir'
+import { showMainWindow } from './main-process-proxy'
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
@@ -21,7 +22,9 @@ if (!process.env.TEST_ENV) {
 const appStore = new AppStore()
 const cloningRepositoriesStore = new CloningRepositoriesStore()
 const dispatcher = new Dispatcher(appStore, cloningRepositoriesStore)
-dispatcher.loadInitialState()
+dispatcher.loadInitialState().then(() => {
+  showMainWindow()
+})
 
 document.body.classList.add(`platform-${process.platform}`)
 
