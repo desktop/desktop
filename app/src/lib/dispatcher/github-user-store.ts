@@ -83,7 +83,7 @@ export default class GitHubUserStore {
     const api = new API(user)
     if (sha) {
       const apiCommit = await api.fetchCommit(repository.owner.login, repository.name, sha)
-      if (apiCommit) {
+      if (apiCommit && apiCommit.author) {
         return {
           email,
           login: apiCommit.author.login,
