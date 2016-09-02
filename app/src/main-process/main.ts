@@ -112,6 +112,10 @@ app.on('ready', () => {
       fatalError(`Unknown menu id: ${id}`)
     }
   })
+
+  ipcMain.on('show-main-window', () => {
+    getMainWindow().show()
+  })
 })
 
 app.on('activate', () => {

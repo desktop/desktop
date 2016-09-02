@@ -11,6 +11,7 @@ import { Dispatcher, AppStore, GitUserStore, GitUserDatabase, CloningRepositorie
 import { URLActionType } from '../lib/parse-url'
 import Repository from '../models/repository'
 import { getDefaultDir } from './lib/default-dir'
+import { showMainWindow } from './main-process-proxy'
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
@@ -22,7 +23,9 @@ const appStore = new AppStore()
 const gitUserStore = new GitUserStore(new GitUserDatabase('GitUserDatabase'))
 const cloningRepositoriesStore = new CloningRepositoriesStore()
 const dispatcher = new Dispatcher(appStore, gitUserStore, cloningRepositoriesStore)
-dispatcher.loadInitialState()
+dispatcher.loadInitialState().then(() => {
+  showMainWindow()
+})
 
 document.body.classList.add(`platform-${process.platform}`)
 
