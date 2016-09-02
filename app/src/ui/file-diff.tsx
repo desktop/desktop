@@ -6,8 +6,6 @@ import { DiffSelectionType, DiffLine, DiffLineType, Diff } from '../models/diff'
 
 import { LocalGitOperations, Commit } from '../lib/local-git-operations'
 
-import { find } from '../lib/find'
-
 const { Grid, AutoSizer, CellMeasurer } = require('react-virtualized')
 
 const RowHeight = 22
@@ -65,7 +63,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
       if (selectionType === DiffSelectionType.Partial) {
         diffSelection.selectedLines.forEach((value, index) => {
-          const section = find(diff.sections, s => {
+          const section = diff.sections.find(s => {
             return index >= s.unifiedDiffStart && index < s.unifiedDiffEnd
           })
 
@@ -99,7 +97,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private getDiffLineFromSection(index: number): DiffLine | null {
-    const diff = find(this.state.diff.sections, s => index >= s.unifiedDiffStart && index < s.unifiedDiffEnd)
+    const diff = this.state.diff.sections.find(s => index >= s.unifiedDiffStart && index < s.unifiedDiffEnd)
 
     if (diff) {
       const relativeIndex = index - diff.unifiedDiffStart

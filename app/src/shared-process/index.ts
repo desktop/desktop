@@ -52,7 +52,7 @@ register('get-users', () => {
 
 register('add-repositories', async ({ paths }: IAddRepositoriesAction) => {
   const addedRepos: Repository[] = []
-  for (const path of Array.from(paths)) {
+  for (const path of paths) {
     const addedRepo = await repositoriesStore.addRepository(path)
     addedRepos.push(addedRepo)
   }
@@ -63,7 +63,7 @@ register('add-repositories', async ({ paths }: IAddRepositoriesAction) => {
 
 register('remove-repositories', async ({ repositoryIDs }: IRemoveRepositoriesAction) => {
   const removedRepoIDs: number[] = []
-  for (const repoID of Array.from(repositoryIDs)) {
+  for (const repoID of repositoryIDs) {
     await repositoriesStore.removeRepository(repoID)
     removedRepoIDs.push(repoID)
   }
