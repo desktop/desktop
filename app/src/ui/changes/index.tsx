@@ -58,7 +58,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     const email = this.props.committerEmail
     let user: IGitHubUser | null = null
     if (email) {
-      user = this.props.gitHubUsers.get(email) || null
+      user = this.props.gitHubUsers.get(email.toLowerCase()) || null
     }
 
     const avatarURL = user ? user.avatarURL : 'https://github.com/hubot.png'

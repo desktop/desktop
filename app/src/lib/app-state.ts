@@ -48,9 +48,9 @@ export interface IRepositoryState {
   readonly branchesState: IBranchesState
 
   /**
-   * Mapping from email addresses to the associated GitHub user. Note that an
-   * email address may not have an associated GitHub user, or the user may still
-   * be loading.
+   * Mapping from lowercased email addresses to the associated GitHub user. Note
+   * that an email address may not have an associated GitHub user, or the user
+   * may still be loading.
    */
   readonly gitHubUsers: Map<string, IGitHubUser>
 }
