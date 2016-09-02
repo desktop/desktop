@@ -23,6 +23,9 @@ copyDependencies()
 console.log('Packaging embedded Git…')
 copyGitDirectory()
 
+console.log('Packaging emoji…')
+copyEmoji()
+
 if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
@@ -96,6 +99,25 @@ function copyGitDirectory () {
   const destination = path.join(outRoot, 'git')
   fs.removeSync(destination)
   fs.copySync(source, destination)
+}
+
+function copyEmoji () {
+  const copyImages = () => {
+    const source = path.join(projectRoot, 'gemoji', 'images', 'emoji')
+    const destination = path.join(outRoot, 'emoji')
+    fs.removeSync(destination)
+    fs.copySync(source, destination)
+  }
+
+  const copyJson = () => {
+    const source = path.join(projectRoot, 'app', 'static', 'emoji.json')
+    const destination = path.join(outRoot, 'emoji.json')
+    fs.removeSync(destination)
+    fs.copySync(source, destination)
+  }
+
+  copyImages()
+  copyJson()
 }
 
 function copyDependencies () {
