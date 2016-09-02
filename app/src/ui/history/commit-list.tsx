@@ -8,13 +8,6 @@ import Repository from '../../models/repository'
 
 const RowHeight = 68
 
-const DefaultGitHubUser: IGitHubUser = {
-  endpoint: '',
-  email: '',
-  login: null,
-  avatarURL: 'https://github.com/hubot.png',
-}
-
 interface ICommitListProps {
   readonly onCommitSelected: (commit: Commit) => void
   readonly onScroll: (start: number, end: number) => void
@@ -33,11 +26,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
   private renderCommit(row: number) {
     const commit: Commit | null = this.props.commits[row]
     if (commit) {
-      let gitHubUser = this.props.gitHubUsers.get(commit.authorEmail)
-      if (!gitHubUser) {
-        gitHubUser = DefaultGitHubUser
-      }
-
+      const gitHubUser = this.props.gitHubUsers.get(commit.authorEmail) || null
       return <CommitListItem key={commit.sha} commit={commit} gitHubUser={gitHubUser}/>
     } else {
       return <CommitFacadeListItem key={row}/>
