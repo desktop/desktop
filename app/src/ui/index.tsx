@@ -12,6 +12,7 @@ import { URLActionType } from '../lib/parse-url'
 import Repository from '../models/repository'
 import { getDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
+import { showMainWindow } from './main-process-proxy'
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
@@ -22,7 +23,9 @@ if (!process.env.TEST_ENV) {
 const appStore = new AppStore()
 const gitUserStore = new GitUserStore(new GitUserDatabase('GitUserDatabase'))
 const dispatcher = new Dispatcher(appStore, gitUserStore)
-dispatcher.loadInitialState()
+dispatcher.loadInitialState().then(() => {
+  showMainWindow()
+})
 
 document.body.classList.add(`platform-${process.platform}`)
 

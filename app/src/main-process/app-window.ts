@@ -58,8 +58,6 @@ export default class AppWindow {
         this.window.webContents.openDevTools()
       }
 
-      this.window.show()
-
       const now = Date.now()
       this.sharedProcess.console.log(`Loading: ${now - startLoad}ms`)
     })
@@ -133,6 +131,11 @@ export default class AppWindow {
 
   public focus() {
     this.window.focus()
+  }
+
+  /** Show the window. */
+  public show() {
+    this.window.show()
   }
 
   /** Send the menu event to the renderer. */
