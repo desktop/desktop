@@ -349,13 +349,13 @@ export default class AppStore {
     this.repositories = repositories
     this.loading = this.repositories.length === 0 && this.users.length === 0
 
-    users.forEach(user => {
+    for (const user of users) {
       // In theory a user should _always_ have an array of emails (even if it's
       // empty). But in practice, if the user had run old dev builds this may
       // not be the case. So for now we need to guard this. We should remove
       // this check in the not too distant future.
       // @joshaber (August 10, 2016)
-      if (!user.emails) { return }
+      if (!user.emails) { break }
 
       const gitUsers = user.emails.map(email => {
         return {
@@ -369,7 +369,7 @@ export default class AppStore {
       for (const user of gitUsers) {
         this.gitHubUserStore.cacheUser(user)
       }
-    })
+    }
 
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
