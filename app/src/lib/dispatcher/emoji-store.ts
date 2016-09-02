@@ -2,8 +2,10 @@ import * as Fs from 'fs'
 import * as Path from 'path'
 import * as Url from 'url'
 
+const snakeCase = require('snake-case')
+
 export default class EmojiStore {
-  /** Map from shorcut (e.g., +1) to on disk URL. */
+  /** Map from shorcut (e.g., :+1:) to on disk URL. */
   public readonly emoji = new Map<string, string>()
 
   public read(): Promise<void> {
@@ -13,7 +15,10 @@ export default class EmojiStore {
         for (const key of Object.keys(json)) {
           const serverURL = json[key]
           const localPath = serverURLToLocalPath(serverURL)
-          this.emoji.set(key, localPath)
+
+          // For whatever reason, the mapping we get from the API is in camel
+          // case, but it really should be in snake case. So convert it.
+          this.emoji.set(`:${snakeCase(key)}:`, localPath)
         }
 
         resolve()
