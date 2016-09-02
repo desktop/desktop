@@ -25,6 +25,7 @@ interface ICommitListProps {
   readonly gitUserStore: GitUserStore
   readonly repository: Repository
   readonly dispatcher: Dispatcher
+  readonly emoji: Map<string, string>
 }
 
 /** A component which displays the list of commits. */
@@ -52,7 +53,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
         this.props.dispatcher.loadAndCacheUser(this.props.repository, commit.sha, commit.authorEmail)
       }
 
-      return <CommitListItem key={commit.sha} commit={commit} gitUser={gitUser}/>
+      return <CommitListItem key={commit.sha} commit={commit} gitUser={gitUser} emoji={this.props.emoji}/>
     } else {
       return <CommitFacadeListItem key={row}/>
     }
