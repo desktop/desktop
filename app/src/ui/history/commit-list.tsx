@@ -83,7 +83,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
               rowRenderer={row => this.renderCommit(row)}
               onSelectionChanged={row => this.onSelectionChanged(row)}
               onScroll={(scrollTop, clientHeight) => this.onScroll(scrollTop, clientHeight)}
-              invalidationProps={this.props.commits}/>
+              invalidationProps={{ commits: this.props.commits, gitHubUsers: this.props.gitHubUsers }}/>
       </div>
     )
   }
