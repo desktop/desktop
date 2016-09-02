@@ -47,7 +47,8 @@ export default class UsersStore {
     const rawUsers: any[] = JSON.parse(raw)
     const usersWithTokens = rawUsers.map(user => {
       const userWithoutToken = new User(user.login, user.endpoint, '', user.email, user.avatarURL, user.id)
-      return userWithoutToken.withToken(this.secureStore.getItem(getKeyForUser(userWithoutToken), user.login))
+      const token = this.secureStore.getItem(getKeyForUser(userWithoutToken), user.login)
+      return userWithoutToken.withToken(token || '')
     })
     this.users = usersWithTokens
   }

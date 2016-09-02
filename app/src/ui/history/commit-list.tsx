@@ -3,7 +3,6 @@ import { Commit } from '../../lib/local-git-operations'
 import CommitListItem from './commit-list-item'
 import List from '../list'
 import CommitFacadeListItem from './commit-facade-list-item'
-import { findIndex } from '../../lib/find'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 
@@ -61,7 +60,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     const commit = commit_
     if (!commit) { return -1 }
 
-    return findIndex(this.props.commits, c => c.sha === commit.sha)
+    return this.props.commits.findIndex(c => c.sha === commit.sha)
   }
 
   public forceUpdate() {
