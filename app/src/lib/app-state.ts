@@ -16,6 +16,9 @@ export interface IAppState {
   readonly currentPopup: Popup | null
 
   readonly errors: ReadonlyArray<IAppError>
+
+  /** Map from the emoji shortcut (e.g., +1) to the image's local path. */
+  readonly emoji: Map<string, string>
 }
 
 export interface IAppError {

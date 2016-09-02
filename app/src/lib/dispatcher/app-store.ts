@@ -10,6 +10,7 @@ import { matchGitHubRepository } from '../../lib/repository-matching'
 import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { CloningRepository } from './cloning-repositories-store'
+import EmojiStore from './emoji-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -34,6 +35,12 @@ export default class AppStore {
   private errors: ReadonlyArray<IAppError> = new Array<IAppError>()
 
   private emitQueued = false
+
+  private emojiStore = new EmojiStore()
+
+  public constructor() {
+    this.emojiStore.read().then(() => this.emitUpdate())
+  }
 
   private emitUpdate() {
     if (this.emitQueued) { return }
@@ -147,6 +154,7 @@ export default class AppStore {
       currentPopup: this.currentPopup,
       errors: this.errors,
       loading: this.loading,
+      emoji: this.emojiStore.emoji,
     }
   }
 
