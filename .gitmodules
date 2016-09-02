@@ -4,3 +4,6 @@
 [submodule "git/git-win32"]
 	path = git/git-win32
 	url = git@github.com:desktop/git-win32.git
+[submodule "gemoji"]
+	path = gemoji
+	url = git@github.com:github/gemoji.git
