@@ -6,7 +6,7 @@ import { DiffSelectionType, DiffLine, DiffLineType, Diff } from '../models/diff'
 
 import { LocalGitOperations, Commit } from '../lib/local-git-operations'
 
-const { Grid, AutoSizer } = require('react-virtualized')
+const { Grid, AutoSizer, CellMeasurer } = require('react-virtualized')
 
 const RowHeight = 22
 
@@ -23,10 +23,9 @@ interface IFileDiffState {
 }
 
 export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
-
-  private defaultSidebarWidth = 100
-
   private grid: React.Component<any, any> | null
+
+  private resetMeasurements: (() => void) | null = null
 
   public constructor(props: IFileDiffProps) {
     super(props)
@@ -38,7 +37,11 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     this.renderDiff(nextProps.repository, nextProps.file, nextProps.readOnly)
   }
 
-  private handleResize() {
+  private forceResize() {
+    if (this.resetMeasurements) {
+      this.resetMeasurements()
+    }
+
     const grid: any = this.grid
     if (grid) {
       grid.recomputeGridSize({ columnIndex: 0, rowIndex: 0 })
@@ -79,6 +82,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
 
     this.setState(Object.assign({}, this.state, { diff }))
+    this.forceResize()
   }
 
   private getClassName(type: DiffLineType): string {
@@ -90,17 +94,6 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       return 'diff-hunk'
     }
     return 'diff-context'
-  }
-
-  private getColumnWidth ({ index, availableWidth }: { index: number, availableWidth: number }) {
-    switch (index) {
-      case 1:
-        // TODO: how is this going to work with wrapping?
-        //       or a variable-width sidebar ala #306
-        return (availableWidth - this.defaultSidebarWidth)
-      default:
-        return this.defaultSidebarWidth
-    }
   }
 
   private getDiffLineFromSection(index: number): DiffLine | null {
@@ -206,7 +199,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     const diffLine = this.getDiffLineFromSection(rowIndex)
 
     if (!diffLine) {
-      return null
+      return <span></span>
     }
 
     if (this.props.readOnly) {
@@ -220,7 +213,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     const diffLine = this.getDiffLineFromSection(rowIndex)
 
     if (!diffLine) {
-      return null
+      return <span></span>
     }
 
     const diffLineClassName = `diff-line-content ${this.getClassName(diffLine.type)}`
@@ -233,18 +226,13 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private cellRenderer = ({ columnIndex, rowIndex }: { columnIndex: number, rowIndex: number }) => {
-    if (columnIndex === 0) {
-      return this.renderSidebar(rowIndex)
-    } else {
-      return this.renderBodyCell(rowIndex)
-    }
+    const content = columnIndex === 0 ? this.renderSidebar(rowIndex) : this.renderBodyCell(rowIndex)
+    return <div className='diff-text'>{content}</div>
   }
 
   public render() {
-
     const file = this.props.file
     if (file) {
-
       const invalidationProps = { path: file.path, selection: DiffSelectionType.None }
       if (file instanceof WorkingDirectoryFileChange) {
         invalidationProps.selection = file.selection.getSelectionType()
@@ -256,23 +244,32 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
         .map(s => s.lines.length)
         .forEach(c => diffLineCount += c)
 
+      const cellRenderer = ({ columnIndex, rowIndex }: { columnIndex: number, rowIndex: number }) => this.cellRenderer({ columnIndex, rowIndex })
+
       return (
         <div className='panel' id='file-diff'>
-          <AutoSizer onResize={ () => this.handleResize() }>
+          <AutoSizer onResize={() => this.forceResize()}>
           {({ width, height }: { width: number, height: number }) => (
-            <Grid
-              autoContainerWidth
-              ref={(ref: React.Component<any, any>) => this.grid = ref}
-              cellRenderer={ ({ columnIndex, rowIndex }: { columnIndex: number, rowIndex: number }) => this.cellRenderer({ columnIndex, rowIndex }) }
-              className='diff-text'
+            <CellMeasurer
+              cellRenderer={cellRenderer}
               columnCount={2}
-              columnWidth={ ({ index }: { index: number }) => this.getColumnWidth( { index, availableWidth: width }) }
-              width={width}
-              height={height}
-              rowHeight={RowHeight}
               rowCount={diffLineCount}
-              invalidationProps={invalidationProps}
-            />
+              height={height}>
+              {({ getColumnWidth, resetMeasurements }: { getColumnWidth: Function, resetMeasurements: () => void }) => {
+                this.resetMeasurements = resetMeasurements
+                return (<Grid
+                  ref={(ref: React.Component<any, any>) => this.grid = ref}
+                  cellRenderer={cellRenderer}
+                  columnCount={2}
+                  columnWidth={getColumnWidth}
+                  width={width}
+                  height={height}
+                  rowHeight={RowHeight}
+                  rowCount={diffLineCount}
+                  invalidationProps={invalidationProps}
+                />)
+              }}
+            </CellMeasurer>
           )}
           </AutoSizer>
         </div>
