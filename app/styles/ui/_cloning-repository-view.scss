@@ -1,3 +1,58 @@
+@import "../mixins";
+
 #cloning-repository-view {
 
+  /* The view's position in relation to its parent, ie full
+   * width, vertically centered  */
+  flex-grow: 1;
+  align-self: center;
+
+  /* TODO: Revisit, this might not be the best way to do it.
+   * We don't want the contents to sit smack on the vertical
+   * midline. The view itself doesn't extend 100% to the top
+   * on most platforms (due to our title bar) and it looks
+   * better if we position it centered on the ~40% line.
+   */
+  margin-top: -10%;
+
+  /* Add a ~20px padding around the view to ensure that
+   * content doesn't touch the edge of the sideline or
+   * window when space is scarce.
+   */
+  padding: calc(var(--spacing) * 2);
+
+  /* Layout children top to bottom, centered horizontally */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  /* Holds the icon and title, position them next to each other */
+  .title-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  /* Big clone icon */
+  .octicon {
+    width: 32px;
+    height: 32px;
+    margin-right: var(--spacing);
+
+    /* Warning: magic number. The icon looks poorly aligned
+     * against the baseline of the title text without this
+     */
+    margin-top: 4px;
+  }
+
+  /* xl-sized title */
+  .title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-light);
+
+    /* TODO: FIXME: This seems like it would truncate but it doesn't */
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
 }
