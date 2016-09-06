@@ -1,0 +1,11 @@
+progress {
+  -webkit-appearance: none;
+
+  &::-webkit-progress-bar {
+    background-color: var(--alt-background-color);
+  }
+
+  &::-webkit-progress-value {
+    background-color: var(--text-color);
+  }
+}
