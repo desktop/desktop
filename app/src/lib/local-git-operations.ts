@@ -8,6 +8,8 @@ import { GitProcess, GitError, GitErrorCode } from './git-process'
 import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDeletedFile } from './patch-formatter'
 import { parseRawDiff } from './diff-parser'
 
+const byline = require('byline')
+
 /** The encapsulation of the result from 'git status' */
 export class StatusResult {
   /** true if the repository exists at the given location */
@@ -561,7 +563,7 @@ export class LocalGitOperations {
   /** Clone the repository to the path. */
   public static clone(url: string, path: string, progress: (progress: string) => void): Promise<void> {
     return GitProcess.exec([ 'clone', '--progress', '--', url, path ], __dirname, undefined, process => {
-      process.stderr.on('data', (chunk: string) => {
+      byline(process.stderr).on('data', (chunk: string) => {
         progress(chunk)
       })
     })

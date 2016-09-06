@@ -37,6 +37,11 @@
       "from": "brace-expansion@>=1.0.0 <2.0.0",
       "resolved": "https://registry.npmjs.org/brace-expansion/-/brace-expansion-1.1.6.tgz"
     },
+    "byline": {
+      "version": "4.2.2",
+      "from": "byline@4.2.2",
+      "resolved": "https://registry.npmjs.org/byline/-/byline-4.2.2.tgz"
+    },
     "classnames": {
       "version": "2.2.5",
       "from": "classnames@>=2.2.3 <3.0.0",
