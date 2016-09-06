@@ -19,7 +19,7 @@
    * content doesn't touch the edge of the sideline or
    * window when space is scarce.
    */
-  padding: calc(var(--spacing) * 2);
+  padding: var(--spacing-double);
 
   /* Layout children top to bottom, centered horizontally */
   display: flex;

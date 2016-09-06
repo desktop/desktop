@@ -121,6 +121,7 @@
   --darwin-title-bar-height: 37px;
 
   --spacing: 10px;
+  --spacing-double: calc(var(--spacing) * 2);
   --spacing-half: calc(var(--spacing) / 2);
   --spacing-third: calc(var(--spacing) / 3);
 
