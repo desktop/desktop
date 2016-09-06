@@ -31,7 +31,7 @@ function emojificationNexus(str: string, emoji: Map<string, string>): JSX.Elemen
   const elements = pieces.map(fragment => {
     const path = emoji.get(fragment)
     if (path) {
-      return <img style={{ width: 16, height: 16, verticalAlign: 'middle' }} src={path}/>
+      return <img className='emoji' src={path}/>
     } else {
       return fragment
     }
