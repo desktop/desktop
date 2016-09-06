@@ -85,4 +85,10 @@
     text-overflow: ellipsis;
     overflow: hidden;
   }
+
+  progress {
+    max-width: 400px;
+    width: 100%;
+    margin-bottom: var(--spacing);
+  }
 }

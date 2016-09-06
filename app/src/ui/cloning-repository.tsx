@@ -18,6 +18,7 @@ export default class CloningRepository extends React.Component<ICloningRepositor
           <Octicon symbol={OcticonSymbol.desktopDownload} />
           <div className='title'>Cloning {this.props.repository.name}</div>
         </div>
+        <progress value={this.props.state.progressValue} />
         <div className='details'>{this.props.state.output}</div>
       </div>
     )
