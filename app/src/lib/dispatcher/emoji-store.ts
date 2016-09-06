@@ -10,7 +10,8 @@ export default class EmojiStore {
 
   public read(): Promise<void> {
     return new Promise((resolve, reject) => {
-      Fs.readFile(Path.join(__dirname, 'emoji.json'), 'utf8', (err, data) => {
+      const basePath = process.env.TEST_ENV ? Path.join(__dirname, '..', '..', '..', 'static') : __dirname
+      Fs.readFile(Path.join(basePath, 'emoji.json'), 'utf8', (err, data) => {
         const json = JSON.parse(data)
         for (const key of Object.keys(json)) {
           const serverURL = json[key]
