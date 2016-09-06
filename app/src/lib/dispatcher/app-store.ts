@@ -23,7 +23,7 @@ import { matchGitHubRepository } from '../../lib/repository-matching'
 import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
-import { GitHubUserDatabase, IGitHubUser } from './github-user-database'
+import { IGitHubUser } from './github-user-database'
 import GitHubUserStore from './github-user-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -50,11 +50,14 @@ export default class AppStore {
 
   private emitQueued = false
 
-  private readonly gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
+  private readonly gitHubUserStore: GitHubUserStore
 
-  private readonly cloningRepositoriesStore = new CloningRepositoriesStore()
+  private readonly cloningRepositoriesStore: CloningRepositoriesStore
 
-  public constructor() {
+  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore) {
+    this.gitHubUserStore = gitHubUserStore
+    this.cloningRepositoriesStore = cloningRepositoriesStore
+
     this.gitHubUserStore.onDidUpdate(() => {
       this.emitUpdate()
     })

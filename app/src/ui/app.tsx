@@ -6,7 +6,7 @@ import RepositoriesList from './repositories-list'
 import { default as RepositoryView } from './repository'
 import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
-import { Dispatcher, AppStore, GitUserStore, CloningRepositoriesStore, CloningRepository } from '../lib/dispatcher'
+import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import Repository from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
@@ -313,8 +313,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
     if (selectedState.type === SelectionType.Repository) {
       return (
-        <RepositoryView repository={selectedRepository}
-                        state={this.state.repositoryState!}
+        <RepositoryView repository={selectedState.repository}
+                        state={selectedState.state}
                         dispatcher={this.props.dispatcher}/>
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

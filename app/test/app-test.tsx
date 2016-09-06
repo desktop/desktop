@@ -6,15 +6,19 @@ import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-addons-test-utils'
 
 import App from '../src/ui/app'
-import { Dispatcher, AppStore } from '../src/lib/dispatcher'
+import { Dispatcher, AppStore, GitHubUserStore, CloningRepositoriesStore } from '../src/lib/dispatcher'
 import InMemoryDispatcher from './in-memory-dispatcher'
+import TestGitHubUserDatabase from './test-github-user-database'
 
 describe('App', () => {
   let appStore: AppStore | null = null
   let dispatcher: Dispatcher | null = null
 
   beforeEach(async () => {
-    appStore = new AppStore()
+    const db = new TestGitHubUserDatabase()
+    await db.reset()
+
+    appStore = new AppStore(new GitHubUserStore(db), new CloningRepositoriesStore())
 
     dispatcher = new InMemoryDispatcher(appStore)
   })
