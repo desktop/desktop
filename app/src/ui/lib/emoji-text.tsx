@@ -28,10 +28,10 @@ function emojificationNexus(str: string, emoji: Map<string, string>): JSX.Elemen
   if (!str.length) { return null }
 
   const pieces = str.split(/(:.*?:)/g)
-  const elements = pieces.map(fragment => {
+  const elements = pieces.map((fragment, i) => {
     const path = emoji.get(fragment)
     if (path) {
-      return <img className='emoji' src={path}/>
+      return <img key={i} alt={fragment} title={fragment} className='emoji' src={path}/>
     } else {
       return fragment
     }
