@@ -71,4 +71,14 @@
     text-overflow: ellipsis;
     overflow: hidden;
   }
+
+  /* Limit the progress text to one line. Without
+   * this the entire container will jump around in
+   * y-pos due to the change in height */
+  .details {
+    max-width: 100%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
 }
