@@ -26,8 +26,20 @@
   flex-direction: column;
   align-items: center;
 
+  /* See https://css-tricks.com/flexbox-truncated-text/
+   * We need to do this "hack" or else the container will
+   * always grow to fit the intrinsic width of its children
+   * and thus killing our text truncation in the title.
+   */
+  min-width: 0;
+
   /* Holds the icon and title, position them next to each other */
   .title-container {
+    /* See comment about min-width on #cloning-repository-view,
+     * this ensure that we're filling the x-space available but no more
+     */
+    max-width: 100%;
+
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -37,7 +49,12 @@
   .octicon {
     width: 32px;
     height: 32px;
+
+    /* Space between the icon and title text */
     margin-right: var(--spacing);
+
+    /* Don't grow nor shrink */
+    flex: none;
 
     /* Warning: magic number. The icon looks poorly aligned
      * against the baseline of the title text without this
@@ -50,7 +67,6 @@
     font-size: var(--font-size-xl);
     font-weight: var(--font-weight-light);
 
-    /* TODO: FIXME: This seems like it would truncate but it doesn't */
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
