@@ -6,7 +6,7 @@ import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-addons-test-utils'
 
 import App from '../src/ui/app'
-import { Dispatcher, AppStore, CloningRepositoriesStore } from '../src/lib/dispatcher'
+import { Dispatcher, AppStore, GitUserStore, CloningRepositoriesStore } from '../src/lib/dispatcher'
 import InMemoryDispatcher from './in-memory-dispatcher'
 import TestGitHubUserDatabase from './test-github-user-database'
 
@@ -20,12 +20,12 @@ describe('App', () => {
     const db = new TestGitHubUserDatabase()
     await db.reset()
 
-    dispatcher = new InMemoryDispatcher(appStore, new CloningRepositoriesStore())
+    dispatcher = new InMemoryDispatcher(appStore)
   })
 
   it('renders', () => {
     const app = TestUtils.renderIntoDocument(
-      <App dispatcher={dispatcher!} appStore={appStore!} cloningRepositoriesStore={new CloningRepositoriesStore()}/>
+      <App dispatcher={dispatcher!} appStore={appStore!}/>
     ) as React.Component<any, any>
     const node = ReactDOM.findDOMNode(app)
     expect(node).not.to.equal(null)

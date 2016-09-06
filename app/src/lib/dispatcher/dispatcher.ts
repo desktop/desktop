@@ -7,6 +7,7 @@ import { IHistorySelection, RepositorySection, Popup, IAppError } from '../app-s
 import { Action } from './actions'
 import AppStore from './app-store'
 import { CloningRepositoriesStore, CloningRepository } from './cloning-repositories-store'
+import GitUserStore from './git-user-store'
 import { URLActionType } from '../parse-url'
 import { Branch } from '../local-git-operations'
 import { IAPIUser } from '../../lib/api'
@@ -45,11 +46,9 @@ type IPCResponse<T> = IResult<T> | IError
  */
 export class Dispatcher {
   private appStore: AppStore
-  private cloningRepositoriesStore: CloningRepositoriesStore
 
-  public constructor(appStore: AppStore, cloningRepositoriesStore: CloningRepositoriesStore) {
+  public constructor(appStore: AppStore) {
     this.appStore = appStore
-    this.cloningRepositoriesStore = cloningRepositoriesStore
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
@@ -141,7 +140,7 @@ export class Dispatcher {
     const localRepositories = repositories.filter(r => r instanceof Repository) as ReadonlyArray<Repository>
     const cloningRepositories = repositories.filter(r => r instanceof CloningRepository) as ReadonlyArray<CloningRepository>
     cloningRepositories.forEach(r => {
-      this.cloningRepositoriesStore.remove(r)
+      this.appStore._removeCloningRepository(r)
     })
 
     const repositoryIDs = localRepositories.map(r => r.id)
@@ -232,8 +231,8 @@ export class Dispatcher {
   }
 
   /** Show the popup. This will close any current popup. */
-  public showPopup(popup: Popup, repository: Repository | null): Promise<void> {
-    return this.appStore._showPopup(popup, repository)
+  public showPopup(popup: Popup): Promise<void> {
+    return this.appStore._showPopup(popup)
   }
 
   /** Close the current popup. */
@@ -284,9 +283,9 @@ export class Dispatcher {
 
   /** Clone the repository to the path. */
   public async clone(url: string, path: string): Promise<void> {
-    const cloningRepository = await this.cloningRepositoriesStore.clone(url, path)
-    await this.selectRepository(cloningRepository)
-    await this.cloningRepositoriesStore.getPromise(cloningRepository)
+    const { promise, repository } = this.appStore._clone(url, path)
+    await this.selectRepository(repository)
+    await promise
 
     const addedRepositories = await this.addRepositories([ path ])
     await this.selectRepository(addedRepositories[0])
