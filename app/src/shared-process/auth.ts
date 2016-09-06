@@ -7,7 +7,7 @@ import { getDotComAPIEndpoint } from '../lib/api'
 import fatalError from '../lib/fatal-error'
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
-const ClientSecret = __OAUTH_SECRET__
+const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
 if (!ClientSecret || !ClientSecret.length) {
   console.warn(`DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
 }
