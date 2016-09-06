@@ -60,7 +60,8 @@ export class CloningRepositoriesStore {
   public clone(url: string, path: string): Promise<void> {
     const repository = new CloningRepository(path, url)
     this._repositories.push(repository)
-    this.stateByID.set(repository.id, { output: '' })
+    this.stateByID.set(repository.id, { output: `Cloning into ${path}` })
+
     const progressRe = /(\d+)%/
 
     const promise = LocalGitOperations
