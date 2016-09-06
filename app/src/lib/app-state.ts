@@ -2,7 +2,6 @@ import User from '../models/user'
 import Repository from '../models/repository'
 import { Commit, Branch } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
-import { CloningRepository, IGitHubUser } from './dispatcher'
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
 
 export { ICloningRepositoryState } from './dispatcher'
