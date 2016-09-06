@@ -6,6 +6,8 @@
    * width, vertically centered  */
   flex-grow: 1;
   align-self: center;
+  max-width: 600px;
+  margin: 0 auto;
 
   /* TODO: Revisit, this might not be the best way to do it.
    * We don't want the contents to sit smack on the vertical
