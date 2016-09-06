@@ -11,8 +11,7 @@ interface IRepositoriesListProps {
   readonly onSelectionChanged: (repository: Repositoryish) => void
   readonly dispatcher: Dispatcher
   readonly loading: boolean
-  readonly repositories: ReadonlyArray<Repository>
-  readonly cloningRepositories: ReadonlyArray<CloningRepository>
+  readonly repositories: ReadonlyArray<Repository | CloningRepository>
 }
 
 const RowHeight = 42
@@ -37,11 +36,7 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
     return groupedItems.findIndex(item => {
       if (item.kind === 'repository') {
         const repository = item.repository
-        if (repository instanceof Repository && selectedRepository instanceof Repository) {
-          return repository.id === selectedRepository.id
-        } else {
-          return repository === selectedRepository
-        }
+        return repository.constructor === selectedRepository.constructor && repository.id === selectedRepository.id
       } else {
         return false
       }
@@ -69,11 +64,7 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
       return <NoRepositories/>
     }
 
-    const allRepositories: ReadonlyArray<Repositoryish> = [
-      ...this.props.repositories,
-      ...this.props.cloningRepositories,
-    ]
-    const grouped = groupRepositories(allRepositories)
+    const grouped = groupRepositories(this.props.repositories)
     return (
       <List id='repository-list'
             rowCount={grouped.length}

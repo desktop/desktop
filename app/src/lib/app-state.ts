@@ -2,15 +2,24 @@ import User from '../models/user'
 import Repository from '../models/repository'
 import { Commit, Branch } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
-import { CloningRepository } from './dispatcher'
+import { CloningRepository, ICloningRepositoryState } from './dispatcher'
+
+export { ICloningRepositoryState } from './dispatcher'
+
+export enum SelectionType {
+  Repository,
+  CloningRepository,
+}
+
+export type PossibleSelections = { type: SelectionType.Repository, repository: Repository, state: IRepositoryState } |
+                                 { type: SelectionType.CloningRepository, repository: CloningRepository, state: ICloningRepositoryState }
 
 /** All of the shared app state. */
 export interface IAppState {
   readonly users: ReadonlyArray<User>
-  readonly repositories: ReadonlyArray<Repository>
+  readonly repositories: ReadonlyArray<Repository | CloningRepository>
 
-  readonly selectedRepository: Repository | CloningRepository | null
-  readonly repositoryState: IRepositoryState | null
+  readonly selectedState: PossibleSelections | null
 
   readonly loading: boolean
   readonly currentPopup: Popup | null
@@ -29,7 +38,7 @@ export interface IAppError {
   readonly message: string
 }
 
-export enum Popup {
+export enum PopupType {
   CreateBranch = 1,
   ShowBranches,
   AddRepository,
@@ -37,6 +46,13 @@ export enum Popup {
   PublishRepository,
   DeleteBranch,
 }
+
+export type Popup = { type: PopupType.CreateBranch, repository: Repository, branchesState: IBranchesState } |
+                    { type: PopupType.ShowBranches, repository: Repository, branchesState: IBranchesState } |
+                    { type: PopupType.AddRepository } |
+                    { type: PopupType.RenameBranch, repository: Repository, branchesState: IBranchesState } |
+                    { type: PopupType.PublishRepository, repository: Repository } |
+                    { type: PopupType.DeleteBranch, repository: Repository, branchesState: IBranchesState }
 
 export enum RepositorySection {
   Changes,

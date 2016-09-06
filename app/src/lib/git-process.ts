@@ -88,8 +88,15 @@ export class GitProcess {
       const gitLocation = GitProcess.resolveGitBinary()
       const startTime = performance.now()
       const logMessage = () => {
-        const time = ((performance.now() - startTime) / 1000).toFixed(3)
-        return `executing: git ${args.join(' ')} (took ${time}s)`
+        const rawTime = performance.now() - startTime
+
+        let timing = ''
+        if (rawTime > 50) {
+          const time = (rawTime / 1000).toFixed(3)
+          timing = ` (took ${time}s)`
+        }
+
+        return `executing: git ${args.join(' ')}${timing}`
       }
       const env = Object.assign({}, process.env, {
         GIT_EXEC_PATH: GitProcess.resolveGitExecPath(),

@@ -1,6 +1,19 @@
 import { Emitter, Disposable } from 'event-kit'
 import * as Path from 'path'
-import { IRepositoryState, IHistoryState, IHistorySelection, IAppState, RepositorySection, IChangesState, Popup, IBranchesState, IAppError } from '../app-state'
+import {
+  IRepositoryState,
+  IHistoryState,
+  IHistorySelection,
+  IAppState,
+  RepositorySection,
+  IChangesState,
+  Popup,
+  IBranchesState,
+  IAppError,
+  PossibleSelections,
+  PopupType,
+  SelectionType,
+} from '../app-state'
 import User from '../../models/user'
 import Repository from '../../models/repository'
 import GitHubRepository from '../../models/github-repository'
@@ -9,7 +22,7 @@ import { DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
-import { CloningRepository } from './cloning-repositories-store'
+import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import EmojiStore from './emoji-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -36,9 +49,15 @@ export default class AppStore {
 
   private emitQueued = false
 
-  private emojiStore = new EmojiStore()
+  private readonly cloningRepositoriesStore = new CloningRepositoriesStore()
+
+  private readonly emojiStore = new EmojiStore()
 
   public constructor() {
+    this.cloningRepositoriesStore.onDidUpdate(() => {
+      this.emitUpdate()
+    })
+
     this.emojiStore.read().then(() => this.emitUpdate())
   }
 
@@ -138,19 +157,36 @@ export default class AppStore {
     })
   }
 
-  private getCurrentRepositoryState(): IRepositoryState | null {
+  private getSelectedState(): PossibleSelections | null {
     const repository = this.selectedRepository
-    if (!repository || !(repository instanceof Repository)) { return null }
+    if (!repository) { return null }
 
-    return this.getRepositoryState(repository)
+    if (repository instanceof Repository) {
+      return {
+        type: SelectionType.Repository,
+        repository,
+        state: this.getRepositoryState(repository),
+      }
+    } else {
+      const cloningState = this.cloningRepositoriesStore.getRepositoryState(repository)
+      if (!cloningState) { return null }
+
+      return {
+        type: SelectionType.CloningRepository,
+        repository,
+        state: cloningState,
+      }
+    }
   }
 
   public getState(): IAppState {
     return {
       users: this.users,
-      repositories: this.repositories,
-      repositoryState: this.getCurrentRepositoryState(),
-      selectedRepository: this.selectedRepository,
+      repositories: [
+        ...this.repositories,
+        ...this.cloningRepositoriesStore.repositories,
+      ],
+      selectedState: this.getSelectedState(),
       currentPopup: this.currentPopup,
       errors: this.errors,
       loading: this.loading,
@@ -333,11 +369,7 @@ export default class AppStore {
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
     if (selectedRepository) {
       const i = this.repositories.findIndex(r => {
-        if (selectedRepository instanceof Repository && r instanceof Repository) {
-          return r.id === selectedRepository.id
-        } else {
-          return r === selectedRepository
-        }
+        return selectedRepository.constructor === r.constructor && r.id === selectedRepository.id
       })
       if (i === -1) {
         newSelectedRepository = null
@@ -654,7 +686,7 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _showPopup(popup: Popup, repository: Repository | null): Promise<void> {
+  public async _showPopup(popup: Popup): Promise<void> {
     this.currentPopup = popup
     this.emitUpdate()
   }
@@ -798,7 +830,10 @@ export default class AppStore {
   public async _push(repository: Repository): Promise<void> {
     const remote = await LocalGitOperations.getDefaultRemote(repository)
     if (!remote) {
-      this._showPopup(Popup.PublishRepository, repository)
+      this._showPopup({
+        type: PopupType.PublishRepository,
+        repository
+      })
       return
     }
 
@@ -840,5 +875,16 @@ export default class AppStore {
     await LocalGitOperations.addRemote(repository.path, 'origin', apiRepository.cloneUrl)
 
     return this._push(repository)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _clone(url: string, path: string): { promise: Promise<void>, repository: CloningRepository } {
+    const promise = this.cloningRepositoriesStore.clone(url, path)
+    const repository = this.cloningRepositoriesStore.repositories.find(r => r.url === url && r.path === path)!
+    return { promise, repository }
+  }
+
+  public _removeCloningRepository(repository: CloningRepository) {
+    this.cloningRepositoriesStore.remove(repository)
   }
 }

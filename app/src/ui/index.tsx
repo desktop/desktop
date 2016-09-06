@@ -7,10 +7,11 @@ import { ipcRenderer, remote } from 'electron'
 
 import App from './app'
 import { WindowState, getWindowState } from '../lib/window-state'
-import { Dispatcher, AppStore, GitUserStore, GitUserDatabase, CloningRepositoriesStore } from '../lib/dispatcher'
+import { Dispatcher, AppStore, GitUserStore, GitUserDatabase } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import Repository from '../models/repository'
 import { getDefaultDir } from './lib/default-dir'
+import { SelectionType } from '../lib/app-state'
 import { showMainWindow } from './main-process-proxy'
 
 if (!process.env.TEST_ENV) {
@@ -21,8 +22,7 @@ if (!process.env.TEST_ENV) {
 
 const appStore = new AppStore()
 const gitUserStore = new GitUserStore(new GitUserDatabase('GitUserDatabase'))
-const cloningRepositoriesStore = new CloningRepositoriesStore()
-const dispatcher = new Dispatcher(appStore, gitUserStore, cloningRepositoriesStore)
+const dispatcher = new Dispatcher(appStore, gitUserStore)
 dispatcher.loadInitialState().then(() => {
   showMainWindow()
 })
@@ -41,10 +41,10 @@ updateFullScreenBodyInfo(getWindowState(remote.getCurrentWindow()))
 ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(args as WindowState))
 
 ipcRenderer.on('focus', () => {
-  const repository = appStore.getState().selectedRepository
-  if (!repository || !(repository instanceof Repository)) { return }
+  const state = appStore.getState().selectedState
+  if (!state || state.type === SelectionType.CloningRepository) { return }
 
-  dispatcher.refreshRepository(repository)
+  dispatcher.refreshRepository(state.repository)
 })
 
 ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
@@ -59,15 +59,19 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
 function openRepository(url: string) {
   const repositories = appStore.getState().repositories
   const existingRepository = repositories.find(r => {
-    const gitHubRepository = r.gitHubRepository
-    if (!gitHubRepository) { return false }
-    return gitHubRepository.htmlURL === url
+    if (r instanceof Repository) {
+      const gitHubRepository = r.gitHubRepository
+      if (!gitHubRepository) { return false }
+      return gitHubRepository.htmlURL === url
+    } else {
+      return false
+    }
   })
 
   if (existingRepository) {
     return dispatcher.selectRepository(existingRepository)
   } else {
-    const defaultName = Path.basename(Url.parse(url)!.path!)
+    const defaultName = Path.basename(Url.parse(url)!.path!, '.git')
     const path: string | null = remote.dialog.showSaveDialog({
       buttonLabel: 'Clone',
       defaultPath: Path.join(getDefaultDir(), defaultName),
@@ -79,6 +83,6 @@ function openRepository(url: string) {
 }
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore} gitUserStore={gitUserStore} cloningRepositoriesStore={cloningRepositoriesStore}/>,
+  <App dispatcher={dispatcher} appStore={appStore} gitUserStore={gitUserStore}/>,
   document.getElementById('desktop-app-container')!
 )
