@@ -1,20 +1,12 @@
 import * as React from 'react'
-import { CompositeDisposable } from 'event-kit'
 import { Commit } from '../../lib/local-git-operations'
 import CommitListItem from './commit-list-item'
 import List from '../list'
 import CommitFacadeListItem from './commit-facade-list-item'
-import { Dispatcher, GitUserStore, IGitUser } from '../../lib/dispatcher'
+import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 
 const RowHeight = 68
-
-const DefaultGitUser: IGitUser = {
-  endpoint: '',
-  email: '',
-  login: null,
-  avatarURL: 'https://github.com/hubot.png',
-}
 
 interface ICommitListProps {
   readonly onCommitSelected: (commit: Commit) => void
@@ -22,7 +14,7 @@ interface ICommitListProps {
   readonly commits: ReadonlyArray<Commit>
   readonly selectedCommit: Commit | null
   readonly commitCount: number
-  readonly gitUserStore: GitUserStore
+  readonly gitHubUsers: Map<string, IGitHubUser>
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
@@ -30,30 +22,13 @@ interface ICommitListProps {
 
 /** A component which displays the list of commits. */
 export default class CommitList extends React.Component<ICommitListProps, void> {
-  private disposable: CompositeDisposable
-
   private list: List | null
-
-  public componentDidMount() {
-    this.disposable = new CompositeDisposable()
-    this.disposable.add(this.props.gitUserStore.onDidUpdate(() => this.forceUpdate()))
-  }
-
-  public componentWillUnmount() {
-    this.disposable.dispose()
-  }
 
   private renderCommit(row: number) {
     const commit: Commit | null = this.props.commits[row]
     if (commit) {
-      let gitUser = this.props.gitUserStore.getUser(this.props.repository, commit.authorEmail)
-      if (!gitUser) {
-        gitUser = DefaultGitUser
-
-        this.props.dispatcher.loadAndCacheUser(this.props.repository, commit.sha, commit.authorEmail)
-      }
-
-      return <CommitListItem key={commit.sha} commit={commit} gitUser={gitUser} emoji={this.props.emoji}/>
+      const gitHubUser = this.props.gitHubUsers.get(commit.authorEmail.toLowerCase()) || null
+      return <CommitListItem key={commit.sha} commit={commit} gitHubUser={gitHubUser} emoji={this.props.emoji}/>
     } else {
       return <CommitFacadeListItem key={row}/>
     }
@@ -97,7 +72,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
               rowRenderer={row => this.renderCommit(row)}
               onSelectionChanged={row => this.onSelectionChanged(row)}
               onScroll={(scrollTop, clientHeight) => this.onScroll(scrollTop, clientHeight)}
-              invalidationProps={this.props.commits}/>
+              invalidationProps={{ commits: this.props.commits, gitHubUsers: this.props.gitHubUsers }}/>
       </div>
     )
   }

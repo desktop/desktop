@@ -7,7 +7,7 @@ import { ipcRenderer, remote } from 'electron'
 
 import App from './app'
 import { WindowState, getWindowState } from '../lib/window-state'
-import { Dispatcher, AppStore, GitUserStore, GitUserDatabase } from '../lib/dispatcher'
+import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import Repository from '../models/repository'
 import { getDefaultDir } from './lib/default-dir'
@@ -20,9 +20,10 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
-const appStore = new AppStore()
-const gitUserStore = new GitUserStore(new GitUserDatabase('GitUserDatabase'))
-const dispatcher = new Dispatcher(appStore, gitUserStore)
+const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
+const cloningRepositoriesStore = new CloningRepositoriesStore()
+const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore)
+const dispatcher = new Dispatcher(appStore)
 dispatcher.loadInitialState().then(() => {
   showMainWindow()
 })
@@ -83,6 +84,6 @@ function openRepository(url: string) {
 }
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore} gitUserStore={gitUserStore}/>,
+  <App dispatcher={dispatcher} appStore={appStore}/>,
   document.getElementById('desktop-app-container')!
 )

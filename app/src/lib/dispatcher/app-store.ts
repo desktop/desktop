@@ -23,6 +23,8 @@ import { matchGitHubRepository } from '../../lib/repository-matching'
 import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
+import { IGitHubUser } from './github-user-database'
+import GitHubUserStore from './github-user-store'
 import EmojiStore from './emoji-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -49,11 +51,21 @@ export default class AppStore {
 
   private emitQueued = false
 
-  private readonly cloningRepositoriesStore = new CloningRepositoriesStore()
+  private readonly gitHubUserStore: GitHubUserStore
 
-  private readonly emojiStore = new EmojiStore()
+  private readonly cloningRepositoriesStore: CloningRepositoriesStore
 
-  public constructor() {
+  private readonly emojiStore: EmojiStore
+
+  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore) {
+    this.gitHubUserStore = gitHubUserStore
+    this.cloningRepositoriesStore = cloningRepositoriesStore
+    this.emojiStore = emojiStore
+
+    this.gitHubUserStore.onDidUpdate(() => {
+      this.emitUpdate()
+    })
+
     this.cloningRepositoriesStore.onDidUpdate(() => {
       this.emitUpdate()
     })
@@ -101,12 +113,23 @@ export default class AppStore {
         commits: new Map<string, Commit>(),
       },
       committerEmail: null,
+      gitHubUsers: new Map<string, IGitHubUser>(),
     }
   }
 
   private getRepositoryState(repository: Repository): IRepositoryState {
     let state = this.repositoryState.get(repository.id)
-    if (state) { return state }
+    if (state) {
+      const gitHubUsers = this.gitHubUserStore.getUsersForRepository(repository) || new Map<string, IGitHubUser>()
+      return {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        branchesState: state.branchesState,
+        committerEmail: state.committerEmail,
+        gitHubUsers,
+      }
+    }
 
     state = this.getInitialRepositoryState()
     this.repositoryState.set(repository.id, state)
@@ -127,6 +150,7 @@ export default class AppStore {
         selectedSection: state.selectedSection,
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
   }
@@ -140,6 +164,7 @@ export default class AppStore {
         selectedSection: state.selectedSection,
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
   }
@@ -153,6 +178,7 @@ export default class AppStore {
         selectedSection: state.selectedSection,
         committerEmail: state.committerEmail,
         branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
   }
@@ -202,7 +228,7 @@ export default class AppStore {
         selection: state.selection,
         changedFiles: state.changedFiles,
         commitCount: state.commitCount,
-        loading: true
+        loading: true,
       }
     })
     this.emitUpdate()
@@ -264,6 +290,10 @@ export default class AppStore {
     }
 
     this.emitUpdate()
+
+    commits.forEach(commit => {
+      this.gitHubUserStore._loadAndCacheUser(this.users, repository, commit.sha, commit.authorEmail)
+    })
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -279,7 +309,7 @@ export default class AppStore {
         selection: state.selection,
         changedFiles: state.changedFiles,
         commitCount: state.commitCount,
-        loading: true
+        loading: true,
       }
     })
     this.emitUpdate()
@@ -297,6 +327,10 @@ export default class AppStore {
       }
     })
     this.emitUpdate()
+
+    commits.forEach(commit => {
+      this.gitHubUserStore._loadAndCacheUser(this.users, repository, commit.sha, commit.authorEmail)
+    })
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -364,6 +398,28 @@ export default class AppStore {
     this.users = users
     this.repositories = repositories
     this.loading = this.repositories.length === 0 && this.users.length === 0
+
+    for (const user of users) {
+      // In theory a user should _always_ have an array of emails (even if it's
+      // empty). But in practice, if the user had run old dev builds this may
+      // not be the case. So for now we need to guard this. We should remove
+      // this check in the not too distant future.
+      // @joshaber (August 10, 2016)
+      if (!user.emails) { break }
+
+      const gitUsers = user.emails.map(email => {
+        return {
+          endpoint: user.endpoint,
+          email,
+          login: user.login,
+          avatarURL: user.avatarURL,
+        }
+      })
+
+      for (const user of gitUsers) {
+        this.gitHubUserStore.cacheUser(user)
+      }
+    }
 
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
@@ -453,6 +509,7 @@ export default class AppStore {
         selectedSection: section,
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
     this.emitUpdate()
@@ -532,6 +589,7 @@ export default class AppStore {
         historyState: state.historyState,
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
     this.emitUpdate()
@@ -569,6 +627,7 @@ export default class AppStore {
         historyState: state.historyState,
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
     this.emitUpdate()
@@ -634,6 +693,7 @@ export default class AppStore {
         historyState: state.historyState,
         committerEmail: email,
         branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
       }
     })
     this.emitUpdate()

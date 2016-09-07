@@ -5,7 +5,7 @@ import FileDiff from '../file-diff'
 import Repository from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../lib/local-git-operations'
-import { Dispatcher, GitUserStore } from '../../lib/dispatcher'
+import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { Resizable } from '../resizable'
@@ -14,7 +14,7 @@ interface IHistoryProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly history: IHistoryState
-  readonly gitUserStore: GitUserStore
+  readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
 }
 
@@ -60,7 +60,7 @@ export default class History extends React.Component<IHistoryProps, void> {
                       onCommitSelected={commit => this.onCommitSelected(commit)}
                       onScroll={(start, end) => this.onScroll(start, end)}
                       repository={this.props.repository}
-                      gitUserStore={this.props.gitUserStore}
+                      gitHubUsers={this.props.gitHubUsers}
                       dispatcher={this.props.dispatcher}
                       emoji={this.props.emoji}/>
         </Resizable>
