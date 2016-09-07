@@ -25,11 +25,9 @@ import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-ope
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import GitHubUserStore from './github-user-store'
+import GitStore from './git-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
-
-/** The number of commits to load from history per batch. */
-const CommitBatchSize = 100
 
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
@@ -53,6 +51,9 @@ export default class AppStore {
   private readonly gitHubUserStore: GitHubUserStore
 
   private readonly cloningRepositoriesStore: CloningRepositoriesStore
+
+  /** GitStores keyed by their associated Repository ID. */
+  private readonly gitStores = new Map<number, GitStore>()
 
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore) {
     this.gitHubUserStore = gitHubUserStore
@@ -86,13 +87,11 @@ export default class AppStore {
     return {
       historyState: {
         selection: {
-          commit: null,
+          sha: null,
           file: null,
         },
-        commits: new Array<Commit>(),
-        commitCount: 0,
         changedFiles: new Array<FileChange>(),
-        loading: true,
+        history: new Array<string>(),
       },
       changesState: {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
@@ -104,10 +103,10 @@ export default class AppStore {
         defaultBranch: null,
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
-        commits: new Map<string, Commit>(),
       },
       committerEmail: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
+      commits: new Map<string, Commit>(),
     }
   }
 
@@ -122,6 +121,7 @@ export default class AppStore {
         branchesState: state.branchesState,
         committerEmail: state.committerEmail,
         gitHubUsers,
+        commits: state.commits,
       }
     }
 
@@ -145,6 +145,7 @@ export default class AppStore {
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
       }
     })
   }
@@ -159,6 +160,7 @@ export default class AppStore {
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
       }
     })
   }
@@ -173,6 +175,7 @@ export default class AppStore {
         committerEmail: state.committerEmail,
         branchesState,
         gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
       }
     })
   }
@@ -213,69 +216,72 @@ export default class AppStore {
     }
   }
 
+  private onGitStoreUpdated(repository: Repository, gitStore: GitStore) {
+    this.updateHistoryState(repository, state => {
+      return {
+        history: gitStore.history,
+        selection: state.selection,
+        changedFiles: state.changedFiles,
+      }
+    })
+
+    this.updateRepositoryState(repository, state => {
+      return {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        committerEmail: state.committerEmail,
+        branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
+        commits: gitStore.commits,
+      }
+    })
+
+    this.emitUpdate()
+  }
+
+  private onGitStoreLoadedCommits(repository: Repository, commits: ReadonlyArray<Commit>) {
+    for (const commit of commits) {
+      this.gitHubUserStore._loadAndCacheUser(this.users, repository, commit.sha, commit.authorEmail)
+    }
+  }
+
+  private getGitStore(repository: Repository): GitStore {
+    let gitStore = this.gitStores.get(repository.id)
+    if (!gitStore) {
+      gitStore = new GitStore(repository)
+      gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
+      gitStore.onDidLoadNewCommits(commits => this.onGitStoreLoadedCommits(repository, commits))
+
+      this.gitStores.set(repository.id, gitStore)
+    }
+
+    return gitStore
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadHistory(repository: Repository): Promise<void> {
-    this.updateHistoryState(repository, state => {
-      return {
-        commits: state.commits,
-        selection: state.selection,
-        changedFiles: state.changedFiles,
-        commitCount: state.commitCount,
-        loading: true,
-      }
-    })
-    this.emitUpdate()
-
-    const headCommits = await LocalGitOperations.getHistory(repository, 'HEAD', CommitBatchSize)
-    const commitCount = await LocalGitOperations.getCommitCount(repository)
-
-    this.updateHistoryState(repository, state => {
-      const existingCommits = state.commits
-      let commits = new Array<Commit>()
-      if (existingCommits.length > 0) {
-        const mostRecent = existingCommits[0]
-        const index = headCommits.findIndex(c => c.sha === mostRecent.sha)
-        if (index > -1) {
-          const newCommits = headCommits.slice(0, index)
-          commits = commits.concat(newCommits)
-          // TODO: This is gross and deserves a TS bug report.
-          commits = commits.concat(Array.from(existingCommits))
-        } else {
-          commits = Array.from(headCommits)
-          // The commits we already had are outside the first batch, so who
-          // knows how far they are from HEAD now. Start over fresh.
-        }
-      } else {
-        commits = Array.from(headCommits)
-      }
-
-      return {
-        commits,
-        selection: state.selection,
-        changedFiles: state.changedFiles,
-        commitCount,
-        loading: false,
-      }
-    })
+    const gitStore = this.getGitStore(repository)
+    await gitStore.loadHistory()
 
     const state = this.getRepositoryState(repository).historyState
     let newSelection = state.selection
-    const commits = state.commits
-    const selectedCommit = state.selection.commit
-    if (selectedCommit) {
-      const index = commits.findIndex(c => c.sha === selectedCommit.sha)
+    const history = state.history
+    const selectedSHA = state.selection.sha
+    if (selectedSHA) {
+      const index = history.findIndex(sha => sha === selectedSHA)
       // Our selected SHA disappeared, so clear the selection.
       if (index < 0) {
         newSelection = {
-          commit: null,
+          sha: null,
           file: null,
         }
       }
     }
 
-    if (!newSelection.commit && commits.length > 0) {
+    if (!newSelection.sha && history.length > 0) {
       newSelection = {
-        commit: commits[0],
+        sha: history[0],
         file: null,
       }
       this._changeHistorySelection(repository, newSelection)
@@ -283,72 +289,35 @@ export default class AppStore {
     }
 
     this.emitUpdate()
-
-    commits.forEach(commit => {
-      this.gitHubUserStore._loadAndCacheUser(this.users, repository, commit.sha, commit.authorEmail)
-    })
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _loadNextHistoryBatch(repository: Repository): Promise<void> {
-    const state = this.getRepositoryState(repository)
-    if (state.historyState.loading) {
-      return
-    }
-
-    this.updateHistoryState(repository, state => {
-      return {
-        commits: state.commits,
-        selection: state.selection,
-        changedFiles: state.changedFiles,
-        commitCount: state.commitCount,
-        loading: true,
-      }
-    })
-    this.emitUpdate()
-
-    const lastCommit = state.historyState.commits[state.historyState.commits.length - 1]
-    const commits = await LocalGitOperations.getHistory(repository, `${lastCommit.sha}^`, CommitBatchSize)
-
-    this.updateHistoryState(repository, state => {
-      return {
-        commits: state.commits.concat(commits),
-        selection: state.selection,
-        changedFiles: state.changedFiles,
-        commitCount: state.commitCount,
-        loading: false,
-      }
-    })
-    this.emitUpdate()
-
-    commits.forEach(commit => {
-      this.gitHubUserStore._loadAndCacheUser(this.users, repository, commit.sha, commit.authorEmail)
-    })
+  public _loadNextHistoryBatch(repository: Repository): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.loadNextHistoryBatch()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadChangedFilesForCurrentSelection(repository: Repository): Promise<void> {
     const state = this.getRepositoryState(repository)
     const selection = state.historyState.selection
-    const currentCommit = selection.commit
-    if (!currentCommit) { return }
+    const currentSHA = selection.sha
+    if (!currentSHA) { return }
 
-    const changedFiles = await LocalGitOperations.getChangedFiles(repository, currentCommit.sha)
+    const changedFiles = await LocalGitOperations.getChangedFiles(repository, currentSHA)
 
     // The selection could have changed between when we started loading the
     // changed files and we finished. We might wanna store the changed files per
     // SHA/path.
-    if (currentCommit !== state.historyState.selection.commit) {
+    if (currentSHA !== state.historyState.selection.sha) {
       return
     }
 
     this.updateHistoryState(repository, state => {
       return {
-        commits: state.commits,
+        history: state.history,
         selection,
         changedFiles,
-        commitCount: state.commitCount,
-        loading: state.loading,
       }
     })
     this.emitUpdate()
@@ -357,15 +326,13 @@ export default class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
     this.updateHistoryState(repository, state => {
-      const commitChanged = state.selection.commit !== selection.commit
+      const commitChanged = state.selection.sha !== selection.sha
       const changedFiles = commitChanged ? new Array<FileChange>() : state.changedFiles
 
       return {
-        commits: state.commits,
+        history: state.history,
         selection,
         changedFiles,
-        commitCount: state.commitCount,
-        loading: state.loading,
       }
     })
     this.emitUpdate()
@@ -503,6 +470,7 @@ export default class AppStore {
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
       }
     })
     this.emitUpdate()
@@ -583,6 +551,7 @@ export default class AppStore {
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
       }
     })
     this.emitUpdate()
@@ -621,6 +590,7 @@ export default class AppStore {
         committerEmail: state.committerEmail,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
       }
     })
     this.emitUpdate()
@@ -650,7 +620,6 @@ export default class AppStore {
         defaultBranch: state.defaultBranch,
         allBranches: state.allBranches,
         recentBranches: state.recentBranches,
-        commits: state.commits,
       }
     })
     this.emitUpdate()
@@ -687,6 +656,7 @@ export default class AppStore {
         committerEmail: email,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
       }
     })
     this.emitUpdate()
@@ -728,7 +698,6 @@ export default class AppStore {
         defaultBranch: defaultBranch ? defaultBranch : null,
         allBranches,
         recentBranches: state.recentBranches,
-        commits: state.commits,
       }
     })
     this.emitUpdate()
@@ -774,7 +743,6 @@ export default class AppStore {
         defaultBranch: state.defaultBranch,
         allBranches: state.allBranches,
         recentBranches,
-        commits: state.commits,
       }
     })
     this.emitUpdate()
@@ -840,24 +808,10 @@ export default class AppStore {
 
   private async loadBranchTips(repository: Repository): Promise<void> {
     const state = this.getRepositoryState(repository).branchesState
-    const commits = state.commits
+    const gitStore = this.getGitStore(repository)
     for (const branch of state.allBranches) {
-      // Immutable 4 lyfe
-      if (commits.has(branch.sha)) {
-        continue
-      }
-
-      const commit = await LocalGitOperations.getCommit(repository, branch.sha)
-      if (commit) {
-        commits.set(branch.sha, commit)
-      }
+      gitStore.loadCommit(branch.sha)
     }
-
-    // NB: Because the `commits` map is mutable, changing in place, sadness,
-    // etc. we don't have to update the state. This feels gross, but concretely
-    // it doesn't matter since commits themselves are immutable and we only ever
-    // add to the map.
-    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

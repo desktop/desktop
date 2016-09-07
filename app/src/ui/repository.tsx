@@ -28,7 +28,8 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
                       history={this.props.state.historyState}
-                      gitHubUsers={this.props.state.gitHubUsers}/>
+                      gitHubUsers={this.props.state.gitHubUsers}
+                      commits={this.props.state.commits}/>
     } else {
       return null
     }

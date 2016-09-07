@@ -45,7 +45,7 @@ export enum PopupType {
 }
 
 export type Popup = { type: PopupType.CreateBranch, repository: Repository, branchesState: IBranchesState } |
-                    { type: PopupType.ShowBranches, repository: Repository, branchesState: IBranchesState } |
+                    { type: PopupType.ShowBranches, repository: Repository, branchesState: IBranchesState, repositoryState: IRepositoryState } |
                     { type: PopupType.AddRepository } |
                     { type: PopupType.RenameBranch, repository: Repository, branchesState: IBranchesState } |
                     { type: PopupType.PublishRepository, repository: Repository } |
@@ -69,6 +69,9 @@ export interface IRepositoryState {
    * may still be loading.
    */
   readonly gitHubUsers: Map<string, IGitHubUser>
+
+  /** The commits loaded, keyed by their full SHA. */
+  readonly commits: Map<string, Commit>
 }
 
 export interface IBranchesState {
@@ -76,21 +79,18 @@ export interface IBranchesState {
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly recentBranches: ReadonlyArray<Branch>
-
-  /** The commits loaded, keyed by their full SHA. */
-  readonly commits: Map<string, Commit>
 }
 
 export interface IHistorySelection {
-  readonly commit: Commit | null
+  readonly sha: string | null
   readonly file: FileChange | null
 }
 
 export interface IHistoryState {
   readonly selection: IHistorySelection
-  readonly commits: ReadonlyArray<Commit>
-  readonly commitCount: number
-  readonly loading: boolean
+
+  /** The ordered SHAs. */
+  readonly history: ReadonlyArray<string>
 
   readonly changedFiles: ReadonlyArray<FileChange>
 }

@@ -125,6 +125,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       type: PopupType.ShowBranches,
       repository: state.repository,
       branchesState: state.state.branchesState,
+      repositoryState: state.state,
     })
   }
 
@@ -238,7 +239,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
                        defaultBranch={popup.branchesState.defaultBranch}
                        dispatcher={this.props.dispatcher}
                        repository={popup.repository}
-                       commits={popup.branchesState.commits}/>
+                       commits={popup.repositoryState.commits}/>
     } else if (popup.type === PopupType.AddRepository) {
       return <AddRepository dispatcher={this.props.dispatcher}/>
     } else if (popup.type === PopupType.RenameBranch) {
