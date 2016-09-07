@@ -2,7 +2,7 @@ import User from '../models/user'
 import Repository from '../models/repository'
 import { Commit, Branch } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
-import { CloningRepository, ICloningRepositoryState } from './dispatcher'
+import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
 
 export { ICloningRepositoryState } from './dispatcher'
 
@@ -62,6 +62,13 @@ export interface IRepositoryState {
   readonly selectedSection: RepositorySection
   readonly committerEmail: string | null
   readonly branchesState: IBranchesState
+
+  /**
+   * Mapping from lowercased email addresses to the associated GitHub user. Note
+   * that an email address may not have an associated GitHub user, or the user
+   * may still be loading.
+   */
+  readonly gitHubUsers: Map<string, IGitHubUser>
 }
 
 export interface IBranchesState {

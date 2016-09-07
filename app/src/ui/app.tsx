@@ -6,7 +6,7 @@ import RepositoriesList from './repositories-list'
 import { default as RepositoryView } from './repository'
 import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
-import { Dispatcher, AppStore, GitUserStore, CloningRepository } from '../lib/dispatcher'
+import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import Repository from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
@@ -24,7 +24,6 @@ import { showPopupAppMenu, setMenuEnabled } from './main-process-proxy'
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
-  readonly gitUserStore: GitUserStore
 }
 
 export default class App extends React.Component<IAppProps, IAppState> {
@@ -33,28 +32,6 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
     this.state = props.appStore.getState()
     props.appStore.onDidUpdate(state => {
-      state.users.forEach(user => {
-        // In theory a user should _always_ have an array of emails (even if
-        // it's empty). But in practice, if the user had run old dev builds this
-        // may not be the case. So for now we need to guard this. We should
-        // remove this check in the not too distant future.
-        // @joshaber (August 10, 2016)
-        if (!user.emails) { return }
-
-        const gitUsers = user.emails.map(email => {
-          return {
-            endpoint: user.endpoint,
-            email,
-            login: user.login,
-            avatarURL: user.avatarURL,
-          }
-        })
-
-        for (const user of gitUsers) {
-          this.props.gitUserStore.cacheUser(user)
-        }
-      })
-
       this.setState(state)
 
       const selectedState = state.selectedState
@@ -338,8 +315,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return (
         <RepositoryView repository={selectedState.repository}
                         state={selectedState.state}
-                        dispatcher={this.props.dispatcher}
-                        gitUserStore={this.props.gitUserStore}/>
+                        dispatcher={this.props.dispatcher}/>
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
       return <CloningRepositoryView repository={selectedState.repository}
