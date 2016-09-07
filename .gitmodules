@@ -1,6 +1,0 @@
-[submodule "git/git-macos"]
-	path = git/git-macos
-	url = git@github.com:desktop/git-macos.git
-[submodule "git/git-win32"]
-	path = git/git-win32
-	url = git@github.com:desktop/git-win32.git
