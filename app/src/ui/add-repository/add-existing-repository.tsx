@@ -53,7 +53,7 @@ export default class AddExistingRepository extends React.Component<IAddExistingR
   }
 
   private onPathChanged(event: React.FormEvent<HTMLInputElement>) {
-    const path = event.target.value
+    const path = event.currentTarget.value
     this.checkIfPathIsRepository(path)
   }
 

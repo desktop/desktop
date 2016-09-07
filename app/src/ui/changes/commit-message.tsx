@@ -26,7 +26,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
   private handleSummaryChange(event: React.FormEvent<HTMLInputElement>) {
     this.setState({
-      summary: event.target.value,
+      summary: event.currentTarget.value,
       description: this.state.description,
     })
   }
@@ -34,7 +34,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   private handleDescriptionChange(event: React.FormEvent<HTMLTextAreaElement>) {
     this.setState({
       summary: this.state.summary,
-      description: event.target.value,
+      description: event.currentTarget.value,
     })
   }
 

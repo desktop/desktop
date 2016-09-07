@@ -62,7 +62,7 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
   }
 
   private onFilterChanged(event: React.FormEvent<HTMLInputElement>) {
-    const text = event.target.value
+    const text = event.currentTarget.value
     this.setState({ filter: text, selectedRow: this.state.selectedRow })
   }
 
