@@ -44,12 +44,12 @@ export enum PopupType {
   DeleteBranch,
 }
 
-export type Popup = { type: PopupType.CreateBranch, repository: Repository, branchesState: IBranchesState } |
-                    { type: PopupType.ShowBranches, repository: Repository, branchesState: IBranchesState, repositoryState: IRepositoryState } |
+export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
+                    { type: PopupType.ShowBranches, repository: Repository } |
                     { type: PopupType.AddRepository } |
-                    { type: PopupType.RenameBranch, repository: Repository, branchesState: IBranchesState } |
+                    { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.PublishRepository, repository: Repository } |
-                    { type: PopupType.DeleteBranch, repository: Repository, branchesState: IBranchesState }
+                    { type: PopupType.DeleteBranch, repository: Repository, branch: Branch }
 
 export enum RepositorySection {
   Changes,
