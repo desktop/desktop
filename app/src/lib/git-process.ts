@@ -110,6 +110,8 @@ export class GitProcess {
         }
 
         if ((err as any).code) {
+          console.error(err)
+          console.error(stdErr)
           // TODO: handle more error codes
           const code: number = (err as any).code
           if (code === gitNotFoundErrorCode) {
