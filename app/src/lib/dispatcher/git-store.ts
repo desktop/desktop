@@ -85,6 +85,8 @@ export default class GitStore {
   public async loadNextHistoryBatch() {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) { return }
 
+    if (!this.history.length) { return }
+
     const lastSHA = this.history[this.history.length - 1]
     const requestKey = `history/${lastSHA}`
     if (this.requestsInFight.has(requestKey)) { return }
