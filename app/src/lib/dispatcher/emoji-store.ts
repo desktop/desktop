@@ -13,7 +13,7 @@ export default class EmojiStore {
       const basePath = process.env.TEST_ENV ? Path.join(__dirname, '..', '..', '..', 'static') : __dirname
       Fs.readFile(Path.join(basePath, 'emoji.json'), 'utf8', (err, data) => {
         const json = JSON.parse(data)
-        for (const key of Object.keys(json)) {
+        for (const key in json) {
           const serverURL = json[key]
           const localPath = serverURLToLocalPath(serverURL)
 
