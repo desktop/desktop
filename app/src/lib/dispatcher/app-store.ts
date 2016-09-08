@@ -107,7 +107,8 @@ export default class AppStore {
     }
   }
 
-  private getRepositoryState(repository: Repository): IRepositoryState {
+  /** Get the state for the repository. */
+  public getRepositoryState(repository: Repository): IRepositoryState {
     let state = this.repositoryState.get(repository.id)
     if (state) {
       const gitHubUsers = this.gitHubUserStore.getUsersForRepository(repository) || new Map<string, IGitHubUser>()
