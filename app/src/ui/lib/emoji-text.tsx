@@ -1,5 +1,7 @@
 import * as React from 'react'
 
+const EmojiRegex = /(:.*?:)/g
+
 interface IEmojiTextProps {
   readonly className?: string
   readonly emoji: Map<string, string>
@@ -27,7 +29,7 @@ function emojificationNexus(str: string, emoji: Map<string, string>): JSX.Elemen
   // up introducing an extra empty <span>.
   if (!str.length) { return null }
 
-  const pieces = str.split(/(:.*?:)/g)
+  const pieces = str.split(EmojiRegex)
   const elements = pieces.map((fragment, i) => {
     const path = emoji.get(fragment)
     if (path) {
