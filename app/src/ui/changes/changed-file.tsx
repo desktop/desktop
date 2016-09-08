@@ -1,4 +1,5 @@
 import * as React from 'react'
+import { remote } from 'electron'
 
 import { FileStatus } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -29,7 +30,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     const includeFile = this.props.include
 
     return (
-      <div className='changed-file'>
+      <div className='changed-file' onContextMenu={e => this.onContextMenu(e)}>
         <input
           type='checkbox'
           checked={includeFile == null ? undefined : includeFile}
@@ -49,6 +50,13 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
         </span>
       </div>
     )
+  }
+
+  private onContextMenu(event: React.MouseEvent<any>) {
+    event.preventDefault()
+    if (process.platform !== 'win32') {
+      this.contextMenu.popup(remote.getCurrentWindow())
+    }
   }
 }
 

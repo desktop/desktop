@@ -1,4 +1,4 @@
-import { app, Menu, autoUpdater, ipcMain } from 'electron'
+import { app, Menu, MenuItem, autoUpdater, ipcMain, BrowserWindow } from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
@@ -115,6 +115,23 @@ app.on('ready', () => {
 
   ipcMain.on('show-main-window', () => {
     getMainWindow().show()
+  })
+
+  ipcMain.on('show-contextual-menu', (event: Electron.IpcMainEvent, items: ReadonlyArray<any>) => {
+    const menu = new Menu()
+    const menuItems = items.map((item, i) => {
+      return new MenuItem({
+        label: item.label,
+        click: () => event.sender.send('contextual-menu-action', i)
+      })
+    })
+
+    for (const item of menuItems) {
+      menu.append(item)
+    }
+
+    const window = BrowserWindow.fromWebContents(event.sender)
+    menu.popup(window)
   })
 })
 
