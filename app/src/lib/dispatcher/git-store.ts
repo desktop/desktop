@@ -150,6 +150,7 @@ export default class GitStore {
     this.emitUpdate()
   }
 
+  /** Load all the branches. */
   public async loadBranches() {
     const localBranches = await LocalGitOperations.getBranches(this.repository, 'refs/heads', BranchType.Local)
     const remoteBranches = await LocalGitOperations.getBranches(this.repository, 'refs/remotes', BranchType.Remote)
