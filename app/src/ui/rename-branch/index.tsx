@@ -57,7 +57,7 @@ export default class RenameBranch extends React.Component<IRenameBranchProps, IR
   }
 
   private onNameChange(event: React.FormEvent<HTMLInputElement>) {
-    this.setState({ newName: event.target.value })
+    this.setState({ newName: event.currentTarget.value })
   }
 
   private cancel() {
