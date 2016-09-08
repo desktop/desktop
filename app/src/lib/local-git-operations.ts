@@ -560,7 +560,7 @@ export class LocalGitOperations {
 
   /** Clone the repository to the path. */
   public static clone(url: string, path: string, progress: (progress: string) => void): Promise<void> {
-    return GitProcess.exec([ 'clone', '--progress', '--', url, path ], __dirname, undefined, process => {
+    return GitProcess.exec([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, undefined, process => {
       process.stderr.on('data', (chunk: string) => {
         progress(chunk)
       })
