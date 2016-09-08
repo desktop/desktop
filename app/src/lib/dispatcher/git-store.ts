@@ -42,6 +42,7 @@ export default class GitStore {
     return this.emitter.on('did-load-new-commits', fn)
   }
 
+  /** Load history from HEAD. */
   public async loadHistory() {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) { return }
 
@@ -69,6 +70,7 @@ export default class GitStore {
     this.emitUpdate()
   }
 
+  /** Load the next batch of history, starting from the last loaded commit. */
   public async loadNextHistoryBatch() {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) { return }
 
@@ -91,6 +93,7 @@ export default class GitStore {
     this.emitUpdate()
   }
 
+  /** Load the commit for the SHA. */
   public async loadCommit(sha: string) {
     const existingCommit = this.commits.get(sha)
     // We've already loaded this commit and commits are I M M U T A B L E
