@@ -5,6 +5,8 @@ import { LocalGitOperations, Commit } from '../local-git-operations'
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
 
+const LoadingHistoryRequestKey = 'history'
+
 /** The store for a repository's git data. */
 export default class GitStore {
   private readonly emitter = new Emitter()
@@ -41,6 +43,10 @@ export default class GitStore {
   }
 
   public async loadHistory() {
+    if (this.requestsInFight.has(LoadingHistoryRequestKey)) { return }
+
+    this.requestsInFight.add(LoadingHistoryRequestKey)
+
     let commits = await LocalGitOperations.getHistory(this.repository, 'HEAD', CommitBatchSize)
 
     const existingHistory = this._history
@@ -57,18 +63,29 @@ export default class GitStore {
       this.commits.set(commit.sha, commit)
     }
 
+    this.requestsInFight.delete(LoadingHistoryRequestKey)
+
     this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
   }
 
   public async loadNextHistoryBatch() {
+    if (this.requestsInFight.has(LoadingHistoryRequestKey)) { return }
+
     const lastSHA = this.history[this.history.length - 1]
+    const requestKey = `history/${lastSHA}`
+    if (this.requestsInFight.has(requestKey)) { return }
+
+    this.requestsInFight.add(requestKey)
+
     const commits = await LocalGitOperations.getHistory(this.repository, `${lastSHA}^`, CommitBatchSize)
 
     this._history = this._history.concat(commits.map(c => c.sha))
     for (const commit of commits) {
       this.commits.set(commit.sha, commit)
     }
+
+    this.requestsInFight.delete(requestKey)
 
     this.emitNewCommitsLoaded(commits)
     this.emitUpdate()
