@@ -1,11 +1,14 @@
 import { Emitter, Disposable } from 'event-kit'
 import Repository from '../../models/repository'
-import { LocalGitOperations, Commit } from '../local-git-operations'
+import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
 
 const LoadingHistoryRequestKey = 'history'
+
+/** The max number of recent branches to find. */
+const RecentBranchesLimit = 5
 
 /** The store for a repository's git data. */
 export default class GitStore {
@@ -19,6 +22,14 @@ export default class GitStore {
   private readonly requestsInFight = new Set<string>()
 
   private readonly repository: Repository
+
+  private _currentBranch: Branch | null = null
+
+  private _defaultBranch: Branch | null = null
+
+  private _allBranches: ReadonlyArray<Branch> = []
+
+  private _recentBranches: ReadonlyArray<Branch> = []
 
   public constructor(repository: Repository) {
     this.repository = repository
@@ -117,7 +128,92 @@ export default class GitStore {
   }
 
   /** The list of ordered SHAs. */
-  public get history(): ReadonlyArray<string> {
-    return this._history
+  public get history(): ReadonlyArray<string> { return this._history }
+
+  /** Load the current and default branches. */
+  public async loadCurrentAndDefaultBranch() {
+    this._currentBranch = await LocalGitOperations.getCurrentBranch(this.repository)
+
+    let defaultBranchName: string | null = 'master'
+    const gitHubRepository = this.repository.gitHubRepository
+    if (gitHubRepository && gitHubRepository.defaultBranch) {
+      defaultBranchName = gitHubRepository.defaultBranch
+    }
+
+    // If the current branch is the default branch, we can skip looking it up.
+    if (this._currentBranch && this._currentBranch.name === defaultBranchName) {
+      this._defaultBranch = this._currentBranch
+    } else {
+      this._defaultBranch = await this.loadBranch(defaultBranchName)
+    }
+
+    this.emitUpdate()
+  }
+
+  public async loadBranches() {
+    const localBranches = await LocalGitOperations.getBranches(this.repository, 'refs/heads', BranchType.Local)
+    const remoteBranches = await LocalGitOperations.getBranches(this.repository, 'refs/remotes', BranchType.Remote)
+
+    const upstreamBranchesAdded = new Set<string>()
+    const allBranches = new Array<Branch>()
+    localBranches.forEach(branch => {
+      allBranches.push(branch)
+
+      if (branch.upstream) {
+        upstreamBranchesAdded.add(branch.upstream)
+      }
+    })
+
+    remoteBranches.forEach(branch => {
+      // This means we already added the local branch of this remote branch, so
+      // we don't need to add it again.
+      if (upstreamBranchesAdded.has(branch.name)) { return }
+
+      allBranches.push(branch)
+    })
+
+    this._allBranches = allBranches
+
+    this.emitUpdate()
+
+    for (const branch of allBranches) {
+      this.loadCommit(branch.sha)
+    }
+  }
+
+  /**
+   * Try to load a branch using its name. This will prefer local branches over
+   * remote branches.
+   */
+  private async loadBranch(branchName: string): Promise<Branch | null> {
+    const localBranches = await LocalGitOperations.getBranches(this.repository, `refs/heads/${branchName}`, BranchType.Local)
+    if (localBranches.length) {
+      return localBranches[0]
+    }
+
+    const remoteBranches = await LocalGitOperations.getBranches(this.repository, `refs/remotes/${branchName}`, BranchType.Remote)
+    if (remoteBranches.length) {
+      return remoteBranches[0]
+    }
+
+    return null
+  }
+
+  /** The current branch. */
+  public get currentBranch(): Branch | null { return this._currentBranch }
+
+  /** The default branch, or `master` if there is no default. */
+  public get defaultBranch(): Branch | null { return this._defaultBranch }
+
+  /** All branches, including the current branch and the default branch. */
+  public get allBranches(): ReadonlyArray<Branch> { return this._allBranches }
+
+  /** The most recently checked out branches. */
+  public get recentBranches(): ReadonlyArray<Branch> { return this._recentBranches }
+
+  /** Load the recent branches. */
+  public async loadRecentBranches() {
+    this._recentBranches = await LocalGitOperations.getRecentBranches(this.repository, this._allBranches, RecentBranchesLimit)
+    this.emitUpdate()
   }
 }

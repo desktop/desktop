@@ -21,16 +21,13 @@ import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '
 import { DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
-import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
+import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import GitHubUserStore from './github-user-store'
 import GitStore from './git-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
-
-/** The max number of recent branches to find. */
-const RecentBranchesLimit = 5
 
 export default class AppStore {
   private emitter = new Emitter()
@@ -222,6 +219,15 @@ export default class AppStore {
         history: gitStore.history,
         selection: state.selection,
         changedFiles: state.changedFiles,
+      }
+    })
+
+    this.updateBranchesState(repository, state => {
+      return {
+        currentBranch: gitStore.currentBranch,
+        defaultBranch: gitStore.defaultBranch,
+        allBranches: gitStore.allBranches,
+        recentBranches: gitStore.recentBranches,
       }
     })
 
@@ -611,27 +617,12 @@ export default class AppStore {
     return Promise.resolve()
   }
 
-  private async refreshCurrentBranch(repository: Repository): Promise<void> {
-    const currentBranch = await LocalGitOperations.getCurrentBranch(repository)
-
-    this.updateBranchesState(repository, state => {
-      return {
-        currentBranch,
-        defaultBranch: state.defaultBranch,
-        allBranches: state.allBranches,
-        recentBranches: state.recentBranches,
-      }
-    })
-    this.emitUpdate()
-  }
-
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _refreshRepository(repository: Repository): Promise<void> {
     const state = this.getRepositoryState(repository)
+    const gitStore = this.getGitStore(repository)
 
-    await this.refreshCurrentBranch(repository)
-
-    await this.loadBranches(repository)
+    await gitStore.loadCurrentAndDefaultBranch()
 
     // When refreshing we *always* load Changes so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
@@ -662,53 +653,13 @@ export default class AppStore {
     this.emitUpdate()
   }
 
-  private async loadBranches(repository: Repository): Promise<void> {
-    const localBranches = await LocalGitOperations.getBranches(repository, 'refs/heads', BranchType.Local)
-    const remoteBranches = await LocalGitOperations.getBranches(repository, 'refs/remotes', BranchType.Remote)
-
-    const upstreamBranchesAdded = new Set<string>()
-    const allBranches = new Array<Branch>()
-    localBranches.forEach(branch => {
-      allBranches.push(branch)
-
-      if (branch.upstream) {
-        upstreamBranchesAdded.add(branch.upstream)
-      }
-    })
-
-    remoteBranches.forEach(branch => {
-      // This means we already added the local branch of this remote branch, so
-      // we don't need to add it again.
-      if (upstreamBranchesAdded.has(branch.name)) { return }
-
-      allBranches.push(branch)
-    })
-
-    let defaultBranchName: string | null = 'master'
-    const gitHubRepository = repository.gitHubRepository
-    if (gitHubRepository && gitHubRepository.defaultBranch) {
-      defaultBranchName = gitHubRepository.defaultBranch
-    }
-
-    const defaultBranch = allBranches.find(b => b.name === defaultBranchName)
-
-    this.updateBranchesState(repository, state => {
-      return {
-        currentBranch: state.currentBranch,
-        defaultBranch: defaultBranch ? defaultBranch : null,
-        allBranches,
-        recentBranches: state.recentBranches,
-      }
-    })
-    this.emitUpdate()
-
-    this.calculateRecentBranches(repository)
-
-    this.loadBranchTips(repository)
-  }
-
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _showPopup(popup: Popup): Promise<void> {
+    if (popup.type === PopupType.ShowBranches || popup.type === PopupType.CreateBranch) {
+      const gitStore = this.getGitStore(popup.repository)
+      gitStore.loadBranches()
+    }
+
     this.currentPopup = popup
     this.emitUpdate()
   }
@@ -732,20 +683,6 @@ export default class AppStore {
     await LocalGitOperations.checkoutBranch(repository, name)
 
     return this._refreshRepository(repository)
-  }
-
-  private async calculateRecentBranches(repository: Repository): Promise<void> {
-    const state = this.getRepositoryState(repository).branchesState
-    const recentBranches = await LocalGitOperations.getRecentBranches(repository, state.allBranches, RecentBranchesLimit)
-    this.updateBranchesState(repository, state => {
-      return {
-        currentBranch: state.currentBranch,
-        defaultBranch: state.defaultBranch,
-        allBranches: state.allBranches,
-        recentBranches,
-      }
-    })
-    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -804,14 +741,6 @@ export default class AppStore {
     if (!gitDir) { return null }
 
     return Path.dirname(gitDir)
-  }
-
-  private async loadBranchTips(repository: Repository): Promise<void> {
-    const state = this.getRepositoryState(repository).branchesState
-    const gitStore = this.getGitStore(repository)
-    for (const branch of state.allBranches) {
-      gitStore.loadCommit(branch.sha)
-    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
