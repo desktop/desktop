@@ -13,6 +13,7 @@ interface IChangesProps {
   readonly committerEmail: string | null
   readonly branch: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
+  readonly emoji: ReadonlyArray<string>
 }
 
 /** TODO: handle "repository not found" scenario */
@@ -73,7 +74,8 @@ export class Changes extends React.Component<IChangesProps, void> {
                        onIncludeChanged={(row, include) => this.onIncludeChanged(row, include) }
                        onSelectAll={selectAll => this.onSelectAll(selectAll) }
                        branch={this.props.branch}
-                       avatarURL={avatarURL}/>
+                       avatarURL={avatarURL}
+                       emoji={this.props.emoji}/>
         </Resizable>
 
         <FileDiff repository={this.props.repository}

@@ -19,6 +19,7 @@ interface IChangesListProps {
   readonly onCreateCommit: (summary: string, description: string) => void
   readonly branch: string | null
   readonly avatarURL: string
+  readonly emoji: ReadonlyArray<string>
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
@@ -80,7 +81,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
 
         <CommitMessage onCreateCommit={(summary, description) => this.props.onCreateCommit(summary, description)}
                        branch={this.props.branch}
-                       avatarURL={this.props.avatarURL}/>
+                       avatarURL={this.props.avatarURL}
+                       emoji={this.props.emoji}/>
       </div>
     )
   }
