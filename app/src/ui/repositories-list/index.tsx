@@ -74,7 +74,7 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
     }
 
     const navStyle = {
-      padding: '0 10px',
+      padding: '0 10px 10px',
       textAlign: 'right',
       zIndex: 2,
       marginTop: '-27px'
