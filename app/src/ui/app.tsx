@@ -20,6 +20,7 @@ import DeleteBranch from './delete-branch'
 import PublishRepository from './publish-repository'
 import { default as CloningRepositoryView } from './cloning-repository'
 import { showPopupAppMenu, setMenuEnabled } from './main-process-proxy'
+import DiscardChanges from './discard-changes'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -261,6 +262,10 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return <PublishRepository repository={popup.repository}
                                 dispatcher={this.props.dispatcher}
                                 users={this.state.users}/>
+    } else if (popup.type === PopupType.ConfirmDiscardChanges) {
+      return <DiscardChanges repository={popup.repository}
+                             dispatcher={this.props.dispatcher}
+                             files={popup.files}/>
     }
 
     return fatalError(`Unknown popup type: ${popup}`)

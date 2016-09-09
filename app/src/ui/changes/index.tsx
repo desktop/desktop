@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ChangesList } from './changes-list'
 import FileDiff from '../file-diff'
-import { IChangesState } from '../../lib/app-state'
+import { IChangesState, PopupType } from '../../lib/app-state'
 import Repository from '../../models/repository'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
@@ -55,7 +55,11 @@ export class Changes extends React.Component<IChangesProps, void> {
   private onDiscardChanges(row: number) {
     const workingDirectory = this.props.changes.workingDirectory
     const file = workingDirectory.files[row]
-    this.props.dispatcher.discardChanges(this.props.repository, [ file ])
+    this.props.dispatcher.showPopup({
+      type: PopupType.ConfirmDiscardChanges,
+      repository: this.props.repository,
+      files: [ file ],
+    })
   }
 
   public render() {
