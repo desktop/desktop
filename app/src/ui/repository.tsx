@@ -12,6 +12,7 @@ interface IRepositoryProps {
   readonly repository: Repo
   readonly state: IRepositoryModelState
   readonly dispatcher: Dispatcher
+  readonly emoji: Map<string, string>
 }
 
 export default class Repository extends React.Component<IRepositoryProps, void> {
@@ -28,7 +29,8 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
                       history={this.props.state.historyState}
-                      gitHubUsers={this.props.state.gitHubUsers}/>
+                      gitHubUsers={this.props.state.gitHubUsers}
+                      emoji={this.props.emoji}/>
     } else {
       return null
     }

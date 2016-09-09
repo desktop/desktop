@@ -20,6 +20,9 @@ fs.removeSync(path.join(projectRoot, 'dist'))
 console.log('Copying dependencies…')
 copyDependencies()
 
+console.log('Packaging emoji…')
+copyEmoji()
+
 if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
@@ -77,6 +80,25 @@ packager(options, (error, appPaths) => {
     process.exit(0)
   }
 })
+
+function copyEmoji () {
+  const copyImages = () => {
+    const source = path.join(projectRoot, 'gemoji', 'images', 'emoji')
+    const destination = path.join(outRoot, 'emoji')
+    fs.removeSync(destination)
+    fs.copySync(source, destination)
+  }
+
+  const copyJson = () => {
+    const source = path.join(projectRoot, 'app', 'static', 'emoji.json')
+    const destination = path.join(outRoot, 'emoji.json')
+    fs.removeSync(destination)
+    fs.copySync(source, destination)
+  }
+
+  copyImages()
+  copyJson()
+}
 
 function copyDependencies () {
   let destination = path.join(outRoot, 'package.json')

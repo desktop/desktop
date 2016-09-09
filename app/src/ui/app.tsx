@@ -315,7 +315,8 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return (
         <RepositoryView repository={selectedState.repository}
                         state={selectedState.state}
-                        dispatcher={this.props.dispatcher}/>
+                        dispatcher={this.props.dispatcher}
+                        emoji={this.state.emoji}/>
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
       return <CloningRepositoryView repository={selectedState.repository}
