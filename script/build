@@ -20,9 +20,6 @@ fs.removeSync(path.join(projectRoot, 'dist'))
 console.log('Copying dependencies…')
 copyDependencies()
 
-console.log('Packaging embedded Git…')
-copyGitDirectory()
-
 if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
@@ -80,23 +77,6 @@ packager(options, (error, appPaths) => {
     process.exit(0)
   }
 })
-
-function copyGitDirectory () {
-  let source = projectRoot
-
-  if (process.platform === 'darwin') {
-    source = path.join(projectRoot, 'git', 'git-macos', 'git')
-  } else if (process.platform === 'win32') {
-    source = path.join(projectRoot, 'git', 'git-win32', 'git')
-  } else {
-    console.error(`No Git provided for platform ${process.platform} :(`)
-    process.exit(1)
-  }
-
-  const destination = path.join(outRoot, 'git')
-  fs.removeSync(destination)
-  fs.copySync(source, destination)
-}
 
 function copyDependencies () {
   let destination = path.join(outRoot, 'package.json')

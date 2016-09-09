@@ -4,9 +4,10 @@ import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileSta
 import { DiffSelectionType, DiffSelection, Diff } from '../models/diff'
 import Repository from '../models/repository'
 
-import { GitProcess, GitError, GitErrorCode } from './git-process'
 import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDeletedFile } from './patch-formatter'
 import { parseRawDiff } from './diff-parser'
+
+import { GitProcess, GitError, GitErrorCode } from 'git-kitchen-sink'
 
 /** The encapsulation of the result from 'git status' */
 export class StatusResult {
