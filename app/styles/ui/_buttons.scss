@@ -33,5 +33,9 @@ input[type='submit'] {
 }
 
 .btn-icon-only {
-  padding: 3px 8px;
+  padding: 5px 8px;
+
+  .octicon {
+    vertical-align: text-top;
+  }
 }
