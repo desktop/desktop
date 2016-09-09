@@ -66,15 +66,24 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
     }
 
     const grouped = groupRepositories(this.props.repositories)
+
     const divStyle = {
         display: 'flex',
+        flexDirection: 'column',
         height: '100%'
+    }
+
+    const navStyle = {
+      padding: '0 10px',
+      textAlign: 'right',
+      zIndex: 2,
+      marginTop: '-27px'
     }
 
     return (
       <div style={divStyle}>
-        <nav style='height: 50px'>
-          <button className='btn-alt'>
+        <nav style={navStyle}>
+          <button className='btn-alt btn-icon-only'>
             <Octicon symbol={OcticonSymbol.plus} />
           </button>
         </nav>
