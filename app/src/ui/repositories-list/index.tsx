@@ -5,6 +5,7 @@ import RepositoryListItem from './repository-list-item'
 import Repository from '../../models/repository'
 import { groupRepositories, RepositoryListItem as RepositoryListItemModel, Repositoryish } from './group-repositories'
 import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
@@ -65,15 +66,28 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
     }
 
     const grouped = groupRepositories(this.props.repositories)
+    const divStyle = {
+        display: 'flex',
+        height: '100%'
+    }
+
     return (
-      <List id='repository-list'
-            rowCount={grouped.length}
-            rowHeight={RowHeight}
-            rowRenderer={row => this.renderRow(grouped, row)}
-            selectedRow={this.selectedRow(grouped)}
-            onSelectionChanged={row => this.onSelectionChanged(grouped, row)}
-            canSelectRow={row => this.canSelectRow(grouped, row)}
-            invalidationProps={this.props.repositories}/>
+      <div style={divStyle}>
+        <nav style='height: 50px'>
+          <button className='btn-alt'>
+            <Octicon symbol={OcticonSymbol.plus} />
+          </button>
+        </nav>
+
+        <List id='repository-list'
+              rowCount={grouped.length}
+              rowHeight={RowHeight}
+              rowRenderer={row => this.renderRow(grouped, row)}
+              selectedRow={this.selectedRow(grouped)}
+              onSelectionChanged={row => this.onSelectionChanged(grouped, row)}
+              canSelectRow={row => this.canSelectRow(grouped, row)}
+              invalidationProps={this.props.repositories}/>
+      </div>
     )
   }
 }
