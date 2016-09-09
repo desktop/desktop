@@ -11,9 +11,9 @@ const RowHeight = 68
 interface ICommitListProps {
   readonly onCommitSelected: (commit: Commit) => void
   readonly onScroll: (start: number, end: number) => void
-  readonly commits: ReadonlyArray<Commit>
-  readonly selectedCommit: Commit | null
-  readonly commitCount: number
+  readonly history: ReadonlyArray<string>
+  readonly commits: Map<string, Commit>
+  readonly selectedSHA: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly repository: Repository
   readonly dispatcher: Dispatcher
@@ -25,7 +25,8 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
   private list: List | null
 
   private renderCommit(row: number) {
-    const commit: Commit | null = this.props.commits[row]
+    const sha = this.props.history[row]
+    const commit = this.props.commits.get(sha)
     if (commit) {
       const gitHubUser = this.props.gitHubUsers.get(commit.authorEmail.toLowerCase()) || null
       return <CommitListItem key={commit.sha} commit={commit} gitHubUser={gitHubUser} emoji={this.props.emoji}/>
@@ -35,8 +36,11 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
   }
 
   private onSelectionChanged(row: number) {
-    const commit = this.props.commits[row]
-    this.props.onCommitSelected(commit)
+    const sha = this.props.history[row]
+    const commit = this.props.commits.get(sha)
+    if (commit) {
+      this.props.onCommitSelected(commit)
+    }
   }
 
   private onScroll(scrollTop: number, clientHeight: number) {
@@ -46,11 +50,11 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     this.props.onScroll(top, bottom)
   }
 
-  private rowForCommit(commit_: Commit | null): number {
-    const commit = commit_
-    if (!commit) { return -1 }
+  private rowForSHA(sha_: string | null): number {
+    const sha = sha_
+    if (!sha) { return -1 }
 
-    return this.props.commits.findIndex(c => c.sha === commit.sha)
+    return this.props.history.findIndex(s => s === sha)
   }
 
   public forceUpdate() {
@@ -66,9 +70,9 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     return (
       <div className='panel' id='commit-list'>
         <List ref={ref => this.list = ref}
-              rowCount={this.props.commitCount}
+              rowCount={this.props.history.length}
               rowHeight={RowHeight}
-              selectedRow={this.rowForCommit(this.props.selectedCommit)}
+              selectedRow={this.rowForSHA(this.props.selectedSHA)}
               rowRenderer={row => this.renderCommit(row)}
               onSelectionChanged={row => this.onSelectionChanged(row)}
               onScroll={(scrollTop, clientHeight) => this.onScroll(scrollTop, clientHeight)}

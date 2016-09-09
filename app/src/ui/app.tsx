@@ -82,10 +82,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
+    const branch = state.state.branchesState.currentBranch
+    if (!branch) { return }
+
     this.props.dispatcher.showPopup({
       type: PopupType.RenameBranch,
       repository: state.repository,
-      branchesState: state.state.branchesState,
+      branch,
     })
   }
 
@@ -93,10 +96,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
+    const branch = state.state.branchesState.currentBranch
+    if (!branch) { return }
+
     this.props.dispatcher.showPopup({
       type: PopupType.DeleteBranch,
       repository: state.repository,
-      branchesState: state.state.branchesState,
+      branch,
     })
   }
 
@@ -113,7 +119,6 @@ export default class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({
       type: PopupType.CreateBranch,
       repository: state.repository,
-      branchesState: state.state.branchesState,
     })
   }
 
@@ -124,7 +129,6 @@ export default class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({
       type: PopupType.ShowBranches,
       repository: state.repository,
-      branchesState: state.state.branchesState,
     })
   }
 
@@ -227,28 +231,32 @@ export default class App extends React.Component<IAppProps, IAppState> {
     if (!popup) { return null }
 
     if (popup.type === PopupType.CreateBranch) {
-      return <CreateBranch repository={popup.repository}
+      const repository = popup.repository
+      const state = this.props.appStore.getRepositoryState(repository)
+      return <CreateBranch repository={repository}
                            dispatcher={this.props.dispatcher}
-                           branches={popup.branchesState.allBranches}
-                           currentBranch={popup.branchesState.currentBranch}/>
+                           branches={state.branchesState.allBranches}
+                           currentBranch={state.branchesState.currentBranch}/>
     } else if (popup.type === PopupType.ShowBranches) {
-      return <Branches allBranches={popup.branchesState.allBranches}
-                       recentBranches={popup.branchesState.recentBranches}
-                       currentBranch={popup.branchesState.currentBranch}
-                       defaultBranch={popup.branchesState.defaultBranch}
+      const repository = popup.repository
+      const state = this.props.appStore.getRepositoryState(repository)
+      return <Branches allBranches={state.branchesState.allBranches}
+                       recentBranches={state.branchesState.recentBranches}
+                       currentBranch={state.branchesState.currentBranch}
+                       defaultBranch={state.branchesState.defaultBranch}
                        dispatcher={this.props.dispatcher}
                        repository={popup.repository}
-                       commits={popup.branchesState.commits}/>
+                       commits={state.commits}/>
     } else if (popup.type === PopupType.AddRepository) {
       return <AddRepository dispatcher={this.props.dispatcher}/>
     } else if (popup.type === PopupType.RenameBranch) {
       return <RenameBranch dispatcher={this.props.dispatcher}
                            repository={popup.repository}
-                           branch={popup.branchesState.currentBranch!}/>
+                           branch={popup.branch}/>
     } else if (popup.type === PopupType.DeleteBranch) {
       return <DeleteBranch dispatcher={this.props.dispatcher}
                            repository={popup.repository}
-                           branch={popup.branchesState.currentBranch!}/>
+                           branch={popup.branch}/>
     } else if (popup.type === PopupType.PublishRepository) {
       return <PublishRepository repository={popup.repository}
                                 dispatcher={this.props.dispatcher}
