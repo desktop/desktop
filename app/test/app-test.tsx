@@ -6,7 +6,7 @@ import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-addons-test-utils'
 
 import App from '../src/ui/app'
-import { Dispatcher, AppStore, GitHubUserStore, CloningRepositoriesStore } from '../src/lib/dispatcher'
+import { Dispatcher, AppStore, GitHubUserStore, CloningRepositoriesStore, EmojiStore } from '../src/lib/dispatcher'
 import InMemoryDispatcher from './in-memory-dispatcher'
 import TestGitHubUserDatabase from './test-github-user-database'
 
@@ -18,7 +18,7 @@ describe('App', () => {
     const db = new TestGitHubUserDatabase()
     await db.reset()
 
-    appStore = new AppStore(new GitHubUserStore(db), new CloningRepositoriesStore())
+    appStore = new AppStore(new GitHubUserStore(db), new CloningRepositoriesStore(), new EmojiStore())
 
     dispatcher = new InMemoryDispatcher(appStore)
   })

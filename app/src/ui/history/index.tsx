@@ -10,11 +10,16 @@ import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { Resizable } from '../resizable'
 
+/** If we're within this many rows from the bottom, load the next history batch. */
+const CloseToBottomThreshold = 10
+
 interface IHistoryProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly history: IHistoryState
   readonly gitHubUsers: Map<string, IGitHubUser>
+  readonly emoji: Map<string, string>
+  readonly commits: Map<string, Commit>
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
@@ -22,7 +27,7 @@ export default class History extends React.Component<IHistoryProps, void> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
   private onCommitSelected(commit: Commit) {
-    const newSelection = { commit, file: null }
+    const newSelection = { sha: commit.sha, file: null }
     this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
 
     this.loadChangedFilesScheduler.queue(() => {
@@ -31,14 +36,13 @@ export default class History extends React.Component<IHistoryProps, void> {
   }
 
   private onFileSelected(file: FileChange) {
-    const newSelection = { commit: this.props.history.selection.commit, file }
+    const newSelection = { sha: this.props.history.selection.sha, file }
     this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
   }
 
   private onScroll(start: number, end: number) {
-    const commits = this.props.history.commits
-    const lastVisibleCommit: Commit | null = commits[end]
-    if (!lastVisibleCommit) {
+    const history = this.props.history.history
+    if (history.length - end <= CloseToBottomThreshold) {
       this.props.dispatcher.loadNextHistoryBatch(this.props.repository)
     }
   }
@@ -48,26 +52,29 @@ export default class History extends React.Component<IHistoryProps, void> {
   }
 
   public render() {
-    const commit = this.props.history.selection.commit
+    const sha = this.props.history.selection.sha
+    const commit = sha ? (this.props.commits.get(sha) || null) : null
     const selectedFile = this.props.history.selection.file
     return (
       <div className='panel-container' id='history'>
         <Resizable configKey='commit-list-width'>
-          <CommitList commits={this.props.history.commits}
-                      commitCount={this.props.history.commitCount}
-                      selectedCommit={commit}
+          <CommitList commits={this.props.commits}
+                      history={this.props.history.history}
+                      selectedSHA={this.props.history.selection.sha}
                       onCommitSelected={commit => this.onCommitSelected(commit)}
                       onScroll={(start, end) => this.onScroll(start, end)}
                       repository={this.props.repository}
                       gitHubUsers={this.props.gitHubUsers}
-                      dispatcher={this.props.dispatcher}/>
+                      dispatcher={this.props.dispatcher}
+                      emoji={this.props.emoji}/>
         </Resizable>
         <Resizable configKey='commit-summary-width'>
           <CommitSummaryContainer repository={this.props.repository}
                                   commit={commit}
                                   files={this.props.history.changedFiles}
                                   selectedFile={this.props.history.selection.file}
-                                  onSelectedFileChanged={file => this.onFileSelected(file)}/>
+                                  onSelectedFileChanged={file => this.onFileSelected(file)}
+                                  emoji={this.props.emoji}/>
         </Resizable>
         <FileDiff repository={this.props.repository}
                   file={selectedFile}
