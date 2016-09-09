@@ -599,6 +599,6 @@ export class LocalGitOperations {
 
   /** Check out the paths at HEAD. */
   public static checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
-    return GitProcess.exec([ 'checkout', '--', paths.join(' ') ], repository.path)
+    return GitProcess.exec([ 'checkout', '--', ...paths ], repository.path)
   }
 }
