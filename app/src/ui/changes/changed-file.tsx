@@ -5,10 +5,11 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 
 interface IChangedFileProps {
-  path: string,
-  status: FileStatus,
-  include: boolean | null,
+  path: string
+  status: FileStatus
+  include: boolean | null
   onIncludeChanged: (include: boolean) => void
+  onDiscardChanges: () => void
 }
 
 /** a changed file in the working directory for a given repository */
@@ -58,9 +59,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     if (process.platform !== 'win32') {
       const item = {
         label: 'Discard Changes',
-        action() {
-          console.log('discard!')
-        },
+        action: () => this.props.onDiscardChanges(),
       }
       showContextualMenu([ item ])
     }

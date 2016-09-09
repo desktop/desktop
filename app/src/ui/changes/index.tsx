@@ -52,6 +52,12 @@ export class Changes extends React.Component<IChangesProps, void> {
     this.props.dispatcher.changeFileLineSelection(this.props.repository, file, diffSelection)
   }
 
+  private onDiscardChanges(row: number) {
+    const workingDirectory = this.props.changes.workingDirectory
+    const file = workingDirectory.files[row]
+    this.props.dispatcher.discardChanges(this.props.repository, [ file ])
+  }
+
   public render() {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
 
@@ -70,8 +76,9 @@ export class Changes extends React.Component<IChangesProps, void> {
                        selectedPath={selectedPath}
                        onSelectionChanged={event => this.onSelectionChanged(event)}
                        onCreateCommit={(summary, description) => this.onCreateCommit(summary, description)}
-                       onIncludeChanged={(row, include) => this.onIncludeChanged(row, include) }
-                       onSelectAll={selectAll => this.onSelectAll(selectAll) }
+                       onIncludeChanged={(row, include) => this.onIncludeChanged(row, include)}
+                       onSelectAll={selectAll => this.onSelectAll(selectAll)}
+                       onDiscardChanges={row => this.onDiscardChanges(row)}
                        branch={this.props.branch}
                        avatarURL={avatarURL}/>
         </Resizable>

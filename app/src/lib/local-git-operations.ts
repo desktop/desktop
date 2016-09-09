@@ -596,4 +596,9 @@ export class LocalGitOperations {
   public static addRemote(path: string, name: string, url: string): Promise<void> {
     return GitProcess.exec([ 'remote', 'add', name, url ], path)
   }
+
+  /** Check out the paths at HEAD. */
+  public static checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
+    return GitProcess.exec([ 'checkout', '--', paths.join(' ') ], repository.path)
+  }
 }
