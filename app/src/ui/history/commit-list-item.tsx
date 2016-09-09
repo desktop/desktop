@@ -2,12 +2,14 @@ import * as React from 'react'
 import * as moment from 'moment'
 import { Commit } from '../../lib/local-git-operations'
 import { IGitHubUser } from '../../lib/dispatcher'
+import EmojiText from '../lib/emoji-text'
 
 const DefaultAvatarURL = 'https://github.com/hubot.png'
 
 interface ICommitProps {
   readonly commit: Commit
   readonly gitHubUser: IGitHubUser | null
+  readonly emoji: Map<string, string>
 }
 
 /** A component which displays a single commit in a commit list. */
@@ -19,7 +21,7 @@ export default class CommitListItem extends React.Component<ICommitProps, void> 
       <div className='commit'>
         <img className='avatar' src={avatarURL}/>
         <div className='info'>
-          <div className='summary'>{this.props.commit.summary}</div>
+          <EmojiText className='summary' emoji={this.props.emoji}>{this.props.commit.summary}</EmojiText>
           <div className='byline' title={this.props.commit.authorDate.toString()}>{relative} by {this.props.commit.authorName}</div>
         </div>
       </div>

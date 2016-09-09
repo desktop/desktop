@@ -26,12 +26,12 @@ export default class CreateRepository extends React.Component<ICreateRepositoryP
   }
 
   private onPathChanged(event: React.FormEvent<HTMLInputElement>) {
-    const path = event.target.value
+    const path = event.currentTarget.value
     this.setState({ path, name: this.state.name })
   }
 
   private onNameChanged(event: React.FormEvent<HTMLInputElement>) {
-    const name = event.target.value
+    const name = event.currentTarget.value
     this.setState({ path: this.state.path, name })
   }
 

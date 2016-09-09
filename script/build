@@ -20,8 +20,8 @@ fs.removeSync(path.join(projectRoot, 'dist'))
 console.log('Copying dependencies…')
 copyDependencies()
 
-console.log('Packaging embedded Git…')
-copyGitDirectory()
+console.log('Packaging emoji…')
+copyEmoji()
 
 if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
   console.log('Setting up keychain…')
@@ -81,21 +81,23 @@ packager(options, (error, appPaths) => {
   }
 })
 
-function copyGitDirectory () {
-  let source = projectRoot
-
-  if (process.platform === 'darwin') {
-    source = path.join(projectRoot, 'git', 'git-macos', 'git')
-  } else if (process.platform === 'win32') {
-    source = path.join(projectRoot, 'git', 'git-win32', 'git')
-  } else {
-    console.error(`No Git provided for platform ${process.platform} :(`)
-    process.exit(1)
+function copyEmoji () {
+  const copyImages = () => {
+    const source = path.join(projectRoot, 'gemoji', 'images', 'emoji')
+    const destination = path.join(outRoot, 'emoji')
+    fs.removeSync(destination)
+    fs.copySync(source, destination)
   }
 
-  const destination = path.join(outRoot, 'git')
-  fs.removeSync(destination)
-  fs.copySync(source, destination)
+  const copyJson = () => {
+    const source = path.join(projectRoot, 'app', 'static', 'emoji.json')
+    const destination = path.join(outRoot, 'emoji.json')
+    fs.removeSync(destination)
+    fs.copySync(source, destination)
+  }
+
+  copyImages()
+  copyJson()
 }
 
 function copyDependencies () {

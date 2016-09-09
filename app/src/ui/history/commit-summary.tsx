@@ -2,6 +2,7 @@ import * as React from 'react'
 import { FileChange } from '../../models/status'
 import List from '../list'
 import { Octicon, OcticonSymbol } from '../octicons'
+import EmojiText from '../lib/emoji-text'
 
 interface ICommitSummaryProps {
   readonly summary: string
@@ -11,6 +12,7 @@ interface ICommitSummaryProps {
   readonly files: ReadonlyArray<FileChange>
   readonly selectedFile: FileChange | null
   readonly onSelectedFileChanged: (file: FileChange) => void
+  readonly emoji: Map<string, string>
 }
 
 export default class CommitSummary extends React.Component<ICommitSummaryProps, void> {
@@ -47,9 +49,9 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
     return (
       <div className='panel' id='commit-summary'>
         <div className='commit-summary-header'>
-          <div className='commit-summary-title'>
+          <EmojiText className='commit-summary-title' emoji={this.props.emoji}>
             {this.props.summary}
-          </div>
+          </EmojiText>
 
           <ul className='commit-summary-meta byline'>
             <li className='commit-summary-meta-item'
@@ -80,7 +82,7 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
             </li>
           </ul>
         </div>
-        <div className='commit-summary-description'>{this.props.body}</div>
+        <EmojiText className='commit-summary-description' emoji={this.props.emoji}>{this.props.body}</EmojiText>
         <div className='files'>
           <List rowRenderer={row => this.renderFile(row)}
                 rowCount={this.props.files.length}

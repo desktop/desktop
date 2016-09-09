@@ -22,9 +22,9 @@ const config = {
     ...common.plugins,
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoErrorsPlugin(),
-    new webpack.DefinePlugin({
+    new webpack.DefinePlugin(Object.assign({}, {
       __DEV__: true
-    })
+    }, common.replacements))
   ],
   module: common.module,
   resolve: common.resolve,

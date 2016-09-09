@@ -18,6 +18,7 @@ interface IHistoryProps {
   readonly dispatcher: Dispatcher
   readonly history: IHistoryState
   readonly gitHubUsers: Map<string, IGitHubUser>
+  readonly emoji: Map<string, string>
   readonly commits: Map<string, Commit>
 }
 
@@ -64,14 +65,16 @@ export default class History extends React.Component<IHistoryProps, void> {
                       onScroll={(start, end) => this.onScroll(start, end)}
                       repository={this.props.repository}
                       gitHubUsers={this.props.gitHubUsers}
-                      dispatcher={this.props.dispatcher}/>
+                      dispatcher={this.props.dispatcher}
+                      emoji={this.props.emoji}/>
         </Resizable>
         <Resizable configKey='commit-summary-width'>
           <CommitSummaryContainer repository={this.props.repository}
                                   commit={commit}
                                   files={this.props.history.changedFiles}
                                   selectedFile={this.props.history.selection.file}
-                                  onSelectedFileChanged={file => this.onFileSelected(file)}/>
+                                  onSelectedFileChanged={file => this.onFileSelected(file)}
+                                  emoji={this.props.emoji}/>
         </Resizable>
         <FileDiff repository={this.props.repository}
                   file={selectedFile}

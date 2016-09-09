@@ -83,7 +83,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
   }
 
   private onBranchNameChange(event: React.FormEvent<HTMLInputElement>) {
-    const str = event.target.value
+    const str = event.currentTarget.value
     const sanitizedName = sanitizedBranchName(str)
     const alreadyExists = this.props.branches.findIndex(b => b.name === sanitizedName) > -1
     let currentError: Error | null = null
@@ -100,7 +100,7 @@ export default class CreateBranch extends React.Component<ICreateBranchProps, IC
   }
 
   private onBaseBranchChange(event: React.FormEvent<HTMLSelectElement>) {
-    const baseBranchName = event.target.value
+    const baseBranchName = event.currentTarget.value
     const baseBranch = this.props.branches.find(b => b.name === baseBranchName)!
     this.setState({
       currentError: this.state.currentError,

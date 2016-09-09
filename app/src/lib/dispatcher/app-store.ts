@@ -25,6 +25,7 @@ import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import GitHubUserStore from './github-user-store'
+import EmojiStore from './emoji-store'
 import GitStore from './git-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -49,12 +50,15 @@ export default class AppStore {
 
   private readonly cloningRepositoriesStore: CloningRepositoriesStore
 
+  private readonly emojiStore: EmojiStore
+
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
 
-  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore) {
+  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
+    this.emojiStore = emojiStore
 
     this.gitHubUserStore.onDidUpdate(() => {
       this.emitUpdate()
@@ -63,6 +67,8 @@ export default class AppStore {
     this.cloningRepositoriesStore.onDidUpdate(() => {
       this.emitUpdate()
     })
+
+    this.emojiStore.read().then(() => this.emitUpdate())
   }
 
   private emitUpdate() {
@@ -211,6 +217,7 @@ export default class AppStore {
       currentPopup: this.currentPopup,
       errors: this.errors,
       loading: this.loading,
+      emoji: this.emojiStore.emoji,
     }
   }
 

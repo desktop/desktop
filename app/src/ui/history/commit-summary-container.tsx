@@ -10,6 +10,7 @@ interface ICommitSummaryContainerProps {
   readonly files: ReadonlyArray<FileChange>
   readonly selectedFile: FileChange | null
   readonly onSelectedFileChanged: (file: FileChange) => void
+  readonly emoji: Map<string, string>
 }
 
 /** A component which displays a commit's summary. */
@@ -25,7 +26,8 @@ export default class CommitSummaryContainer extends React.Component<ICommitSumma
                           authorName={this.props.commit.authorName}
                           files={this.props.files}
                           selectedFile={this.props.selectedFile}
-                          onSelectedFileChanged={file => this.props.onSelectedFileChanged(file)}/>
+                          onSelectedFileChanged={file => this.props.onSelectedFileChanged(file)}
+                          emoji={this.props.emoji}/>
   }
 
   public render() {

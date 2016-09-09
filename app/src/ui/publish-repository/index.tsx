@@ -50,7 +50,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
 
   private onNameChange(event: React.FormEvent<HTMLInputElement>) {
     this.setState({
-      name: event.target.value,
+      name: event.currentTarget.value,
       description: this.state.description,
       private: this.state.private,
       groupedUsers: this.state.groupedUsers,
@@ -61,7 +61,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
   private onDescriptionChange(event: React.FormEvent<HTMLInputElement>) {
     this.setState({
       name: this.state.name,
-      description: event.target.value,
+      description: event.currentTarget.value,
       private: this.state.private,
       groupedUsers: this.state.groupedUsers,
       selectedUser: this.state.selectedUser,
@@ -72,7 +72,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
     this.setState({
       name: this.state.name,
       description: this.state.description,
-      private: event.target.checked,
+      private: event.currentTarget.checked,
       groupedUsers: this.state.groupedUsers,
       selectedUser: this.state.selectedUser,
     })
@@ -116,7 +116,7 @@ export default class PublishRepository extends React.Component<IPublishRepositor
   }
 
   private onAccountChange(event: React.FormEvent<HTMLSelectElement>) {
-    const value = event.target.value
+    const value = event.currentTarget.value
     const selectedUser = JSON.parse(value)
 
     this.setState({

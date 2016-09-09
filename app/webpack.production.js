@@ -14,9 +14,9 @@ const config = {
     ...common.plugins,
     new webpack.optimize.UglifyJsPlugin(),
     new webpack.optimize.OccurrenceOrderPlugin(true),
-    new webpack.DefinePlugin({
+    new webpack.DefinePlugin(Object.assign({}, {
       __DEV__: false
-    })
+    }, common.replacements))
   ],
   module: common.module,
   resolve: common.resolve,
