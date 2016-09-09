@@ -18,7 +18,7 @@ module.exports = {
     loaders: [
       {
         test: /\.tsx?$/,
-        loaders: ['babel', 'ts'],
+        loaders: ['babel?cacheDirectory', 'ts'],
         include: path.join(__dirname, 'src')
       },
       {
@@ -55,5 +55,8 @@ module.exports = {
   node: {
     __dirname: false,
     __filename: false
+  },
+  replacements: {
+    __OAUTH_SECRET__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_SECRET)
   }
 }

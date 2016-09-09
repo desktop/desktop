@@ -27,6 +27,10 @@ node-gyp is required to build some of our native npm packages (such as [keytar](
 1. Ask a member of the Desktop team for the password.
 1. Add it to your Keychain.
 
+### OAuth Secret
+
+The OAuth secret is embedded in the app at build time using the `DESKTOP_OAUTH_CLIENT_SECRET` environment variable. The secret is needed only if you want to log in a new user using dev builds of the app. For day to day development it shouldn't be necessary. If you do need it, ask a member of the Desktop team.
+
 ## Building
 
 * Run `npm install` to get all required dependencies on your machine.

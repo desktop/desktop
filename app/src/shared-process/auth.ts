@@ -7,7 +7,10 @@ import { getDotComAPIEndpoint } from '../lib/api'
 import fatalError from '../lib/fatal-error'
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
-const ClientSecret = '4b35aab1581a32e23af0d930f2a294ae3bb84960'
+const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
+if (!ClientSecret || !ClientSecret.length) {
+  console.warn(`DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
+}
 
 const Scopes = [
   'repo',

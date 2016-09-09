@@ -2,7 +2,7 @@ import User from '../models/user'
 import Repository from '../models/repository'
 import { Commit, Branch } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
-import { CloningRepository, ICloningRepositoryState } from './dispatcher'
+import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
 
 export { ICloningRepositoryState } from './dispatcher'
 
@@ -25,6 +25,9 @@ export interface IAppState {
   readonly currentPopup: Popup | null
 
   readonly errors: ReadonlyArray<IAppError>
+
+  /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
+  readonly emoji: Map<string, string>
 }
 
 export interface IAppError {
@@ -44,12 +47,12 @@ export enum PopupType {
   DeleteBranch,
 }
 
-export type Popup = { type: PopupType.CreateBranch, repository: Repository, branchesState: IBranchesState } |
-                    { type: PopupType.ShowBranches, repository: Repository, branchesState: IBranchesState } |
+export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
+                    { type: PopupType.ShowBranches, repository: Repository } |
                     { type: PopupType.AddRepository } |
-                    { type: PopupType.RenameBranch, repository: Repository, branchesState: IBranchesState } |
+                    { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.PublishRepository, repository: Repository } |
-                    { type: PopupType.DeleteBranch, repository: Repository, branchesState: IBranchesState }
+                    { type: PopupType.DeleteBranch, repository: Repository, branch: Branch }
 
 export enum RepositorySection {
   Changes,
@@ -62,6 +65,16 @@ export interface IRepositoryState {
   readonly selectedSection: RepositorySection
   readonly committerEmail: string | null
   readonly branchesState: IBranchesState
+
+  /**
+   * Mapping from lowercased email addresses to the associated GitHub user. Note
+   * that an email address may not have an associated GitHub user, or the user
+   * may still be loading.
+   */
+  readonly gitHubUsers: Map<string, IGitHubUser>
+
+  /** The commits loaded, keyed by their full SHA. */
+  readonly commits: Map<string, Commit>
 }
 
 export interface IBranchesState {
@@ -69,21 +82,18 @@ export interface IBranchesState {
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly recentBranches: ReadonlyArray<Branch>
-
-  /** The commits loaded, keyed by their full SHA. */
-  readonly commits: Map<string, Commit>
 }
 
 export interface IHistorySelection {
-  readonly commit: Commit | null
+  readonly sha: string | null
   readonly file: FileChange | null
 }
 
 export interface IHistoryState {
   readonly selection: IHistorySelection
-  readonly commits: ReadonlyArray<Commit>
-  readonly commitCount: number
-  readonly loading: boolean
+
+  /** The ordered SHAs. */
+  readonly history: ReadonlyArray<string>
 
   readonly changedFiles: ReadonlyArray<FileChange>
 }

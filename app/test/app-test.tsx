@@ -6,28 +6,26 @@ import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-addons-test-utils'
 
 import App from '../src/ui/app'
-import { Dispatcher, AppStore, GitUserStore } from '../src/lib/dispatcher'
+import { Dispatcher, AppStore, GitHubUserStore, CloningRepositoriesStore, EmojiStore } from '../src/lib/dispatcher'
 import InMemoryDispatcher from './in-memory-dispatcher'
-import TestGitUserDatabase from './test-git-user-database'
+import TestGitHubUserDatabase from './test-github-user-database'
 
 describe('App', () => {
   let appStore: AppStore | null = null
-  let gitUserStore: GitUserStore | null = null
   let dispatcher: Dispatcher | null = null
 
   beforeEach(async () => {
-    appStore = new AppStore()
-
-    const db = new TestGitUserDatabase()
+    const db = new TestGitHubUserDatabase()
     await db.reset()
 
-    gitUserStore = new GitUserStore(db)
-    dispatcher = new InMemoryDispatcher(appStore, gitUserStore)
+    appStore = new AppStore(new GitHubUserStore(db), new CloningRepositoriesStore(), new EmojiStore())
+
+    dispatcher = new InMemoryDispatcher(appStore)
   })
 
   it('renders', () => {
     const app = TestUtils.renderIntoDocument(
-      <App dispatcher={dispatcher!} appStore={appStore!} gitUserStore={gitUserStore!}/>
+      <App dispatcher={dispatcher!} appStore={appStore!}/>
     ) as React.Component<any, any>
     const node = ReactDOM.findDOMNode(app)
     expect(node).not.to.equal(null)

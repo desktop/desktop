@@ -6,7 +6,7 @@ import RepositoriesList from './repositories-list'
 import { default as RepositoryView } from './repository'
 import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'
-import { Dispatcher, AppStore, GitUserStore, CloningRepository } from '../lib/dispatcher'
+import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import Repository from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import fatalError from '../lib/fatal-error'
@@ -24,7 +24,6 @@ import { showPopupAppMenu, setMenuEnabled } from './main-process-proxy'
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
-  readonly gitUserStore: GitUserStore
 }
 
 export default class App extends React.Component<IAppProps, IAppState> {
@@ -33,28 +32,6 @@ export default class App extends React.Component<IAppProps, IAppState> {
 
     this.state = props.appStore.getState()
     props.appStore.onDidUpdate(state => {
-      state.users.forEach(user => {
-        // In theory a user should _always_ have an array of emails (even if
-        // it's empty). But in practice, if the user had run old dev builds this
-        // may not be the case. So for now we need to guard this. We should
-        // remove this check in the not too distant future.
-        // @joshaber (August 10, 2016)
-        if (!user.emails) { return }
-
-        const gitUsers = user.emails.map(email => {
-          return {
-            endpoint: user.endpoint,
-            email,
-            login: user.login,
-            avatarURL: user.avatarURL,
-          }
-        })
-
-        for (const user of gitUsers) {
-          this.props.gitUserStore.cacheUser(user)
-        }
-      })
-
       this.setState(state)
 
       const selectedState = state.selectedState
@@ -105,10 +82,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
+    const branch = state.state.branchesState.currentBranch
+    if (!branch) { return }
+
     this.props.dispatcher.showPopup({
       type: PopupType.RenameBranch,
       repository: state.repository,
-      branchesState: state.state.branchesState,
+      branch,
     })
   }
 
@@ -116,10 +96,13 @@ export default class App extends React.Component<IAppProps, IAppState> {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
+    const branch = state.state.branchesState.currentBranch
+    if (!branch) { return }
+
     this.props.dispatcher.showPopup({
       type: PopupType.DeleteBranch,
       repository: state.repository,
-      branchesState: state.state.branchesState,
+      branch,
     })
   }
 
@@ -136,7 +119,6 @@ export default class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({
       type: PopupType.CreateBranch,
       repository: state.repository,
-      branchesState: state.state.branchesState,
     })
   }
 
@@ -147,7 +129,6 @@ export default class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({
       type: PopupType.ShowBranches,
       repository: state.repository,
-      branchesState: state.state.branchesState,
     })
   }
 
@@ -250,28 +231,32 @@ export default class App extends React.Component<IAppProps, IAppState> {
     if (!popup) { return null }
 
     if (popup.type === PopupType.CreateBranch) {
-      return <CreateBranch repository={popup.repository}
+      const repository = popup.repository
+      const state = this.props.appStore.getRepositoryState(repository)
+      return <CreateBranch repository={repository}
                            dispatcher={this.props.dispatcher}
-                           branches={popup.branchesState.allBranches}
-                           currentBranch={popup.branchesState.currentBranch}/>
+                           branches={state.branchesState.allBranches}
+                           currentBranch={state.branchesState.currentBranch}/>
     } else if (popup.type === PopupType.ShowBranches) {
-      return <Branches allBranches={popup.branchesState.allBranches}
-                       recentBranches={popup.branchesState.recentBranches}
-                       currentBranch={popup.branchesState.currentBranch}
-                       defaultBranch={popup.branchesState.defaultBranch}
+      const repository = popup.repository
+      const state = this.props.appStore.getRepositoryState(repository)
+      return <Branches allBranches={state.branchesState.allBranches}
+                       recentBranches={state.branchesState.recentBranches}
+                       currentBranch={state.branchesState.currentBranch}
+                       defaultBranch={state.branchesState.defaultBranch}
                        dispatcher={this.props.dispatcher}
                        repository={popup.repository}
-                       commits={popup.branchesState.commits}/>
+                       commits={state.commits}/>
     } else if (popup.type === PopupType.AddRepository) {
       return <AddRepository dispatcher={this.props.dispatcher}/>
     } else if (popup.type === PopupType.RenameBranch) {
       return <RenameBranch dispatcher={this.props.dispatcher}
                            repository={popup.repository}
-                           branch={popup.branchesState.currentBranch!}/>
+                           branch={popup.branch}/>
     } else if (popup.type === PopupType.DeleteBranch) {
       return <DeleteBranch dispatcher={this.props.dispatcher}
                            repository={popup.repository}
-                           branch={popup.branchesState.currentBranch!}/>
+                           branch={popup.branch}/>
     } else if (popup.type === PopupType.PublishRepository) {
       return <PublishRepository repository={popup.repository}
                                 dispatcher={this.props.dispatcher}
@@ -339,7 +324,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
         <RepositoryView repository={selectedState.repository}
                         state={selectedState.state}
                         dispatcher={this.props.dispatcher}
-                        gitUserStore={this.props.gitUserStore}/>
+                        emoji={this.state.emoji}/>
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
       return <CloningRepositoryView repository={selectedState.repository}

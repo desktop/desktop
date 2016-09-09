@@ -4,9 +4,10 @@ import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileSta
 import { DiffSelectionType, DiffSelection, Diff } from '../models/diff'
 import Repository from '../models/repository'
 
-import { GitProcess, GitError, GitErrorCode } from './git-process'
 import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDeletedFile } from './patch-formatter'
 import { parseRawDiff } from './diff-parser'
+
+import { GitProcess, GitError, GitErrorCode } from 'git-kitchen-sink'
 
 const byline = require('byline')
 
@@ -562,7 +563,7 @@ export class LocalGitOperations {
 
   /** Clone the repository to the path. */
   public static clone(url: string, path: string, progress: (progress: string) => void): Promise<void> {
-    return GitProcess.exec([ 'clone', '--progress', '--', url, path ], __dirname, undefined, process => {
+    return GitProcess.exec([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, undefined, process => {
       byline(process.stderr).on('data', (chunk: string) => {
         progress(chunk)
       })
