@@ -1,8 +1,9 @@
 import * as React from 'react'
-import { remote } from 'electron'
 
 import { FileStatus } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
+
+import { showContextualMenu } from '../main-process-proxy'
 
 interface IChangedFileProps {
   path: string,
@@ -54,9 +55,14 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
   private onContextMenu(event: React.MouseEvent<any>) {
     event.preventDefault()
-    if (process.platform !== 'win32') {
-      this.contextMenu.popup(remote.getCurrentWindow())
+
+    const item = {
+      label: 'Discard Changes',
+      action() {
+        console.log('discard!')
+      },
     }
+    showContextualMenu([ item ])
   }
 }
 
