@@ -56,5 +56,13 @@
 
 .repo-controls {
   text-align: right;
-  padding: 10px;
+  padding: 0 10px 10px;
+  margin-top: -27px;
+  z-index: 2;
+}
+
+.repository-list-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
