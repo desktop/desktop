@@ -19,7 +19,7 @@ interface IChangesListProps {
   readonly onCreateCommit: (summary: string, description: string) => void
   readonly branch: string | null
   readonly avatarURL: string
-  readonly emoji: ReadonlyArray<string>
+  readonly emoji: Map<string, string>
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {

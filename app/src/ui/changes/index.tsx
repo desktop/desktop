@@ -13,7 +13,7 @@ interface IChangesProps {
   readonly committerEmail: string | null
   readonly branch: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
-  readonly emoji: ReadonlyArray<string>
+  readonly emoji: Map<string, string>
 }
 
 /** TODO: handle "repository not found" scenario */

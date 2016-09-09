@@ -1,4 +1,5 @@
 import * as React from 'react'
+import List from '../list'
 
 interface IPosition {
   readonly top: number
@@ -17,13 +18,13 @@ interface IAutocompletingTextAreaProps {
   readonly value?: string
   readonly onChange?: (event: React.FormEvent<HTMLTextAreaElement>) => void
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void
-  readonly emoji: ReadonlyArray<string>
+  readonly emoji: Map<string, string>
 }
 
-class EmojiAutocompletionProvider {
-  private emoji: ReadonlyArray<string>
+class EmojiAutocompletionProvider implements IAutocompletionProvider {
+  private emoji: Map<string, string>
 
-  public constructor(emoji: ReadonlyArray<string>) {
+  public constructor(emoji: Map<string, string>) {
     this.emoji = emoji
   }
 
@@ -31,12 +32,21 @@ class EmojiAutocompletionProvider {
     return /(\\A|\\n| )(:)([a-z0-9\\+\\-][a-z0-9_]*)?/g
   }
 
+  private renderEmoji(emoji: string) {
+    return (
+      <div key={emoji}>
+        <div>{emoji}</div>
+        <img className='emoji' src={this.emoji.get(emoji)}/>
+      </div>
+    )
+  }
+
   public render(text: string, { top, left }: IPosition) {
-    const emoji = this.emoji.filter(e => e.startsWith(`:${text}`))
+    const emoji = Array.from(this.emoji.keys()).filter(e => e.startsWith(`:${text}`))
 
     return (
-      <div style={{ position: 'absolute', top, left, zIndex: 2 }}>
-        {emoji.map(e => <div key={e}>{e}</div>)}
+      <div style={{ display: 'flex', position: 'absolute', top, left, zIndex: 2, width: 200, height: 400 }}>
+        <List rowCount={emoji.length} rowHeight={16} selectedRow={-1} rowRenderer={row => this.renderEmoji(emoji[row])}/>
       </div>
     )
   }
