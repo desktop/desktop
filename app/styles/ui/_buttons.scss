@@ -24,11 +24,21 @@ input[type='submit'] {
   border: none;
   border-radius: 2px;
   background: #4c515a;
+  color: var(--background-color);
   padding: var(--spacing-half) var(--spacing);
   box-shadow: 0 0 2px rgba(0,0,0,0.20);
 
+  .octicon path {
+    fill: var(--alt-background-color);
+  }
+
   &:hover {
-    background: #606773;
+    background: #7A8393;
+  }
+
+  &:active {
+    box-shadow: inset 0 0 2px rgba(55, 58, 65, 0.53);
+    background: #565C66;
   }
 }
 
