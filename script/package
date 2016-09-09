@@ -40,7 +40,7 @@ function packageWindows () {
   const iconLocation = path.join (__dirname, '..', 'app', 'static', 'icon.ico')
 
   if (!fs.existsSync(iconLocation)) {
-    console.log(`expected icon not found at location: ${iconLocation}`)
+    console.error(`expected icon not found at location: ${iconLocation}`)
     process.exit(1)
   }
 
