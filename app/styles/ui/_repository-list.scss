@@ -2,6 +2,10 @@
 
 /** A <List> React component holding all tracked repositories in the sidebar */
 #repository-list {
+  @include win32 {
+    // Align the repo list with the add-repo button
+    margin-top: -37px;
+  }
 
   // Go read _scroll.scss, we're unable to extend the list items all
   // the way out to the edge of the list because the scrollbar forces
@@ -62,6 +66,11 @@
   @include darwin {
     // Moves the "add repo" button closer to the edge of the interace window.
     margin-top: calc(-1 * calc(var(--darwin-title-bar-height) - var(--spacing)));
+  }
+
+  @include win32 {
+    // Moves the "add repo" button closer to the edge of the interface window.
+    margin-top: calc(-1 * var(--spacing-half));
   }
 }
 
