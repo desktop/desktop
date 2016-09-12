@@ -8,7 +8,7 @@
     // It has the unintended consequence of making it impossible to have a tab
     // bar with just one item but we can live with that.
     border-right-width: 0;
-    padding: 3px 25px;
+    padding: 4px 25px;
 
     &:first-child {
       border-radius: var(--border-radius) 0px 0px var(--border-radius);
