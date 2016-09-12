@@ -45,6 +45,7 @@ export enum PopupType {
   RenameBranch,
   PublishRepository,
   DeleteBranch,
+  ConfirmDiscardChanges,
 }
 
 export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
@@ -52,7 +53,8 @@ export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.AddRepository } |
                     { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.PublishRepository, repository: Repository } |
-                    { type: PopupType.DeleteBranch, repository: Repository, branch: Branch }
+                    { type: PopupType.DeleteBranch, repository: Repository, branch: Branch } |
+                    { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> }
 
 export enum RepositorySection {
   Changes,
