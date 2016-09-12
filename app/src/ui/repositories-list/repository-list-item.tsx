@@ -52,11 +52,16 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
 }
 
 function iconForRepository(repository: Repository | CloningRepository): OcticonSymbol {
-  const gitHubRepo = repository instanceof Repository ? repository.gitHubRepository : null
-  if (!gitHubRepo) { return OcticonSymbol.repo }
 
-  if (gitHubRepo.private) { return OcticonSymbol.lock }
-  if (gitHubRepo.fork) { return OcticonSymbol.repoForked }
+  if (repository instanceof CloningRepository) {
+    return OcticonSymbol.desktopDownload
+  } else {
+    const gitHubRepo = repository.gitHubRepository
+    if (!gitHubRepo) { return OcticonSymbol.repo }
 
-  return OcticonSymbol.repo
+    if (gitHubRepo.private) { return OcticonSymbol.lock }
+    if (gitHubRepo.fork) { return OcticonSymbol.repoForked }
+
+    return OcticonSymbol.repo
+  }
 }

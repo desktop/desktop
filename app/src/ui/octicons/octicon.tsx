@@ -2,21 +2,6 @@ import * as React from 'react'
 import { OcticonSymbol } from './octicons.generated'
 
 interface IOcticonProps {
-
-  /**
-   * The maximum width of the icon
-   *
-   * @default 16
-   */
-  width?: number,
-
-  /**
-   * The maximum height of the icon
-   *
-   * @default 16
-   */
-  height?: number,
-
   /**
    * An instance of an object conforming to the OcticonSymbol
    * type. Supports custom paths as well as those provided
@@ -40,16 +25,10 @@ interface IOcticonProps {
 export class Octicon extends React.Component<IOcticonProps, void> {
 
   public static defaultProps: IOcticonProps = {
-    width: 16,
-    height: 16,
     symbol: OcticonSymbol.markGithub
   }
 
   public shouldComponentUpdate(nextProps: IOcticonProps, nextState: void) {
-
-    if (nextProps.width !== this.props.width || nextProps.height !== this.props.height) {
-      return true
-    }
 
     if (nextProps.symbol.w !== this.props.symbol.w ||
        nextProps.symbol.h !== this.props.symbol.h ||
@@ -64,7 +43,7 @@ export class Octicon extends React.Component<IOcticonProps, void> {
     const symbol = this.props.symbol
     const viewBox = `0 0 ${symbol.w} ${symbol.h}`
     return (
-      <svg aria-hidden='true' className='octicon' width={this.props.width} height={this.props.height} role='img' version='1.1' viewBox={viewBox}>
+      <svg aria-hidden='true' className='octicon' role='img' version='1.1' viewBox={viewBox}>
         <path d={symbol.d}></path>
       </svg>
     )
