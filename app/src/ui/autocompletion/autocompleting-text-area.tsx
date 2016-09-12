@@ -8,6 +8,11 @@ interface IPosition {
   readonly left: number
 }
 
+interface IRange {
+  readonly start: number
+  readonly length: number
+}
+
 const getCaretCoordinates: (element: HTMLElement, position: number) => IPosition = require('textarea-caret')
 
 interface IAutocompletingTextAreaProps {
@@ -19,17 +24,26 @@ interface IAutocompletingTextAreaProps {
   readonly emoji: Map<string, string>
 }
 
-type AutocompletionState = { provider: IAutocompletionProvider<any>, text: string, position: IPosition }
+interface IAutocompletionState<T> {
+  readonly provider: IAutocompletionProvider<T>
+  readonly items: ReadonlyArray<T>
+  readonly range: IRange
+  readonly selectedItem: T | null
+}
 
 /** The height of the autocompletion result rows. */
 const RowHeight = 16
 
-interface IAutocompletingTextAreaState {
-  readonly state: AutocompletionState | null
+interface IAutocompletingTextAreaState<T> {
+  readonly state: IAutocompletionState<T> | null
+  readonly text: string
 }
 
-export default class AutocompletingTextArea extends React.Component<IAutocompletingTextAreaProps, IAutocompletingTextAreaState> {
+export default class AutocompletingTextArea extends React.Component<IAutocompletingTextAreaProps, IAutocompletingTextAreaState<any>> {
   private textArea: HTMLTextAreaElement | null = null
+  private autocompletionList: List | null = null
+  private scrollToRow = -1
+
   private providers: ReadonlyArray<IAutocompletionProvider<any>>
 
   public constructor(props: IAutocompletingTextAreaProps) {
@@ -39,19 +53,40 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
       new EmojiAutocompletionProvider(props.emoji),
     ]
 
-    this.state = { state: null }
+    this.state = { state: null, text: '' }
+  }
+
+  private renderItem<T>(state: IAutocompletionState<T>, row: number) {
+    const item = state.items[row]
+    const selected = item === state.selectedItem ? 'selected' : ''
+    return (
+      <div className={`autocompletion-item ${selected}`}>
+        {state.provider.renderItem(item)}
+      </div>
+    )
   }
 
   private renderAutocompletions() {
     const state = this.state.state
     if (!state) { return null }
 
-    const provider = state.provider
-    const items = provider.getAutocompletionItems(state.text)
-    const { top, left } = state.position
+    const scrollToRow = this.scrollToRow
+    this.scrollToRow = -1
+
+    const items = state.items
+    const coordinates = getCaretCoordinates(this.textArea!, state.range.start)
+    const left = coordinates.left
+    const top = coordinates.top + 20
+    const selectedRow = items.indexOf(state.selectedItem)
+
     return (
       <div className='autocompletion-popup' style={{ top, left }}>
-        <List rowCount={items.length} rowHeight={RowHeight} selectedRow={-1} rowRenderer={row => provider.renderItem(items[row])}/>
+        <List ref={ref => this.autocompletionList = ref}
+              rowCount={items.length}
+              rowHeight={RowHeight}
+              selectedRow={selectedRow}
+              rowRenderer={row => this.renderItem(state, row)}
+              scrollToRow={scrollToRow}/>
       </div>
     )
   }
@@ -64,11 +99,46 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
         <textarea ref={ref => this.textArea = ref}
                   className={this.props.className}
                   placeholder={this.props.placeholder}
-                  value={this.props.value}
+                  value={this.props.value || this.state.text}
                   onChange={event => this.onChange(event)}
-                  onKeyDown={this.props.onKeyDown}/>
+                  onKeyDown={event => this.onKeyDown(event)}/>
       </div>
     )
+  }
+
+  private onKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (this.props.onKeyDown) {
+      this.props.onKeyDown(event)
+    }
+
+    const state = this.state.state
+    if (!state) { return }
+
+    const selectedRow = state.items.indexOf(state.selectedItem)
+
+    if (event.key === 'ArrowUp') {
+      const nextRow = this.autocompletionList!.nextSelectableRow('up', selectedRow)
+      this.scrollToRow = nextRow
+      this.setState({ state: { provider: state.provider, items: state.items, range: state.range, selectedItem: state.items[nextRow] }, text: this.state.text })
+      event.preventDefault()
+    } else if (event.key === 'ArrowDown') {
+      const nextRow = this.autocompletionList!.nextSelectableRow('down', selectedRow)
+      this.scrollToRow = nextRow
+      this.setState({ state: { provider: state.provider, items: state.items, range: state.range, selectedItem: state.items[nextRow] }, text: this.state.text })
+      event.preventDefault()
+    } else if (event.key === 'Enter') {
+      const originalText = this.state.text
+      const newText = originalText.substr(0, state.range.start - 1) + state.selectedItem + originalText.substr(state.range.start + state.range.length) + ' '
+
+      const nativeEvent = event.nativeEvent
+      event.persist()
+      event.preventDefault()
+      this.setState({ state: null, text: newText }, () => {
+        if (this.props.onChange) {
+          this.props.onChange(nativeEvent as any)
+        }
+      })
+    }
   }
 
   private onChange(event: React.FormEvent<HTMLTextAreaElement>) {
@@ -89,14 +159,16 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
         if (!text) { continue }
 
         if (index === caretPosition) {
-          let position: IPosition = getCaretCoordinates(textArea, index - text.length)
-          position = { top: position.top + 20, left: position.left }
-          this.setState({ state: { provider, position, text } })
+          const range = { start: index - text.length, length: text.length }
+          const items = provider.getAutocompletionItems(text)
+
+          const selectedItem = items[0]
+          this.setState({ state: { provider, items, range, selectedItem }, text: event.currentTarget.value })
           return
         }
       }
     }
 
-    this.setState({ state: null })
+    this.setState({ state: null, text: event.currentTarget.value })
   }
 }
