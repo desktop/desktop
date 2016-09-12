@@ -18,8 +18,12 @@
   &-header {
     background: var(--box-alt-background-color);
     border-bottom: 1px solid var(--box-border-color);
+    box-shadow: var(--base-box-shadow);
     display: flex;
     padding: var(--spacing-half);
+
+    // Render the shadow on top of the list
+    z-index: 2;
   }
 
   &-header-input {

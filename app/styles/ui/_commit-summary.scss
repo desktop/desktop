@@ -59,4 +59,11 @@
       vertical-align: bottom;
     }
   }
+
+  &-header {
+    box-shadow: var(--base-box-shadow);
+    
+    // Render the shadow on top of the list
+    z-index: 2;
+  }
 }
