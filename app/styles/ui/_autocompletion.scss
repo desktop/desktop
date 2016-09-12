@@ -1,0 +1,13 @@
+.autocompletion-container {
+  position: relative;
+}
+
+.autocompletion-popup {
+  display: flex;
+  position: absolute;
+  z-index: 2;
+  width: 200px;
+  height: 400px;
+
+  background-color: white;
+}
