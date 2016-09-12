@@ -23,37 +23,39 @@ export class CloneProgressParser {
    */
   private highestSeenStep: number | null = null
 
+  /* The last progress value we returned from parse. Null means
+   * we haven't parsed a line we understand yet, ie indeterminate */
+  private lastProgress: number | null = null
+
   /**
    * Parses a single line of output from 'git clone --progress'.
    * Returns a fractional value between 0 and 1 indicating the
    * overall progress so far or null if progress is still
-   * indeterminate
+   * indeterminate.
    */
   public parse(line: string): number | null {
-    /* The accumulated progress, 0 to 1. Null means indeterminate */
-    let progressValue = this.highestSeenStep == null ? null : 0
-
-    /* Add add up the progress from steps we've already "seen" */
-    if (this.highestSeenStep != null) {
-      for (let i = 0; i < this.highestSeenStep; i++) {
-        progressValue += costsByStep[i].cost
-      }
-    }
-
     /* Iterate over the steps we haven't seen yet and try to find
-     * one that matches
-     */
+     * one that matches. */
     for (let i = this.highestSeenStep || 0; i < costsByStep.length; i++) {
       const step = costsByStep[i]
       const match = step.expr.exec(line)
 
       if (match != null) {
         this.highestSeenStep = i
-        progressValue += (parseInt(match[1], 10) / 100) * step.cost
-        break
+        let progressValue = (parseInt(match[1], 10) / 100) * step.cost
+
+        /* Sum up the full progress of previous steps whether we've
+         * actually seen them or not */
+        for (let i = 0; i < this.highestSeenStep; i++) {
+          progressValue += costsByStep[i].cost
+        }
+
+        this.lastProgress = progressValue
+        return progressValue
       }
     }
 
-    return progressValue
+    /* No match, return whatever we've got stored */
+    return this.lastProgress
   }
 }
