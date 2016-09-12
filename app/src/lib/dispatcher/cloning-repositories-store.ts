@@ -34,7 +34,7 @@ export interface ICloningRepositoryState {
    * A missing value indicates that the current progress is
    * indeterminate.
    */
-  readonly progressValue?: number
+  readonly progressValue: number | null
 }
 
 /** The store in charge of repository currently being cloned. */
@@ -57,21 +57,16 @@ export class CloningRepositoriesStore {
   public clone(url: string, path: string): Promise<void> {
     const repository = new CloningRepository(path, url)
     this._repositories.push(repository)
-    this.stateByID.set(repository.id, { output: `Cloning into ${path}` })
+    this.stateByID.set(repository.id, { output: `Cloning into ${path}`, progressValue: null })
 
     const progressParser = new CloneProgressParser()
 
     const promise = LocalGitOperations
       .clone(url, path, progress => {
-
-        const progressValue = progressParser.parse(progress)
-
-        if (progressValue != null) {
-          this.stateByID.set(repository.id, { output: progress, progressValue })
-        } else {
-          this.stateByID.set(repository.id, { output: progress })
-        }
-
+        this.stateByID.set(repository.id, {
+          output: progress,
+          progressValue: progressParser.parse(progress)
+        })
         this.emitUpdate()
       })
       .then(() => {
