@@ -43,7 +43,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
             }
           }}/>
 
-        <label className='path'>
+        <label className='path' title={this.props.path}>
           {this.props.path}
         </label>
 
