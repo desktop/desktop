@@ -29,6 +29,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
   public render() {
     const includeFile = this.props.include
+    const fileStatus = ChangedFile.mapStatus(this.props.status)
 
     return (
       <div className='changed-file' onContextMenu={e => this.onContextMenu(e)}>
@@ -46,7 +47,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
           {this.props.path}
         </label>
 
-        <span className={'status status-' + ChangedFile.mapStatus(this.props.status).toLowerCase()} title={ChangedFile.mapStatus(this.props.status)}>
+        <span className={'status status-' + fileStatus.toLowerCase()} title={fileStatus}>
           <Octicon symbol={iconForStatus(this.props.status)} />
         </span>
       </div>
