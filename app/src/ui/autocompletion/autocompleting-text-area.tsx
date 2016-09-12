@@ -36,7 +36,7 @@ const RowHeight = 20
 
 /**
  * The amount to offset on the Y axis so that the popup is displayed below the
- * current line
+ * current line.
  */
 const YOffset = 20
 
@@ -188,13 +188,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
     }
   }
 
-  private onChange(event: React.FormEvent<HTMLTextAreaElement>) {
-    if (this.props.onChange) {
-      this.props.onChange(event)
-    }
-
-    const caretPosition = this.textArea!.selectionStart
-    const str = event.currentTarget.value
+  private attemptAutocompletion(str: string, caretPosition: number): IAutocompletionState<any> | null {
     for (const provider of this.providers) {
       const regex = provider.getRegExp()
       let result: RegExpExecArray | null = null
@@ -208,12 +202,22 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
           const items = provider.getAutocompletionItems(text)
 
           const selectedItem = items[0]
-          this.setState({ autocompletionState: { provider, items, range, selectedItem } })
-          return
+          return { provider, items, range, selectedItem }
         }
       }
     }
 
-    this.setState({ autocompletionState: null })
+    return null
+  }
+
+  private onChange(event: React.FormEvent<HTMLTextAreaElement>) {
+    if (this.props.onChange) {
+      this.props.onChange(event)
+    }
+
+    const str = event.currentTarget.value
+    const caretPosition = this.textArea!.selectionStart
+    const autocompletionState = this.attemptAutocompletion(str, caretPosition)
+    this.setState({ autocompletionState })
   }
 }
