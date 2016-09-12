@@ -60,7 +60,7 @@
 
 .repo-controls {
   text-align: right;
-  padding: 0 10px 10px;
+  padding: 0 var(--spacing) var(--spacing);
   z-index: 2;
 
   @include darwin {
