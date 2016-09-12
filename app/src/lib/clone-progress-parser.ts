@@ -27,7 +27,8 @@ export class CloneProgressParser {
    * Parses a single line of output from 'git clone --progress'.
    * Returns a fractional value between 0 and 1 indicating the
    * overall progress so far or null if progress is still
-   * indeterminate */
+   * indeterminate
+   */
   public parse(line: string): number | null {
     /* The accumulated progress, 0 to 1. Null means indeterminate */
     let progressValue = this.highestSeenStep == null ? null : 0
