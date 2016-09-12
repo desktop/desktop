@@ -7,7 +7,7 @@
     flex: 1;
 
     .list-item {
-      border-bottom: 1px solid var(--box-border-color);
+      border-bottom: var(--light-border);
       padding: var(--spacing);
     }
 
