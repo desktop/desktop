@@ -40,7 +40,7 @@
 
       border-radius: var(--border-radius);
       align-self: center;
-      margin-left: var(--spacing-half);
+      margin-left: var(--spacing);
     }
 
     .info {
@@ -48,7 +48,7 @@
       flex-direction: column;
       overflow: hidden;
       margin: auto 0;
-      margin-left: var(--spacing-half);
+      margin-left: var(--spacing);
 
       .summary {
         text-overflow: ellipsis;
