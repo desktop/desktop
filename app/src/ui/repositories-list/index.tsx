@@ -14,7 +14,7 @@ interface IRepositoriesListProps {
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
 }
 
-const RowHeight = 42
+const RowHeight = 28
 
 /** The list of user-added repositories. */
 export default class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
