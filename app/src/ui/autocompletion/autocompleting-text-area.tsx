@@ -32,7 +32,7 @@ interface IAutocompletionState<T> {
 }
 
 /** The height of the autocompletion result rows. */
-const RowHeight = 16
+const RowHeight = 20
 
 /**
  * The amount to offset on the Y axis so that the popup is displayed below the
@@ -145,6 +145,10 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
     }
 
     this.setState({ autocompletionState: null })
+
+    // More gross. Clicking on the list moves focus off the text area.
+    // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
+    setTimeout(() => this.textArea!.focus(), 0)
   }
 
   private getMovementDirection(event: React.KeyboardEvent<any>): 'up' | 'down' | null {
