@@ -8,6 +8,11 @@ const costsByStep = [
   { expr: /Checking out files:\s+(\d+)%/, cost: 0.09 },
 ]
 
+/**
+ * A utility class for interpreting the output from `git clone --progress`
+ * and turning that into a percentage value estimating the overall progress
+ * of the clone.
+ */
 export class CloneProgressParser {
   /* The steps listed in costsByStep always occur in order but some
    * might not happen at all (like remote compression of objects) so
@@ -18,6 +23,11 @@ export class CloneProgressParser {
    */
   private highestSeenStep: number | null = null
 
+  /**
+   * Parses a single line of output from 'git clone --progress'.
+   * Returns a fractional value between 0 and 1 indicating the
+   * overall progress so far or null if progress is still
+   * indeterminate */
   public parse(line: string): number | null {
     /* The accumulated progress, 0 to 1. Null means indeterminate */
     let progressValue = this.highestSeenStep == null ? null : 0
