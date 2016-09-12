@@ -8,6 +8,8 @@
   flex-shrink: 0;
 
   text-align: center;
-  border-style: solid;
+  border-top: var(--base-border);
+  border-bottom: var(--base-border);
   background-color: var(--box-alt-background-color);
+  padding: 40px;
 }
