@@ -9,6 +9,7 @@
 
   display: flex;
   background-color: var(--box-alt-background-color);
+  box-shadow: 0 -1px 2px var(--shadow-color);
   padding: var(--spacing);
 
   .summary {
