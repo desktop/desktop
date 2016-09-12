@@ -43,21 +43,20 @@
   display: flex;
   flex-grow: 1;
 
-  .status {
+  // See https://css-tricks.com/flexbox-truncated-text/
+  min-width: 0;
+
+  input, .status { flex-shrink: 0; }
+
+  .path {
     flex-grow: 1;
-    text-align: right;
+    @include ellipsis;
+  }
 
-    &-new .octicon {
-      fill: var(--color-new);
-    }
-
-    &-modified .octicon {
-      fill: var(--color-modified);
-    }
-
-    &-deleted .octicon {
-      fill: var(--color-deleted);
-    }
+  .status {
+    &-new .octicon { fill: var(--color-new); }
+    &-modified .octicon { fill: var(--color-modified); }
+    &-deleted .octicon { fill: var(--color-deleted); }
   }
 
   .octicon {
