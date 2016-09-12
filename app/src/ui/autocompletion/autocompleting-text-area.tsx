@@ -36,7 +36,6 @@ const RowHeight = 16
 
 interface IAutocompletingTextAreaState<T> {
   readonly state: IAutocompletionState<T> | null
-  readonly text: string
 }
 
 export default class AutocompletingTextArea extends React.Component<IAutocompletingTextAreaProps, IAutocompletingTextAreaState<any>> {
@@ -53,7 +52,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
       new EmojiAutocompletionProvider(props.emoji),
     ]
 
-    this.state = { state: null, text: '' }
+    this.state = { state: null }
   }
 
   private renderItem<T>(state: IAutocompletionState<T>, row: number) {
@@ -86,7 +85,8 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
               rowHeight={RowHeight}
               selectedRow={selectedRow}
               rowRenderer={row => this.renderItem(state, row)}
-              scrollToRow={scrollToRow}/>
+              scrollToRow={scrollToRow}
+              onSelectionChanged={row => this.insertCompletion(items[row])}/>
       </div>
     )
   }
@@ -99,11 +99,52 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
         <textarea ref={ref => this.textArea = ref}
                   className={this.props.className}
                   placeholder={this.props.placeholder}
-                  value={this.props.value || this.state.text}
+                  value={this.props.value}
                   onChange={event => this.onChange(event)}
                   onKeyDown={event => this.onKeyDown(event)}/>
       </div>
     )
+  }
+
+  private insertCompletion(item: string) {
+    const textArea = this.textArea!
+    const autocompletionState = this.state.state!
+    const originalText = textArea.value
+    const range = autocompletionState.range
+    const newText = originalText.substr(0, range.start - 1) + item + originalText.substr(range.start + range.length) + ' '
+    textArea.value = newText
+
+    if (this.props.onChange) {
+      // This is gross, I feel gross, etc.
+      this.props.onChange({
+          bubbles: false,
+          currentTarget: textArea,
+          cancelable: false,
+          defaultPrevented: true,
+          eventPhase: 1,
+          isTrusted: true,
+          nativeEvent: new KeyboardEvent('keydown'),
+          preventDefault: () => {},
+          isDefaultPrevented: () => true,
+          stopPropagation: () => {},
+          isPropagationStopped: () => true,
+          persist: () => {},
+          target: textArea,
+          timeStamp: new Date(),
+          type: 'keydown',
+      })
+    }
+
+    this.setState({ state: null })
+  }
+
+  private getMovementDirection(event: React.KeyboardEvent<any>): 'up' | 'down' | null {
+    switch (event.key) {
+      case 'ArrowUp': return 'up'
+      case 'ArrowDown': return 'down'
+    }
+
+    return null
   }
 
   private onKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -115,29 +156,22 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
     if (!state) { return }
 
     const selectedRow = state.items.indexOf(state.selectedItem)
+    const direction = this.getMovementDirection(event)
+    if (direction) {
+      event.preventDefault()
 
-    if (event.key === 'ArrowUp') {
-      const nextRow = this.autocompletionList!.nextSelectableRow('up', selectedRow)
+      const nextRow = this.autocompletionList!.nextSelectableRow(direction, selectedRow)
       this.scrollToRow = nextRow
-      this.setState({ state: { provider: state.provider, items: state.items, range: state.range, selectedItem: state.items[nextRow] }, text: this.state.text })
-      event.preventDefault()
-    } else if (event.key === 'ArrowDown') {
-      const nextRow = this.autocompletionList!.nextSelectableRow('down', selectedRow)
-      this.scrollToRow = nextRow
-      this.setState({ state: { provider: state.provider, items: state.items, range: state.range, selectedItem: state.items[nextRow] }, text: this.state.text })
-      event.preventDefault()
+      this.setState({ state: {
+        provider: state.provider,
+        items: state.items,
+        range: state.range,
+        selectedItem: state.items[nextRow],
+      } })
     } else if (event.key === 'Enter') {
-      const originalText = this.state.text
-      const newText = originalText.substr(0, state.range.start - 1) + state.selectedItem + originalText.substr(state.range.start + state.range.length) + ' '
-
-      const nativeEvent = event.nativeEvent
-      event.persist()
       event.preventDefault()
-      this.setState({ state: null, text: newText }, () => {
-        if (this.props.onChange) {
-          this.props.onChange(nativeEvent as any)
-        }
-      })
+
+      this.insertCompletion(state.selectedItem)
     }
   }
 
@@ -146,9 +180,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
       this.props.onChange(event)
     }
 
-    const textArea = this.textArea!
-    const caretPosition = textArea.selectionStart
-
+    const caretPosition = this.textArea!.selectionStart
     const str = event.currentTarget.value
     for (const provider of this.providers) {
       const regex = provider.getRegExp()
@@ -163,12 +195,12 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
           const items = provider.getAutocompletionItems(text)
 
           const selectedItem = items[0]
-          this.setState({ state: { provider, items, range, selectedItem }, text: event.currentTarget.value })
+          this.setState({ state: { provider, items, range, selectedItem } })
           return
         }
       }
     }
 
-    this.setState({ state: null, text: event.currentTarget.value })
+    this.setState({ state: null })
   }
 }
