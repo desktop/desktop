@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ChangesList } from './changes-list'
 import FileDiff from '../file-diff'
-import { IChangesState } from '../../lib/app-state'
+import { IChangesState, PopupType } from '../../lib/app-state'
 import Repository from '../../models/repository'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
@@ -52,6 +52,16 @@ export class Changes extends React.Component<IChangesProps, void> {
     this.props.dispatcher.changeFileLineSelection(this.props.repository, file, diffSelection)
   }
 
+  private onDiscardChanges(row: number) {
+    const workingDirectory = this.props.changes.workingDirectory
+    const file = workingDirectory.files[row]
+    this.props.dispatcher.showPopup({
+      type: PopupType.ConfirmDiscardChanges,
+      repository: this.props.repository,
+      files: [ file ],
+    })
+  }
+
   public render() {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
 
@@ -70,8 +80,9 @@ export class Changes extends React.Component<IChangesProps, void> {
                        selectedPath={selectedPath}
                        onSelectionChanged={event => this.onSelectionChanged(event)}
                        onCreateCommit={(summary, description) => this.onCreateCommit(summary, description)}
-                       onIncludeChanged={(row, include) => this.onIncludeChanged(row, include) }
-                       onSelectAll={selectAll => this.onSelectAll(selectAll) }
+                       onIncludeChanged={(row, include) => this.onIncludeChanged(row, include)}
+                       onSelectAll={selectAll => this.onSelectAll(selectAll)}
+                       onDiscardChanges={row => this.onDiscardChanges(row)}
                        branch={this.props.branch}
                        avatarURL={avatarURL}/>
         </Resizable>
