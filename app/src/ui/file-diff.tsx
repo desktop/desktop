@@ -9,6 +9,7 @@ import { LocalGitOperations, Commit } from '../lib/local-git-operations'
 var Codemirror = require('react-codemirror');
 
 require('codemirror/mode/javascript/javascript');
+require('codemirror/addon/scroll/simplescrollbars');
 
 interface IFileDiffProps {
   readonly repository: IRepository
@@ -23,6 +24,8 @@ interface IFileDiffState {
 }
 
 export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
+
+  private editor: React.Component<any, any> | null
 
   public constructor(props: IFileDiffProps) {
     super(props)
@@ -92,11 +95,17 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
           mode: 'javascript',
           theme: 'solarized',
           showCursorWhenSelecting: false,
-          styleActiveLine: false
+          styleActiveLine: false,
+          scrollbarStyle: "simple"
       };
 
       return (
-         <Codemirror value={diffText} options={options} />
+        <div className='panel' id='file-diff'>
+          <Codemirror
+            value={diffText}
+            options={options}
+            ref={(ref: React.Component<any, any>) => this.editor = ref}/>
+        </div>
       )
     } else {
       return (
