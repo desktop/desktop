@@ -32,11 +32,7 @@ export interface ICloningRepositoryState {
    * A value between 0 and 1 indicating the clone progress.
    *
    * A missing value indicates that the current progress is
-   * indeterminate. This value may loop from 0 to 1 several
-   * times during a clone, in other words, this is not an
-   * accurate representation of the entire clone process but
-   * rather progress of the individual steps (fetch, deltas,
-   * checkout). This is subject to change.
+   * indeterminate.
    */
   readonly progressValue?: number
 }
