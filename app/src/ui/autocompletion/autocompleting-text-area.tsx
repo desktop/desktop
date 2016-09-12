@@ -34,13 +34,22 @@ interface IAutocompletionState<T> {
 /** The height of the autocompletion result rows. */
 const RowHeight = 16
 
+/**
+ * The amount to offset on the Y axis so that the popup is displayed below the
+ * current line
+ */
+const YOffset = 20
+
 interface IAutocompletingTextAreaState<T> {
-  readonly state: IAutocompletionState<T> | null
+  readonly autocompletionState: IAutocompletionState<T> | null
 }
 
+/** A text area which provides autocompletions as the user types. */
 export default class AutocompletingTextArea extends React.Component<IAutocompletingTextAreaProps, IAutocompletingTextAreaState<any>> {
   private textArea: HTMLTextAreaElement | null = null
   private autocompletionList: List | null = null
+
+  /** The row to scroll to. -1 means the list shouldn't scroll. */
   private scrollToRow = -1
 
   private providers: ReadonlyArray<IAutocompletionProvider<any>>
@@ -52,7 +61,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
       new EmojiAutocompletionProvider(props.emoji),
     ]
 
-    this.state = { state: null }
+    this.state = { autocompletionState: null }
   }
 
   private renderItem<T>(state: IAutocompletionState<T>, row: number) {
@@ -66,7 +75,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
   }
 
   private renderAutocompletions() {
-    const state = this.state.state
+    const state = this.state.autocompletionState
     if (!state) { return null }
 
     const scrollToRow = this.scrollToRow
@@ -75,7 +84,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
     const items = state.items
     const coordinates = getCaretCoordinates(this.textArea!, state.range.start)
     const left = coordinates.left
-    const top = coordinates.top + 20
+    const top = coordinates.top + YOffset
     const selectedRow = items.indexOf(state.selectedItem)
 
     return (
@@ -108,7 +117,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
 
   private insertCompletion(item: string) {
     const textArea = this.textArea!
-    const autocompletionState = this.state.state!
+    const autocompletionState = this.state.autocompletionState!
     const originalText = textArea.value
     const range = autocompletionState.range
     const newText = originalText.substr(0, range.start - 1) + item + originalText.substr(range.start + range.length) + ' '
@@ -135,7 +144,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
       })
     }
 
-    this.setState({ state: null })
+    this.setState({ autocompletionState: null })
   }
 
   private getMovementDirection(event: React.KeyboardEvent<any>): 'up' | 'down' | null {
@@ -152,7 +161,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
       this.props.onKeyDown(event)
     }
 
-    const state = this.state.state
+    const state = this.state.autocompletionState
     if (!state) { return }
 
     const selectedRow = state.items.indexOf(state.selectedItem)
@@ -162,7 +171,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
 
       const nextRow = this.autocompletionList!.nextSelectableRow(direction, selectedRow)
       this.scrollToRow = nextRow
-      this.setState({ state: {
+      this.setState({ autocompletionState: {
         provider: state.provider,
         items: state.items,
         range: state.range,
@@ -195,12 +204,12 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
           const items = provider.getAutocompletionItems(text)
 
           const selectedItem = items[0]
-          this.setState({ state: { provider, items, range, selectedItem } })
+          this.setState({ autocompletionState: { provider, items, range, selectedItem } })
           return
         }
       }
     }
 
-    this.setState({ state: null })
+    this.setState({ autocompletionState: null })
   }
 }
