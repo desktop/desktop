@@ -1,4 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
+import { shell } from 'electron'
 import * as Path from 'path'
 import {
   IRepositoryState,
@@ -830,5 +831,17 @@ export default class AppStore {
 
   public _removeCloningRepository(repository: CloningRepository) {
     this.cloningRepositoriesStore.remove(repository)
+  }
+
+  public async _discardChanges(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>) {
+    const relativePaths = files.map(f => f.path)
+    const absolutePaths = relativePaths.map(p => Path.join(repository.path, p))
+    for (const path of absolutePaths) {
+      shell.moveItemToTrash(path)
+    }
+
+    await LocalGitOperations.checkoutPaths(repository, relativePaths)
+
+    return this._refreshRepository(repository)
   }
 }

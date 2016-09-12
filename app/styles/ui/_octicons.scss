@@ -1,4 +1,7 @@
-/* https://css-tricks.com/cascading-svg-fill-color/ */
 svg.octicon {
+  /* https://css-tricks.com/cascading-svg-fill-color/ */
   fill: currentColor;
+
+  width: 16px;
+  height: 16px;
 }

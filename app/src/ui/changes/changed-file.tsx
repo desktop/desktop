@@ -2,12 +2,14 @@ import * as React from 'react'
 
 import { FileStatus } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { showContextualMenu } from '../main-process-proxy'
 
 interface IChangedFileProps {
-  path: string,
-  status: FileStatus,
-  include: boolean | null,
+  path: string
+  status: FileStatus
+  include: boolean | null
   onIncludeChanged: (include: boolean) => void
+  onDiscardChanges: () => void
 }
 
 /** a changed file in the working directory for a given repository */
@@ -27,9 +29,10 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
   public render() {
     const includeFile = this.props.include
+    const fileStatus = ChangedFile.mapStatus(this.props.status)
 
     return (
-      <div className='changed-file'>
+      <div className='changed-file' onContextMenu={e => this.onContextMenu(e)}>
         <input
           type='checkbox'
           checked={includeFile == null ? undefined : includeFile}
@@ -40,15 +43,27 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
             }
           }}/>
 
-        <label className='path'>
+        <label className='path' title={this.props.path}>
           {this.props.path}
         </label>
 
-        <span className={'status status-' + ChangedFile.mapStatus(this.props.status).toLowerCase()} title={ChangedFile.mapStatus(this.props.status)}>
+        <div className={'status status-' + fileStatus.toLowerCase()} title={fileStatus}>
           <Octicon symbol={iconForStatus(this.props.status)} />
-        </span>
+        </div>
       </div>
     )
+  }
+
+  private onContextMenu(event: React.MouseEvent<any>) {
+    event.preventDefault()
+
+    if (process.platform !== 'win32') {
+      const item = {
+        label: 'Discard Changes',
+        action: () => this.props.onDiscardChanges(),
+      }
+      showContextualMenu([ item ])
+    }
   }
 }
 

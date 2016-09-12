@@ -14,6 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "babel-runtime": "^6.6.1",
+    "byline": "^4.2.2",
     "dexie": "^1.4.1",
     "electron-window-state": "^3.0.3",
     "event-kit": "^2.0.0",

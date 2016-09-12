@@ -9,6 +9,8 @@ import { parseRawDiff } from './diff-parser'
 
 import { GitProcess, GitError, GitErrorCode } from 'git-kitchen-sink'
 
+const byline = require('byline')
+
 /** The encapsulation of the result from 'git status' */
 export class StatusResult {
   /** true if the repository exists at the given location */
@@ -562,7 +564,7 @@ export class LocalGitOperations {
   /** Clone the repository to the path. */
   public static clone(url: string, path: string, progress: (progress: string) => void): Promise<void> {
     return GitProcess.exec([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, undefined, process => {
-      process.stderr.on('data', (chunk: string) => {
+      byline(process.stderr).on('data', (chunk: string) => {
         progress(chunk)
       })
     })
@@ -595,5 +597,10 @@ export class LocalGitOperations {
   /** Add a new remote with the given URL. */
   public static addRemote(path: string, name: string, url: string): Promise<void> {
     return GitProcess.exec([ 'remote', 'add', name, url ], path)
+  }
+
+  /** Check out the paths at HEAD. */
+  public static checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
+    return GitProcess.exec([ 'checkout', '--', ...paths ], repository.path)
   }
 }

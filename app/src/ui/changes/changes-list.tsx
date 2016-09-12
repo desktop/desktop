@@ -17,6 +17,7 @@ interface IChangesListProps {
   readonly onIncludeChanged: (row: number, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (summary: string, description: string) => void
+  readonly onDiscardChanges: (row: number) => void
   readonly branch: string | null
   readonly avatarURL: string
   readonly emoji: Map<string, string>
@@ -41,7 +42,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
                    status={file.status}
                    include={includeAll}
                    key={file.id}
-                   onIncludeChanged={include => this.props.onIncludeChanged(row, include)}/>
+                   onIncludeChanged={include => this.props.onIncludeChanged(row, include)}
+                   onDiscardChanges={() => this.props.onDiscardChanges(row)}/>
     )
   }
 
