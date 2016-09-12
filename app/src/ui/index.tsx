@@ -73,12 +73,17 @@ function openRepository(url: string) {
   if (existingRepository) {
     return dispatcher.selectRepository(existingRepository)
   } else {
+    const lastCloneLocationConfigKey = 'last-clone-location'
+    const cloneLocation = localStorage.getItem(lastCloneLocationConfigKey) || getDefaultDir()
+
     const defaultName = Path.basename(Url.parse(url)!.path!, '.git')
     const path: string | null = remote.dialog.showSaveDialog({
       buttonLabel: 'Clone',
-      defaultPath: Path.join(getDefaultDir(), defaultName),
+      defaultPath: Path.join(cloneLocation, defaultName),
     })
     if (!path) { return }
+
+    localStorage.setItem(lastCloneLocationConfigKey, Path.resolve(path, '..'))
 
     return dispatcher.clone(url, path)
   }
