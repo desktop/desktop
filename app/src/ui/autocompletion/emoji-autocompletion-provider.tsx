@@ -10,7 +10,7 @@ export default class EmojiAutocompletionProvider implements IAutocompletionProvi
   }
 
   public getRegExp(): RegExp {
-    return /(\\A|\\n| )(:)([a-z0-9\\+\\-][a-z0-9_]*)?/g
+    return /(^|\n| )(:)([a-z0-9\\+\\-][a-z0-9_]*)?/g
   }
 
   public getAutocompletionItems(text: string) {
