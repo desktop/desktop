@@ -81,8 +81,9 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
               {filesDescription}
             </li>
           </ul>
+          <EmojiText className='commit-summary-description' emoji={this.props.emoji}>{this.props.body}</EmojiText>
         </div>
-        <EmojiText className='commit-summary-description' emoji={this.props.emoji}>{this.props.body}</EmojiText>
+        
         <div className='files'>
           <List rowRenderer={row => this.renderFile(row)}
                 rowCount={this.props.files.length}
