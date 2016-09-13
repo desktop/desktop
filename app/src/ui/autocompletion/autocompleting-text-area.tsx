@@ -78,10 +78,12 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
     const state = this.state.autocompletionState
     if (!state) { return null }
 
+    const items = state.items
+    if (!items.length) { return null }
+
     const scrollToRow = this.scrollToRow
     this.scrollToRow = -1
 
-    const items = state.items
     const coordinates = getCaretCoordinates(this.textArea!, state.range.start)
     const left = coordinates.left
     const top = coordinates.top + YOffset
