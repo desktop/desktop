@@ -111,9 +111,6 @@ export default class List extends React.Component<IListProps, void> {
     const className = selected ? 'list-item selected' : 'list-item'
     const tabIndex = focused ? 0 : -1
 
-    // We don't care about mouse events on the selected item
-    const onMouseDown = selected ? undefined : () => this.handleMouseDown(rowIndex)
-
     // We only need to keep a reference to the focused element
     const ref = focused
       ? (c: HTMLDivElement) => { this.focusItem = c }
@@ -126,7 +123,7 @@ export default class List extends React.Component<IListProps, void> {
            className={className}
            tabIndex={tabIndex}
            ref={ref}
-           onMouseDown={onMouseDown}>
+           onMouseDown={() => this.handleMouseDown(rowIndex)}>
         {element}
       </div>
     )
@@ -185,15 +182,13 @@ export default class List extends React.Component<IListProps, void> {
   }
 
   private handleMouseDown = (row: number) => {
-    if (this.props.selectedRow !== row) {
-      let canSelect = true
-      if (this.props.canSelectRow) {
-        canSelect = this.props.canSelectRow(row)
-      }
+    let canSelect = true
+    if (this.props.canSelectRow) {
+      canSelect = this.props.canSelectRow(row)
+    }
 
-      if (canSelect && this.props.onSelectionChanged) {
-        this.props.onSelectionChanged(row)
-      }
+    if (canSelect && this.props.onSelectionChanged) {
+      this.props.onSelectionChanged(row)
     }
   }
 
