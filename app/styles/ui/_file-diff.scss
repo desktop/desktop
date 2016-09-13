@@ -91,3 +91,17 @@
     color: var(--background-color);
   }
 }
+
+.CodeMirror-gutters .before,
+.CodeMirror-gutters .after {
+  background: var(--diff-hunk-background-color);
+  border-right: 1px solid var(--diff-border-color);
+  width: 2em;
+}
+
+.diff-line-number {
+  color: var(--diff-line-number-color);
+  width: var(--diff-line-number-column-width);
+  text-align: left;
+  padding-left: 5px;
+}
