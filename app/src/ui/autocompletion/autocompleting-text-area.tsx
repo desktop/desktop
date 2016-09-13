@@ -185,6 +185,8 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
       event.preventDefault()
 
       this.insertCompletion(state.selectedItem)
+    } else if (event.key === 'Escape') {
+      this.setState({ autocompletionState: null })
     }
   }
 
