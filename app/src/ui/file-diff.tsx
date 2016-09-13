@@ -75,7 +75,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   private createElement(number: number): HTMLDivElement {
     var marker = document.createElement('div');
-    marker.className = 'before'
+    marker.className = 'diff-line-number'
     marker.innerHTML = number.toString();
     return marker;
   }
@@ -103,10 +103,10 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
         if (info) {
           if (l.oldLineNumber) {
-            cm.setGutterMarker(absoluteIndex, 'gutter-before', this.createElement(l.oldLineNumber))
+            cm.setGutterMarker(absoluteIndex, 'before', this.createElement(l.oldLineNumber))
           }
           if (l.newLineNumber) {
-            cm.setGutterMarker(absoluteIndex, 'gutter-after', this.createElement(l.newLineNumber))
+            cm.setGutterMarker(absoluteIndex, 'after', this.createElement(l.newLineNumber))
           }
         } else {
           console.log(`no line found at ${absoluteIndex}`)
@@ -124,7 +124,6 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       const cm: any = elem.getCodeMirror()
 
       if (!cm) {
-        console.log('unable to draw')
         return
       }
 
@@ -156,7 +155,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
           showCursorWhenSelecting: false,
           styleActiveLine: false,
           scrollbarStyle: "simple",
-          gutters: [ 'gutter-before', 'gutter-after' ]
+          gutters: [ 'before', 'after' ]
       };
 
       return (
