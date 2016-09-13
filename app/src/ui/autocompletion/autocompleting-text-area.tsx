@@ -198,7 +198,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
       let result: RegExpExecArray | null = null
       while (result = regex.exec(str)) {
         const index = regex.lastIndex
-        const text = result[3]
+        const text = result[1]
         if (!text) { continue }
 
         if (index === caretPosition) {
