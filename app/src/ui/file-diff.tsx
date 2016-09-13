@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import IRepository from '../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../models/status'
-import { DiffSelectionType, Diff } from '../models/diff'
+import { DiffSelectionType, Diff, DiffLineType } from '../models/diff'
 
 import { LocalGitOperations, Commit } from '../lib/local-git-operations'
 
@@ -115,6 +115,31 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     })
   }
 
+  private renderLine(instance: any, line: any, element: any) {
+
+    const index = instance.getLineNumber(line)
+
+    const section = this.state.diff.sections.find(s => {
+      return index >= s.unifiedDiffStart && index < s.unifiedDiffEnd
+    })
+
+    if (section) {
+      const relativeIndex = index - section.unifiedDiffStart
+      const diffLine = section.lines[relativeIndex]
+      if (diffLine) {
+        if (diffLine.type === DiffLineType.Add) {
+          element.classList.add('diff-add')
+        } else if (diffLine.type === DiffLineType.Delete) {
+          element.classList.add('diff-delete')
+        } else if (diffLine.type === DiffLineType.Context) {
+          element.classList.add('diff-hunk')
+        } else {
+          element.classList.add('diff-context')
+        }
+      }
+    }
+  }
+
   private styleEditor(ref: React.Component<any,any>) {
     this.editor = ref
 
@@ -128,6 +153,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       }
 
       cm.on('change', this.drawGutter.bind(this))
+      cm.on('renderLine', this.renderLine.bind(this))
     }
   }
 
