@@ -97,7 +97,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
               selectedRow={selectedRow}
               rowRenderer={row => this.renderItem(state, row)}
               scrollToRow={scrollToRow}
-              onSelectionChanged={row => this.insertCompletion(items[row])}/>
+              onSelection={row => this.insertCompletion(items[row])}/>
       </div>
     )
   }
