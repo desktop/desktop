@@ -73,6 +73,65 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     this.setState(Object.assign({}, this.state, { diff }))
   }
 
+  private createElement(number: number): HTMLDivElement {
+    var marker = document.createElement('div');
+    marker.className = 'before'
+    marker.innerHTML = number.toString();
+    return marker;
+  }
+
+  private drawGutter() {
+
+    const elem: any = this.editor
+
+    if (!elem) {
+      return
+    }
+
+    const cm: any = elem.getCodeMirror()
+
+    if (!cm) {
+      console.log('unable to draw')
+      return
+    }
+
+    this.state.diff.sections.forEach(s => {
+      s.lines.forEach((l, index) => {
+
+        const absoluteIndex = s.unifiedDiffStart + index
+        const info = cm.lineInfo(absoluteIndex)
+
+        if (info) {
+          if (l.oldLineNumber) {
+            cm.setGutterMarker(absoluteIndex, 'gutter-before', this.createElement(l.oldLineNumber))
+          }
+          if (l.newLineNumber) {
+            cm.setGutterMarker(absoluteIndex, 'gutter-after', this.createElement(l.newLineNumber))
+          }
+        } else {
+          console.log(`no line found at ${absoluteIndex}`)
+        }
+      })
+    })
+  }
+
+  private styleEditor(ref: React.Component<any,any>) {
+    this.editor = ref
+
+    const elem: any = this.editor
+
+    if (elem) {
+      const cm: any = elem.getCodeMirror()
+
+      if (!cm) {
+        console.log('unable to draw')
+        return
+      }
+
+      cm.on('change', this.drawGutter.bind(this))
+    }
+  }
+
   public render() {
 
     const file = this.props.file
@@ -90,13 +149,14 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       })
 
       var options = {
-          lineNumbers: true,
+          lineNumbers: false,
           readOnly: true,
           mode: 'javascript',
           theme: 'solarized',
           showCursorWhenSelecting: false,
           styleActiveLine: false,
-          scrollbarStyle: "simple"
+          scrollbarStyle: "simple",
+          gutters: [ 'gutter-before', 'gutter-after' ]
       };
 
       return (
@@ -104,7 +164,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
           <Codemirror
             value={diffText}
             options={options}
-            ref={(ref: React.Component<any, any>) => this.editor = ref}/>
+            ref={(ref: React.Component<any, any>) => this.styleEditor(ref)}/>
         </div>
       )
     } else {
