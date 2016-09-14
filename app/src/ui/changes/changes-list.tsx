@@ -20,6 +20,11 @@ interface IChangesListProps {
   readonly onDiscardChanges: (row: number) => void
   readonly branch: string | null
   readonly avatarURL: string
+
+  /**
+   * Keyboard handler passed directly to the onRowKeyDown prop of List, see
+   * List Props for documentation.
+   */
   readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
 }
 

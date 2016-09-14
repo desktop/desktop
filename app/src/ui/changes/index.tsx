@@ -63,6 +63,12 @@ export class Changes extends React.Component<IChangesProps, void> {
     })
   }
 
+  /**
+   * Toggles the selection of a given working directory file.
+   * If the file is partially selected it the selection is cleared
+   * in order to match the behavior of clicking on an indeterminate
+   * checkbox.
+   */
   private onToggleInclude(row: number) {
     const file = this.props.changes.selectedFile
     if (!file) {
@@ -75,7 +81,12 @@ export class Changes extends React.Component<IChangesProps, void> {
     this.props.dispatcher.changeFileIncluded(this.props.repository, file, currentSelection === DiffSelectionType.None)
   }
 
+  /**
+   * Handles keyboard events from the List item container, note that this is
+   * Not the same thing as the element returned by the row renderer in ChangesList
+   */
   private onChangedItemKeyDown(row: number, event: React.KeyboardEvent<any>) {
+    // Toggle selection when user presses the spacebar while focused on a list item
     if (event.key === ' ') {
       event.preventDefault()
       this.onToggleInclude(row)

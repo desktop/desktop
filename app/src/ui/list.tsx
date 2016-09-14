@@ -10,6 +10,16 @@ interface IListProps {
   canSelectRow?: (row: number) => boolean
   onScroll?: (scrollTop: number, clientHeight: number) => void
 
+  /**
+   * A handler called whenever a key down event is received on the
+   * row container element. Due to the way the container is currently
+   * implemented the element produced by the rowRendered will never
+   * see keyboard events without stealing focus away from the container.
+   *
+   * Primary use case for this is to allow items to react to the space
+   * bar in order to toggle selection. Consumers of this event should
+   * call event.preventDefault().
+   */
   onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
 
   /**
