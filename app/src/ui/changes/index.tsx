@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { ChangesList } from './changes-list'
 import FileDiff from '../file-diff'
+import { DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
 import Repository from '../../models/repository'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
@@ -62,6 +63,23 @@ export class Changes extends React.Component<IChangesProps, void> {
     })
   }
 
+  private onToggleInclude(row: number) {
+    const file = this.props.changes.selectedFile
+    if (!file) {
+      console.error('keyboard selection toggle despite no file - what?')
+      return
+    }
+
+    this.props.dispatcher.changeFileIncluded(this.props.repository, file, file.selection.getSelectionType() !== DiffSelectionType.All)
+  }
+
+  private onChangedItemKeyDown(row: number, event: React.KeyboardEvent<any>) {
+    if (event.key === ' ') {
+      event.preventDefault()
+      this.onToggleInclude(row)
+    }
+  }
+
   public render() {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
 
@@ -83,6 +101,7 @@ export class Changes extends React.Component<IChangesProps, void> {
                        onIncludeChanged={(row, include) => this.onIncludeChanged(row, include)}
                        onSelectAll={selectAll => this.onSelectAll(selectAll)}
                        onDiscardChanges={row => this.onDiscardChanges(row)}
+                       onRowKeyDown={(row, e) => this.onChangedItemKeyDown(row, e)}
                        branch={this.props.branch}
                        avatarURL={avatarURL}/>
         </Resizable>

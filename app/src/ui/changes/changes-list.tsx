@@ -20,6 +20,7 @@ interface IChangesListProps {
   readonly onDiscardChanges: (row: number) => void
   readonly branch: string | null
   readonly avatarURL: string
+  readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
@@ -78,7 +79,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               rowRenderer={row => this.renderRow(row)}
               selectedRow={selectedRow}
               onSelectionChanged={row => this.props.onSelectionChanged(row)}
-              invalidationProps={this.props.workingDirectory}/>
+              invalidationProps={this.props.workingDirectory}
+              onRowKeyDown={this.props.onRowKeyDown} />
 
         <CommitMessage onCreateCommit={(summary, description) => this.props.onCreateCommit(summary, description)}
                        branch={this.props.branch}

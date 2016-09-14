@@ -10,6 +10,8 @@ interface IListProps {
   canSelectRow?: (row: number) => boolean
   onScroll?: (scrollTop: number, clientHeight: number) => void
 
+  onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
+
   /**
    * List's underlying implementation acts as a pure component based on the
    * above props. So if there are any other properties that also determine
@@ -45,6 +47,10 @@ export default class List extends React.Component<IListProps, void> {
     this.moveSelection(direction)
 
     e.preventDefault()
+  private handleRowKeyDown(rowIndex: number, e: React.KeyboardEvent<any>) {
+    if (this.props.onRowKeyDown) {
+      this.props.onRowKeyDown(rowIndex, e)
+    }
   }
 
   /**
@@ -126,7 +132,8 @@ export default class List extends React.Component<IListProps, void> {
            className={className}
            tabIndex={tabIndex}
            ref={ref}
-           onMouseDown={onMouseDown}>
+           onMouseDown={onMouseDown}
+           onKeyDown={(e) => this.handleRowKeyDown(rowIndex, e)}>
         {element}
       </div>
     )
