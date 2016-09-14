@@ -58,7 +58,10 @@ const options = {
       ]
     }
   ],
-  'osx-sign': true,
+  'osx-sign': {
+    'identity': 'Developer ID Application: GitHub',
+    'requirements': path.join(__dirname, '..', 'GitHub.csreq')
+  },
 
   // Windows
   'version-string': {
