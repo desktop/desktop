@@ -1,4 +1,5 @@
 import * as Path from 'path'
+import * as ChildProcess from 'child_process'
 
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
 import { DiffSelectionType, DiffSelection, Diff } from '../models/diff'
@@ -8,6 +9,8 @@ import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDelete
 import { parseRawDiff } from './diff-parser'
 
 import { GitProcess, GitError, GitErrorCode } from 'git-kitchen-sink'
+
+import User from '../models/user'
 
 const byline = require('byline')
 
@@ -230,19 +233,26 @@ export class LocalGitOperations {
 
     const diff = await LocalGitOperations.getDiff(repository, file, null)
 
+    const write = (input: string) => {
+      return (process: ChildProcess.ChildProcess) => {
+        process.stdin.write(input)
+        process.stdin.end()
+      }
+    }
+
     if (file.status === FileStatus.New) {
       const input = await createPatchForNewFile(file, diff)
-      return GitProcess.exec(applyArgs, repository.path, input)
+      return GitProcess.exec(applyArgs, repository.path, {}, write(input))
     }
 
     if (file.status === FileStatus.Modified) {
       const patch = await createPatchForModifiedFile(file, diff)
-      return GitProcess.exec(applyArgs, repository.path, patch)
+      return GitProcess.exec(applyArgs, repository.path, {}, write(patch))
     }
 
     if (file.status === FileStatus.Deleted) {
       const patch = await createPatchForDeletedFile(file, diff)
-      return GitProcess.exec(applyArgs, repository.path, patch)
+      return GitProcess.exec(applyArgs, repository.path, {}, write(patch))
     }
 
     return Promise.resolve()
@@ -381,19 +391,29 @@ export class LocalGitOperations {
     return pieces[0]
   }
 
+  /** Get the environment for authenticating remote operations. */
+  private static envForAuthentication(user: User | null): Object {
+    return {
+      'DESKTOP_ASKPASS': '',
+      'DESKTOP_USERNAME': user ? user.login : '',
+      'DESKTOP_ENDPOINT': user ? user.endpoint : '',
+      'GIT_ASKPASS': process.execPath,
+    }
+  }
+
   /** Pull from the remote to the branch. */
-  public static pull(repository: Repository, remote: string, branch: string): Promise<void> {
-    return GitProcess.exec([ 'pull', remote, branch ], repository.path)
+  public static pull(repository: Repository, user: User | null, remote: string, branch: string): Promise<void> {
+    return GitProcess.exec([ 'pull', remote, branch ], repository.path, LocalGitOperations.envForAuthentication(user))
   }
 
   /** Push from the remote to the branch, optionally setting the upstream. */
-  public static push(repository: Repository, remote: string, branch: string, setUpstream: boolean): Promise<void> {
+  public static push(repository: Repository, user: User | null, remote: string, branch: string, setUpstream: boolean): Promise<void> {
     const args = [ 'push', remote, branch ]
     if (setUpstream) {
       args.push('--set-upstream')
     }
 
-    return GitProcess.exec(args, repository.path)
+    return GitProcess.exec(args, repository.path, LocalGitOperations.envForAuthentication(user))
   }
 
   /** Get the remote names. */
@@ -562,8 +582,9 @@ export class LocalGitOperations {
   }
 
   /** Clone the repository to the path. */
-  public static clone(url: string, path: string, progress: (progress: string) => void): Promise<void> {
-    return GitProcess.exec([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, undefined, process => {
+  public static clone(url: string, path: string, user: User | null, progress: (progress: string) => void): Promise<void> {
+    const env = LocalGitOperations.envForAuthentication(user)
+    return GitProcess.exec([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, env, process => {
       byline(process.stderr).on('data', (chunk: string) => {
         progress(chunk)
       })
