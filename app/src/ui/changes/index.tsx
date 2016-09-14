@@ -70,7 +70,9 @@ export class Changes extends React.Component<IChangesProps, void> {
       return
     }
 
-    this.props.dispatcher.changeFileIncluded(this.props.repository, file, file.selection.getSelectionType() !== DiffSelectionType.All)
+    const currentSelection = file.selection.getSelectionType()
+
+    this.props.dispatcher.changeFileIncluded(this.props.repository, file, currentSelection === DiffSelectionType.None)
   }
 
   private onChangedItemKeyDown(row: number, event: React.KeyboardEvent<any>) {
