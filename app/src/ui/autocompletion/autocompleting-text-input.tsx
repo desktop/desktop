@@ -15,12 +15,12 @@ interface IRange {
 
 const getCaretCoordinates: (element: HTMLElement, position: number) => IPosition = require('textarea-caret')
 
-interface IAutocompletingTextAreaProps {
+interface IAutocompletingTextInputProps<ElementType> {
   readonly className?: string
   readonly placeholder?: string
   readonly value?: string
-  readonly onChange?: (event: React.FormEvent<HTMLTextAreaElement>) => void
-  readonly onKeyDown?: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void
+  readonly onChange?: (event: React.FormEvent<ElementType>) => void
+  readonly onKeyDown?: (event: React.KeyboardEvent<ElementType>) => void
   readonly emoji: Map<string, string>
 }
 
@@ -40,13 +40,13 @@ const RowHeight = 20
  */
 const YOffset = 20
 
-interface IAutocompletingTextAreaState<T> {
+interface IAutocompletingTextInputState<T> {
   readonly autocompletionState: IAutocompletionState<T> | null
 }
 
 /** A text area which provides autocompletions as the user types. */
-export default class AutocompletingTextArea extends React.Component<IAutocompletingTextAreaProps, IAutocompletingTextAreaState<any>> {
-  private textArea: HTMLTextAreaElement | null = null
+abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HTMLTextAreaElement> extends React.Component<IAutocompletingTextInputProps<ElementType>, IAutocompletingTextInputState<any>> {
+  private element: ElementType | null = null
   private autocompletionList: List | null = null
 
   /** The row to scroll to. -1 means the list shouldn't scroll. */
@@ -54,7 +54,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
 
   private providers: ReadonlyArray<IAutocompletionProvider<any>>
 
-  public constructor(props: IAutocompletingTextAreaProps) {
+  public constructor(props: IAutocompletingTextInputProps<ElementType>) {
     super(props)
 
     this.providers = [
@@ -84,7 +84,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
     const scrollToRow = this.scrollToRow
     this.scrollToRow = -1
 
-    const coordinates = getCaretCoordinates(this.textArea!, state.range.start)
+    const coordinates = getCaretCoordinates(this.element!, state.range.start)
     const left = coordinates.left
     const top = coordinates.top + YOffset
     const selectedRow = items.indexOf(state.selectedItem)
@@ -102,34 +102,42 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
     )
   }
 
+  private renderTextInput() {
+    return React.createElement<any, any>(this.getElementName(), {
+      ref: (ref: ElementType) => this.element = ref,
+      type: 'text',
+      placeholder: this.props.placeholder,
+      value: this.props.value,
+      onChange: (event: React.FormEvent<ElementType>) => this.onChange(event),
+      onKeyDown: (event: React.KeyboardEvent<ElementType>) => this.onKeyDown(event),
+    })
+  }
+
+  protected abstract getElementName(): string
+
   public render() {
     return (
-      <div className='autocompletion-container'>
+      <div className={`autocompletion-container ${this.props.className || ''}`}>
         {this.renderAutocompletions()}
 
-        <textarea ref={ref => this.textArea = ref}
-                  className={this.props.className}
-                  placeholder={this.props.placeholder}
-                  value={this.props.value}
-                  onChange={event => this.onChange(event)}
-                  onKeyDown={event => this.onKeyDown(event)}/>
+        {this.renderTextInput()}
       </div>
     )
   }
 
   private insertCompletion(item: string) {
-    const textArea = this.textArea!
+    const element = this.element!
     const autocompletionState = this.state.autocompletionState!
-    const originalText = textArea.value
+    const originalText = element.value
     const range = autocompletionState.range
     const newText = originalText.substr(0, range.start - 1) + item + originalText.substr(range.start + range.length) + ' '
-    textArea.value = newText
+    element.value = newText
 
     if (this.props.onChange) {
       // This is gross, I feel gross, etc.
       this.props.onChange({
           bubbles: false,
-          currentTarget: textArea,
+          currentTarget: element,
           cancelable: false,
           defaultPrevented: true,
           eventPhase: 1,
@@ -140,7 +148,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
           stopPropagation: () => {},
           isPropagationStopped: () => true,
           persist: () => {},
-          target: textArea,
+          target: element,
           timeStamp: new Date(),
           type: 'keydown',
       })
@@ -150,7 +158,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
 
     // More gross. Clicking on the list moves focus off the text area.
     // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
-    setTimeout(() => this.textArea!.focus(), 0)
+    setTimeout(() => this.element!.focus(), 0)
   }
 
   private getMovementDirection(event: React.KeyboardEvent<any>): 'up' | 'down' | null {
@@ -162,7 +170,7 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
     return null
   }
 
-  private onKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+  private onKeyDown(event: React.KeyboardEvent<ElementType>) {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(event)
     }
@@ -214,14 +222,18 @@ export default class AutocompletingTextArea extends React.Component<IAutocomplet
     return null
   }
 
-  private onChange(event: React.FormEvent<HTMLTextAreaElement>) {
+  private onChange(event: React.FormEvent<ElementType>) {
     if (this.props.onChange) {
       this.props.onChange(event)
     }
 
     const str = event.currentTarget.value
-    const caretPosition = this.textArea!.selectionStart
+    const caretPosition = this.element!.selectionStart
     const autocompletionState = this.attemptAutocompletion(str, caretPosition)
     this.setState({ autocompletionState })
   }
 }
+
+// Because Reasons, TypeScript doesn't like combining
+// `export default abstract class` so export separately.
+export default AutocompletingTextInput

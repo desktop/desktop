@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { AutocompletingTextArea } from '../autocompletion'
+import { AutocompletingTextArea, AutocompletingInput } from '../autocompletion'
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (summary: string, description: string) => void
@@ -67,12 +67,12 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
         <div className='summary'>
           <img className='avatar' src={this.props.avatarURL}/>
 
-          <input className='summary-field'
-                 type='text'
-                 placeholder='Summary'
-                 value={this.state.summary}
-                 onChange={event => this.handleSummaryChange(event)}
-                 onKeyDown={event => this.onKeyDown(event)}/>
+          <AutocompletingInput className='summary-field'
+                               placeholder='Summary'
+                               value={this.state.summary}
+                               onChange={event => this.handleSummaryChange(event)}
+                               onKeyDown={event => this.onKeyDown(event)}
+                               emoji={this.props.emoji}/>
         </div>
 
         <AutocompletingTextArea className='description-field'
