@@ -401,6 +401,8 @@ export class LocalGitOperations {
 
   /** Get the environment for authenticating remote operations. */
   private static envForAuthentication(user: User | null): Object {
+    if (!user) { return {} }
+
     return {
       'DESKTOP_ASKPASS': '',
       'DESKTOP_USERNAME': user.login,
