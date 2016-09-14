@@ -47,6 +47,8 @@ export default class List extends React.Component<IListProps, void> {
     this.moveSelection(direction)
 
     e.preventDefault()
+  }
+
   private handleRowKeyDown(rowIndex: number, e: React.KeyboardEvent<any>) {
     if (this.props.onRowKeyDown) {
       this.props.onRowKeyDown(rowIndex, e)
