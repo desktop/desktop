@@ -391,13 +391,21 @@ export class LocalGitOperations {
     return pieces[0]
   }
 
+  private static getAskPassPath(): string {
+    if (process.platform === 'darwin') {
+      return Path.resolve(process.execPath, '..', '..', '..', '..', '..', 'MacOS', 'GitHub')
+    } else {
+      return process.execPath
+    }
+  }
+
   /** Get the environment for authenticating remote operations. */
   private static envForAuthentication(user: User | null): Object {
     return {
       'DESKTOP_ASKPASS': '',
-      'DESKTOP_USERNAME': user ? user.login : '',
-      'DESKTOP_ENDPOINT': user ? user.endpoint : '',
-      'GIT_ASKPASS': process.execPath,
+      'DESKTOP_USERNAME': user.login,
+      'DESKTOP_ENDPOINT': user.endpoint,
+      'GIT_ASKPASS': LocalGitOperations.getAskPassPath(),
     }
   }
 
