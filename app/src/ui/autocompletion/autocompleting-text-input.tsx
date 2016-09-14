@@ -41,6 +41,10 @@ const RowHeight = 20
 const YOffset = 20
 
 interface IAutocompletingTextInputState<T> {
+  /**
+   * All of the state about autocompletion. Will be null if there are no
+   * matching autocompletion providers.
+   */
   readonly autocompletionState: IAutocompletionState<T> | null
 }
 
@@ -102,8 +106,14 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
     )
   }
 
+  /**
+   * To be implemented by subclasses. It must return the element tag name which
+   * should correspond to the ElementType over which it is parameterized.
+   */
+  protected abstract getElementTagName(): string
+
   private renderTextInput() {
-    return React.createElement<any, any>(this.getElementName(), {
+    return React.createElement<any, any>(this.getElementTagName(), {
       ref: (ref: ElementType) => this.element = ref,
       type: 'text',
       placeholder: this.props.placeholder,
@@ -112,8 +122,6 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
       onKeyDown: (event: React.KeyboardEvent<ElementType>) => this.onKeyDown(event),
     })
   }
-
-  protected abstract getElementName(): string
 
   public render() {
     return (

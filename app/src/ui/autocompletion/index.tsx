@@ -1,10 +1,10 @@
 import AutocompletingTextInput from './autocompleting-text-input'
 
 export class AutocompletingTextArea extends AutocompletingTextInput<HTMLTextAreaElement> {
-  protected getElementName(): string { return 'textarea' }
+  protected getElementTagName(): string { return 'textarea' }
 }
 export class AutocompletingInput extends AutocompletingTextInput<HTMLInputElement> {
-  protected getElementName(): string { return 'input' }
+  protected getElementTagName(): string { return 'input' }
 }
 
 /** An interface which defines the protocol for an autocompletion provider. */
