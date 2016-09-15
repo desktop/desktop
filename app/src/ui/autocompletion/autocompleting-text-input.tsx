@@ -2,6 +2,7 @@ import * as React from 'react'
 import List from '../list'
 import { IAutocompletionProvider } from './index'
 import EmojiAutocompletionProvider from './emoji-autocompletion-provider'
+import fatalError from '../../lib/fatal-error'
 
 interface IPosition {
   readonly top: number
@@ -222,6 +223,11 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
       // NB: RegExps are stateful (AAAAAAAAAAAAAAAAAA) so defensively copy the
       // regex we're given.
       const regex = new RegExp(provider.getRegExp())
+      if (!regex.global) {
+        fatalError(`The regex (${regex}) returned from ${provider} isn't global, but it should be!`)
+        continue
+      }
+
       let result: RegExpExecArray | null = null
       while (result = regex.exec(str)) {
         const index = regex.lastIndex
