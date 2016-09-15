@@ -18,7 +18,7 @@
     "dexie": "^1.4.1",
     "electron-window-state": "^3.0.3",
     "event-kit": "^2.0.0",
-    "git-kitchen-sink": "^1.2.0",
+    "git-kitchen-sink": "^1.4.0",
     "keytar": "^3.0.2",
     "moment": "^2.14.1",
     "octokat": "^0.5.0-beta.0",
