@@ -110,7 +110,7 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
    * To be implemented by subclasses. It must return the element tag name which
    * should correspond to the ElementType over which it is parameterized.
    */
-  protected abstract getElementTagName(): string
+  protected abstract getElementTagName(): 'textarea' | 'input'
 
   private renderTextInput() {
     return React.createElement<any, any>(this.getElementTagName(), {
