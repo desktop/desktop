@@ -6,7 +6,7 @@ interface IListProps {
   rowCount: number
   rowHeight: number
   selectedRow: number
-  onSelection?: (row: number) => void
+  onSelectionChanged?: (row: number) => void
   canSelectRow?: (row: number) => boolean
   onScroll?: (scrollTop: number, clientHeight: number) => void
 
@@ -79,8 +79,8 @@ export default class List extends React.Component<IListProps, void> {
   private moveSelection(direction: 'up' | 'down') {
     const newRow = this.nextSelectableRow(direction, this.props.selectedRow)
 
-    if (this.props.onSelection) {
-      this.props.onSelection(newRow)
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged(newRow)
     }
 
     this.scrollRowToVisible(newRow)
@@ -187,8 +187,8 @@ export default class List extends React.Component<IListProps, void> {
       canSelect = this.props.canSelectRow(row)
     }
 
-    if (canSelect && this.props.onSelection) {
-      this.props.onSelection(row)
+    if (canSelect && this.props.onSelectionChanged) {
+      this.props.onSelectionChanged(row)
     }
   }
 

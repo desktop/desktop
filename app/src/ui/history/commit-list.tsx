@@ -35,7 +35,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     }
   }
 
-  private onSelection(row: number) {
+  private onSelectionChanged(row: number) {
     const sha = this.props.history[row]
     const commit = this.props.commits.get(sha)
     if (commit) {
@@ -74,7 +74,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
               rowHeight={RowHeight}
               selectedRow={this.rowForSHA(this.props.selectedSHA)}
               rowRenderer={row => this.renderCommit(row)}
-              onSelection={row => this.onSelection(row)}
+              onSelectionChanged={row => this.onSelectionChanged(row)}
               onScroll={(scrollTop, clientHeight) => this.onScroll(scrollTop, clientHeight)}
               invalidationProps={{ commits: this.props.commits, gitHubUsers: this.props.gitHubUsers }}/>
       </div>
