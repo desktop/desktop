@@ -219,7 +219,9 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
 
   private attemptAutocompletion(str: string, caretPosition: number): IAutocompletionState<any> | null {
     for (const provider of this.providers) {
-      const regex = provider.getRegExp()
+      // NB: RegExps are stateful (AAAAAAAAAAAAAAAAAA) so defensively copy the
+      // regex we're given.
+      const regex = new RegExp(provider.getRegExp())
       let result: RegExpExecArray | null = null
       while (result = regex.exec(str)) {
         const index = regex.lastIndex
