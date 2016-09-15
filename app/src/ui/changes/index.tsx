@@ -23,7 +23,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     this.props.dispatcher.commitIncludedChanges(this.props.repository, summary, description)
   }
 
-  private onSelectionChanged(row: number) {
+  private onRowSelected(row: number) {
     const file = this.props.changes.workingDirectory.files[row]
     this.props.dispatcher.changeChangesSelection(this.props.repository, file)
   }
@@ -79,7 +79,7 @@ export class Changes extends React.Component<IChangesProps, void> {
           <ChangesList repository={this.props.repository}
                        workingDirectory={this.props.changes.workingDirectory}
                        selectedPath={selectedPath}
-                       onSelectionChanged={event => this.onSelectionChanged(event)}
+                       onRowSelected={event => this.onRowSelected(event)}
                        onCreateCommit={(summary, description) => this.onCreateCommit(summary, description)}
                        onIncludeChanged={(row, include) => this.onIncludeChanged(row, include)}
                        onSelectAll={selectAll => this.onSelectAll(selectAll)}

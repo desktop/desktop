@@ -2,26 +2,38 @@ import * as React from 'react'
 const { Grid, AutoSizer } = require('react-virtualized')
 
 interface IListProps {
-  rowRenderer: (row: number) => JSX.Element
-  rowCount: number
-  rowHeight: number
-  selectedRow: number
-  onSelectionChanged?: (row: number) => void
-  canSelectRow?: (row: number) => boolean
-  onScroll?: (scrollTop: number, clientHeight: number) => void
+  readonly rowRenderer: (row: number) => JSX.Element
+  readonly rowCount: number
+  readonly rowHeight: number
+  readonly selectedRow: number
+
+  /**
+   * This function will be called when a row is selected, either by being
+   * clicked on or by keyboard navigation.
+   */
+  readonly onRowSelected?: (row: number) => void
+
+  /**
+   * This function will be called when the selection changes. Note that this
+   * differs from `onRowSelected`. For example, it won't be called if an already
+   * selected row is clicked on.
+   */
+  readonly onSelectionChanged?: (row: number) => void
+  readonly canSelectRow?: (row: number) => boolean
+  readonly onScroll?: (scrollTop: number, clientHeight: number) => void
 
   /**
    * List's underlying implementation acts as a pure component based on the
    * above props. So if there are any other properties that also determine
    * whether the list should re-render, List must know about them.
    */
-  invalidationProps?: any
+  readonly invalidationProps?: any
 
   /** The unique identifier for the outer element of the component (optional, defaults to null) */
-  id?: string
+  readonly id?: string
 
   /** The row that should be scrolled to when the list is rendered. */
-  scrollToRow?: number
+  readonly scrollToRow?: number
 }
 
 export default class List extends React.Component<IListProps, void> {
@@ -81,6 +93,10 @@ export default class List extends React.Component<IListProps, void> {
 
     if (this.props.onSelectionChanged) {
       this.props.onSelectionChanged(newRow)
+    }
+
+    if (this.props.onRowSelected) {
+      this.props.onRowSelected(newRow)
     }
 
     this.scrollRowToVisible(newRow)
@@ -187,8 +203,14 @@ export default class List extends React.Component<IListProps, void> {
       canSelect = this.props.canSelectRow(row)
     }
 
-    if (canSelect && this.props.onSelectionChanged) {
-      this.props.onSelectionChanged(row)
+    if (canSelect) {
+      if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
+        this.props.onSelectionChanged(row)
+      }
+
+      if (this.props.onRowSelected) {
+        this.props.onRowSelected(row)
+      }
     }
   }
 

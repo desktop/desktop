@@ -102,7 +102,7 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
               selectedRow={selectedRow}
               rowRenderer={row => this.renderItem(state, row)}
               scrollToRow={scrollToRow}
-              onSelectionChanged={row => this.insertCompletionOnClick(items[row])}/>
+              onRowSelected={row => this.insertCompletionOnClick(items[row])}/>
       </div>
     )
   }
