@@ -245,9 +245,7 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
       let result: RegExpExecArray | null = null
       while (result = regex.exec(str)) {
         const index = regex.lastIndex
-        const text = result[1]
-        if (!text) { continue }
-
+        const text = result[1] || ''
         if (index === caretPosition) {
           const range = { start: index - text.length, length: text.length }
           const items = provider.getAutocompletionItems(text)
