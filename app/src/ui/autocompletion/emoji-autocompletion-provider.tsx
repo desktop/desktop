@@ -13,7 +13,7 @@ export default class EmojiAutocompletionProvider implements IAutocompletionProvi
     return /(?:^|\n| )(?::)([a-z0-9\\+\\-][a-z0-9_]*)?/g
   }
 
-  public getAutocompletionItems(text: string) {
+  public getAutocompletionItems(text: string): ReadonlyArray<string> {
     return Array.from(this.emoji.keys()).filter(e => e.startsWith(`:${text}`))
   }
 
