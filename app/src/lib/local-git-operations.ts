@@ -391,24 +391,41 @@ export class LocalGitOperations {
     return pieces[0]
   }
 
-  private static getAskPassPath(): string {
+  private static getAskPassLauncherPath(): string {
     if (process.platform === 'darwin') {
-      return Path.resolve(process.execPath, '..', '..', '..', '..', '..', 'MacOS', 'GitHub')
+      // macOS makes AskPass harder than it should be. We can't set our main
+      // process as AskPass because the OS won't launch another instance of the
+      // already running app. We *also* can't give AskPass a command to run with
+      // arguments. It has to be a single launchable executable with no args. So
+      // we have to bounce off a trampoline.
+      //
+      // In the trampoline, we *could* use `open` to launch a second instance of
+      // the app, but then we'd see it brielfy launch and quit in the Dock. So
+      // we run the script as a standalone.
+      return Path.resolve(__dirname, 'ask-pass-trampoline.sh')
     } else {
       return process.execPath
     }
+  }
+
+  private static getAskPassScriptPath(): string {
+    return Path.resolve(__dirname, 'ask-pass.js')
   }
 
   /** Get the environment for authenticating remote operations. */
   private static envForAuthentication(user: User | null): Object {
     if (!user) { return {} }
 
-    return {
-      'DESKTOP_ASKPASS': '',
+    const c = {
+      'DESKTOP_ASKPASS': 1,
+      'DESKTOP_PATH': process.execPath,
+      'DESKTOP_ASKPASS_SCRIPT': LocalGitOperations.getAskPassScriptPath(),
       'DESKTOP_USERNAME': user.login,
       'DESKTOP_ENDPOINT': user.endpoint,
-      'GIT_ASKPASS': LocalGitOperations.getAskPassPath(),
+      'GIT_ASKPASS': LocalGitOperations.getAskPassLauncherPath(),
     }
+    console.log(c)
+    return c
   }
 
   /** Pull from the remote to the branch. */

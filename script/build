@@ -23,6 +23,11 @@ copyDependencies()
 console.log('Packaging emoji…')
 copyEmoji()
 
+if (process.platform === 'darwin') {
+  console.log('Copying ask-pass-trampoline…')
+  copyAskPass()
+}
+
 if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
   console.log('Setting up keychain…')
   cp.execSync(path.join(__dirname, 'setup-macos-keychain'))
@@ -101,6 +106,13 @@ function copyEmoji () {
 
   copyImages()
   copyJson()
+}
+
+function copyAskPass () {
+  const source = path.join(projectRoot, 'app', 'static', 'ask-pass-trampoline.sh')
+  const destination = path.join(outRoot, 'ask-pass-trampoline.sh')
+  fs.removeSync(destination)
+  fs.copySync(source, destination)
 }
 
 function copyDependencies () {

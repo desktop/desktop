@@ -7,7 +7,7 @@ import parseURL from '../lib/parse-url'
 import { handleSquirrelEvent, getFeedURL } from './updates'
 import SharedProcess from '../shared-process/shared-process'
 import fatalError from '../lib/fatal-error'
-import { responseForPrompt } from './ask-pass'
+import { responseForPrompt } from '../ask-pass'
 
 const stats = new Stats()
 
