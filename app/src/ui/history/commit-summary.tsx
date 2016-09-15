@@ -53,8 +53,6 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
             {this.props.summary}
           </EmojiText>
 
-          <EmojiText className='commit-summary-description' emoji={this.props.emoji}>{this.props.body}</EmojiText>
-
           <ul className='commit-summary-meta byline'>
             <li className='commit-summary-meta-item'
               title={this.props.authorName} aria-label='Author'>
@@ -84,6 +82,8 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
             </li>
           </ul>
         </div>
+        
+        <EmojiText className='commit-summary-description' emoji={this.props.emoji}>{this.props.body}</EmojiText>
 
         <div className='files'>
           <List rowRenderer={row => this.renderFile(row)}

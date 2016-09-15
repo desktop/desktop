@@ -33,9 +33,10 @@
   }
 
   &-description {
+    border-bottom: var(--light-border);
     font-family: var(--font-family-monospace);
     font-size: var(--font-size-sm);
-    padding: 0 var(--spacing) var(--spacing);
+    padding: var(--spacing);
     word-wrap: break-word;
 
     &:empty {
@@ -62,8 +63,7 @@
   }
 
   &-header {
-    box-shadow: var(--base-box-shadow);
-    border-bottom: var(--light-border);
+    border-bottom: var(--base-border);
     // Render the shadow on top of the list
     z-index: 2;
   }
