@@ -41,6 +41,12 @@ const RowHeight = 20
  */
 const YOffset = 20
 
+/**
+ * The default height for the popup. Note that the actual height may be
+ * smaller in order to fit the popup within the window.
+ */
+const DefaultPopupHeight = 100
+
 interface IAutocompletingTextInputState<T> {
   /**
    * All of the state about autocompletion. Will be null if there are no
@@ -89,13 +95,21 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
     const scrollToRow = this.scrollToRow
     this.scrollToRow = -1
 
-    const coordinates = getCaretCoordinates(this.element!, state.range.start)
+    const element = this.element!
+    let coordinates = getCaretCoordinates(element, state.range.start)
+    coordinates = { top: coordinates.top - element.scrollTop, left: coordinates.left - element.scrollLeft }
+
     const left = coordinates.left
     const top = coordinates.top + YOffset
     const selectedRow = items.indexOf(state.selectedItem)
+    const rect = element.getBoundingClientRect()
+    const popupAbsoluteTop = rect.top + coordinates.top
+    const windowHeight = element.ownerDocument.defaultView.innerHeight
+    const spaceToBottomOfWindow = windowHeight - popupAbsoluteTop - YOffset
+    const height = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
 
     return (
-      <div className='autocompletion-popup' style={{ top, left }}>
+      <div className='autocompletion-popup' style={{ top, left, height }}>
         <List ref={ref => this.autocompletionList = ref}
               rowCount={items.length}
               rowHeight={RowHeight}
