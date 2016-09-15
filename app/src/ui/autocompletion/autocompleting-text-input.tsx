@@ -101,9 +101,22 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
               selectedRow={selectedRow}
               rowRenderer={row => this.renderItem(state, row)}
               scrollToRow={scrollToRow}
-              onSelection={row => this.insertCompletion(items[row])}/>
+              onSelection={row => this.insertCompletionOnClick(items[row])}/>
       </div>
     )
+  }
+
+  private insertCompletionOnClick(item: string) {
+    this.insertCompletion(item)
+
+    // This is pretty gross. Clicking on the list moves focus off the text area.
+    // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
+    setTimeout(() => {
+      const element = this.element
+      if (element) {
+        element.focus()
+      }
+    }, 0)
   }
 
   /**
@@ -163,10 +176,6 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
     }
 
     this.setState({ autocompletionState: null })
-
-    // More gross. Clicking on the list moves focus off the text area.
-    // Immediately moving focus back doesn't work. Gotta wait a runloop I guess?
-    setTimeout(() => this.element!.focus(), 0)
   }
 
   private getMovementDirection(event: React.KeyboardEvent<any>): 'up' | 'down' | null {
