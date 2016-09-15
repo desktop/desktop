@@ -10,15 +10,17 @@ export class AutocompletingInput extends AutocompletingTextInput<HTMLInputElemen
 /** An interface which defines the protocol for an autocompletion provider. */
 export interface IAutocompletionProvider<T> {
   /**
-   * Get the regex which it used to capture text for the provider. The captured
-   * text will then be passed to `getAutocompletionItems` to get the
-   * autocompletions.
+   * Get the regex which it used to capture text for the provider. The text
+   * captured in the first group will then be passed to `getAutocompletionItems`
+   * to get autocompletions.
+   *
+   * The returned regex *must* be global.
    */
   getRegExp(): RegExp
 
   /**
    * Get the autocompletion results for the given text. The text is whatever was
-   * captured by the regex returned from `getRegExp`.
+   * captured in the first group by the regex returned from `getRegExp`.
    */
   getAutocompletionItems(text: string): ReadonlyArray<T>
 
