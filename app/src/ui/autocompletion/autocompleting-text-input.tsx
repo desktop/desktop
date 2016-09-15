@@ -208,7 +208,7 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
         range: state.range,
         selectedItem: state.items[nextRow],
       } })
-    } else if (event.key === 'Enter') {
+    } else if (event.key === 'Enter' || event.key === 'Tab') {
       event.preventDefault()
 
       this.insertCompletion(state.selectedItem)
