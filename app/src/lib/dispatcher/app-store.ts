@@ -832,10 +832,7 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clone(url: string, path: string): { promise: Promise<void>, repository: CloningRepository } {
-    // TODO: This isn't right... we should try to determine the user from the
-    // URL.
-    const user = this.users[0]
+  public _clone(url: string, path: string, user: User | null): { promise: Promise<void>, repository: CloningRepository } {
     const promise = this.cloningRepositoriesStore.clone(url, path, user)
     const repository = this.cloningRepositoriesStore.repositories.find(r => r.url === url && r.path === path)!
     return { promise, repository }
