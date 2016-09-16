@@ -15,7 +15,7 @@ export default class SharedProcess {
       width: 100,
       height: 100,
       show: false,
-      title: 'SharedProcess'
+      title: 'SharedProcess',
     })
 
     this.window.webContents.on('did-finish-load', () => {
@@ -66,7 +66,7 @@ export default class SharedProcess {
           this.show()
         }
         this.send({ guid: '', name: 'console.error', args: { args } })
-      }
+      },
     }
   }
 }

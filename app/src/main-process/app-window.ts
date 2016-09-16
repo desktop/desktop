@@ -17,7 +17,7 @@ export default class AppWindow {
 
     const savedWindowState = windowStateKeeper({
       defaultWidth: 800,
-      defaultHeight: 600
+      defaultHeight: 600,
     })
 
     const windowOptions: Electron.BrowserWindowOptions = {
@@ -30,7 +30,7 @@ export default class AppWindow {
       show: false,
       // This fixes subpixel aliasing on Windows
       // See https://github.com/atom/atom/commit/683bef5b9d133cb194b476938c77cc07fd05b972
-      backgroundColor: '#fff'
+      backgroundColor: '#fff',
     }
 
     if (process.platform === 'darwin') {
