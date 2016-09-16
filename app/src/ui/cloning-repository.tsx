@@ -3,6 +3,7 @@ import * as React from 'react'
 import { CloningRepository as CloningRepositoryModel } from '../lib/dispatcher'
 import { ICloningRepositoryState } from '../lib/app-state'
 import { Octicon, OcticonSymbol } from './octicons'
+import { UiView } from './ui-view'
 
 interface ICloningRepositoryProps {
   readonly repository: CloningRepositoryModel
@@ -20,14 +21,14 @@ export default class CloningRepository extends React.Component<ICloningRepositor
       : this.props.state.progressValue
 
     return (
-      <div id='cloning-repository-view'>
+      <UiView id='cloning-repository-view'>
         <div className='title-container'>
           <Octicon symbol={OcticonSymbol.desktopDownload} />
           <div className='title'>Cloning {this.props.repository.name}</div>
         </div>
         <progress value={progressValue} />
         <div className='details'>{this.props.state.output}</div>
-      </div>
+      </UiView>
     )
   }
 }
