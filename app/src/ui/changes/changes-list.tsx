@@ -13,13 +13,14 @@ interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedPath: string | null
-  readonly onSelectionChanged: (row: number) => void
+  readonly onRowSelected: (row: number) => void
   readonly onIncludeChanged: (row: number, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (summary: string, description: string) => void
   readonly onDiscardChanges: (row: number) => void
   readonly branch: string | null
   readonly avatarURL: string
+  readonly emoji: Map<string, string>
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
@@ -77,12 +78,13 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               rowHeight={RowHeight}
               rowRenderer={row => this.renderRow(row)}
               selectedRow={selectedRow}
-              onSelectionChanged={row => this.props.onSelectionChanged(row)}
+              onRowSelected={row => this.props.onRowSelected(row)}
               invalidationProps={this.props.workingDirectory}/>
 
         <CommitMessage onCreateCommit={(summary, description) => this.props.onCreateCommit(summary, description)}
                        branch={this.props.branch}
-                       avatarURL={this.props.avatarURL}/>
+                       avatarURL={this.props.avatarURL}
+                       emoji={this.props.emoji}/>
       </div>
     )
   }
