@@ -28,13 +28,6 @@ if (process.platform === 'win32' && process.argv.length > 1) {
   }
 }
 
-// We were launched as GIT_ASKPASS, so try to parse the prompt, respond, and quit.
-if (process.env.DESKTOP_ASKPASS) {
-  const cp = require('child_process')
-  cp.spawnSync(process.env.DESKTOP_PATH, [ process.env.DESKTOP_ASKPASS_SCRIPT, process.argv[1] ], { env: Object.assign({}, process.env, { ELECTRON_RUN_AS_NODE: 1, ELECTRON_NO_ATTACH_CONSOLE: 1 }) })
-  app.quit()
-}
-
 const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
   // Someone tried to run a second instance, we should focus our window.
   if (mainWindow) {

@@ -1,5 +1,5 @@
 /**
- * This will be run by the `ask-pass-trampoline` on macOS.
+ * This will be run by the `ask-pass-trampoline`.
  */
 
 import { responseForPrompt } from './ask-pass'

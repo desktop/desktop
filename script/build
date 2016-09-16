@@ -104,7 +104,8 @@ function copyEmoji () {
 }
 
 function copyAskPass () {
-  const file = process.platform === 'darwin' ? 'ask-pass-trampoline.sh' : 'ask-pass-trampoline.bat'
+  const extension = process.platform === 'win32' ? 'bat' : 'sh'
+  const file = `ask-pass-trampoline.${extension}`
   const source = path.join(projectRoot, 'app', 'static', file)
   const destination = path.join(outRoot, 'static', file)
   fs.removeSync(destination)
