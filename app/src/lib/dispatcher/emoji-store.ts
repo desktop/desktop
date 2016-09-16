@@ -6,7 +6,7 @@ import * as Path from 'path'
  * which consists of a top-level array containing objects describing
  * emojis.
  */
-type IGemojiDb = [ IGemojiDefinition ]
+type IGemojiDb = ReadonlyArray<IGemojiDefinition>
 
 /**
  * Partial (there's more in the db) interface describing the elements
