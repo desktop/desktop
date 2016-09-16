@@ -1,43 +1,113 @@
 import * as Fs from 'fs'
 import * as Path from 'path'
-import * as Url from 'url'
 
-const snakeCase = require('snake-case')
+/**
+ * Type representing the contents of the gemoji json database
+ * which consists of a top-level array containing objects describing
+ * emojis.
+ */
+type IGemojiDb = ReadonlyArray<IGemojiDefinition>
+
+/**
+ * Partial (there's more in the db) interface describing the elements
+ * in the gemoji json array.
+ */
+interface IGemojiDefinition {
+  /**
+   * The unicode string of the emoji if emoji is part of
+   * the unicode specification. If missing this emoji is
+   * a GitHub custom emoji such as :shipit:  */
+  readonly emoji?: string
+
+  /** One or more human readable aliases for the emoji character */
+  readonly aliases: ReadonlyArray<string>
+
+  /** An optional, human readable, description of the emoji  */
+  readonly description?: string
+}
 
 export default class EmojiStore {
   /** Map from shorcut (e.g., :+1:) to on disk URL. */
   public readonly emoji = new Map<string, string>()
 
+  private getEmojiImageUrlFromRelativePath(relativePath: string): string {
+    return `file://${Path.join(__dirname, 'emoji', relativePath)}`
+  }
+
+  /**
+   * Given a unicode point number, returns a hexadecimal string
+   * which is lef padded with zeroes to be at least 4 characters
+   */
+  private getHexCodePoint(cp: number): string {
+    const str = cp.toString(16)
+
+    // The combining characters are always stored on disk
+    // as zero-padded 4 character strings. Don't ask me why.
+    return str.length >= 4
+      ? str
+      : ('0000' + str).substring(str.length)
+  }
+
+  /**
+   * Returns a url to the on disk location of the image
+   * representing the given emoji or null in case the
+   * emoji unicode string was invalid.
+   */
+  private getUrlFromUnicodeEmoji(emoji: string): string | null {
+
+    const codePoint = emoji.codePointAt(0)
+
+    if (!codePoint) {
+      return null
+    }
+
+    let filename = this.getHexCodePoint(codePoint)
+
+    // Some emoji are composed of two unicode code points, they're
+    // usually variants of the same theme (like :one:, :two: etc)
+    // and they're stored on disk as CP1-CP2.
+    if (emoji.length > 2) {
+      const combiningCodePoint = emoji.codePointAt(2)
+
+      // 0xfe0f is VARIATION SELECTOR-16 which, best as I can tell means
+      // make the character before me all fancy pants. I don't know why
+      // but gemoji explicitly excludes this from its naming scheme so
+      // we'll do the same.
+      if (combiningCodePoint && combiningCodePoint !== 0xfe0f) {
+        filename = `${filename}-${this.getHexCodePoint(combiningCodePoint)}`
+      }
+    }
+
+    return this.getEmojiImageUrlFromRelativePath(`unicode/${filename}.png`)
+  }
+
   public read(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const basePath = process.env.TEST_ENV ? Path.join(__dirname, '..', '..', '..', 'static') : __dirname
+      const basePath = process.env.TEST_ENV ? Path.join(__dirname, '..', '..', '..', '..', 'gemoji', 'db') : __dirname
       Fs.readFile(Path.join(basePath, 'emoji.json'), 'utf8', (err, data) => {
-        const json = JSON.parse(data)
-        for (const key in json) {
-          const serverURL = json[key]
-          const localPath = serverURLToLocalPath(serverURL)
 
-          // For whatever reason, the mapping we get from the API is in camel
-          // case, but it really should be in snake case. So convert it.
-          this.emoji.set(`:${snakeCase(key)}:`, localPath)
-        }
+        const db: IGemojiDb = JSON.parse(data)
+
+        db.forEach(emoji => {
+
+          // Custom emoji don't have a unicode string and are instead stored
+          // on disk as their first alias.
+          const url = emoji.emoji
+            ? this.getUrlFromUnicodeEmoji(emoji.emoji)
+            : this.getEmojiImageUrlFromRelativePath(`${emoji.aliases[0]}.png`)
+
+          if (!url) {
+            console.error('Could not calculate location of emoji', emoji)
+            return
+          }
+
+          emoji.aliases.forEach(alias => {
+            this.emoji.set(`:${alias}:`, url)
+          })
+        })
 
         resolve()
       })
     })
   }
-}
-
-function serverURLToLocalPath(url: string): string {
-  // url = https://assets-cdn.github.com/images/icons/emoji/unicode/1f44e.png?v6
-
-  const parsedURL = Url.parse(url)
-
-  const path = parsedURL.pathname!
-  // path = /images/icons/emoji/unicode/1f44e.png
-
-  const relativePath = path.replace('/images/icons', '')
-  // relativePath = /emoji/unicode/1f44e.png
-
-  return `file://${Path.join(__dirname, relativePath)}`
 }
