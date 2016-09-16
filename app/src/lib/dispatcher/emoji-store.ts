@@ -83,8 +83,9 @@ export default class EmojiStore {
 
   public read(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const basePath = process.env.TEST_ENV ? Path.join(__dirname, '..', '..', '..', 'static') : __dirname
+      const basePath = process.env.TEST_ENV ? Path.join(__dirname, '..', '..', '..', '..', 'gemoji', 'db') : __dirname
       Fs.readFile(Path.join(basePath, 'emoji.json'), 'utf8', (err, data) => {
+
         const db: IGemojiDb = JSON.parse(data)
 
         db.forEach(emoji => {
