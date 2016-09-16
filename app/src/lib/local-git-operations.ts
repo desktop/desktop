@@ -404,7 +404,7 @@ export class LocalGitOperations {
   private static envForAuthentication(user: User | null): Object {
     if (!user) { return {} }
 
-    const c = {
+    return {
       'DESKTOP_ASKPASS': 1,
       'DESKTOP_PATH': process.execPath,
       'DESKTOP_ASKPASS_SCRIPT': LocalGitOperations.getAskPassScriptPath(),
@@ -412,8 +412,6 @@ export class LocalGitOperations {
       'DESKTOP_ENDPOINT': user.endpoint,
       'GIT_ASKPASS': LocalGitOperations.getAskPassTrampolinePath(),
     }
-    console.log(c)
-    return c
   }
 
   /** Pull from the remote to the branch. */
