@@ -63,7 +63,6 @@ export default class EmojiStore {
       const basePath = process.env.TEST_ENV ? Path.join(__dirname, '..', '..', '..', 'static') : __dirname
       Fs.readFile(Path.join(basePath, 'emoji.json'), 'utf8', (err, data) => {
         const db: IGemojiDb = JSON.parse(data)
-        console.log(db)
         db.forEach(emoji => {
 
           const url = emoji.emoji
@@ -76,7 +75,6 @@ export default class EmojiStore {
           }
 
           emoji.aliases.forEach(alias => {
-            console.log(`:${alias}: ${url}`)
             this.emoji.set(`:${alias}:`, url)
           })
         })
