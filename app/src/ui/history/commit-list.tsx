@@ -6,7 +6,7 @@ import CommitFacadeListItem from './commit-facade-list-item'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 
-const RowHeight = 68
+const RowHeight = 52
 
 interface ICommitListProps {
   readonly onCommitSelected: (commit: Commit) => void
@@ -35,7 +35,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     }
   }
 
-  private onSelectionChanged(row: number) {
+  private onRowSelected(row: number) {
     const sha = this.props.history[row]
     const commit = this.props.commits.get(sha)
     if (commit) {
@@ -74,7 +74,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
               rowHeight={RowHeight}
               selectedRow={this.rowForSHA(this.props.selectedSHA)}
               rowRenderer={row => this.renderCommit(row)}
-              onSelectionChanged={row => this.onSelectionChanged(row)}
+              onRowSelected={row => this.onRowSelected(row)}
               onScroll={(scrollTop, clientHeight) => this.onScroll(scrollTop, clientHeight)}
               invalidationProps={{ commits: this.props.commits, gitHubUsers: this.props.gitHubUsers }}/>
       </div>

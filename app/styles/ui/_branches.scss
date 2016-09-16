@@ -6,7 +6,7 @@
     flex: 1;
 
     padding: var(--spacing-third) var(--spacing);
-    font-size: 11px;
+    font-size: var(--font-size-sm);
   }
 
   .branches-list-content:hover {

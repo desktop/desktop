@@ -7,7 +7,7 @@
 
 .diff-text {
   font-family: var(--font-family-monospace);
-  font-size: 11px;
+  font-size: var(--font-size-sm);
   text-overflow: ellipsis;
   text-align: left;
   text-orientation: upright;

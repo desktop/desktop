@@ -18,7 +18,7 @@
     "dexie": "^1.4.1",
     "electron-window-state": "^3.0.3",
     "event-kit": "^2.0.0",
-    "git-kitchen-sink": "^1.3.0",
+    "git-kitchen-sink": "^1.6.0",
     "keytar": "^3.0.2",
     "moment": "^2.14.1",
     "octokat": "^0.5.0-beta.0",
@@ -27,6 +27,7 @@
     "react-dom": "^15.3.0",
     "react-virtualized": "^7.16.0",
     "snake-case": "^2.1.0",
+    "textarea-caret": "^3.0.1",
     "untildify": "^3.0.2"
   },
   "devDependencies": {

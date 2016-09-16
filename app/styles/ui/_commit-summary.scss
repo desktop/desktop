@@ -7,7 +7,7 @@
     flex: 1;
 
     .list-item {
-      border-bottom: 1px solid var(--box-border-color);
+      border-bottom: var(--light-border);
       padding: var(--spacing);
     }
 
@@ -20,21 +20,23 @@
 }
 
 .commit-summary {
-  &-header,
-  &-description {
-    border-bottom: 1px solid var(--box-border-color);
+  &-title,
+  &-meta {
     padding: var(--spacing);
   }
 
   &-title {
-    font-size: 16px;
+    font-size: var(--font-size-md);
     font-weight: var(--font-weight-light);
-    margin-bottom: var(--spacing-half);
+    padding: var(--spacing);
     word-wrap: break-word;
   }
 
   &-description {
+    border-bottom: var(--light-border);
     font-family: var(--font-family-monospace);
+    font-size: var(--font-size-sm);
+    padding: var(--spacing);
     word-wrap: break-word;
 
     &:empty {
@@ -46,7 +48,7 @@
     display: flex;
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding: 0 var(--spacing) var(--spacing);
   }
 
   &-meta-item {
@@ -58,5 +60,11 @@
       margin-right: var(--spacing-third);
       vertical-align: bottom;
     }
+  }
+
+  &-header {
+    border-bottom: var(--base-border);
+    // Render the shadow on top of the list
+    z-index: 2;
   }
 }

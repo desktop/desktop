@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { ChangesList } from './changes-list'
 import FileDiff from '../file-diff'
+import { DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
 import Repository from '../../models/repository'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
@@ -13,6 +14,7 @@ interface IChangesProps {
   readonly committerEmail: string | null
   readonly branch: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
+  readonly emoji: Map<string, string>
 }
 
 /** TODO: handle "repository not found" scenario */
@@ -22,7 +24,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     this.props.dispatcher.commitIncludedChanges(this.props.repository, summary, description)
   }
 
-  private onSelectionChanged(row: number) {
+  private onRowSelected(row: number) {
     const file = this.props.changes.workingDirectory.files[row]
     this.props.dispatcher.changeChangesSelection(this.props.repository, file)
   }
@@ -62,6 +64,38 @@ export class Changes extends React.Component<IChangesProps, void> {
     })
   }
 
+  /**
+   * Toggles the selection of a given working directory file.
+   * If the file is partially selected it the selection is cleared
+   * in order to match the behavior of clicking on an indeterminate
+   * checkbox.
+   */
+  private onToggleInclude(row: number) {
+    const workingDirectory = this.props.changes.workingDirectory
+    const file = workingDirectory.files[row]
+
+    if (!file) {
+      console.error('keyboard selection toggle despite no file - what?')
+      return
+    }
+
+    const currentSelection = file.selection.getSelectionType()
+
+    this.props.dispatcher.changeFileIncluded(this.props.repository, file, currentSelection === DiffSelectionType.None)
+  }
+
+  /**
+   * Handles keyboard events from the List item container, note that this is
+   * Not the same thing as the element returned by the row renderer in ChangesList
+   */
+  private onChangedItemKeyDown(row: number, event: React.KeyboardEvent<any>) {
+    // Toggle selection when user presses the spacebar while focused on a list item
+    if (event.key === ' ') {
+      event.preventDefault()
+      this.onToggleInclude(row)
+    }
+  }
+
   public render() {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
 
@@ -78,13 +112,15 @@ export class Changes extends React.Component<IChangesProps, void> {
           <ChangesList repository={this.props.repository}
                        workingDirectory={this.props.changes.workingDirectory}
                        selectedPath={selectedPath}
-                       onSelectionChanged={event => this.onSelectionChanged(event)}
+                       onRowSelected={event => this.onRowSelected(event)}
                        onCreateCommit={(summary, description) => this.onCreateCommit(summary, description)}
                        onIncludeChanged={(row, include) => this.onIncludeChanged(row, include)}
                        onSelectAll={selectAll => this.onSelectAll(selectAll)}
                        onDiscardChanges={row => this.onDiscardChanges(row)}
+                       onRowKeyDown={(row, e) => this.onChangedItemKeyDown(row, e)}
                        branch={this.props.branch}
-                       avatarURL={avatarURL}/>
+                       avatarURL={avatarURL}
+                       emoji={this.props.emoji}/>
         </Resizable>
 
         <FileDiff repository={this.props.repository}
