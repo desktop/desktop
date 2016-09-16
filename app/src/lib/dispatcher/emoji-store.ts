@@ -70,7 +70,7 @@ export default class EmojiStore {
             : this.getEmojiImageUrlFromRelativePath(`${emoji.aliases[0]}.png`)
 
           if (!url) {
-            console.error('Emoji crisis')
+            console.error('Could not calculate location of emoji', emoji)
             return
           }
 
