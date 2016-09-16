@@ -14,6 +14,7 @@ interface IChangesProps {
   readonly committerEmail: string | null
   readonly branch: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
+  readonly emoji: Map<string, string>
 }
 
 /** TODO: handle "repository not found" scenario */
@@ -23,7 +24,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     this.props.dispatcher.commitIncludedChanges(this.props.repository, summary, description)
   }
 
-  private onSelectionChanged(row: number) {
+  private onRowSelected(row: number) {
     const file = this.props.changes.workingDirectory.files[row]
     this.props.dispatcher.changeChangesSelection(this.props.repository, file)
   }
@@ -111,14 +112,15 @@ export class Changes extends React.Component<IChangesProps, void> {
           <ChangesList repository={this.props.repository}
                        workingDirectory={this.props.changes.workingDirectory}
                        selectedPath={selectedPath}
-                       onSelectionChanged={event => this.onSelectionChanged(event)}
+                       onRowSelected={event => this.onRowSelected(event)}
                        onCreateCommit={(summary, description) => this.onCreateCommit(summary, description)}
                        onIncludeChanged={(row, include) => this.onIncludeChanged(row, include)}
                        onSelectAll={selectAll => this.onSelectAll(selectAll)}
                        onDiscardChanges={row => this.onDiscardChanges(row)}
                        onRowKeyDown={(row, e) => this.onChangedItemKeyDown(row, e)}
                        branch={this.props.branch}
-                       avatarURL={avatarURL}/>
+                       avatarURL={avatarURL}
+                       emoji={this.props.emoji}/>
         </Resizable>
 
         <FileDiff repository={this.props.repository}
