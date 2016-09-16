@@ -360,9 +360,9 @@
       }
     },
     "git-kitchen-sink": {
-      "version": "1.4.0",
-      "from": "git-kitchen-sink@>=1.4.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/git-kitchen-sink/-/git-kitchen-sink-1.4.0.tgz"
+      "version": "1.6.0",
+      "from": "git-kitchen-sink@>=1.6.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/git-kitchen-sink/-/git-kitchen-sink-1.6.0.tgz"
     },
     "glob": {
       "version": "7.0.5",
