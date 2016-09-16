@@ -34,13 +34,25 @@ export default class EmojiStore {
     return `file://${Path.join(__dirname, 'emoji', relativePath)}`
   }
 
+  /**
+   * Given a unicode point number, returns a hexadecimal string
+   * which is lef padded with zeroes to be at least 4 characters
+   */
   private getHexCodePoint(cp: number) {
     const str = cp.toString(16)
+
+    // The combining characters are always stored on disk
+    // as zero-padded 4 character strings. Don't ask me why.
     return str.length >= 4
       ? str
       : ('0000' + str).substring(str.length)
   }
 
+  /**
+   * Returns a url to the on disk location of the image
+   * representing the given emoji or null in case the
+   * emoji unicode string was invalid.
+   */
   private getUrlFromUnicodeEmoji(emoji: string) {
 
     const codePoint = emoji.codePointAt(0)
@@ -51,9 +63,16 @@ export default class EmojiStore {
 
     let filename = this.getHexCodePoint(codePoint)
 
+    // Some emoji are composed of two unicode code points, they're
+    // usually variants of the same theme (like :one:, :two: etc)
+    // and they're stored on disk as CP1-CP2.
     if (emoji.length > 2) {
       const combiningCodePoint = emoji.codePointAt(2)
 
+      // 0xfe0f is VARIATION SELECTOR-16 which, best as I can tell means
+      // make the character before me all fancy pants. I don't know why
+      // but gemoji explicitly excludes this from its naming scheme so
+      // we'll do the same.
       if (combiningCodePoint && combiningCodePoint !== 0xfe0f) {
         filename = `${filename}-${this.getHexCodePoint(combiningCodePoint)}`
       }
@@ -67,8 +86,11 @@ export default class EmojiStore {
       const basePath = process.env.TEST_ENV ? Path.join(__dirname, '..', '..', '..', 'static') : __dirname
       Fs.readFile(Path.join(basePath, 'emoji.json'), 'utf8', (err, data) => {
         const db: IGemojiDb = JSON.parse(data)
+
         db.forEach(emoji => {
 
+          // Custom emoji don't have a unicode string and are instead stored
+          // on disk as their first alias.
           const url = emoji.emoji
             ? this.getUrlFromUnicodeEmoji(emoji.emoji)
             : this.getEmojiImageUrlFromRelativePath(`${emoji.aliases[0]}.png`)
