@@ -20,7 +20,7 @@ interface IGemojiDefinition {
   emoji?: string
 
   /** One or more human readable aliases for the emoji character */
-  aliases: [ string ]
+  aliases: ReadonlyArray<string>
 
   /** An optional, human readable, description of the emoji  */
   description?: string
