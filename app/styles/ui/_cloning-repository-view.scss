@@ -4,7 +4,6 @@
 
   /* The view's position in relation to its parent, ie full
    * width, vertically centered  */
-  flex-grow: 1;
   align-self: center;
   max-width: 600px;
   margin: 0 auto;
@@ -23,17 +22,8 @@
    */
   padding: var(--spacing-double);
 
-  /* Layout children top to bottom, centered horizontally */
-  display: flex;
-  flex-direction: column;
+  /*  Center children horizontally */
   align-items: center;
-
-  /* See https://css-tricks.com/flexbox-truncated-text/
-   * We need to do this "hack" or else the container will
-   * always grow to fit the intrinsic width of its children
-   * and thus killing our text truncation in the title.
-   */
-  min-width: 0;
 
   /* Holds the icon and title, position them next to each other */
   .title-container {
