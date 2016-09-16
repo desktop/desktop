@@ -1,7 +1,11 @@
 import * as Fs from 'fs'
 import * as Path from 'path'
 
-/** Type representing the contents of the gemoji json database */
+/**
+ * Type representing the contents of the gemoji json database
+ * which consists of a top-level array containing objects describing
+ * emojis.
+ */
 type IGemojiDb = [ IGemojiDefinition ]
 
 /**
