@@ -70,7 +70,9 @@ export class Changes extends React.Component<IChangesProps, void> {
    * checkbox.
    */
   private onToggleInclude(row: number) {
-    const file = this.props.changes.selectedFile
+    const workingDirectory = this.props.changes.workingDirectory
+    const file = workingDirectory.files[row]
+
     if (!file) {
       console.error('keyboard selection toggle despite no file - what?')
       return
