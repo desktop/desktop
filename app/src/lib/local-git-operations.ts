@@ -405,7 +405,6 @@ export class LocalGitOperations {
     if (!user) { return {} }
 
     return {
-      'DESKTOP_ASKPASS': 1,
       'DESKTOP_PATH': process.execPath,
       'DESKTOP_ASKPASS_SCRIPT': LocalGitOperations.getAskPassScriptPath(),
       'DESKTOP_USERNAME': user.login,
