@@ -24,7 +24,8 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
                       changes={this.props.state.changesState}
                       branch={branch ? branch.name : null}
                       committerEmail={this.props.state.committerEmail}
-                      gitHubUsers={this.props.state.gitHubUsers}/>
+                      gitHubUsers={this.props.state.gitHubUsers}
+                      emoji={this.props.emoji}/>
     } else if (this.props.state.selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}

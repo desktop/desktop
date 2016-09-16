@@ -1,0 +1,18 @@
+.autocompletion-container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.autocompletion-popup {
+  display: flex;
+  position: absolute;
+  z-index: 2;
+  width: 200px;
+
+  background-color: var(--background-color);
+  border: var(--base-border);
+  border-radius: var(--border-radius);
+
+  box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+}

@@ -1,7 +1,7 @@
 progress {
   -webkit-appearance: none;
   height: 10px;
-  background-color: var(--alt-background-color);
+  background-color: var(--box-alt-background-color);
 
   &::-webkit-progress-bar {
     background-color: transparent;

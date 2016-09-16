@@ -13,13 +13,20 @@ interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedPath: string | null
-  readonly onSelectionChanged: (row: number) => void
+  readonly onRowSelected: (row: number) => void
   readonly onIncludeChanged: (row: number, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (summary: string, description: string) => void
   readonly onDiscardChanges: (row: number) => void
   readonly branch: string | null
   readonly avatarURL: string
+  readonly emoji: Map<string, string>
+
+  /**
+   * Keyboard handler passed directly to the onRowKeyDown prop of List, see
+   * List Props for documentation.
+   */
+  readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
@@ -77,12 +84,14 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               rowHeight={RowHeight}
               rowRenderer={row => this.renderRow(row)}
               selectedRow={selectedRow}
-              onSelectionChanged={row => this.props.onSelectionChanged(row)}
-              invalidationProps={this.props.workingDirectory}/>
+              onRowSelected={row => this.props.onRowSelected(row)}
+              invalidationProps={this.props.workingDirectory}
+              onRowKeyDown={this.props.onRowKeyDown} />
 
         <CommitMessage onCreateCommit={(summary, description) => this.props.onCreateCommit(summary, description)}
                        branch={this.props.branch}
-                       avatarURL={this.props.avatarURL}/>
+                       avatarURL={this.props.avatarURL}
+                       emoji={this.props.emoji}/>
       </div>
     )
   }
