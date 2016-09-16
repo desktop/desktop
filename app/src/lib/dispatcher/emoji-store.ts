@@ -17,13 +17,13 @@ interface IGemojiDefinition {
    * The unicode string of the emoji if emoji is part of
    * the unicode specification. If missing this emoji is
    * a GitHub custom emoji such as :shipit:  */
-  emoji?: string
+  readonly emoji?: string
 
   /** One or more human readable aliases for the emoji character */
-  aliases: ReadonlyArray<string>
+  readonly aliases: ReadonlyArray<string>
 
   /** An optional, human readable, description of the emoji  */
-  description?: string
+  readonly description?: string
 }
 
 export default class EmojiStore {
