@@ -33,7 +33,7 @@ interface IAutocompletionState<T> {
 }
 
 /** The height of the autocompletion result rows. */
-const RowHeight = 20
+const RowHeight = 30
 
 /**
  * The amount to offset on the Y axis so that the popup is displayed below the
