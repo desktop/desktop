@@ -1,11 +1,24 @@
 import * as Fs from 'fs'
 import * as Path from 'path'
 
+/** Type representing the contents of the gemoji json database */
 type IGemojiDb = [ IGemojiDefinition ]
 
+/**
+ * Partial (there's more in the db) interface describing the elements
+ * in the gemoji json array.
+ */
 interface IGemojiDefinition {
-  emoji?: string,
+  /**
+   * The unicode string of the emoji if emoji is part of
+   * the unicode specification. If missing this emoji is
+   * a GitHub custom emoji such as :shipit:  */
+  emoji?: string
+
+  /** One or more human readable aliases for the emoji character */
   aliases: [ string ]
+
+  /** An optional, human readable, description of the emoji  */
   description?: string
 }
 
