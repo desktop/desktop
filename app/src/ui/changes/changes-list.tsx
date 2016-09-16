@@ -21,6 +21,12 @@ interface IChangesListProps {
   readonly branch: string | null
   readonly avatarURL: string
   readonly emoji: Map<string, string>
+
+  /**
+   * Keyboard handler passed directly to the onRowKeyDown prop of List, see
+   * List Props for documentation.
+   */
+  readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
@@ -79,7 +85,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               rowRenderer={row => this.renderRow(row)}
               selectedRow={selectedRow}
               onRowSelected={row => this.props.onRowSelected(row)}
-              invalidationProps={this.props.workingDirectory}/>
+              invalidationProps={this.props.workingDirectory}
+              onRowKeyDown={this.props.onRowKeyDown} />
 
         <CommitMessage onCreateCommit={(summary, description) => this.props.onCreateCommit(summary, description)}
                        branch={this.props.branch}

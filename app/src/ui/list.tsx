@@ -19,6 +19,19 @@ interface IListProps {
    * selected row is clicked on.
    */
   readonly onSelectionChanged?: (row: number) => void
+
+  /**
+   * A handler called whenever a key down event is received on the
+   * row container element. Due to the way the container is currently
+   * implemented the element produced by the rowRendered will never
+   * see keyboard events without stealing focus away from the container.
+   *
+   * Primary use case for this is to allow items to react to the space
+   * bar in order to toggle selection. This function is responsible
+   * for calling event.preventDefault() when acting on a key press.
+   */
+  onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
+
   readonly canSelectRow?: (row: number) => boolean
   readonly onScroll?: (scrollTop: number, clientHeight: number) => void
 
@@ -57,6 +70,12 @@ export default class List extends React.Component<IListProps, void> {
     this.moveSelection(direction)
 
     e.preventDefault()
+  }
+
+  private handleRowKeyDown(rowIndex: number, e: React.KeyboardEvent<any>) {
+    if (this.props.onRowKeyDown) {
+      this.props.onRowKeyDown(rowIndex, e)
+    }
   }
 
   /**
@@ -139,7 +158,8 @@ export default class List extends React.Component<IListProps, void> {
            className={className}
            tabIndex={tabIndex}
            ref={ref}
-           onMouseDown={() => this.handleMouseDown(rowIndex)}>
+           onMouseDown={() => this.handleMouseDown(rowIndex)}
+           onKeyDown={(e) => this.handleRowKeyDown(rowIndex, e)}>
         {element}
       </div>
     )
