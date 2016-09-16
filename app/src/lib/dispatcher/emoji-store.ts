@@ -30,7 +30,7 @@ export default class EmojiStore {
   /** Map from shorcut (e.g., :+1:) to on disk URL. */
   public readonly emoji = new Map<string, string>()
 
-  private getEmojiImageUrlFromRelativePath(relativePath: string) {
+  private getEmojiImageUrlFromRelativePath(relativePath: string): string {
     return `file://${Path.join(__dirname, 'emoji', relativePath)}`
   }
 
@@ -38,7 +38,7 @@ export default class EmojiStore {
    * Given a unicode point number, returns a hexadecimal string
    * which is lef padded with zeroes to be at least 4 characters
    */
-  private getHexCodePoint(cp: number) {
+  private getHexCodePoint(cp: number): string {
     const str = cp.toString(16)
 
     // The combining characters are always stored on disk
@@ -53,7 +53,7 @@ export default class EmojiStore {
    * representing the given emoji or null in case the
    * emoji unicode string was invalid.
    */
-  private getUrlFromUnicodeEmoji(emoji: string) {
+  private getUrlFromUnicodeEmoji(emoji: string): string | null {
 
     const codePoint = emoji.codePointAt(0)
 
