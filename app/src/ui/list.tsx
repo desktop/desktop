@@ -17,8 +17,8 @@ interface IListProps {
    * see keyboard events without stealing focus away from the container.
    *
    * Primary use case for this is to allow items to react to the space
-   * bar in order to toggle selection. Consumers of this event should
-   * call event.preventDefault().
+   * bar in order to toggle selection. This function is responsible
+   * for calling event.preventDefault() when acting on a key press.
    */
   onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
 
