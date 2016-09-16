@@ -18,7 +18,7 @@
     "clean": "rimraf build",
     "rebuild:dev": "npm run clean && npm run build:dev",
     "rebuild:prod": "npm run clean && npm run build:prod",
-    "lint": "tslint './app/src/**/*.ts' './app/src/**/*.tsx' './app/test/**/*.ts' './app/test/**/*.tsx'"
+    "lint": "tslint \"./app/src/**/*.ts\" \"./app/src/**/*.tsx\" \"./app/test/**/*.ts\" \"./app/test/**/*.tsx\""
   },
   "author": "",
   "license": "MIT",
