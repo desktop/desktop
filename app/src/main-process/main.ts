@@ -7,7 +7,6 @@ import parseURL from '../lib/parse-url'
 import { handleSquirrelEvent, getFeedURL } from './updates'
 import SharedProcess from '../shared-process/shared-process'
 import fatalError from '../lib/fatal-error'
-import { responseForPrompt } from '../ask-pass'
 
 const stats = new Stats()
 
@@ -31,12 +30,8 @@ if (process.platform === 'win32' && process.argv.length > 1) {
 
 // We were launched as GIT_ASKPASS, so try to parse the prompt, respond, and quit.
 if (process.env.DESKTOP_ASKPASS) {
-  const prompt = process.argv[1]
-  const response = responseForPrompt(prompt)
-  if (response) {
-    process.stdout.write(response)
-  }
-
+  const cp = require('child_process')
+  cp.spawnSync(process.env.DESKTOP_PATH, [ process.env.DESKTOP_ASKPASS_SCRIPT, process.argv[1] ], { env: Object.assign({}, process.env, { ELECTRON_RUN_AS_NODE: 1, ELECTRON_NO_ATTACH_CONSOLE: 1 }) })
   app.quit()
 }
 

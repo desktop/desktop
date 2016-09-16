@@ -402,9 +402,9 @@ export class LocalGitOperations {
       // In the trampoline, we *could* use `open` to launch a second instance of
       // the app, but then we'd see it brielfy launch and quit in the Dock. So
       // we run the script as a standalone.
-      return Path.resolve(__dirname, 'ask-pass-trampoline.sh')
+      return Path.resolve(__dirname, 'static', 'ask-pass-trampoline.sh')
     } else {
-      return process.execPath
+      return Path.resolve(__dirname, 'static', 'ask-pass-trampoline.bat')
     }
   }
 
@@ -423,6 +423,8 @@ export class LocalGitOperations {
       'DESKTOP_USERNAME': user.login,
       'DESKTOP_ENDPOINT': user.endpoint,
       'GIT_ASKPASS': LocalGitOperations.getAskPassLauncherPath(),
+      PATH: 'C:\\Users\\joshaber\\Documents\\GitHub\\desktop\\dist\\GitHub-win32-x64\\resources\\app\\node_modules\\git-kitchen-sink\\git\\mingw64\\bin;' + process.env.PATH,
+      Path: ''
     }
     console.log(c)
     return c
