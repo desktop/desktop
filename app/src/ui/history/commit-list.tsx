@@ -6,7 +6,7 @@ import CommitFacadeListItem from './commit-facade-list-item'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import Repository from '../../models/repository'
 
-const RowHeight = 68
+const RowHeight = 52
 
 interface ICommitListProps {
   readonly onCommitSelected: (commit: Commit) => void
