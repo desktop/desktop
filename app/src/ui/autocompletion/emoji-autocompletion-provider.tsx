@@ -19,8 +19,9 @@ export default class EmojiAutocompletionProvider implements IAutocompletionProvi
 
   public renderItem(emoji: string) {
     return (
-      <div key={emoji}>
-        <img className='emoji' src={this.emoji.get(emoji)}/> {emoji}
+      <div className='emoji' key={emoji}>
+        <img className='icon' src={this.emoji.get(emoji)}/>
+        <div className='title'>{emoji}</div>
       </div>
     )
   }

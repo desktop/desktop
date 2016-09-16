@@ -1,3 +1,5 @@
+@import "../mixins";
+
 .autocompletion-container {
   position: relative;
   display: flex;
@@ -15,4 +17,33 @@
   border-radius: var(--border-radius);
 
   box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.3);
+}
+
+.autocompletion-item {
+
+  flex-grow: 1;
+  height: 100%;
+  min-width: 0;
+
+  .emoji {
+
+    display: flex;
+    flex-grow: 1;
+
+    height: 100%;
+    width: 100%;
+
+    .icon {
+      flex-shrink: 0;
+      height: 20px;
+      width: 20px;
+      margin-right: var(--spacing-half);
+      vertical-align: middle;
+    }
+
+    .title {
+      @include ellipsis;
+      max-width: 100%;
+    }
+  }
 }
