@@ -90,7 +90,7 @@ function copyEmoji () {
   }
 
   const copyJson = () => {
-    const source = path.join(projectRoot, 'app', 'static', 'emoji.json')
+    const source = path.join(projectRoot, 'gemoji', 'db', 'emoji.json')
     const destination = path.join(outRoot, 'emoji.json')
     fs.removeSync(destination)
     fs.copySync(source, destination)
