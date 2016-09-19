@@ -9,7 +9,7 @@ import { LocalGitOperations, Commit } from '../lib/local-git-operations'
 
 import DiffGutter from './diff-gutter'
 
-const Codemirror = require('react-codemirror')
+import * as CodeMirror from 'react-codemirror'
 
 require('codemirror/mode/javascript/javascript')
 require('codemirror/addon/scroll/simplescrollbars')
@@ -220,7 +220,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     return (
       <div className='panel' id='file-diff'>
-        <Codemirror
+        <CodeMirror
           value={diffText}
           options={options}
           ref={(ref: React.Component<any, any>) => this.styleEditor(ref)}/>
