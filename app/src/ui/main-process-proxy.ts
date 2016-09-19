@@ -15,3 +15,18 @@ export function setMenuEnabled(id: MenuIDs, enabled: boolean) {
 export function showMainWindow() {
   ipcRenderer.send('show-main-window')
 }
+
+export interface IMenuItem {
+  readonly label: string
+  readonly action: () => void
+}
+
+/** Show the given menu items in a contextual menu. */
+export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
+  ipcRenderer.once('contextual-menu-action', (event: Electron.IpcRendererEvent, index: number) => {
+    const item = items[index]
+    item.action()
+  })
+
+  ipcRenderer.send('show-contextual-menu', items)
+}

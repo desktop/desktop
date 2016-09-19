@@ -1,4 +1,5 @@
 import * as Path from 'path'
+import * as ChildProcess from 'child_process'
 
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
 import { DiffSelectionType, DiffSelection, Diff } from '../models/diff'
@@ -8,6 +9,8 @@ import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDelete
 import { parseRawDiff } from './diff-parser'
 
 import { GitProcess, GitError, GitErrorCode } from 'git-kitchen-sink'
+
+const byline = require('byline')
 
 /** The encapsulation of the result from 'git status' */
 export class StatusResult {
@@ -228,19 +231,26 @@ export class LocalGitOperations {
 
     const diff = await LocalGitOperations.getDiff(repository, file, null)
 
+    const write = (input: string) => {
+      return (process: ChildProcess.ChildProcess) => {
+        process.stdin.write(input)
+        process.stdin.end()
+      }
+    }
+
     if (file.status === FileStatus.New) {
       const input = await createPatchForNewFile(file, diff)
-      return GitProcess.exec(applyArgs, repository.path, input)
+      return GitProcess.exec(applyArgs, repository.path, {}, write(input))
     }
 
     if (file.status === FileStatus.Modified) {
       const patch = await createPatchForModifiedFile(file, diff)
-      return GitProcess.exec(applyArgs, repository.path, patch)
+      return GitProcess.exec(applyArgs, repository.path, {}, write(patch))
     }
 
     if (file.status === FileStatus.Deleted) {
       const patch = await createPatchForDeletedFile(file, diff)
-      return GitProcess.exec(applyArgs, repository.path, patch)
+      return GitProcess.exec(applyArgs, repository.path, {}, write(patch))
     }
 
     return Promise.resolve()
@@ -562,7 +572,7 @@ export class LocalGitOperations {
   /** Clone the repository to the path. */
   public static clone(url: string, path: string, progress: (progress: string) => void): Promise<void> {
     return GitProcess.exec([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, undefined, process => {
-      process.stderr.on('data', (chunk: string) => {
+      byline(process.stderr).on('data', (chunk: string) => {
         progress(chunk)
       })
     })
@@ -595,5 +605,10 @@ export class LocalGitOperations {
   /** Add a new remote with the given URL. */
   public static addRemote(path: string, name: string, url: string): Promise<void> {
     return GitProcess.exec([ 'remote', 'add', name, url ], path)
+  }
+
+  /** Check out the paths at HEAD. */
+  public static checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
+    return GitProcess.exec([ 'checkout', '--', ...paths ], repository.path)
   }
 }

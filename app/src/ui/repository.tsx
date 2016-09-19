@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { default as Repo } from '../models/repository'
+import { UiView } from './ui-view'
 import Toolbar from './toolbar'
 import { Changes } from './changes'
 import History from './history'
@@ -24,7 +25,8 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
                       changes={this.props.state.changesState}
                       branch={branch ? branch.name : null}
                       committerEmail={this.props.state.committerEmail}
-                      gitHubUsers={this.props.state.gitHubUsers}/>
+                      gitHubUsers={this.props.state.gitHubUsers}
+                      emoji={this.props.emoji}/>
     } else if (this.props.state.selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
@@ -40,13 +42,13 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
   public render() {
     const selectedTab = this.props.state.selectedSection === RepositorySection.History ? ToolbarTab.History : ToolbarTab.Changes
     return (
-      <div id='repository'>
+      <UiView id='repository'>
         <Toolbar selectedTab={selectedTab}
                  onTabClicked={tab => this.onTabClicked(tab)}
                  hasChanges={this.props.state.changesState.workingDirectory.files.length > 0}/>
         <ComparisonGraph/>
         {this.renderContent()}
-      </div>
+      </UiView>
     )
   }
 

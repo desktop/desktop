@@ -1,4 +1,4 @@
-import { app, Menu, autoUpdater, ipcMain } from 'electron'
+import { app, Menu, MenuItem, autoUpdater, ipcMain, BrowserWindow } from 'electron'
 
 import AppWindow from './app-window'
 import Stats from './stats'
@@ -22,33 +22,31 @@ app.on('will-finish-launching', () => {
   })
 })
 
-if (process.platform !== 'darwin') {
-  if (process.platform === 'win32' && process.argv.length > 1) {
-    if (handleSquirrelEvent(process.argv[1])) {
-      app.quit()
-    }
-  }
-
-  const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
-    // Someone tried to run a second instance, we should focus our window.
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) {
-        mainWindow.restore()
-      }
-      mainWindow.focus()
-    }
-
-    // look at the second argument received, it should have the OAuth
-    // callback contents and code for us to complete the signin flow
-    if (commandLine.length > 1) {
-      const action = parseURL(commandLine[1])
-      getMainWindow().sendURLAction(action)
-    }
-  })
-
-  if (shouldQuit) {
+if (process.platform === 'win32' && process.argv.length > 1) {
+  if (handleSquirrelEvent(process.argv[1])) {
     app.quit()
   }
+}
+
+const shouldQuit = app.makeSingleInstance((commandLine, workingDirectory) => {
+  // Someone tried to run a second instance, we should focus our window.
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore()
+    }
+    mainWindow.focus()
+  }
+
+  // look at the second argument received, it should have the OAuth
+  // callback contents and code for us to complete the signin flow
+  if (commandLine.length > 1) {
+    const action = parseURL(commandLine[1])
+    getMainWindow().sendURLAction(action)
+  }
+})
+
+if (shouldQuit) {
+  app.quit()
 }
 
 app.on('ready', () => {
@@ -115,6 +113,23 @@ app.on('ready', () => {
 
   ipcMain.on('show-main-window', () => {
     getMainWindow().show()
+  })
+
+  ipcMain.on('show-contextual-menu', (event: Electron.IpcMainEvent, items: ReadonlyArray<any>) => {
+    const menu = new Menu()
+    const menuItems = items.map((item, i) => {
+      return new MenuItem({
+        label: item.label,
+        click: () => event.sender.send('contextual-menu-action', i),
+      })
+    })
+
+    for (const item of menuItems) {
+      menu.append(item)
+    }
+
+    const window = BrowserWindow.fromWebContents(event.sender)
+    menu.popup(window)
   })
 })
 

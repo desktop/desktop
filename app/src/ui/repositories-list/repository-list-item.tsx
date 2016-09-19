@@ -1,8 +1,8 @@
 import * as React from 'react'
 import Repository from '../../models/repository'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { remote } from 'electron'
 import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
+import { showContextualMenu } from '../main-process-proxy'
 
 interface IRepositoryListItemProps {
   readonly repository: Repository | CloningRepository
@@ -11,16 +11,6 @@ interface IRepositoryListItemProps {
 
 /** A repository item. */
 export default class RepositoryListItem extends React.Component<IRepositoryListItemProps, void> {
-  private readonly contextMenu = new remote.Menu()
-
-  public constructor() {
-    super()
-    this.contextMenu.append(new remote.MenuItem({
-      label: 'Remove',
-      click: () => this.removeRepository()
-    }))
-  }
-
   public render() {
     const repository = this.props.repository
     const path = repository.path
@@ -48,7 +38,11 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
   private onContextMenu(event: React.MouseEvent<any>) {
     event.preventDefault()
     if (process.platform !== 'win32') {
-      this.contextMenu.popup(remote.getCurrentWindow())
+      const item = {
+        label: 'Remove',
+        action: () => this.removeRepository(),
+      }
+      showContextualMenu([ item ])
     }
   }
 
@@ -58,11 +52,16 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
 }
 
 function iconForRepository(repository: Repository | CloningRepository): OcticonSymbol {
-  const gitHubRepo = repository instanceof Repository ? repository.gitHubRepository : null
-  if (!gitHubRepo) { return OcticonSymbol.repo }
 
-  if (gitHubRepo.private) { return OcticonSymbol.lock }
-  if (gitHubRepo.fork) { return OcticonSymbol.repoForked }
+  if (repository instanceof CloningRepository) {
+    return OcticonSymbol.desktopDownload
+  } else {
+    const gitHubRepo = repository.gitHubRepository
+    if (!gitHubRepo) { return OcticonSymbol.repo }
 
-  return OcticonSymbol.repo
+    if (gitHubRepo.private) { return OcticonSymbol.lock }
+    if (gitHubRepo.fork) { return OcticonSymbol.repoForked }
+
+    return OcticonSymbol.repo
+  }
 }

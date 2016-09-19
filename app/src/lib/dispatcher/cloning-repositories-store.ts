@@ -3,6 +3,7 @@ import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 
 import { LocalGitOperations } from '../local-git-operations'
+import { CloneProgressParser } from '../clone-progress-parser'
 
 let CloningRepositoryID = 1
 
@@ -25,7 +26,15 @@ export class CloningRepository {
 /** The cloning progress of a repository. */
 export interface ICloningRepositoryState {
   /** The raw progress output from the clone task. */
-  readonly output: string
+  readonly output: string,
+
+  /**
+   * A value between 0 and 1 indicating the clone progress.
+   *
+   * A missing value indicates that the current progress is
+   * indeterminate.
+   */
+  readonly progressValue: number | null
 }
 
 /** The store in charge of repository currently being cloned. */
@@ -48,11 +57,16 @@ export class CloningRepositoriesStore {
   public clone(url: string, path: string): Promise<void> {
     const repository = new CloningRepository(path, url)
     this._repositories.push(repository)
-    this.stateByID.set(repository.id, { output: '' })
+    this.stateByID.set(repository.id, { output: `Cloning into ${path}`, progressValue: null })
+
+    const progressParser = new CloneProgressParser()
 
     const promise = LocalGitOperations
       .clone(url, path, progress => {
-        this.stateByID.set(repository.id, { output: progress })
+        this.stateByID.set(repository.id, {
+          output: progress,
+          progressValue: progressParser.parse(progress),
+        })
         this.emitUpdate()
       })
       .then(() => {

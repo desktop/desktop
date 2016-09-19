@@ -302,4 +302,9 @@ export class Dispatcher {
   public deleteBranch(repository: Repository, branch: Branch): Promise<void> {
     return this.appStore._deleteBranch(repository, branch)
   }
+
+  /** Discard the changes to the given files. */
+  public discardChanges(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+    return this.appStore._discardChanges(repository, files)
+  }
 }

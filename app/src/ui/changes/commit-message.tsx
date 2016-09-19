@@ -1,9 +1,11 @@
 import * as React from 'react'
+import { AutocompletingTextArea, AutocompletingInput } from '../autocompletion'
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (summary: string, description: string) => void
   readonly branch: string | null
   readonly avatarURL: string
+  readonly emoji: Map<string, string>
 }
 
 interface ICommitMessageState {
@@ -65,19 +67,20 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
         <div className='summary'>
           <img className='avatar' src={this.props.avatarURL}/>
 
-          <input className='summary-field'
-                 type='text'
-                 placeholder='Summary'
-                 value={this.state.summary}
-                 onChange={event => this.handleSummaryChange(event)}
-                 onKeyDown={event => this.onKeyDown(event)}/>
+          <AutocompletingInput className='summary-field'
+            placeholder='Summary'
+            value={this.state.summary}
+            onChange={event => this.handleSummaryChange(event)}
+            onKeyDown={event => this.onKeyDown(event)}
+            emoji={this.props.emoji}/>
         </div>
 
-        <textarea className='description-field'
-                  placeholder='Description'
-                  value={this.state.description}
-                  onChange={event => this.handleDescriptionChange(event)}
-                  onKeyDown={event => this.onKeyDown(event)}/>
+        <AutocompletingTextArea className='description-field'
+          placeholder='Description'
+          value={this.state.description}
+          onChange={event => this.handleDescriptionChange(event)}
+          onKeyDown={event => this.onKeyDown(event)}
+          emoji={this.props.emoji}/>
 
         <button className='commit-button' onClick={event => this.handleSubmit(event)}>
           Commit to <strong>{branchName}</strong>

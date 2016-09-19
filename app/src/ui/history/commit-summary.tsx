@@ -16,7 +16,7 @@ interface ICommitSummaryProps {
 }
 
 export default class CommitSummary extends React.Component<ICommitSummaryProps, void> {
-  private onSelectionChanged(row: number) {
+  private onRowSelected(row: number) {
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)
   }
@@ -82,13 +82,15 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
             </li>
           </ul>
         </div>
+
         <EmojiText className='commit-summary-description' emoji={this.props.emoji}>{this.props.body}</EmojiText>
+
         <div className='files'>
           <List rowRenderer={row => this.renderFile(row)}
                 rowCount={this.props.files.length}
                 rowHeight={40}
                 selectedRow={this.rowForFile(this.props.selectedFile)}
-                onSelectionChanged={row => this.onSelectionChanged(row)}/>
+                onRowSelected={row => this.onRowSelected(row)}/>
         </div>
       </div>
     )
