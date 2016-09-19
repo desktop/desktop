@@ -25,7 +25,7 @@ interface IOcticonProps {
 export class Octicon extends React.Component<IOcticonProps, void> {
 
   public static defaultProps: IOcticonProps = {
-    symbol: OcticonSymbol.markGithub
+    symbol: OcticonSymbol.markGithub,
   }
 
   public shouldComponentUpdate(nextProps: IOcticonProps, nextState: void) {

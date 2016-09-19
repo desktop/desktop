@@ -777,7 +777,7 @@ export default class AppStore {
     if (!remote) {
       this._showPopup({
         type: PopupType.PublishRepository,
-        repository
+        repository,
       })
       return
     }

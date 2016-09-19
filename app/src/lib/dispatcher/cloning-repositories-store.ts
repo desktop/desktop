@@ -65,7 +65,7 @@ export class CloningRepositoriesStore {
       .clone(url, path, progress => {
         this.stateByID.set(repository.id, {
           output: progress,
-          progressValue: progressParser.parse(progress)
+          progressValue: progressParser.parse(progress),
         })
         this.emitUpdate()
       })

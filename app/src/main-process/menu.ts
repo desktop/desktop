@@ -18,51 +18,37 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           accelerator: 'CmdOrCtrl+Shift+N',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('create-branch')
-          }
+          },
         },
         {
-          type: 'separator'
+          type: 'separator',
         },
         {
           label: 'Add Repository…',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('add-repository')
-          }
+          },
         },
         {
           label: 'Add Local Repository…',
           accelerator: 'CmdOrCtrl+O',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('add-local-repository')
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     {
       label: 'Edit',
       submenu: [
-        {
-          role: 'undo'
-        },
-        {
-          role: 'redo'
-        },
-        {
-          type: 'separator'
-        },
-        {
-          role: 'cut'
-        },
-        {
-          role: 'copy'
-        },
-        {
-          role: 'paste'
-        },
-        {
-          role: 'selectall'
-        }
-      ]
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectall' },
+      ],
     },
     {
       label: 'View',
@@ -72,18 +58,16 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           accelerator: 'CmdOrCtrl+1',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('select-changes')
-          }
+          },
         },
         {
           label: 'History',
           accelerator: 'CmdOrCtrl+2',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('select-history')
-          }
+          },
         },
-        {
-          type: 'separator'
-        },
+        { type: 'separator' },
         {
           label: 'Reload',
           accelerator: 'CmdOrCtrl+R',
@@ -91,11 +75,9 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
             if (focusedWindow) {
               focusedWindow.reload()
             }
-          }
+          },
         },
-        {
-          role: 'togglefullscreen',
-        },
+        { role: 'togglefullscreen' },
         {
           label: 'Toggle Developer Tools',
           accelerator: (() => {
@@ -105,15 +87,15 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
             if (focusedWindow) {
               focusedWindow.webContents.toggleDevTools()
             }
-          }
+          },
         },
         {
           label: 'Debug shared process',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             sharedProcess.show()
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     {
       label: 'Repository',
@@ -123,32 +105,30 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           accelerator: 'CmdOrCtrl+B',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('show-branches')
-          }
+          },
         },
-        {
-          type: 'separator'
-        },
+        { type: 'separator' },
         {
           label: 'Push',
           accelerator: 'CmdOrCtrl+P',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('push')
-          }
+          },
         },
         {
           label: 'Pull',
           accelerator: 'CmdOrCtrl+Shift+P',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('pull')
-          }
+          },
         },
         {
           label: 'Remove',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('remove-repository')
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     {
       label: 'Branch',
@@ -158,27 +138,23 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           id: 'rename-branch',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('rename-branch')
-          }
+          },
         },
         {
           label: 'Delete…',
           id: 'delete-branch',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('delete-branch')
-          }
-        }
-      ]
+          },
+        },
+      ],
     },
     {
       role: 'window',
       submenu: [
-        {
-          role: 'minimize'
-        },
-        {
-          role: 'close'
-        }
-      ]
+        { role: 'minimize' },
+        { role: 'close' },
+      ],
     },
     {
       role: 'help',
@@ -187,56 +163,36 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           label: 'Contact GitHub Support…',
           click () {
             shell.openExternal('https://github.com/support')
-          }
-        }
-      ]
-    }
+          },
+        },
+      ],
+    },
   ]
 
   if (process.platform === 'darwin') {
     template.unshift({
       label: 'GitHub',
       submenu: [
-        {
-          role: 'about'
-        },
-        {
-          type: 'separator'
-        },
+        { role: 'about' },
+        { type: 'separator' },
         {
           role: 'services',
-          submenu: []
+          submenu: [],
         },
-        {
-          type: 'separator'
-        },
-        {
-          role: 'hide'
-        },
-        {
-          role: 'hideothers'
-        },
-        {
-          role: 'unhide'
-        },
-        {
-          type: 'separator'
-        },
-        {
-          role: 'quit'
-        }
-      ]
+        { type: 'separator' },
+        { role: 'hide' },
+        { role: 'hideothers' },
+        { role: 'unhide' },
+        { type: 'separator' },
+        { role: 'quit' },
+      ],
     })
 
     const windowMenu = template[3] as {submenu: Object[]}
     const windowSubmenu = windowMenu.submenu
     windowSubmenu.push(
-      {
-        type: 'separator'
-      },
-      {
-        role: 'front'
-      }
+      { type: 'separator' },
+      { role: 'front' }
     )
   }
 
