@@ -3,9 +3,11 @@ import { DiffLine, DiffLineType } from '../../models/diff'
 
 interface IDiffGutterProps {
   readonly line: DiffLine
-  readonly onIncludeChanged: (line: DiffLine) => void
+  readonly readOnly: boolean
+  readonly onIncludeChanged?: (line: DiffLine) => void
 }
 
+/** The gutter for a diff's line. */
 export default class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private onMouseEnterHandler(target: HTMLElement) {
     if (this.props.line.type === DiffLineType.Add || this.props.line.type === DiffLineType.Delete) {
@@ -20,7 +22,9 @@ export default class DiffLineGutter extends React.Component<IDiffGutterProps, vo
   }
 
   private onMouseDownHandler() {
-    this.props.onIncludeChanged(this.props.line)
+    if (this.props.onIncludeChanged) {
+      this.props.onIncludeChanged(this.props.line)
+    }
   }
 
   public render() {
@@ -29,11 +33,23 @@ export default class DiffLineGutter extends React.Component<IDiffGutterProps, vo
 
     // TODO: depending on cursor position, highlight hunk rather than line
 
+    const mouseEnter = this.props.readOnly ?
+      undefined :
+      (event: React.MouseEvent<HTMLDivElement>) => this.onMouseEnterHandler(event.currentTarget)
+
+    const mouseLeave = this.props.readOnly ?
+      undefined :
+      (event: React.MouseEvent<HTMLDivElement>) => this.onMouseLeaveHandler(event.currentTarget)
+
+    const mouseDown = this.props.readOnly ?
+      undefined :
+      (event: React.MouseEvent<HTMLDivElement>) => this.onMouseDownHandler()
+
     return (
       <div className={className}
-        onMouseEnter={event => this.onMouseEnterHandler(event.currentTarget)}
-        onMouseLeave={event => this.onMouseLeaveHandler(event.currentTarget)}
-        onMouseDown={event => this.onMouseDownHandler()}>
+        onMouseEnter={mouseEnter}
+        onMouseLeave={mouseLeave}
+        onMouseDown={mouseDown}>
         <div className='diff-line-number before'>{this.props.line.oldLineNumber}</div>
         <div className='diff-line-number after'>{this.props.line.newLineNumber}</div>
       </div>

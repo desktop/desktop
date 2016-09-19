@@ -163,7 +163,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
         const absoluteIndex = section.unifiedDiffStart + index
         const marker = document.createElement('div')
         ReactDOM.render(
-          <DiffLineGutter line={line} onIncludeChanged={line => this.onIncludeChanged(line, absoluteIndex)}/>
+          <DiffLineGutter line={line} readOnly={this.props.readOnly} onIncludeChanged={line => this.onIncludeChanged(line, absoluteIndex)}/>
         , marker)
         codeMirror.setGutterMarker(absoluteIndex, DiffGutterClassName, marker)
       })
