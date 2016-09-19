@@ -37,7 +37,7 @@ interface IAutocompletionState<T> {
  *
  * We're rendering emojis at 20x20px and each row
  * has a 1px border at the bottom, making 31 the
- * ideal height for fitting the emoji images. 
+ * ideal height for fitting the emoji images.
  */
 const RowHeight = 31
 
@@ -112,7 +112,19 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
     const popupAbsoluteTop = rect.top + coordinates.top
     const windowHeight = element.ownerDocument.defaultView.innerHeight
     const spaceToBottomOfWindow = windowHeight - popupAbsoluteTop - YOffset
-    const height = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
+
+    // The maximum height we can use for the popup without it extending beyond
+    // the Window bounds.
+    const maxHeight = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
+
+    // The height needed to accomodate all the matched items without overflowing
+    //
+    // Magic number warning! The autocompletion-popup container adds a border
+    // which we have to account for in case we want to show N number of items
+    // without overflowing and triggering the scrollbar.
+    const noOverflowItemHeight = (RowHeight * items.length) + 2
+
+    const height = Math.min(noOverflowItemHeight, maxHeight)
 
     return (
       <div className='autocompletion-popup' style={{ top, left, height }}>
