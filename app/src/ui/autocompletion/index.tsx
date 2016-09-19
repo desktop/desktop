@@ -29,4 +29,11 @@ export interface IAutocompletionProvider<T> {
    * returned from `getAutocompletionItems`.
    */
   renderItem(item: T): JSX.Element
+
+  /**
+   * Returns a text representation of a given autocompletion results.
+   * This is the text that will end up going into the textbox if the
+   * user chooses to autocomplete a particular item.
+   */
+   getCompletionText(item: T): string
 }

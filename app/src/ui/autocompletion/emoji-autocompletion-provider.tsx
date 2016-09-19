@@ -25,4 +25,8 @@ export default class EmojiAutocompletionProvider implements IAutocompletionProvi
       </div>
     )
   }
+
+  public getCompletionText(item: IEmojiHit) {
+    return item.emoji
+  }
 }

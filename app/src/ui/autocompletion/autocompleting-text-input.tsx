@@ -179,12 +179,13 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
     )
   }
 
-  private insertCompletion(item: string) {
+  private insertCompletion(item: any) {
     const element = this.element!
     const autocompletionState = this.state.autocompletionState!
     const originalText = element.value
     const range = autocompletionState.range
-    const newText = originalText.substr(0, range.start - 1) + item + originalText.substr(range.start + range.length) + ' '
+    const autoCompleteText = autocompletionState.provider.getCompletionText(item)
+    const newText = originalText.substr(0, range.start - 1) + autoCompleteText + originalText.substr(range.start + range.length) + ' '
     element.value = newText
 
     if (this.props.onChange) {
