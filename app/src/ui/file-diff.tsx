@@ -1,10 +1,13 @@
 import * as React from 'react'
+import * as ReactDOM from 'react-dom'
 
 import IRepository from '../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../models/status'
 import { DiffSelectionType, DiffLine, Diff, DiffLineType } from '../models/diff'
 
 import { LocalGitOperations, Commit } from '../lib/local-git-operations'
+
+import DiffGutter from './diff-gutter'
 
 const Codemirror = require('react-codemirror')
 
@@ -24,6 +27,8 @@ interface IFileDiffState {
 }
 
 export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
+  /** Have we initialized our CodeMirror editor? This should only happen once. */
+  private initializedCodeMirror = false
 
   private editor: React.Component<any, any> | null
 
@@ -73,18 +78,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     this.setState(Object.assign({}, this.state, { diff }))
   }
 
-  private onMouseEnterHandler(target: any, className: string) {
-    const hoverClassName = className + '-hover'
-    console.log(hoverClassName)
-    target.classList.add(hoverClassName)
-  }
-
-  private onMouseLeaveHandler(target: any, className: string) {
-    const hoverClassName = className + '-hover'
-    target.classList.remove(hoverClassName)
-  }
-
-  private onMouseDownHandler(diff: DiffLine, rowIndex: number) {
+  private onIncludeChanged(line: DiffLine, rowIndex: number) {
     if (!this.props.onIncludeChanged) {
       return
     }
@@ -92,8 +86,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     const startLine = rowIndex
     const endLine = startLine
 
-    const f = this.props.file as WorkingDirectoryFileChange
-    if (!f) {
+    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
       console.error('cannot change selected lines when selected file is not a WorkingDirectoryFileChange')
       return
     }
@@ -110,7 +103,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       })
     })
 
-    const include = !diff.selected
+    const include = !line.selected
 
     // apply the requested change
     for (let i = startLine; i <= endLine; i++) {
@@ -120,22 +113,6 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     this.props.onIncludeChanged(newDiffSelection)
   }
 
-  private createElement(lineNumber: number, className: string, line: DiffLine): HTMLDivElement {
-    const marker = document.createElement('div')
-    marker.className = 'diff-line-number'
-    marker.innerHTML = lineNumber.toString()
-    marker.onmouseenter = (event) => {
-      this.onMouseEnterHandler(marker, className)
-    }
-    marker.onmouseleave = (event) => {
-      this.onMouseLeaveHandler(marker, className)
-    }
-    marker.onmousedown = (event) => {
-      this.onMouseDownHandler(line, 0)
-    }
-    return marker
-  }
-
   private drawGutter() {
     const elem: any = this.editor
 
@@ -143,9 +120,9 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       return
     }
 
-    const cm: any = elem.getCodeMirror()
+    const codeMirror: any = elem.getCodeMirror()
 
-    if (!cm) {
+    if (!codeMirror) {
       console.log('unable to draw')
       return
     }
@@ -153,18 +130,11 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     this.state.diff.sections.forEach(s => {
       s.lines.forEach((l, index) => {
         const absoluteIndex = s.unifiedDiffStart + index
-        const info = cm.lineInfo(absoluteIndex)
-
-        if (info) {
-          if (l.oldLineNumber) {
-            cm.setGutterMarker(absoluteIndex, 'before', this.createElement(l.oldLineNumber, this.getClassName(l.type), l))
-          }
-          if (l.newLineNumber) {
-            cm.setGutterMarker(absoluteIndex, 'after', this.createElement(l.newLineNumber, this.getClassName(l.type), l))
-          }
-        } else {
-          console.log(`no line found at ${absoluteIndex}`)
-        }
+        const marker = document.createElement('div')
+        ReactDOM.render(
+          <DiffGutter line={l} onIncludeChanged={line => this.onIncludeChanged(line, absoluteIndex)}/>
+        , marker)
+        codeMirror.setGutterMarker(absoluteIndex, 'diff-gutter', marker)
       })
     })
   }
@@ -200,62 +170,61 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   private styleEditor(ref: React.Component<any, any>) {
     this.editor = ref
 
-    const elem: any = this.editor
+    const editor: any = this.editor
 
-    if (elem) {
-      const cm: any = elem.getCodeMirror()
-
-      if (!cm) {
+    if (editor && !this.initializedCodeMirror) {
+      const codeMirror: any = editor.getCodeMirror()
+      if (!codeMirror) {
         return
       }
 
-      cm.on('change', this.drawGutter.bind(this))
-      cm.on('renderLine', this.renderLine.bind(this))
+      codeMirror.on('change', this.drawGutter.bind(this))
+      codeMirror.on('renderLine', this.renderLine.bind(this))
+
+      this.initializedCodeMirror = true
     }
   }
 
   public render() {
-
     const file = this.props.file
-    if (file) {
-
-      const invalidationProps = { path: file.path, selection: DiffSelectionType.None }
-      if (file instanceof WorkingDirectoryFileChange) {
-        invalidationProps.selection = file.selection.getSelectionType()
-      }
-
-      let diffText = ''
-
-      this.state.diff.sections.forEach(s => {
-        s.lines.forEach(l => diffText += l.text + '\r\n')
-      })
-
-      const options = {
-          lineNumbers: false,
-          readOnly: true,
-          mode: 'javascript',
-          theme: 'solarized',
-          showCursorWhenSelecting: false,
-          cursorBlinkRate: -1,
-          styleActiveLine: false,
-          scrollbarStyle: 'simple',
-          gutters: [ 'before', 'after' ],
-      }
-
-      return (
-        <div className='panel' id='file-diff'>
-          <Codemirror
-            value={diffText}
-            options={options}
-            ref={(ref: React.Component<any, any>) => this.styleEditor(ref)}/>
-        </div>
-      )
-    } else {
+    if (!file) {
       return (
         <div className='panel blankslate' id='file-diff'>
           No file selected
         </div>
       )
     }
+
+    const invalidationProps = { path: file.path, selection: DiffSelectionType.None }
+    if (file instanceof WorkingDirectoryFileChange) {
+      invalidationProps.selection = file.selection.getSelectionType()
+    }
+
+    let diffText = ''
+
+    this.state.diff.sections.forEach(s => {
+      s.lines.forEach(l => diffText += l.text + '\r\n')
+    })
+
+    const options = {
+        lineNumbers: false,
+        readOnly: true,
+        mode: 'javascript',
+        theme: 'solarized',
+        showCursorWhenSelecting: false,
+        cursorBlinkRate: -1,
+        styleActiveLine: false,
+        scrollbarStyle: 'simple',
+        gutters: [ 'diff-gutter' ],
+    }
+
+    return (
+      <div className='panel' id='file-diff'>
+        <Codemirror
+          value={diffText}
+          options={options}
+          ref={(ref: React.Component<any, any>) => this.styleEditor(ref)}/>
+      </div>
+    )
   }
 }
