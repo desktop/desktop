@@ -9,7 +9,7 @@ require('codemirror/addon/scroll/simplescrollbars')
 
 import IRepository from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
-import { DiffSelectionType, DiffLine, Diff, DiffLineType } from '../../models/diff'
+import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
 
 import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
 
@@ -18,7 +18,7 @@ import DiffLineGutter from './diff-line-gutter'
 /** This class name *must* match the one in `_file-diff.scss`. */
 const DiffGutterClassName = 'diff-gutter'
 
-interface IFileDiffProps {
+interface IDiffProps {
   readonly repository: IRepository
   readonly readOnly: boolean
   readonly file: FileChange | null
@@ -26,11 +26,11 @@ interface IFileDiffProps {
   readonly onIncludeChanged?: (diffSelection: Map<number, boolean>) => void
 }
 
-interface IFileDiffState {
-  readonly diff: Diff
+interface IDiffState {
+  readonly diff: DiffModel
 }
 
-export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
+export default class Diff extends React.Component<IDiffProps, IDiffState> {
   /** Have we initialized our CodeMirror editor? This should only happen once. */
   private initializedCodeMirror = false
 
@@ -38,13 +38,13 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   private disposables: CompositeDisposable | null = null
 
-  public constructor(props: IFileDiffProps) {
+  public constructor(props: IDiffProps) {
     super(props)
 
-    this.state = { diff: new Diff([]) }
+    this.state = { diff: new DiffModel([]) }
   }
 
-  public componentWillReceiveProps(nextProps: IFileDiffProps) {
+  public componentWillReceiveProps(nextProps: IDiffProps) {
     this.dispose()
 
     this.renderDiff(nextProps.repository, nextProps.file, nextProps.readOnly)
@@ -66,7 +66,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   private async renderDiff(repository: IRepository, file: FileChange | null, readOnly: boolean) {
     if (!file) {
       // clear whatever existing state
-      this.setState({ diff: new Diff([]) })
+      this.setState({ diff: new DiffModel([]) })
       return
     }
 
