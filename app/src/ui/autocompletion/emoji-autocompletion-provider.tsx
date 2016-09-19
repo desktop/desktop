@@ -38,7 +38,22 @@ export default class EmojiAutocompletionProvider implements IAutocompletionProvi
       results.push({ emoji, matchStart: match.index, matchLength: match[0].length })
     }
 
-    return results
+    // Naive emoji result sorting
+    return results.sort((x, y) => {
+      // Longer matches are sorted before shorter matches
+      if (x.matchLength > y.matchLength) { return -1 }
+      if (x.matchLength < y.matchLength) { return 1 }
+
+      // Matches closer to the start of the string are sorted
+      // before matches further into the string
+      if (x.matchStart < y.matchStart) { return -1 }
+      if (x.matchStart > y.matchStart) { return 1 }
+
+      // Emojis names are all (ironically) in US English so we'll use
+      // that as the last effort way of sorting them and we'll use
+      // natural sort such that clock1... and friends are sorted correctly
+      return x.emoji.localeCompare(y.emoji, 'en-US', { numeric: true })
+    })
   }
 
   public renderItem(hit: IEmojiHit) {
