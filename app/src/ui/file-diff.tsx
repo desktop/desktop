@@ -1,5 +1,11 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import * as CodeMirror from 'react-codemirror'
+import { Disposable, CompositeDisposable } from 'event-kit'
+
+/** These are required for their side effects :((( */
+require('codemirror/mode/javascript/javascript')
+require('codemirror/addon/scroll/simplescrollbars')
 
 import IRepository from '../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../models/status'
@@ -8,11 +14,6 @@ import { DiffSelectionType, DiffLine, Diff, DiffLineType } from '../models/diff'
 import { LocalGitOperations, Commit } from '../lib/local-git-operations'
 
 import DiffGutter from './diff-gutter'
-
-import * as CodeMirror from 'react-codemirror'
-
-require('codemirror/mode/javascript/javascript')
-require('codemirror/addon/scroll/simplescrollbars')
 
 /** This class name *must* match the one in `_file-diff.scss`. */
 const DiffGutterClassName = 'diff-gutter'
@@ -35,10 +36,21 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   private editor: React.Component<any, any> | null
 
+  private disposables: CompositeDisposable | null = null
+
   public constructor(props: IFileDiffProps) {
     super(props)
 
     this.state = { diff: new Diff([]) }
+  }
+
+  public componentWillUnmount() {
+    const disposables = this.disposables
+    if (disposables) {
+      disposables.dispose()
+    }
+
+    this.disposables = null
   }
 
   public componentWillReceiveProps(nextProps: IFileDiffProps) {
@@ -117,25 +129,23 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   private drawGutter() {
-    const elem: any = this.editor
-
-    if (!elem) {
+    const editor: any = this.editor
+    if (!editor) {
       return
     }
 
-    const codeMirror: any = elem.getCodeMirror()
-
+    const codeMirror: any = editor.getCodeMirror()
     if (!codeMirror) {
       console.log('unable to draw')
       return
     }
 
-    this.state.diff.sections.forEach(s => {
-      s.lines.forEach((l, index) => {
-        const absoluteIndex = s.unifiedDiffStart + index
+    this.state.diff.sections.forEach(section => {
+      section.lines.forEach((line, index) => {
+        const absoluteIndex = section.unifiedDiffStart + index
         const marker = document.createElement('div')
         ReactDOM.render(
-          <DiffGutter line={l} onIncludeChanged={line => this.onIncludeChanged(line, absoluteIndex)}/>
+          <DiffGutter line={line} onIncludeChanged={line => this.onIncludeChanged(line, absoluteIndex)}/>
         , marker)
         codeMirror.setGutterMarker(absoluteIndex, DiffGutterClassName, marker)
       })
@@ -156,7 +166,6 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
   private renderLine(instance: any, line: any, element: any) {
     const index = instance.getLineNumber(line)
-
     const section = this.state.diff.sections.find(s => {
       return index >= s.unifiedDiffStart && index < s.unifiedDiffEnd
     })
@@ -174,15 +183,27 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     this.editor = ref
 
     const editor: any = this.editor
-
     if (editor && !this.initializedCodeMirror) {
       const codeMirror: any = editor.getCodeMirror()
       if (!codeMirror) {
         return
       }
 
-      codeMirror.on('change', this.drawGutter.bind(this))
-      codeMirror.on('renderLine', this.renderLine.bind(this))
+      let disposables = this.disposables
+      if (!disposables) {
+        disposables = new CompositeDisposable()
+        this.disposables = disposables
+      }
+
+      const drawGutter = this.drawGutter.bind(this)
+      const renderLine = this.renderLine.bind(this)
+      codeMirror.on('change', drawGutter)
+      codeMirror.on('renderLine', renderLine)
+
+      disposables.add(new Disposable(() => {
+        codeMirror.off('change', drawGutter)
+        codeMirror.off('renderLine', renderLine)
+      }))
 
       this.initializedCodeMirror = true
     }
