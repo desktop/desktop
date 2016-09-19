@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import IRepository from '../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../models/status'
-import { DiffSelectionType, Diff, DiffLineType } from '../models/diff'
+import { DiffSelectionType, DiffLine, Diff, DiffLineType } from '../models/diff'
 
 import { LocalGitOperations, Commit } from '../lib/local-git-operations'
 
@@ -73,15 +73,70 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     this.setState(Object.assign({}, this.state, { diff }))
   }
 
-  private createElement(lineNumber: number): HTMLDivElement {
+  private onMouseEnterHandler(target: any, className: string) {
+    const hoverClassName = className + '-hover'
+    console.log(hoverClassName)
+    target.classList.add(hoverClassName)
+  }
+
+  private onMouseLeaveHandler(target: any, className: string) {
+    const hoverClassName = className + '-hover'
+    target.classList.remove(hoverClassName)
+  }
+
+  private onMouseDownHandler(diff: DiffLine, rowIndex: number) {
+    if (!this.props.onIncludeChanged) {
+      return
+    }
+
+    const startLine = rowIndex
+    const endLine = startLine
+
+    const f = this.props.file as WorkingDirectoryFileChange
+    if (!f) {
+      console.error('cannot change selected lines when selected file is not a WorkingDirectoryFileChange')
+      return
+    }
+
+    const newDiffSelection: Map<number, boolean> = new Map<number, boolean>()
+
+    // populate the current state of the diff
+    this.state.diff.sections.forEach(s => {
+      s.lines.forEach((line, index) => {
+        if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
+          const absoluteIndex = s.unifiedDiffStart + index
+          newDiffSelection.set(absoluteIndex, line.selected)
+        }
+      })
+    })
+
+    const include = !diff.selected
+
+    // apply the requested change
+    for (let i = startLine; i <= endLine; i++) {
+      newDiffSelection.set(i, include)
+    }
+
+    this.props.onIncludeChanged(newDiffSelection)
+  }
+
+  private createElement(lineNumber: number, className: string, line: DiffLine): HTMLDivElement {
     const marker = document.createElement('div')
     marker.className = 'diff-line-number'
     marker.innerHTML = lineNumber.toString()
+    marker.onmouseenter = (event) => {
+      this.onMouseEnterHandler(marker, className)
+    }
+    marker.onmouseleave = (event) => {
+      this.onMouseLeaveHandler(marker, className)
+    }
+    marker.onmousedown = (event) => {
+      this.onMouseDownHandler(line, 0)
+    }
     return marker
   }
 
   private drawGutter() {
-
     const elem: any = this.editor
 
     if (!elem) {
@@ -97,16 +152,15 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
 
     this.state.diff.sections.forEach(s => {
       s.lines.forEach((l, index) => {
-
         const absoluteIndex = s.unifiedDiffStart + index
         const info = cm.lineInfo(absoluteIndex)
 
         if (info) {
           if (l.oldLineNumber) {
-            cm.setGutterMarker(absoluteIndex, 'before', this.createElement(l.oldLineNumber))
+            cm.setGutterMarker(absoluteIndex, 'before', this.createElement(l.oldLineNumber, this.getClassName(l.type), l))
           }
           if (l.newLineNumber) {
-            cm.setGutterMarker(absoluteIndex, 'after', this.createElement(l.newLineNumber))
+            cm.setGutterMarker(absoluteIndex, 'after', this.createElement(l.newLineNumber, this.getClassName(l.type), l))
           }
         } else {
           console.log(`no line found at ${absoluteIndex}`)
@@ -115,8 +169,19 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     })
   }
 
-  private renderLine(instance: any, line: any, element: any) {
+  private getClassName(type: DiffLineType): string {
+    if (type === DiffLineType.Add) {
+      return 'diff-add'
+    } else if (type === DiffLineType.Delete) {
+      return 'diff-delete'
+    } else if (type === DiffLineType.Context) {
+      return 'diff-hunk'
+    } else {
+      return 'diff-context'
+    }
+  }
 
+  private renderLine(instance: any, line: any, element: any) {
     const index = instance.getLineNumber(line)
 
     const section = this.state.diff.sections.find(s => {
@@ -127,15 +192,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       const relativeIndex = index - section.unifiedDiffStart
       const diffLine = section.lines[relativeIndex]
       if (diffLine) {
-        if (diffLine.type === DiffLineType.Add) {
-          element.classList.add('diff-add')
-        } else if (diffLine.type === DiffLineType.Delete) {
-          element.classList.add('diff-delete')
-        } else if (diffLine.type === DiffLineType.Context) {
-          element.classList.add('diff-hunk')
-        } else {
-          element.classList.add('diff-context')
-        }
+        element.classList.add(this.getClassName(diffLine.type))
       }
     }
   }
@@ -179,6 +236,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
           mode: 'javascript',
           theme: 'solarized',
           showCursorWhenSelecting: false,
+          cursorBlinkRate: -1,
           styleActiveLine: false,
           scrollbarStyle: 'simple',
           gutters: [ 'before', 'after' ],
