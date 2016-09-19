@@ -1,12 +1,12 @@
 import * as React from 'react'
-import { DiffLine, DiffLineType } from '../models/diff'
+import { DiffLine, DiffLineType } from '../../models/diff'
 
 interface IDiffGutterProps {
   readonly line: DiffLine
   readonly onIncludeChanged: (line: DiffLine) => void
 }
 
-export default class DiffGutter extends React.Component<IDiffGutterProps, void> {
+export default class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private onMouseEnterHandler(target: HTMLElement) {
     if (this.props.line.type === DiffLineType.Add || this.props.line.type === DiffLineType.Delete) {
       target.classList.add('diff-line-hover')

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ChangesList } from './changes-list'
-import FileDiff from '../file-diff'
+import FileDiff from '../diff'
 import { DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
 import Repository from '../../models/repository'

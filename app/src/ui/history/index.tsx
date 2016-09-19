@@ -1,7 +1,7 @@
 import * as React from 'react'
 import CommitList from './commit-list'
 import CommitSummaryContainer from './commit-summary-container'
-import FileDiff from '../file-diff'
+import FileDiff from '../diff'
 import Repository from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../lib/local-git-operations'

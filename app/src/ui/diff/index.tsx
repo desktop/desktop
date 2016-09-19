@@ -7,13 +7,13 @@ import { Disposable, CompositeDisposable } from 'event-kit'
 require('codemirror/mode/javascript/javascript')
 require('codemirror/addon/scroll/simplescrollbars')
 
-import IRepository from '../models/repository'
-import { FileChange, WorkingDirectoryFileChange } from '../models/status'
-import { DiffSelectionType, DiffLine, Diff, DiffLineType } from '../models/diff'
+import IRepository from '../../models/repository'
+import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
+import { DiffSelectionType, DiffLine, Diff, DiffLineType } from '../../models/diff'
 
-import { LocalGitOperations, Commit } from '../lib/local-git-operations'
+import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
 
-import DiffGutter from './diff-gutter'
+import DiffLineGutter from './diff-line-gutter'
 
 /** This class name *must* match the one in `_file-diff.scss`. */
 const DiffGutterClassName = 'diff-gutter'
@@ -163,7 +163,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
         const absoluteIndex = section.unifiedDiffStart + index
         const marker = document.createElement('div')
         ReactDOM.render(
-          <DiffGutter line={line} onIncludeChanged={line => this.onIncludeChanged(line, absoluteIndex)}/>
+          <DiffLineGutter line={line} onIncludeChanged={line => this.onIncludeChanged(line, absoluteIndex)}/>
         , marker)
         codeMirror.setGutterMarker(absoluteIndex, DiffGutterClassName, marker)
       })
