@@ -44,6 +44,12 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     this.state = { diff: new Diff([]) }
   }
 
+  public componentWillReceiveProps(nextProps: IFileDiffProps) {
+    this.dispose()
+
+    this.renderDiff(nextProps.repository, nextProps.file, nextProps.readOnly)
+  }
+
   public componentWillUnmount() {
     this.dispose()
   }
@@ -55,12 +61,6 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
 
     this.disposables = null
-  }
-
-  public componentWillReceiveProps(nextProps: IFileDiffProps) {
-    this.dispose()
-
-    this.renderDiff(nextProps.repository, nextProps.file, nextProps.readOnly)
   }
 
   private async renderDiff(repository: IRepository, file: FileChange | null, readOnly: boolean) {
@@ -97,6 +97,18 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
 
     this.setState({ diff })
+  }
+
+  private getClassName(type: DiffLineType): string {
+    if (type === DiffLineType.Add) {
+      return 'diff-add'
+    } else if (type === DiffLineType.Delete) {
+      return 'diff-delete'
+    } else if (type === DiffLineType.Context) {
+      return 'diff-hunk'
+    } else {
+      return 'diff-context'
+    }
   }
 
   private onIncludeChanged(line: DiffLine, rowIndex: number) {
@@ -156,18 +168,6 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
         codeMirror.setGutterMarker(absoluteIndex, DiffGutterClassName, marker)
       })
     })
-  }
-
-  private getClassName(type: DiffLineType): string {
-    if (type === DiffLineType.Add) {
-      return 'diff-add'
-    } else if (type === DiffLineType.Delete) {
-      return 'diff-delete'
-    } else if (type === DiffLineType.Context) {
-      return 'diff-hunk'
-    } else {
-      return 'diff-context'
-    }
   }
 
   private renderLine = (instance: any, line: any, element: any) => {
