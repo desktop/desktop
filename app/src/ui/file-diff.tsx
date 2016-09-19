@@ -14,6 +14,9 @@ import * as CodeMirror from 'react-codemirror'
 require('codemirror/mode/javascript/javascript')
 require('codemirror/addon/scroll/simplescrollbars')
 
+/** This class name *must* match the one in `_file-diff.scss`. */
+const DiffGutterClassName = 'diff-gutter'
+
 interface IFileDiffProps {
   readonly repository: IRepository
   readonly readOnly: boolean
@@ -91,7 +94,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       return
     }
 
-    const newDiffSelection: Map<number, boolean> = new Map<number, boolean>()
+    const newDiffSelection = new Map<number, boolean>()
 
     // populate the current state of the diff
     this.state.diff.sections.forEach(s => {
@@ -134,7 +137,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
         ReactDOM.render(
           <DiffGutter line={l} onIncludeChanged={line => this.onIncludeChanged(line, absoluteIndex)}/>
         , marker)
-        codeMirror.setGutterMarker(absoluteIndex, 'diff-gutter', marker)
+        codeMirror.setGutterMarker(absoluteIndex, DiffGutterClassName, marker)
       })
     })
   }
@@ -215,7 +218,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
         cursorBlinkRate: -1,
         styleActiveLine: false,
         scrollbarStyle: 'simple',
-        gutters: [ 'diff-gutter' ],
+        gutters: [ DiffGutterClassName ],
     }
 
     return (

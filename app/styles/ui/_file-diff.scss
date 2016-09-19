@@ -97,6 +97,7 @@ pre.diff-hunk {
   padding-left: 5px;
 }
 
+// NB: This class name *must* match the one in `file-diff.tsx`.
 .diff-gutter {
   width: 100px;
 }
