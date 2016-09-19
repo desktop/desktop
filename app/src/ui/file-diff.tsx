@@ -6,10 +6,10 @@ import { DiffSelectionType, Diff, DiffLineType } from '../models/diff'
 
 import { LocalGitOperations, Commit } from '../lib/local-git-operations'
 
-var Codemirror = require('react-codemirror');
+const Codemirror = require('react-codemirror')
 
-require('codemirror/mode/javascript/javascript');
-require('codemirror/addon/scroll/simplescrollbars');
+require('codemirror/mode/javascript/javascript')
+require('codemirror/addon/scroll/simplescrollbars')
 
 interface IFileDiffProps {
   readonly repository: IRepository
@@ -73,11 +73,11 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     this.setState(Object.assign({}, this.state, { diff }))
   }
 
-  private createElement(number: number): HTMLDivElement {
-    var marker = document.createElement('div');
+  private createElement(lineNumber: number): HTMLDivElement {
+    const marker = document.createElement('div')
     marker.className = 'diff-line-number'
-    marker.innerHTML = number.toString();
-    return marker;
+    marker.innerHTML = lineNumber.toString()
+    return marker
   }
 
   private drawGutter() {
@@ -140,7 +140,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
   }
 
-  private styleEditor(ref: React.Component<any,any>) {
+  private styleEditor(ref: React.Component<any, any>) {
     this.editor = ref
 
     const elem: any = this.editor
@@ -173,16 +173,16 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
         s.lines.forEach(l => diffText += l.text + '\r\n')
       })
 
-      var options = {
+      const options = {
           lineNumbers: false,
           readOnly: true,
           mode: 'javascript',
           theme: 'solarized',
           showCursorWhenSelecting: false,
           styleActiveLine: false,
-          scrollbarStyle: "simple",
-          gutters: [ 'before', 'after' ]
-      };
+          scrollbarStyle: 'simple',
+          gutters: [ 'before', 'after' ],
+      }
 
       return (
         <div className='panel' id='file-diff'>
