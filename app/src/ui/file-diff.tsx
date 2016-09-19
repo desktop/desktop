@@ -45,6 +45,10 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   public componentWillUnmount() {
+    this.dispose()
+  }
+
+  private dispose() {
     const disposables = this.disposables
     if (disposables) {
       disposables.dispose()
@@ -54,6 +58,8 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
   }
 
   public componentWillReceiveProps(nextProps: IFileDiffProps) {
+    this.dispose()
+
     this.renderDiff(nextProps.repository, nextProps.file, nextProps.readOnly)
   }
 
@@ -90,7 +96,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
       }
     }
 
-    this.setState(Object.assign({}, this.state, { diff }))
+    this.setState({ diff })
   }
 
   private onIncludeChanged(line: DiffLine, rowIndex: number) {
@@ -128,7 +134,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     this.props.onIncludeChanged(newDiffSelection)
   }
 
-  private drawGutter() {
+  private drawGutter = () => {
     const editor: any = this.editor
     if (!editor) {
       return
@@ -164,7 +170,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
   }
 
-  private renderLine(instance: any, line: any, element: any) {
+  private renderLine = (instance: any, line: any, element: any) => {
     const index = instance.getLineNumber(line)
     const section = this.state.diff.sections.find(s => {
       return index >= s.unifiedDiffStart && index < s.unifiedDiffEnd
@@ -189,23 +195,22 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
         return
       }
 
-      let disposables = this.disposables
-      if (!disposables) {
-        disposables = new CompositeDisposable()
-        this.disposables = disposables
-      }
+      this.initializedCodeMirror = true
 
-      const drawGutter = this.drawGutter.bind(this)
-      const renderLine = this.renderLine.bind(this)
-      codeMirror.on('change', drawGutter)
-      codeMirror.on('renderLine', renderLine)
+      this.dispose()
+
+      const disposables = new CompositeDisposable()
+      this.disposables = disposables
+
+      codeMirror.on('changes', this.drawGutter)
+      codeMirror.on('renderLine', this.renderLine)
 
       disposables.add(new Disposable(() => {
-        codeMirror.off('change', drawGutter)
-        codeMirror.off('renderLine', renderLine)
-      }))
+        codeMirror.off('changes', this.drawGutter)
+        codeMirror.off('renderLine', this.renderLine)
 
-      this.initializedCodeMirror = true
+        this.initializedCodeMirror = false
+      }))
     }
   }
 
