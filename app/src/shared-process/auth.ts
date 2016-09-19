@@ -19,7 +19,7 @@ const Scopes = [
 const DefaultHeaders: {[key: string]: string} = {
   'Accept': 'application/vnd.github.v3+json, application/json',
   'Content-Type': 'application/json',
-  'User-Agent': `${app.getName()}/${app.getVersion()}`
+  'User-Agent': `${app.getName()}/${app.getVersion()}`,
 }
 
 interface IAuthState {
@@ -41,8 +41,8 @@ export async function requestToken(code: string): Promise<string> {
       'client_id': ClientID,
       'client_secret': ClientSecret,
       'code': code,
-      'state': authState
-    })
+      'state': authState,
+    }),
   })
   const json = await response.json()
   return json.access_token
