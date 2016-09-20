@@ -46,13 +46,13 @@ export default class DiffLineGutter extends React.Component<IDiffGutterProps, vo
       (event: React.MouseEvent<HTMLDivElement>) => this.onMouseDownHandler()
 
     return (
-      <div className={className}
+      <span className={className}
         onMouseEnter={mouseEnter}
         onMouseLeave={mouseLeave}
         onMouseDown={mouseDown}>
-        <div className='diff-line-number before'>{this.props.line.oldLineNumber}</div>
-        <div className='diff-line-number after'>{this.props.line.newLineNumber}</div>
-      </div>
+        <span className='diff-line-number before'>{this.props.line.oldLineNumber}</span>
+        <span className='diff-line-number after'>{this.props.line.newLineNumber}</span>
+      </span>
     )
   }
 }

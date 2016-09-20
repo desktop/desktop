@@ -15,9 +15,6 @@ import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
 
 import DiffLineGutter from './diff-line-gutter'
 
-/** This class name *must* match the one in `_file-diff.scss`. */
-const DiffGutterClassName = 'diff-gutter'
-
 interface IDiffProps {
   readonly repository: IRepository
   readonly readOnly: boolean
@@ -146,31 +143,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     this.props.onIncludeChanged(newDiffSelection)
   }
 
-  private drawGutter = () => {
-    const editor: any = this.editor
-    if (!editor) {
-      return
-    }
-
-    const codeMirror: any = editor.getCodeMirror()
-    if (!codeMirror) {
-      console.log('unable to draw')
-      return
-    }
-
-    this.state.diff.sections.forEach(section => {
-      section.lines.forEach((line, index) => {
-        const absoluteIndex = section.unifiedDiffStart + index
-        const marker = document.createElement('div')
-        ReactDOM.render(
-          <DiffLineGutter line={line} readOnly={this.props.readOnly} onIncludeChanged={line => this.onIncludeChanged(line, absoluteIndex)}/>
-        , marker)
-        codeMirror.setGutterMarker(absoluteIndex, DiffGutterClassName, marker)
-      })
-    })
-  }
-
-  private renderLine = (instance: any, line: any, element: any) => {
+  private renderLine = (instance: any, line: any, element: HTMLElement) => {
     const index = instance.getLineNumber(line)
     const section = this.state.diff.sections.find(s => {
       return index >= s.unifiedDiffStart && index < s.unifiedDiffEnd
@@ -180,6 +153,14 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
       const relativeIndex = index - section.unifiedDiffStart
       const diffLine = section.lines[relativeIndex]
       if (diffLine) {
+        const diffLineElement = element.children[0] as HTMLSpanElement
+
+        const reactContainer = document.createElement('span')
+        ReactDOM.render(
+          <DiffLineGutter line={diffLine} readOnly={this.props.readOnly} onIncludeChanged={line => this.onIncludeChanged(line, index)}/>,
+        reactContainer)
+        element.insertBefore(reactContainer, diffLineElement)
+
         element.classList.add(this.getClassName(diffLine.type))
       }
     }
@@ -202,11 +183,9 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
       const disposables = new CompositeDisposable()
       this.disposables = disposables
 
-      codeMirror.on('changes', this.drawGutter)
       codeMirror.on('renderLine', this.renderLine)
 
       disposables.add(new Disposable(() => {
-        codeMirror.off('changes', this.drawGutter)
         codeMirror.off('renderLine', this.renderLine)
 
         this.initializedCodeMirror = false
@@ -236,15 +215,14 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     })
 
     const options = {
-        lineNumbers: false,
-        readOnly: true,
-        mode: 'javascript',
-        theme: 'solarized',
-        showCursorWhenSelecting: false,
-        cursorBlinkRate: -1,
-        styleActiveLine: false,
-        scrollbarStyle: 'simple',
-        gutters: [ DiffGutterClassName ],
+      lineNumbers: false,
+      readOnly: true,
+      mode: 'javascript',
+      theme: 'solarized',
+      showCursorWhenSelecting: false,
+      cursorBlinkRate: -1,
+      styleActiveLine: false,
+      scrollbarStyle: 'simple',
     }
 
     return (
