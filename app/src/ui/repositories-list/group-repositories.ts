@@ -46,6 +46,15 @@ export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): R
     }
     flattened.push({ kind: 'label', label })
 
+    repositories.sort((rx, ry) => {
+      const x = rx.name.toLowerCase()
+      const y = ry.name.toLowerCase()
+
+      if (x < y) { return -1 }
+      if (x > y) { return 1 }
+      return 0
+    })
+
     for (const repository of repositories) {
       flattened.push({ kind: 'repository', repository })
     }

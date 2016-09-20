@@ -43,4 +43,43 @@ describe('Repository grouping', () => {
     expect(grouped[i].kind).to.equal('repository')
     expect((grouped[i] as any).repository.path).to.equal('repo1')
   })
+
+  it('sorts repositories alphabetically within each group', () => {
+    const repoA = new Repository('a', 1)
+    const repoB = new Repository('b', 2, new GitHubRepository('b', new Owner('', getDotComAPIEndpoint())))
+    const repoC = new Repository('c', 2)
+    const repoD = new Repository('d', 2, new GitHubRepository('d', new Owner('', getDotComAPIEndpoint())))
+    const repoZ = new Repository('z', 3)
+
+    const grouped = groupRepositories([ repoC, repoB, repoZ, repoD, repoA ])
+
+    let i = 0
+    expect(grouped[i].kind).to.equal('label')
+    expect((grouped[i] as any).label).to.equal('GitHub')
+    i++
+
+    expect(grouped[i].kind).to.equal('repository')
+    expect((grouped[i] as any).repository.path).to.equal('b')
+    i++
+
+    expect(grouped[i].kind).to.equal('repository')
+    expect((grouped[i] as any).repository.path).to.equal('d')
+    i++
+
+    expect(grouped[i].kind).to.equal('label')
+    expect((grouped[i] as any).label).to.equal('Other')
+    i++
+
+    expect(grouped[i].kind).to.equal('repository')
+    expect((grouped[i] as any).repository.path).to.equal('a')
+    i++
+
+    expect(grouped[i].kind).to.equal('repository')
+    expect((grouped[i] as any).repository.path).to.equal('c')
+    i++
+
+    expect(grouped[i].kind).to.equal('repository')
+    expect((grouped[i] as any).repository.path).to.equal('z')
+    i++
+  })
 })
