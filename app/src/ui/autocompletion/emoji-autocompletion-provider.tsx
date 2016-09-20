@@ -1,9 +1,25 @@
 import * as React from 'react'
 import { IAutocompletionProvider } from './index'
 
+/**
+ * Interface describing a autocomplete match for the given search
+ * input passed to EmojiAutocompletionProvider#getAutocompletionItems.
+ */
 export interface IEmojiHit {
+  /** A human-readable markdown representation of the emoji, ex :heart: */
   emoji: string,
+
+  /**
+   * The offset into the emoji string where the
+   * match started, used for highlighting matches.
+   */
   matchStart: number,
+
+  /**
+   * The length of the match or zero if the filter
+   * string was empty, causing the provider to return
+   * all possible matches.
+   */
   matchLength: number
 }
 
