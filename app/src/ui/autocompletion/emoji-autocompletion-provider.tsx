@@ -66,6 +66,12 @@ export default class EmojiAutocompletionProvider implements IAutocompletionProvi
       if (x.matchStart < y.matchStart) { return -1 }
       if (x.matchStart > y.matchStart) { return 1 }
 
+      // Longer matches relative to the emoji length is sorted
+      // before the same match in a longer emoji
+      // (:heart over :heart_eyes)
+      if (x.emoji.length < y.emoji.length) { return -1 }
+      if (x.emoji.length > y.emoji.length) { return 1 }
+
       // Emojis names are all (ironically) in US English so we'll use
       // that as the last effort way of sorting them and we'll use
       // natural sort such that clock1... and friends are sorted correctly
