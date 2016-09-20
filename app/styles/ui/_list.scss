@@ -18,10 +18,6 @@
     &:focus {
       color: var(--box-selected-active-text-color);
       background-color: var(--box-selected-active-background-color);
-
-      .octicon  {
-        fill: var(--box-selected-active-text-color);
-      }
     }
   }
 }

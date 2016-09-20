@@ -71,9 +71,7 @@
    * y-pos due to the change in height */
   .details {
     max-width: 100%;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
+    @include ellipsis;
   }
 
   progress {
