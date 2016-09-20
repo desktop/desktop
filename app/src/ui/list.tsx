@@ -52,11 +52,7 @@ interface IListProps {
   readonly scrollToRow?: number
 }
 
-interface IListState {
-  scrollTop: number
-}
-
-export default class List extends React.Component<IListProps, IListState> {
+export default class List extends React.Component<IListProps, void> {
   private focusItem: HTMLDivElement | null = null
   private fakeScroll: HTMLDivElement | null = null
 
@@ -65,13 +61,11 @@ export default class List extends React.Component<IListProps, IListState> {
 
   private grid: React.Component<any, any> | null
 
-  private readonly fakeScrollTopUpdateDebouncer = new FrameDebouncer<number>(scrollTop => {
+  private readonly scrollTopDebouncer = new FrameDebouncer<number>(scrollTop => {
     if (this.fakeScroll) {
       this.fakeScroll.scrollTop = scrollTop
     }
-  })
 
-  private readonly gridScrollTopUpdateDebouncer = new FrameDebouncer<number>(scrollTop => {
     if (this.grid) {
       const element = ReactDOM.findDOMNode(this.grid)
       if (element) {
@@ -79,12 +73,6 @@ export default class List extends React.Component<IListProps, IListState> {
       }
     }
   })
-
-
-  public constructor() {
-    super()
-    this.state = { scrollTop: 0 }
-  }
 
   private handleKeyDown(e: React.KeyboardEvent<any>) {
     let direction: 'up' | 'down'
@@ -237,7 +225,7 @@ export default class List extends React.Component<IListProps, IListState> {
                 className='fake-scroll'
                 ref={(ref) => { this.fakeScroll = ref }}
                 style={{ height }}
-                onScroll={(e) => { this.gridScrollTopUpdateDebouncer.update(e.currentTarget.scrollTop) }}>
+                onScroll={(e) => { this.scrollTopDebouncer.update(e.currentTarget.scrollTop) }}>
                 <div style={{ height: this.props.rowHeight * this.props.rowCount }}></div>
               </div>
               </div>
@@ -269,7 +257,7 @@ export default class List extends React.Component<IListProps, IListState> {
       this.props.onScroll(scrollTop, clientHeight)
     }
 
-    this.fakeScrollTopUpdateDebouncer.update(scrollTop)
+    this.scrollTopDebouncer.update(scrollTop)
   }
 
   public forceUpdate(callback?: () => any) {
