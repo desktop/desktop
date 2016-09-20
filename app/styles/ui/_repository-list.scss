@@ -3,14 +3,6 @@
 /** A <List> React component holding all tracked repositories in the sidebar */
 #repository-list {
 
-  // Go read _scroll.scss, we're unable to extend the list items all
-  // the way out to the edge of the list because the scrollbar forces
-  // a margin that we can't get past. So we'll render with
-  // a bit of a rounded right edge to make it appear as if it's intentional
-  .list-item {
-    border-radius: 0 5px 5px 0;
-  }
-
   /**
    * Container for repository list items in the sidebar
    *
