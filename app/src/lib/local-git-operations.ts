@@ -10,6 +10,8 @@ import { parseRawDiff } from './diff-parser'
 
 import { GitProcess, GitError, GitErrorCode } from 'git-kitchen-sink'
 
+import User from '../models/user'
+
 const byline = require('byline')
 
 /** The encapsulation of the result from 'git status' */
@@ -389,19 +391,41 @@ export class LocalGitOperations {
     return pieces[0]
   }
 
+  private static getAskPassTrampolinePath(): string {
+    const extension = process.platform === 'win32' ? 'bat' : 'sh'
+    return Path.resolve(__dirname, 'static', `ask-pass-trampoline.${extension}`)
+  }
+
+  private static getAskPassScriptPath(): string {
+    return Path.resolve(__dirname, 'ask-pass.js')
+  }
+
+  /** Get the environment for authenticating remote operations. */
+  private static envForAuthentication(user: User | null): Object {
+    if (!user) { return {} }
+
+    return {
+      'DESKTOP_PATH': process.execPath,
+      'DESKTOP_ASKPASS_SCRIPT': LocalGitOperations.getAskPassScriptPath(),
+      'DESKTOP_USERNAME': user.login,
+      'DESKTOP_ENDPOINT': user.endpoint,
+      'GIT_ASKPASS': LocalGitOperations.getAskPassTrampolinePath(),
+    }
+  }
+
   /** Pull from the remote to the branch. */
-  public static pull(repository: Repository, remote: string, branch: string): Promise<void> {
-    return GitProcess.exec([ 'pull', remote, branch ], repository.path)
+  public static pull(repository: Repository, user: User | null, remote: string, branch: string): Promise<void> {
+    return GitProcess.exec([ 'pull', remote, branch ], repository.path, LocalGitOperations.envForAuthentication(user))
   }
 
   /** Push from the remote to the branch, optionally setting the upstream. */
-  public static push(repository: Repository, remote: string, branch: string, setUpstream: boolean): Promise<void> {
+  public static push(repository: Repository, user: User | null, remote: string, branch: string, setUpstream: boolean): Promise<void> {
     const args = [ 'push', remote, branch ]
     if (setUpstream) {
       args.push('--set-upstream')
     }
 
-    return GitProcess.exec(args, repository.path)
+    return GitProcess.exec(args, repository.path, LocalGitOperations.envForAuthentication(user))
   }
 
   /** Get the remote names. */
@@ -570,8 +594,9 @@ export class LocalGitOperations {
   }
 
   /** Clone the repository to the path. */
-  public static clone(url: string, path: string, progress: (progress: string) => void): Promise<void> {
-    return GitProcess.exec([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, undefined, process => {
+  public static clone(url: string, path: string, user: User | null, progress: (progress: string) => void): Promise<void> {
+    const env = LocalGitOperations.envForAuthentication(user)
+    return GitProcess.exec([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, env, process => {
       byline(process.stderr).on('data', (chunk: string) => {
         progress(chunk)
       })

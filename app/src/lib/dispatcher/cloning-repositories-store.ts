@@ -4,6 +4,7 @@ import { Emitter, Disposable } from 'event-kit'
 
 import { LocalGitOperations } from '../local-git-operations'
 import { CloneProgressParser } from '../clone-progress-parser'
+import User from '../../models/user'
 
 let CloningRepositoryID = 1
 
@@ -54,7 +55,7 @@ export class CloningRepositoriesStore {
   }
 
   /** Clone the repository at the URL to the path. */
-  public clone(url: string, path: string): Promise<void> {
+  public clone(url: string, path: string, user: User | null): Promise<void> {
     const repository = new CloningRepository(path, url)
     this._repositories.push(repository)
     this.stateByID.set(repository.id, { output: `Cloning into ${path}`, progressValue: null })
@@ -62,7 +63,7 @@ export class CloningRepositoriesStore {
     const progressParser = new CloneProgressParser()
 
     const promise = LocalGitOperations
-      .clone(url, path, progress => {
+      .clone(url, path, user, progress => {
         this.stateByID.set(repository.id, {
           output: progress,
           progressValue: progressParser.parse(progress),

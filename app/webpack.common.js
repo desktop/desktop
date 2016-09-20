@@ -7,7 +7,8 @@ module.exports = {
   entry: {
     main: ['./app/src/main-process/main'],
     renderer: ['./app/src/ui/index'],
-    shared: ['./app/src/shared-process/index']
+    shared: ['./app/src/shared-process/index'],
+    'ask-pass': ['./app/src/ask-pass/main']
   },
   output: {
     filename: '[name].js',

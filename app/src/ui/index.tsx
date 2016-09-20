@@ -59,7 +59,8 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
 })
 
 function openRepository(url: string) {
-  const repositories = appStore.getState().repositories
+  const state = appStore.getState()
+  const repositories = state.repositories
   const existingRepository = repositories.find(r => {
     if (r instanceof Repository) {
       const gitHubRepository = r.gitHubRepository
@@ -85,7 +86,10 @@ function openRepository(url: string) {
 
     localStorage.setItem(lastCloneLocationConfigKey, Path.resolve(path, '..'))
 
-    return dispatcher.clone(url, path)
+    // TODO: This isn't quite right. We should probably get the user from the
+    // context or URL or something.
+    const user = state.users[0]
+    return dispatcher.clone(url, path, user)
   }
 }
 
