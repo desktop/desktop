@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { IAutocompletionProvider } from './index'
-import { escapeRegExp } from '../lib/escape-regex'
 
 export interface IEmojiHit {
   emoji: string,
@@ -30,14 +29,14 @@ export default class EmojiAutocompletionProvider implements IAutocompletionProvi
         .map<IEmojiHit>(emoji => { return { emoji: emoji, matchStart: 0, matchLength: 0 } })
     }
 
-    const expr = new RegExp(escapeRegExp(text), 'i')
     const results = new Array<IEmojiHit>()
+    const needle = text.toLowerCase()
 
     for (const emoji of this.emoji.keys()) {
-      const match = expr.exec(emoji)
-      if (!match) { continue }
-
-      results.push({ emoji, matchStart: match.index, matchLength: match[0].length })
+      const index = emoji.indexOf(needle)
+      if (index !== -1) {
+        results.push({ emoji, matchStart: index, matchLength: needle.length })
+      }
     }
 
     // Naive emoji result sorting
