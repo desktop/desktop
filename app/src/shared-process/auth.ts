@@ -2,7 +2,6 @@ import { shell, remote } from 'electron'
 const { app } = remote
 
 import guid from '../lib/guid'
-import User from '../models/user'
 import { getDotComAPIEndpoint } from '../lib/api'
 import fatalError from '../lib/fatal-error'
 
@@ -68,8 +67,4 @@ export function askUserToAuth(endpoint: string) {
   authState = { oAuthState: guid(), endpoint }
 
   shell.openExternal(getOAuthAuthorizationURL(authState))
-}
-
-export function getKeyForUser(user: User): string {
-  return `GitHub - ${user.endpoint}`
 }

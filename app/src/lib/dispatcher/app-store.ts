@@ -788,11 +788,12 @@ export default class AppStore {
       return Promise.reject(new Error('The current branch is unborn.'))
     }
 
+    const user = this.getUserForRepository(repository)
     const upstream = branch.upstream
     if (upstream) {
-      return LocalGitOperations.push(repository, remote, branch.name, false)
+      return LocalGitOperations.push(repository, user, remote, branch.name, false)
     } else {
-      return LocalGitOperations.push(repository, remote, branch.name, true)
+      return LocalGitOperations.push(repository, user, remote, branch.name, true)
     }
   }
 
@@ -809,7 +810,15 @@ export default class AppStore {
       return Promise.reject(new Error('The current branch is unborn.'))
     }
 
-    return LocalGitOperations.pull(repository, remote, branch.name)
+    const user = this.getUserForRepository(repository)
+    return LocalGitOperations.pull(repository, user, remote, branch.name)
+  }
+
+  private getUserForRepository(repository: Repository): User | null {
+    const gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) { return null }
+
+    return getUserForEndpoint(this.users, gitHubRepository.endpoint)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -823,8 +832,8 @@ export default class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clone(url: string, path: string): { promise: Promise<void>, repository: CloningRepository } {
-    const promise = this.cloningRepositoriesStore.clone(url, path)
+  public _clone(url: string, path: string, user: User | null): { promise: Promise<void>, repository: CloningRepository } {
+    const promise = this.cloningRepositoriesStore.clone(url, path, user)
     const repository = this.cloningRepositoriesStore.repositories.find(r => r.url === url && r.path === path)!
     return { promise, repository }
   }

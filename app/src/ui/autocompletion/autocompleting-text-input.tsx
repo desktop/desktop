@@ -29,11 +29,18 @@ interface IAutocompletionState<T> {
   readonly provider: IAutocompletionProvider<T>
   readonly items: ReadonlyArray<T>
   readonly range: IRange
+  readonly rangeText: string
   readonly selectedItem: T | null
 }
 
-/** The height of the autocompletion result rows. */
-const RowHeight = 20
+/**
+ * The height of the autocompletion result rows.
+ *
+ * We're rendering emojis at 20x20px and each row
+ * has a 1px border at the bottom, making 31 the
+ * ideal height for fitting the emoji images.
+ */
+const RowHeight = 31
 
 /**
  * The amount to offset on the Y axis so that the popup is displayed below the
@@ -106,7 +113,28 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
     const popupAbsoluteTop = rect.top + coordinates.top
     const windowHeight = element.ownerDocument.defaultView.innerHeight
     const spaceToBottomOfWindow = windowHeight - popupAbsoluteTop - YOffset
-    const height = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
+
+    // The maximum height we can use for the popup without it extending beyond
+    // the Window bounds.
+    const maxHeight = Math.min(DefaultPopupHeight, spaceToBottomOfWindow)
+
+    // The height needed to accomodate all the matched items without overflowing
+    //
+    // Magic number warning! The autocompletion-popup container adds a border
+    // which we have to account for in case we want to show N number of items
+    // without overflowing and triggering the scrollbar.
+    const noOverflowItemHeight = (RowHeight * items.length) + 2
+
+    const height = Math.min(noOverflowItemHeight, maxHeight)
+
+    // Use the completion text as invalidation props so that highlighting
+    // will update as you type even though the number of items matched
+    // remains the same. Additionally we need to be aware that different
+    // providers can use different sorting behaviors which also might affect
+    // rendering.
+    const searchText = this.state.autocompletionState
+      ? this.state.autocompletionState.rangeText
+      : undefined
 
     return (
       <div className='autocompletion-popup' style={{ top, left, height }}>
@@ -116,7 +144,8 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
               selectedRow={selectedRow}
               rowRenderer={row => this.renderItem(state, row)}
               scrollToRow={scrollToRow}
-              onRowSelected={row => this.insertCompletionOnClick(items[row])}/>
+              onRowSelected={row => this.insertCompletionOnClick(items[row])}
+              invalidationProps={searchText}/>
       </div>
     )
   }
@@ -161,12 +190,13 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
     )
   }
 
-  private insertCompletion(item: string) {
+  private insertCompletion(item: any) {
     const element = this.element!
     const autocompletionState = this.state.autocompletionState!
     const originalText = element.value
     const range = autocompletionState.range
-    const newText = originalText.substr(0, range.start - 1) + item + originalText.substr(range.start + range.length) + ' '
+    const autoCompleteText = autocompletionState.provider.getCompletionText(item)
+    const newText = originalText.substr(0, range.start - 1) + autoCompleteText + originalText.substr(range.start + range.length) + ' '
     element.value = newText
 
     if (this.props.onChange) {
@@ -222,6 +252,7 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
         items: state.items,
         range: state.range,
         selectedItem: state.items[nextRow],
+        rangeText: state.rangeText,
       } })
     } else if (event.key === 'Enter' || event.key === 'Tab') {
       event.preventDefault()
@@ -251,7 +282,7 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
           const items = provider.getAutocompletionItems(text)
 
           const selectedItem = items[0]
-          return { provider, items, range, selectedItem }
+          return { provider, items, range, selectedItem, rangeText: text }
         }
       }
     }
