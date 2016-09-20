@@ -57,10 +57,6 @@ export default class EmojiAutocompletionProvider implements IAutocompletionProvi
 
     // Naive emoji result sorting
     return results.sort((x, y) => {
-      // Longer matches are sorted before shorter matches
-      if (x.matchLength > y.matchLength) { return -1 }
-      if (x.matchLength < y.matchLength) { return 1 }
-
       // Matches closer to the start of the string are sorted
       // before matches further into the string
       if (x.matchStart < y.matchStart) { return -1 }
