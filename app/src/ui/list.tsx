@@ -175,8 +175,6 @@ export default class List extends React.Component<IListProps, void> {
     }
     this.scrollToRow = -1
 
-    console.log('list rerender')
-
     // The currently selected list item is focusable but if
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
