@@ -7,20 +7,20 @@ import { IAutocompletionProvider } from './index'
  */
 export interface IEmojiHit {
   /** A human-readable markdown representation of the emoji, ex :heart: */
-  emoji: string,
+  readonly emoji: string
 
   /**
    * The offset into the emoji string where the
    * match started, used for highlighting matches.
    */
-  matchStart: number,
+  readonly matchStart: number
 
   /**
    * The length of the match or zero if the filter
    * string was empty, causing the provider to return
    * all possible matches.
    */
-  matchLength: number
+  readonly matchLength: number
 }
 
 /** Autocompletion provider for emoji. */
