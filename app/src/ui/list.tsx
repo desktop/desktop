@@ -169,12 +169,6 @@ export default class List extends React.Component<IListProps, void> {
   }
 
   public render() {
-    let scrollToRow = this.props.scrollToRow
-    if (scrollToRow === undefined) {
-      scrollToRow = this.scrollToRow
-    }
-    this.scrollToRow = -1
-
     // The currently selected list item is focusable but if
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
@@ -187,36 +181,62 @@ export default class List extends React.Component<IListProps, void> {
            onKeyDown={e => this.handleKeyDown(e)}
            style={{ flexGrow: 1 }}>
         <AutoSizer>
-          {({ width, height }: { width: number, height: number }) => (
-            <div>
-            <Grid
-              ref={(ref: React.Component<any, any>) => this.grid = ref}
-              autoContainerWidth
-              width={width}
-              height={height}
-              columnWidth={width}
-              columnCount={1}
-              rowCount={this.props.rowCount}
-              rowHeight={this.props.rowHeight}
-              cellRenderer={this.renderRow}
-              onScroll={this.onScroll}
-              scrollToRow={scrollToRow}
-              overscanRowCount={4}
-              // Grid doesn't actually _do_ anything with
-              // `selectedRow`. We're just passing it through so that
-              // Grid will re-render when it changes.
-              selectedRow={this.props.selectedRow}
-              invalidationProps={this.props.invalidationProps}/>
-              <div
-                className='fake-scroll'
-                ref={(ref) => { this.fakeScroll = ref }}
-                style={{ height }}
-                onScroll={(e) => { this.onFakeScroll(e) }}>
-                <div style={{ height: this.props.rowHeight * this.props.rowCount }}></div>
-              </div>
-              </div>
-          )}
+          {({ width, height }: { width: number, height: number }) => this.renderContents(width, height)}
         </AutoSizer>
+      </div>
+    )
+  }
+
+  private renderContents(width: number, height: number) {
+    if (process.platform === 'win32') {
+      return (
+        <div>
+          {this.renderGrid(width, height)}
+          {this.renderFakeScroll(height)}
+        </div>
+      )
+    }
+
+    return this.renderGrid(width, height)
+  }
+
+  private renderGrid(width: number, height: number) {
+    let scrollToRow = this.props.scrollToRow
+    if (scrollToRow === undefined) {
+      scrollToRow = this.scrollToRow
+    }
+    this.scrollToRow = -1
+
+    return (
+      <Grid
+        ref={(ref: React.Component<any, any>) => this.grid = ref}
+        autoContainerWidth
+        width={width}
+        height={height}
+        columnWidth={width}
+        columnCount={1}
+        rowCount={this.props.rowCount}
+        rowHeight={this.props.rowHeight}
+        cellRenderer={this.renderRow}
+        onScroll={this.onScroll}
+        scrollToRow={scrollToRow}
+        overscanRowCount={4}
+        // Grid doesn't actually _do_ anything with
+        // `selectedRow`. We're just passing it through so that
+        // Grid will re-render when it changes.
+        selectedRow={this.props.selectedRow}
+        invalidationProps={this.props.invalidationProps}/>
+    )
+  }
+
+  private renderFakeScroll(height: number) {
+    return (
+      <div
+        className='fake-scroll'
+        ref={(ref) => { this.fakeScroll = ref }}
+        style={{ height }}
+        onScroll={(e) => { this.onFakeScroll(e) }}>
+        <div style={{ height: this.props.rowHeight * this.props.rowCount }}></div>
       </div>
     )
   }
