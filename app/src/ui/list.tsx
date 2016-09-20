@@ -49,13 +49,23 @@ interface IListProps {
   readonly scrollToRow?: number
 }
 
-export default class List extends React.Component<IListProps, void> {
+interface IListState {
+  scrollTop: number
+}
+
+export default class List extends React.Component<IListProps, IListState> {
   private focusItem: HTMLDivElement | null = null
+  private fakeScroll: HTMLDivElement | null = null
 
   private scrollToRow = -1
   private focusRow = -1
 
   private grid: React.Component<any, any> | null
+
+  public constructor() {
+    super()
+    this.state = { scrollTop: 0 }
+  }
 
   private handleKeyDown(e: React.KeyboardEvent<any>) {
     let direction: 'up' | 'down'
@@ -185,6 +195,7 @@ export default class List extends React.Component<IListProps, void> {
            style={{ flexGrow: 1 }}>
         <AutoSizer>
           {({ width, height }: { width: number, height: number }) => (
+            <div>
             <Grid
               ref={(ref: React.Component<any, any>) => this.grid = ref}
               autoContainerWidth
@@ -197,16 +208,32 @@ export default class List extends React.Component<IListProps, void> {
               cellRenderer={this.renderRow}
               onScroll={this.onScroll}
               scrollToRow={scrollToRow}
+              scrollTop={this.state.scrollTop}
               overscanRowCount={4}
               // Grid doesn't actually _do_ anything with
               // `selectedRow`. We're just passing it through so that
               // Grid will re-render when it changes.
               selectedRow={this.props.selectedRow}
               invalidationProps={this.props.invalidationProps}/>
+              <div
+                className='fake-scroll'
+                ref={(ref) => {
+                  this.fakeScroll = ref
+                  if(ref) { ref.scrollTop = this.state.scrollTop }
+                }}
+                style={{ height }}
+                onScroll={(e) => this.onFakeScroll(e.currentTarget.scrollTop)}>
+                <div style={{ height: this.props.rowHeight * this.props.rowCount }}></div>
+              </div>
+              </div>
           )}
         </AutoSizer>
       </div>
     )
+  }
+
+  private onFakeScroll(scrollTop: number) {
+    this.setState({ scrollTop })
   }
 
   private handleMouseDown = (row: number) => {
@@ -230,6 +257,8 @@ export default class List extends React.Component<IListProps, void> {
     if (this.props.onScroll) {
       this.props.onScroll(scrollTop, clientHeight)
     }
+
+    this.setState({ scrollTop: scrollTop })
   }
 
   public forceUpdate(callback?: () => any) {
