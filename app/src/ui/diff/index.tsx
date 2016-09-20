@@ -228,6 +228,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     return (
       <div className='panel' id='file-diff'>
         <CodeMirror
+          className='diff-text'
           value={diffText}
           options={options}
           ref={(ref: React.Component<any, any>) => this.styleEditor(ref)}/>

@@ -2,8 +2,7 @@
 
 /** A React component holding a file diff */
 #file-diff {
-  text-align: left;
-  width: 100px;
+
 }
 
 .diff-text {
@@ -94,10 +93,4 @@ pre.diff-hunk {
   color: var(--diff-line-number-color);
   width: var(--diff-line-number-column-width);
   text-align: left;
-  padding-left: 5px;
-}
-
-// NB: This class name *must* match the one in `file-diff.tsx`.
-.diff-gutter {
-  width: 100px;
 }
