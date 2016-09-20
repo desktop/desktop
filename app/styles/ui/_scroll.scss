@@ -20,6 +20,10 @@
 // bar width/height to the container and there's no way (that I've found)
 // to get around that. The scroll bar seems to sample its background
 // from the container and never its content.
+//
+// We work around that in List elements by introducing a fake overflowing
+// element which is absolutely positioned on top of the main content.
+// See List.tsx and _list.scss.
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
