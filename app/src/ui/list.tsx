@@ -2,7 +2,6 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 
 const { Grid, AutoSizer } = require('react-virtualized')
-import { FrameDebouncer } from './lib/frame-debouncer'
 
 interface IListProps {
   readonly rowRenderer: (row: number) => JSX.Element
@@ -60,19 +59,6 @@ export default class List extends React.Component<IListProps, void> {
   private focusRow = -1
 
   private grid: React.Component<any, any> | null
-
-  private readonly scrollTopDebouncer = new FrameDebouncer<number>(scrollTop => {
-    if (this.fakeScroll) {
-      this.fakeScroll.scrollTop = scrollTop
-    }
-
-    if (this.grid) {
-      const element = ReactDOM.findDOMNode(this.grid)
-      if (element) {
-        element.scrollTop = scrollTop
-      }
-    }
-  })
 
   private handleKeyDown(e: React.KeyboardEvent<any>) {
     let direction: 'up' | 'down'
@@ -189,6 +175,8 @@ export default class List extends React.Component<IListProps, void> {
     }
     this.scrollToRow = -1
 
+    console.log('list rerender')
+
     // The currently selected list item is focusable but if
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
@@ -225,7 +213,7 @@ export default class List extends React.Component<IListProps, void> {
                 className='fake-scroll'
                 ref={(ref) => { this.fakeScroll = ref }}
                 style={{ height }}
-                onScroll={(e) => { this.scrollTopDebouncer.update(e.currentTarget.scrollTop) }}>
+                onScroll={(e) => { this.onFakeScroll(e) }}>
                 <div style={{ height: this.props.rowHeight * this.props.rowCount }}></div>
               </div>
               </div>
@@ -233,6 +221,15 @@ export default class List extends React.Component<IListProps, void> {
         </AutoSizer>
       </div>
     )
+  }
+
+  private onFakeScroll(e: React.UIEvent<HTMLDivElement>) {
+    if (this.grid) {
+      const element = ReactDOM.findDOMNode(this.grid)
+      if (element) {
+        element.scrollTop = e.currentTarget.scrollTop
+      }
+    }
   }
 
   private handleMouseDown = (row: number) => {
@@ -257,7 +254,9 @@ export default class List extends React.Component<IListProps, void> {
       this.props.onScroll(scrollTop, clientHeight)
     }
 
-    this.scrollTopDebouncer.update(scrollTop)
+    if (this.fakeScroll) {
+      this.fakeScroll.scrollTop = scrollTop
+    }
   }
 
   public forceUpdate(callback?: () => any) {
