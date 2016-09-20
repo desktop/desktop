@@ -1,4 +1,6 @@
 import * as React from 'react'
+import * as ReactDOM from 'react-dom'
+
 const { Grid, AutoSizer } = require('react-virtualized')
 import { FrameDebouncer } from './lib/frame-debouncer'
 
@@ -63,9 +65,21 @@ export default class List extends React.Component<IListProps, IListState> {
 
   private grid: React.Component<any, any> | null
 
-  private readonly stateDebouncer = new FrameDebouncer<number>(scrollTop => {
-    this.setState({ scrollTop })
+  private readonly fakeScrollTopUpdateDebouncer = new FrameDebouncer<number>(scrollTop => {
+    if (this.fakeScroll) {
+      this.fakeScroll.scrollTop = scrollTop
+    }
   })
+
+  private readonly gridScrollTopUpdateDebouncer = new FrameDebouncer<number>(scrollTop => {
+    if (this.grid) {
+      const element = ReactDOM.findDOMNode(this.grid)
+      if (element) {
+        element.scrollTop = scrollTop
+      }
+    }
+  })
+
 
   public constructor() {
     super()
@@ -213,7 +227,6 @@ export default class List extends React.Component<IListProps, IListState> {
               cellRenderer={this.renderRow}
               onScroll={this.onScroll}
               scrollToRow={scrollToRow}
-              scrollTop={this.state.scrollTop}
               overscanRowCount={4}
               // Grid doesn't actually _do_ anything with
               // `selectedRow`. We're just passing it through so that
@@ -222,12 +235,9 @@ export default class List extends React.Component<IListProps, IListState> {
               invalidationProps={this.props.invalidationProps}/>
               <div
                 className='fake-scroll'
-                ref={(ref) => {
-                  this.fakeScroll = ref
-                  if(ref) { ref.scrollTop = this.state.scrollTop }
-                }}
+                ref={(ref) => { this.fakeScroll = ref }}
                 style={{ height }}
-                onScroll={(e) => this.stateDebouncer.update(e.currentTarget.scrollTop)}>
+                onScroll={(e) => { this.gridScrollTopUpdateDebouncer.update(e.currentTarget.scrollTop) }}>
                 <div style={{ height: this.props.rowHeight * this.props.rowCount }}></div>
               </div>
               </div>
@@ -259,7 +269,7 @@ export default class List extends React.Component<IListProps, IListState> {
       this.props.onScroll(scrollTop, clientHeight)
     }
 
-    this.stateDebouncer.update(scrollTop)
+    this.fakeScrollTopUpdateDebouncer.update(scrollTop)
   }
 
   public forceUpdate(callback?: () => any) {
