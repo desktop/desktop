@@ -77,7 +77,11 @@ export default class EmojiAutocompletionProvider implements IAutocompletionProvi
     const emoji = hit.emoji
 
     const title = hit.matchLength > 0
-      ? <div className='title'>{emoji.substr(0, hit.matchStart)}<mark>{emoji.substr(hit.matchStart, hit.matchLength)}</mark>{emoji.substr(hit.matchStart + hit.matchLength)}</div>
+      ? <div className='title'>
+          {emoji.substr(0, hit.matchStart)}
+          <mark>{emoji.substr(hit.matchStart, hit.matchLength)}</mark>
+          {emoji.substr(hit.matchStart + hit.matchLength)}
+        </div>
       : <div className='title'>{emoji}</div>
 
     return (
