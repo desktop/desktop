@@ -29,6 +29,7 @@ interface IAutocompletionState<T> {
   readonly provider: IAutocompletionProvider<T>
   readonly items: ReadonlyArray<T>
   readonly range: IRange
+  readonly rangeText: string
   readonly selectedItem: T | null
 }
 
@@ -126,6 +127,15 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
 
     const height = Math.min(noOverflowItemHeight, maxHeight)
 
+    // Use the completion text as invalidation props so that highlighting
+    // will update as you type even though the number of items matched
+    // remains the same. Additionally we need to be aware that different
+    // providers can use different sorting behaviors which also might affect
+    // rendering.
+    const searchText = this.state.autocompletionState
+      ? this.state.autocompletionState.rangeText
+      : undefined
+
     return (
       <div className='autocompletion-popup' style={{ top, left, height }}>
         <List ref={ref => this.autocompletionList = ref}
@@ -134,7 +144,8 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
               selectedRow={selectedRow}
               rowRenderer={row => this.renderItem(state, row)}
               scrollToRow={scrollToRow}
-              onRowSelected={row => this.insertCompletionOnClick(items[row])}/>
+              onRowSelected={row => this.insertCompletionOnClick(items[row])}
+              invalidationProps={searchText}/>
       </div>
     )
   }
@@ -241,6 +252,7 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
         items: state.items,
         range: state.range,
         selectedItem: state.items[nextRow],
+        rangeText: state.rangeText,
       } })
     } else if (event.key === 'Enter' || event.key === 'Tab') {
       event.preventDefault()
@@ -270,7 +282,7 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
           const items = provider.getAutocompletionItems(text)
 
           const selectedItem = items[0]
-          return { provider, items, range, selectedItem }
+          return { provider, items, range, selectedItem, rangeText: text }
         }
       }
     }
