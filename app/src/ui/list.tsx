@@ -1,5 +1,6 @@
 import * as React from 'react'
 const { Grid, AutoSizer } = require('react-virtualized')
+import { FrameDebouncer } from './lib/frame-debouncer'
 
 interface IListProps {
   readonly rowRenderer: (row: number) => JSX.Element
@@ -61,6 +62,10 @@ export default class List extends React.Component<IListProps, IListState> {
   private focusRow = -1
 
   private grid: React.Component<any, any> | null
+
+  private readonly stateDebouncer = new FrameDebouncer<number>(scrollTop => {
+    this.setState({ scrollTop })
+  })
 
   public constructor() {
     super()
@@ -222,7 +227,7 @@ export default class List extends React.Component<IListProps, IListState> {
                   if(ref) { ref.scrollTop = this.state.scrollTop }
                 }}
                 style={{ height }}
-                onScroll={(e) => this.onFakeScroll(e.currentTarget.scrollTop)}>
+                onScroll={(e) => this.stateDebouncer.update(e.currentTarget.scrollTop)}>
                 <div style={{ height: this.props.rowHeight * this.props.rowCount }}></div>
               </div>
               </div>
@@ -230,10 +235,6 @@ export default class List extends React.Component<IListProps, IListState> {
         </AutoSizer>
       </div>
     )
-  }
-
-  private onFakeScroll(scrollTop: number) {
-    this.setState({ scrollTop })
   }
 
   private handleMouseDown = (row: number) => {
@@ -258,7 +259,7 @@ export default class List extends React.Component<IListProps, IListState> {
       this.props.onScroll(scrollTop, clientHeight)
     }
 
-    this.setState({ scrollTop: scrollTop })
+    this.stateDebouncer.update(scrollTop)
   }
 
   public forceUpdate(callback?: () => any) {
