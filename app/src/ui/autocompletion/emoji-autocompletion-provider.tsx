@@ -79,18 +79,26 @@ export default class EmojiAutocompletionProvider implements IAutocompletionProvi
   public renderItem(hit: IEmojiHit) {
     const emoji = hit.emoji
 
-    const title = hit.matchLength > 0
-      ? <div className='title'>
-          {emoji.substr(0, hit.matchStart)}
-          <mark>{emoji.substr(hit.matchStart, hit.matchLength)}</mark>
-          {emoji.substr(hit.matchStart + hit.matchLength)}
-        </div>
-      : <div className='title'>{emoji}</div>
-
     return (
       <div className='emoji' key={emoji}>
         <img className='icon' src={this.emoji.get(emoji)}/>
-        {title}
+        {this.renderHighlightedTitle(hit)}
+      </div>
+    )
+  }
+
+  private renderHighlightedTitle(hit: IEmojiHit) {
+    const emoji = hit.emoji
+
+    if (!hit.matchLength) {
+      return <div className='title'>{emoji}</div>
+    }
+
+    return (
+      <div className='title'>
+        {emoji.substr(0, hit.matchStart)}
+        <mark>{emoji.substr(hit.matchStart, hit.matchLength)}</mark>
+        {emoji.substr(hit.matchStart + hit.matchLength)}
       </div>
     )
   }
