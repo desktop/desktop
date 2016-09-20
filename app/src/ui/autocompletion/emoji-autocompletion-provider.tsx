@@ -68,10 +68,11 @@ export default class EmojiAutocompletionProvider implements IAutocompletionProvi
       if (x.emoji.length < y.emoji.length) { return -1 }
       if (x.emoji.length > y.emoji.length) { return 1 }
 
-      // Emojis names are all (ironically) in US English so we'll use
-      // that as the last effort way of sorting them and we'll use
-      // natural sort such that clock1... and friends are sorted correctly
-      return x.emoji.localeCompare(y.emoji, 'en-US', { numeric: true })
+      // End with sorting them alphabetically
+      if (x.emoji < y.emoji) { return -1 }
+      if (x.emoji > y.emoji) { return 1 }
+
+      return 0
     })
   }
 
