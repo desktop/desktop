@@ -7,5 +7,5 @@ export default {
 
   getItem: function (key: string, login: string): string {
     return keytar.getPassword(key, login)
-  }
+  },
 }

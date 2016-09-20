@@ -40,7 +40,7 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
     if (process.platform !== 'win32') {
       const item = {
         label: 'Remove',
-        action: () => this.removeRepository()
+        action: () => this.removeRepository(),
       }
       showContextualMenu([ item ])
     }

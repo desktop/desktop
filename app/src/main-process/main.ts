@@ -120,7 +120,7 @@ app.on('ready', () => {
     const menuItems = items.map((item, i) => {
       return new MenuItem({
         label: item.label,
-        click: () => event.sender.send('contextual-menu-action', i)
+        click: () => event.sender.send('contextual-menu-action', i),
       })
     })
 
