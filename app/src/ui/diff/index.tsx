@@ -3,8 +3,7 @@ import * as ReactDOM from 'react-dom'
 import * as CodeMirror from 'react-codemirror'
 import { Disposable, CompositeDisposable } from 'event-kit'
 
-/** These are required for their side effects :((( */
-require('codemirror/mode/javascript/javascript')
+/** Required for its side effects :((( */
 require('codemirror/addon/scroll/simplescrollbars')
 
 import IRepository from '../../models/repository'
@@ -217,8 +216,6 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     const options = {
       lineNumbers: false,
       readOnly: true,
-      mode: 'javascript',
-      theme: 'solarized',
       showCursorWhenSelecting: false,
       cursorBlinkRate: -1,
       styleActiveLine: false,
