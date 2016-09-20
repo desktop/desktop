@@ -167,7 +167,7 @@ export default class List extends React.Component<IListProps, void> {
 
   public render() {
     let scrollToRow = this.props.scrollToRow
-    if (!scrollToRow) {
+    if (scrollToRow === undefined) {
       scrollToRow = this.scrollToRow
     }
     this.scrollToRow = -1

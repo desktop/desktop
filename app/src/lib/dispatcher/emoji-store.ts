@@ -87,6 +87,7 @@ export default class EmojiStore {
       Fs.readFile(Path.join(basePath, 'emoji.json'), 'utf8', (err, data) => {
 
         const db: IGemojiDb = JSON.parse(data)
+        const tmp = new Map<string, string>()
 
         db.forEach(emoji => {
 
@@ -102,9 +103,13 @@ export default class EmojiStore {
           }
 
           emoji.aliases.forEach(alias => {
-            this.emoji.set(`:${alias}:`, url)
+            tmp.set(`:${alias}:`, url)
           })
         })
+
+        // Sort and insert into actual map
+        const keys = Array.from(tmp.keys()).sort()
+        keys.forEach(k => this.emoji.set(k, tmp.get(k)))
 
         resolve()
       })
