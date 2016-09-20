@@ -26,7 +26,7 @@
   background: transparent;
 
   &-thumb {
-    background-color: transparent;
+    background-color: var(--scroll-bar-thumb-background-color);
     border-radius: 4px;
 
     // This little hack allows us to have a slim scroll bar
@@ -42,21 +42,6 @@
     &:active {
       background-color: var(--scroll-bar-thumb-background-color-active);
     }
-  }
-}
-
-// Only show the scroll bar on hover, we set its background-color
-// to transparent in the main declaration
-:hover::-webkit-scrollbar {
-  &-thumb {
-    background-color: var(--scroll-bar-thumb-background-color);
-
-    // ...and when it's pressed we'll up the contrast, this is a duplicate
-    // of the rule above to have higher specificity than the
-    // :hover::-webkit-scrollbar-thumb selector. Not sure if there's a way
-    // to ever have the scrollbar be active without the container element
-    // being hovered but let's not take that risk.
-    &:active { background-color: var(--scroll-bar-thumb-background-color-active); }
   }
 }
 
