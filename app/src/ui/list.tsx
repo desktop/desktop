@@ -180,8 +180,7 @@ export default class List extends React.Component<IListProps, void> {
     return (
       <div id={this.props.id}
            className='list'
-           onKeyDown={e => this.handleKeyDown(e)}
-           style={{ flexGrow: 1 }}>
+           onKeyDown={e => this.handleKeyDown(e)}>
         <AutoSizer>
           {({ width, height }: { width: number, height: number }) => (
             <Grid
