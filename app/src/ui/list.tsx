@@ -176,7 +176,7 @@ export default class List extends React.Component<IListProps, void> {
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
     // it with keyboard navigation and select an item.
-    const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : -1
+    const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : null
     return (
       <div id={this.props.id}
            className='list'
