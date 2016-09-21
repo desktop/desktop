@@ -101,9 +101,9 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     } else if (type === DiffLineType.Delete) {
       return 'diff-delete'
     } else if (type === DiffLineType.Context) {
-      return 'diff-hunk'
-    } else {
       return 'diff-context'
+    } else {
+      return 'diff-hunk'
     }
   }
 

@@ -36,6 +36,7 @@
 
 pre.diff-add {
   background: var(--diff-add-background-color);
+  padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-add-border-color);
@@ -44,14 +45,25 @@ pre.diff-add {
 
 pre.diff-delete {
   background: var(--diff-delete-background-color);
+  padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-delete-border-color);
   }
 }
 
+pre.diff-context {
+  background: var(--diff-context-background-color);
+  padding: 0;
+
+  .diff-line-number {
+    border-color: var(--diff-context-border-color);
+  }
+}
+
 pre.diff-hunk {
   background: var(--diff-hunk-background-color);
+  padding: 0;
 
   .diff-line-number {
     border-color: var(--diff-hunk-border-color);
