@@ -96,15 +96,18 @@ export default class List extends React.Component<IListProps, void> {
       }
     }
 
-    if (this.props.canSelectRow) {
-      if (this.props.canSelectRow(newRow)) {
-        return newRow
-      } else {
-        return this.nextSelectableRow(direction, newRow)
-      }
-    } else {
+    if (this.canSelectRow(newRow)) {
       return newRow
+    } else {
+      return this.nextSelectableRow(direction, newRow)
     }
+  }
+
+  /** Convenience method for invoking canSelectRow callback when it exists */
+  private canSelectRow(rowIndex: number) {
+    return this.props.canSelectRow
+      ? this.props.canSelectRow(rowIndex)
+      : true
   }
 
   private moveSelection(direction: 'up' | 'down') {
@@ -217,12 +220,7 @@ export default class List extends React.Component<IListProps, void> {
   }
 
   private handleMouseDown = (row: number) => {
-    let canSelect = true
-    if (this.props.canSelectRow) {
-      canSelect = this.props.canSelectRow(row)
-    }
-
-    if (canSelect) {
+    if (this.canSelectRow(row)) {
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row)
       }
