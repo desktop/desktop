@@ -35,6 +35,10 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
       <div className='changed-file' onContextMenu={e => this.onContextMenu(e)}>
         <input
           type='checkbox'
+          // The checkboxes doesn't need to be tab reachable since we emulate
+          // checkbox behavior on the list item itself, ie hitting space bar
+          // while focused on a row will toggle selection.
+          tabIndex={-1}
           checked={includeFile == null ? undefined : includeFile}
           onChange={event => this.handleChange(event)}
           ref={function(input) {
