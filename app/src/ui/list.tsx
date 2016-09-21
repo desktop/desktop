@@ -32,6 +32,11 @@ interface IListProps {
    */
   onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
 
+  /**
+   * An optional handler called to determine whether a given row is
+   * selectable or not. Reasons for why a row might not be selectable
+   * includes it being a group header or the item being disabled.
+   */
   readonly canSelectRow?: (row: number) => boolean
   readonly onScroll?: (scrollTop: number, clientHeight: number) => void
 
