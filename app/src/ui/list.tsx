@@ -180,7 +180,6 @@ export default class List extends React.Component<IListProps, void> {
     return (
       <div id={this.props.id}
            className='list'
-           tabIndex={tabIndex}
            onKeyDown={e => this.handleKeyDown(e)}
            style={{ flexGrow: 1 }}>
         <AutoSizer>
@@ -206,6 +205,7 @@ export default class List extends React.Component<IListProps, void> {
               onScroll={this.onScroll}
               scrollToRow={scrollToRow}
               overscanRowCount={4}
+              tabIndex={tabIndex}
               // Grid doesn't actually _do_ anything with
               // `selectedRow`. We're just passing it through so that
               // Grid will re-render when it changes.
