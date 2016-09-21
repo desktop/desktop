@@ -149,10 +149,17 @@ export default class List extends React.Component<IListProps, void> {
   }
 
   private renderRow = ({ rowIndex }: { rowIndex: number }) => {
+    const selectable = this.canSelectRow(rowIndex)
     const selected = rowIndex === this.props.selectedRow
     const focused = rowIndex === this.focusRow
     const className = selected ? 'list-item selected' : 'list-item'
-    const tabIndex = selected ? 0 : -1
+
+    // An unselectable row shouldn't have any tabIndex (as -1 means
+    // it's given focus by clicking).
+    let tabIndex: number | undefined = undefined
+    if (selectable) {
+      tabIndex = selected ? 0 : -1
+    }
 
     // We only need to keep a reference to the focused element
     const ref = focused
@@ -160,9 +167,11 @@ export default class List extends React.Component<IListProps, void> {
       : undefined
 
     const element = this.props.rowRenderer(rowIndex)
+    const role = selectable ? 'button' : undefined
+
     return (
       <div key={element.key}
-           role='button'
+           role={role}
            className={className}
            tabIndex={tabIndex}
            ref={ref}
