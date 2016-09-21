@@ -26,6 +26,7 @@ interface IDiffState {
   readonly diff: DiffModel
 }
 
+/** A component which renders a diff for a file. */
 export default class Diff extends React.Component<IDiffProps, IDiffState> {
   /** Have we initialized our CodeMirror editor? This should only happen once. */
   private initializedCodeMirror = false
