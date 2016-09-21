@@ -22,14 +22,14 @@
 
 .diff-line-content,
 .diff-line-column {
-  display: inline-flex;
+  line-height: normal;
+  display: inline-block;
   height: 100%;
 }
 
 .diff-text .before,
 .diff-text .after  {
   color: var(--diff-line-number-color);
-  flex: 1;
   width: var(--diff-line-number-column-width);
   text-align: right;
 }
@@ -63,6 +63,8 @@ pre.diff-hunk {
     background: var(--diff-selected-background-color);
     border-color: var(--diff-selected-border-color);
     color: var(--diff-selected-text-color);
+    padding: var(--spacing-third) var(--spacing-half);
+    margin: 0;
   }
 }
 
@@ -75,8 +77,8 @@ pre.diff-hunk {
 }
 
 .diff-line-number {
+  display: inline-block;
   color: var(--diff-line-number-color);
   width: var(--diff-line-number-column-width);
   text-align: left;
-  padding-left: 5px;
 }
