@@ -144,7 +144,7 @@ export default class List extends React.Component<IListProps, void> {
     const selected = rowIndex === this.props.selectedRow
     const focused = rowIndex === this.focusRow
     const className = selected ? 'list-item selected' : 'list-item'
-    const tabIndex = focused ? 0 : -1
+    const tabIndex = selected ? 0 : -1
 
     // We only need to keep a reference to the focused element
     const ref = focused
