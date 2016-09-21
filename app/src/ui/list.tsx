@@ -187,6 +187,14 @@ export default class List extends React.Component<IListProps, void> {
     )
   }
 
+  /**
+   * Renders the react-virtualized Grid component and optionally
+   * a fake scroll bar component if running on Windows.
+   *
+   * @param {width} - The width of the Grid as given by AutoSizer
+   * @param {height} - The height of the Grid as given by AutoSizer
+   *
+   */
   private renderContents(width: number, height: number) {
     if (process.platform === 'win32') {
       return (
@@ -200,6 +208,12 @@ export default class List extends React.Component<IListProps, void> {
     return this.renderGrid(width, height)
   }
 
+  /**
+   * Renders the react-virtualized Grid component
+   *
+   * @param {width} - The width of the Grid as given by AutoSizer
+   * @param {height} - The height of the Grid as given by AutoSizer
+   */
   private renderGrid(width: number, height: number) {
     let scrollToRow = this.props.scrollToRow
     if (scrollToRow === undefined) {
@@ -229,6 +243,20 @@ export default class List extends React.Component<IListProps, void> {
     )
   }
 
+  /**
+   * Renders a fake scroll container which sits on top of the
+   * react-virtualized Grid component in order for us to be
+   * able to have nice looking scrollbars on Windows.
+   *
+   * The fake scroll bar syncronizes its position
+   *
+   * NB: Should only be used on win32 platforms and needs to
+   * be coupled with styling that hides scroll bars on Grid
+   * and accurately positions the fake scroll bar.
+   *
+   * @param {height} - The height of the Grid as given by AutoSizer
+   *
+   */
   private renderFakeScroll(height: number) {
     return (
       <div
@@ -241,6 +269,10 @@ export default class List extends React.Component<IListProps, void> {
     )
   }
 
+  // Set the scroll position of the actual Grid to that
+  // of the fake scroll bar. This is for mousewheel/touchpad
+  // scrolling on top of the fake Grid or actual dragging of
+  // the scroll thumb.
   private onFakeScroll(e: React.UIEvent<HTMLDivElement>) {
     if (this.grid) {
       const element = ReactDOM.findDOMNode(this.grid)
@@ -272,7 +304,10 @@ export default class List extends React.Component<IListProps, void> {
       this.props.onScroll(scrollTop, clientHeight)
     }
 
-    if (this.fakeScroll) {
+    // Set the scroll position of the fake scroll bar to that
+    // of the actual Grid. This is for mousewheel/touchpad scrolling
+    // on top of the Grid.
+    if (process.platform === 'win32' && this.fakeScroll) {
       this.fakeScroll.scrollTop = scrollTop
     }
   }
