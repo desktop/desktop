@@ -14,13 +14,13 @@ import { IAppState, RepositorySection, PopupType, SelectionType } from '../lib/a
 import { Popuppy } from './popuppy'
 import { CreateBranch } from './create-branch'
 import { Branches } from './branches'
-import AddRepository from './add-repository'
-import RenameBranch from './rename-branch'
+import { AddRepository } from './add-repository'
+import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
 import { showPopupAppMenu, setMenuEnabled } from './main-process-proxy'
-import DiscardChanges from './discard-changes'
+import { DiscardChanges } from './discard-changes'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher

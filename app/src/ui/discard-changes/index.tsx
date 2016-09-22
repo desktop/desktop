@@ -11,7 +11,7 @@ interface IDiscardChangesProps {
 }
 
 /** A component to confirm and then discard changes. */
-export default class DiscardChanges extends React.Component<IDiscardChangesProps, void> {
+export class DiscardChanges extends React.Component<IDiscardChangesProps, void> {
   public render() {
     const paths = this.props.files.map(f => f.path).join(', ')
     return (

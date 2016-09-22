@@ -15,7 +15,7 @@ interface IRenameBranchState {
   readonly newName: string
 }
 
-export default class RenameBranch extends React.Component<IRenameBranchProps, IRenameBranchState> {
+export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBranchState> {
   public constructor(props: IRenameBranchProps) {
     super(props)
 
