@@ -10,7 +10,7 @@ interface IDeleteBranchProps {
   readonly branch: Branch
 }
 
-export default class DeleteBranch extends React.Component<IDeleteBranchProps, void> {
+export class DeleteBranch extends React.Component<IDeleteBranchProps, void> {
   public render() {
     return (
       <form className='panel' onSubmit={event => this.cancel(event)}>

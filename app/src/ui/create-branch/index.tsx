@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
-import sanitizedBranchName from './sanitized-branch-name'
+import { sanitizedBranchName } from './sanitized-branch-name'
 import { Branch } from '../../lib/local-git-operations'
 
 interface ICreateBranchProps {
@@ -20,7 +20,7 @@ interface ICreateBranchState {
 }
 
 /** The Create Branch component. */
-export default class CreateBranch extends React.Component<ICreateBranchProps, ICreateBranchState> {
+export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBranchState> {
   public constructor(props: ICreateBranchProps) {
     super(props)
 

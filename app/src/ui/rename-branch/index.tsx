@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../lib/local-git-operations'
-import sanitizedBranchName from '../create-branch/sanitized-branch-name'
+import { sanitizedBranchName } from '../create-branch/sanitized-branch-name'
 
 interface IRenameBranchProps {
   readonly dispatcher: Dispatcher
