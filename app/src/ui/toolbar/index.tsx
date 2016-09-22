@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import TabBar from '../tab-bar'
+import { TabBar } from '../tab-bar'
 
 export const enum ToolbarTab {
   Changes = 0,

@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import TabBar from '../tab-bar'
+import { TabBar } from '../tab-bar'
 import { AddExistingRepository } from './add-existing-repository'
 import { CreateRepository } from './create-repository'
 import { CloneRepository } from './clone-repository'

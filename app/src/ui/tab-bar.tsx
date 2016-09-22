@@ -11,7 +11,7 @@ interface ITabBarProps {
 }
 
 /** The tab bar component. */
-export default class TabBar extends React.Component<ITabBarProps, void> {
+export class TabBar extends React.Component<ITabBarProps, void> {
   public render() {
     return (
       <div className='tab-bar'>
