@@ -43,7 +43,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   public componentWillReceiveProps(nextProps: IDiffProps) {
-    this.renderDiff(nextProps.repository, nextProps.file, nextProps.readOnly)
+    this.renderDiff(nextProps.repository, nextProps.file)
   }
 
   public componentWillUnmount() {
@@ -60,7 +60,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     this.codeMirror = null
   }
 
-  private async renderDiff(repository: IRepository, file: FileChange | null, readOnly: boolean) {
+  private async renderDiff(repository: IRepository, file: FileChange | null) {
     if (!file) {
       // clear whatever existing state
       this.setState({ diff: new DiffModel([]) })
