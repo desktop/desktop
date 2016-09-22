@@ -27,7 +27,7 @@ import { CloningRepository, CloningRepositoriesStore } from './cloning-repositor
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
 import { EmojiStore } from './emoji-store'
-import GitStore from './git-store'
+import { GitStore } from './git-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 

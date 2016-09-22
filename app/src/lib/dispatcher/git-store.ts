@@ -11,7 +11,7 @@ const LoadingHistoryRequestKey = 'history'
 const RecentBranchesLimit = 5
 
 /** The store for a repository's git data. */
-export default class GitStore {
+export class GitStore {
   private readonly emitter = new Emitter()
 
   /** The commits keyed by their SHA. */
