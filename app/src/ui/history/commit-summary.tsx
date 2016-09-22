@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { FileChange } from '../../models/status'
-import List from '../list'
+import { List } from '../list'
 import { Octicon, OcticonSymbol } from '../octicons'
 import EmojiText from '../lib/emoji-text'
 

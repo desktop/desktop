@@ -1,5 +1,5 @@
 import * as React from 'react'
-import List from '../list'
+import { List } from '../list'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch, Commit } from '../../lib/local-git-operations'
