@@ -8,7 +8,7 @@ import * as TestUtils from 'react-addons-test-utils'
 import { App } from '../src/ui/app'
 import { Dispatcher, AppStore, GitHubUserStore, CloningRepositoriesStore, EmojiStore } from '../src/lib/dispatcher'
 import { InMemoryDispatcher } from './in-memory-dispatcher'
-import TestGitHubUserDatabase from './test-github-user-database'
+import { TestGitHubUserDatabase } from './test-github-user-database'
 
 describe('App', () => {
   let appStore: AppStore | null = null
