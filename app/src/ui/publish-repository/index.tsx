@@ -18,7 +18,7 @@ interface IPublishRepositoryState {
   readonly selectedUser: IAPIUser
 }
 
-export default class PublishRepository extends React.Component<IPublishRepositoryProps, IPublishRepositoryState> {
+export class PublishRepository extends React.Component<IPublishRepositoryProps, IPublishRepositoryState> {
   public constructor(props: IPublishRepositoryProps) {
     super(props)
 

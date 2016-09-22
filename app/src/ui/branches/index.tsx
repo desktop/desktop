@@ -23,7 +23,7 @@ interface IBranchesState {
   readonly selectedRow: number
 }
 
-export default class Branches extends React.Component<IBranchesProps, IBranchesState> {
+export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   private list: List | null = null
   private scrollToRow = -1
 
