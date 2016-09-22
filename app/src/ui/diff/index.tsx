@@ -28,12 +28,13 @@ interface IDiffState {
 
 /** A component which renders a diff for a file. */
 export default class Diff extends React.Component<IDiffProps, IDiffState> {
-  /** Have we initialized our CodeMirror editor? This should only happen once. */
-  private initializedCodeMirror = false
+  /**
+   * The disposable that should be disposed of when the instance is unmounted.
+   * This will be null when our CodeMirror instance hasn't been set up yet.
+   */
+  private codeMirrorDisposables: CompositeDisposable | null = null
 
-  private editor: React.Component<any, any> | null
-
-  private disposables: CompositeDisposable | null = null
+  private codeMirror: any | null
 
   public constructor(props: IDiffProps) {
     super(props)
@@ -42,8 +43,6 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   public componentWillReceiveProps(nextProps: IDiffProps) {
-    this.dispose()
-
     this.renderDiff(nextProps.repository, nextProps.file, nextProps.readOnly)
   }
 
@@ -52,12 +51,13 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private dispose() {
-    const disposables = this.disposables
+    const disposables = this.codeMirrorDisposables
     if (disposables) {
       disposables.dispose()
     }
 
-    this.disposables = null
+    this.codeMirrorDisposables = null
+    this.codeMirror = null
   }
 
   private async renderDiff(repository: IRepository, file: FileChange | null, readOnly: boolean) {
@@ -166,31 +166,23 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     }
   }
 
-  private styleEditor(ref: React.Component<any, any>) {
-    this.editor = ref
+  private configureEditor(editor: any | null) {
+    if (!editor) { return }
 
-    const editor: any = this.editor
-    if (editor && !this.initializedCodeMirror) {
-      const codeMirror: any = editor.getCodeMirror()
-      if (!codeMirror) {
-        return
-      }
+    const codeMirror: any | null = editor.getCodeMirror()
+    if (!codeMirror || codeMirror === this.codeMirror) { return }
 
-      this.initializedCodeMirror = true
+    this.dispose()
+    this.codeMirror = codeMirror
 
-      this.dispose()
+    const disposables = new CompositeDisposable()
+    this.codeMirrorDisposables = disposables
 
-      const disposables = new CompositeDisposable()
-      this.disposables = disposables
+    codeMirror.on('renderLine', this.renderLine)
 
-      codeMirror.on('renderLine', this.renderLine)
-
-      disposables.add(new Disposable(() => {
-        codeMirror.off('renderLine', this.renderLine)
-
-        this.initializedCodeMirror = false
-      }))
-    }
+    disposables.add(new Disposable(() => {
+      codeMirror.off('renderLine', this.renderLine)
+    }))
   }
 
   public render() {
@@ -229,7 +221,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
           className='diff-text'
           value={diffText}
           options={options}
-          ref={(ref: React.Component<any, any>) => this.styleEditor(ref)}/>
+          ref={(ref: any | null) => this.configureEditor(ref)}/>
       </div>
     )
   }
