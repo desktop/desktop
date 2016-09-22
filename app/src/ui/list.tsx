@@ -1,4 +1,6 @@
 import * as React from 'react'
+import * as ReactDOM from 'react-dom'
+
 const { Grid, AutoSizer } = require('react-virtualized')
 
 interface IListProps {
@@ -51,9 +53,20 @@ interface IListProps {
 
 export class List extends React.Component<IListProps, void> {
   private focusItem: HTMLDivElement | null = null
+  private fakeScroll: HTMLDivElement | null = null
 
   private scrollToRow = -1
   private focusRow = -1
+
+  /**
+   * On Win32 we use a fake scroll bar. This variable keeps track of
+   * which of the actual scroll container and the fake scroll container
+   * received the scroll event first to avoid bouncing back and forth
+   * causing jerky scroll bars and more importantly making the mouse
+   * wheel scroll speed appear different when scrolling over the
+   * fake scroll bar and the actual one.
+   */
+  private lastScroll: 'grid' | 'fake' | null = null
 
   private grid: React.Component<any, any> | null
 
@@ -166,12 +179,6 @@ export class List extends React.Component<IListProps, void> {
   }
 
   public render() {
-    let scrollToRow = this.props.scrollToRow
-    if (scrollToRow === undefined) {
-      scrollToRow = this.scrollToRow
-    }
-    this.scrollToRow = -1
-
     // The currently selected list item is focusable but if
     // there's no focused item (and there's items to switch between)
     // the list itself needs to be focusable so that you can reach
@@ -184,37 +191,117 @@ export class List extends React.Component<IListProps, void> {
            onKeyDown={e => this.handleKeyDown(e)}
            style={{ flexGrow: 1 }}>
         <AutoSizer>
-          {({ width, height }: { width: number, height: number }) => (
-            <Grid
-              ref={(ref: React.Component<any, any>) => this.grid = ref}
-              autoContainerWidth
-              width={width}
-              height={height}
-              // Hack:
-              // The autosizer doesn't take custom scrollbars into account and
-              // will thus give us the outer dimensions of the list. Our items,
-              // however simply can't render all the way out to the edge due
-              // to limitations in webkit custom scrollbars which enforces a
-              // padding. This results in content being clipped. By reducing
-              // the width of columns (rows in our case) we avoid rendering
-              // where our scrollbar clips us. See also _scroll.scss.
-              columnWidth={width - 10}
-              columnCount={1}
-              rowCount={this.props.rowCount}
-              rowHeight={this.props.rowHeight}
-              cellRenderer={this.renderRow}
-              onScroll={this.onScroll}
-              scrollToRow={scrollToRow}
-              overscanRowCount={4}
-              // Grid doesn't actually _do_ anything with
-              // `selectedRow`. We're just passing it through so that
-              // Grid will re-render when it changes.
-              selectedRow={this.props.selectedRow}
-              invalidationProps={this.props.invalidationProps}/>
-          )}
+          {({ width, height }: { width: number, height: number }) => this.renderContents(width, height)}
         </AutoSizer>
       </div>
     )
+  }
+
+  /**
+   * Renders the react-virtualized Grid component and optionally
+   * a fake scroll bar component if running on Windows.
+   *
+   * @param {width} - The width of the Grid as given by AutoSizer
+   * @param {height} - The height of the Grid as given by AutoSizer
+   *
+   */
+  private renderContents(width: number, height: number) {
+    if (process.platform === 'win32') {
+      return (
+        <div>
+          {this.renderGrid(width, height)}
+          {this.renderFakeScroll(height)}
+        </div>
+      )
+    }
+
+    return this.renderGrid(width, height)
+  }
+
+  /**
+   * Renders the react-virtualized Grid component
+   *
+   * @param {width} - The width of the Grid as given by AutoSizer
+   * @param {height} - The height of the Grid as given by AutoSizer
+   */
+  private renderGrid(width: number, height: number) {
+    let scrollToRow = this.props.scrollToRow
+    if (scrollToRow === undefined) {
+      scrollToRow = this.scrollToRow
+    }
+    this.scrollToRow = -1
+
+    return (
+      <Grid
+        ref={(ref: React.Component<any, any>) => this.grid = ref}
+        autoContainerWidth
+        width={width}
+        height={height}
+        columnWidth={width}
+        columnCount={1}
+        rowCount={this.props.rowCount}
+        rowHeight={this.props.rowHeight}
+        cellRenderer={this.renderRow}
+        onScroll={this.onScroll}
+        scrollToRow={scrollToRow}
+        overscanRowCount={4}
+        // Grid doesn't actually _do_ anything with
+        // `selectedRow`. We're just passing it through so that
+        // Grid will re-render when it changes.
+        selectedRow={this.props.selectedRow}
+        invalidationProps={this.props.invalidationProps}/>
+    )
+  }
+
+  /**
+   * Renders a fake scroll container which sits on top of the
+   * react-virtualized Grid component in order for us to be
+   * able to have nice looking scrollbars on Windows.
+   *
+   * The fake scroll bar syncronizes its position
+   *
+   * NB: Should only be used on win32 platforms and needs to
+   * be coupled with styling that hides scroll bars on Grid
+   * and accurately positions the fake scroll bar.
+   *
+   * @param {height} - The height of the Grid as given by AutoSizer
+   *
+   */
+  private renderFakeScroll(height: number) {
+    return (
+      <div
+        className='fake-scroll'
+        ref={(ref) => { this.fakeScroll = ref }}
+        style={{ height }}
+        onScroll={(e) => { this.onFakeScroll(e) }}>
+        <div style={{ height: this.props.rowHeight * this.props.rowCount, pointerEvents: 'none' }}></div>
+      </div>
+    )
+  }
+
+  // Set the scroll position of the actual Grid to that
+  // of the fake scroll bar. This is for mousewheel/touchpad
+  // scrolling on top of the fake Grid or actual dragging of
+  // the scroll thumb.
+  private onFakeScroll(e: React.UIEvent<HTMLDivElement>) {
+
+    // We're getting this event in reaction to the Grid
+    // having been scrolled and subsequently updating the
+    // fake scrollTop, ignore it
+    if (this.lastScroll === 'grid') {
+      this.lastScroll = null
+      return
+    }
+
+    this.lastScroll = 'fake'
+
+    if (this.grid) {
+
+      const element = ReactDOM.findDOMNode(this.grid)
+      if (element) {
+        element.scrollTop = e.currentTarget.scrollTop
+      }
+    }
   }
 
   private handleMouseDown = (row: number) => {
@@ -237,6 +324,24 @@ export class List extends React.Component<IListProps, void> {
   private onScroll = ({ scrollTop, clientHeight }: { scrollTop: number, clientHeight: number }) => {
     if (this.props.onScroll) {
       this.props.onScroll(scrollTop, clientHeight)
+    }
+
+    // Set the scroll position of the fake scroll bar to that
+    // of the actual Grid. This is for mousewheel/touchpad scrolling
+    // on top of the Grid.
+    if (process.platform === 'win32' && this.fakeScroll) {
+
+      // We're getting this event in reaction to the fake scroll
+      // having been scrolled and subsequently updating the
+      // Grid scrollTop, ignore it.
+      if (this.lastScroll === 'fake') {
+        this.lastScroll = null
+        return
+      }
+
+      this.lastScroll = 'grid'
+
+      this.fakeScroll.scrollTop = scrollTop
     }
   }
 

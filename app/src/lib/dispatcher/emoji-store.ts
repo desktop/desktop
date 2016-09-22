@@ -16,7 +16,8 @@ interface IGemojiDefinition {
   /**
    * The unicode string of the emoji if emoji is part of
    * the unicode specification. If missing this emoji is
-   * a GitHub custom emoji such as :shipit:  */
+   * a GitHub custom emoji such as :shipit:
+   */
   readonly emoji?: string
 
   /** One or more human readable aliases for the emoji character */
