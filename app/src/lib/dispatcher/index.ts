@@ -1,4 +1,4 @@
-export { Dispatcher } from './dispatcher'
+export * from './dispatcher'
 export * from './actions'
 export * from './app-store'
 export * from './github-user-store'
