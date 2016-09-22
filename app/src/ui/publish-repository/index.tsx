@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import User from '../../models/user'
-import API, { IAPIUser, getDotComAPIEndpoint } from '../../lib/api'
+import { API,  IAPIUser, getDotComAPIEndpoint } from '../../lib/api'
 
 interface IPublishRepositoryProps {
   readonly dispatcher: Dispatcher

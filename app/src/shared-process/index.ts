@@ -7,7 +7,7 @@ import RepositoriesStore from './repositories-store'
 import { Repository, IRepository } from '../models/repository'
 import { register, broadcastUpdate as broadcastUpdate_ } from './communication'
 import { IURLAction, IAddRepositoriesAction, IUpdateGitHubRepositoryAction, IRemoveRepositoriesAction } from '../lib/dispatcher'
-import API, { getDotComAPIEndpoint } from '../lib/api'
+import { API,  getDotComAPIEndpoint } from '../lib/api'
 
 const Octokat = require('octokat')
 
