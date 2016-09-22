@@ -23,7 +23,7 @@ interface IHistoryProps {
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
-export default class History extends React.Component<IHistoryProps, void> {
+export class History extends React.Component<IHistoryProps, void> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
   private onCommitSelected(commit: Commit) {
