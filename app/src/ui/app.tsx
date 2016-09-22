@@ -18,7 +18,7 @@ import AddRepository from './add-repository'
 import RenameBranch from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import PublishRepository from './publish-repository'
-import { default as CloningRepositoryView } from './cloning-repository'
+import { CloningRepositoryView } from './cloning-repository'
 import { showPopupAppMenu, setMenuEnabled } from './main-process-proxy'
 import DiscardChanges from './discard-changes'
 
