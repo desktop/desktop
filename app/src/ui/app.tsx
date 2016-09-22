@@ -2,7 +2,7 @@ import * as React from 'react'
 import { ipcRenderer, remote } from 'electron'
 
 import { Resizable } from './resizable'
-import RepositoriesList from './repositories-list'
+import { RepositoriesList } from './repositories-list'
 import { default as RepositoryView } from './repository'
 import NotLoggedIn from './not-logged-in'
 import { WindowControls } from './window/window-controls'

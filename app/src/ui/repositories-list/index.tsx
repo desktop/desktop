@@ -17,7 +17,7 @@ interface IRepositoriesListProps {
 const RowHeight = 30
 
 /** The list of user-added repositories. */
-export default class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
+export class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
   private renderRow(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
     const item = groupedItems[row]
     if (item.kind === 'repository') {
