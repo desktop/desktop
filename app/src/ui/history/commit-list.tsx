@@ -9,7 +9,7 @@ import Repository from '../../models/repository'
 const RowHeight = 52
 
 interface ICommitListProps {
-  readonly onCommitSelected: (commit: Commit) => void
+  readonly onCommitChanged: (commit: Commit) => void
   readonly onScroll: (start: number, end: number) => void
   readonly history: ReadonlyArray<string>
   readonly commits: Map<string, Commit>
@@ -35,11 +35,11 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
     }
   }
 
-  private onRowSelected(row: number) {
+  private onRowChanged(row: number) {
     const sha = this.props.history[row]
     const commit = this.props.commits.get(sha)
     if (commit) {
-      this.props.onCommitSelected(commit)
+      this.props.onCommitChanged(commit)
     }
   }
 
@@ -74,7 +74,7 @@ export default class CommitList extends React.Component<ICommitListProps, void> 
               rowHeight={RowHeight}
               selectedRow={this.rowForSHA(this.props.selectedSHA)}
               rowRenderer={row => this.renderCommit(row)}
-              onRowSelected={row => this.onRowSelected(row)}
+              onSelectionChanged={row => this.onRowChanged(row)}
               onScroll={(scrollTop, clientHeight) => this.onScroll(scrollTop, clientHeight)}
               invalidationProps={{ commits: this.props.commits, gitHubUsers: this.props.gitHubUsers }}/>
       </div>
