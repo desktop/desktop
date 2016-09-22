@@ -3,7 +3,7 @@ import { app, Menu, MenuItem, autoUpdater, ipcMain, BrowserWindow } from 'electr
 import AppWindow from './app-window'
 import Stats from './stats'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
-import parseURL from '../lib/parse-url'
+import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent, getFeedURL } from './updates'
 import SharedProcess from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
