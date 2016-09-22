@@ -264,7 +264,7 @@ export default class List extends React.Component<IListProps, void> {
         ref={(ref) => { this.fakeScroll = ref }}
         style={{ height }}
         onScroll={(e) => { this.onFakeScroll(e) }}>
-        <div style={{ height: this.props.rowHeight * this.props.rowCount }}></div>
+        <div style={{ height: this.props.rowHeight * this.props.rowCount, pointerEvents: 'none' }}></div>
       </div>
     )
   }
