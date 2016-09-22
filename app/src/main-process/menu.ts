@@ -1,5 +1,5 @@
 import { shell, Menu, ipcMain } from 'electron'
-import SharedProcess from '../shared-process/shared-process'
+import { SharedProcess } from '../shared-process/shared-process'
 
 export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
                         'add-local-repository' | 'create-branch' |

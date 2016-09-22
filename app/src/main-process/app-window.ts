@@ -1,7 +1,7 @@
 import { BrowserWindow, ipcMain } from 'electron'
 
 import { Stats } from './stats'
-import SharedProcess from '../shared-process/shared-process'
+import { SharedProcess } from '../shared-process/shared-process'
 import { WindowState, windowStateChannelName } from '../lib/window-state'
 import { buildDefaultMenu, MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-url'
