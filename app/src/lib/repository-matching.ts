@@ -1,7 +1,7 @@
 import * as URL from 'url'
 
 import { GitHubRepository } from '../models/github-repository'
-import User from '../models/user'
+import { User } from '../models/user'
 import { Owner } from '../models/owner'
 import { getHTMLURL } from './api'
 

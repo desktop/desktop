@@ -1,5 +1,5 @@
 import * as URL from 'url'
-import User from '../models/user'
+import { User } from '../models/user'
 
 const Octokat = require('octokat')
 

@@ -1,7 +1,7 @@
 import tokenStore from './token-store'
 import UsersStore from './users-store'
 import { requestToken, askUserToAuth } from './auth'
-import User from '../models/user'
+import { User } from '../models/user'
 import Database from './database'
 import RepositoriesStore from './repositories-store'
 import { Repository, IRepository } from '../models/repository'

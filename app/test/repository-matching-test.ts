@@ -2,7 +2,7 @@ import * as chai from 'chai'
 const expect = chai.expect
 
 import { matchGitHubRepository } from '../src/lib/repository-matching'
-import User from '../src/models/user'
+import { User } from '../src/models/user'
 
 describe('Repository matching', () => {
   it('matches HTTPS URLs', () => {

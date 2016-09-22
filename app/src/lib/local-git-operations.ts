@@ -10,7 +10,7 @@ import { parseRawDiff } from './diff-parser'
 
 import { GitProcess, GitError, GitErrorCode } from 'git-kitchen-sink'
 
-import User from '../models/user'
+import { User } from '../models/user'
 
 const byline = require('byline')
 

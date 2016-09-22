@@ -15,7 +15,7 @@ import {
   PopupType,
   SelectionType,
 } from '../app-state'
-import User from '../../models/user'
+import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
