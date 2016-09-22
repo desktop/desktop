@@ -16,7 +16,7 @@ interface IRepositoryProps {
   readonly emoji: Map<string, string>
 }
 
-export default class Repository extends React.Component<IRepositoryProps, void> {
+export class RepositoryView extends React.Component<IRepositoryProps, void> {
   private renderContent() {
     if (this.props.state.selectedSection === RepositorySection.Changes) {
       const branch = this.props.state.branchesState.currentBranch
