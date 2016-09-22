@@ -5,7 +5,7 @@ import TabBar from '../tab-bar'
 import AddExistingRepository from './add-existing-repository'
 import CreateRepository from './create-repository'
 import CloneRepository from './clone-repository'
-import fatalError from '../../lib/fatal-error'
+import { fatalError } from '../../lib/fatal-error'
 
 interface IAddRepositoryProps {
   readonly dispatcher: Dispatcher

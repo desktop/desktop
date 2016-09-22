@@ -6,7 +6,7 @@ import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import parseURL from '../lib/parse-url'
 import { handleSquirrelEvent, getFeedURL } from './updates'
 import SharedProcess from '../shared-process/shared-process'
-import fatalError from '../lib/fatal-error'
+import { fatalError } from '../lib/fatal-error'
 
 const stats = new Stats()
 
