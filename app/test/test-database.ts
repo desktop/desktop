@@ -1,4 +1,4 @@
-import Database from '../src/shared-process/database'
+import { Database } from '../src/shared-process/database'
 
 export default class TestDatabase extends Database {
   public constructor() {

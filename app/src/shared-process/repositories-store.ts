@@ -1,4 +1,4 @@
-import Database, { IDatabaseGitHubRepository } from './database'
+import { Database, IDatabaseGitHubRepository } from './database'
 import { Owner } from '../models/owner'
 import { GitHubRepository } from '../models/github-repository'
 import { Repository } from '../models/repository'
