@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
 import { showContextualMenu } from '../main-process-proxy'

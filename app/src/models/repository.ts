@@ -10,7 +10,7 @@ export interface IRepository {
 }
 
 /** A local repository. */
-export default class Repository implements IRepository {
+export class Repository implements IRepository {
   public readonly id: number
   public readonly path: string
   public readonly gitHubRepository: GitHubRepository | null

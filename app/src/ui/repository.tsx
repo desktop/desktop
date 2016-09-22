@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { default as Repo } from '../models/repository'
+import { Repository as Repo } from '../models/repository'
 import { UiView } from './ui-view'
 import Toolbar from './toolbar'
 import { Changes } from './changes'

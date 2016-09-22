@@ -1,7 +1,7 @@
 import Database, { IDatabaseGitHubRepository } from './database'
 import Owner from '../models/owner'
 import GitHubRepository from '../models/github-repository'
-import Repository from '../models/repository'
+import { Repository } from '../models/repository'
 import fatalError from '../lib/fatal-error'
 
 // NB: We can't use async/await within Dexie transactions. This is because Dexie

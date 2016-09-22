@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron'
 import User, { IUser } from '../../models/user'
-import Repository, { IRepository } from '../../models/repository'
+import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import guid from '../guid'
 import { IHistorySelection, RepositorySection, Popup, IAppError } from '../app-state'

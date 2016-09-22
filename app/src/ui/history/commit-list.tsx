@@ -4,7 +4,7 @@ import CommitListItem from './commit-list-item'
 import List from '../list'
 import CommitFacadeListItem from './commit-facade-list-item'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 
 const RowHeight = 52
 

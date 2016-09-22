@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 
 /** The number of commits to load from history per batch. */

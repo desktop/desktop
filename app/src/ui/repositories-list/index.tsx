@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import List from '../list'
 import RepositoryListItem from './repository-list-item'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { groupRepositories, RepositoryListItem as RepositoryListItemModel, Repositoryish } from './group-repositories'
 import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
 

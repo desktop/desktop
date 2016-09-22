@@ -3,7 +3,7 @@ import * as ChildProcess from 'child_process'
 
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
 import { DiffSelectionType, DiffSelection, Diff } from '../models/diff'
-import Repository from '../models/repository'
+import { Repository } from '../models/repository'
 
 import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDeletedFile } from './patch-formatter'
 import { parseRawDiff } from './diff-parser'

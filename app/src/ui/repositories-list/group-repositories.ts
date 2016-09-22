@@ -1,4 +1,4 @@
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { CloningRepository } from '../../lib/dispatcher'
 

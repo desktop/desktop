@@ -2,7 +2,7 @@ import * as chai from 'chai'
 const expect = chai.expect
 
 import { groupRepositories } from '../src/ui/repositories-list/group-repositories'
-import Repository from '../src/models/repository'
+import { Repository } from '../src/models/repository'
 import GitHubRepository from '../src/models/github-repository'
 import Owner from '../src/models/owner'
 import { getDotComAPIEndpoint } from '../src/lib/api'

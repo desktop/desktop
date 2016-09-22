@@ -16,7 +16,7 @@ import {
   SelectionType,
 } from '../app-state'
 import User from '../../models/user'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import GitHubRepository from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'

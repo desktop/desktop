@@ -3,7 +3,7 @@ import { ChangesList } from './changes-list'
 import FileDiff from '../file-diff'
 import { DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
 

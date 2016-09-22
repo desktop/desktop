@@ -1,7 +1,7 @@
 import * as React from 'react'
 import List from '../list'
 import { Dispatcher } from '../../lib/dispatcher'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { Branch, Commit } from '../../lib/local-git-operations'
 import { groupedAndFilteredBranches, BranchListItem } from './grouped-and-filtered-branches'
 import { default as BranchView } from './branch'

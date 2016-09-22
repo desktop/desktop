@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import sanitizedBranchName from './sanitized-branch-name'
 import { Branch } from '../../lib/local-git-operations'
