@@ -366,7 +366,7 @@ export class LocalGitOperations {
 
   /** Get the files that were changed in the given commit. */
   public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
-    const out = await GitProcess.execWithOutput([ 'show', sha, '--name-status', '--format=format:', '-z' ], repository.path)
+    const out = await GitProcess.execWithOutput([ 'log', sha, '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z' ], repository.path)
     const lines = out.split('\0')
     // Remove the trailing empty line
     lines.splice(-1, 1)
