@@ -1,6 +1,6 @@
 import { app, Menu, MenuItem, autoUpdater, ipcMain, BrowserWindow } from 'electron'
 
-import AppWindow from './app-window'
+import { AppWindow } from './app-window'
 import { Stats } from './stats'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { parseURL } from '../lib/parse-url'

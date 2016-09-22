@@ -8,7 +8,7 @@ import { URLActionType } from '../lib/parse-url'
 
 const windowStateKeeper = require('electron-window-state')
 
-export default class AppWindow {
+export class AppWindow {
   private window: Electron.BrowserWindow
   private sharedProcess: SharedProcess
   private stats: Stats
