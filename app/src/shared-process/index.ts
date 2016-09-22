@@ -1,5 +1,5 @@
 import tokenStore from './token-store'
-import UsersStore from './users-store'
+import { UsersStore } from './users-store'
 import { requestToken, askUserToAuth } from './auth'
 import { User } from '../models/user'
 import { Database } from './database'
