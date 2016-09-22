@@ -9,6 +9,9 @@ import { ToolbarTab } from './toolbar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 
+import { remote } from 'electron'
+const { app } = remote
+
 interface IRepositoryProps {
   readonly repository: Repo
   readonly state: IRepositoryModelState
@@ -43,6 +46,7 @@ export default class Repository extends React.Component<IRepositoryProps, void> 
     const selectedTab = this.props.state.selectedSection === RepositorySection.History ? ToolbarTab.History : ToolbarTab.Changes
     return (
       <UiView id='repository'>
+        <div>{app.getVersion()}</div>
         <Toolbar selectedTab={selectedTab}
                  onTabClicked={tab => this.onTabClicked(tab)}
                  hasChanges={this.props.state.changesState.workingDirectory.files.length > 0}/>
