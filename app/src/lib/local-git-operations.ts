@@ -315,7 +315,7 @@ export class LocalGitOperations {
     let args: string[]
 
     if (commit) {
-      args = [ 'show', commit.sha, '--patch-with-raw', '-z', '--', file.path ]
+      args = [ 'log', commit.sha, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
     } else if (file.status === FileStatus.New) {
       args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
     } else {
