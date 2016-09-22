@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as moment from 'moment'
 import { Commit } from '../../lib/local-git-operations'
 import { IGitHubUser } from '../../lib/dispatcher'
-import EmojiText from '../lib/emoji-text'
+import { EmojiText } from '../lib/emoji-text'
 
 const DefaultAvatarURL = 'https://github.com/hubot.png'
 
