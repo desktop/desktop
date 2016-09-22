@@ -43,7 +43,7 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
     })
   }
 
-  private onRowSelected(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
+  private onSelectionChanged(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
     const item = groupedItems[row]
     if (item.kind === 'repository') {
       this.props.onSelectionChanged(item.repository)
@@ -71,7 +71,7 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
             rowHeight={RowHeight}
             rowRenderer={row => this.renderRow(grouped, row)}
             selectedRow={this.selectedRow(grouped)}
-            onRowSelected={row => this.onRowSelected(grouped, row)}
+            onSelectionChanged={row => this.onSelectionChanged(grouped, row)}
             canSelectRow={row => this.canSelectRow(grouped, row)}
             invalidationProps={this.props.repositories}/>
     )

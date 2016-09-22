@@ -26,7 +26,7 @@ interface IHistoryProps {
 export default class History extends React.Component<IHistoryProps, void> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
-  private onCommitSelected(commit: Commit) {
+  private onCommitChanged(commit: Commit) {
     const newSelection = { sha: commit.sha, file: null }
     this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
 
@@ -61,7 +61,7 @@ export default class History extends React.Component<IHistoryProps, void> {
           <CommitList commits={this.props.commits}
                       history={this.props.history.history}
                       selectedSHA={this.props.history.selection.sha}
-                      onCommitSelected={commit => this.onCommitSelected(commit)}
+                      onCommitChanged={commit => this.onCommitChanged(commit)}
                       onScroll={(start, end) => this.onScroll(start, end)}
                       repository={this.props.repository}
                       gitHubUsers={this.props.gitHubUsers}
