@@ -12,7 +12,7 @@ interface IBranchProps {
 }
 
 /** The branch component. */
-export default function Branch({ name, isCurrentBranch, lastCommitDate }: IBranchProps) {
+export function BranchListItem({ name, isCurrentBranch, lastCommitDate }: IBranchProps) {
   const date = lastCommitDate ? moment(lastCommitDate).fromNow() : ''
   const info = isCurrentBranch ? <Octicon symbol={OcticonSymbol.check} /> : date
   const infoTitle = isCurrentBranch ? 'Current branch' : (lastCommitDate ? lastCommitDate.toString() : '')

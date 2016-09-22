@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { List } from '../list'
 import { IAutocompletionProvider } from './index'
-import EmojiAutocompletionProvider from './emoji-autocompletion-provider'
+import { EmojiAutocompletionProvider } from './emoji-autocompletion-provider'
 import { fatalError } from '../../lib/fatal-error'
 
 interface IPosition {
