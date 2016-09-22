@@ -1,7 +1,7 @@
 import { shell, remote } from 'electron'
 const { app } = remote
 
-import guid from '../lib/guid'
+import { guid } from '../lib/guid'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { fatalError } from '../lib/fatal-error'
 
