@@ -26,8 +26,8 @@
   // element which is absolutely positioned on top of the main content.
   // See List.tsx and _list.scss.
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: var(--win32-scroll-bar-size);
+    height: var(--win32-scroll-bar-size);
     background: transparent;
 
     &-thumb {
