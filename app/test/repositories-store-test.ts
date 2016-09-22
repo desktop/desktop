@@ -4,7 +4,7 @@ const expect = chai.expect
 import RepositoriesStore from '../src/shared-process/repositories-store'
 import TestDatabase from './test-database'
 import { GitHubRepository } from '../src/models/github-repository'
-import Owner from '../src/models/owner'
+import { Owner } from '../src/models/owner'
 
 describe('RepositoriesStore', () => {
   let repositoriesStore: RepositoriesStore | null = null

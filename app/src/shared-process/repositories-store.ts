@@ -1,5 +1,5 @@
 import Database, { IDatabaseGitHubRepository } from './database'
-import Owner from '../models/owner'
+import { Owner } from '../models/owner'
 import { GitHubRepository } from '../models/github-repository'
 import { Repository } from '../models/repository'
 import fatalError from '../lib/fatal-error'
