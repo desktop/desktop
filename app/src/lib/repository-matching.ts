@@ -5,7 +5,7 @@ import User from '../models/user'
 import Owner from '../models/owner'
 import { getHTMLURL } from './api'
 
-/** Try to use the list of users and a remote URL to guess a GitHub repository .*/
+/** Try to use the list of users and a remote URL to guess a GitHub repository. */
 export function matchGitHubRepository(users: ReadonlyArray<User>, remote: string): GitHubRepository | null {
   for (const ix in users) {
     const match = matchRemoteWithUser(users[ix], remote)
