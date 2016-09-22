@@ -13,7 +13,7 @@ import { fatalError } from '../lib/fatal-error'
 // Instead of using async/await, use generator functions and `yield`.
 
 /** The store for local repositories. */
-export default class RepositoriesStore {
+export class RepositoriesStore {
   private db: Database
 
   public constructor(db: Database) {
