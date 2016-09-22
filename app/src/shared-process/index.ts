@@ -1,4 +1,4 @@
-import tokenStore from './token-store'
+import { TokenStore } from './token-store'
 import { UsersStore } from './users-store'
 import { requestToken, askUserToAuth } from './auth'
 import { User } from '../models/user'
@@ -11,7 +11,7 @@ import { API,  getDotComAPIEndpoint } from '../lib/api'
 
 const Octokat = require('octokat')
 
-const usersStore = new UsersStore(localStorage, tokenStore)
+const usersStore = new UsersStore(localStorage, TokenStore)
 usersStore.loadFromStore()
 
 const database = new Database('Database')
