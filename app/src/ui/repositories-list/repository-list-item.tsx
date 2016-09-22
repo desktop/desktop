@@ -10,7 +10,7 @@ interface IRepositoryListItemProps {
 }
 
 /** A repository item. */
-export default class RepositoryListItem extends React.Component<IRepositoryListItemProps, void> {
+export class RepositoryListItem extends React.Component<IRepositoryListItemProps, void> {
   public render() {
     const repository = this.props.repository
     const path = repository.path
