@@ -1,4 +1,4 @@
-export default class InMemoryStore {
+export class InMemoryStore {
   private store: {[key: string]: string}
 
   public constructor() {

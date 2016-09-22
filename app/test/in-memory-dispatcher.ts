@@ -5,7 +5,7 @@ import { Repository } from '../src/models/repository'
 
 type State = {users: ReadonlyArray<User>, repositories: ReadonlyArray<Repository>}
 
-export default class InMemoryDispatcher extends Dispatcher {
+export class InMemoryDispatcher extends Dispatcher {
   public requestOAuth(): Promise<void> {
     return Promise.resolve()
   }

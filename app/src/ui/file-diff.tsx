@@ -22,7 +22,7 @@ interface IFileDiffState {
   readonly diff: Diff
 }
 
-export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
+export class FileDiff extends React.Component<IFileDiffProps, IFileDiffState> {
 
   private defaultSidebarWidth = 100
 

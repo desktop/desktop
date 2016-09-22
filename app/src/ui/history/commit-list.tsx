@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { Commit } from '../../lib/local-git-operations'
-import CommitListItem from './commit-list-item'
+import { CommitListItem } from './commit-list-item'
 import { List } from '../list'
-import CommitFacadeListItem from './commit-facade-list-item'
+import { CommitFacadeListItem } from './commit-facade-list-item'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 
@@ -21,7 +21,7 @@ interface ICommitListProps {
 }
 
 /** A component which displays the list of commits. */
-export default class CommitList extends React.Component<ICommitListProps, void> {
+export class CommitList extends React.Component<ICommitListProps, void> {
   private list: List | null
 
   private renderCommit(row: number) {

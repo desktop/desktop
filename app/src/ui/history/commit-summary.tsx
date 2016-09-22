@@ -15,7 +15,7 @@ interface ICommitSummaryProps {
   readonly emoji: Map<string, string>
 }
 
-export default class CommitSummary extends React.Component<ICommitSummaryProps, void> {
+export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
   private onRowSelected(row: number) {
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)
