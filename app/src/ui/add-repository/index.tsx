@@ -2,9 +2,9 @@ import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
 import TabBar from '../tab-bar'
-import AddExistingRepository from './add-existing-repository'
-import CreateRepository from './create-repository'
-import CloneRepository from './clone-repository'
+import { AddExistingRepository } from './add-existing-repository'
+import { CreateRepository } from './create-repository'
+import { CloneRepository } from './clone-repository'
 import { fatalError } from '../../lib/fatal-error'
 
 interface IAddRepositoryProps {
