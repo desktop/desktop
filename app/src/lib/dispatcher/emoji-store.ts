@@ -26,7 +26,7 @@ interface IGemojiDefinition {
   readonly description?: string
 }
 
-export default class EmojiStore {
+export class EmojiStore {
   /** Map from shorcut (e.g., :+1:) to on disk URL. */
   public readonly emoji = new Map<string, string>()
 
