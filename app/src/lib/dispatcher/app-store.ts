@@ -31,7 +31,7 @@ import GitStore from './git-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
-export default class AppStore {
+export class AppStore {
   private emitter = new Emitter()
 
   private users: ReadonlyArray<User> = new Array<User>()
