@@ -1,7 +1,7 @@
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import User from '../../models/user'
-import GitHubRepository from '../../models/github-repository'
+import { GitHubRepository } from '../../models/github-repository'
 import API, { getUserForEndpoint, getDotComAPIEndpoint } from '../api'
 import { GitHubUserDatabase, IGitHubUser } from './github-user-database'
 
