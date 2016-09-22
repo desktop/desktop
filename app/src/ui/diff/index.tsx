@@ -197,7 +197,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     const file = this.props.file
     if (!file) {
       return (
-        <div className='panel blankslate' id='file-diff'>
+        <div className='panel blankslate' id='diff'>
           No file selected
         </div>
       )
@@ -224,7 +224,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     }
 
     return (
-      <div className='panel' id='file-diff'>
+      <div className='panel' id='diff'>
         <CodeMirror
           className='diff-text'
           value={diffText}
