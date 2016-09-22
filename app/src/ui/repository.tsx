@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Repository as Repo } from '../models/repository'
 import { UiView } from './ui-view'
-import Toolbar from './toolbar'
+import { Toolbar } from './toolbar'
 import { Changes } from './changes'
 import History from './history'
 import ComparisonGraph from './comparison-graph'
