@@ -25,7 +25,7 @@ import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
-import GitHubUserStore from './github-user-store'
+import { GitHubUserStore } from './github-user-store'
 import EmojiStore from './emoji-store'
 import GitStore from './git-store'
 

@@ -1,7 +1,7 @@
 export { Dispatcher } from './dispatcher'
 export * from './actions'
 export * from './app-store'
-export { default as GitHubUserStore } from './github-user-store'
+export * from './github-user-store'
 export * from './github-user-database'
 export * from './cloning-repositories-store'
 export { default as EmojiStore } from './emoji-store'

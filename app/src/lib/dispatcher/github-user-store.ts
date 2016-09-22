@@ -9,7 +9,7 @@ import { GitHubUserDatabase, IGitHubUser } from './github-user-database'
  * The store for GitHub users. This is used to match commit authors to GitHub
  * users and avatars.
  */
-export default class GitHubUserStore {
+export class GitHubUserStore {
   private readonly emitter = new Emitter()
 
   private readonly requestsInFlight = new Set<string>()
