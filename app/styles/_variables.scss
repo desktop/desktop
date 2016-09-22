@@ -136,6 +136,9 @@
   --tab-bar-active-color: #3D76C2;
   --tab-bar-background-color: #EDEDED;
 
+  /** Win32 has custom scrol bars, see _scroll.scss */
+  --win32-scroll-bar-size: 10px;
+
   /**
    * Diff view
    */
