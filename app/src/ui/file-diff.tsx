@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import IRepository from '../models/repository'
+import Repository from '../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../models/status'
 import { DiffSelectionType, DiffLine, DiffLineType, Diff } from '../models/diff'
 
@@ -11,7 +11,7 @@ const { Grid, AutoSizer } = require('react-virtualized')
 const RowHeight = 22
 
 interface IFileDiffProps {
-  readonly repository: IRepository
+  readonly repository: Repository
   readonly readOnly: boolean
   readonly file: FileChange | null
   readonly commit: Commit | null
@@ -45,7 +45,7 @@ export default class FileDiff extends React.Component<IFileDiffProps, IFileDiffS
     }
   }
 
-  private async renderDiff(repository: IRepository, file: FileChange | null, readOnly: boolean) {
+  private async renderDiff(repository: Repository, file: FileChange | null, readOnly: boolean) {
     if (!file) {
       // clear whatever existing state
       this.setState({ diff: new Diff([]) })
