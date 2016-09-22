@@ -58,6 +58,16 @@ export default class List extends React.Component<IListProps, void> {
   private scrollToRow = -1
   private focusRow = -1
 
+  /**
+   * On Win32 we use a fake scroll bar. This variable keeps track of
+   * which of the actual scroll container and the fake scroll container
+   * received the scroll event first to avoid bouncing back and forth
+   * causing jerky scroll bars and more importantly making the mouse
+   * wheel scroll speed appear different when scrolling over the
+   * fake scroll bar and the actual one.
+   */
+  private lastScroll: 'grid' | 'fake' | null = null
+
   private grid: React.Component<any, any> | null
 
   private handleKeyDown(e: React.KeyboardEvent<any>) {
@@ -274,7 +284,19 @@ export default class List extends React.Component<IListProps, void> {
   // scrolling on top of the fake Grid or actual dragging of
   // the scroll thumb.
   private onFakeScroll(e: React.UIEvent<HTMLDivElement>) {
+
+    // We're getting this event in reaction to the Grid
+    // having been scrolled and subsequently updating the
+    // fake scrollTop, ignore it
+    if (this.lastScroll === 'grid') {
+      this.lastScroll = null
+      return
+    }
+
+    this.lastScroll = 'fake'
+
     if (this.grid) {
+
       const element = ReactDOM.findDOMNode(this.grid)
       if (element) {
         element.scrollTop = e.currentTarget.scrollTop
@@ -308,6 +330,17 @@ export default class List extends React.Component<IListProps, void> {
     // of the actual Grid. This is for mousewheel/touchpad scrolling
     // on top of the Grid.
     if (process.platform === 'win32' && this.fakeScroll) {
+
+      // We're getting this event in reaction to the fake scroll
+      // having been scrolled and subsequently updating the
+      // Grid scrollTop, ignore it.
+      if (this.lastScroll === 'fake') {
+        this.lastScroll = null
+        return
+      }
+
+      this.lastScroll = 'grid'
+
       this.fakeScroll.scrollTop = scrollTop
     }
   }
