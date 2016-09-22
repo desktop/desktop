@@ -4,14 +4,14 @@ import { ipcRenderer, remote } from 'electron'
 import { Resizable } from './resizable'
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
-import NotLoggedIn from './not-logged-in'
+import { NotLoggedIn } from './not-logged-in'
 import { WindowControls } from './window/window-controls'
 import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import { fatalError } from '../lib/fatal-error'
 import { IAppState, RepositorySection, PopupType, SelectionType } from '../lib/app-state'
-import Popuppy from './popuppy'
+import { Popuppy } from './popuppy'
 import { CreateBranch } from './create-branch'
 import Branches from './branches'
 import AddRepository from './add-repository'
@@ -27,7 +27,7 @@ interface IAppProps {
   readonly appStore: AppStore
 }
 
-export default class App extends React.Component<IAppProps, IAppState> {
+export class App extends React.Component<IAppProps, IAppState> {
   public constructor(props: IAppProps) {
     super(props)
 

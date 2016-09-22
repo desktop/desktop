@@ -5,7 +5,7 @@ import * as Url from 'url'
 
 import { ipcRenderer, remote } from 'electron'
 
-import App from './app'
+import { App } from './app'
 import { WindowState, getWindowState } from '../lib/window-state'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
