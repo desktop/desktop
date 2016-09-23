@@ -392,7 +392,7 @@ export class LocalGitOperations {
   }
 
   private static getAskPassTrampolinePath(): string {
-    const extension = process.platform === 'win32' ? 'bat' : 'sh'
+    const extension = __WIN32__ ? 'bat' : 'sh'
     return Path.resolve(__dirname, 'static', `ask-pass-trampoline.${extension}`)
   }
 
