@@ -5,7 +5,7 @@ import { TabBar } from '../tab-bar'
 import { AddExistingRepository } from './add-existing-repository'
 import { CreateRepository } from './create-repository'
 import { CloneRepository } from './clone-repository'
-import { fatalError } from '../../lib/fatal-error'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IAddRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -48,7 +48,7 @@ export class AddRepository extends React.Component<IAddRepositoryProps, IAddRepo
         return <CloneRepository dispatcher={this.props.dispatcher}/>
 
       default:
-        return fatalError(`Unknown tab: ${this.state.selectedTab}`)
+        return assertNever(this.state.selectedTab, `Unknown tab: ${this.state.selectedTab}`)
     }
   }
 
