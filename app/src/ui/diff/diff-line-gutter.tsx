@@ -1,9 +1,18 @@
 import * as React from 'react'
 import { DiffLine, DiffLineType } from '../../models/diff'
 
+/** The props for the diff gutter. */
 interface IDiffGutterProps {
+  /** The line being represented by the gutter. */
   readonly line: DiffLine
+
+  /**
+   * Is the gutter being used in a readonly diff, e.g., displaying a diff from
+   * history vs. displaying a diff from the working directory.
+   */
   readonly readOnly: boolean
+
+  /** Called when the line's includedness is toggled. */
   readonly onIncludeChanged?: (line: DiffLine) => void
 }
 
