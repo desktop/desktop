@@ -39,11 +39,8 @@
   display: inline-block;
   color: var(--diff-line-number-color);
   width: var(--diff-line-number-column-width);
+  padding: var(--spacing-third) var(--spacing-half);
   text-align: left;
-
-  &.before, &.after {
-    padding: var(--spacing-third) var(--spacing-half);
-  }
 
   &.before {
     border-right: 1px solid var(--diff-border-color);
