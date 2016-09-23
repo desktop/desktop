@@ -18,20 +18,25 @@ interface IDiffGutterProps {
 
 /** The gutter for a diff's line. */
 export default class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
+  /** Can this line be selected for inclusion/exclusion? */
+  private isIncludableLine(): boolean {
+    return this.props.line.type === DiffLineType.Add || this.props.line.type === DiffLineType.Delete
+  }
+
   private onMouseEnter(target: HTMLElement) {
-    if (this.props.line.type === DiffLineType.Add || this.props.line.type === DiffLineType.Delete) {
+    if (this.isIncludableLine()) {
       target.classList.add('diff-line-hover')
     }
   }
 
   private onMouseLeave(target: HTMLElement) {
-    if (this.props.line.type === DiffLineType.Add || this.props.line.type === DiffLineType.Delete) {
+    if (this.isIncludableLine()) {
       target.classList.remove('diff-line-hover')
     }
   }
 
   private onClick() {
-    if (this.props.onIncludeChanged) {
+    if (this.props.onIncludeChanged && this.isIncludableLine()) {
       this.props.onIncludeChanged(this.props.line)
     }
   }
