@@ -28,19 +28,12 @@
   height: 100%;
 }
 
-.diff-text .before,
-.diff-text .after  {
-  color: var(--diff-line-number-color);
-  width: var(--diff-line-number-column-width);
-  text-align: right;
-}
-
 .diff-line-number {
   display: inline-block;
   color: var(--diff-line-number-color);
   width: var(--diff-line-number-column-width);
   padding: var(--spacing-third) var(--spacing-half);
-  text-align: left;
+  text-align: right;
 
   &.before {
     border-right: 1px solid var(--diff-border-color);
