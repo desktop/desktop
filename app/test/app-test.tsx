@@ -10,8 +10,11 @@ import { Dispatcher, AppStore, GitHubUserStore, CloningRepositoriesStore, EmojiS
 import InMemoryDispatcher from './in-memory-dispatcher'
 import TestGitHubUserDatabase from './test-github-user-database'
 
-(global as {}).__WIN32__ = true
-(global as any).__DARWIN__ = true
+// These constants are defined by Webpack at build time, but since tests aren't
+// built with Webpack we need to make sure these exist at runtime.
+const g: any = global
+g['__WIN32__'] = process.platform === 'win32'
+g['__DARWIN__'] = process.platform === 'darwin'
 
 describe('App', () => {
   let appStore: AppStore | null = null
