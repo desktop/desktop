@@ -13,15 +13,14 @@
   font-family: --var(font-family-monospace);
 }
 
-.CodeMirror-lines {
-  padding: 0;
-}
+// Remove blank space at the top of the diff
+.CodeMirror-lines { padding: 0; }
 
 /** The container for the CodeMirror element. */
-.diff-code-mirror {
-  height: 100%;
-}
+.diff-code-mirror { height: 100%; }
 
+// The container element which holds the before and after
+// diff-line-number spans.
 .diff-line-gutter {
   line-height: normal;
   display: inline-block;
