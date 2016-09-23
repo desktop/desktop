@@ -10,6 +10,9 @@ import { Dispatcher, AppStore, GitHubUserStore, CloningRepositoriesStore, EmojiS
 import InMemoryDispatcher from './in-memory-dispatcher'
 import TestGitHubUserDatabase from './test-github-user-database'
 
+(global as {}).__WIN32__ = true
+(global as any).__DARWIN__ = true
+
 describe('App', () => {
   let appStore: AppStore | null = null
   let dispatcher: Dispatcher | null = null
