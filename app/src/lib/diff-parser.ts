@@ -16,7 +16,7 @@ export function parseRawDiff(lines: string[]): Diff {
     // continue to iterate while these sections exist
     let prefixFound = sectionPrefixIndex > -1
 
-    let pointer: number = 0
+    let numberOfUnifiedDiffLines = 0
 
     while (prefixFound) {
 
@@ -62,11 +62,11 @@ export function parseRawDiff(lines: string[]): Diff {
           startDiffSection = 0
           endDiffSection = diffLines.length
         } else {
-          startDiffSection = pointer + 1
+          startDiffSection = numberOfUnifiedDiffLines
           endDiffSection = startDiffSection + diffLines.length
         }
 
-        pointer += diffLines.length
+        numberOfUnifiedDiffLines += diffLines.length
 
         diffSections.push(new DiffSection(range, diffLines, startDiffSection, endDiffSection))
       } else {
@@ -81,7 +81,7 @@ export function parseRawDiff(lines: string[]): Diff {
           startDiffSection = 0
           endDiffSection = diffLines.length
         } else {
-          startDiffSection = pointer
+          startDiffSection = numberOfUnifiedDiffLines
           endDiffSection = startDiffSection + diffLines.length
         }
 
