@@ -42,7 +42,7 @@ export default class DiffLineGutter extends React.Component<IDiffGutterProps, vo
   }
 
   public render() {
-    const baseClassName = 'diff-line-column'
+    const baseClassName = 'diff-line-gutter'
     const selectedStateClassName = this.props.line.selected ? 'diff-line-selected' : ''
     const className = `${baseClassName} ${selectedStateClassName}`
 

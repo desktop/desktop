@@ -10,30 +10,19 @@
 
 .CodeMirror {
   height: 100%;
+  font-family: --var(font-family-monospace);
 }
 
 .CodeMirror-lines {
   padding: 0;
 }
 
-.diff-text {
+/** The container for the CodeMirror element. */
+.diff-code-mirror {
   height: 100%;
-
-  .before {
-    border-right: 1px solid var(--diff-border-color);
-  }
-
-  .after {
-    border-right: 3px solid var(--diff-border-color);
-  }
-
-  .before, .after, .diff-content-text {
-    padding: var(--spacing-third) var(--spacing-half);
-  }
 }
 
-.diff-line-content,
-.diff-line-column {
+.diff-line-gutter {
   line-height: normal;
   display: inline-block;
   height: 100%;
@@ -44,6 +33,25 @@
   color: var(--diff-line-number-color);
   width: var(--diff-line-number-column-width);
   text-align: right;
+}
+
+.diff-line-number {
+  display: inline-block;
+  color: var(--diff-line-number-color);
+  width: var(--diff-line-number-column-width);
+  text-align: left;
+
+  &.before, &.after {
+    padding: var(--spacing-third) var(--spacing-half);
+  }
+
+  &.before {
+    border-right: 1px solid var(--diff-border-color);
+  }
+
+  &.after {
+    border-right: 3px solid var(--diff-border-color);
+  }
 }
 
 pre.diff-add {
@@ -87,8 +95,6 @@ pre.diff-hunk {
     background: var(--diff-selected-background-color);
     border-color: var(--diff-selected-border-color);
     color: var(--diff-selected-text-color);
-    padding: var(--spacing-third) var(--spacing-half);
-    margin: 0;
   }
 }
 
@@ -98,11 +104,4 @@ pre.diff-hunk {
     border-color: var(--diff-hover-border-color);
     color: var(--background-color);
   }
-}
-
-.diff-line-number {
-  display: inline-block;
-  color: var(--diff-line-number-color);
-  width: var(--diff-line-number-column-width);
-  text-align: left;
 }

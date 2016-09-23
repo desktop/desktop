@@ -235,7 +235,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     return (
       <div className='panel' id='diff'>
         <CodeMirror
-          className='diff-text'
+          className='diff-code-mirror'
           value={diffText}
           options={options}
           ref={(ref: any | null) => this.configureEditor(ref)}/>
