@@ -40,7 +40,7 @@
       // that it appears as if it's actually only 4px.
       border-color: transparent;
       border-style: solid;
-      border-width: 0px 3px;
+      border-width: 3px;
       background-clip: padding-box;
 
       // ...and when it's pressed we'll up the contrast
@@ -49,10 +49,7 @@
       }
 
       // When someone hovers over, or presses the bar we'll expand it to 8px
-      &:hover, &:active {
-        border-width: 0px 1px;
-        border-radius: 3px;
-      }
+      &:hover, &:active { border-width: 1px; }
     }
   }
 }
