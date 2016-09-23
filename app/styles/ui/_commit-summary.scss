@@ -65,6 +65,6 @@
   &-header {
     border-bottom: var(--base-border);
     // Render the shadow on top of the list
-    z-index: 2;
+    z-index: calc(var(--popup-z-index) - 1);
   }
 }

@@ -140,6 +140,12 @@
   --win32-scroll-bar-size: 10px;
 
   /**
+   * The z-index for popups. Nothing should be higher, but other z-indexes can
+   * be defined in terms of it.
+   */
+  --popup-z-index: 3;
+
+  /**
    * Diff view
    */
 

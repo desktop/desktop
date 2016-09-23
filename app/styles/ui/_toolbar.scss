@@ -10,6 +10,6 @@
 
   @include darwin {
     margin-top: calc(var(--spacing-double) * -1);
-    z-index: 2;
+    z-index: calc(var(--popup-z-index) - 1);
   }
 }
