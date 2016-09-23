@@ -9,6 +9,7 @@ require('codemirror/addon/scroll/simplescrollbars')
 import IRepository from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
+import { assertNever } from '../../lib/fatal-error'
 
 import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
 
@@ -97,15 +98,14 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private getClassName(type: DiffLineType): string {
-    if (type === DiffLineType.Add) {
-      return 'diff-add'
-    } else if (type === DiffLineType.Delete) {
-      return 'diff-delete'
-    } else if (type === DiffLineType.Context) {
-      return 'diff-context'
-    } else {
-      return 'diff-hunk'
+    switch (type) {
+      case DiffLineType.Add: return 'diff-add'
+      case DiffLineType.Delete: return 'diff-delete'
+      case DiffLineType.Context: return 'diff-context'
+      case DiffLineType.Hunk: return 'diff-hunk'
     }
+
+    return assertNever(type, `Unknown DiffLineType ${type}`)
   }
 
   private onIncludeChanged(line: DiffLine, rowIndex: number) {
