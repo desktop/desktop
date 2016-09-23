@@ -9,7 +9,7 @@ import { WindowControls } from './window/window-controls'
 import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import Repository from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
-import fatalError from '../lib/fatal-error'
+import { assertNever } from '../lib/fatal-error'
 import { IAppState, RepositorySection, PopupType, SelectionType } from '../lib/app-state'
 import Popuppy from './popuppy'
 import CreateBranch from './create-branch'
@@ -76,7 +76,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       case 'delete-branch': return this.deleteBranch()
     }
 
-    return fatalError(`Unknown menu event name: ${name}`)
+    return assertNever(name, `Unknown menu event name: ${name}`)
   }
 
   private renameBranch() {
@@ -268,7 +268,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
                              files={popup.files}/>
     }
 
-    return fatalError(`Unknown popup type: ${popup}`)
+    return assertNever(popup, `Unknown popup type: ${popup}`)
   }
 
   private renderPopup(): JSX.Element | null {
@@ -335,7 +335,7 @@ export default class App extends React.Component<IAppProps, IAppState> {
       return <CloningRepositoryView repository={selectedState.repository}
                                     state={selectedState.state}/>
     } else {
-      return fatalError(`Unknown state: ${selectedState}`)
+      return assertNever(selectedState, `Unknown state: ${selectedState}`)
     }
   }
 
