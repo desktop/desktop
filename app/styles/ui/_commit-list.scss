@@ -51,9 +51,7 @@
       margin: auto 0;
       margin-left: var(--spacing);
 
-      .summary {
-        @include ellipsis
-      }
+      .summary, .byline { @include ellipsis }
     }
   }
 }
