@@ -19,11 +19,24 @@ import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
 
 import DiffLineGutter from './diff-line-gutter'
 
+/** The props for the Diff component. */
 interface IDiffProps {
   readonly repository: IRepository
+
+  /**
+   * Whether the diff is readonly, e.g., displaying a historical diff, or the
+   * diff's lines can be selected, e.g., displaying a change in the working
+   * directory.
+   */
   readonly readOnly: boolean
+
+  /** The file whose diff should be displayed. */
   readonly file: FileChange | null
+
+  /** The commit which contains the diff to display. */
   readonly commit: Commit | null
+
+  /** Called when the includedness of lines or hunks has changed. */
   readonly onIncludeChanged?: (diffSelection: Map<number, boolean>) => void
 }
 
