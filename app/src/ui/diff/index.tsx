@@ -85,8 +85,9 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
       return
     }
 
-    const sameFile = isEqual(file, this.props.file, (a, b) => a.id === b.id)
-
+    // If we're reloading the same file, we want to save the current scroll
+    // position and restore it after the diff's been updated.
+    const sameFile = file && this.props.file && file.id === this.props.file.id
     const codeMirror = this.codeMirror
     if (codeMirror && sameFile) {
       const scrollInfo = codeMirror.getScrollInfo()
@@ -267,11 +268,4 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
       </div>
     )
   }
-}
-
-function isEqual<T>(a: T | null, b: T | null, equal: (a: T, b: T) => boolean): boolean {
-  if (!a && !b) { return true }
-  if (!a || !b) { return false }
-
-  return equal(a, b)
 }
