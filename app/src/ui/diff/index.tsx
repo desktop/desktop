@@ -96,6 +96,8 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     }
 
     const sameCommit = commit && this.props.commit && commit.sha === this.props.commit.sha
+    // If it's the same file and commit, we don't need to reload. Ah the joys of
+    // immutability.
     if (sameFile && sameCommit) { return }
 
     const diff = await LocalGitOperations.getDiff(repository, file, commit)
