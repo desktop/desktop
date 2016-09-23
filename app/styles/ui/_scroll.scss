@@ -32,7 +32,7 @@
 
     &-thumb {
       background-color: var(--scroll-bar-thumb-background-color);
-      border-radius: 4px;
+      border-radius: var(--win32-scroll-bar-size);
 
       // This little hack allows us to have a slim scroll bar
       // with a bigger hit area. The scroll bar width/height
