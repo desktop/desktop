@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { CommitList } from './commit-list'
 import { CommitSummaryContainer } from './commit-summary-container'
-import { FileDiff } from '../file-diff'
+import { Diff } from '../diff'
 import { Repository } from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../lib/local-git-operations'
@@ -26,7 +26,7 @@ interface IHistoryProps {
 export class History extends React.Component<IHistoryProps, void> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
-  private onCommitSelected(commit: Commit) {
+  private onCommitChanged(commit: Commit) {
     const newSelection = { sha: commit.sha, file: null }
     this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
 
@@ -61,7 +61,7 @@ export class History extends React.Component<IHistoryProps, void> {
           <CommitList commits={this.props.commits}
                       history={this.props.history.history}
                       selectedSHA={this.props.history.selection.sha}
-                      onCommitSelected={commit => this.onCommitSelected(commit)}
+                      onCommitChanged={commit => this.onCommitChanged(commit)}
                       onScroll={(start, end) => this.onScroll(start, end)}
                       repository={this.props.repository}
                       gitHubUsers={this.props.gitHubUsers}
@@ -76,10 +76,10 @@ export class History extends React.Component<IHistoryProps, void> {
                                   onSelectedFileChanged={file => this.onFileSelected(file)}
                                   emoji={this.props.emoji}/>
         </Resizable>
-        <FileDiff repository={this.props.repository}
-                  file={selectedFile}
-                  commit={commit}
-                  readOnly={true} />
+        <Diff repository={this.props.repository}
+          file={selectedFile}
+          commit={commit}
+          readOnly={true} />
       </div>
     )
   }

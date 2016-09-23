@@ -13,7 +13,7 @@ interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedPath: string | null
-  readonly onRowSelected: (row: number) => void
+  readonly onFileSelectionChanged: (row: number) => void
   readonly onIncludeChanged: (row: number, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (summary: string, description: string) => void
@@ -84,7 +84,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               rowHeight={RowHeight}
               rowRenderer={row => this.renderRow(row)}
               selectedRow={selectedRow}
-              onRowSelected={row => this.props.onRowSelected(row)}
+              onSelectionChanged={row => this.props.onFileSelectionChanged(row)}
               invalidationProps={this.props.workingDirectory}
               onRowKeyDown={this.props.onRowKeyDown} />
 

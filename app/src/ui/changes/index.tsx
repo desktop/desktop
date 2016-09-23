@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ChangesList } from './changes-list'
-import { FileDiff } from '../file-diff'
+import { Diff  } from '../diff'
 import { DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
@@ -24,7 +24,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     this.props.dispatcher.commitIncludedChanges(this.props.repository, summary, description)
   }
 
-  private onRowSelected(row: number) {
+  private onFileSelectionChanged(row: number) {
     const file = this.props.changes.workingDirectory.files[row]
     this.props.dispatcher.changeChangesSelection(this.props.repository, file)
   }
@@ -112,7 +112,7 @@ export class Changes extends React.Component<IChangesProps, void> {
           <ChangesList repository={this.props.repository}
                        workingDirectory={this.props.changes.workingDirectory}
                        selectedPath={selectedPath}
-                       onRowSelected={event => this.onRowSelected(event)}
+                       onFileSelectionChanged={file => this.onFileSelectionChanged(file) }
                        onCreateCommit={(summary, description) => this.onCreateCommit(summary, description)}
                        onIncludeChanged={(row, include) => this.onIncludeChanged(row, include)}
                        onSelectAll={selectAll => this.onSelectAll(selectAll)}
@@ -123,11 +123,11 @@ export class Changes extends React.Component<IChangesProps, void> {
                        emoji={this.props.emoji}/>
         </Resizable>
 
-        <FileDiff repository={this.props.repository}
-                  file={this.props.changes.selectedFile}
-                  readOnly={false}
-                  commit={null}
-                  onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)} />
+        <Diff repository={this.props.repository}
+          file={this.props.changes.selectedFile}
+          readOnly={false}
+          commit={null}
+          onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)} />
       </div>
     )
   }
