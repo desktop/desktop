@@ -9,7 +9,7 @@
 }
 
 .CodeMirror {
-  height: auto;
+  height: 100%;
 }
 
 .CodeMirror-lines {
@@ -17,6 +17,8 @@
 }
 
 .diff-text {
+  height: 100%;
+
   .before {
     border-right: 1px solid var(--diff-border-color);
   }
