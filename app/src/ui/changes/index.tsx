@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { ChangesList } from './changes-list'
-import FileDiff from '../file-diff'
+import Diff from '../diff'
 import { DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
 import Repository from '../../models/repository'
@@ -123,11 +123,11 @@ export class Changes extends React.Component<IChangesProps, void> {
                        emoji={this.props.emoji}/>
         </Resizable>
 
-        <FileDiff repository={this.props.repository}
-                  file={this.props.changes.selectedFile}
-                  readOnly={false}
-                  commit={null}
-                  onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)} />
+        <Diff repository={this.props.repository}
+          file={this.props.changes.selectedFile}
+          readOnly={false}
+          commit={null}
+          onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)} />
       </div>
     )
   }

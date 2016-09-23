@@ -1,7 +1,7 @@
 import * as React from 'react'
 import CommitList from './commit-list'
 import CommitSummaryContainer from './commit-summary-container'
-import FileDiff from '../file-diff'
+import Diff from '../diff'
 import Repository from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../lib/local-git-operations'
@@ -76,10 +76,10 @@ export default class History extends React.Component<IHistoryProps, void> {
                                   onSelectedFileChanged={file => this.onFileSelected(file)}
                                   emoji={this.props.emoji}/>
         </Resizable>
-        <FileDiff repository={this.props.repository}
-                  file={selectedFile}
-                  commit={commit}
-                  readOnly={true} />
+        <Diff repository={this.props.repository}
+          file={selectedFile}
+          commit={commit}
+          readOnly={true} />
       </div>
     )
   }
