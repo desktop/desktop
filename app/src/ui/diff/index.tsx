@@ -3,8 +3,12 @@ import * as ReactDOM from 'react-dom'
 import * as CodeMirror from 'react-codemirror'
 import { Disposable, CompositeDisposable } from 'event-kit'
 
-/** Required for its side effects :((( */
-require('codemirror/addon/scroll/simplescrollbars')
+if (process.platform === 'win32') {
+  // Required for its side effects :(((
+  //
+  // See https://codemirror.net/doc/manual.html#addon_simplescrollbars.
+  require('codemirror/addon/scroll/simplescrollbars')
+}
 
 import IRepository from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
@@ -212,7 +216,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
       showCursorWhenSelecting: false,
       cursorBlinkRate: -1,
       styleActiveLine: false,
-      scrollbarStyle: 'simple',
+      scrollbarStyle: process.platform === 'win32' ? 'simple' : 'native',
     }
 
     return (
