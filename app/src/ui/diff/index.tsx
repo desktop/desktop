@@ -3,22 +3,33 @@ import * as ReactDOM from 'react-dom'
 import * as CodeMirror from 'react-codemirror'
 import { Disposable, CompositeDisposable } from 'event-kit'
 
-/** Required for its side effects :((( */
-require('codemirror/addon/scroll/simplescrollbars')
-
 import IRepository from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
+import { assertNever } from '../../lib/fatal-error'
 
 import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
 
 import DiffLineGutter from './diff-line-gutter'
 
+/** The props for the Diff component. */
 interface IDiffProps {
   readonly repository: IRepository
+
+  /**
+   * Whether the diff is readonly, e.g., displaying a historical diff, or the
+   * diff's lines can be selected, e.g., displaying a change in the working
+   * directory.
+   */
   readonly readOnly: boolean
+
+  /** The file whose diff should be displayed. */
   readonly file: FileChange | null
+
+  /** The commit which contains the diff to display. */
   readonly commit: Commit | null
+
+  /** Called when the includedness of lines or hunks has changed. */
   readonly onIncludeChanged?: (diffSelection: Map<number, boolean>) => void
 }
 
@@ -43,7 +54,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   public componentWillReceiveProps(nextProps: IDiffProps) {
-    this.renderDiff(nextProps.repository, nextProps.file)
+    this.loadDiff(nextProps.repository, nextProps.file)
   }
 
   public componentWillUnmount() {
@@ -60,7 +71,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     this.codeMirror = null
   }
 
-  private async renderDiff(repository: IRepository, file: FileChange | null) {
+  private async loadDiff(repository: IRepository, file: FileChange | null) {
     if (!file) {
       // clear whatever existing state
       this.setState({ diff: new DiffModel([]) })
@@ -97,15 +108,14 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private getClassName(type: DiffLineType): string {
-    if (type === DiffLineType.Add) {
-      return 'diff-add'
-    } else if (type === DiffLineType.Delete) {
-      return 'diff-delete'
-    } else if (type === DiffLineType.Context) {
-      return 'diff-context'
-    } else {
-      return 'diff-hunk'
+    switch (type) {
+      case DiffLineType.Add: return 'diff-add'
+      case DiffLineType.Delete: return 'diff-delete'
+      case DiffLineType.Context: return 'diff-context'
+      case DiffLineType.Hunk: return 'diff-hunk'
     }
+
+    return assertNever(type, `Unknown DiffLineType ${type}`)
   }
 
   private onIncludeChanged(line: DiffLine, rowIndex: number) {
@@ -212,13 +222,13 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
       showCursorWhenSelecting: false,
       cursorBlinkRate: -1,
       styleActiveLine: false,
-      scrollbarStyle: 'simple',
+      scrollbarStyle: 'native',
     }
 
     return (
       <div className='panel' id='diff'>
         <CodeMirror
-          className='diff-text'
+          className='diff-code-mirror'
           value={diffText}
           options={options}
           ref={(ref: any | null) => this.configureEditor(ref)}/>
