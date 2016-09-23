@@ -98,14 +98,11 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private getClassName(type: DiffLineType): string {
-    if (type === DiffLineType.Add) {
-      return 'diff-add'
-    } else if (type === DiffLineType.Delete) {
-      return 'diff-delete'
-    } else if (type === DiffLineType.Context) {
-      return 'diff-context'
-    } else if (type === DiffLineType.Hunk) {
-      return 'diff-hunk'
+    switch (type) {
+      case DiffLineType.Add: return 'diff-add'
+      case DiffLineType.Delete: return 'diff-delete'
+      case DiffLineType.Context: return 'diff-context'
+      case DiffLineType.Hunk: return 'diff-hunk'
     }
 
     return assertNever(type, `Unknown DiffLineType ${type}`)
