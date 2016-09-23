@@ -43,7 +43,8 @@ export default class DiffLineGutter extends React.Component<IDiffGutterProps, vo
 
   public render() {
     const baseClassName = 'diff-line-column'
-    const className = `${baseClassName} ${this.props.line.selected ? 'diff-line-selected' : ''}`
+    const selectedStateClassName = this.props.line.selected ? 'diff-line-selected' : ''
+    const className = `${baseClassName} ${selectedStateClassName}`
 
     // TODO: depending on cursor position, highlight hunk rather than line
 
