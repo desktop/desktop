@@ -47,6 +47,13 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private codeMirror: any | null
 
+  /**
+   * We store the scroll position before reloading the same diff so that we can
+   * restore it when we're done. If we're not reloading the same diff, this'll
+   * be null.
+   */
+  private scrollPositionToRestore: { left: number, top: number } | null = null
+
   public constructor(props: IDiffProps) {
     super(props)
 
@@ -54,7 +61,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   public componentWillReceiveProps(nextProps: IDiffProps) {
-    this.loadDiff(nextProps.repository, nextProps.file)
+    this.loadDiff(nextProps.repository, nextProps.file, nextProps.commit)
   }
 
   public componentWillUnmount() {
@@ -71,14 +78,27 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     this.codeMirror = null
   }
 
-  private async loadDiff(repository: IRepository, file: FileChange | null) {
+  private async loadDiff(repository: IRepository, file: FileChange | null, commit: Commit | null) {
     if (!file) {
       // clear whatever existing state
       this.setState({ diff: new DiffModel([]) })
       return
     }
 
-    const diff = await LocalGitOperations.getDiff(repository, file, this.props.commit)
+    const sameFile = isEqual(file, this.props.file, (a, b) => a.id === b.id)
+
+    const codeMirror = this.codeMirror
+    if (codeMirror && sameFile) {
+      const scrollInfo = codeMirror.getScrollInfo()
+      this.scrollPositionToRestore = { left: scrollInfo.left, top: scrollInfo.top }
+    } else {
+      this.scrollPositionToRestore = null
+    }
+
+    const sameCommit = commit && this.props.commit && commit.sha === this.props.commit.sha
+    if (sameFile && sameCommit) { return }
+
+    const diff = await LocalGitOperations.getDiff(repository, file, commit)
 
     if (file instanceof WorkingDirectoryFileChange) {
       const diffSelection = file.selection
@@ -176,6 +196,14 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     }
   }
 
+  private restoreScrollPosition = () => {
+    const codeMirror = this.codeMirror
+    const scrollPosition = this.scrollPositionToRestore
+    if (codeMirror && scrollPosition) {
+      this.codeMirror.scrollTo(scrollPosition.left, scrollPosition.top)
+    }
+  }
+
   private configureEditor(editor: any | null) {
     if (!editor) { return }
 
@@ -189,9 +217,11 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     this.codeMirrorDisposables = disposables
 
     codeMirror.on('renderLine', this.renderLine)
+    codeMirror.on('changes', this.restoreScrollPosition)
 
     disposables.add(new Disposable(() => {
       codeMirror.off('renderLine', this.renderLine)
+      codeMirror.off('changes', this.restoreScrollPosition)
     }))
   }
 
@@ -235,4 +265,11 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
       </div>
     )
   }
+}
+
+function isEqual<T>(a: T | null, b: T | null, equal: (a: T, b: T) => boolean): boolean {
+  if (!a && !b) { return true }
+  if (!a || !b) { return false }
+
+  return equal(a, b)
 }
