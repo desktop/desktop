@@ -203,11 +203,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderTitlebar() {
-    if (process.platform !== 'darwin' && process.platform !== 'win32') {
-      return null
-    }
-
-    const winControls = process.platform === 'win32'
+    const winControls = __WIN32__
       ? <WindowControls />
       : null
 
@@ -221,7 +217,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   /** Put the main application menu into a context menu for now (win only) */
   private onContextMenu(e: React.MouseEvent<any>) {
-    if (process.platform === 'win32') {
+    if (__WIN32__) {
       e.preventDefault()
       showPopupAppMenu()
     }

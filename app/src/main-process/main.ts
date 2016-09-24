@@ -22,7 +22,7 @@ app.on('will-finish-launching', () => {
   })
 })
 
-if (process.platform === 'win32' && process.argv.length > 1) {
+if (__WIN32__ && process.argv.length > 1) {
   if (handleSquirrelEvent(process.argv[1])) {
     app.quit()
   }
@@ -54,9 +54,9 @@ app.on('ready', () => {
 
   app.setAsDefaultProtocolClient('x-github-client')
   // Also support Desktop Classic's protocols.
-  if (process.platform === 'darwin') {
+  if (__DARWIN__) {
     app.setAsDefaultProtocolClient('github-mac')
-  } else if (process.platform === 'win32') {
+  } else if (__WIN32__) {
     app.setAsDefaultProtocolClient('github-windows')
   }
 
@@ -144,7 +144,7 @@ function createWindow() {
   window.onClose(() => {
     mainWindow = null
 
-    if (process.platform !== 'darwin') {
+    if (!__DARWIN__) {
       app.quit()
     }
   })

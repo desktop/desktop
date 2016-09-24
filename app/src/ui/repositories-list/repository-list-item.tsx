@@ -37,7 +37,7 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
 
   private onContextMenu(event: React.MouseEvent<any>) {
     event.preventDefault()
-    if (process.platform !== 'win32') {
+    if (!__WIN32__) {
       const item = {
         label: 'Remove',
         action: () => this.removeRepository(),
