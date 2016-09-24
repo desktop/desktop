@@ -58,6 +58,8 @@ module.exports = {
     __filename: false
   },
   replacements: {
-    __OAUTH_SECRET__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_SECRET)
+    __OAUTH_SECRET__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_SECRET),
+    __DARWIN__: process.platform === 'darwin',
+    __WIN32__: process.platform === 'win32'
   }
 }

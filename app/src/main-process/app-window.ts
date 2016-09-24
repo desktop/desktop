@@ -33,9 +33,9 @@ export default class AppWindow {
       backgroundColor: '#fff',
     }
 
-    if (process.platform === 'darwin') {
+    if (__DARWIN__) {
         windowOptions.titleBarStyle = 'hidden-inset'
-    } else if (process.platform === 'win32') {
+    } else if (__WIN32__) {
         windowOptions.frame = false
     }
 
@@ -76,7 +76,7 @@ export default class AppWindow {
     // We don't have a menu bar on windows so we'll cheat
     // for now and make right-clicking in the app show the
     // default menu as a context menu instead.
-    if (process.platform === 'win32') {
+    if (__WIN32__) {
       const menu = buildDefaultMenu(this.sharedProcess)
 
       ipcMain.on('show-popup-app-menu', (e, ...args) => {
