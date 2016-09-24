@@ -20,9 +20,6 @@
     border-bottom: 1px solid var(--box-border-color);
     display: flex;
     padding: var(--spacing-half);
-
-    // Render the shadow on top of the list
-    z-index: calc(var(--popup-z-index) - 1);
   }
 
   &-header-input {
