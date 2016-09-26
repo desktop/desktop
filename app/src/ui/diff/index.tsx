@@ -128,9 +128,10 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private diffSectionForIndex(diff: DiffModel, index: number): DiffSection | null {
-    return diff.sections.find(s => {
+    const section = diff.sections.find(s => {
       return index >= s.unifiedDiffStart && index <= s.unifiedDiffEnd
-    }) || null
+    })
+    return section || null
   }
 
   private getClassName(type: DiffLineType): string {
