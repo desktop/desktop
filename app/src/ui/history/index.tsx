@@ -27,8 +27,7 @@ export class History extends React.Component<IHistoryProps, void> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
   private onCommitChanged(commit: Commit) {
-    const newSelection = { sha: commit.sha, file: null }
-    this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
+    this.props.dispatcher.changeHistoryCommitSelection(this.props.repository, commit.sha)
 
     this.loadChangedFilesScheduler.queue(() => {
       this.props.dispatcher.loadChangedFilesForCurrentSelection(this.props.repository)
@@ -36,8 +35,7 @@ export class History extends React.Component<IHistoryProps, void> {
   }
 
   private onFileSelected(file: FileChange) {
-    const newSelection = { sha: this.props.history.selection.sha, file }
-    this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
+    this.props.dispatcher.changeHistoryFileSelection(this.props.repository, file)
   }
 
   private onScroll(start: number, end: number) {

@@ -4,7 +4,6 @@ import * as Path from 'path'
 import {
   IRepositoryState,
   IHistoryState,
-  IHistorySelection,
   IAppState,
   RepositorySection,
   IChangesState,
@@ -295,11 +294,7 @@ export class AppStore {
     }
 
     if (!newSelection.sha && history.length > 0) {
-      newSelection = {
-        sha: history[0],
-        file: null,
-      }
-      this._changeHistorySelection(repository, newSelection)
+      this._changeHistoryCommitSelection(repository, history[0])
       this._loadChangedFilesForCurrentSelection(repository)
     }
 
@@ -339,15 +334,28 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
+  public async _changeHistoryCommitSelection(repository: Repository, sha: string): Promise<void> {
     this.updateHistoryState(repository, state => {
-      const commitChanged = state.selection.sha !== selection.sha
+      const commitChanged = state.selection.sha !== sha
       const changedFiles = commitChanged ? new Array<FileChange>() : state.changedFiles
+      const file = commitChanged ? null : state.selection.file
 
       return {
         history: state.history,
-        selection,
+        selection: { sha, file },
         changedFiles,
+      }
+    })
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _changeHistoryFileSelection(repository: Repository, file: FileChange | null): Promise<void> {
+    this.updateHistoryState(repository, state => {
+      return {
+        history: state.history,
+        selection: { sha: state.selection.sha, file },
+        changedFiles: state.changedFiles,
       }
     })
     this.emitUpdate()
