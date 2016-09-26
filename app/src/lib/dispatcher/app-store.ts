@@ -851,8 +851,15 @@ export class AppStore {
   }
 
   public async _discardChanges(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>) {
-    const relativePaths = files.map(f => f.path)
-    const absolutePaths = relativePaths.map(p => Path.join(repository.path, p))
+    const onDiskStatuses = new Set([
+      FileStatus.New,
+      FileStatus.Modified,
+      FileStatus.Renamed,
+      FileStatus.Conflicted,
+      FileStatus.Unknown,
+    ])
+    const onDiskFiles = files.filter(f => onDiskStatuses.has(f.status))
+    const absolutePaths = onDiskFiles.map(f => Path.join(repository.path, f.path))
     for (const path of absolutePaths) {
       shell.moveItemToTrash(path)
     }
