@@ -256,6 +256,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       cursorBlinkRate: -1,
       styleActiveLine: false,
       scrollbarStyle: 'native',
+      lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
     }
 
     return (
