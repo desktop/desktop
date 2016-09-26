@@ -57,6 +57,8 @@ export function parseRawDiff(lines: ReadonlyArray<string>): Diff {
         let endDiffSection: number = 0
 
         const diffLines = diffBody.split('\n')
+        // Remove the trailing empty line
+        diffLines.pop()
 
         if (diffSections.length === 0) {
           startDiffSection = 0
@@ -76,6 +78,8 @@ export function parseRawDiff(lines: ReadonlyArray<string>): Diff {
         let endDiffSection: number = 0
 
         const diffLines = diffBody.split('\n')
+        // Remove the trailing empty line
+        diffLines.pop()
 
         if (diffSections.length === 0) {
           startDiffSection = 0
