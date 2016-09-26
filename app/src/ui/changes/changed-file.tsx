@@ -23,8 +23,8 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     return 'Unknown'
   }
 
-  private handleChange(event: React.FormEvent<any>) {
-    const include = (event.target as any).checked
+  private handleChange(event: React.FormEvent<HTMLInputElement>) {
+    const include = event.currentTarget.checked
     this.props.onIncludeChanged(include)
   }
 
