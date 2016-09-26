@@ -1,8 +1,8 @@
 import * as React from 'react'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../lib/local-git-operations'
-import CommitSummary from './commit-summary'
+import { CommitSummary } from './commit-summary'
 
 interface ICommitSummaryContainerProps {
   readonly repository: Repository
@@ -14,7 +14,7 @@ interface ICommitSummaryContainerProps {
 }
 
 /** A component which displays a commit's summary. */
-export default class CommitSummaryContainer extends React.Component<ICommitSummaryContainerProps, void> {
+export class CommitSummaryContainer extends React.Component<ICommitSummaryContainerProps, void> {
   private renderCommit() {
     if (!this.props.commit) {
       return <NoCommitSelected/>

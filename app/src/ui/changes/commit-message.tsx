@@ -54,7 +54,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   }
 
   private onKeyDown(event: React.KeyboardEvent<Element>) {
-    const isShortcutKey = process.platform === 'darwin' ? event.metaKey : event.ctrlKey
+    const isShortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
     if (isShortcutKey && event.key === 'Enter') {
       this.createCommit()
     }

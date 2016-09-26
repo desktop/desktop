@@ -9,7 +9,7 @@
 .autocompletion-popup {
   display: flex;
   position: absolute;
-  z-index: 2;
+  z-index: var(--popup-z-index);
   width: 200px;
 
   background-color: var(--background-color);

@@ -1,4 +1,4 @@
-import Owner, { IOwner } from './owner'
+import { Owner, IOwner } from './owner'
 import { IAPIRepository } from '../lib/api'
 
 /** The data-only interface for GitHubRepository for transport across IPC. */
@@ -12,7 +12,7 @@ export interface IGitHubRepository {
 }
 
 /** A GitHub repository. */
-export default class GitHubRepository implements IGitHubRepository {
+export class GitHubRepository implements IGitHubRepository {
   public readonly name: string
   public readonly owner: Owner
   public readonly private: boolean | null

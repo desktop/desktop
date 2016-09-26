@@ -3,18 +3,18 @@ import * as ReactDOM from 'react-dom'
 import * as CodeMirror from 'react-codemirror'
 import { Disposable, CompositeDisposable } from 'event-kit'
 
-import IRepository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
 import { assertNever } from '../../lib/fatal-error'
 
 import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
 
-import DiffLineGutter from './diff-line-gutter'
+import { DiffLineGutter } from './diff-line-gutter'
 
 /** The props for the Diff component. */
 interface IDiffProps {
-  readonly repository: IRepository
+  readonly repository: Repository
 
   /**
    * Whether the diff is readonly, e.g., displaying a historical diff, or the
@@ -38,7 +38,7 @@ interface IDiffState {
 }
 
 /** A component which renders a diff for a file. */
-export default class Diff extends React.Component<IDiffProps, IDiffState> {
+export class Diff extends React.Component<IDiffProps, IDiffState> {
   /**
    * The disposable that should be disposed of when the instance is unmounted.
    * This will be null when our CodeMirror instance hasn't been set up yet.
@@ -47,6 +47,13 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private codeMirror: any | null
 
+  /**
+   * We store the scroll position before reloading the same diff so that we can
+   * restore it when we're done. If we're not reloading the same diff, this'll
+   * be null.
+   */
+  private scrollPositionToRestore: { left: number, top: number } | null = null
+
   public constructor(props: IDiffProps) {
     super(props)
 
@@ -54,7 +61,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   public componentWillReceiveProps(nextProps: IDiffProps) {
-    this.loadDiff(nextProps.repository, nextProps.file)
+    this.loadDiff(nextProps.repository, nextProps.file, nextProps.commit)
   }
 
   public componentWillUnmount() {
@@ -71,14 +78,30 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     this.codeMirror = null
   }
 
-  private async loadDiff(repository: IRepository, file: FileChange | null) {
+  private async loadDiff(repository: Repository, file: FileChange | null, commit: Commit | null) {
     if (!file) {
       // clear whatever existing state
       this.setState({ diff: new DiffModel([]) })
       return
     }
 
-    const diff = await LocalGitOperations.getDiff(repository, file, this.props.commit)
+    // If we're reloading the same file, we want to save the current scroll
+    // position and restore it after the diff's been updated.
+    const sameFile = file && this.props.file && file.id === this.props.file.id
+    const codeMirror = this.codeMirror
+    if (codeMirror && sameFile) {
+      const scrollInfo = codeMirror.getScrollInfo()
+      this.scrollPositionToRestore = { left: scrollInfo.left, top: scrollInfo.top }
+    } else {
+      this.scrollPositionToRestore = null
+    }
+
+    const sameCommit = commit && this.props.commit && commit.sha === this.props.commit.sha
+    // If it's the same file and commit, we don't need to reload. Ah the joys of
+    // immutability.
+    if (sameFile && sameCommit) { return }
+
+    const diff = await LocalGitOperations.getDiff(repository, file, commit)
 
     if (file instanceof WorkingDirectoryFileChange) {
       const diffSelection = file.selection
@@ -176,6 +199,14 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     }
   }
 
+  private restoreScrollPosition = () => {
+    const codeMirror = this.codeMirror
+    const scrollPosition = this.scrollPositionToRestore
+    if (codeMirror && scrollPosition) {
+      this.codeMirror.scrollTo(scrollPosition.left, scrollPosition.top)
+    }
+  }
+
   private configureEditor(editor: any | null) {
     if (!editor) { return }
 
@@ -189,9 +220,11 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     this.codeMirrorDisposables = disposables
 
     codeMirror.on('renderLine', this.renderLine)
+    codeMirror.on('changes', this.restoreScrollPosition)
 
     disposables.add(new Disposable(() => {
       codeMirror.off('renderLine', this.renderLine)
+      codeMirror.off('changes', this.restoreScrollPosition)
     }))
   }
 

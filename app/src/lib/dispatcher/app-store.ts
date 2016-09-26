@@ -15,23 +15,23 @@ import {
   PopupType,
   SelectionType,
 } from '../app-state'
-import User from '../../models/user'
-import Repository from '../../models/repository'
-import GitHubRepository from '../../models/github-repository'
+import { User } from '../../models/user'
+import { Repository } from '../../models/repository'
+import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
-import API, { getUserForEndpoint, IAPIUser } from '../../lib/api'
+import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
-import GitHubUserStore from './github-user-store'
-import EmojiStore from './emoji-store'
-import GitStore from './git-store'
+import { GitHubUserStore } from './github-user-store'
+import { EmojiStore } from './emoji-store'
+import { GitStore } from './git-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
-export default class AppStore {
+export class AppStore {
   private emitter = new Emitter()
 
   private users: ReadonlyArray<User> = new Array<User>()

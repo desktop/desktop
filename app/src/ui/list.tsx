@@ -51,7 +51,7 @@ interface IListProps {
   readonly scrollToRow?: number
 }
 
-export default class List extends React.Component<IListProps, void> {
+export class List extends React.Component<IListProps, void> {
   private focusItem: HTMLDivElement | null = null
   private fakeScroll: HTMLDivElement | null = null
 
@@ -206,7 +206,7 @@ export default class List extends React.Component<IListProps, void> {
    *
    */
   private renderContents(width: number, height: number) {
-    if (process.platform === 'win32') {
+    if (__WIN32__) {
       return (
         <div>
           {this.renderGrid(width, height)}
@@ -329,7 +329,7 @@ export default class List extends React.Component<IListProps, void> {
     // Set the scroll position of the fake scroll bar to that
     // of the actual Grid. This is for mousewheel/touchpad scrolling
     // on top of the Grid.
-    if (process.platform === 'win32' && this.fakeScroll) {
+    if (__WIN32__ && this.fakeScroll) {
 
       // We're getting this event in reaction to the fake scroll
       // having been scrolled and subsequently updating the

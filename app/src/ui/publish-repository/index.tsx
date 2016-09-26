@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
-import Repository from '../../models/repository'
-import User from '../../models/user'
-import API, { IAPIUser, getDotComAPIEndpoint } from '../../lib/api'
+import { Repository } from '../../models/repository'
+import { User } from '../../models/user'
+import { API,  IAPIUser, getDotComAPIEndpoint } from '../../lib/api'
 
 interface IPublishRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -18,7 +18,7 @@ interface IPublishRepositoryState {
   readonly selectedUser: IAPIUser
 }
 
-export default class PublishRepository extends React.Component<IPublishRepositoryProps, IPublishRepositoryState> {
+export class PublishRepository extends React.Component<IPublishRepositoryProps, IPublishRepositoryState> {
   public constructor(props: IPublishRepositoryProps) {
     super(props)
 

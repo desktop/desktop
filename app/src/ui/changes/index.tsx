@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { ChangesList } from './changes-list'
-import Diff from '../diff'
+import { Diff  } from '../diff'
 import { DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
 
