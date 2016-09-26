@@ -110,7 +110,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       if (selectionType === DiffSelectionType.Partial) {
         diffSelection.selectedLines.forEach((value, index) => {
           const section = diff.sections.find(s => {
-            return index >= s.unifiedDiffStart && index < s.unifiedDiffEnd
+            return index >= s.unifiedDiffStart && index <= s.unifiedDiffEnd
           })
 
           if (section) {
@@ -179,7 +179,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   private renderLine = (instance: any, line: any, element: HTMLElement) => {
     const index = instance.getLineNumber(line)
     const section = this.state.diff.sections.find(s => {
-      return index >= s.unifiedDiffStart && index < s.unifiedDiffEnd
+      return index >= s.unifiedDiffStart && index <= s.unifiedDiffEnd
     })
 
     if (section) {

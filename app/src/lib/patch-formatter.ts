@@ -44,7 +44,7 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
     let linesRemoved = 0
     let patchBody = ''
 
-    const selectedLines = selectedLinesArray.filter(a => a[0] >= s.unifiedDiffStart && a[0] < s.unifiedDiffEnd)
+    const selectedLines = selectedLinesArray.filter(a => a[0] >= s.unifiedDiffStart && a[0] <= s.unifiedDiffEnd)
 
     // don't generate a patch if no lines are selected
     if (selectedLines.every(l => l[1] === false)) {

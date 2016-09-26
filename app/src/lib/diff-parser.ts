@@ -62,10 +62,10 @@ export function parseRawDiff(lines: ReadonlyArray<string>): Diff {
 
         if (diffSections.length === 0) {
           startDiffSection = 0
-          endDiffSection = diffLines.length
+          endDiffSection = diffLines.length - 1
         } else {
           startDiffSection = numberOfUnifiedDiffLines
-          endDiffSection = startDiffSection + diffLines.length
+          endDiffSection = startDiffSection + diffLines.length - 1
         }
 
         numberOfUnifiedDiffLines += diffLines.length
@@ -83,10 +83,10 @@ export function parseRawDiff(lines: ReadonlyArray<string>): Diff {
 
         if (diffSections.length === 0) {
           startDiffSection = 0
-          endDiffSection = diffLines.length
+          endDiffSection = diffLines.length - 1
         } else {
           startDiffSection = numberOfUnifiedDiffLines
-          endDiffSection = startDiffSection + diffLines.length
+          endDiffSection = startDiffSection + diffLines.length - 1
         }
 
         diffSections.push(new DiffSection(range, diffLines, startDiffSection, endDiffSection))
