@@ -6,7 +6,7 @@ import * as path from 'path'
 const fs = require('fs-extra')
 const temp = require('temp').track()
 
-import Repository from '../src/models/repository'
+import { Repository } from '../src/models/repository'
 import { WorkingDirectoryFileChange, FileStatus } from '../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../src/models/diff'
 import { createPatchForModifiedFile } from '../src/lib/patch-formatter'

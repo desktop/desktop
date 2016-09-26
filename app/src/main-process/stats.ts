@@ -1,4 +1,4 @@
-export default class Stats {
+export class Stats {
   public launchTime: number
   public readyTime: number
 

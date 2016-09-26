@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { FileChange } from '../../models/status'
-import List from '../list'
+import { List } from '../list'
 import { Octicon, OcticonSymbol } from '../octicons'
-import EmojiText from '../lib/emoji-text'
+import { EmojiText } from '../lib/emoji-text'
 
 interface ICommitSummaryProps {
   readonly summary: string
@@ -15,7 +15,7 @@ interface ICommitSummaryProps {
   readonly emoji: Map<string, string>
 }
 
-export default class CommitSummary extends React.Component<ICommitSummaryProps, void> {
+export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
   private onSelectionChanged(row: number) {
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)

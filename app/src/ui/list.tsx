@@ -51,7 +51,7 @@ interface IListProps {
   readonly scrollToRow?: number
 }
 
-export default class List extends React.Component<IListProps, void> {
+export class List extends React.Component<IListProps, void> {
   private focusItem: HTMLDivElement | null = null
   private fakeScroll: HTMLDivElement | null = null
 

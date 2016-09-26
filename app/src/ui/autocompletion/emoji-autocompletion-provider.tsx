@@ -24,7 +24,7 @@ export interface IEmojiHit {
 }
 
 /** Autocompletion provider for emoji. */
-export default class EmojiAutocompletionProvider implements IAutocompletionProvider<IEmojiHit> {
+export class EmojiAutocompletionProvider implements IAutocompletionProvider<IEmojiHit> {
   private emoji: Map<string, string>
 
   public constructor(emoji: Map<string, string>) {

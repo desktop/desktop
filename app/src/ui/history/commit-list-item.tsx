@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as moment from 'moment'
 import { Commit } from '../../lib/local-git-operations'
 import { IGitHubUser } from '../../lib/dispatcher'
-import EmojiText from '../lib/emoji-text'
+import { EmojiText } from '../lib/emoji-text'
 
 const DefaultAvatarURL = 'https://github.com/hubot.png'
 
@@ -13,7 +13,7 @@ interface ICommitProps {
 }
 
 /** A component which displays a single commit in a commit list. */
-export default class CommitListItem extends React.Component<ICommitProps, void> {
+export class CommitListItem extends React.Component<ICommitProps, void> {
   public render() {
     const relative = moment(this.props.commit.authorDate).fromNow()
     const avatarURL = this.props.gitHubUser ? this.props.gitHubUser.avatarURL : DefaultAvatarURL

@@ -1,8 +1,8 @@
 import * as React from 'react'
-import CommitList from './commit-list'
-import CommitSummaryContainer from './commit-summary-container'
-import Diff from '../diff'
-import Repository from '../../models/repository'
+import { CommitList } from './commit-list'
+import { CommitSummaryContainer } from './commit-summary-container'
+import { Diff } from '../diff'
+import { Repository } from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../lib/local-git-operations'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
@@ -23,7 +23,7 @@ interface IHistoryProps {
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
-export default class History extends React.Component<IHistoryProps, void> {
+export class History extends React.Component<IHistoryProps, void> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
   private onCommitChanged(commit: Commit) {

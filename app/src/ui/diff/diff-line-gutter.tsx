@@ -17,7 +17,7 @@ interface IDiffGutterProps {
 }
 
 /** The gutter for a diff's line. */
-export default class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
+export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   /** Can this line be selected for inclusion/exclusion? */
   private isIncludableLine(): boolean {
     return this.props.line.type === DiffLineType.Add || this.props.line.type === DiffLineType.Delete

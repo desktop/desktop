@@ -5,7 +5,7 @@ import { IMessage } from './message'
  * The SharedProcess acts as the owner of all shared state across the app. Most
  * communication with it will originate in the Dispatcher.
  */
-export default class SharedProcess {
+export class SharedProcess {
   private window: Electron.BrowserWindow
   private loaded = false
   private messageQueue: IMessage[] = []

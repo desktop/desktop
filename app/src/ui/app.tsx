@@ -2,32 +2,32 @@ import * as React from 'react'
 import { ipcRenderer, remote } from 'electron'
 
 import { Resizable } from './resizable'
-import RepositoriesList from './repositories-list'
-import { default as RepositoryView } from './repository'
-import NotLoggedIn from './not-logged-in'
+import { RepositoriesList } from './repositories-list'
+import { RepositoryView } from './repository'
+import { NotLoggedIn } from './not-logged-in'
 import { WindowControls } from './window/window-controls'
 import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
-import Repository from '../models/repository'
+import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
 import { IAppState, RepositorySection, PopupType, SelectionType } from '../lib/app-state'
-import Popuppy from './popuppy'
-import CreateBranch from './create-branch'
-import Branches from './branches'
-import AddRepository from './add-repository'
-import RenameBranch from './rename-branch'
-import DeleteBranch from './delete-branch'
-import PublishRepository from './publish-repository'
-import { default as CloningRepositoryView } from './cloning-repository'
+import { Popuppy } from './popuppy'
+import { CreateBranch } from './create-branch'
+import { Branches } from './branches'
+import { AddRepository } from './add-repository'
+import { RenameBranch } from './rename-branch'
+import { DeleteBranch } from './delete-branch'
+import { PublishRepository } from './publish-repository'
+import { CloningRepositoryView } from './cloning-repository'
 import { showPopupAppMenu, setMenuEnabled } from './main-process-proxy'
-import DiscardChanges from './discard-changes'
+import { DiscardChanges } from './discard-changes'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
 }
 
-export default class App extends React.Component<IAppProps, IAppState> {
+export class App extends React.Component<IAppProps, IAppState> {
   public constructor(props: IAppProps) {
     super(props)
 

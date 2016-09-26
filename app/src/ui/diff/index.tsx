@@ -3,18 +3,18 @@ import * as ReactDOM from 'react-dom'
 import * as CodeMirror from 'react-codemirror'
 import { Disposable, CompositeDisposable } from 'event-kit'
 
-import IRepository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
 import { assertNever } from '../../lib/fatal-error'
 
 import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
 
-import DiffLineGutter from './diff-line-gutter'
+import { DiffLineGutter } from './diff-line-gutter'
 
 /** The props for the Diff component. */
 interface IDiffProps {
-  readonly repository: IRepository
+  readonly repository: Repository
 
   /**
    * Whether the diff is readonly, e.g., displaying a historical diff, or the
@@ -38,7 +38,7 @@ interface IDiffState {
 }
 
 /** A component which renders a diff for a file. */
-export default class Diff extends React.Component<IDiffProps, IDiffState> {
+export class Diff extends React.Component<IDiffProps, IDiffState> {
   /**
    * The disposable that should be disposed of when the instance is unmounted.
    * This will be null when our CodeMirror instance hasn't been set up yet.
@@ -78,7 +78,7 @@ export default class Diff extends React.Component<IDiffProps, IDiffState> {
     this.codeMirror = null
   }
 
-  private async loadDiff(repository: IRepository, file: FileChange | null, commit: Commit | null) {
+  private async loadDiff(repository: Repository, file: FileChange | null, commit: Commit | null) {
     if (!file) {
       // clear whatever existing state
       this.setState({ diff: new DiffModel([]) })

@@ -4,7 +4,7 @@ import { Emitter, Disposable } from 'event-kit'
 
 import { LocalGitOperations } from '../local-git-operations'
 import { CloneProgressParser } from '../clone-progress-parser'
-import User from '../../models/user'
+import { User } from '../../models/user'
 
 let CloningRepositoryID = 1
 

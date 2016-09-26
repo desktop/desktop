@@ -1,9 +1,9 @@
 import * as React from 'react'
 
-import List from '../list'
-import RepositoryListItem from './repository-list-item'
-import Repository from '../../models/repository'
-import { groupRepositories, RepositoryListItem as RepositoryListItemModel, Repositoryish } from './group-repositories'
+import { List } from '../list'
+import { RepositoryListItem } from './repository-list-item'
+import { Repository } from '../../models/repository'
+import { groupRepositories, RepositoryListItemModel, Repositoryish } from './group-repositories'
 import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
 
 interface IRepositoriesListProps {
@@ -17,7 +17,7 @@ interface IRepositoriesListProps {
 const RowHeight = 30
 
 /** The list of user-added repositories. */
-export default class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
+export class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
   private renderRow(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
     const item = groupedItems[row]
     if (item.kind === 'repository') {

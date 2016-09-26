@@ -6,7 +6,7 @@ import * as FS from 'fs'
 
 import { Dispatcher } from '../../lib/dispatcher'
 import { LocalGitOperations } from '../../lib/local-git-operations'
-import sanitizedRepositoryName from './sanitized-repository-name'
+import { sanitizedRepositoryName } from './sanitized-repository-name'
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -18,7 +18,7 @@ interface ICreateRepositoryState {
 }
 
 /** The Create New Repository component. */
-export default class CreateRepository extends React.Component<ICreateRepositoryProps, ICreateRepositoryState> {
+export class CreateRepository extends React.Component<ICreateRepositoryProps, ICreateRepositoryState> {
   public constructor(props: ICreateRepositoryProps) {
     super(props)
 

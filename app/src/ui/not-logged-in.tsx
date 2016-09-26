@@ -5,7 +5,7 @@ interface INotLoggedInProps {
   dispatcher: Dispatcher
 }
 
-export default class NotLoggedIn extends React.Component<INotLoggedInProps, void> {
+export class NotLoggedIn extends React.Component<INotLoggedInProps, void> {
   public render() {
     return (
       <div>

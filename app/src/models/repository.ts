@@ -1,6 +1,6 @@
 import * as path from 'path'
 
-import GitHubRepository, { IGitHubRepository } from './github-repository'
+import { GitHubRepository, IGitHubRepository } from './github-repository'
 
 /** The data-only interface for Repository for transport across IPC. */
 export interface IRepository {
@@ -10,7 +10,7 @@ export interface IRepository {
 }
 
 /** A local repository. */
-export default class Repository implements IRepository {
+export class Repository implements IRepository {
   public readonly id: number
   public readonly path: string
   public readonly gitHubRepository: GitHubRepository | null
