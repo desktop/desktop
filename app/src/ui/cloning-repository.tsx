@@ -1,17 +1,17 @@
 import * as React from 'react'
 
-import { CloningRepository as CloningRepositoryModel } from '../lib/dispatcher'
+import { CloningRepository } from '../lib/dispatcher'
 import { ICloningRepositoryState } from '../lib/app-state'
 import { Octicon, OcticonSymbol } from './octicons'
 import { UiView } from './ui-view'
 
 interface ICloningRepositoryProps {
-  readonly repository: CloningRepositoryModel
+  readonly repository: CloningRepository
   readonly state: ICloningRepositoryState
 }
 
 /** The component for displaying a cloning repository's progress. */
-export default class CloningRepository extends React.Component<ICloningRepositoryProps, void> {
+export class CloningRepositoryView extends React.Component<ICloningRepositoryProps, void> {
   public render() {
 
     /* The progress element won't take null for an answer.

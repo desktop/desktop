@@ -1,5 +1,5 @@
 import * as React from 'react'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
 import { showContextualMenu } from '../main-process-proxy'
@@ -10,7 +10,7 @@ interface IRepositoryListItemProps {
 }
 
 /** A repository item. */
-export default class RepositoryListItem extends React.Component<IRepositoryListItemProps, void> {
+export class RepositoryListItem extends React.Component<IRepositoryListItemProps, void> {
   public render() {
     const repository = this.props.repository
     const path = repository.path
@@ -37,7 +37,7 @@ export default class RepositoryListItem extends React.Component<IRepositoryListI
 
   private onContextMenu(event: React.MouseEvent<any>) {
     event.preventDefault()
-    if (process.platform !== 'win32') {
+    if (!__WIN32__) {
       const item = {
         label: 'Remove',
         action: () => this.removeRepository(),

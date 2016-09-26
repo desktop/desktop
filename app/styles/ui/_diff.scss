@@ -1,0 +1,121 @@
+@import "../mixins";
+
+/** A React component holding a diff */
+#diff {
+  text-align: left;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.CodeMirror {
+  height: 100%;
+  font-family: --var(font-family-monospace);
+}
+
+// Remove blank space at the top of the diff
+.CodeMirror-lines { padding: 0; }
+
+/** The container for the CodeMirror element. */
+.diff-code-mirror { height: 100%; }
+
+// The container element which holds the before and after
+// diff-line-number spans.
+.diff-line-gutter {
+  line-height: normal;
+  display: inline-block;
+  height: 100%;
+}
+
+.diff-line-number {
+  display: inline-block;
+  color: var(--diff-line-number-color);
+  width: var(--diff-line-number-column-width);
+  padding: var(--spacing-third) var(--spacing-half);
+  text-align: right;
+
+  &.before {
+    border-right: 1px solid var(--diff-border-color);
+  }
+
+  &.after {
+    border-right: 3px solid var(--diff-border-color);
+  }
+}
+
+pre.diff-add {
+  background: var(--diff-add-background-color);
+  padding: 0;
+
+  .diff-line-number {
+    border-color: var(--diff-add-border-color);
+  }
+}
+
+pre.diff-delete {
+  background: var(--diff-delete-background-color);
+  padding: 0;
+
+  .diff-line-number {
+    border-color: var(--diff-delete-border-color);
+  }
+}
+
+pre.diff-context {
+  background: var(--diff-context-background-color);
+  padding: 0;
+
+  .diff-line-number {
+    border-color: var(--diff-context-border-color);
+  }
+}
+
+pre.diff-hunk {
+  background: var(--diff-hunk-background-color);
+  padding: 0;
+
+  .diff-line-number {
+    border-color: var(--diff-hunk-border-color);
+  }
+}
+
+.diff-line-selected {
+  .diff-line-number {
+    background: var(--diff-selected-background-color);
+    border-color: var(--diff-selected-border-color);
+    color: var(--diff-selected-text-color);
+  }
+}
+
+.diff-line-hover {
+  .diff-line-number {
+    background: var(--diff-hover-background-color);
+    border-color: var(--diff-hover-border-color);
+    color: var(--background-color);
+  }
+}
+
+// Windows has custom scroll bars, see _scroll.scss
+@include win32-context {
+  .CodeMirror {
+    // Mirror the behavior of other scroll bars in desktop on Windows
+    // and only show them while hovering over the scroll container.
+    // We can't use display here since that's set as an inline style
+    // by CodeMirror so we'll resort to the old opacity hack.
+    .CodeMirror-vscrollbar,
+    .CodeMirror-hscrollbar {
+      opacity: 0;
+    }
+
+    &:hover {
+      .CodeMirror-vscrollbar,
+      .CodeMirror-hscrollbar {
+        opacity: 1;
+      }
+    }
+
+    // This is a div that sits in the corner between the horizontal
+    // and vertical scroll bar and has an opaque background by default.
+    .CodeMirror-scrollbar-filler { background: transparent; }
+  }
+}

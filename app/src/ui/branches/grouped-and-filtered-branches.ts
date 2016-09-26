@@ -1,8 +1,8 @@
 import { Branch } from '../../lib/local-git-operations'
 
-export type BranchListItem = { kind: 'branch', branch: Branch } | { kind: 'label', label: string }
+export type BranchListItemModel = { kind: 'branch', branch: Branch } | { kind: 'label', label: string }
 
-export function groupedAndFilteredBranches(defaultBranch: Branch | null, currentBranch: Branch | null, allBranches: ReadonlyArray<Branch>, recentBranches: ReadonlyArray<Branch>, filter: string): ReadonlyArray<BranchListItem> {
+export function groupedAndFilteredBranches(defaultBranch: Branch | null, currentBranch: Branch | null, allBranches: ReadonlyArray<Branch>, recentBranches: ReadonlyArray<Branch>, filter: string): ReadonlyArray<BranchListItemModel> {
   if (filter.length < 1) {
     return groupedBranches(defaultBranch, currentBranch, allBranches, recentBranches)
   }
@@ -27,8 +27,8 @@ export function groupedAndFilteredBranches(defaultBranch: Branch | null, current
   return groupedBranches(defaultBranch, currentBranch, allBranches, recentBranches)
 }
 
-function groupedBranches(defaultBranch: Branch | null, currentBranch: Branch | null, allBranches: ReadonlyArray<Branch>, recentBranches: ReadonlyArray<Branch>): ReadonlyArray<BranchListItem> {
-  const items = new Array<BranchListItem>()
+function groupedBranches(defaultBranch: Branch | null, currentBranch: Branch | null, allBranches: ReadonlyArray<Branch>, recentBranches: ReadonlyArray<Branch>): ReadonlyArray<BranchListItemModel> {
+  const items = new Array<BranchListItemModel>()
 
   if (defaultBranch) {
     items.push({ kind: 'label', label: 'Default Branch' })

@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { WorkingDirectoryFileChange } from '../../models/status'
 
@@ -11,7 +11,7 @@ interface IDiscardChangesProps {
 }
 
 /** A component to confirm and then discard changes. */
-export default class DiscardChanges extends React.Component<IDiscardChangesProps, void> {
+export class DiscardChanges extends React.Component<IDiscardChangesProps, void> {
   public render() {
     const paths = this.props.files.map(f => f.path).join(', ')
     return (

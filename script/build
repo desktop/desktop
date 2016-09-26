@@ -34,6 +34,7 @@ if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
 const options = {
   platform: process.platform,
   arch: 'x64',
+  'build-version': appPackage.version,
   asar: false, // TODO: Probably wanna enable this down the road.
   out: path.join(projectRoot, 'dist'),
   icon: path.join(projectRoot, 'app', 'static', 'icon'),

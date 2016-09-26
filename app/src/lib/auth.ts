@@ -1,4 +1,4 @@
-import User from '../models/user'
+import { User } from '../models/user'
 
 /** Get the auth key for the user. */
 export function getKeyForUser(user: User): string {

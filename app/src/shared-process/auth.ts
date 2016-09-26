@@ -1,9 +1,9 @@
 import { shell, remote } from 'electron'
 const { app } = remote
 
-import guid from '../lib/guid'
+import { guid } from '../lib/guid'
 import { getDotComAPIEndpoint } from '../lib/api'
-import fatalError from '../lib/fatal-error'
+import { fatalError } from '../lib/fatal-error'
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__

@@ -1,5 +1,5 @@
 import { getKeyForEndpoint } from '../lib/auth'
-import tokenStore from '../shared-process/token-store'
+import { TokenStore } from '../shared-process/token-store'
 
 /** Parse the GIT_ASKPASS prompt and determine the appropriate response. */
 export function responseForPrompt(prompt: string): string | null {
@@ -13,7 +13,7 @@ export function responseForPrompt(prompt: string): string | null {
     if (!endpoint || !endpoint.length) { return null }
 
     const key = getKeyForEndpoint(endpoint)
-    const token = tokenStore.getItem(key, username)
+    const token = TokenStore.getItem(key, username)
     return token
   }
 

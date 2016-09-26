@@ -1,5 +1,5 @@
 import * as URL from 'url'
-import User from '../models/user'
+import { User } from '../models/user'
 
 const Octokat = require('octokat')
 
@@ -48,7 +48,7 @@ export interface IAPIEmail {
 /**
  * An object for making authenticated requests to the GitHub API
  */
-export default class API {
+export class API {
   private client: any
 
   public constructor(user: User) {

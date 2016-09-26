@@ -1,9 +1,9 @@
 import * as React from 'react'
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
-import List from '../list'
+import { List } from '../list'
 
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 

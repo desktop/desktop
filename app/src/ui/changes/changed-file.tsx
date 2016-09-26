@@ -57,7 +57,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
   private onContextMenu(event: React.MouseEvent<any>) {
     event.preventDefault()
 
-    if (process.platform !== 'win32') {
+    if (!__WIN32__) {
       const item = {
         label: 'Discard Changes',
         action: () => this.props.onDiscardChanges(),

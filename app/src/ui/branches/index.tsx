@@ -1,10 +1,10 @@
 import * as React from 'react'
-import List from '../list'
+import { List } from '../list'
 import { Dispatcher } from '../../lib/dispatcher'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { Branch, Commit } from '../../lib/local-git-operations'
-import { groupedAndFilteredBranches, BranchListItem } from './grouped-and-filtered-branches'
-import { default as BranchView } from './branch'
+import { groupedAndFilteredBranches, BranchListItemModel } from './grouped-and-filtered-branches'
+import { BranchListItem } from './branch'
 
 const RowHeight = 25
 
@@ -23,7 +23,7 @@ interface IBranchesState {
   readonly selectedRow: number
 }
 
-export default class Branches extends React.Component<IBranchesProps, IBranchesState> {
+export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   private list: List | null = null
   private scrollToRow = -1
 
@@ -33,21 +33,22 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
     this.state = { filter: '', selectedRow: -1 }
   }
 
-  private renderRow(branchItems: ReadonlyArray<BranchListItem>, row: number) {
+  private renderRow(branchItems: ReadonlyArray<BranchListItemModel>, row: number) {
     const item = branchItems[row]
     if (item.kind === 'branch') {
       const branch = item.branch
       const commit = this.props.commits.get(branch.sha)
       const currentBranchName = this.props.currentBranch ? this.props.currentBranch.name : null
-      return <BranchView name={branch.name}
-                         isCurrentBranch={branch.name === currentBranchName}
-                         lastCommitDate={commit ? commit.authorDate : null}/>
+      return <BranchListItem
+        name={branch.name}
+        isCurrentBranch={branch.name === currentBranchName}
+        lastCommitDate={commit ? commit.authorDate : null}/>
     } else {
       return <div className='branches-list-content branches-list-label'>{item.label}</div>
     }
   }
 
-  private onRowSelected(branchItems: ReadonlyArray<BranchListItem>, row: number) {
+  private onRowSelected(branchItems: ReadonlyArray<BranchListItemModel>, row: number) {
     const item = branchItems[row]
     if (item.kind !== 'branch') { return }
 
@@ -56,7 +57,7 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
     this.props.dispatcher.checkoutBranch(this.props.repository, branch.nameWithoutRemote)
   }
 
-  private canSelectRow(branchItems: ReadonlyArray<BranchListItem>, row: number) {
+  private canSelectRow(branchItems: ReadonlyArray<BranchListItemModel>, row: number) {
     const item = branchItems[row]
     return item.kind === 'branch'
   }
@@ -66,7 +67,7 @@ export default class Branches extends React.Component<IBranchesProps, IBranchesS
     this.setState({ filter: text, selectedRow: this.state.selectedRow })
   }
 
-  private onKeyDown(branchItems: ReadonlyArray<BranchListItem>, event: React.KeyboardEvent<HTMLInputElement>) {
+  private onKeyDown(branchItems: ReadonlyArray<BranchListItemModel>, event: React.KeyboardEvent<HTMLInputElement>) {
     const list = this.list
     if (!list) { return }
 

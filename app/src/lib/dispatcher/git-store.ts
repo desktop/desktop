@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 
 /** The number of commits to load from history per batch. */
@@ -11,7 +11,7 @@ const LoadingHistoryRequestKey = 'history'
 const RecentBranchesLimit = 5
 
 /** The store for a repository's git data. */
-export default class GitStore {
+export class GitStore {
   private readonly emitter = new Emitter()
 
   /** The commits keyed by their SHA. */
