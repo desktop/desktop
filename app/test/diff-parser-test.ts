@@ -45,7 +45,7 @@ index e1d4871..3bd3ee0 100644
  }
     `
 
-    const diff = parseRawDiff([ diffText ])
+    const diff = parseRawDiff(diffText)
     expect(diff.sections.length).to.equal(3)
 
     let section = diff.sections[0]
@@ -111,7 +111,7 @@ index 0000000..f13588b
 +asdfasdf
     `
 
-    const diff = parseRawDiff([ diffText ])
+    const diff = parseRawDiff(diffText)
     expect(diff.sections.length).to.equal(1)
 
     const section = diff.sections[0]
