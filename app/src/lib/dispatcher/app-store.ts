@@ -17,7 +17,7 @@ import {
 import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
-import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
+import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
@@ -857,7 +857,15 @@ export class AppStore {
       shell.moveItemToTrash(path)
     }
 
-    await LocalGitOperations.checkoutPaths(repository, relativePaths)
+    const committedStatuses = new Set([
+      FileStatus.Modified,
+      FileStatus.Deleted,
+      FileStatus.Renamed,
+      FileStatus.Conflicted,
+      FileStatus.Unknown,
+    ])
+    const modifiedFiles = files.filter(f => committedStatuses.has(f.status))
+    await LocalGitOperations.checkoutPaths(repository, modifiedFiles.map(f => f.path))
 
     return this._refreshRepository(repository)
   }
