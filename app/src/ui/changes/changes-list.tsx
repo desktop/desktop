@@ -31,8 +31,8 @@ interface IChangesListProps {
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
-  private handleOnChangeEvent(event: React.FormEvent<any>) {
-    const include = (event.target as any).checked
+  private onIncludeAllChange(event: React.FormEvent<HTMLInputElement>) {
+    const include = event.currentTarget.checked
     this.props.onSelectAll(include)
   }
 
