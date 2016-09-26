@@ -1,6 +1,6 @@
 import { Diff, DiffSection, DiffSectionRange } from '../models/diff'
 
-export function parseRawDiff(lines: string[]): Diff {
+export function parseRawDiff(lines: ReadonlyArray<string>): Diff {
 
     const sectionRegex = /^@@ -(\d+)(,+(\d+))? \+(\d+)(,(\d+))? @@ ?(.*)$/m
     const regexGroups = { oldFileStart: 1, oldFileEnd: 3, newFileStart: 4, newFileEnd: 6 }
