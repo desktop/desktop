@@ -1,8 +1,8 @@
 # GitHub Desktop Internal Alpha
 
-If you're feeling bold and courageous you can now try the rewritten Desktop app. Read on for instructions.
+If you're feeling bold and courageous you can now try the rewritten Desktop app.
 
-@pmn [gave an overview](https://team.githubapp.com/posts/28828) about a month ago of what's up with Desktop. The tl;dr is that we're rebooting it on Electron. We've been working on it for a few months. It's far from complete, it's rough around the edges, but if you're feeling bold and courageous you can try it out now.
+@pmn [gave an overview](https://team.githubapp.com/posts/28828) about a month ago of what's up with Desktop. The tl;dr is that we're rebooting it on Electron. We've been working on it for a few months. It's far from complete, it's rough around the edges, but if you don't mind living on the bleeding edge you can try it out now.
 
 1. [Add yourself to the desktop org](http://central.github.com/invite_to_desktop_org).
 2. [Download the latest release](https://central.github.com/deployments).
