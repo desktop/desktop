@@ -53,6 +53,7 @@ function packageWindows () {
     iconUrl: iconLocation,
     setupIcon: iconLocation,
     exe: `${productName}.exe`,
+    remoteReleases: 'https://central.github.com/api/deployments/desktop/desktop/latest/',
   }
 
   if (process.env.APPVEYOR) {
