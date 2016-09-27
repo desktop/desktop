@@ -1,5 +1,13 @@
 import { Diff, DiffSection, DiffSectionRange } from '../models/diff'
 
+/**
+ * Attempts to convert a RegExp capture group into a number.
+ */
+function numberFromGroup(m: RegExpMatchArray, group: number): number {
+  const str = m[group]
+  return parseInt(str, 10)
+}
+
 export function parseRawDiff(diffText: string): Diff {
 
     // https://en.wikipedia.org/wiki/Diff_utility
@@ -38,14 +46,10 @@ export function parseRawDiff(diffText: string): Diff {
       let newEndLine: number = -1
 
       if (match) {
-        const first = match[regexGroups.oldFileStart]
-        oldStartLine = parseInt(first, 10)
-        const second = match[regexGroups.oldFileEnd]
-        oldEndLine = parseInt(second, 10)
-        const third = match[regexGroups.newFileStart]
-        newStartLine = parseInt(third, 10)
-        const fourth = match[regexGroups.newFileEnd]
-        newEndLine = parseInt(fourth, 10)
+        oldStartLine = numberFromGroup(match, regexGroups.oldFileStart)
+        oldEndLine = numberFromGroup(match, regexGroups.oldFileEnd)
+        newStartLine = numberFromGroup(match, regexGroups.newFileStart)
+        newEndLine = numberFromGroup(match, regexGroups.newFileEnd)
       }
 
       const range = new DiffSectionRange(oldStartLine, oldEndLine, newStartLine, newEndLine)
