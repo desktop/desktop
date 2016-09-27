@@ -47,48 +47,29 @@ export function parseRawDiff(diffText: string): Diff {
       sectionPrefixIndex = diffTextBuffer.indexOf('@@', endOfThisLine + 1)
       prefixFound = sectionPrefixIndex > -1
 
+      const diffBody = prefixFound
+        ? diffTextBuffer.substr(0, sectionPrefixIndex)
+        : diffTextBuffer
+
       // add new section based on the remaining text in the raw diff
-      if (prefixFound) {
-        const diffBody = diffTextBuffer.substr(0, sectionPrefixIndex)
+      let startDiffSection: number = 0
+      let endDiffSection: number = 0
 
-        let startDiffSection: number = 0
-        let endDiffSection: number = 0
+      const diffLines = diffBody.split('\n')
+      // Remove the trailing empty line
+      diffLines.pop()
 
-        const diffLines = diffBody.split('\n')
-        // Remove the trailing empty line
-        diffLines.pop()
-
-        if (diffSections.length === 0) {
-          startDiffSection = 0
-          endDiffSection = diffLines.length - 1
-        } else {
-          startDiffSection = numberOfUnifiedDiffLines
-          endDiffSection = startDiffSection + diffLines.length - 1
-        }
-
-        numberOfUnifiedDiffLines += diffLines.length
-
-        diffSections.push(new DiffSection(range, diffLines, startDiffSection, endDiffSection))
+      if (diffSections.length === 0) {
+        startDiffSection = 0
+        endDiffSection = diffLines.length - 1
       } else {
-        const diffBody = diffTextBuffer
-
-        let startDiffSection: number = 0
-        let endDiffSection: number = 0
-
-        const diffLines = diffBody.split('\n')
-        // Remove the trailing empty line
-        diffLines.pop()
-
-        if (diffSections.length === 0) {
-          startDiffSection = 0
-          endDiffSection = diffLines.length - 1
-        } else {
-          startDiffSection = numberOfUnifiedDiffLines
-          endDiffSection = startDiffSection + diffLines.length - 1
-        }
-
-        diffSections.push(new DiffSection(range, diffLines, startDiffSection, endDiffSection))
+        startDiffSection = numberOfUnifiedDiffLines
+        endDiffSection = startDiffSection + diffLines.length - 1
       }
+
+      numberOfUnifiedDiffLines += diffLines.length
+
+      diffSections.push(new DiffSection(range, diffLines, startDiffSection, endDiffSection))
     }
 
     return new Diff(diffSections)
