@@ -4,6 +4,16 @@ const expect = chai.expect
 import { parseRawDiff } from '../src/lib/diff-parser'
 import { DiffLineType } from '../src/models/diff'
 
+// Atom doesn't like lines with just one space and tries to
+// de-indent so when copying- and pasting diff contents the
+// space signalling that the line is a context line gets lost.
+//
+// This function reinstates that space and makes us all
+// feel a little bit sad.
+function reinstateSpacesAtTheStartOfBlankLines(text: string) {
+  return text.replace(/\n\n/g, '\n \n')
+}
+
 describe('Diff parsing', () => {
   it('properly parses changed files', () => {
     const diffText = `
@@ -45,7 +55,7 @@ index e1d4871..3bd3ee0 100644
  }
     `
 
-    const diff = parseRawDiff(diffText)
+    const diff = parseRawDiff(reinstateSpacesAtTheStartOfBlankLines(diffText))
     expect(diff.sections.length).to.equal(3)
 
     let section = diff.sections[0]
@@ -62,7 +72,7 @@ index e1d4871..3bd3ee0 100644
     expect(lines[i].newLineNumber).to.equal(null)
     i++
 
-    expect(lines[i].text).to.equal('')
+    expect(lines[i].text).to.equal(' ')
     expect(lines[i].type).to.equal(DiffLineType.Context)
     expect(lines[i].oldLineNumber).to.equal(18)
     expect(lines[i].newLineNumber).to.equal(18)
@@ -74,7 +84,7 @@ index e1d4871..3bd3ee0 100644
     expect(lines[i].newLineNumber).to.equal(19)
     i++
 
-    expect(lines[i].text).to.equal('')
+    expect(lines[i].text).to.equal(' ')
     expect(lines[i].type).to.equal(DiffLineType.Context)
     expect(lines[i].oldLineNumber).to.equal(20)
     expect(lines[i].newLineNumber).to.equal(20)
