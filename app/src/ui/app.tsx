@@ -198,7 +198,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.removeRepositories([ state.repository ])
   }
 
-  private async addRepositories(paths: string[]) {
+  private async addRepositories(paths: ReadonlyArray<string>) {
     const repositories = await this.props.dispatcher.addRepositories(paths)
     if (repositories.length) {
       this.props.dispatcher.selectRepository(repositories[0])
