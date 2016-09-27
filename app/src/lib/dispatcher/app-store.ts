@@ -30,6 +30,27 @@ import { GitStore } from './git-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
+/** File statuses which indicate the file exists on disk. */
+const OnDiskStatuses = new Set([
+  FileStatus.New,
+  FileStatus.Modified,
+  FileStatus.Renamed,
+  FileStatus.Conflicted,
+  FileStatus.Unknown,
+])
+
+/**
+ * File statuses which indicate the file has previously been committed to the 
+ * repository.
+ */
+const CommittedStatuses = new Set([
+  FileStatus.Modified,
+  FileStatus.Deleted,
+  FileStatus.Renamed,
+  FileStatus.Conflicted,
+  FileStatus.Unknown,
+])
+
 export class AppStore {
   private emitter = new Emitter()
 
@@ -851,27 +872,13 @@ export class AppStore {
   }
 
   public async _discardChanges(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>) {
-    const onDiskStatuses = new Set([
-      FileStatus.New,
-      FileStatus.Modified,
-      FileStatus.Renamed,
-      FileStatus.Conflicted,
-      FileStatus.Unknown,
-    ])
-    const onDiskFiles = files.filter(f => onDiskStatuses.has(f.status))
+    const onDiskFiles = files.filter(f => OnDiskStatuses.has(f.status))
     const absolutePaths = onDiskFiles.map(f => Path.join(repository.path, f.path))
     for (const path of absolutePaths) {
       shell.moveItemToTrash(path)
     }
 
-    const committedStatuses = new Set([
-      FileStatus.Modified,
-      FileStatus.Deleted,
-      FileStatus.Renamed,
-      FileStatus.Conflicted,
-      FileStatus.Unknown,
-    ])
-    const modifiedFiles = files.filter(f => committedStatuses.has(f.status))
+    const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
     await LocalGitOperations.checkoutPaths(repository, modifiedFiles.map(f => f.path))
 
     return this._refreshRepository(repository)
