@@ -101,7 +101,7 @@ describe('patch formatting', () => {
       expect(patch).to.have.string('@@ -31,3 +31,8 @@')
     })
 
-    it.only(`creates right patch when a new line is selected but preceding deleted lines aren't`, async () => {
+    it(`creates right patch when a new line is selected but preceding deleted lines aren't`, async () => {
       const modifiedFile = 'modified-file.md'
       FS.writeFileSync(Path.join(repository!.path, modifiedFile), 'line 1\n')
 
