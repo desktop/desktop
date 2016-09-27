@@ -11,22 +11,13 @@ import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
 import { FileStatus, FileChange, WorkingDirectoryFileChange } from '../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../src/models/diff'
 import { selectLinesInSection, mergeSelections } from './diff-selection-helper'
+import { setupFixtureRepository } from './fixture-helper'
 
 describe('LocalGitOperations', () => {
   let repository: Repository | null = null
 
-  function setupTestRepository(repositoryName: string): string {
-    const testRepoFixturePath = path.join(__dirname, 'fixtures', repositoryName)
-    const testRepoPath = temp.mkdirSync('desktop-git-test-')
-    fs.copySync(testRepoFixturePath, testRepoPath)
-
-    fs.renameSync(path.join(testRepoPath, '_git'), path.join(testRepoPath, '.git'))
-
-    return testRepoPath
-  }
-
   beforeEach(() => {
-    const testRepoPath = setupTestRepository('test-repo')
+    const testRepoPath = setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null)
   })
 
@@ -77,7 +68,7 @@ describe('LocalGitOperations', () => {
   describe('partial commits', () => {
 
     beforeEach(() => {
-      const testRepoPath = setupTestRepository('repo-with-changes')
+      const testRepoPath = setupFixtureRepository('repo-with-changes')
       repository = new Repository(testRepoPath, -1, null)
     })
 
@@ -279,7 +270,7 @@ describe('LocalGitOperations', () => {
   describe('diff', () => {
 
     beforeEach(() => {
-      const testRepoPath = setupTestRepository('repo-with-changes')
+      const testRepoPath = setupFixtureRepository('repo-with-changes')
       repository = new Repository(testRepoPath, -1, null)
     })
 
