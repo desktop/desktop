@@ -194,8 +194,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           <DiffLineGutter line={diffLine} readOnly={this.props.readOnly} onIncludeChanged={line => this.onIncludeChanged(line, index)}/>,
         reactContainer)
         element.insertBefore(reactContainer, diffLineElement)
-
-        element.classList.add(this.getClassName(diffLine.type))
       }
     }
   }
@@ -206,6 +204,15 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     if (codeMirror && scrollPosition) {
       this.codeMirror.scrollTo(scrollPosition.left, scrollPosition.top)
     }
+
+    this.state.diff.sections.forEach(s => {
+      s.lines.forEach((line, index) => {
+        const absoluteIndex = s.unifiedDiffStart + index
+        const className = this.getClassName(line.type)
+
+        this.codeMirror!.addLineClass(absoluteIndex, 'background', className)
+      })
+    })
   }
 
   private configureEditor(editor: any | null) {
