@@ -5,7 +5,7 @@ import { Disposable, CompositeDisposable } from 'event-kit'
 
 import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
-import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
+import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType, DiffSection } from '../../models/diff'
 import { assertNever } from '../../lib/fatal-error'
 
 import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
@@ -109,10 +109,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
       if (selectionType === DiffSelectionType.Partial) {
         diffSelection.selectedLines.forEach((value, index) => {
-          const section = diff.sections.find(s => {
-            return index >= s.unifiedDiffStart && index < s.unifiedDiffEnd
-          })
-
+          const section = this.diffSectionForIndex(diff, index)
           if (section) {
             const relativeIndex = index - section.unifiedDiffStart
             const diffLine = section.lines[relativeIndex]
@@ -128,6 +125,13 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     }
 
     this.setState({ diff })
+  }
+
+  private diffSectionForIndex(diff: DiffModel, index: number): DiffSection | null {
+    const section = diff.sections.find(s => {
+      return index >= s.unifiedDiffStart && index <= s.unifiedDiffEnd
+    })
+    return section || null
   }
 
   private getClassName(type: DiffLineType): string {
@@ -178,10 +182,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private renderLine = (instance: any, line: any, element: HTMLElement) => {
     const index = instance.getLineNumber(line)
-    const section = this.state.diff.sections.find(s => {
-      return index >= s.unifiedDiffStart && index < s.unifiedDiffEnd
-    })
-
+    const section = this.diffSectionForIndex(this.state.diff, index)
     if (section) {
       const relativeIndex = index - section.unifiedDiffStart
       const diffLine = section.lines[relativeIndex]
@@ -256,6 +257,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       cursorBlinkRate: -1,
       styleActiveLine: false,
       scrollbarStyle: 'native',
+      lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
     }
 
     return (

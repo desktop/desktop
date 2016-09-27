@@ -75,18 +75,11 @@ export class DiffSection {
       const type = DiffSection.mapToDiffLineType(text)
 
       if (type === DiffLineType.Delete) {
-        rollingDiffBeforeCounter = rollingDiffBeforeCounter + 1
-
-        return new DiffLine(text, type, rollingDiffBeforeCounter, null)
+        return new DiffLine(text, type, rollingDiffBeforeCounter++, null)
       } else if (type === DiffLineType.Add) {
-        rollingDiffAfterCounter = rollingDiffAfterCounter + 1
-
-        return new DiffLine(text, type, null, rollingDiffAfterCounter)
+        return new DiffLine(text, type, null, rollingDiffAfterCounter++)
       } else {
-        rollingDiffBeforeCounter = rollingDiffBeforeCounter + 1
-        rollingDiffAfterCounter = rollingDiffAfterCounter + 1
-
-        return new DiffLine(text, type, rollingDiffBeforeCounter, rollingDiffAfterCounter)
+        return new DiffLine(text, type, rollingDiffBeforeCounter++, rollingDiffAfterCounter++)
       }
     })
 
