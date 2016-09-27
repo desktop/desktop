@@ -9,7 +9,7 @@ export function parseRawDiff(diffText: string): Diff {
     // file is preceded by a minus symbol, and the range for the new file is preceded by a plus
     // symbol. Each hunk range is of the format l,s where l is the starting line number and s is
     // the number of lines the change hunk applies to for each respective file.
-    const sectionRegex = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@ ?(?:.*)$/m
+    const sectionRegex = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/m
     const regexGroups = { oldFileStart: 1, oldFileEnd: 2, newFileStart: 3, newFileEnd: 4 }
 
     const diffSections = new Array<DiffSection>()
