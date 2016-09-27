@@ -15,7 +15,7 @@ The UI is still being designed, so if you're looking for some functionality but 
 3. Push.
 4. Pull.
 
-There's still a lot of work to be done but it _should_ be usable for day to day committing, pushing, and pulling.
+There's still a lot of work to be done but it _should_ be usable for day to day committing, pushing, and pulling. Auto-updates _should_ be working (see above about the bleeding edge) so once you download and install the app, you should be good to go.
 
 ![screen shot 2016-09-27 at 12 15 33 pm](https://cloud.githubusercontent.com/assets/13760/18882427/212d06aa-84ad-11e6-9e05-4854b47c631c.png)
 
