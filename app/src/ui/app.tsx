@@ -200,7 +200,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private async addRepositories(paths: string[]) {
     const repositories = await this.props.dispatcher.addRepositories(paths)
-    this.props.dispatcher.selectRepository(repositories[0])
+    if (repositories.length) {
+      this.props.dispatcher.selectRepository(repositories[0])
+    }
   }
 
   private renderTitlebar() {
