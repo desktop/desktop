@@ -5,6 +5,7 @@ export function parseRawDiff(diffText: string): Diff {
     // https://en.wikipedia.org/wiki/Diff_utility
     //
     // @@ -l,s +l,s @@ optional section heading
+    //
     // The hunk range information contains two hunk ranges. The range for the hunk of the original
     // file is preceded by a minus symbol, and the range for the new file is preceded by a plus
     // symbol. Each hunk range is of the format l,s where l is the starting line number and s is
