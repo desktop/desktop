@@ -1,11 +1,9 @@
 import { Diff, DiffSection, DiffSectionRange } from '../models/diff'
 
-export function parseRawDiff(lines: string[]): Diff {
+export function parseRawDiff(diffText: string): Diff {
 
     const sectionRegex = /^@@ -(\d+)(,+(\d+))? \+(\d+)(,(\d+))? @@ ?(.*)$/m
     const regexGroups = { oldFileStart: 1, oldFileEnd: 3, newFileStart: 4, newFileEnd: 6 }
-
-    const diffText = lines[lines.length - 1]
 
     const diffSections = new Array<DiffSection>()
 
@@ -16,7 +14,7 @@ export function parseRawDiff(lines: string[]): Diff {
     // continue to iterate while these sections exist
     let prefixFound = sectionPrefixIndex > -1
 
-    let pointer: number = 0
+    let numberOfUnifiedDiffLines = 0
 
     while (prefixFound) {
 
@@ -57,16 +55,18 @@ export function parseRawDiff(lines: string[]): Diff {
         let endDiffSection: number = 0
 
         const diffLines = diffBody.split('\n')
+        // Remove the trailing empty line
+        diffLines.pop()
 
         if (diffSections.length === 0) {
           startDiffSection = 0
-          endDiffSection = diffLines.length
+          endDiffSection = diffLines.length - 1
         } else {
-          startDiffSection = pointer + 1
-          endDiffSection = startDiffSection + diffLines.length
+          startDiffSection = numberOfUnifiedDiffLines
+          endDiffSection = startDiffSection + diffLines.length - 1
         }
 
-        pointer += diffLines.length
+        numberOfUnifiedDiffLines += diffLines.length
 
         diffSections.push(new DiffSection(range, diffLines, startDiffSection, endDiffSection))
       } else {
@@ -76,13 +76,15 @@ export function parseRawDiff(lines: string[]): Diff {
         let endDiffSection: number = 0
 
         const diffLines = diffBody.split('\n')
+        // Remove the trailing empty line
+        diffLines.pop()
 
         if (diffSections.length === 0) {
           startDiffSection = 0
-          endDiffSection = diffLines.length
+          endDiffSection = diffLines.length - 1
         } else {
-          startDiffSection = pointer
-          endDiffSection = startDiffSection + diffLines.length
+          startDiffSection = numberOfUnifiedDiffLines
+          endDiffSection = startDiffSection + diffLines.length - 1
         }
 
         diffSections.push(new DiffSection(range, diffLines, startDiffSection, endDiffSection))

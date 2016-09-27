@@ -316,7 +316,10 @@ export class LocalGitOperations {
     }
 
     return GitProcess.execWithOutput(args, repository.path)
-      .then(result => parseRawDiff(result.split('\0')))
+      .then(result => {
+        const pieces = result.split('\0')
+        return parseRawDiff(pieces[pieces.length - 1])
+      })
   }
 
   /**
