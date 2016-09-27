@@ -54,7 +54,7 @@
   }
 }
 
-.diff-add {
+pre.diff-add {
   background: var(--diff-add-background-color);
   padding: 0;
 
@@ -63,7 +63,7 @@
   }
 }
 
-.diff-delete {
+pre.diff-delete {
   background: var(--diff-delete-background-color);
   padding: 0;
 
@@ -72,7 +72,7 @@
   }
 }
 
-.diff-context {
+pre.diff-context {
   background: var(--diff-context-background-color);
   padding: 0;
 
@@ -81,7 +81,7 @@
   }
 }
 
-.diff-hunk {
+pre.diff-hunk {
   background: var(--diff-hunk-background-color);
   padding: 0;
 
