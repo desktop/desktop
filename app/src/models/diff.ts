@@ -46,44 +46,11 @@ export class DiffSection {
   /** the diff section's end position in the overall file diff */
   public readonly unifiedDiffEnd: number
 
-  /** infer the type of a diff line based on the prefix */
-  private static mapToDiffLineType(text: string) {
-    if (text.startsWith('-')) {
-        return DiffLineType.Delete
-    } else if (text.startsWith('+')) {
-        return DiffLineType.Add
-    } else {
-        return DiffLineType.Context
-    }
-  }
-
-  public constructor(range: DiffSectionRange, lines: string[], unifiedDiffStart: number, unifiedDiffEnd: number) {
+  public constructor(range: DiffSectionRange, lines: ReadonlyArray<DiffLine>, unifiedDiffStart: number, unifiedDiffEnd: number) {
     this.range = range
     this.unifiedDiffStart = unifiedDiffStart
     this.unifiedDiffEnd = unifiedDiffEnd
-
-    let rollingDiffBeforeCounter = range.oldStartLine
-    let rollingDiffAfterCounter = range.newStartLine
-
-    const diffLines = lines.map(text => {
-      // the unified patch format considers these lines to be headers
-      // -> exclude them from the line counts
-      if (text.startsWith('@@')) {
-        return new DiffLine(text, DiffLineType.Hunk, null, null)
-      }
-
-      const type = DiffSection.mapToDiffLineType(text)
-
-      if (type === DiffLineType.Delete) {
-        return new DiffLine(text, type, rollingDiffBeforeCounter++, null)
-      } else if (type === DiffLineType.Add) {
-        return new DiffLine(text, type, null, rollingDiffAfterCounter++)
-      } else {
-        return new DiffLine(text, type, rollingDiffBeforeCounter++, rollingDiffAfterCounter++)
-      }
-    })
-
-    this.lines = diffLines
+    this.lines = lines
   }
 }
 

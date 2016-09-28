@@ -27,6 +27,17 @@ const prefixAdd = '+'
 const prefixDelete = '-'
 const prefixContext = ' '
 
+/** infer the type of a diff line based on the prefix */
+function mapToDiffLineType(text: string) {
+  if (text.startsWith('-')) {
+      return DiffLineType.Delete
+  } else if (text.startsWith('+')) {
+      return DiffLineType.Add
+  } else {
+      return DiffLineType.Context
+  }
+}
+
 interface IDiffHeaderInfo {
   readonly isBinary: boolean
 }
@@ -224,7 +235,28 @@ export class DiffParser {
       throw new Error('Malformed diff, empty hunk')
     }
 
-    return new DiffSection(header, lines, linesConsumed, linesConsumed + lines.length - 1)
+    let rollingDiffBeforeCounter = header.oldStartLine
+    let rollingDiffAfterCounter = header.newStartLine
+
+    const diffLines = lines.map(text => {
+      // the unified patch format considers these lines to be headers
+      // -> exclude them from the line counts
+      if (text.startsWith('@@')) {
+        return new DiffLine(text, DiffLineType.Hunk, null, null)
+      }
+
+      const type = mapToDiffLineType(text)
+
+      if (type === DiffLineType.Delete) {
+        return new DiffLine(text, type, rollingDiffBeforeCounter++, null)
+      } else if (type === DiffLineType.Add) {
+        return new DiffLine(text, type, null, rollingDiffAfterCounter++)
+      } else {
+        return new DiffLine(text, type, rollingDiffBeforeCounter++, rollingDiffAfterCounter++)
+      }
+    })
+
+    return new DiffSection(header, diffLines, linesConsumed, linesConsumed + lines.length - 1)
   }
 
   /**
