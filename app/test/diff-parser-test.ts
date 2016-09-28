@@ -15,7 +15,7 @@ function reinstateSpacesAtTheStartOfBlankLines(text: string) {
 }
 
 describe('DiffParser', () => {
-  it('properly parses changed files', () => {
+  it('parses changed files', () => {
     const diffText = `diff --git a/app/src/lib/diff-parser.ts b/app/src/lib/diff-parser.ts
 index e1d4871..3bd3ee0 100644
 --- a/app/src/lib/diff-parser.ts
@@ -110,7 +110,7 @@ index e1d4871..3bd3ee0 100644
     expect(lines.length).to.equal(13)
   })
 
-  it('properly parses new files', () => {
+  it('parses new files', () => {
     const diffText = `diff --git a/testste b/testste
 new file mode 100644
 index 0000000..f13588b
@@ -145,7 +145,7 @@ index 0000000..f13588b
     i++
   })
 
-  it('properly parses files containing @@', () => {
+  it('parses files containing @@', () => {
     const diffText = `diff --git a/test.txt b/test.txt
 index 24219cc..bf711a5 100644
 --- a/test.txt
@@ -186,7 +186,7 @@ index 24219cc..bf711a5 100644
     i++
   })
 
-  it('properly parses new files without a newline at end of file', () => {
+  it('parses new files without a newline at end of file', () => {
     const diffText = `diff --git a/test2.txt b/test2.txt
 new file mode 100644
 index 0000000..faf7da1
@@ -224,7 +224,7 @@ index 0000000..faf7da1
     i++
   })
 
-  it('properly parses diffs that adds newline to end of file', () => {
+  it('parses diffs that adds newline to end of file', () => {
     const diffText = `diff --git a/test2.txt b/test2.txt
 index 1910281..257cc56 100644
 --- a/test2.txt
@@ -269,7 +269,7 @@ index 1910281..257cc56 100644
 
   })
 
-  it('properly parses binary diffs', () => {
+  it('parses binary diffs', () => {
     const diffText = `diff --git a/IMG_2306.CR2 b/IMG_2306.CR2
 new file mode 100644
 index 0000000..4bf3a64
@@ -281,7 +281,7 @@ Binary files /dev/null and b/IMG_2306.CR2 differ
     expect(diff.isBinary).to.equal(true)
   })
 
-  it('properly parses diff of empty file', () => {
+  it('parses diff of empty file', () => {
     // To produce this output, do
     // touch foo
     // git diff --no-index --patch-with-raw -z -- /dev/null foo
