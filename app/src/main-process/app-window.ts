@@ -48,6 +48,7 @@ export class AppWindow {
   }
 
   public load() {
+    this.window.webContents.openDevTools()
     let startLoad = 0
     this.window.webContents.on('did-start-loading', () => {
       startLoad = Date.now()
