@@ -343,4 +343,46 @@ index 0000000..e69de29
     const diff = parser.parse(diffText)
     expect(diff.sections.length).to.equal(0)
   })
+
+  it('parses hunk headers with omitted line counts from new file', () => {
+    const diffText = `diff --git a/testste b/testste
+new file mode 100644
+index 0000000..f13588b
+--- /dev/null
++++ b/testste
+@@ -0,0 +1 @@
++asdfasdf
+`
+
+    const parser = new DiffParser()
+    const diff = parser.parse(diffText)
+    expect(diff.sections.length).to.equal(1)
+
+    const section = diff.sections[0]
+    expect(section.range.oldStartLine).to.equal(0)
+    expect(section.range.oldLineCount).to.equal(0)
+    expect(section.range.newStartLine).to.equal(1)
+    expect(section.range.newLineCount).to.equal(1)
+  })
+
+  it('parses hunk headers with omitted line counts from old file', () => {
+    const diffText = `diff --git a/testste b/testste
+new file mode 100644
+index 0000000..f13588b
+--- /dev/null
++++ b/testste
+@@ -1 +0,0 @@
+-asdfasdf
+`
+
+    const parser = new DiffParser()
+    const diff = parser.parse(diffText)
+    expect(diff.sections.length).to.equal(1)
+
+    const section = diff.sections[0]
+    expect(section.range.oldStartLine).to.equal(1)
+    expect(section.range.oldLineCount).to.equal(1)
+    expect(section.range.newStartLine).to.equal(0)
+    expect(section.range.newLineCount).to.equal(0)
+  })
 })
