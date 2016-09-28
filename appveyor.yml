@@ -21,7 +21,6 @@ version: "{build}"
 
 install:
   - ps: Install-Product node $env:nodejs_version x64
-  - node -e "console.log(process.arch)"
   - npm install -g npm
   - ps: $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
   - ps: $fileContent += $env:PRIVATE_KEY.Replace(' ', "`n")
