@@ -146,16 +146,21 @@ export class DiffParser {
   }
 
   /**
-   * Scan past the diff header, meaning everything from the
+   * Parse the diff header, meaning everything from the
    * start of the diff output to the end of the line beginning
-   * with ---
+   * with +++
    *
    * Example diff header:
    *
-   * diff --git a/app/src/lib/diff-parser.ts b/app/src/lib/diff-parser.ts
-   * index e1d4871..3bd3ee0 100644
-   * --- a/app/src/lib/diff-parser.ts
-   * +++ b/app/src/lib/diff-parser.ts
+   *   diff --git a/app/src/lib/diff-parser.ts b/app/src/lib/diff-parser.ts
+   *   index e1d4871..3bd3ee0 100644
+   *   --- a/app/src/lib/diff-parser.ts
+   *   +++ b/app/src/lib/diff-parser.ts
+   *
+   * Returns an object with information extracted from the diff
+   * header (currently whether it's a binary patch) or null if
+   * the end of the diff was reached before the +++ line could be
+   * found (which is a valid state).
    */
   private parseDiffHeader(): IDiffHeaderInfo | null {
 
