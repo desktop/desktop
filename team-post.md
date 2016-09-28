@@ -6,7 +6,7 @@ If you're feeling bold and courageous you can now try the rewritten Desktop app.
 
 1. [Add yourself to the desktop org](http://central.github.com/invite_to_desktop_org).
 2. [Download the latest release](https://central.github.com/deployments).
-3. [File issues](http://github.com/desktop/desktop/issues/new).
+3. [File issues for any bugs you find](http://github.com/desktop/desktop/issues/new).
 
 The UI is still being designed, so if you're looking for some functionality but can't find a button for it, check the menu. Some notable examples:
 
@@ -15,7 +15,7 @@ The UI is still being designed, so if you're looking for some functionality but 
 3. Push.
 4. Pull.
 
-There's still a lot of work to be done but it _should_ be usable for day to day committing, pushing, and pulling. Auto-updates _should_ be working (see above about the bleeding edge) so once you download and install the app, you should be good to go.
+There's still a lot of work to be done but it _should_ be usable for day to day committing, pushing, and pulling. Please file issues for any bugs you come across. Auto-updates _should_ be working (see above about the bleeding edge) so once you download and install the app, you should be good to go.
 
 ![screen shot 2016-09-27 at 12 15 33 pm](https://cloud.githubusercontent.com/assets/13760/18882427/212d06aa-84ad-11e6-9e05-4854b47c631c.png)
 
