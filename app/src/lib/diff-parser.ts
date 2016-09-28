@@ -140,28 +140,30 @@ export class DiffParser {
 
     this.text = text
 
-    this.parseDiffPreText()
+    try {
+      this.parseDiffPreText()
 
-    const hunkBuf = new Array<DiffSection>()
-    let linesConsumed = 0
-    let noNewlineAtEndOfFile = false
-    let c: string | null = null
+      const hunkBuf = new Array<DiffSection>()
+      let linesConsumed = 0
+      let noNewlineAtEndOfFile = false
+      let c: string | null = null
 
-    do {
-      const hunk = this.parseHunk(linesConsumed)
-      hunkBuf.push(hunk)
-      linesConsumed += hunk.lines.length
+      do {
+        const hunk = this.parseHunk(linesConsumed)
+        hunkBuf.push(hunk)
+        linesConsumed += hunk.lines.length
 
-    } while ((c = this.peek()) && c !== '\\')
+      } while ((c = this.peek()) && c !== '\\')
 
-    if (c === '\\') {
-      this.consumeNewlineWarningAndAssertEndOfDiff()
-      noNewlineAtEndOfFile = true
+      if (c === '\\') {
+        this.consumeNewlineWarningAndAssertEndOfDiff()
+        noNewlineAtEndOfFile = true
+      }
+
+      return new Diff(hunkBuf, noNewlineAtEndOfFile)
+    } finally {
+      this.reset()
     }
-
-    this.reset()
-
-    return new Diff(hunkBuf, noNewlineAtEndOfFile)
   }
 }
 
