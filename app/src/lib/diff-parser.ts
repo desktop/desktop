@@ -240,7 +240,7 @@ export class DiffParser {
   private consumeNewlineWarningAndAssertEndOfDiff() {
     const newLineWarning = this.readLine()
     if (!newLineWarning || newLineWarning !== '\\ No newline at end of file') {
-      throw new Error('')
+      throw new Error(`Expected newline warning on line starting with \\, but got '${newLineWarning}'`)
     }
 
     if (this.nextLine()) {
