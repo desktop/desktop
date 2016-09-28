@@ -219,4 +219,15 @@ index 0000000..faf7da1
 
     expect(diff.noNewlineAtEndOfFile).to.equal(true)
   })
+
+  it('properly parses binary diffs', () => {
+    const diffText = `diff --git a/IMG_2306.CR2 b/IMG_2306.CR2
+new file mode 100644
+index 0000000..4bf3a64
+Binary files /dev/null and b/IMG_2306.CR2 differ
+`
+    const diff = parseRawDiff(diffText)
+    expect(diff.sections.length).to.equal(0)
+    expect(diff.isBinary).to.equal(true)
+  })
 })
