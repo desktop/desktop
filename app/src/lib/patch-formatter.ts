@@ -91,17 +91,17 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
     const header = s.lines[0]
     const additionalText = extractAdditionalText(header.text)
     const beforeStart = s.range.oldStartLine
-    const beforeEnd = s.range.oldEndLine
+    const beforeCount = s.range.oldLineCount
     const afterStart = s.range.newStartLine
-    const afterEnd = s.range.newEndLine + linesSkipped
+    const afterCount = s.range.newLineCount + linesSkipped
 
     const patchHeader = formatPatchHeader(
       file.path,
       file.path,
       beforeStart,
-      beforeEnd,
+      beforeCount,
       afterStart,
-      afterEnd,
+      afterCount,
       additionalText)
 
       input += patchHeader + patchBody
@@ -148,7 +148,7 @@ export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Di
       null,
       file.path,
       s.range.oldStartLine,
-      s.range.oldEndLine,
+      s.range.oldLineCount,
       s.range.newStartLine,
       linesCounted,
       additionalText)
@@ -196,13 +196,13 @@ export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff
     const header = s.lines[0]
     const additionalText = extractAdditionalText(header.text)
 
-    const remainingLines = s.range.oldEndLine - linesIncluded
+    const remainingLines = s.range.oldLineCount - linesIncluded
 
     const patchHeader = formatPatchHeader(
       file.path,
       file.path,
       s.range.oldStartLine,
-      s.range.oldEndLine,
+      s.range.oldLineCount,
       1,
       remainingLines,
       additionalText)

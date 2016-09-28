@@ -196,11 +196,11 @@ export class DiffParser {
 
     // If endLines are missing default to 1, see diffHeaderRe docs
     const oldStartLine = numberFromGroup(m, 1)
-    const oldEndLine = numberFromGroup(m, 2, 1)
+    const oldLineCount = numberFromGroup(m, 2, 1)
     const newStartLine = numberFromGroup(m, 3)
-    const newEndLine = numberFromGroup(m, 4, 1)
+    const newLineCount = numberFromGroup(m, 4, 1)
 
-    return new DiffSectionRange(oldStartLine, oldEndLine, newStartLine, newEndLine)
+    return new DiffSectionRange(oldStartLine, oldLineCount, newStartLine, newLineCount)
   }
 
   /**

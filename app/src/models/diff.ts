@@ -28,16 +28,23 @@ export class DiffLine {
 
 /** details about the start and end of a section of a diff */
 export class DiffSectionRange {
+  /** The line in the old (or original) file where this diff hunk starts */
   public readonly oldStartLine: number
-  public readonly oldEndLine: number
-  public readonly newStartLine: number
-  public readonly newEndLine: number
 
-  public constructor(oldStartLine: number, oldEndLine: number, newStartLine: number, newEndLine: number) {
+  /** The number of lines in the old (or original) file that this diff hunk covers */
+  public readonly oldLineCount: number
+
+  /** The line in the new file where this diff hunk starts */
+  public readonly newStartLine: number
+
+  /** The number of lines in the new file that this diff hunk covers */
+  public readonly newLineCount: number
+
+  public constructor(oldStartLine: number, oldLineCount: number, newStartLine: number, newLineCount: number) {
     this.oldStartLine = oldStartLine
-    this.oldEndLine = oldEndLine
+    this.oldLineCount = oldLineCount
     this.newStartLine = newStartLine
-    this.newEndLine = newEndLine
+    this.newLineCount = newLineCount
   }
 }
 
