@@ -234,7 +234,7 @@ export class DiffParser {
   }
 
   /**
-   * Parse a hunk, including its header or trows an error if the diff doesn't
+   * Parses a hunk, including its header or throws an error if the diff doesn't
    * contain a well-formed diff hunk at the current position.
    *
    * Expects that the position has been advanced to the beginning of a presumed
