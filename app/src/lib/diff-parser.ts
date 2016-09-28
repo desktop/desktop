@@ -280,6 +280,12 @@ export class DiffParser {
         throw new Error('Expected unified diff line but reached end of diff')
       }
 
+      // A marker indicating that the last line in the original or the new file
+      // is missing a trailing newline. In other words, the presence of this marker
+      // means that the new and/or original file lacks a trailing newline.
+      //
+      // When we find it we have to look up the previous line and set the
+      // noTrailingNewLine flag
       if (c === DiffPrefixNoNewline) {
 
         // See https://github.com/git/git/blob/21f862b498925194f8f1ebe8203b7a7df756555b/apply.c#L1725-L1732
