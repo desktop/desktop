@@ -3,15 +3,28 @@ import { assertNever } from '../lib/fatal-error'
 
 /**
  * Attempts to convert a RegExp capture group into a number.
- * If the group doesn't exist, wasn't captured or if the captured
- * string can't be converted to a number this will return NaN
- *
- * @TODO Determine if NaN is really what we want, it feels very
- *       wrong but this refactor is big enough as it is.
+ * If the group doesn't exist or wasn't captured the function
+ * will return the value of the defaultValue parameter or throw
+ * an error if no default value was provided. If the captured
+ * string can't be converted to a number an error will be thrown.
  */
-function numberFromGroup(m: RegExpMatchArray, group: number): number {
+function numberFromGroup(m: RegExpMatchArray, group: number, defaultValue: number | null = null): number {
   const str = m[group]
-  return parseInt(str, 10)
+  if (!str) {
+    if (!defaultValue) {
+      throw new Error(`Group ${group} missing from regexp match and no defaultValue was provided`)
+    }
+
+    return defaultValue
+  }
+
+  const num = parseInt(str, 10)
+
+  if (isNaN(num)) {
+    throw new Error(`Could not parse capture group ${group} into number: ${str}`)
+  }
+
+  return num
 }
 
 // https://en.wikipedia.org/wiki/Diff_utility
@@ -22,6 +35,9 @@ function numberFromGroup(m: RegExpMatchArray, group: number): number {
 // file is preceded by a minus symbol, and the range for the new file is preceded by a plus
 // symbol. Each hunk range is of the format l,s where l is the starting line number and s is
 // the number of lines the change hunk applies to for each respective file.
+//
+// In many versions of GNU diff, each range can omit the comma and trailing value s,
+// in which case s defaults to 1
 const diffHeaderRe = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/
 
 // Note: it's imperative that these two sets of characters match
@@ -178,10 +194,11 @@ export class DiffParser {
     const m = diffHeaderRe.exec(line)
     if (!m) { throw new Error(`Invalid hunk header format: '${line}'`) }
 
+    // If endLines are missing default to 1, see diffHeaderRe docs
     const oldStartLine = numberFromGroup(m, 1)
-    const oldEndLine = numberFromGroup(m, 2)
+    const oldEndLine = numberFromGroup(m, 2, 1)
     const newStartLine = numberFromGroup(m, 3)
-    const newEndLine = numberFromGroup(m, 4)
+    const newEndLine = numberFromGroup(m, 4, 1)
 
     return new DiffSectionRange(oldStartLine, oldEndLine, newStartLine, newEndLine)
   }
