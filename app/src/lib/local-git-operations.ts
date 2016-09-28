@@ -6,7 +6,7 @@ import { DiffSelectionType, DiffSelection, Diff } from '../models/diff'
 import { Repository } from '../models/repository'
 
 import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDeletedFile } from './patch-formatter'
-import { parseRawDiff } from './diff-parser'
+import { DiffParser } from './diff-parser'
 
 import { GitProcess, GitError, GitErrorCode } from 'git-kitchen-sink'
 
@@ -318,7 +318,8 @@ export class LocalGitOperations {
     return GitProcess.execWithOutput(args, repository.path)
       .then(result => {
         const pieces = result.split('\0')
-        return parseRawDiff(pieces[pieces.length - 1])
+        const parser = new DiffParser()
+        return parser.parse(pieces[pieces.length - 1])
       })
   }
 
