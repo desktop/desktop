@@ -24,7 +24,9 @@ function numberFromGroup(m: RegExpMatchArray, group: number): number {
 // the number of lines the change hunk applies to for each respective file.
 const diffHeaderRe = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/
 
+// Note: it's imperative that these two sets of characters match
 type DiffLinePrefix = '+' | '-' | ' ' | '\\'
+const DiffLinePrefixChars = new Set([ '+', '-', ' ', '\\' ])
 
 interface IDiffHeaderInfo {
   readonly isBinary: boolean
@@ -182,12 +184,21 @@ export class DiffParser {
     return new DiffSectionRange(oldStartLine, oldEndLine, newStartLine, newEndLine)
   }
 
+  /**
+   * Convenience function which lets us leverage the type system to
+   * prove exhaustive checks in parseHunk.
+   *
+   * Takes an arbitrary string and checks to see if the first character
+   * of that string is one of the allowed prefix characters for diff
+   * lines (ie lines in between hunk headers).
+   */
   private parseLinePrefix(c: string | null): DiffLinePrefix | null {
 
-    if (!c || !c.length) { return null}
-
-    if (c[0] === '+' || c[0] === '-' || c[0] === ' ' || c[0] === '\\') {
-      return c as DiffLinePrefix
+    // Since we know that DiffLinePrefixChars and the DiffLinePrefix type
+    // include the same characters we can tell the type system that we
+    // now know that c[0] is one of the characters in the DifflinePrefix set
+    if (c && c.length && DiffLinePrefixChars.has(c[0])) {
+      return c[0] as DiffLinePrefix
     }
 
     return null
