@@ -6,10 +6,6 @@ platform:
 environment:
   nodejs_version: "6"
 
-cache:
-  - node_modules
-  - '%USERPROFILE%\.electron'
-
 branches:
   only:
     - master
@@ -20,8 +16,8 @@ skip_tags: true
 version: "{build}"
 
 install:
-  - node -e "console.log(process.arch)"
   - ps: Install-Product node $env:nodejs_version x64
+  - node -e "console.log(process.arch)"
   - npm install -g npm
   - ps: $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
   - ps: $fileContent += $env:PRIVATE_KEY.Replace(' ', "`n")
