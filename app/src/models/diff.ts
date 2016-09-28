@@ -11,12 +11,15 @@ export class DiffLine {
   public readonly oldLineNumber: number | null
   public readonly newLineNumber: number | null
   public selected: boolean = false
+  public readonly noTrailingNewLine: boolean
 
-  public constructor(text: string, type: DiffLineType, oldLineNumber: number | null, newLineNuber: number | null) {
+  public constructor(text: string, type: DiffLineType, oldLineNumber: number | null, newLineNuber: number | null, noTrailingNewLine: boolean = false) {
     this.text = text
     this.type = type
     this.oldLineNumber = oldLineNumber
     this.newLineNumber = newLineNuber
+    this.noTrailingNewLine = noTrailingNewLine
+  }
   }
 }
 
