@@ -1,32 +1,6 @@
 import { Diff, DiffSection, DiffSectionRange, DiffLine, DiffLineType } from '../models/diff'
 import { assertNever } from '../lib/fatal-error'
 
-/**
- * Attempts to convert a RegExp capture group into a number.
- * If the group doesn't exist or wasn't captured the function
- * will return the value of the defaultValue parameter or throw
- * an error if no default value was provided. If the captured
- * string can't be converted to a number an error will be thrown.
- */
-function numberFromGroup(m: RegExpMatchArray, group: number, defaultValue: number | null = null): number {
-  const str = m[group]
-  if (!str) {
-    if (!defaultValue) {
-      throw new Error(`Group ${group} missing from regexp match and no defaultValue was provided`)
-    }
-
-    return defaultValue
-  }
-
-  const num = parseInt(str, 10)
-
-  if (isNaN(num)) {
-    throw new Error(`Could not parse capture group ${group} into number: ${str}`)
-  }
-
-  return num
-}
-
 // https://en.wikipedia.org/wiki/Diff_utility
 //
 // @@ -l,s +l,s @@ optional section heading
@@ -197,6 +171,32 @@ export class DiffParser {
   }
 
   /**
+   * Attempts to convert a RegExp capture group into a number.
+   * If the group doesn't exist or wasn't captured the function
+   * will return the value of the defaultValue parameter or throw
+   * an error if no default value was provided. If the captured
+   * string can't be converted to a number an error will be thrown.
+   */
+  private numberFromGroup(m: RegExpMatchArray, group: number, defaultValue: number | null = null): number {
+    const str = m[group]
+    if (!str) {
+      if (!defaultValue) {
+        throw new Error(`Group ${group} missing from regexp match and no defaultValue was provided`)
+      }
+
+      return defaultValue
+    }
+
+    const num = parseInt(str, 10)
+
+    if (isNaN(num)) {
+      throw new Error(`Could not parse capture group ${group} into number: ${str}`)
+    }
+
+    return num
+  }
+
+  /**
    * Parses a hunk header or throws an error if the given line isn't
    * a well-formed hunk header.
    *
@@ -214,10 +214,10 @@ export class DiffParser {
     if (!m) { throw new Error(`Invalid hunk header format: '${line}'`) }
 
     // If endLines are missing default to 1, see diffHeaderRe docs
-    const oldStartLine = numberFromGroup(m, 1)
-    const oldLineCount = numberFromGroup(m, 2, 1)
-    const newStartLine = numberFromGroup(m, 3)
-    const newLineCount = numberFromGroup(m, 4, 1)
+    const oldStartLine = this.numberFromGroup(m, 1)
+    const oldLineCount = this.numberFromGroup(m, 2, 1)
+    const newStartLine = this.numberFromGroup(m, 3)
+    const newLineCount = this.numberFromGroup(m, 4, 1)
 
     return new DiffSectionRange(oldStartLine, oldLineCount, newStartLine, newLineCount)
   }
