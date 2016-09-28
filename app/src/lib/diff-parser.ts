@@ -302,10 +302,10 @@ export class DiffParser {
 
       let diffLine: DiffLine
 
-      if (c === DiffPrefixDelete) {
-        diffLine = new DiffLine(line, DiffLineType.Delete, rollingDiffBeforeCounter++, null)
-      } else if (c === DiffPrefixAdd) {
+      if (c === DiffPrefixAdd) {
         diffLine = new DiffLine(line, DiffLineType.Add, null, rollingDiffAfterCounter++)
+      } else if (c === DiffPrefixDelete) {
+        diffLine = new DiffLine(line, DiffLineType.Delete, rollingDiffBeforeCounter++, null)
       } else if (c === DiffPrefixContext) {
         diffLine = new DiffLine(line, DiffLineType.Context, rollingDiffBeforeCounter++, rollingDiffAfterCounter++)
       } else {
