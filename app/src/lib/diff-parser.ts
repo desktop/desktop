@@ -1,4 +1,4 @@
-import { Diff, DiffSection, DiffSectionRange } from '../models/diff'
+import { Diff, DiffSection, DiffSectionRange, DiffLine, DiffLineType } from '../models/diff'
 
 /**
  * Attempts to convert a RegExp capture group into a number.
