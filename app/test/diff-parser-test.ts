@@ -231,7 +231,7 @@ index 1910281..257cc56 100644
 +++ b/test2.txt
 @@ -1 +1 @@
 -foo
-\ No newline at end of file
+\\ No newline at end of file
 +foo
 `
     const parser = new DiffParser()
