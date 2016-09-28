@@ -201,10 +201,10 @@ index 0000000..faf7da1
 
     const section = diff.sections[0]
     expect(section.unifiedDiffStart).to.equal(0)
-    expect(section.unifiedDiffEnd).to.equal(2)
+    expect(section.unifiedDiffEnd).to.equal(1)
 
     const lines = section.lines
-    expect(lines.length).to.equal(3)
+    expect(lines.length).to.equal(2)
 
     let i = 0
     expect(lines[i].text).to.equal('@@ -0,0 +1 @@')
@@ -219,10 +219,6 @@ index 0000000..faf7da1
     expect(lines[i].newLineNumber).to.equal(1)
     i++
 
-    expect(lines[i].text).to.equal('\ No newline at end of file')
-    expect(lines[i].type).to.equal(DiffLineType.Context)
-    expect(lines[i].oldLineNumber).to.equal(null)
-    expect(lines[i].newLineNumber).to.equal(null)
-    i++
+    expect(diff.noNewlineAtEndOfFile).to.equal(true)
   })
 })
