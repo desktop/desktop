@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { parseRawDiff } from '../src/lib/diff-parser'
+import { DiffParser } from '../src/lib/diff-parser'
 import { DiffLineType } from '../src/models/diff'
 
 // Atom doesn't like lines with just one space and tries to
@@ -14,7 +14,7 @@ function reinstateSpacesAtTheStartOfBlankLines(text: string) {
   return text.replace(/\n\n/g, '\n \n')
 }
 
-describe('Diff parsing', () => {
+describe('DiffParser', () => {
   it('properly parses changed files', () => {
     const diffText = `diff --git a/app/src/lib/diff-parser.ts b/app/src/lib/diff-parser.ts
 index e1d4871..3bd3ee0 100644
@@ -54,7 +54,8 @@ index e1d4871..3bd3ee0 100644
  }
     `
 
-    const diff = parseRawDiff(reinstateSpacesAtTheStartOfBlankLines(diffText))
+    const parser = new DiffParser()
+    const diff = parser.parse(reinstateSpacesAtTheStartOfBlankLines(diffText))
     expect(diff.sections.length).to.equal(3)
 
     let section = diff.sections[0]
@@ -119,7 +120,8 @@ index 0000000..f13588b
 +asdfasdf
 `
 
-    const diff = parseRawDiff(diffText)
+    const parser = new DiffParser()
+    const diff = parser.parse(diffText)
     expect(diff.sections.length).to.equal(1)
 
     const section = diff.sections[0]
@@ -153,7 +155,8 @@ index 24219cc..bf711a5 100644
 +@@ foo
 `
 
-    const diff = parseRawDiff(diffText)
+    const parser = new DiffParser()
+    const diff = parser.parse(diffText)
     expect(diff.sections.length).to.equal(1)
 
     const section = diff.sections[0]
@@ -194,7 +197,8 @@ index 0000000..faf7da1
 \\ No newline at end of file
 `
 
-    const diff = parseRawDiff(diffText)
+    const parser = new DiffParser()
+    const diff = parser.parse(diffText)
     expect(diff.sections.length).to.equal(1)
 
     const section = diff.sections[0]
@@ -226,7 +230,8 @@ new file mode 100644
 index 0000000..4bf3a64
 Binary files /dev/null and b/IMG_2306.CR2 differ
 `
-    const diff = parseRawDiff(diffText)
+    const parser = new DiffParser()
+    const diff = parser.parse(diffText)
     expect(diff.sections.length).to.equal(0)
     expect(diff.isBinary).to.equal(true)
   })

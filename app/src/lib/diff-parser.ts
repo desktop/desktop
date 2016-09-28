@@ -290,8 +290,3 @@ export class DiffParser {
     }
   }
 }
-
-export function parseRawDiff(diffText: string): Diff {
-    const parser = new DiffParser()
-    return parser.parse(diffText)
-}
