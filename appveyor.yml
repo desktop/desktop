@@ -20,6 +20,7 @@ skip_tags: true
 version: "{build}"
 
 install:
+  - node -e "console.log(process.arch)"
   - npm install -g npm
   - ps: $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
   - ps: $fileContent += $env:PRIVATE_KEY.Replace(' ', "`n")
