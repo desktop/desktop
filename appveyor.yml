@@ -8,7 +8,7 @@ environment:
 
 cache:
   - node_modules -> appveyor.yml
-  - '%USERPROFILE%\.electron' -> appveyor.yml
+  - '%USERPROFILE%\.electron -> appveyor.yml'
 
 branches:
   only:
