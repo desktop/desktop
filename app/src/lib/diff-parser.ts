@@ -40,9 +40,14 @@ function numberFromGroup(m: RegExpMatchArray, group: number, defaultValue: numbe
 // in which case s defaults to 1
 const diffHeaderRe = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/
 
+const DiffPrefixAdd: '+' = '+'
+const DiffPrefixDelete: '-' = '-'
+const DiffPrefixContext: ' ' = ' '
+const DiffPrefixNoNewline: '\\' = '\\'
+
 // Note: it's imperative that these two sets of characters match
-type DiffLinePrefix = '+' | '-' | ' ' | '\\'
-const DiffLinePrefixChars = new Set([ '+', '-', ' ', '\\' ])
+type DiffLinePrefix = typeof DiffPrefixAdd | typeof DiffPrefixDelete | typeof DiffPrefixContext | typeof DiffPrefixNoNewline
+const DiffLinePrefixChars: Set<string> = new Set([ DiffPrefixAdd, DiffPrefixDelete, DiffPrefixContext, DiffPrefixNoNewline ])
 
 interface IDiffHeaderInfo {
   readonly isBinary: boolean
@@ -266,7 +271,7 @@ export class DiffParser {
         throw new Error('Expected unified diff line but reached end of diff')
       }
 
-      if (c === '\\') {
+      if (c === DiffPrefixNoNewline) {
 
         // See https://github.com/git/git/blob/21f862b498925194f8f1ebe8203b7a7df756555b/apply.c#L1725-L1732
         if (line.length < 12) {
@@ -282,11 +287,11 @@ export class DiffParser {
 
       let diffLine: DiffLine
 
-      if (c === '-') {
+      if (c === DiffPrefixDelete) {
         diffLine = new DiffLine(line, DiffLineType.Delete, rollingDiffBeforeCounter++, null)
-      } else if (c === '+') {
+      } else if (c === DiffPrefixAdd) {
         diffLine = new DiffLine(line, DiffLineType.Add, null, rollingDiffAfterCounter++)
-      } else if (c === ' ') {
+      } else if (c === DiffPrefixContext) {
         diffLine = new DiffLine(line, DiffLineType.Context, rollingDiffBeforeCounter++, rollingDiffAfterCounter++)
       } else {
         return assertNever(c, `Unknown DiffLinePrefix: ${c}`)
