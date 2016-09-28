@@ -49,6 +49,11 @@ type DiffLinePrefix = typeof DiffPrefixAdd | typeof DiffPrefixDelete | typeof Di
 const DiffLinePrefixChars: Set<DiffLinePrefix> = new Set([ DiffPrefixAdd, DiffPrefixDelete, DiffPrefixContext, DiffPrefixNoNewline ])
 
 interface IDiffHeaderInfo {
+  /**
+   * Whether or not the diff header contained a marker indicating
+   * that a diff couldn't be produced due to the contents of the
+   * new and/or old file was binary.
+   */
   readonly isBinary: boolean
 }
 
