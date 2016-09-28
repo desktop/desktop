@@ -6,6 +6,10 @@ platform:
 environment:
   nodejs_version: "6"
 
+cache:
+  - node_modules
+  - '%USERPROFILE%\.electron'
+
 branches:
   only:
     - master
