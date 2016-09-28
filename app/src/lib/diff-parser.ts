@@ -23,6 +23,10 @@ function numberFromGroup(m: RegExpMatchArray, group: number): number {
 // the number of lines the change hunk applies to for each respective file.
 const diffHeaderRe = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/
 
+const prefixAdd = '+'
+const prefixDelete = '-'
+const prefixContext = ' '
+
 export class DiffParser {
 
   /**
@@ -193,7 +197,7 @@ export class DiffParser {
 
     let c: string | null
 
-    while ((c = this.peek()) && (c === '+' || c === '-' || c === ' ')) {
+    while ((c = this.peek()) && (c === prefixAdd || c === prefixDelete || c === prefixContext)) {
       const line = this.readLine()
 
       if (!line) {
