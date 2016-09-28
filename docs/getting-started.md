@@ -85,10 +85,10 @@ npm ERR! Or if that isn't available, you can get their info via:
 npm ERR!     npm owner ls keytar
 ```
 
-Install the latest (unstable) version of `npm`:
+Make sure you're using npm >= 2.15.9
 
 ```
-PS> npm -g install npm@next
+PS> npm -g install npm@latest
 ```
 
 and run `npm install`
