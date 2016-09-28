@@ -1,4 +1,5 @@
 import { Diff, DiffSection, DiffSectionRange, DiffLine, DiffLineType } from '../models/diff'
+import { assertNever } from '../lib/fatal-error'
 
 /**
  * Attempts to convert a RegExp capture group into a number.
@@ -23,20 +24,7 @@ function numberFromGroup(m: RegExpMatchArray, group: number): number {
 // the number of lines the change hunk applies to for each respective file.
 const diffHeaderRe = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/
 
-const prefixAdd = '+'
-const prefixDelete = '-'
-const prefixContext = ' '
-
-/** infer the type of a diff line based on the prefix */
-function mapToDiffLineType(text: string) {
-  if (text.startsWith('-')) {
-      return DiffLineType.Delete
-  } else if (text.startsWith('+')) {
-      return DiffLineType.Add
-  } else {
-      return DiffLineType.Context
-  }
-}
+type DiffLinePrefix = '+' | '-' | ' ' | '\\'
 
 interface IDiffHeaderInfo {
   readonly isBinary: boolean
@@ -194,6 +182,17 @@ export class DiffParser {
     return new DiffSectionRange(oldStartLine, oldEndLine, newStartLine, newEndLine)
   }
 
+  private parseLinePrefix(c: string | null): DiffLinePrefix | null {
+
+    if (!c || !c.length) { return null}
+
+    if (c[0] === '+' || c[0] === '-' || c[0] === ' ' || c[0] === '\\') {
+      return c as DiffLinePrefix
+    }
+
+    return null
+  }
+
   /**
    * Parse a hunk, including its header or trows an error if the diff doesn't
    * contain a well-formed diff hunk at the current position.
@@ -216,68 +215,49 @@ export class DiffParser {
     }
 
     const header = this.parseHunkHeader(headerLine)
-    const lines = new Array<string>()
-    lines.push(headerLine)
+    const lines = new Array<DiffLine>()
+    lines.push(new DiffLine(headerLine, DiffLineType.Hunk, null, null))
 
-    let c: string | null
+    let c: DiffLinePrefix | null
 
-    while ((c = this.peek()) && (c === prefixAdd || c === prefixDelete || c === prefixContext)) {
+    let rollingDiffBeforeCounter = header.oldStartLine
+    let rollingDiffAfterCounter = header.newStartLine
+
+    while ((c = this.parseLinePrefix(this.peek()))) {
+
       const line = this.readLine()
 
       if (!line) {
         throw new Error('Expected unified diff line but reached end of diff')
       }
 
-      lines.push(line)
+      if (c === '\\') {
+        const previousLineIndex = lines.length - 1
+        const previousLine = lines[previousLineIndex]
+        lines[previousLineIndex] = previousLine.withNoTrailingNewLine(true)
+
+        continue
+      }
+      let diffLine: DiffLine
+
+      if (c === '-') {
+        diffLine = new DiffLine(line, DiffLineType.Delete, rollingDiffBeforeCounter++, null)
+      } else if (c === '+') {
+        diffLine = new DiffLine(line, DiffLineType.Add, null, rollingDiffAfterCounter++)
+      } else if (c === ' ') {
+        diffLine = new DiffLine(line, DiffLineType.Context, rollingDiffBeforeCounter++, rollingDiffAfterCounter++)
+      } else {
+        return assertNever(c, `Unknown DiffLinePrefix: ${c}`)
+      }
+
+      lines.push(diffLine)
     }
 
     if (lines.length === 1) {
       throw new Error('Malformed diff, empty hunk')
     }
 
-    let rollingDiffBeforeCounter = header.oldStartLine
-    let rollingDiffAfterCounter = header.newStartLine
-
-    const diffLines = lines.map(text => {
-      // the unified patch format considers these lines to be headers
-      // -> exclude them from the line counts
-      if (text.startsWith('@@')) {
-        return new DiffLine(text, DiffLineType.Hunk, null, null)
-      }
-
-      const type = mapToDiffLineType(text)
-
-      if (type === DiffLineType.Delete) {
-        return new DiffLine(text, type, rollingDiffBeforeCounter++, null)
-      } else if (type === DiffLineType.Add) {
-        return new DiffLine(text, type, null, rollingDiffAfterCounter++)
-      } else {
-        return new DiffLine(text, type, rollingDiffBeforeCounter++, rollingDiffAfterCounter++)
-      }
-    })
-
-    return new DiffSection(header, diffLines, linesConsumed, linesConsumed + lines.length - 1)
-  }
-
-  /**
-   * Asserts that the remainder of the diff contains a newline warning and nothing
-   * else. Throws an error if that's not the case.
-   *
-   * Newline warnings are produced when one version of a file lacks a trailing
-   * newline. See:
-   *
-   * https://github.com/git/git/blob/8c6d1f9807c67532e7fb545a944b064faff0f70b/xdiff/xutils.c#L53
-   * http://stackoverflow.com/a/5813359/2114
-   */
-  private consumeNewlineWarningAndAssertEndOfDiff() {
-    const newLineWarning = this.readLine()
-    if (!newLineWarning || newLineWarning !== '\\ No newline at end of file') {
-      throw new Error(`Expected newline warning on line starting with \\, but got '${newLineWarning}'`)
-    }
-
-    if (this.nextLine()) {
-      throw new Error('Expected end of diff after newline warning')
-    }
+    return new DiffSection(header, lines, linesConsumed, linesConsumed + lines.length - 1)
   }
 
   /**
