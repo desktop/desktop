@@ -1,5 +1,8 @@
 os: Visual Studio 2015
 
+platform:
+  - x64
+
 environment:
   nodejs_version: "6"
 
