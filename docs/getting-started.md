@@ -45,13 +45,13 @@ If you're using [Atom](https://atom.io/) there's some plugins that you might wan
 * [atom-build-npm-apm](https://atom.io/packages/build-npm-apm) - Lets you invoke all npm scripts straight from the editor by pressing F7 (requires [atom-build](https://atom.io/packages/build))
 * [linter](https://atom.io/packages/linter) and [linter-tslint](https://atom.io/packages/linter-tslint) - Shows linter errors and warning in the editor
 
-### Using Atom with Typescript 2.0
+### Using Atom with Typescript 2
 
-Atom-typescript doesn't support TS 2.0 out of the box right now so you have to [manually specify the path to typescriptServices.js](https://github.com/TypeStrong/atom-typescript/issues/1003#issuecomment-231793772).
+Atom-typescript doesn't support TS 2 out of the box right now so you have to [manually specify the path to typescriptServices.js](https://github.com/TypeStrong/atom-typescript/issues/1003#issuecomment-231793772).
 
-Start by installing Typescript 2.0 globally
+Start by installing Typescript 2 globally
 
-`npm install -g typescript@next`
+`npm install -g typescript@latest`
 
 Then switch to atom and follow these steps
 
@@ -85,10 +85,10 @@ npm ERR! Or if that isn't available, you can get their info via:
 npm ERR!     npm owner ls keytar
 ```
 
-Install the latest (unstable) version of `npm`:
+Make sure you're using npm >= 2.15.9
 
 ```
-PS> npm -g install npm@next
+PS> npm -g install npm@latest
 ```
 
 and run `npm install`
