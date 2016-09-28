@@ -141,7 +141,7 @@ export class DiffParser {
    * --- a/app/src/lib/diff-parser.ts
    * +++ b/app/src/lib/diff-parser.ts
    */
-  private parseDiffHeader(): IDiffHeaderInfo {
+  private parseDiffHeader(): IDiffHeaderInfo | null {
 
     // TODO: There's information in here that we might want to
     // capture, such as mode changes
@@ -156,7 +156,9 @@ export class DiffParser {
       }
     }
 
-    throw new Error('Could not find end of diff header')
+    // It's not an error to not find the +++ line, see the
+    // 'parses diff of empty file' test in diff-parser-tests.ts
+    return null
   }
 
   /**
@@ -284,6 +286,11 @@ export class DiffParser {
 
     try {
       const headerInfo = this.parseDiffHeader()
+
+      if (!headerInfo) {
+        // empty diff
+        return new Diff([], false)
+      }
 
       if (headerInfo.isBinary) {
         return new Diff([], true)
