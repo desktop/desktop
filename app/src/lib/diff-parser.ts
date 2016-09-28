@@ -57,6 +57,11 @@ interface IDiffHeaderInfo {
   readonly isBinary: boolean
 }
 
+/**
+ * A parser for the GNU unified diff format
+ *
+ * See https://www.gnu.org/software/diffutils/manual/html_node/Detailed-Unified.html
+ */
 export class DiffParser {
 
   /**
