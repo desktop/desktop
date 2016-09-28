@@ -65,15 +65,12 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
         }
 
         const absoluteIndex = s.unifiedDiffStart + index
-        if (selection.has(absoluteIndex)) {
-          const include = selection.get(absoluteIndex)
-          if (include) {
-            patchBody += line.text + '\n'
-            if (line.type === DiffLineType.Add) {
-              linesIncluded += 1
-            } else if (line.type === DiffLineType.Delete) {
-              linesRemoved += 1
-            }
+        if (selection.get(absoluteIndex)) {
+          patchBody += line.text + '\n'
+          if (line.type === DiffLineType.Add) {
+            linesIncluded += 1
+          } else if (line.type === DiffLineType.Delete) {
+            linesRemoved += 1
           }
         } else if (line.type === DiffLineType.Delete) {
           // need to generate the correct patch here
