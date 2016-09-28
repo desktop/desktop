@@ -280,4 +280,17 @@ Binary files /dev/null and b/IMG_2306.CR2 differ
     expect(diff.sections.length).to.equal(0)
     expect(diff.isBinary).to.equal(true)
   })
+
+  it('properly parses diff of empty file', () => {
+    // To produce this output, do
+    // touch foo
+    // git diff --no-index --patch-with-raw -z -- /dev/null foo
+    const diffText = `new file mode 100644
+index 0000000..e69de29
+`
+
+    const parser = new DiffParser()
+    const diff = parser.parse(diffText)
+    expect(diff.sections.length).to.equal(0)
+  })
 })
