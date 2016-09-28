@@ -245,12 +245,19 @@ export class DiffParser {
       }
 
       if (c === '\\') {
+
+        // See https://github.com/git/git/blob/21f862b498925194f8f1ebe8203b7a7df756555b/apply.c#L1725-L1732
+        if (line.length < 12) {
+          throw new Error(`Expected no newline at end of file marker but got ${line}`)
+        }
+
         const previousLineIndex = lines.length - 1
         const previousLine = lines[previousLineIndex]
         lines[previousLineIndex] = previousLine.withNoTrailingNewLine(true)
 
         continue
       }
+
       let diffLine: DiffLine
 
       if (c === '-') {
