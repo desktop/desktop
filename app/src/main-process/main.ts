@@ -63,6 +63,8 @@ app.on('ready', () => {
   sharedProcess = new SharedProcess()
   sharedProcess.register()
 
+  sharedProcess.show()
+
   createWindow()
 
   const menu = buildDefaultMenu(sharedProcess)
