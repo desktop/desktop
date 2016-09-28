@@ -33,5 +33,8 @@ build_script:
   - npm run lint
   - npm run build:prod
 
+test_script:
+  - npm test
+
 on_success:
   - npm run publish
