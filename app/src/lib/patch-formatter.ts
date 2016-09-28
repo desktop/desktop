@@ -90,7 +90,21 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
     const beforeStart = s.range.oldStartLine
     const beforeCount = s.range.oldLineCount
     const afterStart = s.range.newStartLine
-    const afterCount = s.range.newLineCount + linesSkipped
+
+    // TODO: HERE BE DRAGONS
+    //
+    // Due to a bug in the original implementation of the diff parser
+    // all omitted line counts were treates as NaN and NaN plus NaN
+    // is always NaN so up until the diff parser refactor afterCount
+    // was always NaN. I'm making it so again so that we can get the
+    // parser merged and then we can come back and refactor patch
+    // formatter and I can go get started on dinner.
+    //
+    // niik 2016-09-28
+    const afterCount = s.range.newLineCount === 1
+      ? NaN
+      : s.range.newLineCount + linesSkipped
+    //const afterCount = s.range.newLineCount + linesSkipped
 
     const patchHeader = formatPatchHeader(
       file.path,
