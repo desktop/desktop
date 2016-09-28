@@ -27,6 +27,10 @@ const prefixAdd = '+'
 const prefixDelete = '-'
 const prefixContext = ' '
 
+interface IDiffHeaderInfo {
+  readonly isBinary: boolean
+}
+
 export class DiffParser {
 
   /**
@@ -109,6 +113,11 @@ export class DiffParser {
     return this.text.startsWith(searchString, this.ls)
   }
 
+  /** Tests if the current line ends with the given search text */
+  private lineEndsWith(searchString: string): boolean {
+    return this.text.endsWith(searchString, this.le)
+  }
+
   /**
    * Returns the starting character of the next line without
    * advancing the internal state. Returns null if advancing
@@ -131,13 +140,18 @@ export class DiffParser {
    * --- a/app/src/lib/diff-parser.ts
    * +++ b/app/src/lib/diff-parser.ts
    */
-  private skipDiffHeader() {
+  private parseDiffHeader(): IDiffHeaderInfo {
 
     // TODO: There's information in here that we might want to
     // capture, such as mode changes
     while (this.nextLine()) {
+
+      if (this.lineStartsWith('Binary files ') && this.lineEndsWith('differ')) {
+        return { isBinary: true }
+      }
+
       if (this.lineStartsWith('+++')) {
-        return
+        return { isBinary: false }
       }
     }
 
@@ -186,7 +200,6 @@ export class DiffParser {
   private parseHunk(linesConsumed: number): DiffSection {
 
     const headerLine = this.readLine()
-
     if (!headerLine) {
       throw new Error('Expected hunk header but reached end of diff')
     }
@@ -247,8 +260,11 @@ export class DiffParser {
     this.text = text
 
     try {
-      // Scan past the diff header for now
-      this.skipDiffHeader()
+      const headerInfo = this.parseDiffHeader()
+
+      if (headerInfo.isBinary) {
+        return new Diff([], false, true)
+      }
 
       const hunks = new Array<DiffSection>()
       let linesConsumed = 0
@@ -268,7 +284,7 @@ export class DiffParser {
         noNewlineAtEndOfFile = true
       }
 
-      return new Diff(hunks, noNewlineAtEndOfFile)
+      return new Diff(hunks, noNewlineAtEndOfFile, headerInfo.isBinary)
     } finally {
       this.reset()
     }
