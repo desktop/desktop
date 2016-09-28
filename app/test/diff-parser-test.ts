@@ -119,7 +119,7 @@ index 0000000..f13588b
 +++ b/testste
 @@ -0,0 +1 @@
 +asdfasdf
-    `
+`
 
     const diff = parseRawDiff(diffText)
     expect(diff.sections.length).to.equal(1)
@@ -182,6 +182,47 @@ index 24219cc..bf711a5 100644
     expect(lines[i].type).to.equal(DiffLineType.Add)
     expect(lines[i].oldLineNumber).to.equal(null)
     expect(lines[i].newLineNumber).to.equal(1)
+    i++
+  })
+
+  it('properly parses new files without a newline at end of file', () => {
+    const diffText = `diff --git a/test2.txt b/test2.txt
+new file mode 100644
+index 0000000..faf7da1
+--- /dev/null
++++ b/test2.txt
+@@ -0,0 +1 @@
++asdasdasd
+\\ No newline at end of file
+`
+
+    const diff = parseRawDiff(diffText)
+    expect(diff.sections.length).to.equal(1)
+
+    const section = diff.sections[0]
+    expect(section.unifiedDiffStart).to.equal(0)
+    expect(section.unifiedDiffEnd).to.equal(2)
+
+    const lines = section.lines
+    expect(lines.length).to.equal(3)
+
+    let i = 0
+    expect(lines[i].text).to.equal('@@ -0,0 +1 @@')
+    expect(lines[i].type).to.equal(DiffLineType.Hunk)
+    expect(lines[i].oldLineNumber).to.equal(null)
+    expect(lines[i].newLineNumber).to.equal(null)
+    i++
+
+    expect(lines[i].text).to.equal('+asdasdasd')
+    expect(lines[i].type).to.equal(DiffLineType.Add)
+    expect(lines[i].oldLineNumber).to.equal(null)
+    expect(lines[i].newLineNumber).to.equal(1)
+    i++
+
+    expect(lines[i].text).to.equal('\ No newline at end of file')
+    expect(lines[i].type).to.equal(DiffLineType.Context)
+    expect(lines[i].oldLineNumber).to.equal(null)
+    expect(lines[i].newLineNumber).to.equal(null)
     i++
   })
 })
