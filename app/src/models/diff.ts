@@ -20,6 +20,9 @@ export class DiffLine {
     this.newLineNumber = newLineNuber
     this.noTrailingNewLine = noTrailingNewLine
   }
+
+  public withNoTrailingNewLine(noTrailingNewLine: boolean): DiffLine {
+    return new DiffLine(this.text, this.type, this.oldLineNumber, this.newLineNumber, noTrailingNewLine)
   }
 }
 
