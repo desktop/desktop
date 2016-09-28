@@ -16,8 +16,7 @@ function reinstateSpacesAtTheStartOfBlankLines(text: string) {
 
 describe('Diff parsing', () => {
   it('properly parses changed files', () => {
-    const diffText = `
-diff --git a/app/src/lib/diff-parser.ts b/app/src/lib/diff-parser.ts
+    const diffText = `diff --git a/app/src/lib/diff-parser.ts b/app/src/lib/diff-parser.ts
 index e1d4871..3bd3ee0 100644
 --- a/app/src/lib/diff-parser.ts
 +++ b/app/src/lib/diff-parser.ts
@@ -111,8 +110,7 @@ index e1d4871..3bd3ee0 100644
   })
 
   it('properly parses new files', () => {
-    const diffText = `
-diff --git a/testste b/testste
+    const diffText = `diff --git a/testste b/testste
 new file mode 100644
 index 0000000..f13588b
 --- /dev/null
