@@ -66,9 +66,8 @@ export class Diff {
    public readonly noNewlineAtEndOfFile: boolean
    public readonly isBinary: boolean
 
-   public constructor(sections: DiffSection[], noNewlineAtEndOfFile: boolean = false, isBinary: boolean = false) {
+   public constructor(sections: DiffSection[], isBinary: boolean = false) {
      this.sections = sections
-     this.noNewlineAtEndOfFile = noNewlineAtEndOfFile
      this.isBinary = isBinary
    }
 

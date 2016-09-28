@@ -220,8 +220,6 @@ index 0000000..faf7da1
     expect(lines[i].oldLineNumber).to.equal(null)
     expect(lines[i].newLineNumber).to.equal(1)
     i++
-
-    expect(diff.noNewlineAtEndOfFile).to.equal(true)
   })
 
   it('properly parses diffs that adds newline to end of file', () => {

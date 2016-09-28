@@ -295,28 +295,20 @@ export class DiffParser {
       const headerInfo = this.parseDiffHeader()
 
       if (headerInfo.isBinary) {
-        return new Diff([], false, true)
+        return new Diff([], true)
       }
 
       const hunks = new Array<DiffSection>()
       let linesConsumed = 0
-      let c: string | null = null
 
       do {
         const hunk = this.parseHunk(linesConsumed)
         hunks.push(hunk)
         linesConsumed += hunk.lines.length
 
-      } while ((c = this.peek()) && c !== '\\')
+      } while (this.peek())
 
-      let noNewlineAtEndOfFile = false
-
-      if (c === '\\') {
-        this.consumeNewlineWarningAndAssertEndOfDiff()
-        noNewlineAtEndOfFile = true
-      }
-
-      return new Diff(hunks, noNewlineAtEndOfFile, headerInfo.isBinary)
+      return new Diff(hunks, headerInfo.isBinary)
     } finally {
       this.reset()
     }
