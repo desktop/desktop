@@ -34,4 +34,4 @@ test_script:
   - npm test
 
 on_success:
-  - node script/publish
+  - npm run package

@@ -40,4 +40,4 @@ script:
   - npm test
 
 after_success:
-  - node script/publish
+  - npm run package
