@@ -224,6 +224,25 @@ index 0000000..faf7da1
     expect(diff.noNewlineAtEndOfFile).to.equal(true)
   })
 
+  it('properly parses diffs that adds newline to end of file', () => {
+    const diffText = `diff --git a/test2.txt b/test2.txt
+index 1910281..257cc56 100644
+--- a/test2.txt
++++ b/test2.txt
+@@ -1 +1 @@
+-foo
+\ No newline at end of file
++foo
+`
+    const parser = new DiffParser()
+    const diff = parser.parse(diffText)
+    expect(diff.sections.length).to.equal(1)
+
+    const section = diff.sections[0]
+    expect(section.unifiedDiffStart).to.equal(0)
+    expect(section.unifiedDiffEnd).to.equal(2)
+  })
+
   it('properly parses binary diffs', () => {
     const diffText = `diff --git a/IMG_2306.CR2 b/IMG_2306.CR2
 new file mode 100644
