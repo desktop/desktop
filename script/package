@@ -52,8 +52,7 @@ function packageWindows () {
     authors: distInfo.getCompanyName(),
     iconUrl: iconLocation,
     setupIcon: iconLocation,
-    exe: `${productName}.exe`,
-    remoteReleases: 'https://central.github.com/api/deployments/desktop/desktop/latest/',
+    exe: `${productName}.exe`
   }
 
   if (process.env.APPVEYOR) {
