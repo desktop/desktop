@@ -27,7 +27,7 @@ export class AppWindow {
       height: savedWindowState.height,
       minWidth: 800,
       minHeight: 600,
-      show: false,
+      show: true,
       // This fixes subpixel aliasing on Windows
       // See https://github.com/atom/atom/commit/683bef5b9d133cb194b476938c77cc07fd05b972
       backgroundColor: '#fff',
