@@ -45,9 +45,8 @@ const DiffPrefixDelete: '-' = '-'
 const DiffPrefixContext: ' ' = ' '
 const DiffPrefixNoNewline: '\\' = '\\'
 
-// Note: it's imperative that these two sets of characters match
 type DiffLinePrefix = typeof DiffPrefixAdd | typeof DiffPrefixDelete | typeof DiffPrefixContext | typeof DiffPrefixNoNewline
-const DiffLinePrefixChars: Set<string> = new Set([ DiffPrefixAdd, DiffPrefixDelete, DiffPrefixContext, DiffPrefixNoNewline ])
+const DiffLinePrefixChars: Set<DiffLinePrefix> = new Set([ DiffPrefixAdd, DiffPrefixDelete, DiffPrefixContext, DiffPrefixNoNewline ])
 
 interface IDiffHeaderInfo {
   readonly isBinary: boolean
@@ -226,7 +225,7 @@ export class DiffParser {
     // Since we know that DiffLinePrefixChars and the DiffLinePrefix type
     // include the same characters we can tell the type system that we
     // now know that c[0] is one of the characters in the DifflinePrefix set
-    if (c && c.length && DiffLinePrefixChars.has(c[0])) {
+    if (c && c.length && (DiffLinePrefixChars as Set<string>).has(c[0])) {
       return c[0] as DiffLinePrefix
     }
 
