@@ -269,6 +269,56 @@ index 1910281..257cc56 100644
 
   })
 
+  it('parses diffs where neither file version has a trailing newline', () => {
+    // echo -n 'foo' >  test
+    // git add -A && git commit -m foo
+    // echo -n 'bar' > test
+    // git diff test
+    const diffText = `diff --git a/test b/test
+index 1910281..ba0e162 100644
+--- a/test
++++ b/test
+@@ -1 +1 @@
+-foo
+\\ No newline at end of file
++bar
+\\ No newline at end of file
+`
+    const parser = new DiffParser()
+    const diff = parser.parse(diffText)
+    expect(diff.sections.length).to.equal(1)
+
+    const section = diff.sections[0]
+    expect(section.unifiedDiffStart).to.equal(0)
+    expect(section.unifiedDiffEnd).to.equal(2)
+
+    const lines = section.lines
+    expect(lines.length).to.equal(3)
+
+    let i = 0
+    expect(lines[i].text).to.equal('@@ -1 +1 @@')
+    expect(lines[i].type).to.equal(DiffLineType.Hunk)
+    expect(lines[i].oldLineNumber).to.equal(null)
+    expect(lines[i].newLineNumber).to.equal(null)
+    expect(lines[i].noTrailingNewLine).to.be.false
+    i++
+
+    expect(lines[i].text).to.equal('-foo')
+    expect(lines[i].type).to.equal(DiffLineType.Delete)
+    expect(lines[i].oldLineNumber).to.equal(1)
+    expect(lines[i].newLineNumber).to.equal(null)
+    expect(lines[i].noTrailingNewLine).to.be.true
+    i++
+
+    expect(lines[i].text).to.equal('+bar')
+    expect(lines[i].type).to.equal(DiffLineType.Add)
+    expect(lines[i].oldLineNumber).to.equal(null)
+    expect(lines[i].newLineNumber).to.equal(1)
+    expect(lines[i].noTrailingNewLine).to.be.true
+    i++
+
+  })
+
   it('parses binary diffs', () => {
     const diffText = `diff --git a/IMG_2306.CR2 b/IMG_2306.CR2
 new file mode 100644
