@@ -213,12 +213,14 @@ index 0000000..faf7da1
     expect(lines[i].type).to.equal(DiffLineType.Hunk)
     expect(lines[i].oldLineNumber).to.equal(null)
     expect(lines[i].newLineNumber).to.equal(null)
+    expect(lines[i].noTrailingNewLine).to.be.false
     i++
 
     expect(lines[i].text).to.equal('+asdasdasd')
     expect(lines[i].type).to.equal(DiffLineType.Add)
     expect(lines[i].oldLineNumber).to.equal(null)
     expect(lines[i].newLineNumber).to.equal(1)
+    expect(lines[i].noTrailingNewLine).to.be.true
     i++
   })
 
@@ -239,6 +241,32 @@ index 1910281..257cc56 100644
     const section = diff.sections[0]
     expect(section.unifiedDiffStart).to.equal(0)
     expect(section.unifiedDiffEnd).to.equal(2)
+
+    const lines = section.lines
+    expect(lines.length).to.equal(3)
+
+    let i = 0
+    expect(lines[i].text).to.equal('@@ -1 +1 @@')
+    expect(lines[i].type).to.equal(DiffLineType.Hunk)
+    expect(lines[i].oldLineNumber).to.equal(null)
+    expect(lines[i].newLineNumber).to.equal(null)
+    expect(lines[i].noTrailingNewLine).to.be.false
+    i++
+
+    expect(lines[i].text).to.equal('-foo')
+    expect(lines[i].type).to.equal(DiffLineType.Delete)
+    expect(lines[i].oldLineNumber).to.equal(1)
+    expect(lines[i].newLineNumber).to.equal(null)
+    expect(lines[i].noTrailingNewLine).to.be.true
+    i++
+
+    expect(lines[i].text).to.equal('+foo')
+    expect(lines[i].type).to.equal(DiffLineType.Add)
+    expect(lines[i].oldLineNumber).to.equal(null)
+    expect(lines[i].newLineNumber).to.equal(1)
+    expect(lines[i].noTrailingNewLine).to.be.false
+    i++
+
   })
 
   it('properly parses binary diffs', () => {
