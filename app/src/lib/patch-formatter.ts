@@ -88,8 +88,6 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
   const selection = file.selection.selectedLines
   const selectedLinesArray = Array.from(selection)
 
-  let globalLinesSkipped = 0
-
   let input = ''
 
   diff.hunks.forEach(hunk => {
@@ -103,7 +101,6 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
 
     // don't generate a patch if no lines are selected
     if (selectedLines.every(l => l[1] === false)) {
-      globalLinesSkipped += selectedLines.length
       return
     }
 
@@ -131,12 +128,10 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
           // need to generate the correct patch here
           patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
           linesSkipped -= 1
-          globalLinesSkipped -= 1
         } else {
           // ignore this line when creating the patch
           linesSkipped += 1
           // and for subsequent patches
-          globalLinesSkipped += 1
         }
       })
 
