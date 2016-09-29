@@ -6,7 +6,7 @@ import { WindowState, windowStateChannelName } from '../lib/window-state'
 import { buildDefaultMenu, MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-url'
 
-const windowStateKeeper = require('electron-window-state')
+let windowStateKeeper: any | null = null
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -14,6 +14,12 @@ export class AppWindow {
   private stats: Stats
 
   public constructor(stats: Stats, sharedProcess: SharedProcess) {
+    if (!windowStateKeeper) {
+      // `electron-window-state` requires Electron's `screen` module, which can
+      // only be required after the app has emitted `ready`. So require it
+      // lazily.
+      windowStateKeeper = require('electron-window-state')
+    }
 
     const savedWindowState = windowStateKeeper({
       defaultWidth: 800,
