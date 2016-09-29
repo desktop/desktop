@@ -187,7 +187,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       const relativeIndex = index - hunk.unifiedDiffStart
       const diffLine = hunk.lines[relativeIndex]
       if (diffLine) {
-        console.log('renderLine')
         const diffLineElement = element.children[0] as HTMLSpanElement
 
         const reactContainer = document.createElement('span')
