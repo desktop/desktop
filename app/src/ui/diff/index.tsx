@@ -150,9 +150,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       return
     }
 
-    const startLine = rowIndex
-    const endLine = startLine
-
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
       console.error('cannot change selected lines when selected file is not a WorkingDirectoryFileChange')
       return
@@ -173,9 +170,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     const include = !line.selected
 
     // apply the requested change
-    for (let i = startLine; i <= endLine; i++) {
-      newDiffSelection.set(i, include)
-    }
+    newDiffSelection.set(rowIndex, include)
 
     this.props.onIncludeChanged(newDiffSelection)
   }
