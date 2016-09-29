@@ -1,4 +1,4 @@
-import { Diff, DiffSection, DiffSectionRange, DiffLine, DiffLineType } from '../models/diff'
+import { Diff, DiffSection, DiffHunkHeader, DiffLine, DiffLineType } from '../models/diff'
 import { assertNever } from '../lib/fatal-error'
 
 // https://en.wikipedia.org/wiki/Diff_utility
@@ -209,7 +209,7 @@ export class DiffParser {
    *
    * Where everything after the last @@ is what's known as the hunk, or section, heading
    */
-  private parseHunkHeader(line: string): DiffSectionRange {
+  private parseHunkHeader(line: string): DiffHunkHeader {
     const m = diffHeaderRe.exec(line)
     if (!m) { throw new Error(`Invalid hunk header format: '${line}'`) }
 
@@ -219,7 +219,7 @@ export class DiffParser {
     const newStartLine = this.numberFromGroup(m, 3)
     const newLineCount = this.numberFromGroup(m, 4, 1)
 
-    return new DiffSectionRange(oldStartLine, oldLineCount, newStartLine, newLineCount)
+    return new DiffHunkHeader(oldStartLine, oldLineCount, newStartLine, newLineCount)
   }
 
   /**

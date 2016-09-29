@@ -27,7 +27,7 @@ export class DiffLine {
 }
 
 /** details about the start and end of a section of a diff */
-export class DiffSectionRange {
+export class DiffHunkHeader {
   /** The line in the old (or original) file where this diff hunk starts */
   public readonly oldStartLine: number
 
@@ -51,7 +51,7 @@ export class DiffSectionRange {
 /** each diff is made up of a number of sections */
 export class DiffSection {
   /** details from the diff section about the line start and patch length */
-  public readonly range: DiffSectionRange
+  public readonly header: DiffHunkHeader
   /** the contents - context and changes - of the diff setion */
   public readonly lines: ReadonlyArray<DiffLine>
   /** the diff section's start position in the overall file diff */
@@ -59,8 +59,8 @@ export class DiffSection {
   /** the diff section's end position in the overall file diff */
   public readonly unifiedDiffEnd: number
 
-  public constructor(range: DiffSectionRange, lines: ReadonlyArray<DiffLine>, unifiedDiffStart: number, unifiedDiffEnd: number) {
-    this.range = range
+  public constructor(header: DiffHunkHeader, lines: ReadonlyArray<DiffLine>, unifiedDiffStart: number, unifiedDiffEnd: number) {
+    this.header = header
     this.unifiedDiffStart = unifiedDiffStart
     this.unifiedDiffEnd = unifiedDiffEnd
     this.lines = lines

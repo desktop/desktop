@@ -359,10 +359,10 @@ index 0000000..f13588b
     expect(diff.sections.length).to.equal(1)
 
     const section = diff.sections[0]
-    expect(section.range.oldStartLine).to.equal(0)
-    expect(section.range.oldLineCount).to.equal(0)
-    expect(section.range.newStartLine).to.equal(1)
-    expect(section.range.newLineCount).to.equal(1)
+    expect(section.header.oldStartLine).to.equal(0)
+    expect(section.header.oldLineCount).to.equal(0)
+    expect(section.header.newStartLine).to.equal(1)
+    expect(section.header.newLineCount).to.equal(1)
   })
 
   it('parses hunk headers with omitted line counts from old file', () => {
@@ -380,9 +380,9 @@ index 0000000..f13588b
     expect(diff.sections.length).to.equal(1)
 
     const section = diff.sections[0]
-    expect(section.range.oldStartLine).to.equal(1)
-    expect(section.range.oldLineCount).to.equal(1)
-    expect(section.range.newStartLine).to.equal(0)
-    expect(section.range.newLineCount).to.equal(0)
+    expect(section.header.oldStartLine).to.equal(1)
+    expect(section.header.oldLineCount).to.equal(1)
+    expect(section.header.newStartLine).to.equal(0)
+    expect(section.header.newLineCount).to.equal(0)
   })
 })

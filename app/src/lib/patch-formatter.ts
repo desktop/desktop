@@ -87,9 +87,9 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
 
     const header = s.lines[0]
     const additionalText = extractAdditionalText(header.text)
-    const beforeStart = s.range.oldStartLine
-    const beforeCount = s.range.oldLineCount
-    const afterStart = s.range.newStartLine
+    const beforeStart = s.header.oldStartLine
+    const beforeCount = s.header.oldLineCount
+    const afterStart = s.header.newStartLine
 
     // TODO: HERE BE DRAGONS
     //
@@ -101,10 +101,10 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
     // formatter and I can go get started on dinner.
     //
     // niik 2016-09-28
-    const afterCount = s.range.newLineCount === 1
+    const afterCount = s.header.newLineCount === 1
       ? NaN
-      : s.range.newLineCount + linesSkipped
-    //const afterCount = s.range.newLineCount + linesSkipped
+      : s.header.newLineCount + linesSkipped
+    //const afterCount = s.header.newLineCount + linesSkipped
 
     const patchHeader = formatPatchHeader(
       file.path,
@@ -158,9 +158,9 @@ export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Di
     const patchHeader = formatPatchHeader(
       null,
       file.path,
-      s.range.oldStartLine,
-      s.range.oldLineCount,
-      s.range.newStartLine,
+      s.header.oldStartLine,
+      s.header.oldLineCount,
+      s.header.newStartLine,
       linesCounted,
       additionalText)
 
@@ -207,13 +207,13 @@ export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff
     const header = s.lines[0]
     const additionalText = extractAdditionalText(header.text)
 
-    const remainingLines = s.range.oldLineCount - linesIncluded
+    const remainingLines = s.header.oldLineCount - linesIncluded
 
     const patchHeader = formatPatchHeader(
       file.path,
       file.path,
-      s.range.oldStartLine,
-      s.range.oldLineCount,
+      s.header.oldStartLine,
+      s.header.oldLineCount,
       1,
       remainingLines,
       additionalText)
