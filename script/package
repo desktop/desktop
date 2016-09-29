@@ -37,14 +37,14 @@ function packageWindows () {
     cp.execSync(`powershell ${setupCertificatePath}`)
   }
 
-  const iconLocation = path.join (__dirname, '..', 'app', 'static', 'icon.ico')
+  const iconLocation = path.join(__dirname, '..', 'app', 'static', 'icon.ico')
 
   if (!fs.existsSync(iconLocation)) {
     console.error(`expected icon not found at location: ${iconLocation}`)
     process.exit(1)
   }
 
-  const certificatePath =  path.join(__dirname, 'windows-certificate.pfx')
+  const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
 
   const options = {
     appDirectory: distPath,
@@ -52,8 +52,7 @@ function packageWindows () {
     authors: distInfo.getCompanyName(),
     iconUrl: iconLocation,
     setupIcon: iconLocation,
-    exe: `${productName}.exe`,
-    remoteReleases: 'https://central.github.com/api/deployments/desktop/desktop/latest/',
+    exe: `${productName}.exe`
   }
 
   if (process.env.APPVEYOR) {
