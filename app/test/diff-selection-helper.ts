@@ -1,16 +1,16 @@
 import { Diff, DiffLineType } from '../src/models/diff'
 
-export function selectLinesInSection(diff: Diff, index: number, selected: boolean): Map<number, boolean> {
+export function selectLinesInHunk(diff: Diff, hunkIndex: number, selected: boolean): Map<number, boolean> {
 
     const selectedLines = new Map<number, boolean>()
 
-    const section = diff.sections[index]
-    section.lines.forEach((line, index) => {
+    const hunk = diff.hunks[hunkIndex]
+    hunk.lines.forEach((line, index) => {
       if (line.type === DiffLineType.Context || line.type === DiffLineType.Hunk) {
         return
       }
 
-      const absoluteIndex = section.unifiedDiffStart + index
+      const absoluteIndex = hunk.unifiedDiffStart + index
       selectedLines.set(absoluteIndex, selected)
     })
 
