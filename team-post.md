@@ -1,8 +1,6 @@
 # GitHub Desktop Internal Alpha
 
-If you're feeling bold and courageous you can now try the rewritten, Electron-based Desktop app.
-
-![screen shot 2016-09-27 at 12 15 33 pm](https://cloud.githubusercontent.com/assets/13760/18882427/212d06aa-84ad-11e6-9e05-4854b47c631c.png)
+If you're feeling bold and courageous you can now try the rewritten, Electron-based Desktop app. ![screen shot 2016-09-27 at 12 15 33 pm](https://cloud.githubusercontent.com/assets/13760/18882427/212d06aa-84ad-11e6-9e05-4854b47c631c.png)
 
 @pmn [gave an overview](https://team.githubapp.com/posts/28828) about a month ago of what's up with Desktop. The tl;dr is that we're rebooting it on Electron. We've been working on it for a few months. It's far from complete, it's rough around the edges, and we'd love if you'd try it out. We're hoping that by getting GitHubbers using it early in the process we can uncover any bugs in our foundation.
 
