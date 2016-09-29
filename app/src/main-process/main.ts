@@ -41,13 +41,6 @@ if (shouldQuit) {
 }
 
 app.on('ready', () => {
-  app.on('open-url', (event, url) => {
-    event.preventDefault()
-
-    const action = parseURL(url)
-    getMainWindow().sendURLAction(action)
-  })
-
   stats.readyTime = Date.now()
 
   app.setAsDefaultProtocolClient('x-github-client')
@@ -62,6 +55,13 @@ app.on('ready', () => {
   sharedProcess.register()
 
   createWindow()
+
+  app.on('open-url', (event, url) => {
+    event.preventDefault()
+
+    const action = parseURL(url)
+    getMainWindow().sendURLAction(action)
+  })
 
   const menu = buildDefaultMenu(sharedProcess)
   Menu.setApplicationMenu(menu)
