@@ -272,16 +272,8 @@ export class LocalGitOperations {
         // reset the index
         return GitProcess.exec(resetArgs, repository.path)
           .then(_ => {
-            const addFiles = files.map((file, index, array) => {
-              if (file.selection.getSelectionType() === DiffSelectionType.All) {
-                return this.addFileToIndex(repository, file)
-              } else {
-                return this.applyPatchToIndex(repository, file)
-              }
-            })
-
             // TODO: pipe standard input into this command
-            return Promise.all(addFiles)
+            return this.stageFiles(repository, files)
               .then(() => {
                 let message = summary
                 if (description.length > 0) {
@@ -295,6 +287,20 @@ export class LocalGitOperations {
       .catch(error => {
         console.error('createCommit failed: ' + error)
       })
+  }
+
+  /**
+   * Stage all the given files by either staging the entire path or by applying
+   * a patch.
+   */
+  private static async stageFiles(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+    for (const file of files) {
+      if (file.selection.getSelectionType() === DiffSelectionType.All) {
+        await this.addFileToIndex(repository, file)
+      } else {
+        await this.applyPatchToIndex(repository, file)
+      }
+    }
   }
 
   /**
