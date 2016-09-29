@@ -211,11 +211,6 @@ export class Diff extends React.Component<IDiffProps, void> {
       )
     }
 
-    const invalidationProps = { path: file.path, selection: DiffSelectionType.None }
-    if (file instanceof WorkingDirectoryFileChange) {
-      invalidationProps.selection = file.selection.getSelectionType()
-    }
-
     let diffText = ''
 
     this.props.diff.hunks.forEach(hunk => {
