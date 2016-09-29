@@ -195,6 +195,15 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         reactContainer)
         element.insertBefore(reactContainer, diffLineElement)
 
+        let deleteHandler: () => void
+
+        deleteHandler = () => {
+          ReactDOM.unmountComponentAtNode(reactContainer)
+          line.off('delete', deleteHandler)
+        }
+
+        line.on('delete', deleteHandler)
+
         element.classList.add(this.getClassName(diffLine.type))
       }
     }
