@@ -195,6 +195,38 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         reactContainer)
         element.insertBefore(reactContainer, diffLineElement)
 
+        // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
+        // the line delete event once we've been called once or the component has been
+        // unmounted. In the latter case it's _probably_ not strictly necessary since
+        // the only thing gc rooted by the event should be isolated and eligble for
+        // collection. But let's be extra cautious I guess.
+        //
+        // The only way to unsubscribe is to pass the exact same function given to the
+        // 'on' function to the 'off' so we need a reference to ourselves, basically.
+        let deleteHandler: () => void
+
+        // Since we manually render a react component we have to take care of unmounting
+        // it or else we'll leak memory. This disposable will unmount the component.
+        //
+        // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
+        const gutterCleanup = new Disposable(() => {
+          ReactDOM.unmountComponentAtNode(reactContainer)
+          line.off('delete', deleteHandler)
+        })
+
+        // Add the cleanup disposable to our list of disposables so that we clean up when
+        // this component is unmounted. When that happens the line 'delete' event doesn't
+        // seem to fire.
+        const disposables = this.codeMirrorDisposables
+        if (disposables) {
+          disposables.add(gutterCleanup)
+        }
+
+        // If the line delete event fires we dispose of the disposable (disposing is
+        // idempotent)
+        deleteHandler = () => gutterCleanup.dispose()
+        line.on('delete', deleteHandler)
+
         element.classList.add(this.getClassName(diffLine.type))
       }
     }
