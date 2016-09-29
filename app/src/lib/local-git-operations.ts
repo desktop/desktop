@@ -559,7 +559,7 @@ export class LocalGitOperations {
   /** Get the git dir of the path. */
   public static async getGitDir(path: string): Promise<string | null> {
     const result = await git([ 'rev-parse', '--git-dir' ], path)
-    if (result.exitCode !== 0) {
+    if (result.exitCode > 0) {
       return null
     }
 
@@ -626,7 +626,7 @@ export class LocalGitOperations {
 
 async function git(args: string[], path: string, customEnv?: Object, processCb?: (process: ChildProcess.ChildProcess) => void): Promise<IResult> {
   const result = await GitProcess.execWithOutput(args, path, customEnv, processCb)
-  if (result.exitCode !== 0) {
+  if (result.exitCode > 0) {
     console.error(result.stderr)
   }
 
