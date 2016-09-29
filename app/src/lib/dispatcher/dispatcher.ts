@@ -1,9 +1,9 @@
 import { ipcRenderer } from 'electron'
 import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
-import { WorkingDirectoryFileChange } from '../../models/status'
+import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { guid } from '../guid'
-import { IHistorySelection, RepositorySection, Popup, IAppError } from '../app-state'
+import { RepositorySection, Popup, IAppError } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
@@ -174,9 +174,29 @@ export class Dispatcher {
     return this.appStore._loadChangedFilesForCurrentSelection(repository)
   }
 
-  /** Change the history selection. */
-  public changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
-    return this.appStore._changeHistorySelection(repository, selection)
+  /**
+   * Change the selected commit in the history view.
+   *
+   * @param repository The currently active repository instance
+   *
+   * @param sha The object id of one of the commits currently
+   *            the history list, represented as a SHA-1 hash
+   *            digest. This should match exactly that of Commit.Sha
+   */
+  public changeHistoryCommitSelection(repository: Repository, sha: string): Promise<void> {
+    return this.appStore._changeHistoryCommitSelection(repository, sha)
+  }
+
+  /**
+   * Change the selected changed file in the history view.
+   *
+   * @param repository The currently active repository instance
+   *
+   * @param file A FileChange instance among those available in
+   *            IHistoryState.changedFiles
+   */
+  public changeHistoryFileSelection(repository: Repository, file: FileChange | null): Promise<void> {
+    return this.appStore._changeHistoryFileSelection(repository, file)
   }
 
   /** Select the repository. */

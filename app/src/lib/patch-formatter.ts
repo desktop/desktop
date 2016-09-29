@@ -44,7 +44,7 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
     let linesRemoved = 0
     let patchBody = ''
 
-    const selectedLines = selectedLinesArray.filter(a => a[0] >= s.unifiedDiffStart && a[0] < s.unifiedDiffEnd)
+    const selectedLines = selectedLinesArray.filter(a => a[0] >= s.unifiedDiffStart && a[0] <= s.unifiedDiffEnd)
 
     // don't generate a patch if no lines are selected
     if (selectedLines.every(l => l[1] === false)) {
@@ -65,15 +65,12 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
         }
 
         const absoluteIndex = s.unifiedDiffStart + index
-        if (selection.has(absoluteIndex)) {
-          const include = selection.get(absoluteIndex)
-          if (include) {
-            patchBody += line.text + '\n'
-            if (line.type === DiffLineType.Add) {
-              linesIncluded += 1
-            } else if (line.type === DiffLineType.Delete) {
-              linesRemoved += 1
-            }
+        if (selection.get(absoluteIndex)) {
+          patchBody += line.text + '\n'
+          if (line.type === DiffLineType.Add) {
+            linesIncluded += 1
+          } else if (line.type === DiffLineType.Delete) {
+            linesRemoved += 1
           }
         } else if (line.type === DiffLineType.Delete) {
           // need to generate the correct patch here
@@ -91,17 +88,31 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
     const header = s.lines[0]
     const additionalText = extractAdditionalText(header.text)
     const beforeStart = s.range.oldStartLine
-    const beforeEnd = s.range.oldEndLine
+    const beforeCount = s.range.oldLineCount
     const afterStart = s.range.newStartLine
-    const afterEnd = s.range.newEndLine + linesSkipped
+
+    // TODO: HERE BE DRAGONS
+    //
+    // Due to a bug in the original implementation of the diff parser
+    // all omitted line counts were treates as NaN and NaN plus NaN
+    // is always NaN so up until the diff parser refactor afterCount
+    // was always NaN. I'm making it so again so that we can get the
+    // parser merged and then we can come back and refactor patch
+    // formatter and I can go get started on dinner.
+    //
+    // niik 2016-09-28
+    const afterCount = s.range.newLineCount === 1
+      ? NaN
+      : s.range.newLineCount + linesSkipped
+    //const afterCount = s.range.newLineCount + linesSkipped
 
     const patchHeader = formatPatchHeader(
       file.path,
       file.path,
       beforeStart,
-      beforeEnd,
+      beforeCount,
       afterStart,
-      afterEnd,
+      afterCount,
       additionalText)
 
       input += patchHeader + patchBody
@@ -148,7 +159,7 @@ export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Di
       null,
       file.path,
       s.range.oldStartLine,
-      s.range.oldEndLine,
+      s.range.oldLineCount,
       s.range.newStartLine,
       linesCounted,
       additionalText)
@@ -196,13 +207,13 @@ export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff
     const header = s.lines[0]
     const additionalText = extractAdditionalText(header.text)
 
-    const remainingLines = s.range.oldEndLine - linesIncluded
+    const remainingLines = s.range.oldLineCount - linesIncluded
 
     const patchHeader = formatPatchHeader(
       file.path,
       file.path,
       s.range.oldStartLine,
-      s.range.oldEndLine,
+      s.range.oldLineCount,
       1,
       remainingLines,
       additionalText)

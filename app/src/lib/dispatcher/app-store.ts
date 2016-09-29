@@ -4,7 +4,6 @@ import * as Path from 'path'
 import {
   IRepositoryState,
   IHistoryState,
-  IHistorySelection,
   IAppState,
   RepositorySection,
   IChangesState,
@@ -18,7 +17,7 @@ import {
 import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
-import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
+import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
@@ -30,6 +29,27 @@ import { EmojiStore } from './emoji-store'
 import { GitStore } from './git-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
+
+/** File statuses which indicate the file exists on disk. */
+const OnDiskStatuses = new Set([
+  FileStatus.New,
+  FileStatus.Modified,
+  FileStatus.Renamed,
+  FileStatus.Conflicted,
+  FileStatus.Unknown,
+])
+
+/**
+ * File statuses which indicate the file has previously been committed to the 
+ * repository.
+ */
+const CommittedStatuses = new Set([
+  FileStatus.Modified,
+  FileStatus.Deleted,
+  FileStatus.Renamed,
+  FileStatus.Conflicted,
+  FileStatus.Unknown,
+])
 
 export class AppStore {
   private emitter = new Emitter()
@@ -295,11 +315,7 @@ export class AppStore {
     }
 
     if (!newSelection.sha && history.length > 0) {
-      newSelection = {
-        sha: history[0],
-        file: null,
-      }
-      this._changeHistorySelection(repository, newSelection)
+      this._changeHistoryCommitSelection(repository, history[0])
       this._loadChangedFilesForCurrentSelection(repository)
     }
 
@@ -339,15 +355,28 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeHistorySelection(repository: Repository, selection: IHistorySelection): Promise<void> {
+  public async _changeHistoryCommitSelection(repository: Repository, sha: string): Promise<void> {
     this.updateHistoryState(repository, state => {
-      const commitChanged = state.selection.sha !== selection.sha
+      const commitChanged = state.selection.sha !== sha
       const changedFiles = commitChanged ? new Array<FileChange>() : state.changedFiles
+      const file = commitChanged ? null : state.selection.file
 
       return {
         history: state.history,
-        selection,
+        selection: { sha, file },
         changedFiles,
+      }
+    })
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _changeHistoryFileSelection(repository: Repository, file: FileChange | null): Promise<void> {
+    this.updateHistoryState(repository, state => {
+      return {
+        history: state.history,
+        selection: { sha: state.selection.sha, file },
+        changedFiles: state.changedFiles,
       }
     })
     this.emitUpdate()
@@ -843,13 +872,14 @@ export class AppStore {
   }
 
   public async _discardChanges(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>) {
-    const relativePaths = files.map(f => f.path)
-    const absolutePaths = relativePaths.map(p => Path.join(repository.path, p))
+    const onDiskFiles = files.filter(f => OnDiskStatuses.has(f.status))
+    const absolutePaths = onDiskFiles.map(f => Path.join(repository.path, f.path))
     for (const path of absolutePaths) {
       shell.moveItemToTrash(path)
     }
 
-    await LocalGitOperations.checkoutPaths(repository, relativePaths)
+    const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
+    await LocalGitOperations.checkoutPaths(repository, modifiedFiles.map(f => f.path))
 
     return this._refreshRepository(repository)
   }

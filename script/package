@@ -37,25 +37,30 @@ function packageWindows () {
     cp.execSync(`powershell ${setupCertificatePath}`)
   }
 
-  const iconLocation = path.join (__dirname, '..', 'app', 'static', 'icon.ico')
+  const iconLocation = path.join(__dirname, '..', 'app', 'static', 'icon.ico')
 
   if (!fs.existsSync(iconLocation)) {
     console.error(`expected icon not found at location: ${iconLocation}`)
     process.exit(1)
   }
 
-  const certificatePath =  path.join(__dirname, 'windows-certificate.pfx')
+  const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
+
+  const options = {
+    appDirectory: distPath,
+    outputDirectory: outputDir,
+    authors: distInfo.getCompanyName(),
+    iconUrl: iconLocation,
+    setupIcon: iconLocation,
+    exe: `${productName}.exe`
+  }
+
+  if (process.env.APPVEYOR) {
+    options.signWithParams = `/f ${certificatePath} /p ${process.env.WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256`
+  }
 
   electronInstaller
-    .createWindowsInstaller({
-      appDirectory: distPath,
-      outputDirectory: outputDir,
-      authors: distInfo.getCompanyName(),
-      iconUrl: iconLocation,
-      setupIcon: iconLocation,
-      exe: `${productName}.exe`,
-      signWithParams: `/f ${certificatePath} /p ${process.env.WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256`
-    })
+    .createWindowsInstaller(options)
     .then(() => {
       console.log(`Installers created in ${outputDir}`)
       cp.execSync(`powershell ${cleanupCertificatePath}`)

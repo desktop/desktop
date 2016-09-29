@@ -16,6 +16,17 @@
 // Remove blank space at the top of the diff
 .CodeMirror-lines { padding: 0; }
 
+.CodeMirror-line {
+  display: flex;
+}
+
+.CodeMirror {
+  span {
+    // Force word breaks. This only matters when soft wrapping is on.
+    word-break: break-all;
+  }
+}
+
 /** The container for the CodeMirror element. */
 .diff-code-mirror { height: 100%; }
 
@@ -23,7 +34,7 @@
 // diff-line-number spans.
 .diff-line-gutter {
   line-height: normal;
-  display: inline-block;
+  display: flex;
   height: 100%;
 }
 
