@@ -5,8 +5,8 @@ If you're feeling bold and courageous you can now try the rewritten Desktop app.
 @pmn [gave an overview](https://team.githubapp.com/posts/28828) about a month ago of what's up with Desktop. The tl;dr is that we're rebooting it on Electron. We've been working on it for a few months. It's far from complete, it's rough around the edges, but if you don't mind living on the bleeding edge you can try it out now.
 
 1. [Add yourself to the desktop org](http://central.github.com/invite_to_desktop_org).
-2. [Download the latest release](https://central.github.com/deployments).
 3. [File issues for any bugs you find](http://github.com/desktop/desktop/issues/new).
+2. Download the latest release ([macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin), [Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)).
 
 The UI is still being designed, so if you're looking for some functionality but can't find a button for it, check the menu. Some notable examples:
 
