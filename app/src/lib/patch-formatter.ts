@@ -17,11 +17,34 @@ function extractAdditionalText(hunkHeader: string): string {
  * Generates a string matching the format of a GNU unified diff header excluding
  * the (optional) timestamp fields
  *
+ * Note that this multi-line string includes a trailing newline.
+ *
  * @param from         The relative path to the original version of the file or
  *                     null if the file is newly created.
  *
  * @param to           The relative path to the new version of the file or
  *                     null if the file is the file is newly created.
+ */
+function formatPatchHeader(from: string | null, to: string | null): string {
+
+  // https://en.wikipedia.org/wiki/Diff_utility
+  //
+  // > At the beginning of the patch is the file information, including the full
+  // > path and a time stamp delimited by a tab character.
+  // >
+  // > [...] the original file is preceded by "---" and the new file is preceded
+  // > by "+++".
+  //
+  // We skip the time stamp since to match git
+  const fromPath = from ? `a/${from}` : '/dev/null'
+  const toPath =  to ? `b/${to}` : '/dev/null'
+
+  return `--- ${fromPath}\n+++ ${toPath}\n`
+}
+
+/**
+ * Generates a string matching the format of a GNU unified diff hunk header.
+ * Note that this single line string includes a single trailing newline.
  *
  * @param oldStartLine The line in the old (or original) file where this diff
  *                     hunk starts.
@@ -34,47 +57,31 @@ function extractAdditionalText(hunkHeader: string): string {
  * @param newLineCount The number of lines in the new file that this diff hunk
  *                     covers
  */
-function formatPatchHeader(
-  from: string | null,
-  to: string | null,
+function formatHunkHeader(
   oldStartLine: number,
   oldLineCount: number,
   newStartLine: number,
   newLineCount: number,
-  afterText: string
-): string {
+  afterText: string) {
 
-  // https://en.wikipedia.org/wiki/Diff_utility
+    // > @@ -l,s +l,s @@ optional section heading
+    // >
+    // > The hunk range information contains two hunk ranges. The range for the hunk of the original
+    // > file is preceded by a minus symbol, and the range for the new file is preceded by a plus
+    // > symbol. Each hunk range is of the format l,s where l is the starting line number and s is
+    // > the number of lines the change hunk applies to for each respective file.
+    // >
+    // > In many versions of GNU diff, each range can omit the comma and trailing value s,
+    // > in which case s defaults to 1
+    const lineInfoBefore = oldLineCount === 1
+      ? `${oldStartLine}`
+      : `${oldStartLine},${oldLineCount}`
 
-  const lines = new Array<string>()
+    const lineInfoAfter = newLineCount === 1
+      ? `${newStartLine}`
+      : `${newStartLine},${newLineCount}`
 
-  // > At the beginning of the patch is the file information, including the full
-  // > path and a time stamp delimited by a tab character.
-  //
-  // We skip the time stamp since to match git
-  lines.push('--- ' + (from ? `a/${from}` : '/dev/null'))
-  lines.push('+++ ' + (to ? `b/${to}` : '/dev/null'))
-
-  // > @@ -l,s +l,s @@ optional section heading
-  // >
-  // > The hunk range information contains two hunk ranges. The range for the hunk of the original
-  // > file is preceded by a minus symbol, and the range for the new file is preceded by a plus
-  // > symbol. Each hunk range is of the format l,s where l is the starting line number and s is
-  // > the number of lines the change hunk applies to for each respective file.
-  // >
-  // > In many versions of GNU diff, each range can omit the comma and trailing value s,
-  // > in which case s defaults to 1
-  const lineInfoBefore = oldLineCount === 1
-    ? `${oldStartLine}`
-    : `${oldStartLine},${oldLineCount}`
-
-  const lineInfoAfter = oldLineCount === 1
-    ? `${newStartLine}`
-    : `${newStartLine},${newLineCount}`
-
-  lines.push(`@@ -${lineInfoBefore} +${lineInfoAfter} @@${afterText}`)
-
-  return lines.join('\n') + '\n'
+    return `@@ -${lineInfoBefore} +${lineInfoAfter} @@${afterText}\n`
 }
 
 export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): string {
@@ -156,14 +163,16 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
 
     const patchHeader = formatPatchHeader(
       file.path,
-      file.path,
+      file.path)
+
+    const hunkHeader = formatHunkHeader(
       beforeStart,
       beforeCount,
       afterStart,
       afterCount,
       additionalText)
 
-      input += patchHeader + patchBody
+      input += patchHeader + hunkHeader + patchBody
   })
 
   return input
@@ -205,14 +214,17 @@ export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Di
 
     const patchHeader = formatPatchHeader(
       null,
-      file.path,
+      file.path)
+
+    const hunkHeader = formatHunkHeader(
       s.range.oldStartLine,
       s.range.oldLineCount,
       s.range.newStartLine,
       linesCounted,
-      additionalText)
+      additionalText
+    )
 
-    input += patchHeader + patchBody
+    input += patchHeader + hunkHeader + patchBody
   })
 
   return input
@@ -259,14 +271,17 @@ export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff
 
     const patchHeader = formatPatchHeader(
       file.path,
-      file.path,
+      file.path)
+
+    const hunkHeader = formatHunkHeader(
       s.range.oldStartLine,
       s.range.oldLineCount,
       1,
       remainingLines,
-      additionalText)
+      additionalText
+    )
 
-    input += patchHeader + patchBody
+    input += patchHeader + hunkHeader + patchBody
   })
 
   return input
