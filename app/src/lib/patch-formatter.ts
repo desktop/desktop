@@ -37,14 +37,14 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
 
   let input = ''
 
-  diff.sections.forEach(s => {
+  diff.hunks.forEach(hunk => {
 
     let linesSkipped = 0
     let linesIncluded = 0
     let linesRemoved = 0
     let patchBody = ''
 
-    const selectedLines = selectedLinesArray.filter(a => a[0] >= s.unifiedDiffStart && a[0] <= s.unifiedDiffEnd)
+    const selectedLines = selectedLinesArray.filter(a => a[0] >= hunk.unifiedDiffStart && a[0] <= hunk.unifiedDiffEnd)
 
     // don't generate a patch if no lines are selected
     if (selectedLines.every(l => l[1] === false)) {
@@ -52,7 +52,7 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
       return
     }
 
-    s.lines
+    hunk.lines
       .forEach((line, index) => {
         if (line.type === DiffLineType.Hunk) {
           // ignore the header
@@ -64,7 +64,7 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
           return
         }
 
-        const absoluteIndex = s.unifiedDiffStart + index
+        const absoluteIndex = hunk.unifiedDiffStart + index
         if (selection.get(absoluteIndex)) {
           patchBody += line.text + '\n'
           if (line.type === DiffLineType.Add) {
@@ -85,11 +85,11 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
         }
       })
 
-    const header = s.lines[0]
+    const header = hunk.lines[0]
     const additionalText = extractAdditionalText(header.text)
-    const beforeStart = s.range.oldStartLine
-    const beforeCount = s.range.oldLineCount
-    const afterStart = s.range.newStartLine
+    const beforeStart = hunk.header.oldStartLine
+    const beforeCount = hunk.header.oldLineCount
+    const afterStart = hunk.header.newStartLine
 
     // TODO: HERE BE DRAGONS
     //
@@ -101,10 +101,10 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
     // formatter and I can go get started on dinner.
     //
     // niik 2016-09-28
-    const afterCount = s.range.newLineCount === 1
+    const afterCount = hunk.header.newLineCount === 1
       ? NaN
-      : s.range.newLineCount + linesSkipped
-    //const afterCount = s.range.newLineCount + linesSkipped
+      : hunk.header.newLineCount + linesSkipped
+    //const afterCount = s.header.newLineCount + linesSkipped
 
     const patchHeader = formatPatchHeader(
       file.path,
@@ -126,12 +126,12 @@ export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Di
   const selection = file.selection.selectedLines
   let input = ''
 
-  diff.sections.map(s => {
+  diff.hunks.map(hunk => {
 
     let linesCounted: number = 0
     let patchBody: string = ''
 
-    s.lines
+    hunk.lines
       .forEach((line, index) => {
         if (line.type === DiffLineType.Hunk) {
           // ignore the header
@@ -152,15 +152,15 @@ export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Di
         }
       })
 
-    const header = s.lines[0]
+    const header = hunk.lines[0]
     const additionalText = extractAdditionalText(header.text)
 
     const patchHeader = formatPatchHeader(
       null,
       file.path,
-      s.range.oldStartLine,
-      s.range.oldLineCount,
-      s.range.newStartLine,
+      hunk.header.oldStartLine,
+      hunk.header.oldLineCount,
+      hunk.header.newStartLine,
       linesCounted,
       additionalText)
 
@@ -175,11 +175,11 @@ export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff
   let input = ''
   let linesIncluded = 0
 
-  diff.sections.map(s => {
+  diff.hunks.map(hunk => {
 
     let patchBody: string = ''
 
-    s.lines
+    hunk.lines
       .forEach((line, index) => {
         if (line.type === DiffLineType.Hunk) {
           // ignore the header
@@ -204,16 +204,16 @@ export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff
         }
       })
 
-    const header = s.lines[0]
+    const header = hunk.lines[0]
     const additionalText = extractAdditionalText(header.text)
 
-    const remainingLines = s.range.oldLineCount - linesIncluded
+    const remainingLines = hunk.header.oldLineCount - linesIncluded
 
     const patchHeader = formatPatchHeader(
       file.path,
       file.path,
-      s.range.oldStartLine,
-      s.range.oldLineCount,
+      hunk.header.oldStartLine,
+      hunk.header.oldLineCount,
       1,
       remainingLines,
       additionalText)
