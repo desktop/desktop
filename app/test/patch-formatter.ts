@@ -8,7 +8,7 @@ import { Repository } from '../src/models/repository'
 import { WorkingDirectoryFileChange, FileStatus } from '../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../src/models/diff'
 import { createPatchForModifiedFile } from '../src/lib/patch-formatter'
-import { selectLinesInSection, mergeSelections } from './diff-selection-helper'
+import { selectLinesInHunk, mergeSelections } from './diff-selection-helper'
 import { LocalGitOperations } from '../src/lib/local-git-operations'
 import { setupFixtureRepository } from './fixture-helper'
 
@@ -32,9 +32,9 @@ describe('patch formatting', () => {
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
       // select first hunk
-      const first = selectLinesInSection(diff, 0, true)
+      const first = selectLinesInHunk(diff, 0, true)
       // skip second hunk
-      const second = selectLinesInSection(diff, 1, false)
+      const second = selectLinesInHunk(diff, 1, false)
 
       const selectedLines = mergeSelections([ first, second ])
 
@@ -57,9 +57,9 @@ describe('patch formatting', () => {
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
       // skip first hunk
-      const first = selectLinesInSection(diff, 0, false)
+      const first = selectLinesInHunk(diff, 0, false)
       // select second hunk
-      const second = selectLinesInSection(diff, 1, true)
+      const second = selectLinesInHunk(diff, 1, true)
 
       const selectedLines = mergeSelections([ first, second ])
 
@@ -83,11 +83,11 @@ describe('patch formatting', () => {
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
       // select first hunk
-      const first = selectLinesInSection(diff, 0, true)
+      const first = selectLinesInHunk(diff, 0, true)
       // skip second hunk
-      const second = selectLinesInSection(diff, 1, false)
+      const second = selectLinesInHunk(diff, 1, false)
       // select third hunk
-      const third = selectLinesInSection(diff, 2, true)
+      const third = selectLinesInHunk(diff, 2, true)
 
       const selectedLines = mergeSelections([ first, second, third ])
 
@@ -111,9 +111,9 @@ describe('patch formatting', () => {
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
       const selectedLines = new Map<number, boolean>()
-      const section = diff.sections[0]
-      section.lines.forEach((line, index) => {
-        const absoluteIndex = section.unifiedDiffStart + index
+      const hunk = diff.hunks[0]
+      hunk.lines.forEach((line, index) => {
+        const absoluteIndex = hunk.unifiedDiffStart + index
         if (line.text === '+line 1') {
           selectedLines.set(absoluteIndex, true)
         } else {

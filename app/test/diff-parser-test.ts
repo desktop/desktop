@@ -56,13 +56,13 @@ index e1d4871..3bd3ee0 100644
 
     const parser = new DiffParser()
     const diff = parser.parse(reinstateSpacesAtTheStartOfBlankLines(diffText))
-    expect(diff.sections.length).to.equal(3)
+    expect(diff.hunks.length).to.equal(3)
 
-    let section = diff.sections[0]
-    expect(section.unifiedDiffStart).to.equal(0)
-    expect(section.unifiedDiffEnd).to.equal(7)
+    let hunk = diff.hunks[0]
+    expect(hunk.unifiedDiffStart).to.equal(0)
+    expect(hunk.unifiedDiffEnd).to.equal(7)
 
-    let lines = section.lines
+    let lines = hunk.lines
     expect(lines.length).to.equal(8)
 
     let i = 0
@@ -102,11 +102,11 @@ index e1d4871..3bd3ee0 100644
     expect(lines[i].newLineNumber).to.equal(22)
     i++
 
-    section = diff.sections[1]
-    expect(section.unifiedDiffStart).to.equal(8)
-    expect(section.unifiedDiffEnd).to.equal(20)
+    hunk = diff.hunks[1]
+    expect(hunk.unifiedDiffStart).to.equal(8)
+    expect(hunk.unifiedDiffEnd).to.equal(20)
 
-    lines = section.lines
+    lines = hunk.lines
     expect(lines.length).to.equal(13)
   })
 
@@ -122,13 +122,13 @@ index 0000000..f13588b
 
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.sections.length).to.equal(1)
+    expect(diff.hunks.length).to.equal(1)
 
-    const section = diff.sections[0]
-    expect(section.unifiedDiffStart).to.equal(0)
-    expect(section.unifiedDiffEnd).to.equal(1)
+    const hunk = diff.hunks[0]
+    expect(hunk.unifiedDiffStart).to.equal(0)
+    expect(hunk.unifiedDiffEnd).to.equal(1)
 
-    const lines = section.lines
+    const lines = hunk.lines
     expect(lines.length).to.equal(2)
 
     let i = 0
@@ -157,13 +157,13 @@ index 24219cc..bf711a5 100644
 
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.sections.length).to.equal(1)
+    expect(diff.hunks.length).to.equal(1)
 
-    const section = diff.sections[0]
-    expect(section.unifiedDiffStart).to.equal(0)
-    expect(section.unifiedDiffEnd).to.equal(2)
+    const hunk = diff.hunks[0]
+    expect(hunk.unifiedDiffStart).to.equal(0)
+    expect(hunk.unifiedDiffEnd).to.equal(2)
 
-    const lines = section.lines
+    const lines = hunk.lines
     expect(lines.length).to.equal(3)
 
     let i = 0
@@ -199,13 +199,13 @@ index 0000000..faf7da1
 
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.sections.length).to.equal(1)
+    expect(diff.hunks.length).to.equal(1)
 
-    const section = diff.sections[0]
-    expect(section.unifiedDiffStart).to.equal(0)
-    expect(section.unifiedDiffEnd).to.equal(1)
+    const hunk = diff.hunks[0]
+    expect(hunk.unifiedDiffStart).to.equal(0)
+    expect(hunk.unifiedDiffEnd).to.equal(1)
 
-    const lines = section.lines
+    const lines = hunk.lines
     expect(lines.length).to.equal(2)
 
     let i = 0
@@ -236,13 +236,13 @@ index 1910281..257cc56 100644
 `
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.sections.length).to.equal(1)
+    expect(diff.hunks.length).to.equal(1)
 
-    const section = diff.sections[0]
-    expect(section.unifiedDiffStart).to.equal(0)
-    expect(section.unifiedDiffEnd).to.equal(2)
+    const hunk = diff.hunks[0]
+    expect(hunk.unifiedDiffStart).to.equal(0)
+    expect(hunk.unifiedDiffEnd).to.equal(2)
 
-    const lines = section.lines
+    const lines = hunk.lines
     expect(lines.length).to.equal(3)
 
     let i = 0
@@ -286,13 +286,13 @@ index 1910281..ba0e162 100644
 `
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.sections.length).to.equal(1)
+    expect(diff.hunks.length).to.equal(1)
 
-    const section = diff.sections[0]
-    expect(section.unifiedDiffStart).to.equal(0)
-    expect(section.unifiedDiffEnd).to.equal(2)
+    const hunk = diff.hunks[0]
+    expect(hunk.unifiedDiffStart).to.equal(0)
+    expect(hunk.unifiedDiffEnd).to.equal(2)
 
-    const lines = section.lines
+    const lines = hunk.lines
     expect(lines.length).to.equal(3)
 
     let i = 0
@@ -327,7 +327,7 @@ Binary files /dev/null and b/IMG_2306.CR2 differ
 `
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.sections.length).to.equal(0)
+    expect(diff.hunks.length).to.equal(0)
     expect(diff.isBinary).to.equal(true)
   })
 
@@ -341,7 +341,7 @@ index 0000000..e69de29
 
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.sections.length).to.equal(0)
+    expect(diff.hunks.length).to.equal(0)
   })
 
   it('parses hunk headers with omitted line counts from new file', () => {
@@ -356,13 +356,13 @@ index 0000000..f13588b
 
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.sections.length).to.equal(1)
+    expect(diff.hunks.length).to.equal(1)
 
-    const section = diff.sections[0]
-    expect(section.header.oldStartLine).to.equal(0)
-    expect(section.header.oldLineCount).to.equal(0)
-    expect(section.header.newStartLine).to.equal(1)
-    expect(section.header.newLineCount).to.equal(1)
+    const hunk = diff.hunks[0]
+    expect(hunk.header.oldStartLine).to.equal(0)
+    expect(hunk.header.oldLineCount).to.equal(0)
+    expect(hunk.header.newStartLine).to.equal(1)
+    expect(hunk.header.newLineCount).to.equal(1)
   })
 
   it('parses hunk headers with omitted line counts from old file', () => {
@@ -377,12 +377,12 @@ index 0000000..f13588b
 
     const parser = new DiffParser()
     const diff = parser.parse(diffText)
-    expect(diff.sections.length).to.equal(1)
+    expect(diff.hunks.length).to.equal(1)
 
-    const section = diff.sections[0]
-    expect(section.header.oldStartLine).to.equal(1)
-    expect(section.header.oldLineCount).to.equal(1)
-    expect(section.header.newStartLine).to.equal(0)
-    expect(section.header.newLineCount).to.equal(0)
+    const hunk = diff.hunks[0]
+    expect(hunk.header.oldStartLine).to.equal(1)
+    expect(hunk.header.oldLineCount).to.equal(1)
+    expect(hunk.header.newStartLine).to.equal(0)
+    expect(hunk.header.newLineCount).to.equal(0)
   })
 })

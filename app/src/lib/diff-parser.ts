@@ -1,4 +1,4 @@
-import { Diff, DiffSection, DiffHunkHeader, DiffLine, DiffLineType } from '../models/diff'
+import { Diff, DiffHunk, DiffHunkHeader, DiffLine, DiffLineType } from '../models/diff'
 import { assertNever } from '../lib/fatal-error'
 
 // https://en.wikipedia.org/wiki/Diff_utility
@@ -256,7 +256,7 @@ export class DiffParser {
    *                      have no real meaning in the context of a diff and
    *                      are only used to aid the app in line-selections.
    */
-  private parseHunk(linesConsumed: number): DiffSection {
+  private parseHunk(linesConsumed: number): DiffHunk {
 
     const headerLine = this.readLine()
     if (!headerLine) {
@@ -319,7 +319,7 @@ export class DiffParser {
       throw new Error('Malformed diff, empty hunk')
     }
 
-    return new DiffSection(header, lines, linesConsumed, linesConsumed + lines.length - 1)
+    return new DiffHunk(header, lines, linesConsumed, linesConsumed + lines.length - 1)
   }
 
   /**
@@ -340,7 +340,7 @@ export class DiffParser {
       if (!headerInfo) { return new Diff([], false) }
       if (headerInfo.isBinary) { return new Diff([], true) }
 
-      const hunks = new Array<DiffSection>()
+      const hunks = new Array<DiffHunk>()
       let linesConsumed = 0
 
       do {

@@ -5,7 +5,7 @@ import { Disposable, CompositeDisposable } from 'event-kit'
 
 import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
-import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType, DiffSection } from '../../models/diff'
+import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType, DiffHunk } from '../../models/diff'
 import { assertNever } from '../../lib/fatal-error'
 
 import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
@@ -109,10 +109,10 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
       if (selectionType === DiffSelectionType.Partial) {
         diffSelection.selectedLines.forEach((value, index) => {
-          const section = this.diffSectionForIndex(diff, index)
-          if (section) {
-            const relativeIndex = index - section.unifiedDiffStart
-            const diffLine = section.lines[relativeIndex]
+          const hunk = this.diffHunkForIndex(diff, index)
+          if (hunk) {
+            const relativeIndex = index - hunk.unifiedDiffStart
+            const diffLine = hunk.lines[relativeIndex]
             if (diffLine) {
               diffLine.selected = value
             }
@@ -127,11 +127,11 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     this.setState({ diff })
   }
 
-  private diffSectionForIndex(diff: DiffModel, index: number): DiffSection | null {
-    const section = diff.sections.find(s => {
-      return index >= s.unifiedDiffStart && index <= s.unifiedDiffEnd
+  private diffHunkForIndex(diff: DiffModel, index: number): DiffHunk | null {
+    const hunk = diff.hunks.find(h => {
+      return index >= h.unifiedDiffStart && index <= h.unifiedDiffEnd
     })
-    return section || null
+    return hunk || null
   }
 
   private getClassName(type: DiffLineType): string {
@@ -161,10 +161,10 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     const newDiffSelection = new Map<number, boolean>()
 
     // populate the current state of the diff
-    this.state.diff.sections.forEach(s => {
-      s.lines.forEach((line, index) => {
+    this.state.diff.hunks.forEach(hunk => {
+      hunk.lines.forEach((line, index) => {
         if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
-          const absoluteIndex = s.unifiedDiffStart + index
+          const absoluteIndex = hunk.unifiedDiffStart + index
           newDiffSelection.set(absoluteIndex, line.selected)
         }
       })
@@ -182,10 +182,10 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
   private renderLine = (instance: any, line: any, element: HTMLElement) => {
     const index = instance.getLineNumber(line)
-    const section = this.diffSectionForIndex(this.state.diff, index)
-    if (section) {
-      const relativeIndex = index - section.unifiedDiffStart
-      const diffLine = section.lines[relativeIndex]
+    const hunk = this.diffHunkForIndex(this.state.diff, index)
+    if (hunk) {
+      const relativeIndex = index - hunk.unifiedDiffStart
+      const diffLine = hunk.lines[relativeIndex]
       if (diffLine) {
         const diffLineElement = element.children[0] as HTMLSpanElement
 
@@ -246,8 +246,8 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
     let diffText = ''
 
-    this.state.diff.sections.forEach(s => {
-      s.lines.forEach(l => diffText += l.text + '\r\n')
+    this.state.diff.hunks.forEach(hunk => {
+      hunk.lines.forEach(l => diffText += l.text + '\r\n')
     })
 
     const options = {
