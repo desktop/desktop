@@ -61,16 +61,22 @@ export class GitStore {
 
     let commits = await LocalGitOperations.getHistory(this.repository, 'HEAD', CommitBatchSize)
 
-    const existingHistory = this._history
+    let existingHistory = this._history
     if (existingHistory.length > 0) {
       const mostRecent = existingHistory[0]
       const index = commits.findIndex(c => c.sha === mostRecent)
+      // If we found the old HEAD, then we can just add the new commits. If we
+      // didn't then it means the history we had and the currently history have
+      // diverged significantly or in some non-trivial way. So just throw it
+      // out.
       if (index > -1) {
         commits = commits.slice(0, index)
+      } else {
+        existingHistory = []
       }
     }
 
-    this._history = [ ...commits.map(c => c.sha), ...this._history ]
+    this._history = [ ...commits.map(c => c.sha), ...existingHistory ]
     for (const commit of commits) {
       this.commits.set(commit.sha, commit)
     }
