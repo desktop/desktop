@@ -717,11 +717,6 @@
       "from": "react-addons-shallow-compare@latest",
       "resolved": "https://registry.npmjs.org/react-addons-shallow-compare/-/react-addons-shallow-compare-15.3.0.tgz"
     },
-    "react-codemirror": {
-      "version": "0.2.6",
-      "from": "react-codemirror@>=0.2.6 <0.3.0",
-      "resolved": "https://registry.npmjs.org/react-codemirror/-/react-codemirror-0.2.6.tgz"
-    },
     "react-deep-force-update": {
       "version": "1.0.1",
       "from": "react-deep-force-update@>=1.0.0 <2.0.0",
