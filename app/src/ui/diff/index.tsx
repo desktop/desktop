@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Disposable } from 'event-kit'
 
-import { EditorConfiguration } from 'codemirror'
+import { EditorConfiguration, Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
@@ -245,16 +245,15 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     }
   }
 
-  private restoreScrollPosition() {
-    const codeMirror = this.codeMirror
+  private restoreScrollPosition(cm: Editor) {
     const scrollPosition = this.scrollPositionToRestore
-    if (codeMirror && scrollPosition) {
-      this.codeMirror.scrollTo(scrollPosition.left, scrollPosition.top)
+    if (cm && scrollPosition) {
+      cm.scrollTo(scrollPosition.left, scrollPosition.top)
     }
   }
 
-  public onChanges = () => {
-    this.restoreScrollPosition()
+  public onChanges = (cm: Editor) => {
+    this.restoreScrollPosition(cm)
   }
 
   public render() {
@@ -294,6 +293,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
           options={options}
           onChanges={this.onChanges}
           onRenderLine={this.renderLine}
+          ref={(cmh) => { this.codeMirror = cmh === null ? null : cmh.getEditor() }}
         />
       </div>
     )
