@@ -41,6 +41,22 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     }
   }
 
+  public shouldComponentUpdate(nextProps: ICodeMirrorHostProps, nextState: void): boolean {
+    // Since we subscribe to all possible events ourselves and then
+    // invoke whatever callback was given to us in props we don't have
+    // to care about whether the callbacks changes or not.
+
+    // If we don't have a codeMirror instance we definitely need to re-render
+    if (!this.codeMirror) { return true }
+
+    // If the string length has changed then we definitely have to re-render
+    if (this.props.value.length !== nextProps.value.length || this.props.value !== nextProps.value) {
+      this.codeMirror.setValue(nextProps.value)
+    }
+
+    return false
+  }
+
   private onChanges = (cm: CodeMirror.Editor, changes: CodeMirror.EditorChangeLinkedList[]) => {
     if (this.props.onChanges) {
       this.props.onChanges(cm, changes)
