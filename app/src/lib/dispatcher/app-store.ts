@@ -123,7 +123,7 @@ export class AppStore {
         selectedFile: null,
         diff: null,
       },
-      selectedSection: RepositorySection.History,
+      selectedSection: RepositorySection.Changes,
       branchesState: {
         currentBranch: null,
         defaultBranch: null,
@@ -529,6 +529,7 @@ export class AppStore {
       console.error(e)
     }
 
+    let selectedFile: WorkingDirectoryFileChange | null = null
     this.updateChangesState(repository, state => {
       const filesByID = new Map<string, WorkingDirectoryFileChange>()
       state.workingDirectory.files.forEach(file => {
@@ -553,12 +554,14 @@ export class AppStore {
 
       const includeAll = this.getIncludeAllState(mergedFiles)
 
-      let selectedFile: WorkingDirectoryFileChange | undefined
-
       if (state.selectedFile) {
         selectedFile = mergedFiles.find(function(file) {
           return file.id === state.selectedFile!.id
-        })
+        }) || null
+      }
+
+      if (!selectedFile && mergedFiles.length) {
+        selectedFile = mergedFiles[0]
       }
 
       return {
@@ -569,6 +572,8 @@ export class AppStore {
       }
     })
     this.emitUpdate()
+
+    this._changeChangesSelection(repository, selectedFile)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
