@@ -605,7 +605,6 @@ export class AppStore {
     })
     this.emitUpdate()
 
-    // TODO: should we allow components to unselect files?
     if (!selectedFile) { return }
 
     const diff = await this.loadDiff(repository, selectedFile, null)

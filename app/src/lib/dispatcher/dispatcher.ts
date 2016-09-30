@@ -215,7 +215,7 @@ export class Dispatcher {
   }
 
   /** Change the currently selected file in Changes. */
-  public changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
+  public changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange): Promise<void> {
     return this.appStore._changeChangesSelection(repository, selectedFile)
   }
 
