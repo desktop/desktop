@@ -8,17 +8,11 @@ import { Repository } from '../models/repository'
 import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDeletedFile } from './patch-formatter'
 import { DiffParser } from './diff-parser'
 
-import { GitProcess } from 'git-kitchen-sink'
+import { GitProcess, IGitResult } from 'git-kitchen-sink'
 
 import { User } from '../models/user'
 
 const byline = require('byline')
-
-interface IResult {
-  readonly stdout: string
-  readonly stderr: string
-  readonly exitCode: number
-}
 
 /** The encapsulation of the result from 'git status' */
 export class StatusResult {
@@ -220,17 +214,17 @@ export class LocalGitOperations {
 
     if (file.status === FileStatus.New) {
       const input = await createPatchForNewFile(file, diff)
-      await git(applyArgs, repository.path, {}, write(input))
+      await git(applyArgs, repository.path, {}, null, write(input))
     }
 
     if (file.status === FileStatus.Modified) {
       const patch = await createPatchForModifiedFile(file, diff)
-      await git(applyArgs, repository.path, {}, write(patch))
+      await git(applyArgs, repository.path, {}, null, write(patch))
     }
 
     if (file.status === FileStatus.Deleted) {
       const patch = await createPatchForDeletedFile(file, diff)
-      await git(applyArgs, repository.path, {}, write(patch))
+      await git(applyArgs, repository.path, {}, null, write(patch))
     }
 
     return Promise.resolve()
@@ -288,18 +282,19 @@ export class LocalGitOperations {
    * working directory state will be used.
    */
   public static getDiff(repository: Repository, file: FileChange, commit: Commit | null): Promise<Diff> {
-
     let args: string[]
+    let expectedExitCodes = new Set([ 0 ])
 
     if (commit) {
       args = [ 'log', commit.sha, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
     } else if (file.status === FileStatus.New) {
       args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
+      expectedExitCodes = new Set([ 0, 1 ])
     } else {
       args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
     }
 
-    return git(args, repository.path)
+    return git(args, repository.path, {}, expectedExitCodes)
       .then(result => {
         const output = result.stdout
         const pieces = output.split('\0')
@@ -582,7 +577,7 @@ export class LocalGitOperations {
   /** Clone the repository to the path. */
   public static clone(url: string, path: string, user: User | null, progress: (progress: string) => void): Promise<void> {
     const env = LocalGitOperations.envForAuthentication(user)
-    return git([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, env, process => {
+    return git([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, env, null, process => {
       byline(process.stderr).on('data', (chunk: string) => {
         progress(chunk)
       })
@@ -624,10 +619,23 @@ export class LocalGitOperations {
   }
 }
 
-async function git(args: string[], path: string, customEnv?: Object, processCb?: (process: ChildProcess.ChildProcess) => void): Promise<IResult> {
+async function git(args: string[], path: string, customEnv?: Object, expectedExitCodes?: Set<number> | null, processCb?: (process: ChildProcess.ChildProcess) => void): Promise<IGitResult> {
   const result = await GitProcess.execWithOutput(args, path, customEnv, processCb)
-  if (result.exitCode > 0) {
-    console.error(result.stderr)
+
+  if (!expectedExitCodes) {
+    expectedExitCodes = new Set([ 0 ])
+  }
+
+  const exitCode = result.exitCode
+  if (!expectedExitCodes.has(exitCode)) {
+    console.error(`The command \`${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
+    if (result.stdout.length) {
+      console.error(result.stdout)
+    }
+
+    if (result.stderr.length) {
+      console.error(result.stderr)
+    }
   }
 
   return result
