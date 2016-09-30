@@ -214,17 +214,17 @@ export class LocalGitOperations {
 
     if (file.status === FileStatus.New) {
       const input = await createPatchForNewFile(file, diff)
-      await git(applyArgs, repository.path, {}, null, write(input))
+      await git(applyArgs, repository.path, {}, undefined, write(input))
     }
 
     if (file.status === FileStatus.Modified) {
       const patch = await createPatchForModifiedFile(file, diff)
-      await git(applyArgs, repository.path, {}, null, write(patch))
+      await git(applyArgs, repository.path, {}, undefined, write(patch))
     }
 
     if (file.status === FileStatus.Deleted) {
       const patch = await createPatchForDeletedFile(file, diff)
-      await git(applyArgs, repository.path, {}, null, write(patch))
+      await git(applyArgs, repository.path, {}, undefined, write(patch))
     }
 
     return Promise.resolve()
@@ -586,7 +586,7 @@ export class LocalGitOperations {
   /** Clone the repository to the path. */
   public static clone(url: string, path: string, user: User | null, progress: (progress: string) => void): Promise<void> {
     const env = LocalGitOperations.envForAuthentication(user)
-    return git([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, env, null, process => {
+    return git([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, env, undefined, process => {
       byline(process.stderr).on('data', (chunk: string) => {
         progress(chunk)
       })
@@ -645,13 +645,8 @@ export class LocalGitOperations {
  * @param {processCb}        A callback which will pass in the ChildProcess,
  *                           giving the caller a chance to customize it further.
  */
-async function git(args: string[], path: string, customEnv?: Object, expectedExitCodes?: Set<number> | null, processCb?: (process: ChildProcess.ChildProcess) => void): Promise<IGitResult> {
+async function git(args: string[], path: string, customEnv?: Object, expectedExitCodes: Set<number> = new Set([ 0 ]), processCb?: (process: ChildProcess.ChildProcess) => void): Promise<IGitResult> {
   const result = await GitProcess.execWithOutput(args, path, customEnv, processCb)
-
-  if (!expectedExitCodes) {
-    expectedExitCodes = new Set([ 0 ])
-  }
-
   const exitCode = result.exitCode
   if (!expectedExitCodes.has(exitCode)) {
     console.error(`The command \`${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
