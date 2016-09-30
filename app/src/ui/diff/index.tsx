@@ -304,12 +304,15 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       value={diffText}
       options={options}
       onChanges={this.onChanges}
-      onRenderLine={this.renderLine}
     */
 
     return (
       <div className='panel' id='diff'>
-        <CodeMirrorHost value={diffText} options={options} />
+        <CodeMirrorHost
+          value={diffText}
+          options={options}
+          onRenderLine={this.renderLine}
+        />
       </div>
     )
   }
