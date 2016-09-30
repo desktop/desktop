@@ -1,4 +1,4 @@
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { CloningRepository } from '../../lib/dispatcher'
 
@@ -6,9 +6,9 @@ export type RepositoryGroup = 'github' | 'enterprise' | 'other'
 
 export type Repositoryish = Repository | CloningRepository
 
-export type RepositoryListItem = { kind: 'repository', repository: Repositoryish } | { kind: 'label', label: string }
+export type RepositoryListItemModel = { kind: 'repository', repository: Repositoryish } | { kind: 'label', label: string }
 
-export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): ReadonlyArray<RepositoryListItem> {
+export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): ReadonlyArray<RepositoryListItemModel> {
   const grouped = new Map<RepositoryGroup, Repositoryish[]>()
   repositories.forEach(repository => {
     const gitHubRepository = repository instanceof Repository ? repository.gitHubRepository : null
@@ -32,7 +32,7 @@ export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): R
     repositories.push(repository)
   })
 
-  const flattened = new Array<RepositoryListItem>()
+  const flattened = new Array<RepositoryListItemModel>()
 
   const addGroup = (group: RepositoryGroup) => {
     const repositories = grouped.get(group)

@@ -1,11 +1,12 @@
 import * as React from 'react'
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
-import List from '../list'
+import { List } from '../list'
 
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
+import { Checkbox, CheckboxValue } from './checkbox'
 
 const RowHeight = 30
 
@@ -13,7 +14,7 @@ interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedPath: string | null
-  readonly onRowSelected: (row: number) => void
+  readonly onFileSelectionChanged: (row: number) => void
   readonly onIncludeChanged: (row: number, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (summary: string, description: string) => void
@@ -30,8 +31,8 @@ interface IChangesListProps {
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
-  private handleOnChangeEvent(event: React.FormEvent<any>) {
-    const include = (event.target as any).checked
+  private onIncludeAllChange(event: React.FormEvent<HTMLInputElement>) {
+    const include = event.currentTarget.checked
     this.props.onSelectAll(include)
   }
 
@@ -53,8 +54,18 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     )
   }
 
-  public render() {
+  private get includeAllValue(): CheckboxValue {
     const includeAll = this.props.workingDirectory.includeAll
+    if (includeAll === true) {
+      return CheckboxValue.On
+    } else if (includeAll === false) {
+      return CheckboxValue.Off
+    } else {
+      return CheckboxValue.Mixed
+    }
+  }
+
+  public render() {
     const selectedRow = this.props.workingDirectory.files.findIndex(file => file.path === this.props.selectedPath)
 
     const fileCount = this.props.workingDirectory.files.length
@@ -64,15 +75,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     return (
       <div className='panel changes-panel' id='changes-list'>
         <div id='select-all' className='changes-panel-header'>
-          <input
-            type='checkbox'
-            checked={includeAll == null ? undefined : includeAll}
-            onChange={event => this.handleOnChangeEvent(event) }
-            ref={function(input) {
-              if (input != null) {
-                input.indeterminate = (includeAll === null)
-              }
-            }} />
+          <Checkbox value={this.includeAllValue} onChange={event => this.onIncludeAllChange(event)}/>
 
           <label className='changes-panel-header-label'>
             {filesDescription}
@@ -84,7 +87,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               rowHeight={RowHeight}
               rowRenderer={row => this.renderRow(row)}
               selectedRow={selectedRow}
-              onRowSelected={row => this.props.onRowSelected(row)}
+              onSelectionChanged={row => this.props.onFileSelectionChanged(row)}
               invalidationProps={this.props.workingDirectory}
               onRowKeyDown={this.props.onRowKeyDown} />
 

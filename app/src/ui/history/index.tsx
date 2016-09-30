@@ -1,8 +1,8 @@
 import * as React from 'react'
-import CommitList from './commit-list'
-import CommitSummaryContainer from './commit-summary-container'
-import FileDiff from '../file-diff'
-import Repository from '../../models/repository'
+import { CommitList } from './commit-list'
+import { CommitSummaryContainer } from './commit-summary-container'
+import { Diff } from '../diff'
+import { Repository } from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../lib/local-git-operations'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
@@ -23,12 +23,11 @@ interface IHistoryProps {
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
-export default class History extends React.Component<IHistoryProps, void> {
+export class History extends React.Component<IHistoryProps, void> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
-  private onCommitSelected(commit: Commit) {
-    const newSelection = { sha: commit.sha, file: null }
-    this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
+  private onCommitChanged(commit: Commit) {
+    this.props.dispatcher.changeHistoryCommitSelection(this.props.repository, commit.sha)
 
     this.loadChangedFilesScheduler.queue(() => {
       this.props.dispatcher.loadChangedFilesForCurrentSelection(this.props.repository)
@@ -36,8 +35,7 @@ export default class History extends React.Component<IHistoryProps, void> {
   }
 
   private onFileSelected(file: FileChange) {
-    const newSelection = { sha: this.props.history.selection.sha, file }
-    this.props.dispatcher.changeHistorySelection(this.props.repository, newSelection)
+    this.props.dispatcher.changeHistoryFileSelection(this.props.repository, file)
   }
 
   private onScroll(start: number, end: number) {
@@ -61,7 +59,7 @@ export default class History extends React.Component<IHistoryProps, void> {
           <CommitList commits={this.props.commits}
                       history={this.props.history.history}
                       selectedSHA={this.props.history.selection.sha}
-                      onCommitSelected={commit => this.onCommitSelected(commit)}
+                      onCommitChanged={commit => this.onCommitChanged(commit)}
                       onScroll={(start, end) => this.onScroll(start, end)}
                       repository={this.props.repository}
                       gitHubUsers={this.props.gitHubUsers}
@@ -76,10 +74,10 @@ export default class History extends React.Component<IHistoryProps, void> {
                                   onSelectedFileChanged={file => this.onFileSelected(file)}
                                   emoji={this.props.emoji}/>
         </Resizable>
-        <FileDiff repository={this.props.repository}
-                  file={selectedFile}
-                  commit={commit}
-                  readOnly={true} />
+        <Diff repository={this.props.repository}
+          file={selectedFile}
+          commit={commit}
+          readOnly={true} />
       </div>
     )
   }

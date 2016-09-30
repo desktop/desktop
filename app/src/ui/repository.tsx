@@ -1,10 +1,10 @@
 import * as React from 'react'
-import { default as Repo } from '../models/repository'
+import { Repository as Repo } from '../models/repository'
 import { UiView } from './ui-view'
-import Toolbar from './toolbar'
+import { Toolbar } from './toolbar'
 import { Changes } from './changes'
-import History from './history'
-import ComparisonGraph from './comparison-graph'
+import { History } from './history'
+import { ComparisonGraph } from './comparison-graph'
 import { ToolbarTab } from './toolbar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
@@ -16,7 +16,7 @@ interface IRepositoryProps {
   readonly emoji: Map<string, string>
 }
 
-export default class Repository extends React.Component<IRepositoryProps, void> {
+export class RepositoryView extends React.Component<IRepositoryProps, void> {
   private renderContent() {
     if (this.props.state.selectedSection === RepositorySection.Changes) {
       const branch = this.props.state.branchesState.currentBranch

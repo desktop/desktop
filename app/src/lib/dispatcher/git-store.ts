@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 
 /** The number of commits to load from history per batch. */
@@ -11,7 +11,7 @@ const LoadingHistoryRequestKey = 'history'
 const RecentBranchesLimit = 5
 
 /** The store for a repository's git data. */
-export default class GitStore {
+export class GitStore {
   private readonly emitter = new Emitter()
 
   /** The commits keyed by their SHA. */
@@ -61,16 +61,24 @@ export default class GitStore {
 
     let commits = await LocalGitOperations.getHistory(this.repository, 'HEAD', CommitBatchSize)
 
-    const existingHistory = this._history
+    let existingHistory = this._history
     if (existingHistory.length > 0) {
       const mostRecent = existingHistory[0]
       const index = commits.findIndex(c => c.sha === mostRecent)
+      // If we found the old HEAD, then we can just splice the new commits into
+      // the history we already loaded.
+      //
+      // But if we didn't, it means the history we had and the history we just
+      // loaded have diverged significantly or in some non-trivial way
+      // (e.g., HEAD reset). So just throw it out and we'll start over fresh.
       if (index > -1) {
         commits = commits.slice(0, index)
+      } else {
+        existingHistory = []
       }
     }
 
-    this._history = this._history.concat(commits.map(c => c.sha))
+    this._history = [ ...commits.map(c => c.sha), ...existingHistory ]
     for (const commit of commits) {
       this.commits.set(commit.sha, commit)
     }
@@ -179,6 +187,8 @@ export default class GitStore {
 
     this.emitUpdate()
 
+    this.loadRecentBranches()
+
     for (const branch of allBranches) {
       this.loadCommit(branch.sha)
     }
@@ -215,7 +225,7 @@ export default class GitStore {
   public get recentBranches(): ReadonlyArray<Branch> { return this._recentBranches }
 
   /** Load the recent branches. */
-  public async loadRecentBranches() {
+  private async loadRecentBranches() {
     this._recentBranches = await LocalGitOperations.getRecentBranches(this.repository, this._allBranches, RecentBranchesLimit)
     this.emitUpdate()
   }

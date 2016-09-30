@@ -1,4 +1,4 @@
-import AutocompletingTextInput from './autocompleting-text-input'
+import { AutocompletingTextInput } from './autocompleting-text-input'
 
 export class AutocompletingTextArea extends AutocompletingTextInput<HTMLTextAreaElement> {
   protected getElementTagName(): 'textarea' | 'input' { return 'textarea' }

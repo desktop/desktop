@@ -1,11 +1,11 @@
 import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import TabBar from '../tab-bar'
-import AddExistingRepository from './add-existing-repository'
-import CreateRepository from './create-repository'
-import CloneRepository from './clone-repository'
-import fatalError from '../../lib/fatal-error'
+import { TabBar } from '../tab-bar'
+import { AddExistingRepository } from './add-existing-repository'
+import { CreateRepository } from './create-repository'
+import { CloneRepository } from './clone-repository'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IAddRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -25,7 +25,7 @@ enum AddRepositoryTab {
  * The component for adding a local repository, creating a new repository, or
  * cloning an existing repository.
  */
-export default class AddRepository extends React.Component<IAddRepositoryProps, IAddRepositoryState> {
+export class AddRepository extends React.Component<IAddRepositoryProps, IAddRepositoryState> {
   public constructor(props: IAddRepositoryProps) {
     super(props)
 
@@ -48,7 +48,7 @@ export default class AddRepository extends React.Component<IAddRepositoryProps, 
         return <CloneRepository dispatcher={this.props.dispatcher}/>
 
       default:
-        return fatalError(`Unknown tab: ${this.state.selectedTab}`)
+        return assertNever(this.state.selectedTab, `Unknown tab: ${this.state.selectedTab}`)
     }
   }
 

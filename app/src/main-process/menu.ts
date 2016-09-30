@@ -1,5 +1,5 @@
 import { shell, Menu, ipcMain } from 'electron'
-import SharedProcess from '../shared-process/shared-process'
+import { SharedProcess } from '../shared-process/shared-process'
 
 export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
                         'add-local-repository' | 'create-branch' |
@@ -81,7 +81,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         {
           label: 'Toggle Developer Tools',
           accelerator: (() => {
-            return (process.platform === 'darwin') ? 'Alt+Command+I' : 'Ctrl+Shift+I'
+            return __DARWIN__ ? 'Alt+Command+I' : 'Ctrl+Shift+I'
           })(),
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             if (focusedWindow) {
@@ -169,7 +169,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     },
   ]
 
-  if (process.platform === 'darwin') {
+  if (__DARWIN__) {
     template.unshift({
       label: 'GitHub',
       submenu: [

@@ -1,9 +1,9 @@
 import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import Repository from '../../models/repository'
+import { Repository } from '../../models/repository'
 import { Branch } from '../../lib/local-git-operations'
-import sanitizedBranchName from '../create-branch/sanitized-branch-name'
+import { sanitizedBranchName } from '../create-branch/sanitized-branch-name'
 
 interface IRenameBranchProps {
   readonly dispatcher: Dispatcher
@@ -15,7 +15,7 @@ interface IRenameBranchState {
   readonly newName: string
 }
 
-export default class RenameBranch extends React.Component<IRenameBranchProps, IRenameBranchState> {
+export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBranchState> {
   public constructor(props: IRenameBranchProps) {
     super(props)
 

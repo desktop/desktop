@@ -11,7 +11,7 @@ export interface IUser {
 /**
  * A GitHub user.
  */
-export default class User implements IUser {
+export class User implements IUser {
   public readonly token: string
   public readonly login: string
   public readonly endpoint: string

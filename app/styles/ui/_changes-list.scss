@@ -20,9 +20,6 @@
     border-bottom: 1px solid var(--box-border-color);
     display: flex;
     padding: var(--spacing-half);
-
-    // Render the shadow on top of the list
-    z-index: 2;
   }
 
   &-header-input {
@@ -42,6 +39,18 @@
   }
 }
 
+// Only use special colors for the change type icons when
+// the list item doesn't have active focus. If it does we
+// fall back to using the ambient foreground color of the
+// list item.
+#changes-list-list .list-item:not(:focus) {
+  .status {
+    &-new .octicon { fill: var(--color-new); }
+    &-modified .octicon { fill: var(--color-modified); }
+    &-deleted .octicon { fill: var(--color-deleted); }
+  }
+}
+
 .changed-file {
   display: flex;
   flex-grow: 1;
@@ -54,12 +63,6 @@
   .path {
     flex-grow: 1;
     @include ellipsis;
-  }
-
-  .status {
-    &-new .octicon { fill: var(--color-new); }
-    &-modified .octicon { fill: var(--color-modified); }
-    &-deleted .octicon { fill: var(--color-deleted); }
   }
 
   .octicon {

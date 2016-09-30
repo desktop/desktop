@@ -9,6 +9,7 @@
   border: var(--base-border);
   border-radius: var(--border-radius);
   box-shadow: 0 0 7px rgba(0,0,0,0.15);
+  z-index: var(--popup-z-index);
 }
 
 .popup-content-container {

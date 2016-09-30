@@ -1,9 +1,9 @@
 import * as React from 'react'
 
-import List from '../list'
-import RepositoryListItem from './repository-list-item'
-import Repository from '../../models/repository'
-import { groupRepositories, RepositoryListItem as RepositoryListItemModel, Repositoryish } from './group-repositories'
+import { List } from '../list'
+import { RepositoryListItem } from './repository-list-item'
+import { Repository } from '../../models/repository'
+import { groupRepositories, RepositoryListItemModel, Repositoryish } from './group-repositories'
 import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
 
 interface IRepositoriesListProps {
@@ -17,7 +17,7 @@ interface IRepositoriesListProps {
 const RowHeight = 30
 
 /** The list of user-added repositories. */
-export default class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
+export class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
   private renderRow(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
     const item = groupedItems[row]
     if (item.kind === 'repository') {
@@ -43,7 +43,7 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
     })
   }
 
-  private onRowSelected(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
+  private onSelectionChanged(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
     const item = groupedItems[row]
     if (item.kind === 'repository') {
       this.props.onSelectionChanged(item.repository)
@@ -71,7 +71,7 @@ export default class RepositoriesList extends React.Component<IRepositoriesListP
             rowHeight={RowHeight}
             rowRenderer={row => this.renderRow(grouped, row)}
             selectedRow={this.selectedRow(grouped)}
-            onRowSelected={row => this.onRowSelected(grouped, row)}
+            onSelectionChanged={row => this.onSelectionChanged(grouped, row)}
             canSelectRow={row => this.canSelectRow(grouped, row)}
             invalidationProps={this.props.repositories}/>
     )

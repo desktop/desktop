@@ -26,7 +26,7 @@ export interface IDatabaseRepository {
 }
 
 /** The app database. */
-export default class Database extends Dexie {
+export class Database extends Dexie {
   /** The local repositories table. */
   public repositories: Dexie.Table<IDatabaseRepository, number>
 

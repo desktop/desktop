@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import TabBar from '../tab-bar'
+import { TabBar } from '../tab-bar'
 
 export const enum ToolbarTab {
   Changes = 0,
@@ -19,7 +19,7 @@ interface IToolbarProps {
 }
 
 /** The tab bar component. */
-export default class Toolbar extends React.Component<IToolbarProps, void> {
+export class Toolbar extends React.Component<IToolbarProps, void> {
   public render() {
     return (
       <div id='toolbar'>

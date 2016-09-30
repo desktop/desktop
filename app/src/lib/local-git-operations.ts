@@ -3,14 +3,14 @@ import * as ChildProcess from 'child_process'
 
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
 import { DiffSelectionType, DiffSelection, Diff } from '../models/diff'
-import Repository from '../models/repository'
+import { Repository } from '../models/repository'
 
 import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDeletedFile } from './patch-formatter'
-import { parseRawDiff } from './diff-parser'
+import { DiffParser } from './diff-parser'
 
 import { GitProcess, GitError, GitErrorCode } from 'git-kitchen-sink'
 
-import User from '../models/user'
+import { User } from '../models/user'
 
 const byline = require('byline')
 
@@ -272,16 +272,8 @@ export class LocalGitOperations {
         // reset the index
         return GitProcess.exec(resetArgs, repository.path)
           .then(_ => {
-            const addFiles = files.map((file, index, array) => {
-              if (file.selection.getSelectionType() === DiffSelectionType.All) {
-                return this.addFileToIndex(repository, file)
-              } else {
-                return this.applyPatchToIndex(repository, file)
-              }
-            })
-
             // TODO: pipe standard input into this command
-            return Promise.all(addFiles)
+            return this.stageFiles(repository, files)
               .then(() => {
                 let message = summary
                 if (description.length > 0) {
@@ -298,6 +290,20 @@ export class LocalGitOperations {
   }
 
   /**
+   * Stage all the given files by either staging the entire path or by applying
+   * a patch.
+   */
+  private static async stageFiles(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+    for (const file of files) {
+      if (file.selection.getSelectionType() === DiffSelectionType.All) {
+        await this.addFileToIndex(repository, file)
+      } else {
+        await this.applyPatchToIndex(repository, file)
+      }
+    }
+  }
+
+  /**
    * Render the diff for a file within the repository
    *
    * A specific commit related to the file may be provided, otherwise the
@@ -308,7 +314,7 @@ export class LocalGitOperations {
     let args: string[]
 
     if (commit) {
-      args = [ 'show', commit.sha, '--patch-with-raw', '-z', '--', file.path ]
+      args = [ 'log', commit.sha, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
     } else if (file.status === FileStatus.New) {
       args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
     } else {
@@ -316,7 +322,11 @@ export class LocalGitOperations {
     }
 
     return GitProcess.execWithOutput(args, repository.path)
-      .then(result => parseRawDiff(result.split('\0')))
+      .then(result => {
+        const pieces = result.split('\0')
+        const parser = new DiffParser()
+        return parser.parse(pieces[pieces.length - 1])
+      })
   }
 
   /**
@@ -356,7 +366,7 @@ export class LocalGitOperations {
 
   /** Get the files that were changed in the given commit. */
   public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
-    const out = await GitProcess.execWithOutput([ 'show', sha, '--name-status', '--format=format:', '-z' ], repository.path)
+    const out = await GitProcess.execWithOutput([ 'log', sha, '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z' ], repository.path)
     const lines = out.split('\0')
     // Remove the trailing empty line
     lines.splice(-1, 1)
@@ -392,7 +402,7 @@ export class LocalGitOperations {
   }
 
   private static getAskPassTrampolinePath(): string {
-    const extension = process.platform === 'win32' ? 'bat' : 'sh'
+    const extension = __WIN32__ ? 'bat' : 'sh'
     return Path.resolve(__dirname, 'static', `ask-pass-trampoline.${extension}`)
   }
 

@@ -3,6 +3,7 @@ import * as React from 'react'
 import { FileStatus } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
+import { Checkbox, CheckboxValue } from './checkbox'
 
 interface IChangedFileProps {
   path: string
@@ -22,30 +23,34 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     return 'Unknown'
   }
 
-  private handleChange(event: React.FormEvent<any>) {
-    const include = (event.target as any).checked
+  private handleChange(event: React.FormEvent<HTMLInputElement>) {
+    const include = event.currentTarget.checked
     this.props.onIncludeChanged(include)
   }
 
+  private get checkboxValue(): CheckboxValue {
+    if (this.props.include === true) {
+      return CheckboxValue.On
+    } else if (this.props.include === false) {
+      return CheckboxValue.Off
+    } else {
+      return CheckboxValue.Mixed
+    }
+  }
+
   public render() {
-    const includeFile = this.props.include
     const fileStatus = ChangedFile.mapStatus(this.props.status)
 
     return (
       <div className='changed-file' onContextMenu={e => this.onContextMenu(e)}>
-        <input
-          type='checkbox'
+
+        <Checkbox
           // The checkboxes doesn't need to be tab reachable since we emulate
           // checkbox behavior on the list item itself, ie hitting space bar
           // while focused on a row will toggle selection.
           tabIndex={-1}
-          checked={includeFile == null ? undefined : includeFile}
-          onChange={event => this.handleChange(event)}
-          ref={function(input) {
-            if (input != null) {
-              input.indeterminate = (includeFile === null)
-            }
-          }}/>
+          value={this.checkboxValue}
+          onChange={event => this.handleChange(event)}/>
 
         <label className='path' title={this.props.path}>
           {this.props.path}
@@ -61,7 +66,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
   private onContextMenu(event: React.MouseEvent<any>) {
     event.preventDefault()
 
-    if (process.platform !== 'win32') {
+    if (!__WIN32__) {
       const item = {
         label: 'Discard Changes',
         action: () => this.props.onDiscardChanges(),

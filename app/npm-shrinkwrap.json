@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "dependencies": {
     "ansi-html": {
       "version": "0.0.5",
@@ -147,6 +147,11 @@
       "version": "2.2.5",
       "from": "classnames@>=2.2.3 <3.0.0",
       "resolved": "https://registry.npmjs.org/classnames/-/classnames-2.2.5.tgz"
+    },
+    "codemirror": {
+      "version": "5.19.0",
+      "from": "codemirror@latest",
+      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.19.0.tgz"
     },
     "combined-stream": {
       "version": "1.0.5",

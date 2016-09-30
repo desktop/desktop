@@ -1,8 +1,8 @@
 import * as React from 'react'
-import List from '../list'
+import { List } from '../list'
 import { IAutocompletionProvider } from './index'
-import EmojiAutocompletionProvider from './emoji-autocompletion-provider'
-import fatalError from '../../lib/fatal-error'
+import { EmojiAutocompletionProvider } from './emoji-autocompletion-provider'
+import { fatalError } from '../../lib/fatal-error'
 
 interface IPosition {
   readonly top: number
@@ -63,7 +63,7 @@ interface IAutocompletingTextInputState<T> {
 }
 
 /** A text area which provides autocompletions as the user types. */
-abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HTMLTextAreaElement> extends React.Component<IAutocompletingTextInputProps<ElementType>, IAutocompletingTextInputState<any>> {
+export abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HTMLTextAreaElement> extends React.Component<IAutocompletingTextInputProps<ElementType>, IAutocompletingTextInputState<any>> {
   private element: ElementType | null = null
   private autocompletionList: List | null = null
 
@@ -301,7 +301,3 @@ abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HT
     this.setState({ autocompletionState })
   }
 }
-
-// Because Reasons, TypeScript doesn't like combining
-// `export default abstract class` so export separately.
-export default AutocompletingTextInput

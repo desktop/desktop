@@ -6,27 +6,18 @@ import * as path from 'path'
 const fs = require('fs-extra')
 const temp = require('temp').track()
 
-import Repository from '../src/models/repository'
+import { Repository } from '../src/models/repository'
 import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
 import { FileStatus, FileChange, WorkingDirectoryFileChange } from '../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../src/models/diff'
-import { selectLinesInSection, mergeSelections } from './diff-selection-helper'
+import { selectLinesInHunk, mergeSelections } from './diff-selection-helper'
+import { setupFixtureRepository } from './fixture-helper'
 
 describe('LocalGitOperations', () => {
   let repository: Repository | null = null
 
-  function setupTestRepository(repositoryName: string): string {
-    const testRepoFixturePath = path.join(__dirname, 'fixtures', repositoryName)
-    const testRepoPath = temp.mkdirSync('desktop-git-test-')
-    fs.copySync(testRepoFixturePath, testRepoPath)
-
-    fs.renameSync(path.join(testRepoPath, '_git'), path.join(testRepoPath, '.git'))
-
-    return testRepoPath
-  }
-
   beforeEach(() => {
-    const testRepoPath = setupTestRepository('test-repo')
+    const testRepoPath = setupFixtureRepository('test-repo')
     repository = new Repository(testRepoPath, -1, null)
   })
 
@@ -77,7 +68,7 @@ describe('LocalGitOperations', () => {
   describe('partial commits', () => {
 
     beforeEach(() => {
-      const testRepoPath = setupTestRepository('repo-with-changes')
+      const testRepoPath = setupFixtureRepository('repo-with-changes')
       repository = new Repository(testRepoPath, -1, null)
     })
 
@@ -129,9 +120,9 @@ describe('LocalGitOperations', () => {
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
       // skip first hunk
-      const first = selectLinesInSection(diff, 0, false)
+      const first = selectLinesInHunk(diff, 0, false)
       // select second hunk
-      const second = selectLinesInSection(diff, 1, true)
+      const second = selectLinesInHunk(diff, 1, true)
 
       const selectedLines = mergeSelections([ first, second ])
 
@@ -173,11 +164,11 @@ describe('LocalGitOperations', () => {
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
       // select first hunk
-      const first = selectLinesInSection(diff, 0, true)
+      const first = selectLinesInHunk(diff, 0, true)
       // skip second hunk
-      const second = selectLinesInSection(diff, 1, false)
+      const second = selectLinesInHunk(diff, 1, false)
       // select third hunk
-      const third = selectLinesInSection(diff, 2, true)
+      const third = selectLinesInHunk(diff, 2, true)
 
       const selectedLines = mergeSelections([ first, second, third ])
 
@@ -279,7 +270,7 @@ describe('LocalGitOperations', () => {
   describe('diff', () => {
 
     beforeEach(() => {
-      const testRepoPath = setupTestRepository('repo-with-changes')
+      const testRepoPath = setupFixtureRepository('repo-with-changes')
       repository = new Repository(testRepoPath, -1, null)
     })
 
@@ -287,21 +278,21 @@ describe('LocalGitOperations', () => {
       const file = new FileChange('new-file.md', FileStatus.New)
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
-      const section = diff.sections[0]
+      const hunk = diff.hunks[0]
 
-      expect(section.lines[0].text).to.have.string('@@ -0,0 +1,33 @@')
+      expect(hunk.lines[0].text).to.have.string('@@ -0,0 +1,33 @@')
 
-      expect(section.lines[1].text).to.have.string('+Lorem ipsum dolor sit amet,')
-      expect(section.lines[2].text).to.have.string('+ullamcorper sit amet tellus eget, ')
+      expect(hunk.lines[1].text).to.have.string('+Lorem ipsum dolor sit amet,')
+      expect(hunk.lines[2].text).to.have.string('+ullamcorper sit amet tellus eget, ')
 
-      expect(section.lines[33].text).to.have.string('+ urna, ac porta justo leo sed magna.')
+      expect(hunk.lines[33].text).to.have.string('+ urna, ac porta justo leo sed magna.')
     })
 
     it('counts lines for modified file', async () => {
       const file = new FileChange('modified-file.md', FileStatus.Modified)
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
-      const first = diff.sections[0]
+      const first = diff.hunks[0]
       expect(first.lines[0].text).to.have.string('@@ -4,10 +4,6 @@')
 
       expect(first.lines[4].text).to.have.string('-Aliquam leo ipsum')
@@ -309,7 +300,7 @@ describe('LocalGitOperations', () => {
       expect(first.lines[6].text).to.have.string('-eleifend mi.')
       expect(first.lines[7].text).to.have.string('-')
 
-      const second = diff.sections[1]
+      const second = diff.hunks[1]
       expect(second.lines[0].text).to.have.string('@@ -21,6 +17,10 @@')
 
       expect(second.lines[4].text).to.have.string('+Aliquam leo ipsum')
@@ -322,13 +313,13 @@ describe('LocalGitOperations', () => {
       const file = new FileChange('staged-file.md', FileStatus.Modified)
       const diff = await LocalGitOperations.getDiff(repository!, file, null)
 
-      const first = diff.sections[0]
+      const first = diff.hunks[0]
       expect(first.lines[0].text).to.have.string('@@ -2,7 +2,7 @@ ')
 
       expect(first.lines[4].text).to.have.string('-tortor placerat facilisis. Ut sed ex tortor. Duis consectetur at ex vel mattis.')
       expect(first.lines[5].text).to.have.string('+tortor placerat facilisis.')
 
-      const second = diff.sections[1]
+      const second = diff.hunks[1]
       expect(second.lines[0].text).to.have.string('@@ -17,9 +17,7 @@ ')
 
       expect(second.lines[4].text).to.have.string('-vel sagittis nisl rutrum. ')

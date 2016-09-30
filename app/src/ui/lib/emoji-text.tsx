@@ -12,7 +12,7 @@ interface IEmojiTextProps {
  * A component which replaces any emoji shortcuts (e.g., :+1:) in its child text
  * with the appropriate image tag.
  */
-export default class EmojiText extends React.Component<IEmojiTextProps, void> {
+export class EmojiText extends React.Component<IEmojiTextProps, void> {
   public render() {
     const children = this.props.children as string || ''
     return (

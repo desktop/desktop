@@ -1,17 +1,17 @@
-import tokenStore from './token-store'
-import UsersStore from './users-store'
+import { TokenStore } from './token-store'
+import { UsersStore } from './users-store'
 import { requestToken, askUserToAuth } from './auth'
-import User from '../models/user'
-import Database from './database'
-import RepositoriesStore from './repositories-store'
-import Repository, { IRepository } from '../models/repository'
+import { User } from '../models/user'
+import { Database } from './database'
+import { RepositoriesStore } from './repositories-store'
+import { Repository, IRepository } from '../models/repository'
 import { register, broadcastUpdate as broadcastUpdate_ } from './communication'
 import { IURLAction, IAddRepositoriesAction, IUpdateGitHubRepositoryAction, IRemoveRepositoriesAction } from '../lib/dispatcher'
-import API, { getDotComAPIEndpoint } from '../lib/api'
+import { API,  getDotComAPIEndpoint } from '../lib/api'
 
 const Octokat = require('octokat')
 
-const usersStore = new UsersStore(localStorage, tokenStore)
+const usersStore = new UsersStore(localStorage, TokenStore)
 usersStore.loadFromStore()
 
 const database = new Database('Database')

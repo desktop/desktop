@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { FileChange } from '../../models/status'
-import List from '../list'
+import { List } from '../list'
 import { Octicon, OcticonSymbol } from '../octicons'
-import EmojiText from '../lib/emoji-text'
+import { EmojiText } from '../lib/emoji-text'
 
 interface ICommitSummaryProps {
   readonly summary: string
@@ -15,8 +15,8 @@ interface ICommitSummaryProps {
   readonly emoji: Map<string, string>
 }
 
-export default class CommitSummary extends React.Component<ICommitSummaryProps, void> {
-  private onRowSelected(row: number) {
+export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
+  private onSelectionChanged(row: number) {
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)
   }
@@ -90,7 +90,7 @@ export default class CommitSummary extends React.Component<ICommitSummaryProps, 
                 rowCount={this.props.files.length}
                 rowHeight={40}
                 selectedRow={this.rowForFile(this.props.selectedFile)}
-                onRowSelected={row => this.onRowSelected(row)}/>
+                onSelectionChanged={row => this.onSelectionChanged(row)}/>
         </div>
       </div>
     )
