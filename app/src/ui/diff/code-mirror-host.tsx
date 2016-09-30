@@ -11,11 +11,11 @@ interface ICodeMirrorHostProps {
 
 export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> {
 
-  private textArea: HTMLTextAreaElement | null
-  private codeMirror: CodeMirror.EditorFromTextArea | null
+  private wrapper: HTMLDivElement | null
+  private codeMirror: CodeMirror.Editor | null
 
   public componentDidMount() {
-    const codeMirror = this.codeMirror = CodeMirror.fromTextArea(this.textArea!, this.props.options)
+    const codeMirror = this.codeMirror = CodeMirror(this.wrapper!, this.props.options)
 
     // The definition for renderLine in DefinitelyTyped is wrong, it says that
     // the line argument is a number when, in fact, it's a LineHandle.
@@ -41,9 +41,9 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   }
 
   public render() {
+    console.warn('rendering!')
     return (
-      <div className={this.props.className}>
-        <textarea ref={(e) => this.textArea = e}></textarea>
+      <div className={this.props.className} ref={(e) => this.wrapper = e}>
       </div>
     )
   }
