@@ -54,6 +54,11 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
    */
   private scrollPositionToRestore: { left: number, top: number } | null = null
 
+  /**
+   * A mapping from CodeMirror line handles to disposables which, when disposed
+   * cleans up any line gutter components and events associated with that line.
+   * See renderLine for more information.
+   */
   private readonly lineCleanup = new Map<any, Disposable>()
 
   public constructor(props: IDiffProps) {
