@@ -13,15 +13,6 @@ const stats = new Stats()
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
-app.on('will-finish-launching', () => {
-  app.on('open-url', (event, url) => {
-    event.preventDefault()
-
-    const action = parseURL(url)
-    getMainWindow().sendURLAction(action)
-  })
-})
-
 if (__WIN32__ && process.argv.length > 1) {
   if (handleSquirrelEvent(process.argv[1])) {
     app.quit()
@@ -64,6 +55,13 @@ app.on('ready', () => {
   sharedProcess.register()
 
   createWindow()
+
+  app.on('open-url', (event, url) => {
+    event.preventDefault()
+
+    const action = parseURL(url)
+    getMainWindow().sendURLAction(action)
+  })
 
   const menu = buildDefaultMenu(sharedProcess)
   Menu.setApplicationMenu(menu)
