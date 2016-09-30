@@ -2,24 +2,42 @@ import * as React from 'react'
 import * as CodeMirror from 'codemirror'
 
 interface ICodeMirrorHostProps {
+  /**
+   * An optional class name for the wrapper element around the
+   * CodeMirror component
+   */
   className?: string
+
+  /** The text contents for the editor */
   value: string,
+
+  /** Any CodeMirror specific settings */
   options?: CodeMirror.EditorConfiguration
+
+  /** Callback for when CodeMirror renders (or re-renders) a line */
   onRenderLine?: (cm: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void
+
+  /** Callback for when CodeMirror has completed a batch of changes to the editor */
   onChanges?: (cm: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void
 }
 
+/**
+ * A component hosting a CodeMirror instance
+ */
 export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> {
 
   private wrapper: HTMLDivElement | null
   private codeMirror: CodeMirror.Editor | null
 
+  /**
+   * Gets the internal CodeMirror instance or null if CodeMirror hasn't
+   * been initialized yet (happens when component mounts)
+   */
   public getEditor(): CodeMirror.Editor | null {
     return this.codeMirror
   }
 
   public componentDidMount() {
-
     this.codeMirror = CodeMirror(this.wrapper!, this.props.options)
 
     // The definition for renderLine in DefinitelyTyped is wrong, it says that
