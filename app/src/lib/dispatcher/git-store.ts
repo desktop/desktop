@@ -68,9 +68,9 @@ export class GitStore {
       // If we found the old HEAD, then we can just splice the new commits into
       // the history we already loaded.
       //
-      // But if we didn't, it means the history we had and the currently history
-      // have diverged significantly or in some non-trivial way (e.g., HEAD was
-      // reset). So just throw it out and we'll start over fresh.
+      // But if we didn't, it means the history we had and the history we just
+      // loaded have diverged significantly or in some non-trivial way
+      // (e.g., HEAD reset). So just throw it out and we'll start over fresh.
       if (index > -1) {
         commits = commits.slice(0, index)
       } else {
