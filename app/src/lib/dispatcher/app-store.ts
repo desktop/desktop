@@ -594,7 +594,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
+  public async _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
     this.updateChangesState(repository, state => {
       return {
         workingDirectory: state.workingDirectory,
@@ -604,7 +604,25 @@ export class AppStore {
     })
     this.emitUpdate()
 
-    return Promise.resolve()
+    // TODO: should we allow components to unselect files?
+    if (!selectedFile) { return }
+
+    const diff = await this.loadDiff(repository, selectedFile, null)
+    const stateAfterLoad = this.getRepositoryState(repository)
+
+    // A whole bunch of things could have happened since we initiated the diff load
+    if (!stateAfterLoad.changesState.selectedFile) { return }
+    if (stateAfterLoad.changesState.selectedFile.id !== selectedFile.id) { return }
+
+    this.updateChangesState(repository, state => {
+      return {
+        workingDirectory: state.workingDirectory,
+        selectedFile,
+        diff,
+      }
+    })
+
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
