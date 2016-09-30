@@ -628,6 +628,23 @@ export class LocalGitOperations {
   }
 }
 
+/**
+ * Shell out to git with the given arguments, at the given path.
+ *
+ * @param {args}             The args to pass to `git`.
+ * @param {path}             The working directory path for the execution of the
+ *                           command.
+ * @param {customEnv}        Custom environment variables to use when launching
+ *                           git.
+ * @param {expectedExitCode} The exit codes which the caller expects. Ideally
+ *                           this will include all success and failure codes,
+ *                           indicating the caller knows how to handle errors
+ *                           from the command. Unexpected exit codes will be
+ *                           logged so that the caller can determine how to
+ *                           handle them. Defaults to 0 if undefined.
+ * @param {processCb}        A callback which will pass in the ChildProcess,
+ *                           giving the caller a chance to customize it further.
+ */
 async function git(args: string[], path: string, customEnv?: Object, expectedExitCodes?: Set<number> | null, processCb?: (process: ChildProcess.ChildProcess) => void): Promise<IGitResult> {
   const result = await GitProcess.execWithOutput(args, path, customEnv, processCb)
 
