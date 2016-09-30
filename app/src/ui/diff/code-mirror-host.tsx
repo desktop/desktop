@@ -5,6 +5,7 @@ interface ICodeMirrorHostProps {
   value: string,
   options?: CodeMirror.EditorConfiguration
   onRenderLine?: (cm: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void
+  onChanges?: (cm: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void
 }
 
 export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> {
@@ -21,7 +22,15 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     const cm = codeMirror as any
     cm.on('renderLine', this.onRenderLine)
 
+    codeMirror.on('changes', this.onChanges)
+
     codeMirror.setValue(this.props.value)
+  }
+
+  private onChanges = (cm: CodeMirror.Editor, changes: CodeMirror.EditorChangeLinkedList[]) => {
+    if (this.props.onChanges) {
+      this.props.onChanges(cm, changes)
+    }
   }
 
   private onRenderLine = (cm: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => {

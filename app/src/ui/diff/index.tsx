@@ -311,6 +311,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         <CodeMirrorHost
           value={diffText}
           options={options}
+          onChanges={this.onChanges}
           onRenderLine={this.renderLine}
         />
       </div>
