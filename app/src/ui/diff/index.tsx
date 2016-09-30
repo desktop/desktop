@@ -298,17 +298,10 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
     }
 
-    /*
-
-      className='diff-code-mirror'
-      value={diffText}
-      options={options}
-      onChanges={this.onChanges}
-    */
-
     return (
       <div className='panel' id='diff'>
         <CodeMirrorHost
+          className='diff-code-mirror'
           value={diffText}
           options={options}
           onChanges={this.onChanges}

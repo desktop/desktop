@@ -2,6 +2,7 @@ import * as React from 'react'
 import * as CodeMirror from 'codemirror'
 
 interface ICodeMirrorHostProps {
+  className?: string
   value: string,
   options?: CodeMirror.EditorConfiguration
   onRenderLine?: (cm: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void
@@ -41,7 +42,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
 
   public render() {
     return (
-      <div className='ReactCodeMirror'>
+      <div className={this.props.className}>
         <textarea ref={(e) => this.textArea = e}></textarea>
       </div>
     )
