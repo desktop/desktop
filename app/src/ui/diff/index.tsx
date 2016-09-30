@@ -54,6 +54,13 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
    */
   private scrollPositionToRestore: { left: number, top: number } | null = null
 
+  /**
+   * A mapping from CodeMirror line handles to disposables which, when disposed
+   * cleans up any line gutter components and events associated with that line.
+   * See renderLine for more information.
+   */
+  private readonly lineCleanup = new Map<any, Disposable>()
+
   public constructor(props: IDiffProps) {
     super(props)
 
@@ -181,6 +188,17 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private renderLine = (instance: any, line: any, element: HTMLElement) => {
+
+    const existingLineDisposable = this.lineCleanup.get(line)
+
+    // If we can find the line in our cleanup list that means the line is
+    // being re-rendered. Agains, CodeMirror doesn't fire the 'delete' event
+    // when this happens.
+    if (existingLineDisposable) {
+      existingLineDisposable.dispose()
+      this.lineCleanup.delete(line)
+    }
+
     const index = instance.getLineNumber(line)
     const hunk = this.diffHunkForIndex(this.state.diff, index)
     if (hunk) {
@@ -215,16 +233,19 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         })
 
         // Add the cleanup disposable to our list of disposables so that we clean up when
-        // this component is unmounted. When that happens the line 'delete' event doesn't
-        // seem to fire.
-        const disposables = this.codeMirrorDisposables
-        if (disposables) {
-          disposables.add(gutterCleanup)
-        }
+        // this component is unmounted or when the line is re-rendered. When either of that
+        // happens the line 'delete' event doesn't  fire.
+        this.lineCleanup.set(line, gutterCleanup)
 
         // If the line delete event fires we dispose of the disposable (disposing is
         // idempotent)
-        deleteHandler = () => gutterCleanup.dispose()
+        deleteHandler = () => {
+          const disp = this.lineCleanup.get(line)
+          if (disp) {
+            this.lineCleanup.delete(line)
+            disp.dispose()
+          }
+        }
         line.on('delete', deleteHandler)
 
         element.classList.add(this.getClassName(diffLine.type))
@@ -232,13 +253,18 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     }
   }
 
-  private restoreScrollPosition = () => {
+  private restoreScrollPosition() {
     const codeMirror = this.codeMirror
     const scrollPosition = this.scrollPositionToRestore
     if (codeMirror && scrollPosition) {
       this.codeMirror.scrollTo(scrollPosition.left, scrollPosition.top)
     }
   }
+
+  private onChanges = () => {
+    this.restoreScrollPosition()
+  }
+
 
   private configureEditor(editor: any | null) {
     if (!editor) { return }
@@ -253,11 +279,14 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     this.codeMirrorDisposables = disposables
 
     codeMirror.on('renderLine', this.renderLine)
-    codeMirror.on('changes', this.restoreScrollPosition)
+    codeMirror.on('changes', this.onChanges)
 
     disposables.add(new Disposable(() => {
       codeMirror.off('renderLine', this.renderLine)
-      codeMirror.off('changes', this.restoreScrollPosition)
+      codeMirror.off('changes', this.onChanges)
+
+      this.lineCleanup.forEach((disposable) => disposable.dispose())
+      this.lineCleanup.clear()
     }))
   }
 
