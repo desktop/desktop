@@ -136,7 +136,7 @@
     },
     "codemirror": {
       "version": "5.19.0",
-      "from": "codemirror@>=5.13.4 <6.0.0",
+      "from": "codemirror@latest",
       "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.19.0.tgz"
     },
     "combined-stream": {
