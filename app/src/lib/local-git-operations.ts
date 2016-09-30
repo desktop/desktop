@@ -283,13 +283,22 @@ export class LocalGitOperations {
    */
   public static getDiff(repository: Repository, file: FileChange, commit: Commit | null): Promise<Diff> {
     let args: string[]
-    let expectedExitCodes = new Set([ 0 ])
+    // `git diff` seems to emulate the exit codes from `diff` irrespective of
+    // whether you set --exit-code
+    //
+    // this is the behaviour:
+    // - 0 if no changes found
+    // - 1 if changes found
+    // -   and error otherwise
+    //
+    // citation in source:
+    // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
+    const expectedExitCodes = new Set([ 0, 1 ])
 
     if (commit) {
       args = [ 'log', commit.sha, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
     } else if (file.status === FileStatus.New) {
       args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
-      expectedExitCodes = new Set([ 0, 1 ])
     } else {
       args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
     }
