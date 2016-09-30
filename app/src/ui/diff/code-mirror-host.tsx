@@ -14,6 +14,10 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   private wrapper: HTMLDivElement | null
   private codeMirror: CodeMirror.Editor | null
 
+  public getEditor(): CodeMirror.Editor | null {
+    return this.editor
+  }
+
   public componentDidMount() {
 
     this.codeMirror = CodeMirror(this.wrapper!, this.props.options)
