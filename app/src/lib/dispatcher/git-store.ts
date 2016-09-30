@@ -179,6 +179,8 @@ export class GitStore {
 
     this.emitUpdate()
 
+    this.loadRecentBranches()
+
     for (const branch of allBranches) {
       this.loadCommit(branch.sha)
     }
@@ -215,7 +217,7 @@ export class GitStore {
   public get recentBranches(): ReadonlyArray<Branch> { return this._recentBranches }
 
   /** Load the recent branches. */
-  public async loadRecentBranches() {
+  private async loadRecentBranches() {
     this._recentBranches = await LocalGitOperations.getRecentBranches(this.repository, this._allBranches, RecentBranchesLimit)
     this.emitUpdate()
   }
