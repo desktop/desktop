@@ -283,6 +283,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       showCursorWhenSelecting: false,
       cursorBlinkRate: -1,
       lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
+      extraKeys: { Tab: false },
     }
 
     return (
