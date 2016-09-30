@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "dependencies": {
     "ansi-html": {
       "version": "0.0.5",
@@ -351,9 +351,9 @@
       }
     },
     "git-kitchen-sink": {
-      "version": "1.8.0",
-      "from": "git-kitchen-sink@>=1.6.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/git-kitchen-sink/-/git-kitchen-sink-1.8.0.tgz"
+      "version": "1.9.0",
+      "from": "git-kitchen-sink@>=1.8.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/git-kitchen-sink/-/git-kitchen-sink-1.9.0.tgz"
     },
     "glob": {
       "version": "7.0.5",
