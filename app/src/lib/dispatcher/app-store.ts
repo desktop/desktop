@@ -377,21 +377,17 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeHistoryFileSelection(repository: Repository, file: FileChange | null): Promise<void> {
+  public async _changeHistoryFileSelection(repository: Repository, file: FileChange): Promise<void> {
 
     this.updateHistoryState(repository, state => {
       return {
         history: state.history,
         selection: { sha: state.selection.sha, file },
         changedFiles: state.changedFiles,
-        // TODO: load diff here!
         diff: null,
       }
     })
     this.emitUpdate()
-
-    // TODO: should we allow components to unselect files?
-    if (!file) { return }
 
     const stateBeforeLoad = this.getRepositoryState(repository)
 
