@@ -40,7 +40,7 @@ const OnDiskStatuses = new Set([
 ])
 
 /**
- * File statuses which indicate the file has previously been committed to the 
+ * File statuses which indicate the file has previously been committed to the
  * repository.
  */
 const CommittedStatuses = new Set([
@@ -121,7 +121,7 @@ export class AppStore {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
         selectedFile: null,
       },
-      selectedSection: RepositorySection.History,
+      selectedSection: RepositorySection.Changes,
       branchesState: {
         currentBranch: null,
         defaultBranch: null,
