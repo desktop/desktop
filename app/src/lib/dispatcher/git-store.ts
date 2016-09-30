@@ -65,10 +65,12 @@ export class GitStore {
     if (existingHistory.length > 0) {
       const mostRecent = existingHistory[0]
       const index = commits.findIndex(c => c.sha === mostRecent)
-      // If we found the old HEAD, then we can just add the new commits. If we
-      // didn't then it means the history we had and the currently history have
-      // diverged significantly or in some non-trivial way. So just throw it
-      // out.
+      // If we found the old HEAD, then we can just splice the new commits into
+      // the history we already loaded.
+      //
+      // But if we didn't, it means the history we had and the currently history
+      // have diverged significantly or in some non-trivial way (e.g., HEAD was
+      // reset). So just throw it out and we'll start over fresh.
       if (index > -1) {
         commits = commits.slice(0, index)
       } else {
