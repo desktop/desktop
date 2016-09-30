@@ -1,8 +1,9 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import * as CodeMirror from 'react-codemirror'
-import { Disposable, CompositeDisposable } from 'event-kit'
+import { Disposable } from 'event-kit'
 
+import { EditorConfiguration, Editor } from 'codemirror'
+import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType, DiffHunk } from '../../models/diff'
@@ -39,12 +40,6 @@ interface IDiffState {
 
 /** A component which renders a diff for a file. */
 export class Diff extends React.Component<IDiffProps, IDiffState> {
-  /**
-   * The disposable that should be disposed of when the instance is unmounted.
-   * This will be null when our CodeMirror instance hasn't been set up yet.
-   */
-  private codeMirrorDisposables: CompositeDisposable | null = null
-
   private codeMirror: any | null
 
   /**
@@ -76,13 +71,10 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private dispose() {
-    const disposables = this.codeMirrorDisposables
-    if (disposables) {
-      disposables.dispose()
-    }
-
-    this.codeMirrorDisposables = null
     this.codeMirror = null
+
+    this.lineCleanup.forEach((disposable) => disposable.dispose())
+    this.lineCleanup.clear()
   }
 
   private async loadDiff(repository: Repository, file: FileChange | null, commit: Commit | null) {
@@ -187,7 +179,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     this.props.onIncludeChanged(newDiffSelection)
   }
 
-  private renderLine = (instance: any, line: any, element: HTMLElement) => {
+  public renderLine = (instance: any, line: any, element: HTMLElement) => {
 
     const existingLineDisposable = this.lineCleanup.get(line)
 
@@ -253,41 +245,15 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     }
   }
 
-  private restoreScrollPosition() {
-    const codeMirror = this.codeMirror
+  private restoreScrollPosition(cm: Editor) {
     const scrollPosition = this.scrollPositionToRestore
-    if (codeMirror && scrollPosition) {
-      this.codeMirror.scrollTo(scrollPosition.left, scrollPosition.top)
+    if (cm && scrollPosition) {
+      cm.scrollTo(scrollPosition.left, scrollPosition.top)
     }
   }
 
-  private onChanges = () => {
-    this.restoreScrollPosition()
-  }
-
-
-  private configureEditor(editor: any | null) {
-    if (!editor) { return }
-
-    const codeMirror: any | null = editor.getCodeMirror()
-    if (!codeMirror || codeMirror === this.codeMirror) { return }
-
-    this.dispose()
-    this.codeMirror = codeMirror
-
-    const disposables = new CompositeDisposable()
-    this.codeMirrorDisposables = disposables
-
-    codeMirror.on('renderLine', this.renderLine)
-    codeMirror.on('changes', this.onChanges)
-
-    disposables.add(new Disposable(() => {
-      codeMirror.off('renderLine', this.renderLine)
-      codeMirror.off('changes', this.onChanges)
-
-      this.lineCleanup.forEach((disposable) => disposable.dispose())
-      this.lineCleanup.clear()
-    }))
+  public onChanges = (cm: Editor) => {
+    this.restoreScrollPosition(cm)
   }
 
   public render() {
@@ -311,23 +277,24 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       hunk.lines.forEach(l => diffText += l.text + '\r\n')
     })
 
-    const options = {
+    const options: EditorConfiguration = {
       lineNumbers: false,
       readOnly: true,
       showCursorWhenSelecting: false,
       cursorBlinkRate: -1,
-      styleActiveLine: false,
-      scrollbarStyle: 'native',
       lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
     }
 
     return (
       <div className='panel' id='diff'>
-        <CodeMirror
+        <CodeMirrorHost
           className='diff-code-mirror'
           value={diffText}
           options={options}
-          ref={(ref: any | null) => this.configureEditor(ref)}/>
+          onChanges={this.onChanges}
+          onRenderLine={this.renderLine}
+          ref={(cmh) => { this.codeMirror = cmh === null ? null : cmh.getEditor() }}
+        />
       </div>
     )
   }
