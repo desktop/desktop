@@ -63,9 +63,8 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     }
   }
 
-  public shouldComponentUpdate(nextProps: ICodeMirrorHostProps, nextState: void): boolean {
+  public componentWillReceiveProps(nextProps: ICodeMirrorHostProps) {
     this.codeMirror!.setValue(nextProps.value)
-    return false
   }
 
   private onChanges = (cm: CodeMirror.Editor, changes: CodeMirror.EditorChangeLinkedList[]) => {
