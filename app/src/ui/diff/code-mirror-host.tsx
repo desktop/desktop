@@ -54,7 +54,6 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   }
 
   public render() {
-    console.warn('rendering!')
     return (
       <div className={this.props.className} ref={(e) => this.wrapper = e}>
       </div>
