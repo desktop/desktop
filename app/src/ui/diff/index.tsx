@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import { Disposable, CompositeDisposable } from 'event-kit'
+import { Disposable } from 'event-kit'
 
 import { EditorConfiguration } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
@@ -40,12 +40,6 @@ interface IDiffState {
 
 /** A component which renders a diff for a file. */
 export class Diff extends React.Component<IDiffProps, IDiffState> {
-  /**
-   * The disposable that should be disposed of when the instance is unmounted.
-   * This will be null when our CodeMirror instance hasn't been set up yet.
-   */
-  private codeMirrorDisposables: CompositeDisposable | null = null
-
   private codeMirror: any | null
 
   /**
@@ -77,12 +71,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private dispose() {
-    const disposables = this.codeMirrorDisposables
-    if (disposables) {
-      disposables.dispose()
-    }
-
-    this.codeMirrorDisposables = null
     this.codeMirror = null
 
     this.lineCleanup.forEach((disposable) => disposable.dispose())
