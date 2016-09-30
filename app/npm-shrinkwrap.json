@@ -136,7 +136,7 @@
     },
     "codemirror": {
       "version": "5.19.0",
-      "from": "codemirror@latest",
+      "from": "codemirror@>=5.13.4 <6.0.0",
       "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.19.0.tgz"
     },
     "combined-stream": {
@@ -551,11 +551,6 @@
       "version": "3.10.1",
       "from": "lodash@>=3.10.1 <4.0.0",
       "resolved": "https://registry.npmjs.org/lodash/-/lodash-3.10.1.tgz"
-    },
-    "lodash.debounce": {
-      "version": "4.0.8",
-      "from": "lodash.debounce@>=4.0.4 <5.0.0",
-      "resolved": "https://registry.npmjs.org/lodash.debounce/-/lodash.debounce-4.0.8.tgz"
     },
     "loose-envify": {
       "version": "1.2.0",
