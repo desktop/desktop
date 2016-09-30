@@ -239,7 +239,13 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
         // If the line delete event fires we dispose of the disposable (disposing is
         // idempotent)
-        deleteHandler = () => gutterCleanup.dispose()
+        deleteHandler = () => {
+          const disp = this.lineCleanup.get(line)
+          if (disp) {
+            this.lineCleanup.delete(line)
+            disp.dispose()
+          }
+        }
         line.on('delete', deleteHandler)
 
         element.classList.add(this.getClassName(diffLine.type))
