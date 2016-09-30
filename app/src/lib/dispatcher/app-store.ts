@@ -18,7 +18,7 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffSelectionType } from '../../models/diff'
+import { Diff, DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
@@ -40,7 +40,7 @@ const OnDiskStatuses = new Set([
 ])
 
 /**
- * File statuses which indicate the file has previously been committed to the 
+ * File statuses which indicate the file has previously been committed to the
  * repository.
  */
 const CommittedStatuses = new Set([
@@ -116,10 +116,12 @@ export class AppStore {
         },
         changedFiles: new Array<FileChange>(),
         history: new Array<string>(),
+        diff: null,
       },
       changesState: {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
         selectedFile: null,
+        diff: null,
       },
       selectedSection: RepositorySection.History,
       branchesState: {
@@ -248,6 +250,7 @@ export class AppStore {
         history: gitStore.history,
         selection: state.selection,
         changedFiles: state.changedFiles,
+        diff: state.diff,
       }
     })
 
@@ -349,6 +352,8 @@ export class AppStore {
         history: state.history,
         selection,
         changedFiles,
+        // TODO: Is this right? Should we clear or check that it's still valid/selected
+        diff: state.diff,
       }
     })
     this.emitUpdate()
@@ -365,6 +370,7 @@ export class AppStore {
         history: state.history,
         selection: { sha, file },
         changedFiles,
+        diff: null,
       }
     })
     this.emitUpdate()
@@ -372,14 +378,73 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeHistoryFileSelection(repository: Repository, file: FileChange | null): Promise<void> {
+
     this.updateHistoryState(repository, state => {
       return {
         history: state.history,
         selection: { sha: state.selection.sha, file },
         changedFiles: state.changedFiles,
+        // TODO: load diff here!
+        diff: null,
       }
     })
     this.emitUpdate()
+
+    // TODO: should we allow components to unselect files?
+    if (!file) { return }
+
+    const stateBeforeLoad = this.getRepositoryState(repository)
+
+    const sha = stateBeforeLoad.historyState.selection.sha
+    const commit = sha ? (stateBeforeLoad.commits.get(sha) || null) : null
+
+    const diff = await this.loadDiff(repository, file, commit)
+
+    const stateAfterLoad = this.getRepositoryState(repository)
+
+    // A whole bunch of things could have happened since we initiated the diff load
+    if (stateAfterLoad.historyState.selection.sha !== stateBeforeLoad.historyState.selection.sha) { return }
+    if (!stateAfterLoad.historyState.selection.file) { return }
+    if (stateAfterLoad.historyState.selection.file.id !== file.id) { return }
+
+    this.updateHistoryState(repository, state => {
+      return {
+        history: state.history,
+        selection: { sha: state.selection.sha, file },
+        changedFiles: state.changedFiles,
+        diff,
+      }
+    })
+
+    this.emitUpdate()
+  }
+
+  private async loadDiff(repository: Repository, file: FileChange, commit: Commit | null): Promise<Diff> {
+
+    const diff = await LocalGitOperations.getDiff(repository, file, commit)
+
+    if (file instanceof WorkingDirectoryFileChange) {
+      const diffSelection = file.selection
+      const selectionType = diffSelection.getSelectionType()
+
+      if (selectionType === DiffSelectionType.Partial) {
+        diffSelection.selectedLines.forEach((value, index) => {
+          const hunk = diff.diffHunkForIndex(index)
+          if (hunk) {
+            const relativeIndex = index - hunk.unifiedDiffStart
+            const diffLine = hunk.lines[relativeIndex]
+            if (diffLine) {
+              diffLine.selected = value
+            }
+          }
+        })
+      } else {
+        const includeAll = selectionType === DiffSelectionType.All ? true : false
+        diff.setAllLines(includeAll)
+      }
+    }
+
+    return diff
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -499,6 +564,8 @@ export class AppStore {
       return {
         workingDirectory: new WorkingDirectoryStatus(mergedFiles, includeAll),
         selectedFile: selectedFile || null,
+        // TODO: Is this right?
+        diff: selectedFile ? state.diff : null,
       }
     })
     this.emitUpdate()
@@ -532,6 +599,7 @@ export class AppStore {
       return {
         workingDirectory: state.workingDirectory,
         selectedFile,
+        diff: null,
       }
     })
     this.emitUpdate()
@@ -590,6 +658,7 @@ export class AppStore {
         changesState: {
           workingDirectory,
           selectedFile: selectedFile || null,
+          diff: selectedFile ? state.changesState.diff : null,
         },
         historyState: state.historyState,
         committerEmail: state.committerEmail,
@@ -629,6 +698,7 @@ export class AppStore {
         changesState: {
           workingDirectory,
           selectedFile: selectedFile || null,
+          diff: selectedFile ? state.changesState.diff : null,
         },
         historyState: state.historyState,
         committerEmail: state.committerEmail,
@@ -648,6 +718,7 @@ export class AppStore {
       return {
         workingDirectory: state.workingDirectory.withIncludeAllFiles(includeAll),
         selectedFile: state.selectedFile,
+        diff: state.diff,
       }
     })
     this.emitUpdate()

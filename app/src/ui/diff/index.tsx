@@ -5,10 +5,10 @@ import { Disposable, CompositeDisposable } from 'event-kit'
 
 import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
-import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType, DiffHunk } from '../../models/diff'
+import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
 import { assertNever } from '../../lib/fatal-error'
 
-import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
+import { Commit } from '../../lib/local-git-operations'
 
 import { DiffLineGutter } from './diff-line-gutter'
 
@@ -31,14 +31,12 @@ interface IDiffProps {
 
   /** Called when the includedness of lines or hunks has changed. */
   readonly onIncludeChanged?: (diffSelection: Map<number, boolean>) => void
-}
 
-interface IDiffState {
   readonly diff: DiffModel
 }
 
 /** A component which renders a diff for a file. */
-export class Diff extends React.Component<IDiffProps, IDiffState> {
+export class Diff extends React.Component<IDiffProps, void> {
   /**
    * The disposable that should be disposed of when the instance is unmounted.
    * This will be null when our CodeMirror instance hasn't been set up yet.
@@ -61,14 +59,17 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
    */
   private readonly lineCleanup = new Map<any, Disposable>()
 
-  public constructor(props: IDiffProps) {
-    super(props)
-
-    this.state = { diff: new DiffModel([]) }
-  }
-
   public componentWillReceiveProps(nextProps: IDiffProps) {
-    this.loadDiff(nextProps.repository, nextProps.file, nextProps.commit)
+    // If we're reloading the same file, we want to save the current scroll
+    // position and restore it after the diff's been updated.
+    const sameFile = nextProps.file && this.props.file && nextProps.file.id === this.props.file.id
+    const codeMirror = this.codeMirror
+    if (codeMirror && sameFile) {
+      const scrollInfo = codeMirror.getScrollInfo()
+      this.scrollPositionToRestore = { left: scrollInfo.left, top: scrollInfo.top }
+    } else {
+      this.scrollPositionToRestore = null
+    }
   }
 
   public componentWillUnmount() {
@@ -83,62 +84,6 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
     this.codeMirrorDisposables = null
     this.codeMirror = null
-  }
-
-  private async loadDiff(repository: Repository, file: FileChange | null, commit: Commit | null) {
-    if (!file) {
-      // clear whatever existing state
-      this.setState({ diff: new DiffModel([]) })
-      return
-    }
-
-    // If we're reloading the same file, we want to save the current scroll
-    // position and restore it after the diff's been updated.
-    const sameFile = file && this.props.file && file.id === this.props.file.id
-    const codeMirror = this.codeMirror
-    if (codeMirror && sameFile) {
-      const scrollInfo = codeMirror.getScrollInfo()
-      this.scrollPositionToRestore = { left: scrollInfo.left, top: scrollInfo.top }
-    } else {
-      this.scrollPositionToRestore = null
-    }
-
-    const sameCommit = commit && this.props.commit && commit.sha === this.props.commit.sha
-    // If it's the same file and commit, we don't need to reload. Ah the joys of
-    // immutability.
-    if (sameFile && sameCommit) { return }
-
-    const diff = await LocalGitOperations.getDiff(repository, file, commit)
-
-    if (file instanceof WorkingDirectoryFileChange) {
-      const diffSelection = file.selection
-      const selectionType = diffSelection.getSelectionType()
-
-      if (selectionType === DiffSelectionType.Partial) {
-        diffSelection.selectedLines.forEach((value, index) => {
-          const hunk = this.diffHunkForIndex(diff, index)
-          if (hunk) {
-            const relativeIndex = index - hunk.unifiedDiffStart
-            const diffLine = hunk.lines[relativeIndex]
-            if (diffLine) {
-              diffLine.selected = value
-            }
-          }
-        })
-      } else {
-        const includeAll = selectionType === DiffSelectionType.All ? true : false
-        diff.setAllLines(includeAll)
-      }
-    }
-
-    this.setState({ diff })
-  }
-
-  private diffHunkForIndex(diff: DiffModel, index: number): DiffHunk | null {
-    const hunk = diff.hunks.find(h => {
-      return index >= h.unifiedDiffStart && index <= h.unifiedDiffEnd
-    })
-    return hunk || null
   }
 
   private getClassName(type: DiffLineType): string {
@@ -168,7 +113,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     const newDiffSelection = new Map<number, boolean>()
 
     // populate the current state of the diff
-    this.state.diff.hunks.forEach(hunk => {
+    this.props.diff.hunks.forEach(hunk => {
       hunk.lines.forEach((line, index) => {
         if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
           const absoluteIndex = hunk.unifiedDiffStart + index
@@ -200,7 +145,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     }
 
     const index = instance.getLineNumber(line)
-    const hunk = this.diffHunkForIndex(this.state.diff, index)
+    const hunk = this.props.diff.diffHunkForIndex(index)
     if (hunk) {
       const relativeIndex = index - hunk.unifiedDiffStart
       const diffLine = hunk.lines[relativeIndex]
@@ -307,7 +252,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
 
     let diffText = ''
 
-    this.state.diff.hunks.forEach(hunk => {
+    this.props.diff.hunks.forEach(hunk => {
       hunk.lines.forEach(l => diffText += l.text + '\r\n')
     })
 

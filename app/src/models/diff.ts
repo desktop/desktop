@@ -87,6 +87,14 @@ export class Diff {
           })
         })
    }
+
+   /** @TODO: :book: */
+   public diffHunkForIndex(index: number): DiffHunk | null {
+     const hunk = this.hunks.find(h => {
+       return index >= h.unifiedDiffStart && index <= h.unifiedDiffEnd
+     })
+     return hunk || null
+   }
 }
 
 export enum DiffSelectionType {
