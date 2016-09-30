@@ -279,7 +279,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       codeMirror.off('renderLine', this.renderLine)
       codeMirror.off('changes', this.onChanges)
 
-      this.lineCleanup.forEach((line, disposable) => disposable.Dispose())
+      this.lineCleanup.forEach((disposable) => disposable.dispose())
       this.lineCleanup.clear()
     }))
   }
