@@ -70,7 +70,7 @@ export class GitStore {
       }
     }
 
-    this._history = this._history.concat(commits.map(c => c.sha))
+    this._history = [ ...commits.map(c => c.sha), ...this._history ]
     for (const commit of commits) {
       this.commits.set(commit.sha, commit)
     }
