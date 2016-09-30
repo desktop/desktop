@@ -20,6 +20,14 @@
   }
 }
 
+// An exact copy of the win32 mixin except that it allows for
+// writing platform specific styles when in fullscreen
+@mixin win32-fullscreen {
+  body.platform-darwin.fullscreen & {
+    @content;
+  }
+}
+
 // A mixin which takes a content block that should only
 // be applied when the current (real or emulated) operating
 // system is macOS.
@@ -38,6 +46,14 @@
 // writing base-level rules
 @mixin darwin-context {
   body.platform-darwin {
+    @content;
+  }
+}
+
+// An exact copy of the darwin mixin except that it allows for
+// writing platform specific styles when in fullscreen
+@mixin darwin-fullscreen {
+  body.platform-darwin.fullscreen & {
     @content;
   }
 }
