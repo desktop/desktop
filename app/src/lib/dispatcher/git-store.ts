@@ -258,8 +258,8 @@ export class GitStore {
   }
 
   /**
-   * Perform an operation that may fail by throwing an error. Catch the error
-   * and emit that an error was thrown.
+   * Perform an operation that may fail by throwing an error. If an error is
+   * thrown, catch it and emit it, and return `undefined`.
    */
   public async performFailableOperation<T>(fn: () => Promise<T>): Promise<T | undefined> {
     try {
