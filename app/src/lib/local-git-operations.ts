@@ -438,7 +438,7 @@ export class LocalGitOperations {
 
   /** Get the name of the current branch. */
   public static async getCurrentBranch(repository: Repository): Promise<Branch | null> {
-    const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path)
+    const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, undefined, new Set([ 0, 1 ]))
     if (revParseResult.exitCode === 1) {
       // Git exits with 1 if there's the branch is unborn. We should do more
       // specific error parsing than this, but for now it'll do.
@@ -465,7 +465,7 @@ export class LocalGitOperations {
 
   /** Get the number of commits in HEAD. */
   public static async getCommitCount(repository: Repository): Promise<number> {
-    const result = await git([ 'rev-list', '--count', 'HEAD' ], repository.path)
+    const result = await git([ 'rev-list', '--count', 'HEAD' ], repository.path, undefined, new Set([ 0, 1 ]))
     // Git exits with 1 if there's the branch is unborn. We should do more
     // specific error parsing than this, but for now it'll do.
     if (result.exitCode === 1) {
