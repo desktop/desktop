@@ -529,9 +529,7 @@ export class AppStore {
 
       // Populate a map for all files in the current working directory state
       const filesByID = new Map<string, WorkingDirectoryFileChange>()
-      state.workingDirectory.files.forEach(file => {
-        filesByID.set(file.id, file)
-      })
+      state.workingDirectory.files.forEach(f => filesByID.set(f.id, f))
 
       // Attempt to preserve the selection state for each file in the new
       // working directory state by looking at the current files
