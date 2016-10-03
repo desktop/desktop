@@ -335,7 +335,8 @@ export class AppStore {
     const currentSHA = selection.sha
     if (!currentSHA) { return }
 
-    const changedFiles = await LocalGitOperations.getChangedFiles(repository, currentSHA)
+    const changedFiles = await this.performFailableOperation(() => LocalGitOperations.getChangedFiles(repository, currentSHA))
+    if (!changedFiles) { return }
 
     // The selection could have changed between when we started loading the
     // changed files and we finished. We might wanna store the changed files per
@@ -456,13 +457,10 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadStatus(repository: Repository, clearPartialState: boolean = false): Promise<void> {
-    let workingDirectory = new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true)
-    try {
-      const status = await LocalGitOperations.getStatus(repository)
-      workingDirectory = status.workingDirectory
-    } catch (e) {
-      console.error(e)
-    }
+    const status = await this.performFailableOperation(() => LocalGitOperations.getStatus(repository))
+    if (!status) { return }
+
+    const workingDirectory = status.workingDirectory
 
     let selectedFile: WorkingDirectoryFileChange | null = null
     this.updateChangesState(repository, state => {
@@ -551,7 +549,7 @@ export class AppStore {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
-    await LocalGitOperations.createCommit(repository, summary, description, files)
+    await this.performFailableOperation(() => LocalGitOperations.createCommit(repository, summary, description, files))
 
     return this._loadStatus(repository, true)
   }
@@ -681,13 +679,13 @@ export class AppStore {
   }
 
   private async refreshCommitterEmail(repository: Repository): Promise<void> {
-    const email = await LocalGitOperations.getConfigValue(repository, 'user.email')
+    const email = await this.performFailableOperation(() => LocalGitOperations.getConfigValue(repository, 'user.email'))
     this.updateRepositoryState(repository, state => {
       return {
         selectedSection: state.selectedSection,
         changesState: state.changesState,
         historyState: state.historyState,
-        committerEmail: email,
+        committerEmail: email || null,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -717,13 +715,13 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
-    await LocalGitOperations.createBranch(repository, name, startPoint)
+    await this.performFailableOperation(() => LocalGitOperations.createBranch(repository, name, startPoint))
     return this._checkoutBranch(repository, name)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(repository: Repository, name: string): Promise<void> {
-    await LocalGitOperations.checkoutBranch(repository, name)
+    await this.performFailableOperation(() => LocalGitOperations.checkoutBranch(repository, name))
 
     return this._refreshRepository(repository)
   }
@@ -749,7 +747,7 @@ export class AppStore {
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
     // TODO: This is all kinds of wrong. We shouldn't assume the remote is named
     // `origin`.
-    const remote = await LocalGitOperations.getConfigValue(repository, 'remote.origin.url')
+    const remote = await this.performFailableOperation(() => LocalGitOperations.getConfigValue(repository, 'remote.origin.url'))
     if (!remote) { return null }
 
     return matchGitHubRepository(this.users, remote)
@@ -780,7 +778,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _validatedRepositoryPath(path: string): Promise<string | null> {
-    const gitDir = await LocalGitOperations.getGitDir(path)
+    const gitDir = await this.performFailableOperation(() => LocalGitOperations.getGitDir(path))
     if (!gitDir) { return null }
 
     return Path.dirname(gitDir)
@@ -788,7 +786,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
-    await LocalGitOperations.renameBranch(repository, branch, newName)
+    await this.performFailableOperation(() => LocalGitOperations.renameBranch(repository, branch, newName))
 
     return this._refreshRepository(repository)
   }
@@ -800,14 +798,14 @@ export class AppStore {
       return Promise.reject(new Error(`No default branch!`))
     }
 
-    await LocalGitOperations.checkoutBranch(repository, defaultBranch.name)
-    await LocalGitOperations.deleteBranch(repository, branch)
+    await this.performFailableOperation(() => LocalGitOperations.checkoutBranch(repository, defaultBranch.name))
+    await this.performFailableOperation(() => LocalGitOperations.deleteBranch(repository, branch))
 
     return this._refreshRepository(repository)
   }
 
   public async _push(repository: Repository): Promise<void> {
-    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    const remote = await this.performFailableOperation(() => LocalGitOperations.getDefaultRemote(repository))
     if (!remote) {
       this._showPopup({
         type: PopupType.PublishRepository,
@@ -825,15 +823,15 @@ export class AppStore {
     const user = this.getUserForRepository(repository)
     const upstream = branch.upstream
     if (upstream) {
-      return LocalGitOperations.push(repository, user, remote, branch.name, false)
+      return this.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, false))
     } else {
-      return LocalGitOperations.push(repository, user, remote, branch.name, true)
+      return this.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, true))
     }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _pull(repository: Repository): Promise<void> {
-    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    const remote = await this.performFailableOperation(() => LocalGitOperations.getDefaultRemote(repository))
     if (!remote) {
       return Promise.reject(new Error('The repository has no remotes.'))
     }
@@ -845,7 +843,7 @@ export class AppStore {
     }
 
     const user = this.getUserForRepository(repository)
-    return LocalGitOperations.pull(repository, user, remote, branch.name)
+    return this.performFailableOperation(() => LocalGitOperations.pull(repository, user, remote, branch.name))
   }
 
   private getUserForRepository(repository: Repository): User | null {
@@ -860,7 +858,7 @@ export class AppStore {
     const api = new API(account)
     const apiRepository = await api.createRepository(org, name, description, private_)
 
-    await LocalGitOperations.addRemote(repository.path, 'origin', apiRepository.cloneUrl)
+    await this.performFailableOperation(() => LocalGitOperations.addRemote(repository.path, 'origin', apiRepository.cloneUrl))
 
     return this._push(repository)
   }
@@ -884,8 +882,20 @@ export class AppStore {
     }
 
     const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
-    await LocalGitOperations.checkoutPaths(repository, modifiedFiles.map(f => f.path))
+    await this.performFailableOperation(() => LocalGitOperations.checkoutPaths(repository, modifiedFiles.map(f => f.path)))
 
     return this._refreshRepository(repository)
+  }
+
+  private async performFailableOperation<T>(fn: () => Promise<T>): Promise<T | undefined> {
+    try {
+      const result = await fn()
+      return result
+    } catch (e) {
+      console.error(e)
+
+      this._postError(e)
+      return undefined
+    }
   }
 }

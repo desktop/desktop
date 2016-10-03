@@ -8,7 +8,7 @@ import { Repository } from '../models/repository'
 import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDeletedFile } from './patch-formatter'
 import { DiffParser } from './diff-parser'
 
-import { GitProcess, IGitResult } from 'git-kitchen-sink'
+import { GitProcess, IGitResult, GitError as GitKitchenSinkError } from 'git-kitchen-sink'
 
 import { User } from '../models/user'
 
@@ -293,7 +293,7 @@ export class LocalGitOperations {
     //
     // citation in source:
     // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
-    const expectedExitCodes = new Set([ 0, 1 ])
+    const successExitCodes = new Set([ 0, 1 ])
 
     if (commit) {
       args = [ 'log', commit.sha, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
@@ -303,7 +303,7 @@ export class LocalGitOperations {
       args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
     }
 
-    return git(args, repository.path, {}, expectedExitCodes)
+    return git(args, repository.path, {}, successExitCodes)
       .then(result => {
         const output = result.stdout
         const pieces = output.split('\0')
@@ -628,27 +628,49 @@ export class LocalGitOperations {
   }
 }
 
+export class GitError extends Error {
+  /** The result from the failed command. */
+  public readonly result: IGitResult
+
+  /** The args for the failed command. */
+  public readonly args: ReadonlyArray<string>
+
+  /**
+   * The error as parsed by git-kitchen-sink. May be null if it wasn't able to
+   * determine the error.
+   */
+  public readonly parsedError: GitKitchenSinkError | null
+
+  public constructor(result: IGitResult, args: ReadonlyArray<string>, parsedError: GitKitchenSinkError | null) {
+    super()
+
+    this.result = result
+    this.args = args
+    this.parsedError = parsedError
+  }
+}
+
 /**
  * Shell out to git with the given arguments, at the given path.
  *
- * @param {args}             The args to pass to `git`.
+ * @param {args}             The arguments to pass to `git`.
  * @param {path}             The working directory path for the execution of the
  *                           command.
  * @param {customEnv}        Custom environment variables to use when launching
  *                           git.
- * @param {expectedExitCode} The exit codes which the caller expects. Ideally
- *                           this will include all success and failure codes,
- *                           indicating the caller knows how to handle errors
- *                           from the command. Unexpected exit codes will be
- *                           logged so that the caller can determine how to
- *                           handle them. Defaults to 0 if undefined.
+ * @param {successExitCodes} The exit codes which indicate success to the
+ *                           caller. Unexpected exit codes will be logged and an
+ *                           error thrown. Defaults to 0 if undefined.
  * @param {processCb}        A callback which will pass in the ChildProcess,
  *                           giving the caller a chance to customize it further.
+ *
+ * Returns the result. If the command exits with a code not in
+ * `successExitCodes` a `GitError` will be thrown.
  */
-async function git(args: string[], path: string, customEnv?: Object, expectedExitCodes: Set<number> = new Set([ 0 ]), processCb?: (process: ChildProcess.ChildProcess) => void): Promise<IGitResult> {
+async function git(args: string[], path: string, customEnv?: Object, successExitCodes: Set<number> = new Set([ 0 ]), processCb?: (process: ChildProcess.ChildProcess) => void): Promise<IGitResult> {
   const result = await GitProcess.execWithOutput(args, path, customEnv, processCb)
   const exitCode = result.exitCode
-  if (!expectedExitCodes.has(exitCode)) {
+  if (!successExitCodes.has(exitCode)) {
     console.error(`The command \`${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
     if (result.stdout.length) {
       console.error(result.stdout)
@@ -657,6 +679,17 @@ async function git(args: string[], path: string, customEnv?: Object, expectedExi
     if (result.stderr.length) {
       console.error(result.stderr)
     }
+
+    let gitError = GitProcess.parseError(result.stderr)
+    if (!gitError) {
+      gitError = GitProcess.parseError(result.stdout)
+    }
+
+    if (gitError) {
+      console.error(`(The error was parsed as ${gitError}.)`)
+    }
+
+    throw new GitError(result, args, gitError)
   }
 
   return result
