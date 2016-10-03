@@ -1,9 +1,8 @@
 import * as React from 'react'
 
-interface IUiViewProps extends React.Props<UiView> {
-  /** An optional element id for the view */
-  id?: string
-}
+const uiViewClassName = 'ui-view'
+
+interface IUiViewProps extends React.HTMLProps<HTMLDivElement> { }
 
 /**
  * High order component for housing a View.
@@ -19,8 +18,20 @@ interface IUiViewProps extends React.Props<UiView> {
  * as these are contained within the <Repository /> view
  */
 export class UiView extends React.Component<IUiViewProps, void> {
+
+  public static defaultProps: IUiViewProps = {
+    className: uiViewClassName,
+  }
+
   public render() {
-    return <div id={this.props.id} className='ui-view'>
+
+    // TODO: If this gets more complex, consider using something like
+    // https://github.com/JedWatson/classnames
+    if (this.props.className !== 'ui-view') {
+      this.props.className += ` ${uiViewClassName}`
+    }
+
+    return <div {...this.props}>
       {this.props.children}
     </div>
   }
