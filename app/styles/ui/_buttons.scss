@@ -17,4 +17,9 @@ input[type='submit'] {
   &:active {
     box-shadow: inset 0 0 1px rgba(5, 5, 5, 0.15);
   }
+
+  &:focus {
+    outline: none;
+    border-color: var(--focus-color);
+  }
 }
