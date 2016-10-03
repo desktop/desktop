@@ -418,27 +418,6 @@ export class AppStore {
 
     const diff = await LocalGitOperations.getDiff(repository, file, commit)
 
-    if (file instanceof WorkingDirectoryFileChange) {
-      const diffSelection = file.selection
-      const selectionType = diffSelection.getSelectionType()
-
-      if (selectionType === DiffSelectionType.Partial) {
-        diffSelection.selectedLines.forEach((value, index) => {
-          const hunk = diff.diffHunkForIndex(index)
-          if (hunk) {
-            const relativeIndex = index - hunk.unifiedDiffStart
-            const diffLine = hunk.lines[relativeIndex]
-            if (diffLine) {
-              diffLine.selected = value
-            }
-          }
-        })
-      } else {
-        const includeAll = selectionType === DiffSelectionType.All ? true : false
-        diff.setAllLines(includeAll)
-      }
-    }
-
     return diff
   }
 
@@ -620,6 +599,25 @@ export class AppStore {
     // A whole bunch of things could have happened since we initiated the diff load
     if (!stateAfterLoad.changesState.selectedFile) { return }
     if (stateAfterLoad.changesState.selectedFile.id !== selectedFile.id) { return }
+
+    const diffSelection = selectedFile.selection
+    const selectionType = diffSelection.getSelectionType()
+
+    if (selectionType === DiffSelectionType.Partial) {
+      diffSelection.selectedLines.forEach((value, index) => {
+        const hunk = diff.diffHunkForIndex(index)
+        if (hunk) {
+          const relativeIndex = index - hunk.unifiedDiffStart
+          const diffLine = hunk.lines[relativeIndex]
+          if (diffLine) {
+            diffLine.selected = value
+          }
+        }
+      })
+    } else {
+      const includeAll = selectionType === DiffSelectionType.All ? true : false
+      diff.setAllLines(includeAll)
+    }
 
     this.updateChangesState(repository, state => {
       return {
