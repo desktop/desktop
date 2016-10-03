@@ -60,10 +60,6 @@ body {
   }
 }
 
-input, button, textarea, :focus {
-  outline: none;
-}
-
 img {
   -webkit-user-drag: none;
   user-select: none;
@@ -105,4 +101,10 @@ button {
   align-items: center;
   justify-content: center;
   text-align: center;
+}
+
+// Default focus styling for all focusable element. Most if not all
+// focusable elements will override this.
+:focus {
+  outline: 1px solid var(--focus-color);
 }
