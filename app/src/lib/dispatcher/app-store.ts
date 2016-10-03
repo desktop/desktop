@@ -537,7 +537,7 @@ export class AppStore {
         selectedFile = mergedFiles.find(f => f.id === state.selectedFile!.id) || null
       }
 
-      const fileSelectionChanged = !!selectedFile
+      const fileSelectionChanged = selectedFile == null
 
       if (!selectedFile && mergedFiles.length) {
         selectedFile = mergedFiles[0]
