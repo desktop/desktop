@@ -393,7 +393,7 @@ export class AppStore {
     const sha = stateBeforeLoad.historyState.selection.sha
     const commit = sha ? (stateBeforeLoad.commits.get(sha) || null) : null
 
-    const diff = await this.loadDiff(repository, file, commit)
+    const diff = await LocalGitOperations.getDiff(repository, file, commit)
 
     const stateAfterLoad = this.getRepositoryState(repository)
 
@@ -412,13 +412,6 @@ export class AppStore {
     })
 
     this.emitUpdate()
-  }
-
-  private async loadDiff(repository: Repository, file: FileChange, commit: Commit | null): Promise<Diff> {
-
-    const diff = await LocalGitOperations.getDiff(repository, file, commit)
-
-    return diff
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -593,7 +586,7 @@ export class AppStore {
 
     if (!selectedFile) { return }
 
-    const diff = await this.loadDiff(repository, selectedFile, null)
+    const diff = await LocalGitOperations.getDiff(repository, selectedFile, null)
     const stateAfterLoad = this.getRepositoryState(repository)
 
     // A whole bunch of things could have happened since we initiated the diff load
