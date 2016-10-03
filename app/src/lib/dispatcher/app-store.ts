@@ -550,9 +550,7 @@ export class AppStore {
       const includeAll = this.getIncludeAllState(mergedFiles)
 
       if (state.selectedFile) {
-        selectedFile = mergedFiles.find(function(file) {
-          return file.id === state.selectedFile!.id
-        }) || null
+        selectedFile = mergedFiles.find(f => f.id === state.selectedFile!.id) || null
       }
 
       if (!selectedFile && mergedFiles.length) {
