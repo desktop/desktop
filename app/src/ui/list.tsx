@@ -199,7 +199,6 @@ export class List extends React.Component<IListProps, void> {
     return (
       <div id={this.props.id}
            className='list'
-           style={{ flexGrow: 1 }}
            onKeyDown={e => this.handleKeyDown(e)}>
         <AutoSizer>
           {({ width, height }: { width: number, height: number }) => this.renderContents(width, height)}
