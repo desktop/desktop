@@ -625,7 +625,7 @@ export class LocalGitOperations {
   }
 }
 
-export class GitError extends Error {
+export class GitError {
   /** The result from the failed command. */
   public readonly result: IGitResult
 
@@ -639,11 +639,24 @@ export class GitError extends Error {
   public readonly parsedError: GitKitchenSinkError | null
 
   public constructor(result: IGitResult, args: ReadonlyArray<string>, parsedError: GitKitchenSinkError | null) {
-    super()
-
     this.result = result
     this.args = args
     this.parsedError = parsedError
+  }
+
+  public get message(): string {
+    const parsedError = this.parsedError
+    if (parsedError) {
+      return `Error ${parsedError}`
+    }
+
+    if (this.result.stderr.length) {
+      return this.result.stderr
+    } else if (this.result.stdout.length) {
+      return this.result.stdout
+    } else {
+      return `Unknown error`
+    }
   }
 }
 
