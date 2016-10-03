@@ -352,7 +352,6 @@ export class AppStore {
         history: state.history,
         selection,
         changedFiles,
-        // TODO: Is this right? Should we clear or check that it's still valid/selected
         diff: state.diff,
       }
     })
