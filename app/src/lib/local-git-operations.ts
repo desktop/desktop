@@ -256,9 +256,6 @@ export class LocalGitOperations {
               })
           })
         })
-      .catch(error => {
-        console.error('createCommit failed: ' + error)
-      })
   }
 
   /**
