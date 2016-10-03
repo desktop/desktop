@@ -18,7 +18,7 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { Diff, DiffSelectionType } from '../../models/diff'
+import { DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
@@ -393,7 +393,11 @@ export class AppStore {
     const sha = stateBeforeLoad.historyState.selection.sha
     const commit = sha ? (stateBeforeLoad.commits.get(sha) || null) : null
 
-    const diff = await LocalGitOperations.getDiff(repository, file, commit)
+    if (!commit) {
+      throw new Error(`Could not find commit for sha ${sha}`)
+    }
+
+    const diff = await LocalGitOperations.getCommitDiff(repository, file, commit)
 
     const stateAfterLoad = this.getRepositoryState(repository)
 
@@ -586,7 +590,7 @@ export class AppStore {
 
     if (!selectedFile) { return }
 
-    const diff = await LocalGitOperations.getDiff(repository, selectedFile, null)
+    const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, selectedFile)
     const stateAfterLoad = this.getRepositoryState(repository)
 
     // A whole bunch of things could have happened since we initiated the diff load

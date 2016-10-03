@@ -231,7 +231,7 @@ export class LocalGitOperations {
   private static async applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
     const applyArgs: string[] = [ 'apply', '--cached', '--unidiff-zero', '--whitespace=nowarn', '-' ]
 
-    const diff = await LocalGitOperations.getDiff(repository, file, null)
+    const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, file)
 
     const write = (input: string) => {
       return (process: ChildProcess.ChildProcess) => {
@@ -304,29 +304,40 @@ export class LocalGitOperations {
   }
 
   /**
-   * Render the diff for a file within the repository
-   *
-   * A specific commit related to the file may be provided, otherwise the
-   * working directory state will be used.
+   * Render the difference between a file in the given commit and its parent
    */
-  public static getDiff(repository: Repository, file: FileChange, commit: Commit | null): Promise<Diff> {
+  public static getCommitDiff(repository: Repository, file: FileChange, commit: Commit): Promise<Diff> {
 
-    let args: string[]
-
-    if (commit) {
-      args = [ 'log', commit.sha, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
-    } else if (file.status === FileStatus.New) {
-      args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
-    } else {
-      args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
-    }
+    const args = [ 'log', commit.sha, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
 
     return GitProcess.execWithOutput(args, repository.path)
-      .then(result => {
-        const pieces = result.split('\0')
-        const parser = new DiffParser()
-        return parser.parse(pieces[pieces.length - 1])
-      })
+      .then(this.diffFromRawDiffOutput)
+  }
+
+  /**
+   * Render the diff for a file within the repository working directory. The file will be
+   * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
+   * that all content in the file will be treated as additions.
+   */
+  public static getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<Diff> {
+
+    const args = file.status === FileStatus.New
+      ? [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
+      : [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
+
+    return GitProcess.execWithOutput(args, repository.path)
+      .then(this.diffFromRawDiffOutput)
+  }
+
+  /**
+   * Utility function used by get(Commit|WorkingDirectory)Diff.
+   *
+   * Parses the output from a diff-like command that uses `--path-with-raw`
+   */
+  private static diffFromRawDiffOutput(result: string): Diff {
+    const pieces = result.split('\0')
+    const parser = new DiffParser()
+    return parser.parse(pieces[pieces.length - 1])
   }
 
   /**

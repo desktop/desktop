@@ -29,7 +29,7 @@ describe('patch formatting', () => {
       const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       // select first hunk
       const first = selectLinesInHunk(diff, 0, true)
@@ -54,7 +54,7 @@ describe('patch formatting', () => {
       const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       // skip first hunk
       const first = selectLinesInHunk(diff, 0, false)
@@ -80,7 +80,7 @@ describe('patch formatting', () => {
       const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       // select first hunk
       const first = selectLinesInHunk(diff, 0, true)
@@ -108,7 +108,7 @@ describe('patch formatting', () => {
       const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       const selectedLines = new Map<number, boolean>()
       const hunk = diff.hunks[0]
