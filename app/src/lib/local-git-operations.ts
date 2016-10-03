@@ -560,7 +560,9 @@ export class LocalGitOperations {
   /** Get the git dir of the path. */
   public static async getGitDir(path: string): Promise<string | null> {
     const result = await git([ 'rev-parse', '--git-dir' ], path, undefined, new Set([ 0, 128 ]))
-    if (result.exitCode > 0) {
+    // Exit code 128 means it was run in a directory that's not a git
+    // repository.
+    if (result.exitCode === 128) {
       return null
     }
 
