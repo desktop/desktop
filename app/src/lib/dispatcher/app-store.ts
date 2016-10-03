@@ -526,11 +526,15 @@ export class AppStore {
 
     let selectedFile: WorkingDirectoryFileChange | null = null
     this.updateChangesState(repository, state => {
+
+      // Populate a map for all files in the current working directory state
       const filesByID = new Map<string, WorkingDirectoryFileChange>()
       state.workingDirectory.files.forEach(file => {
         filesByID.set(file.id, file)
       })
 
+      // Attempt to preserve the selection state for each file in the new
+      // working directory state by looking at the current files
       const mergedFiles = workingDirectory.files.map(file => {
         const existingFile = filesByID.get(file.id)
         if (existingFile) {
@@ -549,9 +553,15 @@ export class AppStore {
 
       const includeAll = this.getIncludeAllState(mergedFiles)
 
+      // Try to find the currently selected file among the files
+      // in the new working directory state. Matching by id is
+      // different from matching by path since id includes the
+      // change type (new, modified, deleted etc)
       if (state.selectedFile) {
         selectedFile = mergedFiles.find(f => f.id === state.selectedFile!.id) || null
       }
+
+      const fileSelectionChanged = !!selectedFile
 
       if (!selectedFile && mergedFiles.length) {
         selectedFile = mergedFiles[0]
@@ -560,8 +570,10 @@ export class AppStore {
       return {
         workingDirectory: new WorkingDirectoryStatus(mergedFiles, includeAll),
         selectedFile: selectedFile || null,
-        // TODO: Is this right?
-        diff: selectedFile ? state.diff : null,
+        // The file selection could have changed if the previously selected
+        // file is no longer selectable (it was reverted or committed) but
+        // if it hasn't changed we can reuse the diff
+        diff: fileSelectionChanged ? null : state.diff,
       }
     })
     this.emitUpdate()
