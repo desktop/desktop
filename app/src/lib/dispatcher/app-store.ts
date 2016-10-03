@@ -389,15 +389,17 @@ export class AppStore {
     this.emitUpdate()
 
     const stateBeforeLoad = this.getRepositoryState(repository)
-
     const sha = stateBeforeLoad.historyState.selection.sha
-    const commit = sha ? (stateBeforeLoad.commits.get(sha) || null) : null
 
-    if (!commit) {
-      throw new Error(`Could not find commit for sha ${sha}`)
+    if (!sha) {
+      if (__DEV__) {
+        throw new Error('No currently selected sha yet we\'ve been asked to switch file selection')
+      } else {
+        return
+      }
     }
 
-    const diff = await LocalGitOperations.getCommitDiff(repository, file, commit)
+    const diff = await LocalGitOperations.getCommitDiff(repository, file, sha)
 
     const stateAfterLoad = this.getRepositoryState(repository)
 

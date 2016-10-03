@@ -305,10 +305,13 @@ export class LocalGitOperations {
 
   /**
    * Render the difference between a file in the given commit and its parent
+   *
+   * @param commitish A commit SHA or some other identifier that ultimately dereferences
+   *                  to a commit.
    */
-  public static getCommitDiff(repository: Repository, file: FileChange, commit: Commit): Promise<Diff> {
+  public static getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<Diff> {
 
-    const args = [ 'log', commit.sha, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
+    const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
 
     return GitProcess.execWithOutput(args, repository.path)
       .then(this.diffFromRawDiffOutput)
