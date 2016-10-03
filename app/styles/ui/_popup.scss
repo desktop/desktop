@@ -35,3 +35,8 @@
   padding: var(--spacing);
   text-align: right;
 }
+
+.popup-content {
+  display: flex;
+  flex-direction: column;
+}
