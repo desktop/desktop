@@ -1,6 +1,9 @@
+.list {
+  flex-grow: 1;
+}
+
 @include win32-context {
   .list {
-    flex-grow: 1;
     position: relative;
 
     // Fake scrollbar hack
