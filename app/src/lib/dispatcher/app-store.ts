@@ -845,7 +845,9 @@ export class AppStore {
     }
 
     const user = this.getUserForRepository(repository)
-    return LocalGitOperations.pull(repository, user, remote, branch.name)
+    await LocalGitOperations.pull(repository, user, remote, branch.name)
+
+    return this._refreshRepository(repository)
   }
 
   private getUserForRepository(repository: Repository): User | null {
