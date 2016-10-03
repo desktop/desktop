@@ -18,7 +18,7 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffSelectionType } from '../../models/diff'
+import { Diff, DiffSelection, DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
@@ -613,6 +613,29 @@ export class AppStore {
     if (stateAfterLoad.changesState.selectedFile.id !== selectedFile.id) { return }
 
     const diffSelection = selectedFile.selection
+
+    this.updateDiffSelectionFromSelectionState(diff, diffSelection)
+
+    this.updateChangesState(repository, state => {
+      return {
+        workingDirectory: state.workingDirectory,
+        selectedFile,
+        diff,
+      }
+    })
+
+    this.emitUpdate()
+  }
+
+  /**
+   * Takes line selection state from the DiffSelection model and mutates the
+   * Diff instance in place to match.
+   *
+   * Ideally we'll move away from having selection state in multiple places
+   * but until that happens this method needs to be invoked anytime the
+   * WorkingDirectoryFileChange.selection property changes.
+   */
+  private updateDiffSelectionFromSelectionState(diff: Diff, diffSelection: DiffSelection) {
     const selectionType = diffSelection.getSelectionType()
 
     if (selectionType === DiffSelectionType.Partial) {
@@ -630,16 +653,6 @@ export class AppStore {
       const includeAll = selectionType === DiffSelectionType.All ? true : false
       diff.setAllLines(includeAll)
     }
-
-    this.updateChangesState(repository, state => {
-      return {
-        workingDirectory: state.workingDirectory,
-        selectedFile,
-        diff,
-      }
-    })
-
-    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -688,6 +701,7 @@ export class AppStore {
       }
 
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
+
       return {
         selectedSection: state.selectedSection,
         changesState: {
@@ -728,12 +742,18 @@ export class AppStore {
       }
 
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
+      const diff = selectedFile ? state.changesState.diff : null
+
+      if (selectedFile && diff) {
+        this.updateDiffSelectionFromSelectionState(diff, selectedFile!.selection)
+      }
+
       return {
         selectedSection: state.selectedSection,
         changesState: {
           workingDirectory,
           selectedFile: selectedFile || null,
-          diff: selectedFile ? state.changesState.diff : null,
+          diff,
         },
         historyState: state.historyState,
         committerEmail: state.committerEmail,
