@@ -10,7 +10,7 @@ textarea {
   color: currentColor;
   font-size: var(--font-size);
   font-family: var(--font-family-sans-serif);
-  padding: calc(var(--spacing) / 2);
+  padding: var(--spacing-half);
 
   resize: none;
 

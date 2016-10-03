@@ -5,8 +5,7 @@ input[type='submit'] {
   color: var(--text-color);
   font-size: var(--font-size);
 
-  // TODO: Add varaibles for half and third spacing
-  padding: calc(var(--spacing) / 2) var(--spacing);
+  padding: var(--spacing-half) var(--spacing);
 
   border: 1px solid var(--box-border-color);
   border-radius: var(--border-radius);
