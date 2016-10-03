@@ -554,7 +554,7 @@ export class AppStore {
     })
     this.emitUpdate()
 
-    this._changeChangesSelection(repository, selectedFile)
+    this.updateChangesDiffForCurrentSelection(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -582,6 +582,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
     this.updateChangesState(repository, state => {
+
       return {
         workingDirectory: state.workingDirectory,
         selectedFile,
@@ -589,6 +590,18 @@ export class AppStore {
       }
     })
     this.emitUpdate()
+
+    this.updateChangesDiffForCurrentSelection(repository)
+  }
+
+  /**
+   * Loads or re-loads (refreshes) the diff for the currently selected file
+   * in the working directory. This operation is a noop if there's no currently
+   * selected file.
+   */
+  private async updateChangesDiffForCurrentSelection(repository: Repository): Promise<void> {
+    const stateBeforeLoad = this.getRepositoryState(repository)
+    const selectedFile = stateBeforeLoad.changesState.selectedFile
 
     if (!selectedFile) { return }
 
