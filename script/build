@@ -35,7 +35,8 @@ const options = {
   platform: process.platform,
   arch: 'x64',
   asar: {
-    unpack: '*.node'
+    unpack: '*.node',
+    unpackDir: 'node_modules/git-kitchen-sink'
   },
   out: path.join(projectRoot, 'dist'),
   icon: path.join(projectRoot, 'app', 'static', 'icon'),
