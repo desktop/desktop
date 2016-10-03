@@ -56,7 +56,7 @@
     "request": "^2.72.0",
     "rimraf": "^2.5.2",
     "sass-loader": "^3.2.0",
-    "spectron": "^3.3.0",
+    "spectron": "^3.4.0",
     "style-loader": "^0.13.1",
     "to-camel-case": "^1.0.0",
     "ts-loader": "^0.8.2",
