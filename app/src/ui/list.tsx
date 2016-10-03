@@ -265,7 +265,7 @@ export class List extends React.Component<IListProps, void> {
         // `selectedRow`. We're just passing it through so that
         // Grid will re-render when it changes.
         selectedRow={this.props.selectedRow}
-		tabIndex={tabIndex}
+        tabIndex={tabIndex}
         invalidationProps={this.props.invalidationProps}/>
     )
   }
