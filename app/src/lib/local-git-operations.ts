@@ -366,7 +366,7 @@ export class LocalGitOperations {
 
   /** Look up a config value by name in the repository. */
   public static async getConfigValue(repository: Repository, name: string): Promise<string | null> {
-    const result = await git([ 'config', '-z', name ], repository.path)
+    const result = await git([ 'config', '-z', name ], repository.path, undefined, new Set([ 0, 1 ]))
     // Git exits with 1 if the value isn't found. That's OK.
     if (result.exitCode === 1) {
       return null
@@ -559,7 +559,7 @@ export class LocalGitOperations {
 
   /** Get the git dir of the path. */
   public static async getGitDir(path: string): Promise<string | null> {
-    const result = await git([ 'rev-parse', '--git-dir' ], path)
+    const result = await git([ 'rev-parse', '--git-dir' ], path, undefined, new Set([ 0, 128 ]))
     if (result.exitCode > 0) {
       return null
     }
