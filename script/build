@@ -34,7 +34,9 @@ if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
 const options = {
   platform: process.platform,
   arch: 'x64',
-  asar: false, // TODO: Probably wanna enable this down the road.
+  asar: {
+    unpack: '*.node'
+  },
   out: path.join(projectRoot, 'dist'),
   icon: path.join(projectRoot, 'app', 'static', 'icon'),
   dir: outRoot,
