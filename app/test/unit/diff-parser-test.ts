@@ -1,8 +1,8 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { DiffParser } from '../src/lib/diff-parser'
-import { DiffLineType } from '../src/models/diff'
+import { DiffParser } from '../../src/lib/diff-parser'
+import { DiffLineType } from '../../src/models/diff'
 
 // Atom doesn't like lines with just one space and tries to
 // de-indent so when copying- and pasting diff contents the
