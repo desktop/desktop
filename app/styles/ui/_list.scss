@@ -1,3 +1,7 @@
+.list {
+  flex-grow: 1;
+}
+
 @include win32-context {
   .list {
     position: relative;
@@ -56,4 +60,6 @@
       background-color: var(--box-selected-active-background-color);
     }
   }
+
+  &:focus { outline: none; }
 }

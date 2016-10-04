@@ -34,8 +34,10 @@ if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
 const options = {
   platform: process.platform,
   arch: 'x64',
-  'build-version': appPackage.version,
-  asar: false, // TODO: Probably wanna enable this down the road.
+  asar: {
+    unpack: '*.node',
+    unpackDir: 'node_modules/git-kitchen-sink'
+  },
   out: path.join(projectRoot, 'dist'),
   icon: path.join(projectRoot, 'app', 'static', 'icon'),
   dir: outRoot,
@@ -65,7 +67,7 @@ const options = {
   'osx-sign': true,
 
   // Windows
-  'version-string': {
+  win32metadata: {
     'CompanyName': appPackage.companyName,
     'FileDescription': '',
     'OriginalFilename': '',

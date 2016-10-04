@@ -13,6 +13,8 @@ interface ICheckboxProps {
 
   /** The function to call on value change. */
   readonly onChange?: (event: React.FormEvent<HTMLInputElement>) => void
+
+  readonly tabIndex?: number
 }
 
 /** A checkbox component which supports the mixed value. */
@@ -27,6 +29,7 @@ export class Checkbox extends React.Component<ICheckboxProps, void> {
     const value = this.props.value
     return (
       <input
+        tabIndex={this.props.tabIndex}
         type='checkbox'
         onChange={event => this.onChange(event)}
         ref={function(input) {

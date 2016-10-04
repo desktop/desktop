@@ -362,7 +362,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('should return false for a directory', async () => {
-      const result = await LocalGitOperations.isGitRepository(path.basename(repository!.path))
+      const result = await LocalGitOperations.isGitRepository(path.dirname(repository!.path))
       expect(result).to.equal(false)
     })
   })
@@ -374,7 +374,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('should return null for a directory', async () => {
-      const result = await LocalGitOperations.getGitDir(path.basename(repository!.path))
+      const result = await LocalGitOperations.getGitDir(path.dirname(repository!.path))
       expect(result).to.equal(null)
     })
   })
