@@ -9,8 +9,6 @@ import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
 import { assertNever } from '../../lib/fatal-error'
 
-import { Commit } from '../../lib/local-git-operations'
-
 import { DiffLineGutter } from './diff-line-gutter'
 
 /** The props for the Diff component. */
@@ -26,9 +24,6 @@ interface IDiffProps {
 
   /** The file whose diff should be displayed. */
   readonly file: FileChange | null
-
-  /** The commit which contains the diff to display. */
-  readonly commit: Commit | null
 
   /** Called when the includedness of lines or hunks has changed. */
   readonly onIncludeChanged?: (diffSelection: Map<number, boolean>) => void

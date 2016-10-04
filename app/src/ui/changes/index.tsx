@@ -108,7 +108,6 @@ export class Changes extends React.Component<IChangesProps, void> {
       <Diff repository={this.props.repository}
         file={this.props.changes.selectedFile}
         readOnly={false}
-        commit={null}
         onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)}
         diff={diff}/>
     )
