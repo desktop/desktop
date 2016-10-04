@@ -10,7 +10,7 @@ import { Dispatcher, AppStore, GitHubUserStore, CloningRepositoriesStore, EmojiS
 import { InMemoryDispatcher } from '../in-memory-dispatcher'
 import { TestDatabase } from '../test-github-user-database'
 
-describe('App', () => {
+describe('<App />', () => {
   let appStore: AppStore | null = null
   let dispatcher: Dispatcher | null = null
 
