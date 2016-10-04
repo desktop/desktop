@@ -41,3 +41,17 @@
   flex-direction: column;
   flex: 1;
 }
+
+.popup-overlay {
+  background: rgba(0,0,0,0.25);
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  z-index: calc(var(--popup-z-index) - 1);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

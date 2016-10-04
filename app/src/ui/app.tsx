@@ -274,7 +274,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     const content = this.currentPopupContent()
     if (!content) { return null }
 
-    return <Popuppy>{content}</Popuppy>
+    return (
+      <div className='popup-overlay'>
+        <Popuppy>{content}</Popuppy>
+      </div>
+    )
   }
 
   private renderErrors() {
