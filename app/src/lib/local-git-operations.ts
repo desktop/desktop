@@ -457,7 +457,13 @@ export class LocalGitOperations {
 
     const refResult = await git([ 'for-each-ref', `--format=${format}`, `refs/heads/${name}` ], repository.path)
     const line = refResult.stdout
+
     const pieces = line.split('\0')
+    if (pieces.length !== 2) {
+      // this is a detached HEAD case, and we're not currently on a branch
+      return null
+    }
+
     const upstream = pieces[0]
     const sha = pieces[1].trim()
     return new Branch(name, upstream.length > 0 ? upstream : null, sha, BranchType.Local)
