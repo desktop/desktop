@@ -6,7 +6,7 @@ import { EditorConfiguration, Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
-import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
+import { DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
 import { assertNever } from '../../lib/fatal-error'
 
 import { DiffLineGutter } from './diff-line-gutter'
@@ -23,11 +23,12 @@ interface IDiffProps {
   readonly readOnly: boolean
 
   /** The file whose diff should be displayed. */
-  readonly file: FileChange | null
+  readonly file: FileChange
 
   /** Called when the includedness of lines or hunks has changed. */
   readonly onIncludeChanged?: (diffSelection: Map<number, boolean>) => void
 
+  /** The diff that should be rendered */
   readonly diff: DiffModel
 }
 
@@ -197,15 +198,6 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   public render() {
-    const file = this.props.file
-    if (!file) {
-      return (
-        <div className='panel blankslate' id='diff'>
-          No file selected
-        </div>
-      )
-    }
-
     let diffText = ''
 
     this.props.diff.hunks.forEach(hunk => {

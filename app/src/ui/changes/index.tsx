@@ -98,15 +98,19 @@ export class Changes extends React.Component<IChangesProps, void> {
 
   private renderDiff() {
     const diff = this.props.changes.diff
+    const file = this.props.changes.selectedFile
 
-    if (!diff) {
-      // TODO: no-diff content
-      return null
+    if (!diff || !file) {
+      return (
+        <div className='panel blankslate' id='diff'>
+          No file selected
+        </div>
+      )
     }
 
     return (
       <Diff repository={this.props.repository}
-        file={this.props.changes.selectedFile}
+        file={file}
         readOnly={false}
         onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)}
         diff={diff}/>

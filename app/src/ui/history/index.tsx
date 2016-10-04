@@ -51,17 +51,20 @@ export class History extends React.Component<IHistoryProps, void> {
 
   private renderDiff(commit: Commit | null) {
 
-    const selectedFile = this.props.history.selection.file
+    const file = this.props.history.selection.file
     const diff = this.props.history.diff
 
-    if (!diff) {
-      // TODO Put no-diff content here
-      return null
+    if (!diff || !file) {
+      return (
+        <div className='panel blankslate' id='diff'>
+          No file selected
+        </div>
+      )
     }
 
     return (
       <Diff repository={this.props.repository}
-        file={selectedFile}
+        file={file}
         diff={diff}
         readOnly={true} />
     )
