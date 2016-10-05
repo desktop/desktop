@@ -86,7 +86,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
           emoji={this.props.emoji}/>
 
         <button className='commit-button' onClick={event => this.handleSubmit(event)} disabled={disableButton}>
-          Commit to <strong>{branchName}</strong>
+          <div>Commit to <strong>{branchName}</strong></div>
         </button>
       </form>
     )
