@@ -87,6 +87,17 @@ export class Diff {
           })
         })
    }
+
+   /**
+    * Locate the diff hunk for the given (absolute) line number in the
+    * diff.
+    */
+   public diffHunkForIndex(index: number): DiffHunk | null {
+     const hunk = this.hunks.find(h => {
+       return index >= h.unifiedDiffStart && index <= h.unifiedDiffEnd
+     })
+     return hunk || null
+   }
 }
 
 export enum DiffSelectionType {
