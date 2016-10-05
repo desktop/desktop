@@ -233,6 +233,9 @@ export class LocalGitOperations {
   public static async createCommit(repository: Repository, summary: string, description: string, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
     const isUnborn = !(await this.resolveHEAD(repository))
 
+    // Clear the staging area, our diffs reflect the difference between the
+    // working directory and the last commit (if any) so our commits should
+    // do the same thing.
     if (isUnborn) {
       await git([ 'reset' ], repository.path)
     } else {
