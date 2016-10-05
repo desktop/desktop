@@ -12,7 +12,12 @@
   z-index: var(--popup-z-index);
 }
 
-.popup-content-container {
+.popup-content {
+  padding: var(--spacing);
+}
+
+// This is used for group lists such as the branch picker
+.popup-inner-content {
   border: var(--base-border);
   border-radius: var(--border-radius);
   background: var(--background-color);
@@ -28,16 +33,4 @@
     text-align: center;
     width: 33%;
   }
-}
-
-.popup-actions {
-  border-top: var(--base-border);
-  padding: var(--spacing);
-  text-align: right;
-}
-
-.popup-content {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
 }
