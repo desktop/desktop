@@ -12,6 +12,7 @@ import { assertNever } from '../../lib/fatal-error'
 import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
 
 import { DiffLineGutter } from './diff-line-gutter'
+import { IEditorConfigurationExtra } from './editor-configuration-extra'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
@@ -282,7 +283,7 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       hunk.lines.forEach(l => diffText += l.text + '\r\n')
     })
 
-    const options = {
+    const options: IEditorConfigurationExtra = {
       lineNumbers: false,
       readOnly: true,
       showCursorWhenSelecting: false,
