@@ -62,19 +62,29 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     }
   }
 
-  public render() {
-    const branchName = this.props.branch ? this.props.branch : 'master'
+  private renderAvatar() {
     const commitAuthor = this.props.commitAuthor
     const avatarTitle = commitAuthor
       ? `Comitting as ${commitAuthor.name} <${commitAuthor.email}>`
       : undefined
 
+    // We're wrapping the avatar in a div because electron won't
+    // show a tooltip for img elements for some reason. If we can
+    // remove it in the future I'd be delighted.
+    return (
+      <div className='avatar' title={avatarTitle}>
+        <img src={this.props.avatarURL} alt={avatarTitle} />
+      </div>
+    )
+  }
+
+  public render() {
+    const branchName = this.props.branch ? this.props.branch : 'master'
+
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>
         <div className='summary'>
-          <div className='avatar' title={avatarTitle}>
-            <img src={this.props.avatarURL} alt={avatarTitle} />
-          </div>
+          {this.renderAvatar()}
 
           <AutocompletingInput className='summary-field'
             placeholder='Summary'
