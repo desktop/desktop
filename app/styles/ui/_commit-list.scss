@@ -10,7 +10,9 @@
     height: 100%;
 
     border-bottom: var(--light-border);
-    padding-left: 2px;
+
+    padding: 0 var(--spacing);
+
 
     &.facade {
       .avatar {
@@ -41,7 +43,6 @@
       flex-shrink: 0;
 
       border-radius: var(--border-radius);
-      margin-left: var(--spacing);
     }
 
     .info {
