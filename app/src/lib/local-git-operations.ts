@@ -179,13 +179,25 @@ export class LocalGitOperations {
     return StatusResult.FromStatus(new WorkingDirectoryStatus(files, true))
   }
 
-  private static async resolveHEAD(repository: Repository): Promise<boolean> {
-    const result = await git([ 'show', 'HEAD' ], repository.path)
+  /**
+   * Attempts to dereference the HEAD symbolic link to a commit sha.
+   * Returns null if HEAD is unborn.
+   */
+  private static async resolveHEAD(repository: Repository): Promise<string | null> {
+    const result = await git([ 'rev-parse', '--verify', 'HEAD^{commit}' ], repository.path)
     if (result.exitCode === 0) {
-      return true
+      return result.stdout
     } else {
-      return false
+      return null
     }
+  }
+
+  /**
+   * Attempts to dereference the HEAD symbolic reference to a commit in order
+   * to determine if HEAD is unborn or not.
+   */
+  private static async isHeadUnborn(repository: Repository): Promise<boolean> {
+    return await this.resolveHEAD(repository) === null
   }
 
   private static addFileToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
@@ -231,12 +243,10 @@ export class LocalGitOperations {
   }
 
   public static async createCommit(repository: Repository, summary: string, description: string, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
-    const isUnborn = !(await this.resolveHEAD(repository))
-
     // Clear the staging area, our diffs reflect the difference between the
     // working directory and the last commit (if any) so our commits should
     // do the same thing.
-    if (isUnborn) {
+    if (await this.isHeadUnborn(repository)) {
       await git([ 'reset' ], repository.path)
     } else {
       await git([ 'reset', 'HEAD', '--mixed' ], repository.path)
