@@ -1,9 +1,11 @@
 import * as React from 'react'
 import { AutocompletingTextArea, AutocompletingInput } from '../autocompletion'
+import { CommitIdentity } from '../../models/commit-identity'
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (summary: string, description: string) => void
   readonly branch: string | null
+  readonly commitAuthor: CommitIdentity | null
   readonly avatarURL: string
   readonly emoji: Map<string, string>
   readonly anyFilesSelected: boolean
@@ -61,6 +63,22 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     }
   }
 
+  private renderAvatar() {
+    const commitAuthor = this.props.commitAuthor
+    const avatarTitle = commitAuthor
+      ? `Comitting as ${commitAuthor.name} <${commitAuthor.email}>`
+      : undefined
+
+    // We're wrapping the avatar in a div because electron won't
+    // show a tooltip for img elements for some reason. If we can
+    // remove it in the future I'd be delighted.
+    return (
+      <div className='avatar' title={avatarTitle}>
+        <img src={this.props.avatarURL} alt={avatarTitle} />
+      </div>
+    )
+  }
+
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
     const disableButton = !this.props.anyFilesSelected
@@ -68,7 +86,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>
         <div className='summary'>
-          <img className='avatar' src={this.props.avatarURL}/>
+          {this.renderAvatar()}
 
           <AutocompletingInput className='summary-field'
             placeholder='Summary'

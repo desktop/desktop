@@ -130,7 +130,7 @@ export class AppStore {
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
       },
-      committerEmail: null,
+      commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
       commits: new Map<string, Commit>(),
     }
@@ -146,7 +146,7 @@ export class AppStore {
         changesState: state.changesState,
         selectedSection: state.selectedSection,
         branchesState: state.branchesState,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         gitHubUsers,
         commits: state.commits,
       }
@@ -169,7 +169,7 @@ export class AppStore {
         historyState,
         changesState: state.changesState,
         selectedSection: state.selectedSection,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -184,7 +184,7 @@ export class AppStore {
         historyState: state.historyState,
         changesState,
         selectedSection: state.selectedSection,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -199,7 +199,7 @@ export class AppStore {
         historyState: state.historyState,
         changesState: state.changesState,
         selectedSection: state.selectedSection,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -268,7 +268,7 @@ export class AppStore {
         historyState: state.historyState,
         changesState: state.changesState,
         selectedSection: state.selectedSection,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: gitStore.commits,
@@ -565,7 +565,7 @@ export class AppStore {
         historyState: state.historyState,
         changesState: state.changesState,
         selectedSection: section,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -712,7 +712,7 @@ export class AppStore {
           diff: selectedFile ? state.changesState.diff : null,
         },
         historyState: state.historyState,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -758,7 +758,7 @@ export class AppStore {
           diff,
         },
         historyState: state.historyState,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -795,7 +795,7 @@ export class AppStore {
     // selected.
     await this._loadStatus(repository)
 
-    await this.refreshCommitterEmail(repository)
+    await this.refreshAuthor(repository)
 
     const section = state.selectedSection
     if (section === RepositorySection.History) {
@@ -803,15 +803,16 @@ export class AppStore {
     }
   }
 
-  private async refreshCommitterEmail(repository: Repository): Promise<void> {
+  private async refreshAuthor(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    const email = await gitStore.performFailableOperation(() => LocalGitOperations.getConfigValue(repository, 'user.email'))
+    const commitAuthor = await gitStore.performFailableOperation(() => LocalGitOperations.getAuthorIdentity(repository))
+
     this.updateRepositoryState(repository, state => {
       return {
         selectedSection: state.selectedSection,
         changesState: state.changesState,
         historyState: state.historyState,
-        committerEmail: email || null,
+        commitAuthor: commitAuthor || null,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
