@@ -39,5 +39,8 @@
 }
 
 .popup-error-output {
+  font-family: var(--font-family-monospace);
+  font-size: var(--font-size-sm);
   margin: 0;
+  white-space: pre-wrap;
 }
