@@ -411,7 +411,7 @@ export class LocalGitOperations {
       return null
     }
 
-    return CommitIdentity.parseIdent(result.stdout)
+    return CommitIdentity.parseIdentity(result.stdout)
   }
 
   /** Look up a config value by name in the repository. */

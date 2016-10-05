@@ -10,7 +10,7 @@ export class CommitIdentity {
    * Parses a Git ident string (GIT_AUTHOR_IDENT or GIT_COMMITTER_IDENT)
    * into a commit identity. Returns null if string could not be parsed.
    */
-  public static parseIdent(ident: string): CommitIdentity | null {
+  public static parseIdentity(identity: string): CommitIdentity | null {
     // See fmt_ident in ident.c:
     //  https://github.com/git/git/blob/3ef7618e616e023cf04180e30d77c9fa5310f964/ident.c#L346
     //
@@ -19,7 +19,7 @@ export class CommitIdentity {
     //
     // Note that `git var` will strip any < and > from the name and email, see:
     //  https://github.com/git/git/blob/3ef7618e616e023cf04180e30d77c9fa5310f964/ident.c#L396
-    const m = ident.match(/^(.*?) <(.*?)>/)
+    const m = identity.match(/^(.*?) <(.*?)>/)
     if (!m) { return null }
 
     const name = m[1]
