@@ -14,7 +14,6 @@ import * as appProxy from '../ui/lib/app-proxy'
 const Octokat = require('octokat')
 
 process.on('uncaughtException', (error: Error) => {
-  console.error(error)
   reportError(error, appProxy.getVersion())
 })
 

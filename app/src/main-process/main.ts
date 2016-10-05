@@ -15,8 +15,6 @@ let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
 process.on('uncaughtException', (error: Error) => {
-  console.error(error)
-
   if (sharedProcess) {
     sharedProcess.console.error(error)
   }

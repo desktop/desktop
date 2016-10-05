@@ -23,7 +23,6 @@ if (!process.env.TEST_ENV) {
 }
 
 process.on('uncaughtException', (error: Error) => {
-  console.error(error)
   reportError(error, appProxy.getVersion())
 })
 
