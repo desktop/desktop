@@ -123,7 +123,17 @@ export class Branch {
   }
 }
 
+/**
+ * An extension of the execution options in git-kitchen-sink that
+ * allows us to piggy-back our own configuration options in the
+ * same object.
+ */
 interface IGitExecutionOptions extends GitKitchenSinkExecutionOptions {
+  /**
+   * The exit codes which indicate success to the
+   * caller. Unexpected exit codes will be logged and an
+   * error thrown. Defaults to 0 if undefined.
+   */
   readonly successExitCodes?: Set<number>
 }
 
