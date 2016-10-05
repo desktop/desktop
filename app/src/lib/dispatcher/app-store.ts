@@ -129,6 +129,7 @@ export class AppStore {
         recentBranches: new Array<Branch>(),
       },
       committerEmail: null,
+      committerName: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
       commits: new Map<string, Commit>(),
     }
@@ -145,6 +146,7 @@ export class AppStore {
         selectedSection: state.selectedSection,
         branchesState: state.branchesState,
         committerEmail: state.committerEmail,
+        committerName: state.committerName,
         gitHubUsers,
         commits: state.commits,
       }
@@ -168,6 +170,7 @@ export class AppStore {
         changesState: state.changesState,
         selectedSection: state.selectedSection,
         committerEmail: state.committerEmail,
+        committerName: state.committerName,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -183,6 +186,7 @@ export class AppStore {
         changesState,
         selectedSection: state.selectedSection,
         committerEmail: state.committerEmail,
+        committerName: state.committerName,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -198,6 +202,7 @@ export class AppStore {
         changesState: state.changesState,
         selectedSection: state.selectedSection,
         committerEmail: state.committerEmail,
+        committerName: state.committerName,
         branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -266,6 +271,7 @@ export class AppStore {
         changesState: state.changesState,
         selectedSection: state.selectedSection,
         committerEmail: state.committerEmail,
+        committerName: state.committerName,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: gitStore.commits,
@@ -518,6 +524,7 @@ export class AppStore {
         changesState: state.changesState,
         selectedSection: section,
         committerEmail: state.committerEmail,
+        committerName: state.committerName,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -600,6 +607,7 @@ export class AppStore {
         },
         historyState: state.historyState,
         committerEmail: state.committerEmail,
+        committerName: state.committerName,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -639,6 +647,7 @@ export class AppStore {
         },
         historyState: state.historyState,
         committerEmail: state.committerEmail,
+        committerName: state.committerName,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -685,12 +694,15 @@ export class AppStore {
   private async refreshCommitterEmail(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
     const email = await gitStore.performFailableOperation(() => LocalGitOperations.getConfigValue(repository, 'user.email'))
+    const name = await gitStore.performFailableOperation(() => LocalGitOperations.getConfigValue(repository, 'user.name'))
+
     this.updateRepositoryState(repository, state => {
       return {
         selectedSection: state.selectedSection,
         changesState: state.changesState,
         historyState: state.historyState,
         committerEmail: email || null,
+        committerName: name || null,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,

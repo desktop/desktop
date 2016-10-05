@@ -73,6 +73,14 @@ export interface IRepositoryState {
    * this value explicitly when committing)
    */
   readonly committerEmail: string | null
+
+  /**
+   * The value which will be used as the name when committing
+   * barring any race where user.name  is updated between us
+   * reading it and a commit being made (ie we don't currently use
+   * this value explicitly when committing)
+   */
+  readonly committerName: string | null
   readonly branchesState: IBranchesState
 
   /**
