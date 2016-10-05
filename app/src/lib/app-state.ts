@@ -1,4 +1,5 @@
 import { User } from '../models/user'
+import { CommitIdentity } from '../models/commit-identity'
 import { Diff } from '../models/diff'
 import { Repository } from '../models/repository'
 import { Commit, Branch } from './local-git-operations'
@@ -66,7 +67,15 @@ export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
   readonly selectedSection: RepositorySection
-  readonly committerEmail: string | null
+
+  /**
+   * The name and email that will be used for the author info
+   * when committing barring any race where user.name/user.email is
+   * updated between us reading it and a commit being made
+   * (ie we don't currently use this value explicitly when committing)
+   */
+  readonly commitAuthor: CommitIdentity | null
+
   readonly branchesState: IBranchesState
 
   /**
