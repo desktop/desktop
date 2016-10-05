@@ -6,7 +6,7 @@ const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
 export function reportError(error: Error, version: string) {
   console.error(error)
 
-  if (__DEV__) {
+  if (__DEV__ || process.env.TEST_ENV) {
     console.error(`An uncaught exception was thrown. If this were a production build it would be reported to Central. Instead, maybe give it a lil lookyloo.`)
     return
   }
