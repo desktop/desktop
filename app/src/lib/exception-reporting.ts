@@ -2,7 +2,6 @@ import * as request from 'request'
 import * as app from '../ui/lib/app'
 
 export function reportError(error: Error) {
-  debugger
   const payload = {
     name: error.name,
     message: error.message,
@@ -16,8 +15,11 @@ export function reportError(error: Error) {
   }
 
   request.post('https://central.github.com/api/desktop/exception', options, (error, response, body) => {
-    console.log(error)
-    console.log(response)
-    console.log(body)
+    if (error) {
+      console.error('Error submitting exception report:')
+      console.error(error)
+    } else {
+      console.log('Exception reported.')
+    }
   })
 }
