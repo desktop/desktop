@@ -72,7 +72,9 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>
         <div className='summary'>
-          <img className='avatar' src={this.props.avatarURL} alt={avatarTitle} title={avatarTitle} />
+          <div className='avatar' title={avatarTitle}>
+            <img src={this.props.avatarURL} alt={avatarTitle} />
+          </div>
 
           <AutocompletingInput className='summary-field'
             placeholder='Summary'
