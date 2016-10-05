@@ -15,7 +15,6 @@ import {
   SelectionType,
 } from '../app-state'
 import { User } from '../../models/user'
-import { CommitIdentity } from '../../models/commit-identity'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
@@ -675,7 +674,7 @@ export class AppStore {
     // selected.
     await this._loadStatus(repository)
 
-    await this.refreshAuthorEmail(repository)
+    await this.refreshAuthor(repository)
 
     const section = state.selectedSection
     if (section === RepositorySection.History) {
@@ -683,19 +682,16 @@ export class AppStore {
     }
   }
 
-  private async refreshAuthorEmail(repository: Repository): Promise<void> {
+  private async refreshAuthor(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    const email = await gitStore.performFailableOperation(() => LocalGitOperations.getConfigValue(repository, 'user.email'))
-    const name = await gitStore.performFailableOperation(() => LocalGitOperations.getConfigValue(repository, 'user.name'))
-
-    const commitAuthor = (name && email) ? new CommitIdentity(name, email) : null
+    const commitAuthor = await gitStore.performFailableOperation(() => LocalGitOperations.getAuthorIdentity(repository))
 
     this.updateRepositoryState(repository, state => {
       return {
         selectedSection: state.selectedSection,
         changesState: state.changesState,
         historyState: state.historyState,
-        commitAuthor: commitAuthor,
+        commitAuthor: commitAuthor || null,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
