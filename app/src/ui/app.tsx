@@ -270,12 +270,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     return assertNever(popup, `Unknown popup type: ${popup}`)
   }
 
-  private handlePopupOverlayClick() {
-    this.props.dispatcher.closePopup();
-  }
-
   private renderPopup(): JSX.Element | null {
-    const handleOverlayClick = () => { this.handlePopupOverlayClick() }
+    const handleOverlayClick = () => {this.props.dispatcher.closePopup()}
     const content = this.currentPopupContent()
     if (!content) { return null }
 
