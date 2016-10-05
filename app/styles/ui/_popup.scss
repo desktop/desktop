@@ -44,6 +44,7 @@
 
 .popup-overlay {
   background: transparent;
+  // Forces overlay to fill up the entire window behind the popup
   position: absolute;
   left: 0;
   right: 0;
