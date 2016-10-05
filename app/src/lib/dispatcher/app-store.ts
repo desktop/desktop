@@ -592,7 +592,7 @@ export class AppStore {
     })
     this.emitUpdate()
 
-    this.updateChangesDiffForCurrentSelection(repository)
+    await this.updateChangesDiffForCurrentSelection(repository)
   }
 
   /**
