@@ -1,6 +1,7 @@
 import * as request from 'request'
 import * as app from '../ui/lib/app'
 
+/** Report the error to Central. */
 export function reportError(error: Error) {
   const payload = {
     name: error.name,
