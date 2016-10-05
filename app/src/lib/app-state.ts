@@ -65,6 +65,13 @@ export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
   readonly selectedSection: RepositorySection
+
+  /**
+   * The value which will be used as the email when committing
+   * barring any race where user.email is updated between us
+   * reading it and a commit being made (ie we don't currently use
+   * this value explicitly when committing)
+   */
   readonly committerEmail: string | null
   readonly branchesState: IBranchesState
 
