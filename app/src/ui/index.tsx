@@ -14,6 +14,7 @@ import { getDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
 import { showMainWindow } from './main-process-proxy'
 import { reportError } from '../lib/exception-reporting'
+import * as app from './lib/app'
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
@@ -23,7 +24,7 @@ if (!process.env.TEST_ENV) {
 
 process.on('uncaughtException', (error: Error) => {
   console.error(error)
-  reportError(error)
+  reportError(error, app.getVersion())
 })
 
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
