@@ -6,7 +6,7 @@ import { Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
-import { DiffLine, Diff as DiffModel, DiffSelection } from '../../models/diff'
+import { Diff as DiffModel, DiffLine, DiffSelection, ImageDiff  } from '../../models/diff'
 
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
@@ -177,7 +177,24 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.restoreScrollPosition(cm)
   }
 
+  private renderImage(image: ImageDiff | undefined) {
+
+    if (!image) { return null }
+
+    const imageSource = `data:${image.mediaType};base64,${image.contents}`
+
+    return (<img src={imageSource} />)
+  }
+
   public render() {
+
+    if (this.props.diff.current || this.props.diff.previous) {
+      return (<div className='panel' id='diff'>
+        {this.renderImage(this.props.diff.current)}
+        {this.renderImage(this.props.diff.previous)}
+      </div>)
+    }
+
     let diffText = ''
 
     this.props.diff.hunks.forEach(hunk => {

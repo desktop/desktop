@@ -1,10 +1,19 @@
+import * as Path from 'path'
+import { ChildProcess } from 'child_process'
+import * as Fs from 'fs'
+
 import { git, IGitExecutionOptions } from './core'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { Diff } from '../../models/diff'
+import { Diff, ImageDiff  } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
+
+export class ImageDiffSummary {
+  public readonly previous: ImageDiff | undefined
+  public readonly current: ImageDiff | undefined
+}
 
 export class GitDiff {
 
@@ -20,7 +29,14 @@ export class GitDiff {
 
     return git(args, repository.path)
       .then(value => this.diffFromRawDiffOutput(value.stdout))
+      .then(diff => {
+        // TODO: if this is a binary file and a known file extension
+        //       let's try and find the blob for this file
+        return diff
+      })
   }
+
+  private static imageFileExtensions = new Set([ '.png', '.jpg', '.jpeg', '.gif' ])
 
   /**
    * Render the diff for a file within the repository working directory. The file will be
@@ -60,6 +76,80 @@ export class GitDiff {
 
     return git(args, repository.path, opts)
       .then(value => this.diffFromRawDiffOutput(value.stdout))
+      .then(async diff => {
+
+        // already have a text diff, bail out
+        if (!diff.isBinary) {
+          return diff
+        }
+
+        const extension = Path.extname(file.path)
+
+        // unable to find an extension, bail out
+        if (extension === '') {
+          return diff
+        }
+
+        // some extension we don't know how to parse, bail out
+        if (!GitDiff.imageFileExtensions.has(extension)) {
+          return diff
+        }
+
+        if (file.status === FileStatus.New) {
+          const currentContents = await GitDiff.getDiskContents(repository, file)
+          const current: ImageDiff =  {
+            contents: currentContents,
+            mediaType: GitDiff.getMediaType(extension),
+          }
+          diff.current = current
+          return diff
+        }
+
+        if (file.status === FileStatus.Modified) {
+          const currentContents = await GitDiff.getDiskContents(repository, file)
+          const current: ImageDiff =  {
+            contents: currentContents,
+            mediaType: GitDiff.getMediaType(extension),
+          }
+          diff.current = current
+
+          const previousContents = await GitDiff.getBlobContents(repository, file)
+          const previous: ImageDiff =  {
+            contents: previousContents,
+            mediaType: GitDiff.getMediaType(extension),
+          }
+          diff.previous = previous
+          return diff
+        }
+
+        if (file.status === FileStatus.Deleted) {
+          const previousContents = await GitDiff.getBlobContents(repository, file)
+          const previous: ImageDiff =  {
+            contents: previousContents,
+            mediaType: GitDiff.getMediaType(extension),
+          }
+          diff.previous = previous
+          return diff
+        }
+
+        // probably some other things
+        return diff
+      })
+  }
+
+  private static getMediaType(extension: string) {
+    if (extension === '.png') {
+      return 'image/png'
+    }
+    if (extension === '.jpg' || extension === '.jpeg') {
+      return 'image/jpg'
+    }
+    if (extension === '.gif') {
+      return 'image/gif'
+    }
+
+    // fallback value, gonna have a bad time
+    return 'text/plain'
   }
 
   /**
@@ -71,5 +161,37 @@ export class GitDiff {
     const pieces = result.split('\0')
     const parser = new DiffParser()
     return parser.parse(pieces[pieces.length - 1])
+  }
+
+  private static async getBlobContents(repository: Repository, file: FileChange): Promise<string> {
+
+    const successExitCodes = new Set([ 0, 1 ])
+
+    const lsTreeArgs = [ 'ls-tree', 'HEAD', '-z', '--', file.path ]
+    const blobRow = await git(lsTreeArgs, repository.path, { successExitCodes })
+
+    // a mixture of whitespace and tab characters here
+    // so let's just split on everything interesting
+    const blobDetails = blobRow.stdout.split(/\s/)
+    const blob = blobDetails[2]
+
+    const catFileArgs = [ 'cat-file', '-p', blob ]
+
+    const setBinaryEncoding: (process: ChildProcess) => void = cb => cb.stdout.setEncoding('binary')
+
+    const blob_contents = await git(catFileArgs, repository.path, { successExitCodes, processCallback: setBinaryEncoding })
+    const base64Contents = Buffer.from(blob_contents.stdout, 'binary').toString('base64')
+
+    return Promise.resolve(base64Contents)
+  }
+
+  private static async getDiskContents(repository: Repository, file: FileChange): Promise<string> {
+
+    const path = Path.join(repository.path, file.path)
+
+    const rawImageBytes = Fs.readFileSync(path, { encoding: 'binary', flag: 'r' })
+    const base64Contents = Buffer.from(rawImageBytes, 'binary').toString('base64')
+
+    return Promise.resolve(base64Contents)
   }
 }
