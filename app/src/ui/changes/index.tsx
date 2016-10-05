@@ -100,6 +100,10 @@ export class Changes extends React.Component<IChangesProps, void> {
   public render() {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
 
+    // TODO: I think user will expect the avatar to match that which
+    // they have configured in GitHub.com as well as GHE so when we add
+    // support for GHE we should revisit this and try to update the logic
+    // to look up based on email _and_ host.
     const email = this.props.commitAuthor ? this.props.commitAuthor.email : null
     let user: IGitHubUser | null = null
     if (email) {
