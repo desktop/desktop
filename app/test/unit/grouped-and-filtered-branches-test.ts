@@ -1,8 +1,8 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { groupedAndFilteredBranches } from '../src/ui/branches/grouped-and-filtered-branches'
-import { Branch, BranchType } from '../src/lib/local-git-operations'
+import { groupedAndFilteredBranches } from '../../src/ui/branches/grouped-and-filtered-branches'
+import { Branch, BranchType } from '../../src/lib/local-git-operations'
 
 describe('Branches grouping', () => {
   const currentBranch = new Branch('master', null, '', BranchType.Local)

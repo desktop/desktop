@@ -6,12 +6,12 @@ import * as path from 'path'
 const fs = require('fs-extra')
 const temp = require('temp').track()
 
-import { Repository } from '../src/models/repository'
-import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
-import { FileStatus, FileChange, WorkingDirectoryFileChange } from '../src/models/status'
-import { DiffSelectionType, DiffSelection } from '../src/models/diff'
-import { selectLinesInHunk, mergeSelections } from './diff-selection-helper'
-import { setupFixtureRepository } from './fixture-helper'
+import { Repository } from '../../src/models/repository'
+import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operations'
+import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
+import { DiffSelectionType, DiffSelection } from '../../src/models/diff'
+import { selectLinesInHunk, mergeSelections } from '.././diff-selection-helper'
+import { setupFixtureRepository } from '../fixture-helper'
 
 describe('LocalGitOperations', () => {
   let repository: Repository | null = null
@@ -117,7 +117,7 @@ describe('LocalGitOperations', () => {
       const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       // skip first hunk
       const first = selectLinesInHunk(diff, 0, false)
@@ -161,7 +161,7 @@ describe('LocalGitOperations', () => {
       const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       // select first hunk
       const first = selectLinesInHunk(diff, 0, true)
@@ -275,8 +275,9 @@ describe('LocalGitOperations', () => {
     })
 
     it('counts lines for new file', async () => {
-      const file = new FileChange('new-file.md', FileStatus.New)
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diffSelection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
+      const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       const hunk = diff.hunks[0]
 
@@ -289,8 +290,9 @@ describe('LocalGitOperations', () => {
     })
 
     it('counts lines for modified file', async () => {
-      const file = new FileChange('modified-file.md', FileStatus.Modified)
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diffSelection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
+      const file = new WorkingDirectoryFileChange('modified-file.md', FileStatus.Modified, diffSelection)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       const first = diff.hunks[0]
       expect(first.lines[0].text).to.have.string('@@ -4,10 +4,6 @@')
@@ -310,8 +312,9 @@ describe('LocalGitOperations', () => {
     })
 
     it('counts lines for staged file', async () => {
-      const file = new FileChange('staged-file.md', FileStatus.Modified)
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diffSelection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
+      const file = new WorkingDirectoryFileChange('staged-file.md', FileStatus.Modified, diffSelection)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       const first = diff.hunks[0]
       expect(first.lines[0].text).to.have.string('@@ -2,7 +2,7 @@ ')
