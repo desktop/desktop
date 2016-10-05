@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { AutocompletingTextArea, AutocompletingInput } from '../autocompletion'
+import { CommitIdentity } from '../../models/commit-identity'
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (summary: string, description: string) => void
   readonly branch: string | null
-  readonly authorName: string | null
-  readonly authorEmail: string | null
+  readonly commitAuthor: CommitIdentity | null
   readonly avatarURL: string
   readonly emoji: Map<string, string>
 }
@@ -64,7 +64,10 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
-    const avatarTitle = `Comitting as ${this.props.authorName} <${this.props.authorEmail}>`
+    const commitAuthor = this.props.commitAuthor
+    const avatarTitle = commitAuthor
+      ? `Comitting as ${commitAuthor.name} <${commitAuthor.email}>`
+      : undefined
 
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>

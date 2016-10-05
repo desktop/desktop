@@ -1,4 +1,5 @@
 import { User } from '../models/user'
+import { CommitIdentity } from '../models/commit-identity'
 import { Repository } from '../models/repository'
 import { Commit, Branch } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
@@ -67,20 +68,13 @@ export interface IRepositoryState {
   readonly selectedSection: RepositorySection
 
   /**
-   * The value which will be used as the email when committing
-   * barring any race where user.email is updated between us
-   * reading it and a commit being made (ie we don't currently use
-   * this value explicitly when committing)
+   * The name and email that will be used for the author info
+   * when committing barring any race where user.name/user.email is
+   * updated between us reading it and a commit being made
+   * (ie we don't currently use this value explicitly when committing)
    */
-  readonly authorEmail: string | null
+  readonly commitAuthor: CommitIdentity | null
 
-  /**
-   * The value which will be used as the name when committing
-   * barring any race where user.name  is updated between us
-   * reading it and a commit being made (ie we don't currently use
-   * this value explicitly when committing)
-   */
-  readonly authorName: string | null
   readonly branchesState: IBranchesState
 
   /**

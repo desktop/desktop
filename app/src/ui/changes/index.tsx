@@ -6,13 +6,13 @@ import { IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
+import { CommitIdentity } from '../../models/commit-identity'
 
 interface IChangesProps {
   readonly repository: Repository
   readonly changes: IChangesState
   readonly dispatcher: Dispatcher
-  readonly authorEmail: string | null
-  readonly authorName: string | null
+  readonly commitAuthor: CommitIdentity | null
   readonly branch: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
@@ -100,7 +100,7 @@ export class Changes extends React.Component<IChangesProps, void> {
   public render() {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
 
-    const email = this.props.authorEmail
+    const email = this.props.commitAuthor ? this.props.commitAuthor.email : null
     let user: IGitHubUser | null = null
     if (email) {
       user = this.props.gitHubUsers.get(email.toLowerCase()) || null
@@ -119,8 +119,7 @@ export class Changes extends React.Component<IChangesProps, void> {
                        onSelectAll={selectAll => this.onSelectAll(selectAll)}
                        onDiscardChanges={row => this.onDiscardChanges(row)}
                        onRowKeyDown={(row, e) => this.onChangedItemKeyDown(row, e)}
-                       authorEmail={this.props.authorEmail}
-                       authorName={this.props.authorName}
+                       commitAuthor={this.props.commitAuthor}
                        branch={this.props.branch}
                        avatarURL={avatarURL}
                        emoji={this.props.emoji}/>

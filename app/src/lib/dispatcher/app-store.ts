@@ -15,6 +15,7 @@ import {
   SelectionType,
 } from '../app-state'
 import { User } from '../../models/user'
+import { CommitIdentity } from '../../models/commit-identity'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
@@ -128,8 +129,7 @@ export class AppStore {
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
       },
-      authorEmail: null,
-      authorName: null,
+      commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
       commits: new Map<string, Commit>(),
     }
@@ -145,8 +145,7 @@ export class AppStore {
         changesState: state.changesState,
         selectedSection: state.selectedSection,
         branchesState: state.branchesState,
-        authorEmail: state.authorEmail,
-        authorName: state.authorName,
+        commitAuthor: state.commitAuthor,
         gitHubUsers,
         commits: state.commits,
       }
@@ -169,8 +168,7 @@ export class AppStore {
         historyState,
         changesState: state.changesState,
         selectedSection: state.selectedSection,
-        authorEmail: state.authorEmail,
-        authorName: state.authorName,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -185,8 +183,7 @@ export class AppStore {
         historyState: state.historyState,
         changesState,
         selectedSection: state.selectedSection,
-        authorEmail: state.authorEmail,
-        authorName: state.authorName,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -201,8 +198,7 @@ export class AppStore {
         historyState: state.historyState,
         changesState: state.changesState,
         selectedSection: state.selectedSection,
-        authorEmail: state.authorEmail,
-        authorName: state.authorName,
+        commitAuthor: state.commitAuthor,
         branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -270,8 +266,7 @@ export class AppStore {
         historyState: state.historyState,
         changesState: state.changesState,
         selectedSection: state.selectedSection,
-        authorEmail: state.authorEmail,
-        authorName: state.authorName,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: gitStore.commits,
@@ -523,8 +518,7 @@ export class AppStore {
         historyState: state.historyState,
         changesState: state.changesState,
         selectedSection: section,
-        authorEmail: state.authorEmail,
-        authorName: state.authorName,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -606,8 +600,7 @@ export class AppStore {
           selectedFile: selectedFile || null,
         },
         historyState: state.historyState,
-        authorEmail: state.authorEmail,
-        authorName: state.authorName,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -646,8 +639,7 @@ export class AppStore {
           selectedFile: selectedFile || null,
         },
         historyState: state.historyState,
-        authorEmail: state.authorEmail,
-        authorName: state.authorName,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -696,13 +688,14 @@ export class AppStore {
     const email = await gitStore.performFailableOperation(() => LocalGitOperations.getConfigValue(repository, 'user.email'))
     const name = await gitStore.performFailableOperation(() => LocalGitOperations.getConfigValue(repository, 'user.name'))
 
+    const commitAuthor = (name && email) ? new CommitIdentity(name, email) : null
+
     this.updateRepositoryState(repository, state => {
       return {
         selectedSection: state.selectedSection,
         changesState: state.changesState,
         historyState: state.historyState,
-        authorEmail: email || null,
-        authorName: name || null,
+        commitAuthor: commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
