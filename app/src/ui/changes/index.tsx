@@ -12,6 +12,7 @@ interface IChangesProps {
   readonly changes: IChangesState
   readonly dispatcher: Dispatcher
   readonly committerEmail: string | null
+  readonly committerName: string | null
   readonly branch: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
@@ -118,6 +119,8 @@ export class Changes extends React.Component<IChangesProps, void> {
                        onSelectAll={selectAll => this.onSelectAll(selectAll)}
                        onDiscardChanges={row => this.onDiscardChanges(row)}
                        onRowKeyDown={(row, e) => this.onChangedItemKeyDown(row, e)}
+                       committerEmail={this.props.committerEmail}
+                       committerName={this.props.committerName}
                        branch={this.props.branch}
                        avatarURL={avatarURL}
                        emoji={this.props.emoji}/>
