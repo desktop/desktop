@@ -22,8 +22,8 @@ if (!process.env.TEST_ENV) {
 }
 
 process.on('uncaughtException', (error: Error) => {
-  reportError(error)
   console.error(error)
+  reportError(error)
 })
 
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
