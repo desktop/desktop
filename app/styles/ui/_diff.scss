@@ -10,7 +10,9 @@
 
 .CodeMirror {
   height: 100%;
-  font-family: --var(font-family-monospace);
+  color: var(--text-color);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-monospace);
 }
 
 // Remove blank space at the top of the diff
