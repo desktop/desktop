@@ -49,10 +49,31 @@ export class History extends React.Component<IHistoryProps, void> {
     this.loadChangedFilesScheduler.clear()
   }
 
+  private renderDiff(commit: Commit | null) {
+
+    const file = this.props.history.selection.file
+    const diff = this.props.history.diff
+
+    if (!diff || !file) {
+      return (
+        <div className='panel blankslate' id='diff'>
+          No file selected
+        </div>
+      )
+    }
+
+    return (
+      <Diff repository={this.props.repository}
+        file={file}
+        diff={diff}
+        readOnly={true} />
+    )
+  }
+
   public render() {
     const sha = this.props.history.selection.sha
     const commit = sha ? (this.props.commits.get(sha) || null) : null
-    const selectedFile = this.props.history.selection.file
+
     return (
       <div className='panel-container' id='history'>
         <Resizable configKey='commit-list-width'>
@@ -74,10 +95,7 @@ export class History extends React.Component<IHistoryProps, void> {
                                   onSelectedFileChanged={file => this.onFileSelected(file)}
                                   emoji={this.props.emoji}/>
         </Resizable>
-        <Diff repository={this.props.repository}
-          file={selectedFile}
-          commit={commit}
-          readOnly={true} />
+        { this.renderDiff(commit) }
       </div>
     )
   }

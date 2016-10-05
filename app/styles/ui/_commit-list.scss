@@ -5,11 +5,14 @@
   .commit {
     display: flex;
     flex-direction: row;
+    align-items: center;
     width: 100%;
     height: 100%;
 
     border-bottom: var(--light-border);
-    padding-left: 2px;
+
+    padding: 0 var(--spacing);
+
 
     &.facade {
       .avatar {
@@ -40,15 +43,12 @@
       flex-shrink: 0;
 
       border-radius: var(--border-radius);
-      align-self: center;
-      margin-left: var(--spacing);
     }
 
     .info {
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      margin: auto 0;
       margin-left: var(--spacing);
 
       .summary, .byline { @include ellipsis }

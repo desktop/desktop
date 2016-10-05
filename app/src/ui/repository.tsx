@@ -4,7 +4,6 @@ import { UiView } from './ui-view'
 import { Toolbar } from './toolbar'
 import { Changes } from './changes'
 import { History } from './history'
-import { ComparisonGraph } from './comparison-graph'
 import { ToolbarTab } from './toolbar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
@@ -46,7 +45,6 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         <Toolbar selectedTab={selectedTab}
                  onTabClicked={tab => this.onTabClicked(tab)}
                  hasChanges={this.props.state.changesState.workingDirectory.files.length > 0}/>
-        <ComparisonGraph/>
         {this.renderContent()}
       </UiView>
     )

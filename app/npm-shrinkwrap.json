@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "dependencies": {
     "ansi-html": {
       "version": "0.0.5",
@@ -46,11 +46,6 @@
       "version": "1.4.1",
       "from": "aws4@>=1.2.1 <2.0.0",
       "resolved": "https://registry.npmjs.org/aws4/-/aws4-1.4.1.tgz"
-    },
-    "babel-runtime": {
-      "version": "6.9.2",
-      "from": "babel-runtime@>=6.6.1 <7.0.0",
-      "resolved": "https://registry.npmjs.org/babel-runtime/-/babel-runtime-6.9.2.tgz"
     },
     "balanced-match": {
       "version": "0.4.2",
@@ -154,11 +149,6 @@
       "from": "concat-map@0.0.1",
       "resolved": "https://registry.npmjs.org/concat-map/-/concat-map-0.0.1.tgz"
     },
-    "core-js": {
-      "version": "2.4.1",
-      "from": "core-js@>=2.4.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/core-js/-/core-js-2.4.1.tgz"
-    },
     "core-util-is": {
       "version": "1.0.2",
       "from": "core-util-is@>=1.0.0 <1.1.0",
@@ -225,11 +215,6 @@
       "version": "2.4.0",
       "from": "dom-helpers@>=2.4.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/dom-helpers/-/dom-helpers-2.4.0.tgz"
-    },
-    "dom-walk": {
-      "version": "0.1.1",
-      "from": "dom-walk@>=0.1.0 <0.2.0",
-      "resolved": "https://registry.npmjs.org/dom-walk/-/dom-walk-0.1.1.tgz"
     },
     "ecc-jsbn": {
       "version": "0.1.1",
@@ -359,11 +344,6 @@
       "version": "7.0.5",
       "from": "glob@>=7.0.5 <8.0.0",
       "resolved": "https://registry.npmjs.org/glob/-/glob-7.0.5.tgz"
-    },
-    "global": {
-      "version": "4.3.0",
-      "from": "global@>=4.3.0 <5.0.0",
-      "resolved": "https://registry.npmjs.org/global/-/global-4.3.0.tgz"
     },
     "graceful-fs": {
       "version": "4.1.4",
@@ -567,11 +547,6 @@
       "from": "mime-types@>=2.1.7 <2.2.0",
       "resolved": "https://registry.npmjs.org/mime-types/-/mime-types-2.1.12.tgz"
     },
-    "min-document": {
-      "version": "2.18.0",
-      "from": "min-document@>=2.6.1 <3.0.0",
-      "resolved": "https://registry.npmjs.org/min-document/-/min-document-2.18.0.tgz"
-    },
     "minimatch": {
       "version": "3.0.2",
       "from": "minimatch@>=3.0.2 <4.0.0",
@@ -667,11 +642,6 @@
       "from": "pinkie-promise@>=2.0.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/pinkie-promise/-/pinkie-promise-2.0.1.tgz"
     },
-    "process": {
-      "version": "0.5.2",
-      "from": "process@>=0.5.1 <0.6.0",
-      "resolved": "https://registry.npmjs.org/process/-/process-0.5.2.tgz"
-    },
     "process-nextick-args": {
       "version": "1.0.7",
       "from": "process-nextick-args@>=1.0.6 <1.1.0",
@@ -712,27 +682,10 @@
       "from": "react-addons-shallow-compare@latest",
       "resolved": "https://registry.npmjs.org/react-addons-shallow-compare/-/react-addons-shallow-compare-15.3.0.tgz"
     },
-    "react-deep-force-update": {
-      "version": "1.0.1",
-      "from": "react-deep-force-update@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/react-deep-force-update/-/react-deep-force-update-1.0.1.tgz"
-    },
     "react-dom": {
       "version": "15.3.0",
       "from": "react-dom@>=15.2.1 <16.0.0",
       "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.3.0.tgz"
-    },
-    "react-proxy": {
-      "version": "1.1.8",
-      "from": "react-proxy@>=1.1.7 <2.0.0",
-      "resolved": "https://registry.npmjs.org/react-proxy/-/react-proxy-1.1.8.tgz",
-      "dependencies": {
-        "lodash": {
-          "version": "4.13.1",
-          "from": "lodash@>=4.6.1 <5.0.0",
-          "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.13.1.tgz"
-        }
-      }
     },
     "react-virtualized": {
       "version": "7.16.0",
@@ -743,11 +696,6 @@
       "version": "2.1.5",
       "from": "readable-stream@>=2.0.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.1.5.tgz"
-    },
-    "regenerator-runtime": {
-      "version": "0.9.5",
-      "from": "regenerator-runtime@>=0.9.5 <0.10.0",
-      "resolved": "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.9.5.tgz"
     },
     "request": {
       "version": "2.75.0",

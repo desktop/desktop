@@ -4,13 +4,13 @@ const expect = chai.expect
 import * as Path from 'path'
 import * as FS from 'fs'
 
-import { Repository } from '../src/models/repository'
-import { WorkingDirectoryFileChange, FileStatus } from '../src/models/status'
-import { DiffSelection, DiffSelectionType } from '../src/models/diff'
-import { createPatchForModifiedFile } from '../src/lib/patch-formatter'
-import { selectLinesInHunk, mergeSelections } from './diff-selection-helper'
-import { LocalGitOperations } from '../src/lib/local-git-operations'
-import { setupFixtureRepository } from './fixture-helper'
+import { Repository } from '../../src/models/repository'
+import { WorkingDirectoryFileChange, FileStatus } from '../../src/models/status'
+import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
+import { createPatchForModifiedFile } from '../../src/lib/patch-formatter'
+import { selectLinesInHunk, mergeSelections } from '../diff-selection-helper'
+import { LocalGitOperations } from '../../src/lib/local-git-operations'
+import { setupFixtureRepository } from '../fixture-helper'
 
 describe('patch formatting', () => {
   let repository: Repository | null = null
@@ -29,7 +29,7 @@ describe('patch formatting', () => {
       const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       // select first hunk
       const first = selectLinesInHunk(diff, 0, true)
@@ -54,7 +54,7 @@ describe('patch formatting', () => {
       const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       // skip first hunk
       const first = selectLinesInHunk(diff, 0, false)
@@ -80,7 +80,7 @@ describe('patch formatting', () => {
       const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       // select first hunk
       const first = selectLinesInHunk(diff, 0, true)
@@ -108,7 +108,7 @@ describe('patch formatting', () => {
       const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       const selectedLines = new Map<number, boolean>()
       const hunk = diff.hunks[0]
