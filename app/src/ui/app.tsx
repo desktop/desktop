@@ -275,7 +275,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderPopup(): JSX.Element | null {
-    const handleOverlayClick = this.handlePopupOverlayClick.bind(this);
+    const handleOverlayClick = () => { this.handlePopupOverlayClick() }
     const content = this.currentPopupContent()
     if (!content) { return null }
 
