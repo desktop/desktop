@@ -285,6 +285,7 @@ export class LocalGitOperations {
     return GitProcess.execWithOutput(args, repository.path)
       .then(this.diffFromRawDiffOutput)
   }
+
   /**
    * Render the diff for a file within the repository working directory. The file will be
    * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
