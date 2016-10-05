@@ -259,8 +259,12 @@ export class LocalGitOperations {
       message = `${summary}\n\n${description}`
     }
 
-    // TODO: pipe standard input into this command
-    await git([ 'commit', '-m',  message ] , repository.path)
+    const writeCommitMessage = (process: ChildProcess.ChildProcess) => {
+      process.stdin.write(message)
+      process.stdin.end()
+    }
+
+    await git([ 'commit', '-F',  '-' ] , repository.path, { }, undefined, writeCommitMessage)
   }
 
   /**
