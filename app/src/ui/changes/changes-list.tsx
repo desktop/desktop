@@ -20,8 +20,8 @@ interface IChangesListProps {
   readonly onCreateCommit: (summary: string, description: string) => void
   readonly onDiscardChanges: (row: number) => void
   readonly branch: string | null
-  readonly committerEmail: string | null
-  readonly committerName: string | null
+  readonly authorEmail: string | null
+  readonly authorName: string | null
   readonly avatarURL: string
   readonly emoji: Map<string, string>
 
@@ -97,8 +97,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
                        branch={this.props.branch}
                        avatarURL={this.props.avatarURL}
                        emoji={this.props.emoji}
-                       committerEmail={this.props.committerEmail}
-                       committerName={this.props.committerName} />
+                       authorEmail={this.props.authorEmail}
+                       authorName={this.props.authorName} />
       </div>
     )
   }

@@ -72,7 +72,7 @@ export interface IRepositoryState {
    * reading it and a commit being made (ie we don't currently use
    * this value explicitly when committing)
    */
-  readonly committerEmail: string | null
+  readonly authorEmail: string | null
 
   /**
    * The value which will be used as the name when committing
@@ -80,7 +80,7 @@ export interface IRepositoryState {
    * reading it and a commit being made (ie we don't currently use
    * this value explicitly when committing)
    */
-  readonly committerName: string | null
+  readonly authorName: string | null
   readonly branchesState: IBranchesState
 
   /**

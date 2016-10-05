@@ -11,8 +11,8 @@ interface IChangesProps {
   readonly repository: Repository
   readonly changes: IChangesState
   readonly dispatcher: Dispatcher
-  readonly committerEmail: string | null
-  readonly committerName: string | null
+  readonly authorEmail: string | null
+  readonly authorName: string | null
   readonly branch: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
@@ -100,7 +100,7 @@ export class Changes extends React.Component<IChangesProps, void> {
   public render() {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
 
-    const email = this.props.committerEmail
+    const email = this.props.authorEmail
     let user: IGitHubUser | null = null
     if (email) {
       user = this.props.gitHubUsers.get(email.toLowerCase()) || null
@@ -119,8 +119,8 @@ export class Changes extends React.Component<IChangesProps, void> {
                        onSelectAll={selectAll => this.onSelectAll(selectAll)}
                        onDiscardChanges={row => this.onDiscardChanges(row)}
                        onRowKeyDown={(row, e) => this.onChangedItemKeyDown(row, e)}
-                       committerEmail={this.props.committerEmail}
-                       committerName={this.props.committerName}
+                       authorEmail={this.props.authorEmail}
+                       authorName={this.props.authorName}
                        branch={this.props.branch}
                        avatarURL={avatarURL}
                        emoji={this.props.emoji}/>
