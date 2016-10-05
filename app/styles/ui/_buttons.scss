@@ -10,7 +10,7 @@ input[type='submit'] {
   border: 1px solid var(--box-border-color);
   border-radius: var(--border-radius);
 
-  &:hover {
+  &:not(:disabled):hover {
     background-color: var(--button-hover-background);
   }
 
@@ -22,4 +22,6 @@ input[type='submit'] {
     outline: none;
     border-color: var(--focus-color);
   }
+
+  &:disabled { opacity: 0.3; }
 }

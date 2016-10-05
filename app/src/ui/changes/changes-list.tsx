@@ -71,6 +71,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     const fileCount = this.props.workingDirectory.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
+    const anyFilesSelected = this.includeAllValue !== CheckboxValue.Off
 
     return (
       <div className='panel changes-panel' id='changes-list'>
@@ -94,7 +95,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         <CommitMessage onCreateCommit={(summary, description) => this.props.onCreateCommit(summary, description)}
                        branch={this.props.branch}
                        avatarURL={this.props.avatarURL}
-                       emoji={this.props.emoji}/>
+                       emoji={this.props.emoji}
+                       anyFilesSelected={anyFilesSelected} />
       </div>
     )
   }
