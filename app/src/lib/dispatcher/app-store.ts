@@ -18,7 +18,7 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffSelectionType } from '../../models/diff'
+import { Diff, DiffSelection, DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
@@ -116,10 +116,12 @@ export class AppStore {
         },
         changedFiles: new Array<FileChange>(),
         history: new Array<string>(),
+        diff: null,
       },
       changesState: {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
         selectedFile: null,
+        diff: null,
       },
       selectedSection: RepositorySection.Changes,
       branchesState: {
@@ -248,6 +250,7 @@ export class AppStore {
         history: gitStore.history,
         selection: state.selection,
         changedFiles: state.changedFiles,
+        diff: state.diff,
       }
     })
 
@@ -352,6 +355,7 @@ export class AppStore {
         history: state.history,
         selection,
         changedFiles,
+        diff: state.diff,
       }
     })
     this.emitUpdate()
@@ -368,20 +372,54 @@ export class AppStore {
         history: state.history,
         selection: { sha, file },
         changedFiles,
+        diff: null,
       }
     })
     this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeHistoryFileSelection(repository: Repository, file: FileChange | null): Promise<void> {
+  public async _changeHistoryFileSelection(repository: Repository, file: FileChange): Promise<void> {
+
     this.updateHistoryState(repository, state => {
       return {
         history: state.history,
         selection: { sha: state.selection.sha, file },
         changedFiles: state.changedFiles,
+        diff: null,
       }
     })
+    this.emitUpdate()
+
+    const stateBeforeLoad = this.getRepositoryState(repository)
+    const sha = stateBeforeLoad.historyState.selection.sha
+
+    if (!sha) {
+      if (__DEV__) {
+        throw new Error('No currently selected sha yet we\'ve been asked to switch file selection')
+      } else {
+        return
+      }
+    }
+
+    const diff = await LocalGitOperations.getCommitDiff(repository, file, sha)
+
+    const stateAfterLoad = this.getRepositoryState(repository)
+
+    // A whole bunch of things could have happened since we initiated the diff load
+    if (stateAfterLoad.historyState.selection.sha !== stateBeforeLoad.historyState.selection.sha) { return }
+    if (!stateAfterLoad.historyState.selection.file) { return }
+    if (stateAfterLoad.historyState.selection.file.id !== file.id) { return }
+
+    this.updateHistoryState(repository, state => {
+      return {
+        history: state.history,
+        selection: { sha: state.selection.sha, file },
+        changedFiles: state.changedFiles,
+        diff,
+      }
+    })
+
     this.emitUpdate()
   }
 
@@ -467,11 +505,13 @@ export class AppStore {
 
     let selectedFile: WorkingDirectoryFileChange | null = null
     this.updateChangesState(repository, state => {
-      const filesByID = new Map<string, WorkingDirectoryFileChange>()
-      state.workingDirectory.files.forEach(file => {
-        filesByID.set(file.id, file)
-      })
 
+      // Populate a map for all files in the current working directory state
+      const filesByID = new Map<string, WorkingDirectoryFileChange>()
+      state.workingDirectory.files.forEach(f => filesByID.set(f.id, f))
+
+      // Attempt to preserve the selection state for each file in the new
+      // working directory state by looking at the current files
       const mergedFiles = workingDirectory.files.map(file => {
         const existingFile = filesByID.get(file.id)
         if (existingFile) {
@@ -490,11 +530,15 @@ export class AppStore {
 
       const includeAll = this.getIncludeAllState(mergedFiles)
 
+      // Try to find the currently selected file among the files
+      // in the new working directory state. Matching by id is
+      // different from matching by path since id includes the
+      // change type (new, modified, deleted etc)
       if (state.selectedFile) {
-        selectedFile = mergedFiles.find(function(file) {
-          return file.id === state.selectedFile!.id
-        }) || null
+        selectedFile = mergedFiles.find(f => f.id === state.selectedFile!.id) || null
       }
+
+      const fileSelectionChanged = selectedFile == null
 
       if (!selectedFile && mergedFiles.length) {
         selectedFile = mergedFiles[0]
@@ -503,11 +547,15 @@ export class AppStore {
       return {
         workingDirectory: new WorkingDirectoryStatus(mergedFiles, includeAll),
         selectedFile: selectedFile || null,
+        // The file selection could have changed if the previously selected
+        // file is no longer selectable (it was reverted or committed) but
+        // if it hasn't changed we can reuse the diff
+        diff: fileSelectionChanged ? null : state.diff,
       }
     })
     this.emitUpdate()
 
-    this._changeChangesSelection(repository, selectedFile)
+    this.updateChangesDiffForCurrentSelection(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -533,16 +581,79 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
+  public async _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
     this.updateChangesState(repository, state => {
+
       return {
         workingDirectory: state.workingDirectory,
         selectedFile,
+        diff: null,
       }
     })
     this.emitUpdate()
 
-    return Promise.resolve()
+    await this.updateChangesDiffForCurrentSelection(repository)
+  }
+
+  /**
+   * Loads or re-loads (refreshes) the diff for the currently selected file
+   * in the working directory. This operation is a noop if there's no currently
+   * selected file.
+   */
+  private async updateChangesDiffForCurrentSelection(repository: Repository): Promise<void> {
+    const stateBeforeLoad = this.getRepositoryState(repository)
+    const selectedFile = stateBeforeLoad.changesState.selectedFile
+
+    if (!selectedFile) { return }
+
+    const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, selectedFile)
+    const stateAfterLoad = this.getRepositoryState(repository)
+
+    // A whole bunch of things could have happened since we initiated the diff load
+    if (!stateAfterLoad.changesState.selectedFile) { return }
+    if (stateAfterLoad.changesState.selectedFile.id !== selectedFile.id) { return }
+
+    const diffSelection = selectedFile.selection
+
+    this.updateDiffSelectionFromSelectionState(diff, diffSelection)
+
+    this.updateChangesState(repository, state => {
+      return {
+        workingDirectory: state.workingDirectory,
+        selectedFile,
+        diff,
+      }
+    })
+
+    this.emitUpdate()
+  }
+
+  /**
+   * Takes line selection state from the DiffSelection model and mutates the
+   * Diff instance in place to match.
+   *
+   * Ideally we'll move away from having selection state in multiple places
+   * but until that happens this method needs to be invoked anytime the
+   * WorkingDirectoryFileChange.selection property changes.
+   */
+  private updateDiffSelectionFromSelectionState(diff: Diff, diffSelection: DiffSelection) {
+    const selectionType = diffSelection.getSelectionType()
+
+    if (selectionType === DiffSelectionType.Partial) {
+      diffSelection.selectedLines.forEach((value, index) => {
+        const hunk = diff.diffHunkForIndex(index)
+        if (hunk) {
+          const relativeIndex = index - hunk.unifiedDiffStart
+          const diffLine = hunk.lines[relativeIndex]
+          if (diffLine) {
+            diffLine.selected = value
+          }
+        }
+      })
+    } else {
+      const includeAll = selectionType === DiffSelectionType.All ? true : false
+      diff.setAllLines(includeAll)
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -592,11 +703,13 @@ export class AppStore {
       }
 
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
+
       return {
         selectedSection: state.selectedSection,
         changesState: {
           workingDirectory,
           selectedFile: selectedFile || null,
+          diff: selectedFile ? state.changesState.diff : null,
         },
         historyState: state.historyState,
         commitAuthor: state.commitAuthor,
@@ -631,11 +744,18 @@ export class AppStore {
       }
 
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
+      const diff = selectedFile ? state.changesState.diff : null
+
+      if (selectedFile && diff) {
+        this.updateDiffSelectionFromSelectionState(diff, selectedFile!.selection)
+      }
+
       return {
         selectedSection: state.selectedSection,
         changesState: {
           workingDirectory,
           selectedFile: selectedFile || null,
+          diff,
         },
         historyState: state.historyState,
         commitAuthor: state.commitAuthor,
@@ -655,6 +775,7 @@ export class AppStore {
       return {
         workingDirectory: state.workingDirectory.withIncludeAllFiles(includeAll),
         selectedFile: state.selectedFile,
+        diff: state.diff,
       }
     })
     this.emitUpdate()

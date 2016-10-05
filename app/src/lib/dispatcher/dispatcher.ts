@@ -195,7 +195,7 @@ export class Dispatcher {
    * @param file A FileChange instance among those available in
    *            IHistoryState.changedFiles
    */
-  public changeHistoryFileSelection(repository: Repository, file: FileChange | null): Promise<void> {
+  public changeHistoryFileSelection(repository: Repository, file: FileChange): Promise<void> {
     return this.appStore._changeHistoryFileSelection(repository, file)
   }
 
@@ -215,7 +215,7 @@ export class Dispatcher {
   }
 
   /** Change the currently selected file in Changes. */
-  public changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
+  public changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange): Promise<void> {
     return this.appStore._changeChangesSelection(repository, selectedFile)
   }
 

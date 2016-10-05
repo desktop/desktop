@@ -97,6 +97,27 @@ export class Changes extends React.Component<IChangesProps, void> {
     }
   }
 
+  private renderDiff() {
+    const diff = this.props.changes.diff
+    const file = this.props.changes.selectedFile
+
+    if (!diff || !file) {
+      return (
+        <div className='panel blankslate' id='diff'>
+          No file selected
+        </div>
+      )
+    }
+
+    return (
+      <Diff repository={this.props.repository}
+        file={file}
+        readOnly={false}
+        onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)}
+        diff={diff}/>
+    )
+  }
+
   public render() {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
 
@@ -129,11 +150,7 @@ export class Changes extends React.Component<IChangesProps, void> {
                        emoji={this.props.emoji}/>
         </Resizable>
 
-        <Diff repository={this.props.repository}
-          file={this.props.changes.selectedFile}
-          readOnly={false}
-          commit={null}
-          onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)} />
+        {this.renderDiff()}
       </div>
     )
   }

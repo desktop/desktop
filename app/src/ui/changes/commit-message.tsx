@@ -8,6 +8,7 @@ interface ICommitMessageProps {
   readonly commitAuthor: CommitIdentity | null
   readonly avatarURL: string
   readonly emoji: Map<string, string>
+  readonly anyFilesSelected: boolean
 }
 
 interface ICommitMessageState {
@@ -80,6 +81,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
+    const disableButton = !this.props.anyFilesSelected
 
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>
@@ -101,8 +103,8 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
           onKeyDown={event => this.onKeyDown(event)}
           emoji={this.props.emoji}/>
 
-        <button className='commit-button' onClick={event => this.handleSubmit(event)}>
-          Commit to <strong>{branchName}</strong>
+        <button className='commit-button' onClick={event => this.handleSubmit(event)} disabled={disableButton}>
+          <div>Commit to <strong>{branchName}</strong></div>
         </button>
       </form>
     )
