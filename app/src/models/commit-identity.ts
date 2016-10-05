@@ -11,12 +11,14 @@ export class CommitIdentity {
    * into a commit identity. Returns null if string could not be parsed.
    */
   public static parseIdent(ident: string): CommitIdentity | null {
-    // See https://github.com/git/git/blob/3ef7618e616e023cf04180e30d77c9fa5310f964/ident.c#L346
+    // See fmt_ident in ident.c:
+    //  https://github.com/git/git/blob/3ef7618e616e023cf04180e30d77c9fa5310f964/ident.c#L346
+    //
     // Format is "NAME <EMAIL> DATE"
-    // example:
+    //  Markus Olsson <j.markus.olsson@gmail.com> 1475670580 +0200
     //
-    // Markus Olsson <j.markus.olsson@gmail.com> 1475670580 +0200
-    //
+    // Note that `git var` will strip any < and > from the name and email, see:
+    //  https://github.com/git/git/blob/3ef7618e616e023cf04180e30d77c9fa5310f964/ident.c#L396
     const m = ident.match(/^(.*?) <(.*?)>/)
     if (!m) { return null }
 
