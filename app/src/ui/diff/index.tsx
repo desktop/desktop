@@ -2,7 +2,7 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Disposable } from 'event-kit'
 
-import { EditorConfiguration, Editor } from 'codemirror'
+import { Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
@@ -10,6 +10,12 @@ import { DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
 import { assertNever } from '../../lib/fatal-error'
 
 import { DiffLineGutter } from './diff-line-gutter'
+import { IEditorConfigurationExtra } from './editor-configuration-extra'
+
+if (__DARWIN__) {
+  // This has to be required to support the `simple` scrollbar style.
+  require('codemirror/addon/scroll/simplescrollbars')
+}
 
 /** The props for the Diff component. */
 interface IDiffProps {
@@ -204,7 +210,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       hunk.lines.forEach(l => diffText += l.text + '\r\n')
     })
 
-    const options: EditorConfiguration = {
+    const options: IEditorConfigurationExtra = {
       lineNumbers: false,
       readOnly: true,
       showCursorWhenSelecting: false,
@@ -212,6 +218,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
       // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
       extraKeys: { Tab: false },
+      scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
     }
 
     return (

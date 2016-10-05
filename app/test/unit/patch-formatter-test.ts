@@ -4,13 +4,13 @@ const expect = chai.expect
 import * as Path from 'path'
 import * as FS from 'fs'
 
-import { Repository } from '../src/models/repository'
-import { WorkingDirectoryFileChange, FileStatus } from '../src/models/status'
-import { DiffSelection, DiffSelectionType } from '../src/models/diff'
-import { createPatchForModifiedFile } from '../src/lib/patch-formatter'
-import { selectLinesInHunk, mergeSelections } from './diff-selection-helper'
-import { LocalGitOperations } from '../src/lib/local-git-operations'
-import { setupFixtureRepository } from './fixture-helper'
+import { Repository } from '../../src/models/repository'
+import { WorkingDirectoryFileChange, FileStatus } from '../../src/models/status'
+import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
+import { createPatchForModifiedFile } from '../../src/lib/patch-formatter'
+import { selectLinesInHunk, mergeSelections } from '../diff-selection-helper'
+import { LocalGitOperations } from '../../src/lib/local-git-operations'
+import { setupFixtureRepository } from '../fixture-helper'
 
 describe('patch formatting', () => {
   let repository: Repository | null = null

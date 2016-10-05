@@ -6,12 +6,12 @@ import * as path from 'path'
 const fs = require('fs-extra')
 const temp = require('temp').track()
 
-import { Repository } from '../src/models/repository'
-import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
-import { FileStatus, WorkingDirectoryFileChange } from '../src/models/status'
-import { DiffSelectionType, DiffSelection } from '../src/models/diff'
-import { selectLinesInHunk, mergeSelections } from './diff-selection-helper'
-import { setupFixtureRepository } from './fixture-helper'
+import { Repository } from '../../src/models/repository'
+import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operations'
+import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
+import { DiffSelectionType, DiffSelection } from '../../src/models/diff'
+import { selectLinesInHunk, mergeSelections } from '.././diff-selection-helper'
+import { setupFixtureRepository } from '../fixture-helper'
 
 describe('LocalGitOperations', () => {
   let repository: Repository | null = null
