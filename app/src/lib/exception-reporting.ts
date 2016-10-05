@@ -1,33 +1,40 @@
-import * as http from 'http'
+import * as https from 'https'
 import * as app from '../ui/lib/app'
 
 export function reportError(error: Error) {
   debugger
-  const options = {
-    host: 'https://central.github.com',
-    path: '/api/desktop/exception',
-    method: 'POST',
-  }
-
-  const payload = {
+  const payload = JSON.stringify({
     name: error.name,
     message: error.message,
     stack: error.stack,
     version: app.getVersion(),
+  })
+
+  const options = {
+    hostname: 'central.github.com',
+    path: '/api/desktop/exception',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(payload),
+    },
   }
-  console.log(payload)
 
-  const req = http.request(options, response => {
-    const result = ''
+  const req = https.request(options, response => {
+    let result = ''
 
-    response.on('data', chunk => {
+    response.on('data', (chunk: any) => {
       result += chunk
     })
 
     response.on('end', () => {
-      console.log(`Exception reported. Response: ${result}`)
+      if (response.statusCode !== 200) {
+        console.error(`Error reporting exception: ${response.statusMessage}`)
+      } else {
+        console.log(`Exception reported. Response: ${result}`)
+        console.log(response)
+      }
     })
   })
-  req.write(JSON.stringify(payload))
-  req.end()
+  req.end(payload)
 }
