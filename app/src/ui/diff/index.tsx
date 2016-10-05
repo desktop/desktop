@@ -2,11 +2,16 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Disposable } from 'event-kit'
 
+import { NewImageDiff } from './new-image-diff'
+import { ModifiedImageDiff } from './modified-image-diff'
+import { DeletedImageDiff } from './deleted-image-diff'
+
 import { Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
-import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
-import { Diff as DiffModel, DiffLine, DiffSelection, ImageDiff  } from '../../models/diff'
+
+import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
+import { DiffLine, Diff as DiffModel, DiffSelection } from '../../models/diff'
 
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
@@ -177,22 +182,20 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.restoreScrollPosition(cm)
   }
 
-  private renderImage(image: ImageDiff | undefined) {
-
-    if (!image) { return null }
-
-    const imageSource = `data:${image.mediaType};base64,${image.contents}`
-
-    return (<img src={imageSource} />)
-  }
-
   public render() {
 
-    if (this.props.diff.current || this.props.diff.previous) {
-      return (<div className='panel' id='diff'>
-        {this.renderImage(this.props.diff.current)}
-        {this.renderImage(this.props.diff.previous)}
-      </div>)
+    if (this.props.diff.current && this.props.diff.previous) {
+      return <ModifiedImageDiff
+                current={this.props.diff.current}
+                previous={this.props.diff.previous} />
+    }
+
+    if (this.props.diff.current && this.props.file.status === FileStatus.New) {
+      return <NewImageDiff current={this.props.diff.current} />
+    }
+
+    if (this.props.diff.previous && this.props.file.status === FileStatus.Deleted) {
+      return <DeletedImageDiff previous={this.props.diff.previous} />
     }
 
     let diffText = ''
