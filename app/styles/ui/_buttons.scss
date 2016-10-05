@@ -22,4 +22,6 @@ input[type='submit'] {
     outline: none;
     border-color: var(--focus-color);
   }
+
+  &:disabled { opacity: 0.3; }
 }
