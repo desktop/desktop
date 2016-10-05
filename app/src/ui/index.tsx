@@ -13,12 +13,18 @@ import { Repository } from '../models/repository'
 import { getDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
 import { showMainWindow } from './main-process-proxy'
+import { reportError } from '../lib/exception-reporting'
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
   * our sass into css and inject it into the DOM. */
   require('../../styles/desktop.scss')
 }
+
+process.on('uncaughtException', (error: Error) => {
+  reportError(error)
+  console.error(error)
+})
 
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
 const cloningRepositoriesStore = new CloningRepositoriesStore()

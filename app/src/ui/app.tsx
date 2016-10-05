@@ -54,6 +54,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       setMenuEnabled('rename-branch', haveBranch)
       setMenuEnabled('delete-branch', haveBranch)
+
+      const a: any = null
+      a!.fun()
     })
 
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
