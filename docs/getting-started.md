@@ -35,7 +35,7 @@ The OAuth secret is embedded in the app at build time using the `DESKTOP_OAUTH_C
 
 * Run `npm install` to get all required dependencies on your machine.
 * Run `npm run build:dev` to make a development build of the app.
-* Run `npm start` to launch the application. After it's successfully launched you can make changes which will be compiled in the background and these changes will either be hot-loaded into the app (if possible) or accessed by reloading the app (Ctrl/Command+R).
+* Run `npm start` to launch the application. Changes which will be compiled in the background. The app can then be reloaded to see the changes (Ctrl/Command+R).
 
 If you've made changes to the main-process you need to run `npm run rebuild:dev` and then `npm run start` for these changes to be reflected.
 
