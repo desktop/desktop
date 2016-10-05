@@ -28,7 +28,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   public render() {
     const disabled = this.state.path.length === 0 || this.state.isGitRepository == null
     return (
-      <div id='add-existing-repository' className='panel'>
+      <div id='add-existing-repository'>
         <div className='add-repo-form'>
           <label>Local Path</label>
 

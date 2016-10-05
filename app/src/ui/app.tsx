@@ -290,12 +290,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     const msgs = errors.map(e => e.message)
     return (
       <Popuppy>
-        <div className='popup-content'>
-          {msgs.map((msg, i) => <pre key={i}>{msg}</pre>)}
+        {msgs.map((msg, i) => <pre key={i}>{msg}</pre>)}
 
-          <div className='popup-actions'>
-            <button onClick={clearErrors}>OK</button>
-          </div>
+        <div className='popup-actions'>
+          <button onClick={clearErrors}>OK</button>
         </div>
       </Popuppy>
     )
