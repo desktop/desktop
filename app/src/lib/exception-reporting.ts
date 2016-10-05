@@ -1,6 +1,8 @@
 import * as request from 'request'
 import * as app from '../ui/lib/app'
 
+const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
+
 /** Report the error to Central. */
 export function reportError(error: Error) {
   const payload = {
@@ -15,7 +17,7 @@ export function reportError(error: Error) {
     json: true,
   }
 
-  request.post('https://central.github.com/api/desktop/exception', options, (error, response, body) => {
+  request.post(ErrorEndpoint, options, (error, response, body) => {
     if (error) {
       console.error('Error submitting exception report:')
       console.error(error)
