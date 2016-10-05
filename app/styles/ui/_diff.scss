@@ -10,7 +10,7 @@
 
 .CodeMirror {
   height: 100%;
-  color: var(--text-color);
+  color: #323232;
   font-size: var(--font-size-sm);
   font-family: var(--font-family-monospace);
 }
@@ -20,6 +20,10 @@
 
 .CodeMirror-line {
   display: flex;
+
+  & > span:last-child {
+    margin-left: var(--spacing-half);
+  }
 }
 
 .CodeMirror {
