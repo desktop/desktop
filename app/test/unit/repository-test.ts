@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { Repository } from '../src/models/repository'
+import { Repository } from '../../src/models/repository'
 
 describe('Repository', () => {
   describe('name', () => {

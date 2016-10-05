@@ -1,4 +1,5 @@
 import { User } from '../models/user'
+import { Diff } from '../models/diff'
 import { Repository } from '../models/repository'
 import { Commit, Branch } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
@@ -98,9 +99,12 @@ export interface IHistoryState {
   readonly history: ReadonlyArray<string>
 
   readonly changedFiles: ReadonlyArray<FileChange>
+
+  readonly diff: Diff | null
 }
 
 export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedFile: WorkingDirectoryFileChange | null
+  readonly diff: Diff | null
 }

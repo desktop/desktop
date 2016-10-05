@@ -8,12 +8,14 @@
   height: 34px;
   align-items: center;
 
+  border-bottom: var(--base-border);
+
   @include darwin {
     margin-top: calc(var(--spacing-double) * -1);
     z-index: calc(var(--popup-z-index) - 1);
   }
 
-  @include darwin-fullscreen {
+  @include in-fullscreen {
     margin-top: var(--spacing-double);
   }
 }
