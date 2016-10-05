@@ -1,8 +1,9 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-import * as CodeMirror from 'react-codemirror'
-import { Disposable, CompositeDisposable } from 'event-kit'
+import { Disposable } from 'event-kit'
 
+import { EditorConfiguration, Editor } from 'codemirror'
+import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelectionType, DiffLine, Diff as DiffModel, DiffLineType, DiffHunk } from '../../models/diff'
@@ -39,12 +40,6 @@ interface IDiffState {
 
 /** A component which renders a diff for a file. */
 export class Diff extends React.Component<IDiffProps, IDiffState> {
-  /**
-   * The disposable that should be disposed of when the instance is unmounted.
-   * This will be null when our CodeMirror instance hasn't been set up yet.
-   */
-  private codeMirrorDisposables: CompositeDisposable | null = null
-
   private codeMirror: any | null
 
   /**
@@ -53,6 +48,13 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
    * be null.
    */
   private scrollPositionToRestore: { left: number, top: number } | null = null
+
+  /**
+   * A mapping from CodeMirror line handles to disposables which, when disposed
+   * cleans up any line gutter components and events associated with that line.
+   * See renderLine for more information.
+   */
+  private readonly lineCleanup = new Map<any, Disposable>()
 
   public constructor(props: IDiffProps) {
     super(props)
@@ -69,13 +71,10 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
   }
 
   private dispose() {
-    const disposables = this.codeMirrorDisposables
-    if (disposables) {
-      disposables.dispose()
-    }
-
-    this.codeMirrorDisposables = null
     this.codeMirror = null
+
+    this.lineCleanup.forEach((disposable) => disposable.dispose())
+    this.lineCleanup.clear()
   }
 
   private async loadDiff(repository: Repository, file: FileChange | null, commit: Commit | null) {
@@ -175,7 +174,18 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
     this.props.onIncludeChanged(newDiffSelection)
   }
 
-  private renderLine = (instance: any, line: any, element: HTMLElement) => {
+  public renderLine = (instance: any, line: any, element: HTMLElement) => {
+
+    const existingLineDisposable = this.lineCleanup.get(line)
+
+    // If we can find the line in our cleanup list that means the line is
+    // being re-rendered. Agains, CodeMirror doesn't fire the 'delete' event
+    // when this happens.
+    if (existingLineDisposable) {
+      existingLineDisposable.dispose()
+      this.lineCleanup.delete(line)
+    }
+
     const index = instance.getLineNumber(line)
     const hunk = this.diffHunkForIndex(this.state.diff, index)
     if (hunk) {
@@ -190,38 +200,55 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
         reactContainer)
         element.insertBefore(reactContainer, diffLineElement)
 
+        // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
+        // the line delete event once we've been called once or the component has been
+        // unmounted. In the latter case it's _probably_ not strictly necessary since
+        // the only thing gc rooted by the event should be isolated and eligble for
+        // collection. But let's be extra cautious I guess.
+        //
+        // The only way to unsubscribe is to pass the exact same function given to the
+        // 'on' function to the 'off' so we need a reference to ourselves, basically.
+        let deleteHandler: () => void
+
+        // Since we manually render a react component we have to take care of unmounting
+        // it or else we'll leak memory. This disposable will unmount the component.
+        //
+        // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
+        const gutterCleanup = new Disposable(() => {
+          ReactDOM.unmountComponentAtNode(reactContainer)
+          line.off('delete', deleteHandler)
+        })
+
+        // Add the cleanup disposable to our list of disposables so that we clean up when
+        // this component is unmounted or when the line is re-rendered. When either of that
+        // happens the line 'delete' event doesn't  fire.
+        this.lineCleanup.set(line, gutterCleanup)
+
+        // If the line delete event fires we dispose of the disposable (disposing is
+        // idempotent)
+        deleteHandler = () => {
+          const disp = this.lineCleanup.get(line)
+          if (disp) {
+            this.lineCleanup.delete(line)
+            disp.dispose()
+          }
+        }
+        line.on('delete', deleteHandler)
+
         element.classList.add(this.getClassName(diffLine.type))
       }
     }
   }
 
-  private restoreScrollPosition = () => {
-    const codeMirror = this.codeMirror
+  private restoreScrollPosition(cm: Editor) {
     const scrollPosition = this.scrollPositionToRestore
-    if (codeMirror && scrollPosition) {
-      this.codeMirror.scrollTo(scrollPosition.left, scrollPosition.top)
+    if (cm && scrollPosition) {
+      cm.scrollTo(scrollPosition.left, scrollPosition.top)
     }
   }
 
-  private configureEditor(editor: any | null) {
-    if (!editor) { return }
-
-    const codeMirror: any | null = editor.getCodeMirror()
-    if (!codeMirror || codeMirror === this.codeMirror) { return }
-
-    this.dispose()
-    this.codeMirror = codeMirror
-
-    const disposables = new CompositeDisposable()
-    this.codeMirrorDisposables = disposables
-
-    codeMirror.on('renderLine', this.renderLine)
-    codeMirror.on('changes', this.restoreScrollPosition)
-
-    disposables.add(new Disposable(() => {
-      codeMirror.off('renderLine', this.renderLine)
-      codeMirror.off('changes', this.restoreScrollPosition)
-    }))
+  public onChanges = (cm: Editor) => {
+    this.restoreScrollPosition(cm)
   }
 
   public render() {
@@ -240,23 +267,26 @@ export class Diff extends React.Component<IDiffProps, IDiffState> {
       hunk.lines.forEach(l => diffText += l.text + '\r\n')
     })
 
-    const options = {
+    const options: EditorConfiguration = {
       lineNumbers: false,
       readOnly: true,
       showCursorWhenSelecting: false,
       cursorBlinkRate: -1,
-      styleActiveLine: false,
-      scrollbarStyle: 'native',
       lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
+      // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
+      extraKeys: { Tab: false },
     }
 
     return (
       <div className='panel' id='diff'>
-        <CodeMirror
+        <CodeMirrorHost
           className='diff-code-mirror'
           value={diffText}
           options={options}
-          ref={(ref: any | null) => this.configureEditor(ref)}/>
+          onChanges={this.onChanges}
+          onRenderLine={this.renderLine}
+          ref={(cmh) => { this.codeMirror = cmh === null ? null : cmh.getEditor() }}
+        />
       </div>
     )
   }

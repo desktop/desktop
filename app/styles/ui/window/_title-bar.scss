@@ -89,7 +89,7 @@
       // on hover and slightly lighter red on active.
       &.close:hover {
         background-color: #e81123;
-        fill: #fff;
+        color: #fff;
 
         &:active {
           background-color: #f1707a;
@@ -98,6 +98,9 @@
 
       svg {
         position: absolute;
+
+        /* https://css-tricks.com/cascading-svg-fill-color/ */
+        fill: currentColor;
 
         // These may seem arbitrary but in an uneven 45x29 box
         // this positions the 10x10 icons centered but rounded

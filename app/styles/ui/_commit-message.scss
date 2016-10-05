@@ -18,6 +18,8 @@
     .summary-field {
       flex: 1;
       margin-bottom: var(--spacing);
+
+      input { width: 100%; }
     }
 
     .avatar {

@@ -4,7 +4,6 @@ import { UiView } from './ui-view'
 import { Toolbar } from './toolbar'
 import { Changes } from './changes'
 import { History } from './history'
-import { ComparisonGraph } from './comparison-graph'
 import { ToolbarTab } from './toolbar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
@@ -42,14 +41,28 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
   public render() {
     const selectedTab = this.props.state.selectedSection === RepositorySection.History ? ToolbarTab.History : ToolbarTab.Changes
     return (
-      <UiView id='repository'>
+      <UiView id='repository' onKeyDown={(e) => this.onKeyDown(e)}>
         <Toolbar selectedTab={selectedTab}
                  onTabClicked={tab => this.onTabClicked(tab)}
                  hasChanges={this.props.state.changesState.workingDirectory.files.length > 0}/>
-        <ComparisonGraph/>
         {this.renderContent()}
       </UiView>
     )
+  }
+
+  private onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    // Toggle tab selection on Ctrl+Tab. Note that we don't care
+    // about the shift key here, we can get away with that as long
+    // as there's only two tabs.
+    if (e.ctrlKey && e.key === 'Tab') {
+
+      const section = this.props.state.selectedSection === RepositorySection.History
+        ? RepositorySection.Changes
+        : RepositorySection.History
+
+      this.props.dispatcher.changeRepositorySection(this.props.repository, section)
+      e.preventDefault()
+    }
   }
 
   private onTabClicked(tab: ToolbarTab) {

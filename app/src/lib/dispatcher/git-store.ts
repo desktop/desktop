@@ -43,6 +43,10 @@ export class GitStore {
     this.emitter.emit('did-load-new-commits', commits)
   }
 
+  private emitError(error: Error) {
+    this.emitter.emit('did-error', error)
+  }
+
   /** Register a function to be called when the store updates. */
   public onDidUpdate(fn: () => void): Disposable {
     return this.emitter.on('did-update', fn)
@@ -53,24 +57,38 @@ export class GitStore {
     return this.emitter.on('did-load-new-commits', fn)
   }
 
+  /** Register a function to be called when an error occurs. */
+  public onDidError(fn: (error: Error) => void): Disposable {
+    return this.emitter.on('did-error', fn)
+  }
+
   /** Load history from HEAD. */
   public async loadHistory() {
     if (this.requestsInFight.has(LoadingHistoryRequestKey)) { return }
 
     this.requestsInFight.add(LoadingHistoryRequestKey)
 
-    let commits = await LocalGitOperations.getHistory(this.repository, 'HEAD', CommitBatchSize)
+    let commits = await this.performFailableOperation(() => LocalGitOperations.getHistory(this.repository, 'HEAD', CommitBatchSize))
+    if (!commits) { return }
 
-    const existingHistory = this._history
+    let existingHistory = this._history
     if (existingHistory.length > 0) {
       const mostRecent = existingHistory[0]
       const index = commits.findIndex(c => c.sha === mostRecent)
+      // If we found the old HEAD, then we can just splice the new commits into
+      // the history we already loaded.
+      //
+      // But if we didn't, it means the history we had and the history we just
+      // loaded have diverged significantly or in some non-trivial way
+      // (e.g., HEAD reset). So just throw it out and we'll start over fresh.
       if (index > -1) {
         commits = commits.slice(0, index)
+      } else {
+        existingHistory = []
       }
     }
 
-    this._history = this._history.concat(commits.map(c => c.sha))
+    this._history = [ ...commits.map(c => c.sha), ...existingHistory ]
     for (const commit of commits) {
       this.commits.set(commit.sha, commit)
     }
@@ -93,7 +111,8 @@ export class GitStore {
 
     this.requestsInFight.add(requestKey)
 
-    const commits = await LocalGitOperations.getHistory(this.repository, `${lastSHA}^`, CommitBatchSize)
+    const commits = await this.performFailableOperation(() => LocalGitOperations.getHistory(this.repository, `${lastSHA}^`, CommitBatchSize))
+    if (!commits) { return }
 
     this._history = this._history.concat(commits.map(c => c.sha))
     for (const commit of commits) {
@@ -118,7 +137,7 @@ export class GitStore {
 
     this.requestsInFight.add(requestKey)
 
-    const commit = await LocalGitOperations.getCommit(this.repository, sha)
+    const commit = await this.performFailableOperation(() => LocalGitOperations.getCommit(this.repository, sha))
     if (!commit) { return }
 
     this.commits.set(commit.sha, commit)
@@ -134,7 +153,10 @@ export class GitStore {
 
   /** Load the current and default branches. */
   public async loadCurrentAndDefaultBranch() {
-    this._currentBranch = await LocalGitOperations.getCurrentBranch(this.repository)
+    const currentBranch = await this.performFailableOperation(() => LocalGitOperations.getCurrentBranch(this.repository))
+    if (!currentBranch) { return }
+
+    this._currentBranch = currentBranch
 
     let defaultBranchName: string | null = 'master'
     const gitHubRepository = this.repository.gitHubRepository
@@ -154,8 +176,15 @@ export class GitStore {
 
   /** Load all the branches. */
   public async loadBranches() {
-    const localBranches = await LocalGitOperations.getBranches(this.repository, 'refs/heads', BranchType.Local)
-    const remoteBranches = await LocalGitOperations.getBranches(this.repository, 'refs/remotes', BranchType.Remote)
+    let localBranches = await this.performFailableOperation(() => LocalGitOperations.getBranches(this.repository, 'refs/heads', BranchType.Local))
+    if (!localBranches) {
+      localBranches = []
+    }
+
+    let remoteBranches = await this.performFailableOperation(() => LocalGitOperations.getBranches(this.repository, 'refs/remotes', BranchType.Remote))
+    if (!remoteBranches) {
+      remoteBranches = []
+    }
 
     const upstreamBranchesAdded = new Set<string>()
     const allBranches = new Array<Branch>()
@@ -179,6 +208,8 @@ export class GitStore {
 
     this.emitUpdate()
 
+    this.loadRecentBranches()
+
     for (const branch of allBranches) {
       this.loadCommit(branch.sha)
     }
@@ -189,13 +220,13 @@ export class GitStore {
    * remote branches.
    */
   private async loadBranch(branchName: string): Promise<Branch | null> {
-    const localBranches = await LocalGitOperations.getBranches(this.repository, `refs/heads/${branchName}`, BranchType.Local)
-    if (localBranches.length) {
+    const localBranches = await this.performFailableOperation(() => LocalGitOperations.getBranches(this.repository, `refs/heads/${branchName}`, BranchType.Local))
+    if (localBranches && localBranches.length) {
       return localBranches[0]
     }
 
-    const remoteBranches = await LocalGitOperations.getBranches(this.repository, `refs/remotes/${branchName}`, BranchType.Remote)
-    if (remoteBranches.length) {
+    const remoteBranches = await this.performFailableOperation(() => LocalGitOperations.getBranches(this.repository, `refs/remotes/${branchName}`, BranchType.Remote))
+    if (remoteBranches && remoteBranches.length) {
       return remoteBranches[0]
     }
 
@@ -215,8 +246,28 @@ export class GitStore {
   public get recentBranches(): ReadonlyArray<Branch> { return this._recentBranches }
 
   /** Load the recent branches. */
-  public async loadRecentBranches() {
-    this._recentBranches = await LocalGitOperations.getRecentBranches(this.repository, this._allBranches, RecentBranchesLimit)
+  private async loadRecentBranches() {
+    const recentBranches = await this.performFailableOperation(() => LocalGitOperations.getRecentBranches(this.repository, this._allBranches, RecentBranchesLimit))
+    if (recentBranches) {
+      this._recentBranches = recentBranches
+    } else {
+      this._recentBranches = []
+    }
+
     this.emitUpdate()
+  }
+
+  /**
+   * Perform an operation that may fail by throwing an error. If an error is
+   * thrown, catch it and emit it, and return `undefined`.
+   */
+  public async performFailableOperation<T>(fn: () => Promise<T>): Promise<T | undefined> {
+    try {
+      const result = await fn()
+      return result
+    } catch (e) {
+      this.emitError(e)
+      return undefined
+    }
   }
 }
