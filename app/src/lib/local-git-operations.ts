@@ -749,7 +749,18 @@ async function git(args: string[], path: string, options?: IGitExecutionOptions)
 
   const opts = Object.assign({ }, defaultOptions, options)
 
+  const startTime = (performance && performance.now) ? performance.now() : null
+
   const result = await GitProcess.exec(args, path, options)
+
+  if (console.debug && startTime) {
+    const rawTime = performance.now() - startTime
+    if (rawTime > 50) {
+     const timeInSeconds = (rawTime / 1000).toFixed(3)
+     console.debug(`executing: git ${args.join(' ')} (took ${timeInSeconds}s)`)
+    }
+  }
+
   const exitCode = result.exitCode
 
   if (!opts.successExitCodes!.has(exitCode)) {
