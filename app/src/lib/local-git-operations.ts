@@ -8,7 +8,7 @@ import { Repository } from '../models/repository'
 import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDeletedFile } from './patch-formatter'
 import { DiffParser } from './diff-parser'
 
-import { GitProcess, GitError, GitErrorCode } from 'git-kitchen-sink'
+import { GitProcess, IGitResult, GitError as GitKitchenSinkError } from 'git-kitchen-sink'
 
 import { User } from '../models/user'
 
@@ -152,68 +152,40 @@ export class LocalGitOperations {
    *  Retrieve the status for a given repository,
    *  and fail gracefully if the location is not a Git repository
    */
-  public static getStatus(repository: Repository): Promise<StatusResult> {
-    return GitProcess.execWithOutput([ 'status', '--untracked-files=all', '--porcelain' ], repository.path)
-        .then(output => {
-            const lines = output.split('\n')
+  public static async getStatus(repository: Repository): Promise<StatusResult> {
+    const result = await git([ 'status', '--untracked-files=all', '--porcelain' ], repository.path)
+    const output = result.stdout
+    const lines = output.split('\n')
 
-            const regex = /([\? \w]{2}) (.*)/
-            const regexGroups = { mode: 1, path: 2 }
+    const regex = /([\? \w]{2}) (.*)/
+    const regexGroups = { mode: 1, path: 2 }
 
-            const files = new Array<WorkingDirectoryFileChange>()
+    const files = new Array<WorkingDirectoryFileChange>()
 
-            for (const index in lines) {
-              const line = lines[index]
-              const result = regex.exec(line)
+    for (const index in lines) {
+      const line = lines[index]
+      const result = regex.exec(line)
 
-              if (result) {
-                const modeText = result[regexGroups.mode]
-                const path = result[regexGroups.path]
+      if (result) {
+        const modeText = result[regexGroups.mode]
+        const path = result[regexGroups.path]
 
-                const status = this.mapStatus(modeText)
-                const diffSelection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
-                files.push(new WorkingDirectoryFileChange(path, status, diffSelection))
-              }
-            }
+        const status = this.mapStatus(modeText)
+        const diffSelection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
+        files.push(new WorkingDirectoryFileChange(path, status, diffSelection))
+      }
+    }
 
-            return StatusResult.FromStatus(new WorkingDirectoryStatus(files, true))
-        })
-        .catch(error => {
-          if (error) {
-            const gitError = error as GitError
-            if (gitError) {
-              const code = gitError.errorCode
-              if (code === GitErrorCode.NotFound) {
-                return StatusResult.NotFound()
-              }
-              throw new Error('unable to resolve HEAD, got error code: ' + code)
-            }
-          }
-
-          throw new Error('unable to resolve status, got unknown error: ' + error)
-        })
+    return StatusResult.FromStatus(new WorkingDirectoryStatus(files, true))
   }
 
   private static async resolveHEAD(repository: Repository): Promise<boolean> {
-    return GitProcess.execWithOutput([ 'show', 'HEAD' ], repository.path)
-      .then(output => {
-        return Promise.resolve(true)
-      })
-      .catch(error => {
-        if (error) {
-
-          const gitError = error as GitError
-          if (gitError) {
-              const code = gitError.errorCode
-              if (code === GitErrorCode.NotFound) {
-                return Promise.resolve(false)
-              }
-              throw new Error('unable to resolve HEAD, got error code: ' + code)
-            }
-         }
-
-        throw new Error('unable to resolve HEAD, got unknown error: ' + error)
-      })
+    const result = await git([ 'show', 'HEAD' ], repository.path)
+    if (result.exitCode === 0) {
+      return true
+    } else {
+      return false
+    }
   }
 
   private static addFileToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
@@ -225,7 +197,7 @@ export class LocalGitOperations {
       addFileArgs = [ 'add', '-u', file.path ]
     }
 
-    return GitProcess.exec(addFileArgs, repository.path)
+    return git(addFileArgs, repository.path)
   }
 
   private static async applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
@@ -242,17 +214,17 @@ export class LocalGitOperations {
 
     if (file.status === FileStatus.New) {
       const input = await createPatchForNewFile(file, diff)
-      return GitProcess.exec(applyArgs, repository.path, {}, write(input))
+      await git(applyArgs, repository.path, {}, undefined, write(input))
     }
 
     if (file.status === FileStatus.Modified) {
       const patch = await createPatchForModifiedFile(file, diff)
-      return GitProcess.exec(applyArgs, repository.path, {}, write(patch))
+      await git(applyArgs, repository.path, {}, undefined, write(patch))
     }
 
     if (file.status === FileStatus.Deleted) {
       const patch = await createPatchForDeletedFile(file, diff)
-      return GitProcess.exec(applyArgs, repository.path, {}, write(patch))
+      await git(applyArgs, repository.path, {}, undefined, write(patch))
     }
 
     return Promise.resolve()
@@ -270,7 +242,7 @@ export class LocalGitOperations {
       })
       .then(resetArgs => {
         // reset the index
-        return GitProcess.exec(resetArgs, repository.path)
+        return git(resetArgs, repository.path)
           .then(_ => {
             // TODO: pipe standard input into this command
             return this.stageFiles(repository, files)
@@ -280,13 +252,10 @@ export class LocalGitOperations {
                   message = `${summary}\n\n${description}`
                 }
 
-                return GitProcess.exec([ 'commit', '-m',  message ] , repository.path)
+                return git([ 'commit', '-m',  message ] , repository.path)
               })
           })
         })
-      .catch(error => {
-        console.error('createCommit failed: ' + error)
-      })
   }
 
   /**
@@ -310,8 +279,18 @@ export class LocalGitOperations {
    * working directory state will be used.
    */
   public static getDiff(repository: Repository, file: FileChange, commit: Commit | null): Promise<Diff> {
-
     let args: string[]
+    // `git diff` seems to emulate the exit codes from `diff` irrespective of
+    // whether you set --exit-code
+    //
+    // this is the behaviour:
+    // - 0 if no changes found
+    // - 1 if changes found
+    // -   and error otherwise
+    //
+    // citation in source:
+    // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
+    const successExitCodes = new Set([ 0, 1 ])
 
     if (commit) {
       args = [ 'log', commit.sha, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
@@ -321,9 +300,10 @@ export class LocalGitOperations {
       args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
     }
 
-    return GitProcess.execWithOutput(args, repository.path)
+    return git(args, repository.path, {}, successExitCodes)
       .then(result => {
-        const pieces = result.split('\0')
+        const output = result.stdout
+        const pieces = output.split('\0')
         const parser = new DiffParser()
         return parser.parse(pieces[pieces.length - 1])
       })
@@ -344,7 +324,8 @@ export class LocalGitOperations {
       '%aI', // author date, ISO-8601
     ].join(`%x${delimiter}`)
 
-    const out = await GitProcess.execWithOutput([ 'log', start, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
+    const result = await git([ 'log', start, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
+    const out = result.stdout
     const lines = out.split('\0')
     // Remove the trailing empty line
     lines.splice(-1, 1)
@@ -366,7 +347,8 @@ export class LocalGitOperations {
 
   /** Get the files that were changed in the given commit. */
   public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
-    const out = await GitProcess.execWithOutput([ 'log', sha, '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z' ], repository.path)
+    const result = await git([ 'log', sha, '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z' ], repository.path)
+    const out = result.stdout
     const lines = out.split('\0')
     // Remove the trailing empty line
     lines.splice(-1, 1)
@@ -384,19 +366,13 @@ export class LocalGitOperations {
 
   /** Look up a config value by name in the repository. */
   public static async getConfigValue(repository: Repository, name: string): Promise<string | null> {
-    let output: string | null = null
-    try {
-      output = await GitProcess.execWithOutput([ 'config', '-z', name ], repository.path)
-    } catch (e) {
-      // Git exits with 1 if the value isn't found. That's ok, but we'd rather
-      // just treat it as null.
-      if (e.code !== 1) {
-        throw e
-      }
+    const result = await git([ 'config', '-z', name ], repository.path, undefined, new Set([ 0, 1 ]))
+    // Git exits with 1 if the value isn't found. That's OK.
+    if (result.exitCode === 1) {
+      return null
     }
 
-    if (!output) { return null }
-
+    const output = result.stdout
     const pieces = output.split('\0')
     return pieces[0]
   }
@@ -425,7 +401,7 @@ export class LocalGitOperations {
 
   /** Pull from the remote to the branch. */
   public static pull(repository: Repository, user: User | null, remote: string, branch: string): Promise<void> {
-    return GitProcess.exec([ 'pull', remote, branch ], repository.path, LocalGitOperations.envForAuthentication(user))
+    return git([ 'pull', remote, branch ], repository.path, LocalGitOperations.envForAuthentication(user))
   }
 
   /** Push from the remote to the branch, optionally setting the upstream. */
@@ -435,12 +411,13 @@ export class LocalGitOperations {
       args.push('--set-upstream')
     }
 
-    return GitProcess.exec(args, repository.path, LocalGitOperations.envForAuthentication(user))
+    return git(args, repository.path, LocalGitOperations.envForAuthentication(user))
   }
 
   /** Get the remote names. */
   private static async getRemotes(repository: Repository): Promise<ReadonlyArray<string>> {
-    const lines = await GitProcess.execWithOutput([ 'remote' ], repository.path)
+    const result = await git([ 'remote' ], repository.path)
+    const lines = result.stdout
     return lines.split('\n')
   }
 
@@ -461,45 +438,48 @@ export class LocalGitOperations {
 
   /** Get the name of the current branch. */
   public static async getCurrentBranch(repository: Repository): Promise<Branch | null> {
-    try {
-      const untrimmedName = await GitProcess.execWithOutput([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path)
-      let name = untrimmedName.trim()
-      // New branches have a `heads/` prefix.
-      name = name.replace(/^heads\//, '')
-
-      const format = [
-        '%(upstream:short)',
-        '%(objectname)', // SHA
-      ].join('%00')
-
-      const line = await GitProcess.execWithOutput([ 'for-each-ref', `--format=${format}`, `refs/heads/${name}` ], repository.path)
-      const pieces = line.split('\0')
-      const upstream = pieces[0]
-      const sha = pieces[1].trim()
-      return new Branch(name, upstream.length > 0 ? upstream : null, sha, BranchType.Local)
-    } catch (e) {
+    const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, undefined, new Set([ 0, 1 ]))
+    if (revParseResult.exitCode === 1) {
       // Git exits with 1 if there's the branch is unborn. We should do more
       // specific error parsing than this, but for now it'll do.
-      if (e.code !== 1) {
-        throw e
-      }
       return null
     }
+
+    const untrimmedName = revParseResult.stdout
+    let name = untrimmedName.trim()
+    // New branches have a `heads/` prefix.
+    name = name.replace(/^heads\//, '')
+
+    const format = [
+      '%(upstream:short)',
+      '%(objectname)', // SHA
+    ].join('%00')
+
+    const refResult = await git([ 'for-each-ref', `--format=${format}`, `refs/heads/${name}` ], repository.path)
+    const line = refResult.stdout
+
+    const pieces = line.split('\0')
+    if (pieces.length !== 2) {
+      // this is a detached HEAD case, and we're not currently on a branch
+      return null
+    }
+
+    const upstream = pieces[0]
+    const sha = pieces[1].trim()
+    return new Branch(name, upstream.length > 0 ? upstream : null, sha, BranchType.Local)
   }
 
   /** Get the number of commits in HEAD. */
   public static async getCommitCount(repository: Repository): Promise<number> {
-    try {
-      const count = await GitProcess.execWithOutput([ 'rev-list', '--count', 'HEAD' ], repository.path)
-      return parseInt(count.trim(), 10)
-    } catch (e) {
-      // Git exits with 1 if there's the branch is unborn. We should do more
-      // specific error parsing than this, but for now it'll do.
-      if (e.code !== 1) {
-        throw e
-      }
+    const result = await git([ 'rev-list', '--count', 'HEAD' ], repository.path, undefined, new Set([ 0, 1 ]))
+    // Git exits with 1 if there's the branch is unborn. We should do more
+    // specific error parsing than this, but for now it'll do.
+    if (result.exitCode === 1) {
       return 0
     }
+
+    const count = result.stdout
+    return parseInt(count.trim(), 10)
   }
 
   /** Get all the branches. */
@@ -509,7 +489,8 @@ export class LocalGitOperations {
       '%(upstream:short)',
       '%(objectname)', // SHA
     ].join('%00')
-    const names = await GitProcess.execWithOutput([ 'for-each-ref', `--format=${format}`, prefix ], repository.path)
+    const result = await git([ 'for-each-ref', `--format=${format}`, prefix ], repository.path)
+    const names = result.stdout
     const lines = names.split('\n')
 
     // Remove the trailing newline
@@ -528,12 +509,12 @@ export class LocalGitOperations {
 
   /** Create a new branch from the given start point. */
   public static createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
-    return GitProcess.exec([ 'branch', name, startPoint ], repository.path)
+    return git([ 'branch', name, startPoint ], repository.path)
   }
 
   /** Check out the given branch. */
   public static checkoutBranch(repository: Repository, name: string): Promise<void> {
-    return GitProcess.exec([ 'checkout', name, '--' ], repository.path)
+    return git([ 'checkout', name, '--' ], repository.path)
   }
 
   /** Get the `limit` most recently checked out branches. */
@@ -544,7 +525,8 @@ export class LocalGitOperations {
     // but by using log we can give it a max number which should prevent us from balling out
     // of control when there's ginormous reflogs around (as in e.g. github/github).
     const regex = new RegExp(/.*? checkout: moving from .*? to (.*?)$/i)
-    const output = await GitProcess.execWithOutput([ 'log', '-g', '--abbrev-commit', '--pretty=oneline', 'HEAD', '-n', '2500' ], repository.path)
+    const result = await git([ 'log', '-g', '--abbrev-commit', '--pretty=oneline', 'HEAD', '-n', '2500' ], repository.path)
+    const output = result.stdout
     const lines = output.split('\n')
     const names = new Set<string>()
     for (const line of lines) {
@@ -583,13 +565,16 @@ export class LocalGitOperations {
 
   /** Get the git dir of the path. */
   public static async getGitDir(path: string): Promise<string | null> {
-    try {
-      const gitDir = await GitProcess.execWithOutput([ 'rev-parse', '--git-dir' ], path)
-      const trimmedDir = gitDir.trim()
-      return Path.join(path, trimmedDir)
-    } catch (e) {
+    const result = await git([ 'rev-parse', '--git-dir' ], path, undefined, new Set([ 0, 128 ]))
+    // Exit code 128 means it was run in a directory that's not a git
+    // repository.
+    if (result.exitCode === 128) {
       return null
     }
+
+    const gitDir = result.stdout
+    const trimmedDir = gitDir.trim()
+    return Path.join(path, trimmedDir)
   }
 
   /** Is the path a git repository? */
@@ -600,13 +585,13 @@ export class LocalGitOperations {
 
   /** Init a new git repository in the given path. */
   public static initGitRepository(path: string): Promise<void> {
-    return GitProcess.exec([ 'init' ], path)
+    return git([ 'init' ], path)
   }
 
   /** Clone the repository to the path. */
   public static clone(url: string, path: string, user: User | null, progress: (progress: string) => void): Promise<void> {
     const env = LocalGitOperations.envForAuthentication(user)
-    return GitProcess.exec([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, env, process => {
+    return git([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, env, undefined, process => {
       byline(process.stderr).on('data', (chunk: string) => {
         progress(chunk)
       })
@@ -615,7 +600,7 @@ export class LocalGitOperations {
 
   /** Rename the given branch to a new name. */
   public static renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
-    return GitProcess.exec([ 'branch', '-m', branch.nameWithoutRemote, newName ], repository.path)
+    return git([ 'branch', '-m', branch.nameWithoutRemote, newName ], repository.path)
   }
 
   /**
@@ -624,26 +609,106 @@ export class LocalGitOperations {
    */
   public static async deleteBranch(repository: Repository, branch: Branch): Promise<void> {
     const deleteRemoteBranch = (branch: Branch, remote: string) => {
-      return GitProcess.exec([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path)
+      return git([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path)
     }
 
     if (branch.type === BranchType.Local) {
-      await GitProcess.exec([ 'branch', '-D', branch.name ], repository.path)
+      await git([ 'branch', '-D', branch.name ], repository.path)
     }
 
     const remote = branch.remote
     if (remote) {
-      return deleteRemoteBranch(branch, remote)
+      await deleteRemoteBranch(branch, remote)
     }
   }
 
   /** Add a new remote with the given URL. */
   public static addRemote(path: string, name: string, url: string): Promise<void> {
-    return GitProcess.exec([ 'remote', 'add', name, url ], path)
+    return git([ 'remote', 'add', name, url ], path)
   }
 
   /** Check out the paths at HEAD. */
   public static checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
-    return GitProcess.exec([ 'checkout', '--', ...paths ], repository.path)
+    return git([ 'checkout', '--', ...paths ], repository.path)
   }
+}
+
+export class GitError {
+  /** The result from the failed command. */
+  public readonly result: IGitResult
+
+  /** The args for the failed command. */
+  public readonly args: ReadonlyArray<string>
+
+  /**
+   * The error as parsed by git-kitchen-sink. May be null if it wasn't able to
+   * determine the error.
+   */
+  public readonly parsedError: GitKitchenSinkError | null
+
+  public constructor(result: IGitResult, args: ReadonlyArray<string>, parsedError: GitKitchenSinkError | null) {
+    this.result = result
+    this.args = args
+    this.parsedError = parsedError
+  }
+
+  public get message(): string {
+    const parsedError = this.parsedError
+    if (parsedError) {
+      return `Error ${parsedError}`
+    }
+
+    if (this.result.stderr.length) {
+      return this.result.stderr
+    } else if (this.result.stdout.length) {
+      return this.result.stdout
+    } else {
+      return `Unknown error`
+    }
+  }
+}
+
+/**
+ * Shell out to git with the given arguments, at the given path.
+ *
+ * @param {args}             The arguments to pass to `git`.
+ * @param {path}             The working directory path for the execution of the
+ *                           command.
+ * @param {customEnv}        Custom environment variables to use when launching
+ *                           git.
+ * @param {successExitCodes} The exit codes which indicate success to the
+ *                           caller. Unexpected exit codes will be logged and an
+ *                           error thrown. Defaults to 0 if undefined.
+ * @param {processCb}        A callback which will pass in the ChildProcess,
+ *                           giving the caller a chance to customize it further.
+ *
+ * Returns the result. If the command exits with a code not in
+ * `successExitCodes` a `GitError` will be thrown.
+ */
+async function git(args: string[], path: string, customEnv?: Object, successExitCodes: Set<number> = new Set([ 0 ]), processCb?: (process: ChildProcess.ChildProcess) => void): Promise<IGitResult> {
+  const result = await GitProcess.execWithOutput(args, path, customEnv, processCb)
+  const exitCode = result.exitCode
+  if (!successExitCodes.has(exitCode)) {
+    console.error(`The command \`${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
+    if (result.stdout.length) {
+      console.error(result.stdout)
+    }
+
+    if (result.stderr.length) {
+      console.error(result.stderr)
+    }
+
+    let gitError = GitProcess.parseError(result.stderr)
+    if (!gitError) {
+      gitError = GitProcess.parseError(result.stdout)
+    }
+
+    if (gitError) {
+      console.error(`(The error was parsed as ${gitError}.)`)
+    }
+
+    throw new GitError(result, args, gitError)
+  }
+
+  return result
 }
