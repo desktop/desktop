@@ -6,12 +6,12 @@ import * as path from 'path'
 const fs = require('fs-extra')
 const temp = require('temp').track()
 
-import { Repository } from '../src/models/repository'
-import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
-import { FileStatus, FileChange, WorkingDirectoryFileChange } from '../src/models/status'
-import { DiffSelectionType, DiffSelection } from '../src/models/diff'
-import { selectLinesInHunk, mergeSelections } from './diff-selection-helper'
-import { setupFixtureRepository } from './fixture-helper'
+import { Repository } from '../../src/models/repository'
+import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operations'
+import { FileStatus, FileChange, WorkingDirectoryFileChange } from '../../src/models/status'
+import { DiffSelectionType, DiffSelection } from '../../src/models/diff'
+import { selectLinesInHunk, mergeSelections } from '.././diff-selection-helper'
+import { setupFixtureRepository } from '../fixture-helper'
 
 describe('LocalGitOperations', () => {
   let repository: Repository | null = null
@@ -359,7 +359,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('should return false for a directory', async () => {
-      const result = await LocalGitOperations.isGitRepository(path.basename(repository!.path))
+      const result = await LocalGitOperations.isGitRepository(path.dirname(repository!.path))
       expect(result).to.equal(false)
     })
   })
@@ -371,7 +371,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('should return null for a directory', async () => {
-      const result = await LocalGitOperations.getGitDir(path.basename(repository!.path))
+      const result = await LocalGitOperations.getGitDir(path.dirname(repository!.path))
       expect(result).to.equal(null)
     })
   })

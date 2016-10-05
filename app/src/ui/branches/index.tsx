@@ -97,7 +97,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
     const branchItems = groupedAndFilteredBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches, this.state.filter)
     return (
-      <div id='branches' className='panel'>
+      <div id='branches' className='popup-content'>
         <input className='branch-filter-input'
                type='search'
                autoFocus={true}
@@ -105,7 +105,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
                onChange={event => this.onFilterChanged(event)}
                onKeyDown={event => this.onKeyDown(branchItems, event)}/>
 
-        <div className='panel popup-content-container branches-list-container'>
+        <div className='popup-content-container branches-list-container'>
           <List rowCount={branchItems.length}
                 rowRenderer={row => this.renderRow(branchItems, row)}
                 rowHeight={RowHeight}
