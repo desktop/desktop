@@ -19,7 +19,7 @@ module.exports = {
     loaders: [
       {
         test: /\.tsx?$/,
-        loaders: ['babel?cacheDirectory', 'ts'],
+        loaders: ['ts'],
         include: path.join(__dirname, 'src')
       },
       {
