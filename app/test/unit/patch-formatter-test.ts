@@ -40,7 +40,7 @@ describe('patch formatting', () => {
 
       expect(patch).to.have.string('--- a/modified-file.md\n')
       expect(patch).to.have.string('+++ b/modified-file.md\n')
-      expect(patch).to.have.string('@@ -4,10 +4,6 @@ ')
+      expect(patch).to.have.string('@@ -4,10 +4,6 @@')
     })
 
     it('creates right patch when second hunk is selected', async () => {
