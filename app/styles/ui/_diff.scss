@@ -72,11 +72,11 @@ pre.diff-delete {
 }
 
 pre.diff-context {
-  background: var(--diff-context-background-color);
+  background: var(--diff-background-color);
   padding: 0;
 
   .diff-line-number {
-    border-color: var(--diff-context-border-color);
+    border-color: var(--diff-border-color);
   }
 }
 
