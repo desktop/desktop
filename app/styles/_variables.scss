@@ -153,7 +153,7 @@
    */
 
   --diff-border-color: #e5e5e5;
-  --diff-line-number-color: $gray;
+  --diff-line-number-color: #84929c;
   --diff-line-number-column-width: 50px;
 
   --diff-selected-background-color: #5A93E0;
@@ -170,7 +170,7 @@
 
   --diff-hunk-background-color: #f8f8ff;
   --diff-hunk-border-color: #e4e4fe;
-  --diff-hunk-text-color: $gray;
+  --diff-hunk-text-color: var(--diff-line-number-color);
 
   --diff-hover-background-color: #96b8ec;
   --diff-hover-border-color: #89a9dc;

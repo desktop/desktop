@@ -82,6 +82,7 @@ pre.diff-context {
 
 pre.diff-hunk {
   background: var(--diff-hunk-background-color);
+  color: var(--diff-hunk-text-color);
   padding: 0;
 
   .diff-line-number {
