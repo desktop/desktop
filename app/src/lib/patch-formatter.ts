@@ -99,7 +99,6 @@ export function createPatch(file: WorkingDirectoryFileChange, diff: Diff): strin
 
   diff.hunks.forEach((hunk, hunkIndex) => {
 
-
     let hunkBuf = ''
 
     const oldStart = hunk.header.oldStartLine
