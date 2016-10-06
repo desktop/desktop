@@ -11,7 +11,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusEntry
   let field: string | undefined
 
   while ((field = fields.shift())) {
-    const statusCode = field.substr(0, 3)
+    const statusCode = field.substr(0, 2)
     const path = field.substr(3)
 
     let oldPath: string | undefined = undefined
