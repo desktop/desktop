@@ -81,8 +81,8 @@ export class AppWindow {
     })
 
     // TODO: This should be scoped by the window.
-    ipcMain.on('renderer-ready', (event: Electron.IpcMainEvent, time: number) => {
-      this._rendererReadyTime = time
+    ipcMain.on('renderer-ready', (event: Electron.IpcMainEvent, readyTime: number) => {
+      this._rendererReadyTime = readyTime
 
       this.maybeEmitDidLoad()
     })
