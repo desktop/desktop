@@ -13,7 +13,7 @@ let sharedProcess: SharedProcess | null = null
 
 const launchTime = Date.now()
 
-let mainReadyTime: number | null = null
+let readyTime: number | null = null
 
 process.on('uncaughtException', (error: Error) => {
   if (sharedProcess) {
@@ -52,7 +52,7 @@ if (shouldQuit) {
 
 app.on('ready', () => {
   const now = Date.now()
-  mainReadyTime = now - launchTime
+  readyTime = now - launchTime
 
   app.setAsDefaultProtocolClient('x-github-client')
   // Also support Desktop Classic's protocols.
@@ -157,7 +157,7 @@ function createWindow() {
   window.onDidLoad(() => {
     window.show()
     window.sendLaunchTimingStats({
-      mainReadyTime: mainReadyTime!,
+      mainReadyTime: readyTime!,
       loadTime: window.loadTime!,
       rendererReadyTime: window.rendererReadyTime!,
     })
