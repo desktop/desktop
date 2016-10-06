@@ -97,15 +97,15 @@ function formatHunkHeader(
 export function createPatch(file: WorkingDirectoryFileChange, diff: Diff): string {
   let patch = ''
 
-  const isNew = file.status === FileStatus.New
-
   diff.hunks.forEach((hunk, hunkIndex) => {
 
 
     let hunkBuf = ''
-    const oldStart = isNew ? 0 : hunk.header.oldStartLine
+
+    const oldStart = hunk.header.oldStartLine
+    const newStart = hunk.header.newStartLine
+
     let oldCount = 0
-    const newStart = isNew ? 0 : hunk.header.newStartLine
     let newCount = 0
 
     let anyAdditionsOrDeletions = false
