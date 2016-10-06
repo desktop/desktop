@@ -299,7 +299,7 @@ export class LocalGitOperations {
 
     const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
 
-    return GitProcess.exec(args, repository.path)
+    return git(args, repository.path)
       .then(this.diffFromRawDiffOutput)
   }
 
