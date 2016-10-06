@@ -85,12 +85,11 @@ function formatHunkHeader(
 }
 
 // Lower and upper inclusive
-function anyLinesSelectedInRange(selection: DiffSelection, rangeStart: number, rangeEnd: number) {
-  for (let i = rangeStart; i <= rangeEnd; i++) {
-    if (selection.isSelected(i)) { return true }
-  }
-
-  return false
+function anyLinesSelectedInHunk(selection: DiffSelection, hunk: DiffHunk) {
+  return hunk.lines.some((line, index) => {
+    if (line.type === DiffLineType.Context || line.type === DiffLineType.Hunk) { return false }
+    return selection.isSelected(hunk.unifiedDiffStart + index)
+  })
 }
 
 export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): string {
@@ -106,7 +105,7 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
     let patchBody = ''
 
     // don't generate a patch if no lines are selected
-    if (!anyLinesSelectedInRange(selection, hunk.unifiedDiffStart, hunk.unifiedDiffEnd)) {
+    if (!anyLinesSelectedInHunk(selection, hunk)) {
       return
     }
 
