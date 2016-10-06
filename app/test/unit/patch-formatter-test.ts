@@ -7,9 +7,15 @@ import * as FS from 'fs'
 import { Repository } from '../../src/models/repository'
 import { WorkingDirectoryFileChange, FileStatus } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
+import { DiffParser } from '../../src/lib/diff-parser'
 import { createPatch } from '../../src/lib/patch-formatter'
 import { LocalGitOperations } from '../../src/lib/local-git-operations'
 import { setupFixtureRepository } from '../fixture-helper'
+
+function parseDiff(diff: string) {
+  const parser = new DiffParser()
+  return parser.parse(diff)
+}
 
 describe('patch formatting', () => {
   let repository: Repository | null = null
@@ -147,6 +153,35 @@ describe('patch formatting', () => {
 +line 1
 `
       expect(patch).to.equal(expectedPatch)
+    })
+
+    it('doesn\'t include unselected added lines as context', () => {
+      const rawDiff = `--- a/file.md
++++ b/file.md
+@@ -10,2 +10,4 @@
+ context
++added line 1
++added line 2
+ context
+`
+
+      const diff = parseDiff(rawDiff)
+
+      // Select the second added line
+      const selection = DiffSelection
+        .fromInitialSelection(DiffSelectionType.None)
+        .withLineSelection(3, true)
+
+      const file = new WorkingDirectoryFileChange('file.md', FileStatus.Modified, selection)
+      const patch = createPatch(file, diff)
+
+      expect(patch).to.equal(`--- a/file.md
++++ b/file.md
+@@ -10,2 +10,3 @@
+ context
++added line 2
+ context
+`)
     })
   })
 })
