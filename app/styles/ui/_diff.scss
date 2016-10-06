@@ -45,19 +45,12 @@
 }
 
 .diff-line-number {
+  border-right: 1px solid #EEE;
   display: inline-block;
   color: var(--diff-line-number-color);
   width: var(--diff-line-number-column-width);
   padding: var(--spacing-third) var(--spacing-half);
   text-align: right;
-
-  &.before {
-    border-right: 1px solid var(--diff-border-color);
-  }
-
-  &.after {
-    border-right: 3px solid var(--diff-border-color);
-  }
 }
 
 pre.diff-add {
