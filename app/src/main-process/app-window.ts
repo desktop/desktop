@@ -151,6 +151,10 @@ export class AppWindow {
     this.window.on('closed', fn)
   }
 
+  /**
+   * Register a function to call when the window is done loading. At that point
+   * the page has loaded and the renderer has signalled that it is ready. 
+   */
   public onDidLoad(fn: (loadTime: number) => void): Disposable {
     return this.emitter.on('did-load', fn)
   }
@@ -187,10 +191,21 @@ export class AppWindow {
     this.window.webContents.send('launch-timing-stats', { stats })
   }
 
+  /**
+   * Get the time (in milliseconds) spent loading the page.
+   *
+   * This will be `null` until `onDidLoad` is called.
+   */
   public get loadTime(): number | null {
     return this._loadTime
   }
 
+  /**
+   * Get the time (in milliseconds) elapsed from the renderer being loaded to it
+   * signaling it was ready.
+   *
+   * This will be `null` until `onDidLoad` is called.
+   */
   public get rendererReadyTime(): number | null {
     return this._rendererReadyTime
   }
