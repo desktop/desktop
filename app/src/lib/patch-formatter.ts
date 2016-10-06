@@ -114,24 +114,46 @@ export function createPatch(file: WorkingDirectoryFileChange, diff: Diff): strin
 
       if (line.type === DiffLineType.Hunk) { return }
 
-      if (line.type === DiffLineType.Context) {
-        if (!isNew) {
-          hunkBuf += `${line.text}\n`
-          oldCount++
-          newCount++
-        }
-      } else {
-        if (file.selection.isSelected(absoluteIndex)) {
-          anyAdditionsOrDeletions = true
-          hunkBuf += `${line.text}\n`
-          if (line.type === DiffLineType.Add) { newCount++ }
-          if (line.type === DiffLineType.Delete) { oldCount++ }
-        } else if (!isNew) {
-          hunkBuf += ` ${line.text.substr(1)}\n`
-          oldCount++
-          newCount++
-          contextLines++
-        }
+      // Context lines can always be let through, they will
+      // never appear for new files.
+      else if (line.type === DiffLineType.Context) {
+
+        hunkBuf += `${line.text}\n`
+        oldCount++
+        newCount++
+      }
+
+      // A line selected for inclusion. At this point we
+      // know that line.type can only be Add or Delete
+      else if (file.selection.isSelected(absoluteIndex)) {
+
+        // Use the line as-is
+        hunkBuf += `${line.text}\n`
+
+        if (line.type === DiffLineType.Add) { newCount++ }
+        if (line.type === DiffLineType.Delete) { oldCount++ }
+
+        anyAdditionsOrDeletions = true
+      }
+
+      // Unselected lines in new files needs to be ignored. A new file by
+      // definition only consists of additions and therefore so will the
+      // partial patch. If the user has elected not to commit a particular
+      // addition we need to generate a patch that pretends that the line
+      // never existed.
+      else if (file.status === FileStatus.New) { return }
+
+      // An unselected added line has no impact on this patch, pretend
+      // it was never added to the old file by dropping it.
+      else if (line.type === DiffLineType.Add) { return }
+
+      // An unselected deleted line has never happened as far as this patch
+      // is concerned which means that we should treat it as if it's still
+      // in the old file so we'll convert it to a context line.
+      else if (line.type === DiffLineType.Delete) {
+        hunkBuf += ` ${line.text.substr(1)}\n`
+        oldCount++
+        newCount++
       }
     })
 
