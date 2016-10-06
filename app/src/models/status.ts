@@ -53,7 +53,7 @@ export class WorkingDirectoryFileChange extends FileChange {
 
   /** Create a new WorkingDirectoryFileChange with the given diff selection. */
   public withSelection(selection: DiffSelection): WorkingDirectoryFileChange {
-    return new WorkingDirectoryFileChange(this.path, this.status, selection)
+    return new WorkingDirectoryFileChange(this.path, this.status, selection, this.oldPath)
   }
 
   /** Create a new WorkingDirectoryFileChange with the given line selection. */
