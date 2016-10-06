@@ -107,12 +107,17 @@ export class AppWindow {
     this.window.loadURL(`file://${__dirname}/index.html`)
   }
 
+  /**
+   * Emit the `onDidLoad` event if the page has loaded and the renderer has
+   * signalled that it's ready.
+   */
   private maybeEmitDidLoad() {
     if (!this.rendererLoaded) { return }
 
     this.emitter.emit('did-load', null)
   }
 
+  /** Is the page loaded and has the renderer signalled it's ready? */
   private get rendererLoaded(): boolean {
     return !!this.loadTime && !!this.rendererReadyTime
   }
@@ -153,7 +158,7 @@ export class AppWindow {
 
   /**
    * Register a function to call when the window is done loading. At that point
-   * the page has loaded and the renderer has signalled that it is ready. 
+   * the page has loaded and the renderer has signalled that it is ready.
    */
   public onDidLoad(fn: (loadTime: number) => void): Disposable {
     return this.emitter.on('did-load', fn)
