@@ -15,6 +15,9 @@ import { SelectionType } from '../lib/app-state'
 import { sendReady } from './main-process-proxy'
 import { reportError } from '../lib/exception-reporting'
 import * as appProxy from './lib/app-proxy'
+import { shouldReportStats, reportStats, ILaunchTimingStats } from './stats-reporting'
+
+const startTime = Date.now()
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
@@ -32,7 +35,8 @@ const emojiStore = new EmojiStore()
 const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore, emojiStore)
 const dispatcher = new Dispatcher(appStore)
 dispatcher.loadInitialState().then(() => {
-  showMainWindow()
+  const now = Date.now()
+  sendReady(now - startTime)
 })
 
 document.body.classList.add(`platform-${process.platform}`)
