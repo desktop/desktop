@@ -22,6 +22,7 @@
 .CodeMirror-line {
   display: flex;
 
+  // Add a little bit of space to the left of code diff
   & > span:last-child {
     margin-left: var(--spacing-half);
   }
