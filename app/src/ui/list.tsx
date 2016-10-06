@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
-
-const { Grid, AutoSizer } = require('react-virtualized')
+import { Grid, AutoSizer } from 'react-virtualized'
 
 interface IListProps {
   readonly rowRenderer: (row: number) => JSX.Element
