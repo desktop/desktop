@@ -7,11 +7,20 @@ import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent, getFeedURL } from './updates'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
+import { reportError } from '../lib/exception-reporting'
 
 const stats = new Stats()
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
+
+process.on('uncaughtException', (error: Error) => {
+  if (sharedProcess) {
+    sharedProcess.console.error(error)
+  }
+
+  reportError(error, app.getVersion())
+})
 
 if (__WIN32__ && process.argv.length > 1) {
   if (handleSquirrelEvent(process.argv[1])) {
