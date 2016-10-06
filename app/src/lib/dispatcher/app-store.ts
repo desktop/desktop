@@ -736,9 +736,16 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
     this.updateChangesState(repository, state => {
+
+      let selectedFile = state.selectedFile
+
+      if (selectedFile) {
+        selectedFile = selectedFile.withIncludeAll(includeAll)
+      }
+
       return {
         workingDirectory: state.workingDirectory.withIncludeAllFiles(includeAll),
-        selectedFile: state.selectedFile,
+        selectedFile: selectedFile,
         diff: state.diff,
       }
     })
