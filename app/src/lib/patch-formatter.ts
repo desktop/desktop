@@ -94,7 +94,7 @@ function anyLinesSelectedInHunk(selection: DiffSelection, hunk: DiffHunk) {
 export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): string {
   const selection = file.selection
 
-  let input = ''
+  let input = formatPatchHeader(file.path, file.path)
 
   diff.hunks.forEach(hunk => {
 
@@ -170,19 +170,13 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
       input += hunkHeader + patchBody
   })
 
-  const patchHeader = formatPatchHeader(
-    file.path,
-    file.path)
-
-  input = patchHeader + input
-
   return input
 }
 
 
 export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Diff): string {
   const selection = file.selection
-  let input = ''
+  let input = formatPatchHeader(null, file.path)
 
   diff.hunks.map(hunk => {
 
@@ -227,18 +221,12 @@ export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Di
     input += hunkHeader + patchBody
   })
 
-  const patchHeader = formatPatchHeader(
-    null,
-    file.path)
-
-  input = patchHeader + input
-
   return input
 }
 
 export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff: Diff): string {
   const selection = file.selection
-  let input = ''
+  let input = formatPatchHeader(file.path, file.path)
   let linesIncluded = 0
 
   diff.hunks.map(hunk => {
@@ -287,12 +275,6 @@ export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff
 
     input += hunkHeader + patchBody
   })
-
-  const patchHeader = formatPatchHeader(
-    file.path,
-    file.path)
-
-  input = patchHeader + input
 
   return input
 }
