@@ -22,7 +22,23 @@ describe('parsePorcelainStatus', () => {
 
       expect(entries[i].statusCode).to.equal(' D')
       expect(entries[i].path).to.equal('deleted')
+    })
+
+    it('parses renames', async () => {
+
+      const entries = parsePorcelainStatus('R  new\0old\0RM from\0to\0')
+      expect(entries.length).to.equal(2)
+
+      let i = 0
+
+      expect(entries[i].statusCode).to.equal('R ')
+      expect(entries[i].path).to.equal('new')
+      expect(entries[i].oldPath).to.equal('old')
       i++
+
+      expect(entries[i].statusCode).to.equal('RM')
+      expect(entries[i].path).to.equal('from')
+      expect(entries[i].oldPath).to.equal('to')
     })
   })
 })
