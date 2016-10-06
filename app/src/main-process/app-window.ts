@@ -5,7 +5,7 @@ import { SharedProcess } from '../shared-process/shared-process'
 import { WindowState, windowStateChannelName } from '../lib/window-state'
 import { buildDefaultMenu, MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-url'
-import { ILaunchTimingStats } from '../ui/stats-reporting'
+import { ILaunchTimingStats } from '../ui/lib/stats-reporting'
 
 let windowStateKeeper: any | null = null
 

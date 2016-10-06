@@ -15,7 +15,7 @@ import { SelectionType } from '../lib/app-state'
 import { sendReady } from './main-process-proxy'
 import { reportError } from '../lib/exception-reporting'
 import * as appProxy from './lib/app-proxy'
-import { shouldReportStats, reportStats, ILaunchTimingStats } from './stats-reporting'
+import { shouldReportStats, reportStats, ILaunchTimingStats } from './lib/stats-reporting'
 
 const startTime = Date.now()
 
