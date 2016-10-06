@@ -110,7 +110,7 @@ describe('patch formatting', () => {
       const patch = createPatchForModifiedFile(updatedFile, diff)
       const expectedPatch = `--- a/modified-file.md
 +++ b/modified-file.md
-@@ -1,33 +1,NaN @@
+@@ -1,33 +1,34 @@
  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Cras mi urna,
  ullamcorper sit amet tellus eget, congue ornare leo. Donec dapibus sem quis sem
  commodo, id ultricies ligula varius. Vestibulum ante ipsum primis in faucibus
