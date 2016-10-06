@@ -97,18 +97,18 @@ pre.diff-hunk {
   }
 }
 
-.diff-line-selected {
+span.diff-line-selected {
   .diff-line-number {
     background: var(--diff-selected-background-color);
-    border-color: var(--diff-selected-border-color) !important;
+    border-color: var(--diff-selected-border-color);
     color: var(--diff-selected-text-color);
   }
 }
 
-.diff-line-hover {
+span.diff-line-hover {
   .diff-line-number {
     background: var(--diff-hover-background-color);
-    border-color: var(--diff-hover-border-color) !important;
+    border-color: var(--diff-hover-border-color);
     color: var(--background-color);
   }
 }
