@@ -15,7 +15,7 @@ export class FileChange {
   public readonly path: string
 
   /** The original path in the case of a renamed file */
-  public readonly oldPath: string | null
+  public readonly oldPath?: string
 
   /** the status of the change to the file */
   public readonly status: FileStatus
@@ -23,7 +23,7 @@ export class FileChange {
   public constructor(path: string, status: FileStatus, oldPath?: string) {
     this.path = path
     this.status = status
-    this.oldPath = oldPath || null
+    this.oldPath = oldPath
   }
 
   /** An ID for the file change. */
