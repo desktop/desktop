@@ -8,7 +8,7 @@ import { Grid, AutoSizer } from 'react-virtualized'
  *  https://github.com/bvaughn/react-virtualized/issues/386
  *  https://github.com/bvaughn/react-virtualized/blob/8.0.11/source/Grid/defaultCellRangeRenderer.js#L38-L44
  */
-export interface ICellRendererParams {
+export interface IRowRendererParams {
   /** Horizontal (column) index of cell */
   readonly columnIndex: number
 
@@ -183,7 +183,7 @@ export class List extends React.Component<IListProps, void> {
     }
   }
 
-  private renderRow = (params: ICellRendererParams) => {
+  private renderRow = (params: IRowRendererParams) => {
     const rowIndex = params.rowIndex
     const selectable = this.canSelectRow(rowIndex)
     const selected = rowIndex === this.props.selectedRow
