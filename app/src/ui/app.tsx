@@ -271,10 +271,15 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderPopup(): JSX.Element | null {
+    const handleOverlayClick = () => {this.props.dispatcher.closePopup()}
     const content = this.currentPopupContent()
     if (!content) { return null }
 
-    return <Popuppy>{content}</Popuppy>
+    return (
+      <div className='popup-overlay' onClick={handleOverlayClick}>
+        <Popuppy>{content}</Popuppy>
+      </div>
+    )
   }
 
   private renderErrors() {
