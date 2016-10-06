@@ -6,6 +6,8 @@ interface IDiffGutterProps {
   /** The line being represented by the gutter. */
   readonly line: DiffLine
 
+  readonly isIncluded: boolean
+
   /**
    * Is the gutter being used in a readonly diff, e.g., displaying a diff from
    * history vs. displaying a diff from the working directory.
@@ -43,7 +45,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
   public render() {
     const baseClassName = 'diff-line-gutter'
-    const selectedStateClassName = this.props.line.selected ? 'diff-line-selected' : ''
+    const selectedStateClassName = (this.isIncludableLine() && this.props.isIncluded) ? 'diff-line-selected' : ''
     const className = `${baseClassName} ${selectedStateClassName}`
 
     // TODO: depending on cursor position, highlight hunk rather than line

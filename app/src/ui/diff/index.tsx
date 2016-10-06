@@ -6,7 +6,7 @@ import { Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
-import { DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
+import { DiffLine, Diff as DiffModel, DiffLineType, DiffSelectionType } from '../../models/diff'
 import { assertNever } from '../../lib/fatal-error'
 
 import { DiffLineGutter } from './diff-line-gutter'
@@ -101,19 +101,26 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    const newDiffSelection = new Map<number, boolean>()
+    const currentSelection = this.props.file.selection
 
     // populate the current state of the diff
-    this.props.diff.hunks.forEach(hunk => {
-      hunk.lines.forEach((line, index) => {
-        if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
-          const absoluteIndex = hunk.unifiedDiffStart + index
-          newDiffSelection.set(absoluteIndex, line.selected)
-        }
-      })
-    })
+    const newDiffSelection = new Map<number, boolean>(currentSelection.selectedLines)
 
-    const include = !line.selected
+    if (newDiffSelection.size === 0) {
+      const selectionType = currentSelection.getSelectionType()
+      const select = selectionType === DiffSelectionType.All ? true : false
+
+      this.props.diff.hunks.forEach(hunk => {
+        hunk.lines.forEach((line, index) => {
+          if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
+            const absoluteIndex = hunk.unifiedDiffStart + index
+            newDiffSelection.set(absoluteIndex, select)
+          }
+        })
+      })
+    }
+
+    const include = !newDiffSelection.get(rowIndex)
 
     // apply the requested change
     newDiffSelection.set(rowIndex, include)
@@ -139,11 +146,19 @@ export class Diff extends React.Component<IDiffProps, void> {
       const relativeIndex = index - hunk.unifiedDiffStart
       const diffLine = hunk.lines[relativeIndex]
       if (diffLine) {
+        let isIncluded = false
+        const file = this.props.file
+
+        if (file instanceof WorkingDirectoryFileChange) {
+          const selectedLines = file.selection.selectedLines
+          isIncluded = selectedLines.size === 0 || selectedLines.get(index) || false
+        }
+
         const diffLineElement = element.children[0] as HTMLSpanElement
 
         const reactContainer = document.createElement('span')
         ReactDOM.render(
-          <DiffLineGutter line={diffLine} readOnly={this.props.readOnly} onIncludeChanged={line => this.onIncludeChanged(line, index)}/>,
+          <DiffLineGutter line={diffLine} readOnly={this.props.readOnly} onIncludeChanged={line => this.onIncludeChanged(line, index)} isIncluded={isIncluded}/>,
         reactContainer)
         element.insertBefore(reactContainer, diffLineElement)
 
