@@ -1,3 +1,4 @@
+import { assertNever } from '../lib/fatal-error'
 import { WorkingDirectoryFileChange, FileStatus } from '../models/status'
 import { DiffLineType, Diff } from '../models/diff'
 
@@ -155,6 +156,7 @@ export function createPatch(file: WorkingDirectoryFileChange, diff: Diff): strin
         oldCount++
         newCount++
       }
+      else { assertNever(line.type, `Unsupported line type ${line.type}`) }
     })
 
     // Skip writing this hunk if all there is is context lines.
