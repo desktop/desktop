@@ -299,7 +299,7 @@ export class LocalGitOperations {
 
     const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
 
-    return GitProcess.exec(args, repository.path)
+    return git(args, repository.path)
       .then(this.diffFromRawDiffOutput)
   }
 
@@ -755,7 +755,7 @@ async function git(args: string[], path: string, options?: IGitExecutionOptions)
 
   if (console.debug && startTime) {
     const rawTime = performance.now() - startTime
-    if (rawTime > 50) {
+    if (rawTime > 100) {
      const timeInSeconds = (rawTime / 1000).toFixed(3)
      console.debug(`executing: git ${args.join(' ')} (took ${timeInSeconds}s)`)
     }
