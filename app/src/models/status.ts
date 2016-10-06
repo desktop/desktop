@@ -14,6 +14,7 @@ export class FileChange {
   /** the relative path to the file in the repository */
   public readonly path: string
 
+  /** The original path in the case of a renamed file */
   public readonly oldPath: string | null
 
   /** the status of the change to the file */
