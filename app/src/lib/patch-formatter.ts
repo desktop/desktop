@@ -107,8 +107,7 @@ export function createPatch(file: WorkingDirectoryFileChange, diff: Diff): strin
     const newStart = isNew ? 0 : hunk.header.newStartLine
     let newCount = 0
 
-    let contextLines = 0
-    let totalLines = 0
+    let anyAdditionsOrDeletions = false
 
     hunk.lines.forEach((line, lineIndex) => {
       const absoluteIndex = hunk.unifiedDiffStart + lineIndex
@@ -120,10 +119,10 @@ export function createPatch(file: WorkingDirectoryFileChange, diff: Diff): strin
           hunkBuf += `${line.text}\n`
           oldCount++
           newCount++
-          contextLines++
         }
       } else {
         if (file.selection.isSelected(absoluteIndex)) {
+          anyAdditionsOrDeletions = true
           hunkBuf += `${line.text}\n`
           if (line.type === DiffLineType.Add) { newCount++ }
           if (line.type === DiffLineType.Delete) { oldCount++ }
@@ -134,11 +133,10 @@ export function createPatch(file: WorkingDirectoryFileChange, diff: Diff): strin
           contextLines++
         }
       }
-
-      totalLines++
     })
 
-    if (contextLines === totalLines)  { return }
+    // Skip writing this hunk if all there is is context lines.
+    if (!anyAdditionsOrDeletions)  { return }
 
     patch += formatHunkHeader(oldStart, oldCount, newStart, newCount)
     patch += hunkBuf
