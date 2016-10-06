@@ -119,7 +119,7 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('ready', (event: Electron.IpcMainEvent, rendererReadyTime: number) => {
+  ipcMain.on('renderer-ready', (event: Electron.IpcMainEvent, rendererReadyTime: number) => {
     const window = getMainWindow()
     window.show()
     window.sendLaunchTimingStats({

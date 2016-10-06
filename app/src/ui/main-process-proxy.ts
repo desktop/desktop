@@ -13,7 +13,7 @@ export function setMenuEnabled(id: MenuIDs, enabled: boolean) {
 
 /** Tell the main process that the renderer is ready. */
 export function sendReady(time: number) {
-  ipcRenderer.send('ready', time)
+  ipcRenderer.send('renderer-ready', time)
 }
 
 export interface IMenuItem {
