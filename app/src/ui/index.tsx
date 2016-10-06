@@ -12,7 +12,7 @@ import { URLActionType } from '../lib/parse-url'
 import { Repository } from '../models/repository'
 import { getDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
-import { showMainWindow } from './main-process-proxy'
+import { sendReady } from './main-process-proxy'
 import { reportError } from '../lib/exception-reporting'
 import * as appProxy from './lib/app-proxy'
 

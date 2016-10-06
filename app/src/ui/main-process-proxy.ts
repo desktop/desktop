@@ -11,9 +11,9 @@ export function setMenuEnabled(id: MenuIDs, enabled: boolean) {
   ipcRenderer.send('set-menu-enabled', [ { id, enabled } ])
 }
 
-/** Show the main window. */
-export function showMainWindow() {
-  ipcRenderer.send('show-main-window')
+/** Tell the main process that the renderer is ready. */
+export function sendReady(time: number) {
+  ipcRenderer.send('ready', time)
 }
 
 export interface IMenuItem {

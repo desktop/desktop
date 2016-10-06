@@ -119,8 +119,14 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('show-main-window', () => {
-    getMainWindow().show()
+  ipcMain.on('ready', (event: Electron.IpcMainEvent, rendererReadyTime: number) => {
+    const window = getMainWindow()
+    window.show()
+    window.sendLaunchTimingStats({
+      mainReadyTime: readyTime,
+      loadTime: window.loadTime!,
+      rendererReadyTime,
+    })
   })
 
   ipcMain.on('show-contextual-menu', (event: Electron.IpcMainEvent, items: ReadonlyArray<any>) => {
