@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ChangesList } from './changes-list'
 import { Diff  } from '../diff'
-import { DiffSelectionType } from '../../models/diff'
+import { DiffSelection, DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
@@ -45,7 +45,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     this.props.dispatcher.changeIncludeAllFiles(this.props.repository, selectAll)
   }
 
-  private onDiffLineIncludeChanged(diffSelection: Map<number, boolean>) {
+  private onDiffLineIncludeChanged(diffSelection: DiffSelection) {
     const file = this.props.changes.selectedFile
     if (!file) {
       console.error('diff line selection changed despite no file error - what?')
@@ -114,7 +114,7 @@ export class Changes extends React.Component<IChangesProps, void> {
         file={file}
         readOnly={false}
         onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)}
-        diff={diff}/>
+        diff={diff} />
     )
   }
 

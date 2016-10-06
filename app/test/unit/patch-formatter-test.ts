@@ -8,7 +8,6 @@ import { Repository } from '../../src/models/repository'
 import { WorkingDirectoryFileChange, FileStatus } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
 import { createPatchForModifiedFile } from '../../src/lib/patch-formatter'
-import { selectLinesInHunk, mergeSelections } from '../diff-selection-helper'
 import { LocalGitOperations } from '../../src/lib/local-git-operations'
 import { setupFixtureRepository } from '../fixture-helper'
 
@@ -26,19 +25,15 @@ describe('patch formatting', () => {
 
       const modifiedFile = 'modified-file.md'
 
-      const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
+      const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
       const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
-      // select first hunk
-      const first = selectLinesInHunk(diff, 0, true)
-      // skip second hunk
-      const second = selectLinesInHunk(diff, 1, false)
+      const selection = DiffSelection
+        .fromInitialSelection(DiffSelectionType.All)
+        .withRangeSelection(diff.hunks[1].unifiedDiffStart, diff.hunks[1].unifiedDiffEnd - diff.hunks[1].unifiedDiffStart, false)
 
-      const selectedLines = mergeSelections([ first, second ])
-
-      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
       const patch = createPatchForModifiedFile(updatedFile, diff)
@@ -51,19 +46,15 @@ describe('patch formatting', () => {
     it('creates right patch when second hunk is selected', async () => {
 
       const modifiedFile = 'modified-file.md'
-      const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
+      const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
       const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
-      // skip first hunk
-      const first = selectLinesInHunk(diff, 0, false)
-      // select second hunk
-      const second = selectLinesInHunk(diff, 1, true)
+      const selection = DiffSelection
+        .fromInitialSelection(DiffSelectionType.All)
+        .withRangeSelection(diff.hunks[0].unifiedDiffStart, diff.hunks[0].unifiedDiffEnd - diff.hunks[0].unifiedDiffStart, false)
 
-      const selectedLines = mergeSelections([ first, second ])
-
-      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
       const patch = createPatchForModifiedFile(updatedFile, diff)
@@ -77,21 +68,14 @@ describe('patch formatting', () => {
 
       const modifiedFile = 'modified-file.md'
 
-      const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
+      const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
       const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
-      // select first hunk
-      const first = selectLinesInHunk(diff, 0, true)
-      // skip second hunk
-      const second = selectLinesInHunk(diff, 1, false)
-      // select third hunk
-      const third = selectLinesInHunk(diff, 2, true)
-
-      const selectedLines = mergeSelections([ first, second, third ])
-
-      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
+      const selection = DiffSelection
+        .fromInitialSelection(DiffSelectionType.All)
+        .withRangeSelection(diff.hunks[1].unifiedDiffStart, diff.hunks[1].unifiedDiffEnd - diff.hunks[1].unifiedDiffStart, false)
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
       const patch = createPatchForModifiedFile(updatedFile, diff)
@@ -105,23 +89,22 @@ describe('patch formatting', () => {
       const modifiedFile = 'modified-file.md'
       FS.writeFileSync(Path.join(repository!.path, modifiedFile), 'line 1\n')
 
-      const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
+      const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
       const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
-      const selectedLines = new Map<number, boolean>()
+      let selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const hunk = diff.hunks[0]
       hunk.lines.forEach((line, index) => {
         const absoluteIndex = hunk.unifiedDiffStart + index
         if (line.text === '+line 1') {
-          selectedLines.set(absoluteIndex, true)
+          selection = selection.withLineSelection(absoluteIndex, true)
         } else {
-          selectedLines.set(absoluteIndex, false)
+          selection = selection.withLineSelection(absoluteIndex, false)
         }
       })
 
-      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
       const patch = createPatchForModifiedFile(updatedFile, diff)

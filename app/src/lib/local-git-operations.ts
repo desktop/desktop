@@ -191,7 +191,7 @@ export class LocalGitOperations {
         const path = result[regexGroups.path]
 
         const status = this.mapStatus(modeText)
-        const diffSelection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
+        const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
         files.push(new WorkingDirectoryFileChange(path, status, diffSelection))
       }
     }

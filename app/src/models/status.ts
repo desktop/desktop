@@ -1,4 +1,4 @@
-import { DiffSelectionType, DiffSelection, DiffSelectionParser } from './diff'
+import { DiffSelection } from './diff'
 
 /** the state of the changed file in the working directory */
 export enum FileStatus {
@@ -42,21 +42,16 @@ export class WorkingDirectoryFileChange extends FileChange {
 
   /** Create a new WorkingDirectoryFileChange with the given includedness. */
   public withIncludeAll(include: boolean): WorkingDirectoryFileChange {
-    const type = include ? DiffSelectionType.All : DiffSelectionType.None
-    const selection = new DiffSelection(type, new Map<number, boolean>())
-    return this.withSelection(selection)
+    const newSelection = include
+      ? this.selection.withSelectAll()
+      : this.selection.withSelectNone()
+
+    return this.withSelection(newSelection)
   }
 
   /** Create a new WorkingDirectoryFileChange with the given diff selection. */
   public withSelection(selection: DiffSelection): WorkingDirectoryFileChange {
     return new WorkingDirectoryFileChange(this.path, this.status, selection)
-  }
-
-  /** Create a new WorkingDirectoryFileChange with the given line selection. */
-  public withDiffLinesSelection(diffLines: Map<number, boolean>): WorkingDirectoryFileChange {
-    const includeAll = DiffSelectionParser.getState(diffLines)
-    const selection = new DiffSelection(includeAll, diffLines)
-    return this.withSelection(selection)
   }
 }
 

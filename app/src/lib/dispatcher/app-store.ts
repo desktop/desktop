@@ -18,7 +18,7 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffSelectionType } from '../../models/diff'
+import { DiffSelection, DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
@@ -692,12 +692,12 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: Map<number, boolean>): Promise<void> {
+  public _changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: DiffSelection): Promise<void> {
     this.updateRepositoryState(repository, state => {
 
       const newFiles = state.changesState.workingDirectory.files.map(f => {
         if (f.id === file.id) {
-          return f.withDiffLinesSelection(diffSelection)
+          return f.withSelection(diffSelection)
         } else {
           return f
         }

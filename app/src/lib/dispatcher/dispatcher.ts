@@ -2,6 +2,7 @@ import { ipcRenderer } from 'electron'
 import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
+import { DiffSelection } from '../../models/diff'
 import { guid } from '../guid'
 import { RepositorySection, Popup, IAppError } from '../app-state'
 import { Action } from './actions'
@@ -233,7 +234,7 @@ export class Dispatcher {
   }
 
   /** Change the file's line selection state. */
-  public changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: Map<number, boolean>): Promise<void> {
+  public changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: DiffSelection): Promise<void> {
     return this.appStore._changeFileLineSelection(repository, file, diffSelection)
   }
 

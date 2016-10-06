@@ -1,5 +1,5 @@
 import { WorkingDirectoryFileChange } from '../models/status'
-import { DiffLineType, Diff } from '../models/diff'
+import { DiffLineType, Diff, DiffSelection } from '../models/diff'
 
 function extractAdditionalText(hunkHeader: string): string {
   const additionalTextIndex = hunkHeader.lastIndexOf('@@')
@@ -84,9 +84,17 @@ function formatHunkHeader(
     return `@@ -${lineInfoBefore} +${lineInfoAfter} @@${afterText}\n`
 }
 
+// Lower and upper inclusive
+function anyLinesSelectedInRange(selection: DiffSelection, rangeStart: number, rangeEnd: number) {
+  for (let i = rangeStart; i <= rangeEnd; i++) {
+    if (selection.isSelected(i)) { return true }
+  }
+
+  return false
+}
+
 export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): string {
-  const selection = file.selection.selectedLines
-  const selectedLinesArray = Array.from(selection)
+  const selection = file.selection
 
   let input = ''
 
@@ -97,10 +105,8 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
     let linesRemoved = 0
     let patchBody = ''
 
-    const selectedLines = selectedLinesArray.filter(a => a[0] >= hunk.unifiedDiffStart && a[0] <= hunk.unifiedDiffEnd)
-
     // don't generate a patch if no lines are selected
-    if (selectedLines.every(l => l[1] === false)) {
+    if (!anyLinesSelectedInRange(selection, hunk.unifiedDiffStart, hunk.unifiedDiffEnd)) {
       return
     }
 
@@ -117,7 +123,7 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
         }
 
         const absoluteIndex = hunk.unifiedDiffStart + index
-        if (selection.get(absoluteIndex)) {
+        if (selection.isSelected(absoluteIndex)) {
           patchBody += line.text + '\n'
           if (line.type === DiffLineType.Add) {
             linesIncluded += 1
@@ -175,7 +181,7 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
 
 
 export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Diff): string {
-  const selection = file.selection.selectedLines
+  const selection = file.selection
   let input = ''
 
   diff.hunks.map(hunk => {
@@ -195,12 +201,15 @@ export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Di
           return
         }
 
-        if (selection.has(index)) {
-          const include = selection.get(index)
-          if (include) {
-            patchBody += line.text + '\n'
-            linesCounted += 1
-          }
+        // TODO: This was straigh off converted from the old
+        // Map to DiffSelection but I'm almost certain it's wrong.
+        // I don't think index here means what the author intended
+        // it to mean.
+        //
+        // - @niik
+        if (selection.isSelected(index)) {
+          patchBody += line.text + '\n'
+          linesCounted += 1
         }
       })
 
@@ -226,7 +235,7 @@ export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Di
 }
 
 export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff: Diff): string {
-  const selection = file.selection.selectedLines
+  const selection = file.selection
   let input = ''
   let linesIncluded = 0
 
@@ -246,14 +255,16 @@ export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff
           return
         }
 
-        if (selection.has(index)) {
-          const include = selection.get(index)
-          if (include) {
-            patchBody += line.text + '\n'
-            linesIncluded += 1
-          } else {
-            patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
-          }
+        // TODO: This was straigh off converted from the old
+        // Map to DiffSelection but I'm almost certain it's wrong.
+        // I don't think index here means what the author intended
+        // it to mean.
+        //
+        // - @niik
+        const include = selection.isSelected(index)
+        if (include) {
+          patchBody += line.text + '\n'
+          linesIncluded += 1
         } else {
           patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
         }

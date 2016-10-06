@@ -10,7 +10,6 @@ import { Repository } from '../../src/models/repository'
 import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operations'
 import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../../src/models/diff'
-import { selectLinesInHunk, mergeSelections } from '.././diff-selection-helper'
 import { setupFixtureRepository } from '../fixture-helper'
 
 describe('LocalGitOperations', () => {
@@ -74,15 +73,14 @@ describe('LocalGitOperations', () => {
 
     it('can commit some lines from new file', async () => {
       const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
-      const lines = new Map<number, boolean>()
-      // select first six lines of file
-      for (let i = 0; i < 33; i++) {
-        lines.set(i, (i < 6))
-      }
 
       const newFileName = 'new-file.md'
-      const selectedLines = new Map<number, boolean>(lines)
-      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
+
+      // select first five lines of file
+      const selection = DiffSelection
+        .fromInitialSelection(DiffSelectionType.All)
+        .withRangeSelection(0, 5, true)
+
       const file = new WorkingDirectoryFileChange(newFileName, FileStatus.New, selection)
 
       // commit just this change, ignore everything else
@@ -114,19 +112,15 @@ describe('LocalGitOperations', () => {
 
       const modifiedFile = 'modified-file.md'
 
-      const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
+      const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
       const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
-      // skip first hunk
-      const first = selectLinesInHunk(diff, 0, false)
-      // select second hunk
-      const second = selectLinesInHunk(diff, 1, true)
+      const selection = DiffSelection
+        .fromInitialSelection(DiffSelectionType.All)
+        .withRangeSelection(diff.hunks[0].unifiedDiffStart, diff.hunks[0].unifiedDiffEnd - diff.hunks[0].unifiedDiffStart, false)
 
-      const selectedLines = mergeSelections([ first, second ])
-
-      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
       // commit just this change, ignore everything else
@@ -158,21 +152,15 @@ describe('LocalGitOperations', () => {
 
       const modifiedFile = 'modified-file.md'
 
-      const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
+      const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
       const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
-      // select first hunk
-      const first = selectLinesInHunk(diff, 0, true)
-      // skip second hunk
-      const second = selectLinesInHunk(diff, 1, false)
-      // select third hunk
-      const third = selectLinesInHunk(diff, 2, true)
+      const selection = DiffSelection
+        .fromInitialSelection(DiffSelectionType.All)
+        .withRangeSelection(diff.hunks[1].unifiedDiffStart, diff.hunks[1].unifiedDiffEnd - diff.hunks[1].unifiedDiffStart, false)
 
-      const selectedLines = mergeSelections([ first, second, third ])
-
-      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
       // commit just this change, ignore everything else
@@ -200,15 +188,13 @@ describe('LocalGitOperations', () => {
 
     it('can commit some lines from deleted file', async () => {
       const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
-      const lines = new Map<number, boolean>()
-      // select first six lines of file
-      for (let i = 0; i < 33; i++) {
-        lines.set(i, (i < 6))
-      }
 
       const deletedFile = 'deleted-file.md'
-      const selectedLines = new Map<number, boolean>(lines)
-      const selection = new DiffSelection(DiffSelectionType.Partial, selectedLines)
+
+      const selection = DiffSelection
+        .fromInitialSelection(DiffSelectionType.All)
+        .withRangeSelection(0, 5, true)
+
       const file = new WorkingDirectoryFileChange(deletedFile, FileStatus.Deleted, selection)
 
       // commit just this change, ignore everything else
@@ -275,7 +261,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('counts lines for new file', async () => {
-      const diffSelection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
+      const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
       const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
@@ -290,7 +276,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('counts lines for modified file', async () => {
-      const diffSelection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
+      const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('modified-file.md', FileStatus.Modified, diffSelection)
       const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
@@ -312,7 +298,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('counts lines for staged file', async () => {
-      const diffSelection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
+      const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('staged-file.md', FileStatus.Modified, diffSelection)
       const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
