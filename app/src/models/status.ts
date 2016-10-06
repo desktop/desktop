@@ -14,12 +14,15 @@ export class FileChange {
   /** the relative path to the file in the repository */
   public readonly path: string
 
+  public readonly oldPath: string | null
+
   /** the status of the change to the file */
   public readonly status: FileStatus
 
-  public constructor(path: string, status: FileStatus) {
+  public constructor(path: string, status: FileStatus, oldPath?: string) {
     this.path = path
     this.status = status
+    this.oldPath = oldPath || null
   }
 
   /** An ID for the file change. */
@@ -34,8 +37,8 @@ export class WorkingDirectoryFileChange extends FileChange {
   /** contains the selection details for this file - all, nothing or partial */
   public readonly selection: DiffSelection
 
-  public constructor(path: string, status: FileStatus, selection: DiffSelection) {
-    super(path, status)
+  public constructor(path: string, status: FileStatus, selection: DiffSelection, oldPath?: string) {
+    super(path, status, oldPath)
 
     this.selection = selection
   }
