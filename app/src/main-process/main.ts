@@ -14,8 +14,6 @@ let sharedProcess: SharedProcess | null = null
 const launchTime = Date.now()
 
 let mainReadyTime: number | null = null
-let loadTime: number | null = null
-let rendererReadyTime: number | null = null
 
 process.on('uncaughtException', (error: Error) => {
   if (sharedProcess) {
@@ -122,12 +120,6 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('renderer-ready', (event: Electron.IpcMainEvent, time: number) => {
-    rendererReadyTime = time
-
-    showWindowIfReadyAndLoaded()
-  })
-
   ipcMain.on('show-contextual-menu', (event: Electron.IpcMainEvent, items: ReadonlyArray<any>) => {
     const menu = new Menu()
     const menuItems = items.map((item, i) => {
@@ -152,19 +144,6 @@ app.on('activate', () => {
   }
 })
 
-function showWindowIfReadyAndLoaded() {
-  const window = getMainWindow()
-  if (!rendererReadyTime || !loadTime) { return }
-  if (window.isVisible()) { return }
-
-  window.show()
-  window.sendLaunchTimingStats({
-    mainReadyTime: mainReadyTime!,
-    loadTime: loadTime!,
-    rendererReadyTime: rendererReadyTime!,
-  })
-}
-
 function createWindow() {
   const window = new AppWindow(sharedProcess!)
   window.onClose(() => {
@@ -175,10 +154,13 @@ function createWindow() {
     }
   })
 
-  window.onDidLoad(time => {
-    loadTime = time
-
-    showWindowIfReadyAndLoaded()
+  window.onDidLoad(() => {
+    window.show()
+    window.sendLaunchTimingStats({
+      mainReadyTime: mainReadyTime!,
+      loadTime: window.loadTime!,
+      rendererReadyTime: window.rendererReadyTime!,
+    })
   })
 
   window.load()

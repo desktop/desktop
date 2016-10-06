@@ -14,6 +14,9 @@ export class AppWindow {
   private sharedProcess: SharedProcess
   private emitter = new Emitter()
 
+  private _loadTime: number | null = null
+  private _rendererReadyTime: number | null = null
+
   public constructor(sharedProcess: SharedProcess) {
     if (!windowStateKeeper) {
       // `electron-window-state` requires Electron's `screen` module, which can
@@ -55,6 +58,9 @@ export class AppWindow {
   public load() {
     let startLoad = 0
     this.window.webContents.on('did-start-loading', () => {
+      this._rendererReadyTime = null
+      this._loadTime = null
+
       startLoad = Date.now()
     })
 
@@ -64,13 +70,21 @@ export class AppWindow {
       }
 
       const now = Date.now()
-      const loadTime = now - startLoad
-      this.emitter.emit('did-load', loadTime)
+      this._loadTime = now - startLoad
+
+      this.maybeEmitDidLoad()
     })
 
     this.window.webContents.on('did-fail-load', () => {
       this.window.webContents.openDevTools()
       this.window.show()
+    })
+
+    // TODO: This should be scoped by the window.
+    ipcMain.on('renderer-ready', (event: Electron.IpcMainEvent, time: number) => {
+      this._rendererReadyTime = time
+
+      this.maybeEmitDidLoad()
     })
 
     this.window.on('focus', () => {
@@ -91,6 +105,16 @@ export class AppWindow {
     }
 
     this.window.loadURL(`file://${__dirname}/index.html`)
+  }
+
+  private maybeEmitDidLoad() {
+    if (!this.rendererLoaded) { return }
+
+    this.emitter.emit('did-load', null)
+  }
+
+  private get rendererLoaded(): boolean {
+    return !!this.loadTime && !!this.rendererReadyTime
   }
 
   /**
@@ -165,5 +189,13 @@ export class AppWindow {
   /** Send the app launch timing stats to the renderer. */
   public sendLaunchTimingStats(stats: ILaunchTimingStats) {
     this.window.webContents.send('launch-timing-stats', { stats })
+  }
+
+  public get loadTime(): number | null {
+    return this._loadTime
+  }
+
+  public get rendererReadyTime(): number | null {
+    return this._rendererReadyTime
   }
 }
