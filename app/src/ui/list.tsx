@@ -1,7 +1,29 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import { Grid, AutoSizer } from 'react-virtualized'
 
-const { Grid, AutoSizer } = require('react-virtualized')
+/**
+ * Describe the first argument given to the cellRenderer,
+ * See
+ *  https://github.com/bvaughn/react-virtualized/issues/386
+ *  https://github.com/bvaughn/react-virtualized/blob/8.0.11/source/Grid/defaultCellRangeRenderer.js#L38-L44
+ */
+export interface IRowRendererParams {
+  /** Horizontal (column) index of cell */
+  readonly columnIndex: number
+
+  /** The Grid is currently being scrolled */
+  readonly isScrolling: boolean
+
+  /** Unique key within array of cells */
+  readonly key: React.Key
+
+  /** Vertical (row) index of cell */
+  readonly rowIndex: number
+
+  /** Style object to be applied to cell */
+  readonly style: React.CSSProperties
+}
 
 interface IListProps {
   readonly rowRenderer: (row: number) => JSX.Element
@@ -161,7 +183,8 @@ export class List extends React.Component<IListProps, void> {
     }
   }
 
-  private renderRow = ({ rowIndex }: { rowIndex: number }) => {
+  private renderRow = (params: IRowRendererParams) => {
+    const rowIndex = params.rowIndex
     const selectable = this.canSelectRow(rowIndex)
     const selected = rowIndex === this.props.selectedRow
     const focused = rowIndex === this.focusRow
@@ -179,17 +202,18 @@ export class List extends React.Component<IListProps, void> {
       ? (c: HTMLDivElement) => { this.focusItem = c }
       : undefined
 
-    const element = this.props.rowRenderer(rowIndex)
+    const element = this.props.rowRenderer(params.rowIndex)
     const role = selectable ? 'button' : undefined
 
     return (
-      <div key={element.key}
+      <div key={params.key}
            role={role}
            className={className}
            tabIndex={tabIndex}
            ref={ref}
            onMouseDown={() => this.handleMouseDown(rowIndex)}
-           onKeyDown={(e) => this.handleRowKeyDown(rowIndex, e)}>
+           onKeyDown={(e) => this.handleRowKeyDown(rowIndex, e)}
+           style={params.style}>
         {element}
       </div>
     )
@@ -200,7 +224,7 @@ export class List extends React.Component<IListProps, void> {
       <div id={this.props.id}
            className='list'
            onKeyDown={e => this.handleKeyDown(e)}>
-        <AutoSizer>
+        <AutoSizer disableWidth disableHeight>
           {({ width, height }: { width: number, height: number }) => this.renderContents(width, height)}
         </AutoSizer>
       </div>

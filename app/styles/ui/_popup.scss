@@ -3,7 +3,7 @@
   flex-direction: column;
   max-width: 400px;
   width: 50%;
-  margin: auto;
+  margin: var(--spacing-triple) var(--spacing);
   background-color: var(--box-alt-background-color);
   position: absolute;
   border: var(--base-border);
@@ -43,4 +43,15 @@
   font-size: var(--font-size-sm);
   margin: 0;
   white-space: pre-wrap;
+}
+
+.popup-overlay {
+  background: transparent;
+  // Forces overlay to fill up the entire window behind the popup
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  z-index: calc(var(--popup-z-index) - 1);
 }
