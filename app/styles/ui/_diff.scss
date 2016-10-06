@@ -11,7 +11,7 @@
 .CodeMirror {
   background: var(--box-alt-background-color);
   height: 100%;
-  color: #323232;
+  color: var(--diff-font-color);
   font-size: var(--font-size-sm);
   font-family: var(--font-family-monospace);
 }
@@ -52,7 +52,7 @@
 }
 
 .diff-line-number {
-  border-right: 1px solid #EEE;
+  border-right: 1px solid var(--diff-border-color);
   display: inline-block;
   color: var(--diff-line-number-color);
   width: var(--diff-line-number-column-width);
