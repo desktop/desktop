@@ -1,5 +1,5 @@
 import { WorkingDirectoryFileChange } from '../models/status'
-import { DiffLineType, Diff, DiffSelection } from '../models/diff'
+import { DiffLineType, Diff, DiffHunk, DiffSelection } from '../models/diff'
 
 function extractAdditionalText(hunkHeader: string): string {
   const additionalTextIndex = hunkHeader.lastIndexOf('@@')
