@@ -23,13 +23,15 @@
     }
 
     .avatar {
-      width: 28px;
-      height: 28px;
+      flex: 0;
 
-      margin-right: var(--spacing-half);
-
-      border: var(--base-border);
-      border-radius: var(--border-radius);
+      img {
+        width: 28px;
+        height: 28px;
+        border: var(--base-border);
+        border-radius: var(--border-radius);
+        margin-right: var(--spacing-half);
+      }
     }
   }
 

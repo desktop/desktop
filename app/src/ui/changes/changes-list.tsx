@@ -6,6 +6,7 @@ import { List } from '../list'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
+import { CommitIdentity } from '../../models/commit-identity'
 import { Checkbox, CheckboxValue } from './checkbox'
 
 const RowHeight = 30
@@ -20,6 +21,7 @@ interface IChangesListProps {
   readonly onCreateCommit: (summary: string, description: string) => void
   readonly onDiscardChanges: (row: number) => void
   readonly branch: string | null
+  readonly commitAuthor: CommitIdentity | null
   readonly avatarURL: string
   readonly emoji: Map<string, string>
 
@@ -96,6 +98,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
                        branch={this.props.branch}
                        avatarURL={this.props.avatarURL}
                        emoji={this.props.emoji}
+                       commitAuthor={this.props.commitAuthor}
                        anyFilesSelected={anyFilesSelected} />
       </div>
     )

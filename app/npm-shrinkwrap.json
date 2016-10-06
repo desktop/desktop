@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "dependencies": {
     "ansi-html": {
       "version": "0.0.5",
@@ -48,9 +48,9 @@
       "resolved": "https://registry.npmjs.org/aws4/-/aws4-1.4.1.tgz"
     },
     "babel-runtime": {
-      "version": "6.9.2",
-      "from": "babel-runtime@>=6.6.1 <7.0.0",
-      "resolved": "https://registry.npmjs.org/babel-runtime/-/babel-runtime-6.9.2.tgz"
+      "version": "6.11.6",
+      "from": "babel-runtime@>=6.11.6 <7.0.0",
+      "resolved": "https://registry.npmjs.org/babel-runtime/-/babel-runtime-6.11.6.tgz"
     },
     "balanced-match": {
       "version": "0.4.2",
@@ -226,11 +226,6 @@
       "from": "dom-helpers@>=2.4.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/dom-helpers/-/dom-helpers-2.4.0.tgz"
     },
-    "dom-walk": {
-      "version": "0.1.1",
-      "from": "dom-walk@>=0.1.0 <0.2.0",
-      "resolved": "https://registry.npmjs.org/dom-walk/-/dom-walk-0.1.1.tgz"
-    },
     "ecc-jsbn": {
       "version": "0.1.1",
       "from": "ecc-jsbn@>=0.1.1 <0.2.0",
@@ -351,19 +346,14 @@
       }
     },
     "git-kitchen-sink": {
-      "version": "1.9.0",
-      "from": "git-kitchen-sink@>=1.8.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/git-kitchen-sink/-/git-kitchen-sink-1.9.0.tgz"
+      "version": "1.11.0",
+      "from": "git-kitchen-sink@>=1.11.0 <2.0.0",
+      "resolved": "https://registry.npmjs.org/git-kitchen-sink/-/git-kitchen-sink-1.11.0.tgz"
     },
     "glob": {
       "version": "7.0.5",
       "from": "glob@>=7.0.5 <8.0.0",
       "resolved": "https://registry.npmjs.org/glob/-/glob-7.0.5.tgz"
-    },
-    "global": {
-      "version": "4.3.0",
-      "from": "global@>=4.3.0 <5.0.0",
-      "resolved": "https://registry.npmjs.org/global/-/global-4.3.0.tgz"
     },
     "graceful-fs": {
       "version": "4.1.4",
@@ -418,9 +408,9 @@
       "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.13.tgz"
     },
     "ieee754": {
-      "version": "1.1.6",
+      "version": "1.1.8",
       "from": "ieee754@>=1.1.4 <2.0.0",
-      "resolved": "https://registry.npmjs.org/ieee754/-/ieee754-1.1.6.tgz"
+      "resolved": "https://registry.npmjs.org/ieee754/-/ieee754-1.1.8.tgz"
     },
     "immutable": {
       "version": "3.8.1",
@@ -443,9 +433,9 @@
       "resolved": "https://registry.npmjs.org/is-absolute/-/is-absolute-0.1.7.tgz"
     },
     "is-my-json-valid": {
-      "version": "2.14.0",
+      "version": "2.15.0",
       "from": "is-my-json-valid@>=2.12.4 <3.0.0",
-      "resolved": "https://registry.npmjs.org/is-my-json-valid/-/is-my-json-valid-2.14.0.tgz"
+      "resolved": "https://registry.npmjs.org/is-my-json-valid/-/is-my-json-valid-2.15.0.tgz"
     },
     "is-natural-number": {
       "version": "2.1.1",
@@ -523,9 +513,9 @@
       "resolved": "https://registry.npmjs.org/jsonfile/-/jsonfile-2.3.1.tgz"
     },
     "jsonpointer": {
-      "version": "2.0.0",
-      "from": "jsonpointer@2.0.0",
-      "resolved": "https://registry.npmjs.org/jsonpointer/-/jsonpointer-2.0.0.tgz"
+      "version": "4.0.0",
+      "from": "jsonpointer@>=4.0.0 <5.0.0",
+      "resolved": "https://registry.npmjs.org/jsonpointer/-/jsonpointer-4.0.0.tgz"
     },
     "jsprim": {
       "version": "1.3.1",
@@ -566,11 +556,6 @@
       "version": "2.1.12",
       "from": "mime-types@>=2.1.7 <2.2.0",
       "resolved": "https://registry.npmjs.org/mime-types/-/mime-types-2.1.12.tgz"
-    },
-    "min-document": {
-      "version": "2.18.0",
-      "from": "min-document@>=2.6.1 <3.0.0",
-      "resolved": "https://registry.npmjs.org/min-document/-/min-document-2.18.0.tgz"
     },
     "minimatch": {
       "version": "3.0.2",
@@ -647,11 +632,6 @@
       "from": "pend@>=1.2.0 <1.3.0",
       "resolved": "https://registry.npmjs.org/pend/-/pend-1.2.0.tgz"
     },
-    "performance-now": {
-      "version": "0.2.0",
-      "from": "performance-now@>=0.2.0 <0.3.0",
-      "resolved": "https://registry.npmjs.org/performance-now/-/performance-now-0.2.0.tgz"
-    },
     "pify": {
       "version": "2.3.0",
       "from": "pify@>=2.3.0 <3.0.0",
@@ -666,11 +646,6 @@
       "version": "2.0.1",
       "from": "pinkie-promise@>=2.0.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/pinkie-promise/-/pinkie-promise-2.0.1.tgz"
-    },
-    "process": {
-      "version": "0.5.2",
-      "from": "process@>=0.5.1 <0.6.0",
-      "resolved": "https://registry.npmjs.org/process/-/process-0.5.2.tgz"
     },
     "process-nextick-args": {
       "version": "1.0.7",
@@ -697,11 +672,6 @@
       "from": "querystring@>=0.2.0 <0.3.0",
       "resolved": "https://registry.npmjs.org/querystring/-/querystring-0.2.0.tgz"
     },
-    "raf": {
-      "version": "3.2.0",
-      "from": "raf@>=3.1.0 <4.0.0",
-      "resolved": "https://registry.npmjs.org/raf/-/raf-3.2.0.tgz"
-    },
     "react": {
       "version": "15.3.0",
       "from": "react@>=15.2.1 <16.0.0",
@@ -712,32 +682,15 @@
       "from": "react-addons-shallow-compare@latest",
       "resolved": "https://registry.npmjs.org/react-addons-shallow-compare/-/react-addons-shallow-compare-15.3.0.tgz"
     },
-    "react-deep-force-update": {
-      "version": "1.0.1",
-      "from": "react-deep-force-update@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/react-deep-force-update/-/react-deep-force-update-1.0.1.tgz"
-    },
     "react-dom": {
       "version": "15.3.0",
       "from": "react-dom@>=15.2.1 <16.0.0",
       "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.3.0.tgz"
     },
-    "react-proxy": {
-      "version": "1.1.8",
-      "from": "react-proxy@>=1.1.7 <2.0.0",
-      "resolved": "https://registry.npmjs.org/react-proxy/-/react-proxy-1.1.8.tgz",
-      "dependencies": {
-        "lodash": {
-          "version": "4.13.1",
-          "from": "lodash@>=4.6.1 <5.0.0",
-          "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.13.1.tgz"
-        }
-      }
-    },
     "react-virtualized": {
-      "version": "7.16.0",
+      "version": "8.0.11",
       "from": "react-virtualized@latest",
-      "resolved": "https://registry.npmjs.org/react-virtualized/-/react-virtualized-7.16.0.tgz"
+      "resolved": "https://registry.npmjs.org/react-virtualized/-/react-virtualized-8.0.11.tgz"
     },
     "readable-stream": {
       "version": "2.1.5",

@@ -1,14 +1,20 @@
 import * as Path from 'path'
-import * as ChildProcess from 'child_process'
+import { ChildProcess } from 'child_process'
 
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
 import { DiffSelectionType, DiffSelection, Diff } from '../models/diff'
 import { Repository } from '../models/repository'
+import { CommitIdentity } from '../models/commit-identity'
 
 import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDeletedFile } from './patch-formatter'
 import { DiffParser } from './diff-parser'
 
-import { GitProcess, IGitResult, GitError as GitKitchenSinkError } from 'git-kitchen-sink'
+import {
+  GitProcess,
+  IGitResult,
+  GitError as GitKitchenSinkError,
+  IGitExecutionOptions as GitKitchenSinkExecutionOptions,
+} from 'git-kitchen-sink'
 
 import { User } from '../models/user'
 
@@ -118,6 +124,20 @@ export class Branch {
 }
 
 /**
+ * An extension of the execution options in git-kitchen-sink that
+ * allows us to piggy-back our own configuration options in the
+ * same object.
+ */
+interface IGitExecutionOptions extends GitKitchenSinkExecutionOptions {
+  /**
+   * The exit codes which indicate success to the
+   * caller. Unexpected exit codes will be logged and an
+   * error thrown. Defaults to 0 if undefined.
+   */
+  readonly successExitCodes?: Set<number>
+}
+
+/**
  * Interactions with a local Git repository
  */
 export class LocalGitOperations {
@@ -217,26 +237,19 @@ export class LocalGitOperations {
 
     const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, file)
 
-    const write = (input: string) => {
-      return (process: ChildProcess.ChildProcess) => {
-        process.stdin.write(input)
-        process.stdin.end()
-      }
-    }
-
     if (file.status === FileStatus.New) {
-      const input = await createPatchForNewFile(file, diff)
-      await git(applyArgs, repository.path, {}, undefined, write(input))
+      const patch = await createPatchForNewFile(file, diff)
+      await git(applyArgs, repository.path, { stdin: patch })
     }
 
     if (file.status === FileStatus.Modified) {
       const patch = await createPatchForModifiedFile(file, diff)
-      await git(applyArgs, repository.path, {}, undefined, write(patch))
+      await git(applyArgs, repository.path, { stdin: patch })
     }
 
     if (file.status === FileStatus.Deleted) {
       const patch = await createPatchForDeletedFile(file, diff)
-      await git(applyArgs, repository.path, {}, undefined, write(patch))
+      await git(applyArgs, repository.path, { stdin: patch })
     }
 
     return Promise.resolve()
@@ -259,12 +272,7 @@ export class LocalGitOperations {
       message = `${summary}\n\n${description}`
     }
 
-    const writeCommitMessage = (process: ChildProcess.ChildProcess) => {
-      process.stdin.write(message)
-      process.stdin.end()
-    }
-
-    await git([ 'commit', '-F',  '-' ] , repository.path, { }, undefined, writeCommitMessage)
+    await git([ 'commit', '-F',  '-' ] , repository.path, { stdin: message })
   }
 
   /**
@@ -291,7 +299,7 @@ export class LocalGitOperations {
 
     const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
 
-    return GitProcess.execWithOutput(args, repository.path)
+    return git(args, repository.path)
       .then(this.diffFromRawDiffOutput)
   }
 
@@ -317,7 +325,7 @@ export class LocalGitOperations {
       ? [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
       : [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
 
-    return git(args, repository.path, {}, successExitCodes)
+    return git(args, repository.path, { successExitCodes })
       .then(this.diffFromRawDiffOutput)
   }
 
@@ -387,9 +395,35 @@ export class LocalGitOperations {
     return files
   }
 
+  /**
+   * Gets the author identity, ie the name and email which would
+   * have been used should a commit have been performed in this
+   * instance. This differs from what's stored in the user.name
+   * and user.email config variables in that it will match what
+   * Git itself will use in a commit even if there's no name or
+   * email configured. If no email or name is configured Git will
+   * attempt to come up with a suitable replacement using the
+   * signed-in system user and hostname.
+   *
+   * A null return value means that no name/and or email was set
+   * and the user.useconfigonly setting prevented Git from making
+   * up a user ident string. If this returns null any subsequent
+   * commits can be expected to fail as well.
+   */
+  public static async getAuthorIdentity(repository: Repository): Promise<CommitIdentity | null> {
+    const result = await git([ 'var', 'GIT_AUTHOR_IDENT' ], repository.path, { successExitCodes: new Set([ 0, 128 ]) })
+
+    // If user.user.useconfigonly is set and no user.name or user.email
+    if (result.exitCode === 128) {
+      return null
+    }
+
+    return CommitIdentity.parseIdentity(result.stdout)
+  }
+
   /** Look up a config value by name in the repository. */
   public static async getConfigValue(repository: Repository, name: string): Promise<string | null> {
-    const result = await git([ 'config', '-z', name ], repository.path, undefined, new Set([ 0, 1 ]))
+    const result = await git([ 'config', '-z', name ], repository.path, { successExitCodes:  new Set([ 0, 1 ]) })
     // Git exits with 1 if the value isn't found. That's OK.
     if (result.exitCode === 1) {
       return null
@@ -461,7 +495,7 @@ export class LocalGitOperations {
 
   /** Get the name of the current branch. */
   public static async getCurrentBranch(repository: Repository): Promise<Branch | null> {
-    const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, undefined, new Set([ 0, 1 ]))
+    const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 1 ]) })
     if (revParseResult.exitCode === 1) {
       // Git exits with 1 if there's the branch is unborn. We should do more
       // specific error parsing than this, but for now it'll do.
@@ -494,7 +528,7 @@ export class LocalGitOperations {
 
   /** Get the number of commits in HEAD. */
   public static async getCommitCount(repository: Repository): Promise<number> {
-    const result = await git([ 'rev-list', '--count', 'HEAD' ], repository.path, undefined, new Set([ 0, 1 ]))
+    const result = await git([ 'rev-list', '--count', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 1 ]) })
     // Git exits with 1 if there's the branch is unborn. We should do more
     // specific error parsing than this, but for now it'll do.
     if (result.exitCode === 1) {
@@ -588,7 +622,7 @@ export class LocalGitOperations {
 
   /** Get the git dir of the path. */
   public static async getGitDir(path: string): Promise<string | null> {
-    const result = await git([ 'rev-parse', '--git-dir' ], path, undefined, new Set([ 0, 128 ]))
+    const result = await git([ 'rev-parse', '--git-dir' ], path, { successExitCodes: new Set([ 0, 128 ]) })
     // Exit code 128 means it was run in a directory that's not a git
     // repository.
     if (result.exitCode === 128) {
@@ -614,11 +648,13 @@ export class LocalGitOperations {
   /** Clone the repository to the path. */
   public static clone(url: string, path: string, user: User | null, progress: (progress: string) => void): Promise<void> {
     const env = LocalGitOperations.envForAuthentication(user)
-    return git([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, env, undefined, process => {
+    const processCallback = (process: ChildProcess) => {
       byline(process.stderr).on('data', (chunk: string) => {
         progress(chunk)
       })
-    })
+    }
+
+    return git([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, { env, processCallback })
   }
 
   /** Rename the given branch to a new name. */
@@ -695,23 +731,39 @@ export class GitError {
  * Shell out to git with the given arguments, at the given path.
  *
  * @param {args}             The arguments to pass to `git`.
+ *
  * @param {path}             The working directory path for the execution of the
  *                           command.
- * @param {customEnv}        Custom environment variables to use when launching
- *                           git.
- * @param {successExitCodes} The exit codes which indicate success to the
- *                           caller. Unexpected exit codes will be logged and an
- *                           error thrown. Defaults to 0 if undefined.
- * @param {processCb}        A callback which will pass in the ChildProcess,
- *                           giving the caller a chance to customize it further.
+ *
+ * @param {options}          Configuration options for the execution of git,
+ *                           see IGitExecutionOptions for more information.
  *
  * Returns the result. If the command exits with a code not in
  * `successExitCodes` a `GitError` will be thrown.
  */
-async function git(args: string[], path: string, customEnv?: Object, successExitCodes: Set<number> = new Set([ 0 ]), processCb?: (process: ChildProcess.ChildProcess) => void): Promise<IGitResult> {
-  const result = await GitProcess.execWithOutput(args, path, customEnv, processCb)
+async function git(args: string[], path: string, options?: IGitExecutionOptions): Promise<IGitResult> {
+
+  const defaultOptions: IGitExecutionOptions = {
+    successExitCodes: new Set([ 0 ]),
+  }
+
+  const opts = Object.assign({ }, defaultOptions, options)
+
+  const startTime = (performance && performance.now) ? performance.now() : null
+
+  const result = await GitProcess.exec(args, path, options)
+
+  if (console.debug && startTime) {
+    const rawTime = performance.now() - startTime
+    if (rawTime > 100) {
+     const timeInSeconds = (rawTime / 1000).toFixed(3)
+     console.debug(`executing: git ${args.join(' ')} (took ${timeInSeconds}s)`)
+    }
+  }
+
   const exitCode = result.exitCode
-  if (!successExitCodes.has(exitCode)) {
+
+  if (!opts.successExitCodes!.has(exitCode)) {
     console.error(`The command \`${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
     if (result.stdout.length) {
       console.error(result.stdout)
