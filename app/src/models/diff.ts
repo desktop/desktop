@@ -40,11 +40,14 @@ export class DiffHunkHeader {
   /** The number of lines in the new file that this diff hunk covers */
   public readonly newLineCount: number
 
-  public constructor(oldStartLine: number, oldLineCount: number, newStartLine: number, newLineCount: number) {
+  public readonly sectionHeading: string | null
+
+  public constructor(oldStartLine: number, oldLineCount: number, newStartLine: number, newLineCount: number, sectionHeading?: string | null) {
     this.oldStartLine = oldStartLine
     this.oldLineCount = oldLineCount
     this.newStartLine = newStartLine
     this.newLineCount = newLineCount
+    this.sectionHeading = sectionHeading || null
   }
 }
 
