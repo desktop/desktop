@@ -3,7 +3,7 @@ const expect = chai.expect
 
 import * as React from 'react'
 import { findDOMNode } from 'react-dom'
-import { renderIntoDocument } from 'react-addons-test-utils'
+import { render } from '../render-utils'
 
 import { Changes } from '../../src/ui/changes'
 
@@ -44,15 +44,17 @@ describe('<Changes />', () => {
       diff: null,
     }
 
-    const changes = renderIntoDocument(
+    const changes = render(
       <Changes branch='master'
                changes={state}
                commitAuthor={null}
                dispatcher={dispatcher!}
                emoji={emoji!}
                gitHubUsers={gitHubUsers!}
-               repository={repository} />
-    ) as React.Component<any, any>
+               repository={repository} />,
+      // TODO: we should just load the app's stylesheets here
+      '.list { height: 400px; width: 250px }'
+    )
 
     const node = findDOMNode(changes)
 
