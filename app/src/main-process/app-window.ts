@@ -159,10 +159,6 @@ export class AppWindow {
     return this.window.isMinimized()
   }
 
-  public isVisible() {
-    return this.window.isVisible()
-  }
-
   public restore() {
     this.window.restore()
   }
