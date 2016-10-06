@@ -15,7 +15,7 @@ import { SelectionType } from '../lib/app-state'
 import { sendReady } from './main-process-proxy'
 import { reportError } from '../lib/exception-reporting'
 import * as appProxy from './lib/app-proxy'
-import { shouldReportStats, reportStats, ILaunchTimingStats } from './lib/stats-reporting'
+import { StatsDatabase, StatsStore, ILaunchStats } from '../lib/stats'
 
 const startTime = Date.now()
 
@@ -34,6 +34,9 @@ const cloningRepositoriesStore = new CloningRepositoriesStore()
 const emojiStore = new EmojiStore()
 const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore, emojiStore)
 const dispatcher = new Dispatcher(appStore)
+
+const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
+
 dispatcher.loadInitialState().then(() => {
   const now = Date.now()
   sendReady(now - startTime)
@@ -68,17 +71,13 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
   }
 })
 
-ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchTimingStats }) => {
+ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
   console.info(`App ready time: ${stats.mainReadyTime}ms`)
   console.info(`Load time: ${stats.loadTime}ms`)
   console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
 
-  if (shouldReportStats() || false) {
-    reportStats({
-      launchTimingStats: stats,
-      version: appProxy.getVersion(),
-    })
-  }
+  statsStore.recordLaunchStats(stats)
+  statsStore.reportStats()
 })
 
 function openRepository(url: string) {
