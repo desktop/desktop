@@ -7,7 +7,7 @@ describe('parsePorcelainStatus', () => {
   describe('name', () => {
     it('parses a standard status', async () => {
 
-      const entries = parsePorcelainStatus(' M modified\0?? untracked\0  D deleted\0')
+      const entries = parsePorcelainStatus(' M modified\0?? untracked\0 D deleted\0')
       expect(entries.length).to.equal(3)
 
       let i = 0
