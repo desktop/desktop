@@ -78,7 +78,7 @@ describe('LocalGitOperations', () => {
 
       // select first five lines of file
       const selection = DiffSelection
-        .fromInitialSelection(DiffSelectionType.All)
+        .fromInitialSelection(DiffSelectionType.None)
         .withRangeSelection(0, 5, true)
 
       const file = new WorkingDirectoryFileChange(newFileName, FileStatus.New, selection)
@@ -192,7 +192,7 @@ describe('LocalGitOperations', () => {
       const deletedFile = 'deleted-file.md'
 
       const selection = DiffSelection
-        .fromInitialSelection(DiffSelectionType.All)
+        .fromInitialSelection(DiffSelectionType.None)
         .withRangeSelection(0, 5, true)
 
       const file = new WorkingDirectoryFileChange(deletedFile, FileStatus.Deleted, selection)
