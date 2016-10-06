@@ -4,12 +4,14 @@ import { SharedProcess } from '../shared-process/shared-process'
 import { WindowState, windowStateChannelName } from '../lib/window-state'
 import { buildDefaultMenu, MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-url'
+import { ILaunchTimingStats } from '../ui/stats-reporting'
 
 let windowStateKeeper: any | null = null
 
 export class AppWindow {
   private window: Electron.BrowserWindow
   private sharedProcess: SharedProcess
+  private _loadTime: number | null = null
 
   public constructor(sharedProcess: SharedProcess) {
     if (!windowStateKeeper) {
@@ -61,7 +63,7 @@ export class AppWindow {
       }
 
       const now = Date.now()
-      this.sharedProcess.console.log(`Loading: ${now - startLoad}ms`)
+      this._loadTime = now - startLoad
     })
 
     this.window.webContents.on('did-fail-load', () => {
@@ -148,5 +150,18 @@ export class AppWindow {
   /** Send the URL action to the renderer. */
   public sendURLAction(action: URLActionType) {
     this.window.webContents.send('url-action', { action })
+  }
+
+  /** Send the app launch timing stats to the renderer. */
+  public sendLaunchTimingStats(stats: ILaunchTimingStats) {
+    this.window.webContents.send('launch-timing-stats', { stats })
+  }
+
+  /**
+   * The time from loading start to loading end. This will be `null` until after
+   * loading is done.
+   */
+  public get loadTime(): number | null {
+    return this._loadTime
   }
 }
