@@ -121,7 +121,7 @@ describe('LocalGitOperations', () => {
         .fromInitialSelection(DiffSelectionType.All)
         .withRangeSelection(diff.hunks[0].unifiedDiffStart, diff.hunks[0].unifiedDiffEnd - diff.hunks[0].unifiedDiffStart, false)
 
-      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+      const updatedFile = file.withSelection(selection)
 
       // commit just this change, ignore everything else
       await LocalGitOperations.createCommit(repository!, 'title', '', [ updatedFile ])
