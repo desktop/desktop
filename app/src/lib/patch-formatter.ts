@@ -167,6 +167,7 @@ export function createPatch(file: WorkingDirectoryFileChange, diff: Diff): strin
   })
 
   if (!patch.length) {
+    // TODO
     throw new Error('')
   }
 
