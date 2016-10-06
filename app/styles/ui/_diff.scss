@@ -9,6 +9,7 @@
 }
 
 .CodeMirror {
+  background: var(--box-alt-background-color);
   height: 100%;
   color: #323232;
   font-size: var(--font-size-sm);
@@ -23,6 +24,11 @@
 
   & > span:last-child {
     margin-left: var(--spacing-half);
+  }
+
+  // Add a border to the end of the diff
+  &:last-of-type {
+    border-top: var(--base-border);
   }
 }
 
@@ -72,7 +78,7 @@ pre.diff-delete {
 }
 
 pre.diff-context {
-  background: var(--diff-background-color);
+  background: var(--background-color);
   padding: 0;
 
   .diff-line-number {
