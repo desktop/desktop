@@ -1,9 +1,9 @@
-import * as request from 'request'
+const got = require('got')
 
 const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
 
 /** Report the error to Central. */
-export function reportError(error: Error, version: string) {
+export async function reportError(error: Error, version: string) {
   console.error(error)
 
   if (__DEV__ || process.env.TEST_ENV) {
@@ -11,7 +11,7 @@ export function reportError(error: Error, version: string) {
     return
   }
 
-  const payload = {
+  const body = {
     name: error.name,
     message: error.message,
     stack: error.stack,
@@ -19,16 +19,15 @@ export function reportError(error: Error, version: string) {
   }
 
   const options = {
-    formData: payload,
+    body,
     json: true,
   }
 
-  request.post(ErrorEndpoint, options, (error, response, body) => {
-    if (error) {
-      console.error('Error submitting exception report:')
-      console.error(error)
-    } else {
-      console.log('Exception reported.')
-    }
-  })
+  try {
+    await got.post(ErrorEndpoint, options)
+    console.log('Exception reported.')
+  } catch (e) {
+    console.error('Error submitting exception report:')
+    console.error(e)
+  }
 }

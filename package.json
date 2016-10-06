@@ -75,7 +75,6 @@
     "@types/react-addons-test-utils": "^0.14.14",
     "@types/react-dom": "^0.14.14",
     "@types/react-virtualized": "0.0.2",
-    "@types/request": "0.0.31",
     "@types/whatwg-fetch": "0.0.28"
   }
 }
