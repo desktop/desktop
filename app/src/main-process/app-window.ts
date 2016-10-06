@@ -160,7 +160,7 @@ export class AppWindow {
    * Register a function to call when the window is done loading. At that point
    * the page has loaded and the renderer has signalled that it is ready.
    */
-  public onDidLoad(fn: (loadTime: number) => void): Disposable {
+  public onDidLoad(fn: () => void): Disposable {
     return this.emitter.on('did-load', fn)
   }
 
