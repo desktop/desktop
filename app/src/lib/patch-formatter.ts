@@ -26,7 +26,6 @@ function extractAdditionalText(hunkHeader: string): string {
  *                     null if the file is the file is newly created.
  */
 function formatPatchHeader(from: string | null, to: string | null): string {
-
   // https://en.wikipedia.org/wiki/Diff_utility
   //
   // > At the beginning of the patch is the file information, including the full
@@ -161,10 +160,6 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
       : hunk.header.newLineCount + linesSkipped
     //const afterCount = s.header.newLineCount + linesSkipped
 
-    const patchHeader = formatPatchHeader(
-      file.path,
-      file.path)
-
     const hunkHeader = formatHunkHeader(
       beforeStart,
       beforeCount,
@@ -172,8 +167,14 @@ export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, dif
       afterCount,
       additionalText)
 
-      input += patchHeader + hunkHeader + patchBody
+      input += hunkHeader + patchBody
   })
+
+  const patchHeader = formatPatchHeader(
+    file.path,
+    file.path)
+
+  input = patchHeader + input
 
   return input
 }
@@ -215,10 +216,6 @@ export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Di
     const header = hunk.lines[0]
     const additionalText = extractAdditionalText(header.text)
 
-    const patchHeader = formatPatchHeader(
-      null,
-      file.path)
-
     const hunkHeader = formatHunkHeader(
       hunk.header.oldStartLine,
       hunk.header.oldLineCount,
@@ -227,8 +224,14 @@ export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Di
       additionalText
     )
 
-    input += patchHeader + hunkHeader + patchBody
+    input += hunkHeader + patchBody
   })
+
+  const patchHeader = formatPatchHeader(
+    null,
+    file.path)
+
+  input = patchHeader + input
 
   return input
 }
@@ -274,10 +277,6 @@ export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff
 
     const remainingLines = hunk.header.oldLineCount - linesIncluded
 
-    const patchHeader = formatPatchHeader(
-      file.path,
-      file.path)
-
     const hunkHeader = formatHunkHeader(
       hunk.header.oldStartLine,
       hunk.header.oldLineCount,
@@ -286,8 +285,14 @@ export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff
       additionalText
     )
 
-    input += patchHeader + hunkHeader + patchBody
+    input += hunkHeader + patchBody
   })
+
+  const patchHeader = formatPatchHeader(
+    file.path,
+    file.path)
+
+  input = patchHeader + input
 
   return input
 }
