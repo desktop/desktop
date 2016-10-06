@@ -11,6 +11,9 @@ import { reportError } from '../lib/exception-reporting'
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
+const launchTime = Date.now()
+let readyTime = 0
+
 process.on('uncaughtException', (error: Error) => {
   if (sharedProcess) {
     sharedProcess.console.error(error)
@@ -47,6 +50,8 @@ if (shouldQuit) {
 }
 
 app.on('ready', () => {
+  const now = Date.now()
+  readyTime = now - launchTime
 
   app.setAsDefaultProtocolClient('x-github-client')
   // Also support Desktop Classic's protocols.
