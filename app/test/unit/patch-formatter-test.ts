@@ -7,7 +7,7 @@ import * as FS from 'fs'
 import { Repository } from '../../src/models/repository'
 import { WorkingDirectoryFileChange, FileStatus } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
-import { createPatchForModifiedFile } from '../../src/lib/patch-formatter'
+import { createPatch } from '../../src/lib/patch-formatter'
 import { LocalGitOperations } from '../../src/lib/local-git-operations'
 import { setupFixtureRepository } from '../fixture-helper'
 
@@ -36,7 +36,7 @@ describe('patch formatting', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
-      const patch = createPatchForModifiedFile(updatedFile, diff)
+      const patch = createPatch(updatedFile, diff)
 
       expect(patch).to.have.string('--- a/modified-file.md\n')
       expect(patch).to.have.string('+++ b/modified-file.md\n')
@@ -57,7 +57,7 @@ describe('patch formatting', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
-      const patch = createPatchForModifiedFile(updatedFile, diff)
+      const patch = createPatch(updatedFile, diff)
 
       expect(patch).to.have.string('--- a/modified-file.md\n')
       expect(patch).to.have.string('+++ b/modified-file.md\n')
@@ -78,7 +78,7 @@ describe('patch formatting', () => {
         .withRangeSelection(diff.hunks[1].unifiedDiffStart, diff.hunks[1].unifiedDiffEnd - diff.hunks[1].unifiedDiffStart, false)
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
-      const patch = createPatchForModifiedFile(updatedFile, diff)
+      const patch = createPatch(updatedFile, diff)
 
       expect(patch).to.have.string('--- a/modified-file.md\n')
       expect(patch).to.have.string('+++ b/modified-file.md\n')
@@ -107,7 +107,7 @@ describe('patch formatting', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
-      const patch = createPatchForModifiedFile(updatedFile, diff)
+      const patch = createPatch(updatedFile, diff)
       const expectedPatch = `--- a/modified-file.md
 +++ b/modified-file.md
 @@ -1,33 +1,34 @@

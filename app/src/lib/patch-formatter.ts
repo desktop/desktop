@@ -1,4 +1,4 @@
-import { WorkingDirectoryFileChange } from '../models/status'
+import { WorkingDirectoryFileChange, FileStatus } from '../models/status'
 import { DiffLineType, Diff, DiffHunk, DiffSelection } from '../models/diff'
 
 function extractAdditionalText(hunkHeader: string): string {
@@ -39,6 +39,26 @@ function formatPatchHeader(from: string | null, to: string | null): string {
   const toPath =  to ? `b/${to}` : '/dev/null'
 
   return `--- ${fromPath}\n+++ ${toPath}\n`
+}
+
+function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
+  switch (file.status) {
+    case FileStatus.New: return formatPatchHeader(null, file.path)
+
+    // TODO: Is conflicted the same as modified?
+    case FileStatus.Conflicted:
+    case FileStatus.Modified:
+    case FileStatus.Deleted:
+      return formatPatchHeader(file.path, file.path)
+
+    case FileStatus.Renamed:
+      // TODO: Must add oldPath to file
+      throw new Error('file renames not supported')
+
+    case FileStatus.Unknown:
+    default:
+      throw new Error('unknown file statuses not supported')
+  }
 }
 
 /**
@@ -91,6 +111,66 @@ function anyLinesSelectedInHunk(selection: DiffSelection, hunk: DiffHunk) {
     if (line.type === DiffLineType.Context || line.type === DiffLineType.Hunk) { return false }
     return selection.isSelected(hunk.unifiedDiffStart + index)
   })
+}
+
+export function createPatch(file: WorkingDirectoryFileChange, diff: Diff): string {
+  let patch = ''
+
+  const isNew = file.status === FileStatus.New
+
+  diff.hunks.forEach((hunk, hunkIndex) => {
+
+
+    let hunkBuf = ''
+    const oldStart = isNew ? 0 : hunk.header.oldStartLine
+    let oldCount = 0
+    const newStart = isNew ? 0 : hunk.header.newStartLine
+    let newCount = 0
+
+    let contextLines = 0
+    let totalLines = 0
+
+    hunk.lines.forEach((line, lineIndex) => {
+      const absoluteIndex = hunk.unifiedDiffStart + lineIndex
+
+      if (line.type === DiffLineType.Hunk) { return }
+
+      if (line.type === DiffLineType.Context) {
+        if (!isNew) {
+          hunkBuf += `${line.text}\n`
+          oldCount++
+          newCount++
+          contextLines++
+        }
+      } else {
+        if (file.selection.isSelected(absoluteIndex)) {
+          hunkBuf += `${line.text}\n`
+          if (line.type === DiffLineType.Add) { newCount++ }
+          if (line.type === DiffLineType.Delete) { oldCount++ }
+        } else if (!isNew) {
+          hunkBuf += ` ${line.text.substr(1)}\n`
+          oldCount++
+          newCount++
+          contextLines++
+        }
+      }
+
+      totalLines++
+    })
+
+    if (contextLines === totalLines)  { return }
+
+    patch += formatHunkHeader(oldStart, oldCount, newStart, newCount)
+    patch += hunkBuf
+  })
+
+  if (!patch.length) {
+    throw new Error('')
+  }
+
+  patch = formatPatchHeaderForFile(file) + patch
+
+  return patch
 }
 
 export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): string {
