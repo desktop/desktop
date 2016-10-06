@@ -52,7 +52,6 @@ export class StatsStore {
     const body = JSON.stringify(stats)
     const options = {
       body,
-      json: true,
       headers: {
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(body),
