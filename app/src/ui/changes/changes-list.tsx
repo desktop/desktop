@@ -49,6 +49,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     return (
       <ChangedFile path={file.path}
                    status={file.status}
+                   oldPath={file.oldPath}
                    include={includeAll}
                    key={file.id}
                    onIncludeChanged={include => this.props.onIncludeChanged(row, include)}
