@@ -61,7 +61,7 @@ function formatHunkHeader(
   oldLineCount: number,
   newStartLine: number,
   newLineCount: number,
-  afterText: string) {
+  sectionHeading?: string | null) {
 
     // > @@ -l,s +l,s @@ optional section heading
     // >
@@ -80,7 +80,9 @@ function formatHunkHeader(
       ? `${newStartLine}`
       : `${newStartLine},${newLineCount}`
 
-    return `@@ -${lineInfoBefore} +${lineInfoAfter} @@${afterText}\n`
+    sectionHeading = sectionHeading ? ` ${sectionHeading}` : ''
+
+    return `@@ -${lineInfoBefore} +${lineInfoAfter} @@${sectionHeading}\n`
 }
 
 // Lower and upper inclusive
