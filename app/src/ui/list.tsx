@@ -224,7 +224,7 @@ export class List extends React.Component<IListProps, void> {
       <div id={this.props.id}
            className='list'
            onKeyDown={e => this.handleKeyDown(e)}>
-        <AutoSizer>
+        <AutoSizer disableWidth disableHeight>
           {({ width, height }: { width: number, height: number }) => this.renderContents(width, height)}
         </AutoSizer>
       </div>

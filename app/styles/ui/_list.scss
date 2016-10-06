@@ -17,7 +17,7 @@
     // with the height of the content in the main container.
 
     // Hide the actual scroll bar
-    .Grid::-webkit-scrollbar { display: none; }
+    .ReactVirtualized__Grid::-webkit-scrollbar { display: none; }
 
     // Hide the scroll bar by default
     .fake-scroll { display: none; }
