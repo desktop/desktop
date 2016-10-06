@@ -1,4 +1,5 @@
 import { BrowserWindow, ipcMain } from 'electron'
+import { Emitter, Disposable } from 'event-kit'
 
 import { SharedProcess } from '../shared-process/shared-process'
 import { WindowState, windowStateChannelName } from '../lib/window-state'
@@ -11,7 +12,7 @@ let windowStateKeeper: any | null = null
 export class AppWindow {
   private window: Electron.BrowserWindow
   private sharedProcess: SharedProcess
-  private _loadTime: number | null = null
+  private emitter = new Emitter()
 
   public constructor(sharedProcess: SharedProcess) {
     if (!windowStateKeeper) {
@@ -63,7 +64,8 @@ export class AppWindow {
       }
 
       const now = Date.now()
-      this._loadTime = now - startLoad
+      const loadTime = now - startLoad
+      this.emitter.emit('did-load', loadTime)
     })
 
     this.window.webContents.on('did-fail-load', () => {
@@ -125,8 +127,16 @@ export class AppWindow {
     this.window.on('closed', fn)
   }
 
+  public onDidLoad(fn: (loadTime: number) => void): Disposable {
+    return this.emitter.on('did-load', fn)
+  }
+
   public isMinimized() {
     return this.window.isMinimized()
+  }
+
+  public isVisible() {
+    return this.window.isVisible()
   }
 
   public restore() {
@@ -155,13 +165,5 @@ export class AppWindow {
   /** Send the app launch timing stats to the renderer. */
   public sendLaunchTimingStats(stats: ILaunchTimingStats) {
     this.window.webContents.send('launch-timing-stats', { stats })
-  }
-
-  /**
-   * The time from loading start to loading end. This will be `null` until after
-   * loading is done.
-   */
-  public get loadTime(): number | null {
-    return this._loadTime
   }
 }

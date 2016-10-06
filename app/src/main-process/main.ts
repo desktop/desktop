@@ -12,7 +12,10 @@ let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
 const launchTime = Date.now()
-let readyTime = 0
+
+let mainReadyTime: number | null = null
+let loadTime: number | null = null
+let rendererReadyTime: number | null = null
 
 process.on('uncaughtException', (error: Error) => {
   if (sharedProcess) {
@@ -51,7 +54,7 @@ if (shouldQuit) {
 
 app.on('ready', () => {
   const now = Date.now()
-  readyTime = now - launchTime
+  mainReadyTime = now - launchTime
 
   app.setAsDefaultProtocolClient('x-github-client')
   // Also support Desktop Classic's protocols.
@@ -119,14 +122,10 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('renderer-ready', (event: Electron.IpcMainEvent, rendererReadyTime: number) => {
-    const window = getMainWindow()
-    window.show()
-    window.sendLaunchTimingStats({
-      mainReadyTime: readyTime,
-      loadTime: window.loadTime!,
-      rendererReadyTime,
-    })
+  ipcMain.on('renderer-ready', (event: Electron.IpcMainEvent, time: number) => {
+    rendererReadyTime = time
+
+    showWindowIfReadyAndLoaded()
   })
 
   ipcMain.on('show-contextual-menu', (event: Electron.IpcMainEvent, items: ReadonlyArray<any>) => {
@@ -153,6 +152,19 @@ app.on('activate', () => {
   }
 })
 
+function showWindowIfReadyAndLoaded() {
+  const window = getMainWindow()
+  if (!rendererReadyTime || !loadTime) { return }
+  if (window.isVisible()) { return }
+
+  window.show()
+  window.sendLaunchTimingStats({
+    mainReadyTime: mainReadyTime!,
+    loadTime: loadTime!,
+    rendererReadyTime: rendererReadyTime!,
+  })
+}
+
 function createWindow() {
   const window = new AppWindow(sharedProcess!)
   window.onClose(() => {
@@ -161,6 +173,12 @@ function createWindow() {
     if (!__DARWIN__) {
       app.quit()
     }
+  })
+
+  window.onDidLoad(time => {
+    loadTime = time
+
+    showWindowIfReadyAndLoaded()
   })
 
   window.load()
