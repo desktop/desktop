@@ -1,15 +1,12 @@
 import { app, Menu, MenuItem, autoUpdater, ipcMain, BrowserWindow } from 'electron'
 
 import { AppWindow } from './app-window'
-import { Stats } from './stats'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent, getFeedURL } from './updates'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
-
-const stats = new Stats()
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -50,7 +47,6 @@ if (shouldQuit) {
 }
 
 app.on('ready', () => {
-  stats.readyTime = Date.now()
 
   app.setAsDefaultProtocolClient('x-github-client')
   // Also support Desktop Classic's protocols.
@@ -147,7 +143,7 @@ app.on('activate', () => {
 })
 
 function createWindow() {
-  const window = new AppWindow(stats, sharedProcess!)
+  const window = new AppWindow(sharedProcess!)
   window.onClose(() => {
     mainWindow = null
 

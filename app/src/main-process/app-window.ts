@@ -1,6 +1,5 @@
 import { BrowserWindow, ipcMain } from 'electron'
 
-import { Stats } from './stats'
 import { SharedProcess } from '../shared-process/shared-process'
 import { WindowState, windowStateChannelName } from '../lib/window-state'
 import { buildDefaultMenu, MenuEvent } from './menu'
@@ -11,9 +10,8 @@ let windowStateKeeper: any | null = null
 export class AppWindow {
   private window: Electron.BrowserWindow
   private sharedProcess: SharedProcess
-  private stats: Stats
 
-  public constructor(stats: Stats, sharedProcess: SharedProcess) {
+  public constructor(sharedProcess: SharedProcess) {
     if (!windowStateKeeper) {
       // `electron-window-state` requires Electron's `screen` module, which can
       // only be required after the app has emitted `ready`. So require it
@@ -47,8 +45,6 @@ export class AppWindow {
 
     this.window = new BrowserWindow(windowOptions)
     savedWindowState.manage(this.window)
-
-    this.stats = stats
 
     this.sharedProcess = sharedProcess
   }
