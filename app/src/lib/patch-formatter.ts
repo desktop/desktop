@@ -103,6 +103,22 @@ function formatHunkHeader(
     return `@@ -${lineInfoBefore} +${lineInfoAfter} @@${sectionHeading}\n`
 }
 
+/**
+ * Creates a GNU unified diff based on the original diff and a number
+ * of selected or unselected lines (from file.selection). The patch is
+ * formatted with the intention of being used for applying against an index
+ * with git apply.
+ *
+ * Note that the file must have at least one selected addition or deletion,
+ * ie it's not supported to use this method as a general purpose diff
+ * formatter.
+ *
+ * @param file  The file that the resulting patch will be applied to.
+ *              This is used to determine the from and to paths for the
+ *              patch header as well as retrieving the line selection state
+ *
+ * @param diff  The source diff
+ */
 export function formatPatch(file: WorkingDirectoryFileChange, diff: Diff): string {
   let patch = ''
 
@@ -170,9 +186,10 @@ export function formatPatch(file: WorkingDirectoryFileChange, diff: Diff): strin
     patch += hunkBuf
   })
 
+  // If we get into this state we should never have been called in the first
+  // place. Someone gave us a faulty diff and/or faulty selection state.
   if (!patch.length) {
-    // TODO
-    throw new Error('no patch')
+    throw new Error(`Could not generate a patch for file ${file.path}, patch empty`)
   }
 
   patch = formatPatchHeaderForFile(file) + patch
