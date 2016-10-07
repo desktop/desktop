@@ -446,7 +446,7 @@ export class LocalGitOperations {
 
   /** Pull from the remote to the branch. */
   public static pull(repository: Repository, user: User | null, remote: string, branch: string): Promise<void> {
-    return git([ 'pull', remote, branch ], repository.path, LocalGitOperations.envForAuthentication(user))
+    return git([ 'pull', remote, branch ], repository.path, { env: LocalGitOperations.envForAuthentication(user) })
   }
 
   /** Push from the remote to the branch, optionally setting the upstream. */
@@ -456,7 +456,7 @@ export class LocalGitOperations {
       args.push('--set-upstream')
     }
 
-    return git(args, repository.path, LocalGitOperations.envForAuthentication(user))
+    return git(args, repository.path, { env: LocalGitOperations.envForAuthentication(user) })
   }
 
   /** Get the remote names. */
