@@ -41,18 +41,19 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
   }
 
   public renderPathLabel() {
+    const props: React.HTMLProps<HTMLLabelElement> = {
+      className: 'path',
+      title: this.props.path,
+    }
+
     if (this.props.status === FileStatus.Renamed && this.props.oldPath) {
       return (
-        <label className='path' title={this.props.path}>
+        <label {...props}>
           {this.props.oldPath} <Octicon symbol={OcticonSymbol.arrowRight} /> {this.props.path}
         </label>
       )
     } else {
-      return (
-        <label className='path' title={this.props.path}>
-          {this.props.path}
-        </label>
-      )
+      return <label {...props}>{this.props.path}</label>
     }
   }
 
