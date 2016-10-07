@@ -10,6 +10,7 @@ import { DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
 
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
+import { getDiffMode } from './diff-mode'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
@@ -205,7 +206,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
       extraKeys: { Tab: false },
       scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
-      mode: 'github/diff',
+      mode: getDiffMode(),
     }
 
     return (

@@ -1,25 +1,6 @@
 import * as React from 'react'
 import * as CodeMirror from 'codemirror'
 
-CodeMirror.defineMode('github/diff', function(config: CodeMirror.EditorConfiguration, modeOptions?: any) {
-  const TOKEN_NAMES = {
-    '+': 'diff-add',
-    '-': 'diff-delete',
-    '@': 'diff-hunk',
-  }
-
-  return {
-    token: function(stream) {
-      const token: any = (TOKEN_NAMES as any)[stream.peek()] || 'diff-context'
-
-      stream.skipToEnd()
-
-      // Use the token to style both the line background and the line content.
-      return `line-background-${token} ${token}`
-    },
-  }
-})
-
 interface ICodeMirrorHostProps {
   /**
    * An optional class name for the wrapper element around the
