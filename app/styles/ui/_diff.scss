@@ -17,26 +17,33 @@
 }
 
 // Remove blank space at the top of the diff
-.CodeMirror-lines { padding: 0; }
+.CodeMirror-lines {
+  padding: 0;
+
+  // Add a border to the end of the diff
+  border-bottom: var(--base-border);
+}
 
 .CodeMirror-line {
   display: flex;
+  padding: 0;
+}
 
+// The last immediate `span` is the actual content class.
+.CodeMirror-line > span:last-child {
   // Add a little bit of space to the left of code diff
-  & > span:last-child {
-    margin-left: var(--spacing-half);
-  }
-
-  // Add a border to the end of the diff
-  &:last-of-type {
-    border-top: var(--base-border);
-  }
+  margin-left: var(--spacing-half);
 }
 
 .CodeMirror {
   span {
     // Force word breaks. This only matters when soft wrapping is on.
     word-break: break-all;
+  }
+
+  pre {
+    border-width: 0;
+    padding: 0;
   }
 }
 
@@ -60,7 +67,7 @@
   text-align: right;
 }
 
-pre.diff-add {
+.diff-add {
   background: var(--diff-add-background-color);
   padding: 0;
 
@@ -69,7 +76,7 @@ pre.diff-add {
   }
 }
 
-pre.diff-delete {
+.diff-delete {
   background: var(--diff-delete-background-color);
   padding: 0;
 
@@ -78,7 +85,7 @@ pre.diff-delete {
   }
 }
 
-pre.diff-context {
+.diff-context {
   background: var(--background-color);
   padding: 0;
 
@@ -87,9 +94,13 @@ pre.diff-context {
   }
 }
 
-pre.diff-hunk {
-  background: var(--diff-hunk-background-color);
+// The cm- prefix means it's styling the line content.
+.cm-diff-hunk {
   color: var(--diff-hunk-text-color);
+}
+
+.diff-hunk {
+  background: var(--diff-hunk-background-color);
   padding: 0;
 
   .diff-line-number {
@@ -97,7 +108,7 @@ pre.diff-hunk {
   }
 }
 
-span.diff-line-selected {
+.diff-line-selected {
   .diff-line-number {
     background: var(--diff-selected-background-color);
     border-color: var(--diff-selected-border-color);
@@ -105,7 +116,7 @@ span.diff-line-selected {
   }
 }
 
-span.diff-line-hover {
+.diff-line-hover {
   .diff-line-number {
     background: var(--diff-hover-background-color);
     border-color: var(--diff-hover-border-color);
