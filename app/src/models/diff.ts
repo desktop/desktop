@@ -172,6 +172,7 @@ export class DiffSelection {
     return DiffSelectionType.Partial
   }
 
+  /** Returns a value indicating wether the given line number is selected or not */
   public isSelected(rowIndex: number): boolean {
     const lineIsDivergent = !!this.divergingLines && this.divergingLines.has(rowIndex)
 
@@ -184,16 +185,51 @@ export class DiffSelection {
     }
   }
 
+  /**
+   * Returns a value indicating wether the given line number is selectable.
+   * A line not being selectable usually means it's a hunk header or a context
+   * line.
+   */
   public isSelectable(rowIndex: number): boolean {
     return this.selectableLines
       ? this.selectableLines.has(rowIndex)
       : true
   }
 
+  /**
+   * Returns a copy of this selection instance with the provided
+   * line selection update.
+   *
+   * @param rowIndex The index (line number) of the line which should
+   *                 be selected or unselected.
+   *
+   * @param selected Whether the given line number should be marked
+   *                 as selected or not.
+   */
   public withLineSelection(rowIndex: number, selected: boolean): DiffSelection {
     return this.withRangeSelection(rowIndex, 1, selected)
   }
 
+
+  /**
+   * Returns a copy of this selection instance with the provided
+   * line selection update. This is similar to the withLineSelection
+   * method except that it allows updating the selection state of
+   * a range of lines at once. Use this if you ever need to modify
+   * the selection state of more than one line at a time as it's
+   * more efficient.
+   *
+   * @param from     The row index (inclusive) from where to start
+   *                 updating the line selection state.
+   *
+   * @param to       The number of lines for which to update the
+   *                 selection state. A value of zero means no lines
+   *                 are updated and a value of 1 means only the
+   *                 line given by rowIndex will be updated.
+   *
+   * @param selected Whether the lines should be marked as selected
+   *                 or not.
+   */
   // Lower inclusive, upper exclusive. Same as substring
   public withRangeSelection(from: number, length: number, selected: boolean): DiffSelection {
     const computedSelectionType = this.getSelectionType()
