@@ -136,7 +136,7 @@ function typeMatchesSelection(selectionType: DiffSelectionType, selected: boolea
 /** encapsulate the selection of changes to a modified file in the working directory  */
 export class DiffSelection {
 
-  private readonly baseSelectionType: DiffSelectionType.All | DiffSelectionType.None
+  private readonly defaultSelectionType: DiffSelectionType.All | DiffSelectionType.None
 
   /**
    *  Once the user has started selecting specific lines to include,
@@ -160,15 +160,15 @@ export class DiffSelection {
     return new DiffSelection(initialSelection)
   }
 
-  private constructor(baseSelectionType: DiffSelectionType.All | DiffSelectionType.None, divergingLines?: Set<number>) {
-    this.baseSelectionType = baseSelectionType
+  private constructor(defaultSelectionType: DiffSelectionType.All | DiffSelectionType.None, divergingLines?: Set<number>) {
+    this.defaultSelectionType = defaultSelectionType
     this.divergingLines = divergingLines || null
   }
 
   /**  return the current state of the diff selection */
   public getSelectionType(): DiffSelectionType {
     if (!this.divergingLines || this.divergingLines.size === 0) {
-      return this.baseSelectionType
+      return this.defaultSelectionType
     } else {
       return DiffSelectionType.Partial
     }
@@ -177,12 +177,12 @@ export class DiffSelection {
   public isSelected(rowIndex: number): boolean {
     const lineIsDivergent = !!this.divergingLines && this.divergingLines.has(rowIndex)
 
-    if (this.baseSelectionType === DiffSelectionType.All) {
+    if (this.defaultSelectionType === DiffSelectionType.All) {
       return !lineIsDivergent
-    } else if (this.baseSelectionType === DiffSelectionType.None) {
+    } else if (this.defaultSelectionType === DiffSelectionType.None) {
       return lineIsDivergent
     } else {
-      return assertNever(this.baseSelectionType, `Unknown base selection type ${this.baseSelectionType}`)
+      return assertNever(this.defaultSelectionType, `Unknown base selection type ${this.defaultSelectionType}`)
     }
   }
 
@@ -202,7 +202,7 @@ export class DiffSelection {
     if (computedSelectionType === DiffSelectionType.Partial) {
       const newDivergingLines = new Set<number>(this.divergingLines!)
 
-      if (typeMatchesSelection(this.baseSelectionType, selected)) {
+      if (typeMatchesSelection(this.defaultSelectionType, selected)) {
         for (let i = 0; i < count; i++) {
           newDivergingLines.delete(rowIndex + i)
         }
@@ -212,7 +212,7 @@ export class DiffSelection {
         }
       }
 
-      return new DiffSelection(this.baseSelectionType, newDivergingLines.size === 0 ? undefined : newDivergingLines)
+      return new DiffSelection(this.defaultSelectionType, newDivergingLines.size === 0 ? undefined : newDivergingLines)
     } else {
       const newDivergingLines = new Set<number>()
       for (let i = 0; i < count; i++) {
