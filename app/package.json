@@ -31,7 +31,6 @@
     "untildify": "^3.0.2"
   },
   "devDependencies": {
-    "@types/enzyme": "^2.4.35",
     "enzyme": "^2.4.1",
     "fs-extra": "^0.30.0",
     "react-addons-perf": "^15.2.1",
