@@ -2,10 +2,11 @@ import * as chai from 'chai'
 const expect = chai.expect
 
 import * as React from 'react'
-import { findDOMNode } from 'react-dom'
-import { render } from '../render-utils'
+import { getParentNode } from '../render-utils'
+import { mount } from 'enzyme'
 
 import { Changes } from '../../src/ui/changes'
+import { ChangedFile } from '../../src/ui/changes/changed-file'
 
 import { IChangesState } from '../../src/lib/app-state'
 import { Repository } from '../../src/models/repository'
@@ -44,11 +45,14 @@ describe('<Changes />', () => {
       diff: null,
     }
 
+
+
     // TODO: we should just load the app's stylesheets here
     //const stylesheet = await getStylesheet()
     const stylesheet = '.list { height: 400px; width: 250px }'
+    const attachTo = getParentNode(stylesheet)
 
-    const changes = render(
+    const wrapper = mount(
       <Changes branch='master'
                changes={state}
                commitAuthor={null}
@@ -56,13 +60,10 @@ describe('<Changes />', () => {
                emoji={emoji!}
                gitHubUsers={gitHubUsers!}
                repository={repository} />,
-      stylesheet
+      { attachTo }
     )
 
-    const node = findDOMNode(changes)
-
-    // TODO: can we refer to components here rather than class files
-    const files = node.getElementsByClassName('changed-file')
-    expect(files.length).to.equal(4)
+    const changedFiles = wrapper.find(ChangedFile)
+    expect(changedFiles.length).to.equal(4)
   })
 })
