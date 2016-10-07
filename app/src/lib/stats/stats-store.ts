@@ -1,7 +1,7 @@
 const got = require('got')
 
 import { StatsDatabase, ILaunchStats } from './stats-database'
-import * as appProxy from '../../ui/lib/app-proxy'
+import { getVersion } from '../../ui/lib/app-proxy'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -82,7 +82,7 @@ export class StatsStore {
 
   private async getDailyStats(): Promise<DailyStats> {
     const launchStats = await this.getAverageLaunchStats()
-    return Object.assign({}, { version: appProxy.getVersion() }, launchStats)
+    return Object.assign({}, { version: getVersion() }, launchStats)
   }
 
   /** Calculate the average launch stats. */
