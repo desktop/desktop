@@ -125,6 +125,7 @@ export class DiffSelection {
   private readonly defaultSelectionType: DiffSelectionType.All | DiffSelectionType.None
 
   private readonly divergingLines: Set<number> | null
+  private readonly selectableLines: Set<number> | null
 
   public static fromInitialSelection(initialSelection: DiffSelectionType.All | DiffSelectionType.None): DiffSelection {
 
@@ -132,12 +133,13 @@ export class DiffSelection {
       return assertNever(initialSelection, 'Can only instantiate a DiffSelection with All or None as the initial selection')
     }
 
-    return new DiffSelection(initialSelection)
+    return new DiffSelection(initialSelection, null, null)
   }
 
-  private constructor(defaultSelectionType: DiffSelectionType.All | DiffSelectionType.None, divergingLines?: Set<number>) {
+  private constructor(defaultSelectionType: DiffSelectionType.All | DiffSelectionType.None, divergingLines: Set<number> | null, selectableLines: Set<number> | null) {
     this.defaultSelectionType = defaultSelectionType
     this.divergingLines = divergingLines || null
+    this.selectableLines = selectableLines || null
   }
 
   /**  return the current state of the diff selection */
@@ -161,13 +163,20 @@ export class DiffSelection {
     }
   }
 
+  public isSelectable(rowIndex: number): boolean {
+    return this.selectableLines
+      ? this.selectableLines.has(rowIndex)
+      : true
+  }
+
   public withLineSelection(rowIndex: number, selected: boolean): DiffSelection {
     return this.withRangeSelection(rowIndex, 1, selected)
   }
 
   // Lower inclusive, upper exclusive. Same as substring
-  public withRangeSelection(rowIndex: number, count: number, selected: boolean): DiffSelection {
+  public withRangeSelection(from: number, length: number, selected: boolean): DiffSelection {
     const computedSelectionType = this.getSelectionType()
+    const to = from + length
 
     // Nothing for us to do here
     if (typeMatchesSelection(computedSelectionType, selected)) {
@@ -178,23 +187,28 @@ export class DiffSelection {
       const newDivergingLines = new Set<number>(this.divergingLines!)
 
       if (typeMatchesSelection(this.defaultSelectionType, selected)) {
-        for (let i = 0; i < count; i++) {
-          newDivergingLines.delete(rowIndex + i)
+        for (let i = from; i < to; i++) {
+          newDivergingLines.delete(i)
         }
       } else {
-        for (let i = 0; i < count; i++) {
-          newDivergingLines.add(rowIndex + i)
+        for (let i = from; i < to; i++) {
+          // Ensure it's selectable
+          if (this.isSelectable(i)) {
+            newDivergingLines.add(i)
+          }
         }
       }
 
-      return new DiffSelection(this.defaultSelectionType, newDivergingLines.size === 0 ? undefined : newDivergingLines)
+      return new DiffSelection(this.defaultSelectionType, newDivergingLines.size === 0 ? null : newDivergingLines, this.selectableLines)
     } else {
       const newDivergingLines = new Set<number>()
-      for (let i = 0; i < count; i++) {
-        newDivergingLines.add(rowIndex + i)
+      for (let i = from; i < to; i++) {
+        if (this.isSelectable(i)) {
+          newDivergingLines.add(i)
+        }
       }
 
-      return new DiffSelection(computedSelectionType, newDivergingLines)
+      return new DiffSelection(computedSelectionType, newDivergingLines, this.selectableLines)
     }
   }
 
@@ -203,10 +217,18 @@ export class DiffSelection {
   }
 
   public withSelectAll(): DiffSelection {
-    return new DiffSelection(DiffSelectionType.All)
+    return new DiffSelection(DiffSelectionType.All, null, this.selectableLines)
   }
 
   public withSelectNone(): DiffSelection {
-    return new DiffSelection(DiffSelectionType.None)
+    return new DiffSelection(DiffSelectionType.None, null, this.selectableLines)
+  }
+
+  public withSelectableLines(selectableLines: Set<number>) {
+    const divergingLines = this.divergingLines
+      ? new Set([ ...this.divergingLines ].filter(x => selectableLines.has(x)))
+      : null
+
+    return new DiffSelection(this.defaultSelectionType, divergingLines, selectableLines)
   }
 }
