@@ -9,7 +9,7 @@ const DefaultToken = 'diff-context'
 /** Has the diff mode been defined yet? It should happen only once. */
 let diffModeDefined = false
 
-const TokenNames: any = {
+const TokenNames: { [key: string]: string | null } = {
   '+': 'diff-add',
   '-': 'diff-delete',
   '@': 'diff-hunk',
