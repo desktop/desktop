@@ -98,31 +98,6 @@ export enum DiffSelectionType {
   None
 }
 
-export class DiffSelectionParser {
-  /** iterate over the selected values and determine the all/none state  */
-  private static parse(selection: Map<number, boolean>): { allSelected: boolean, noneSelected: boolean } {
-      const toArray = Array.from(selection.values())
-
-      const allSelected = toArray.every(k => k === true)
-      const noneSelected = toArray.every(k => k === false)
-
-      return { allSelected, noneSelected }
-  }
-
-  /** determine the selection state based on the selected lines */
-  public static getState(selection: Map<number, boolean>): DiffSelectionType {
-    const { allSelected, noneSelected } = DiffSelectionParser.parse(selection)
-
-    if (allSelected) {
-      return DiffSelectionType.All
-    } else if (noneSelected) {
-      return DiffSelectionType.None
-    }
-
-    return  DiffSelectionType.Partial
-  }
-}
-
 function typeMatchesSelection(selectionType: DiffSelectionType, selected: boolean): boolean {
   switch (selectionType) {
     case DiffSelectionType.All: return selected
