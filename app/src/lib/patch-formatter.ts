@@ -23,7 +23,7 @@ function formatPatchHeader(from: string | null, to: string | null): string {
   // > [...] the original file is preceded by "---" and the new file is preceded
   // > by "+++".
   //
-  // We skip the time stamp since to match git
+  // We skip the time stamp to match git
   const fromPath = from ? `a/${from}` : '/dev/null'
   const toPath =  to ? `b/${to}` : '/dev/null'
 
