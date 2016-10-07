@@ -80,6 +80,8 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   }
 
   public render() {
+
+    console.log('rendering commit message')
     const branchName = this.props.branch ? this.props.branch : 'master'
     const disableButton = !this.props.anyFilesSelected
 
