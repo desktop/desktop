@@ -35,6 +35,7 @@
 }
 
 .branch-filter-input {
-  margin: var(--spacing);
-  margin-bottom: 0;
+  margin: 0;
+  margin-bottom: var(--spacing);
+  width: 100%;
 }
