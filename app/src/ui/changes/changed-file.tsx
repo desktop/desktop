@@ -40,11 +40,24 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     }
   }
 
+  public renderPathLabel() {
+    if (this.props.status === FileStatus.Renamed && this.props.oldPath) {
+      return (
+        <label className='path' title={this.props.path}>
+          {this.props.oldPath} <Octicon symbol={OcticonSymbol.arrowRight} /> {this.props.path}
+        </label>
+      )
+    } else {
+      return (
+        <label className='path' title={this.props.path}>
+          {this.props.path}
+        </label>
+      )
+    }
+  }
+
   public render() {
     const fileStatus = ChangedFile.mapStatus(this.props.status)
-    const path = this.props.status === FileStatus.Renamed && this.props.oldPath
-      ? `${this.props.oldPath} -> ${this.props.path}`
-      : this.props.path
 
     return (
       <div className='changed-file' onContextMenu={e => this.onContextMenu(e)}>
@@ -57,9 +70,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
           value={this.checkboxValue}
           onChange={event => this.handleChange(event)}/>
 
-        <label className='path' title={this.props.path}>
-          {path}
-        </label>
+        {this.renderPathLabel()}
 
         <div className={'status status-' + fileStatus.toLowerCase()} title={fileStatus}>
           <Octicon symbol={iconForStatus(this.props.status)} />
