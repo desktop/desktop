@@ -4,7 +4,7 @@ const expect = chai.expect
 import { parsePorcelainStatus } from '../../src/lib/status-parser'
 
 describe('parsePorcelainStatus', () => {
-  it('parses a standard status', async () => {
+  it('parses a standard status', () => {
 
     const entries = parsePorcelainStatus(' M modified\0?? untracked\0 D deleted\0')
     expect(entries.length).to.equal(3)
@@ -23,7 +23,7 @@ describe('parsePorcelainStatus', () => {
     expect(entries[i].path).to.equal('deleted')
   })
 
-  it('parses renames', async () => {
+  it('parses renames', () => {
 
     const entries = parsePorcelainStatus('R  new\0old\0RM from\0to\0')
     expect(entries.length).to.equal(2)
