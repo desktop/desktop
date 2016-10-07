@@ -108,7 +108,18 @@ function typeMatchesSelection(selectionType: DiffSelectionType, selected: boolea
   }
 }
 
-/** encapsulate the selection of changes to a modified file in the working directory  */
+/**
+ * An immutable, efficient, storage object for tracking selections of indexable
+ * lines. While general purpose by design this is currently used exclusively for
+ * tracking selected lines in modified files in the working directory.
+ *
+ * This class starts out with an initial (or default) selection state, ie
+ * either all lines are selected by default or no lines are selected by default.
+ *
+ * The selection can then be transformed by marking a line or a range of lines
+ * as selected or not selected. Internally the class maintains a list of lines
+ * whose selection state has diverged from the default selection state.
+ */
 export class DiffSelection {
 
   private readonly defaultSelectionType: DiffSelectionType.All | DiffSelectionType.None
