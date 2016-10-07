@@ -101,9 +101,6 @@ export function formatPatch(file: WorkingDirectoryFileChange, diff: Diff): strin
 
     let hunkBuf = ''
 
-    const oldStart = hunk.header.oldStartLine
-    const newStart = hunk.header.newStartLine
-
     let oldCount = 0
     let newCount = 0
 
@@ -160,7 +157,7 @@ export function formatPatch(file: WorkingDirectoryFileChange, diff: Diff): strin
     // Skip writing this hunk if all there is is context lines.
     if (!anyAdditionsOrDeletions)  { return }
 
-    patch += formatHunkHeader(oldStart, oldCount, newStart, newCount)
+    patch += formatHunkHeader(hunk.header.oldStartLine, oldCount, hunk.header.newStartLine, newCount)
     patch += hunkBuf
   })
 
