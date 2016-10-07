@@ -184,5 +184,50 @@ describe('patch formatting', () => {
  context
 `)
     })
+
+    it('rewrites hunk header when necessary', () => {
+      const rawDiff = [
+        '--- /dev/null',
+        '+++ b/file.md',
+        '@@ -0,2 +1,2 @@',
+        '+added line 1',
+        '+added line 2',
+      ].join('\n')
+      const diff = parseDiff(rawDiff)
+
+      // Select the second added line
+      const selection = DiffSelection
+        .fromInitialSelection(DiffSelectionType.None)
+        .withLineSelection(2, true)
+
+      const file = new WorkingDirectoryFileChange('file.md', FileStatus.New, selection)
+      const patch = formatPatch(file, diff)
+
+      expect(patch).to.have.string('@@ -0,0 +1 @@')
+      expect(patch).to.have.string('+added line 2')
+    })
+
+    it('includes empty context lines', () => {
+      const rawDiff = [
+        '--- a/file.md',
+        '+++ b/file.md',
+        '@@ -1 +1,2 @@',
+        ' ',
+        '+added line 2',
+      ].join('\n')
+      const diff = parseDiff(rawDiff)
+
+      // Select the second added line
+      const selection = DiffSelection
+        .fromInitialSelection(DiffSelectionType.None)
+        .withLineSelection(2, true)
+
+      const file = new WorkingDirectoryFileChange('file.md', FileStatus.Modified, selection)
+      const patch = formatPatch(file, diff)
+
+      expect(patch).to.have.string('@@ -1 +1,2 @@')
+      expect(patch).to.have.string(' ')
+      expect(patch).to.have.string('+added line 2')
+    })
   })
 })
