@@ -144,11 +144,32 @@ export class DiffSelection {
 
   /**  return the current state of the diff selection */
   public getSelectionType(): DiffSelectionType {
-    if (!this.divergingLines || this.divergingLines.size === 0) {
-      return this.defaultSelectionType
-    } else {
-      return DiffSelectionType.Partial
+    const divergingLines = this.divergingLines
+    const selectableLines = this.selectableLines
+
+    // No diverging lines, happy path. Either all lines are selected or none are.
+    if (!divergingLines) { return this.defaultSelectionType }
+    if (divergingLines.size === 0) { return this.defaultSelectionType }
+
+    // If we know which lines are selectable we need to check that
+    // all lines are divergent and return the inverse of default selection.
+    // To avoid loopting through the set that often our happy path is
+    // if there's a size mismatch.
+    if (selectableLines && selectableLines.size === divergingLines.size) {
+      const allSelectableLinesAreDivergent = [ ...selectableLines ]
+        .every(i => divergingLines.has(i))
+
+      if (allSelectableLinesAreDivergent) {
+        return this.defaultSelectionType === DiffSelectionType.All
+          ? DiffSelectionType.None
+          : DiffSelectionType.All
+      }
     }
+
+    // Note that without any selectable lines we'll report partial selection
+    // as long as we have any diverging lines since we have no way of knowing
+    // if _all_ lines are divergent or not
+    return DiffSelectionType.Partial
   }
 
   public isSelected(rowIndex: number): boolean {
