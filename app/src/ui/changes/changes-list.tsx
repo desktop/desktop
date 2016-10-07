@@ -73,7 +73,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     const fileCount = this.props.workingDirectory.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
-    const anyFilesSelected = this.includeAllValue !== CheckboxValue.Off
+    const anyFilesSelected = fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
 
     return (
       <div className='panel changes-panel' id='changes-list'>
