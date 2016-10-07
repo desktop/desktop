@@ -702,6 +702,12 @@ export class AppStore {
           selectedFile = newFiles.find(file => file.id === f.id)
       }
 
+      const diff = selectedFile ? state.changesState.diff : null
+
+      if (selectedFile && diff) {
+        this.updateDiffSelectionFromSelectionState(diff, selectedFile!.selection)
+      }
+
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
 
       return {
@@ -709,7 +715,7 @@ export class AppStore {
         changesState: {
           workingDirectory,
           selectedFile: selectedFile || null,
-          diff: selectedFile ? state.changesState.diff : null,
+          diff,
         },
         historyState: state.historyState,
         commitAuthor: state.commitAuthor,
