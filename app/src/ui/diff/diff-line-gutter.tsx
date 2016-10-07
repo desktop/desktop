@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { DiffLine, DiffLineType } from '../../models/diff'
+import { assertNever } from '../../lib/fatal-error'
 
 /** The props for the diff gutter. */
 interface IDiffGutterProps {
@@ -41,10 +42,30 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     }
   }
 
-  public render() {
+  private getLineClassName(): string {
+    const type = this.props.line.type
+    switch (type) {
+      case DiffLineType.Add: return 'diff-add'
+      case DiffLineType.Delete: return 'diff-delete'
+      case DiffLineType.Context: return 'diff-context'
+      case DiffLineType.Hunk: return 'diff-hunk'
+    }
+
+    return assertNever(type, `Unknown DiffLineType ${type}`)
+  }
+
+  private getLineClass(): string {
     const baseClassName = 'diff-line-gutter'
-    const selectedStateClassName = this.props.line.selected ? 'diff-line-selected' : ''
-    const className = `${baseClassName} ${selectedStateClassName}`
+    let className = baseClassName
+    if (this.props.line.selected) {
+      className += ' diff-line-selected'
+    }
+
+    return className + ` ${this.getLineClassName()}`
+  }
+
+  public render() {
+    const className = this.getLineClass()
 
     // TODO: depending on cursor position, highlight hunk rather than line
 
