@@ -166,7 +166,7 @@ export function formatPatch(file: WorkingDirectoryFileChange, diff: Diff): strin
 
   if (!patch.length) {
     // TODO
-    throw new Error('')
+    throw new Error('no patch')
   }
 
   patch = formatPatchHeaderForFile(file) + patch
