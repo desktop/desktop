@@ -187,8 +187,8 @@ export class DiffSelection {
   }
 
   /** Returns a value indicating wether the given line number is selected or not */
-  public isSelected(rowIndex: number): boolean {
-    const lineIsDivergent = !!this.divergingLines && this.divergingLines.has(rowIndex)
+  public isSelected(lineIndex: number): boolean {
+    const lineIsDivergent = !!this.divergingLines && this.divergingLines.has(lineIndex)
 
     if (this.defaultSelectionType === DiffSelectionType.All) {
       return !lineIsDivergent
@@ -204,9 +204,9 @@ export class DiffSelection {
    * A line not being selectable usually means it's a hunk header or a context
    * line.
    */
-  public isSelectable(rowIndex: number): boolean {
+  public isSelectable(lineIndex: number): boolean {
     return this.selectableLines
-      ? this.selectableLines.has(rowIndex)
+      ? this.selectableLines.has(lineIndex)
       : true
   }
 
@@ -214,14 +214,14 @@ export class DiffSelection {
    * Returns a copy of this selection instance with the provided
    * line selection update.
    *
-   * @param rowIndex The index (line number) of the line which should
+   * @param lineIndex The index (line number) of the line which should
    *                 be selected or unselected.
    *
    * @param selected Whether the given line number should be marked
    *                 as selected or not.
    */
-  public withLineSelection(rowIndex: number, selected: boolean): DiffSelection {
-    return this.withRangeSelection(rowIndex, 1, selected)
+  public withLineSelection(lineIndex: number, selected: boolean): DiffSelection {
+    return this.withRangeSelection(lineIndex, 1, selected)
   }
 
 
@@ -233,13 +233,13 @@ export class DiffSelection {
    * the selection state of more than one line at a time as it's
    * more efficient.
    *
-   * @param from     The row index (inclusive) from where to start
+   * @param from     The line index (inclusive) from where to start
    *                 updating the line selection state.
    *
    * @param to       The number of lines for which to update the
    *                 selection state. A value of zero means no lines
    *                 are updated and a value of 1 means only the
-   *                 line given by rowIndex will be updated.
+   *                 line given by lineIndex will be updated.
    *
    * @param selected Whether the lines should be marked as selected
    *                 or not.
@@ -289,11 +289,11 @@ export class DiffSelection {
    * Returns a copy of this selection instance where the selection state
    * of the specified line has been toggled (inverted).
    *
-   * @param rowIndex The index (line number) of the line which should
+   * @param lineIndex The index (line number) of the line which should
    *                 be selected or unselected.
    */
-  public withToggleLineSelection(rowIndex: number): DiffSelection {
-    return this.withLineSelection(rowIndex, !this.isSelected(rowIndex))
+  public withToggleLineSelection(lineIndex: number): DiffSelection {
+    return this.withLineSelection(lineIndex, !this.isSelected(lineIndex))
   }
 
   /**
