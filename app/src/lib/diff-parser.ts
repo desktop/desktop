@@ -12,7 +12,7 @@ import { assertNever } from '../lib/fatal-error'
 //
 // In many versions of GNU diff, each range can omit the comma and trailing value s,
 // in which case s defaults to 1
-const diffHeaderRe = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@ ?(.*?)?$/
+const diffHeaderRe = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/
 
 const DiffPrefixAdd: '+' = '+'
 const DiffPrefixDelete: '-' = '-'
@@ -218,9 +218,8 @@ export class DiffParser {
     const oldLineCount = this.numberFromGroup(m, 2, 1)
     const newStartLine = this.numberFromGroup(m, 3)
     const newLineCount = this.numberFromGroup(m, 4, 1)
-    const sectionHeading = m[5] || null
 
-    return new DiffHunkHeader(oldStartLine, oldLineCount, newStartLine, newLineCount, sectionHeading)
+    return new DiffHunkHeader(oldStartLine, oldLineCount, newStartLine, newLineCount)
   }
 
   /**
