@@ -311,7 +311,15 @@ export class DiffSelection {
   }
 
   /**
-   * Returns a copy of this selection instance with
+   * Returns a copy of this selection instance with a specified set of
+   * selecable lines. By default a DiffSelection instance allows selecting
+   * all lines (in fact, it has no notion of how many lines exists or what
+   * it is that is being selected).
+   *
+   * If the selection instance lacks a set of selectable lines it can not
+   * supply an accurate value from getSelectionType when the selection of
+   * all lines have diverged from the default state (since it doesn't know
+   * what all lines mean).
    */
   public withSelectableLines(selectableLines: Set<number>) {
     const divergingLines = this.divergingLines
