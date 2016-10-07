@@ -7,6 +7,7 @@ import { mount } from 'enzyme'
 
 import { Changes } from '../../src/ui/changes'
 import { ChangedFile } from '../../src/ui/changes/changed-file'
+import { CommitMessage } from '../../src/ui/changes/commit-message'
 
 import { IChangesState } from '../../src/lib/app-state'
 import { Repository } from '../../src/models/repository'
@@ -65,5 +66,25 @@ describe('<Changes />', () => {
 
     const changedFiles = wrapper.find(ChangedFile)
     expect(changedFiles.length).to.equal(4)
+
+    changedFiles.forEach(f => {
+      console.log('unchecking item')
+      const checkbox = f.find('input[type="checkbox"]')
+      if (checkbox) {
+        const _checkbox = (checkbox as any).node
+        console.log('before: checked= ' + _checkbox['checked'])
+      }
+      const after = checkbox.simulate('change', { currentTarget : { checked: false }})
+      if (after) {
+        const _after = (after as any).node
+        console.log('after: checked= ' + _after['checked'])
+      }
+    })
+
+    const commitMessage = wrapper.find(CommitMessage)
+    const commitButton: any = commitMessage.find('.commit-button')
+    const button = commitButton.node
+
+    expect(button['disabled']).to.be.true
   })
 })
