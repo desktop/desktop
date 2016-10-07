@@ -19,9 +19,6 @@
 // Remove blank space at the top of the diff
 .CodeMirror-lines {
   padding: 0;
-
-  // Add a border to the end of the diff
-  border-bottom: var(--base-border);
 }
 
 .CodeMirror-line {
@@ -45,6 +42,11 @@
     border-width: 0;
     padding: 0;
   }
+}
+
+.CodeMirror-code > pre:last-child {
+  // Add a border to the end of the diff
+  border-top: var(--base-border);
 }
 
 /** The container for the CodeMirror element. */
