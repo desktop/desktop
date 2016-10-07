@@ -98,6 +98,13 @@ export enum DiffSelectionType {
   None
 }
 
+/**
+ * Utility function which determines whether a boolean selection state
+ * matches the given DiffSelectionType. A true selection state matches
+ * DiffSelectionType.All, a false selection state matches
+ * DiffSelectionType.None and if the selection type is partial there's
+ * never a match.
+ */
 function typeMatchesSelection(selectionType: DiffSelectionType, selected: boolean): boolean {
   switch (selectionType) {
     case DiffSelectionType.All: return selected
@@ -124,9 +131,16 @@ export class DiffSelection {
 
   private readonly defaultSelectionType: DiffSelectionType.All | DiffSelectionType.None
 
+  /* Any line numbers where the selection differs from the default state. */
   private readonly divergingLines: Set<number> | null
+
+  /* Optional set of line numbers which can be selected. */
   private readonly selectableLines: Set<number> | null
 
+  /**
+   * Initialize a new selection instance where either all lines are selected by default
+   * or not lines are selected by default.
+   */
   public static fromInitialSelection(initialSelection: DiffSelectionType.All | DiffSelectionType.None): DiffSelection {
 
     if (initialSelection !== DiffSelectionType.All && initialSelection !== DiffSelectionType.None) {
@@ -142,7 +156,7 @@ export class DiffSelection {
     this.selectableLines = selectableLines || null
   }
 
-  /**  return the current state of the diff selection */
+  /** Returns a value indicating the computed overall state of the selection */
   public getSelectionType(): DiffSelectionType {
     const divergingLines = this.divergingLines
     const selectableLines = this.selectableLines
@@ -271,18 +285,34 @@ export class DiffSelection {
     }
   }
 
+  /**
+   * Returns a copy of this selection instance where the selection state
+   * of the specified line has been toggled (inverted).
+   *
+   * @param rowIndex The index (line number) of the line which should
+   *                 be selected or unselected.
+   */
   public withToggleLineSelection(rowIndex: number): DiffSelection {
     return this.withLineSelection(rowIndex, !this.isSelected(rowIndex))
   }
 
+  /**
+   * Returns a copy of this selection instance with all lines selected.
+   */
   public withSelectAll(): DiffSelection {
     return new DiffSelection(DiffSelectionType.All, null, this.selectableLines)
   }
 
+  /**
+   * Returns a copy of this selection instance with no lines selected.
+   */
   public withSelectNone(): DiffSelection {
     return new DiffSelection(DiffSelectionType.None, null, this.selectableLines)
   }
 
+  /**
+   * Returns a copy of this selection instance with
+   */
   public withSelectableLines(selectableLines: Set<number>) {
     const divergingLines = this.divergingLines
       ? new Set([ ...this.divergingLines ].filter(x => selectableLines.has(x)))
