@@ -7,7 +7,6 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffLine, Diff as DiffModel, DiffLineType } from '../../models/diff'
-import { assertNever } from '../../lib/fatal-error'
 
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
@@ -78,17 +77,6 @@ export class Diff extends React.Component<IDiffProps, void> {
 
     this.lineCleanup.forEach((disposable) => disposable.dispose())
     this.lineCleanup.clear()
-  }
-
-  private getClassName(type: DiffLineType): string {
-    switch (type) {
-      case DiffLineType.Add: return 'diff-add'
-      case DiffLineType.Delete: return 'diff-delete'
-      case DiffLineType.Context: return 'diff-context'
-      case DiffLineType.Hunk: return 'diff-hunk'
-    }
-
-    return assertNever(type, `Unknown DiffLineType ${type}`)
   }
 
   private onIncludeChanged(line: DiffLine, rowIndex: number) {
@@ -186,8 +174,6 @@ export class Diff extends React.Component<IDiffProps, void> {
           }
         }
         line.on('delete', deleteHandler)
-
-        element.classList.add(this.getClassName(diffLine.type))
       }
     }
   }
@@ -219,6 +205,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
       extraKeys: { Tab: false },
       scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
+      mode: 'github/diff',
     }
 
     return (
