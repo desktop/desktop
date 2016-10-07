@@ -8,11 +8,11 @@ import { DiffLineType, Diff } from '../models/diff'
  *
  * Note that this multi-line string includes a trailing newline.
  *
- * @param from         The relative path to the original version of the file or
- *                     null if the file is newly created.
+ * @param from  The relative path to the original version of the file or
+ *              null if the file is newly created.
  *
- * @param to           The relative path to the new version of the file or
- *                     null if the file is the file is newly created.
+ * @param to    The relative path to the new version of the file or
+ *              null if the file is the file is newly created.
  */
 function formatPatchHeader(from: string | null, to: string | null): string {
   // https://en.wikipedia.org/wiki/Diff_utility
