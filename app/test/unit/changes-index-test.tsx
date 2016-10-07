@@ -44,6 +44,10 @@ describe('<Changes />', () => {
       diff: null,
     }
 
+    // TODO: we should just load the app's stylesheets here
+    //const stylesheet = await getStylesheet()
+    const stylesheet = '.list { height: 400px; width: 250px }'
+
     const changes = render(
       <Changes branch='master'
                changes={state}
@@ -52,8 +56,7 @@ describe('<Changes />', () => {
                emoji={emoji!}
                gitHubUsers={gitHubUsers!}
                repository={repository} />,
-      // TODO: we should just load the app's stylesheets here
-      '.list { height: 400px; width: 250px }'
+      stylesheet
     )
 
     const node = findDOMNode(changes)
