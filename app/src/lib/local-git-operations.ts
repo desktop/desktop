@@ -8,6 +8,7 @@ import { CommitIdentity } from '../models/commit-identity'
 
 import { formatPatch } from './patch-formatter'
 import { DiffParser } from './diff-parser'
+import { parsePorcelainStatus } from './status-parser'
 
 import {
   GitProcess,
@@ -173,28 +174,15 @@ export class LocalGitOperations {
    *  and fail gracefully if the location is not a Git repository
    */
   public static async getStatus(repository: Repository): Promise<StatusResult> {
-    const result = await git([ 'status', '--untracked-files=all', '--porcelain' ], repository.path)
-    const output = result.stdout
-    const lines = output.split('\n')
+    const result = await git([ 'status', '--untracked-files=all', '--porcelain', '-z' ], repository.path)
+    const entries = parsePorcelainStatus(result.stdout)
 
-    const regex = /([\? \w]{2}) (.*)/
-    const regexGroups = { mode: 1, path: 2 }
+    const files = entries.map(({ path, statusCode, oldPath }) => {
+      const status = this.mapStatus(statusCode)
+      const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
-    const files = new Array<WorkingDirectoryFileChange>()
-
-    for (const index in lines) {
-      const line = lines[index]
-      const result = regex.exec(line)
-
-      if (result) {
-        const modeText = result[regexGroups.mode]
-        const path = result[regexGroups.path]
-
-        const status = this.mapStatus(modeText)
-        const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-        files.push(new WorkingDirectoryFileChange(path, status, diffSelection))
-      }
-    }
+      return new WorkingDirectoryFileChange(path, status, selection, oldPath)
+    })
 
     return StatusResult.FromStatus(new WorkingDirectoryStatus(files, true))
   }
