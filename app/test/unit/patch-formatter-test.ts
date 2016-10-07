@@ -8,7 +8,7 @@ import { Repository } from '../../src/models/repository'
 import { WorkingDirectoryFileChange, FileStatus } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
 import { DiffParser } from '../../src/lib/diff-parser'
-import { createPatch } from '../../src/lib/patch-formatter'
+import { formatPatch } from '../../src/lib/patch-formatter'
 import { LocalGitOperations } from '../../src/lib/local-git-operations'
 import { setupFixtureRepository } from '../fixture-helper'
 
@@ -20,7 +20,7 @@ function parseDiff(diff: string) {
 describe('patch formatting', () => {
   let repository: Repository | null = null
 
-  describe('createPatchesForModifiedFile', () => {
+  describe('formatPatchesForModifiedFile', () => {
 
     beforeEach(() => {
       const testRepoPath = setupFixtureRepository('repo-with-changes')
@@ -42,7 +42,7 @@ describe('patch formatting', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
-      const patch = createPatch(updatedFile, diff)
+      const patch = formatPatch(updatedFile, diff)
 
       expect(patch).to.have.string('--- a/modified-file.md\n')
       expect(patch).to.have.string('+++ b/modified-file.md\n')
@@ -63,7 +63,7 @@ describe('patch formatting', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
-      const patch = createPatch(updatedFile, diff)
+      const patch = formatPatch(updatedFile, diff)
 
       expect(patch).to.have.string('--- a/modified-file.md\n')
       expect(patch).to.have.string('+++ b/modified-file.md\n')
@@ -84,7 +84,7 @@ describe('patch formatting', () => {
         .withRangeSelection(diff.hunks[1].unifiedDiffStart, diff.hunks[1].unifiedDiffEnd - diff.hunks[1].unifiedDiffStart, false)
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
-      const patch = createPatch(updatedFile, diff)
+      const patch = formatPatch(updatedFile, diff)
 
       expect(patch).to.have.string('--- a/modified-file.md\n')
       expect(patch).to.have.string('+++ b/modified-file.md\n')
@@ -113,7 +113,7 @@ describe('patch formatting', () => {
 
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
-      const patch = createPatch(updatedFile, diff)
+      const patch = formatPatch(updatedFile, diff)
       const expectedPatch = `--- a/modified-file.md
 +++ b/modified-file.md
 @@ -1,33 +1,34 @@
@@ -173,7 +173,7 @@ describe('patch formatting', () => {
         .withLineSelection(3, true)
 
       const file = new WorkingDirectoryFileChange('file.md', FileStatus.Modified, selection)
-      const patch = createPatch(file, diff)
+      const patch = formatPatch(file, diff)
 
       expect(patch).to.equal(`--- a/file.md
 +++ b/file.md

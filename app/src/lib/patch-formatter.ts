@@ -94,7 +94,7 @@ function formatHunkHeader(
     return `@@ -${lineInfoBefore} +${lineInfoAfter} @@${sectionHeading}\n`
 }
 
-export function createPatch(file: WorkingDirectoryFileChange, diff: Diff): string {
+export function formatPatch(file: WorkingDirectoryFileChange, diff: Diff): string {
   let patch = ''
 
   diff.hunks.forEach((hunk, hunkIndex) => {

@@ -6,7 +6,7 @@ import { DiffSelectionType, DiffSelection, Diff } from '../models/diff'
 import { Repository } from '../models/repository'
 import { CommitIdentity } from '../models/commit-identity'
 
-import { createPatch } from './patch-formatter'
+import { formatPatch } from './patch-formatter'
 import { DiffParser } from './diff-parser'
 
 import {
@@ -237,7 +237,7 @@ export class LocalGitOperations {
 
     const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, file)
 
-    const patch = await createPatch(file, diff)
+    const patch = await formatPatch(file, diff)
     await git(applyArgs, repository.path, { stdin: patch })
 
     return Promise.resolve()
