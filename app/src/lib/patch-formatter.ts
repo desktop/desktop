@@ -30,22 +30,31 @@ function formatPatchHeader(from: string | null, to: string | null): string {
   return `--- ${fromPath}\n+++ ${toPath}\n`
 }
 
+/**
+ * Generates a string matching the format of a GNU unified diff header excluding
+ * the (optional) timestamp fields with the appropriate from/to file names based
+ * on the file state of the given WorkingDirectoryFileChange
+ */
 function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
   switch (file.status) {
-    case FileStatus.New: return formatPatchHeader(null, file.path)
+    case FileStatus.New:
+      return formatPatchHeader(null, file.path)
 
-    // TODO: Is conflicted the same as modified?
     case FileStatus.Conflicted:
-    case FileStatus.Modified:
-    case FileStatus.Deleted:
-      return formatPatchHeader(file.path, file.path)
-
+    // One might initially believe that renamed files should diff
+    // against their old path. This is, after all, how git diff
+    // does it right after a rename. But if we're creating a patch
+    // to be applied along with a rename we must target the renamed
+    // file.
     case FileStatus.Renamed:
-      // TODO: Must add oldPath to file
-      throw new Error('file renames not supported')
+    case FileStatus.Deleted:
+    case FileStatus.Modified:
+      return formatPatchHeader(file.path, file.path)
 
     case FileStatus.Unknown:
     default:
+      // TODO: I hate this but I'll save removing FileStatus.Unknown
+      // to a later PR.
       throw new Error('unknown file statuses not supported')
   }
 }
