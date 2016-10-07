@@ -156,14 +156,15 @@ describe('patch formatting', () => {
     })
 
     it('doesn\'t include unselected added lines as context', () => {
-      const rawDiff = `--- a/file.md
-+++ b/file.md
-@@ -10,2 +10,4 @@
- context
-+added line 1
-+added line 2
- context
-`
+      const rawDiff = [
+        '--- a/file.md',
+        '+++ b/file.md',
+        '@@ -10,2 +10,4 @@',
+        ' context',
+        '+added line 1',
+        '+added line 2',
+        ' context',
+      ].join('\n')
 
       const diff = parseDiff(rawDiff)
 
