@@ -31,7 +31,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusEntry
   const fields = output.split('\0')
   let field: string | undefined
 
-  while ((field = fields.shift())) {
+  while (field = fields.shift()) {
     // The status field is two letters followed by a space
     // and then comes the path.
     const statusCode = field.substr(0, 2)
