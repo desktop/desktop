@@ -113,17 +113,6 @@ export class DiffSelection {
 
   private readonly defaultSelectionType: DiffSelectionType.All | DiffSelectionType.None
 
-  /**
-   *  Once the user has started selecting specific lines to include,
-   *  these selections are tracked here - the key corresponds to the index
-   *  in the unified diff, and the value indicates whether the line has been
-   *  selected
-   *
-   *  @TODO there's an impedance mismatch here between the diff hunk, which
-   *        each have indexes relative to themselves and might not be unique,
-   *        and the user selecting a line, which need to be unique. Pondering
-   *        on a better way to represent this...
-   */
   private readonly divergingLines: Set<number> | null
 
   public static fromInitialSelection(initialSelection: DiffSelectionType.All | DiffSelectionType.None): DiffSelection {
