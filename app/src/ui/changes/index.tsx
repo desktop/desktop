@@ -6,12 +6,13 @@ import { IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
+import { CommitIdentity } from '../../models/commit-identity'
 
 interface IChangesProps {
   readonly repository: Repository
   readonly changes: IChangesState
   readonly dispatcher: Dispatcher
-  readonly committerEmail: string | null
+  readonly commitAuthor: CommitIdentity | null
   readonly branch: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
@@ -96,10 +97,35 @@ export class Changes extends React.Component<IChangesProps, void> {
     }
   }
 
+  private renderDiff() {
+    const diff = this.props.changes.diff
+    const file = this.props.changes.selectedFile
+
+    if (!diff || !file) {
+      return (
+        <div className='panel blankslate' id='diff'>
+          No file selected
+        </div>
+      )
+    }
+
+    return (
+      <Diff repository={this.props.repository}
+        file={file}
+        readOnly={false}
+        onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)}
+        diff={diff}/>
+    )
+  }
+
   public render() {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
 
-    const email = this.props.committerEmail
+    // TODO: I think user will expect the avatar to match that which
+    // they have configured in GitHub.com as well as GHE so when we add
+    // support for GHE we should revisit this and try to update the logic
+    // to look up based on email _and_ host.
+    const email = this.props.commitAuthor ? this.props.commitAuthor.email : null
     let user: IGitHubUser | null = null
     if (email) {
       user = this.props.gitHubUsers.get(email.toLowerCase()) || null
@@ -118,16 +144,13 @@ export class Changes extends React.Component<IChangesProps, void> {
                        onSelectAll={selectAll => this.onSelectAll(selectAll)}
                        onDiscardChanges={row => this.onDiscardChanges(row)}
                        onRowKeyDown={(row, e) => this.onChangedItemKeyDown(row, e)}
+                       commitAuthor={this.props.commitAuthor}
                        branch={this.props.branch}
                        avatarURL={avatarURL}
                        emoji={this.props.emoji}/>
         </Resizable>
 
-        <Diff repository={this.props.repository}
-          file={this.props.changes.selectedFile}
-          readOnly={false}
-          commit={null}
-          onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)} />
+        {this.renderDiff()}
       </div>
     )
   }

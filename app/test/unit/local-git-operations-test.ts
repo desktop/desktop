@@ -6,12 +6,12 @@ import * as path from 'path'
 const fs = require('fs-extra')
 const temp = require('temp').track()
 
-import { Repository } from '../src/models/repository'
-import { LocalGitOperations, BranchType } from '../src/lib/local-git-operations'
-import { FileStatus, FileChange, WorkingDirectoryFileChange } from '../src/models/status'
-import { DiffSelectionType, DiffSelection } from '../src/models/diff'
-import { selectLinesInSection, mergeSelections } from './diff-selection-helper'
-import { setupFixtureRepository } from './fixture-helper'
+import { Repository } from '../../src/models/repository'
+import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operations'
+import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
+import { DiffSelectionType, DiffSelection } from '../../src/models/diff'
+import { selectLinesInHunk, mergeSelections } from '.././diff-selection-helper'
+import { setupFixtureRepository } from '../fixture-helper'
 
 describe('LocalGitOperations', () => {
   let repository: Repository | null = null
@@ -117,12 +117,12 @@ describe('LocalGitOperations', () => {
       const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       // skip first hunk
-      const first = selectLinesInSection(diff, 0, false)
+      const first = selectLinesInHunk(diff, 0, false)
       // select second hunk
-      const second = selectLinesInSection(diff, 1, true)
+      const second = selectLinesInHunk(diff, 1, true)
 
       const selectedLines = mergeSelections([ first, second ])
 
@@ -161,14 +161,14 @@ describe('LocalGitOperations', () => {
       const unselectedFile = new DiffSelection(DiffSelectionType.None, new Map<number, boolean>())
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
       // select first hunk
-      const first = selectLinesInSection(diff, 0, true)
+      const first = selectLinesInHunk(diff, 0, true)
       // skip second hunk
-      const second = selectLinesInSection(diff, 1, false)
+      const second = selectLinesInHunk(diff, 1, false)
       // select third hunk
-      const third = selectLinesInSection(diff, 2, true)
+      const third = selectLinesInHunk(diff, 2, true)
 
       const selectedLines = mergeSelections([ first, second, third ])
 
@@ -275,24 +275,26 @@ describe('LocalGitOperations', () => {
     })
 
     it('counts lines for new file', async () => {
-      const file = new FileChange('new-file.md', FileStatus.New)
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diffSelection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
+      const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
-      const section = diff.sections[0]
+      const hunk = diff.hunks[0]
 
-      expect(section.lines[0].text).to.have.string('@@ -0,0 +1,33 @@')
+      expect(hunk.lines[0].text).to.have.string('@@ -0,0 +1,33 @@')
 
-      expect(section.lines[1].text).to.have.string('+Lorem ipsum dolor sit amet,')
-      expect(section.lines[2].text).to.have.string('+ullamcorper sit amet tellus eget, ')
+      expect(hunk.lines[1].text).to.have.string('+Lorem ipsum dolor sit amet,')
+      expect(hunk.lines[2].text).to.have.string('+ullamcorper sit amet tellus eget, ')
 
-      expect(section.lines[33].text).to.have.string('+ urna, ac porta justo leo sed magna.')
+      expect(hunk.lines[33].text).to.have.string('+ urna, ac porta justo leo sed magna.')
     })
 
     it('counts lines for modified file', async () => {
-      const file = new FileChange('modified-file.md', FileStatus.Modified)
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diffSelection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
+      const file = new WorkingDirectoryFileChange('modified-file.md', FileStatus.Modified, diffSelection)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
-      const first = diff.sections[0]
+      const first = diff.hunks[0]
       expect(first.lines[0].text).to.have.string('@@ -4,10 +4,6 @@')
 
       expect(first.lines[4].text).to.have.string('-Aliquam leo ipsum')
@@ -300,7 +302,7 @@ describe('LocalGitOperations', () => {
       expect(first.lines[6].text).to.have.string('-eleifend mi.')
       expect(first.lines[7].text).to.have.string('-')
 
-      const second = diff.sections[1]
+      const second = diff.hunks[1]
       expect(second.lines[0].text).to.have.string('@@ -21,6 +17,10 @@')
 
       expect(second.lines[4].text).to.have.string('+Aliquam leo ipsum')
@@ -310,16 +312,17 @@ describe('LocalGitOperations', () => {
     })
 
     it('counts lines for staged file', async () => {
-      const file = new FileChange('staged-file.md', FileStatus.Modified)
-      const diff = await LocalGitOperations.getDiff(repository!, file, null)
+      const diffSelection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
+      const file = new WorkingDirectoryFileChange('staged-file.md', FileStatus.Modified, diffSelection)
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
 
-      const first = diff.sections[0]
+      const first = diff.hunks[0]
       expect(first.lines[0].text).to.have.string('@@ -2,7 +2,7 @@ ')
 
       expect(first.lines[4].text).to.have.string('-tortor placerat facilisis. Ut sed ex tortor. Duis consectetur at ex vel mattis.')
       expect(first.lines[5].text).to.have.string('+tortor placerat facilisis.')
 
-      const second = diff.sections[1]
+      const second = diff.hunks[1]
       expect(second.lines[0].text).to.have.string('@@ -17,9 +17,7 @@ ')
 
       expect(second.lines[4].text).to.have.string('-vel sagittis nisl rutrum. ')
@@ -359,7 +362,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('should return false for a directory', async () => {
-      const result = await LocalGitOperations.isGitRepository(path.basename(repository!.path))
+      const result = await LocalGitOperations.isGitRepository(path.dirname(repository!.path))
       expect(result).to.equal(false)
     })
   })
@@ -371,7 +374,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('should return null for a directory', async () => {
-      const result = await LocalGitOperations.getGitDir(path.basename(repository!.path))
+      const result = await LocalGitOperations.getGitDir(path.dirname(repository!.path))
       expect(result).to.equal(null)
     })
   })

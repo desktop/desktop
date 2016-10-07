@@ -1,3 +1,7 @@
+.list {
+  flex-grow: 1;
+}
+
 @include win32-context {
   .list {
     position: relative;
@@ -13,7 +17,7 @@
     // with the height of the content in the main container.
 
     // Hide the actual scroll bar
-    .Grid::-webkit-scrollbar { display: none; }
+    .ReactVirtualized__Grid::-webkit-scrollbar { display: none; }
 
     // Hide the scroll bar by default
     .fake-scroll { display: none; }
@@ -56,4 +60,6 @@
       background-color: var(--box-selected-active-background-color);
     }
   }
+
+  &:focus { outline: none; }
 }

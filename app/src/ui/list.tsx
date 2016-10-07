@@ -1,7 +1,29 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import { Grid, AutoSizer } from 'react-virtualized'
 
-const { Grid, AutoSizer } = require('react-virtualized')
+/**
+ * Describe the first argument given to the cellRenderer,
+ * See
+ *  https://github.com/bvaughn/react-virtualized/issues/386
+ *  https://github.com/bvaughn/react-virtualized/blob/8.0.11/source/Grid/defaultCellRangeRenderer.js#L38-L44
+ */
+export interface IRowRendererParams {
+  /** Horizontal (column) index of cell */
+  readonly columnIndex: number
+
+  /** The Grid is currently being scrolled */
+  readonly isScrolling: boolean
+
+  /** Unique key within array of cells */
+  readonly key: React.Key
+
+  /** Vertical (row) index of cell */
+  readonly rowIndex: number
+
+  /** Style object to be applied to cell */
+  readonly style: React.CSSProperties
+}
 
 interface IListProps {
   readonly rowRenderer: (row: number) => JSX.Element
@@ -34,6 +56,11 @@ interface IListProps {
    */
   onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
 
+  /**
+   * An optional handler called to determine whether a given row is
+   * selectable or not. Reasons for why a row might not be selectable
+   * includes it being a group header or the item being disabled.
+   */
   readonly canSelectRow?: (row: number) => boolean
   readonly onScroll?: (scrollTop: number, clientHeight: number) => void
 
@@ -109,15 +136,18 @@ export class List extends React.Component<IListProps, void> {
       }
     }
 
-    if (this.props.canSelectRow) {
-      if (this.props.canSelectRow(newRow)) {
-        return newRow
-      } else {
-        return this.nextSelectableRow(direction, newRow)
-      }
-    } else {
+    if (this.canSelectRow(newRow)) {
       return newRow
+    } else {
+      return this.nextSelectableRow(direction, newRow)
     }
+  }
+
+  /** Convenience method for invoking canSelectRow callback when it exists */
+  private canSelectRow(rowIndex: number) {
+    return this.props.canSelectRow
+      ? this.props.canSelectRow(rowIndex)
+      : true
   }
 
   private moveSelection(direction: 'up' | 'down') {
@@ -153,44 +183,48 @@ export class List extends React.Component<IListProps, void> {
     }
   }
 
-  private renderRow = ({ rowIndex }: { rowIndex: number }) => {
+  private renderRow = (params: IRowRendererParams) => {
+    const rowIndex = params.rowIndex
+    const selectable = this.canSelectRow(rowIndex)
     const selected = rowIndex === this.props.selectedRow
     const focused = rowIndex === this.focusRow
     const className = selected ? 'list-item selected' : 'list-item'
-    const tabIndex = focused ? 0 : -1
+
+    // An unselectable row shouldn't have any tabIndex (as -1 means
+    // it's given focus by clicking).
+    let tabIndex: number | undefined = undefined
+    if (selectable) {
+      tabIndex = selected ? 0 : -1
+    }
 
     // We only need to keep a reference to the focused element
     const ref = focused
       ? (c: HTMLDivElement) => { this.focusItem = c }
       : undefined
 
-    const element = this.props.rowRenderer(rowIndex)
+    const element = this.props.rowRenderer(params.rowIndex)
+    const role = selectable ? 'button' : undefined
+
     return (
-      <div key={element.key}
-           role='button'
+      <div key={params.key}
+           role={role}
            className={className}
            tabIndex={tabIndex}
            ref={ref}
            onMouseDown={() => this.handleMouseDown(rowIndex)}
-           onKeyDown={(e) => this.handleRowKeyDown(rowIndex, e)}>
+           onKeyDown={(e) => this.handleRowKeyDown(rowIndex, e)}
+           style={params.style}>
         {element}
       </div>
     )
   }
 
   public render() {
-    // The currently selected list item is focusable but if
-    // there's no focused item (and there's items to switch between)
-    // the list itself needs to be focusable so that you can reach
-    // it with keyboard navigation and select an item.
-    const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : -1
     return (
       <div id={this.props.id}
            className='list'
-           tabIndex={tabIndex}
-           onKeyDown={e => this.handleKeyDown(e)}
-           style={{ flexGrow: 1 }}>
-        <AutoSizer>
+           onKeyDown={e => this.handleKeyDown(e)}>
+        <AutoSizer disableWidth disableHeight>
           {({ width, height }: { width: number, height: number }) => this.renderContents(width, height)}
         </AutoSizer>
       </div>
@@ -231,6 +265,12 @@ export class List extends React.Component<IListProps, void> {
     }
     this.scrollToRow = -1
 
+    // The currently selected list item is focusable but if
+    // there's no focused item (and there's items to switch between)
+    // the list itself needs to be focusable so that you can reach
+    // it with keyboard navigation and select an item.
+    const tabIndex = (this.props.selectedRow < 0 && this.props.rowCount > 0) ? 0 : null
+
     return (
       <Grid
         ref={(ref: React.Component<any, any>) => this.grid = ref}
@@ -249,6 +289,7 @@ export class List extends React.Component<IListProps, void> {
         // `selectedRow`. We're just passing it through so that
         // Grid will re-render when it changes.
         selectedRow={this.props.selectedRow}
+        tabIndex={tabIndex}
         invalidationProps={this.props.invalidationProps}/>
     )
   }
@@ -305,12 +346,7 @@ export class List extends React.Component<IListProps, void> {
   }
 
   private handleMouseDown = (row: number) => {
-    let canSelect = true
-    if (this.props.canSelectRow) {
-      canSelect = this.props.canSelectRow(row)
-    }
-
-    if (canSelect) {
+    if (this.canSelectRow(row)) {
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row)
       }

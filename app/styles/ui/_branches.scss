@@ -1,5 +1,6 @@
 .branches-list-container {
   height: 200px;
+  display: flex;
 
   .branches-list-content {
     display: flex;
@@ -12,13 +13,13 @@
   .branches-list-content:hover {
     background: var(--box-alt-background-color);
   }
-}
 
-// Prevent borders from stacking if the first
-// row is a group label
-.Grid__cell:first-child {
-  .branches-list-label {
-    border-top: none;
+  // Prevent borders from stacking if the first
+  // row is a group label
+  .list-item:first-child {
+    .branches-list-label {
+      border-top: none;
+    }
   }
 }
 
@@ -34,6 +35,7 @@
 }
 
 .branch-filter-input {
-  margin: var(--spacing);
-  margin-bottom: 0;
+  margin: 0;
+  margin-bottom: var(--spacing);
+  width: 100%;
 }

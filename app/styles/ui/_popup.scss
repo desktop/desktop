@@ -3,7 +3,7 @@
   flex-direction: column;
   max-width: 400px;
   width: 50%;
-  margin: auto;
+  margin: var(--spacing-triple) var(--spacing);
   background-color: var(--box-alt-background-color);
   position: absolute;
   border: var(--base-border);
@@ -12,15 +12,19 @@
   z-index: var(--popup-z-index);
 }
 
-.popup-content-container {
+.popup-content {
+  padding: var(--spacing);
+}
+
+// This is used for group lists such as the branch picker
+.popup-inner-content {
   border: var(--base-border);
   border-radius: var(--border-radius);
   background: var(--background-color);
-  margin: var(--spacing);
 }
 
 .popup-navigation {
-  padding: var(--spacing);
+  margin-bottom: var(--spacing);
 
   .tab-bar-item {
     display: inline-block;
@@ -31,7 +35,23 @@
 }
 
 .popup-actions {
-  border-top: var(--base-border);
-  padding: var(--spacing);
-  text-align: right;
+  margin-top: var(--spacing);
+}
+
+.popup-error-output {
+  font-family: var(--font-family-monospace);
+  font-size: var(--font-size-sm);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.popup-overlay {
+  background: transparent;
+  // Forces overlay to fill up the entire window behind the popup
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  z-index: calc(var(--popup-z-index) - 1);
 }

@@ -18,7 +18,7 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffSelectionType } from '../../models/diff'
+import { Diff, DiffSelection, DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
@@ -40,7 +40,7 @@ const OnDiskStatuses = new Set([
 ])
 
 /**
- * File statuses which indicate the file has previously been committed to the 
+ * File statuses which indicate the file has previously been committed to the
  * repository.
  */
 const CommittedStatuses = new Set([
@@ -116,19 +116,21 @@ export class AppStore {
         },
         changedFiles: new Array<FileChange>(),
         history: new Array<string>(),
+        diff: null,
       },
       changesState: {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
         selectedFile: null,
+        diff: null,
       },
-      selectedSection: RepositorySection.History,
+      selectedSection: RepositorySection.Changes,
       branchesState: {
         currentBranch: null,
         defaultBranch: null,
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
       },
-      committerEmail: null,
+      commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
       commits: new Map<string, Commit>(),
     }
@@ -144,7 +146,7 @@ export class AppStore {
         changesState: state.changesState,
         selectedSection: state.selectedSection,
         branchesState: state.branchesState,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         gitHubUsers,
         commits: state.commits,
       }
@@ -167,7 +169,7 @@ export class AppStore {
         historyState,
         changesState: state.changesState,
         selectedSection: state.selectedSection,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -182,7 +184,7 @@ export class AppStore {
         historyState: state.historyState,
         changesState,
         selectedSection: state.selectedSection,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -197,7 +199,7 @@ export class AppStore {
         historyState: state.historyState,
         changesState: state.changesState,
         selectedSection: state.selectedSection,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -248,6 +250,7 @@ export class AppStore {
         history: gitStore.history,
         selection: state.selection,
         changedFiles: state.changedFiles,
+        diff: state.diff,
       }
     })
 
@@ -265,7 +268,7 @@ export class AppStore {
         historyState: state.historyState,
         changesState: state.changesState,
         selectedSection: state.selectedSection,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: gitStore.commits,
@@ -287,6 +290,7 @@ export class AppStore {
       gitStore = new GitStore(repository)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
       gitStore.onDidLoadNewCommits(commits => this.onGitStoreLoadedCommits(repository, commits))
+      gitStore.onDidError(error => this._postError(error))
 
       this.gitStores.set(repository.id, gitStore)
     }
@@ -335,7 +339,9 @@ export class AppStore {
     const currentSHA = selection.sha
     if (!currentSHA) { return }
 
-    const changedFiles = await LocalGitOperations.getChangedFiles(repository, currentSHA)
+    const gitStore = this.getGitStore(repository)
+    const changedFiles = await gitStore.performFailableOperation(() => LocalGitOperations.getChangedFiles(repository, currentSHA))
+    if (!changedFiles) { return }
 
     // The selection could have changed between when we started loading the
     // changed files and we finished. We might wanna store the changed files per
@@ -349,6 +355,7 @@ export class AppStore {
         history: state.history,
         selection,
         changedFiles,
+        diff: state.diff,
       }
     })
     this.emitUpdate()
@@ -365,20 +372,54 @@ export class AppStore {
         history: state.history,
         selection: { sha, file },
         changedFiles,
+        diff: null,
       }
     })
     this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeHistoryFileSelection(repository: Repository, file: FileChange | null): Promise<void> {
+  public async _changeHistoryFileSelection(repository: Repository, file: FileChange): Promise<void> {
+
     this.updateHistoryState(repository, state => {
       return {
         history: state.history,
         selection: { sha: state.selection.sha, file },
         changedFiles: state.changedFiles,
+        diff: null,
       }
     })
+    this.emitUpdate()
+
+    const stateBeforeLoad = this.getRepositoryState(repository)
+    const sha = stateBeforeLoad.historyState.selection.sha
+
+    if (!sha) {
+      if (__DEV__) {
+        throw new Error('No currently selected sha yet we\'ve been asked to switch file selection')
+      } else {
+        return
+      }
+    }
+
+    const diff = await LocalGitOperations.getCommitDiff(repository, file, sha)
+
+    const stateAfterLoad = this.getRepositoryState(repository)
+
+    // A whole bunch of things could have happened since we initiated the diff load
+    if (stateAfterLoad.historyState.selection.sha !== stateBeforeLoad.historyState.selection.sha) { return }
+    if (!stateAfterLoad.historyState.selection.file) { return }
+    if (stateAfterLoad.historyState.selection.file.id !== file.id) { return }
+
+    this.updateHistoryState(repository, state => {
+      return {
+        history: state.history,
+        selection: { sha: state.selection.sha, file },
+        changedFiles: state.changedFiles,
+        diff,
+      }
+    })
+
     this.emitUpdate()
   }
 
@@ -456,20 +497,21 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadStatus(repository: Repository, clearPartialState: boolean = false): Promise<void> {
-    let workingDirectory = new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true)
-    try {
-      const status = await LocalGitOperations.getStatus(repository)
-      workingDirectory = status.workingDirectory
-    } catch (e) {
-      console.error(e)
-    }
+    const gitStore = this.getGitStore(repository)
+    const status = await gitStore.performFailableOperation(() => LocalGitOperations.getStatus(repository))
+    if (!status) { return }
 
+    const workingDirectory = status.workingDirectory
+
+    let selectedFile: WorkingDirectoryFileChange | null = null
     this.updateChangesState(repository, state => {
-      const filesByID = new Map<string, WorkingDirectoryFileChange>()
-      state.workingDirectory.files.forEach(file => {
-        filesByID.set(file.id, file)
-      })
 
+      // Populate a map for all files in the current working directory state
+      const filesByID = new Map<string, WorkingDirectoryFileChange>()
+      state.workingDirectory.files.forEach(f => filesByID.set(f.id, f))
+
+      // Attempt to preserve the selection state for each file in the new
+      // working directory state by looking at the current files
       const mergedFiles = workingDirectory.files.map(file => {
         const existingFile = filesByID.get(file.id)
         if (existingFile) {
@@ -488,20 +530,32 @@ export class AppStore {
 
       const includeAll = this.getIncludeAllState(mergedFiles)
 
-      let selectedFile: WorkingDirectoryFileChange | undefined
-
+      // Try to find the currently selected file among the files
+      // in the new working directory state. Matching by id is
+      // different from matching by path since id includes the
+      // change type (new, modified, deleted etc)
       if (state.selectedFile) {
-        selectedFile = mergedFiles.find(function(file) {
-          return file.id === state.selectedFile!.id
-        })
+        selectedFile = mergedFiles.find(f => f.id === state.selectedFile!.id) || null
+      }
+
+      const fileSelectionChanged = selectedFile == null
+
+      if (!selectedFile && mergedFiles.length) {
+        selectedFile = mergedFiles[0]
       }
 
       return {
         workingDirectory: new WorkingDirectoryStatus(mergedFiles, includeAll),
         selectedFile: selectedFile || null,
+        // The file selection could have changed if the previously selected
+        // file is no longer selectable (it was reverted or committed) but
+        // if it hasn't changed we can reuse the diff
+        diff: fileSelectionChanged ? null : state.diff,
       }
     })
     this.emitUpdate()
+
+    this.updateChangesDiffForCurrentSelection(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -511,7 +565,7 @@ export class AppStore {
         historyState: state.historyState,
         changesState: state.changesState,
         selectedSection: section,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -527,16 +581,79 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
+  public async _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
     this.updateChangesState(repository, state => {
+
       return {
         workingDirectory: state.workingDirectory,
         selectedFile,
+        diff: null,
       }
     })
     this.emitUpdate()
 
-    return Promise.resolve()
+    await this.updateChangesDiffForCurrentSelection(repository)
+  }
+
+  /**
+   * Loads or re-loads (refreshes) the diff for the currently selected file
+   * in the working directory. This operation is a noop if there's no currently
+   * selected file.
+   */
+  private async updateChangesDiffForCurrentSelection(repository: Repository): Promise<void> {
+    const stateBeforeLoad = this.getRepositoryState(repository)
+    const selectedFile = stateBeforeLoad.changesState.selectedFile
+
+    if (!selectedFile) { return }
+
+    const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, selectedFile)
+    const stateAfterLoad = this.getRepositoryState(repository)
+
+    // A whole bunch of things could have happened since we initiated the diff load
+    if (!stateAfterLoad.changesState.selectedFile) { return }
+    if (stateAfterLoad.changesState.selectedFile.id !== selectedFile.id) { return }
+
+    const diffSelection = selectedFile.selection
+
+    this.updateDiffSelectionFromSelectionState(diff, diffSelection)
+
+    this.updateChangesState(repository, state => {
+      return {
+        workingDirectory: state.workingDirectory,
+        selectedFile,
+        diff,
+      }
+    })
+
+    this.emitUpdate()
+  }
+
+  /**
+   * Takes line selection state from the DiffSelection model and mutates the
+   * Diff instance in place to match.
+   *
+   * Ideally we'll move away from having selection state in multiple places
+   * but until that happens this method needs to be invoked anytime the
+   * WorkingDirectoryFileChange.selection property changes.
+   */
+  private updateDiffSelectionFromSelectionState(diff: Diff, diffSelection: DiffSelection) {
+    const selectionType = diffSelection.getSelectionType()
+
+    if (selectionType === DiffSelectionType.Partial) {
+      diffSelection.selectedLines.forEach((value, index) => {
+        const hunk = diff.diffHunkForIndex(index)
+        if (hunk) {
+          const relativeIndex = index - hunk.unifiedDiffStart
+          const diffLine = hunk.lines[relativeIndex]
+          if (diffLine) {
+            diffLine.selected = value
+          }
+        }
+      })
+    } else {
+      const includeAll = selectionType === DiffSelectionType.All ? true : false
+      diff.setAllLines(includeAll)
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -546,7 +663,8 @@ export class AppStore {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
-    await LocalGitOperations.createCommit(repository, summary, description, files)
+    const gitStore = this.getGitStore(repository)
+    await gitStore.performFailableOperation(() => LocalGitOperations.createCommit(repository, summary, description, files))
 
     return this._loadStatus(repository, true)
   }
@@ -585,14 +703,16 @@ export class AppStore {
       }
 
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
+
       return {
         selectedSection: state.selectedSection,
         changesState: {
           workingDirectory,
           selectedFile: selectedFile || null,
+          diff: selectedFile ? state.changesState.diff : null,
         },
         historyState: state.historyState,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -624,14 +744,21 @@ export class AppStore {
       }
 
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
+      const diff = selectedFile ? state.changesState.diff : null
+
+      if (selectedFile && diff) {
+        this.updateDiffSelectionFromSelectionState(diff, selectedFile!.selection)
+      }
+
       return {
         selectedSection: state.selectedSection,
         changesState: {
           workingDirectory,
           selectedFile: selectedFile || null,
+          diff,
         },
         historyState: state.historyState,
-        committerEmail: state.committerEmail,
+        commitAuthor: state.commitAuthor,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -648,6 +775,7 @@ export class AppStore {
       return {
         workingDirectory: state.workingDirectory.withIncludeAllFiles(includeAll),
         selectedFile: state.selectedFile,
+        diff: state.diff,
       }
     })
     this.emitUpdate()
@@ -667,7 +795,7 @@ export class AppStore {
     // selected.
     await this._loadStatus(repository)
 
-    await this.refreshCommitterEmail(repository)
+    await this.refreshAuthor(repository)
 
     const section = state.selectedSection
     if (section === RepositorySection.History) {
@@ -675,14 +803,16 @@ export class AppStore {
     }
   }
 
-  private async refreshCommitterEmail(repository: Repository): Promise<void> {
-    const email = await LocalGitOperations.getConfigValue(repository, 'user.email')
+  private async refreshAuthor(repository: Repository): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    const commitAuthor = await gitStore.performFailableOperation(() => LocalGitOperations.getAuthorIdentity(repository))
+
     this.updateRepositoryState(repository, state => {
       return {
         selectedSection: state.selectedSection,
         changesState: state.changesState,
         historyState: state.historyState,
-        committerEmail: email,
+        commitAuthor: commitAuthor || null,
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
@@ -712,13 +842,15 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
-    await LocalGitOperations.createBranch(repository, name, startPoint)
+    const gitStore = this.getGitStore(repository)
+    await gitStore.performFailableOperation(() => LocalGitOperations.createBranch(repository, name, startPoint))
     return this._checkoutBranch(repository, name)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(repository: Repository, name: string): Promise<void> {
-    await LocalGitOperations.checkoutBranch(repository, name)
+    const gitStore = this.getGitStore(repository)
+    await gitStore.performFailableOperation(() => LocalGitOperations.checkoutBranch(repository, name))
 
     return this._refreshRepository(repository)
   }
@@ -742,9 +874,10 @@ export class AppStore {
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
+    const gitStore = this.getGitStore(repository)
     // TODO: This is all kinds of wrong. We shouldn't assume the remote is named
     // `origin`.
-    const remote = await LocalGitOperations.getConfigValue(repository, 'remote.origin.url')
+    const remote = await gitStore.performFailableOperation(() => LocalGitOperations.getConfigValue(repository, 'remote.origin.url'))
     if (!remote) { return null }
 
     return matchGitHubRepository(this.users, remote)
@@ -775,15 +908,21 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _validatedRepositoryPath(path: string): Promise<string | null> {
-    const gitDir = await LocalGitOperations.getGitDir(path)
-    if (!gitDir) { return null }
+    try {
+      const gitDir = await LocalGitOperations.getGitDir(path)
+      if (!gitDir) { return null }
 
-    return Path.dirname(gitDir)
+      return Path.dirname(gitDir)
+    } catch (e) {
+      this._postError(e)
+      return null
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
-    await LocalGitOperations.renameBranch(repository, branch, newName)
+    const gitStore = this.getGitStore(repository)
+    await gitStore.performFailableOperation(() => LocalGitOperations.renameBranch(repository, branch, newName))
 
     return this._refreshRepository(repository)
   }
@@ -795,14 +934,16 @@ export class AppStore {
       return Promise.reject(new Error(`No default branch!`))
     }
 
-    await LocalGitOperations.checkoutBranch(repository, defaultBranch.name)
-    await LocalGitOperations.deleteBranch(repository, branch)
+    const gitStore = this.getGitStore(repository)
+    await gitStore.performFailableOperation(() => LocalGitOperations.checkoutBranch(repository, defaultBranch.name))
+    await gitStore.performFailableOperation(() => LocalGitOperations.deleteBranch(repository, branch))
 
     return this._refreshRepository(repository)
   }
 
   public async _push(repository: Repository): Promise<void> {
-    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    const gitStore = this.getGitStore(repository)
+    const remote = await gitStore.performFailableOperation(() => LocalGitOperations.getDefaultRemote(repository))
     if (!remote) {
       this._showPopup({
         type: PopupType.PublishRepository,
@@ -820,15 +961,16 @@ export class AppStore {
     const user = this.getUserForRepository(repository)
     const upstream = branch.upstream
     if (upstream) {
-      return LocalGitOperations.push(repository, user, remote, branch.name, false)
+      return gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, false))
     } else {
-      return LocalGitOperations.push(repository, user, remote, branch.name, true)
+      return gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, true))
     }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _pull(repository: Repository): Promise<void> {
-    const remote = await LocalGitOperations.getDefaultRemote(repository)
+    const gitStore = this.getGitStore(repository)
+    const remote = await gitStore.performFailableOperation(() => LocalGitOperations.getDefaultRemote(repository))
     if (!remote) {
       return Promise.reject(new Error('The repository has no remotes.'))
     }
@@ -840,7 +982,9 @@ export class AppStore {
     }
 
     const user = this.getUserForRepository(repository)
-    return LocalGitOperations.pull(repository, user, remote, branch.name)
+    await gitStore.performFailableOperation(() => LocalGitOperations.pull(repository, user, remote, branch.name))
+
+    return this._refreshRepository(repository)
   }
 
   private getUserForRepository(repository: Repository): User | null {
@@ -855,7 +999,8 @@ export class AppStore {
     const api = new API(account)
     const apiRepository = await api.createRepository(org, name, description, private_)
 
-    await LocalGitOperations.addRemote(repository.path, 'origin', apiRepository.cloneUrl)
+    const gitStore = this.getGitStore(repository)
+    await gitStore.performFailableOperation(() => LocalGitOperations.addRemote(repository.path, 'origin', apiRepository.cloneUrl))
 
     return this._push(repository)
   }
@@ -879,7 +1024,8 @@ export class AppStore {
     }
 
     const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
-    await LocalGitOperations.checkoutPaths(repository, modifiedFiles.map(f => f.path))
+    const gitStore = this.getGitStore(repository)
+    await gitStore.performFailableOperation(() => LocalGitOperations.checkoutPaths(repository, modifiedFiles.map(f => f.path)))
 
     return this._refreshRepository(repository)
   }

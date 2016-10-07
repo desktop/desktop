@@ -7,19 +7,19 @@ import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent, getFeedURL } from './updates'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
+import { reportError } from '../lib/exception-reporting'
 
 const stats = new Stats()
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
-app.on('will-finish-launching', () => {
-  app.on('open-url', (event, url) => {
-    event.preventDefault()
+process.on('uncaughtException', (error: Error) => {
+  if (sharedProcess) {
+    sharedProcess.console.error(error)
+  }
 
-    const action = parseURL(url)
-    getMainWindow().sendURLAction(action)
-  })
+  reportError(error, app.getVersion())
 })
 
 if (__WIN32__ && process.argv.length > 1) {
@@ -64,6 +64,13 @@ app.on('ready', () => {
   sharedProcess.register()
 
   createWindow()
+
+  app.on('open-url', (event, url) => {
+    event.preventDefault()
+
+    const action = parseURL(url)
+    getMainWindow().sendURLAction(action)
+  })
 
   const menu = buildDefaultMenu(sharedProcess)
   Menu.setApplicationMenu(menu)

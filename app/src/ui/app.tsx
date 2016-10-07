@@ -271,10 +271,15 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderPopup(): JSX.Element | null {
+    const handleOverlayClick = () => {this.props.dispatcher.closePopup()}
     const content = this.currentPopupContent()
     if (!content) { return null }
 
-    return <Popuppy>{content}</Popuppy>
+    return (
+      <div className='popup-overlay' onClick={handleOverlayClick}>
+        <Popuppy>{content}</Popuppy>
+      </div>
+    )
   }
 
   private renderErrors() {
@@ -290,8 +295,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     const msgs = errors.map(e => e.message)
     return (
       <Popuppy>
-        <div>{msgs.map(msg => <span>{msg}</span>)}</div>
-        <button onClick={clearErrors}>OK</button>
+        {msgs.map((msg, i) => <pre className='popup-error-output' key={i}>{msg}</pre>)}
+
+        <div className='popup-actions'>
+          <button onClick={clearErrors}>OK</button>
+        </div>
       </Popuppy>
     )
   }

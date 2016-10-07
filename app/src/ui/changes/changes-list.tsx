@@ -6,6 +6,7 @@ import { List } from '../list'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
+import { CommitIdentity } from '../../models/commit-identity'
 import { Checkbox, CheckboxValue } from './checkbox'
 
 const RowHeight = 30
@@ -20,6 +21,7 @@ interface IChangesListProps {
   readonly onCreateCommit: (summary: string, description: string) => void
   readonly onDiscardChanges: (row: number) => void
   readonly branch: string | null
+  readonly commitAuthor: CommitIdentity | null
   readonly avatarURL: string
   readonly emoji: Map<string, string>
 
@@ -47,6 +49,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     return (
       <ChangedFile path={file.path}
                    status={file.status}
+                   oldPath={file.oldPath}
                    include={includeAll}
                    key={file.id}
                    onIncludeChanged={include => this.props.onIncludeChanged(row, include)}
@@ -71,6 +74,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     const fileCount = this.props.workingDirectory.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
+    const anyFilesSelected = fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
 
     return (
       <div className='panel changes-panel' id='changes-list'>
@@ -94,7 +98,9 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         <CommitMessage onCreateCommit={(summary, description) => this.props.onCreateCommit(summary, description)}
                        branch={this.props.branch}
                        avatarURL={this.props.avatarURL}
-                       emoji={this.props.emoji}/>
+                       emoji={this.props.emoji}
+                       commitAuthor={this.props.commitAuthor}
+                       anyFilesSelected={anyFilesSelected} />
       </div>
     )
   }

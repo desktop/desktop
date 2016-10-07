@@ -18,21 +18,33 @@
     .summary-field {
       flex: 1;
       margin-bottom: var(--spacing);
+
+      input { width: 100%; }
     }
 
     .avatar {
-      width: 28px;
-      height: 28px;
+      flex: 0;
 
-      margin-right: var(--spacing-half);
-
-      border: var(--base-border);
-      border-radius: var(--border-radius);
+      img {
+        width: 28px;
+        height: 28px;
+        border: var(--base-border);
+        border-radius: var(--border-radius);
+        margin-right: var(--spacing-half);
+      }
     }
   }
 
   .commit-button {
-    @include ellipsis
     margin-top: var(--spacing);
+
+    /* Due to some weirdo bug in Chrome that affects Windows
+     * and possible other platforms we can't change the opacity
+     * for disabled buttons if the button also has a
+     * overflow: hidden property set. The workaround is to put
+     * the contents of the button in a block element and put
+     * ellipsis on that instead. See commit 67fad24ed
+     */
+    div { @include ellipsis }
   }
 }

@@ -4,18 +4,27 @@ input[type='email'],
 input[type='range'],
 input[type='search'],
 textarea {
-  transition: border-color 0.25s;
   border: 1px solid var(--box-border-color);
   border-radius: var(--border-radius);
   color: currentColor;
   font-size: var(--font-size);
   font-family: var(--font-family-sans-serif);
-  padding: calc(var(--spacing) / 2);
+  padding: var(--spacing-half);
 
   resize: none;
 
   &:focus {
-    border-color: var(--box-border-accent-color);
+    outline: none;
+    border-color: var(--focus-color);
+  }
+}
+
+input[type='checkbox'] {
+  &:focus {
+    // Don't know why but on Windows this is necessary to
+    // not have a 1px gap around the checkbox on the right
+    // hand side. I'm guessing it's the same on mac?
+    outline-offset: -1px;
   }
 }
 

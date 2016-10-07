@@ -8,8 +8,14 @@ import { Repository, IRepository } from '../models/repository'
 import { register, broadcastUpdate as broadcastUpdate_ } from './communication'
 import { IURLAction, IAddRepositoriesAction, IUpdateGitHubRepositoryAction, IRemoveRepositoriesAction } from '../lib/dispatcher'
 import { API,  getDotComAPIEndpoint } from '../lib/api'
+import { reportError } from '../lib/exception-reporting'
+import * as appProxy from '../ui/lib/app-proxy'
 
 const Octokat = require('octokat')
+
+process.on('uncaughtException', (error: Error) => {
+  reportError(error, appProxy.getVersion())
+})
 
 const usersStore = new UsersStore(localStorage, TokenStore)
 usersStore.loadFromStore()
