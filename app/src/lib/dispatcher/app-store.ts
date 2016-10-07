@@ -18,7 +18,7 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffSelection, DiffSelectionType } from '../../models/diff'
+import { DiffSelection, DiffSelectionType, DiffLineType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
@@ -602,11 +602,24 @@ export class AppStore {
    */
   private async updateChangesDiffForCurrentSelection(repository: Repository): Promise<void> {
     const stateBeforeLoad = this.getRepositoryState(repository)
-    const selectedFile = stateBeforeLoad.changesState.selectedFile
+    const currentSelectedFile = stateBeforeLoad.changesState.selectedFile
 
-    if (!selectedFile) { return }
+    if (!currentSelectedFile) { return }
 
-    const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, selectedFile)
+    const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, currentSelectedFile)
+    const selectableLines = new Set<number>()
+
+    diff.hunks.forEach(h => {
+      h.lines.forEach((line, index) => {
+        if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
+          selectableLines.add(h.unifiedDiffStart + index)
+        }
+      })
+    })
+
+    const newSelection = currentSelectedFile.selection.withSelectableLines(selectableLines)
+    const selectedFile = currentSelectedFile.withSelection(newSelection)
+
     const stateAfterLoad = this.getRepositoryState(repository)
 
     // A whole bunch of things could have happened since we initiated the diff load
