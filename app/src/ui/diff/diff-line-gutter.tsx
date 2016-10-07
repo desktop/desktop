@@ -6,6 +6,10 @@ interface IDiffGutterProps {
   /** The line being represented by the gutter. */
   readonly line: DiffLine
 
+  /**
+   * In the case of a non-readonly line, indicates whether the given line
+   * should be rendered as selected or not.
+   */
   readonly isIncluded: boolean
 
   /**
