@@ -178,7 +178,9 @@ export class DiffSelection {
     const computedSelectionType = this.getSelectionType()
     const to = from + length
 
-    // Nothing for us to do here
+    // Nothing for us to do here. This state is when all lines are already
+    // selected and we're being asked to select more or when no lines are
+    // selected and we're being asked to unselect something.
     if (typeMatchesSelection(computedSelectionType, selected)) {
        return this
     }
