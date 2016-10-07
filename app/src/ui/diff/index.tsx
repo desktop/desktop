@@ -6,7 +6,7 @@ import { Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
-import { DiffLine, Diff as DiffModel, DiffLineType, DiffSelection } from '../../models/diff'
+import { DiffLine, Diff as DiffModel, DiffSelection } from '../../models/diff'
 
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
