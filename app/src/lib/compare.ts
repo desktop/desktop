@@ -4,3 +4,7 @@ export function compare<T>(x: T, y: T) {
 
   return 0
 }
+
+export function caseInsenstiveCompare(x: string, y: string) {
+  return compare(x.toLowerCase(), y.toLocaleLowerCase())
+}

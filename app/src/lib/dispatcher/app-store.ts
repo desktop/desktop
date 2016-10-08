@@ -21,7 +21,7 @@ import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileSta
 import { DiffSelection, DiffSelectionType, DiffLineType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
-import { compare } from '../compare'
+import { caseInsenstiveCompare } from '../compare'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
@@ -528,7 +528,8 @@ export class AppStore {
           return file
         }
       })
-      .sort((x, y) => compare(x.path.toLowerCase(), y.path.toLowerCase()))
+      .sort((x, y) => caseInsenstiveCompare(x.path, y.path))
+
       const includeAll = this.getIncludeAllState(mergedFiles)
 
       // Try to find the currently selected file among the files
