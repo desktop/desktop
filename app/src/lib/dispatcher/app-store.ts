@@ -18,7 +18,7 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { Diff, DiffSelection, DiffSelectionType } from '../../models/diff'
+import { DiffSelection, DiffSelectionType, DiffLineType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
@@ -602,20 +602,35 @@ export class AppStore {
    */
   private async updateChangesDiffForCurrentSelection(repository: Repository): Promise<void> {
     const stateBeforeLoad = this.getRepositoryState(repository)
-    const selectedFile = stateBeforeLoad.changesState.selectedFile
+    const currentSelectedFile = stateBeforeLoad.changesState.selectedFile
 
-    if (!selectedFile) { return }
+    if (!currentSelectedFile) { return }
 
-    const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, selectedFile)
+    const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, currentSelectedFile)
+    const selectableLines = new Set<number>()
+
+    // The diff might have changed dramatically since last we loaded it. Ideally we
+    // would be more clever about validating that any partial selection state is
+    // still valid by ensuring that selected lines still exist but for now we'll
+    // settle on just updating the selectable lines such that any previously selected
+    // line which now no longer exists or has been turned into a context line
+    // isn't still selected.
+    diff.hunks.forEach(h => {
+      h.lines.forEach((line, index) => {
+        if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
+          selectableLines.add(h.unifiedDiffStart + index)
+        }
+      })
+    })
+
+    const newSelection = currentSelectedFile.selection.withSelectableLines(selectableLines)
+    const selectedFile = currentSelectedFile.withSelection(newSelection)
+
     const stateAfterLoad = this.getRepositoryState(repository)
 
     // A whole bunch of things could have happened since we initiated the diff load
     if (!stateAfterLoad.changesState.selectedFile) { return }
     if (stateAfterLoad.changesState.selectedFile.id !== selectedFile.id) { return }
-
-    const diffSelection = selectedFile.selection
-
-    this.updateDiffSelectionFromSelectionState(diff, diffSelection)
 
     this.updateChangesState(repository, state => {
       return {
@@ -626,34 +641,6 @@ export class AppStore {
     })
 
     this.emitUpdate()
-  }
-
-  /**
-   * Takes line selection state from the DiffSelection model and mutates the
-   * Diff instance in place to match.
-   *
-   * Ideally we'll move away from having selection state in multiple places
-   * but until that happens this method needs to be invoked anytime the
-   * WorkingDirectoryFileChange.selection property changes.
-   */
-  private updateDiffSelectionFromSelectionState(diff: Diff, diffSelection: DiffSelection) {
-    const selectionType = diffSelection.getSelectionType()
-
-    if (selectionType === DiffSelectionType.Partial) {
-      diffSelection.selectedLines.forEach((value, index) => {
-        const hunk = diff.diffHunkForIndex(index)
-        if (hunk) {
-          const relativeIndex = index - hunk.unifiedDiffStart
-          const diffLine = hunk.lines[relativeIndex]
-          if (diffLine) {
-            diffLine.selected = value
-          }
-        }
-      })
-    } else {
-      const includeAll = selectionType === DiffSelectionType.All ? true : false
-      diff.setAllLines(includeAll)
-    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -702,13 +689,8 @@ export class AppStore {
           selectedFile = newFiles.find(file => file.id === f.id)
       }
 
-      const diff = selectedFile ? state.changesState.diff : null
-
-      if (selectedFile && diff) {
-        this.updateDiffSelectionFromSelectionState(diff, selectedFile!.selection)
-      }
-
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
+      const diff = selectedFile ? state.changesState.diff : null
 
       return {
         selectedSection: state.selectedSection,
@@ -730,12 +712,12 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: Map<number, boolean>): Promise<void> {
+  public _changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: DiffSelection): Promise<void> {
     this.updateRepositoryState(repository, state => {
 
       const newFiles = state.changesState.workingDirectory.files.map(f => {
         if (f.id === file.id) {
-          return f.withDiffLinesSelection(diffSelection)
+          return f.withSelection(diffSelection)
         } else {
           return f
         }
@@ -751,10 +733,6 @@ export class AppStore {
 
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
       const diff = selectedFile ? state.changesState.diff : null
-
-      if (selectedFile && diff) {
-        this.updateDiffSelectionFromSelectionState(diff, selectedFile!.selection)
-      }
 
       return {
         selectedSection: state.selectedSection,
@@ -778,9 +756,14 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
     this.updateChangesState(repository, state => {
+
+      const selectedFile = state.selectedFile
+        ? state.selectedFile.withIncludeAll(includeAll)
+        : null
+
       return {
         workingDirectory: state.workingDirectory.withIncludeAllFiles(includeAll),
-        selectedFile: state.selectedFile,
+        selectedFile: selectedFile,
         diff: state.diff,
       }
     })

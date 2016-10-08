@@ -8,6 +8,12 @@ interface IDiffGutterProps {
   readonly line: DiffLine
 
   /**
+   * In the case of a non-readonly line, indicates whether the given line
+   * should be rendered as selected or not.
+   */
+  readonly isIncluded: boolean
+
+  /**
    * Is the gutter being used in a readonly diff, e.g., displaying a diff from
    * history vs. displaying a diff from the working directory.
    */
@@ -57,7 +63,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private getLineClass(): string {
     const baseClassName = 'diff-line-gutter'
     let className = baseClassName
-    if (this.props.line.selected) {
+    if (this.isIncludableLine() && this.props.isIncluded) {
       className += ' diff-line-selected'
     }
 

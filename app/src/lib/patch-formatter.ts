@@ -1,225 +1,198 @@
-import { WorkingDirectoryFileChange } from '../models/status'
+import { assertNever } from '../lib/fatal-error'
+import { WorkingDirectoryFileChange, FileStatus } from '../models/status'
 import { DiffLineType, Diff } from '../models/diff'
 
-function extractAdditionalText(hunkHeader: string): string {
-  const additionalTextIndex = hunkHeader.lastIndexOf('@@')
+/**
+ * Generates a string matching the format of a GNU unified diff header excluding
+ * the (optional) timestamp fields
+ *
+ * Note that this multi-line string includes a trailing newline.
+ *
+ * @param from  The relative path to the original version of the file or
+ *              null if the file is newly created.
+ *
+ * @param to    The relative path to the new version of the file or
+ *              null if the file is the file is newly created.
+ */
+function formatPatchHeader(from: string | null, to: string | null): string {
+  // https://en.wikipedia.org/wiki/Diff_utility
+  //
+  // > At the beginning of the patch is the file information, including the full
+  // > path and a time stamp delimited by a tab character.
+  // >
+  // > [...] the original file is preceded by "---" and the new file is preceded
+  // > by "+++".
+  //
+  // We skip the time stamp to match git
+  const fromPath = from ? `a/${from}` : '/dev/null'
+  const toPath =  to ? `b/${to}` : '/dev/null'
 
-  // guard against being sent only one instance of @@ in the text
-  if (additionalTextIndex <= 0) {
-    return ''
+  return `--- ${fromPath}\n+++ ${toPath}\n`
+}
+
+/**
+ * Generates a string matching the format of a GNU unified diff header excluding
+ * the (optional) timestamp fields with the appropriate from/to file names based
+ * on the file state of the given WorkingDirectoryFileChange
+ */
+function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
+  switch (file.status) {
+    case FileStatus.New:
+      return formatPatchHeader(null, file.path)
+
+    case FileStatus.Conflicted:
+    // One might initially believe that renamed files should diff
+    // against their old path. This is, after all, how git diff
+    // does it right after a rename. But if we're creating a patch
+    // to be applied along with a rename we must target the renamed
+    // file.
+    case FileStatus.Renamed:
+    case FileStatus.Deleted:
+    case FileStatus.Modified:
+      return formatPatchHeader(file.path, file.path)
+
+    case FileStatus.Unknown:
+    default:
+      // TODO: I hate this but I'll save removing FileStatus.Unknown
+      // to a later PR.
+      throw new Error('unknown file statuses not supported')
+  }
+}
+
+/**
+ * Generates a string matching the format of a GNU unified diff hunk header.
+ * Note that this single line string includes a single trailing newline.
+ *
+ * @param oldStartLine The line in the old (or original) file where this diff
+ *                     hunk starts.
+ *
+ * @param oldLineCount The number of lines in the old (or original) file that
+ *                     this diff hunk covers.
+ *
+ * @param newStartLine The line in the new file where this diff hunk starts
+ *
+ * @param newLineCount The number of lines in the new file that this diff hunk
+ *                     covers
+ */
+function formatHunkHeader(
+  oldStartLine: number,
+  oldLineCount: number,
+  newStartLine: number,
+  newLineCount: number,
+  sectionHeading?: string | null) {
+
+    // > @@ -l,s +l,s @@ optional section heading
+    // >
+    // > The hunk range information contains two hunk ranges. The range for the hunk of the original
+    // > file is preceded by a minus symbol, and the range for the new file is preceded by a plus
+    // > symbol. Each hunk range is of the format l,s where l is the starting line number and s is
+    // > the number of lines the change hunk applies to for each respective file.
+    // >
+    // > In many versions of GNU diff, each range can omit the comma and trailing value s,
+    // > in which case s defaults to 1
+    const lineInfoBefore = oldLineCount === 1
+      ? `${oldStartLine}`
+      : `${oldStartLine},${oldLineCount}`
+
+    const lineInfoAfter = newLineCount === 1
+      ? `${newStartLine}`
+      : `${newStartLine},${newLineCount}`
+
+    sectionHeading = sectionHeading ? ` ${sectionHeading}` : ''
+
+    return `@@ -${lineInfoBefore} +${lineInfoAfter} @@${sectionHeading}\n`
+}
+
+/**
+ * Creates a GNU unified diff based on the original diff and a number
+ * of selected or unselected lines (from file.selection). The patch is
+ * formatted with the intention of being used for applying against an index
+ * with git apply.
+ *
+ * Note that the file must have at least one selected addition or deletion,
+ * ie it's not supported to use this method as a general purpose diff
+ * formatter.
+ *
+ * @param file  The file that the resulting patch will be applied to.
+ *              This is used to determine the from and to paths for the
+ *              patch header as well as retrieving the line selection state
+ *
+ * @param diff  The source diff
+ */
+export function formatPatch(file: WorkingDirectoryFileChange, diff: Diff): string {
+  let patch = ''
+
+  diff.hunks.forEach((hunk, hunkIndex) => {
+
+    let hunkBuf = ''
+
+    let oldCount = 0
+    let newCount = 0
+
+    let anyAdditionsOrDeletions = false
+
+    hunk.lines.forEach((line, lineIndex) => {
+      const absoluteIndex = hunk.unifiedDiffStart + lineIndex
+
+      // We write our own hunk headers
+      if (line.type === DiffLineType.Hunk) { return }
+
+      // Context lines can always be let through, they will
+      // never appear for new files.
+      if (line.type === DiffLineType.Context) {
+        hunkBuf += `${line.text}\n`
+        oldCount++
+        newCount++
+      } else if (file.selection.isSelected(absoluteIndex)) {
+        // A line selected for inclusion.
+
+        // Use the line as-is
+        hunkBuf += `${line.text}\n`
+
+        if (line.type === DiffLineType.Add) { newCount++ }
+        if (line.type === DiffLineType.Delete) { oldCount++ }
+
+        anyAdditionsOrDeletions = true
+      } else {
+        // Unselected lines in new files needs to be ignored. A new file by
+        // definition only consists of additions and therefore so will the
+        // partial patch. If the user has elected not to commit a particular
+        // addition we need to generate a patch that pretends that the line
+        // never existed.
+        if (file.status === FileStatus.New) { return }
+
+        // An unselected added line has no impact on this patch, pretend
+        // it was never added to the old file by dropping it.
+        if (line.type === DiffLineType.Add) { return }
+
+        // An unselected deleted line has never happened as far as this patch
+        // is concerned which means that we should treat it as if it's still
+        // in the old file so we'll convert it to a context line.
+        if (line.type === DiffLineType.Delete) {
+          hunkBuf += ` ${line.text.substr(1)}\n`
+          oldCount++
+          newCount++
+        } else {
+          // Guarantee that we've covered all the line types
+          assertNever(line.type, `Unsupported line type ${line.type}`)
+        }
+      }
+    })
+
+    // Skip writing this hunk if all there is is context lines.
+    if (!anyAdditionsOrDeletions)  { return }
+
+    patch += formatHunkHeader(hunk.header.oldStartLine, oldCount, hunk.header.newStartLine, newCount)
+    patch += hunkBuf
+  })
+
+  // If we get into this state we should never have been called in the first
+  // place. Someone gave us a faulty diff and/or faulty selection state.
+  if (!patch.length) {
+    throw new Error(`Could not generate a patch for file ${file.path}, patch empty`)
   }
 
-  // return everything after the found '@@'
-  return hunkHeader.substring(additionalTextIndex + 2)
-}
+  patch = formatPatchHeaderForFile(file) + patch
 
-function formatPatchHeader(
-  from: string | null,
-  to: string | null,
-  beforeStart: number,
-  beforeLength: number,
-  afterStart: number,
-  afterLength: number,
-  afterText: string
-): string {
-
-  const fromText = from ? `a/${from}` : '/dev/null'
-  const toText = to ? `b/${to}` : '/dev/null'
-
-  return `--- ${fromText}\n+++ ${toText}\n@@ -${beforeStart},${beforeLength} +${afterStart},${afterLength} @@${afterText}\n`
-}
-
-export function createPatchForModifiedFile(file: WorkingDirectoryFileChange, diff: Diff): string {
-  const selection = file.selection.selectedLines
-  const selectedLinesArray = Array.from(selection)
-
-  let globalLinesSkipped = 0
-
-  let input = ''
-
-  diff.hunks.forEach(hunk => {
-
-    let linesSkipped = 0
-    let linesIncluded = 0
-    let linesRemoved = 0
-    let patchBody = ''
-
-    const selectedLines = selectedLinesArray.filter(a => a[0] >= hunk.unifiedDiffStart && a[0] <= hunk.unifiedDiffEnd)
-
-    // don't generate a patch if no lines are selected
-    if (selectedLines.every(l => l[1] === false)) {
-      globalLinesSkipped += selectedLines.length
-      return
-    }
-
-    hunk.lines
-      .forEach((line, index) => {
-        if (line.type === DiffLineType.Hunk) {
-          // ignore the header
-          return
-        }
-
-        if (line.type === DiffLineType.Context) {
-          patchBody += line.text + '\n'
-          return
-        }
-
-        const absoluteIndex = hunk.unifiedDiffStart + index
-        if (selection.get(absoluteIndex)) {
-          patchBody += line.text + '\n'
-          if (line.type === DiffLineType.Add) {
-            linesIncluded += 1
-          } else if (line.type === DiffLineType.Delete) {
-            linesRemoved += 1
-          }
-        } else if (line.type === DiffLineType.Delete) {
-          // need to generate the correct patch here
-          patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
-          linesSkipped -= 1
-          globalLinesSkipped -= 1
-        } else {
-          // ignore this line when creating the patch
-          linesSkipped += 1
-          // and for subsequent patches
-          globalLinesSkipped += 1
-        }
-      })
-
-    const header = hunk.lines[0]
-    const additionalText = extractAdditionalText(header.text)
-    const beforeStart = hunk.header.oldStartLine
-    const beforeCount = hunk.header.oldLineCount
-    const afterStart = hunk.header.newStartLine
-
-    // TODO: HERE BE DRAGONS
-    //
-    // Due to a bug in the original implementation of the diff parser
-    // all omitted line counts were treates as NaN and NaN plus NaN
-    // is always NaN so up until the diff parser refactor afterCount
-    // was always NaN. I'm making it so again so that we can get the
-    // parser merged and then we can come back and refactor patch
-    // formatter and I can go get started on dinner.
-    //
-    // niik 2016-09-28
-    const afterCount = hunk.header.newLineCount === 1
-      ? NaN
-      : hunk.header.newLineCount + linesSkipped
-    //const afterCount = s.header.newLineCount + linesSkipped
-
-    const patchHeader = formatPatchHeader(
-      file.path,
-      file.path,
-      beforeStart,
-      beforeCount,
-      afterStart,
-      afterCount,
-      additionalText)
-
-      input += patchHeader + patchBody
-  })
-
-  return input
-}
-
-
-export function createPatchForNewFile(file: WorkingDirectoryFileChange, diff: Diff): string {
-  const selection = file.selection.selectedLines
-  let input = ''
-
-  diff.hunks.map(hunk => {
-
-    let linesCounted: number = 0
-    let patchBody: string = ''
-
-    hunk.lines
-      .forEach((line, index) => {
-        if (line.type === DiffLineType.Hunk) {
-          // ignore the header
-          return
-        }
-
-        if (line.type === DiffLineType.Context) {
-          patchBody += line.text + '\n'
-          return
-        }
-
-        if (selection.has(index)) {
-          const include = selection.get(index)
-          if (include) {
-            patchBody += line.text + '\n'
-            linesCounted += 1
-          }
-        }
-      })
-
-    const header = hunk.lines[0]
-    const additionalText = extractAdditionalText(header.text)
-
-    const patchHeader = formatPatchHeader(
-      null,
-      file.path,
-      hunk.header.oldStartLine,
-      hunk.header.oldLineCount,
-      hunk.header.newStartLine,
-      linesCounted,
-      additionalText)
-
-    input += patchHeader + patchBody
-  })
-
-  return input
-}
-
-export function createPatchForDeletedFile(file: WorkingDirectoryFileChange, diff: Diff): string {
-  const selection = file.selection.selectedLines
-  let input = ''
-  let linesIncluded = 0
-
-  diff.hunks.map(hunk => {
-
-    let patchBody: string = ''
-
-    hunk.lines
-      .forEach((line, index) => {
-        if (line.type === DiffLineType.Hunk) {
-          // ignore the header
-          return
-        }
-
-        if (line.type === DiffLineType.Context) {
-          patchBody += line.text + '\n'
-          return
-        }
-
-        if (selection.has(index)) {
-          const include = selection.get(index)
-          if (include) {
-            patchBody += line.text + '\n'
-            linesIncluded += 1
-          } else {
-            patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
-          }
-        } else {
-          patchBody += ' ' + line.text.substr(1, line.text.length - 1) + '\n'
-        }
-      })
-
-    const header = hunk.lines[0]
-    const additionalText = extractAdditionalText(header.text)
-
-    const remainingLines = hunk.header.oldLineCount - linesIncluded
-
-    const patchHeader = formatPatchHeader(
-      file.path,
-      file.path,
-      hunk.header.oldStartLine,
-      hunk.header.oldLineCount,
-      1,
-      remainingLines,
-      additionalText)
-
-    input += patchHeader + patchBody
-  })
-
-  return input
+  return patch
 }

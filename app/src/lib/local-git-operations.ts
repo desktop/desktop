@@ -6,7 +6,7 @@ import { DiffSelectionType, DiffSelection, Diff } from '../models/diff'
 import { Repository } from '../models/repository'
 import { CommitIdentity } from '../models/commit-identity'
 
-import { createPatchForModifiedFile, createPatchForNewFile, createPatchForDeletedFile } from './patch-formatter'
+import { formatPatch } from './patch-formatter'
 import { DiffParser } from './diff-parser'
 import { parsePorcelainStatus } from './status-parser'
 
@@ -179,7 +179,7 @@ export class LocalGitOperations {
 
     const files = entries.map(({ path, statusCode, oldPath }) => {
       const status = this.mapStatus(statusCode)
-      const selection = new DiffSelection(DiffSelectionType.All, new Map<number, boolean>())
+      const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
       return new WorkingDirectoryFileChange(path, status, selection, oldPath)
     })
@@ -225,20 +225,8 @@ export class LocalGitOperations {
 
     const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, file)
 
-    if (file.status === FileStatus.New) {
-      const patch = await createPatchForNewFile(file, diff)
-      await git(applyArgs, repository.path, { stdin: patch })
-    }
-
-    if (file.status === FileStatus.Modified) {
-      const patch = await createPatchForModifiedFile(file, diff)
-      await git(applyArgs, repository.path, { stdin: patch })
-    }
-
-    if (file.status === FileStatus.Deleted) {
-      const patch = await createPatchForDeletedFile(file, diff)
-      await git(applyArgs, repository.path, { stdin: patch })
-    }
+    const patch = await formatPatch(file, diff)
+    await git(applyArgs, repository.path, { stdin: patch })
 
     return Promise.resolve()
   }
