@@ -527,6 +527,15 @@ export class AppStore {
           return file
         }
       })
+      .sort((fx, fy) => {
+        const x = fx.path.toLowerCase()
+        const y = fy.path.toLowerCase()
+
+        if (x < y) { return -1 }
+        if (x > y) { return 1 }
+
+        return 0
+      })
 
       const includeAll = this.getIncludeAllState(mergedFiles)
 
