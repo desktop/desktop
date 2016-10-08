@@ -262,6 +262,30 @@ describe('LocalGitOperations', () => {
       expect(fileChange).to.not.be.undefined
       expect(fileChange!.status).to.equal(FileStatus.Deleted)
     })
+
+    it('can commit renames with modifications', async () => {
+
+      const repo = await setupEmptyRepository()
+
+      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'Initial commit' ], repo.path)
+      await GitProcess.exec([ 'mv', 'foo', 'bar' ], repo.path)
+
+      fs.writeFileSync(path.join(repo.path, 'bar'), 'bar\n')
+
+      const status = await LocalGitOperations.getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+
+      await LocalGitOperations.createCommit(repo, 'renamed a file', '', [ files[0].withIncludeAll(true) ])
+
+      const statusAfter = await LocalGitOperations.getStatus(repo)
+
+      expect(statusAfter.workingDirectory.files.length).to.equal(0)
+    })
   })
 
   describe('history', () => {
