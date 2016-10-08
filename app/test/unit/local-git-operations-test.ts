@@ -83,6 +83,28 @@ describe('LocalGitOperations', () => {
       expect(commits.length).to.equal(6)
       expect(commits[0].summary).to.equal('Special commit')
     })
+
+    it('can commit renames', async () => {
+
+      const repo = await setupEmptyRepository()
+
+      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'Initial commit' ], repo.path)
+      await GitProcess.exec([ 'mv', 'foo', 'bar' ], repo.path)
+
+      const status = await LocalGitOperations.getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+
+      await LocalGitOperations.createCommit(repo, 'renamed a file', '', [ files[0].withIncludeAll(true) ])
+
+      const statusAfter = await LocalGitOperations.getStatus(repo)
+
+      expect(statusAfter.workingDirectory.files.length).to.equal(0)
+    })
   })
 
   describe('partial commits', () => {
