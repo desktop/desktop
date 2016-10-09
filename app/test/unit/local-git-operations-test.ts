@@ -404,6 +404,10 @@ describe('LocalGitOperations', () => {
       expect(diff.hunks.length).to.equal(0)
     })
 
+    // A renamed file in the working directory is just two staged files
+    // with high similarity. If we don't take the rename into account
+    // when generating the diffs we'd be looking at a diff with only
+    // additions.
     it('only shows modifications after move for a renamed and modified file', async () => {
 
       const repo = await setupEmptyRepository()
