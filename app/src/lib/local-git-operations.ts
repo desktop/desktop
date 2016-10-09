@@ -1,7 +1,6 @@
 import * as Path from 'path'
 import { ChildProcess } from 'child_process'
 
-import { IGitResult } from 'git-kitchen-sink'
 import { git } from './git/core'
 
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
@@ -259,7 +258,7 @@ export class LocalGitOperations {
     const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
 
     return git(args, repository.path)
-      .then(this.diffFromRawDiffOutput)
+      .then(value => this.diffFromRawDiffOutput(value.stdout))
   }
 
   /**
@@ -285,7 +284,7 @@ export class LocalGitOperations {
       : [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
 
     return git(args, repository.path, { successExitCodes })
-      .then(this.diffFromRawDiffOutput)
+      .then(value => this.diffFromRawDiffOutput(value.stdout))
   }
 
   /**
@@ -293,8 +292,8 @@ export class LocalGitOperations {
    *
    * Parses the output from a diff-like command that uses `--path-with-raw`
    */
-  private static diffFromRawDiffOutput(result: IGitResult): Diff {
-    const pieces = result.stdout.split('\0')
+  private static diffFromRawDiffOutput(result: string): Diff {
+    const pieces = result.split('\0')
     const parser = new DiffParser()
     return parser.parse(pieces[pieces.length - 1])
   }
