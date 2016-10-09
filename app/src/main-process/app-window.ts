@@ -1,19 +1,23 @@
 import { BrowserWindow, ipcMain } from 'electron'
+import { Emitter, Disposable } from 'event-kit'
 
-import { Stats } from './stats'
 import { SharedProcess } from '../shared-process/shared-process'
 import { WindowState, windowStateChannelName } from '../lib/window-state'
 import { buildDefaultMenu, MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-url'
+import { ILaunchStats } from '../lib/stats'
 
 let windowStateKeeper: any | null = null
 
 export class AppWindow {
   private window: Electron.BrowserWindow
   private sharedProcess: SharedProcess
-  private stats: Stats
+  private emitter = new Emitter()
 
-  public constructor(stats: Stats, sharedProcess: SharedProcess) {
+  private _loadTime: number | null = null
+  private _rendererReadyTime: number | null = null
+
+  public constructor(sharedProcess: SharedProcess) {
     if (!windowStateKeeper) {
       // `electron-window-state` requires Electron's `screen` module, which can
       // only be required after the app has emitted `ready`. So require it
@@ -48,14 +52,15 @@ export class AppWindow {
     this.window = new BrowserWindow(windowOptions)
     savedWindowState.manage(this.window)
 
-    this.stats = stats
-
     this.sharedProcess = sharedProcess
   }
 
   public load() {
     let startLoad = 0
     this.window.webContents.on('did-start-loading', () => {
+      this._rendererReadyTime = null
+      this._loadTime = null
+
       startLoad = Date.now()
     })
 
@@ -65,12 +70,21 @@ export class AppWindow {
       }
 
       const now = Date.now()
-      this.sharedProcess.console.log(`Loading: ${now - startLoad}ms`)
+      this._loadTime = now - startLoad
+
+      this.maybeEmitDidLoad()
     })
 
     this.window.webContents.on('did-fail-load', () => {
       this.window.webContents.openDevTools()
       this.window.show()
+    })
+
+    // TODO: This should be scoped by the window.
+    ipcMain.on('renderer-ready', (event: Electron.IpcMainEvent, readyTime: number) => {
+      this._rendererReadyTime = readyTime
+
+      this.maybeEmitDidLoad()
     })
 
     this.window.on('focus', () => {
@@ -91,6 +105,21 @@ export class AppWindow {
     }
 
     this.window.loadURL(`file://${__dirname}/index.html`)
+  }
+
+  /**
+   * Emit the `onDidLoad` event if the page has loaded and the renderer has
+   * signalled that it's ready.
+   */
+  private maybeEmitDidLoad() {
+    if (!this.rendererLoaded) { return }
+
+    this.emitter.emit('did-load', null)
+  }
+
+  /** Is the page loaded and has the renderer signalled it's ready? */
+  private get rendererLoaded(): boolean {
+    return !!this.loadTime && !!this.rendererReadyTime
   }
 
   /**
@@ -127,6 +156,14 @@ export class AppWindow {
     this.window.on('closed', fn)
   }
 
+  /**
+   * Register a function to call when the window is done loading. At that point
+   * the page has loaded and the renderer has signalled that it is ready.
+   */
+  public onDidLoad(fn: () => void): Disposable {
+    return this.emitter.on('did-load', fn)
+  }
+
   public isMinimized() {
     return this.window.isMinimized()
   }
@@ -152,5 +189,29 @@ export class AppWindow {
   /** Send the URL action to the renderer. */
   public sendURLAction(action: URLActionType) {
     this.window.webContents.send('url-action', { action })
+  }
+
+  /** Send the app launch timing stats to the renderer. */
+  public sendLaunchTimingStats(stats: ILaunchStats) {
+    this.window.webContents.send('launch-timing-stats', { stats })
+  }
+
+  /**
+   * Get the time (in milliseconds) spent loading the page.
+   *
+   * This will be `null` until `onDidLoad` is called.
+   */
+  public get loadTime(): number | null {
+    return this._loadTime
+  }
+
+  /**
+   * Get the time (in milliseconds) elapsed from the renderer being loaded to it
+   * signaling it was ready.
+   *
+   * This will be `null` until `onDidLoad` is called.
+   */
+  public get rendererReadyTime(): number | null {
+    return this._rendererReadyTime
   }
 }

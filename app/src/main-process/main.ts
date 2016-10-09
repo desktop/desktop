@@ -1,7 +1,6 @@
 import { app, Menu, MenuItem, autoUpdater, ipcMain, BrowserWindow } from 'electron'
 
 import { AppWindow } from './app-window'
-import { Stats } from './stats'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent, getFeedURL } from './updates'
@@ -9,10 +8,12 @@ import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
 
-const stats = new Stats()
-
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
+
+const launchTime = Date.now()
+
+let readyTime: number | null = null
 
 process.on('uncaughtException', (error: Error) => {
   if (sharedProcess) {
@@ -50,7 +51,8 @@ if (shouldQuit) {
 }
 
 app.on('ready', () => {
-  stats.readyTime = Date.now()
+  const now = Date.now()
+  readyTime = now - launchTime
 
   app.setAsDefaultProtocolClient('x-github-client')
   // Also support Desktop Classic's protocols.
@@ -118,10 +120,6 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('show-main-window', () => {
-    getMainWindow().show()
-  })
-
   ipcMain.on('show-contextual-menu', (event: Electron.IpcMainEvent, items: ReadonlyArray<any>) => {
     const menu = new Menu()
     const menuItems = items.map((item, i) => {
@@ -147,13 +145,22 @@ app.on('activate', () => {
 })
 
 function createWindow() {
-  const window = new AppWindow(stats, sharedProcess!)
+  const window = new AppWindow(sharedProcess!)
   window.onClose(() => {
     mainWindow = null
 
     if (!__DARWIN__) {
       app.quit()
     }
+  })
+
+  window.onDidLoad(() => {
+    window.show()
+    window.sendLaunchTimingStats({
+      mainReadyTime: readyTime!,
+      loadTime: window.loadTime!,
+      rendererReadyTime: window.rendererReadyTime!,
+    })
   })
 
   window.load()

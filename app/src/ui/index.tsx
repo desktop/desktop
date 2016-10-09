@@ -12,9 +12,12 @@ import { URLActionType } from '../lib/parse-url'
 import { Repository } from '../models/repository'
 import { getDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
-import { showMainWindow } from './main-process-proxy'
+import { sendReady } from './main-process-proxy'
 import { reportError } from '../lib/exception-reporting'
 import * as appProxy from './lib/app-proxy'
+import { StatsDatabase, StatsStore, ILaunchStats } from '../lib/stats'
+
+const startTime = Date.now()
 
 if (!process.env.TEST_ENV) {
   /* This is the magic trigger for webpack to go compile
@@ -31,8 +34,12 @@ const cloningRepositoriesStore = new CloningRepositoriesStore()
 const emojiStore = new EmojiStore()
 const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore, emojiStore)
 const dispatcher = new Dispatcher(appStore)
+
+const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
+
 dispatcher.loadInitialState().then(() => {
-  showMainWindow()
+  const now = Date.now()
+  sendReady(now - startTime)
 })
 
 document.body.classList.add(`platform-${process.platform}`)
@@ -62,6 +69,15 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
   if (action.name === 'open-repository') {
     openRepository(action.args)
   }
+})
+
+ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
+  console.info(`App ready time: ${stats.mainReadyTime}ms`)
+  console.info(`Load time: ${stats.loadTime}ms`)
+  console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
+
+  statsStore.recordLaunchStats(stats)
+  statsStore.reportStats()
 })
 
 function openRepository(url: string) {
