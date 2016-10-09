@@ -208,16 +208,13 @@ export class LocalGitOperations {
     return await this.resolveHEAD(repository) === null
   }
 
-  private static addFileToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
-    let addFileArgs: string[] = []
+  private static async addFileToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
 
     if (file.status === FileStatus.New) {
-      addFileArgs = [ 'add', file.path ]
+      await git([ 'add', file.path ], repository.path)
     } else {
-      addFileArgs = [ 'add', '-u', file.path ]
+      await git([ 'add', '-u', file.path ], repository.path)
     }
-
-    return git(addFileArgs, repository.path)
   }
 
   private static async applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
