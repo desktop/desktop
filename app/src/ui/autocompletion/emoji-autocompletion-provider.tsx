@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { IAutocompletionProvider } from './index'
+import { compare } from '../../lib/compare'
 
 /**
  * Interface describing a autocomplete match for the given search
@@ -56,24 +57,20 @@ export class EmojiAutocompletionProvider implements IAutocompletionProvider<IEmo
     }
 
     // Naive emoji result sorting
-    return results.sort((x, y) => {
-      // Matches closer to the start of the string are sorted
-      // before matches further into the string
-      if (x.matchStart < y.matchStart) { return -1 }
-      if (x.matchStart > y.matchStart) { return 1 }
-
-      // Longer matches relative to the emoji length is sorted
-      // before the same match in a longer emoji
-      // (:heart over :heart_eyes)
-      if (x.emoji.length < y.emoji.length) { return -1 }
-      if (x.emoji.length > y.emoji.length) { return 1 }
-
-      // End with sorting them alphabetically
-      if (x.emoji < y.emoji) { return -1 }
-      if (x.emoji > y.emoji) { return 1 }
-
-      return 0
-    })
+    //
+    // Matches closer to the start of the string are sorted
+    // before matches further into the string
+    //
+    // Longer matches relative to the emoji length is sorted
+    // before the same match in a longer emoji
+    // (:heart over :heart_eyes)
+    //
+    // If both those start and length are equal we sort
+    // alphabetically
+    return results.sort((x, y) =>
+        compare(x.matchStart, y.matchStart) ||
+        compare(x.emoji.length, y.emoji.length) ||
+        compare(x.emoji, y.emoji))
   }
 
   public renderItem(hit: IEmojiHit) {

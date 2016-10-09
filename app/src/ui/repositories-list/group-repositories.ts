@@ -1,6 +1,7 @@
 import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { CloningRepository } from '../../lib/dispatcher'
+import { caseInsenstiveCompare } from '../../lib/compare'
 
 export type RepositoryGroup = 'github' | 'enterprise' | 'other'
 
@@ -46,14 +47,7 @@ export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): R
     }
     flattened.push({ kind: 'label', label })
 
-    repositories.sort((rx, ry) => {
-      const x = rx.name.toLowerCase()
-      const y = ry.name.toLowerCase()
-
-      if (x < y) { return -1 }
-      if (x > y) { return 1 }
-      return 0
-    })
+    repositories.sort((x, y) => caseInsenstiveCompare(x.name, y.name))
 
     for (const repository of repositories) {
       flattened.push({ kind: 'repository', repository })
