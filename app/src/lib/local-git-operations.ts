@@ -212,6 +212,9 @@ export class LocalGitOperations {
 
     if (file.status === FileStatus.New) {
       await git([ 'add', file.path ], repository.path)
+    } else if (file.status === FileStatus.Renamed && file.oldPath) {
+      await git([ 'add', file.path ], repository.path)
+      await git([ 'add', '-u', file.oldPath ], repository.path)
     } else {
       await git([ 'add', '-u', file.path ], repository.path)
     }
