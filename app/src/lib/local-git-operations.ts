@@ -285,23 +285,30 @@ export class LocalGitOperations {
    * that all content in the file will be treated as additions.
    */
   public static getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<Diff> {
-    // `git diff` seems to emulate the exit codes from `diff` irrespective of
-    // whether you set --exit-code
-    //
-    // this is the behaviour:
-    // - 0 if no changes found
-    // - 1 if changes found
-    // -   and error otherwise
-    //
-    // citation in source:
-    // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
-    const successExitCodes = new Set([ 0, 1 ])
 
-    const args = file.status === FileStatus.New
-      ? [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
-      : [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
+    let opts: IGitExecutionOptions | undefined
+    let args: Array<string>
 
-    return git(args, repository.path, { successExitCodes })
+    if (file.status === FileStatus.New) {
+      // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
+      // whether you set --exit-code
+      //
+      // this is the behaviour:
+      // - 0 if no changes found
+      // - 1 if changes found
+      // -   and error otherwise
+      //
+      // citation in source:
+      // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
+      opts = { successExitCodes: new Set([ 0, 1 ]) }
+      args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
+    } else if (file.status === FileStatus.Renamed) {
+      args = [ 'diff', '--patch-with-raw', '-z', '--', file.path ]
+    } else {
+      args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
+    }
+
+    return git(args, repository.path, opts)
       .then(this.diffFromRawDiffOutput)
   }
 
