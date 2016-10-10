@@ -185,19 +185,23 @@ export class Diff extends React.Component<IDiffProps, void> {
 
   public render() {
 
-    if (this.props.diff.current && this.props.diff.previous) {
-      return <ModifiedImageDiff
-                current={this.props.diff.current}
-                previous={this.props.diff.previous} />
+    if (this.props.diff.imageDiff) {
+      const imageDiff = this.props.diff.imageDiff
+      if (imageDiff.current && imageDiff.previous) {
+        return <ModifiedImageDiff
+                  current={imageDiff.current}
+                  previous={imageDiff.previous} />
+      }
+
+      if (imageDiff.current && this.props.file.status === FileStatus.New) {
+        return <NewImageDiff current={imageDiff.current} />
+      }
+
+      if (imageDiff.previous && this.props.file.status === FileStatus.Deleted) {
+        return <DeletedImageDiff previous={imageDiff.previous} />
+      }
     }
 
-    if (this.props.diff.current && this.props.file.status === FileStatus.New) {
-      return <NewImageDiff current={this.props.diff.current} />
-    }
-
-    if (this.props.diff.previous && this.props.file.status === FileStatus.Deleted) {
-      return <DeletedImageDiff previous={this.props.diff.previous} />
-    }
 
     if (this.props.diff.isBinary) {
       return <BinaryFile path={this.props.file.path}

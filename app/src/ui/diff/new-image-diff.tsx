@@ -1,18 +1,14 @@
 import * as React from 'react'
 
-import { ImageDiff } from '../../models/diff'
+import { Image } from '../../models/diff'
 import { renderImage } from './render-image'
 
 
-/** The props for the Diff component. */
 interface INewImageDiffProps {
-  /**
-   * TODO
-   */
-  readonly current: ImageDiff
+  readonly current: Image
 }
 
-/** A component which renders a diff for a file. */
+/** A component to render when a new image has been added to the repository */
 export class NewImageDiff extends React.Component<INewImageDiffProps, void> {
 
   public render() {

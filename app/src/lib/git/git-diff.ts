@@ -6,14 +6,9 @@ import { git, IGitExecutionOptions } from './core'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { Diff, ImageDiff  } from '../../models/diff'
+import { Diff, Image  } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
-
-export class ImageDiffSummary {
-  public readonly previous: ImageDiff | undefined
-  public readonly current: ImageDiff | undefined
-}
 
 export class GitDiff {
 
@@ -82,7 +77,7 @@ export class GitDiff {
       .then(diff => this.attachImageDiff(repository, file, diff))
   }
 
-  private static async attachImageDiff(repository: Repository, file: FileChange, diff: Diff) : Promise<Diff> {
+  private static async attachImageDiff(repository: Repository, file: FileChange, diff: Diff): Promise<Diff> {
 
     // already have a text diff, no point trying out this
     if (!diff.isBinary) {
@@ -94,13 +89,22 @@ export class GitDiff {
 
     // some extension we don't know how to parse, never mind
     if (GitDiff.imageFileExtensions.has(extension)) {
+
+      let current: Image | undefined = undefined
+      let previous: Image | undefined = undefined
+
       if (file.status === FileStatus.New || file.status === FileStatus.Modified) {
-        diff.current = await GitDiff.getWorkingDirectoryImageDiff(repository, file)
+        current = await GitDiff.getWorkingDirectoryImage(repository, file)
       }
 
       if (file.status === FileStatus.Modified || file.status === FileStatus.Deleted) {
-        diff.previous = await GitDiff.getBlobImageDiff(repository, file)
+        previous = await GitDiff.getBlobImage(repository, file)
       }
+
+      diff.imageDiff = {
+        previous: previous,
+        current: current,
+    }
     }
 
     return diff
@@ -135,10 +139,10 @@ export class GitDiff {
     return parser.parse(pieces[pieces.length - 1])
   }
 
-  public static async getBlobImageDiff(repository: Repository, file: FileChange): Promise<ImageDiff> {
+  public static async getBlobImage(repository: Repository, file: FileChange): Promise<Image> {
     const extension = Path.extname(file.path)
     const contents = await GitDiff.getBlobContents(repository, file)
-    const diff: ImageDiff =  {
+    const diff: Image =  {
       contents: contents,
       mediaType: GitDiff.getMediaType(extension),
     }
@@ -177,10 +181,10 @@ export class GitDiff {
     return Promise.resolve(base64Contents)
   }
 
-  public static async getWorkingDirectoryImageDiff(repository: Repository, file: FileChange): Promise<ImageDiff> {
+  public static async getWorkingDirectoryImage(repository: Repository, file: FileChange): Promise<Image> {
     const extension = Path.extname(file.path)
     const contents = await GitDiff.getWorkingDirectoryContents(repository, file)
-    const diff: ImageDiff =  {
+    const diff: Image =  {
       contents: contents,
       mediaType: GitDiff.getMediaType(extension),
     }

@@ -1,23 +1,14 @@
 import * as React from 'react'
 
-import { ImageDiff } from '../../models/diff'
+import { Image } from '../../models/diff'
 import { renderImage } from './render-image'
 
-
-/** The props for the Diff component. */
 interface IModifiedImageDiffProps {
-  /**
-   * TODO
-   */
-  readonly previous: ImageDiff
-
-  /**
-   * TODO
-   */
-  readonly current: ImageDiff
+  readonly previous: Image
+  readonly current: Image
 }
 
-/** A component which renders a diff for a file. */
+/** A component which renders the changes to an image in the repository */
 export class ModifiedImageDiff extends React.Component<IModifiedImageDiffProps, void> {
 
   public render() {

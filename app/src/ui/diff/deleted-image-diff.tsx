@@ -1,18 +1,13 @@
 import * as React from 'react'
 
-import { ImageDiff } from '../../models/diff'
+import { Image } from '../../models/diff'
 import { renderImage } from './render-image'
 
-
-/** The props for the Diff component. */
 interface IDeletedImageDiffProps {
-  /**
-   * TODO
-   */
-  readonly previous: ImageDiff
+  readonly previous: Image
 }
 
-/** A component which renders a diff for a file. */
+/** A component to render when the file has been deleted from the repository */
 export class DeletedImageDiff extends React.Component<IDeletedImageDiffProps, void> {
 
   public render() {

@@ -1,8 +1,8 @@
 import * as React from 'react'
 
-import { ImageDiff } from '../../models/diff'
+import { Image } from '../../models/diff'
 
-export function renderImage(image: ImageDiff | undefined) {
+export function renderImage(image: Image | undefined) {
 
   if (!image) { return null }
 
