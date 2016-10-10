@@ -27,8 +27,6 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     }
   }
 
-  /** TODO: disable submit when no files selected */
-
   private handleSummaryChange(event: React.FormEvent<HTMLInputElement>) {
     this.setState({
       summary: event.currentTarget.value,
@@ -81,7 +79,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
-    const disableButton = !this.props.anyFilesSelected
+    const buttonEnabled = this.props.anyFilesSelected && this.state.summary.length
 
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>
@@ -103,7 +101,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
           onKeyDown={event => this.onKeyDown(event)}
           emoji={this.props.emoji}/>
 
-        <button className='commit-button' onClick={event => this.handleSubmit(event)} disabled={disableButton}>
+        <button className='commit-button' onClick={event => this.handleSubmit(event)} disabled={!buttonEnabled}>
           <div>Commit to <strong>{branchName}</strong></div>
         </button>
       </form>
