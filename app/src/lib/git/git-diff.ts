@@ -79,65 +79,62 @@ export class GitDiff {
 
     return git(args, repository.path, opts)
       .then(value => this.diffFromRawDiffOutput(value.stdout))
-      .then(async diff => {
+      .then(diff => this.attachImageDiff(repository, file, diff))
+  }
 
-        // already have a text diff, bail out
-        if (!diff.isBinary) {
-          return diff
-        }
+  private static async attachImageDiff(repository: Repository, file: FileChange, diff: Diff) : Promise<Diff> {
 
-        const extension = Path.extname(file.path)
+    // already have a text diff, no point trying out this
+    if (!diff.isBinary) {
+      return diff
+    }
 
-        // unable to find an extension, bail out
-        if (extension === '') {
-          return diff
-        }
+    // if unable to find an extension, this will return an empty string
+    const extension = Path.extname(file.path)
 
-        // some extension we don't know how to parse, bail out
-        if (!GitDiff.imageFileExtensions.has(extension)) {
-          return diff
-        }
+    // some extension we don't know how to parse, never mind
+    if (!GitDiff.imageFileExtensions.has(extension)) {
+      return diff
+    }
 
-        if (file.status === FileStatus.New) {
-          const currentContents = await GitDiff.getWorkingDirectoryContents(repository, file)
-          const current: ImageDiff =  {
-            contents: currentContents,
-            mediaType: GitDiff.getMediaType(extension),
-          }
-          diff.current = current
-          return diff
-        }
+    if (file.status === FileStatus.New) {
+      const currentContents = await GitDiff.getWorkingDirectoryContents(repository, file)
+      const current: ImageDiff =  {
+        contents: currentContents,
+        mediaType: GitDiff.getMediaType(extension),
+      }
+      diff.current = current
+      return diff
+    }
 
-        if (file.status === FileStatus.Modified) {
-          const currentContents = await GitDiff.getWorkingDirectoryContents(repository, file)
-          const current: ImageDiff =  {
-            contents: currentContents,
-            mediaType: GitDiff.getMediaType(extension),
-          }
-          diff.current = current
+    if (file.status === FileStatus.Modified) {
+      const currentContents = await GitDiff.getWorkingDirectoryContents(repository, file)
+      const current: ImageDiff =  {
+        contents: currentContents,
+        mediaType: GitDiff.getMediaType(extension),
+      }
+      diff.current = current
 
-          const previousContents = await GitDiff.getBlobContents(repository, file)
-          const previous: ImageDiff =  {
-            contents: previousContents,
-            mediaType: GitDiff.getMediaType(extension),
-          }
-          diff.previous = previous
-          return diff
-        }
+      const previousContents = await GitDiff.getBlobContents(repository, file)
+      const previous: ImageDiff =  {
+        contents: previousContents,
+        mediaType: GitDiff.getMediaType(extension),
+      }
+      diff.previous = previous
+      return diff
+    }
 
-        if (file.status === FileStatus.Deleted) {
-          const previousContents = await GitDiff.getBlobContents(repository, file)
-          const previous: ImageDiff =  {
-            contents: previousContents,
-            mediaType: GitDiff.getMediaType(extension),
-          }
-          diff.previous = previous
-          return diff
-        }
+    if (file.status === FileStatus.Deleted) {
+      const previousContents = await GitDiff.getBlobContents(repository, file)
+      const previous: ImageDiff =  {
+        contents: previousContents,
+        mediaType: GitDiff.getMediaType(extension),
+      }
+      diff.previous = previous
+      return diff
+    }
 
-        // probably some other things
-        return diff
-      })
+    return diff
   }
 
   /**
