@@ -328,6 +328,13 @@ export class LocalGitOperations {
       opts = { successExitCodes: new Set([ 0, 1 ]) }
       args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
     } else if (file.status === FileStatus.Renamed) {
+      // NB: Technically this is incorrect, the best way of incorrect.
+      // In order to show exactly what will end up in the commit we should
+      // perform a diff between the new file and the old file as it appears
+      // in HEAD. By diffing against the index we won't show any changes
+      // already staged to the renamed file which differs from our other diffs.
+      // The closest I got to that was running hash-object and then using
+      // git diff <blob> <blob> but that seems a bit excessive.
       args = [ 'diff', '--patch-with-raw', '-z', '--', file.path ]
     } else {
       args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
