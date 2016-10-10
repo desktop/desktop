@@ -20,7 +20,7 @@ export class BinaryFile extends React.Component<IBinaryFileProps, void> {
       </div>
       <div className='image-header'>
         Would you like to
-        <a href="#" onClick={e => this.handleClick(e)}>open the file&nbsp;</a>
+        <a href='#' onClick={e => this.handleClick(e)}>open this file&nbsp;</a>
         in an external program?
       </div>
     </div>
