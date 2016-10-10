@@ -1,6 +1,8 @@
 import * as React from 'react'
+import * as Path from 'path'
 
 import { Repository } from '../../models/repository'
+import { openFile } from '../../lib/open-file'
 
 interface IBinaryFileProps {
   readonly repository: Repository
@@ -10,7 +12,8 @@ interface IBinaryFileProps {
 export class BinaryFile extends React.Component<IBinaryFileProps, void> {
 
   private handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
-    // TODO: use shell.openFile here to open the file in an external program
+    const fullPath = Path.join(this.props.repository.path, this.props.path)
+    openFile(fullPath)
   }
 
   public render() {
@@ -19,9 +22,7 @@ export class BinaryFile extends React.Component<IBinaryFileProps, void> {
       This binary file has changed.
       </div>
       <div className='image-header'>
-        Would you like to
-        <a href='#' onClick={e => this.handleClick(e)}>open this file&nbsp;</a>
-        in an external program?
+        <a href='#' onClick={e => this.handleClick(e)}>Open file in external program.</a>
       </div>
     </div>
   }
