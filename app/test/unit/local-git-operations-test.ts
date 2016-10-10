@@ -287,6 +287,9 @@ describe('LocalGitOperations', () => {
       expect(statusAfter.workingDirectory.files.length).to.equal(0)
     })
 
+    // The scenario here is that the user has staged a rename (probably using git mv)
+    // and then added some lines to the newly renamed file and they only want to
+    // commit one of these lines.
     it('can commit renames with partially selected modifications', async () => {
 
       const repo = await setupEmptyRepository()
