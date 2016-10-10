@@ -698,6 +698,14 @@ export class AppStore {
     return Promise.resolve()
   }
 
+  /**
+   * Updates the working directory state and emits an update event.
+   *
+   * @param mapCallback A callback which will be invoked once for
+   *                    each file in the current working directory
+   *                    state. The returned file will be used as
+   *                    the substitution for the passed file in.
+   */
   private updateWorkingDirectory(repository: Repository, mapCallback: (f: WorkingDirectoryFileChange) => WorkingDirectoryFileChange) {
 
     this.updateRepositoryState(repository, state => {
