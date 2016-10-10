@@ -100,7 +100,7 @@ export class GitDiff {
       diff.imageDiff = {
         previous: previous,
         current: current,
-    }
+      }
     }
 
     return diff
