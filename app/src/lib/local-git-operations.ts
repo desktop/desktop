@@ -1,21 +1,17 @@
 import * as Path from 'path'
 import { ChildProcess } from 'child_process'
 
+import { git } from './git/core'
+import { GitDiff } from './git/git-diff'
+
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
-import { DiffSelectionType, DiffSelection, Diff } from '../models/diff'
+import { DiffSelectionType, DiffSelection } from '../models/diff'
 import { Repository } from '../models/repository'
 import { CommitIdentity } from '../models/commit-identity'
 
 import { formatPatch } from './patch-formatter'
-import { DiffParser } from './diff-parser'
 import { parsePorcelainStatus } from './status-parser'
 
-import {
-  GitProcess,
-  IGitResult,
-  GitError as GitKitchenSinkError,
-  IGitExecutionOptions as GitKitchenSinkExecutionOptions,
-} from 'git-kitchen-sink'
 
 import { User } from '../models/user'
 
@@ -122,20 +118,6 @@ export class Branch {
       return pieces[1]
     }
   }
-}
-
-/**
- * An extension of the execution options in git-kitchen-sink that
- * allows us to piggy-back our own configuration options in the
- * same object.
- */
-interface IGitExecutionOptions extends GitKitchenSinkExecutionOptions {
-  /**
-   * The exit codes which indicate success to the
-   * caller. Unexpected exit codes will be logged and an
-   * error thrown. Defaults to 0 if undefined.
-   */
-  readonly successExitCodes?: Set<number>
 }
 
 /**
@@ -248,7 +230,7 @@ export class LocalGitOperations {
 
     const applyArgs: string[] = [ 'apply', '--cached', '--unidiff-zero', '--whitespace=nowarn', '-' ]
 
-    const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, file)
+    const diff = await GitDiff.getWorkingDirectoryDiff(repository, file)
 
     const patch = await formatPatch(file, diff)
     await git(applyArgs, repository.path, { stdin: patch })
@@ -288,71 +270,6 @@ export class LocalGitOperations {
         await this.applyPatchToIndex(repository, file)
       }
     }
-  }
-
-  /**
-   * Render the difference between a file in the given commit and its parent
-   *
-   * @param commitish A commit SHA or some other identifier that ultimately dereferences
-   *                  to a commit.
-   */
-  public static getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<Diff> {
-
-    const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
-
-    return git(args, repository.path)
-      .then(this.diffFromRawDiffOutput)
-  }
-
-  /**
-   * Render the diff for a file within the repository working directory. The file will be
-   * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
-   * that all content in the file will be treated as additions.
-   */
-  public static getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<Diff> {
-
-    let opts: IGitExecutionOptions | undefined
-    let args: Array<string>
-
-    if (file.status === FileStatus.New) {
-      // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
-      // whether you set --exit-code
-      //
-      // this is the behaviour:
-      // - 0 if no changes found
-      // - 1 if changes found
-      // -   and error otherwise
-      //
-      // citation in source:
-      // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
-      opts = { successExitCodes: new Set([ 0, 1 ]) }
-      args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
-    } else if (file.status === FileStatus.Renamed) {
-      // NB: Technically this is incorrect, the best way of incorrect.
-      // In order to show exactly what will end up in the commit we should
-      // perform a diff between the new file and the old file as it appears
-      // in HEAD. By diffing against the index we won't show any changes
-      // already staged to the renamed file which differs from our other diffs.
-      // The closest I got to that was running hash-object and then using
-      // git diff <blob> <blob> but that seems a bit excessive.
-      args = [ 'diff', '--patch-with-raw', '-z', '--', file.path ]
-    } else {
-      args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
-    }
-
-    return git(args, repository.path, opts)
-      .then(this.diffFromRawDiffOutput)
-  }
-
-  /**
-   * Utility function used by get(Commit|WorkingDirectory)Diff.
-   *
-   * Parses the output from a diff-like command that uses `--path-with-raw`
-   */
-  private static diffFromRawDiffOutput(result: IGitResult): Diff {
-    const pieces = result.stdout.split('\0')
-    const parser = new DiffParser()
-    return parser.parse(pieces[pieces.length - 1])
   }
 
   /**
@@ -705,100 +622,4 @@ export class LocalGitOperations {
   public static checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
     return git([ 'checkout', '--', ...paths ], repository.path)
   }
-}
-
-export class GitError {
-  /** The result from the failed command. */
-  public readonly result: IGitResult
-
-  /** The args for the failed command. */
-  public readonly args: ReadonlyArray<string>
-
-  /**
-   * The error as parsed by git-kitchen-sink. May be null if it wasn't able to
-   * determine the error.
-   */
-  public readonly parsedError: GitKitchenSinkError | null
-
-  public constructor(result: IGitResult, args: ReadonlyArray<string>, parsedError: GitKitchenSinkError | null) {
-    this.result = result
-    this.args = args
-    this.parsedError = parsedError
-  }
-
-  public get message(): string {
-    const parsedError = this.parsedError
-    if (parsedError) {
-      return `Error ${parsedError}`
-    }
-
-    if (this.result.stderr.length) {
-      return this.result.stderr
-    } else if (this.result.stdout.length) {
-      return this.result.stdout
-    } else {
-      return `Unknown error`
-    }
-  }
-}
-
-/**
- * Shell out to git with the given arguments, at the given path.
- *
- * @param {args}             The arguments to pass to `git`.
- *
- * @param {path}             The working directory path for the execution of the
- *                           command.
- *
- * @param {options}          Configuration options for the execution of git,
- *                           see IGitExecutionOptions for more information.
- *
- * Returns the result. If the command exits with a code not in
- * `successExitCodes` a `GitError` will be thrown.
- */
-async function git(args: string[], path: string, options?: IGitExecutionOptions): Promise<IGitResult> {
-
-  const defaultOptions: IGitExecutionOptions = {
-    successExitCodes: new Set([ 0 ]),
-  }
-
-  const opts = Object.assign({ }, defaultOptions, options)
-
-  const startTime = (performance && performance.now) ? performance.now() : null
-
-  const result = await GitProcess.exec(args, path, options)
-
-  if (console.debug && startTime) {
-    const rawTime = performance.now() - startTime
-    if (rawTime > 100) {
-     const timeInSeconds = (rawTime / 1000).toFixed(3)
-     console.debug(`executing: git ${args.join(' ')} (took ${timeInSeconds}s)`)
-    }
-  }
-
-  const exitCode = result.exitCode
-
-  if (!opts.successExitCodes!.has(exitCode)) {
-    console.error(`The command \`${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
-    if (result.stdout.length) {
-      console.error(result.stdout)
-    }
-
-    if (result.stderr.length) {
-      console.error(result.stderr)
-    }
-
-    let gitError = GitProcess.parseError(result.stderr)
-    if (!gitError) {
-      gitError = GitProcess.parseError(result.stdout)
-    }
-
-    if (gitError) {
-      console.error(`(The error was parsed as ${gitError}.)`)
-    }
-
-    throw new GitError(result, args, gitError)
-  }
-
-  return result
 }

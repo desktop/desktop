@@ -23,6 +23,7 @@ import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
 import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
+import { GitDiff } from '../git/git-diff'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
@@ -403,7 +404,7 @@ export class AppStore {
       }
     }
 
-    const diff = await LocalGitOperations.getCommitDiff(repository, file, sha)
+    const diff = await GitDiff.getCommitDiff(repository, file, sha)
 
     const stateAfterLoad = this.getRepositoryState(repository)
 
@@ -608,7 +609,7 @@ export class AppStore {
 
     if (!currentSelectedFile) { return }
 
-    const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, currentSelectedFile)
+    const diff = await GitDiff.getWorkingDirectoryDiff(repository, currentSelectedFile)
     const selectableLines = new Set<number>()
 
     // The diff might have changed dramatically since last we loaded it. Ideally we
