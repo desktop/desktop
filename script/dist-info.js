@@ -6,11 +6,12 @@ const projectRoot = path.join(__dirname, '..')
 const appPackage = require(path.join(projectRoot, 'app', 'package.json'))
 
 function getDistPath () {
-  return path.join(projectRoot, 'dist', `${appPackage.productName}-${process.platform}-x64`)
+  return path.join(projectRoot, 'dist', `${getProductName()}-${process.platform}-x64`)
 }
 
 function getProductName () {
-  return appPackage.productName
+  const productName = appPackage.productName
+  return process.env.NODE_ENV === 'development' ? `${appPackage.productName}-dev` : productName
 }
 
 function getName () {
