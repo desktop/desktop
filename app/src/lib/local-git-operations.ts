@@ -223,7 +223,7 @@ export class LocalGitOperations {
   private static async applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
 
     // If the file was a rename we have to recreate that rename since we've
-    // just blown away the index. This of this block of weird looking commands
+    // just blown away the index. This is a block of weird looking commands
     // as running `git mv`.
     if (file.status === FileStatus.Renamed && file.oldPath) {
       // Make sure the index knows of the removed file. We could use
