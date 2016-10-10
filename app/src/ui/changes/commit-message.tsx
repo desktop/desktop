@@ -66,7 +66,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   private renderAvatar() {
     const commitAuthor = this.props.commitAuthor
     const avatarTitle = commitAuthor
-      ? `Comitting as ${commitAuthor.name} <${commitAuthor.email}>`
+      ? `Committing as ${commitAuthor.name} <${commitAuthor.email}>`
       : undefined
 
     // We're wrapping the avatar in a div because electron won't
