@@ -674,56 +674,30 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
-    this.updateRepositoryState(repository, state => {
-      const newFiles = state.changesState.workingDirectory.files.map(f => {
-        if (f.id === file.id) {
-          return f.withIncludeAll(include)
-        } else {
-          return f
-        }
-      })
-
-      const includeAll = this.getIncludeAllState(newFiles)
-
-      let selectedFile: WorkingDirectoryFileChange | undefined
-      if (state.changesState.selectedFile) {
-          const f = state.changesState.selectedFile
-          selectedFile = newFiles.find(file => file.id === f.id)
-      }
-
-      const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
-      const diff = selectedFile ? state.changesState.diff : null
-
-      return {
-        selectedSection: state.selectedSection,
-        changesState: {
-          workingDirectory,
-          selectedFile: selectedFile || null,
-          diff,
-        },
-        historyState: state.historyState,
-        commitAuthor: state.commitAuthor,
-        branchesState: state.branchesState,
-        gitHubUsers: state.gitHubUsers,
-        commits: state.commits,
-      }
-    })
-    this.emitUpdate()
-
+    const selection = include ? file.selection.withSelectAll() : file.selection.withSelectNone()
+    this.updateWorkingDirectoryFileSelection(repository, file, selection)
     return Promise.resolve()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: DiffSelection): Promise<void> {
+    this.updateWorkingDirectoryFileSelection(repository, file, diffSelection)
+    return Promise.resolve()
+  }
+
+  /**
+   * Updates the selection for the given file in the working directory
+   * state and emits an update event.
+   */
+  private updateWorkingDirectoryFileSelection(repository: Repository, file: WorkingDirectoryFileChange, selection: DiffSelection) {
+
     this.updateRepositoryState(repository, state => {
 
-      const newFiles = state.changesState.workingDirectory.files.map(f => {
-        if (f.id === file.id) {
-          return f.withSelection(diffSelection)
-        } else {
-          return f
-        }
-      })
+      const newFiles = state.changesState.workingDirectory.files.map(
+        f => f.id === file.id
+        ? f.withSelection(selection)
+        : f
+      )
 
       const includeAll = this.getIncludeAllState(newFiles)
 
@@ -750,9 +724,6 @@ export class AppStore {
         commits: state.commits,
       }
     })
-    this.emitUpdate()
-
-    return Promise.resolve()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
