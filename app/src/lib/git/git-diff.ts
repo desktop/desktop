@@ -17,6 +17,8 @@ export class ImageDiffSummary {
 
 export class GitDiff {
 
+  private static imageFileExtensions = new Set([ '.png', '.jpg', '.jpeg', '.gif' ])
+
   /**
    * Render the difference between a file in the given commit and its parent
    *
@@ -35,8 +37,6 @@ export class GitDiff {
         return diff
       })
   }
-
-  private static imageFileExtensions = new Set([ '.png', '.jpg', '.jpeg', '.gif' ])
 
   /**
    * Render the diff for a file within the repository working directory. The file will be
