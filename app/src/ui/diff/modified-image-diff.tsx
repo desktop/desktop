@@ -22,14 +22,10 @@ export class ModifiedImageDiff extends React.Component<IModifiedImageDiffProps, 
 
   public render() {
     return <div className='panel' id='diff'>
-      <div>this image</div>
-      <div>
-        {renderImage(this.props.previous)}
-      </div>
-      <div>will be replaced with</div>
-      <div>
-        {renderImage(this.props.current)}
-      </div>
+      <div className='image-header'>this image</div>
+      {renderImage(this.props.previous)}
+      <div className='image-header'>will be replaced with</div>
+      {renderImage(this.props.current)}
     </div>
   }
 }
