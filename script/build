@@ -113,9 +113,14 @@ function copyAskPass () {
 }
 
 function copyDependencies () {
+  const originalPackage = require(path.join(projectRoot, 'app', 'package.json'))
+  // The product name changes depending on whether it's a prod build or dev
+  // build, so that we can have them running side by side.
+  const updatedPackage = Object.assign({}, originalPackage, { productName: distInfo.getProductName() })
+
   let destination = path.join(outRoot, 'package.json')
   fs.removeSync(destination)
-  fs.copySync(path.join(projectRoot, 'app', 'package.json'), destination)
+  fs.writeFileSync(destination, JSON.stringify(updatedPackage))
 
   destination = path.join(outRoot, 'node_modules')
   fs.removeSync(destination)
