@@ -286,6 +286,45 @@ describe('LocalGitOperations', () => {
 
       expect(statusAfter.workingDirectory.files.length).to.equal(0)
     })
+
+    it('can commit renames with partially selected modifications', async () => {
+
+      const repo = await setupEmptyRepository()
+      console.log(repo.path)
+
+      fs.writeFileSync(path.join(repo.path, 'foo'), 'line1\n')
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'Initial commit' ], repo.path)
+      await GitProcess.exec([ 'mv', 'foo', 'bar' ], repo.path)
+
+      fs.writeFileSync(path.join(repo.path, 'bar'), 'line1\nline2\nline3\n')
+
+      const status = await LocalGitOperations.getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+      expect(files[0].path).to.contain('bar')
+      expect(files[0].status).to.equal(FileStatus.Renamed)
+
+      const selection = files[0].selection
+        .withSelectNone()
+        .withLineSelection(2, true)
+
+      const partiallySelectedFile = files[0].withSelection(selection)
+
+      await LocalGitOperations.createCommit(repo, 'renamed a file', '', [ partiallySelectedFile ])
+
+      const statusAfter = await LocalGitOperations.getStatus(repo)
+
+      expect(statusAfter.workingDirectory.files.length).to.equal(1)
+
+      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repo, statusAfter.workingDirectory.files[0])
+
+      expect(diff.hunks.length).to.equal(1)
+      expect(diff.hunks[0].lines.length).to.equal(4)
+      expect(diff.hunks[0].lines[3].text).to.equal('+line3')
+    })
   })
 
   describe('history', () => {
