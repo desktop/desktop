@@ -17,6 +17,9 @@ export class ImageDiffSummary {
 
 export class GitDiff {
 
+  /**
+   *  Defining the list of known extensions we can render inside the app
+   */
   private static imageFileExtensions = new Set([ '.png', '.jpg', '.jpeg', '.gif' ])
 
   /**
@@ -96,7 +99,7 @@ export class GitDiff {
         }
 
         if (file.status === FileStatus.New) {
-          const currentContents = await GitDiff.getDiskContents(repository, file)
+          const currentContents = await GitDiff.getWorkingDirectoryContents(repository, file)
           const current: ImageDiff =  {
             contents: currentContents,
             mediaType: GitDiff.getMediaType(extension),
@@ -106,7 +109,7 @@ export class GitDiff {
         }
 
         if (file.status === FileStatus.Modified) {
-          const currentContents = await GitDiff.getDiskContents(repository, file)
+          const currentContents = await GitDiff.getWorkingDirectoryContents(repository, file)
           const current: ImageDiff =  {
             contents: currentContents,
             mediaType: GitDiff.getMediaType(extension),
@@ -137,6 +140,9 @@ export class GitDiff {
       })
   }
 
+  /**
+   * Map a given file extension to the related data URL media type
+   */
   private static getMediaType(extension: string) {
     if (extension === '.png') {
       return 'image/png'
@@ -163,6 +169,16 @@ export class GitDiff {
     return parser.parse(pieces[pieces.length - 1])
   }
 
+  /**
+   * Retrieve the binary contents of a blob from the repository
+   *
+   * Returns a promise containing the base64 encoded string,
+   * as <img> tags support the data URI scheme instead of
+   * needing to reference a file:// URI
+   *
+   * https://en.wikipedia.org/wiki/Data_URI_scheme
+   *
+   */
   private static async getBlobContents(repository: Repository, file: FileChange): Promise<string> {
 
     const successExitCodes = new Set([ 0, 1 ])
@@ -185,7 +201,17 @@ export class GitDiff {
     return Promise.resolve(base64Contents)
   }
 
-  private static async getDiskContents(repository: Repository, file: FileChange): Promise<string> {
+  /**
+   * Retrieve the binary contents of a blob from the working directory
+   *
+   * Returns a promise containing the base64 encoded string,
+   * as <img> tags support the data URI scheme instead of
+   * needing to reference a file:// URI
+   *
+   * https://en.wikipedia.org/wiki/Data_URI_scheme
+   *
+   */
+  private static async getWorkingDirectoryContents(repository: Repository, file: FileChange): Promise<string> {
 
     const path = Path.join(repository.path, file.path)
 
