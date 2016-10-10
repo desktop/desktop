@@ -776,8 +776,6 @@ async function git(args: string[], path: string, options?: IGitExecutionOptions)
     }
   }
 
-  console.log(`$ git ${args.join(' ')}`)
-
   const exitCode = result.exitCode
 
   if (!opts.successExitCodes!.has(exitCode)) {
@@ -802,6 +800,5 @@ async function git(args: string[], path: string, options?: IGitExecutionOptions)
     throw new GitError(result, args, gitError)
   }
 
-  console.log(result.stdout)
   return result
 }

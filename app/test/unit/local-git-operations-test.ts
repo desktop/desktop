@@ -293,7 +293,6 @@ describe('LocalGitOperations', () => {
     it('can commit renames with partially selected modifications', async () => {
 
       const repo = await setupEmptyRepository()
-      console.log(repo.path)
 
       fs.writeFileSync(path.join(repo.path, 'foo'), 'line1\n')
 
