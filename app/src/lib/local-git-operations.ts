@@ -208,19 +208,44 @@ export class LocalGitOperations {
     return await this.resolveHEAD(repository) === null
   }
 
-  private static addFileToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
-    let addFileArgs: string[] = []
+  private static async addFileToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
 
     if (file.status === FileStatus.New) {
-      addFileArgs = [ 'add', file.path ]
+      await git([ 'add', '--', file.path ], repository.path)
+    } else if (file.status === FileStatus.Renamed && file.oldPath) {
+      await git([ 'add', '--', file.path ], repository.path)
+      await git([ 'add', '-u', '--', file.oldPath ], repository.path)
     } else {
-      addFileArgs = [ 'add', '-u', file.path ]
+      await git([ 'add', '-u', '--', file.path ], repository.path)
     }
-
-    return git(addFileArgs, repository.path)
   }
 
   private static async applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
+
+    // If the file was a rename we have to recreate that rename since we've
+    // just blown away the index. This of this block of weird looking commands
+    // as running `git mv`.
+    if (file.status === FileStatus.Renamed && file.oldPath) {
+      // Make sure the index knows of the removed file. We could use
+      // update-index --force-remove here but we're not since it's theoretically
+      // possible that someone staged a rename and then recreated the
+      // original file and we don't have any guarantees for in which order
+      // partial stages vs full-file stages happen. By using git add the
+      // worst that could happen is that we re-stage a file already staged
+      // by addFileToIndex
+      await git([ 'add', '--u', '--', file.oldPath ], repository.path)
+
+      // Figure out the blob oid of the removed file
+      // <mode> SP <type> SP <object> TAB <file>
+      const oldFile = await git([ 'ls-tree', 'HEAD', '--', file.oldPath ], repository.path)
+
+      const [ info ] = oldFile.stdout.split('\t', 1)
+      const [ mode, , oid ] = info.split(' ', 3)
+
+      // Add the old file blob to the index under the new name
+      await git([ 'update-index', '--add', '--cacheinfo', mode, oid, file.path ], repository.path)
+    }
+
     const applyArgs: string[] = [ 'apply', '--cached', '--unidiff-zero', '--whitespace=nowarn', '-' ]
 
     const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository, file)
@@ -285,23 +310,37 @@ export class LocalGitOperations {
    * that all content in the file will be treated as additions.
    */
   public static getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<Diff> {
-    // `git diff` seems to emulate the exit codes from `diff` irrespective of
-    // whether you set --exit-code
-    //
-    // this is the behaviour:
-    // - 0 if no changes found
-    // - 1 if changes found
-    // -   and error otherwise
-    //
-    // citation in source:
-    // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
-    const successExitCodes = new Set([ 0, 1 ])
 
-    const args = file.status === FileStatus.New
-      ? [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
-      : [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
+    let opts: IGitExecutionOptions | undefined
+    let args: Array<string>
 
-    return git(args, repository.path, { successExitCodes })
+    if (file.status === FileStatus.New) {
+      // `git diff --no-index` seems to emulate the exit codes from `diff` irrespective of
+      // whether you set --exit-code
+      //
+      // this is the behaviour:
+      // - 0 if no changes found
+      // - 1 if changes found
+      // -   and error otherwise
+      //
+      // citation in source:
+      // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
+      opts = { successExitCodes: new Set([ 0, 1 ]) }
+      args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
+    } else if (file.status === FileStatus.Renamed) {
+      // NB: Technically this is incorrect, the best way of incorrect.
+      // In order to show exactly what will end up in the commit we should
+      // perform a diff between the new file and the old file as it appears
+      // in HEAD. By diffing against the index we won't show any changes
+      // already staged to the renamed file which differs from our other diffs.
+      // The closest I got to that was running hash-object and then using
+      // git diff <blob> <blob> but that seems a bit excessive.
+      args = [ 'diff', '--patch-with-raw', '-z', '--', file.path ]
+    } else {
+      args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
+    }
+
+    return git(args, repository.path, opts)
       .then(this.diffFromRawDiffOutput)
   }
 
