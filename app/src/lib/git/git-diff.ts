@@ -29,11 +29,7 @@ export class GitDiff {
 
     return git(args, repository.path)
       .then(value => this.diffFromRawDiffOutput(value.stdout))
-      .then(diff => {
-        // TODO: if this is a binary file and a known file extension
-        //       let's try and find the blob for this file
-        return diff
-      })
+      .then(diff => this.attachImageDiff(repository, file, diff))
   }
 
   /**
