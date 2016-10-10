@@ -12,7 +12,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffLine, Diff as DiffModel, DiffSelection } from '../../models/diff'
+import { DiffLine, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
 
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
@@ -183,25 +183,29 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.restoreScrollPosition(cm)
   }
 
+  private renderImage(imageDiff: ImageDiff) {
+    if (imageDiff.current && imageDiff.previous) {
+      return <ModifiedImageDiff
+                current={imageDiff.current}
+                previous={imageDiff.previous} />
+    }
+
+    if (imageDiff.current && this.props.file.status === FileStatus.New) {
+      return <NewImageDiff current={imageDiff.current} />
+    }
+
+    if (imageDiff.previous && this.props.file.status === FileStatus.Deleted) {
+      return <DeletedImageDiff previous={imageDiff.previous} />
+    }
+
+    return null
+  }
+
   public render() {
 
     if (this.props.diff.imageDiff) {
-      const imageDiff = this.props.diff.imageDiff
-      if (imageDiff.current && imageDiff.previous) {
-        return <ModifiedImageDiff
-                  current={imageDiff.current}
-                  previous={imageDiff.previous} />
-      }
-
-      if (imageDiff.current && this.props.file.status === FileStatus.New) {
-        return <NewImageDiff current={imageDiff.current} />
-      }
-
-      if (imageDiff.previous && this.props.file.status === FileStatus.Deleted) {
-        return <DeletedImageDiff previous={imageDiff.previous} />
-      }
+      return this.renderImage(this.props.diff.imageDiff)
     }
-
 
     if (this.props.diff.isBinary) {
       return <BinaryFile path={this.props.file.path}
