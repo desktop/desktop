@@ -151,7 +151,12 @@
   }
 }
 
+#diff .panel {
+  padding-top: 12px;
+}
+
 #diff .image-header {
+  padding: 12px 0 6px 0;
   margin-left: auto;
   margin-right: auto;
   font-weight: bold;
@@ -162,4 +167,13 @@
   margin-right: auto;
   max-width: 100%;
   max-height: 100%;
+}
+
+#diff a {
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+#diff a:link {
+  color: (orange);
 }

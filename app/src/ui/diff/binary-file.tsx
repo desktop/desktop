@@ -7,12 +7,22 @@ interface IBinaryFileProps {
   readonly path: string
 }
 
-/** A component which renders a diff for a file. */
 export class BinaryFile extends React.Component<IBinaryFileProps, void> {
+
+  private handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    // TODO: use shell.openFile here to open the file in an external program
+  }
 
   public render() {
     return <div className='panel' id='diff'>
-      <div>This binary file has changed</div>
+      <div className='image-header'>
+      This binary file has changed.
+      </div>
+      <div className='image-header'>
+        Would you like to
+        <a href="#" onClick={e => this.handleClick(e)}>open the file&nbsp;</a>
+        in an external program?
+      </div>
     </div>
   }
 }
