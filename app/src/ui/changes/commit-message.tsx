@@ -27,8 +27,6 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     }
   }
 
-  /** TODO: disable submit when no files selected */
-
   private handleSummaryChange(event: React.FormEvent<HTMLInputElement>) {
     this.setState({
       summary: event.currentTarget.value,
