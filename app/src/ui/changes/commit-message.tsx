@@ -79,7 +79,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
-    const disableButton = !this.props.anyFilesSelected || !this.state.summary.length
+    const buttonEnabled = this.props.anyFilesSelected && this.state.summary.length
 
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>
@@ -101,7 +101,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
           onKeyDown={event => this.onKeyDown(event)}
           emoji={this.props.emoji}/>
 
-        <button className='commit-button' onClick={event => this.handleSubmit(event)} disabled={disableButton}>
+        <button className='commit-button' onClick={event => this.handleSubmit(event)} disabled={!buttonEnabled}>
           <div>Commit to <strong>{branchName}</strong></div>
         </button>
       </form>
