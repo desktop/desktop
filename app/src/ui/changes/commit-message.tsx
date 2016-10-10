@@ -79,7 +79,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
-    const disableButton = !this.props.anyFilesSelected
+    const disableButton = !this.props.anyFilesSelected || !this.state.summary.length
 
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>
