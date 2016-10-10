@@ -60,6 +60,10 @@ function getWindowsFullNugetPackagePath () {
   return path.join(getDistPath(), '..', 'installer', getWindowsFullNugetPackageName())
 }
 
+function getBundleID () {
+  return appPackage.bundleID
+}
+
 module.exports = {
   getDistPath,
   getProductName,
@@ -72,5 +76,6 @@ module.exports = {
   getWindowsStandaloneName,
   getWindowsStandalonePath,
   getWindowsFullNugetPackageName,
-  getWindowsFullNugetPackagePath
+  getWindowsFullNugetPackagePath,
+  getBundleID
 }
