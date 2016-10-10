@@ -8,6 +8,7 @@ const temp = require('temp').track()
 
 import { Repository } from '../../src/models/repository'
 import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operations'
+import { GitDiff } from '../../src/lib/git/git-diff'
 import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../../src/models/diff'
 import { setupFixtureRepository, setupEmptyRepository } from '../fixture-helper'
@@ -158,7 +159,7 @@ describe('LocalGitOperations', () => {
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
+      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
 
       const selection = DiffSelection
         .fromInitialSelection(DiffSelectionType.All)
@@ -198,7 +199,7 @@ describe('LocalGitOperations', () => {
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
+      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
 
       const selection = DiffSelection
         .fromInitialSelection(DiffSelectionType.All)
@@ -321,7 +322,7 @@ describe('LocalGitOperations', () => {
 
       expect(statusAfter.workingDirectory.files.length).to.equal(1)
 
-      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repo, statusAfter.workingDirectory.files[0])
+      const diff = await GitDiff.getWorkingDirectoryDiff(repo, statusAfter.workingDirectory.files[0])
 
       expect(diff.hunks.length).to.equal(1)
       expect(diff.hunks[0].lines.length).to.equal(4)
@@ -371,7 +372,7 @@ describe('LocalGitOperations', () => {
     it('counts lines for new file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
-      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
+      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
 
       const hunk = diff.hunks[0]
 
@@ -386,7 +387,7 @@ describe('LocalGitOperations', () => {
     it('counts lines for modified file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('modified-file.md', FileStatus.Modified, diffSelection)
-      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
+      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
 
       const first = diff.hunks[0]
       expect(first.lines[0].text).to.have.string('@@ -4,10 +4,6 @@')
@@ -408,7 +409,7 @@ describe('LocalGitOperations', () => {
     it('counts lines for staged file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('staged-file.md', FileStatus.Modified, diffSelection)
-      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repository!, file)
+      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
 
       const first = diff.hunks[0]
       expect(first.lines[0].text).to.have.string('@@ -2,7 +2,7 @@ ')
@@ -440,7 +441,7 @@ describe('LocalGitOperations', () => {
 
       expect(files.length).to.equal(1)
 
-      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repo, files[0])
+      const diff = await GitDiff.getWorkingDirectoryDiff(repo, files[0])
 
       expect(diff.hunks.length).to.equal(0)
     })
@@ -466,7 +467,7 @@ describe('LocalGitOperations', () => {
 
       expect(files.length).to.equal(1)
 
-      const diff = await LocalGitOperations.getWorkingDirectoryDiff(repo, files[0])
+      const diff = await GitDiff.getWorkingDirectoryDiff(repo, files[0])
 
       expect(diff.hunks.length).to.equal(1)
       expect(diff.hunks[0].lines.length).to.equal(3)
