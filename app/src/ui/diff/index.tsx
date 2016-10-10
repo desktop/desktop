@@ -5,6 +5,7 @@ import { Disposable } from 'event-kit'
 import { NewImageDiff } from './new-image-diff'
 import { ModifiedImageDiff } from './modified-image-diff'
 import { DeletedImageDiff } from './deleted-image-diff'
+import { BinaryFile } from './binary-file'
 
 import { Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
@@ -196,6 +197,11 @@ export class Diff extends React.Component<IDiffProps, void> {
 
     if (this.props.diff.previous && this.props.file.status === FileStatus.Deleted) {
       return <DeletedImageDiff previous={this.props.diff.previous} />
+    }
+
+    if (this.props.diff.isBinary) {
+      return <BinaryFile path={this.props.file.path}
+                         repository={this.props.repository} />
     }
 
     let diffText = ''
