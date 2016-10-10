@@ -674,43 +674,30 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
-    this.updateWorkingDirectory(repository, f => {
-      if (f.id === file.id) {
-        return f.withIncludeAll(include)
-      } else {
-        return f
-      }
-    })
-
+    const selection = include ? file.selection.withSelectAll() : file.selection.withSelectNone()
+    this.updateWorkingDirectoryFileSelection(repository, file, selection)
     return Promise.resolve()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeFileLineSelection(repository: Repository, file: WorkingDirectoryFileChange, diffSelection: DiffSelection): Promise<void> {
-    this.updateWorkingDirectory(repository, f => {
-      if (f.id === file.id) {
-        return f.withSelection(diffSelection)
-      } else {
-        return f
-      }
-    })
-
+    this.updateWorkingDirectoryFileSelection(repository, file, diffSelection)
     return Promise.resolve()
   }
 
   /**
-   * Updates the working directory state and emits an update event.
-   *
-   * @param mapCallback A callback which will be invoked once for
-   *                    each file in the current working directory
-   *                    state. The returned file will be used as
-   *                    the substitution for the passed file in.
+   * Updates the selection for the given file in the working directory
+   * state and emits an update event.
    */
-  private updateWorkingDirectory(repository: Repository, mapCallback: (f: WorkingDirectoryFileChange) => WorkingDirectoryFileChange) {
+  private updateWorkingDirectoryFileSelection(repository: Repository, file: WorkingDirectoryFileChange, selection: DiffSelection) {
 
     this.updateRepositoryState(repository, state => {
 
-      const newFiles = state.changesState.workingDirectory.files.map(mapCallback)
+      const newFiles = state.changesState.workingDirectory.files.map(
+        f => f.id === file.id
+        ? f.withSelection(selection)
+        : f
+      )
 
       const includeAll = this.getIncludeAllState(newFiles)
 
