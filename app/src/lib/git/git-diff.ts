@@ -93,45 +93,14 @@ export class GitDiff {
     const extension = Path.extname(file.path)
 
     // some extension we don't know how to parse, never mind
-    if (!GitDiff.imageFileExtensions.has(extension)) {
-      return diff
-    }
-
-    if (file.status === FileStatus.New) {
-      const currentContents = await GitDiff.getWorkingDirectoryContents(repository, file)
-      const current: ImageDiff =  {
-        contents: currentContents,
-        mediaType: GitDiff.getMediaType(extension),
+    if (GitDiff.imageFileExtensions.has(extension)) {
+      if (file.status === FileStatus.New || file.status === FileStatus.Modified) {
+        diff.current = await GitDiff.getWorkingDirectoryImageDiff(repository, file)
       }
-      diff.current = current
-      return diff
-    }
 
-    if (file.status === FileStatus.Modified) {
-      const currentContents = await GitDiff.getWorkingDirectoryContents(repository, file)
-      const current: ImageDiff =  {
-        contents: currentContents,
-        mediaType: GitDiff.getMediaType(extension),
+      if (file.status === FileStatus.Modified || file.status === FileStatus.Deleted) {
+        diff.previous = await GitDiff.getBlobImageDiff(repository, file)
       }
-      diff.current = current
-
-      const previousContents = await GitDiff.getBlobContents(repository, file)
-      const previous: ImageDiff =  {
-        contents: previousContents,
-        mediaType: GitDiff.getMediaType(extension),
-      }
-      diff.previous = previous
-      return diff
-    }
-
-    if (file.status === FileStatus.Deleted) {
-      const previousContents = await GitDiff.getBlobContents(repository, file)
-      const previous: ImageDiff =  {
-        contents: previousContents,
-        mediaType: GitDiff.getMediaType(extension),
-      }
-      diff.previous = previous
-      return diff
     }
 
     return diff
@@ -166,6 +135,16 @@ export class GitDiff {
     return parser.parse(pieces[pieces.length - 1])
   }
 
+  public static async getBlobImageDiff(repository: Repository, file: FileChange): Promise<ImageDiff> {
+    const extension = Path.extname(file.path)
+    const contents = await GitDiff.getBlobContents(repository, file)
+    const diff: ImageDiff =  {
+      contents: contents,
+      mediaType: GitDiff.getMediaType(extension),
+    }
+    return diff
+  }
+
   /**
    * Retrieve the binary contents of a blob from the repository
    *
@@ -196,6 +175,16 @@ export class GitDiff {
     const base64Contents = Buffer.from(blob_contents.stdout, 'binary').toString('base64')
 
     return Promise.resolve(base64Contents)
+  }
+
+  public static async getWorkingDirectoryImageDiff(repository: Repository, file: FileChange): Promise<ImageDiff> {
+    const extension = Path.extname(file.path)
+    const contents = await GitDiff.getWorkingDirectoryContents(repository, file)
+    const diff: ImageDiff =  {
+      contents: contents,
+      mediaType: GitDiff.getMediaType(extension),
+    }
+    return diff
   }
 
   /**
