@@ -11,7 +11,9 @@ import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operatio
 import { GitDiff } from '../../src/lib/git/git-diff'
 import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../../src/models/diff'
-import { setupFixtureRepository } from '../fixture-helper'
+import { setupFixtureRepository, setupEmptyRepository } from '../fixture-helper'
+
+import { GitProcess } from 'git-kitchen-sink'
 
 describe('LocalGitOperations', () => {
   let repository: Repository | null = null
@@ -43,6 +45,25 @@ describe('LocalGitOperations', () => {
       const files = status.workingDirectory.files
       expect(files.length).to.equal(0)
     })
+
+    it('reflects renames', async () => {
+
+      const repo = await setupEmptyRepository()
+
+      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'Initial commit' ], repo.path)
+      await GitProcess.exec([ 'mv', 'foo', 'bar' ], repo.path)
+
+      const status = await LocalGitOperations.getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+      expect(files[0].status).to.equal(FileStatus.Renamed)
+      expect(files[0].oldPath).to.equal('foo')
+      expect(files[0].path).to.equal('bar')
+    })
   })
 
   describe('committing', () => {
@@ -62,6 +83,28 @@ describe('LocalGitOperations', () => {
       const commits = await LocalGitOperations.getHistory(repository!, 'HEAD', 100)
       expect(commits.length).to.equal(6)
       expect(commits[0].summary).to.equal('Special commit')
+    })
+
+    it('can commit renames', async () => {
+
+      const repo = await setupEmptyRepository()
+
+      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'Initial commit' ], repo.path)
+      await GitProcess.exec([ 'mv', 'foo', 'bar' ], repo.path)
+
+      const status = await LocalGitOperations.getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+
+      await LocalGitOperations.createCommit(repo, 'renamed a file', '', [ files[0].withIncludeAll(true) ])
+
+      const statusAfter = await LocalGitOperations.getStatus(repo)
+
+      expect(statusAfter.workingDirectory.files.length).to.equal(0)
     })
   })
 
@@ -220,6 +263,71 @@ describe('LocalGitOperations', () => {
       expect(fileChange).to.not.be.undefined
       expect(fileChange!.status).to.equal(FileStatus.Deleted)
     })
+
+    it('can commit renames with modifications', async () => {
+
+      const repo = await setupEmptyRepository()
+
+      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'Initial commit' ], repo.path)
+      await GitProcess.exec([ 'mv', 'foo', 'bar' ], repo.path)
+
+      fs.writeFileSync(path.join(repo.path, 'bar'), 'bar\n')
+
+      const status = await LocalGitOperations.getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+
+      await LocalGitOperations.createCommit(repo, 'renamed a file', '', [ files[0].withIncludeAll(true) ])
+
+      const statusAfter = await LocalGitOperations.getStatus(repo)
+
+      expect(statusAfter.workingDirectory.files.length).to.equal(0)
+    })
+
+    // The scenario here is that the user has staged a rename (probably using git mv)
+    // and then added some lines to the newly renamed file and they only want to
+    // commit one of these lines.
+    it('can commit renames with partially selected modifications', async () => {
+
+      const repo = await setupEmptyRepository()
+
+      fs.writeFileSync(path.join(repo.path, 'foo'), 'line1\n')
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'Initial commit' ], repo.path)
+      await GitProcess.exec([ 'mv', 'foo', 'bar' ], repo.path)
+
+      fs.writeFileSync(path.join(repo.path, 'bar'), 'line1\nline2\nline3\n')
+
+      const status = await LocalGitOperations.getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+      expect(files[0].path).to.contain('bar')
+      expect(files[0].status).to.equal(FileStatus.Renamed)
+
+      const selection = files[0].selection
+        .withSelectNone()
+        .withLineSelection(2, true)
+
+      const partiallySelectedFile = files[0].withSelection(selection)
+
+      await LocalGitOperations.createCommit(repo, 'renamed a file', '', [ partiallySelectedFile ])
+
+      const statusAfter = await LocalGitOperations.getStatus(repo)
+
+      expect(statusAfter.workingDirectory.files.length).to.equal(1)
+
+      const diff = await GitDiff.getWorkingDirectoryDiff(repo, statusAfter.workingDirectory.files[0])
+
+      expect(diff.hunks.length).to.equal(1)
+      expect(diff.hunks[0].lines.length).to.equal(4)
+      expect(diff.hunks[0].lines[3].text).to.equal('+line3')
+    })
   })
 
   describe('history', () => {
@@ -316,6 +424,55 @@ describe('LocalGitOperations', () => {
       expect(second.lines[5].text).to.have.string('-tempor a ligula. Proin pretium ipsum ')
       expect(second.lines[6].text).to.have.string('-elementum neque id tellus gravida rhoncus.')
       expect(second.lines[7].text).to.have.string('+vel sagittis nisl rutrum.')
+    })
+
+    it('is empty for a renamed file', async () => {
+
+      const repo = await setupEmptyRepository()
+
+      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'Initial commit' ], repo.path)
+      await GitProcess.exec([ 'mv', 'foo', 'bar' ], repo.path)
+
+      const status = await LocalGitOperations.getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+
+      const diff = await GitDiff.getWorkingDirectoryDiff(repo, files[0])
+
+      expect(diff.hunks.length).to.equal(0)
+    })
+
+    // A renamed file in the working directory is just two staged files
+    // with high similarity. If we don't take the rename into account
+    // when generating the diffs we'd be looking at a diff with only
+    // additions.
+    it('only shows modifications after move for a renamed and modified file', async () => {
+
+      const repo = await setupEmptyRepository()
+
+      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'Initial commit' ], repo.path)
+      await GitProcess.exec([ 'mv', 'foo', 'bar' ], repo.path)
+
+      fs.writeFileSync(path.join(repo.path, 'bar'), 'bar\n')
+
+      const status = await LocalGitOperations.getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+
+      const diff = await GitDiff.getWorkingDirectoryDiff(repo, files[0])
+
+      expect(diff.hunks.length).to.equal(1)
+      expect(diff.hunks[0].lines.length).to.equal(3)
+      expect(diff.hunks[0].lines[1].text).to.equal('-foo')
+      expect(diff.hunks[0].lines[2].text).to.equal('+bar')
     })
   })
 
