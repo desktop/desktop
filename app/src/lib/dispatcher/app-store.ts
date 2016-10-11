@@ -29,6 +29,7 @@ import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
 import { EmojiStore } from './emoji-store'
 import { GitStore } from './git-store'
+import { assertNever } from '../fatal-error'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -577,9 +578,9 @@ export class AppStore {
     this.emitUpdate()
 
     if (section === RepositorySection.History) {
-      return this._loadHistory(repository)
+      return this.refreshHistorySection(repository)
     } else if (section === RepositorySection.Changes) {
-      return this._loadStatus(repository)
+      return this.refreshChangesSection(repository, true)
     }
   }
 
@@ -762,8 +763,20 @@ export class AppStore {
 
     const section = state.selectedSection
     if (section === RepositorySection.History) {
-      return this._loadHistory(repository)
+      return this.refreshHistorySection(repository)
+    } else if (section === RepositorySection.Changes) {
+      return this.refreshChangesSection(repository, false)
+    } else {
+      return assertNever(section, `Unknown section: ${section}`)
     }
+  }
+
+  private async refreshChangesSection(repository: Repository, includingStatus: boolean): Promise<void> {
+    }
+  }
+
+  private async refreshHistorySection(repository: Repository): Promise<void> {
+    return this._loadHistory(repository)
   }
 
   private async refreshAuthor(repository: Repository): Promise<void> {
