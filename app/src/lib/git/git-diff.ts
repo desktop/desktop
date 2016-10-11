@@ -120,7 +120,7 @@ export class GitDiff {
       return 'image/gif'
     }
 
-    // fallback value, gonna have a bad time
+    // fallback value as per the spec
     return 'text/plain'
   }
 
