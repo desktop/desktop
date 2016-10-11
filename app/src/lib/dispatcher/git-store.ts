@@ -265,8 +265,6 @@ export class GitStore {
       localCommits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, 'HEAD', CommitBatchSize, [ '--not', '--remotes' ]))
     }
 
-    debugger
-
     if (!localCommits) { return }
 
     console.log('localCommits:')
