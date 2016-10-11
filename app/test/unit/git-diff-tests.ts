@@ -62,8 +62,31 @@ describe('GitDiff', () => {
     })
   })
 
-  describe('getWorkingDirectoryDiff', () => {
+  describe('imageDiff', () => {
+    it('changes for images are set', async () => {
+      const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
+      const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, diffSelection)
+      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
 
+      expect(diff.isBinary).is.true
+      expect(diff.imageDiff!.previous).is.not.undefined
+      expect(diff.imageDiff!.current).is.not.undefined
+    })
+
+    it('changes for text are not set', async () => {
+      const testRepoPath = setupFixtureRepository('repo-with-changes')
+      repository = new Repository(testRepoPath, -1, null)
+
+      const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
+      const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
+      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
+
+      expect(diff.isBinary).is.false
+      expect(diff.imageDiff).is.undefined
+    })
+  })
+
+  describe('getWorkingDirectoryDiff', () => {
     beforeEach(() => {
       const testRepoPath = setupFixtureRepository('repo-with-changes')
       repository = new Repository(testRepoPath, -1, null)
