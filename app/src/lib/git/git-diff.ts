@@ -174,7 +174,7 @@ export class GitDiff {
     const blob_contents = await git(catFileArgs, repository.path, { successExitCodes, processCallback: setBinaryEncoding })
     const base64Contents = Buffer.from(blob_contents.stdout, 'binary').toString('base64')
 
-    return Promise.resolve(base64Contents)
+    return base64Contents
   }
 
   public static async getWorkingDirectoryImage(repository: Repository, file: FileChange): Promise<Image> {
@@ -198,12 +198,16 @@ export class GitDiff {
    *
    */
   private static async getWorkingDirectoryContents(repository: Repository, file: FileChange): Promise<string> {
+    return new Promise<string>((resolve, reject) => {
+      const path = Path.join(repository.path, file.path)
 
-    const path = Path.join(repository.path, file.path)
-
-    const rawImageBytes = Fs.readFileSync(path, { encoding: 'binary', flag: 'r' })
-    const base64Contents = Buffer.from(rawImageBytes, 'binary').toString('base64')
-
-    return Promise.resolve(base64Contents)
+      Fs.readFile(path, { encoding: 'binary', flag: 'r' }, (error, data) => {
+        if (error) {
+          reject(error)
+          return
+        }
+        resolve(Buffer.from(data, 'binary').toString('base64'))
+      })
+    })
   }
 }
