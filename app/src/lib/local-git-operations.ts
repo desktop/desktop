@@ -273,9 +273,9 @@ export class LocalGitOperations {
   }
 
   /**
-   * Get the repository's history, starting from `start` and limited to `limit`
+   * Get the repository's commits using `revisionRange` and limited to `limit`
    */
-  public static async getHistory(repository: Repository, start: string, limit: number): Promise<ReadonlyArray<Commit>> {
+  public static async getCommits(repository: Repository, revisionRange: string, limit: number, additionalArgs: ReadonlyArray<string> = []): Promise<ReadonlyArray<Commit>> {
     const delimiter = '1F'
     const delimeterString = String.fromCharCode(parseInt(delimiter, 16))
     const prettyFormat = [
@@ -287,7 +287,7 @@ export class LocalGitOperations {
       '%aI', // author date, ISO-8601
     ].join(`%x${delimiter}`)
 
-    const result = await git([ 'log', start, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
+    const result = await git([ 'log', revisionRange, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color', ...additionalArgs ], repository.path)
     const out = result.stdout
     const lines = out.split('\0')
     // Remove the trailing empty line
@@ -546,7 +546,7 @@ export class LocalGitOperations {
 
   /** Get the commit for the given ref. */
   public static async getCommit(repository: Repository, ref: string): Promise<Commit | null> {
-    const commits = await LocalGitOperations.getHistory(repository, ref, 1)
+    const commits = await LocalGitOperations.getCommits(repository, ref, 1)
     if (commits.length < 1) { return null }
 
     return commits[0]

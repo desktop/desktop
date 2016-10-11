@@ -31,6 +31,8 @@ export class GitStore {
 
   private _recentBranches: ReadonlyArray<Branch> = []
 
+  private _localCommits: ReadonlyArray<Commit> = []
+
   public constructor(repository: Repository) {
     this.repository = repository
   }
@@ -68,7 +70,7 @@ export class GitStore {
 
     this.requestsInFight.add(LoadingHistoryRequestKey)
 
-    let commits = await this.performFailableOperation(() => LocalGitOperations.getHistory(this.repository, 'HEAD', CommitBatchSize))
+    let commits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, 'HEAD', CommitBatchSize))
     if (!commits) { return }
 
     let existingHistory = this._history
@@ -89,9 +91,7 @@ export class GitStore {
     }
 
     this._history = [ ...commits.map(c => c.sha), ...existingHistory ]
-    for (const commit of commits) {
-      this.commits.set(commit.sha, commit)
-    }
+    this.cacheCommits(commits)
 
     this.requestsInFight.delete(LoadingHistoryRequestKey)
 
@@ -111,13 +111,11 @@ export class GitStore {
 
     this.requestsInFight.add(requestKey)
 
-    const commits = await this.performFailableOperation(() => LocalGitOperations.getHistory(this.repository, `${lastSHA}^`, CommitBatchSize))
+    const commits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, `${lastSHA}^`, CommitBatchSize))
     if (!commits) { return }
 
     this._history = this._history.concat(commits.map(c => c.sha))
-    for (const commit of commits) {
-      this.commits.set(commit.sha, commit)
-    }
+    this.cacheCommits(commits)
 
     this.requestsInFight.delete(requestKey)
 
@@ -140,7 +138,7 @@ export class GitStore {
     const commit = await this.performFailableOperation(() => LocalGitOperations.getCommit(this.repository, sha))
     if (!commit) { return }
 
-    this.commits.set(commit.sha, commit)
+    this.cacheCommits([ commit ])
 
     this.requestsInFight.delete(requestKey)
 
@@ -255,6 +253,35 @@ export class GitStore {
     }
 
     this.emitUpdate()
+  }
+
+  /** Load the local commits. */
+  public async loadLocalCommits(branch: Branch): Promise<void> {
+    let localCommits: ReadonlyArray<Commit> | undefined
+    if (branch.upstream) {
+      const revRange = `${branch.upstream}..${branch.name}`
+      localCommits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, revRange, CommitBatchSize))
+    } else {
+      localCommits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, 'HEAD', CommitBatchSize, [ '--not', '--remotes' ]))
+    }
+
+    debugger
+
+    if (!localCommits) { return }
+
+    console.log('localCommits:')
+    console.log(localCommits)
+
+    this._localCommits = localCommits
+
+    this.cacheCommits(localCommits)
+  }
+
+  /** Cache the given commits. */
+  private cacheCommits(commits: ReadonlyArray<Commit>) {
+    for (const commit of commits) {
+      this.commits.set(commit.sha, commit)
+    }
   }
 
   /**

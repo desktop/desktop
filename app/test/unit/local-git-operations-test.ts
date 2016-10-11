@@ -80,7 +80,7 @@ describe('LocalGitOperations', () => {
       files = status.workingDirectory.files
       expect(files.length).to.equal(0)
 
-      const commits = await LocalGitOperations.getHistory(repository!, 'HEAD', 100)
+      const commits = await LocalGitOperations.getCommits(repository!, 'HEAD', 100)
       expect(commits.length).to.equal(6)
       expect(commits[0].summary).to.equal('Special commit')
     })
@@ -116,7 +116,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('can commit some lines from new file', async () => {
-      const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      const previousTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
 
       const newFileName = 'new-file.md'
 
@@ -131,7 +131,7 @@ describe('LocalGitOperations', () => {
       await LocalGitOperations.createCommit(repository!, 'title', '', [ file ])
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).to.not.equal(previousTip.sha)
       expect(newTip.summary).to.equal('title')
 
@@ -152,7 +152,7 @@ describe('LocalGitOperations', () => {
 
     it('can commit second hunk from modified file', async () => {
 
-      const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      const previousTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
 
       const modifiedFile = 'modified-file.md'
 
@@ -171,7 +171,7 @@ describe('LocalGitOperations', () => {
       await LocalGitOperations.createCommit(repository!, 'title', '', [ updatedFile ])
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).to.not.equal(previousTip.sha)
       expect(newTip.summary).to.equal('title')
 
@@ -192,7 +192,7 @@ describe('LocalGitOperations', () => {
 
     it('can commit multiple hunks from modified file', async () => {
 
-      const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      const previousTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
 
       const modifiedFile = 'modified-file.md'
 
@@ -211,7 +211,7 @@ describe('LocalGitOperations', () => {
       await LocalGitOperations.createCommit(repository!, 'title', '', [ updatedFile ])
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).to.not.equal(previousTip.sha)
       expect(newTip.summary).to.equal('title')
 
@@ -231,7 +231,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('can commit some lines from deleted file', async () => {
-      const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      const previousTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
 
       const deletedFile = 'deleted-file.md'
 
@@ -245,7 +245,7 @@ describe('LocalGitOperations', () => {
       await LocalGitOperations.createCommit(repository!, 'title', '', [ file ])
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).to.not.equal(previousTip.sha)
       expect(newTip.summary).to.equal('title')
 
@@ -332,7 +332,7 @@ describe('LocalGitOperations', () => {
 
   describe('history', () => {
     it('loads history', async () => {
-      const commits = await LocalGitOperations.getHistory(repository!, 'HEAD', 100)
+      const commits = await LocalGitOperations.getCommits(repository!, 'HEAD', 100)
       expect(commits.length).to.equal(5)
 
       const firstCommit = commits[commits.length - 1]

@@ -772,6 +772,15 @@ export class AppStore {
   }
 
   private async refreshChangesSection(repository: Repository, includingStatus: boolean): Promise<void> {
+    if (includingStatus) {
+      await this._loadStatus(repository)
+    }
+
+    const gitStore = this.getGitStore(repository)
+    const state = this.getRepositoryState(repository)
+    const currentBranch = state.branchesState.currentBranch
+    if (currentBranch) {
+      await gitStore.loadLocalCommits(currentBranch)
     }
   }
 
