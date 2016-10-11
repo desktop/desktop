@@ -13,6 +13,7 @@ import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
 import { DiffLine, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
+import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
@@ -42,6 +43,9 @@ interface IDiffProps {
 
   /** The diff that should be rendered */
   readonly diff: DiffModel
+
+  /** propagate errors up to the main application */
+  readonly dispatcher: Dispatcher
 }
 
 /** A component which renders a diff for a file. */
@@ -209,7 +213,8 @@ export class Diff extends React.Component<IDiffProps, void> {
 
     if (this.props.diff.isBinary) {
       return <BinaryFile path={this.props.file.path}
-                         repository={this.props.repository} />
+                         repository={this.props.repository}
+                         dispatcher={this.props.dispatcher} />
     }
 
     let diffText = ''

@@ -114,7 +114,8 @@ export class Changes extends React.Component<IChangesProps, void> {
         file={file}
         readOnly={false}
         onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)}
-        diff={diff} />
+        diff={diff}
+        dispatcher={this.props.dispatcher} />
     )
   }
 

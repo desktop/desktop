@@ -3,17 +3,19 @@ import * as Path from 'path'
 
 import { Repository } from '../../models/repository'
 import { openFile } from '../../lib/open-file'
+import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 interface IBinaryFileProps {
   readonly repository: Repository
   readonly path: string
+  readonly dispatcher: Dispatcher
 }
 
 export class BinaryFile extends React.Component<IBinaryFileProps, void> {
 
   private handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
     const fullPath = Path.join(this.props.repository.path, this.props.path)
-    openFile(fullPath)
+    openFile(fullPath, this.props.dispatcher)
   }
 
   public render() {
