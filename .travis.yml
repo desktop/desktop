@@ -34,7 +34,8 @@ before_script:
 script:
   - npm run lint
   - npm run build:prod
-  - npm test
+  - npm run test:unit
+  - npm run test:integration
 
 after_success:
   - npm run publish
