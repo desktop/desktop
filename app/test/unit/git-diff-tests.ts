@@ -43,16 +43,16 @@ describe('GitDiff', () => {
       const current = await GitDiff.getBlobImage(repository!, file)
 
       expect(current.mediaType).to.equal('image/jpg')
-      expect(current.contents).to.match(/A2HkbLsBYSgAAAABJRU5ErkJggg==$/)
+      expect(current.contents).to.match(/zcabBFNf6G8U1y7QpBYtbOWQivIsDU8T4kYKKTQFg7v\/9k=/)
     })
 
     it('retrieves valid images for deleted file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-
-      const file = new WorkingDirectoryFileChange('new-animated-gif.gif', FileStatus.Deleted, diffSelection)
+      const file = new WorkingDirectoryFileChange('new-animated-image.gif', FileStatus.Deleted, diffSelection)
       const previous = await GitDiff.getBlobImage(repository!, file)
+
       expect(previous.mediaType).to.equal('image/gif')
-      expect(previous.contents).to.match(/0000$/)
+      expect(previous.contents).to.match(/pSQ0J85QG55rqWbgLdEmOWQJ1MjFS3WWA2slfZxeEAtp3AykkAAA7$/)
     })
   })
 })
