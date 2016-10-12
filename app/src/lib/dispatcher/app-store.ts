@@ -696,8 +696,8 @@ export class AppStore {
 
       const newFiles = state.changesState.workingDirectory.files.map(
         f => f.id === file.id
-        ? f.withSelection(selection)
-        : f
+              ? f.withSelection(selection)
+              : f
       )
 
       const includeAll = this.getIncludeAllState(newFiles)
