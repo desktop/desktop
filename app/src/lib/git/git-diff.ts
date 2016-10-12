@@ -171,8 +171,8 @@ export class GitDiff {
 
     const setBinaryEncoding: (process: ChildProcess) => void = cb => cb.stdout.setEncoding('binary')
 
-    const blob_contents = await git(catFileArgs, repository.path, { successExitCodes, processCallback: setBinaryEncoding })
-    const base64Contents = Buffer.from(blob_contents.stdout, 'binary').toString('base64')
+    const blobContents = await git(catFileArgs, repository.path, { successExitCodes, processCallback: setBinaryEncoding })
+    const base64Contents = Buffer.from(blobContents.stdout, 'binary').toString('base64')
 
     return base64Contents
   }
