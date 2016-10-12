@@ -87,6 +87,12 @@ export interface IRepositoryState {
 
   /** The commits loaded, keyed by their full SHA. */
   readonly commits: Map<string, Commit>
+
+  /**
+   * The ordered local commit SHAs. The commits themselves can be looked up in
+   * `commits.`
+   */
+  readonly localCommitSHAs: ReadonlyArray<string>
 }
 
 export interface IBranchesState {

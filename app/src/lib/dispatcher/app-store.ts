@@ -136,6 +136,7 @@ export class AppStore {
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
       commits: new Map<string, Commit>(),
+      localCommitSHAs: [],
     }
   }
 
@@ -152,6 +153,7 @@ export class AppStore {
         commitAuthor: state.commitAuthor,
         gitHubUsers,
         commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
       }
     }
 
@@ -176,6 +178,7 @@ export class AppStore {
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
       }
     })
   }
@@ -191,6 +194,7 @@ export class AppStore {
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
       }
     })
   }
@@ -206,6 +210,7 @@ export class AppStore {
         branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
       }
     })
   }
@@ -275,6 +280,7 @@ export class AppStore {
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: gitStore.commits,
+        localCommitSHAs: gitStore.localCommitSHAs,
       }
     })
 
@@ -573,6 +579,7 @@ export class AppStore {
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
       }
     })
     this.emitUpdate()
@@ -580,7 +587,7 @@ export class AppStore {
     if (section === RepositorySection.History) {
       return this.refreshHistorySection(repository)
     } else if (section === RepositorySection.Changes) {
-      return this.refreshChangesSection(repository, true)
+      return this.refreshChangesSection(repository, true, false)
     }
   }
 
@@ -657,7 +664,7 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => LocalGitOperations.createCommit(repository, summary, description, files))
 
-    return this._loadStatus(repository, true)
+    return this.refreshChangesSection(repository, true, true)
   }
 
   private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {
@@ -724,6 +731,7 @@ export class AppStore {
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
       }
     })
   }
@@ -765,15 +773,15 @@ export class AppStore {
     if (section === RepositorySection.History) {
       return this.refreshHistorySection(repository)
     } else if (section === RepositorySection.Changes) {
-      return this.refreshChangesSection(repository, false)
+      return this.refreshChangesSection(repository, false, false)
     } else {
       return assertNever(section, `Unknown section: ${section}`)
     }
   }
 
-  private async refreshChangesSection(repository: Repository, includingStatus: boolean): Promise<void> {
+  private async refreshChangesSection(repository: Repository, includingStatus: boolean, clearPartialState: boolean): Promise<void> {
     if (includingStatus) {
-      await this._loadStatus(repository)
+      await this._loadStatus(repository, clearPartialState)
     }
 
     const gitStore = this.getGitStore(repository)
@@ -801,6 +809,7 @@ export class AppStore {
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
       }
     })
     this.emitUpdate()

@@ -31,7 +31,7 @@ export class GitStore {
 
   private _recentBranches: ReadonlyArray<Branch> = []
 
-  private _localCommits: ReadonlyArray<Commit> = []
+  private _localCommitSHAs: ReadonlyArray<string> = []
 
   public constructor(repository: Repository) {
     this.repository = repository
@@ -91,7 +91,7 @@ export class GitStore {
     }
 
     this._history = [ ...commits.map(c => c.sha), ...existingHistory ]
-    this.cacheCommits(commits)
+    this.storeCommits(commits)
 
     this.requestsInFight.delete(LoadingHistoryRequestKey)
 
@@ -115,7 +115,7 @@ export class GitStore {
     if (!commits) { return }
 
     this._history = this._history.concat(commits.map(c => c.sha))
-    this.cacheCommits(commits)
+    this.storeCommits(commits)
 
     this.requestsInFight.delete(requestKey)
 
@@ -138,7 +138,7 @@ export class GitStore {
     const commit = await this.performFailableOperation(() => LocalGitOperations.getCommit(this.repository, sha))
     if (!commit) { return }
 
-    this.cacheCommits([ commit ])
+    this.storeCommits([ commit ])
 
     this.requestsInFight.delete(requestKey)
 
@@ -270,13 +270,21 @@ export class GitStore {
     console.log('localCommits:')
     console.log(localCommits)
 
-    this._localCommits = localCommits
-
-    this.cacheCommits(localCommits)
+    this.storeCommits(localCommits)
+    this._localCommitSHAs = localCommits.map(c => c.sha)
+    this.emitUpdate()
   }
 
-  /** Cache the given commits. */
-  private cacheCommits(commits: ReadonlyArray<Commit>) {
+  /**
+   * The ordered array of local commit SHAs. The commits themselves can be
+   * looked up in `commits`.
+   */
+  public get localCommitSHAs(): ReadonlyArray<string> {
+    return this._localCommitSHAs
+  }
+
+  /** Store the given commits. */
+  private storeCommits(commits: ReadonlyArray<Commit>) {
     for (const commit of commits) {
       this.commits.set(commit.sha, commit)
     }
