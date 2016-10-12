@@ -3,11 +3,14 @@
 /** A React component holding the selected commit's detailed information */
 #commit-summary {
 
-  overflow: auto;
+  .commit-summary-scrollable {
+    overflow: auto;
+  }
 
   .files {
     display: flex;
     flex: 1;
+    min-height: 200px;
 
     .list-item {
       border-bottom: var(--light-border);

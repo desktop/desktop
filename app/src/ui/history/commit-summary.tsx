@@ -83,14 +83,16 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
           </ul>
         </div>
 
-        <EmojiText className='commit-summary-description' emoji={this.props.emoji}>{this.props.body}</EmojiText>
+        <div className='commit-summary-scrollable'>
+          <EmojiText className='commit-summary-description' emoji={this.props.emoji}>{this.props.body}</EmojiText>
 
-        <div className='files'>
-          <List rowRenderer={row => this.renderFile(row)}
-                rowCount={this.props.files.length}
-                rowHeight={40}
-                selectedRow={this.rowForFile(this.props.selectedFile)}
-                onSelectionChanged={row => this.onSelectionChanged(row)}/>
+          <div className='files'>
+            <List rowRenderer={row => this.renderFile(row)}
+                  rowCount={this.props.files.length}
+                  rowHeight={40}
+                  selectedRow={this.rowForFile(this.props.selectedFile)}
+                  onSelectionChanged={row => this.onSelectionChanged(row)}/>
+          </div>
         </div>
       </div>
     )
