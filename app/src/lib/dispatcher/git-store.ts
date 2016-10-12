@@ -291,9 +291,19 @@ export class GitStore {
   }
 
   public undoCommit(commit: Commit) {
-    // TODO: Handle the initial commit case.
-
-    return LocalGitOperations.reset(this.repository, GitResetMode.Mixed, `${commit.sha}^`)
+    // For an initial commit, just delete the reference but leave HEAD. This
+    // will make the branch unborn again.
+    if (!commit.parentSHAs.length) {
+      const branch = this._currentBranch
+      if (branch) {
+        return LocalGitOperations.deleteBranch(this.repository, branch)
+      } else {
+        console.error(`Can't undo ${commit.sha} because it doesn't have any parents and there's no current branch. How on earth did we get here?!`)
+        return Promise.resolve()
+      }
+    } else {
+      return LocalGitOperations.reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0])
+    }
   }
 
   /**
