@@ -18,7 +18,7 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffSelection, DiffSelectionType, DiffLineType, Diff } from '../../models/diff'
+import { DiffSelection, DiffSelectionType, DiffLineType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
@@ -366,20 +366,20 @@ export class AppStore {
       sha: selection.sha,
     }
 
-    let diff: Diff | null = null
-    if (noFileSelected && selectionOrFirstFile.file) {
-      diff = await GitDiff.getCommitDiff(repository, selectionOrFirstFile.file, currentSHA)
-    }
-
     this.updateHistoryState(repository, state => {
       return {
         history: state.history,
         selection: selectionOrFirstFile,
         changedFiles,
-        diff,
+        diff: state.diff,
       }
     })
+
     this.emitUpdate()
+
+    if (selectionOrFirstFile.file) {
+      this._changeHistoryFileSelection(repository, selectionOrFirstFile.file)
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
