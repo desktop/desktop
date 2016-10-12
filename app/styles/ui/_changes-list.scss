@@ -70,3 +70,21 @@
     vertical-align: text-bottom;
   }
 }
+
+#undo-commit {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+
+  margin: var(--spacing-half);
+
+  .commit-info {
+    .ago {
+
+    }
+
+    .summary {
+      font-weight: var(--font-weight-semibold);
+    }
+  }
+}

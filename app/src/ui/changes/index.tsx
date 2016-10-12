@@ -8,6 +8,7 @@ import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit } from '../../lib/local-git-operations'
+import { UndoCommit } from './undo-commit'
 
 interface IChangesProps {
   readonly repository: Repository
@@ -124,9 +125,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     const commit = this.props.mostRecentLocalCommit
     if (!commit) { return null }
 
-    return (
-      <div>Hey</div>
-    )
+    return <UndoCommit commit={commit} onUndo={() => {}}/>
   }
 
   public render() {

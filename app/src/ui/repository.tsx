@@ -19,6 +19,10 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
   private renderContent() {
     if (this.props.state.selectedSection === RepositorySection.Changes) {
       const branch = this.props.state.branchesState.currentBranch
+      const localCommitSHAs = this.props.state.localCommitSHAs
+      const mostRecentLocalCommitSHA = localCommitSHAs.length > 0 ? localCommitSHAs[0] : null
+      const mostRecentLocalCommit = (mostRecentLocalCommitSHA ? this.props.state.commits.get(mostRecentLocalCommitSHA) : null) || null
+
       return <Changes repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
                       changes={this.props.state.changesState}
@@ -26,7 +30,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
                       commitAuthor={this.props.state.commitAuthor}
                       gitHubUsers={this.props.state.gitHubUsers}
                       emoji={this.props.emoji}
-                      mostRecentLocalCommit={null}/>
+                      mostRecentLocalCommit={mostRecentLocalCommit}/>
     } else if (this.props.state.selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
