@@ -25,7 +25,8 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
                       branch={branch ? branch.name : null}
                       commitAuthor={this.props.state.commitAuthor}
                       gitHubUsers={this.props.state.gitHubUsers}
-                      emoji={this.props.emoji}/>
+                      emoji={this.props.emoji}
+                      mostRecentLocalCommit={null}/>
     } else if (this.props.state.selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}

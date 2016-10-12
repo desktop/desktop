@@ -7,6 +7,7 @@ import { Repository } from '../../models/repository'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
 import { CommitIdentity } from '../../models/commit-identity'
+import { Commit } from '../../lib/local-git-operations'
 
 interface IChangesProps {
   readonly repository: Repository
@@ -16,6 +17,7 @@ interface IChangesProps {
   readonly branch: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
+  readonly mostRecentLocalCommit: Commit | null
 }
 
 /** TODO: handle "repository not found" scenario */
@@ -118,6 +120,15 @@ export class Changes extends React.Component<IChangesProps, void> {
     )
   }
 
+  private renderMostRecentLocalCommit() {
+    const commit = this.props.mostRecentLocalCommit
+    if (!commit) { return null }
+
+    return (
+      <div>Hey</div>
+    )
+  }
+
   public render() {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
 
@@ -148,6 +159,7 @@ export class Changes extends React.Component<IChangesProps, void> {
                        branch={this.props.branch}
                        avatarURL={avatarURL}
                        emoji={this.props.emoji}/>
+          {this.renderMostRecentLocalCommit()}
         </Resizable>
 
         {this.renderDiff()}
