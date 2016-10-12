@@ -56,13 +56,17 @@ export class Commit {
   public readonly authorEmail: string
   public readonly authorDate: Date
 
-  public constructor(sha: string, summary: string, body: string, authorName: string, authorEmail: string, authorDate: Date) {
+  /** The SHAs for the parents of the commit. */
+  public readonly parentSHAs: ReadonlyArray<string>
+
+  public constructor(sha: string, summary: string, body: string, authorName: string, authorEmail: string, authorDate: Date, parentSHAs: ReadonlyArray<string>) {
     this.sha = sha
     this.summary = summary
     this.body = body
     this.authorName = authorName
     this.authorEmail = authorEmail
     this.authorDate = authorDate
+    this.parentSHAs = parentSHAs
   }
 }
 
@@ -293,6 +297,7 @@ export class LocalGitOperations {
       '%an', // author name
       '%ae', // author email
       '%aI', // author date, ISO-8601
+      '%P', // parent SHAs
     ].join(`%x${delimiter}`)
 
     const result = await git([ 'log', revisionRange, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color', ...additionalArgs ], repository.path)
@@ -310,7 +315,8 @@ export class LocalGitOperations {
       const authorEmail = pieces[4]
       const parsedDate = Date.parse(pieces[5])
       const authorDate = new Date(parsedDate)
-      return new Commit(sha, summary, body, authorName, authorEmail, authorDate)
+      const parentSHAs = pieces[6].split(' ')
+      return new Commit(sha, summary, body, authorName, authorEmail, authorDate, parentSHAs)
     })
 
     return commits
