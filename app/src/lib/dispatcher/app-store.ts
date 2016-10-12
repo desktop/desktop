@@ -955,10 +955,12 @@ export class AppStore {
     const user = this.getUserForRepository(repository)
     const upstream = branch.upstream
     if (upstream) {
-      return gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, false))
+      await gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, false))
     } else {
-      return gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, true))
+      await gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, true))
     }
+
+    return gitStore.loadLocalCommits(branch)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
