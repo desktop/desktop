@@ -2,6 +2,9 @@
 
 /** A React component holding the selected commit's detailed information */
 #commit-summary {
+
+  overflow: auto;
+
   .files {
     display: flex;
     flex: 1;
