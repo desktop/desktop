@@ -357,8 +357,12 @@ export class AppStore {
 
     const noFileSelected = selection.file === null
 
+    const firstFileOrDefault = noFileSelected && changedFiles.length
+      ? changedFiles[0]
+      : selection.file
+
     const selectionOrFirstFile = {
-      file: noFileSelected ? changedFiles[0] : selection.file,
+      file: firstFileOrDefault,
       sha: selection.sha,
     }
 
