@@ -57,14 +57,14 @@ export class AppWindow {
 
   public load() {
     let startLoad = 0
-    this.window.webContents.on('did-start-loading', () => {
+    this.window.webContents.once('did-start-loading', () => {
       this._rendererReadyTime = null
       this._loadTime = null
 
       startLoad = Date.now()
     })
 
-    this.window.webContents.on('did-finish-load', () => {
+    this.window.webContents.once('did-finish-load', () => {
       if (process.env.NODE_ENV === 'development') {
         this.window.webContents.openDevTools()
       }
@@ -81,7 +81,7 @@ export class AppWindow {
     })
 
     // TODO: This should be scoped by the window.
-    ipcMain.on('renderer-ready', (event: Electron.IpcMainEvent, readyTime: number) => {
+    ipcMain.once('renderer-ready', (event: Electron.IpcMainEvent, readyTime: number) => {
       this._rendererReadyTime = readyTime
 
       this.maybeEmitDidLoad()
