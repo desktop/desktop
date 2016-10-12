@@ -69,7 +69,6 @@
     "@types/event-kit": "^1.2.28",
     "@types/keytar": "^3.0.28",
     "@types/mocha": "^2.2.29",
-    "@types/moment": "^2.11.29",
     "@types/node": "^6.0.31",
     "@types/react": "^0.14.34",
     "@types/react-addons-test-utils": "^0.14.14",
