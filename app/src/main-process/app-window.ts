@@ -57,6 +57,12 @@ export class AppWindow {
 
   public load() {
     let startLoad = 0
+    // We only listen for the first of the loading events to avoid a bug in
+    // Electron/Chromium where they can sometimes fire more than once. See
+    // See
+    // https://github.com/desktop/desktop/pull/513#issuecomment-253028277. This
+    // shouldn't really matter as in production builds loading _should_ only
+    // happen once.
     this.window.webContents.once('did-start-loading', () => {
       this._rendererReadyTime = null
       this._loadTime = null
