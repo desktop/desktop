@@ -9,7 +9,7 @@ import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
 import { URLActionType } from '../parse-url'
-import { Branch } from '../local-git-operations'
+import { Branch, Commit } from '../local-git-operations'
 import { IAPIUser } from '../../lib/api'
 
 /**
@@ -327,5 +327,10 @@ export class Dispatcher {
   /** Discard the changes to the given files. */
   public discardChanges(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
     return this.appStore._discardChanges(repository, files)
+  }
+
+  /** Undo the given commit. */
+  public undoCommit(repository: Repository, commit: Commit): Promise<void> {
+    return this.appStore._undoCommit(repository, commit)
   }
 }

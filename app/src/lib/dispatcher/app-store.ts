@@ -1025,4 +1025,11 @@ export class AppStore {
 
     return this._refreshRepository(repository)
   }
+
+  public async _undoCommit(repository: Repository, commit: Commit): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    await gitStore.undoCommit(commit)
+
+    return this._refreshRepository(repository)
+  }
 }

@@ -1,6 +1,6 @@
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
-import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
+import { LocalGitOperations, Commit, Branch, BranchType, GitResetMode } from '../local-git-operations'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -288,6 +288,12 @@ export class GitStore {
     for (const commit of commits) {
       this.commits.set(commit.sha, commit)
     }
+  }
+
+  public undoCommit(commit: Commit) {
+    // TODO: Handle the initial commit case.
+
+    return LocalGitOperations.reset(this.repository, GitResetMode.Mixed, `${commit.sha}^`)
   }
 
   /**

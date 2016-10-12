@@ -12,8 +12,9 @@ import { CommitIdentity } from '../models/commit-identity'
 import { formatPatch } from './patch-formatter'
 import { parsePorcelainStatus } from './status-parser'
 
-
 import { User } from '../models/user'
+
+import { assertNever } from './fatal-error'
 
 const byline = require('byline')
 
@@ -118,6 +119,13 @@ export class Branch {
       return pieces[1]
     }
   }
+}
+
+/** The reset modes which are supported. */
+export const enum GitResetMode {
+  Hard = 0,
+  Soft,
+  Mixed,
 }
 
 /**
@@ -621,5 +629,19 @@ export class LocalGitOperations {
   /** Check out the paths at HEAD. */
   public static checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
     return git([ 'checkout', '--', ...paths ], repository.path)
+  }
+
+  public static reset(repository: Repository, mode: GitResetMode, ref: string): Promise<void> {
+    const modeFlag = resetModeToFlag(mode)
+    return git([ 'reset', modeFlag, ref, '--' ], repository.path)
+  }
+}
+
+function resetModeToFlag(mode: GitResetMode): string {
+  switch (mode) {
+    case GitResetMode.Hard: return '--hard'
+    case GitResetMode.Mixed: return '--mixed'
+    case GitResetMode.Soft: return '--soft'
+    default: return assertNever(mode, `Unknown reset mode: ${mode}`)
   }
 }
