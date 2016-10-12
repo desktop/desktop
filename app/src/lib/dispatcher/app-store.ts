@@ -744,6 +744,8 @@ export class AppStore {
         commits: state.commits,
       }
     })
+
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
