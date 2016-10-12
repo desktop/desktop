@@ -76,7 +76,9 @@
   flex-direction: row;
   justify-content: space-between;
 
-  margin: var(--spacing-half);
+  padding: var(--spacing-half);
+
+  border-top: var(--base-border);
 
   .commit-info {
     .ago {
