@@ -74,30 +74,3 @@
     vertical-align: text-bottom;
   }
 }
-
-#undo-commit {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-
-  padding: var(--spacing-half);
-
-  border-top: var(--base-border);
-  border-right: var(--base-border);
-  background: var(--box-alt-background-color);
-
-  .commit-info {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-
-    .ago {
-      font-size: var(--font-size-sm);
-    }
-
-    .summary {
-      font-weight: var(--font-weight-semibold);
-      @include ellipsis;
-    }
-  }
-}
