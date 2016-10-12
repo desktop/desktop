@@ -960,7 +960,7 @@ export class AppStore {
       await gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, true))
     }
 
-    return gitStore.loadLocalCommits(branch)
+    return this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
