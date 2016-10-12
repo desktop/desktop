@@ -57,14 +57,20 @@ export class AppWindow {
 
   public load() {
     let startLoad = 0
-    this.window.webContents.on('did-start-loading', () => {
+    // We only listen for the first of the loading events to avoid a bug in
+    // Electron/Chromium where they can sometimes fire more than once. See
+    // See
+    // https://github.com/desktop/desktop/pull/513#issuecomment-253028277. This
+    // shouldn't really matter as in production builds loading _should_ only
+    // happen once.
+    this.window.webContents.once('did-start-loading', () => {
       this._rendererReadyTime = null
       this._loadTime = null
 
       startLoad = Date.now()
     })
 
-    this.window.webContents.on('did-finish-load', () => {
+    this.window.webContents.once('did-finish-load', () => {
       if (process.env.NODE_ENV === 'development') {
         this.window.webContents.openDevTools()
       }
@@ -81,7 +87,7 @@ export class AppWindow {
     })
 
     // TODO: This should be scoped by the window.
-    ipcMain.on('renderer-ready', (event: Electron.IpcMainEvent, readyTime: number) => {
+    ipcMain.once('renderer-ready', (event: Electron.IpcMainEvent, readyTime: number) => {
       this._rendererReadyTime = readyTime
 
       this.maybeEmitDidLoad()

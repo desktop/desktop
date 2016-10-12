@@ -52,6 +52,10 @@
   }
 }
 
+#changes-list-list {
+  min-height: 0;
+}
+
 .changed-file {
   display: flex;
   flex-grow: 1;
