@@ -11,7 +11,7 @@ function getDistPath () {
 
 function getProductName () {
   const productName = appPackage.productName
-  return process.env.NODE_ENV === 'development' ? `${appPackage.productName}-dev` : productName
+  return process.env.NODE_ENV === 'development' ? `${productName}-dev` : productName
 }
 
 function getName () {
