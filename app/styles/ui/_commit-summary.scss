@@ -38,6 +38,7 @@
     font-size: var(--font-size-sm);
     padding: var(--spacing);
     word-wrap: break-word;
+    white-space: pre-line;
 
     &:empty {
       display: none;
