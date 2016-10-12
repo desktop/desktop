@@ -27,8 +27,7 @@ install:
 script:
   - npm run lint
   - npm run build:prod
-  - npm run test:unit
-  - npm run test:integration
+  - npm test
 
 after_success:
   - npm run publish
