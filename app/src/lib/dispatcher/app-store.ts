@@ -18,7 +18,7 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffSelection, DiffSelectionType, DiffLineType } from '../../models/diff'
+import { DiffSelection, DiffSelectionType, DiffLineType, Diff } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
@@ -352,12 +352,27 @@ export class AppStore {
       return
     }
 
+    // if we're selecting a commit for the first time, we should select the
+    // first file in the commit and render the diff immediately
+
+    const noFileSelected = selection.file === null
+
+    const selectionOrFirstFile = {
+      file: noFileSelected ? changedFiles[0] : selection.file,
+      sha: selection.sha,
+    }
+
+    let diff: Diff | null = null
+    if (noFileSelected && selectionOrFirstFile.file) {
+      diff = await GitDiff.getCommitDiff(repository, selectionOrFirstFile.file, currentSHA)
+    }
+
     this.updateHistoryState(repository, state => {
       return {
         history: state.history,
-        selection,
+        selection: selectionOrFirstFile,
         changedFiles,
-        diff: state.diff,
+        diff,
       }
     })
     this.emitUpdate()
