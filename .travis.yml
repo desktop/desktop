@@ -24,13 +24,6 @@ cache:
 install:
   - npm install
 
-before_script:
-  - KEY_CHAIN=build.keychain
-  - security create-keychain -p travis $KEY_CHAIN
-  - security default-keychain -s $KEY_CHAIN
-  - security unlock-keychain -p travis $KEY_CHAIN
-  - security set-keychain-settings -t 3600 -u $KEY_CHAIN
-
 script:
   - npm run lint
   - npm run build:prod
