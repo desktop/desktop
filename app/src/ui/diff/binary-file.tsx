@@ -11,6 +11,7 @@ interface IBinaryFileProps {
   readonly dispatcher: Dispatcher
 }
 
+/** represents the default view for a file that we cannot render a diff for */
 export class BinaryFile extends React.Component<IBinaryFileProps, void> {
 
   private handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
@@ -21,7 +22,7 @@ export class BinaryFile extends React.Component<IBinaryFileProps, void> {
   public render() {
     return <div className='panel' id='diff'>
       <div className='image-header'>
-      This binary file has changed.
+        This binary file has changed.
       </div>
       <div className='image-header'>
         <a href='#' onClick={e => this.handleClick(e)}>Open file in external program.</a>
