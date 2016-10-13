@@ -24,6 +24,12 @@ interface IChangesProps {
 /** TODO: handle "repository not found" scenario */
 
 export class Changes extends React.Component<IChangesProps, void> {
+  public componentWillReceiveProps(nextProps: IChangesProps) {
+    if (nextProps.changes.contextualCommitMessage) {
+      nextProps.dispatcher.clearContextualCommitMessage(this.props.repository)
+    }
+  }
+
   private onCreateCommit(summary: string, description: string) {
     this.props.dispatcher.commitIncludedChanges(this.props.repository, summary, description)
   }

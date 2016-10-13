@@ -333,4 +333,8 @@ export class Dispatcher {
   public undoCommit(repository: Repository, commit: Commit): Promise<void> {
     return this.appStore._undoCommit(repository, commit)
   }
+
+  public clearContextualCommitMessage(repository: Repository): Promise<void> {
+    return this.appStore._clearContextualCommitMessage(repository)
+  }
 }
