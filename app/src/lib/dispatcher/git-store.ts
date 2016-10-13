@@ -10,6 +10,11 @@ const LoadingHistoryRequestKey = 'history'
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
 
+export interface ICommitMessage {
+  readonly summary: string
+  readonly description: string
+}
+
 /** The store for a repository's git data. */
 export class GitStore {
   private readonly emitter = new Emitter()
@@ -32,6 +37,8 @@ export class GitStore {
   private _recentBranches: ReadonlyArray<Branch> = []
 
   private _localCommitSHAs: ReadonlyArray<string> = []
+
+  private _contextualCommitMessage: ICommitMessage | null
 
   public constructor(repository: Repository) {
     this.repository = repository
@@ -290,20 +297,30 @@ export class GitStore {
     }
   }
 
-  public undoCommit(commit: Commit) {
+  public async undoCommit(commit: Commit): Promise<void> {
     // For an initial commit, just delete the reference but leave HEAD. This
     // will make the branch unborn again.
+    let success: true | undefined = undefined
     if (!commit.parentSHAs.length) {
       const branch = this._currentBranch
       if (branch) {
-        return LocalGitOperations.deleteBranch(this.repository, branch)
+        success = await this.performFailableOperation(() => LocalGitOperations.deleteBranch(this.repository, branch))
       } else {
         console.error(`Can't undo ${commit.sha} because it doesn't have any parents and there's no current branch. How on earth did we get here?!`)
         return Promise.resolve()
       }
     } else {
-      return LocalGitOperations.reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0])
+      success = await this.performFailableOperation(() => LocalGitOperations.reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0]))
     }
+
+    if (success) {
+      this._contextualCommitMessage = {
+        summary: commit.summary,
+        description: commit.body,
+      }
+    }
+
+    this.emitUpdate()
   }
 
   /**
@@ -319,4 +336,9 @@ export class GitStore {
       return undefined
     }
   }
+
+  public get contextualCommitMessage(): ICommitMessage | null {
+    return this._contextualCommitMessage
+  }
+
 }

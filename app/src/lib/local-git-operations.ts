@@ -611,19 +611,17 @@ export class LocalGitOperations {
    * Delete the branch. If the branch has a remote branch, it too will be
    * deleted.
    */
-  public static async deleteBranch(repository: Repository, branch: Branch): Promise<void> {
-    const deleteRemoteBranch = (branch: Branch, remote: string) => {
-      return git([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path)
-    }
-
+  public static async deleteBranch(repository: Repository, branch: Branch): Promise<true> {
     if (branch.type === BranchType.Local) {
       await git([ 'branch', '-D', branch.name ], repository.path)
     }
 
     const remote = branch.remote
     if (remote) {
-      await deleteRemoteBranch(branch, remote)
+      await git([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path)
     }
+
+    return true
   }
 
   /** Add a new remote with the given URL. */
@@ -636,9 +634,11 @@ export class LocalGitOperations {
     return git([ 'checkout', '--', ...paths ], repository.path)
   }
 
-  public static reset(repository: Repository, mode: GitResetMode, ref: string): Promise<void> {
+  /** Reset with the mode to the ref. */
+  public static async reset(repository: Repository, mode: GitResetMode, ref: string): Promise<true> {
     const modeFlag = resetModeToFlag(mode)
-    return git([ 'reset', modeFlag, ref, '--' ], repository.path)
+    await git([ 'reset', modeFlag, ref, '--' ], repository.path)
+    return true
   }
 }
 

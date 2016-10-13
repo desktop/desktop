@@ -125,6 +125,7 @@ export class AppStore {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
         selectedFile: null,
         diff: null,
+        contextualCommitMessage: null,
       },
       selectedSection: RepositorySection.Changes,
       branchesState: {
@@ -268,6 +269,15 @@ export class AppStore {
         defaultBranch: gitStore.defaultBranch,
         allBranches: gitStore.allBranches,
         recentBranches: gitStore.recentBranches,
+      }
+    })
+
+    this.updateChangesState(repository, state => {
+      return {
+        workingDirectory: state.workingDirectory,
+        selectedFile: state.selectedFile,
+        diff: state.diff,
+        contextualCommitMessage: gitStore.contextualCommitMessage,
       }
     })
 
@@ -580,6 +590,7 @@ export class AppStore {
         // file is no longer selectable (it was reverted or committed) but
         // if it hasn't changed we can reuse the diff
         diff: fileSelectionChanged ? null : state.diff,
+        contextualCommitMessage: state.contextualCommitMessage,
       }
     })
     this.emitUpdate()
@@ -618,6 +629,7 @@ export class AppStore {
         workingDirectory: state.workingDirectory,
         selectedFile,
         diff: null,
+        contextualCommitMessage: state.contextualCommitMessage,
       }
     })
     this.emitUpdate()
@@ -667,6 +679,7 @@ export class AppStore {
         workingDirectory: state.workingDirectory,
         selectedFile,
         diff,
+        contextualCommitMessage: state.contextualCommitMessage,
       }
     })
 
@@ -719,9 +732,9 @@ export class AppStore {
    */
   private updateWorkingDirectoryFileSelection(repository: Repository, file: WorkingDirectoryFileChange, selection: DiffSelection) {
 
-    this.updateRepositoryState(repository, state => {
+    this.updateChangesState(repository, state => {
 
-      const newFiles = state.changesState.workingDirectory.files.map(
+      const newFiles = state.workingDirectory.files.map(
         f => f.id === file.id
               ? f.withSelection(selection)
               : f
@@ -730,27 +743,19 @@ export class AppStore {
       const includeAll = this.getIncludeAllState(newFiles)
 
       let selectedFile: WorkingDirectoryFileChange | undefined
-      if (state.changesState.selectedFile) {
-          const f = state.changesState.selectedFile
+      if (state.selectedFile) {
+          const f = state.selectedFile
           selectedFile = newFiles.find(file => file.id === f.id)
       }
 
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
-      const diff = selectedFile ? state.changesState.diff : null
+      const diff = selectedFile ? state.diff : null
 
       return {
-        selectedSection: state.selectedSection,
-        changesState: {
-          workingDirectory,
-          selectedFile: selectedFile || null,
-          diff,
-        },
-        historyState: state.historyState,
-        commitAuthor: state.commitAuthor,
-        branchesState: state.branchesState,
-        gitHubUsers: state.gitHubUsers,
-        commits: state.commits,
-        localCommitSHAs: state.localCommitSHAs,
+        workingDirectory,
+        selectedFile: selectedFile || null,
+        diff,
+        contextualCommitMessage: state.contextualCommitMessage,
       }
     })
 
@@ -769,6 +774,7 @@ export class AppStore {
         workingDirectory: state.workingDirectory.withIncludeAllFiles(includeAll),
         selectedFile: selectedFile,
         diff: state.diff,
+        contextualCommitMessage: state.contextualCommitMessage,
       }
     })
     this.emitUpdate()

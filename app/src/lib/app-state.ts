@@ -5,8 +5,10 @@ import { Repository } from '../models/repository'
 import { Commit, Branch } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
+import { ICommitMessage } from './dispatcher/git-store'
 
 export { ICloningRepositoryState } from './dispatcher'
+export { ICommitMessage } from './dispatcher/git-store'
 
 export enum SelectionType {
   Repository,
@@ -122,4 +124,7 @@ export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedFile: WorkingDirectoryFileChange | null
   readonly diff: Diff | null
+
+  /** The commit message to use */
+  readonly contextualCommitMessage: ICommitMessage | null
 }

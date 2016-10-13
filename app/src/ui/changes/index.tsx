@@ -158,7 +158,8 @@ export class Changes extends React.Component<IChangesProps, void> {
                        commitAuthor={this.props.commitAuthor}
                        branch={this.props.branch}
                        avatarURL={avatarURL}
-                       emoji={this.props.emoji}/>
+                       emoji={this.props.emoji}
+                       contextualCommitMessage={this.props.changes.contextualCommitMessage}/>
           {this.renderMostRecentLocalCommit()}
         </Resizable>
 
