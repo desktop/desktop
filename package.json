@@ -9,7 +9,7 @@
     "test:unit": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 electron-mocha --renderer --require ts-node/register --require ./app/test/globals.ts app/test/unit/*.ts app/test/unit/*.tsx",
     "test": "npm run test:unit && npm run test:integration",
     "postinstall": "cd app && npm install && cd .. && git submodule update --recursive --init",
-    "start": "NODE_ENV=development node script/start",
+    "start": "cross-env NODE_ENV=development node script/start",
     "compile:dev": "cross-env NODE_ENV=development webpack --config app/webpack.development.js",
     "compile:prod": "cross-env NODE_ENV=production webpack --config app/webpack.production.js",
     "build:dev": "npm run compile:dev && cross-env NODE_ENV=development node script/build",
