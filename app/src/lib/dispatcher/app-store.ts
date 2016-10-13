@@ -809,6 +809,11 @@ export class AppStore {
   private async refreshChangesSection(repository: Repository, includingStatus: boolean, clearPartialState: boolean): Promise<void> {
     if (includingStatus) {
       await this._loadStatus(repository, clearPartialState)
+  /**
+   * Refresh all the data for the Changes section.
+   *
+   * This will be called automatically when appropriate.
+   */
     }
 
     const gitStore = this.getGitStore(repository)
@@ -819,6 +824,11 @@ export class AppStore {
     }
   }
 
+  /**
+   * Refresh all the data for the History section.
+   *
+   * This will be called automatically when appropriate.
+   */
   private async refreshHistorySection(repository: Repository): Promise<void> {
     return this._loadHistory(repository)
   }

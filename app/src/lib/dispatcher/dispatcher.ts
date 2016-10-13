@@ -334,6 +334,7 @@ export class Dispatcher {
     return this.appStore._undoCommit(repository, commit)
   }
 
+  /** Clear the contextual commit message. */
   public clearContextualCommitMessage(repository: Repository): Promise<void> {
     return this.appStore._clearContextualCommitMessage(repository)
   }

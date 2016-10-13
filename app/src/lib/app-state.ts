@@ -125,6 +125,9 @@ export interface IChangesState {
   readonly selectedFile: WorkingDirectoryFileChange | null
   readonly diff: Diff | null
 
-  /** The commit message to use */
+  /**
+   * The commit message to use based on the contex of the repository, e.g., the
+   * message from a recently undone commit.
+   */
   readonly contextualCommitMessage: ICommitMessage | null
 }
