@@ -103,6 +103,15 @@ button {
   text-align: center;
 }
 
+// Stretches an element to fill the entire window (such as an overlay)
+.fill-window {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
 // Default focus styling for all focusable element. Most if not all
 // focusable elements will override this to use something other than
 // outline to indicate focus such as background color (for list items)
