@@ -66,7 +66,8 @@ export class History extends React.Component<IHistoryProps, void> {
       <Diff repository={this.props.repository}
         file={file}
         diff={diff}
-        readOnly={true} />
+        readOnly={true}
+        dispatcher={this.props.dispatcher} />
     )
   }
 
