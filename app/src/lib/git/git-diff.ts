@@ -93,7 +93,9 @@ export class GitDiff {
         current = await GitDiff.getWorkingDirectoryImage(repository, file)
       }
 
-      if (file.status === FileStatus.Modified || file.status === FileStatus.Deleted) {
+      if (file.status === FileStatus.Modified
+          || file.status === FileStatus.Renamed
+          || file.status === FileStatus.Deleted) {
         previous = await GitDiff.getBlobImage(repository, file)
       }
 
