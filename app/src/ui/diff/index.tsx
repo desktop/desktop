@@ -2,11 +2,18 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Disposable } from 'event-kit'
 
+import { NewImageDiff } from './new-image-diff'
+import { ModifiedImageDiff } from './modified-image-diff'
+import { DeletedImageDiff } from './deleted-image-diff'
+import { BinaryFile } from './binary-file'
+
 import { Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
-import { FileChange, WorkingDirectoryFileChange } from '../../models/status'
-import { DiffLine, Diff as DiffModel, DiffSelection } from '../../models/diff'
+
+import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
+import { DiffLine, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
+import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
@@ -36,6 +43,9 @@ interface IDiffProps {
 
   /** The diff that should be rendered */
   readonly diff: DiffModel
+
+  /** propagate errors up to the main application */
+  readonly dispatcher: Dispatcher
 }
 
 /** A component which renders a diff for a file. */
@@ -177,7 +187,36 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.restoreScrollPosition(cm)
   }
 
+  private renderImage(imageDiff: ImageDiff) {
+    if (imageDiff.current && imageDiff.previous) {
+      return <ModifiedImageDiff
+                current={imageDiff.current}
+                previous={imageDiff.previous} />
+    }
+
+    if (imageDiff.current && this.props.file.status === FileStatus.New) {
+      return <NewImageDiff current={imageDiff.current} />
+    }
+
+    if (imageDiff.previous && this.props.file.status === FileStatus.Deleted) {
+      return <DeletedImageDiff previous={imageDiff.previous} />
+    }
+
+    return null
+  }
+
   public render() {
+
+    if (this.props.diff.imageDiff) {
+      return this.renderImage(this.props.diff.imageDiff)
+    }
+
+    if (this.props.diff.isBinary) {
+      return <BinaryFile path={this.props.file.path}
+                         repository={this.props.repository}
+                         dispatcher={this.props.dispatcher} />
+    }
+
     let diffText = ''
 
     this.props.diff.hunks.forEach(hunk => {

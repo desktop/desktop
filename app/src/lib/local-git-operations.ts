@@ -8,11 +8,10 @@ import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileSta
 import { DiffSelectionType, DiffSelection } from '../models/diff'
 import { Repository } from '../models/repository'
 import { CommitIdentity } from '../models/commit-identity'
+import { User } from '../models/user'
 
 import { formatPatch } from './patch-formatter'
 import { parsePorcelainStatus } from './status-parser'
-
-import { User } from '../models/user'
 
 import { assertNever } from './fatal-error'
 

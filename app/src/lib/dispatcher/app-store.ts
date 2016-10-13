@@ -359,15 +359,34 @@ export class AppStore {
       return
     }
 
+    // if we're selecting a commit for the first time, we should select the
+    // first file in the commit and render the diff immediately
+
+    const noFileSelected = selection.file === null
+
+    const firstFileOrDefault = noFileSelected && changedFiles.length
+      ? changedFiles[0]
+      : selection.file
+
+    const selectionOrFirstFile = {
+      file: firstFileOrDefault,
+      sha: selection.sha,
+    }
+
     this.updateHistoryState(repository, state => {
       return {
         history: state.history,
-        selection,
+        selection: selectionOrFirstFile,
         changedFiles,
         diff: state.diff,
       }
     })
+
     this.emitUpdate()
+
+    if (selectionOrFirstFile.file) {
+      this._changeHistoryFileSelection(repository, selectionOrFirstFile.file)
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -734,6 +753,8 @@ export class AppStore {
         localCommitSHAs: state.localCommitSHAs,
       }
     })
+
+    this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
