@@ -10,6 +10,7 @@ const LoadingHistoryRequestKey = 'history'
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
 
+/** A commit message summary and description. */
 export interface ICommitMessage {
   readonly summary: string
   readonly description: string
@@ -274,9 +275,6 @@ export class GitStore {
 
     if (!localCommits) { return }
 
-    console.log('localCommits:')
-    console.log(localCommits)
-
     this.storeCommits(localCommits)
     this._localCommitSHAs = localCommits.map(c => c.sha)
     this.emitUpdate()
@@ -297,6 +295,7 @@ export class GitStore {
     }
   }
 
+  /** Undo the given commit. */
   public async undoCommit(commit: Commit): Promise<void> {
     // For an initial commit, just delete the reference but leave HEAD. This
     // will make the branch unborn again.
@@ -337,10 +336,15 @@ export class GitStore {
     }
   }
 
+  /**
+   * The commit message to use based on the contex of the repository, e.g., the
+   * message from a recently undone commit.
+   */
   public get contextualCommitMessage(): ICommitMessage | null {
     return this._contextualCommitMessage
   }
 
+  /** Clear the contextual commit message. */
   public clearContextualCommitMessage(repository: Repository): Promise<void> {
     this._contextualCommitMessage = null
     this.emitUpdate()
