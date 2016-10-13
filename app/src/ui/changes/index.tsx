@@ -134,7 +134,10 @@ export class Changes extends React.Component<IChangesProps, void> {
     const commit = this.props.mostRecentLocalCommit
     if (!commit) { return null }
 
-    return <UndoCommit commit={commit} onUndo={() => this.props.dispatcher.undoCommit(this.props.repository, commit)}/>
+    return <UndoCommit
+      commit={commit}
+      onUndo={() => this.props.dispatcher.undoCommit(this.props.repository, commit)}
+      emoji={this.props.emoji}/>
   }
 
   public render() {
