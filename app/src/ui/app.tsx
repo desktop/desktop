@@ -276,9 +276,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!content) { return null }
 
     return (
-      <div className='popup-overlay' onClick={handleOverlayClick}>
-        <Popuppy>{content}</Popuppy>
-      </div>
+        <div className='popup-overlay'>
+          <div className='popup-overlay' onClick={handleOverlayClick}></div>
+          <Popuppy>{content}</Popuppy>
+        </div>
     )
   }
 
