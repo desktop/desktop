@@ -617,7 +617,7 @@ export class AppStore {
     if (section === RepositorySection.History) {
       return this.refreshHistorySection(repository)
     } else if (section === RepositorySection.Changes) {
-      return this.refreshChangesSection(repository, true, false)
+      return this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: false })
     }
   }
 
@@ -696,7 +696,7 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => LocalGitOperations.createCommit(repository, summary, description, files))
 
-    return this.refreshChangesSection(repository, true, true)
+    return this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
   }
 
   private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {
@@ -800,20 +800,20 @@ export class AppStore {
     if (section === RepositorySection.History) {
       return this.refreshHistorySection(repository)
     } else if (section === RepositorySection.Changes) {
-      return this.refreshChangesSection(repository, false, false)
+      return this.refreshChangesSection(repository, { includingStatus: false, clearPartialState: false })
     } else {
       return assertNever(section, `Unknown section: ${section}`)
     }
   }
 
-  private async refreshChangesSection(repository: Repository, includingStatus: boolean, clearPartialState: boolean): Promise<void> {
-    if (includingStatus) {
-      await this._loadStatus(repository, clearPartialState)
   /**
    * Refresh all the data for the Changes section.
    *
    * This will be called automatically when appropriate.
    */
+  private async refreshChangesSection(repository: Repository, options: { includingStatus: boolean, clearPartialState: boolean }): Promise<void> {
+    if (options.includingStatus) {
+      await this._loadStatus(repository, options.clearPartialState)
     }
 
     const gitStore = this.getGitStore(repository)
