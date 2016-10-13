@@ -9,8 +9,7 @@ const packager = require('electron-packager')
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
-const appPackagePath = path.join(projectRoot, 'app', 'package.json')
-const appPackage = require(appPackagePath)
+const distInfo = require('./dist-info')
 
 console.log(`Building for ${process.env.NODE_ENV}…`)
 
@@ -32,6 +31,7 @@ if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
 }
 
 const options = {
+  name: distInfo.getProductName(),
   platform: process.platform,
   arch: 'x64',
   asar: false, // TODO: Probably wanna enable this down the road.
@@ -50,7 +50,7 @@ const options = {
   ],
 
   // macOS
-  'app-bundle-id': appPackage.bundleID,
+  'app-bundle-id': distInfo.getBundleID(),
   'app-category-type': 'public.app-category.developer-tools',
   'protocols': [
     {
@@ -65,11 +65,11 @@ const options = {
 
   // Windows
   win32metadata: {
-    'CompanyName': appPackage.companyName,
+    'CompanyName': distInfo.getCompanyName(),
     'FileDescription': '',
     'OriginalFilename': '',
-    'ProductName': appPackage.productName,
-    'InternalName': appPackage.productName
+    'ProductName': distInfo.getProductName(),
+    'InternalName': distInfo.getProductName()
   }
 }
 
@@ -113,9 +113,14 @@ function copyAskPass () {
 }
 
 function copyDependencies () {
+  const originalPackage = require(path.join(projectRoot, 'app', 'package.json'))
+  // The product name changes depending on whether it's a prod build or dev
+  // build, so that we can have them running side by side.
+  const updatedPackage = Object.assign({}, originalPackage, { productName: distInfo.getProductName() })
+
   let destination = path.join(outRoot, 'package.json')
   fs.removeSync(destination)
-  fs.copySync(path.join(projectRoot, 'app', 'package.json'), destination)
+  fs.writeFileSync(destination, JSON.stringify(updatedPackage))
 
   destination = path.join(outRoot, 'node_modules')
   fs.removeSync(destination)

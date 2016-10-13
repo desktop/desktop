@@ -35,7 +35,7 @@ describe('App', function (this: any) {
   })
 
   it('opens a window on launch', function () {
-    return app.client.waitUntilWindowLoaded()
+    return app.client.waitUntil(() => app.browserWindow.isVisible(), 5000)
       .getWindowCount().should.eventually.equal(2)
       .browserWindow.isMinimized().should.eventually.be.false
       .browserWindow.isDevToolsOpened().should.eventually.be.false
