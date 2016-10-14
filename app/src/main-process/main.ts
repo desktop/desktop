@@ -111,7 +111,7 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('set-menu-enabled', (event: Electron.IpcMainEvent, [ { id, enabled } ]: [ { id: string, enabled: boolean } ]) => {
+  ipcMain.on('set-menu-enabled', (event: Electron.IpcMainEvent, { id, enabled }: { id: string, enabled: boolean }) => {
     const menuItem = findMenuItemByID(menu, id)
     if (menuItem) {
       menuItem.enabled = enabled
