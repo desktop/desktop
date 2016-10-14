@@ -37,7 +37,9 @@ class UpdateStore {
     autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
     autoUpdater.on('update-downloaded', this.onUpdateDownloaded)
 
-    // This upsets Appveyor's delicate sensibilities.
+    // This seems to prevent tests from cleanly exiting on Appveyor (see
+    // https://ci.appveyor.com/project/github-windows/desktop/build/1466). So
+    // let's just avoid it.
     if (!process.env.TEST_ENV) {
       window.addEventListener('beforeunload', () => {
         autoUpdater.removeListener('error', this.onAutoUpdaterError)
