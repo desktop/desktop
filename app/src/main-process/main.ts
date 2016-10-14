@@ -17,7 +17,9 @@ let readyTime: number | null = null
 
 process.on('uncaughtException', (error: Error) => {
   if (sharedProcess) {
-    sharedProcess.console.error(error)
+    sharedProcess.console.error('Uncaught exception:')
+    sharedProcess.console.error(error.name)
+    sharedProcess.console.error(error.message)
   }
 
   reportError(error, app.getVersion())
