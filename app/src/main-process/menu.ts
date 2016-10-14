@@ -4,9 +4,9 @@ import { SharedProcess } from '../shared-process/shared-process'
 export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
                         'add-local-repository' | 'create-branch' |
                         'show-branches' | 'remove-repository' | 'add-repository' |
-                        'rename-branch' | 'delete-branch'
+                        'rename-branch' | 'delete-branch' | 'perform-update-action'
 
-export type MenuIDs = 'rename-branch' | 'delete-branch'
+export type MenuIDs = 'rename-branch' | 'delete-branch' | 'update-state'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Object[] = [
@@ -174,6 +174,14 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       label: 'GitHub',
       submenu: [
         { role: 'about' },
+        { type: 'separator' },
+        {
+          label: 'Check for Updates…',
+          id: 'update-state',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('perform-update-action')
+          },
+        },
         { type: 'separator' },
         {
           role: 'services',
