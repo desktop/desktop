@@ -11,9 +11,9 @@ export function setMenuEnabled(id: MenuIDs, enabled: boolean) {
   ipcRenderer.send('set-menu-enabled', { id, enabled })
 }
 
-/** Set the menu item's title. */
-export function setMenuTitle(id: MenuIDs, title: string) {
-  ipcRenderer.send('set-menu-title', { id, title })
+/** Set the menu item's visibility. */
+export function setMenuVisible(id: MenuIDs, visible: boolean) {
+  ipcRenderer.send('set-menu-visible', { id, visible })
 }
 
 /** Tell the main process that the renderer is ready. */

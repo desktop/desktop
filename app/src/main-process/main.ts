@@ -95,10 +95,10 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('set-menu-title', (event: Electron.IpcMainEvent, { id, title }: { id: string, title: string }) => {
+  ipcMain.on('set-menu-visible', (event: Electron.IpcMainEvent, { id, visible }: { id: string, visible: boolean }) => {
     const menuItem = findMenuItemByID(menu, id)
     if (menuItem) {
-      menuItem.label = title
+      menuItem.visible = visible
     } else {
       fatalError(`Unknown menu id: ${id}`)
     }

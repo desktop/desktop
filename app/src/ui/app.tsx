@@ -19,10 +19,11 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
-import { showPopupAppMenu, setMenuEnabled, setMenuTitle } from './main-process-proxy'
+import { showPopupAppMenu, setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateState } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
+import { MenuIDs } from '../main-process/menu'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 4
@@ -66,19 +67,30 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     updateStore.onDidChange(state => {
-      const { title, enabled } = (function () {
+      const visibleItem = (function () {
         switch (state) {
-          case UpdateState.CheckingForUpdates: return { title: 'Checking for updates…', enabled: false }
-          case UpdateState.UpdateReady: return { title: 'Quit & install update', enabled: true }
-          case UpdateState.UpdateNotAvailable: return { title: 'Check for Updates…', enabled: true }
-          case UpdateState.UpdateAvailable: return { title: 'Downloading update…', enabled: false }
+          case UpdateState.CheckingForUpdates: return 'checking-for-updates'
+          case UpdateState.UpdateReady: return 'quit-and-install-update'
+          case UpdateState.UpdateNotAvailable: return 'check-for-updates'
+          case UpdateState.UpdateAvailable: return 'downloading-update'
         }
 
         return assertNever(state, `Unknown update state: ${state}`)
-      })()
+      })() as MenuIDs
 
-      setMenuTitle('updater-state', title)
-      setMenuEnabled('updater-state', enabled)
+      const menuItems = new Set([
+        'checking-for-updates',
+        'downloading-update',
+        'check-for-updates',
+        'quit-and-install-update',
+      ]) as Set<MenuIDs>
+
+      menuItems.delete(visibleItem)
+      for (const item of menuItems) {
+        setMenuVisible(item, false)
+      }
+
+      setMenuVisible(visibleItem, true)
     })
 
     updateStore.onError(error => {
@@ -103,22 +115,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'add-repository': return this.addRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
-      case 'perform-update-action': return this.performUpdateAction()
+      case 'check-for-updates': return this.checkForUpdates()
+      case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
-  }
-
-  private performUpdateAction() {
-    const state = updateStore.state
-    switch (state) {
-      case UpdateState.CheckingForUpdates: return
-      case UpdateState.UpdateNotAvailable: return this.checkForUpdates()
-      case UpdateState.UpdateAvailable: return
-      case UpdateState.UpdateReady: return updateStore.quitAndInstallUpdate()
-    }
-
-    return assertNever(state, `Unknown update state: ${state}`)
   }
 
   private checkForUpdates() {
