@@ -67,6 +67,15 @@ export class CommitList extends React.Component<ICommitListProps, void> {
   }
 
   public render() {
+
+    if (this.props.history.length === 0) {
+      return (
+        <div className='panel blankslate'>
+          No history
+        </div>
+      )
+    }
+
     return (
       <div className='panel' id='commit-list'>
         <List ref={ref => this.list = ref}
