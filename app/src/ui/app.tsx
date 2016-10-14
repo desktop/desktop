@@ -24,6 +24,9 @@ import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateState } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
 
+/** The interval at which we should check for updates. */
+const UpdateCheckInterval = 1000 * 60 * 4
+
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
@@ -83,6 +86,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       console.error(error)
     })
 
+    setInterval(() => this.checkForUpdates, UpdateCheckInterval)
     this.checkForUpdates()
   }
 
