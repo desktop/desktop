@@ -285,7 +285,12 @@ export class LocalGitOperations {
       '%aI', // author date, ISO-8601
     ].join(`%x${delimiter}`)
 
-    const result = await git([ 'log', start, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
+    const result = await git([ 'log', start, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path,  { successExitCodes: new Set([ 0, 128 ]) })
+    if (result.exitCode === 128) {
+      // TODO: unborn repository
+      return new Array<Commit>()
+    }
+
     const out = result.stdout
     const lines = out.split('\0')
     // Remove the trailing empty line
@@ -425,8 +430,9 @@ export class LocalGitOperations {
 
   /** Get the name of the current branch. */
   public static async getCurrentBranch(repository: Repository): Promise<Branch | null> {
-    const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 1 ]) })
-    if (revParseResult.exitCode === 1) {
+    const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 1, 128 ]) })
+    // TODO: confirm exit code 1 is used as I'm seeing 128 for a blank repository
+    if (revParseResult.exitCode === 1 || revParseResult.exitCode === 128) {
       // Git exits with 1 if there's the branch is unborn. We should do more
       // specific error parsing than this, but for now it'll do.
       return null
@@ -512,7 +518,13 @@ export class LocalGitOperations {
     // but by using log we can give it a max number which should prevent us from balling out
     // of control when there's ginormous reflogs around (as in e.g. github/github).
     const regex = new RegExp(/.*? checkout: moving from .*? to (.*?)$/i)
-    const result = await git([ 'log', '-g', '--abbrev-commit', '--pretty=oneline', 'HEAD', '-n', '2500' ], repository.path)
+    const result = await git([ 'log', '-g', '--abbrev-commit', '--pretty=oneline', 'HEAD', '-n', '2500' ], repository.path, new Set<Number>([ 0, 128 ]))
+
+    if (result.exitCode === 128) {
+      // TODO: unborn branch
+      return new Array<Branch>()
+    }
+
     const output = result.stdout
     const lines = output.split('\n')
     const names = new Set<string>()
