@@ -120,6 +120,15 @@ app.on('ready', () => {
     }
   })
 
+  ipcMain.on('set-menu-title', (event: Electron.IpcMainEvent, { id, title }: { id: string, title: string }) => {
+    const menuItem = findMenuItemByID(menu, id)
+    if (menuItem) {
+      menuItem.label = title
+    } else {
+      fatalError(`Unknown menu id: ${id}`)
+    }
+  })
+
   ipcMain.on('show-contextual-menu', (event: Electron.IpcMainEvent, items: ReadonlyArray<any>) => {
     const menu = new Menu()
     const menuItems = items.map((item, i) => {

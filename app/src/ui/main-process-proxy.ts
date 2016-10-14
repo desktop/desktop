@@ -11,6 +11,11 @@ export function setMenuEnabled(id: MenuIDs, enabled: boolean) {
   ipcRenderer.send('set-menu-enabled', { id, enabled })
 }
 
+/** Set the menu item's title. */
+export function setMenuTitle(id: MenuIDs, title: string) {
+  ipcRenderer.send('set-menu-title', { id, title })
+}
+
 /** Tell the main process that the renderer is ready. */
 export function sendReady(time: number) {
   ipcRenderer.send('renderer-ready', time)
