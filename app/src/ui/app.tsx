@@ -74,8 +74,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return assertNever(state, `Unknown update state: ${state}`)
       })()
 
-      setMenuTitle('update-state', title)
-      setMenuEnabled('update-state', enabled)
+      setMenuTitle('updater-state', title)
+      setMenuEnabled('updater-state', enabled)
     })
 
     updateStore.onError(error => {
