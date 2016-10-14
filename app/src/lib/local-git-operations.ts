@@ -172,7 +172,7 @@ export class LocalGitOperations {
    * Returns null if HEAD is unborn.
    */
   private static async resolveHEAD(repository: Repository): Promise<string | null> {
-    const result = await git([ 'rev-parse', '--verify', 'HEAD^{commit}' ], repository.path)
+    const result = await git([ 'rev-parse', '--verify', 'HEAD^{commit}' ], repository.path, { successExitCodes: new Set<number>([ 0, 128 ]) })
     if (result.exitCode === 0) {
       return result.stdout
     } else {
