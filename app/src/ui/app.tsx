@@ -19,8 +19,10 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
-import { showPopupAppMenu, setMenuEnabled } from './main-process-proxy'
+import { showPopupAppMenu, setMenuEnabled, setMenuTitle } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
+import { updateStore, UpdateState } from './lib/update-store'
+import { getDotComAPIEndpoint } from '../lib/api'
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -59,6 +61,42 @@ export class App extends React.Component<IAppProps, IAppState> {
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
       this.onMenuEvent(name)
     })
+
+    updateStore.onDidChange(state => {
+      const menuTitle = (function () {
+        switch (state) {
+          case UpdateState.CheckingForUpdates: return 'Checking for updates…'
+          case UpdateState.UpdateReady: return 'Quit & install update'
+          case UpdateState.UpdateNotAvailable: return 'Check for Updates…'
+          case UpdateState.UpdateAvailable: return 'Downloading update…'
+        }
+
+        return assertNever(state, `Unknown update state: ${state}`)
+      })()
+
+      const menuEnabled = (function () {
+        switch (state) {
+          case UpdateState.CheckingForUpdates: return false
+          case UpdateState.UpdateReady: return true
+          case UpdateState.UpdateNotAvailable: return true
+          case UpdateState.UpdateAvailable: return false
+        }
+
+        return assertNever(state, `Unknown update state: ${state}`)
+      })()
+
+      setMenuTitle('update-state', menuTitle)
+      setMenuEnabled('update-state', menuEnabled)
+
+      console.log(`Update state: ${state}`)
+    })
+
+    updateStore.onError(error => {
+      console.log(`Error checking for updates:`)
+      console.error(error)
+    })
+
+    this.checkForUpdates()
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -74,9 +112,29 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'add-repository': return this.addRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
+      case 'perform-update-action': return this.performUpdateAction()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
+  }
+
+  private performUpdateAction() {
+    const state = updateStore.state
+    switch (state) {
+      case UpdateState.CheckingForUpdates: return
+      case UpdateState.UpdateNotAvailable: return this.checkForUpdates()
+      case UpdateState.UpdateAvailable: return
+      case UpdateState.UpdateReady: return updateStore.quitAndInstallUpdate()
+    }
+
+    return assertNever(state, `Unknown update state: ${state}`)
+  }
+
+  private checkForUpdates() {
+    // if (process.env.NODE_ENV === 'development') { return }
+
+    const dotComUser = this.props.appStore.getState().users.filter(u => u.endpoint === getDotComAPIEndpoint())[0]
+    updateStore.checkForUpdates(dotComUser ? dotComUser.login : '')
   }
 
   private renameBranch() {
