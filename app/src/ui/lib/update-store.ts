@@ -1,12 +1,12 @@
-import { remote } from 'electron'
+// import { remote } from 'electron'
 
 // Given that `autoUpdater` is entirely async anyways, I *think* it's safe to
 // use with `remote`.
-const autoUpdater = remote.autoUpdater
+// const autoUpdater = remote.autoUpdater
 
 import { Emitter, Disposable } from 'event-kit'
 
-import { getVersion } from './app-proxy'
+// import { getVersion } from './app-proxy'
 
 /** The states the auto updater can be in. */
 export enum UpdateState {
@@ -23,7 +23,7 @@ export enum UpdateState {
   UpdateReady,
 }
 
-const UpdatesURLBase = 'https://central.github.com/api/deployments/desktop/desktop/latest'
+// const UpdatesURLBase = 'https://central.github.com/api/deployments/desktop/desktop/latest'
 
 /** A store which contains the current state of the auto updater. */
 class UpdateStore {
@@ -31,53 +31,53 @@ class UpdateStore {
   private _state = UpdateState.UpdateNotAvailable
 
   public constructor() {
-    autoUpdater.on('error', this.onAutoUpdaterError)
-    autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
-    autoUpdater.on('update-available', this.onUpdateAvailable)
-    autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
-    autoUpdater.on('update-downloaded', this.onUpdateDownloaded)
-
-    window.addEventListener('beforeunload', () => {
-      autoUpdater.removeListener('error', this.onAutoUpdaterError)
-      autoUpdater.removeListener('checking-for-update', this.onCheckingForUpdate)
-      autoUpdater.removeListener('update-available', this.onUpdateAvailable)
-      autoUpdater.removeListener('update-not-available', this.onUpdateNotAvailable)
-      autoUpdater.removeListener('update-downloaded', this.onUpdateDownloaded)
-    })
+    // autoUpdater.on('error', this.onAutoUpdaterError)
+    // autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
+    // autoUpdater.on('update-available', this.onUpdateAvailable)
+    // autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
+    // autoUpdater.on('update-downloaded', this.onUpdateDownloaded)
+    //
+    // window.addEventListener('beforeunload', () => {
+    //   autoUpdater.removeListener('error', this.onAutoUpdaterError)
+    //   autoUpdater.removeListener('checking-for-update', this.onCheckingForUpdate)
+    //   autoUpdater.removeListener('update-available', this.onUpdateAvailable)
+    //   autoUpdater.removeListener('update-not-available', this.onUpdateNotAvailable)
+    //   autoUpdater.removeListener('update-downloaded', this.onUpdateDownloaded)
+    // })
   }
 
-  private onAutoUpdaterError = (error: Error) => {
-    this.emitError(error)
-  }
-
-  private onCheckingForUpdate = () => {
-    this._state = UpdateState.CheckingForUpdates
-    this.emitDidChange()
-  }
-
-  private onUpdateAvailable = () => {
-    this._state = UpdateState.UpdateAvailable
-    this.emitDidChange()
-  }
-
-  private onUpdateNotAvailable = () => {
-    this._state = UpdateState.UpdateNotAvailable
-    this.emitDidChange()
-  }
-
-  private onUpdateDownloaded = () => {
-    this._state = UpdateState.UpdateReady
-    this.emitDidChange()
-  }
+  // private onAutoUpdaterError = (error: Error) => {
+  //   this.emitError(error)
+  // }
+  //
+  // private onCheckingForUpdate = () => {
+  //   this._state = UpdateState.CheckingForUpdates
+  //   this.emitDidChange()
+  // }
+  //
+  // private onUpdateAvailable = () => {
+  //   this._state = UpdateState.UpdateAvailable
+  //   this.emitDidChange()
+  // }
+  //
+  // private onUpdateNotAvailable = () => {
+  //   this._state = UpdateState.UpdateNotAvailable
+  //   this.emitDidChange()
+  // }
+  //
+  // private onUpdateDownloaded = () => {
+  //   this._state = UpdateState.UpdateReady
+  //   this.emitDidChange()
+  // }
 
   /** Register a function to call when the auto updater state changes. */
   public onDidChange(fn: (state: UpdateState) => void): Disposable {
     return this.emitter.on('did-change', fn)
   }
 
-  private emitDidChange() {
-    this.emitter.emit('did-change', this._state)
-  }
+  // private emitDidChange() {
+    // this.emitter.emit('did-change', this._state)
+  // }
 
   /** Register a function to call when the auto updater encounters an error. */
   public onError(fn: (error: Error) => void): Disposable {
@@ -93,15 +93,15 @@ class UpdateStore {
     return this._state
   }
 
-  private getFeedURL(username: string): string {
-    return `${UpdatesURLBase}?version=${getVersion()}&username=${username}`
-  }
+  // private getFeedURL(username: string): string {
+    // return `${UpdatesURLBase}?version=1&username=${username}`
+  // }
 
   /** Check for updates using the given username. */
   public checkForUpdates(username: string) {
     try {
-      autoUpdater.setFeedURL(this.getFeedURL(username))
-      autoUpdater.checkForUpdates()
+      // autoUpdater.setFeedURL(this.getFeedURL(username))
+      // autoUpdater.checkForUpdates()
     } catch (e) {
       this.emitError(e)
     }
@@ -109,7 +109,7 @@ class UpdateStore {
 
   /** Quit and install the update. */
   public quitAndInstallUpdate() {
-    autoUpdater.quitAndInstall()
+    // autoUpdater.quitAndInstall()
   }
 }
 
