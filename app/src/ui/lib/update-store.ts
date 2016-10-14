@@ -37,13 +37,13 @@ class UpdateStore {
     autoUpdater.on('update-not-available', this.onUpdateNotAvailable)
     autoUpdater.on('update-downloaded', this.onUpdateDownloaded)
 
-    // window.addEventListener('beforeunload', () => {
-    //   autoUpdater.removeListener('error', this.onAutoUpdaterError)
-    //   autoUpdater.removeListener('checking-for-update', this.onCheckingForUpdate)
-    //   autoUpdater.removeListener('update-available', this.onUpdateAvailable)
-    //   autoUpdater.removeListener('update-not-available', this.onUpdateNotAvailable)
-    //   autoUpdater.removeListener('update-downloaded', this.onUpdateDownloaded)
-    // })
+    window.addEventListener('beforeunload', () => {
+      // autoUpdater.removeListener('error', this.onAutoUpdaterError)
+      // autoUpdater.removeListener('checking-for-update', this.onCheckingForUpdate)
+      // autoUpdater.removeListener('update-available', this.onUpdateAvailable)
+      // autoUpdater.removeListener('update-not-available', this.onUpdateNotAvailable)
+      // autoUpdater.removeListener('update-downloaded', this.onUpdateDownloaded)
+    })
   }
 
   private onAutoUpdaterError = (error: Error) => {
