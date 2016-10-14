@@ -63,32 +63,19 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     updateStore.onDidChange(state => {
-      const menuTitle = (function () {
+      const { title, enabled } = (function () {
         switch (state) {
-          case UpdateState.CheckingForUpdates: return 'Checking for updates…'
-          case UpdateState.UpdateReady: return 'Quit & install update'
-          case UpdateState.UpdateNotAvailable: return 'Check for Updates…'
-          case UpdateState.UpdateAvailable: return 'Downloading update…'
+          case UpdateState.CheckingForUpdates: return { title: 'Checking for updates…', enabled: false }
+          case UpdateState.UpdateReady: return { title: 'Quit & install update', enabled: true }
+          case UpdateState.UpdateNotAvailable: return { title: 'Check for Updates…', enabled: true }
+          case UpdateState.UpdateAvailable: return { title: 'Downloading update…', enabled: false }
         }
 
         return assertNever(state, `Unknown update state: ${state}`)
       })()
 
-      const menuEnabled = (function () {
-        switch (state) {
-          case UpdateState.CheckingForUpdates: return false
-          case UpdateState.UpdateReady: return true
-          case UpdateState.UpdateNotAvailable: return true
-          case UpdateState.UpdateAvailable: return false
-        }
-
-        return assertNever(state, `Unknown update state: ${state}`)
-      })()
-
-      setMenuTitle('update-state', menuTitle)
-      setMenuEnabled('update-state', menuEnabled)
-
-      console.log(`Update state: ${state}`)
+      setMenuTitle('update-state', title)
+      setMenuEnabled('update-state', enabled)
     })
 
     updateStore.onError(error => {
