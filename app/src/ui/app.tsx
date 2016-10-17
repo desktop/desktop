@@ -127,7 +127,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   private checkForUpdates() {
     if (process.env.NODE_ENV === 'development' || process.env.TEST_ENV) { return }
 
-    const dotComUser = this.props.appStore.getState().users.filter(u => u.endpoint === getDotComAPIEndpoint())[0]
+    const dotComUsers = this.props.appStore.getState().users.filter(u => u.endpoint === getDotComAPIEndpoint())
+    if (!dotComUsers.length) { return }
+
+    const dotComUser = dotComUsers[0]
     updateStore.checkForUpdates(dotComUser ? dotComUser.login : '')
   }
 
