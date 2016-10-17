@@ -96,6 +96,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     updateStore.onError(error => {
       console.log(`Error checking for updates:`)
       console.error(error)
+
+      this.props.dispatcher.postError(error)
     })
 
     setInterval(() => this.checkForUpdates, UpdateCheckInterval)
