@@ -522,7 +522,7 @@ export class LocalGitOperations {
     const result = await git([ 'log', '-g', '--abbrev-commit', '--pretty=oneline', 'HEAD', '-n', '2500' ], repository.path, new Set<Number>([ 0, 128 ]))
 
     if (result.exitCode === 128) {
-      // TODO: unborn branch
+      // error code 128 is returned if the branch is unborn
       return new Array<Branch>()
     }
 
