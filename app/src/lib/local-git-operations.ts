@@ -286,8 +286,9 @@ export class LocalGitOperations {
     ].join(`%x${delimiter}`)
 
     const result = await git([ 'log', start, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path,  { successExitCodes: new Set([ 0, 128 ]) })
+
+    // if the repository has an unborn HEAD, return an empty history of commits
     if (result.exitCode === 128) {
-      // TODO: unborn repository
       return new Array<Commit>()
     }
 
@@ -431,7 +432,8 @@ export class LocalGitOperations {
   /** Get the name of the current branch. */
   public static async getCurrentBranch(repository: Repository): Promise<Branch | null> {
     const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 1, 128 ]) })
-    // TODO: confirm exit code 1 is used as I'm seeing 128 for a blank repository
+    // error code 1 is returned if no upstream
+    // error code 128 is returned if the branch is unborn
     if (revParseResult.exitCode === 1 || revParseResult.exitCode === 128) {
       // Git exits with 1 if there's the branch is unborn. We should do more
       // specific error parsing than this, but for now it'll do.
@@ -453,7 +455,7 @@ export class LocalGitOperations {
 
     const pieces = line.split('\0')
     if (pieces.length !== 2) {
-      // this is a detached HEAD case, and we're not currently on a branch
+      // this is a detached HEAD case, or we're not currently on a branch
       return null
     }
 
@@ -464,15 +466,14 @@ export class LocalGitOperations {
 
   /** Get the number of commits in HEAD. */
   public static async getCommitCount(repository: Repository): Promise<number> {
-    const result = await git([ 'rev-list', '--count', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 1 ]) })
-    // Git exits with 1 if there's the branch is unborn. We should do more
-    // specific error parsing than this, but for now it'll do.
-    if (result.exitCode === 1) {
+    const result = await git([ 'rev-list', '--count', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 128 ]) })
+    // error code 128 is returned if the branch is unborn
+    if (result.exitCode === 128) {
       return 0
+    } else {
+      const count = result.stdout
+      return parseInt(count.trim(), 10)
     }
-
-    const count = result.stdout
-    return parseInt(count.trim(), 10)
   }
 
   /** Get all the branches. */
