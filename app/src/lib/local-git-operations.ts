@@ -435,8 +435,6 @@ export class LocalGitOperations {
     // error code 1 is returned if no upstream
     // error code 128 is returned if the branch is unborn
     if (revParseResult.exitCode === 1 || revParseResult.exitCode === 128) {
-      // Git exits with 1 if there's the branch is unborn. We should do more
-      // specific error parsing than this, but for now it'll do.
       return null
     }
 
