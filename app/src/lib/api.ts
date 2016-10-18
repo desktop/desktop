@@ -142,7 +142,7 @@ export class API {
     const results: IAPIIssue[] = []
     let params = { state }
     if (since) {
-      params = Object.assign({}, params, { since: since.toISOString })
+      params = Object.assign({}, params, { since: since.toISOString() })
     }
 
     let nextPage = this.client.repos(owner, name).issues
