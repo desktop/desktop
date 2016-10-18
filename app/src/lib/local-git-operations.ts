@@ -82,10 +82,13 @@ export class Branch {
   /** The type of branch, e.g., local or remote. */
   public readonly type: BranchType
 
-  public constructor(name: string, upstream: string | null, sha: string, type: BranchType) {
+  public readonly tip: Commit | null
+
+  public constructor(name: string, upstream: string | null, sha: string, tip: Commit | null, type: BranchType) {
     this.name = name
     this.upstream = upstream
     this.sha = sha
+    this.tip = tip
     this.type = type
   }
 
@@ -459,7 +462,7 @@ export class LocalGitOperations {
 
     const upstream = pieces[0]
     const sha = pieces[1].trim()
-    return new Branch(name, upstream.length > 0 ? upstream : null, sha, BranchType.Local)
+    return new Branch(name, upstream.length > 0 ? upstream : null, sha, null, BranchType.Local)
   }
 
   /** Get the number of commits in HEAD. */
@@ -493,7 +496,7 @@ export class LocalGitOperations {
       const name = pieces[0]
       const upstream = pieces[1]
       const sha = pieces[2]
-      return new Branch(name, upstream.length > 0 ? upstream : null, sha, type)
+      return new Branch(name, upstream.length > 0 ? upstream : null, sha, null, type)
     })
 
     return branches
