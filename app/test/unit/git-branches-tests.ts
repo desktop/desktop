@@ -40,4 +40,16 @@ describe('git-branches', () => {
       expect(master.tip.summary).to.equal('stubbed a README')
     })
   })
+
+  describe('getBranches', () => {
+    it('fetches branches using for-each-ref', async () => {
+      const currentBranch = await LocalGitOperations.getCurrentBranch(repository!)
+
+      expect(currentBranch!.name).to.equal('commit-with-long-description')
+      expect(currentBranch!.upstream).to.be.null
+      expect(currentBranch!.tip.sha).to.equal('dfa96676b65e1c0ed43ca25492252a5e384c8efd')
+      expect(currentBranch!.tip.summary).to.equal('this is a commit title')
+      expect(currentBranch!.tip.body).to.contain('lucky last')
+    })
+  })
 })
