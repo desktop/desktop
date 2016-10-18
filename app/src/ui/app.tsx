@@ -29,7 +29,7 @@ import { StatsStore, ILaunchStats } from '../lib/stats'
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
-const SendStatsInterval = 1000 * 60 * 4
+const SendStatsInterval = 1000 * 60 * 60 * 4
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
