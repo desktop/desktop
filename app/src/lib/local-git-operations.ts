@@ -49,8 +49,14 @@ export class Commit {
 
   /** The commit message without the first line and CR. */
   public readonly body: string
+
+  /** The commit author's name as stored by Git */
   public readonly authorName: string
+
+  /** The commit author's email address as stored by Git */
   public readonly authorEmail: string
+
+  /** The commit timestamp (with timezone information) as stored by Git */
   public readonly authorDate: Date
 
   public constructor(sha: string, summary: string, body: string, authorName: string, authorEmail: string, authorDate: Date) {
