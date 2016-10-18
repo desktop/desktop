@@ -278,7 +278,7 @@ export class LocalGitOperations {
    */
   public static async getHistory(repository: Repository, start: string, limit: number): Promise<ReadonlyArray<Commit>> {
     const delimiter = '1F'
-    const delimeterString = String.fromCharCode(parseInt(delimiter, 16))
+    const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
     const prettyFormat = [
       '%H', // SHA
       '%s', // summary
@@ -301,7 +301,7 @@ export class LocalGitOperations {
     lines.splice(-1, 1)
 
     const commits = lines.map(line => {
-      const pieces = line.split(delimeterString)
+      const pieces = line.split(delimiterString)
       const sha = pieces[0]
       const summary = pieces[1]
       const body = pieces[2]
