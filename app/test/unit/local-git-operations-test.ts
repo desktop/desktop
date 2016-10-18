@@ -428,6 +428,7 @@ describe('LocalGitOperations', () => {
         expect(branch!.name).to.equal('master')
         expect(branch!.sha).to.equal('04c7629c588c74659f03dda5e5fb3dd8d6862dfa')
         expect(branch!.upstream).to.equal(null)
+        expect(branch!.tip).to.be.not.null
         expect(branch!.type).to.equal(BranchType.Local)
       })
 
