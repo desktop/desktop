@@ -24,9 +24,9 @@ export class IssuesStore {
 
     const repositoryID = repository.id
     const endpoint = repository.gitHubRepository.endpoint
-    const issuesToUpsert: ReadonlyArray<IIssue> = issues
+    const issuesToUpsert = issues
       .filter(i => i.state === 'open')
-      .map(i => {
+      .map<IIssue>(i => {
         return {
           endpoint,
           repositoryID,
