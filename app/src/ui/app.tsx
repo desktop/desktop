@@ -143,10 +143,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (process.env.NODE_ENV === 'development' || process.env.TEST_ENV) { return }
 
     const dotComUsers = this.props.appStore.getState().users.filter(u => u.endpoint === getDotComAPIEndpoint())
-    if (!dotComUsers.length) { return }
-
-    const dotComUser = dotComUsers[0]
-    updateStore.checkForUpdates(dotComUser ? dotComUser.login : '')
+    const login = dotComUsers.length ? dotComUsers[0].login : ''
+    updateStore.checkForUpdates(login)
   }
 
   private renameBranch() {
