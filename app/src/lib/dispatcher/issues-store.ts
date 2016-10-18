@@ -2,6 +2,9 @@ import { IssuesDatabase, IIssue } from './issues-database'
 import { IAPIIssue } from '../api'
 import { Repository } from '../../models/repository'
 
+/** The hard limit on the number of issue results we'd ever return. */
+const IssueResultsHardLimit = 100
+
 /** The store for GitHub issues. */
 export class IssuesStore {
   private db: IssuesDatabase
@@ -61,5 +64,23 @@ export class IssuesStore {
         }
       }
     })
+  }
+
+  /** Get issues whose title contains the given text. */
+  public async getIssuesContainingTitle(repository: Repository, title: string): Promise<ReadonlyArray<IIssue>> {
+    if (!repository.gitHubRepository) {
+      return Promise.resolve([])
+    }
+
+    // TODO: What happens for empty strings?
+
+    const repositoryID = repository.id
+    const endpoint = repository.gitHubRepository.endpoint
+    const issues = await this.db.issues
+      .where('[endpoint+repositoryID]')
+      .equals([ endpoint, repositoryID ])
+      .limit(IssueResultsHardLimit)
+      .filter(i => i.title.toLowerCase().includes(title.toLowerCase()))
+    return issues.toArray()
   }
 }

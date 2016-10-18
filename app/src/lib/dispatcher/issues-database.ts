@@ -18,7 +18,7 @@ export class IssuesDatabase extends Dexie {
     super(name)
 
     this.version(DatabaseVersion).stores({
-      issues: '++id, &[endpoint+repositoryID+number]',
+      issues: '++id, &[endpoint+repositoryID+number], [endpoint+repositoryID], number',
     })
   }
 }
