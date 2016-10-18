@@ -23,7 +23,7 @@ import { showPopupAppMenu, setMenuEnabled } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { StatsStore, ILaunchStats } from '../lib/stats'
 
-const SendStatsInterval = 1000 * 60 * 4
+const SendStatsInterval = 1000 * 60 * 60 * 4
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
