@@ -139,21 +139,23 @@ export class API {
    * date.
    */
   public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
-    const results: IAPIIssue[] = []
     let params = { state }
     if (since) {
       params = Object.assign({}, params, { since: since.toISOString() })
     }
 
-    let nextPage = this.client.repos(owner, name).issues
-    while (nextPage) {
-      const request = await nextPage.fetch()
-      const issuesOnly = request.items.filter((i: any) => !i.pullRequest)
-      results.push(...issuesOnly)
-      nextPage = request.nextPage
+    const allItems: Array<IAPIIssue> = []
+    let result = await this.client.repos(owner, name).issues.fetch(params)
+    allItems.push(...result.items)
+
+    while (result.nextPage) {
+      result = await result.nextPage.fetch()
+      allItems.push(...result.items)
     }
 
-    return results
+    // PRs are issues :\ But we only want Real Issues.
+    const issuesOnly = allItems.filter((i: any) => !i.pullRequest)
+    return issuesOnly
   }
 }
 
