@@ -210,9 +210,16 @@ export class GitStore {
 
     this.loadRecentBranches()
 
-    for (const branch of allBranches) {
-      this.loadCommit(branch.sha)
-    }
+    //const commits: Commit[] = allBranches
+    //  .filter(b => b.tip !== undefined)
+    //  .map(b => b.tip!)
+
+    //for (const commit of commits) {
+    //  this.commits.set(commit.sha, commit)
+    //}
+
+    //this.emitNewCommitsLoaded(commits)
+    //this.emitUpdate()
   }
 
   /**
