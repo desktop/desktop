@@ -105,7 +105,7 @@ describe('LocalGitOperations', () => {
 
       expect(statusAfter.workingDirectory.files.length).to.equal(0)
 
-      const history = await LocalGitOperations.getHistory(repo, 'HEAD', 2)
+      const history = await LocalGitOperations.getCommits(repo, 'HEAD', 2)
 
       expect(history.length).to.equal(1)
       expect(history[0].summary).to.equal('added two files')
@@ -218,7 +218,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('can commit single delete from modified file', async () => {
-      const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      const previousTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
 
       const fileName = 'modified-file.md'
 
@@ -239,7 +239,7 @@ describe('LocalGitOperations', () => {
       await LocalGitOperations.createCommit(repository!, 'title', '', [ file ])
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).to.not.equal(previousTip.sha)
       expect(newTip.summary).to.equal('title')
 
