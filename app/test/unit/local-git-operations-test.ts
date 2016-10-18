@@ -217,6 +217,38 @@ describe('LocalGitOperations', () => {
       expect(fileChange!.status).to.equal(FileStatus.Modified)
     })
 
+    it('can commit single delete from modified file', async () => {
+      const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+
+      const fileName = 'modified-file.md'
+
+      const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
+      const modifiedFile = new WorkingDirectoryFileChange(fileName, FileStatus.Modified, unselectedFile)
+
+      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, modifiedFile)
+
+      const secondRemovedLine = diff.hunks[0].unifiedDiffStart + 5
+
+      const selection = DiffSelection
+        .fromInitialSelection(DiffSelectionType.None)
+        .withRangeSelection(secondRemovedLine, 1, true)
+
+      const file = new WorkingDirectoryFileChange(fileName, FileStatus.Modified, selection)
+
+      // commit just this change, ignore everything else
+      await LocalGitOperations.createCommit(repository!, 'title', '', [ file ])
+
+      // verify that the HEAD of the repository has moved
+      const newTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
+      expect(newTip.sha).to.not.equal(previousTip.sha)
+      expect(newTip.summary).to.equal('title')
+
+      // verify that the contents of this new commit are just the modified file
+      const changedFiles = await LocalGitOperations.getChangedFiles(repository!, newTip.sha)
+      expect(changedFiles.length).to.equal(1)
+      expect(changedFiles[0].path).to.equal(fileName)
+    })
+
     it('can commit multiple hunks from modified file', async () => {
 
       const previousTip = (await LocalGitOperations.getHistory(repository!, 'HEAD', 1))[0]
