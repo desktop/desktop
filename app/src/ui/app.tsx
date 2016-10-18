@@ -21,10 +21,14 @@ import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
 import { showPopupAppMenu, setMenuEnabled } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
+import { StatsStore, ILaunchStats } from '../lib/stats'
+
+const SendStatsInterval = 1000 * 60 * 60 * 4
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
+  readonly statsStore: StatsStore
 }
 
 export class App extends React.Component<IAppProps, IAppState> {
@@ -58,6 +62,17 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
       this.onMenuEvent(name)
+    })
+
+    ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
+      console.info(`App ready time: ${stats.mainReadyTime}ms`)
+      console.info(`Load time: ${stats.loadTime}ms`)
+      console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
+
+      this.props.statsStore.recordLaunchStats(stats)
+      this.props.statsStore.reportStats()
+
+      setInterval(() => this.props.statsStore.reportStats(), SendStatsInterval)
     })
   }
 
