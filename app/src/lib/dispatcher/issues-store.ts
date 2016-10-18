@@ -15,7 +15,7 @@ export class IssuesStore {
    * Store the given issues. This will delete any issues that have been closed
    * and update or add any issues that have changed or been added.
    */
-  public storeIssues(issues: ReadonlyArray<IAPIIssue>, repository: Repository) {
+  public async storeIssues(issues: ReadonlyArray<IAPIIssue>, repository: Repository): Promise<void> {
     if (!repository.gitHubRepository) {
       return
     }
@@ -36,7 +36,7 @@ export class IssuesStore {
       })
 
     const db = this.db
-    this.db.transaction('rw', this.db.issues, function*() {
+    await this.db.transaction('rw', this.db.issues, function*() {
       for (const issue of issuesToDelete) {
         const existing = yield db.issues
           .where('[endpoint+repositoryID+number]')
