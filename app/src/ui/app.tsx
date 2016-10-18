@@ -104,7 +104,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.postError(error)
     })
 
-    setInterval(() => this.checkForUpdates, UpdateCheckInterval)
+    setInterval(() => this.checkForUpdates(), UpdateCheckInterval)
     this.checkForUpdates()
 
     ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
