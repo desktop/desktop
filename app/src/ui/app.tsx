@@ -24,13 +24,17 @@ import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateState } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { MenuIDs } from '../main-process/menu'
+import { StatsStore, ILaunchStats } from '../lib/stats'
 
 /** The interval at which we should check for updates. */
-const UpdateCheckInterval = 1000 * 60 * 4
+const UpdateCheckInterval = 1000 * 60 * 60 * 4
+
+const SendStatsInterval = 1000 * 60 * 4
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
+  readonly statsStore: StatsStore
 }
 
 export class App extends React.Component<IAppProps, IAppState> {
@@ -102,6 +106,17 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     setInterval(() => this.checkForUpdates, UpdateCheckInterval)
     this.checkForUpdates()
+
+    ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
+      console.info(`App ready time: ${stats.mainReadyTime}ms`)
+      console.info(`Load time: ${stats.loadTime}ms`)
+      console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
+
+      this.props.statsStore.recordLaunchStats(stats)
+      this.props.statsStore.reportStats()
+
+      setInterval(() => this.props.statsStore.reportStats(), SendStatsInterval)
+    })
   }
 
   private onMenuEvent(name: MenuEvent): any {

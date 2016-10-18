@@ -20,17 +20,17 @@ interface IBranchesProps {
 
 interface IBranchesState {
   readonly filter: string
-  readonly selectedRow: number
 }
 
 export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   private list: List | null = null
   private scrollToRow = -1
+  private selectedRow = -1
 
   public constructor(props: IBranchesProps) {
     super(props)
 
-    this.state = { filter: '', selectedRow: -1 }
+    this.state = { filter: '' }
   }
 
   private renderRow(branchItems: ReadonlyArray<BranchListItemModel>, row: number) {
@@ -64,20 +64,20 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
   private onFilterChanged(event: React.FormEvent<HTMLInputElement>) {
     const text = event.currentTarget.value
-    this.setState({ filter: text, selectedRow: this.state.selectedRow })
+    this.setState({ filter: text })
   }
 
   private onKeyDown(branchItems: ReadonlyArray<BranchListItemModel>, event: React.KeyboardEvent<HTMLInputElement>) {
     const list = this.list
     if (!list) { return }
 
-    let nextRow = this.state.selectedRow
+    let nextRow = this.selectedRow
     if (event.key === 'ArrowDown') {
-      nextRow = list.nextSelectableRow('down', this.state.selectedRow)
+      nextRow = list.nextSelectableRow('down', this.selectedRow)
     } else if (event.key === 'ArrowUp') {
-      nextRow = list.nextSelectableRow('up', this.state.selectedRow)
+      nextRow = list.nextSelectableRow('up', this.selectedRow)
     } else if (event.key === 'Enter') {
-      this.onRowSelected(branchItems, this.state.selectedRow)
+      this.onRowSelected(branchItems, this.selectedRow)
     } else if (event.key === 'Escape') {
       if (this.state.filter.length === 0) {
         this.props.dispatcher.closePopup()
@@ -88,7 +88,8 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     }
 
     this.scrollToRow = nextRow
-    this.setState({ selectedRow: nextRow, filter: this.state.filter })
+    this.selectedRow = nextRow
+    this.forceUpdate()
   }
 
   public render() {
@@ -96,6 +97,13 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     this.scrollToRow = -1
 
     const branchItems = groupedAndFilteredBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches, this.state.filter)
+    let selectedRow = this.selectedRow
+    if (selectedRow < 0 || selectedRow >= branchItems.length) {
+      selectedRow = branchItems.findIndex(item => item.kind === 'branch')
+    }
+
+    this.selectedRow = selectedRow
+
     return (
       <div id='branches'>
         <input className='branch-filter-input'
@@ -109,7 +117,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
           <List rowCount={branchItems.length}
                 rowRenderer={row => this.renderRow(branchItems, row)}
                 rowHeight={RowHeight}
-                selectedRow={this.state.selectedRow}
+                selectedRow={selectedRow}
                 onRowSelected={row => this.onRowSelected(branchItems, row)}
                 canSelectRow={row => this.canSelectRow(branchItems, row)}
                 scrollToRow={scrollToRow}
