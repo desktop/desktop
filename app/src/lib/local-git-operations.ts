@@ -172,7 +172,7 @@ export class LocalGitOperations {
    * Returns null if HEAD is unborn.
    */
   private static async resolveHEAD(repository: Repository): Promise<string | null> {
-    const result = await git([ 'rev-parse', '--verify', 'HEAD^{commit}' ], repository.path)
+    const result = await git([ 'rev-parse', '--verify', 'HEAD^{commit}' ], repository.path, { successExitCodes: new Set([ 0, 128 ]) })
     if (result.exitCode === 0) {
       return result.stdout
     } else {
@@ -285,7 +285,13 @@ export class LocalGitOperations {
       '%aI', // author date, ISO-8601
     ].join(`%x${delimiter}`)
 
-    const result = await git([ 'log', start, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path)
+    const result = await git([ 'log', start, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path,  { successExitCodes: new Set([ 0, 128 ]) })
+
+    // if the repository has an unborn HEAD, return an empty history of commits
+    if (result.exitCode === 128) {
+      return new Array<Commit>()
+    }
+
     const out = result.stdout
     const lines = out.split('\0')
     // Remove the trailing empty line
@@ -425,10 +431,10 @@ export class LocalGitOperations {
 
   /** Get the name of the current branch. */
   public static async getCurrentBranch(repository: Repository): Promise<Branch | null> {
-    const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 1 ]) })
-    if (revParseResult.exitCode === 1) {
-      // Git exits with 1 if there's the branch is unborn. We should do more
-      // specific error parsing than this, but for now it'll do.
+    const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 1, 128 ]) })
+    // error code 1 is returned if no upstream
+    // error code 128 is returned if the branch is unborn
+    if (revParseResult.exitCode === 1 || revParseResult.exitCode === 128) {
       return null
     }
 
@@ -447,7 +453,7 @@ export class LocalGitOperations {
 
     const pieces = line.split('\0')
     if (pieces.length !== 2) {
-      // this is a detached HEAD case, and we're not currently on a branch
+      // this is a detached HEAD case, or we're not currently on a branch
       return null
     }
 
@@ -458,15 +464,14 @@ export class LocalGitOperations {
 
   /** Get the number of commits in HEAD. */
   public static async getCommitCount(repository: Repository): Promise<number> {
-    const result = await git([ 'rev-list', '--count', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 1 ]) })
-    // Git exits with 1 if there's the branch is unborn. We should do more
-    // specific error parsing than this, but for now it'll do.
-    if (result.exitCode === 1) {
+    const result = await git([ 'rev-list', '--count', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 128 ]) })
+    // error code 128 is returned if the branch is unborn
+    if (result.exitCode === 128) {
       return 0
+    } else {
+      const count = result.stdout
+      return parseInt(count.trim(), 10)
     }
-
-    const count = result.stdout
-    return parseInt(count.trim(), 10)
   }
 
   /** Get all the branches. */
@@ -512,7 +517,13 @@ export class LocalGitOperations {
     // but by using log we can give it a max number which should prevent us from balling out
     // of control when there's ginormous reflogs around (as in e.g. github/github).
     const regex = new RegExp(/.*? checkout: moving from .*? to (.*?)$/i)
-    const result = await git([ 'log', '-g', '--abbrev-commit', '--pretty=oneline', 'HEAD', '-n', '2500' ], repository.path)
+    const result = await git([ 'log', '-g', '--abbrev-commit', '--pretty=oneline', 'HEAD', '-n', '2500' ], repository.path, new Set([ 0, 128 ]))
+
+    if (result.exitCode === 128) {
+      // error code 128 is returned if the branch is unborn
+      return new Array<Branch>()
+    }
+
     const output = result.stdout
     const lines = output.split('\n')
     const names = new Set<string>()

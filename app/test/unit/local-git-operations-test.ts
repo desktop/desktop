@@ -85,6 +85,33 @@ describe('LocalGitOperations', () => {
       expect(commits[0].summary).to.equal('Special commit')
     })
 
+    it('can commit for empty repository', async () => {
+
+      const repo = await setupEmptyRepository()
+
+      fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
+      fs.writeFileSync(path.join(repo.path, 'bar'), 'bar\n')
+
+      const status = await LocalGitOperations.getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(2)
+
+      const allChanges = [ files[0].withIncludeAll(true), files[1].withIncludeAll(true) ]
+
+      await LocalGitOperations.createCommit(repo, 'added two files', 'this is a description', allChanges)
+
+      const statusAfter = await LocalGitOperations.getStatus(repo)
+
+      expect(statusAfter.workingDirectory.files.length).to.equal(0)
+
+      const history = await LocalGitOperations.getHistory(repo, 'HEAD', 2)
+
+      expect(history.length).to.equal(1)
+      expect(history[0].summary).to.equal('added two files')
+      expect(history[0].body).to.equal('this is a description\n')
+    })
+
     it('can commit renames', async () => {
 
       const repo = await setupEmptyRepository()
@@ -371,6 +398,12 @@ describe('LocalGitOperations', () => {
         expect(branch!.upstream).to.equal(null)
         expect(branch!.type).to.equal(BranchType.Local)
       })
+
+      it('should return null for empty repo', async () => {
+        const repo = await setupEmptyRepository()
+        const branch = await LocalGitOperations.getCurrentBranch(repo)
+        expect(branch).to.be.null
+      })
     })
 
     describe('all branches', () => {
@@ -381,6 +414,12 @@ describe('LocalGitOperations', () => {
         expect(branches[0].sha).to.equal('04c7629c588c74659f03dda5e5fb3dd8d6862dfa')
         expect(branches[0].upstream).to.equal(null)
         expect(branches[0].type).to.equal(BranchType.Local)
+      })
+
+      it('should return empty list for empty repo', async () => {
+        const repo = await setupEmptyRepository()
+        const branches = await LocalGitOperations.getBranches(repo, '', BranchType.Local)
+        expect(branches.length).to.equal(0)
       })
     })
   })
