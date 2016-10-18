@@ -187,9 +187,8 @@ export class GitStore {
 
     this.loadRecentBranches()
 
-    const commits: Commit[] = allBranches
-      .filter(b => b.tip !== null)
-      .map(b => b.tip!)
+    // TODO: do we need to be distinct here?
+    const commits = allBranches.map(b => b.tip)
 
     for (const commit of commits) {
       this.commits.set(commit.sha, commit)

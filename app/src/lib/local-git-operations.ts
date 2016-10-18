@@ -82,9 +82,9 @@ export class Branch {
   /** The type of branch, e.g., local or remote. */
   public readonly type: BranchType
 
-  public readonly tip: Commit | null
+  public readonly tip: Commit
 
-  public constructor(name: string, upstream: string | null, sha: string, tip: Commit | null, type: BranchType) {
+  public constructor(name: string, upstream: string | null, sha: string, tip: Commit, type: BranchType) {
     this.name = name
     this.upstream = upstream
     this.sha = sha
