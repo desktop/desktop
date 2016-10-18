@@ -15,7 +15,7 @@ import { SelectionType } from '../lib/app-state'
 import { sendReady } from './main-process-proxy'
 import { reportError } from '../lib/exception-reporting'
 import * as appProxy from './lib/app-proxy'
-import { StatsDatabase, StatsStore, ILaunchStats } from '../lib/stats'
+import { StatsDatabase, StatsStore } from '../lib/stats'
 
 const startTime = Date.now()
 
@@ -71,15 +71,6 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
   }
 })
 
-ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
-  console.info(`App ready time: ${stats.mainReadyTime}ms`)
-  console.info(`Load time: ${stats.loadTime}ms`)
-  console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
-
-  statsStore.recordLaunchStats(stats)
-  statsStore.reportStats()
-})
-
 function openRepository(url: string) {
   const state = appStore.getState()
   const repositories = state.repositories
@@ -116,6 +107,6 @@ function openRepository(url: string) {
 }
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore}/>,
+  <App dispatcher={dispatcher} appStore={appStore} statsStore={statsStore}/>,
   document.getElementById('desktop-app-container')!
 )
