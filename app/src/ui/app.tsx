@@ -19,9 +19,15 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
-import { showPopupAppMenu, setMenuEnabled } from './main-process-proxy'
+import { showPopupAppMenu, setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
+import { updateStore, UpdateState } from './lib/update-store'
+import { getDotComAPIEndpoint } from '../lib/api'
+import { MenuIDs } from '../main-process/menu'
 import { StatsStore, ILaunchStats } from '../lib/stats'
+
+/** The interval at which we should check for updates. */
+const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
@@ -64,6 +70,43 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.onMenuEvent(name)
     })
 
+    updateStore.onDidChange(state => {
+      const visibleItem = (function () {
+        switch (state) {
+          case UpdateState.CheckingForUpdates: return 'checking-for-updates'
+          case UpdateState.UpdateReady: return 'quit-and-install-update'
+          case UpdateState.UpdateNotAvailable: return 'check-for-updates'
+          case UpdateState.UpdateAvailable: return 'downloading-update'
+        }
+
+        return assertNever(state, `Unknown update state: ${state}`)
+      })() as MenuIDs
+
+      const menuItems = new Set([
+        'checking-for-updates',
+        'downloading-update',
+        'check-for-updates',
+        'quit-and-install-update',
+      ]) as Set<MenuIDs>
+
+      menuItems.delete(visibleItem)
+      for (const item of menuItems) {
+        setMenuVisible(item, false)
+      }
+
+      setMenuVisible(visibleItem, true)
+    })
+
+    updateStore.onError(error => {
+      console.log(`Error checking for updates:`)
+      console.error(error)
+
+      this.props.dispatcher.postError(error)
+    })
+
+    setInterval(() => this.checkForUpdates(), UpdateCheckInterval)
+    this.checkForUpdates()
+
     ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
       console.info(`App ready time: ${stats.mainReadyTime}ms`)
       console.info(`Load time: ${stats.loadTime}ms`)
@@ -89,9 +132,19 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'add-repository': return this.addRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
+      case 'check-for-updates': return this.checkForUpdates()
+      case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
+  }
+
+  private checkForUpdates() {
+    if (process.env.NODE_ENV === 'development' || process.env.TEST_ENV) { return }
+
+    const dotComUsers = this.props.appStore.getState().users.filter(u => u.endpoint === getDotComAPIEndpoint())
+    const login = dotComUsers.length ? dotComUsers[0].login : ''
+    updateStore.checkForUpdates(login)
   }
 
   private renameBranch() {

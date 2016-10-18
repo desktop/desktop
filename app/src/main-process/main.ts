@@ -1,9 +1,9 @@
-import { app, Menu, MenuItem, autoUpdater, ipcMain, BrowserWindow } from 'electron'
+import { app, Menu, MenuItem, ipcMain, BrowserWindow } from 'electron'
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { parseURL } from '../lib/parse-url'
-import { handleSquirrelEvent, getFeedURL } from './updates'
+import { handleSquirrelEvent } from './updates'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
@@ -17,7 +17,9 @@ let readyTime: number | null = null
 
 process.on('uncaughtException', (error: Error) => {
   if (sharedProcess) {
-    sharedProcess.console.error(error)
+    sharedProcess.console.error('Uncaught exception:')
+    sharedProcess.console.error(error.name)
+    sharedProcess.console.error(error.message)
   }
 
   reportError(error, app.getVersion())
@@ -77,33 +79,6 @@ app.on('ready', () => {
   const menu = buildDefaultMenu(sharedProcess)
   Menu.setApplicationMenu(menu)
 
-  autoUpdater.on('error', error => {
-    sharedProcess!.console.error(`${error}`)
-  })
-
-  autoUpdater.on('update-available', () => {
-    sharedProcess!.console.log('Update available!')
-  })
-
-  autoUpdater.on('update-not-available', () => {
-    sharedProcess!.console.log('Update not available!')
-  })
-
-  autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName, releaseDate, updateURL) => {
-    sharedProcess!.console.log(`Update downloaded! ${releaseDate}`)
-  })
-
-  // TODO: Plumb the logged in .com user through here.
-  // Truly we have been haacked.
-  autoUpdater.setFeedURL(getFeedURL('haacked'))
-  if (process.env.NODE_ENV !== 'development') {
-    try {
-      autoUpdater.checkForUpdates()
-    } catch (e) {
-      sharedProcess!.console.error(`Error checking for updates: ${e}`)
-    }
-  }
-
   ipcMain.on('menu-event', (event, args) => {
     const { name }: { name: MenuEvent } = event as any
     if (mainWindow) {
@@ -111,10 +86,19 @@ app.on('ready', () => {
     }
   })
 
-  ipcMain.on('set-menu-enabled', (event: Electron.IpcMainEvent, [ { id, enabled } ]: [ { id: string, enabled: boolean } ]) => {
+  ipcMain.on('set-menu-enabled', (event: Electron.IpcMainEvent, { id, enabled }: { id: string, enabled: boolean }) => {
     const menuItem = findMenuItemByID(menu, id)
     if (menuItem) {
       menuItem.enabled = enabled
+    } else {
+      fatalError(`Unknown menu id: ${id}`)
+    }
+  })
+
+  ipcMain.on('set-menu-visible', (event: Electron.IpcMainEvent, { id, visible }: { id: string, visible: boolean }) => {
+    const menuItem = findMenuItemByID(menu, id)
+    if (menuItem) {
+      menuItem.visible = visible
     } else {
       fatalError(`Unknown menu id: ${id}`)
     }
