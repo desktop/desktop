@@ -446,42 +446,9 @@ export class LocalGitOperations {
     // New branches have a `heads/` prefix.
     name = name.replace(/^heads\//, '')
 
-    const format = [
-      '%(upstream:short)',
-      '%(objectname)', // SHA
-      '%(authorname)',
-      '%(authoremail)',
-      '%(authordate)',
-      '%(subject)',
-      '%(body)'
-    ].join('%00')
+    const branches = await LocalGitOperations.getBranches(repository, `refs/heads/${name}`, BranchType.Local)
 
-    const refResult = await git([ 'for-each-ref', `--format=${format}`, `refs/heads/${name}` ], repository.path)
-    const line = refResult.stdout
-
-    const pieces = line.split('\0')
-    if (pieces.length !== 7) {
-      // this is a detached HEAD case, or we're not currently on a branch
-      return null
-    }
-
-    const upstream = pieces[0]
-    const sha = pieces[1].trim()
-
-    const authorName = pieces[2]
-    // author email is wrapped in arrows e.g. <hubot@github.com>
-    const authorEmailRaw = pieces[3]
-    const authorEmail = authorEmailRaw.substring(1, authorEmailRaw.length - 1)
-    const authorDateText = pieces[4]
-    const authorDate = new Date(authorDateText)
-    const summary = pieces[5]
-
-    // TODO: some input munging, especially if it doesn't exist?
-    const body = pieces[6]
-
-    const tip = new Commit(sha, summary, body, authorName, authorEmail, authorDate)
-
-    return new Branch(name, upstream.length > 0 ? upstream : null, sha, tip, BranchType.Local)
+    return branches[0]
   }
 
   /** Get the number of commits in HEAD. */
