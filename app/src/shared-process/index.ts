@@ -26,6 +26,7 @@ const repositoriesStore = new RepositoriesStore(database)
 const broadcastUpdate = () => broadcastUpdate_(usersStore, repositoriesStore)
 
 updateUsers()
+updateIssues()
 
 async function updateUsers() {
   await usersStore.map(async (user: User) => {
@@ -36,6 +37,25 @@ async function updateUsers() {
     return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl, updatedUser.id)
   })
   broadcastUpdate()
+}
+
+async function updateIssues() {
+  console.log('fetching issues…')
+  const users = usersStore.getUsers()
+  for (const user of users) {
+    const api = new API(user)
+    try {
+      const issues = await api.fetchIssues('desktop', 'desktop', 'open', null)
+      console.log('Issues:')
+      console.log(issues)
+      console.log(`(${issues.length})`)
+    } catch (e) {
+      console.log('Error fetching issues:')
+      console.error(e)
+    }
+  }
+
+  console.log('Done')
 }
 
 register('console.log', ({ args }: {args: any[]}) => {

@@ -45,6 +45,11 @@ export interface IAPIEmail {
   readonly primary: boolean
 }
 
+export interface IAPIIssue {
+  readonly number: string
+  readonly title: string
+}
+
 /**
  * An object for making authenticated requests to the GitHub API
  */
@@ -127,6 +132,28 @@ export class API {
     } else {
       return this.client.user.repos.create({ name, description, private: private_ })
     }
+  }
+
+  /**
+   * Fetch the open issues that have been created or updated since the given
+   * date.
+   */
+  public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
+    const results: IAPIIssue[] = []
+    let params = { state }
+    if (since) {
+      params = Object.assign({}, params, { since: since.toISOString })
+    }
+
+    let nextPage = this.client.repos(owner, name).issues
+    while (nextPage) {
+      const request = await nextPage.fetch()
+      const issuesOnly = request.items.filter((i: any) => !i.pullRequest)
+      results.push(...issuesOnly)
+      nextPage = request.nextPage
+    }
+
+    return results
   }
 }
 
