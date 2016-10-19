@@ -88,6 +88,7 @@ export class Branch {
   /** The type of branch, e.g., local or remote. */
   public readonly type: BranchType
 
+  /** The commit associated with this branch */
   public readonly tip: Commit
 
   public constructor(name: string, upstream: string | null, sha: string, tip: Commit, type: BranchType) {
