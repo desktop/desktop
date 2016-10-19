@@ -1,4 +1,7 @@
 import * as chai from 'chai'
+
+chai.use(require('chai-datetime'))
+
 const expect = chai.expect
 
 import { Repository } from '../../src/models/repository'
@@ -53,8 +56,7 @@ describe('git-branches', () => {
       expect(currentBranch!.tip.authorName).to.equal('Brendan Forster')
       expect(currentBranch!.tip.authorEmail).to.equal('brendan@github.com')
       const date = currentBranch!.tip.authorDate
-      const expected = new Date('Tue Oct 18 16:23:42 2016 +1100')
-      expect(date.toString()).to.equal(expected.toString())
+      expect(date).to.equalDate(new Date('Tue Oct 18 16:23:42 2016 +1100'))
     })
   })
 })
