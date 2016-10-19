@@ -495,10 +495,13 @@ export class LocalGitOperations {
 
     const branches = lines.map(line => {
       const pieces = line.split('\0')
-      const name = pieces[0].trim()    // potential preceding newline character
+
+      // preceding newline character after first row
+      const name = pieces[0].trim()
       const upstream = pieces[1]
       const sha = pieces[2]
       const authorName = pieces[3]
+
       // author email is wrapped in arrows e.g. <hubot@github.com>
       const authorEmailRaw = pieces[4]
       const authorEmail = authorEmailRaw.substring(1, authorEmailRaw.length - 1)
@@ -506,7 +509,6 @@ export class LocalGitOperations {
       const authorDate = new Date(authorDateText)
       const summary = pieces[6]
 
-      // TODO: some input munging, especially if it doesn't exist?
       const body = pieces[7]
 
       const tip = new Commit(sha, summary, body, authorName, authorEmail, authorDate)
