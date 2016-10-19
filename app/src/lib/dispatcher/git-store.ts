@@ -1,6 +1,6 @@
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
-import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
+import { LocalGitOperations, Commit, Branch, BranchType, GitResetMode } from '../local-git-operations'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -9,6 +9,12 @@ const LoadingHistoryRequestKey = 'history'
 
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
+
+/** A commit message summary and description. */
+export interface ICommitMessage {
+  readonly summary: string
+  readonly description: string
+}
 
 /** The store for a repository's git data. */
 export class GitStore {
@@ -30,6 +36,10 @@ export class GitStore {
   private _allBranches: ReadonlyArray<Branch> = []
 
   private _recentBranches: ReadonlyArray<Branch> = []
+
+  private _localCommitSHAs: ReadonlyArray<string> = []
+
+  private _contextualCommitMessage: ICommitMessage | null
 
   public constructor(repository: Repository) {
     this.repository = repository
@@ -68,7 +78,7 @@ export class GitStore {
 
     this.requestsInFight.add(LoadingHistoryRequestKey)
 
-    let commits = await this.performFailableOperation(() => LocalGitOperations.getHistory(this.repository, 'HEAD', CommitBatchSize))
+    let commits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, 'HEAD', CommitBatchSize))
     if (!commits) { return }
 
     let existingHistory = this._history
@@ -89,9 +99,7 @@ export class GitStore {
     }
 
     this._history = [ ...commits.map(c => c.sha), ...existingHistory ]
-    for (const commit of commits) {
-      this.commits.set(commit.sha, commit)
-    }
+    this.storeCommits(commits)
 
     this.requestsInFight.delete(LoadingHistoryRequestKey)
 
@@ -111,13 +119,11 @@ export class GitStore {
 
     this.requestsInFight.add(requestKey)
 
-    const commits = await this.performFailableOperation(() => LocalGitOperations.getHistory(this.repository, `${lastSHA}^`, CommitBatchSize))
+    const commits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, `${lastSHA}^`, CommitBatchSize))
     if (!commits) { return }
 
     this._history = this._history.concat(commits.map(c => c.sha))
-    for (const commit of commits) {
-      this.commits.set(commit.sha, commit)
-    }
+    this.storeCommits(commits)
 
     this.requestsInFight.delete(requestKey)
 
@@ -239,6 +245,65 @@ export class GitStore {
     this.emitUpdate()
   }
 
+  /** Load the local commits. */
+  public async loadLocalCommits(branch: Branch): Promise<void> {
+    let localCommits: ReadonlyArray<Commit> | undefined
+    if (branch.upstream) {
+      const revRange = `${branch.upstream}..${branch.name}`
+      localCommits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, revRange, CommitBatchSize))
+    } else {
+      localCommits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, 'HEAD', CommitBatchSize, [ '--not', '--remotes' ]))
+    }
+
+    if (!localCommits) { return }
+
+    this.storeCommits(localCommits)
+    this._localCommitSHAs = localCommits.map(c => c.sha)
+    this.emitUpdate()
+  }
+
+  /**
+   * The ordered array of local commit SHAs. The commits themselves can be
+   * looked up in `commits`.
+   */
+  public get localCommitSHAs(): ReadonlyArray<string> {
+    return this._localCommitSHAs
+  }
+
+  /** Store the given commits. */
+  private storeCommits(commits: ReadonlyArray<Commit>) {
+    for (const commit of commits) {
+      this.commits.set(commit.sha, commit)
+    }
+  }
+
+  /** Undo the given commit. */
+  public async undoCommit(commit: Commit): Promise<void> {
+    // For an initial commit, just delete the reference but leave HEAD. This
+    // will make the branch unborn again.
+    let success: true | undefined = undefined
+    if (!commit.parentSHAs.length) {
+      const branch = this._currentBranch
+      if (branch) {
+        success = await this.performFailableOperation(() => LocalGitOperations.deleteBranch(this.repository, branch))
+      } else {
+        console.error(`Can't undo ${commit.sha} because it doesn't have any parents and there's no current branch. How on earth did we get here?!`)
+        return Promise.resolve()
+      }
+    } else {
+      success = await this.performFailableOperation(() => LocalGitOperations.reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0]))
+    }
+
+    if (success) {
+      this._contextualCommitMessage = {
+        summary: commit.summary,
+        description: commit.body,
+      }
+    }
+
+    this.emitUpdate()
+  }
+
   /**
    * Perform an operation that may fail by throwing an error. If an error is
    * thrown, catch it and emit it, and return `undefined`.
@@ -251,5 +316,20 @@ export class GitStore {
       this.emitError(e)
       return undefined
     }
+  }
+
+  /**
+   * The commit message to use based on the contex of the repository, e.g., the
+   * message from a recently undone commit.
+   */
+  public get contextualCommitMessage(): ICommitMessage | null {
+    return this._contextualCommitMessage
+  }
+
+  /** Clear the contextual commit message. */
+  public clearContextualCommitMessage(repository: Repository): Promise<void> {
+    this._contextualCommitMessage = null
+    this.emitUpdate()
+    return Promise.resolve()
   }
 }

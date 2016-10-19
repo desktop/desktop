@@ -7,6 +7,8 @@ import { Repository } from '../../models/repository'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
 import { CommitIdentity } from '../../models/commit-identity'
+import { Commit } from '../../lib/local-git-operations'
+import { UndoCommit } from './undo-commit'
 
 interface IChangesProps {
   readonly repository: Repository
@@ -16,11 +18,20 @@ interface IChangesProps {
   readonly branch: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
+  readonly mostRecentLocalCommit: Commit | null
 }
 
 /** TODO: handle "repository not found" scenario */
 
 export class Changes extends React.Component<IChangesProps, void> {
+  public componentWillReceiveProps(nextProps: IChangesProps) {
+    if (nextProps.changes.contextualCommitMessage) {
+      // Once we receive the contextual commit message we can clear it. We don't
+      // want to keep receiving it.
+      nextProps.dispatcher.clearContextualCommitMessage(this.props.repository)
+    }
+  }
+
   private onCreateCommit(summary: string, description: string) {
     this.props.dispatcher.commitIncludedChanges(this.props.repository, summary, description)
   }
@@ -119,6 +130,16 @@ export class Changes extends React.Component<IChangesProps, void> {
     )
   }
 
+  private renderMostRecentLocalCommit() {
+    const commit = this.props.mostRecentLocalCommit
+    if (!commit) { return null }
+
+    return <UndoCommit
+      commit={commit}
+      onUndo={() => this.props.dispatcher.undoCommit(this.props.repository, commit)}
+      emoji={this.props.emoji}/>
+  }
+
   public render() {
     const selectedPath = this.props.changes.selectedFile ? this.props.changes.selectedFile!.path : null
 
@@ -148,7 +169,9 @@ export class Changes extends React.Component<IChangesProps, void> {
                        commitAuthor={this.props.commitAuthor}
                        branch={this.props.branch}
                        avatarURL={avatarURL}
-                       emoji={this.props.emoji}/>
+                       emoji={this.props.emoji}
+                       contextualCommitMessage={this.props.changes.contextualCommitMessage}/>
+          {this.renderMostRecentLocalCommit()}
         </Resizable>
 
         {this.renderDiff()}

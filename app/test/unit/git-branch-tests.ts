@@ -41,6 +41,7 @@ describe('git-branches', () => {
       expect(master.upstream).to.be.null
       expect(master.tip.sha).to.equal('b9ccfc3307240b86447bca2bd6c51a4bb4ade493')
       expect(master.tip.summary).to.equal('stubbed a README')
+      expect(master.tip.parentSHAs.length).to.equal(1)
     })
   })
 
@@ -57,6 +58,8 @@ describe('git-branches', () => {
       expect(currentBranch!.tip.authorEmail).to.equal('brendan@github.com')
       const date = currentBranch!.tip.authorDate
       expect(date).to.equalDate(new Date('Tue Oct 18 16:23:42 2016 +1100'))
+
+      expect(currentBranch!.tip.parentSHAs.length).to.equal(1)
     })
   })
 })

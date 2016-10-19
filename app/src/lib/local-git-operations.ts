@@ -13,6 +13,8 @@ import { User } from '../models/user'
 import { formatPatch } from './patch-formatter'
 import { parsePorcelainStatus } from './status-parser'
 
+import { assertNever } from './fatal-error'
+
 const byline = require('byline')
 
 /** The encapsulation of the result from 'git status' */
@@ -59,13 +61,17 @@ export class Commit {
   /** The commit timestamp (with timezone information) */
   public readonly authorDate: Date
 
-  public constructor(sha: string, summary: string, body: string, authorName: string, authorEmail: string, authorDate: Date) {
+  /** The SHAs for the parents of the commit. */
+  public readonly parentSHAs: ReadonlyArray<string>
+
+  public constructor(sha: string, summary: string, body: string, authorName: string, authorEmail: string, authorDate: Date, parentSHAs: ReadonlyArray<string>) {
     this.sha = sha
     this.summary = summary
     this.body = body
     this.authorName = authorName
     this.authorEmail = authorEmail
     this.authorDate = authorDate
+    this.parentSHAs = parentSHAs
   }
 }
 
@@ -122,6 +128,13 @@ export class Branch {
       return pieces[1]
     }
   }
+}
+
+/** The reset modes which are supported. */
+export const enum GitResetMode {
+  Hard = 0,
+  Soft,
+  Mixed,
 }
 
 /**
@@ -277,9 +290,9 @@ export class LocalGitOperations {
   }
 
   /**
-   * Get the repository's history, starting from `start` and limited to `limit`
+   * Get the repository's commits using `revisionRange` and limited to `limit`
    */
-  public static async getHistory(repository: Repository, start: string, limit: number): Promise<ReadonlyArray<Commit>> {
+  public static async getCommits(repository: Repository, revisionRange: string, limit: number, additionalArgs: ReadonlyArray<string> = []): Promise<ReadonlyArray<Commit>> {
     const delimiter = '1F'
     const delimiterString = String.fromCharCode(parseInt(delimiter, 16))
     const prettyFormat = [
@@ -289,9 +302,10 @@ export class LocalGitOperations {
       '%an', // author name
       '%ae', // author email
       '%aI', // author date, ISO-8601
+      '%P', // parent SHAs
     ].join(`%x${delimiter}`)
 
-    const result = await git([ 'log', start, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color' ], repository.path,  { successExitCodes: new Set([ 0, 128 ]) })
+    const result = await git([ 'log', revisionRange, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color', ...additionalArgs ], repository.path,  { successExitCodes: new Set([ 0, 128 ]) })
 
     // if the repository has an unborn HEAD, return an empty history of commits
     if (result.exitCode === 128) {
@@ -312,7 +326,8 @@ export class LocalGitOperations {
       const authorEmail = pieces[4]
       const parsedDate = Date.parse(pieces[5])
       const authorDate = new Date(parsedDate)
-      return new Commit(sha, summary, body, authorName, authorEmail, authorDate)
+      const parentSHAs = pieces[6].split(' ')
+      return new Commit(sha, summary, body, authorName, authorEmail, authorDate, parentSHAs)
     })
 
     return commits
@@ -479,6 +494,7 @@ export class LocalGitOperations {
       '%(authorname)',
       '%(authoremail)',
       '%(authordate)',
+      '%(parent)', // parent SHAs
       '%(subject)',
       '%(body)',
       `%${delimiter}`, // indicate end-of-line as %(body) may contain newlines
@@ -504,11 +520,14 @@ export class LocalGitOperations {
       const authorEmail = authorEmailRaw.substring(1, authorEmailRaw.length - 1)
       const authorDateText = pieces[5]
       const authorDate = new Date(authorDateText)
-      const summary = pieces[6]
 
-      const body = pieces[7]
+      const parentSHAs = pieces[6].split(' ')
 
-      const tip = new Commit(sha, summary, body, authorName, authorEmail, authorDate)
+      const summary = pieces[7]
+
+      const body = pieces[8]
+
+      const tip = new Commit(sha, summary, body, authorName, authorEmail, authorDate, parentSHAs)
 
       return new Branch(name, upstream.length > 0 ? upstream : null, tip, type)
     })
@@ -572,7 +591,7 @@ export class LocalGitOperations {
 
   /** Get the commit for the given ref. */
   public static async getCommit(repository: Repository, ref: string): Promise<Commit | null> {
-    const commits = await LocalGitOperations.getHistory(repository, ref, 1)
+    const commits = await LocalGitOperations.getCommits(repository, ref, 1)
     if (commits.length < 1) { return null }
 
     return commits[0]
@@ -624,19 +643,17 @@ export class LocalGitOperations {
    * Delete the branch. If the branch has a remote branch, it too will be
    * deleted.
    */
-  public static async deleteBranch(repository: Repository, branch: Branch): Promise<void> {
-    const deleteRemoteBranch = (branch: Branch, remote: string) => {
-      return git([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path)
-    }
-
+  public static async deleteBranch(repository: Repository, branch: Branch): Promise<true> {
     if (branch.type === BranchType.Local) {
       await git([ 'branch', '-D', branch.name ], repository.path)
     }
 
     const remote = branch.remote
     if (remote) {
-      await deleteRemoteBranch(branch, remote)
+      await git([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path)
     }
+
+    return true
   }
 
   /** Add a new remote with the given URL. */
@@ -647,5 +664,21 @@ export class LocalGitOperations {
   /** Check out the paths at HEAD. */
   public static checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
     return git([ 'checkout', '--', ...paths ], repository.path)
+  }
+
+  /** Reset with the mode to the ref. */
+  public static async reset(repository: Repository, mode: GitResetMode, ref: string): Promise<true> {
+    const modeFlag = resetModeToFlag(mode)
+    await git([ 'reset', modeFlag, ref, '--' ], repository.path)
+    return true
+  }
+}
+
+function resetModeToFlag(mode: GitResetMode): string {
+  switch (mode) {
+    case GitResetMode.Hard: return '--hard'
+    case GitResetMode.Mixed: return '--mixed'
+    case GitResetMode.Soft: return '--soft'
+    default: return assertNever(mode, `Unknown reset mode: ${mode}`)
   }
 }

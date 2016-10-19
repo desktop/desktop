@@ -6,7 +6,7 @@ import { Branch, BranchType, Commit } from '../../src/lib/local-git-operations'
 
 describe('Branches grouping', () => {
 
-  const commit = new Commit('300acef', 'summary', 'body', 'Hubot', 'hubot@github.com', new Date())
+  const commit = new Commit('300acef', 'summary', 'body', 'Hubot', 'hubot@github.com', new Date(), [])
 
   const currentBranch = new Branch('master', null, commit, BranchType.Local)
   const defaultBranch = new Branch('master', null, commit, BranchType.Local)
