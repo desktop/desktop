@@ -72,6 +72,9 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
 
   private providers: ReadonlyArray<IAutocompletionProvider<any>>
 
+  /** The identifier for each autocompletion request. */
+  private autocompletionRequestID = 0
+
   public constructor(props: IAutocompletingTextInputProps<ElementType>) {
     super(props)
 
@@ -263,7 +266,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     }
   }
 
-  private attemptAutocompletion(str: string, caretPosition: number): IAutocompletionState<any> | null {
+  private async attemptAutocompletion(str: string, caretPosition: number): Promise<IAutocompletionState<any> | null> {
     for (const provider of this.providers) {
       // NB: RegExps are stateful (AAAAAAAAAAAAAAAAAA) so defensively copy the
       // regex we're given.
@@ -279,7 +282,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
         const text = result[1] || ''
         if (index === caretPosition) {
           const range = { start: index - text.length, length: text.length }
-          const items = provider.getAutocompletionItems(text)
+          const items = await provider.getAutocompletionItems(text)
 
           const selectedItem = items[0]
           return { provider, items, range, selectedItem, rangeText: text }
@@ -290,14 +293,20 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     return null
   }
 
-  private onChange(event: React.FormEvent<ElementType>) {
+  private async onChange(event: React.FormEvent<ElementType>) {
     if (this.props.onChange) {
       this.props.onChange(event)
     }
 
     const str = event.currentTarget.value
     const caretPosition = this.element!.selectionStart
-    const autocompletionState = this.attemptAutocompletion(str, caretPosition)
+    const requestID = this.autocompletionRequestID++
+    const autocompletionState = await this.attemptAutocompletion(str, caretPosition)
+
+    // If another autocompletion request is in flight, then ignore these
+    // results.
+    if (requestID !== this.autocompletionRequestID) { return }
+
     this.setState({ autocompletionState })
   }
 }

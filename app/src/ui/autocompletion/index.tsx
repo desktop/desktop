@@ -22,7 +22,7 @@ export interface IAutocompletionProvider<T> {
    * Get the autocompletion results for the given text. The text is whatever was
    * captured in the first group by the regex returned from `getRegExp`.
    */
-  getAutocompletionItems(text: string): ReadonlyArray<T>
+  getAutocompletionItems(text: string): Promise<ReadonlyArray<T>>
 
   /**
    * Render the autocompletion item. The item will be one which the provider
