@@ -82,19 +82,15 @@ export class Branch {
   /** The remote-prefixed upstream name. E.g., `origin/master`. */
   public readonly upstream: string | null
 
-  /** The SHA for the tip of the branch. */
-  public readonly sha: string
-
   /** The type of branch, e.g., local or remote. */
   public readonly type: BranchType
 
   /** The commit associated with this branch */
   public readonly tip: Commit
 
-  public constructor(name: string, upstream: string | null, sha: string, tip: Commit, type: BranchType) {
+  public constructor(name: string, upstream: string | null, tip: Commit, type: BranchType) {
     this.name = name
     this.upstream = upstream
-    this.sha = sha
     this.tip = tip
     this.type = type
   }
@@ -514,7 +510,7 @@ export class LocalGitOperations {
 
       const tip = new Commit(sha, summary, body, authorName, authorEmail, authorDate)
 
-      return new Branch(name, upstream.length > 0 ? upstream : null, sha, tip, type)
+      return new Branch(name, upstream.length > 0 ? upstream : null, tip, type)
     })
 
     return branches

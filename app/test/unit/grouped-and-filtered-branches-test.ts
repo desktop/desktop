@@ -8,12 +8,12 @@ describe('Branches grouping', () => {
 
   const commit = new Commit('300acef', 'summary', 'body', 'Hubot', 'hubot@github.com', new Date())
 
-  const currentBranch = new Branch('master', null, '', commit, BranchType.Local)
-  const defaultBranch = new Branch('master', null, '', commit, BranchType.Local)
+  const currentBranch = new Branch('master', null, commit, BranchType.Local)
+  const defaultBranch = new Branch('master', null, commit, BranchType.Local)
   const recentBranches = [
-    new Branch('some-recent-branch', null, '', commit, BranchType.Local),
+    new Branch('some-recent-branch', null, commit, BranchType.Local),
   ]
-  const otherBranch = new Branch('other-branch', null, '', commit, BranchType.Local)
+  const otherBranch = new Branch('other-branch', null, commit, BranchType.Local)
 
   const allBranches = [
     currentBranch,
