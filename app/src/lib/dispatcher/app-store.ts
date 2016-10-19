@@ -29,6 +29,7 @@ import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
 import { EmojiStore } from './emoji-store'
 import { GitStore } from './git-store'
+import { assertNever } from '../fatal-error'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -124,6 +125,7 @@ export class AppStore {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
         selectedFile: null,
         diff: null,
+        contextualCommitMessage: null,
       },
       selectedSection: RepositorySection.Changes,
       branchesState: {
@@ -135,6 +137,7 @@ export class AppStore {
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
       commits: new Map<string, Commit>(),
+      localCommitSHAs: [],
     }
   }
 
@@ -151,6 +154,7 @@ export class AppStore {
         commitAuthor: state.commitAuthor,
         gitHubUsers,
         commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
       }
     }
 
@@ -175,6 +179,7 @@ export class AppStore {
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
       }
     })
   }
@@ -190,6 +195,7 @@ export class AppStore {
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
       }
     })
   }
@@ -205,6 +211,7 @@ export class AppStore {
         branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
       }
     })
   }
@@ -265,6 +272,15 @@ export class AppStore {
       }
     })
 
+    this.updateChangesState(repository, state => {
+      return {
+        workingDirectory: state.workingDirectory,
+        selectedFile: state.selectedFile,
+        diff: state.diff,
+        contextualCommitMessage: gitStore.contextualCommitMessage,
+      }
+    })
+
     this.updateRepositoryState(repository, state => {
       return {
         historyState: state.historyState,
@@ -274,6 +290,7 @@ export class AppStore {
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: gitStore.commits,
+        localCommitSHAs: gitStore.localCommitSHAs,
       }
     })
 
@@ -573,6 +590,7 @@ export class AppStore {
         // file is no longer selectable (it was reverted or committed) but
         // if it hasn't changed we can reuse the diff
         diff: fileSelectionChanged ? null : state.diff,
+        contextualCommitMessage: state.contextualCommitMessage,
       }
     })
     this.emitUpdate()
@@ -591,14 +609,15 @@ export class AppStore {
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
       }
     })
     this.emitUpdate()
 
     if (section === RepositorySection.History) {
-      return this._loadHistory(repository)
+      return this.refreshHistorySection(repository)
     } else if (section === RepositorySection.Changes) {
-      return this._loadStatus(repository)
+      return this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: false })
     }
   }
 
@@ -610,6 +629,7 @@ export class AppStore {
         workingDirectory: state.workingDirectory,
         selectedFile,
         diff: null,
+        contextualCommitMessage: state.contextualCommitMessage,
       }
     })
     this.emitUpdate()
@@ -659,6 +679,7 @@ export class AppStore {
         workingDirectory: state.workingDirectory,
         selectedFile,
         diff,
+        contextualCommitMessage: state.contextualCommitMessage,
       }
     })
 
@@ -675,7 +696,7 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => LocalGitOperations.createCommit(repository, summary, description, files))
 
-    return this._loadStatus(repository, true)
+    return this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
   }
 
   private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {
@@ -711,9 +732,9 @@ export class AppStore {
    */
   private updateWorkingDirectoryFileSelection(repository: Repository, file: WorkingDirectoryFileChange, selection: DiffSelection) {
 
-    this.updateRepositoryState(repository, state => {
+    this.updateChangesState(repository, state => {
 
-      const newFiles = state.changesState.workingDirectory.files.map(
+      const newFiles = state.workingDirectory.files.map(
         f => f.id === file.id
               ? f.withSelection(selection)
               : f
@@ -722,26 +743,19 @@ export class AppStore {
       const includeAll = this.getIncludeAllState(newFiles)
 
       let selectedFile: WorkingDirectoryFileChange | undefined
-      if (state.changesState.selectedFile) {
-          const f = state.changesState.selectedFile
+      if (state.selectedFile) {
+          const f = state.selectedFile
           selectedFile = newFiles.find(file => file.id === f.id)
       }
 
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
-      const diff = selectedFile ? state.changesState.diff : null
+      const diff = selectedFile ? state.diff : null
 
       return {
-        selectedSection: state.selectedSection,
-        changesState: {
-          workingDirectory,
-          selectedFile: selectedFile || null,
-          diff,
-        },
-        historyState: state.historyState,
-        commitAuthor: state.commitAuthor,
-        branchesState: state.branchesState,
-        gitHubUsers: state.gitHubUsers,
-        commits: state.commits,
+        workingDirectory,
+        selectedFile: selectedFile || null,
+        diff,
+        contextualCommitMessage: state.contextualCommitMessage,
       }
     })
 
@@ -760,6 +774,7 @@ export class AppStore {
         workingDirectory: state.workingDirectory.withIncludeAllFiles(includeAll),
         selectedFile: selectedFile,
         diff: state.diff,
+        contextualCommitMessage: state.contextualCommitMessage,
       }
     })
     this.emitUpdate()
@@ -783,8 +798,39 @@ export class AppStore {
 
     const section = state.selectedSection
     if (section === RepositorySection.History) {
-      return this._loadHistory(repository)
+      return this.refreshHistorySection(repository)
+    } else if (section === RepositorySection.Changes) {
+      return this.refreshChangesSection(repository, { includingStatus: false, clearPartialState: false })
+    } else {
+      return assertNever(section, `Unknown section: ${section}`)
     }
+  }
+
+  /**
+   * Refresh all the data for the Changes section.
+   *
+   * This will be called automatically when appropriate.
+   */
+  private async refreshChangesSection(repository: Repository, options: { includingStatus: boolean, clearPartialState: boolean }): Promise<void> {
+    if (options.includingStatus) {
+      await this._loadStatus(repository, options.clearPartialState)
+    }
+
+    const gitStore = this.getGitStore(repository)
+    const state = this.getRepositoryState(repository)
+    const currentBranch = state.branchesState.currentBranch
+    if (currentBranch) {
+      await gitStore.loadLocalCommits(currentBranch)
+    }
+  }
+
+  /**
+   * Refresh all the data for the History section.
+   *
+   * This will be called automatically when appropriate.
+   */
+  private async refreshHistorySection(repository: Repository): Promise<void> {
+    return this._loadHistory(repository)
   }
 
   private async refreshAuthor(repository: Repository): Promise<void> {
@@ -800,6 +846,7 @@ export class AppStore {
         branchesState: state.branchesState,
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
       }
     })
     this.emitUpdate()
@@ -945,10 +992,12 @@ export class AppStore {
     const user = this.getUserForRepository(repository)
     const upstream = branch.upstream
     if (upstream) {
-      return gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, false))
+      await gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, false))
     } else {
-      return gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, true))
+      await gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, true))
     }
+
+    return this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1012,5 +1061,17 @@ export class AppStore {
     await gitStore.performFailableOperation(() => LocalGitOperations.checkoutPaths(repository, modifiedFiles.map(f => f.path)))
 
     return this._refreshRepository(repository)
+  }
+
+  public async _undoCommit(repository: Repository, commit: Commit): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    await gitStore.undoCommit(commit)
+
+    return this._refreshRepository(repository)
+  }
+
+  public _clearContextualCommitMessage(repository: Repository): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.clearContextualCommitMessage(repository)
   }
 }
