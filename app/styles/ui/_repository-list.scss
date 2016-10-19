@@ -2,6 +2,10 @@
 
 /** A <List> React component holding all tracked repositories in the sidebar */
 #repository-list {
+  @include win32 {
+    // Align the repo list with the add-repo button
+    margin-top: -37px;
+  }
 
   /**
    * Container for repository list items in the sidebar
@@ -45,4 +49,26 @@
     padding: 0 5px 0 20px;
     margin-top: var(--spacing);
   }
+}
+
+.repo-controls {
+  text-align: right;
+  padding: 0 var(--spacing) var(--spacing);
+  z-index: 2;
+
+  @include darwin {
+    // Moves the "add repo" button closer to the edge of the interace window.
+    margin-top: calc(-1 * calc(var(--darwin-title-bar-height) - var(--spacing)));
+  }
+
+  @include win32 {
+    // Moves the "add repo" button closer to the edge of the interface window.
+    margin-top: calc(-1 * var(--spacing-half));
+  }
+}
+
+.repository-list-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }

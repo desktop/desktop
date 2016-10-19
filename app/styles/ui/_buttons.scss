@@ -25,3 +25,33 @@ input[type='submit'] {
 
   &:disabled { opacity: 0.3; }
 }
+
+.btn-alt {
+  border: none;
+  border-radius: var(--border-radius);
+  background: var(--button-alt-background);
+  color: var(--background-color);
+  padding: var(--spacing-half) var(--spacing);
+  box-shadow: 0 0 2px var(--button-alt-shadow);
+
+  .octicon path {
+    fill: var(--alt-background-color);
+  }
+
+  &:hover {
+    background: var(--button-alt-hover-background);
+  }
+
+  &:active {
+    box-shadow: inset 0 0 2px var(--button-alt-shadow);
+    background: var(--button-alt-active-background);
+  }
+}
+
+.btn-icon-only {
+  padding: var(--spacing-half) var(--spacing);
+
+  .octicon {
+    vertical-align: text-top;
+  }
+}
