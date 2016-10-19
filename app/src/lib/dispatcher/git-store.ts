@@ -187,7 +187,6 @@ export class GitStore {
 
     this.loadRecentBranches()
 
-    // TODO: do we need to be distinct here?
     const commits = allBranches.map(b => b.tip)
 
     for (const commit of commits) {
