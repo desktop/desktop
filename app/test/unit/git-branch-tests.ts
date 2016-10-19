@@ -28,6 +28,8 @@ describe('git-branches', () => {
       expect(commitWithBody.tip.sha).to.equal('dfa96676b65e1c0ed43ca25492252a5e384c8efd')
       expect(commitWithBody.tip.summary).to.equal('this is a commit title')
       expect(commitWithBody.tip.body).to.contain('lucky last')
+      expect(commitWithBody.tip.parentSHAs.length).to.equal(1)
+
 
       const commitNoBody = branches[1]
       expect(commitNoBody.name).to.equal('commit-with-no-body')
@@ -35,6 +37,7 @@ describe('git-branches', () => {
       expect(commitNoBody.tip.sha).to.equal('49ec1e05f39eef8d1ab6200331a028fb3dd96828')
       expect(commitNoBody.tip.summary).to.equal('this is a commit title')
       expect(commitNoBody.tip.body.length).to.equal(0)
+      expect(commitNoBody.tip.parentSHAs.length).to.equal(1)
 
       const master = branches[2]
       expect(master.name).to.equal('master')
