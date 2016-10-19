@@ -4,9 +4,11 @@ import { SharedProcess } from '../shared-process/shared-process'
 export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
                         'add-local-repository' | 'create-branch' |
                         'show-branches' | 'remove-repository' | 'add-repository' |
-                        'rename-branch' | 'delete-branch'
+                        'rename-branch' | 'delete-branch' | 'check-for-updates' |
+                        'quit-and-install-update'
 
-export type MenuIDs = 'rename-branch' | 'delete-branch'
+export type MenuIDs = 'rename-branch' | 'delete-branch' | 'check-for-updates' |
+                      'checking-for-updates' | 'downloading-update' | 'quit-and-install-update'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Object[] = [
@@ -174,6 +176,35 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       label: 'GitHub',
       submenu: [
         { role: 'about' },
+        { type: 'separator' },
+        {
+          label: 'Check for Updates…',
+          id: 'check-for-updates',
+          visible: true,
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('check-for-updates')
+          },
+        },
+        {
+          label: 'Checking for updates…',
+          id: 'checking-for-updates',
+          visible: false,
+          enabled: false,
+        },
+        {
+          label: 'Downloading update…',
+          id: 'downloading-update',
+          visible: false,
+          enabled: false,
+        },
+        {
+          label: 'Quit and Install Update',
+          id: 'quit-and-install-update',
+          visible: false,
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('quit-and-install-update')
+          },
+        },
         { type: 'separator' },
         {
           role: 'services',
