@@ -2,7 +2,7 @@ import * as React from 'react'
 import { List } from '../list'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
-import { Branch, Commit } from '../../lib/local-git-operations'
+import { Branch } from '../../lib/local-git-operations'
 import { groupedAndFilteredBranches, BranchListItemModel } from './grouped-and-filtered-branches'
 import { BranchListItem } from './branch'
 
@@ -15,7 +15,6 @@ interface IBranchesProps {
   readonly recentBranches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly commits: Map<string, Commit>
 }
 
 interface IBranchesState {
