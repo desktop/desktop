@@ -90,16 +90,54 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.lineCleanup.clear()
   }
 
-  private onMouseMove(index: Number) {
-    console.log(`mouse move: ${index}`)
+  private isMouseDown: Boolean = false
+  private selectedRows: Array<number> = [ ]
+
+  private onMouseMove(index: number) {
+    if (!this.isMouseDown) {
+      return
+    }
+
+    if (this.selectedRows.indexOf(index) === -1) {
+      console.log(`dragging over row: ${index}`)
+
+      this.selectedRows.push(index)
+    }
   }
 
-  private onMouseDown(index: Number) {
+  private onMouseDown(index: number) {
     console.log(`mouse down: ${index}`)
+
+    this.isMouseDown = true
+    this.selectedRows = [ ]
   }
 
-  private onMouseUp(index: Number) {
+  private onMouseUp(index: number) {
     console.log(`mouse up: ${index}`)
+
+    this.isMouseDown = false
+
+    if (!this.props.onIncludeChanged) {
+      return
+    }
+
+    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
+      console.error('cannot change selected lines when selected file is not a WorkingDirectoryFileChange')
+      return
+    }
+
+    const length = this.selectedRows.length
+    const first = this.selectedRows[0]
+    const last = this.selectedRows[length - 1]
+
+    // the start should be the lower of the two values
+    const start = first < last ? first : last
+
+    const isSelected = !this.props.file.selection.isSelected(index)
+
+    const newDiffSelection = this.props.file.selection.withRangeSelection(start, length, isSelected)
+
+    this.props.onIncludeChanged(newDiffSelection)
   }
 
   private onIncludeChanged(line: DiffLine, rowIndex: number) {
