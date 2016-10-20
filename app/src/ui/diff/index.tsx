@@ -48,6 +48,87 @@ interface IDiffProps {
   readonly dispatcher: Dispatcher
 }
 
+class DiffGutterSelectionState {
+  private readonly _start: number
+  private readonly _initialSelection: boolean
+
+  private _current: number
+
+  public constructor(start: number, selected: boolean) {
+    this._start = start
+    this._current = start
+    this._initialSelection = selected
+  }
+
+  /**
+   * track the number of selected rows for the current drag-and-drop operation
+   */
+  public get selectedRowRange(): ReadonlyArray<number> {
+
+    const lower = this.lowerIndex
+    const upper = this.upperIndex
+
+      // this is a bastardized version of range(lower...upper)
+    const values = Array.prototype.map.call(' '.repeat(1 + upper - lower), (v: any, i: number) => i + lower)
+
+    return values
+  }
+
+  /**
+   * Return the lower bounds of the selection range
+   */
+  public get lowerIndex(): number {
+    if (this._start <= this._current) {
+      return this._start
+    }
+
+    return this._current
+  }
+
+
+  /**
+   * Return the upper bounds of the selection range
+   */
+  private get upperIndex(): number {
+    if (this._start <= this._current) {
+      return this._current
+    }
+
+    return this._start
+  }
+
+  /**
+   * Return the index associated with the start of this gesture
+   */
+  public get initialIndex(): number {
+      return this._start
+  }
+
+  /**
+   * Return the index associated with the start of this gesture
+   */
+
+  public get initialSelectionState(): boolean {
+    return this._initialSelection
+  }
+
+  /**
+   *
+   */
+  public updateRangeSelection(current: number) {
+    this._current = current
+  }
+
+  public get length(): number {
+    if (this._start <= this._current) {
+      return this._current - this._start + 1
+    }
+
+    return this._start - this._current + 1
+  }
+}
+
+
 /** A component which renders a diff for a file. */
 export class Diff extends React.Component<IDiffProps, void> {
   private codeMirror: any | null
@@ -67,14 +148,9 @@ export class Diff extends React.Component<IDiffProps, void> {
   private readonly lineCleanup = new Map<any, Disposable>()
 
   /**
-   * internal state for determining whether the diff gutter is interacted with
+   * Maintain the current state of the user interacting with the diff gutter
    */
-  private isDragDropActive: boolean = false
-
-  /**
-   * track the number of selected rows for the current drag-and-drop operation
-   */
-  private selectedRows: Array<number> = [ ]
+  private diffGutterSelectionState: DiffGutterSelectionState | null = null
 
   /**
    *  oh god i hate everything
@@ -106,15 +182,6 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.lineCleanup.clear()
   }
 
-  private getInitialSelectedRow() {
-    const length = this.selectedRows.length
-    const first = this.selectedRows[0]
-    const last = this.selectedRows[length - 1]
-
-    // the start should be the lesser of the two values
-    return first < last ? first : last
-  }
-
   private repaintSelectedRows() {
 
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
@@ -122,10 +189,14 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    const start = this.getInitialSelectedRow()
-    const selected = this.props.file.selection.isSelected(start)
+    const state = this.diffGutterSelectionState
+    if(!state) {
+      return
+    }
 
-    this.selectedRows.forEach(row => {
+    const selected = state.initialSelectionState
+
+    state.selectedRowRange.forEach(row => {
       const element = this.existingGutterElements.get(row)
       if (element) {
         if(selected) {
@@ -141,31 +212,27 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onMouseMove(index: number) {
-    if (this.props.readOnly || !this.isDragDropActive) {
+
+    const state = this.diffGutterSelectionState
+
+    if (this.props.readOnly || !state) {
       return
     }
 
-    if (this.selectedRows.indexOf(index) === -1) {
-      this.selectedRows.push(index)
-    }
-
+    state.updateRangeSelection(index)
     this.repaintSelectedRows()
   }
 
-  private onMouseDown(index: number) {
+  private onMouseDown(index: number, selected: boolean) {
     if (this.props.readOnly) {
       return
     }
 
-    this.isDragDropActive = true
-    this.selectedRows = [ index ]
-
+    this.diffGutterSelectionState = new DiffGutterSelectionState(index, selected)
     this.repaintSelectedRows()
   }
 
   private onMouseUp(index: number) {
-    this.isDragDropActive = false
-
     if (this.props.readOnly || !this.props.onIncludeChanged) {
       return
     }
@@ -175,17 +242,24 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    // the drag-and-drop is completed, let's update the diff
-    const start = this.getInitialSelectedRow()
-    const length = this.selectedRows.length
+    const state = this.diffGutterSelectionState
 
-    // check the selection of the first row that the user selected
-    const first = this.selectedRows[0]
-    const isSelected = this.props.file.selection.isSelected(first)
+    if (!state) {
+      return
+    }
+
+    // the drag-and-drop is completed, let's update the diff
+    const start = state.lowerIndex
+    const length = state.length
+    const isSelected = state.initialSelectionState
+
+    console.log(`diff: [${start} -> ${length}] - ${isSelected}`)
 
     const newDiffSelection = this.props.file.selection.withRangeSelection(start, length, !isSelected)
 
     this.props.onIncludeChanged(newDiffSelection)
+
+    this.diffGutterSelectionState = null
   }
 
   private isIncludableLine(line: DiffLine): boolean {
@@ -241,7 +315,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           }
         }
 
-        const mouseDownHandler = (ev: UIEvent) => this.onMouseDown(index)
+        const mouseDownHandler = (ev: UIEvent) => this.onMouseDown(index, isIncluded)
 
         const mouseMoveHandler = (ev: UIEvent) => {
 
@@ -316,7 +390,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private cancelSelectionChange = () => {
-    return this.isDragDropActive
+    return this.diffGutterSelectionState != null
   }
 
   private restoreScrollPosition(cm: Editor) {
