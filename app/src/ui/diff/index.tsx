@@ -181,7 +181,6 @@ export class Diff extends React.Component<IDiffProps, void> {
     const length = this.selectedRows.length
     const first = this.selectedRows[0]
 
-    // the start should be the lower of the two values
     const start = this.getInitialSelectedRow()
 
     // check the selection of the first row that the user selected
@@ -245,9 +244,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           }
         }
 
-        const mouseDownHandler = (ev: UIEvent) => {
-          this.onMouseDown(index)
-        }
+        const mouseDownHandler = (ev: UIEvent) => this.onMouseDown(index)
 
         const mouseMoveHandler = (ev: UIEvent) => {
 
@@ -256,9 +253,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           this.onMouseMove(index)
         }
 
-        const mouseUpHandler = (ev: UIEvent) => {
-          this.onMouseUp(index)
-        }
+        const mouseUpHandler = (ev: UIEvent) => this.onMouseUp(index)
 
         reactContainer.addEventListener('mouseenter', mouseEnterHandler)
         reactContainer.addEventListener('mouseleave', mouseLeaveHandler)
