@@ -18,6 +18,7 @@ import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { getDiffMode } from './diff-mode'
+import { DiffGutterSelectionState } from './diff-gutter-selection-state'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
@@ -47,89 +48,6 @@ interface IDiffProps {
   /** propagate errors up to the main application */
   readonly dispatcher: Dispatcher
 }
-
-class DiffGutterSelectionState {
-  private readonly _start: number
-  private readonly _initialSelection: boolean
-  private readonly _snapshot: DiffSelection
-
-  private _current: number
-
-  public constructor(start: number, selected: boolean, snapshot: DiffSelection) {
-    this._start = start
-    this._current = start
-    this._initialSelection = selected
-    this._snapshot = snapshot
-  }
-
-  /**
-   * track the number of selected rows for the current drag-and-drop operation
-   */
-  public get selectedRowRange(): ReadonlyArray<number> {
-
-    const lower = this.lowerIndex
-    const upper = this.upperIndex
-
-      // this is a bastardized version of range(lower...upper)
-    const values = Array.prototype.map.call(' '.repeat(1 + upper - lower), (v: any, i: number) => i + lower)
-
-    return values
-  }
-
-  /**
-   * Return the lower bounds of the selection range
-   */
-  public get lowerIndex(): number {
-    if (this._start <= this._current) {
-      return this._start
-    }
-
-    return this._current
-  }
-
-
-  /**
-   * Return the upper bounds of the selection range
-   */
-  private get upperIndex(): number {
-    if (this._start <= this._current) {
-      return this._current
-    }
-
-    return this._start
-  }
-
-  /**
-   * Return the index associated with the start of this gesture
-   */
-  public get initialIndex(): number {
-      return this._start
-  }
-
-  /**
-   * Return the index associated with the start of this gesture
-   */
-
-  public get initialSelectionState(): boolean {
-    return this._initialSelection
-  }
-
-  /**
-   *
-   */
-  public updateRangeSelection(current: number) {
-    this._current = current
-  }
-
-  public get length(): number {
-    if (this._start <= this._current) {
-      return this._current - this._start + 1
-    }
-
-    return this._start - this._current + 1
-  }
-}
-
 
 /** A component which renders a diff for a file. */
 export class Diff extends React.Component<IDiffProps, void> {
