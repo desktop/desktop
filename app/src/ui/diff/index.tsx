@@ -90,6 +90,18 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.lineCleanup.clear()
   }
 
+  private onMouseMove(index: Number) {
+    console.log(`mouse move: ${index}`)
+  }
+
+  private onMouseDown(index: Number) {
+    console.log(`mouse down: ${index}`)
+  }
+
+  private onMouseUp(index: Number) {
+    console.log(`mouse up: ${index}`)
+  }
+
   private onIncludeChanged(line: DiffLine, rowIndex: number) {
     if (!this.props.onIncludeChanged) {
       return
@@ -133,6 +145,29 @@ export class Diff extends React.Component<IDiffProps, void> {
         const diffLineElement = element.children[0] as HTMLSpanElement
 
         const reactContainer = document.createElement('span')
+
+        const mouseDownHandler = () => {
+           if (this.onMouseDown) {
+             this.onMouseDown(index)
+           }
+        }
+
+        const mouseMoveHandler = () => {
+           if (this.onMouseMove) {
+             this.onMouseMove(index)
+           }
+        }
+
+        const mouseUpHandler = () => {
+           if (this.onMouseUp) {
+             this.onMouseUp(index)
+           }
+        }
+
+        reactContainer.addEventListener('mousemove', mouseMoveHandler)
+        reactContainer.addEventListener('mousedown', mouseDownHandler)
+        reactContainer.addEventListener('mouseup', mouseUpHandler)
+
         ReactDOM.render(
           <DiffLineGutter line={diffLine} readOnly={this.props.readOnly} onIncludeChanged={line => this.onIncludeChanged(line, index)} isIncluded={isIncluded}/>,
         reactContainer)
@@ -153,7 +188,13 @@ export class Diff extends React.Component<IDiffProps, void> {
         //
         // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
         const gutterCleanup = new Disposable(() => {
+
+          reactContainer.removeEventListener('mousedown', mouseDownHandler)
+          reactContainer.removeEventListener('mousemove', mouseMoveHandler)
+          reactContainer.removeEventListener('mouseup', mouseUpHandler)
+
           ReactDOM.unmountComponentAtNode(reactContainer)
+
           line.off('delete', deleteHandler)
         })
 
