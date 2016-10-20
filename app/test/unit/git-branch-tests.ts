@@ -30,7 +30,6 @@ describe('git-branches', () => {
       expect(commitWithBody.tip.body).to.contain('lucky last')
       expect(commitWithBody.tip.parentSHAs.length).to.equal(1)
 
-
       const commitNoBody = branches[1]
       expect(commitNoBody.name).to.equal('commit-with-no-body')
       expect(commitNoBody.upstream).to.be.null
@@ -48,8 +47,8 @@ describe('git-branches', () => {
     })
   })
 
-  describe('getBranches', () => {
-    it('fetches branches using for-each-ref', async () => {
+  describe('getCurrentBranch', () => {
+    it('fetches branch using for-each-ref', async () => {
       const currentBranch = await LocalGitOperations.getCurrentBranch(repository!)
 
       expect(currentBranch!.name).to.equal('commit-with-long-description')
