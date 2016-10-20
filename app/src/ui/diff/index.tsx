@@ -190,7 +190,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     const state = this.diffGutterSelectionState
-    if(!state) {
+    if (!state) {
       return
     }
 
@@ -199,7 +199,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     state.selectedRowRange.forEach(row => {
       const element = this.existingGutterElements.get(row)
       if (element) {
-        if(selected) {
+        if (selected) {
           // TODO: this is from inside `diff-line-gutter` - perhaps it
           // needs to come out here so we manipulate the *whole* gutter
           const childSpan = element.children[0]
