@@ -169,8 +169,11 @@ export class Diff extends React.Component<IDiffProps, void> {
         reactContainer.addEventListener('mouseup', mouseUpHandler)
 
         ReactDOM.render(
-          <DiffLineGutter line={diffLine} readOnly={this.props.readOnly} onIncludeChanged={line => this.onIncludeChanged(line, index)} isIncluded={isIncluded}/>,
-        reactContainer)
+          <DiffLineGutter line={diffLine}
+                          readOnly={this.props.readOnly}
+                          onIncludeChanged={line => this.onIncludeChanged(line, index)}
+                          isIncluded={isIncluded}/>,
+          reactContainer)
         element.insertBefore(reactContainer, diffLineElement)
 
         // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
