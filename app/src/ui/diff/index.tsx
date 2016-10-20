@@ -313,7 +313,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           }
         }
 
-        const mouseLeaveHandler = (ev: UIEvent) => {
+        const mouseLeaveHandler = (ev: MouseEvent) => {
 
           // TODO: if cursor in certain position, highlight whole hunk
 
@@ -323,11 +323,17 @@ export class Diff extends React.Component<IDiffProps, void> {
           }
         }
 
-        const mouseDownHandler = (ev: UIEvent) => this.onMouseDown(index, isIncluded)
+        const mouseDownHandler = (ev: MouseEvent) => this.onMouseDown(index, isIncluded)
 
-        const mouseMoveHandler = (ev: UIEvent) => {
+        const mouseMoveHandler = (ev: MouseEvent) => {
 
-          // TODO: if cursor in certain position - and not selecting - highlight whole hunk
+          const element: any = ev.currentTarget
+          const offset = element.getBoundingClientRect()
+          const relativeLeft = ev.clientX - offset.left
+
+          // TODO: what about the current width of the diff gutter?
+
+          console.log(`delta: [${relativeLeft}]`)
 
           this.onMouseMove(index)
         }
