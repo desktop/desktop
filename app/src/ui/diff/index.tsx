@@ -51,13 +51,15 @@ interface IDiffProps {
 class DiffGutterSelectionState {
   private readonly _start: number
   private readonly _initialSelection: boolean
+  private readonly _snapshot: DiffSelection
 
   private _current: number
 
-  public constructor(start: number, selected: boolean) {
+  public constructor(start: number, selected: boolean, snapshot: DiffSelection) {
     this._start = start
     this._current = start
     this._initialSelection = selected
+    this._snapshot = snapshot
   }
 
   /**
@@ -228,7 +230,13 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    this.diffGutterSelectionState = new DiffGutterSelectionState(index, selected)
+    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
+      console.error('cannot change selected lines when selected file is not a WorkingDirectoryFileChange')
+      return
+    }
+
+    const snapshot = this.props.file.selection
+    this.diffGutterSelectionState = new DiffGutterSelectionState(index, selected, snapshot)
     this.repaintSelectedRows()
   }
 
