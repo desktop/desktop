@@ -132,7 +132,6 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onMouseMove(index: number) {
-
     const state = this.diffGutterSelectionState
 
     if (this.props.readOnly || !state) {
@@ -149,7 +148,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
-      console.error('cannot change selected lines when selected file is not a WorkingDirectoryFileChange')
+      console.error('must not start selection when selected file is not a WorkingDirectoryFileChange')
       return
     }
 
@@ -164,24 +163,19 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
-      console.error('cannot change selected lines when selected file is not a WorkingDirectoryFileChange')
+      console.error('must not complete selection when selected file is not a WorkingDirectoryFileChange')
       return
     }
 
     const state = this.diffGutterSelectionState
-
     if (!state) {
       return
     }
 
-    // the drag-and-drop is completed, let's update the diff
-    const start = state.lowerIndex
-    const length = state.length
-    const isSelected = state.initialSelectionState
-
-    console.log(`diff: [${start} -> ${length}] - ${isSelected}`)
-
-    const newDiffSelection = this.props.file.selection.withRangeSelection(start, length, !isSelected)
+    const newDiffSelection = this.props.file.selection.withRangeSelection(
+      state.lowerIndex,
+      state.length,
+      !state.initialSelectionState)
 
     this.props.onIncludeChanged(newDiffSelection)
 

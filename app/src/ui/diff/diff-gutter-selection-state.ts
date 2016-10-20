@@ -39,7 +39,6 @@ export class DiffGutterSelectionState {
     return this._current
   }
 
-
   /**
    * Return the upper bounds of the selection range
    */
@@ -61,18 +60,20 @@ export class DiffGutterSelectionState {
   /**
    * Return the index associated with the start of this gesture
    */
-
   public get initialSelectionState(): boolean {
     return this._initialSelection
   }
 
   /**
-   *
+   * update the row the user is currently interacting with
    */
   public updateRangeSelection(current: number) {
     this._current = current
   }
 
+  /**
+   * calculate the number of rows to update as part of this diff selection
+   */
   public get length(): number {
     if (this._start <= this._current) {
       return this._current - this._start + 1
