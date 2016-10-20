@@ -99,22 +99,16 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     if (this.selectedRows.indexOf(index) === -1) {
-      console.log(`dragging over row: ${index}`)
-
       this.selectedRows.push(index)
     }
   }
 
   private onMouseDown(index: number) {
-    console.log(`mouse down: ${index}`)
-
     this.isMouseDown = true
     this.selectedRows = [ ]
   }
 
   private onMouseUp(index: number) {
-    console.log(`mouse up: ${index}`)
-
     this.isMouseDown = false
 
     if (!this.props.onIncludeChanged) {
@@ -133,9 +127,10 @@ export class Diff extends React.Component<IDiffProps, void> {
     // the start should be the lower of the two values
     const start = first < last ? first : last
 
-    const isSelected = !this.props.file.selection.isSelected(index)
+    // check the selection of the first row that the user selected
+    const isSelected = this.props.file.selection.isSelected(first)
 
-    const newDiffSelection = this.props.file.selection.withRangeSelection(start, length, isSelected)
+    const newDiffSelection = this.props.file.selection.withRangeSelection(start, length, !isSelected)
 
     this.props.onIncludeChanged(newDiffSelection)
   }
