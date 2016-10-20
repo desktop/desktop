@@ -12,7 +12,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffLine, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
+import { Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { DiffLineGutter } from './diff-line-gutter'
@@ -105,7 +105,7 @@ export class Diff extends React.Component<IDiffProps, void> {
 
   private onMouseDown(index: number) {
     this.isMouseDown = true
-    this.selectedRows = [ ]
+    this.selectedRows = [ index ]
   }
 
   private onMouseUp(index: number) {
@@ -131,21 +131,6 @@ export class Diff extends React.Component<IDiffProps, void> {
     const isSelected = this.props.file.selection.isSelected(first)
 
     const newDiffSelection = this.props.file.selection.withRangeSelection(start, length, !isSelected)
-
-    this.props.onIncludeChanged(newDiffSelection)
-  }
-
-  private onIncludeChanged(line: DiffLine, rowIndex: number) {
-    if (!this.props.onIncludeChanged) {
-      return
-    }
-
-    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
-      console.error('cannot change selected lines when selected file is not a WorkingDirectoryFileChange')
-      return
-    }
-
-    const newDiffSelection = this.props.file.selection.withToggleLineSelection(rowIndex)
 
     this.props.onIncludeChanged(newDiffSelection)
   }
@@ -204,7 +189,6 @@ export class Diff extends React.Component<IDiffProps, void> {
         ReactDOM.render(
           <DiffLineGutter line={diffLine}
                           readOnly={this.props.readOnly}
-                          onIncludeChanged={line => this.onIncludeChanged(line, index)}
                           isIncluded={isIncluded}/>,
           reactContainer)
         element.insertBefore(reactContainer, diffLineElement)

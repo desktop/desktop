@@ -18,9 +18,6 @@ interface IDiffGutterProps {
    * history vs. displaying a diff from the working directory.
    */
   readonly readOnly: boolean
-
-  /** Called when the line's includedness is toggled. */
-  readonly onIncludeChanged?: (line: DiffLine) => void
 }
 
 /** The gutter for a diff's line. */
@@ -39,12 +36,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private onMouseLeave(target: HTMLElement) {
     if (this.isIncludableLine()) {
       target.classList.remove('diff-line-hover')
-    }
-  }
-
-  private onClick() {
-    if (this.props.onIncludeChanged && this.isIncludableLine()) {
-      this.props.onIncludeChanged(this.props.line)
     }
   }
 
@@ -83,15 +74,10 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
       undefined :
       (event: React.MouseEvent<HTMLDivElement>) => this.onMouseLeave(event.currentTarget)
 
-    const onClick = this.props.readOnly ?
-      undefined :
-      (event: React.MouseEvent<HTMLDivElement>) => this.onClick()
-
     return (
       <span className={className}
         onMouseEnter={mouseEnter}
-        onMouseLeave={mouseLeave}
-        onClick={onClick}>
+        onMouseLeave={mouseLeave}>
         <span className='diff-line-number before'>{this.props.line.oldLineNumber || ' '}</span>
         <span className='diff-line-number after'>{this.props.line.newLineNumber || ' '}</span>
       </span>
