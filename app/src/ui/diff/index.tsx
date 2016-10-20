@@ -76,6 +76,10 @@ export class Diff extends React.Component<IDiffProps, void> {
    */
   private selectedRows: Array<number> = [ ]
 
+  /**
+   *  oh god i hate everything
+   */
+  private existingGutterElements: Map<number, HTMLSpanElement> = new Map<number, HTMLSpanElement>([ ])
 
 
   public componentWillReceiveProps(nextProps: IDiffProps) {
@@ -102,6 +106,28 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.lineCleanup.clear()
   }
 
+  private getInitialSelectedRow() {
+    const length = this.selectedRows.length
+    const first = this.selectedRows[0]
+    const last = this.selectedRows[length - 1]
+
+    // the start should be the lesser of the two values
+    return first < last ? first : last
+  }
+
+  private repaintSelectedRows() {
+
+    //const start = this.getInitialSelectedRow()
+    // TODO: determine new selected state
+
+    this.selectedRows.forEach(row => {
+      const element = this.existingGutterElements.get(row)
+      if (element) {
+        element.classList.add('diff-line-selected')
+      }
+    })
+  }
+
   private onMouseMove(index: number) {
     if (this.props.readOnly || !this.isDragDropActive) {
       return
@@ -110,6 +136,8 @@ export class Diff extends React.Component<IDiffProps, void> {
     if (this.selectedRows.indexOf(index) === -1) {
       this.selectedRows.push(index)
     }
+
+    this.repaintSelectedRows()
   }
 
   private onMouseDown(index: number) {
@@ -119,6 +147,8 @@ export class Diff extends React.Component<IDiffProps, void> {
 
     this.isDragDropActive = true
     this.selectedRows = [ index ]
+
+    this.repaintSelectedRows()
   }
 
   private onMouseUp(index: number) {
@@ -135,10 +165,9 @@ export class Diff extends React.Component<IDiffProps, void> {
 
     const length = this.selectedRows.length
     const first = this.selectedRows[0]
-    const last = this.selectedRows[length - 1]
 
     // the start should be the lower of the two values
-    const start = first < last ? first : last
+    const start = this.getInitialSelectedRow()
 
     // check the selection of the first row that the user selected
     const isSelected = this.props.file.selection.isSelected(first)
@@ -182,6 +211,9 @@ export class Diff extends React.Component<IDiffProps, void> {
         const reactContainer = document.createElement('span')
 
         const mouseEnterHandler = (ev: MouseEvent) => {
+
+          // TODO: if cursor in certain position, highlight whole hunk
+
           if (this.isIncludableLine(diffLine)) {
             const element: any = ev.currentTarget
             element.classList.add('diff-line-hover')
@@ -189,6 +221,9 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         const mouseLeaveHandler = (ev: UIEvent) => {
+
+          // TODO: if cursor in certain position, highlight whole hunk
+
           if (this.isIncludableLine(diffLine)) {
             const element: any = ev.currentTarget
             element.classList.remove('diff-line-hover')
@@ -200,6 +235,9 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         const mouseMoveHandler = (ev: UIEvent) => {
+
+          // TODO: if cursor in certain position - and not selecting - highlight whole hunk
+
           this.onMouseMove(index)
         }
 
@@ -212,6 +250,8 @@ export class Diff extends React.Component<IDiffProps, void> {
         reactContainer.addEventListener('mousemove', mouseMoveHandler)
         reactContainer.addEventListener('mousedown', mouseDownHandler)
         reactContainer.addEventListener('mouseup', mouseUpHandler)
+
+        this.existingGutterElements.set(index, reactContainer)
 
         ReactDOM.render(
           <DiffLineGutter line={diffLine}
@@ -235,6 +275,8 @@ export class Diff extends React.Component<IDiffProps, void> {
         //
         // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
         const gutterCleanup = new Disposable(() => {
+
+          this.existingGutterElements.delete(index)
 
           reactContainer.removeEventListener('mouseenter', mouseEnterHandler)
           reactContainer.removeEventListener('mouseleave', mouseLeaveHandler)
