@@ -103,11 +103,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onMouseMove(index: number) {
-    if (this.props.readOnly) {
-      return
-    }
-
-    if (!this.isDragDropActive) {
+    if (this.props.readOnly || !this.isDragDropActive) {
       return
     }
 
@@ -128,11 +124,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   private onMouseUp(index: number) {
     this.isDragDropActive = false
 
-    if (this.props.readOnly) {
-      return
-    }
-
-    if (!this.props.onIncludeChanged) {
+    if (this.props.readOnly || !this.props.onIncludeChanged) {
       return
     }
 
