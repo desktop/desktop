@@ -69,7 +69,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   /**
    * internal state for determining whether the diff gutter is interacted with
    */
-  private isDragDropActive: Boolean = false
+  private isDragDropActive: boolean = false
 
   /**
    * track the number of selected rows for the current drag-and-drop operation
@@ -308,6 +308,10 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
   }
 
+  private cancelSelectionChange = () => {
+    return this.isDragDropActive
+  }
+
   private restoreScrollPosition(cm: Editor) {
     const scrollPosition = this.scrollPositionToRestore
     if (cm && scrollPosition) {
@@ -373,6 +377,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           className='diff-code-mirror'
           value={diffText}
           options={options}
+          cancelSelectionChange={this.cancelSelectionChange}
           onChanges={this.onChanges}
           onRenderLine={this.renderLine}
           ref={(cmh) => { this.codeMirror = cmh === null ? null : cmh.getEditor() }}
