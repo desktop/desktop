@@ -125,20 +125,17 @@ export class Diff extends React.Component<IDiffProps, void> {
     const start = this.getInitialSelectedRow()
     const selected = this.props.file.selection.isSelected(start)
 
-    const applyPreviewEffect: (element: HTMLSpanElement) => void =
-      selected
-        ? (element) => {
-            // TODO: this is from inside `diff-line-gutter` - perhaps it
-            // needs to come out here
-            const childSpan = element.children[0]
-            childSpan.classList.remove('diff-line-selected')
-          }
-        : (element) => element.classList.add('diff-line-selected')
-
     this.selectedRows.forEach(row => {
       const element = this.existingGutterElements.get(row)
       if (element) {
-        applyPreviewEffect(element)
+        if(selected) {
+          // TODO: this is from inside `diff-line-gutter` - perhaps it
+          // needs to come out here so we manipulate the *whole* gutter
+          const childSpan = element.children[0]
+          childSpan.classList.remove('diff-line-selected')
+        } else {
+          element.classList.add('diff-line-selected')
+        }
       }
     })
   }
@@ -178,12 +175,12 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    const length = this.selectedRows.length
-    const first = this.selectedRows[0]
-
+    // the drag-and-drop is completed, let's update the diff
     const start = this.getInitialSelectedRow()
+    const length = this.selectedRows.length
 
     // check the selection of the first row that the user selected
+    const first = this.selectedRows[0]
     const isSelected = this.props.file.selection.isSelected(first)
 
     const newDiffSelection = this.props.file.selection.withRangeSelection(start, length, !isSelected)
