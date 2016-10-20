@@ -117,13 +117,28 @@ export class Diff extends React.Component<IDiffProps, void> {
 
   private repaintSelectedRows() {
 
-    //const start = this.getInitialSelectedRow()
-    // TODO: determine new selected state
+    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
+      console.error('should not repaint gutter lines when selected file is not a WorkingDirectoryFileChange')
+      return
+    }
+
+    const start = this.getInitialSelectedRow()
+    const selected = this.props.file.selection.isSelected(start)
+
+    const applyPreviewEffect: (element: HTMLSpanElement) => void =
+      selected
+        ? (element) => {
+            // TODO: this is from inside `diff-line-gutter` - perhaps it
+            // needs to come out here
+            const childSpan = element.children[0]
+            childSpan.classList.remove('diff-line-selected')
+          }
+        : (element) => element.classList.add('diff-line-selected')
 
     this.selectedRows.forEach(row => {
       const element = this.existingGutterElements.get(row)
       if (element) {
-        element.classList.add('diff-line-selected')
+        applyPreviewEffect(element)
       }
     })
   }
