@@ -66,6 +66,18 @@ export class Diff extends React.Component<IDiffProps, void> {
    */
   private readonly lineCleanup = new Map<any, Disposable>()
 
+  /**
+   * internal state for determining whether the diff gutter is interacted with
+   */
+  private isDragDropActive: Boolean = false
+
+  /**
+   * track the number of selected rows for the current drag-and-drop operation
+   */
+  private selectedRows: Array<number> = [ ]
+
+
+
   public componentWillReceiveProps(nextProps: IDiffProps) {
     // If we're reloading the same file, we want to save the current scroll
     // position and restore it after the diff's been updated.
@@ -90,15 +102,12 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.lineCleanup.clear()
   }
 
-  private isMouseDown: Boolean = false
-  private selectedRows: Array<number> = [ ]
-
   private onMouseMove(index: number) {
     if (this.props.readOnly) {
       return
     }
 
-    if (!this.isMouseDown) {
+    if (!this.isDragDropActive) {
       return
     }
 
@@ -112,12 +121,12 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    this.isMouseDown = true
+    this.isDragDropActive = true
     this.selectedRows = [ index ]
   }
 
   private onMouseUp(index: number) {
-    this.isMouseDown = false
+    this.isDragDropActive = false
 
     if (this.props.readOnly) {
       return
