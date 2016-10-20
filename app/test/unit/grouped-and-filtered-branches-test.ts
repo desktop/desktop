@@ -2,15 +2,18 @@ import * as chai from 'chai'
 const expect = chai.expect
 
 import { groupedAndFilteredBranches } from '../../src/ui/branches/grouped-and-filtered-branches'
-import { Branch, BranchType } from '../../src/lib/local-git-operations'
+import { Branch, BranchType, Commit } from '../../src/lib/local-git-operations'
 
 describe('Branches grouping', () => {
-  const currentBranch = new Branch('master', null, '', BranchType.Local)
-  const defaultBranch = new Branch('master', null, '', BranchType.Local)
+
+  const commit = new Commit('300acef', 'summary', 'body', 'Hubot', 'hubot@github.com', new Date(), [])
+
+  const currentBranch = new Branch('master', null, commit, BranchType.Local)
+  const defaultBranch = new Branch('master', null, commit, BranchType.Local)
   const recentBranches = [
-    new Branch('some-recent-branch', null, '', BranchType.Local),
+    new Branch('some-recent-branch', null, commit, BranchType.Local),
   ]
-  const otherBranch = new Branch('other-branch', null, '', BranchType.Local)
+  const otherBranch = new Branch('other-branch', null, commit, BranchType.Local)
 
   const allBranches = [
     currentBranch,

@@ -131,29 +131,6 @@ export class GitStore {
     this.emitUpdate()
   }
 
-  /** Load the commit for the SHA. */
-  public async loadCommit(sha: string) {
-    const existingCommit = this.commits.get(sha)
-    // We've already loaded this commit and commits are I M M U T A B L E
-    if (existingCommit) { return }
-
-    const requestKey = `commit/${sha}`
-    // We're already loading this commit so chill.
-    if (this.requestsInFight.has(requestKey)) { return }
-
-    this.requestsInFight.add(requestKey)
-
-    const commit = await this.performFailableOperation(() => LocalGitOperations.getCommit(this.repository, sha))
-    if (!commit) { return }
-
-    this.storeCommits([ commit ])
-
-    this.requestsInFight.delete(requestKey)
-
-    this.emitNewCommitsLoaded([ commit ])
-    this.emitUpdate()
-  }
-
   /** The list of ordered SHAs. */
   public get history(): ReadonlyArray<string> { return this._history }
 
@@ -216,9 +193,14 @@ export class GitStore {
 
     this.loadRecentBranches()
 
-    for (const branch of allBranches) {
-      this.loadCommit(branch.sha)
+    const commits = allBranches.map(b => b.tip)
+
+    for (const commit of commits) {
+      this.commits.set(commit.sha, commit)
     }
+
+    this.emitNewCommitsLoaded(commits)
+    this.emitUpdate()
   }
 
   /**

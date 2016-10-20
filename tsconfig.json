@@ -12,7 +12,7 @@
     "sourceMap": true,
     "jsx": "react",
     "outDir": "./out",
-    "types": ["mocha", "whatwg-fetch", "electron-window-state"]
+    "types": ["mocha", "whatwg-fetch", "electron-window-state", "chai-datetime"]
   },
   "exclude": [
     "node_modules",
