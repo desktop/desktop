@@ -94,6 +94,10 @@ export class Diff extends React.Component<IDiffProps, void> {
   private selectedRows: Array<number> = [ ]
 
   private onMouseMove(index: number) {
+    if (this.props.readOnly) {
+      return
+    }
+
     if (!this.isMouseDown) {
       return
     }
@@ -104,12 +108,20 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onMouseDown(index: number) {
+    if (this.props.readOnly) {
+      return
+    }
+
     this.isMouseDown = true
     this.selectedRows = [ index ]
   }
 
   private onMouseUp(index: number) {
     this.isMouseDown = false
+
+    if (this.props.readOnly) {
+      return
+    }
 
     if (!this.props.onIncludeChanged) {
       return
@@ -164,23 +176,9 @@ export class Diff extends React.Component<IDiffProps, void> {
 
         const reactContainer = document.createElement('span')
 
-        const mouseDownHandler = () => {
-           if (this.onMouseDown) {
-             this.onMouseDown(index)
-           }
-        }
-
-        const mouseMoveHandler = () => {
-           if (this.onMouseMove) {
-             this.onMouseMove(index)
-           }
-        }
-
-        const mouseUpHandler = () => {
-           if (this.onMouseUp) {
-             this.onMouseUp(index)
-           }
-        }
+        const mouseDownHandler = () => this.onMouseDown(index)
+        const mouseMoveHandler = () => this.onMouseMove(index)
+        const mouseUpHandler = () => this.onMouseUp(index)
 
         reactContainer.addEventListener('mousemove', mouseMoveHandler)
         reactContainer.addEventListener('mousedown', mouseDownHandler)
