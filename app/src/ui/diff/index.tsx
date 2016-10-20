@@ -12,7 +12,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
+import { DiffLine, DiffLineType, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { DiffLineGutter } from './diff-line-gutter'
@@ -148,6 +148,10 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.props.onIncludeChanged(newDiffSelection)
   }
 
+  private isIncludableLine(line: DiffLine): boolean {
+    return line.type === DiffLineType.Add || line.type === DiffLineType.Delete
+  }
+
   public renderLine = (instance: any, line: any, element: HTMLElement) => {
 
     const existingLineDisposable = this.lineCleanup.get(line)
@@ -177,10 +181,34 @@ export class Diff extends React.Component<IDiffProps, void> {
 
         const reactContainer = document.createElement('span')
 
-        const mouseDownHandler = () => this.onMouseDown(index)
-        const mouseMoveHandler = () => this.onMouseMove(index)
-        const mouseUpHandler = () => this.onMouseUp(index)
+        const mouseEnterHandler = (ev: MouseEvent) => {
+          if (this.isIncludableLine(diffLine)) {
+            const element: any = ev.currentTarget
+            element.classList.add('diff-line-hover')
+          }
+        }
 
+        const mouseLeaveHandler = (ev: UIEvent) => {
+          if (this.isIncludableLine(diffLine)) {
+            const element: any = ev.currentTarget
+            element.classList.remove('diff-line-hover')
+          }
+        }
+
+        const mouseDownHandler = (ev: UIEvent) => {
+          this.onMouseDown(index)
+        }
+
+        const mouseMoveHandler = (ev: UIEvent) => {
+          this.onMouseMove(index)
+        }
+
+        const mouseUpHandler = (ev: UIEvent) => {
+          this.onMouseUp(index)
+        }
+
+        reactContainer.addEventListener('mouseenter', mouseEnterHandler)
+        reactContainer.addEventListener('mouseleave', mouseLeaveHandler)
         reactContainer.addEventListener('mousemove', mouseMoveHandler)
         reactContainer.addEventListener('mousedown', mouseDownHandler)
         reactContainer.addEventListener('mouseup', mouseUpHandler)
@@ -208,6 +236,8 @@ export class Diff extends React.Component<IDiffProps, void> {
         // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
         const gutterCleanup = new Disposable(() => {
 
+          reactContainer.removeEventListener('mouseenter', mouseEnterHandler)
+          reactContainer.removeEventListener('mouseleave', mouseLeaveHandler)
           reactContainer.removeEventListener('mousedown', mouseDownHandler)
           reactContainer.removeEventListener('mousemove', mouseMoveHandler)
           reactContainer.removeEventListener('mouseup', mouseUpHandler)

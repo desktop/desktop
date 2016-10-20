@@ -27,18 +27,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     return this.props.line.type === DiffLineType.Add || this.props.line.type === DiffLineType.Delete
   }
 
-  private onMouseEnter(target: HTMLElement) {
-    if (this.isIncludableLine()) {
-      target.classList.add('diff-line-hover')
-    }
-  }
-
-  private onMouseLeave(target: HTMLElement) {
-    if (this.isIncludableLine()) {
-      target.classList.remove('diff-line-hover')
-    }
-  }
-
   private getLineClassName(): string {
     const type = this.props.line.type
     switch (type) {
@@ -64,20 +52,8 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   public render() {
     const className = this.getLineClass()
 
-    // TODO: depending on cursor position, highlight hunk rather than line
-
-    const mouseEnter = this.props.readOnly ?
-      undefined :
-      (event: React.MouseEvent<HTMLDivElement>) => this.onMouseEnter(event.currentTarget)
-
-    const mouseLeave = this.props.readOnly ?
-      undefined :
-      (event: React.MouseEvent<HTMLDivElement>) => this.onMouseLeave(event.currentTarget)
-
     return (
-      <span className={className}
-        onMouseEnter={mouseEnter}
-        onMouseLeave={mouseLeave}>
+      <span className={className}>
         <span className='diff-line-number before'>{this.props.line.oldLineNumber || ' '}</span>
         <span className='diff-line-number after'>{this.props.line.newLineNumber || ' '}</span>
       </span>
