@@ -18,7 +18,7 @@ import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { getDiffMode } from './diff-mode'
-import { DiffGutterSelectionState } from './diff-gutter-selection-state'
+import { GutterSelectionState } from './gutter-selection-state'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
@@ -70,7 +70,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   /**
    * Maintain the current state of the user interacting with the diff gutter
    */
-  private diffGutterSelectionState: DiffGutterSelectionState | null = null
+  private gutterSelection: GutterSelectionState | null = null
 
   /**
    *  oh god i hate everything
@@ -109,7 +109,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    const state = this.diffGutterSelectionState
+    const state = this.gutterSelection
     if (!state) {
       return
     }
@@ -132,7 +132,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onMouseMove(index: number) {
-    const state = this.diffGutterSelectionState
+    const state = this.gutterSelection
 
     if (this.props.readOnly || !state) {
       return
@@ -153,7 +153,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     const snapshot = this.props.file.selection
-    this.diffGutterSelectionState = new DiffGutterSelectionState(index, selected, snapshot)
+    this.gutterSelection = new GutterSelectionState(index, selected, snapshot)
     this.repaintSelectedRows()
   }
 
@@ -167,7 +167,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    const state = this.diffGutterSelectionState
+    const state = this.gutterSelection
     if (!state) {
       return
     }
@@ -179,7 +179,7 @@ export class Diff extends React.Component<IDiffProps, void> {
 
     this.props.onIncludeChanged(newDiffSelection)
 
-    this.diffGutterSelectionState = null
+    this.gutterSelection = null
   }
 
   private isIncludableLine(line: DiffLine): boolean {
@@ -316,7 +316,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private cancelSelectionChange = () => {
-    return this.diffGutterSelectionState != null
+    return this.gutterSelection != null
   }
 
   private restoreScrollPosition(cm: Editor) {

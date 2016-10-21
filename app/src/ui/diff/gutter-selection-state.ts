@@ -1,6 +1,6 @@
 import { DiffSelection } from '../../models/diff'
 
-export class DiffGutterSelectionState {
+export class GutterSelectionState {
   private readonly _start: number
   private readonly _initialSelection: boolean
   private readonly _snapshot: DiffSelection
