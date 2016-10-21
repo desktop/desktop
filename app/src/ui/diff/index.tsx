@@ -12,7 +12,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffLine, DiffLineType, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
+import { DiffHunk, DiffLine, DiffLineType, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { DiffLineGutter } from './diff-line-gutter'
@@ -21,6 +21,7 @@ import { getDiffMode } from './diff-mode'
 import { ISelectionStrategy } from './selection-strategy'
 import { DragDropSelectionStrategy } from './drag-drop-selection-strategy'
 import { HunkSelectionStrategy } from './hunk-selection-strategy'
+import { range } from '../../lib/range'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
@@ -124,17 +125,16 @@ export class Diff extends React.Component<IDiffProps, void> {
       console.error('must not start selection when selected file is not a WorkingDirectoryFileChange')
       return
     }
+    const snapshot = this.props.file.selection
+    const desiredSelection = !selected
 
     if (isHunkSelection) {
-      // TODO: what do we need to pass in here?
-      this.gutterSelection = new HunkSelectionStrategy()
+      this.gutterSelection = new HunkSelectionStrategy(-1, -1, desiredSelection, snapshot)
     } else {
-      const snapshot = this.props.file.selection
-      const desiredSelection = !selected
-
       this.gutterSelection = new DragDropSelectionStrategy(index, desiredSelection, snapshot)
-      this.gutterSelection.paint(this.existingGutterElements)
     }
+
+    this.gutterSelection.paint(this.existingGutterElements)
   }
 
   private onMouseUp(index: number) {
@@ -163,13 +163,49 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private isMouseInLeftColumn(ev: MouseEvent): boolean {
-      const element: any = ev.currentTarget
-      const offset = element.getBoundingClientRect()
-      const relativeLeft = ev.clientX - offset.left
+    const element: any = ev.currentTarget
+    const offset = element.getBoundingClientRect()
+    const relativeLeft = ev.clientX - offset.left
 
-      const width: number = offset.width
+    const width: number = offset.width
 
-      return relativeLeft < (width / 2)
+    return relativeLeft < (width / 2)
+  }
+
+  private highlightHunk(hunk: DiffHunk, show: boolean) {
+    const start = hunk.unifiedDiffStart + 1
+    const end = hunk.unifiedDiffEnd + 1
+
+    range(start, end).forEach(row => {
+      const element = this.existingGutterElements.get(row)
+      if (!element) {
+        console.error('expected gutter element not found')
+        return
+      }
+
+      const childSpan = element.children[0] as HTMLSpanElement
+      if (!childSpan) {
+        console.error('expected DOM element for diff gutter not found')
+        return
+      }
+
+      if (show) {
+        childSpan.classList.add('diff-line-hover')
+      } else {
+        childSpan.classList.remove('diff-line-hover')
+      }
+    })
+  }
+
+  private highlightLine(row: number, diffLine: DiffLine, include: boolean) {
+    const element = this.existingGutterElements.get(row)
+
+    if (!element) {
+      console.error('expected gutter element not found')
+      return
+    }
+
+    element.classList.remove('diff-line-hover')
   }
 
   public renderLine = (instance: any, line: any, element: HTMLElement) => {
@@ -202,22 +238,26 @@ export class Diff extends React.Component<IDiffProps, void> {
         const reactContainer = document.createElement('span')
 
         const mouseEnterHandler = (ev: MouseEvent) => {
+          if (!this.isIncludableLine(diffLine)) {
+            return
+          }
 
-          // TODO: if cursor in certain position, highlight whole hunk
-
-          if (this.isIncludableLine(diffLine)) {
-            const element: any = ev.currentTarget
-            element.classList.add('diff-line-hover')
+          if (this.isMouseInLeftColumn(ev)) {
+            this.highlightHunk(hunk, true)
+          } else {
+            this.highlightLine(index, diffLine, true)
           }
         }
 
         const mouseLeaveHandler = (ev: MouseEvent) => {
+          if (!this.isIncludableLine(diffLine)) {
+            return
+          }
 
-          // TODO: if cursor in certain position, highlight whole hunk
-
-          if (this.isIncludableLine(diffLine)) {
-            const element: any = ev.currentTarget
-            element.classList.remove('diff-line-hover')
+          if (this.isMouseInLeftColumn(ev)) {
+            this.highlightHunk(hunk, false)
+          } else {
+            this.highlightLine(index, diffLine, false)
           }
         }
 
@@ -227,6 +267,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         const mouseMoveHandler = (ev: MouseEvent) => {
+          // TODO: if cursor in certain position, highlight whole hunk
           this.onMouseMove(index)
         }
 

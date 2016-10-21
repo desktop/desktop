@@ -60,16 +60,14 @@ export class DragDropSelectionStrategy implements ISelectionStrategy {
   }
 
   public apply(onIncludeChanged: (diffSelection: DiffSelection) => void) {
-    if (onIncludeChanged) {
-      const length = (this.upperIndex - this.lowerIndex) + 1
+    const length = (this.upperIndex - this.lowerIndex) + 1
 
-      const newSelection = this._snapshot.withRangeSelection(
-        this.lowerIndex,
-        length,
-        this.desiredSelection)
+    const newSelection = this._snapshot.withRangeSelection(
+      this.lowerIndex,
+      length,
+      this.desiredSelection)
 
-        onIncludeChanged(newSelection)
-    }
+    onIncludeChanged(newSelection)
   }
 
   public paint(elements: Map<number, HTMLSpanElement>) {
