@@ -18,7 +18,8 @@ import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { getDiffMode } from './diff-mode'
-import { DragDropSelectionStrategy, ISelectionStrategy } from './drag-drop-selection-strategy'
+import { ISelectionStrategy } from './selection-strategy'
+import { DragDropSelectionStrategy } from './drag-drop-selection-strategy'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
