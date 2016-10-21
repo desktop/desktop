@@ -12,7 +12,7 @@ export function range(start: number, stop?: number, step?: number): ReadonlyArra
   }
 
   var length = Math.max(Math.ceil((stop - start) / step), 0);
-  var range = Array(length);
+  var range = new Array<number>(length);
 
   for (let idx = 0; idx < length; idx++, start += step) {
     range[idx] = start;
