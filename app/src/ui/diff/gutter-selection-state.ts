@@ -2,15 +2,15 @@ import { DiffSelection } from '../../models/diff'
 
 export class GutterSelectionState {
   private readonly _start: number
-  private readonly _initialSelection: boolean
+  private readonly _desiredSelection: boolean
   private readonly _snapshot: DiffSelection
 
   private _current: number
 
-  public constructor(start: number, selected: boolean, snapshot: DiffSelection) {
+  public constructor(start: number, desiredSelection: boolean, snapshot: DiffSelection) {
     this._start = start
     this._current = start
-    this._initialSelection = selected
+    this._desiredSelection = desiredSelection
     this._snapshot = snapshot
   }
 
@@ -46,8 +46,8 @@ export class GutterSelectionState {
   /**
    * Return the index associated with the start of this gesture
    */
-  public get initialSelectionState(): boolean {
-    return this._initialSelection
+  public get desiredSelection(): boolean {
+    return this._desiredSelection
   }
 
   /**
@@ -58,13 +58,16 @@ export class GutterSelectionState {
   }
 
   /**
-   * calculate the number of rows to update as part of this diff selection
+   * compute the selected state for a given row, based on the current gesture
+   * values inside the range pick up the desired value, and values
+   * outside the range revert to the initially selected state
    */
-  public get length(): number {
-    if (this._start <= this._current) {
-      return this._current - this._start + 1
+  public getIsSelected(index: number): boolean {
+    // if we're in the diff range, use the stored value
+    if (index >= this.lowerIndex && index <= this.upperIndex) {
+      return this._desiredSelection
     }
 
-    return this._start - this._current + 1
+    return this._snapshot.isSelected(index)
   }
 }

@@ -105,7 +105,9 @@ export class Diff extends React.Component<IDiffProps, void> {
 
   private repaintSelectedRows() {
 
-    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
+    const file = this.props.file
+
+    if (!(file instanceof WorkingDirectoryFileChange)) {
       console.error('should not repaint gutter lines when selected file is not a WorkingDirectoryFileChange')
       return
     }
@@ -115,20 +117,37 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    const rows = range(state.lowerIndex, state.upperIndex)
+    // as user can go back and forth when doing drag-and-drop, we should
+    // update rows outside the current selected range
+    let start = state.lowerIndex - 1
+    if (start < 1) {
+      start = 1 // 0 is always the diff context
+    }
 
-    rows.forEach(row => {
+    let maximum = this.existingGutterElements.size
+    let end = state.upperIndex + 1
+    if (end >= maximum){
+      end = maximum - 1 // ensure that we stay within the diff bounds
+    }
+
+    range(start, end).forEach(row => {
       const element = this.existingGutterElements.get(row)
-      if (element) {
-        const selected = state.initialSelectionState
-        if (selected) {
-          // TODO: this is from inside `diff-line-gutter` - perhaps it
-          // needs to come out here so we manipulate the *whole* gutter
-          const childSpan = element.children[0]
-          childSpan.classList.remove('diff-line-selected')
-        } else {
-          element.classList.add('diff-line-selected')
-        }
+      if (!element) {
+        console.error('expected gutter element not found')
+        return
+      }
+
+      const selected = state.getIsSelected(row)
+      const childSpan = element.children[0] as HTMLSpanElement
+      if (!childSpan) {
+        console.error('expected DOM element for diff gutter not found')
+        return
+      }
+
+      if (selected) {
+        childSpan.classList.add('diff-line-selected')
+      } else {
+        childSpan.classList.remove('diff-line-selected')
       }
     })
   }
@@ -155,7 +174,9 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     const snapshot = this.props.file.selection
-    this.gutterSelection = new GutterSelectionState(index, selected, snapshot)
+    const desiredSelection = !selected
+
+    this.gutterSelection = new GutterSelectionState(index, desiredSelection, snapshot)
     this.repaintSelectedRows()
   }
 
@@ -174,10 +195,12 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
+    const length = (state.upperIndex - state.lowerIndex) + 1
+
     const newDiffSelection = this.props.file.selection.withRangeSelection(
       state.lowerIndex,
-      state.length,
-      !state.initialSelectionState)
+      length,
+      state.desiredSelection)
 
     this.props.onIncludeChanged(newDiffSelection)
 
@@ -241,13 +264,13 @@ export class Diff extends React.Component<IDiffProps, void> {
 
         const mouseMoveHandler = (ev: MouseEvent) => {
 
-          const element: any = ev.currentTarget
-          const offset = element.getBoundingClientRect()
-          const relativeLeft = ev.clientX - offset.left
+          // const element: any = ev.currentTarget
+          // const offset = element.getBoundingClientRect()
+          // const relativeLeft = ev.clientX - offset.left
 
           // TODO: what about the current width of the diff gutter?
 
-          console.log(`delta: [${relativeLeft}]`)
+          // console.log(`delta: [${relativeLeft}]`)
 
           this.onMouseMove(index)
         }
