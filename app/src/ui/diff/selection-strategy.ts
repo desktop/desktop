@@ -12,5 +12,5 @@ export interface ISelectionStrategy {
   /**
    * apply the diff selection result to the current diff
    */
-  apply: (onIncludeChanged?: (diffSelection: DiffSelection) => void) => void
+  apply: (onIncludeChanged: (diffSelection: DiffSelection) => void) => void
 }

@@ -59,7 +59,7 @@ export class DragDropSelectionStrategy implements ISelectionStrategy {
     this._current = current
   }
 
-  public apply(onIncludeChanged?: (diffSelection: DiffSelection) => void) {
+  public apply(onIncludeChanged: (diffSelection: DiffSelection) => void) {
     if (onIncludeChanged) {
       const length = (this.upperIndex - this.lowerIndex) + 1
 

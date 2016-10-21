@@ -20,6 +20,7 @@ import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { getDiffMode } from './diff-mode'
 import { ISelectionStrategy } from './selection-strategy'
 import { DragDropSelectionStrategy } from './drag-drop-selection-strategy'
+import { HunkSelectionStrategy } from './hunk-selection-strategy'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
@@ -125,7 +126,8 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     if (isHunkSelection) {
-      // TODO: hunk selection
+      // TODO: what do we need to pass in here?
+      this.gutterSelection = new HunkSelectionStrategy()
     } else {
       const snapshot = this.props.file.selection
       const desiredSelection = !selected
