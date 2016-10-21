@@ -15,20 +15,6 @@ export class GutterSelectionState {
   }
 
   /**
-   * track the number of selected rows for the current drag-and-drop operation
-   */
-  public get selectedRowRange(): ReadonlyArray<number> {
-
-    const lower = this.lowerIndex
-    const upper = this.upperIndex
-
-      // this is a bastardized version of range(lower...upper)
-    const values = Array.prototype.map.call(' '.repeat(1 + upper - lower), (v: any, i: number) => i + lower)
-
-    return values
-  }
-
-  /**
    * Return the lower bounds of the selection range
    */
   public get lowerIndex(): number {
@@ -42,7 +28,7 @@ export class GutterSelectionState {
   /**
    * Return the upper bounds of the selection range
    */
-  private get upperIndex(): number {
+  public get upperIndex(): number {
     if (this._start <= this._current) {
       return this._current
     }

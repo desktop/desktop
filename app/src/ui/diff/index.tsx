@@ -19,6 +19,7 @@ import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { getDiffMode } from './diff-mode'
 import { GutterSelectionState } from './gutter-selection-state'
+import { range } from '../../lib/range'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
@@ -114,11 +115,12 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    const selected = state.initialSelectionState
+    const rows = range(state.lowerIndex, state.upperIndex)
 
-    state.selectedRowRange.forEach(row => {
+    rows.forEach(row => {
       const element = this.existingGutterElements.get(row)
       if (element) {
+        const selected = state.initialSelectionState
         if (selected) {
           // TODO: this is from inside `diff-line-gutter` - perhaps it
           // needs to come out here so we manipulate the *whole* gutter
