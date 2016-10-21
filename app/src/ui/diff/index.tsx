@@ -124,9 +124,9 @@ export class Diff extends React.Component<IDiffProps, void> {
       start = 1 // 0 is always the diff context
     }
 
-    let maximum = this.existingGutterElements.size
+    const maximum = this.existingGutterElements.size
     let end = state.upperIndex + 1
-    if (end >= maximum){
+    if (end >= maximum) {
       end = maximum - 1 // ensure that we stay within the diff bounds
     }
 
