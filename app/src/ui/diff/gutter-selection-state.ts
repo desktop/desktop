@@ -1,6 +1,13 @@
 import { DiffSelection } from '../../models/diff'
+import { range } from '../../lib/range'
 
-export class GutterSelectionState {
+export interface ISelectionStrategy {
+  update: (index: number) => void,
+  paint: (elements: Map<number, HTMLSpanElement>) => void
+  apply: (onIncludeChanged?: (diffSelection: DiffSelection) => void) => void
+}
+
+export class DragAndDropSelectionStrategy implements ISelectionStrategy {
   private readonly _start: number
   private readonly _desiredSelection: boolean
   private readonly _snapshot: DiffSelection
@@ -53,8 +60,58 @@ export class GutterSelectionState {
   /**
    * update the row the user is currently interacting with
    */
-  public updateRangeSelection(current: number) {
+  public update(current: number) {
     this._current = current
+  }
+
+  public apply(onIncludeChanged?: (diffSelection: DiffSelection) => void) {
+    if (onIncludeChanged) {
+      const length = (this.upperIndex - this.lowerIndex) + 1
+
+      const newSelection = this._snapshot.withRangeSelection(
+        this.lowerIndex,
+        length,
+        this.desiredSelection)
+
+        onIncludeChanged(newSelection)
+    }
+  }
+
+  public paint(elements: Map<number, HTMLSpanElement>) {
+
+    // as user can go back and forth when doing drag-and-drop, we should
+    // update rows outside the current selected range
+    let start = this.lowerIndex - 1
+    if (start < 1) {
+      start = 1 // 0 is always the diff context
+    }
+
+    const maximum = elements.size
+    let end = this.upperIndex + 1
+    if (end >= maximum) {
+      end = maximum - 1 // ensure that we stay within the diff bounds
+    }
+
+    range(start, end).forEach(row => {
+      const element = elements.get(row)
+      if (!element) {
+        console.error('expected gutter element not found')
+        return
+      }
+
+      const selected = this.getIsSelected(row)
+      const childSpan = element.children[0] as HTMLSpanElement
+      if (!childSpan) {
+        console.error('expected DOM element for diff gutter not found')
+        return
+      }
+
+      if (selected) {
+        childSpan.classList.add('diff-line-selected')
+      } else {
+        childSpan.classList.remove('diff-line-selected')
+      }
+    })
   }
 
   /**
