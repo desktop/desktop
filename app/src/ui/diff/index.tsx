@@ -18,7 +18,7 @@ import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { getDiffMode } from './diff-mode'
-import { DragAndDropSelectionStrategy } from './gutter-selection-state'
+import { DragDropSelectionStrategy, ISelectionStrategy } from './drag-drop-selection-strategy'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
@@ -70,7 +70,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   /**
    * Maintain the current state of the user interacting with the diff gutter
    */
-  private gutterSelection: DragAndDropSelectionStrategy | null = null
+  private gutterSelection: ISelectionStrategy | null = null
 
   /**
    *  oh god i hate everything
@@ -129,7 +129,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       const snapshot = this.props.file.selection
       const desiredSelection = !selected
 
-      this.gutterSelection = new DragAndDropSelectionStrategy(index, desiredSelection, snapshot)
+      this.gutterSelection = new DragDropSelectionStrategy(index, desiredSelection, snapshot)
       this.gutterSelection.paint(this.existingGutterElements)
     }
   }
