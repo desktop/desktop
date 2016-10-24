@@ -80,7 +80,11 @@ export class IssuesStore {
       .where('[endpoint+repositoryID]')
       .equals([ endpoint, repositoryID ])
       .limit(IssueResultsHardLimit)
-      .filter(i => i.title.toLowerCase().includes(title.toLowerCase()))
+      .filter(i => {
+        if (i.number.startsWith(title)) { return true }
+
+        return i.title.toLowerCase().includes(title.toLowerCase())
+      })
     return issues.toArray()
   }
 }
