@@ -76,15 +76,26 @@ export class IssuesStore {
 
     const repositoryID = repository.id
     const endpoint = repository.gitHubRepository.endpoint
-    const issues = await this.db.issues
+    const MaxScore = 1
+    const score = (i: IIssue) => {
+      if (i.number.startsWith(text)) {
+        return MaxScore
+      }
+
+      if (i.title.toLowerCase().includes(text.toLowerCase())) {
+        return MaxScore - 0.1
+      }
+
+      return 0
+    }
+
+    const issuesCollection = await this.db.issues
       .where('[endpoint+repositoryID]')
       .equals([ endpoint, repositoryID ])
       .limit(IssueResultsHardLimit)
-      .filter(i => {
-        if (i.number.startsWith(text)) { return true }
+      .filter(i => score(i) > 0)
 
-        return i.title.toLowerCase().includes(text.toLowerCase())
-      })
-    return issues.toArray()
+    const issues = await issuesCollection.toArray()
+    return issues.sort((a, b) => score(b) - score(a))
   }
 }
