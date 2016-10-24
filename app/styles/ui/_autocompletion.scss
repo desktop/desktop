@@ -54,4 +54,21 @@
       max-width: 100%;
     }
   }
+
+  .issue {
+    display: flex;
+    flex-grow: 1;
+
+    height: 100%;
+    width: 100%;
+
+    .number {
+      color: lightGray;
+      margin-right: var(--spacing-half);
+    }
+
+    .title {
+      @include ellipsis;
+    }
+  }
 }

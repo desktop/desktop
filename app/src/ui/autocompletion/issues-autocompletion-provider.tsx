@@ -27,8 +27,9 @@ export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIs
 
   public renderItem(item: IIssueHit): JSX.Element {
     return (
-      <div>
-        <span>{item.number}</span><span>{item.title}</span>
+      <div className='issue' key={item.number}>
+        <span className='number'>#{item.number}</span>
+        <span className='title'>{item.title}</span>
       </div>
     )
   }
