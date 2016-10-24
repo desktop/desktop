@@ -7,7 +7,7 @@ export interface IIssueHit {
   readonly number: string
 }
 
-export class IssueAutocompletionProvider implements IAutocompletionProvider<IIssueHit> {
+export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIssueHit> {
   private readonly issuesStore: IssuesStore
 
   public constructor(issuesStore: IssuesStore) {

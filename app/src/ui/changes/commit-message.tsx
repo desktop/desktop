@@ -2,6 +2,7 @@ import * as React from 'react'
 import { AutocompletingTextArea, AutocompletingInput } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../lib/app-state'
+import { IssuesStore } from '../../lib/dispatcher'
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (summary: string, description: string) => void
@@ -12,6 +13,8 @@ interface ICommitMessageProps {
   readonly anyFilesSelected: boolean
 
   readonly contextualCommitMessage: ICommitMessage | null
+
+  readonly issuesStore: IssuesStore
 }
 
 interface ICommitMessageState {
@@ -106,7 +109,8 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
             value={this.state.summary}
             onChange={event => this.handleSummaryChange(event)}
             onKeyDown={event => this.onKeyDown(event)}
-            emoji={this.props.emoji}/>
+            emoji={this.props.emoji}
+            issuesStore={this.props.issuesStore}/>
         </div>
 
         <AutocompletingTextArea className='description-field'
@@ -114,7 +118,8 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
           value={this.state.description}
           onChange={event => this.handleDescriptionChange(event)}
           onKeyDown={event => this.onKeyDown(event)}
-          emoji={this.props.emoji}/>
+          emoji={this.props.emoji}
+          issuesStore={this.props.issuesStore}/>
 
         <button className='commit-button' onClick={event => this.handleSubmit(event)} disabled={!buttonEnabled}>
           <div>Commit to <strong>{branchName}</strong></div>

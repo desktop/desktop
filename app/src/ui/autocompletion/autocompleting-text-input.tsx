@@ -4,6 +4,7 @@ import { IAutocompletionProvider } from './index'
 import { EmojiAutocompletionProvider } from './emoji-autocompletion-provider'
 import { fatalError } from '../../lib/fatal-error'
 import { IssuesAutocompletionProvider } from './issues-autocompletion-provider'
+import { IssuesStore } from '../../lib/dispatcher'
 
 interface IPosition {
   readonly top: number
@@ -24,6 +25,7 @@ interface IAutocompletingTextInputProps<ElementType> {
   readonly onChange?: (event: React.FormEvent<ElementType>) => void
   readonly onKeyDown?: (event: React.KeyboardEvent<ElementType>) => void
   readonly emoji: Map<string, string>
+  readonly issuesStore: IssuesStore
 }
 
 interface IAutocompletionState<T> {
@@ -81,7 +83,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
 
     this.providers = [
       new EmojiAutocompletionProvider(props.emoji),
-      new IssuesAutocompletionProvider(),
+      new IssuesAutocompletionProvider(props.issuesStore),
     ]
 
     this.state = { autocompletionState: null }

@@ -77,7 +77,10 @@ export class AppStore {
 
   private readonly emojiStore: EmojiStore
 
-  private readonly issuesStore: IssuesStore
+  private readonly _issuesStore: IssuesStore
+
+  /** The issues store for all repositories. */
+  public get issuesStore(): IssuesStore { return this._issuesStore }
 
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
@@ -86,7 +89,7 @@ export class AppStore {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
     this.emojiStore = emojiStore
-    this.issuesStore = issuesStore
+    this._issuesStore = issuesStore
 
     this.gitHubUserStore.onDidUpdate(() => {
       this.emitUpdate()
@@ -493,7 +496,7 @@ export class AppStore {
     const api = new API(user)
     try {
       const issues = await api.fetchIssues(gitHubRepository.owner.login, gitHubRepository.name, 'open', null)
-      await this.issuesStore.storeIssues(issues, repository)
+      await this._issuesStore.storeIssues(issues, repository)
     } catch (e) {
       console.log('Error fetching issues:')
       console.error(e)

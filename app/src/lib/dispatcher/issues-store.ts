@@ -66,8 +66,8 @@ export class IssuesStore {
     })
   }
 
-  /** Get issues whose title contains the given text. */
-  public async getIssuesContainingTitle(repository: Repository, title: string): Promise<ReadonlyArray<IIssue>> {
+  /** Get issues whose title or number matches the text. */
+  public async getIssuesMatching(repository: Repository, text: string): Promise<ReadonlyArray<IIssue>> {
     if (!repository.gitHubRepository) {
       return Promise.resolve([])
     }
@@ -81,9 +81,9 @@ export class IssuesStore {
       .equals([ endpoint, repositoryID ])
       .limit(IssueResultsHardLimit)
       .filter(i => {
-        if (i.number.startsWith(title)) { return true }
+        if (i.number.startsWith(text)) { return true }
 
-        return i.title.toLowerCase().includes(title.toLowerCase())
+        return i.title.toLowerCase().includes(text.toLowerCase())
       })
     return issues.toArray()
   }

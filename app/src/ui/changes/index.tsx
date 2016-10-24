@@ -4,7 +4,7 @@ import { Diff  } from '../diff'
 import { DiffSelection, DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
-import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
+import { Dispatcher, IGitHubUser, IssuesStore } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit } from '../../lib/local-git-operations'
@@ -19,6 +19,7 @@ interface IChangesProps {
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
   readonly mostRecentLocalCommit: Commit | null
+  readonly issuesStore: IssuesStore
 }
 
 /** TODO: handle "repository not found" scenario */
@@ -170,7 +171,8 @@ export class Changes extends React.Component<IChangesProps, void> {
                        branch={this.props.branch}
                        avatarURL={avatarURL}
                        emoji={this.props.emoji}
-                       contextualCommitMessage={this.props.changes.contextualCommitMessage}/>
+                       contextualCommitMessage={this.props.changes.contextualCommitMessage}
+                       issuesStore={this.props.issuesStore}/>
           {this.renderMostRecentLocalCommit()}
         </Resizable>
 
