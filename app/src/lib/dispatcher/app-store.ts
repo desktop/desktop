@@ -29,6 +29,7 @@ import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
 import { EmojiStore } from './emoji-store'
 import { GitStore } from './git-store'
+import { IssuesStore } from './issues-store'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -75,13 +76,16 @@ export class AppStore {
 
   private readonly emojiStore: EmojiStore
 
+  private readonly issuesStore: IssuesStore
+
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
 
-  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore) {
+  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
     this.emojiStore = emojiStore
+    this.issuesStore = issuesStore
 
     this.gitHubUserStore.onDidUpdate(() => {
       this.emitUpdate()
@@ -453,9 +457,29 @@ export class AppStore {
 
     if (repository instanceof Repository) {
       localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
+
+      this.repositoryPeriodicTask(repository)
+
       return this._refreshRepository(repository)
     } else {
       return Promise.resolve()
+    }
+  }
+
+  private async repositoryPeriodicTask(repository: Repository) {
+    const gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) { return }
+
+    const user = this.users.find(u => u.endpoint === gitHubRepository.endpoint)
+    if (!user) { return }
+
+    const api = new API(user)
+    try {
+      const issues = await api.fetchIssues(gitHubRepository.owner.login, gitHubRepository.name, 'open', null)
+      await this.issuesStore.storeIssues(issues, repository)
+    } catch (e) {
+      console.log('Error fetching issues:')
+      console.error(e)
     }
   }
 

@@ -16,6 +16,7 @@ import { sendReady } from './main-process-proxy'
 import { reportError } from '../lib/exception-reporting'
 import * as appProxy from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
+import { IssuesDatabase, IssuesStore } from '../lib/dispatcher'
 
 const startTime = Date.now()
 
@@ -32,7 +33,8 @@ process.on('uncaughtException', (error: Error) => {
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
 const cloningRepositoriesStore = new CloningRepositoriesStore()
 const emojiStore = new EmojiStore()
-const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore, emojiStore)
+const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
+const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore, emojiStore, issuesStore)
 const dispatcher = new Dispatcher(appStore)
 
 const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
