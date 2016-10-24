@@ -3,6 +3,7 @@ import { List } from '../list'
 import { IAutocompletionProvider } from './index'
 import { EmojiAutocompletionProvider } from './emoji-autocompletion-provider'
 import { fatalError } from '../../lib/fatal-error'
+import { IssuesAutocompletionProvider } from './issues-autocompletion-provider'
 
 interface IPosition {
   readonly top: number
@@ -80,6 +81,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
 
     this.providers = [
       new EmojiAutocompletionProvider(props.emoji),
+      new IssuesAutocompletionProvider(),
     ]
 
     this.state = { autocompletionState: null }
