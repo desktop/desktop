@@ -72,10 +72,18 @@ export class IssuesStore {
       return Promise.resolve([])
     }
 
-    // TODO: What happens for empty strings?
-
     const repositoryID = repository.id
     const endpoint = repository.gitHubRepository.endpoint
+
+    if (!text.length) {
+      const issues = await this.db.issues
+        .where('[endpoint+repositoryID]')
+        .equals([ endpoint, repositoryID ])
+        .limit(IssueResultsHardLimit)
+        .sortBy('id')
+      return issues
+    }
+
     const MaxScore = 1
     const score = (i: IIssue) => {
       if (i.number.startsWith(text)) {
