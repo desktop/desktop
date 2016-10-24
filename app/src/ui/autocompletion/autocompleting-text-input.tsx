@@ -293,7 +293,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
 
     const str = event.currentTarget.value
     const caretPosition = this.element!.selectionStart
-    const requestID = this.autocompletionRequestID++
+    const requestID = ++this.autocompletionRequestID
     const autocompletionState = await this.attemptAutocompletion(str, caretPosition)
 
     // If another autocompletion request is in flight, then ignore these
