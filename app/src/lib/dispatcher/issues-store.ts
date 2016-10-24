@@ -33,7 +33,7 @@ export class IssuesStore {
         return {
           endpoint,
           repositoryID,
-          number: i.number,
+          number: i.number.toString(),
           title: i.title,
         }
       })

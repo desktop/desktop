@@ -46,7 +46,7 @@ export interface IAPIEmail {
 }
 
 export interface IAPIIssue {
-  readonly number: string
+  readonly number: number
   readonly title: string
   readonly state: 'open' | 'closed'
 }
