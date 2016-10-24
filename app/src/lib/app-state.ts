@@ -5,8 +5,10 @@ import { Repository } from '../models/repository'
 import { Commit, Branch } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
+import { ICommitMessage } from './dispatcher/git-store'
 
 export { ICloningRepositoryState } from './dispatcher'
+export { ICommitMessage } from './dispatcher/git-store'
 
 export enum SelectionType {
   Repository,
@@ -87,6 +89,12 @@ export interface IRepositoryState {
 
   /** The commits loaded, keyed by their full SHA. */
   readonly commits: Map<string, Commit>
+
+  /**
+   * The ordered local commit SHAs. The commits themselves can be looked up in
+   * `commits.`
+   */
+  readonly localCommitSHAs: ReadonlyArray<string>
 }
 
 export interface IBranchesState {
@@ -116,4 +124,10 @@ export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedFile: WorkingDirectoryFileChange | null
   readonly diff: Diff | null
+
+  /**
+   * The commit message to use based on the contex of the repository, e.g., the
+   * message from a recently undone commit.
+   */
+  readonly contextualCommitMessage: ICommitMessage | null
 }

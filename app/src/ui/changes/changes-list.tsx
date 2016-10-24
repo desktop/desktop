@@ -8,6 +8,7 @@ import { WorkingDirectoryStatus } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Checkbox, CheckboxValue } from './checkbox'
+import { ICommitMessage } from '../../lib/app-state'
 
 const RowHeight = 30
 
@@ -30,6 +31,8 @@ interface IChangesListProps {
    * List Props for documentation.
    */
   readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
+
+  readonly contextualCommitMessage: ICommitMessage | null
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
@@ -100,7 +103,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
                        avatarURL={this.props.avatarURL}
                        emoji={this.props.emoji}
                        commitAuthor={this.props.commitAuthor}
-                       anyFilesSelected={anyFilesSelected} />
+                       anyFilesSelected={anyFilesSelected}
+                       contextualCommitMessage={this.props.contextualCommitMessage}/>
       </div>
     )
   }

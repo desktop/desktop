@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { AutocompletingTextArea, AutocompletingInput } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
+import { ICommitMessage } from '../../lib/app-state'
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (summary: string, description: string) => void
@@ -9,6 +10,8 @@ interface ICommitMessageProps {
   readonly avatarURL: string
   readonly emoji: Map<string, string>
   readonly anyFilesSelected: boolean
+
+  readonly contextualCommitMessage: ICommitMessage | null
 }
 
 interface ICommitMessageState {
@@ -21,9 +24,21 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   public constructor(props: ICommitMessageProps) {
     super(props)
 
-    this.state = {
-      summary: '',
-      description: '',
+    const contextualCommitMessage = props.contextualCommitMessage
+    if (contextualCommitMessage) {
+      this.state = contextualCommitMessage
+    } else {
+      this.state = {
+        summary: '',
+        description: '',
+      }
+    }
+  }
+
+  public componentWillReceiveProps(nextProps: ICommitMessageProps) {
+    const contextualCommitMessage = nextProps.contextualCommitMessage
+    if (contextualCommitMessage && !this.state.summary.length && !this.state.description.length) {
+      this.setState(contextualCommitMessage)
     }
   }
 
