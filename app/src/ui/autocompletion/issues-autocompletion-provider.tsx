@@ -35,6 +35,6 @@ export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIs
   }
 
   public getCompletionText(item: IIssueHit): string {
-    return item.number
+    return `#${item.number}`
   }
 }
