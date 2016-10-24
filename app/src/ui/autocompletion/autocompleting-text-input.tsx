@@ -1,10 +1,7 @@
 import * as React from 'react'
 import { List } from '../list'
 import { IAutocompletionProvider } from './index'
-import { EmojiAutocompletionProvider } from './emoji-autocompletion-provider'
 import { fatalError } from '../../lib/fatal-error'
-import { IssuesAutocompletionProvider } from './issues-autocompletion-provider'
-import { IssuesStore } from '../../lib/dispatcher'
 
 interface IPosition {
   readonly top: number
@@ -24,8 +21,7 @@ interface IAutocompletingTextInputProps<ElementType> {
   readonly value?: string
   readonly onChange?: (event: React.FormEvent<ElementType>) => void
   readonly onKeyDown?: (event: React.KeyboardEvent<ElementType>) => void
-  readonly emoji: Map<string, string>
-  readonly issuesStore: IssuesStore
+  readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 }
 
 interface IAutocompletionState<T> {
@@ -73,18 +69,11 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
   /** The row to scroll to. -1 means the list shouldn't scroll. */
   private scrollToRow = -1
 
-  private providers: ReadonlyArray<IAutocompletionProvider<any>>
-
   /** The identifier for each autocompletion request. */
   private autocompletionRequestID = 0
 
   public constructor(props: IAutocompletingTextInputProps<ElementType>) {
     super(props)
-
-    this.providers = [
-      new EmojiAutocompletionProvider(props.emoji),
-      new IssuesAutocompletionProvider(props.issuesStore),
-    ]
 
     this.state = { autocompletionState: null }
   }
@@ -271,7 +260,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
   }
 
   private async attemptAutocompletion(str: string, caretPosition: number): Promise<IAutocompletionState<any> | null> {
-    for (const provider of this.providers) {
+    for (const provider of this.props.autocompletionProviders) {
       // NB: RegExps are stateful (AAAAAAAAAAAAAAAAAA) so defensively copy the
       // regex we're given.
       const regex = new RegExp(provider.getRegExp())

@@ -37,3 +37,6 @@ export interface IAutocompletionProvider<T> {
    */
    getCompletionText(item: T): string
 }
+
+export * from './emoji-autocompletion-provider'
+export * from './issues-autocompletion-provider'

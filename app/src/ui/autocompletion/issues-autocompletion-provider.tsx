@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { IAutocompletionProvider } from './index'
 import { IssuesStore } from '../../lib/dispatcher'
+import { Repository } from '../../models/repository'
 
 export interface IIssueHit {
   readonly title: string
@@ -9,9 +10,11 @@ export interface IIssueHit {
 
 export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIssueHit> {
   private readonly issuesStore: IssuesStore
+  private readonly repository: Repository
 
-  public constructor(issuesStore: IssuesStore) {
+  public constructor(issuesStore: IssuesStore, repository: Repository) {
     this.issuesStore = issuesStore
+    this.repository = repository
   }
 
   public getRegExp(): RegExp {
@@ -19,7 +22,7 @@ export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIs
   }
 
   public getAutocompletionItems(text: string): Promise<ReadonlyArray<IIssueHit>> {
-    return Promise.resolve([])
+    return this.issuesStore.getIssuesMatching(this.repository, text)
   }
 
   public renderItem(item: IIssueHit): JSX.Element {

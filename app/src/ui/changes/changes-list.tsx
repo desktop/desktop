@@ -10,6 +10,7 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { Checkbox, CheckboxValue } from './checkbox'
 import { ICommitMessage } from '../../lib/app-state'
 import { IssuesStore } from '../../lib/dispatcher'
+import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocompletionProvider } from '../autocompletion'
 
 const RowHeight = 30
 
@@ -39,6 +40,17 @@ interface IChangesListProps {
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
+  private autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
+
+  public constructor(props: IChangesListProps) {
+    super(props)
+
+    this.autocompletionProviders = [
+      new EmojiAutocompletionProvider(props.emoji),
+      new IssuesAutocompletionProvider(props.issuesStore, props.repository),
+    ]
+  }
+
   private onIncludeAllChange(event: React.FormEvent<HTMLInputElement>) {
     const include = event.currentTarget.checked
     this.props.onSelectAll(include)
@@ -104,11 +116,10 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         <CommitMessage onCreateCommit={(summary, description) => this.props.onCreateCommit(summary, description)}
                        branch={this.props.branch}
                        avatarURL={this.props.avatarURL}
-                       emoji={this.props.emoji}
                        commitAuthor={this.props.commitAuthor}
                        anyFilesSelected={anyFilesSelected}
                        contextualCommitMessage={this.props.contextualCommitMessage}
-                       issuesStore={this.props.issuesStore}/>
+                       autocompletionProviders={this.autocompletionProviders}/>
       </div>
     )
   }
