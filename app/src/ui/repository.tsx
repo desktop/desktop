@@ -1,10 +1,9 @@
 import * as React from 'react'
 import { Repository as Repo } from '../models/repository'
 import { UiView } from './ui-view'
-import { Toolbar } from './toolbar'
 import { Changes } from './changes'
 import { History } from './history'
-import { ToolbarTab } from './toolbar'
+import { TabBar } from './tab-bar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
 
@@ -15,7 +14,30 @@ interface IRepositoryProps {
   readonly emoji: Map<string, string>
 }
 
+const enum Tab {
+  Changes = 0,
+  History = 1,
+}
+
 export class RepositoryView extends React.Component<IRepositoryProps, void> {
+
+  private renderTabs() {
+    const hasChanges = this.props.state.changesState.workingDirectory.files.length > 0
+    const selectedTab = this.props.state.selectedSection === RepositorySection.Changes
+      ? Tab.Changes
+      : Tab.History
+
+    return (
+      <TabBar selectedIndex={selectedTab} onTabClicked={index => this.onTabClicked(index)}>
+        <span>
+          <span>Changes</span>
+          {hasChanges ? <span className='indicator'/> : null}
+        </span>
+        <span>History</span>
+      </TabBar>
+    )
+  }
+
   private renderContent() {
     if (this.props.state.selectedSection === RepositorySection.Changes) {
       const branch = this.props.state.branchesState.currentBranch
@@ -44,12 +66,9 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
   }
 
   public render() {
-    const selectedTab = this.props.state.selectedSection === RepositorySection.History ? ToolbarTab.History : ToolbarTab.Changes
     return (
       <UiView id='repository' onKeyDown={(e) => this.onKeyDown(e)}>
-        <Toolbar selectedTab={selectedTab}
-                 onTabClicked={tab => this.onTabClicked(tab)}
-                 hasChanges={this.props.state.changesState.workingDirectory.files.length > 0}/>
+        {this.renderTabs()}
         {this.renderContent()}
       </UiView>
     )
@@ -70,8 +89,8 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     }
   }
 
-  private onTabClicked(tab: ToolbarTab) {
-    const section = tab === ToolbarTab.History ? RepositorySection.History : RepositorySection.Changes
+  private onTabClicked(tab: Tab) {
+    const section = tab === Tab.History ? RepositorySection.History : RepositorySection.Changes
     this.props.dispatcher.changeRepositorySection(this.props.repository, section)
   }
 }
