@@ -129,7 +129,15 @@ export class Diff extends React.Component<IDiffProps, void> {
     const desiredSelection = !selected
 
     if (isHunkSelection) {
-      this.gutterSelection = new HunkSelectionStrategy(-1, -1, desiredSelection, snapshot)
+      const hunk = this.props.diff.diffHunkForIndex(index)
+      if (!hunk) {
+        console.error('unable to find hunk for given line in diff')
+        return
+      }
+
+      const start = hunk.unifiedDiffStart
+      const length = hunk.unifiedDiffEnd - hunk.unifiedDiffStart
+      this.gutterSelection = new HunkSelectionStrategy(start, length, desiredSelection, snapshot)
     } else {
       this.gutterSelection = new DragDropSelectionStrategy(index, desiredSelection, snapshot)
     }
@@ -267,8 +275,25 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         const mouseMoveHandler = (ev: MouseEvent) => {
-          // TODO: if cursor in certain position, highlight whole hunk
-          this.onMouseMove(index)
+
+          if (!this.isIncludableLine(diffLine)) {
+            return
+          }
+
+          if (!this.gutterSelection) {
+
+            // clear selection in case transitioning from hunk->line
+            this.highlightHunk(hunk, false)
+
+            // no selection active, let's try highlighting
+            if (this.isMouseInLeftColumn(ev)) {
+              this.highlightHunk(hunk, true)
+            } else {
+              this.highlightLine(index, diffLine, true)
+            }
+          } else {
+            this.onMouseMove(index)
+          }
         }
 
         const mouseUpHandler = (ev: UIEvent) => this.onMouseUp(index)
