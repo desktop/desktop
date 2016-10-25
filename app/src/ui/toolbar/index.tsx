@@ -1,1 +1,1 @@
-export * from './toolbar.tsx'
+export * from './toolbar'
