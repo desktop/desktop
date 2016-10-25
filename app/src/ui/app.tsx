@@ -1,13 +1,10 @@
 import * as React from 'react'
 import { ipcRenderer, remote } from 'electron'
 
-import { Resizable } from './resizable'
-import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
 import { NotLoggedIn } from './not-logged-in'
 import { WindowControls } from './window/window-controls'
-import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
-import { Repository } from '../models/repository'
+import { Dispatcher, AppStore } from '../lib/dispatcher'
 import { MenuEvent } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
 import { IAppState, RepositorySection, PopupType, SelectionType } from '../lib/app-state'
@@ -19,6 +16,7 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
+import { Toolbar } from './toolbar'
 import { showPopupAppMenu, setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateState } from './lib/update-store'
@@ -373,24 +371,18 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderApp() {
-    const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
-        <Resizable id='desktop-app-sidebar' configKey='repositories-list-width'>
-          <RepositoriesList selectedRepository={selectedRepository}
-                            onSelectionChanged={repository => this.onSelectionChanged(repository)}
-                            dispatcher={this.props.dispatcher}
-                            repositories={this.state.repositories}
-                            loading={this.state.loading}/>
-        </Resizable>
-
+        {this.renderToolbar()}
         {this.renderRepository()}
-
         {this.renderPopup()}
-
         {this.renderErrors()}
       </div>
     )
+  }
+
+  private renderToolbar() {
+    return <Toolbar id='desktop-app-toolbar'></Toolbar>
   }
 
   private renderRepository() {
@@ -431,13 +423,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onSelectionChanged(repository: Repository | CloningRepository) {
+  /*private onSelectionChanged(repository: Repository | CloningRepository) {
     this.props.dispatcher.selectRepository(repository)
 
     if (repository instanceof Repository) {
       this.props.dispatcher.refreshGitHubRepositoryInfo(repository)
     }
-  }
+  }*/
 }
 
 function NoRepositorySelected() {

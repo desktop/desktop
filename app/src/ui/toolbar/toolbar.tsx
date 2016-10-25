@@ -1,12 +1,16 @@
 import * as React from 'react'
 
 interface IToolbarProps {
-
+  id?: string
 }
 
 /** The main application toolbar component. */
 export class Toolbar extends React.Component<IToolbarProps, void> {
   public render() {
-    return null
+    return (
+      <div id={this.props.id} className='toolbar'>
+        {this.props.children}
+      </div>
+    )
   }
 }
