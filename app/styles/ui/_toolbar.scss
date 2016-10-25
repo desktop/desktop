@@ -24,6 +24,10 @@
   --text-color: #ffffff;
   --background-color: #3b3f46;
 
+  // Invert text and background for selected buttons
+  --box-selected-background-color: #ffffff;
+  --box-selected-text-color: #3b3f46;
+
   color: var(--text-color);
   background-color: var(--background-color);
 
