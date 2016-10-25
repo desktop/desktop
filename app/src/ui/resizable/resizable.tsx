@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { ThrottledScheduler } from './lib/throttled-scheduler'
+import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
 interface IResizableProps extends React.Props<Resizable> {
   /** String key used when persisting the panel width to localStorage */
