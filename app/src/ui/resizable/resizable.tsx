@@ -6,7 +6,7 @@ export interface IResizableProps extends React.Props<Resizable> {
 
   /** The maximum width the panel can be resized to.
    *
-   * @default 400
+   * @default 350
    */
   maximumWidth?: number
 
