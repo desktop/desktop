@@ -82,6 +82,9 @@
         // moves away from the hitbox.
         &:active {
           background-color: #cccccc;
+
+          // Immediate feedback when clicking
+          transition: none;
         }
       }
 
@@ -93,6 +96,9 @@
 
         &:active {
           background-color: #f1707a;
+
+          // Immediate feedback when clicking
+          transition: none;
         }
       }
 
