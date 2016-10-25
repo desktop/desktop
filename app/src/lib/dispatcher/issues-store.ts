@@ -1,5 +1,6 @@
 import { IssuesDatabase, IIssue } from './issues-database'
-import { IAPIIssue } from '../api'
+import { API, IAPIIssue } from '../api'
+import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 
 /** The hard limit on the number of issue results we'd ever return. */
@@ -14,11 +15,43 @@ export class IssuesStore {
     this.db = db
   }
 
+  private lastFetchKey(repository: Repository): string {
+    return `IssuesStore/${repository.id}/lastFetch`
+  }
+
+  private getLastFetchDate(repository: Repository): Date | null {
+    const rawTime = localStorage.getItem(this.lastFetchKey(repository))
+    if (!rawTime) { return null }
+
+    const parsedNumber = parseInt(rawTime, 10)
+    if (!parsedNumber || isNaN(parsedNumber)) { return null }
+
+    return new Date(parsedNumber)
+  }
+
+  private setLastFetchDate(repository: Repository, date: Date) {
+    localStorage.setItem(this.lastFetchKey(repository), date.getTime().toString())
+  }
+
   /**
-   * Store the given issues. This will delete any issues that have been closed
-   * and update or add any issues that have changed or been added.
+   * Fetch the issues for the repository. This will delete any issues that have
+   * been closed and update or add any issues that have changed or been added.
    */
-  public async storeIssues(issues: ReadonlyArray<IAPIIssue>, repository: Repository): Promise<void> {
+  public async fetchIssues(repository: Repository, user: User) {
+    const gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) { return }
+
+    const api = new API(user)
+    const lastFetchDate = this.getLastFetchDate(repository)
+    const now = new Date()
+
+    const issues = await api.fetchIssues(gitHubRepository.owner.login, gitHubRepository.name, 'open', lastFetchDate)
+    this.setLastFetchDate(repository, now)
+
+    this.storeIssues(issues, repository)
+  }
+
+  private async storeIssues(issues: ReadonlyArray<IAPIIssue>, repository: Repository): Promise<void> {
     if (!repository.gitHubRepository) {
       return
     }

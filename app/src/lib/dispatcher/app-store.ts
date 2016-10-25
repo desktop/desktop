@@ -493,10 +493,8 @@ export class AppStore {
     const user = this.users.find(u => u.endpoint === gitHubRepository.endpoint)
     if (!user) { return }
 
-    const api = new API(user)
     try {
-      const issues = await api.fetchIssues(gitHubRepository.owner.login, gitHubRepository.name, 'open', null)
-      await this._issuesStore.storeIssues(issues, repository)
+      await this._issuesStore.fetchIssues(repository, user)
     } catch (e) {
       console.log('Error fetching issues:')
       console.error(e)
