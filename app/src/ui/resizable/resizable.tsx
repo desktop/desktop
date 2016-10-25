@@ -1,20 +1,8 @@
 import * as React from 'react'
-import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
-interface IResizableProps extends React.Props<Resizable> {
-  /** String key used when persisting the panel width to localStorage */
-  configKey: string
+export interface IResizableProps extends React.Props<Resizable> {
 
-  /**
-   * The default width of the panel.
-   *
-   * The default width is used until user first resizes the
-   * panel or when the custom size is explicitly reset by
-   * double clicking on the resize handle.
-   *
-   * @default 250
-   */
-  defaultWidth?: number
+  width: number
 
   /** The maximum width the panel can be resized to.
    *
@@ -31,6 +19,9 @@ interface IResizableProps extends React.Props<Resizable> {
 
   /** The optional ID for the root element. */
   id?: string
+
+  readonly onResize?: (newWidth: number) => void
+  readonly onReset?: () => void
 }
 
 interface IResizableState {
@@ -49,46 +40,20 @@ interface IResizableState {
 export class Resizable extends React.Component<IResizableProps, IResizableState> {
 
   public static defaultProps: IResizableProps = {
-    configKey: 'resizable-width',
-    defaultWidth: 250,
+    width: 250,
     minimumWidth: 150,
     maximumWidth: 350,
   }
 
   private startWidth: number | null
   private startX: number
-  private configWriteScheduler = new ThrottledScheduler(300)
-
-  public constructor(props: IResizableProps) {
-    super(props)
-    this.state = { width: this.getPersistedWidth() }
-  }
-
-  private getPersistedWidth() {
-    const storedWidth = parseInt(localStorage.getItem(this.props.configKey) || '', 10)
-    if (!storedWidth || isNaN(storedWidth)) {
-      return this.props.defaultWidth
-    }
-
-    return storedWidth
-  }
-
-  private setPersistedWidth(newWidth: number) {
-    this.configWriteScheduler.queue(() => {
-      localStorage.setItem(this.props.configKey, newWidth.toString())
-    })
-  }
-
-  private clearPersistedWidth() {
-    this.configWriteScheduler.queue(() => {
-      localStorage.removeItem(this.props.configKey)
-    })
-  }
 
   private getCurrentWidth() {
-    return (this.state && this.state.width)
-      ? this.state.width
-      : this.props.defaultWidth
+    return this.clampWidth(this.props.width)
+  }
+
+  private clampWidth(width: number) {
+    return Math.max(this.props.minimumWidth!, Math.min(this.props.maximumWidth!, width))
   }
 
   /**
@@ -116,10 +81,11 @@ export class Resizable extends React.Component<IResizableProps, IResizableState>
     const deltaX = e.clientX - this.startX
 
     const newWidth = this.startWidth + deltaX
-    const newWidthClamped = Math.max(this.props.minimumWidth!, Math.min(this.props.maximumWidth!, newWidth))
+    const newWidthClamped = this.clampWidth(newWidth)
 
-    this.setState({ width: newWidthClamped })
-    this.setPersistedWidth(newWidthClamped)
+    if (this.props.onResize) {
+      this.props.onResize(newWidthClamped)
+    }
   }
 
   /**
@@ -144,8 +110,9 @@ export class Resizable extends React.Component<IResizableProps, IResizableState>
    * we can avoid creating anonymous functions repeatedly in render()
    */
   private handleDoubleClick = () => {
-    this.setState({ width: undefined })
-    this.clearPersistedWidth()
+    if (this.props.onReset) {
+      this.props.onReset()
+    }
   }
 
   public render() {

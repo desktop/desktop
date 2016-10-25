@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { ipcRenderer, remote } from 'electron'
 
-import { Resizable } from './resizable'
+import { PersistingResizable } from './resizable'
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
 import { NotLoggedIn } from './not-logged-in'
@@ -376,13 +376,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
-        <Resizable id='desktop-app-sidebar' configKey='repositories-list-width'>
+        <PersistingResizable id='desktop-app-sidebar' configKey='repositories-list-width'>
           <RepositoriesList selectedRepository={selectedRepository}
                             onSelectionChanged={repository => this.onSelectionChanged(repository)}
                             dispatcher={this.props.dispatcher}
                             repositories={this.state.repositories}
                             loading={this.state.loading}/>
-        </Resizable>
+        </PersistingResizable>
 
         {this.renderRepository()}
 

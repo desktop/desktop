@@ -8,7 +8,7 @@ import { Commit } from '../../lib/local-git-operations'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
-import { Resizable } from '../resizable'
+import { PersistingResizable } from '../resizable'
 
 /** If we're within this many rows from the bottom, load the next history batch. */
 const CloseToBottomThreshold = 10
@@ -77,7 +77,7 @@ export class History extends React.Component<IHistoryProps, void> {
 
     return (
       <div className='panel-container' id='history'>
-        <Resizable configKey='commit-list-width'>
+        <PersistingResizable configKey='commit-list-width'>
           <CommitList commits={this.props.commits}
                       history={this.props.history.history}
                       selectedSHA={this.props.history.selection.sha}
@@ -87,15 +87,15 @@ export class History extends React.Component<IHistoryProps, void> {
                       gitHubUsers={this.props.gitHubUsers}
                       dispatcher={this.props.dispatcher}
                       emoji={this.props.emoji}/>
-        </Resizable>
-        <Resizable configKey='commit-summary-width'>
+        </PersistingResizable>
+        <PersistingResizable configKey='commit-summary-width'>
           <CommitSummaryContainer repository={this.props.repository}
                                   commit={commit}
                                   files={this.props.history.changedFiles}
                                   selectedFile={this.props.history.selection.file}
                                   onSelectedFileChanged={file => this.onFileSelected(file)}
                                   emoji={this.props.emoji}/>
-        </Resizable>
+        </PersistingResizable>
         { this.renderDiff(commit) }
       </div>
     )

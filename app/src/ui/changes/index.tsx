@@ -5,7 +5,7 @@ import { DiffSelection, DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
-import { Resizable } from '../resizable'
+import { PersistingResizable } from '../resizable'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit } from '../../lib/local-git-operations'
 import { UndoCommit } from './undo-commit'
@@ -156,7 +156,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     const avatarURL = user ? user.avatarURL : 'https://github.com/hubot.png'
     return (
       <div className='panel-container'>
-        <Resizable configKey='changes-width'>
+        <PersistingResizable configKey='changes-width'>
           <ChangesList repository={this.props.repository}
                        workingDirectory={this.props.changes.workingDirectory}
                        selectedPath={selectedPath}
@@ -172,7 +172,7 @@ export class Changes extends React.Component<IChangesProps, void> {
                        emoji={this.props.emoji}
                        contextualCommitMessage={this.props.changes.contextualCommitMessage}/>
           {this.renderMostRecentLocalCommit()}
-        </Resizable>
+        </PersistingResizable>
 
         {this.renderDiff()}
       </div>
