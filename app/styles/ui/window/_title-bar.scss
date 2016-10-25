@@ -69,19 +69,19 @@
       box-shadow: none;
       border-radius: 0;
 
-      color: #000;
+      color: #fff;
       background-color: transparent;
       transition: background-color 0.25s ease;
 
       &:hover {
-        background-color: #e7e7e7;
+        background-color: #888;
 
         // Doing :hover:active as oposed to just :active is
         // a conscious choice to match how the real Windows
         // controls behave when someone hovers, clicks and then
         // moves away from the hitbox.
         &:active {
-          background-color: #cccccc;
+          background-color: #666;
 
           // Immediate feedback when clicking
           transition: none;
@@ -92,10 +92,9 @@
       // on hover and slightly lighter red on active.
       &.close:hover {
         background-color: #e81123;
-        color: #fff;
 
         &:active {
-          background-color: #f1707a;
+          background-color: #bf0f1d;
 
           // Immediate feedback when clicking
           transition: none;
