@@ -20,7 +20,17 @@ export interface IResizableProps extends React.Props<Resizable> {
   /** The optional ID for the root element. */
   id?: string
 
+  /**
+   * Handler called when the width of the component has changed
+   * through an explicit resize event (dragging the handle).
+   */
   readonly onResize?: (newWidth: number) => void
+
+  /**
+   * Handler called when the resizable component has been
+   * reset (ie restored to its original width by double clicking
+   * on the resize handle).
+   */
   readonly onReset?: () => void
 }
 
