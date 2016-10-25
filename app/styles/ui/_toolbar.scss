@@ -26,6 +26,11 @@
 
   color: var(--text-color);
   background-color: var(--background-color);
+
+  @include win32 {
+    -webkit-app-region: drag;
+    button { -webkit-app-region: no-drag; }
+  }
 }
 
 /* Toolbar negative margin hackery
