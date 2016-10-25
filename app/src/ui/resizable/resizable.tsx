@@ -45,7 +45,8 @@ interface IResizableState {
 /**
  * Component abstracting a resizable panel.
  *
- * Handles user resizing and persistence of the width.
+ * Note: this component is pure, consumers must subscribe to the
+ * onResize and onReset event and update the width prop accordingly.
  */
 export class Resizable extends React.Component<IResizableProps, IResizableState> {
 
@@ -55,7 +56,6 @@ export class Resizable extends React.Component<IResizableProps, IResizableState>
     maximumWidth: 350,
   }
 
-  private startWidth: number | null
   private startX: number
 
   private getCurrentWidth() {
@@ -75,7 +75,6 @@ export class Resizable extends React.Component<IResizableProps, IResizableState>
    */
   private handleDragStart = (e: React.MouseEvent<any>) => {
     this.startX = e.clientX
-    this.startWidth = this.getCurrentWidth() || null
 
     document.addEventListener('mousemove', this.handleDragMove)
     document.addEventListener('mouseup', this.handleDragStop)
@@ -90,7 +89,7 @@ export class Resizable extends React.Component<IResizableProps, IResizableState>
   private handleDragMove = (e: MouseEvent) => {
     const deltaX = e.clientX - this.startX
 
-    const newWidth = this.startWidth + deltaX
+    const newWidth = this.props.width + deltaX
     const newWidthClamped = this.clampWidth(newWidth)
 
     if (this.props.onResize) {
