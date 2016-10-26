@@ -56,6 +56,7 @@ export class Resizable extends React.Component<IResizableProps, IResizableState>
     maximumWidth: 350,
   }
 
+  private startWidth: number | null
   private startX: number
 
   private getCurrentWidth() {
@@ -75,6 +76,7 @@ export class Resizable extends React.Component<IResizableProps, IResizableState>
    */
   private handleDragStart = (e: React.MouseEvent<any>) => {
     this.startX = e.clientX
+    this.startWidth = this.getCurrentWidth() || null
 
     document.addEventListener('mousemove', this.handleDragMove)
     document.addEventListener('mouseup', this.handleDragStop)
@@ -89,7 +91,7 @@ export class Resizable extends React.Component<IResizableProps, IResizableState>
   private handleDragMove = (e: MouseEvent) => {
     const deltaX = e.clientX - this.startX
 
-    const newWidth = this.props.width + deltaX
+    const newWidth = this.startWidth + deltaX
     const newWidthClamped = this.clampWidth(newWidth)
 
     if (this.props.onResize) {
