@@ -5,8 +5,7 @@ const DatabaseVersion = 1
 
 export interface IIssue {
   readonly id?: number
-  readonly endpoint: string
-  readonly repositoryID: number
+  readonly gitHubRepositoryID: number
   readonly number: string
   readonly title: string
 }
@@ -18,7 +17,7 @@ export class IssuesDatabase extends Dexie {
     super(name)
 
     this.version(DatabaseVersion).stores({
-      issues: '++id, &[endpoint+repositoryID+number], [endpoint+repositoryID], number',
+      issues: '++id, &[gitHubRepositoryID+number], gitHubRepositoryID, number',
     })
   }
 }

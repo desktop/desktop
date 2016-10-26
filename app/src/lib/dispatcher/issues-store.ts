@@ -1,7 +1,8 @@
 import { IssuesDatabase, IIssue } from './issues-database'
 import { API, IAPIIssue } from '../api'
 import { User } from '../../models/user'
-import { Repository } from '../../models/repository'
+import { GitHubRepository } from '../../models/github-repository'
+import { fatalError } from '../fatal-error'
 
 /** The hard limit on the number of issue results we'd ever return. */
 const IssueResultsHardLimit = 100
@@ -15,11 +16,11 @@ export class IssuesStore {
     this.db = db
   }
 
-  private lastFetchKey(repository: Repository): string {
-    return `IssuesStore/${repository.id}/lastFetch`
+  private lastFetchKey(repository: GitHubRepository): string {
+    return `IssuesStore/${repository.dbID}/lastFetch`
   }
 
-  private getLastFetchDate(repository: Repository): Date | null {
+  private getLastFetchDate(repository: GitHubRepository): Date | null {
     const rawTime = localStorage.getItem(this.lastFetchKey(repository))
     if (!rawTime) { return null }
 
@@ -29,7 +30,7 @@ export class IssuesStore {
     return new Date(parsedNumber)
   }
 
-  private setLastFetchDate(repository: Repository, date: Date) {
+  private setLastFetchDate(repository: GitHubRepository, date: Date) {
     localStorage.setItem(this.lastFetchKey(repository), date.getTime().toString())
   }
 
@@ -37,35 +38,30 @@ export class IssuesStore {
    * Fetch the issues for the repository. This will delete any issues that have
    * been closed and update or add any issues that have changed or been added.
    */
-  public async fetchIssues(repository: Repository, user: User) {
-    const gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) { return }
-
+  public async fetchIssues(repository: GitHubRepository, user: User) {
     const api = new API(user)
     const lastFetchDate = this.getLastFetchDate(repository)
     const now = new Date()
 
-    const issues = await api.fetchIssues(gitHubRepository.owner.login, gitHubRepository.name, 'open', lastFetchDate)
+    const issues = await api.fetchIssues(repository.owner.login, repository.name, 'open', lastFetchDate)
     this.setLastFetchDate(repository, now)
 
     this.storeIssues(issues, repository)
   }
 
-  private async storeIssues(issues: ReadonlyArray<IAPIIssue>, repository: Repository): Promise<void> {
-    if (!repository.gitHubRepository) {
+  private async storeIssues(issues: ReadonlyArray<IAPIIssue>, repository: GitHubRepository): Promise<void> {
+    const gitHubRepositoryID = repository.dbID
+    if (!gitHubRepositoryID) {
+      fatalError(`Cannot store issues for a repository that hasn't been inserted into the database!`)
       return
     }
 
     const issuesToDelete = issues.filter(i => i.state === 'closed')
-
-    const repositoryID = repository.id
-    const endpoint = repository.gitHubRepository.endpoint
     const issuesToUpsert = issues
       .filter(i => i.state === 'open')
       .map<IIssue>(i => {
         return {
-          endpoint,
-          repositoryID,
+          gitHubRepositoryID,
           number: i.number.toString(),
           title: i.title,
         }
@@ -75,8 +71,8 @@ export class IssuesStore {
     await this.db.transaction('rw', this.db.issues, function*() {
       for (const issue of issuesToDelete) {
         const existing = yield db.issues
-          .where('[endpoint+repositoryID+number]')
-          .equals([ endpoint, repositoryID, issue.number ])
+          .where('[gitHubRepositoryID+number]')
+          .equals([ gitHubRepositoryID, issue.number ])
           .limit(1)
           .first()
         if (existing) {
@@ -86,8 +82,8 @@ export class IssuesStore {
 
       for (const issue of issuesToUpsert) {
         const existing = yield db.issues
-          .where('[endpoint+repositoryID+number]')
-          .equals([ endpoint, repositoryID, issue.number ])
+          .where('[gitHubRepositoryID+number]')
+          .equals([ gitHubRepositoryID, issue.number ])
           .limit(1)
           .first()
         if (existing) {
@@ -100,18 +96,17 @@ export class IssuesStore {
   }
 
   /** Get issues whose title or number matches the text. */
-  public async getIssuesMatching(repository: Repository, text: string): Promise<ReadonlyArray<IIssue>> {
-    if (!repository.gitHubRepository) {
-      return Promise.resolve([])
+  public async getIssuesMatching(repository: GitHubRepository, text: string): Promise<ReadonlyArray<IIssue>> {
+    const gitHubRepositoryID = repository.dbID
+    if (!gitHubRepositoryID) {
+      fatalError(`Cannot get issues for a repository that hasn't been inserted into the database!`)
+      return []
     }
-
-    const repositoryID = repository.id
-    const endpoint = repository.gitHubRepository.endpoint
 
     if (!text.length) {
       const issues = await this.db.issues
-        .where('[endpoint+repositoryID]')
-        .equals([ endpoint, repositoryID ])
+        .where('gitHubRepositoryID')
+        .equals(gitHubRepositoryID)
         .limit(IssueResultsHardLimit)
         .sortBy('id')
       return issues
@@ -131,8 +126,8 @@ export class IssuesStore {
     }
 
     const issuesCollection = await this.db.issues
-      .where('[endpoint+repositoryID]')
-      .equals([ endpoint, repositoryID ])
+      .where('gitHubRepositoryID')
+      .equals(gitHubRepositoryID)
       .limit(IssueResultsHardLimit)
       .filter(i => score(i) > 0)
 
