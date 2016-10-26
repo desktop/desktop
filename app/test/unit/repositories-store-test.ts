@@ -40,7 +40,7 @@ describe('RepositoriesStore', () => {
     it('adds a new GitHub repository', async () => {
       const addedRepo = await repositoriesStore!.addRepository('/some/cool/path')
 
-      const gitHubRepo = new GitHubRepository('my-repo', new Owner('my-user', 'https://api.github.com'), true, false, 'https://github.com/my-user/my-repo')
+      const gitHubRepo = new GitHubRepository('my-repo', new Owner('my-user', 'https://api.github.com'), 1, true, false, 'https://github.com/my-user/my-repo')
       const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)
       await repositoriesStore!.updateGitHubRepository(repoWithGitHub)
 
@@ -54,7 +54,7 @@ describe('RepositoriesStore', () => {
     it('updates an existing GitHub repository', async () => {
       const addedRepo = await repositoriesStore!.addRepository('/some/cool/path')
 
-      const gitHubRepo = new GitHubRepository('my-repo', new Owner('my-user', 'https://api.github.com'), true, false, 'https://github.com/my-user/my-repo')
+      const gitHubRepo = new GitHubRepository('my-repo', new Owner('my-user', 'https://api.github.com'), 1, true, false, 'https://github.com/my-user/my-repo')
       const repoWithGitHub = addedRepo.withGitHubRepository(gitHubRepo)
       await repositoriesStore!.updateGitHubRepository(repoWithGitHub)
 
