@@ -45,6 +45,7 @@ export interface IAPIEmail {
   readonly primary: boolean
 }
 
+/** Information about an issue as returned by the GitHub API. */
 export interface IAPIIssue {
   readonly number: number
   readonly title: string
@@ -136,8 +137,8 @@ export class API {
   }
 
   /**
-   * Fetch the open issues that have been created or updated since the given
-   * date.
+   * Fetch the issues with the given state that have been created or updated
+   * since the given date.
    */
   public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
     let params = { state }
@@ -154,7 +155,7 @@ export class API {
       allItems.push(...result.items)
     }
 
-    // PRs are issues :\ But we only want Real Issues.
+    // PRs are issues! But we only want Really Seriously Issues.
     const issuesOnly = allItems.filter((i: any) => !i.pullRequest)
     return issuesOnly
   }
