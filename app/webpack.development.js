@@ -20,7 +20,6 @@ const config = {
   plugins: [
     ...common.plugins,
     new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoErrorsPlugin(),
     new webpack.DefinePlugin(Object.assign({}, {
       __DEV__: true
     }, common.replacements))
