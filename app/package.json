@@ -3,7 +3,7 @@
   "productName": "GitHub",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "main": "./main.js",
   "repository": {
     "type": "git",
