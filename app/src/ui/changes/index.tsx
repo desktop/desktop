@@ -9,6 +9,7 @@ import { PersistingResizable } from '../resizable'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit } from '../../lib/local-git-operations'
 import { UndoCommit } from './undo-commit'
+import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocompletionProvider } from '../autocompletion'
 
 interface IChangesProps {
   readonly repository: Repository
@@ -25,11 +26,36 @@ interface IChangesProps {
 /** TODO: handle "repository not found" scenario */
 
 export class Changes extends React.Component<IChangesProps, void> {
+  private autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>> | null
+
+  public constructor(props: IChangesProps) {
+    super(props)
+
+    this.receiveProps(props)
+  }
+
   public componentWillReceiveProps(nextProps: IChangesProps) {
-    if (nextProps.changes.contextualCommitMessage) {
+    this.receiveProps(nextProps)
+  }
+
+  private receiveProps(props: IChangesProps) {
+    if (props.repository.id !== this.props.repository.id || !this.autocompletionProviders) {
+      const autocompletionProviders: IAutocompletionProvider<any>[] = [
+        new EmojiAutocompletionProvider(this.props.emoji),
+      ]
+
+      const gitHubRepository = props.repository.gitHubRepository
+      if (gitHubRepository) {
+        autocompletionProviders.push(new IssuesAutocompletionProvider(props.issuesStore, gitHubRepository, props.dispatcher))
+      }
+
+      this.autocompletionProviders = autocompletionProviders
+    }
+
+    if (props.changes.contextualCommitMessage) {
       // Once we receive the contextual commit message we can clear it. We don't
       // want to keep receiving it.
-      nextProps.dispatcher.clearContextualCommitMessage(this.props.repository)
+      props.dispatcher.clearContextualCommitMessage(props.repository)
     }
   }
 
@@ -170,9 +196,8 @@ export class Changes extends React.Component<IChangesProps, void> {
                        commitAuthor={this.props.commitAuthor}
                        branch={this.props.branch}
                        avatarURL={avatarURL}
-                       emoji={this.props.emoji}
                        contextualCommitMessage={this.props.changes.contextualCommitMessage}
-                       issuesStore={this.props.issuesStore}/>
+                       autocompletionProviders={this.autocompletionProviders!}/>
           {this.renderMostRecentLocalCommit()}
         </PersistingResizable>
 

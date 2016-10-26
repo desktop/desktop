@@ -2,6 +2,8 @@ import * as React from 'react'
 import { IAutocompletionProvider } from './index'
 import { IssuesStore } from '../../lib/dispatcher'
 import { GitHubRepository } from '../../models/github-repository'
+import { Dispatcher } from '../../lib/dispatcher'
+import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
 /** An autocompletion hit for an issue. */
 export interface IIssueHit {
@@ -16,10 +18,18 @@ export interface IIssueHit {
 export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIssueHit> {
   private readonly issuesStore: IssuesStore
   private readonly repository: GitHubRepository
+  private readonly dispatcher: Dispatcher
 
-  public constructor(issuesStore: IssuesStore, repository: GitHubRepository) {
+  /**
+   * The scheduler used to throttle calls to update the issues for
+   * autocompletion.
+   */
+  private readonly updateIssuesScheduler = new ThrottledScheduler(500)
+
+  public constructor(issuesStore: IssuesStore, repository: GitHubRepository, dispatcher: Dispatcher) {
     this.issuesStore = issuesStore
     this.repository = repository
+    this.dispatcher = dispatcher
   }
 
   public getRegExp(): RegExp {
@@ -27,6 +37,10 @@ export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIs
   }
 
   public getAutocompletionItems(text: string): Promise<ReadonlyArray<IIssueHit>> {
+    this.updateIssuesScheduler.queue(() => {
+      this.dispatcher.updateIssues(this.repository)
+    })
+
     return this.issuesStore.getIssuesMatching(this.repository, text)
   }
 
