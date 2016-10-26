@@ -5,6 +5,9 @@ import { GitHubRepository } from '../../models/github-repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 
+/** The interval we should use to throttle the issues update. */
+const UpdateIssuesThrottleInterval = 1000 * 60
+
 /** An autocompletion hit for an issue. */
 export interface IIssueHit {
   /** The title of the issue. */
@@ -24,7 +27,7 @@ export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIs
    * The scheduler used to throttle calls to update the issues for
    * autocompletion.
    */
-  private readonly updateIssuesScheduler = new ThrottledScheduler(500)
+  private readonly updateIssuesScheduler = new ThrottledScheduler(UpdateIssuesThrottleInterval)
 
   public constructor(issuesStore: IssuesStore, repository: GitHubRepository, dispatcher: Dispatcher) {
     this.issuesStore = issuesStore
