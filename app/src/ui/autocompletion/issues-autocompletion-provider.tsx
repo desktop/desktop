@@ -3,11 +3,16 @@ import { IAutocompletionProvider } from './index'
 import { IssuesStore } from '../../lib/dispatcher'
 import { GitHubRepository } from '../../models/github-repository'
 
+/** An autocompletion hit for an issue. */
 export interface IIssueHit {
+  /** The title of the issue. */
   readonly title: string
+
+  /** The issue's number. */
   readonly number: string
 }
 
+/** The autocompletion provider for issues in a GitHub repository. */
 export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIssueHit> {
   private readonly issuesStore: IssuesStore
   private readonly repository: GitHubRepository
