@@ -147,6 +147,9 @@ export class API {
     }
 
     const allItems: Array<IAPIIssue> = []
+    // Note that we only include `params` on the first fetch. Octokat.js will
+    // preserve them as we fetch subsequent pages and would fail to advance
+    // pages if we included the params on each call.
     let result = await this.client.repos(owner, name).issues.fetch(params)
     allItems.push(...result.items)
 
@@ -156,8 +159,7 @@ export class API {
     }
 
     // PRs are issues! But we only want Really Seriously Issues.
-    const issuesOnly = allItems.filter((i: any) => !i.pullRequest)
-    return issuesOnly
+    return allItems.filter((i: any) => !i.pullRequest)
   }
 }
 
