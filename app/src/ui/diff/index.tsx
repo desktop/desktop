@@ -213,7 +213,17 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    element.classList.remove('diff-line-hover')
+    const childSpan = element.children[0] as HTMLSpanElement
+    if (!childSpan) {
+      console.error('expected DOM element for diff gutter not found')
+      return
+    }
+
+    if (include) {
+      childSpan.classList.add('diff-line-hover')
+    } else {
+      childSpan.classList.remove('diff-line-hover')
+    }
   }
 
   public renderLine = (instance: any, line: any, element: HTMLElement) => {
