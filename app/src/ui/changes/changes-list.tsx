@@ -11,6 +11,7 @@ import { Checkbox, CheckboxValue } from './checkbox'
 import { ICommitMessage } from '../../lib/app-state'
 import { IssuesStore } from '../../lib/dispatcher'
 import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocompletionProvider } from '../autocompletion'
+import { User } from '../../models/user'
 
 const RowHeight = 30
 
@@ -27,6 +28,7 @@ interface IChangesListProps {
   readonly commitAuthor: CommitIdentity | null
   readonly avatarURL: string
   readonly emoji: Map<string, string>
+  readonly user: User | null
 
   /**
    * Keyboard handler passed directly to the onRowKeyDown prop of List, see
@@ -40,17 +42,6 @@ interface IChangesListProps {
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
-  private autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
-
-  public constructor(props: IChangesListProps) {
-    super(props)
-
-    this.autocompletionProviders = [
-      new EmojiAutocompletionProvider(props.emoji),
-      new IssuesAutocompletionProvider(props.issuesStore, props.repository),
-    ]
-  }
-
   private onIncludeAllChange(event: React.FormEvent<HTMLInputElement>) {
     const include = event.currentTarget.checked
     this.props.onSelectAll(include)
@@ -86,6 +77,19 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     }
   }
 
+  private getAutocompletionProviders(): ReadonlyArray<IAutocompletionProvider<any>> {
+    const providers: IAutocompletionProvider<any>[] = [
+      new EmojiAutocompletionProvider(this.props.emoji),
+    ]
+
+    const gitHubRepository = this.props.repository.gitHubRepository
+    if (gitHubRepository) {
+      providers.push(new IssuesAutocompletionProvider(this.props.issuesStore, gitHubRepository))
+    }
+
+    return providers
+  }
+
   public render() {
     const selectedRow = this.props.workingDirectory.files.findIndex(file => file.path === this.props.selectedPath)
 
@@ -119,7 +123,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
                        commitAuthor={this.props.commitAuthor}
                        anyFilesSelected={anyFilesSelected}
                        contextualCommitMessage={this.props.contextualCommitMessage}
-                       autocompletionProviders={this.autocompletionProviders}/>
+                       autocompletionProviders={this.getAutocompletionProviders()}/>
       </div>
     )
   }

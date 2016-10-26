@@ -338,4 +338,9 @@ export class Dispatcher {
   public clearContextualCommitMessage(repository: Repository): Promise<void> {
     return this.appStore._clearContextualCommitMessage(repository)
   }
+
+  /** Update the repository's issues from GitHub. */
+  public updateIssues(repository: Repository): Promise<void> {
+    return this.appStore._updateIssues(repository)
+  }
 }

@@ -478,7 +478,10 @@ export class AppStore {
     if (repository instanceof Repository) {
       localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
 
-      this.repositoryPeriodicTask(repository)
+      const gitHubRepository = repository.gitHubRepository
+      if (gitHubRepository) {
+        this._updateIssues(gitHubRepository)
+      }
 
       return this._refreshRepository(repository)
     } else {
@@ -486,17 +489,14 @@ export class AppStore {
     }
   }
 
-  private async repositoryPeriodicTask(repository: Repository) {
-    const gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) { return }
-
-    const user = this.users.find(u => u.endpoint === gitHubRepository.endpoint)
+  public async _updateIssues(repository: GitHubRepository) {
+    const user = this.users.find(u => u.endpoint === repository.endpoint)
     if (!user) { return }
 
     try {
       await this._issuesStore.fetchIssues(repository, user)
     } catch (e) {
-      console.log('Error fetching issues:')
+      console.log(`Error fetching issues for ${repository.name}:`)
       console.error(e)
     }
   }

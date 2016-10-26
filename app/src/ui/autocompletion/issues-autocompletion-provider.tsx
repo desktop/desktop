@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IAutocompletionProvider } from './index'
 import { IssuesStore } from '../../lib/dispatcher'
-import { Repository } from '../../models/repository'
+import { GitHubRepository } from '../../models/github-repository'
 
 export interface IIssueHit {
   readonly title: string
@@ -10,9 +10,9 @@ export interface IIssueHit {
 
 export class IssuesAutocompletionProvider implements IAutocompletionProvider<IIssueHit> {
   private readonly issuesStore: IssuesStore
-  private readonly repository: Repository
+  private readonly repository: GitHubRepository
 
-  public constructor(issuesStore: IssuesStore, repository: Repository) {
+  public constructor(issuesStore: IssuesStore, repository: GitHubRepository) {
     this.issuesStore = issuesStore
     this.repository = repository
   }
