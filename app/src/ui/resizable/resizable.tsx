@@ -59,10 +59,20 @@ export class Resizable extends React.Component<IResizableProps, IResizableState>
   private startWidth: number | null
   private startX: number
 
+  /**
+   * Returns the current width as determined by props.
+   *
+   * This value will be constrained by the maximum and minimum
+   * with props and might not be identical to that of props.width.
+   */
   private getCurrentWidth() {
     return this.clampWidth(this.props.width)
   }
 
+  /**
+   * Constrains the provided width to lie within the minimum and
+   * maximum widths as determined by props
+   */
   private clampWidth(width: number) {
     return Math.max(this.props.minimumWidth!, Math.min(this.props.maximumWidth!, width))
   }
