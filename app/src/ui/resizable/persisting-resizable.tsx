@@ -46,6 +46,9 @@ interface IPersistingResizableState {
  * Component abstracting a resizable panel.
  *
  * Handles user resizing and persistence of the width.
+ *
+ * Soft deprecated, new consumers should opt for the pure
+ * Resizable component and manage persistence themselves.
  */
 export class PersistingResizable extends React.Component<IPersistingResizableProps, IPersistingResizableState> {
 
