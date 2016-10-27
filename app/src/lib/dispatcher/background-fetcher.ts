@@ -131,11 +131,8 @@ function skewInterval(): number {
     return _skewInterval!
   }
 
-  const byteArray = new Uint32Array(1)
-  crypto.getRandomValues(byteArray)
-
-  const n = byteArray[0]
-  const skew = n % SkewUpperBound
+  const skew = Math.ceil(Math.random() * SkewUpperBound)
+  console.log('SCREWWWW ' + skew)
   _skewInterval = skew
   return skew
 }
