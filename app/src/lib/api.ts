@@ -1,7 +1,10 @@
 import * as URL from 'url'
+import * as Querystring from 'querystring'
+import * as HTTP from 'http'
 import { User } from '../models/user'
 
 const Octokat = require('octokat')
+const got = require('got')
 
 /**
  * Information about a repository as returned by the GitHub API.
@@ -45,13 +48,20 @@ export interface IAPIEmail {
   readonly primary: boolean
 }
 
+export interface IAPIPollIntervalResponse {
+  readonly pollInterval: number
+  readonly etag: string | null
+}
+
 /**
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
   private client: any
+  private user: User
 
   public constructor(user: User) {
+    this.user = user
     this.client = new Octokat({ token: user.token, rootURL: user.endpoint })
   }
 
@@ -127,6 +137,23 @@ export class API {
     } else {
       return this.client.user.repos.create({ name, description, private: private_ })
     }
+  }
+
+  public async getPollInterval(owner: string, name: string, ifNotMatchingEtag: string | null): Promise<IAPIPollIntervalResponse> {
+    const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
+    const url = `${this.user.endpoint}/${path}`
+    const options = {
+      headers: {
+        'Authorization': `token ${this.user.token}`,
+        'If-None-Match': ifNotMatchingEtag || '',
+        'User-Agent': '',
+      },
+    }
+
+    const response: HTTP.IncomingMessage = await got.head(url, options)
+    const pollInterval = response.headers['x-poll-interval'] || 0
+    const etag = response.headers['etag']
+    return { pollInterval, etag }
   }
 }
 
