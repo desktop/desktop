@@ -31,7 +31,7 @@ export class BackgroundFetcher {
   private readonly user: User
 
   /** The handle for our setTimeout invocation. */
-  private timeoutHandle: NodeJS.Timer | null = null
+  private timeoutHandle: number | null = null
 
   /**
    * The last received Etag for the `refs` endpoint, which is used to determine
@@ -88,7 +88,9 @@ export class BackgroundFetcher {
     const interval = await this.getFetchInterval(repository)
     if (this.stopped) { return }
 
-    this.timeoutHandle = setTimeout(() => this.performAndScheduleFetch(repository), interval)
+    // NB: We need to use `window.` here to make sure TypeScript looks at the
+    // right type declaration :\
+    this.timeoutHandle = window.setTimeout(() => this.performAndScheduleFetch(repository), interval)
   }
 
   /** Get the allowed fetch interval from the server. */
