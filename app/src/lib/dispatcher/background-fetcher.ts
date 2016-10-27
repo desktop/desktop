@@ -132,7 +132,6 @@ function skewInterval(): number {
   }
 
   const skew = Math.ceil(Math.random() * SkewUpperBound)
-  console.log('SCREWWWW ' + skew)
   _skewInterval = skew
   return skew
 }
