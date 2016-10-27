@@ -2,6 +2,7 @@ import * as URL from 'url'
 import * as Querystring from 'querystring'
 import * as HTTP from 'http'
 import { User } from '../models/user'
+import * as appProxy from '../ui/lib/app-proxy'
 
 const Octokat = require('octokat')
 const got = require('got')
@@ -146,7 +147,7 @@ export class API {
       headers: {
         'Authorization': `token ${this.user.token}`,
         'If-None-Match': ifNotMatchingEtag || '',
-        'User-Agent': '',
+        'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
       },
     }
 
