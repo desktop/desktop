@@ -428,6 +428,11 @@ export class LocalGitOperations {
     return git(args, repository.path, { env: LocalGitOperations.envForAuthentication(user) })
   }
 
+  /** Fetch from the given remote. */
+  public static fetch(repository: Repository, user: User | null, remote: string): Promise<void> {
+    return git([ 'fetch', remote ], repository.path, { env: LocalGitOperations.envForAuthentication(user) })
+  }
+
   /** Get the remote names. */
   private static async getRemotes(repository: Repository): Promise<ReadonlyArray<string>> {
     const result = await git([ 'remote' ], repository.path)
