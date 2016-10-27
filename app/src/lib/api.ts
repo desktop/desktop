@@ -140,15 +140,18 @@ export class API {
     }
   }
 
-  public async getPollInterval(owner: string, name: string, ifNotMatchingEtag: string | null): Promise<IAPIPollIntervalResponse> {
+  public async getPollInterval(owner: string, name: string, notMatchingEtag: string | null): Promise<IAPIPollIntervalResponse> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
     const url = `${this.user.endpoint}/${path}`
-    const options = {
+    const options: any = {
       headers: {
         'Authorization': `token ${this.user.token}`,
-        'If-None-Match': ifNotMatchingEtag || '',
         'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
       },
+    }
+
+    if (notMatchingEtag) {
+      options.headers['If-None-Match'] = notMatchingEtag
     }
 
     const response: HTTP.IncomingMessage = await got.head(url, options)
