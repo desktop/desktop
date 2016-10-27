@@ -497,6 +497,8 @@ export class AppStore {
     const user = this.getUserForRepository(repository)
     if (!user) { return }
 
+    if (!repository.gitHubRepository) { return }
+
     const fetcher = new BackgroundFetcher(repository, user)
     fetcher.start()
     this.currentBackgroundFetcher = fetcher
