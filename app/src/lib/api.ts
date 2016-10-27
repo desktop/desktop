@@ -135,7 +135,8 @@ export class API {
     }
   }
 
-  public async getPollInterval(owner: string, name: string): Promise<number> {
+  /** Get the allowed poll interval for fetching. */
+  public async getFetchPollInterval(owner: string, name: string): Promise<number> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
     const url = `${this.user.endpoint}/${path}`
     const options: any = {
