@@ -49,11 +49,6 @@ export interface IAPIEmail {
   readonly primary: boolean
 }
 
-export interface IAPIPollIntervalResponse {
-  readonly pollInterval: number
-  readonly etag: string | null
-}
-
 /**
  * An object for making authenticated requests to the GitHub API
  */
@@ -140,7 +135,7 @@ export class API {
     }
   }
 
-  public async getPollInterval(owner: string, name: string, notMatchingEtag: string | null): Promise<IAPIPollIntervalResponse> {
+  public async getPollInterval(owner: string, name: string): Promise<number> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
     const url = `${this.user.endpoint}/${path}`
     const options: any = {
@@ -150,14 +145,8 @@ export class API {
       },
     }
 
-    if (notMatchingEtag) {
-      options.headers['If-None-Match'] = notMatchingEtag
-    }
-
     const response: HTTP.IncomingMessage = await got.head(url, options)
-    const pollInterval = response.headers['x-poll-interval'] || 0
-    const etag = response.headers['etag']
-    return { pollInterval, etag }
+    return response.headers['x-poll-interval'] || 0
   }
 }
 

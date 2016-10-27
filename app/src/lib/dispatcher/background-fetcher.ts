@@ -33,12 +33,6 @@ export class BackgroundFetcher {
   /** The handle for our setTimeout invocation. */
   private timeoutHandle: number | null = null
 
-  /**
-   * The last received Etag for the `refs` endpoint, which is used to determine
-   * the fetch interval.
-   */
-  private refsEtag: string | null = null
-
   /** Flag to indicate whether `stop` has been called. */
   private stopped = false
 
@@ -99,9 +93,8 @@ export class BackgroundFetcher {
 
     let interval = DefaultFetchInterval
     try {
-      const response = await api.getPollInterval(repository.owner.login, repository.name, this.refsEtag)
-      interval = Math.max(response.pollInterval, MinimumInterval)
-      this.refsEtag = response.etag
+      const pollInterval = await api.getPollInterval(repository.owner.login, repository.name)
+      interval = Math.max(pollInterval, MinimumInterval)
     } catch (e) {
       console.error('Error fetching poll interval:')
       console.error(e)
