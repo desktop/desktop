@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.8",
+  "version": "0.0.11",
   "dependencies": {
     "ansi-html": {
       "version": "0.0.5",
@@ -18,9 +18,9 @@
       "resolved": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-2.2.1.tgz"
     },
     "asap": {
-      "version": "2.0.4",
+      "version": "2.0.5",
       "from": "asap@>=2.0.3 <2.1.0",
-      "resolved": "https://registry.npmjs.org/asap/-/asap-2.0.4.tgz"
+      "resolved": "https://registry.npmjs.org/asap/-/asap-2.0.5.tgz"
     },
     "asn1": {
       "version": "0.2.3",
@@ -292,9 +292,9 @@
       "resolved": "https://registry.npmjs.org/extsprintf/-/extsprintf-1.0.2.tgz"
     },
     "fbjs": {
-      "version": "0.8.3",
-      "from": "fbjs@>=0.8.1 <0.9.0",
-      "resolved": "https://registry.npmjs.org/fbjs/-/fbjs-0.8.3.tgz",
+      "version": "0.8.5",
+      "from": "fbjs@>=0.8.4 <0.9.0",
+      "resolved": "https://registry.npmjs.org/fbjs/-/fbjs-0.8.5.tgz",
       "dependencies": {
         "core-js": {
           "version": "1.2.7",
@@ -618,9 +618,9 @@
       "resolved": "https://registry.npmjs.org/nan/-/nan-2.3.2.tgz"
     },
     "node-fetch": {
-      "version": "1.5.3",
+      "version": "1.6.3",
       "from": "node-fetch@>=1.0.1 <2.0.0",
-      "resolved": "https://registry.npmjs.org/node-fetch/-/node-fetch-1.5.3.tgz"
+      "resolved": "https://registry.npmjs.org/node-fetch/-/node-fetch-1.6.3.tgz"
     },
     "node-status-codes": {
       "version": "2.0.1",
@@ -718,9 +718,14 @@
       "resolved": "https://registry.npmjs.org/querystring/-/querystring-0.2.0.tgz"
     },
     "react": {
-      "version": "15.3.0",
-      "from": "react@>=15.2.1 <16.0.0",
-      "resolved": "https://registry.npmjs.org/react/-/react-15.3.0.tgz"
+      "version": "15.3.2",
+      "from": "react@>=15.3.0 <16.0.0",
+      "resolved": "https://registry.npmjs.org/react/-/react-15.3.2.tgz"
+    },
+    "react-addons-css-transition-group": {
+      "version": "15.3.2",
+      "from": "react-addons-css-transition-group@latest",
+      "resolved": "https://registry.npmjs.org/react-addons-css-transition-group/-/react-addons-css-transition-group-15.3.2.tgz"
     },
     "react-addons-shallow-compare": {
       "version": "15.3.0",
@@ -728,9 +733,9 @@
       "resolved": "https://registry.npmjs.org/react-addons-shallow-compare/-/react-addons-shallow-compare-15.3.0.tgz"
     },
     "react-dom": {
-      "version": "15.3.0",
-      "from": "react-dom@>=15.2.1 <16.0.0",
-      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.3.0.tgz"
+      "version": "15.3.2",
+      "from": "react-dom@>=15.3.0 <16.0.0",
+      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.3.2.tgz"
     },
     "react-virtualized": {
       "version": "8.0.11",
