@@ -107,17 +107,6 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.lineCleanup.clear()
   }
 
-  private onMouseMove(index: number) {
-    const selection = this.selection
-
-    if (this.props.readOnly || !selection) {
-      return
-    }
-
-    selection.update(index)
-    selection.paint(this.cachedGutterElements)
-  }
-
   private onMouseDown(index: number, selected: boolean, isHunkSelection: boolean) {
     if (this.props.readOnly) {
       return
@@ -273,25 +262,31 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         const mouseMoveHandler = (ev: MouseEvent) => {
+          if (this.props.readOnly) {
+            return
+          }
 
+          // ignoring anything from diff context rows
           if (!this.isIncludableLine(diffLine)) {
             return
           }
 
+          // if selection is active, perform highlighting
           if (!this.selection) {
 
-            // clear selection in case transitioning from hunk->line
+            // clear hunk selection in case transitioning from hunk->line
             this.highlightHunk(hunk, false)
 
-            // no selection active, let's try highlighting
             if (this.isMouseInLeftColumn(ev)) {
               this.highlightHunk(hunk, true)
             } else {
               this.highlightLine(index, true)
             }
-          } else {
-            this.onMouseMove(index)
+            return
           }
+
+          this.selection.update(index)
+          this.selection.paint(this.cachedGutterElements)
         }
 
         const mouseUpHandler = (ev: UIEvent) => this.onMouseUp(index)
