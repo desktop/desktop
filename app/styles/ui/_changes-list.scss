@@ -74,3 +74,26 @@
     vertical-align: text-bottom;
   }
 }
+
+.undo-enter {
+  max-height: 0;
+  padding: 0px;
+  overflow: hidden;
+}
+
+.undo-enter.undo-enter-active {
+  max-height: 200px;
+  padding: 0px;
+  transition: max-height 500ms ease-in-out;
+}
+
+.undo-leave {
+  padding: 0px;
+  max-height: 200px;
+}
+
+.undo-leave.undo-leave-active {
+  max-height: 0;
+  padding: 0px;
+  transition: max-height 500ms ease-in-out;
+}

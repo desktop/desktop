@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { ChangesList } from './changes-list'
 import { Diff  } from '../diff'
 import { DiffSelection, DiffSelectionType } from '../../models/diff'
@@ -9,6 +10,9 @@ import { PersistingResizable } from '../resizable'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit } from '../../lib/local-git-operations'
 import { UndoCommit } from './undo-commit'
+
+/** The timeout for the animation of the enter/leave animation for Undo. */
+const UndoCommitAnimationTimeout = 500
 
 interface IChangesProps {
   readonly repository: Repository
@@ -132,12 +136,24 @@ export class Changes extends React.Component<IChangesProps, void> {
 
   private renderMostRecentLocalCommit() {
     const commit = this.props.mostRecentLocalCommit
-    if (!commit) { return null }
+    let child: JSX.Element | null = null
+    if (commit) {
+      child = <UndoCommit
+        commit={commit}
+        onUndo={() => this.props.dispatcher.undoCommit(this.props.repository, commit)}
+        emoji={this.props.emoji}/>
+    }
 
-    return <UndoCommit
-      commit={commit}
-      onUndo={() => this.props.dispatcher.undoCommit(this.props.repository, commit)}
-      emoji={this.props.emoji}/>
+    return (
+      <ReactCSSTransitionGroup
+        transitionName='undo'
+        transitionAppear={true}
+        transitionAppearTimeout={UndoCommitAnimationTimeout}
+        transitionEnterTimeout={UndoCommitAnimationTimeout}
+        transitionLeaveTimeout={UndoCommitAnimationTimeout}>
+        {child}
+      </ReactCSSTransitionGroup>
+    )
   }
 
   public render() {
