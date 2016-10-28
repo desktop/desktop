@@ -82,7 +82,7 @@ export class DragDropSelection implements ISelectionStrategy {
 
     // as user can go back and forth when doing drag-and-drop, we should
     // update rows outside the current selected range
-    let start = this.lowerIndex - 1
+    let start = this.lowerIndex
     if (start < 1) {
       start = 1 // 0 is always the diff context
     }
