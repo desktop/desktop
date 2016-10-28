@@ -165,7 +165,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     // docs: https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
 
     const element: any = ev.currentTarget
-    const offset = element.getBoundingClientRect()
+    const offset: ClientRect = element.getBoundingClientRect()
     const relativeLeft = ev.clientX - offset.left
 
     const width = offset.width
