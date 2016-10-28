@@ -11,7 +11,12 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { Commit } from '../../lib/local-git-operations'
 import { UndoCommit } from './undo-commit'
 
-/** The timeout for the animation of the enter/leave animation for Undo. */
+/**
+ * The timeout for the animation of the enter/leave animation for Undo.
+ *
+ * Note that this *must* match the duration specified for the `undo` transitions
+ * in `_changes-list.scss`.
+ */
 const UndoCommitAnimationTimeout = 500
 
 interface IChangesProps {

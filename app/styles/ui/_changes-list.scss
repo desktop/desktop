@@ -77,23 +77,27 @@
 
 .undo-enter {
   max-height: 0;
-  padding: 0px;
   overflow: hidden;
 }
 
 .undo-enter.undo-enter-active {
+  // It doesn't really matter what `maxHeight` we set here so long as it's
+  // greater than or equal to the height that `UndoCommit` will want.
   max-height: 200px;
-  padding: 0px;
-  transition: max-height 500ms ease-in-out;
+
+  // Note that this duration *must* match the `UndoCommitAnimationTimeout`
+  // specified in `changes/index.tsx`.
+  transition: max-height 500ms ease-in;
 }
 
 .undo-leave {
-  padding: 0px;
   max-height: 200px;
 }
 
 .undo-leave.undo-leave-active {
   max-height: 0;
-  padding: 0px;
-  transition: max-height 500ms ease-in-out;
+
+  // Note that this duration *must* match the `UndoCommitAnimationTimeout`
+  // specified in `changes/index.tsx`.
+  transition: max-height 500ms ease-out;
 }
