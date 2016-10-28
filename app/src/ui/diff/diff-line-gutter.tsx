@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { DiffLine, DiffLineType } from '../../models/diff'
+import { selectedLineClass } from './selection/selection'
 import { assertNever } from '../../lib/fatal-error'
 
 /** The props for the diff gutter. */
@@ -43,7 +44,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     const baseClassName = 'diff-line-gutter'
     let className = baseClassName
     if (this.isIncludableLine() && this.props.isIncluded) {
-      className += ' diff-line-selected'
+      className += ` ${selectedLineClass}`
     }
 
     return className + ` ${this.getLineClassName()}`

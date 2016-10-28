@@ -1,5 +1,6 @@
 import { DiffSelection } from '../../../models/diff'
 import { ISelectionStrategy } from './selection-strategy'
+import { selectedLineClass } from './selection'
 import { range } from '../../../lib/range'
 
 /** apply a drag-and-drop change to the current diff */
@@ -107,9 +108,9 @@ export class DragDropSelection implements ISelectionStrategy {
       }
 
       if (selected) {
-        childSpan.classList.add('diff-line-selected')
+        childSpan.classList.add(selectedLineClass)
       } else {
-        childSpan.classList.remove('diff-line-selected')
+        childSpan.classList.remove(selectedLineClass)
       }
     })
   }

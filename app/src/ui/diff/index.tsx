@@ -21,14 +21,13 @@ import { getDiffMode } from './diff-mode'
 import { ISelectionStrategy } from './selection/selection-strategy'
 import { DragDropSelection } from './selection/drag-drop-selection-strategy'
 import { HunkSelection } from './selection/hunk-selection-strategy'
+import { hoverCssClass } from './selection/selection'
 import { range } from '../../lib/range'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
   require('codemirror/addon/scroll/simplescrollbars')
 }
-
-const hoverCssClass = 'diff-line-hover'
 
 /** The props for the Diff component. */
 interface IDiffProps {
