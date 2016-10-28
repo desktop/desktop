@@ -1,6 +1,7 @@
 import { DiffSelection } from '../../../models/diff'
 import { ISelectionStrategy } from './selection-strategy'
 
+/** apply hunk selection to the current diff */
 export class HunkSelection implements ISelectionStrategy {
   private readonly _start: number
   private readonly _end: number
@@ -19,7 +20,8 @@ export class HunkSelection implements ISelectionStrategy {
   }
 
   public paint(elements: Map<number, HTMLSpanElement>) {
-    // TODO: anything here?
+    // no-op as repainting is done by mouse events
+    // TODO: this feels kludgey and not the right abstraction
   }
 
   public apply(onIncludeChanged: (diffSelection: DiffSelection) => void) {

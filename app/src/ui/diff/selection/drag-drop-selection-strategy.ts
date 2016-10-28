@@ -20,7 +20,7 @@ export class DragDropSelection implements ISelectionStrategy {
   /**
    * Return the lower bounds of the selection range
    */
-  public get lowerIndex(): number {
+  private get lowerIndex(): number {
     if (this._start <= this._current) {
       return this._start
     }
@@ -31,7 +31,7 @@ export class DragDropSelection implements ISelectionStrategy {
   /**
    * Return the upper bounds of the selection range
    */
-  public get upperIndex(): number {
+  private get upperIndex(): number {
     if (this._start <= this._current) {
       return this._current
     }
@@ -54,12 +54,15 @@ export class DragDropSelection implements ISelectionStrategy {
   }
 
   /**
-   * update the row the user is currently interacting with
+   * update the selection strategy with the row the user's cursor is over
    */
   public update(current: number) {
     this._current = current
   }
 
+  /**
+   * apply the selection strategy result to the current diff
+   */
   public apply(onIncludeChanged: (diffSelection: DiffSelection) => void) {
     const length = (this.upperIndex - this.lowerIndex) + 1
 
@@ -71,6 +74,9 @@ export class DragDropSelection implements ISelectionStrategy {
     onIncludeChanged(newSelection)
   }
 
+  /**
+   * repaint the current diff gutter to visualize the current state
+   */
   public paint(elements: Map<number, HTMLSpanElement>) {
 
     // as user can go back and forth when doing drag-and-drop, we should
