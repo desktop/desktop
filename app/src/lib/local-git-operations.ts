@@ -1,5 +1,6 @@
 import * as Path from 'path'
 import { ChildProcess } from 'child_process'
+import { GitProcess, GitError } from 'git-kitchen-sink'
 
 import { git } from './git/core'
 import { GitDiff } from './git/git-diff'
@@ -135,6 +136,12 @@ export const enum GitResetMode {
   Hard = 0,
   Soft,
   Mixed,
+}
+
+/** The number of commits a revision range is ahead/behind. */
+interface IAheadBehind {
+  readonly ahead: number
+  readonly behind: number
 }
 
 /**
@@ -671,6 +678,47 @@ export class LocalGitOperations {
     const modeFlag = resetModeToFlag(mode)
     await git([ 'reset', modeFlag, ref, '--' ], repository.path)
     return true
+  }
+
+  /** Calculate the number of commits `branch` is ahead/behind its upstream. */
+  public static async getBranchAheadBehind(repository: Repository, branch: Branch): Promise<IAheadBehind | null> {
+    if (branch.type === BranchType.Remote) {
+      return null
+    }
+
+    const upstream = branch.upstream
+    if (!upstream) { return null }
+
+    const range = `${branch.name}..${upstream}`
+    return this.getAheadBehind(repository, range)
+  }
+
+  /** Calculate the number of commits the range is ahead and behind. */
+  private static async getAheadBehind(repository: Repository, range: string): Promise<IAheadBehind | null> {
+    const result = await git([ 'rev-list', '--left-right', '--count', range, '--' ], repository.path, { successExitCodes: new Set([ 0, 128 ]) })
+    if (result.exitCode === 128) {
+      const error = GitProcess.parseError(result.stderr)
+      if (error && error === GitError.BadRevision) {
+        return null
+      }
+    }
+
+    const stdout = result.stdout
+    const pieces = stdout.split('\t')
+    if (pieces.length !== 2) { return null }
+
+    const ahead = parseInt(pieces[0], 10)
+    if (isNaN(ahead)) { return null }
+
+    const behind = parseInt(pieces[1], 10)
+    if (isNaN(behind)) { return null }
+
+    return { ahead, behind }
+  }
+
+  /** Update the ref to a new value, providing the given reflog message. */
+  public static async updateRef(repository: Repository, ref: string, newValue: string, reason: string): Promise<void> {
+    await git([ 'update-ref', ref, newValue, '-m', reason ], repository.path)
   }
 }
 
