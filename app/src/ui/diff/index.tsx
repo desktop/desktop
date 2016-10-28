@@ -28,6 +28,8 @@ if (__DARWIN__) {
   require('codemirror/addon/scroll/simplescrollbars')
 }
 
+const hoverCssClass = 'diff-line-hover'
+
 /** The props for the Diff component. */
 interface IDiffProps {
   readonly repository: Repository
@@ -198,9 +200,9 @@ export class Diff extends React.Component<IDiffProps, void> {
       }
 
       if (show) {
-        childSpan.classList.add('diff-line-hover')
+        childSpan.classList.add(hoverCssClass)
       } else {
-        childSpan.classList.remove('diff-line-hover')
+        childSpan.classList.remove(hoverCssClass)
       }
     })
   }
@@ -220,9 +222,9 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     if (include) {
-      childSpan.classList.add('diff-line-hover')
+      childSpan.classList.add(hoverCssClass)
     } else {
-      childSpan.classList.remove('diff-line-hover')
+      childSpan.classList.remove(hoverCssClass)
     }
   }
 
