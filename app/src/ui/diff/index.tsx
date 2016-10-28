@@ -73,7 +73,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   /**
    * Maintain the current state of the user interacting with the diff gutter
    */
-  private gutterSelection: ISelectionStrategy | null = null
+  private selection: ISelectionStrategy | null = null
 
   /**
    *  oh god i hate everything
@@ -106,14 +106,14 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onMouseMove(index: number) {
-    const state = this.gutterSelection
+    const selection = this.selection
 
-    if (this.props.readOnly || !state) {
+    if (this.props.readOnly || !selection) {
       return
     }
 
-    state.update(index)
-    state.paint(this.existingGutterElements)
+    selection.update(index)
+    selection.paint(this.existingGutterElements)
   }
 
   private onMouseDown(index: number, selected: boolean, isHunkSelection: boolean) {
@@ -137,12 +137,12 @@ export class Diff extends React.Component<IDiffProps, void> {
 
       const start = hunk.unifiedDiffStart
       const length = hunk.unifiedDiffEnd - hunk.unifiedDiffStart
-      this.gutterSelection = new HunkSelection(start, length, desiredSelection, snapshot)
+      this.selection = new HunkSelection(start, length, desiredSelection, snapshot)
     } else {
-      this.gutterSelection = new DragDropSelection(index, desiredSelection, snapshot)
+      this.selection = new DragDropSelection(index, desiredSelection, snapshot)
     }
 
-    this.gutterSelection.paint(this.existingGutterElements)
+    this.selection.paint(this.existingGutterElements)
   }
 
   private onMouseUp(index: number) {
@@ -155,15 +155,15 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    const state = this.gutterSelection
-    if (!state) {
+    const selection = this.selection
+    if (!selection) {
       return
     }
 
-    state.apply(this.props.onIncludeChanged)
+    selection.apply(this.props.onIncludeChanged)
 
     // operation is completed, clean this up
-    this.gutterSelection = null
+    this.selection = null
   }
 
   private isIncludableLine(line: DiffLine): boolean {
@@ -290,7 +290,7 @@ export class Diff extends React.Component<IDiffProps, void> {
             return
           }
 
-          if (!this.gutterSelection) {
+          if (!this.selection) {
 
             // clear selection in case transitioning from hunk->line
             this.highlightHunk(hunk, false)
@@ -372,7 +372,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private cancelSelectionChange = () => {
-    return this.gutterSelection != null
+    return this.selection != null
   }
 
   private restoreScrollPosition(cm: Editor) {
