@@ -22,7 +22,6 @@ import { ISelectionStrategy } from './selection/selection-strategy'
 import { DragDropSelection } from './selection/drag-drop-selection-strategy'
 import { HunkSelection } from './selection/hunk-selection-strategy'
 import { hoverCssClass } from './selection/selection'
-import { range } from '../../lib/range'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
@@ -175,10 +174,14 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private highlightHunk(hunk: DiffHunk, show: boolean) {
-    const start = hunk.unifiedDiffStart + 1
-    const end = hunk.unifiedDiffEnd + 1
+    const start = hunk.unifiedDiffStart
 
-    range(start, end).forEach((row) => this.highlightLine(row, show))
+    hunk.lines.forEach((line, index) => {
+      if (this.isIncludableLine(line)) {
+        const row = start + index
+        this.highlightLine(row, show)
+      }
+    })
   }
 
   private highlightLine(row: number, include: boolean) {
