@@ -78,9 +78,9 @@ export class Diff extends React.Component<IDiffProps, void> {
   private selection: ISelectionStrategy | null = null
 
   /**
-   *  oh god i hate everything
+   *  a local cache of gutter elements, keyed by the row in the diff
    */
-  private existingGutterElements: Map<number, HTMLSpanElement> = new Map<number, HTMLSpanElement>([ ])
+  private cachedGutterElements: Map<number, HTMLSpanElement> = new Map<number, HTMLSpanElement>([ ])
 
 
   public componentWillReceiveProps(nextProps: IDiffProps) {
@@ -115,7 +115,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     selection.update(index)
-    selection.paint(this.existingGutterElements)
+    selection.paint(this.cachedGutterElements)
   }
 
   private onMouseDown(index: number, selected: boolean, isHunkSelection: boolean) {
@@ -144,7 +144,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       this.selection = new DragDropSelection(index, desiredSelection, snapshot)
     }
 
-    this.selection.paint(this.existingGutterElements)
+    this.selection.paint(this.cachedGutterElements)
   }
 
   private onMouseUp(index: number) {
@@ -173,11 +173,15 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private isMouseInLeftColumn(ev: MouseEvent): boolean {
+    // MouseEvent is not generic, but getBoundingClientRect should be
+    // available for all HTML elements
+    // docs: https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
+
     const element: any = ev.currentTarget
     const offset = element.getBoundingClientRect()
     const relativeLeft = ev.clientX - offset.left
 
-    const width: number = offset.width
+    const width = offset.width
 
     return relativeLeft < (width / 2)
   }
@@ -186,29 +190,11 @@ export class Diff extends React.Component<IDiffProps, void> {
     const start = hunk.unifiedDiffStart + 1
     const end = hunk.unifiedDiffEnd + 1
 
-    range(start, end).forEach(row => {
-      const element = this.existingGutterElements.get(row)
-      if (!element) {
-        console.error('expected gutter element not found')
-        return
-      }
-
-      const childSpan = element.children[0] as HTMLSpanElement
-      if (!childSpan) {
-        console.error('expected DOM element for diff gutter not found')
-        return
-      }
-
-      if (show) {
-        childSpan.classList.add(hoverCssClass)
-      } else {
-        childSpan.classList.remove(hoverCssClass)
-      }
-    })
+    range(start, end).forEach((row) => this.highlightLine(row, show))
   }
 
-  private highlightLine(row: number, diffLine: DiffLine, include: boolean) {
-    const element = this.existingGutterElements.get(row)
+  private highlightLine(row: number, include: boolean) {
+    const element = this.cachedGutterElements.get(row)
 
     if (!element) {
       console.error('expected gutter element not found')
@@ -265,7 +251,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           if (this.isMouseInLeftColumn(ev)) {
             this.highlightHunk(hunk, true)
           } else {
-            this.highlightLine(index, diffLine, true)
+            this.highlightLine(index, true)
           }
         }
 
@@ -277,7 +263,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           if (this.isMouseInLeftColumn(ev)) {
             this.highlightHunk(hunk, false)
           } else {
-            this.highlightLine(index, diffLine, false)
+            this.highlightLine(index, false)
           }
         }
 
@@ -301,7 +287,7 @@ export class Diff extends React.Component<IDiffProps, void> {
             if (this.isMouseInLeftColumn(ev)) {
               this.highlightHunk(hunk, true)
             } else {
-              this.highlightLine(index, diffLine, true)
+              this.highlightLine(index, true)
             }
           } else {
             this.onMouseMove(index)
@@ -316,7 +302,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         reactContainer.addEventListener('mousedown', mouseDownHandler)
         reactContainer.addEventListener('mouseup', mouseUpHandler)
 
-        this.existingGutterElements.set(index, reactContainer)
+        this.cachedGutterElements.set(index, reactContainer)
 
         ReactDOM.render(
           <DiffLineGutter line={diffLine}
@@ -341,7 +327,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
         const gutterCleanup = new Disposable(() => {
 
-          this.existingGutterElements.delete(index)
+          this.cachedGutterElements.delete(index)
 
           reactContainer.removeEventListener('mouseenter', mouseEnterHandler)
           reactContainer.removeEventListener('mouseleave', mouseLeaveHandler)

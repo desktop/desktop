@@ -20,8 +20,7 @@ export class HunkSelection implements ISelectionStrategy {
   }
 
   public paint(elements: Map<number, HTMLSpanElement>) {
-    // no-op as repainting is done by mouse events
-    // TODO: this feels kludgey and not the right abstraction
+    // no-op - this repainting is done by `Diff.highlightHunk`
   }
 
   public apply(onIncludeChanged: (diffSelection: DiffSelection) => void) {
