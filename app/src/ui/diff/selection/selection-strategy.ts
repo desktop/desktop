@@ -1,8 +1,8 @@
-import { DiffSelection } from '../../models/diff'
+import { DiffSelection } from '../../../models/diff'
 
 export interface ISelectionStrategy {
   /**
-   * update the current selection strategy with the active row
+   * update the selection strategy with the row the user's cursor is over
    */
   update: (index: number) => void,
   /**
@@ -10,7 +10,7 @@ export interface ISelectionStrategy {
    */
   paint: (elements: Map<number, HTMLSpanElement>) => void
   /**
-   * apply the diff selection result to the current diff
+   * apply the selection strategy result to the current diff
    */
   apply: (onIncludeChanged: (diffSelection: DiffSelection) => void) => void
 }

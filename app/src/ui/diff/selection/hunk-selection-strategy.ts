@@ -1,7 +1,7 @@
-import { DiffSelection } from '../../models/diff'
+import { DiffSelection } from '../../../models/diff'
 import { ISelectionStrategy } from './selection-strategy'
 
-export class HunkSelectionStrategy implements ISelectionStrategy {
+export class HunkSelection implements ISelectionStrategy {
   private readonly _start: number
   private readonly _end: number
   private readonly _desiredSelection: boolean

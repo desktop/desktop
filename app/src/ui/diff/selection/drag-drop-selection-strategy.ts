@@ -1,8 +1,9 @@
-import { DiffSelection } from '../../models/diff'
+import { DiffSelection } from '../../../models/diff'
 import { ISelectionStrategy } from './selection-strategy'
-import { range } from '../../lib/range'
+import { range } from '../../../lib/range'
 
-export class DragDropSelectionStrategy implements ISelectionStrategy {
+/** apply a drag-and-drop change to the current diff */
+export class DragDropSelection implements ISelectionStrategy {
   private readonly _start: number
   private readonly _desiredSelection: boolean
   private readonly _snapshot: DiffSelection

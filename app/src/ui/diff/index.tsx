@@ -18,9 +18,9 @@ import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { getDiffMode } from './diff-mode'
-import { ISelectionStrategy } from './selection-strategy'
-import { DragDropSelectionStrategy } from './drag-drop-selection-strategy'
-import { HunkSelectionStrategy } from './hunk-selection-strategy'
+import { ISelectionStrategy } from './selection/selection-strategy'
+import { DragDropSelection } from './selection/drag-drop-selection-strategy'
+import { HunkSelection } from './selection/hunk-selection-strategy'
 import { range } from '../../lib/range'
 
 if (__DARWIN__) {
@@ -137,9 +137,9 @@ export class Diff extends React.Component<IDiffProps, void> {
 
       const start = hunk.unifiedDiffStart
       const length = hunk.unifiedDiffEnd - hunk.unifiedDiffStart
-      this.gutterSelection = new HunkSelectionStrategy(start, length, desiredSelection, snapshot)
+      this.gutterSelection = new HunkSelection(start, length, desiredSelection, snapshot)
     } else {
-      this.gutterSelection = new DragDropSelectionStrategy(index, desiredSelection, snapshot)
+      this.gutterSelection = new DragDropSelection(index, desiredSelection, snapshot)
     }
 
     this.gutterSelection.paint(this.existingGutterElements)
