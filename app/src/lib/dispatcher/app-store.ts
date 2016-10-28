@@ -22,7 +22,7 @@ import { DiffSelection, DiffSelectionType, DiffLineType } from '../../models/dif
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
-import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
+import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { GitDiff } from '../git/git-diff'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
@@ -1017,7 +1017,35 @@ export class AppStore {
     const user = this.getUserForRepository(repository)
     await gitStore.performFailableOperation(() => LocalGitOperations.pull(repository, user, remote, branch.name))
 
-    return this._refreshRepository(repository)
+    this._refreshRepository(repository)
+
+    return this.fastForwardBranches(repository)
+  }
+
+  private async fastForwardBranches(repository: Repository) {
+    const state = this.getRepositoryState(repository)
+    const branches = state.branchesState.allBranches
+    const currentBranch = state.branchesState.currentBranch
+    const currentBranchName = currentBranch ? currentBranch.name : null
+
+    // A branch is only eligible for being fast forwarded iff:
+    //  1. It's local.
+    //  2. It's not the current branch.
+    //  3. It has an upstream.
+    //  4. It's not ahead of its upstream.
+    const eligibleBranches = branches.filter(b => {
+      return b.type === BranchType.Local && b.name !== currentBranchName && b.upstream
+    })
+
+    for (const branch of eligibleBranches) {
+      const aheadBehind = await LocalGitOperations.getBranchAheadBehind(repository, branch)
+      if (!aheadBehind) { continue }
+
+      const { ahead, behind } = aheadBehind
+      if (ahead === 0 && behind > 0) {
+        await LocalGitOperations.updateRef(repository, `refs/heads/${branch.name}`, branch.upstream!, 'pull: Fast-forward')
+      }
+    }
   }
 
   private getUserForRepository(repository: Repository): User | null {
