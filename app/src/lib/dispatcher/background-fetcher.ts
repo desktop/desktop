@@ -113,8 +113,8 @@ export class BackgroundFetcher {
 let _skewInterval: number | null = null
 
 /**
- * The amount by which the fetch interval should be skewed, to prevent clients
- * from accidentally syncing up.
+ * The milliseconds by which the fetch interval should be skewed, to prevent
+ * clients from accidentally syncing up.
  */
 function skewInterval(): number {
   if (_skewInterval !== null) {
