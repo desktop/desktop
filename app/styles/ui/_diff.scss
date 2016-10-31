@@ -152,14 +152,14 @@
 }
 
 #diff .panel {
-  padding-top: 12px;
+  padding-top: var(--spacing);
 }
 
 #diff .image-header {
-  padding: 12px 0 6px 0;
+  padding: var(--spacing) 0 var(--spacing-half) 0;
   margin-left: auto;
   margin-right: auto;
-  font-weight: bold;
+
 }
 
 #diff img {
@@ -171,7 +171,7 @@
 
 #diff a {
   text-decoration: none;
-  margin-left: 4px;
+  margin-left: var(--spacing-half);
 }
 
 #diff a:link {

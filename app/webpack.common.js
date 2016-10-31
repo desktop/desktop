@@ -2,6 +2,7 @@
 
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const webpack = require('webpack')
 
 module.exports = {
   entry: {
@@ -41,7 +42,8 @@ module.exports = {
     new HtmlWebpackPlugin({
       'filename': 'shared.html',
       'chunks': ['shared']
-    })
+    }),
+    new webpack.NoErrorsPlugin()
   ],
   externals: function (context, request, callback) {
     try {
