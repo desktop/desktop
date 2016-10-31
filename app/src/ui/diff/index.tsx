@@ -78,7 +78,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   /**
    *  a local cache of gutter elements, keyed by the row in the diff
    */
-  private cachedGutterElements: Map<number, HTMLSpanElement> = new Map<number, HTMLSpanElement>([ ])
+  private cachedGutterElements = new Map<number, HTMLSpanElement>()
 
 
   public componentWillReceiveProps(nextProps: IDiffProps) {
