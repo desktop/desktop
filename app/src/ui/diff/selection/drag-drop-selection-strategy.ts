@@ -5,60 +5,54 @@ import { range } from '../../../lib/range'
 
 /** apply a drag-and-drop change to the current diff */
 export class DragDropSelection implements ISelectionStrategy {
-  private readonly _start: number
-  private readonly _desiredSelection: boolean
-  private readonly _snapshot: DiffSelection
+  private readonly start: number
+  private readonly desiredSelection: boolean
+  private readonly snapshot: DiffSelection
 
-  private _current: number
+  private current: number
 
   public constructor(start: number, desiredSelection: boolean, snapshot: DiffSelection) {
-    this._start = start
-    this._current = start
-    this._desiredSelection = desiredSelection
-    this._snapshot = snapshot
+    this.start = start
+    this.desiredSelection = desiredSelection
+    this.snapshot = snapshot
+
+    this.current = start
   }
 
   /**
    * Return the lower bounds of the selection range
    */
   private get lowerIndex(): number {
-    if (this._start <= this._current) {
-      return this._start
+    if (this.start <= this.current) {
+      return this.start
     }
 
-    return this._current
+    return this.current
   }
 
   /**
    * Return the upper bounds of the selection range
    */
   private get upperIndex(): number {
-    if (this._start <= this._current) {
-      return this._current
+    if (this.start <= this.current) {
+      return this.current
     }
 
-    return this._start
+    return this.start
   }
 
   /**
    * Return the index associated with the start of this gesture
    */
   public get initialIndex(): number {
-      return this._start
-  }
-
-  /**
-   * Return the index associated with the start of this gesture
-   */
-  public get desiredSelection(): boolean {
-    return this._desiredSelection
+      return this.start
   }
 
   /**
    * update the selection strategy with the row the user's cursor is over
    */
   public update(current: number) {
-    this._current = current
+    this.current = current
   }
 
   /**
@@ -67,7 +61,7 @@ export class DragDropSelection implements ISelectionStrategy {
   public apply(onIncludeChanged: (diffSelection: DiffSelection) => void) {
     const length = (this.upperIndex - this.lowerIndex) + 1
 
-    const newSelection = this._snapshot.withRangeSelection(
+    const newSelection = this.snapshot.withRangeSelection(
       this.lowerIndex,
       length,
       this.desiredSelection)
@@ -123,9 +117,9 @@ export class DragDropSelection implements ISelectionStrategy {
   public getIsSelected(index: number): boolean {
     // if we're in the diff range, use the stored value
     if (index >= this.lowerIndex && index <= this.upperIndex) {
-      return this._desiredSelection
+      return this.desiredSelection
     }
 
-    return this._snapshot.isSelected(index)
+    return this.snapshot.isSelected(index)
   }
 }
