@@ -9,7 +9,6 @@
     text-align: center;
 
     background: var(--tab-bar-background-color);
-    box-shadow: inset 0 0 0 1px #D6D6D6;
 
     // This makes it so that we never render a double-width item border.
     // It has the unintended consequence of making it impossible to have a tab
@@ -30,7 +29,6 @@
     // one.
     &.selected {
       background-color: var(--tab-bar-active-color);
-      box-shadow: none;
       color: var(--box-selected-background-color);
 
       .indicator {
