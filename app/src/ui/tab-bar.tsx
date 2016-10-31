@@ -28,11 +28,11 @@ export class TabBar extends React.Component<ITabBarProps, void> {
       const selected = index === this.props.selectedIndex
       const className = selected ? 'selected' : ''
       return (
-        <span key={index}
+        <div key={index}
               className={'tab-bar-item ' + className}
               onClick={() => this.props.onTabClicked(index)}>
           {child}
-        </span>
+        </div>
       )
     })
   }
