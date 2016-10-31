@@ -3,6 +3,7 @@ import { Repository as Repo } from '../models/repository'
 import { UiView } from './ui-view'
 import { Changes } from './changes'
 import { History } from './history'
+import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
@@ -39,6 +40,27 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     )
   }
 
+  private renderFirstColumnContents() {
+    const selectedSection = this.props.state.selectedSection
+
+    if (selectedSection === RepositorySection.Changes) {
+      return null
+    } else if (selectedSection === RepositorySection.History) {
+      return null
+    } else {
+      return assertNever(selectedSection, 'Unknown repository section')
+    }
+  }
+
+  private renderFirstColumn() {
+    return (
+      <Resizable id='repository-first-column' width={250}>
+        {this.renderTabs()}
+        {this.renderFirstColumnContents()}
+      </Resizable>
+    )
+  }
+
   private renderContent() {
     const selectedSection = this.props.state.selectedSection
 
@@ -71,7 +93,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
   public render() {
     return (
       <UiView id='repository' onKeyDown={(e) => this.onKeyDown(e)}>
-        {this.renderTabs()}
+        {this.renderFirstColumn()}
         {this.renderContent()}
       </UiView>
     )
