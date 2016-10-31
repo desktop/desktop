@@ -6,6 +6,7 @@ import { History } from './history'
 import { TabBar } from './tab-bar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
 import { Dispatcher } from '../lib/dispatcher'
+import { assertNever } from '../lib/fatal-error'
 
 interface IRepositoryProps {
   readonly repository: Repo
@@ -39,7 +40,9 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
   }
 
   private renderContent() {
-    if (this.props.state.selectedSection === RepositorySection.Changes) {
+    const selectedSection = this.props.state.selectedSection
+
+    if (selectedSection === RepositorySection.Changes) {
       const branch = this.props.state.branchesState.currentBranch
       const localCommitSHAs = this.props.state.localCommitSHAs
       const mostRecentLocalCommitSHA = localCommitSHAs.length > 0 ? localCommitSHAs[0] : null
@@ -53,7 +56,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
                       gitHubUsers={this.props.state.gitHubUsers}
                       emoji={this.props.emoji}
                       mostRecentLocalCommit={mostRecentLocalCommit}/>
-    } else if (this.props.state.selectedSection === RepositorySection.History) {
+    } else if (selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
                       history={this.props.state.historyState}
@@ -61,7 +64,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
                       emoji={this.props.emoji}
                       commits={this.props.state.commits}/>
     } else {
-      return null
+      return assertNever(selectedSection, 'Unknown repository section')
     }
   }
 
