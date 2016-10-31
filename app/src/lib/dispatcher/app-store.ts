@@ -794,7 +794,9 @@ export class AppStore {
     // selected.
     await this._loadStatus(repository)
 
-    await gitStore.loadBranches()
+    // We don't need to await this. The GitStore will notify when something
+    // changes.
+    gitStore.loadBranches()
 
     await this.refreshAuthor(repository)
 
