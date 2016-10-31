@@ -14,8 +14,8 @@ interface ICodeMirrorHostProps {
   /** Any CodeMirror specific settings */
   options?: CodeMirror.EditorConfiguration
 
-  /** Callback for when user has selected some text */
-  cancelSelectionChange?: () => boolean
+  /** Callback for diff to control whether selection is enabled */
+  isSelectionEnabled?: () => boolean
 
   /** Callback for when CodeMirror renders (or re-renders) a line */
   onRenderLine?: (cm: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void
@@ -73,8 +73,8 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   }
 
   private beforeSelectionChanged = (cm: CodeMirror.Editor, changeObj: any) => {
-    if (this.props.cancelSelectionChange) {
-      if (this.props.cancelSelectionChange()) {
+    if (this.props.isSelectionEnabled) {
+      if (!this.props.isSelectionEnabled()) {
         // ignore whatever the user has currently selected, pass in a
         // "nothing selected" value
         // NOTE:

@@ -356,8 +356,8 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
   }
 
-  private cancelSelectionChange = () => {
-    return this.selection != null
+  private isSelectionEnabled = () => {
+    return this.selection == null
   }
 
   private restoreScrollPosition(cm: Editor) {
@@ -425,7 +425,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           className='diff-code-mirror'
           value={diffText}
           options={options}
-          cancelSelectionChange={this.cancelSelectionChange}
+          isSelectionEnabled={this.isSelectionEnabled}
           onChanges={this.onChanges}
           onRenderLine={this.renderLine}
           ref={(cmh) => { this.codeMirror = cmh === null ? null : cmh.getEditor() }}
