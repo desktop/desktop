@@ -42,13 +42,6 @@ export class DragDropSelection implements ISelectionStrategy {
   }
 
   /**
-   * Return the index associated with the start of this gesture
-   */
-  public get initialIndex(): number {
-      return this.start
-  }
-
-  /**
    * update the selection strategy with the row the user's cursor is over
    */
   public update(current: number) {
@@ -114,12 +107,13 @@ export class DragDropSelection implements ISelectionStrategy {
    * values inside the range pick up the desired value, and values
    * outside the range revert to the initially selected state
    */
-  public getIsSelected(index: number): boolean {
+  private getIsSelected(index: number): boolean {
     // if we're in the diff range, use the stored value
     if (index >= this.lowerIndex && index <= this.upperIndex) {
       return this.desiredSelection
     }
 
+    // otherwise, just use whatever the old value was
     return this.snapshot.isSelected(index)
   }
 }
