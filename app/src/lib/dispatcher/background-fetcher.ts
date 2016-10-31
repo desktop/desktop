@@ -20,10 +20,8 @@ const MinimumInterval = 1000 * 5 * 60
 /**
  * An upper bound to the skew that should be applied to the fetch interval to
  * prevent clients from accidentally syncing up.
- *
- * This interval has millisecond resolution.
  */
-const SkewUpperBound = 30
+const SkewUpperBound = 30 * 1000
 
 /** The class which handles doing background fetches of the repository. */
 export class BackgroundFetcher {
