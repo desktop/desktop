@@ -1,19 +1,6 @@
 @import "../../mixins";
 
 /** A React component holding the currently selected repository's changes */
-#changes-list {
-  ul {
-    list-style-type: none;
-    overflow-y: scroll;
-    margin: 0;
-    padding: 0;
-  }
-
-  li {
-    white-space: nowrap;
-  }
-}
-
 .changes-panel {
   &-header {
     background: var(--box-alt-background-color);
