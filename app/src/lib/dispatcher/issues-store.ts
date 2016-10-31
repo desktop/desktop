@@ -74,24 +74,25 @@ export class IssuesStore {
       })
 
     const db = this.db
+
+    function findIssueInRepositoryByNumber(gitHubRepositoryID: number, issueNumber: number) {
+      return db.issues
+        .where('[gitHubRepositoryID+number]')
+        .equals([ gitHubRepositoryID, issueNumber ])
+        .limit(1)
+        .first()
+    }
+
     await this.db.transaction('rw', this.db.issues, function*() {
       for (const issue of issuesToDelete) {
-        const existing = yield db.issues
-          .where('[gitHubRepositoryID+number]')
-          .equals([ gitHubRepositoryID, issue.number ])
-          .limit(1)
-          .first()
+        const existing = yield findIssueInRepositoryByNumber(gitHubRepositoryID, issue.number)
         if (existing) {
           yield db.issues.delete(existing.id)
         }
       }
 
       for (const issue of issuesToUpsert) {
-        const existing = yield db.issues
-          .where('[gitHubRepositoryID+number]')
-          .equals([ gitHubRepositoryID, issue.number ])
-          .limit(1)
-          .first()
+        const existing = yield findIssueInRepositoryByNumber(gitHubRepositoryID, issue.number)
         if (existing) {
           yield db.issues.update(existing.id, issue)
         } else {
