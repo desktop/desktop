@@ -44,6 +44,7 @@ export class Changes extends React.Component<IChangesProps, void> {
         new EmojiAutocompletionProvider(this.props.emoji),
       ]
 
+      // Issues autocompletion is only available for GitHub repositories.
       const gitHubRepository = props.repository.gitHubRepository
       if (gitHubRepository) {
         autocompletionProviders.push(new IssuesAutocompletionProvider(props.issuesStore, gitHubRepository, props.dispatcher))
