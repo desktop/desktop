@@ -75,6 +75,11 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   private beforeSelectionChanged = (cm: CodeMirror.Editor, changeObj: any) => {
     if (this.props.cancelSelectionChange) {
       if (this.props.cancelSelectionChange()) {
+        // ignore whatever the user has currently selected, pass in a
+        // "nothing selected" value
+        // NOTE:
+        // - `head` is the part of the selection that is moving
+        // - `anchor` is the other end
         changeObj.update([ { head: { line: 0, ch: 0 } , anchor: { line: 0, ch: 0 } } ])
       }
     }
