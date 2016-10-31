@@ -1,6 +1,7 @@
 .tab-bar {
   display: flex;
   flex-direction: row;
+  height: var(--tab-bar-height);
 
 
   &-item {
