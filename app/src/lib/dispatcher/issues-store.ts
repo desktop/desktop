@@ -43,7 +43,13 @@ export class IssuesStore {
     const lastFetchDate = this.getLastFetchDate(repository)
     const now = new Date()
 
-    const issues = await api.fetchIssues(repository.owner.login, repository.name, 'open', lastFetchDate)
+    let issues: ReadonlyArray<IAPIIssue>
+    if (lastFetchDate) {
+      issues = await api.fetchIssues(repository.owner.login, repository.name, 'all', lastFetchDate)
+    } else {
+      issues = await api.fetchIssues(repository.owner.login, repository.name, 'open', null)
+    }
+
     this.setLastFetchDate(repository, now)
 
     this.storeIssues(issues, repository)
