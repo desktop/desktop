@@ -1,8 +1,8 @@
 import * as Path from 'path'
 import { ChildProcess } from 'child_process'
-import { GitProcess, GitError } from 'git-kitchen-sink'
+import { GitProcess, GitError as GKSGitError } from 'git-kitchen-sink'
 
-import { git } from './git/core'
+import { git, GitError } from './git/core'
 import { GitDiff } from './git/git-diff'
 
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
@@ -695,11 +695,16 @@ export class LocalGitOperations {
 
   /** Calculate the number of commits the range is ahead and behind. */
   private static async getAheadBehind(repository: Repository, range: string): Promise<IAheadBehind | null> {
-    const result = await git([ 'rev-list', '--left-right', '--count', range, '--' ], repository.path, { successExitCodes: new Set([ 0, 128 ]) })
+    const args = [ 'rev-list', '--left-right', '--count', range, '--' ]
+    const result = await git(args, repository.path, { successExitCodes: new Set([ 0, 128 ]) })
     if (result.exitCode === 128) {
       const error = GitProcess.parseError(result.stderr)
-      if (error && error === GitError.BadRevision) {
+      // This means one of the refs (most likely the upstream branch) no longer
+      // exists. In that case we can't be ahead/behind at all.
+      if (error && error === GKSGitError.BadRevision) {
         return null
+      } else {
+        throw new GitError(result, args, error)
       }
     }
 
