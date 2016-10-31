@@ -794,6 +794,8 @@ export class AppStore {
     // selected.
     await this._loadStatus(repository)
 
+    await gitStore.loadBranches()
+
     await this.refreshAuthor(repository)
 
     const section = state.selectedSection
@@ -854,11 +856,6 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _showPopup(popup: Popup): Promise<void> {
-    if (popup.type === PopupType.ShowBranches || popup.type === PopupType.CreateBranch) {
-      const gitStore = this.getGitStore(popup.repository)
-      gitStore.loadBranches()
-    }
-
     this.currentPopup = popup
     this.emitUpdate()
   }
