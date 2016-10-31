@@ -1,63 +1,64 @@
 @import "../../mixins";
 
+#changes-list {
+  min-height: 0;
+}
+
 /** A React component holding the currently selected repository's changes */
-.changes-panel {
-  &-header {
+.changes-list-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  .header {
     background: var(--box-alt-background-color);
     border-bottom: 1px solid var(--box-border-color);
     display: flex;
     flex-shrink: 0;
-    padding: var(--spacing-half);
-  }
-
-  &-header-input {
-    font-weight: var(--font-weight-semibold);
-    flex-grow: 0;
-  }
-
-  &-header-label {
-    font-weight: var(--font-weight-semibold);
     flex-grow: 1;
-    text-align: center;
+    padding: var(--spacing-half);
+
+    label {
+      font-weight: var(--font-weight-semibold);
+      flex-grow: 1;
+      text-align: center;
+    }
   }
 
   .list-item {
     padding: var(--spacing-half);
     border-bottom: var(--base-border);
   }
-}
 
-// Only use special colors for the change type icons when
-// the list item doesn't have active focus. If it does we
-// fall back to using the ambient foreground color of the
-// list item.
-#changes-list-list .list-item:not(:focus) {
-  .status {
-    &-new .octicon { fill: var(--color-new); }
-    &-modified .octicon { fill: var(--color-modified); }
-    &-deleted .octicon { fill: var(--color-deleted); }
+  // Only use special colors for the change type icons when
+  // the list item doesn't have active focus. If it does we
+  // fall back to using the ambient foreground color of the
+  // list item.
+  .list-item:not(:focus) {
+    .status {
+      &-new .octicon { fill: var(--color-new); }
+      &-modified .octicon { fill: var(--color-modified); }
+      &-deleted .octicon { fill: var(--color-deleted); }
+    }
   }
-}
 
-#changes-list-list {
-  min-height: 0;
-}
-
-.changed-file {
-  display: flex;
-  flex-grow: 1;
-
-  // See https://css-tricks.com/flexbox-truncated-text/
-  min-width: 0;
-
-  input, .status { flex-shrink: 0; }
-
-  .path {
+  .changed-file {
+    display: flex;
     flex-grow: 1;
-    @include ellipsis;
-  }
 
-  .octicon {
-    vertical-align: text-bottom;
+    // See https://css-tricks.com/flexbox-truncated-text/
+    min-width: 0;
+
+    input, .status { flex-shrink: 0; }
+
+    .path {
+      flex-grow: 1;
+      @include ellipsis;
+    }
+
+    .octicon {
+      vertical-align: text-bottom;
+    }
   }
 }

@@ -80,16 +80,16 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     const anyFilesSelected = fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
 
     return (
-      <div className='panel changes-panel' id='changes-list'>
-        <div id='select-all' className='changes-panel-header'>
+      <div className='changes-list-container'>
+        <div id='select-all' className='header'>
           <Checkbox value={this.includeAllValue} onChange={event => this.onIncludeAllChange(event)}/>
 
-          <label className='changes-panel-header-label'>
+          <label>
             {filesDescription}
           </label>
         </div>
 
-        <List id='changes-list-list'
+        <List id='changes-list'
               rowCount={this.props.workingDirectory.files.length}
               rowHeight={RowHeight}
               rowRenderer={row => this.renderRow(row)}
