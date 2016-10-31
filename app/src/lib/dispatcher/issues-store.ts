@@ -135,10 +135,12 @@ export class IssuesStore {
     const issuesCollection = await this.db.issues
       .where('gitHubRepositoryID')
       .equals(gitHubRepositoryID)
-      .limit(IssueResultsHardLimit)
       .filter(i => score(i) > 0)
 
-    const issues = await issuesCollection.toArray()
+    const issues = await issuesCollection
+      .limit(IssueResultsHardLimit)
+      .toArray()
+
     return issues.sort((a, b) => score(b) - score(a))
   }
 }
