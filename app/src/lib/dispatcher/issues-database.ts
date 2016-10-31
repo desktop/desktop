@@ -6,7 +6,7 @@ const DatabaseVersion = 1
 export interface IIssue {
   readonly id?: number
   readonly gitHubRepositoryID: number
-  readonly number: string
+  readonly number: number
   readonly title: string
 }
 

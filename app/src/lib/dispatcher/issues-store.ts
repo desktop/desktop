@@ -68,7 +68,7 @@ export class IssuesStore {
       .map<IIssue>(i => {
         return {
           gitHubRepositoryID,
-          number: i.number.toString(),
+          number: i.number,
           title: i.title,
         }
       })
@@ -114,13 +114,14 @@ export class IssuesStore {
         .where('gitHubRepositoryID')
         .equals(gitHubRepositoryID)
         .limit(IssueResultsHardLimit)
-        .sortBy('id')
+        .reverse()
+        .sortBy('number')
       return issues
     }
 
     const MaxScore = 1
     const score = (i: IIssue) => {
-      if (i.number.startsWith(text)) {
+      if (i.number.toString().startsWith(text)) {
         return MaxScore
       }
 
