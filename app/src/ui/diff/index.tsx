@@ -23,6 +23,8 @@ import { DragDropSelection } from './selection/drag-drop-selection-strategy'
 import { HunkSelection } from './selection/hunk-selection-strategy'
 import { hoverCssClass } from './selection/selection'
 
+import { fatalError } from '../../lib/fatal-error'
+
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
   require('codemirror/addon/scroll/simplescrollbars')
@@ -111,7 +113,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
-      console.error('must not start selection when selected file is not a WorkingDirectoryFileChange')
+      fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
       return
     }
     const snapshot = this.props.file.selection
@@ -140,7 +142,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
-      console.error('must not complete selection when selected file is not a WorkingDirectoryFileChange')
+      fatalError('must not complete selection when selected file is not a WorkingDirectoryFileChange')
       return
     }
 
