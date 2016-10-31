@@ -141,9 +141,9 @@ export class API {
    * since the given date.
    */
   public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
-    let params = { state }
+    const params: any = { state }
     if (since) {
-      params = Object.assign({}, params, { since: since.toISOString() })
+      params.since = since.toISOString()
     }
 
     const allItems: Array<IAPIIssue> = []
