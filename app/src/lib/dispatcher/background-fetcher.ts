@@ -100,7 +100,6 @@ export class BackgroundFetcher {
       console.error(e)
     }
 
-
     return interval + skewInterval()
   }
 
