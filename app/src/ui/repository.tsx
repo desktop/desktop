@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Repository as Repo } from '../models/repository'
 import { UiView } from './ui-view'
-import { Changes } from './changes'
+import { Changes, ChangesSidebar } from './changes'
 import { History } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
@@ -40,11 +40,30 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     )
   }
 
+  private renderChangesSidebar() {
+    const branch = this.props.state.branchesState.currentBranch
+    const localCommitSHAs = this.props.state.localCommitSHAs
+    const mostRecentLocalCommitSHA = localCommitSHAs.length > 0 ? localCommitSHAs[0] : null
+    const mostRecentLocalCommit = (mostRecentLocalCommitSHA ? this.props.state.commits.get(mostRecentLocalCommitSHA) : null) || null
+
+    return (
+      <ChangesSidebar
+        repository={this.props.repository}
+        dispatcher={this.props.dispatcher}
+        changes={this.props.state.changesState}
+        branch={branch ? branch.name : null}
+        commitAuthor={this.props.state.commitAuthor}
+        gitHubUsers={this.props.state.gitHubUsers}
+        emoji={this.props.emoji}
+        mostRecentLocalCommit={mostRecentLocalCommit}/>
+    )
+  }
+
   private renderSidebarContents() {
     const selectedSection = this.props.state.selectedSection
 
     if (selectedSection === RepositorySection.Changes) {
-      return null
+      return this.renderChangesSidebar()
     } else if (selectedSection === RepositorySection.History) {
       return null
     } else {
@@ -65,19 +84,9 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     const selectedSection = this.props.state.selectedSection
 
     if (selectedSection === RepositorySection.Changes) {
-      const branch = this.props.state.branchesState.currentBranch
-      const localCommitSHAs = this.props.state.localCommitSHAs
-      const mostRecentLocalCommitSHA = localCommitSHAs.length > 0 ? localCommitSHAs[0] : null
-      const mostRecentLocalCommit = (mostRecentLocalCommitSHA ? this.props.state.commits.get(mostRecentLocalCommitSHA) : null) || null
-
       return <Changes repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
-                      changes={this.props.state.changesState}
-                      branch={branch ? branch.name : null}
-                      commitAuthor={this.props.state.commitAuthor}
-                      gitHubUsers={this.props.state.gitHubUsers}
-                      emoji={this.props.emoji}
-                      mostRecentLocalCommit={mostRecentLocalCommit}/>
+                      changes={this.props.state.changesState} />
     } else if (selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
