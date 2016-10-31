@@ -40,7 +40,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     )
   }
 
-  private renderFirstColumnContents() {
+  private renderSidebarContents() {
     const selectedSection = this.props.state.selectedSection
 
     if (selectedSection === RepositorySection.Changes) {
@@ -52,11 +52,11 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     }
   }
 
-  private renderFirstColumn() {
+  private renderSidebar() {
     return (
-      <Resizable id='repository-first-column' width={250}>
+      <Resizable id='repository-sidebar' width={250}>
         {this.renderTabs()}
-        {this.renderFirstColumnContents()}
+        {this.renderSidebarContents()}
       </Resizable>
     )
   }
@@ -93,7 +93,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
   public render() {
     return (
       <UiView id='repository' onKeyDown={(e) => this.onKeyDown(e)}>
-        {this.renderFirstColumn()}
+        {this.renderSidebar()}
         {this.renderContent()}
       </UiView>
     )
