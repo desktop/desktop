@@ -716,7 +716,7 @@ export class LocalGitOperations {
     return { ahead, behind }
   }
 
-  /** Update the ref to a new value, providing the given reflog message. */
+  /** Update the ref to a new value with the given reflog message. */
   public static async updateRef(repository: Repository, ref: string, newValue: string, reason: string): Promise<void> {
     await git([ 'update-ref', ref, newValue, '-m', reason ], repository.path)
   }
