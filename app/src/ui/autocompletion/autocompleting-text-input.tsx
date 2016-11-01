@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { List } from '../list'
 import { IAutocompletionProvider } from './index'
-import { EmojiAutocompletionProvider } from './emoji-autocompletion-provider'
 import { fatalError } from '../../lib/fatal-error'
 
 interface IPosition {
@@ -22,7 +21,7 @@ interface IAutocompletingTextInputProps<ElementType> {
   readonly value?: string
   readonly onChange?: (event: React.FormEvent<ElementType>) => void
   readonly onKeyDown?: (event: React.KeyboardEvent<ElementType>) => void
-  readonly emoji: Map<string, string>
+  readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 }
 
 interface IAutocompletionState<T> {
@@ -70,14 +69,11 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
   /** The row to scroll to. -1 means the list shouldn't scroll. */
   private scrollToRow = -1
 
-  private providers: ReadonlyArray<IAutocompletionProvider<any>>
+  /** The identifier for each autocompletion request. */
+  private autocompletionRequestID = 0
 
   public constructor(props: IAutocompletingTextInputProps<ElementType>) {
     super(props)
-
-    this.providers = [
-      new EmojiAutocompletionProvider(props.emoji),
-    ]
 
     this.state = { autocompletionState: null }
   }
@@ -263,8 +259,8 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     }
   }
 
-  private attemptAutocompletion(str: string, caretPosition: number): IAutocompletionState<any> | null {
-    for (const provider of this.providers) {
+  private async attemptAutocompletion(str: string, caretPosition: number): Promise<IAutocompletionState<any> | null> {
+    for (const provider of this.props.autocompletionProviders) {
       // NB: RegExps are stateful (AAAAAAAAAAAAAAAAAA) so defensively copy the
       // regex we're given.
       const regex = new RegExp(provider.getRegExp())
@@ -279,7 +275,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
         const text = result[1] || ''
         if (index === caretPosition) {
           const range = { start: index - text.length, length: text.length }
-          const items = provider.getAutocompletionItems(text)
+          const items = await provider.getAutocompletionItems(text)
 
           const selectedItem = items[0]
           return { provider, items, range, selectedItem, rangeText: text }
@@ -290,14 +286,20 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     return null
   }
 
-  private onChange(event: React.FormEvent<ElementType>) {
+  private async onChange(event: React.FormEvent<ElementType>) {
     if (this.props.onChange) {
       this.props.onChange(event)
     }
 
     const str = event.currentTarget.value
     const caretPosition = this.element!.selectionStart
-    const autocompletionState = this.attemptAutocompletion(str, caretPosition)
+    const requestID = ++this.autocompletionRequestID
+    const autocompletionState = await this.attemptAutocompletion(str, caretPosition)
+
+    // If another autocompletion request is in flight, then ignore these
+    // results.
+    if (requestID !== this.autocompletionRequestID) { return }
+
     this.setState({ autocompletionState })
   }
 }

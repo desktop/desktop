@@ -6,10 +6,18 @@ import * as ReactDOM from 'react-dom'
 import * as TestUtils from 'react-addons-test-utils'
 
 import { App } from '../../src/ui/app'
-import { Dispatcher, AppStore, GitHubUserStore, CloningRepositoriesStore, EmojiStore } from '../../src/lib/dispatcher'
+import {
+  Dispatcher,
+  AppStore,
+  GitHubUserStore,
+  CloningRepositoriesStore,
+  EmojiStore,
+  IssuesStore,
+} from '../../src/lib/dispatcher'
 import { InMemoryDispatcher } from '../in-memory-dispatcher'
 import { TestGitHubUserDatabase } from '../test-github-user-database'
 import { TestStatsDatabase } from '../test-stats-database'
+import { TestIssuesDatabase } from '../test-issues-database'
 import { StatsStore } from '../../src/lib/stats'
 
 describe('App', () => {
@@ -21,7 +29,10 @@ describe('App', () => {
     const db = new TestGitHubUserDatabase()
     await db.reset()
 
-    appStore = new AppStore(new GitHubUserStore(db), new CloningRepositoriesStore(), new EmojiStore())
+    const issuesDb = new TestIssuesDatabase()
+    await issuesDb.reset()
+
+    appStore = new AppStore(new GitHubUserStore(db), new CloningRepositoriesStore(), new EmojiStore(), new IssuesStore(issuesDb))
 
     const statsDb = new TestStatsDatabase()
     await statsDb.reset()

@@ -6,7 +6,7 @@ import { History, HistorySidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
-import { Dispatcher } from '../lib/dispatcher'
+import { Dispatcher, IssuesStore } from '../lib/dispatcher'
 import { assertNever } from '../lib/fatal-error'
 
 interface IRepositoryProps {
@@ -15,6 +15,7 @@ interface IRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly sidebarWidth: number
+  readonly issuesStore: IssuesStore
 }
 
 const enum Tab {
@@ -56,7 +57,8 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         commitAuthor={this.props.state.commitAuthor}
         gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
-        mostRecentLocalCommit={mostRecentLocalCommit}/>
+        mostRecentLocalCommit={mostRecentLocalCommit}
+        issuesStore={this.props.issuesStore}/>
     )
   }
 

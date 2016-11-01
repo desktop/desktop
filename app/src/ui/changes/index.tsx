@@ -18,14 +18,6 @@ interface IChangesProps {
 /** TODO: handle "repository not found" scenario */
 
 export class Changes extends React.Component<IChangesProps, void> {
-  public componentWillReceiveProps(nextProps: IChangesProps) {
-    if (nextProps.changes.contextualCommitMessage) {
-      // Once we receive the contextual commit message we can clear it. We don't
-      // want to keep receiving it.
-      nextProps.dispatcher.clearContextualCommitMessage(this.props.repository)
-    }
-  }
-
 
   private onDiffLineIncludeChanged(diffSelection: DiffSelection) {
     const file = this.props.changes.selectedFile
