@@ -1046,7 +1046,7 @@ export class AppStore {
 
     this._refreshRepository(repository)
 
-    return this.fastForwardBranches(repository)
+    return this._fetch(repository)
   }
 
   private async fastForwardBranches(repository: Repository) {
@@ -1128,5 +1128,14 @@ export class AppStore {
   public _clearContextualCommitMessage(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
     return gitStore.clearContextualCommitMessage()
+  }
+
+  public async _fetch(repository: Repository): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    const user = this.getUserForRepository(repository)
+    await gitStore.fetch(user)
+    await this.fastForwardBranches(repository)
+
+    return this._refreshRepository(repository)
   }
 }
