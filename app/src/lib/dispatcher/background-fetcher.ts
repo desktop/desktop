@@ -3,7 +3,6 @@ import { User } from '../../models/user'
 import { GitHubRepository } from '../../models/github-repository'
 import { API } from '../api'
 import { fatalError } from '../fatal-error'
-import { LocalGitOperations } from '../local-git-operations'
 
 /**
  * A default interval at which to automatically fetch repositories, if the
@@ -27,6 +26,7 @@ const SkewUpperBound = 30 * 1000
 export class BackgroundFetcher {
   private readonly repository: Repository
   private readonly user: User
+  private readonly fetch: (repository: Repository) => Promise<void>
 
   /** The handle for our setTimeout invocation. */
   private timeoutHandle: number | null = null
@@ -34,9 +34,10 @@ export class BackgroundFetcher {
   /** Flag to indicate whether `stop` has been called. */
   private stopped = false
 
-  public constructor(repository: Repository, user: User) {
+  public constructor(repository: Repository, user: User, fetch: (repository: Repository) => Promise<void>) {
     this.repository = repository
     this.user = user
+    this.fetch = fetch
   }
 
   /** Start background fetching. */
@@ -69,7 +70,7 @@ export class BackgroundFetcher {
   /** Perform a fetch and schedule the next one. */
   private async performAndScheduleFetch(repository: GitHubRepository): Promise<void> {
     try {
-      await this.fetch()
+      await this.fetch(this.repository)
     } catch (e) {
       console.error('Error performing periodic fetch:')
       console.error(e)
@@ -99,14 +100,6 @@ export class BackgroundFetcher {
     }
 
     return interval + skewInterval()
-  }
-
-  /** Perform a fetch. */
-  private async fetch(): Promise<void> {
-    const remote = await LocalGitOperations.getDefaultRemote(this.repository)
-    if (!remote) { return }
-
-    return LocalGitOperations.fetch(this.repository, this.user, remote)
   }
 }
 

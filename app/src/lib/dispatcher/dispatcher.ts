@@ -338,9 +338,4 @@ export class Dispatcher {
   public clearContextualCommitMessage(repository: Repository): Promise<void> {
     return this.appStore._clearContextualCommitMessage(repository)
   }
-
-  /** Fetch from the repository's remote. */
-  public fetch(repository: Repository): Promise<void> {
-    return this.appStore._fetch(repository)
-  }
 }

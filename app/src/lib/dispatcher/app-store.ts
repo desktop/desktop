@@ -499,7 +499,7 @@ export class AppStore {
 
     if (!repository.gitHubRepository) { return }
 
-    const fetcher = new BackgroundFetcher(repository, user)
+    const fetcher = new BackgroundFetcher(repository, user, r => this.fetch(r))
     fetcher.start()
     this.currentBackgroundFetcher = fetcher
   }
@@ -1046,7 +1046,7 @@ export class AppStore {
 
     this._refreshRepository(repository)
 
-    return this._fetch(repository)
+    return this.fetch(repository)
   }
 
   private async fastForwardBranches(repository: Repository) {
@@ -1130,7 +1130,7 @@ export class AppStore {
     return gitStore.clearContextualCommitMessage()
   }
 
-  public async _fetch(repository: Repository): Promise<void> {
+  private async fetch(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
     const user = this.getUserForRepository(repository)
     await gitStore.fetch(user)
