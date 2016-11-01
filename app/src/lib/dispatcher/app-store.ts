@@ -93,13 +93,9 @@ export class AppStore {
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
 
-<<<<<<< HEAD
   private sidebarWidth: number = defaultSidebarWidth
 
-  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore) {
-=======
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore) {
->>>>>>> master
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
     this.emojiStore = emojiStore
