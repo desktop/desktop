@@ -24,7 +24,7 @@ const enum Tab {
 
 export class RepositoryView extends React.Component<IRepositoryProps, void> {
 
-  private renderTabs() {
+  private renderTabs(): JSX.Element {
     const hasChanges = this.props.state.changesState.workingDirectory.files.length > 0
     const selectedTab = this.props.state.selectedSection === RepositorySection.Changes
       ? Tab.Changes
@@ -41,7 +41,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     )
   }
 
-  private renderChangesSidebar() {
+  private renderChangesSidebar(): JSX.Element {
     const branch = this.props.state.branchesState.currentBranch
     const localCommitSHAs = this.props.state.localCommitSHAs
     const mostRecentLocalCommitSHA = localCommitSHAs.length > 0 ? localCommitSHAs[0] : null
@@ -60,7 +60,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     )
   }
 
-  private renderHistorySidebar() {
+  private renderHistorySidebar(): JSX.Element {
     return (
       <HistorySidebar
         repository={this.props.repository}
@@ -72,7 +72,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     )
   }
 
-  private renderSidebarContents() {
+  private renderSidebarContents(): JSX.Element {
     const selectedSection = this.props.state.selectedSection
 
     if (selectedSection === RepositorySection.Changes) {
@@ -84,7 +84,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     }
   }
 
-  private renderSidebar() {
+  private renderSidebar(): JSX.Element {
     return (
       <Resizable
         id='repository-sidebar'
@@ -97,7 +97,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     )
   }
 
-  private renderContent() {
+  private renderContent(): JSX.Element {
     const selectedSection = this.props.state.selectedSection
 
     if (selectedSection === RepositorySection.Changes) {

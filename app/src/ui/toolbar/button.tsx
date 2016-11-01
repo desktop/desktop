@@ -61,7 +61,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     }
   }
 
-  private renderDropdownArrow() {
+  private renderDropdownArrow(): JSX.Element | null {
     const state = this.props.dropdownState
     if (!state) {
       return null
