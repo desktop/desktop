@@ -11,6 +11,7 @@ import { CloningRepository } from './cloning-repositories-store'
 import { URLActionType } from '../parse-url'
 import { Branch, Commit } from '../local-git-operations'
 import { IAPIUser } from '../../lib/api'
+import { GitHubRepository } from '../../models/github-repository'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -337,5 +338,10 @@ export class Dispatcher {
   /** Clear the contextual commit message. */
   public clearContextualCommitMessage(repository: Repository): Promise<void> {
     return this.appStore._clearContextualCommitMessage(repository)
+  }
+
+  /** Update the repository's issues from GitHub. */
+  public updateIssues(repository: GitHubRepository): Promise<void> {
+    return this.appStore._updateIssues(repository)
   }
 }

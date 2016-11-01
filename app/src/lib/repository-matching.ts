@@ -39,7 +39,7 @@ function matchRemoteWithUser(user: User, remote: string): GitHubRepository | nul
     const name = result[2]
     if (login && name) {
       const owner = new Owner(login, user.endpoint)
-      return new GitHubRepository(name, owner)
+      return new GitHubRepository(name, owner, null)
     }
   }
 
