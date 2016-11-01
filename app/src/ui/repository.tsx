@@ -6,13 +6,14 @@ import { Changes } from './changes'
 import { History } from './history'
 import { ToolbarTab } from './toolbar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
-import { Dispatcher } from '../lib/dispatcher'
+import { Dispatcher, IssuesStore } from '../lib/dispatcher'
 
 interface IRepositoryProps {
   readonly repository: Repo
   readonly state: IRepositoryModelState
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
+  readonly issuesStore: IssuesStore
 }
 
 export class RepositoryView extends React.Component<IRepositoryProps, void> {
@@ -30,7 +31,8 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
                       commitAuthor={this.props.state.commitAuthor}
                       gitHubUsers={this.props.state.gitHubUsers}
                       emoji={this.props.emoji}
-                      mostRecentLocalCommit={mostRecentLocalCommit}/>
+                      mostRecentLocalCommit={mostRecentLocalCommit}
+                      issuesStore={this.props.issuesStore}/>
     } else if (this.props.state.selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}

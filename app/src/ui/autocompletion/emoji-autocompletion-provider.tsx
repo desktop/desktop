@@ -36,7 +36,7 @@ export class EmojiAutocompletionProvider implements IAutocompletionProvider<IEmo
     return /(?:^|\n| )(?::)([a-z0-9\\+\\-][a-z0-9_]*)?/g
   }
 
-  public getAutocompletionItems(text: string): ReadonlyArray<IEmojiHit> {
+  public async getAutocompletionItems(text: string): Promise<ReadonlyArray<IEmojiHit>> {
 
     // Empty strings is falsy, this is the happy path to avoid
     // sorting and matching when the user types a ':'. We want

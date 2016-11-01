@@ -30,6 +30,7 @@ import { GitHubUserStore } from './github-user-store'
 import { EmojiStore } from './emoji-store'
 import { GitStore } from './git-store'
 import { assertNever } from '../fatal-error'
+import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './background-fetcher'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -81,13 +82,19 @@ export class AppStore {
 
   private readonly emojiStore: EmojiStore
 
+  private readonly _issuesStore: IssuesStore
+
+  /** The issues store for all repositories. */
+  public get issuesStore(): IssuesStore { return this._issuesStore }
+
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
 
-  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore) {
+  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
     this.emojiStore = emojiStore
+    this._issuesStore = issuesStore
 
     this.gitHubUserStore.onDidUpdate(() => {
       this.emitUpdate()
@@ -479,9 +486,27 @@ export class AppStore {
       this.startBackgroundFetching(repository)
 
       localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
+
+      const gitHubRepository = repository.gitHubRepository
+      if (gitHubRepository) {
+        this._updateIssues(gitHubRepository)
+      }
+
       return this._refreshRepository(repository)
     } else {
       return Promise.resolve()
+    }
+  }
+
+  public async _updateIssues(repository: GitHubRepository) {
+    const user = this.users.find(u => u.endpoint === repository.endpoint)
+    if (!user) { return }
+
+    try {
+      await this._issuesStore.fetchIssues(repository, user)
+    } catch (e) {
+      console.log(`Error fetching issues for ${repository.name}:`)
+      console.error(e)
     }
   }
 

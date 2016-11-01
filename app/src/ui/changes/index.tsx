@@ -4,11 +4,12 @@ import { Diff  } from '../diff'
 import { DiffSelection, DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
-import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
+import { Dispatcher, IGitHubUser, IssuesStore } from '../../lib/dispatcher'
 import { PersistingResizable } from '../resizable'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit } from '../../lib/local-git-operations'
 import { UndoCommit } from './undo-commit'
+import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocompletionProvider } from '../autocompletion'
 
 interface IChangesProps {
   readonly repository: Repository
@@ -19,16 +20,43 @@ interface IChangesProps {
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
   readonly mostRecentLocalCommit: Commit | null
+  readonly issuesStore: IssuesStore
 }
 
 /** TODO: handle "repository not found" scenario */
 
 export class Changes extends React.Component<IChangesProps, void> {
+  private autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>> | null
+
+  public constructor(props: IChangesProps) {
+    super(props)
+
+    this.receiveProps(props)
+  }
+
   public componentWillReceiveProps(nextProps: IChangesProps) {
-    if (nextProps.changes.contextualCommitMessage) {
+    this.receiveProps(nextProps)
+  }
+
+  private receiveProps(props: IChangesProps) {
+    if (props.repository.id !== this.props.repository.id || !this.autocompletionProviders) {
+      const autocompletionProviders: IAutocompletionProvider<any>[] = [
+        new EmojiAutocompletionProvider(this.props.emoji),
+      ]
+
+      // Issues autocompletion is only available for GitHub repositories.
+      const gitHubRepository = props.repository.gitHubRepository
+      if (gitHubRepository) {
+        autocompletionProviders.push(new IssuesAutocompletionProvider(props.issuesStore, gitHubRepository, props.dispatcher))
+      }
+
+      this.autocompletionProviders = autocompletionProviders
+    }
+
+    if (props.changes.contextualCommitMessage) {
       // Once we receive the contextual commit message we can clear it. We don't
       // want to keep receiving it.
-      nextProps.dispatcher.clearContextualCommitMessage(this.props.repository)
+      props.dispatcher.clearContextualCommitMessage(props.repository)
     }
   }
 
@@ -169,8 +197,8 @@ export class Changes extends React.Component<IChangesProps, void> {
                        commitAuthor={this.props.commitAuthor}
                        branch={this.props.branch}
                        avatarURL={avatarURL}
-                       emoji={this.props.emoji}
-                       contextualCommitMessage={this.props.changes.contextualCommitMessage}/>
+                       contextualCommitMessage={this.props.changes.contextualCommitMessage}
+                       autocompletionProviders={this.autocompletionProviders!}/>
           {this.renderMostRecentLocalCommit()}
         </PersistingResizable>
 
