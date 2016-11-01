@@ -2,16 +2,18 @@ import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import { assertNever } from '../../lib/fatal-error'
 import { Start } from './start'
-import { SignIn } from './sign-in'
+import { SignInDotCom } from './sign-in-dot-com'
+import { SignInEnterprise } from './sign-in-enterprise'
 import { ConfigureGit } from './configure-git'
 
 interface IWelcomeProps {
   readonly dispatcher: Dispatcher
 }
 
-enum WelcomeStep {
+export enum WelcomeStep {
   Start,
-  SignIn,
+  SignInToDotCom,
+  SignInToEnterprise,
   ConfigureGit,
 }
 
@@ -28,25 +30,20 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
 
   private componentForCurrentStep() {
     const step = this.state.currentStep
-    const advance = () => this.advanceStep()
+    const advance = (step: WelcomeStep) => this.advanceToStep(step)
     const cancel = () => this.cancel()
     const props = { dispatcher: this.props.dispatcher, advance, cancel }
 
     switch (step) {
       case WelcomeStep.Start: return <Start {...props}/>
-      case WelcomeStep.SignIn: return <SignIn {...props}/>
+      case WelcomeStep.SignInToDotCom: return <SignInDotCom {...props}/>
+      case WelcomeStep.SignInToEnterprise: return <SignInEnterprise {...props}/>
       case WelcomeStep.ConfigureGit: return <ConfigureGit {...props}/>
       default: return assertNever(step, `Unknown welcome step: ${step}`)
     }
   }
 
-  private advanceStep() {
-    const step = nextStep(this.state.currentStep)
-    if (!step) {
-      this.cancel()
-      return
-    }
-
+  private advanceToStep(step: WelcomeStep) {
     this.setState({ currentStep: step })
   }
 
@@ -60,14 +57,5 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
         {this.componentForCurrentStep()}
       </div>
     )
-  }
-}
-
-function nextStep(step: WelcomeStep): WelcomeStep | null {
-  switch (step) {
-    case WelcomeStep.Start: return WelcomeStep.SignIn
-    case WelcomeStep.SignIn: return WelcomeStep.ConfigureGit
-    case WelcomeStep.ConfigureGit: return null
-    default: return assertNever(step, `Unknown welcome step: ${step}`)
   }
 }
