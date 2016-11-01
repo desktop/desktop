@@ -16,6 +16,8 @@
   background-color: transparent;
   text-align: left;
 
+  border-right: 1px solid var(--box-border-color);
+
   &:not(:disabled):hover {
     background-color: var(--box-hover-background-color);
     color: var(--box-hover-text-color);
