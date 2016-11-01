@@ -32,9 +32,16 @@
     margin-right: var(--spacing);
   }
 
+  .dropdownArrow {
+    width: 9px;
+    height: 12px;
+  }
+
   .text {
     display: flex;
     flex-direction: column-reverse;
+    flex-grow: 1;
+    min-width: 0;
   }
 
   .title {
@@ -44,5 +51,13 @@
   .description {
     color: var(--text-secondary-color);
     font-size: var(--font-size-sm);
+  }
+
+  .title, .description { @include ellipsis }
+
+  // @TODO: Proper focus state
+  &:focus {
+    outline: none;
+    border-color: var(--box-border-color);
   }
 }

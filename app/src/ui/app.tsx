@@ -412,7 +412,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     return <ToolbarButton
       icon={icon}
       title={title}
-      description='Current repository' />
+      description='Current repository'
+      dropdownState='closed' />
   }
 
   private renderToolbar() {
