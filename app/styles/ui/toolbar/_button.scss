@@ -23,7 +23,7 @@
     color: var(--box-hover-text-color);
   }
 
-  &.active,&:active {
+  &.dropdown.open {
     background-color: var(--box-selected-background-color);
     color: var(--box-selected-text-color);
   }
