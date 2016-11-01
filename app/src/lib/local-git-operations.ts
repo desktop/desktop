@@ -726,9 +726,19 @@ export class LocalGitOperations {
     return { ahead, behind }
   }
 
-  /** Update the ref to a new value with the given reflog message. */
-  public static async updateRef(repository: Repository, ref: string, newValue: string, reason: string): Promise<void> {
-    await git([ 'update-ref', ref, newValue, '-m', reason ], repository.path)
+  /**
+   * Update the ref to a new value.
+   *
+   * @param repository    - The repository in which the ref exists.
+   * @param ref           - The ref to update. Must be fully qualified
+   *                        (e.g., `refs/heads/NAME`).
+   * @param existingValue - The value we expect the ref to have currently. If it
+   *                        doesn't match, the update will be aborted.
+   * @param newValue      - The new value for the ref.
+   * @param reason        - The reflog entry.
+   */
+  public static async updateRef(repository: Repository, ref: string, existingValue: string, newValue: string, reason: string): Promise<void> {
+    await git([ 'update-ref', ref, newValue, existingValue, '-m', reason ], repository.path)
   }
 }
 

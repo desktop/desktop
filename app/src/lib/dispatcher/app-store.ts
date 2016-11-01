@@ -1070,7 +1070,10 @@ export class AppStore {
 
       const { ahead, behind } = aheadBehind
       if (ahead === 0 && behind > 0) {
-        await LocalGitOperations.updateRef(repository, `refs/heads/${branch.name}`, branch.upstream!, 'pull: Fast-forward')
+        // NB: At this point we're guaranteed this is non-null since we've
+        // filtered it out above when creating `eligibleBranches`.
+        const upstreamRef = branch.upstream!
+        await LocalGitOperations.updateRef(repository, `refs/heads/${branch.name}`, branch.tip.sha, upstreamRef, 'pull: Fast-forward')
       }
     }
   }
