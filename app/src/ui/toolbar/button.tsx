@@ -17,7 +17,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
       : null
 
     const description = this.props.description
-      ? <div className='label'>{this.props.description}</div>
+      ? <div className='description'>{this.props.description}</div>
       : null
 
     return (
