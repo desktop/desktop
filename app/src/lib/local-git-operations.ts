@@ -1,8 +1,8 @@
 import * as Path from 'path'
 import { ChildProcess } from 'child_process'
-import { GitProcess, GitError as GKSGitError } from 'git-kitchen-sink'
+import { GitProcess, GitError } from 'git-kitchen-sink'
 
-import { git, GitError } from './git/core'
+import { git, GitError as InternalGitError } from './git/core'
 import { GitDiff } from './git/git-diff'
 
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
@@ -706,10 +706,10 @@ export class LocalGitOperations {
       const error = GitProcess.parseError(result.stderr)
       // This means one of the refs (most likely the upstream branch) no longer
       // exists. In that case we can't be ahead/behind at all.
-      if (error && error === GKSGitError.BadRevision) {
+      if (error && error === GitError.BadRevision) {
         return null
       } else {
-        throw new GitError(result, args, error)
+        throw new InternalGitError(result, args, error)
       }
     }
 
