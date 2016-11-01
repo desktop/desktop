@@ -6,10 +6,27 @@ import * as classNames from 'classnames'
 export type DropdownState = 'open' | 'closed'
 
 export interface IToolbarButtonProps {
+  /** The primary button text, describing its function */
   readonly title: string,
+
+  /** An optional description of the function of the button */
   readonly description?: string,
+
+  /** An optional symbol to be displayed next to the button text */
   readonly icon?: OcticonSymbol,
+
+  /**
+   * An optional state for toolbar buttons behaving as drop
+   * down. If omitted the button will behave as a normal button.
+   * If specified an additional arrow will be rendered indicating
+   * the state of the dropdown.
+   */
   readonly dropdownState?: DropdownState
+
+  /**
+   * An optional event handler for when the button is activated
+   * by a pointer event or by hitting space/enter while focused.
+   */
   readonly onClick?: () => void
 }
 
