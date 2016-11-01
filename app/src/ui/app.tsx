@@ -8,7 +8,7 @@ import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
-import { IAppState, RepositorySection, PopupType, SelectionType } from '../lib/app-state'
+import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
 import { Popuppy } from './popuppy'
 import { CreateBranch } from './create-branch'
 import { Branches } from './branches'
@@ -17,7 +17,7 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
-import { Toolbar, ToolbarButton } from './toolbar'
+import { Toolbar, ToolbarButton, DropdownState } from './toolbar'
 import { OcticonSymbol } from './octicons'
 import { showPopupAppMenu, setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
@@ -409,11 +409,21 @@ export class App extends React.Component<IAppProps, IAppState> {
     const icon = this.iconForRepository(repository)
     const title = repository.name
 
+    const isOpen = this.state.currentFoldout
+      && this.state.currentFoldout.type === FoldoutType.Repository
+
+    const onClick = () => isOpen
+      ? this.props.dispatcher.closeFoldout()
+      : this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+
+    const state: DropdownState = isOpen ? 'open' : 'closed'
+
     return <ToolbarButton
       icon={icon}
       title={title}
       description='Current repository'
-      dropdownState='closed' />
+      onClick={onClick}
+      dropdownState={state} />
   }
 
   private renderToolbar() {

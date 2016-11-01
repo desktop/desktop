@@ -4,7 +4,7 @@ import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
 import { guid } from '../guid'
-import { RepositorySection, Popup, IAppError } from '../app-state'
+import { RepositorySection, Popup, Foldout, IAppError } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
@@ -259,6 +259,16 @@ export class Dispatcher {
   /** Close the current popup. */
   public closePopup(): Promise<void> {
     return this.appStore._closePopup()
+  }
+
+  /** Show the foldout. This will close any current popup. */
+  public showFoldout(foldout: Foldout): Promise<void> {
+    return this.appStore._showFoldout(foldout)
+  }
+
+  /** Close the current foldout. */
+  public closeFoldout(): Promise<void> {
+    return this.appStore._closeFoldout()
   }
 
   /** Create a new branch from the given starting point and check it out. */

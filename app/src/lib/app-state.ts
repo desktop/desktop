@@ -27,6 +27,7 @@ export interface IAppState {
 
   readonly loading: boolean
   readonly currentPopup: Popup | null
+  readonly currentFoldout: Foldout | null
 
   readonly errors: ReadonlyArray<IAppError>
 
@@ -73,6 +74,13 @@ export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.PublishRepository, repository: Repository } |
                     { type: PopupType.DeleteBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> }
+
+export enum FoldoutType {
+  Repository = 1,
+}
+
+export type Foldout =
+  { type: FoldoutType.Repository }
 
 export enum RepositorySection {
   Changes,

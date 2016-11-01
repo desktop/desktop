@@ -8,10 +8,11 @@ import {
   RepositorySection,
   IChangesState,
   Popup,
+  PopupType,
+  Foldout,
   IBranchesState,
   IAppError,
   PossibleSelections,
-  PopupType,
   SelectionType,
 } from '../app-state'
 import { User } from '../../models/user'
@@ -74,6 +75,7 @@ export class AppStore {
   private loading = false
 
   private currentPopup: Popup | null = null
+  private currentFoldout: Foldout | null = null
 
   private errors: ReadonlyArray<IAppError> = new Array<IAppError>()
 
@@ -264,6 +266,7 @@ export class AppStore {
       ],
       selectedState: this.getSelectedState(),
       currentPopup: this.currentPopup,
+      currentFoldout: this.currentFoldout,
       errors: this.errors,
       loading: this.loading,
       emoji: this.emojiStore.emoji,
@@ -927,6 +930,20 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _closePopup(): Promise<void> {
     this.currentPopup = null
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _showFoldout(foldout: Foldout): Promise<void> {
+    this.currentFoldout = foldout
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _closeFoldout(): Promise<void> {
+    this.currentFoldout = null
     this.emitUpdate()
 
     return Promise.resolve()
