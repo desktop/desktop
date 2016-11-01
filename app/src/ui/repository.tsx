@@ -14,6 +14,7 @@ interface IRepositoryProps {
   readonly state: IRepositoryModelState
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
+  readonly sidebarWidth: number
 }
 
 const enum Tab {
@@ -85,7 +86,11 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
 
   private renderSidebar() {
     return (
-      <Resizable id='repository-sidebar' width={250}>
+      <Resizable
+        id='repository-sidebar'
+        width={this.props.sidebarWidth}
+        onReset={() => this.props.dispatcher.resetSidebarWidth()}
+        onResize={(w) => this.props.dispatcher.setSidebarWidth(w)}>
         {this.renderTabs()}
         {this.renderSidebarContents()}
       </Resizable>

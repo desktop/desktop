@@ -54,6 +54,9 @@ const CommittedStatuses = new Set([
   FileStatus.Unknown,
 ])
 
+const defaultSidebarWidth: number = 250
+const sidebarWidthConfigKey: string = 'sidebar-width'
+
 export class AppStore {
   private emitter = new Emitter()
 
@@ -78,6 +81,8 @@ export class AppStore {
 
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
+
+  private sidebarWidth: number = defaultSidebarWidth
 
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore) {
     this.gitHubUserStore = gitHubUserStore
@@ -250,6 +255,7 @@ export class AppStore {
       errors: this.errors,
       loading: this.loading,
       emoji: this.emojiStore.emoji,
+      sidebarWidth: this.sidebarWidth,
     }
   }
 
@@ -529,6 +535,8 @@ export class AppStore {
     if (newSelectedRepository !== selectedRepository) {
       this._selectRepository(newSelectedRepository)
     }
+
+    this.sidebarWidth = parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) || defaultSidebarWidth
 
     this.emitUpdate()
   }
@@ -1073,5 +1081,21 @@ export class AppStore {
   public _clearContextualCommitMessage(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
     return gitStore.clearContextualCommitMessage(repository)
+  }
+
+  public _setSidebarWidth(width: number): Promise<void> {
+    this.sidebarWidth = width
+    localStorage.setItem(sidebarWidthConfigKey, width.toString())
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _resetSidebarWidth(): Promise<void> {
+    this.sidebarWidth = defaultSidebarWidth
+    localStorage.removeItem(sidebarWidthConfigKey)
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }

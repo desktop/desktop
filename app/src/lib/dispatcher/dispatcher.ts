@@ -338,4 +338,26 @@ export class Dispatcher {
   public clearContextualCommitMessage(repository: Repository): Promise<void> {
     return this.appStore._clearContextualCommitMessage(repository)
   }
+
+  /**
+   * Set the width of the repository sidebar to the given
+   * value. This affects the changes and history sidebar
+   * as well as the first toolbar section which contains
+   * repo selection on all platforms and repo selection and
+   * app menu on Windows.
+   */
+  public setSidebarWidth(width: number): Promise<void> {
+    return this.appStore._setSidebarWidth(width)
+  }
+
+  /**
+   * Reset the width of the repository sidebar to its default
+   * value. This affects the changes and history sidebar
+   * as well as the first toolbar section which contains
+   * repo selection on all platforms and repo selection and
+   * app menu on Windows.
+   */
+  public resetSidebarWidth(): Promise<void> {
+    return this.appStore._resetSidebarWidth()
+  }
 }
