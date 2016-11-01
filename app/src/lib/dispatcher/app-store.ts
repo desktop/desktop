@@ -1127,6 +1127,6 @@ export class AppStore {
 
   public _clearContextualCommitMessage(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    return gitStore.clearContextualCommitMessage(repository)
+    return gitStore.clearContextualCommitMessage()
   }
 }

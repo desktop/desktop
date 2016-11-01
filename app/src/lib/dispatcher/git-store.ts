@@ -327,7 +327,7 @@ export class GitStore {
   }
 
   /** Clear the contextual commit message. */
-  public clearContextualCommitMessage(repository: Repository): Promise<void> {
+  public clearContextualCommitMessage(): Promise<void> {
     this._contextualCommitMessage = null
     this.emitUpdate()
     return Promise.resolve()
