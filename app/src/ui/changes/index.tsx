@@ -7,7 +7,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 
 // At some point we'll make index.tsx only be exports
 // see https://github.com/desktop/desktop/issues/383
-export { ChangesSidebar } from './changes-sidebar'
+export { ChangesSidebar } from './sidebar'
 
 interface IChangesProps {
   readonly repository: Repository
