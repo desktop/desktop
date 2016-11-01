@@ -10,6 +10,7 @@ export interface IToolbarButtonProps {
   readonly description?: string,
   readonly icon?: OcticonSymbol,
   readonly dropdownState?: DropdownState
+  readonly onClick?: () => void
 }
 
 /**
@@ -52,6 +53,12 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     return <Octicon symbol={this.dropdownIcon(state)} className='dropdownArrow' />
   }
 
+  private onClick() {
+    if (this.props.onClick) {
+      this.props.onClick()
+    }
+  }
+
   public render() {
     const icon = this.props.icon
       ? <Octicon symbol={this.props.icon} className='icon' />
@@ -64,7 +71,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     const className = classNames('toolbar-button', this.dropdownClassNames())
 
     return (
-      <button className={className}>
+      <button className={className} onClick={(e) => this.onClick()}>
         {icon}
         <div className='text'>
           <div className='title'>{this.props.title}</div>
