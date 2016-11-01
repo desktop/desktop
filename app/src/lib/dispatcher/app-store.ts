@@ -31,6 +31,7 @@ import { EmojiStore } from './emoji-store'
 import { GitStore } from './git-store'
 import { assertNever } from '../fatal-error'
 import { IssuesStore } from './issues-store'
+import { BackgroundFetcher } from './background-fetcher'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -62,6 +63,10 @@ export class AppStore {
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
 
   private selectedRepository: Repository | CloningRepository | null = null
+
+  /** The background fetcher for the currently selected repository. */
+  private currentBackgroundFetcher: BackgroundFetcher | null = null
+
   private repositoryState = new Map<number, IRepositoryState>()
   private loading = false
 
@@ -473,9 +478,13 @@ export class AppStore {
     this.selectedRepository = repository
     this.emitUpdate()
 
+    this.stopBackgroundFetching()
+
     if (!repository) { return Promise.resolve() }
 
     if (repository instanceof Repository) {
+      this.startBackgroundFetching(repository)
+
       localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
 
       const gitHubRepository = repository.gitHubRepository
@@ -499,6 +508,25 @@ export class AppStore {
       console.log(`Error fetching issues for ${repository.name}:`)
       console.error(e)
     }
+  }
+
+  private stopBackgroundFetching() {
+    const backgroundFetcher = this.currentBackgroundFetcher
+    if (backgroundFetcher) {
+      backgroundFetcher.stop()
+      this.currentBackgroundFetcher = null
+    }
+  }
+
+  private startBackgroundFetching(repository: Repository) {
+    const user = this.getUserForRepository(repository)
+    if (!user) { return }
+
+    if (!repository.gitHubRepository) { return }
+
+    const fetcher = new BackgroundFetcher(repository, user)
+    fetcher.start()
+    this.currentBackgroundFetcher = fetcher
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

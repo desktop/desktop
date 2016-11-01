@@ -1,7 +1,11 @@
 import * as URL from 'url'
+import * as Querystring from 'querystring'
+import * as HTTP from 'http'
 import { User } from '../models/user'
+import * as appProxy from '../ui/lib/app-proxy'
 
 const Octokat = require('octokat')
+const got = require('got')
 
 /**
  * Information about a repository as returned by the GitHub API.
@@ -57,8 +61,10 @@ export interface IAPIIssue {
  */
 export class API {
   private client: any
+  private user: User
 
   public constructor(user: User) {
+    this.user = user
     this.client = new Octokat({ token: user.token, rootURL: user.endpoint })
   }
 
@@ -160,6 +166,21 @@ export class API {
 
     // PRs are issues! But we only want Really Seriously Issues.
     return allItems.filter((i: any) => !i.pullRequest)
+  }
+
+  /** Get the allowed poll interval for fetching. */
+  public async getFetchPollInterval(owner: string, name: string): Promise<number> {
+    const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
+    const url = `${this.user.endpoint}/${path}`
+    const options: any = {
+      headers: {
+        'Authorization': `token ${this.user.token}`,
+        'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
+      },
+    }
+
+    const response: HTTP.IncomingMessage = await got.head(url, options)
+    return response.headers['x-poll-interval'] || 0
   }
 }
 

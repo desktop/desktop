@@ -14,6 +14,9 @@ interface ICodeMirrorHostProps {
   /** Any CodeMirror specific settings */
   options?: CodeMirror.EditorConfiguration
 
+  /** Callback for diff to control whether selection is enabled */
+  isSelectionEnabled?: () => boolean
+
   /** Callback for when CodeMirror renders (or re-renders) a line */
   onRenderLine?: (cm: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void
 
@@ -47,6 +50,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
 
     cm.on('renderLine', this.onRenderLine)
     cm.on('changes', this.onChanges)
+    cm.on('beforeSelectionChange', this.beforeSelectionChanged)
 
     cm.setValue(this.props.value)
   }
@@ -58,6 +62,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     if (cm) {
       cm.off('changes', this.onChanges)
       cm.off('renderLine', this.onRenderLine)
+      cm.off('beforeSelectionChange', this.beforeSelectionChanged)
 
       this.codeMirror = null
     }
@@ -65,6 +70,19 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
 
   public componentWillReceiveProps(nextProps: ICodeMirrorHostProps) {
     this.codeMirror!.setValue(nextProps.value)
+  }
+
+  private beforeSelectionChanged = (cm: CodeMirror.Editor, changeObj: any) => {
+    if (this.props.isSelectionEnabled) {
+      if (!this.props.isSelectionEnabled()) {
+        // ignore whatever the user has currently selected, pass in a
+        // "nothing selected" value
+        // NOTE:
+        // - `head` is the part of the selection that is moving
+        // - `anchor` is the other end
+        changeObj.update([ { head: { line: 0, ch: 0 } , anchor: { line: 0, ch: 0 } } ])
+      }
+    }
   }
 
   private onChanges = (cm: CodeMirror.Editor, changes: CodeMirror.EditorChangeLinkedList[]) => {
