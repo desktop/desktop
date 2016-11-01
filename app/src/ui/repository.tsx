@@ -91,7 +91,6 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
       return <History repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
                       history={this.props.state.historyState}
-                      gitHubUsers={this.props.state.gitHubUsers}
                       emoji={this.props.emoji}
                       commits={this.props.state.commits}/>
     } else {
