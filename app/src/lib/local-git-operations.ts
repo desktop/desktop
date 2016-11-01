@@ -437,7 +437,7 @@ export class LocalGitOperations {
 
   /** Fetch from the given remote. */
   public static fetch(repository: Repository, user: User | null, remote: string): Promise<void> {
-    return git([ 'fetch', remote ], repository.path, { env: LocalGitOperations.envForAuthentication(user) })
+    return git([ 'fetch', '--prune', remote ], repository.path, { env: LocalGitOperations.envForAuthentication(user) })
   }
 
   /** Get the remote names. */
