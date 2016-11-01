@@ -91,6 +91,22 @@
   --box-selected-background-color: $lightGray;
 
   /**
+   * Text color for when a user hovers over a boxe with a
+   * pointing device. Should not be used by boxes that doesn't
+   * implement a hover state since this will conflict with
+   * selection and active selection
+   */
+  --box-hover-text-color: $darkGray;
+
+  /**
+   * Background color for when a user hovers over a boxe with a
+   * pointing device. Should not be used by boxes that doesn't
+   * implement a hover state since this will conflict with
+   * selection and active selection
+   */
+  --box-hover-background-color: $darkGray;
+
+  /**
    * Text color for selected boxes without keyboard focus
    */
   --box-selected-text-color: $darkGray;
