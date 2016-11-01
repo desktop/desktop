@@ -13,7 +13,7 @@ interface IToolbarButtonProps {
 export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
   public render() {
     const icon = this.props.icon
-      ? <Octicon symbol={this.props.icon} />
+      ? <Octicon symbol={this.props.icon} className='icon' />
       : null
 
     const description = this.props.description
