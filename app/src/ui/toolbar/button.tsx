@@ -2,15 +2,23 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IToolbarButtonProps {
-  title: string,
-  description?: string,
-  icon?: OcticonSymbol
+  readonly title: string,
+  readonly description?: string,
+  readonly icon?: OcticonSymbol,
 }
 
 /**
  * A general purpose toolbar button
  */
 export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
+
+  private renderDropDownArrow() {
+    if (!this.props.dropDownState) {
+      return null
+    }
+
+  }
+
   public render() {
     const icon = this.props.icon
       ? <Octicon symbol={this.props.icon} className='icon' />
