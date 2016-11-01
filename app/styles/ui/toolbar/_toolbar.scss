@@ -39,6 +39,19 @@
     -webkit-app-region: drag;
     button { -webkit-app-region: no-drag; }
   }
+
+  .sidebar-section {
+
+    --background-color: #272A2F;
+    background-color: var(--background-color);
+
+    display: flex;
+    flex-direction: row;
+
+    .toolbar-button:last-child {
+      flex-grow: 1;
+    }
+  }
 }
 
 /* Toolbar negative margin hackery

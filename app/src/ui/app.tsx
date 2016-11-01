@@ -418,7 +418,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   private renderToolbar() {
     return (
       <Toolbar id='desktop-app-toolbar'>
-        {this.renderRepositoryToolbarButton()}
+        <div
+          className='sidebar-section'
+          style={{ width: this.state.sidebarWidth }}>
+          {this.renderRepositoryToolbarButton()}
+        </div>
       </Toolbar>
     )
   }
