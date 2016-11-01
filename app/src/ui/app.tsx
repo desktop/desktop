@@ -4,7 +4,8 @@ import { ipcRenderer, remote } from 'electron'
 import { RepositoryView } from './repository'
 import { NotLoggedIn } from './not-logged-in'
 import { WindowControls } from './window/window-controls'
-import { Dispatcher, AppStore } from '../lib/dispatcher'
+import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
+import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
 import { IAppState, RepositorySection, PopupType, SelectionType } from '../lib/app-state'
@@ -16,7 +17,8 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
-import { Toolbar } from './toolbar'
+import { Toolbar, ToolbarButton } from './toolbar'
+import { OcticonSymbol } from './octicons'
 import { showPopupAppMenu, setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateState } from './lib/update-store'
@@ -381,8 +383,44 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  private iconForRepository(repository: Repository | CloningRepository) {
+    if (repository instanceof CloningRepository) {
+      return OcticonSymbol.desktopDownload
+    } else {
+      const gitHubRepo = repository.gitHubRepository
+      if (!gitHubRepo) { return OcticonSymbol.repo }
+
+      if (gitHubRepo.private) { return OcticonSymbol.lock }
+      if (gitHubRepo.fork) { return OcticonSymbol.repoForked }
+
+      return OcticonSymbol.repo
+    }
+  }
+
+  private renderRepositoryToolbarButton() {
+    const selection = this.state.selectedState
+
+    if (!selection) {
+      return null
+    }
+
+    const repository = selection.repository
+
+    const icon = this.iconForRepository(repository)
+    const title = repository.name
+
+    return <ToolbarButton
+      icon={icon}
+      title={title}
+      description='Current repository' />
+  }
+
   private renderToolbar() {
-    return <Toolbar id='desktop-app-toolbar'></Toolbar>
+    return (
+      <Toolbar id='desktop-app-toolbar'>
+        {this.renderRepositoryToolbarButton()}
+      </Toolbar>
+    )
   }
 
   private renderRepository() {
