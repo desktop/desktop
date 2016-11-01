@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Repository as Repo } from '../models/repository'
 import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
-import { History } from './history'
+import { History, HistorySidebar } from './history'
 import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
@@ -59,13 +59,25 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     )
   }
 
+  private renderHistorySidebar() {
+    return (
+      <HistorySidebar
+        repository={this.props.repository}
+        dispatcher={this.props.dispatcher}
+        history={this.props.state.historyState}
+        gitHubUsers={this.props.state.gitHubUsers}
+        emoji={this.props.emoji}
+        commits={this.props.state.commits}/>
+    )
+  }
+
   private renderSidebarContents() {
     const selectedSection = this.props.state.selectedSection
 
     if (selectedSection === RepositorySection.Changes) {
       return this.renderChangesSidebar()
     } else if (selectedSection === RepositorySection.History) {
-      return null
+      return this.renderHistorySidebar()
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
