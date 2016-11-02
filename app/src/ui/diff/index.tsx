@@ -391,6 +391,16 @@ export class Diff extends React.Component<IDiffProps, void> {
     return null
   }
 
+  private formatLineEnding(text: string): string {
+    if (text.endsWith('\n')) {
+      return text
+    } else if (text.endsWith('\r')) {
+      return text + '\n'
+    } else {
+      return text + '\r\n'
+    }
+  }
+
   public render() {
 
     if (this.props.diff.imageDiff) {
@@ -406,7 +416,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     let diffText = ''
 
     this.props.diff.hunks.forEach(hunk => {
-      hunk.lines.forEach(l => diffText += l.text + '\r\n')
+      hunk.lines.forEach(l => diffText += this.formatLineEnding(l.text))
     })
 
     const options: IEditorConfigurationExtra = {
