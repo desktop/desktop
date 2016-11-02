@@ -24,6 +24,11 @@ export interface IToolbarButtonProps {
    */
   readonly className?: string,
 
+  /**
+   * An optional callback for rendering content inside the
+   * button, just before the content wrapper. Used by the
+   * dropdown component to render the foldout.
+   */
   readonly preContentRenderer?: () => JSX.Element | null
 }
 
