@@ -142,7 +142,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
 
     return {
       position: 'absolute',
-      top: 0,
+      top: rect.bottom,
       left: 0,
       width: '100%',
       height: '100%',
