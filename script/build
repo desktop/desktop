@@ -22,8 +22,8 @@ copyDependencies()
 console.log('Packaging emoji…')
 copyEmoji()
 
-console.log('Copying ask-pass-trampoline…')
-copyAskPass()
+console.log('Copying static resources…')
+copyStaticResources()
 
 if (process.platform === 'darwin' && process.env.TRAVIS_BRANCH) {
   console.log('Setting up keychain…')
@@ -103,13 +103,14 @@ function copyEmoji () {
   copyJson()
 }
 
-function copyAskPass () {
-  const extension = process.platform === 'win32' ? 'bat' : 'sh'
-  const file = `ask-pass-trampoline.${extension}`
-  const source = path.join(projectRoot, 'app', 'static', file)
-  const destination = path.join(outRoot, 'static', file)
+function copyStaticResources () {
+  const dirName = process.platform
+  const platformSpecific = path.join(projectRoot, 'app', 'static', dirName)
+  const common = path.join(projectRoot, 'app', 'static', 'common')
+  const destination = path.join(outRoot, 'static')
   fs.removeSync(destination)
-  fs.copySync(source, destination)
+  fs.copySync(platformSpecific, destination)
+  fs.copySync(common, destination, { clobber: false })
 }
 
 function copyDependencies () {
