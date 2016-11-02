@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { ipcRenderer, remote } from 'electron'
 
-import { PersistingResizable } from './resizable'
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
 import { NotLoggedIn } from './not-logged-in'
@@ -10,7 +9,7 @@ import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
-import { IAppState, RepositorySection, PopupType, SelectionType } from '../lib/app-state'
+import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
 import { Popuppy } from './popuppy'
 import { CreateBranch } from './create-branch'
 import { Branches } from './branches'
@@ -19,6 +18,8 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
+import { Toolbar, ToolbarDropdown, DropdownState } from './toolbar'
+import { OcticonSymbol } from './octicons'
 import { showPopupAppMenu, setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateState } from './lib/update-store'
@@ -373,23 +374,81 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderApp() {
-    const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
     return (
       <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
-        <PersistingResizable id='desktop-app-sidebar' configKey='repositories-list-width'>
-          <RepositoriesList selectedRepository={selectedRepository}
-                            onSelectionChanged={repository => this.onSelectionChanged(repository)}
-                            dispatcher={this.props.dispatcher}
-                            repositories={this.state.repositories}
-                            loading={this.state.loading}/>
-        </PersistingResizable>
-
+        {this.renderToolbar()}
         {this.renderRepository()}
-
         {this.renderPopup()}
-
         {this.renderErrors()}
       </div>
+    )
+  }
+
+  private iconForRepository(repository: Repository | CloningRepository) {
+    if (repository instanceof CloningRepository) {
+      return OcticonSymbol.desktopDownload
+    } else {
+      const gitHubRepo = repository.gitHubRepository
+      if (!gitHubRepo) { return OcticonSymbol.repo }
+
+      if (gitHubRepo.private) { return OcticonSymbol.lock }
+      if (gitHubRepo.fork) { return OcticonSymbol.repoForked }
+
+      return OcticonSymbol.repo
+    }
+  }
+
+  private renderRepositoryList(): JSX.Element {
+    const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
+
+    return <RepositoriesList
+      selectedRepository={selectedRepository}
+      onSelectionChanged={repository => this.onSelectionChanged(repository)}
+      dispatcher={this.props.dispatcher}
+      repositories={this.state.repositories}
+      loading={this.state.loading}
+    />
+  }
+
+  private renderRepositoryToolbarButton() {
+    const selection = this.state.selectedState
+
+    if (!selection) {
+      return null
+    }
+
+    const repository = selection.repository
+
+    const icon = this.iconForRepository(repository)
+    const title = repository.name
+
+    const isOpen = this.state.currentFoldout
+      && this.state.currentFoldout.type === FoldoutType.Repository
+
+    const onDropdownStateChanged = (newState: DropdownState) => newState === 'open'
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+      : this.props.dispatcher.closeFoldout()
+
+    const currentState: DropdownState = isOpen ? 'open' : 'closed'
+
+    return <ToolbarDropdown
+      icon={icon}
+      title={title}
+      description='Current repository'
+      onDropdownStateChanged={onDropdownStateChanged}
+      dropdownContentRenderer={() => this.renderRepositoryList()}
+      dropdownState={currentState} />
+  }
+
+  private renderToolbar() {
+    return (
+      <Toolbar id='desktop-app-toolbar'>
+        <div
+          className='sidebar-section'
+          style={{ width: this.state.sidebarWidth }}>
+          {this.renderRepositoryToolbarButton()}
+        </div>
+      </Toolbar>
     )
   }
 
@@ -404,7 +463,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         <RepositoryView repository={selectedState.repository}
                         state={selectedState.state}
                         dispatcher={this.props.dispatcher}
-                        emoji={this.state.emoji}/>
+                        emoji={this.state.emoji}
+                        sidebarWidth={this.state.sidebarWidth}
+                        issuesStore={this.props.appStore.issuesStore}/>
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
       return <CloningRepositoryView repository={selectedState.repository}

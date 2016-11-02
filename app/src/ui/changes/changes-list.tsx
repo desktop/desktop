@@ -9,6 +9,7 @@ import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Checkbox, CheckboxValue } from './checkbox'
 import { ICommitMessage } from '../../lib/app-state'
+import { IAutocompletionProvider } from '../autocompletion'
 
 const RowHeight = 30
 
@@ -24,7 +25,6 @@ interface IChangesListProps {
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly avatarURL: string
-  readonly emoji: Map<string, string>
 
   /**
    * Keyboard handler passed directly to the onRowKeyDown prop of List, see
@@ -33,6 +33,9 @@ interface IChangesListProps {
   readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
 
   readonly contextualCommitMessage: ICommitMessage | null
+
+  /** The autocompletion providers available to the repository. */
+  readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
@@ -80,16 +83,16 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     const anyFilesSelected = fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
 
     return (
-      <div className='panel changes-panel' id='changes-list'>
-        <div id='select-all' className='changes-panel-header'>
+      <div className='changes-list-container'>
+        <div id='select-all' className='header'>
           <Checkbox value={this.includeAllValue} onChange={event => this.onIncludeAllChange(event)}/>
 
-          <label className='changes-panel-header-label'>
+          <label>
             {filesDescription}
           </label>
         </div>
 
-        <List id='changes-list-list'
+        <List id='changes-list'
               rowCount={this.props.workingDirectory.files.length}
               rowHeight={RowHeight}
               rowRenderer={row => this.renderRow(row)}
@@ -101,10 +104,10 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         <CommitMessage onCreateCommit={(summary, description) => this.props.onCreateCommit(summary, description)}
                        branch={this.props.branch}
                        avatarURL={this.props.avatarURL}
-                       emoji={this.props.emoji}
                        commitAuthor={this.props.commitAuthor}
                        anyFilesSelected={anyFilesSelected}
-                       contextualCommitMessage={this.props.contextualCommitMessage}/>
+                       contextualCommitMessage={this.props.contextualCommitMessage}
+                       autocompletionProviders={this.props.autocompletionProviders}/>
       </div>
     )
   }
