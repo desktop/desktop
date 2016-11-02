@@ -172,6 +172,9 @@ export class LocalGitOperations {
     if (status === 'UU') { return FileStatus.Conflicted }   // Unmerged, both modified
     if (status === '??') { return FileStatus.New }          // untracked
 
+    // git log --name-status will return a RXXX - where XXX is a percentage
+    if (status[0] === 'R') { return FileStatus.Renamed }
+
     return FileStatus.Modified
   }
 
@@ -352,8 +355,16 @@ export class LocalGitOperations {
     for (let i = 0; i < lines.length; i++) {
       const statusText = lines[i]
       const status = this.mapStatus(statusText)
-      const name = lines[++i]
-      files.push(new FileChange(name, status))
+
+      let oldPath: string | undefined = undefined
+
+      if (status === FileStatus.Renamed) {
+        oldPath = lines[++i]
+      }
+
+      const path = lines[++i]
+
+      files.push(new FileChange(path, status, oldPath))
     }
 
     return files
