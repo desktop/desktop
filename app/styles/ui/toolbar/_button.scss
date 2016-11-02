@@ -10,6 +10,9 @@
   margin: 0;
   padding: 0;
 
+  // Reset
+  &:active { box-shadow: none; }
+
   border-right: 1px solid var(--box-border-color);
 
   // NB This is important, without this the button
