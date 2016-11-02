@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { ipcRenderer, remote } from 'electron'
 
+import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
 import { NotLoggedIn } from './not-logged-in'
 import { WindowControls } from './window/window-controls'
@@ -397,6 +398,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private renderRepositoryList(): JSX.Element {
+    const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
+
+    return <RepositoriesList
+      selectedRepository={selectedRepository}
+      onSelectionChanged={repository => this.onSelectionChanged(repository)}
+      dispatcher={this.props.dispatcher}
+      repositories={this.state.repositories}
+      loading={this.state.loading}
+    />
+  }
+
   private renderRepositoryToolbarButton() {
     const selection = this.state.selectedState
 
@@ -423,7 +436,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       title={title}
       description='Current repository'
       onDropdownStateChanged={onDropdownStateChanged}
-      dropdownContentRenderer={() => <div>foo</div>}
+      dropdownContentRenderer={() => this.renderRepositoryList()}
       dropdownState={currentState} />
   }
 
@@ -479,13 +492,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  /*private onSelectionChanged(repository: Repository | CloningRepository) {
+  private onSelectionChanged(repository: Repository | CloningRepository) {
     this.props.dispatcher.selectRepository(repository)
 
     if (repository instanceof Repository) {
       this.props.dispatcher.refreshGitHubRepositoryInfo(repository)
     }
-  }*/
+  }
 }
 
 function NoRepositorySelected() {
