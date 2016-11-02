@@ -89,13 +89,14 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
 
     return (
       <button className={className} onClick={(e) => this.onClick()}>
-        {icon}
-        <div className='text'>
-          <div className='title'>{this.props.title}</div>
-          {description}
+        <div className='toolbar-button-content-wrapper'>
+          {icon}
+          <div className='text'>
+            <div className='title'>{this.props.title}</div>
+            {description}
+          </div>
+          {this.props.children}
         </div>
-        {this.renderDropdownArrow()}
-        {this.props.children}
       </button>
     )
   }
