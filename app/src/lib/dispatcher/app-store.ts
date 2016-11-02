@@ -8,10 +8,11 @@ import {
   RepositorySection,
   IChangesState,
   Popup,
+  PopupType,
+  Foldout,
   IBranchesState,
   IAppError,
   PossibleSelections,
-  PopupType,
   SelectionType,
 } from '../app-state'
 import { User } from '../../models/user'
@@ -30,6 +31,7 @@ import { GitHubUserStore } from './github-user-store'
 import { EmojiStore } from './emoji-store'
 import { GitStore } from './git-store'
 import { assertNever } from '../fatal-error'
+import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './background-fetcher'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
@@ -55,6 +57,9 @@ const CommittedStatuses = new Set([
   FileStatus.Unknown,
 ])
 
+const defaultSidebarWidth: number = 250
+const sidebarWidthConfigKey: string = 'sidebar-width'
+
 export class AppStore {
   private emitter = new Emitter()
 
@@ -70,6 +75,7 @@ export class AppStore {
   private loading = false
 
   private currentPopup: Popup | null = null
+  private currentFoldout: Foldout | null = null
 
   private errors: ReadonlyArray<IAppError> = new Array<IAppError>()
 
@@ -81,13 +87,21 @@ export class AppStore {
 
   private readonly emojiStore: EmojiStore
 
+  private readonly _issuesStore: IssuesStore
+
+  /** The issues store for all repositories. */
+  public get issuesStore(): IssuesStore { return this._issuesStore }
+
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
 
-  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore) {
+  private sidebarWidth: number = defaultSidebarWidth
+
+  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
     this.emojiStore = emojiStore
+    this._issuesStore = issuesStore
 
     this.gitHubUserStore.onDidUpdate(() => {
       this.emitUpdate()
@@ -252,9 +266,11 @@ export class AppStore {
       ],
       selectedState: this.getSelectedState(),
       currentPopup: this.currentPopup,
+      currentFoldout: this.currentFoldout,
       errors: this.errors,
       loading: this.loading,
       emoji: this.emojiStore.emoji,
+      sidebarWidth: this.sidebarWidth,
     }
   }
 
@@ -479,9 +495,27 @@ export class AppStore {
       this.startBackgroundFetching(repository)
 
       localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
+
+      const gitHubRepository = repository.gitHubRepository
+      if (gitHubRepository) {
+        this._updateIssues(gitHubRepository)
+      }
+
       return this._refreshRepository(repository)
     } else {
       return Promise.resolve()
+    }
+  }
+
+  public async _updateIssues(repository: GitHubRepository) {
+    const user = this.users.find(u => u.endpoint === repository.endpoint)
+    if (!user) { return }
+
+    try {
+      await this._issuesStore.fetchIssues(repository, user)
+    } catch (e) {
+      console.log(`Error fetching issues for ${repository.name}:`)
+      console.error(e)
     }
   }
 
@@ -557,6 +591,8 @@ export class AppStore {
     if (newSelectedRepository !== selectedRepository) {
       this._selectRepository(newSelectedRepository)
     }
+
+    this.sidebarWidth = parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) || defaultSidebarWidth
 
     this.emitUpdate()
   }
@@ -899,6 +935,20 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _showFoldout(foldout: Foldout): Promise<void> {
+    this.currentFoldout = foldout
+    this.emitUpdate()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _closeFoldout(): Promise<void> {
+    this.currentFoldout = null
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
   public async _createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => LocalGitOperations.createBranch(repository, name, startPoint))
@@ -1141,5 +1191,21 @@ export class AppStore {
     await this.fastForwardBranches(repository)
 
     return this._refreshRepository(repository)
+  }
+
+  public _setSidebarWidth(width: number): Promise<void> {
+    this.sidebarWidth = width
+    localStorage.setItem(sidebarWidthConfigKey, width.toString())
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _resetSidebarWidth(): Promise<void> {
+    this.sidebarWidth = defaultSidebarWidth
+    localStorage.removeItem(sidebarWidthConfigKey)
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }

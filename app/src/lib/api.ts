@@ -49,6 +49,13 @@ export interface IAPIEmail {
   readonly primary: boolean
 }
 
+/** Information about an issue as returned by the GitHub API. */
+export interface IAPIIssue {
+  readonly number: number
+  readonly title: string
+  readonly state: 'open' | 'closed'
+}
+
 /**
  * An object for making authenticated requests to the GitHub API
  */
@@ -133,6 +140,32 @@ export class API {
     } else {
       return this.client.user.repos.create({ name, description, private: private_ })
     }
+  }
+
+  /**
+   * Fetch the issues with the given state that have been created or updated
+   * since the given date.
+   */
+  public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
+    const params: any = { state }
+    if (since) {
+      params.since = since.toISOString()
+    }
+
+    const allItems: Array<IAPIIssue> = []
+    // Note that we only include `params` on the first fetch. Octokat.js will
+    // preserve them as we fetch subsequent pages and would fail to advance
+    // pages if we included the params on each call.
+    let result = await this.client.repos(owner, name).issues.fetch(params)
+    allItems.push(...result.items)
+
+    while (result.nextPage) {
+      result = await result.nextPage.fetch()
+      allItems.push(...result.items)
+    }
+
+    // PRs are issues! But we only want Really Seriously Issues.
+    return allItems.filter((i: any) => !i.pullRequest)
   }
 
   /** Get the allowed poll interval for fetching. */

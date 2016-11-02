@@ -31,7 +31,7 @@ export class RepositoriesStore {
         if (repo.gitHubRepositoryID) {
           const gitHubRepository = yield db.gitHubRepositories.get(repo.gitHubRepositoryID)
           const owner = yield db.owners.get(gitHubRepository.ownerID)
-          const gitHubRepo = new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint), gitHubRepository.private, gitHubRepository.fork, gitHubRepository.htmlURL, gitHubRepository.defaultBranch)
+          const gitHubRepo = new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint), gitHubRepository.id, gitHubRepository.private, gitHubRepository.fork, gitHubRepository.htmlURL, gitHubRepository.defaultBranch)
           inflatedRepo = new Repository(repo.path, repo.id, gitHubRepo)
         } else {
           inflatedRepo = new Repository(repo.path, repo.id)

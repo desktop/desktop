@@ -2,4 +2,14 @@
 
 /** A React component holding the currently selected repository */
 #repository {
+
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+
+  &-sidebar {
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--box-border-color);
+  }
 }
