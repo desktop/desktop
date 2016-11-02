@@ -2,7 +2,7 @@
 
 /** A React component holding the main application toolbar component. */
 #desktop-app-toolbar {
-  height: 52px;
+  height: var(--toolbar-height);
 
   display: flex;
   flex-direction: row;
