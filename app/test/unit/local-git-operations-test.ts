@@ -406,6 +406,23 @@ describe('LocalGitOperations', () => {
         expect(files[0].path).to.equal('README.md')
         expect(files[0].status).to.equal(FileStatus.New)
       })
+
+      it('detects renames ', async () => {
+        const testRepoPath = setupFixtureRepository('rename-history-detection')
+        repository = new Repository(testRepoPath, -1, null)
+
+        const first = await LocalGitOperations.getChangedFiles(repository!, '55bdecb')
+        expect(first.length).to.equal(1)
+        expect(first[0].status).to.equal(FileStatus.Renamed)
+        expect(first[0].oldPath).to.equal('NEW.md')
+        expect(first[0].path).to.equal('NEWER.md')
+
+        const second = await LocalGitOperations.getChangedFiles(repository!, 'c898ca8')
+        expect(second.length).to.equal(1)
+        expect(second[0].status).to.equal(FileStatus.Renamed)
+        expect(second[0].oldPath).to.equal('OLD.md')
+        expect(second[0].path).to.equal('NEW.md')
+      })
     })
   })
 
