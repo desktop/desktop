@@ -161,8 +161,14 @@
   /**
    * The z-index for popups. Nothing should be higher, but other z-indexes can
    * be defined in terms of it.
+   *
+   * 10 seems arbitrary (because it is) but we have to go that high because
+   * codemirror is all over the place with their z-indexes and uses at least
+   * 0-6.
    */
-  --popup-z-index: 2;
+  --popup-z-index: 10;
+  --popup-overlay-z-index: calc(var(--popup-z-index) - 1);
+  --foldout-z-index: calc(var(--popup-z-index) - 2);
 
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: $orange;
