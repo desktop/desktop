@@ -17,7 +17,7 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
-import { Toolbar, ToolbarButton, DropdownState } from './toolbar'
+import { Toolbar, ToolbarDropdown, DropdownState } from './toolbar'
 import { OcticonSymbol } from './octicons'
 import { showPopupAppMenu, setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
@@ -412,18 +412,19 @@ export class App extends React.Component<IAppProps, IAppState> {
     const isOpen = this.state.currentFoldout
       && this.state.currentFoldout.type === FoldoutType.Repository
 
-    const onClick = () => isOpen
-      ? this.props.dispatcher.closeFoldout()
-      : this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+    const onDropdownStateChanged = (newState: DropdownState) => newState === 'open'
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+      : this.props.dispatcher.closeFoldout()
 
-    const state: DropdownState = isOpen ? 'open' : 'closed'
+    const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
-    return <ToolbarButton
+    return <ToolbarDropdown
       icon={icon}
       title={title}
       description='Current repository'
-      onClick={onClick}
-      dropdownState={state} />
+      onDropdownStateChanged={onDropdownStateChanged}
+      dropdownContentRenderCallback={() => <div>foo</div>}
+      dropdownState={currentState} />
   }
 
   private renderToolbar() {
