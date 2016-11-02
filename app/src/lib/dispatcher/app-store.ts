@@ -35,6 +35,9 @@ import { BackgroundFetcher } from './background-fetcher'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
+/** The `localStorage` key for whether we've shown the Welcome flow yet. */
+const HasShownWelcomeFlowKey = 'has-shown-welcome-flow'
+
 /** File statuses which indicate the file exists on disk. */
 const OnDiskStatuses = new Set([
   FileStatus.New,
@@ -69,6 +72,7 @@ export class AppStore {
 
   private repositoryState = new Map<number, IRepositoryState>()
   private loading = false
+  private showWelcomeFlow = false
 
   private currentPopup: Popup | null = null
 
@@ -95,6 +99,9 @@ export class AppStore {
     this.cloningRepositoriesStore = cloningRepositoriesStore
     this.emojiStore = emojiStore
     this._issuesStore = issuesStore
+
+    const hasShownWelcomeFlow = localStorage.getItem(HasShownWelcomeFlowKey)
+    this.showWelcomeFlow = !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
 
     this.gitHubUserStore.onDidUpdate(() => {
       this.emitUpdate()
@@ -261,6 +268,7 @@ export class AppStore {
       currentPopup: this.currentPopup,
       errors: this.errors,
       loading: this.loading,
+      showWelcomeFlow: this.showWelcomeFlow,
       emoji: this.emojiStore.emoji,
     }
   }

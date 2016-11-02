@@ -25,6 +25,7 @@ export interface IAppState {
 
   readonly selectedState: PossibleSelections | null
 
+  readonly showWelcomeFlow: boolean
   readonly loading: boolean
   readonly currentPopup: Popup | null
 
