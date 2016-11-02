@@ -24,7 +24,7 @@ export class Start extends React.Component<IStartProps, void> {
 
         <div>
           <a onClick={e => this.createAccount(e)}>Create an account</a>
-          or
+          &nbsp;or&nbsp;
           <a onClick={e => this.skip(e)}>skip this step</a>
         </div>
       </div>
