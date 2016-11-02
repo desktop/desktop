@@ -189,7 +189,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         description={this.props.description}
         onClick={() => this.onClick()}
         className={this.dropdownClassNames() || undefined}
-        preContentRenderCallback={() => this.renderDropdownContents()}
+        preContentRenderer={() => this.renderDropdownContents()}
       >
         {this.renderDropdownArrow()}
       </ToolbarButton>

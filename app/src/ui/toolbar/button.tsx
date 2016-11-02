@@ -24,7 +24,7 @@ export interface IToolbarButtonProps {
    */
   readonly className?: string,
 
-  readonly preContentRenderCallback?: () => JSX.Element | null
+  readonly preContentRenderer?: () => JSX.Element | null
 }
 
 /**
@@ -51,8 +51,8 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
 
     const className = classNames('toolbar-button', this.props.className)
 
-    const preContentRenderCallback = this.props.preContentRenderCallback
-    const preContent = preContentRenderCallback && preContentRenderCallback()
+    const preContentRenderer = this.props.preContentRenderer
+    const preContent = preContentRenderer && preContentRenderer()
 
     return (
       <button
