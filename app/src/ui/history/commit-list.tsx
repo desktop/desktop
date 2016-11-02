@@ -77,7 +77,7 @@ export class CommitList extends React.Component<ICommitListProps, void> {
     }
 
     return (
-      <div className='panel' id='commit-list'>
+      <div id='commit-list'>
         <List ref={ref => this.list = ref}
               rowCount={this.props.history.length}
               rowHeight={RowHeight}

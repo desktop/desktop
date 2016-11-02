@@ -14,6 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "byline": "^4.2.2",
+    "classnames": "^2.2.5",
     "codemirror": "^5.19.0",
     "dexie": "^1.4.1",
     "electron-window-state": "^3.1.0",
