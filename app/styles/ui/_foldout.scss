@@ -1,0 +1,15 @@
+#foldout-container {
+  z-index: 4;
+
+  .overlay {
+    background: black;
+    opacity: 0.5;
+    z-index: 4;
+    height: 100%;
+  }
+
+  .foldout {
+    background: white;
+    z-index: 4;
+  }
+}
