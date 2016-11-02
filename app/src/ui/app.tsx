@@ -423,7 +423,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       title={title}
       description='Current repository'
       onDropdownStateChanged={onDropdownStateChanged}
-      dropdownContentRenderCallback={() => <div>foo</div>}
+      dropdownContentRenderer={() => <div>foo</div>}
       dropdownState={currentState} />
   }
 

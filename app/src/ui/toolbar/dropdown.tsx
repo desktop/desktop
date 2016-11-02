@@ -31,7 +31,7 @@ export interface IToolbarDropdownProps {
    * An render callback for when the dropdown is open.
    * Use this to render the contents of the fold out.
    */
-  readonly dropdownContentRenderCallback: () => JSX.Element
+  readonly dropdownContentRenderer: () => JSX.Element
 }
 
 interface IToolbarDropdownState {
@@ -173,7 +173,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
       <div id='foldout-container' style={this.getFoldoutContainerStyle()}>
         <div className='overlay' onClick={this.handleOverlayClick}></div>
         <div className='foldout' style={this.getFoldoutStyle()}>
-          {this.props.dropdownContentRenderCallback()}
+          {this.props.dropdownContentRenderer()}
         </div>
       </div>
     )
