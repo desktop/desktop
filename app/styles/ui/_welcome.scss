@@ -1,0 +1,21 @@
+#welcome {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+
+  #start {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: row;
+
+    button {
+      margin: 5px;
+    }
+  }
+}

@@ -53,7 +53,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
 
   public render() {
     return (
-      <div>
+      <div id='welcome'>
         {this.componentForCurrentStep()}
       </div>
     )

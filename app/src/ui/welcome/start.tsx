@@ -13,19 +13,22 @@ interface IStartProps {
 
 export class Start extends React.Component<IStartProps, void> {
   public render() {
+    const spacePath = `file:///${__dirname}/static/space.png`
     return (
-      <div>
+      <div id='start'>
+        <img src={spacePath} style={{ width: 552, height: 307 }}/>
+
         <h1>Welcome to GitHub Desktop</h1>
         <div>Get started by signing into GitHub.com or your GitHub Enterprise server.</div>
-        <div>
+        <div className='actions'>
           <button onClick={() => this.signInToDotCom()}>GitHub.com</button>
           <button onClick={() => this.signInToEnterprise()}>GitHub Enterprise</button>
         </div>
 
         <div>
-          <a onClick={e => this.createAccount(e)}>Create an account</a>
+          <a href='' onClick={e => this.createAccount(e)}>Create an account</a>
           &nbsp;or&nbsp;
-          <a onClick={e => this.skip(e)}>skip this step</a>
+          <a href='' onClick={e => this.skip(e)}>skip this step</a>
         </div>
       </div>
     )
