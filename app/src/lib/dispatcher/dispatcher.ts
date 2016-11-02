@@ -344,4 +344,9 @@ export class Dispatcher {
   public updateIssues(repository: GitHubRepository): Promise<void> {
     return this.appStore._updateIssues(repository)
   }
+
+  /** End the Welcome flow. */
+  public endWelcomeFlow(): Promise<void> {
+    return this.appStore._endWelcomeFlow()
+  }
 }

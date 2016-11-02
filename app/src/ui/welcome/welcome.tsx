@@ -48,7 +48,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   }
 
   private cancel() {
-    // TODO: probably tell the dispatcher
+    this.props.dispatcher.endWelcomeFlow()
   }
 
   public render() {

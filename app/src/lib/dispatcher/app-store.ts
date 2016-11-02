@@ -1135,4 +1135,14 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
     return gitStore.clearContextualCommitMessage(repository)
   }
+
+  public _endWelcomeFlow(): Promise<void> {
+    this.showWelcomeFlow = false
+
+    this.emitUpdate()
+
+    localStorage.setItem(HasShownWelcomeFlowKey, '1')
+
+    return Promise.resolve()
+  }
 }
