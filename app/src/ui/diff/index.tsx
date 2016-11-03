@@ -391,6 +391,10 @@ export class Diff extends React.Component<IDiffProps, void> {
     return null
   }
 
+  /**
+   * normalize the line endings in the diff so that the CodeMirror Editor
+   * will display the unified diff correctly
+   */
   private formatLineEnding(text: string): string {
     if (text.endsWith('\n')) {
       return text
