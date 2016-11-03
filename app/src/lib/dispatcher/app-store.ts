@@ -23,7 +23,7 @@ import { DiffSelection, DiffSelectionType, DiffLineType } from '../../models/dif
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
-import { LocalGitOperations, Commit, Branch } from '../local-git-operations'
+import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { GitDiff } from '../git/git-diff'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
@@ -541,7 +541,7 @@ export class AppStore {
 
     if (!repository.gitHubRepository) { return }
 
-    const fetcher = new BackgroundFetcher(repository, user)
+    const fetcher = new BackgroundFetcher(repository, user, r => this.fetch(r))
     fetcher.start()
     this.currentBackgroundFetcher = fetcher
   }
@@ -866,6 +866,10 @@ export class AppStore {
     // selected.
     await this._loadStatus(repository)
 
+    // We don't need to await this. The GitStore will notify when something
+    // changes.
+    gitStore.loadBranches()
+
     await this.refreshAuthor(repository)
 
     const section = state.selectedSection
@@ -926,11 +930,6 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _showPopup(popup: Popup): Promise<void> {
-    if (popup.type === PopupType.ShowBranches || popup.type === PopupType.CreateBranch) {
-      const gitStore = this.getGitStore(popup.repository)
-      gitStore.loadBranches()
-    }
-
     this.currentPopup = popup
     this.emitUpdate()
   }
@@ -1103,7 +1102,39 @@ export class AppStore {
     const user = this.getUserForRepository(repository)
     await gitStore.performFailableOperation(() => LocalGitOperations.pull(repository, user, remote, branch.name))
 
-    return this._refreshRepository(repository)
+    this._refreshRepository(repository)
+
+    return this.fetch(repository)
+  }
+
+  private async fastForwardBranches(repository: Repository) {
+    const state = this.getRepositoryState(repository)
+    const branches = state.branchesState.allBranches
+    const currentBranch = state.branchesState.currentBranch
+    const currentBranchName = currentBranch ? currentBranch.name : null
+
+    // A branch is only eligible for being fast forwarded iff:
+    //  1. It's local.
+    //  2. It's not the current branch.
+    //  3. It has an upstream.
+    //  4. It's not ahead of its upstream.
+    const eligibleBranches = branches.filter(b => {
+      return b.type === BranchType.Local && b.name !== currentBranchName && b.upstream
+    })
+
+    for (const branch of eligibleBranches) {
+      const aheadBehind = await LocalGitOperations.getBranchAheadBehind(repository, branch)
+      if (!aheadBehind) { continue }
+
+      const { ahead, behind } = aheadBehind
+      if (ahead === 0 && behind > 0) {
+        // At this point we're guaranteed this is non-null since we've filtered
+        // out any branches will null upstreams above when creating
+        // `eligibleBranches`.
+        const upstreamRef = branch.upstream!
+        await LocalGitOperations.updateRef(repository, `refs/heads/${branch.name}`, branch.tip.sha, upstreamRef, 'pull: Fast-forward')
+      }
+    }
   }
 
   private getUserForRepository(repository: Repository): User | null {
@@ -1158,7 +1189,16 @@ export class AppStore {
 
   public _clearContextualCommitMessage(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    return gitStore.clearContextualCommitMessage(repository)
+    return gitStore.clearContextualCommitMessage()
+  }
+
+  private async fetch(repository: Repository): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    const user = this.getUserForRepository(repository)
+    await gitStore.fetch(user)
+    await this.fastForwardBranches(repository)
+
+    return this._refreshRepository(repository)
   }
 
   public _endWelcomeFlow(): Promise<void> {
