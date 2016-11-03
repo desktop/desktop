@@ -25,6 +25,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
       case FileStatus.Deleted: return 'Deleted'
       case FileStatus.Renamed: return 'Renamed'
       case FileStatus.Conflicted: return 'Conflicted'
+      case FileStatus.Copied: return 'Copied'
     }
 
     return assertNever(status, `Unknown file status ${status}`)
@@ -106,6 +107,8 @@ function iconForStatus(status: FileStatus): OcticonSymbol {
     case FileStatus.Deleted: return OcticonSymbol.diffRemoved
     case FileStatus.Renamed: return OcticonSymbol.diffRenamed
     case FileStatus.Conflicted: return OcticonSymbol.alert
+    // TODO: we don't have an Octicon for when the diff is copied
+    case FileStatus.Copied: return OcticonSymbol.question
   }
 
   return assertNever(status, `Unknown file status ${status}`)
