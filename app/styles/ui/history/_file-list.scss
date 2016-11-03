@@ -3,8 +3,6 @@
     display: flex;
     flex: 1;
 
-    .list { min-width: 0; }
-
     .list-item {
       border-bottom: var(--base-border);
       padding: var(--spacing);
