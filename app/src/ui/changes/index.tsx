@@ -29,7 +29,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     this.props.dispatcher.changeFileLineSelection(this.props.repository, file, diffSelection)
   }
 
-  private renderDiff() {
+  public render() {
     const diff = this.props.changes.diff
     const file = this.props.changes.selectedFile
 
@@ -48,14 +48,6 @@ export class Changes extends React.Component<IChangesProps, void> {
         onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)}
         diff={diff}
         dispatcher={this.props.dispatcher} />
-    )
-  }
-
-  public render() {
-    return (
-      <div className='panel-container'>
-        {this.renderDiff()}
-      </div>
     )
   }
 }
