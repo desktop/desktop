@@ -1,4 +1,4 @@
-@import "../mixins";
+@import "../../mixins";
 
 /** A React component holding the selected commit's detailed information */
 #commit-summary {
@@ -7,7 +7,7 @@
     flex: 1;
 
     .list-item {
-      border-bottom: var(--light-border);
+      border-bottom: var(--base-border);
       padding: var(--spacing);
     }
 
@@ -33,7 +33,7 @@
   }
 
   &-description {
-    border-bottom: var(--light-border);
+    border-bottom: var(--base-border);
     font-family: var(--font-family-monospace);
     font-size: var(--font-size-sm);
     padding: var(--spacing);

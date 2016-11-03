@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { OcticonSymbol } from './octicons.generated'
+import * as classNames from 'classnames'
 
 interface IOcticonProps {
   /**
@@ -8,6 +9,12 @@ interface IOcticonProps {
    * through the static properties of the OcticonSymbol class.
    */
   symbol: OcticonSymbol
+
+  /**
+   * An optional classname that will be appended to the default
+   * class name 'octicon'
+   */
+  className?: string
 }
 
 /**
@@ -42,8 +49,10 @@ export class Octicon extends React.Component<IOcticonProps, void> {
   public render() {
     const symbol = this.props.symbol
     const viewBox = `0 0 ${symbol.w} ${symbol.h}`
+    const className = classNames('octicon', this.props.className)
+
     return (
-      <svg aria-hidden='true' className='octicon' role='img' version='1.1' viewBox={viewBox}>
+      <svg aria-hidden='true' className={className} role='img' version='1.1' viewBox={viewBox}>
         <path d={symbol.d}></path>
       </svg>
     )

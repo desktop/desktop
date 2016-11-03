@@ -1,0 +1,78 @@
+@import "../../mixins";
+
+/** A React component holding the main application toolbar component. */
+#desktop-app-toolbar {
+  height: var(--toolbar-height);
+
+  display: flex;
+  flex-direction: row;
+
+  flex-grow: 0;
+  flex-shrink: 0;
+
+  /* See https://css-tricks.com/flexbox-truncated-text/
+   * We need to do this "hack" or else the container will
+   * always grow to fit the intrinsic width of its children
+   * and thus killing our text truncation in the title.
+   */
+  min-width: 0;
+
+  // Custom color scheme for the toolbar
+  //
+  // See _variables.scss for documentation on the variables themselves.
+  --text-color: #ffffff;
+  --background-color: #3b3f46;
+
+  --box-border-color: #202020;
+
+  --box-hover-background-color: #40454D;
+  --box-hover-text-color: #ffffff;
+
+  // Invert text and background for selected buttons
+  --box-selected-background-color: #ffffff;
+  --box-selected-text-color: #3b3f46;
+
+  color: var(--text-color);
+  background-color: var(--background-color);
+
+  @include win32 {
+    -webkit-app-region: drag;
+    button { -webkit-app-region: no-drag; }
+  }
+
+  .sidebar-section {
+
+    --background-color: #272A2F;
+    background-color: var(--background-color);
+
+    display: flex;
+    flex-direction: row;
+
+    .toolbar-button:last-child {
+      flex-grow: 1;
+    }
+  }
+}
+
+/* Toolbar negative margin hackery
+ *
+ * On Windows we add an artificial title bar at the top of
+ * the window. This title bar is transparent and has no
+ * custom styling (currently) so we want the toolbar to look
+ * like it's extending all the way up to the top edge of the
+ * window.
+ *
+ * The way we do this is by applying a negative margin equal
+ * to the height of the title bar _and_ a subsequent padding
+ * to render the contents of the sidebar underneath the title
+ * bar.
+ *
+ * Note that we don't do this for macOS since our custom title
+ * bar there _is_ styled to look like a normal title bar.
+ */
+
+body.platform-win32:not(.fullscreen) {
+  #desktop-app-toolbar {
+    margin-top: calc(var(--win32-title-bar-height) * -1);
+  }
+}

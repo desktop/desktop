@@ -4,19 +4,16 @@
 @import "ui/scroll";
 @import "ui/window/title-bar";
 @import "ui/octicons";
-@import "ui/sidebar";
 @import "ui/list";
 @import "ui/repository-list";
-@import "ui/changes-list";
+@import "ui/changes";
 @import "ui/cloning-repository-view";
-@import "ui/commit-summary";
-@import "ui/commit-list";
-@import "ui/commit-message";
 @import "ui/diff";
 @import "ui/history";
 @import "ui/repository";
 @import "ui/resizable";
-@import "ui/toolbar";
+@import "ui/toolbar/toolbar";
+@import "ui/toolbar/button";
 @import "ui/tab-bar";
 @import "ui/panel";
 @import "ui/popup";
@@ -30,3 +27,4 @@
 @import "ui/autocompletion";
 @import "ui/undo-commit";
 @import "ui/welcome";
+@import "ui/foldout";

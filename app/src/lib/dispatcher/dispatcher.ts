@@ -4,7 +4,7 @@ import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
 import { guid } from '../guid'
-import { RepositorySection, Popup, IAppError } from '../app-state'
+import { RepositorySection, Popup, Foldout, IAppError } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
@@ -261,6 +261,16 @@ export class Dispatcher {
     return this.appStore._closePopup()
   }
 
+  /** Show the foldout. This will close any current popup. */
+  public showFoldout(foldout: Foldout): Promise<void> {
+    return this.appStore._showFoldout(foldout)
+  }
+
+  /** Close the current foldout. */
+  public closeFoldout(): Promise<void> {
+    return this.appStore._closeFoldout()
+  }
+
   /** Create a new branch from the given starting point and check it out. */
   public createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
     return this.appStore._createBranch(repository, name, startPoint)
@@ -338,6 +348,28 @@ export class Dispatcher {
   /** Clear the contextual commit message. */
   public clearContextualCommitMessage(repository: Repository): Promise<void> {
     return this.appStore._clearContextualCommitMessage(repository)
+  }
+
+  /**
+   * Set the width of the repository sidebar to the given
+   * value. This affects the changes and history sidebar
+   * as well as the first toolbar section which contains
+   * repo selection on all platforms and repo selection and
+   * app menu on Windows.
+   */
+  public setSidebarWidth(width: number): Promise<void> {
+    return this.appStore._setSidebarWidth(width)
+  }
+
+  /**
+   * Reset the width of the repository sidebar to its default
+   * value. This affects the changes and history sidebar
+   * as well as the first toolbar section which contains
+   * repo selection on all platforms and repo selection and
+   * app menu on Windows.
+   */
+  public resetSidebarWidth(): Promise<void> {
+    return this.appStore._resetSidebarWidth()
   }
 
   /** Update the repository's issues from GitHub. */

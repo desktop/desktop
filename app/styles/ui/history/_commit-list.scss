@@ -1,7 +1,12 @@
-@import "../mixins";
+@import "../../mixins";
 
 /** A React component holding history's commit list */
 #commit-list {
+
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
   .commit {
     display: flex;
     flex-direction: row;
@@ -9,7 +14,7 @@
     width: 100%;
     height: 100%;
 
-    border-bottom: var(--light-border);
+    border-bottom: var(--base-border);
 
     padding: 0 var(--spacing);
 

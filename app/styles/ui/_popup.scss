@@ -46,5 +46,5 @@
 }
 
 .popup-overlay {
-  z-index: calc(var(--popup-z-index) - 1);
+  z-index: var(--popup-overlay-z-index);
 }

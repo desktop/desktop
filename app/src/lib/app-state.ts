@@ -28,11 +28,26 @@ export interface IAppState {
   readonly showWelcomeFlow: boolean
   readonly loading: boolean
   readonly currentPopup: Popup | null
+  readonly currentFoldout: Foldout | null
 
   readonly errors: ReadonlyArray<IAppError>
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
+
+  /**
+   * The width of the repository sidebar.
+   *
+   * This affects the changes and history sidebar
+   * as well as the first toolbar section which contains
+   * repo selection on all platforms and repo selection and
+   * app menu on Windows.
+   *
+   * Lives on IAppState as opposed to IRepositoryState
+   * because it's used in the toolbar as well as the
+   * repository.
+   */
+  readonly sidebarWidth: number
 }
 
 export interface IAppError {
@@ -60,6 +75,13 @@ export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.PublishRepository, repository: Repository } |
                     { type: PopupType.DeleteBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> }
+
+export enum FoldoutType {
+  Repository = 1,
+}
+
+export type Foldout =
+  { type: FoldoutType.Repository }
 
 export enum RepositorySection {
   Changes,
