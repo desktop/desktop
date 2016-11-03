@@ -10,12 +10,32 @@
     align-items: center;
   }
 
+  #sign-in-dot-com {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    #sign-in-form {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+
+    input {
+      flex: 1;
+    }
+  }
+
   .actions {
     display: flex;
     flex-direction: row;
 
     button {
-      margin: 5px;
+      margin: var(--spacing-half);
     }
   }
 }
