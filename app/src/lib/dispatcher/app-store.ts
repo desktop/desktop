@@ -1113,7 +1113,7 @@ export class AppStore {
     const currentBranch = state.branchesState.currentBranch
     const currentBranchName = currentBranch ? currentBranch.name : null
 
-    // A branch is only eligible for being fast forwarded iff:
+    // A branch is only eligible for being fast forwarded if:
     //  1. It's local.
     //  2. It's not the current branch.
     //  3. It has an upstream.
