@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { CommitSummaryContainer } from './commit-summary-container'
+import { CommitSummary } from './commit-summary'
 import { Diff } from '../diff'
 import { FileList } from './file-list'
 import { Repository } from '../../models/repository'
@@ -56,18 +56,29 @@ export class History extends React.Component<IHistoryProps, void> {
     )
   }
 
+  private renderCommitSummary(commit: Commit) {
+
+    return <CommitSummary
+      summary={commit.summary}
+      body={commit.body}
+      sha={commit.sha}
+      authorName={commit.authorName}
+      files={this.props.history.changedFiles}
+      emoji={this.props.emoji}
+    />
+  }
+
   public render() {
     const sha = this.props.history.selection.sha
     const commit = sha ? (this.props.commits.get(sha) || null) : null
 
+    if (!sha || !commit) {
+      return <NoCommitSelected/>
+    }
+
     return (
       <div id='history'>
-        <CommitSummaryContainer
-          repository={this.props.repository}
-          commit={commit}
-          files={this.props.history.changedFiles}
-          emoji={this.props.emoji}
-        />
+        {this.renderCommitSummary(commit)}
         <div id='commit-details'>
           <PersistingResizable configKey='commit-summary-width'>
             <FileList
@@ -81,4 +92,12 @@ export class History extends React.Component<IHistoryProps, void> {
       </div>
     )
   }
+}
+
+function NoCommitSelected() {
+  return (
+    <div className='panel blankslate'>
+      No commit selected
+    </div>
+  )
 }
