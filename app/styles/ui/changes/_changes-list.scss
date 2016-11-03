@@ -72,9 +72,7 @@
   // greater than or equal to the height that `UndoCommit` will want.
   max-height: 200px;
 
-  // Note that this duration *must* match the `UndoCommitAnimationTimeout`
-  // specified in `changes/index.tsx`.
-  transition: max-height 500ms ease-in;
+  transition: max-height var(--undo-animation-duration) ease-in;
 }
 
 .undo-leave {
@@ -84,7 +82,5 @@
 .undo-leave.undo-leave-active {
   max-height: 0;
 
-  // Note that this duration *must* match the `UndoCommitAnimationTimeout`
-  // specified in `changes/index.tsx`.
-  transition: max-height 500ms ease-out;
+  transition: max-height var(--undo-animation-duration) ease-out;
 }
