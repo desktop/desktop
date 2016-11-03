@@ -3,6 +3,7 @@
 /** The container for the CodeMirror element. */
 .diff-code-mirror {
   flex-grow: 1;
+  min-width: 0;
 }
 
 .CodeMirror {
