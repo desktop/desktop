@@ -334,7 +334,11 @@ export class GitStore {
     return Promise.resolve()
   }
 
-  /** Fetch with the given user. */
+  /**
+   * Fetch, using the given user for authentication.
+   *
+   * @param user - The user to use for authentication if needed.
+   */
   public async fetch(user: User | null): Promise<void> {
     const remote = await LocalGitOperations.getDefaultRemote(this.repository)
     if (!remote) { return }
