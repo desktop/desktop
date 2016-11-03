@@ -21,6 +21,17 @@
     }
   }
 
+  #configure-git {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 432px;
+
+    .description {
+      text-align: center;
+    }
+  }
+
   label {
     display: flex;
     flex-direction: column;
