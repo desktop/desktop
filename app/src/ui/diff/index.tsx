@@ -423,17 +423,15 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     return (
-      <div className='panel' id='diff'>
-        <CodeMirrorHost
-          className='diff-code-mirror'
-          value={diffText}
-          options={options}
-          isSelectionEnabled={this.isSelectionEnabled}
-          onChanges={this.onChanges}
-          onRenderLine={this.renderLine}
-          ref={(cmh) => { this.codeMirror = cmh === null ? null : cmh.getEditor() }}
-        />
-      </div>
+      <CodeMirrorHost
+        className='diff-code-mirror'
+        value={diffText}
+        options={options}
+        isSelectionEnabled={this.isSelectionEnabled}
+        onChanges={this.onChanges}
+        onRenderLine={this.renderLine}
+        ref={(cmh) => { this.codeMirror = cmh === null ? null : cmh.getEditor() }}
+      />
     )
   }
 }
