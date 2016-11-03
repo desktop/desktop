@@ -266,9 +266,6 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         const mouseMoveHandler = (ev: MouseEvent) => {
-          if (this.props.readOnly) {
-            return
-          }
 
           // ignoring anything from diff context rows
           if (!this.isIncludableLine(diffLine)) {
@@ -295,11 +292,13 @@ export class Diff extends React.Component<IDiffProps, void> {
 
         const mouseUpHandler = (ev: UIEvent) => this.onMouseUp(index)
 
-        reactContainer.addEventListener('mouseenter', mouseEnterHandler)
-        reactContainer.addEventListener('mouseleave', mouseLeaveHandler)
-        reactContainer.addEventListener('mousemove', mouseMoveHandler)
-        reactContainer.addEventListener('mousedown', mouseDownHandler)
-        reactContainer.addEventListener('mouseup', mouseUpHandler)
+        if (!this.props.readOnly) {
+          reactContainer.addEventListener('mouseenter', mouseEnterHandler)
+          reactContainer.addEventListener('mouseleave', mouseLeaveHandler)
+          reactContainer.addEventListener('mousemove', mouseMoveHandler)
+          reactContainer.addEventListener('mousedown', mouseDownHandler)
+          reactContainer.addEventListener('mouseup', mouseUpHandler)
+        }
 
         this.cachedGutterElements.set(index, reactContainer)
 
@@ -328,11 +327,13 @@ export class Diff extends React.Component<IDiffProps, void> {
 
           this.cachedGutterElements.delete(index)
 
-          reactContainer.removeEventListener('mouseenter', mouseEnterHandler)
-          reactContainer.removeEventListener('mouseleave', mouseLeaveHandler)
-          reactContainer.removeEventListener('mousedown', mouseDownHandler)
-          reactContainer.removeEventListener('mousemove', mouseMoveHandler)
-          reactContainer.removeEventListener('mouseup', mouseUpHandler)
+          if (!this.props.readOnly) {
+            reactContainer.removeEventListener('mouseenter', mouseEnterHandler)
+            reactContainer.removeEventListener('mouseleave', mouseLeaveHandler)
+            reactContainer.removeEventListener('mousedown', mouseDownHandler)
+            reactContainer.removeEventListener('mousemove', mouseMoveHandler)
+            reactContainer.removeEventListener('mouseup', mouseUpHandler)
+          }
 
           ReactDOM.unmountComponentAtNode(reactContainer)
 
@@ -391,6 +392,20 @@ export class Diff extends React.Component<IDiffProps, void> {
     return null
   }
 
+  /**
+   * normalize the line endings in the diff so that the CodeMirror Editor
+   * will display the unified diff correctly
+   */
+  private formatLineEnding(text: string): string {
+    if (text.endsWith('\n')) {
+      return text
+    } else if (text.endsWith('\r')) {
+      return text + '\n'
+    } else {
+      return text + '\r\n'
+    }
+  }
+
   public render() {
 
     if (this.props.diff.imageDiff) {
@@ -406,7 +421,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     let diffText = ''
 
     this.props.diff.hunks.forEach(hunk => {
-      hunk.lines.forEach(l => diffText += l.text + '\r\n')
+      hunk.lines.forEach(l => diffText += this.formatLineEnding(l.text))
     })
 
     const options: IEditorConfigurationExtra = {
@@ -422,17 +437,15 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     return (
-      <div className='panel' id='diff'>
-        <CodeMirrorHost
-          className='diff-code-mirror'
-          value={diffText}
-          options={options}
-          isSelectionEnabled={this.isSelectionEnabled}
-          onChanges={this.onChanges}
-          onRenderLine={this.renderLine}
-          ref={(cmh) => { this.codeMirror = cmh === null ? null : cmh.getEditor() }}
-        />
-      </div>
+      <CodeMirrorHost
+        className='diff-code-mirror'
+        value={diffText}
+        options={options}
+        isSelectionEnabled={this.isSelectionEnabled}
+        onChanges={this.onChanges}
+        onRenderLine={this.renderLine}
+        ref={(cmh) => { this.codeMirror = cmh === null ? null : cmh.getEditor() }}
+      />
     )
   }
 }

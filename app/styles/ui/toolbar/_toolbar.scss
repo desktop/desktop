@@ -74,6 +74,5 @@
 body.platform-win32:not(.fullscreen) {
   #desktop-app-toolbar {
     margin-top: calc(var(--win32-title-bar-height) * -1);
-    padding-top: var(--win32-title-bar-height);
   }
 }
