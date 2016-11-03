@@ -61,7 +61,7 @@ export class History extends React.Component<IHistoryProps, void> {
     const commit = sha ? (this.props.commits.get(sha) || null) : null
 
     return (
-      <div className='panel-container' id='history'>
+      <div id='history'>
         <PersistingResizable configKey='commit-summary-width'>
           <CommitSummaryContainer repository={this.props.repository}
                                   commit={commit}
