@@ -31,7 +31,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
         <h1>Sign in to GitHub.com</h1>
         <div>Get started by signing into GitHub.com</div>
 
-        <form id='sign-in-form' onSubmit={() => this.signIn()}>
+        <form id='sign-in-form' onSubmit={e => this.signIn(e)}>
           <label>Username or email address
             <input onChange={e => this.onUsernameChange(e)}/>
           </label>
@@ -43,7 +43,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
           <a href='' onClick={e => this.forgotPassword(e)}>Forgot password?</a>
 
           <div className='actions'>
-            <button type='submit' disabled={signInDisabled} onClick={() => this.signIn()}>Sign in</button>
+            <button type='submit' disabled={signInDisabled}>Sign in</button>
             <button onClick={() => this.advance()}>Cancel</button>
           </div>
 
@@ -81,7 +81,9 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     this.props.advance(WelcomeStep.ConfigureGit)
   }
 
-  private signIn() {
+  private signIn(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+
     // TODO: Actually sign in lolololol
   }
 }
