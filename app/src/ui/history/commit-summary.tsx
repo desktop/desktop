@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { FileChange } from '../../models/status'
-import { FileList } from './file-list'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { EmojiText } from '../lib/emoji-text'
 
@@ -10,8 +9,6 @@ interface ICommitSummaryProps {
   readonly sha: string
   readonly authorName: string
   readonly files: ReadonlyArray<FileChange>
-  readonly selectedFile: FileChange | null
-  readonly onSelectedFileChanged: (file: FileChange) => void
   readonly emoji: Map<string, string>
 }
 
@@ -21,7 +18,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
     const filesPlural = fileCount === 1 ? 'file' : 'files'
     const filesDescription = `${fileCount} changed ${filesPlural}`
     return (
-      <div className='panel' id='commit-summary'>
+      <div id='commit-summary'>
         <div className='commit-summary-header'>
           <EmojiText className='commit-summary-title' emoji={this.props.emoji}>
             {this.props.summary}
@@ -58,12 +55,6 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
         </div>
 
         <EmojiText className='commit-summary-description' emoji={this.props.emoji}>{this.props.body}</EmojiText>
-
-        <FileList
-          files={this.props.files}
-          onSelectedFileChanged={this.props.onSelectedFileChanged}
-          selectedFile={this.props.selectedFile}
-        />
       </div>
     )
   }

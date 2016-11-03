@@ -5,4 +5,14 @@
   display: flex;
   flex-direction: row;
   flex: 1;
+
+  // Temporary style until we can get the file list
+  // living on its own in a resizable component.
+  &>.resizable-component {
+    border-right: var(--base-border);
+  }
+}
+
+#commit-summary-container {
+  flex-grow: 0;
 }

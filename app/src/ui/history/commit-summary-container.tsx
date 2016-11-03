@@ -8,8 +8,6 @@ interface ICommitSummaryContainerProps {
   readonly repository: Repository
   readonly commit: Commit | null
   readonly files: ReadonlyArray<FileChange>
-  readonly selectedFile: FileChange | null
-  readonly onSelectedFileChanged: (file: FileChange) => void
   readonly emoji: Map<string, string>
 }
 
@@ -25,14 +23,12 @@ export class CommitSummaryContainer extends React.Component<ICommitSummaryContai
                           sha={this.props.commit.sha}
                           authorName={this.props.commit.authorName}
                           files={this.props.files}
-                          selectedFile={this.props.selectedFile}
-                          onSelectedFileChanged={file => this.props.onSelectedFileChanged(file)}
                           emoji={this.props.emoji}/>
   }
 
   public render() {
     return (
-      <div className='panel' id='commit-summary-container'>
+      <div id='commit-summary-container'>
         {this.renderCommit()}
       </div>
     )
