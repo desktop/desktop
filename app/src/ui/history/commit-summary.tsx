@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { FileChange } from '../../models/status'
-import { List } from '../list'
+import { FileList } from './file-list'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { EmojiText } from '../lib/emoji-text'
 
@@ -16,32 +16,6 @@ interface ICommitSummaryProps {
 }
 
 export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
-  private onSelectionChanged(row: number) {
-    const file = this.props.files[row]
-    this.props.onSelectedFileChanged(file)
-  }
-
-  private renderFile(row: number) {
-    const file = this.props.files[row]
-    return <div key={file.path}
-                title={file.path}
-                className='path'>{file.path}</div>
-  }
-
-  private rowForFile(file_: FileChange | null): number {
-    const file = file_
-    if (!file) { return -1 }
-
-    let index = 0
-    this.props.files.forEach((f, i) => {
-      if (f.path === file.path) {
-        index = i
-        return
-      }
-    })
-    return index
-  }
-
   public render() {
     const fileCount = this.props.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
@@ -85,13 +59,11 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
 
         <EmojiText className='commit-summary-description' emoji={this.props.emoji}>{this.props.body}</EmojiText>
 
-        <div className='files'>
-          <List rowRenderer={row => this.renderFile(row)}
-                rowCount={this.props.files.length}
-                rowHeight={40}
-                selectedRow={this.rowForFile(this.props.selectedFile)}
-                onSelectionChanged={row => this.onSelectionChanged(row)}/>
-        </div>
+        <FileList
+          files={this.props.files}
+          onSelectedFileChanged={this.props.onSelectedFileChanged}
+          selectedFile={this.props.selectedFile}
+        />
       </div>
     )
   }
