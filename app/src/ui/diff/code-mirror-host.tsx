@@ -69,7 +69,9 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   }
 
   public componentWillReceiveProps(nextProps: ICodeMirrorHostProps) {
-    this.codeMirror!.setValue(nextProps.value)
+    if (this.props.value !== nextProps.value) {
+      this.codeMirror!.setValue(nextProps.value)
+    }
   }
 
   private beforeSelectionChanged = (cm: CodeMirror.Editor, changeObj: any) => {
