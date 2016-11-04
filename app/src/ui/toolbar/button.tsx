@@ -12,6 +12,8 @@ export interface IToolbarButtonProps {
   /** An optional symbol to be displayed next to the button text */
   readonly icon?: OcticonSymbol,
 
+  readonly iconClassName?: string,
+
   /**
    * An optional event handler for when the button is activated
    * by a pointer event or by hitting space/enter while focused.
@@ -47,7 +49,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
 
   public render() {
     const icon = this.props.icon
-      ? <Octicon symbol={this.props.icon} className='icon' />
+      ? <Octicon symbol={this.props.icon} className={classNames('icon', this.props.iconClassName)} />
       : null
 
     const description = this.props.description
