@@ -39,7 +39,8 @@ export class Octicon extends React.Component<IOcticonProps, void> {
 
     if (nextProps.symbol.w !== this.props.symbol.w ||
        nextProps.symbol.h !== this.props.symbol.h ||
-       nextProps.symbol.d !== this.props.symbol.d) {
+       nextProps.symbol.d !== this.props.symbol.d ||
+       nextProps.className !== this.props.className) {
        return true
      }
 
