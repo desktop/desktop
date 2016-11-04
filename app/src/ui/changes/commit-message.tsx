@@ -127,7 +127,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
           onKeyDown={event => this.onKeyDown(event)}
           autocompletionProviders={this.props.autocompletionProviders}/>
 
-        <button className='commit-button' onClick={event => this.handleSubmit(event)} disabled={!buttonEnabled}>
+        <button className='button commit-button' onClick={event => this.handleSubmit(event)} disabled={!buttonEnabled}>
           <div>Commit to <strong>{branchName}</strong></div>
         </button>
       </form>
