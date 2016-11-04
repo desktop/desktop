@@ -1202,7 +1202,8 @@ export class AppStore {
     return gitStore.clearContextualCommitMessage()
   }
 
-  private async fetch(repository: Repository): Promise<void> {
+  /** Fetch the repository. */
+  public async fetch(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
     const user = this.getUserForRepository(repository)
     await gitStore.fetch(user)

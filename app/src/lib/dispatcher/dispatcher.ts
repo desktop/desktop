@@ -376,4 +376,9 @@ export class Dispatcher {
   public updateIssues(repository: GitHubRepository): Promise<void> {
     return this.appStore._updateIssues(repository)
   }
+
+  /** Fetch the repository. */
+  public fetch(repository: Repository): Promise<void> {
+    return this.appStore.fetch(repository)
+  }
 }
