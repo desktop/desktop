@@ -57,11 +57,17 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   }
 
   private onUsernameChange(event: React.FormEvent<HTMLInputElement>) {
-    this.setState({ username: event.currentTarget.value, password: this.state.password })
+    this.setState({
+      username: event.currentTarget.value,
+      password: this.state.password,
+    })
   }
 
   private onPasswordChange(event: React.FormEvent<HTMLInputElement>) {
-    this.setState({ username: this.state.username, password: event.currentTarget.value })
+    this.setState({
+      username: this.state.username,
+      password: event.currentTarget.value,
+    })
   }
 
   private forgotPassword(event: React.MouseEvent<HTMLAnchorElement>) {
@@ -70,10 +76,10 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     shell.openExternal(ForgotPasswordURL)
   }
 
-  private signInWithBrowser(event: React.MouseEvent<HTMLAnchorElement>) {
+  private async signInWithBrowser(event: React.MouseEvent<HTMLAnchorElement>) {
     event.preventDefault()
 
-    this.props.dispatcher.requestOAuth()
+    await this.props.dispatcher.requestOAuth()
 
     this.advance()
   }
