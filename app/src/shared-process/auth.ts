@@ -98,6 +98,13 @@ function getOAuthURL(endpoint: string): string {
   }
 }
 
+/**
+ * Ask the user to auth with the given endpoint. This will open their browser.
+ *
+ * @param endpoint - The endpoint to auth against.
+ * @param resolve  - The function to call when the auth flow is done.
+ * @param reject   - The function to call when an error occurs.
+ */
 export function askUserToAuth(endpoint: string, resolve: (user: IUser) => void, reject: (error: Error) => void) {
   authState = { oAuthState: guid(), endpoint, resolve, reject }
 
