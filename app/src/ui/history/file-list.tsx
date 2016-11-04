@@ -21,18 +21,10 @@ export class FileList extends React.Component<IFileListProps, void> {
                 className='path'>{file.path}</div>
   }
 
-  private rowForFile(file_: FileChange | null): number {
-    const file = file_
-    if (!file) { return -1 }
-
-    let index = 0
-    this.props.files.forEach((f, i) => {
-      if (f.path === file.path) {
-        index = i
-        return
-      }
-    })
-    return index
+  private rowForFile(file: FileChange | null): number {
+    return file
+      ? this.props.files.findIndex(f => f.path === file.path)
+      : -1
   }
 
   public render() {
