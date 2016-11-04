@@ -237,6 +237,8 @@ export class Diff extends React.Component<IDiffProps, void> {
         const reactContainer = document.createElement('span')
 
         const mouseEnterHandler = (ev: MouseEvent) => {
+          ev.preventDefault()
+
           if (!this.isIncludableLine(diffLine)) {
             return
           }
@@ -249,6 +251,8 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         const mouseLeaveHandler = (ev: MouseEvent) => {
+          ev.preventDefault()
+
           if (!this.isIncludableLine(diffLine)) {
             return
           }
@@ -261,11 +265,15 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         const mouseDownHandler = (ev: MouseEvent) => {
+          ev.preventDefault()
+
           const isHunkSelection = this.isMouseInLeftColumn(ev)
           this.onMouseDown(index, isIncluded, isHunkSelection)
         }
 
         const mouseMoveHandler = (ev: MouseEvent) => {
+
+          ev.preventDefault()
 
           // ignoring anything from diff context rows
           if (!this.isIncludableLine(diffLine)) {
@@ -290,7 +298,11 @@ export class Diff extends React.Component<IDiffProps, void> {
           this.selection.paint(this.cachedGutterElements)
         }
 
-        const mouseUpHandler = (ev: UIEvent) => this.onMouseUp(index)
+        const mouseUpHandler = (ev: UIEvent) => {
+          ev.preventDefault()
+
+          this.onMouseUp(index)
+        }
 
         if (!this.props.readOnly) {
           reactContainer.addEventListener('mouseenter', mouseEnterHandler)
