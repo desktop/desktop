@@ -21,7 +21,7 @@ import { getDiffMode } from './diff-mode'
 import { ISelectionStrategy } from './selection/selection-strategy'
 import { DragDropSelection } from './selection/drag-drop-selection-strategy'
 import { HunkSelection } from './selection/hunk-selection-strategy'
-import { hoverCssClass } from './selection/selection'
+import { hoverCssClass, selectedLineClass } from './selection/selection'
 
 import { fatalError } from '../../lib/fatal-error'
 
@@ -98,6 +98,39 @@ export class Diff extends React.Component<IDiffProps, void> {
       this.scrollPositionToRestore = { left: scrollInfo.left, top: scrollInfo.top }
     } else {
       this.scrollPositionToRestore = null
+    }
+
+    // HACK: This entire section is a hack. Whenever we receive
+    // props we update all currently visible gutter elements with
+    // the selection state from the file.
+    if (nextProps.file instanceof WorkingDirectoryFileChange) {
+      const selection = nextProps.file.selection
+      const oldSelection = this.props.file instanceof WorkingDirectoryFileChange
+        ? this.props.file.selection
+        : null
+
+      // Nothing has changed
+      if (oldSelection === selection) { return }
+
+      const diff = nextProps.diff
+      this.cachedGutterElements.forEach((element, index) => {
+        const childSpan = element.children[0] as HTMLSpanElement
+        if (!childSpan) {
+          console.error('expected DOM element for diff gutter not found')
+          return
+        }
+
+        const line = diff.diffLineForIndex(index)
+        const isIncludable = line
+          ? line.type === DiffLineType.Add || line.type === DiffLineType.Delete
+          : false
+
+        if (selection.isSelected(index) && isIncludable) {
+          childSpan.classList.add(selectedLineClass)
+        } else {
+          childSpan.classList.remove(selectedLineClass)
+        }
+      })
     }
   }
 
