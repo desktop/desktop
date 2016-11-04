@@ -67,7 +67,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
 
           <div className='actions'>
             <button type='submit'>Continue</button>
-            <button onClick={() => this.cancel()}>Cancel</button>
+            <button onClick={e => this.cancel(e)}>Cancel</button>
           </div>
         </form>
 
@@ -120,7 +120,9 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     }
   }
 
-  private cancel() {
+  private cancel(event: React.FormEvent<HTMLButtonElement>) {
+    event.preventDefault()
+
     this.props.cancel()
   }
 }

@@ -43,8 +43,8 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
           <a href='' onClick={e => this.forgotPassword(e)}>Forgot password?</a>
 
           <div className='actions'>
-            <button type='submit' disabled={signInDisabled}>Sign in</button>
-            <button onClick={() => this.advance()}>Cancel</button>
+            <button type='submit' disabled={signInDisabled}>Sign in (But not really. Use the browser for now please and thank you.)</button>
+            <button onClick={e => this.cancel(e)}>Cancel</button>
           </div>
 
           <div>or</div>
@@ -73,6 +73,12 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     event.preventDefault()
 
     this.props.dispatcher.requestOAuth()
+
+    this.advance()
+  }
+
+  private cancel(event: React.MouseEvent<HTMLButtonElement>) {
+    event.preventDefault()
 
     this.advance()
   }
