@@ -421,6 +421,10 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
   }
 
+  private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
+    this.codeMirror = cmh === null ? null : cmh.getEditor()
+  }
+
   public render() {
 
     if (this.props.diff.imageDiff) {
@@ -459,7 +463,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         isSelectionEnabled={this.isSelectionEnabled}
         onChanges={this.onChanges}
         onRenderLine={this.renderLine}
-        ref={(cmh) => { this.codeMirror = cmh === null ? null : cmh.getEditor() }}
+        ref={this.getAndStoreCodeMirrorInstance}
       />
     )
   }
