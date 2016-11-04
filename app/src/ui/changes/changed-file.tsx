@@ -19,11 +19,13 @@ interface IChangedFileProps {
 export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
   private static mapStatus(status: FileStatus): string {
-    if (status === FileStatus.New) { return 'New' }
-    if (status === FileStatus.Modified) { return 'Modified' }
-    if (status === FileStatus.Deleted) { return 'Deleted' }
-    if (status === FileStatus.Renamed) { return 'Renamed' }
-    if (status === FileStatus.Conflicted) { return 'Conflicted' }
+    switch (status) {
+      case FileStatus.New: return 'New'
+      case FileStatus.Modified: return 'Modified'
+      case FileStatus.Deleted: return 'Deleted'
+      case FileStatus.Renamed: return 'Renamed'
+      case FileStatus.Conflicted: return 'Conflicted'
+    }
 
     return assertNever(status, `Unknown file status ${status}`)
   }
