@@ -67,6 +67,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   }
 
   private createCommit() {
+    if (!this.canCommit) { return }
     this.props.onCreateCommit(this.state.summary, this.state.description)
     this.setState({
       summary: '',
