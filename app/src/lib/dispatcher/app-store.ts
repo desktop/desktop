@@ -157,6 +157,7 @@ export class AppStore {
       localCommitSHAs: [],
       aheadBehind: null,
       remoteName: null,
+      pushPullInProgress: false,
     }
   }
 
@@ -176,6 +177,7 @@ export class AppStore {
         localCommitSHAs: state.localCommitSHAs,
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
       }
     }
 
@@ -203,6 +205,7 @@ export class AppStore {
         localCommitSHAs: state.localCommitSHAs,
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
       }
     })
   }
@@ -221,6 +224,7 @@ export class AppStore {
         localCommitSHAs: state.localCommitSHAs,
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
       }
     })
   }
@@ -239,6 +243,7 @@ export class AppStore {
         localCommitSHAs: state.localCommitSHAs,
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
       }
     })
   }
@@ -322,6 +327,7 @@ export class AppStore {
         localCommitSHAs: gitStore.localCommitSHAs,
         aheadBehind: gitStore.aheadBehind,
         remoteName: gitStore.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
       }
     })
 
@@ -686,6 +692,7 @@ export class AppStore {
         localCommitSHAs: state.localCommitSHAs,
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
       }
     })
     this.emitUpdate()
@@ -933,6 +940,7 @@ export class AppStore {
         localCommitSHAs: state.localCommitSHAs,
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
       }
     })
     this.emitUpdate()
@@ -1068,6 +1076,23 @@ export class AppStore {
   }
 
   public async _push(repository: Repository): Promise<void> {
+    this.updateRepositoryState(repository, state => (
+      {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        commitAuthor: state.commitAuthor,
+        branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: true,
+      }
+    ))
+    this.emitUpdate()
+
     const gitStore = this.getGitStore(repository)
     const remote = await gitStore.performFailableOperation(() => LocalGitOperations.getDefaultRemote(repository))
     if (!remote) {
@@ -1092,11 +1117,45 @@ export class AppStore {
       await gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, true))
     }
 
+    this.updateRepositoryState(repository, state => (
+      {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        commitAuthor: state.commitAuthor,
+        branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: false,
+      }
+    ))
+    this.emitUpdate()
+
     return this._refreshRepository(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _pull(repository: Repository): Promise<void> {
+    this.updateRepositoryState(repository, state => (
+      {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        commitAuthor: state.commitAuthor,
+        branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: true,
+      }
+    ))
+    this.emitUpdate()
+
     const gitStore = this.getGitStore(repository)
     const remote = await gitStore.performFailableOperation(() => LocalGitOperations.getDefaultRemote(repository))
     if (!remote) {
@@ -1111,6 +1170,23 @@ export class AppStore {
 
     const user = this.getUserForRepository(repository)
     await gitStore.performFailableOperation(() => LocalGitOperations.pull(repository, user, remote, branch.name))
+
+    this.updateRepositoryState(repository, state => (
+      {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        commitAuthor: state.commitAuthor,
+        branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: false,
+      }
+    ))
+    this.emitUpdate()
 
     this._refreshRepository(repository)
 
@@ -1204,10 +1280,44 @@ export class AppStore {
 
   /** Fetch the repository. */
   public async fetch(repository: Repository): Promise<void> {
+    this.updateRepositoryState(repository, state => (
+      {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        commitAuthor: state.commitAuthor,
+        branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: true,
+      }
+    ))
+    this.emitUpdate()
+
     const gitStore = this.getGitStore(repository)
     const user = this.getUserForRepository(repository)
     await gitStore.fetch(user)
     await this.fastForwardBranches(repository)
+
+    this.updateRepositoryState(repository, state => (
+      {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        commitAuthor: state.commitAuthor,
+        branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: false,
+      }
+    ))
+    this.emitUpdate()
 
     return this._refreshRepository(repository)
   }

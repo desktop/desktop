@@ -124,6 +124,8 @@ export interface IRepositoryState {
 
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
+
+  readonly pushPullInProgress: boolean
 }
 
 export interface IBranchesState {
