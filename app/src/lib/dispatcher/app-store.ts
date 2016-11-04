@@ -45,7 +45,6 @@ const OnDiskStatuses = new Set([
   FileStatus.Modified,
   FileStatus.Renamed,
   FileStatus.Conflicted,
-  FileStatus.Unknown,
 ])
 
 /**
@@ -57,7 +56,6 @@ const CommittedStatuses = new Set([
   FileStatus.Deleted,
   FileStatus.Renamed,
   FileStatus.Conflicted,
-  FileStatus.Unknown,
 ])
 
 const defaultSidebarWidth: number = 250

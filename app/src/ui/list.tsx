@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
+import * as classNames from 'classnames'
 import { Grid, AutoSizer } from 'react-virtualized'
 
 /**
@@ -188,7 +189,7 @@ export class List extends React.Component<IListProps, void> {
     const selectable = this.canSelectRow(rowIndex)
     const selected = rowIndex === this.props.selectedRow
     const focused = rowIndex === this.focusRow
-    const className = selected ? 'list-item selected' : 'list-item'
+    const className = classNames('list-item', { selected })
 
     // An unselectable row shouldn't have any tabIndex (as -1 means
     // it's given focus by clicking).
