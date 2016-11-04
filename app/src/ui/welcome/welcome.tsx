@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher, AppStore } from '../../lib/dispatcher'
 import { assertNever } from '../../lib/fatal-error'
 import { Start } from './start'
 import { SignInDotCom } from './sign-in-dot-com'
@@ -8,6 +8,7 @@ import { ConfigureGit } from './configure-git'
 
 interface IWelcomeProps {
   readonly dispatcher: Dispatcher
+  readonly appStore: AppStore
 }
 
 export enum WelcomeStep {
@@ -38,7 +39,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
       case WelcomeStep.Start: return <Start {...props}/>
       case WelcomeStep.SignInToDotCom: return <SignInDotCom {...props}/>
       case WelcomeStep.SignInToEnterprise: return <SignInEnterprise {...props}/>
-      case WelcomeStep.ConfigureGit: return <ConfigureGit {...props}/>
+      case WelcomeStep.ConfigureGit: return <ConfigureGit {...props} users={this.props.appStore.getState().users}/>
       default: return assertNever(step, `Unknown welcome step: ${step}`)
     }
   }

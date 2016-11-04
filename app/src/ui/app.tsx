@@ -477,7 +477,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderWelcomeFlow() {
     return (
-      <Welcome dispatcher={this.props.dispatcher}/>
+      <Welcome dispatcher={this.props.dispatcher} appStore={this.props.appStore}/>
     )
   }
 
