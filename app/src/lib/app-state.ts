@@ -9,6 +9,7 @@ import { ICommitMessage } from './dispatcher/git-store'
 
 export { ICloningRepositoryState } from './dispatcher'
 export { ICommitMessage } from './dispatcher/git-store'
+export { IAheadBehind } from './local-git-operations'
 
 export enum SelectionType {
   Repository,
