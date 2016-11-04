@@ -1215,4 +1215,9 @@ export class AppStore {
 
     return Promise.resolve()
   }
+
+  public _setCommitMessage(repository: Repository, message: ICommitMessage | null): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.setCommitMessage(message)
+  }
 }

@@ -12,6 +12,7 @@ import { URLActionType } from '../parse-url'
 import { Branch, Commit } from '../local-git-operations'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
+import { ICommitMessage } from './git-store'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -375,5 +376,13 @@ export class Dispatcher {
   /** Update the repository's issues from GitHub. */
   public updateIssues(repository: GitHubRepository): Promise<void> {
     return this.appStore._updateIssues(repository)
+  }
+
+  /**
+   * Set the commit summary and description for a work-in-progress
+   * commit in the changes view for a particular repository.
+   */
+  public setCommitMessage(repository: Repository, message: ICommitMessage | null): Promise<void> {
+    return this.appStore._setCommitMessage(repository, message)
   }
 }

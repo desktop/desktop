@@ -351,4 +351,10 @@ export class GitStore {
 
     return LocalGitOperations.fetch(this.repository, user, remote)
   }
+
+  public setCommitMessage(message: ICommitMessage | null): Promise<void> {
+    this._commitMessage = message
+    this.emitUpdate()
+    return Promise.resolve()
+  }
 }
