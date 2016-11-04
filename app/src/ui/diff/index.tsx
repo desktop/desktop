@@ -87,8 +87,13 @@ export class Diff extends React.Component<IDiffProps, void> {
     // If we're reloading the same file, we want to save the current scroll
     // position and restore it after the diff's been updated.
     const sameFile = nextProps.file && this.props.file && nextProps.file.id === this.props.file.id
+
+    // Happy path, if the text hasn't changed we won't re-render
+    // and subsequently won't have to restore the scroll position.
+    const textHasChanged = nextProps.diff !== this.props.diff
+
     const codeMirror = this.codeMirror
-    if (codeMirror && sameFile) {
+    if (codeMirror && sameFile && textHasChanged) {
       const scrollInfo = codeMirror.getScrollInfo()
       this.scrollPositionToRestore = { left: scrollInfo.left, top: scrollInfo.top }
     } else {
