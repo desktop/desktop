@@ -303,10 +303,10 @@ export class Diff extends React.Component<IDiffProps, void> {
         this.cachedGutterElements.set(index, reactContainer)
 
         ReactDOM.render(
-          <DiffLineGutter line={diffLine}
-                          readOnly={this.props.readOnly}
-                          isIncluded={isIncluded}/>,
-          reactContainer)
+          <DiffLineGutter
+            line={diffLine}
+            isIncluded={isIncluded}
+          />, reactContainer)
         element.insertBefore(reactContainer, diffLineElement)
 
         // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
