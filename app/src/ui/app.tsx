@@ -9,7 +9,7 @@ import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
-import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
+import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType, IAheadBehind } from '../lib/app-state'
 import { Popuppy } from './popuppy'
 import { CreateBranch } from './create-branch'
 import { Branches } from './branches'
@@ -448,10 +448,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const state = selection.state
 
-    let aheadBehind = state.aheadBehind
-    if (!aheadBehind) {
-      aheadBehind = { ahead: selection.state.localCommitSHAs.length, behind: 0 }
-    }
+    const aheadBehind = (function () {
+      if (state.aheadBehind) {
+        return state.aheadBehind
+      } else {
+        return { ahead: selection.state.localCommitSHAs.length, behind: 0 }
+      }
+    })()
 
     const actionName = (function () {
       if (aheadBehind.behind > 0) { return 'Pull' }
@@ -471,7 +474,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     return <ToolbarButton
       title={title}
       description={description}
-      icon={icon}/>
+      icon={icon}
+      onClick={() => this.performPushPullAction(selection.repository, aheadBehind)}/>
+  }
+
+  private performPushPullAction(repository: Repository, { ahead, behind }: IAheadBehind) {
+    if (behind > 0) {
+      this.props.dispatcher.pull(repository)
+    } else if (ahead > 0) {
+      this.props.dispatcher.push(repository)
+    } else {
+      this.props.dispatcher.fetch(repository)
+    }
   }
 
   private renderToolbar() {
