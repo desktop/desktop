@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { ipcRenderer, remote } from 'electron'
 import { WindowState, getWindowState, windowStateChannelName } from '../../lib/window-state'
+import * as classNames from 'classnames'
 
 // These paths are all drawn to a 10x10 view box and replicate the symbols
 // seen on Windows 10 window controls.
@@ -46,7 +47,7 @@ export class WindowControls extends React.Component<void, IWindowControlState> {
   }
 
   private renderButton(name: string, onClick: React.EventHandler<React.MouseEvent<any>>, path: string) {
-    const className = `window-control ${name}`
+    const className = classNames('window-control', name)
     const title = name[0].toUpperCase() + name.substring(1)
 
     return (
