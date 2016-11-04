@@ -1,6 +1,11 @@
 .list {
   flex-grow: 1;
   height: 100%;
+
+  // Sane default for flexboxes making lists
+  // constrain to the size of their flexbox
+  // parent.
+  min-width: 0;
 }
 
 @include win32-context {
