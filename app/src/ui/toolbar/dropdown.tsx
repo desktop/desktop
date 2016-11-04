@@ -171,7 +171,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
 
     return (
       <div id='foldout-container' style={this.getFoldoutContainerStyle()}>
-        <div className='overlay' onClick={this.handleOverlayClick}></div>
+        <div className='overlay' onClick={() => this.handleOverlayClick}></div>
         <div className='foldout' style={this.getFoldoutStyle()}>
           {this.props.dropdownContentRenderer()}
         </div>
