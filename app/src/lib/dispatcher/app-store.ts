@@ -29,7 +29,7 @@ import { CloningRepository, CloningRepositoriesStore } from './cloning-repositor
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
 import { EmojiStore } from './emoji-store'
-import { GitStore } from './git-store'
+import { GitStore, ICommitMessage } from './git-store'
 import { assertNever } from '../fatal-error'
 import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './background-fetcher'
@@ -145,6 +145,7 @@ export class AppStore {
         selectedFile: null,
         diff: null,
         contextualCommitMessage: null,
+        commitMessage: null,
       },
       selectedSection: RepositorySection.Changes,
       branchesState: {
@@ -298,6 +299,7 @@ export class AppStore {
         workingDirectory: state.workingDirectory,
         selectedFile: state.selectedFile,
         diff: state.diff,
+        commitMessage: gitStore.commitMessage,
         contextualCommitMessage: gitStore.contextualCommitMessage,
       }
     })
@@ -655,6 +657,7 @@ export class AppStore {
         // if it hasn't changed we can reuse the diff
         diff: fileSelectionChanged ? null : state.diff,
         contextualCommitMessage: state.contextualCommitMessage,
+        commitMessage: state.commitMessage,
       }
     })
     this.emitUpdate()
@@ -694,6 +697,7 @@ export class AppStore {
         selectedFile,
         diff: null,
         contextualCommitMessage: state.contextualCommitMessage,
+        commitMessage: state.commitMessage,
       }
     })
     this.emitUpdate()
@@ -744,6 +748,7 @@ export class AppStore {
         selectedFile,
         diff,
         contextualCommitMessage: state.contextualCommitMessage,
+        commitMessage: state.commitMessage,
       }
     })
 
@@ -820,6 +825,7 @@ export class AppStore {
         selectedFile: selectedFile || null,
         diff,
         contextualCommitMessage: state.contextualCommitMessage,
+        commitMessage: state.commitMessage,
       }
     })
 
@@ -839,6 +845,7 @@ export class AppStore {
         selectedFile: selectedFile,
         diff: state.diff,
         contextualCommitMessage: state.contextualCommitMessage,
+        commitMessage: state.commitMessage,
       }
     })
     this.emitUpdate()

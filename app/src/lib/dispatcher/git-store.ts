@@ -40,6 +40,7 @@ export class GitStore {
 
   private _localCommitSHAs: ReadonlyArray<string> = []
 
+  private _commitMessage: ICommitMessage | null
   private _contextualCommitMessage: ICommitMessage | null
 
   public constructor(repository: Repository) {
@@ -317,6 +318,11 @@ export class GitStore {
       this.emitError(e)
       return undefined
     }
+  }
+
+  /** The commit message for a work-in-progress commit in the changes view. */
+  public get commitMessage(): ICommitMessage | null {
+    return this._commitMessage
   }
 
   /**
