@@ -4,7 +4,6 @@ import { CommitListItem } from './commit-list-item'
 import { List } from '../list'
 import { CommitFacadeListItem } from './commit-facade-list-item'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
-import { Repository } from '../../models/repository'
 
 const RowHeight = 52
 
@@ -15,7 +14,6 @@ interface ICommitListProps {
   readonly commits: Map<string, Commit>
   readonly selectedSHA: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
-  readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
 }

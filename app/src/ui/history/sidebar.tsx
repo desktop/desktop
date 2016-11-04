@@ -49,10 +49,10 @@ export class HistorySidebar extends React.Component<IHistorySidebarProps, void> 
         selectedSHA={this.props.history.selection.sha}
         onCommitChanged={commit => this.onCommitChanged(commit)}
         onScroll={(start, end) => this.onScroll(start, end)}
-        repository={this.props.repository}
         gitHubUsers={this.props.gitHubUsers}
         dispatcher={this.props.dispatcher}
-        emoji={this.props.emoji}/>
+        emoji={this.props.emoji}
+      />
     )
   }
 }
