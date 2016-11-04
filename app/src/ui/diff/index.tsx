@@ -225,13 +225,6 @@ export class Diff extends React.Component<IDiffProps, void> {
       const relativeIndex = index - hunk.unifiedDiffStart
       const diffLine = hunk.lines[relativeIndex]
       if (diffLine) {
-        let isIncluded = false
-        const file = this.props.file
-
-        if (file instanceof WorkingDirectoryFileChange) {
-          isIncluded = file.selection.isSelected(index)
-        }
-
         const diffLineElement = element.children[0] as HTMLSpanElement
 
         const reactContainer = document.createElement('span')
@@ -268,6 +261,11 @@ export class Diff extends React.Component<IDiffProps, void> {
           ev.preventDefault()
 
           const isHunkSelection = this.isMouseInLeftColumn(ev)
+
+          let isIncluded = false
+          if (this.props.file instanceof WorkingDirectoryFileChange) {
+            isIncluded = this.props.file.selection.isSelected(index)
+          }
           this.onMouseDown(index, isIncluded, isHunkSelection)
         }
 
@@ -313,6 +311,11 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         this.cachedGutterElements.set(index, reactContainer)
+
+        let isIncluded = false
+        if (this.props.file instanceof WorkingDirectoryFileChange) {
+          isIncluded = this.props.file.selection.isSelected(index)
+        }
 
         ReactDOM.render(
           <DiffLineGutter line={diffLine}
