@@ -95,11 +95,14 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
 }
 
 function iconForStatus(status: FileStatus): OcticonSymbol {
-  if (status === FileStatus.New) { return OcticonSymbol.diffAdded }
-  if (status === FileStatus.Modified) { return OcticonSymbol.diffModified }
-  if (status === FileStatus.Deleted) { return OcticonSymbol.diffRemoved }
-  if (status === FileStatus.Renamed) { return OcticonSymbol.diffRenamed }
-  if (status === FileStatus.Conflicted) { return OcticonSymbol.alert }
+
+  switch (status) {
+    case FileStatus.New: return OcticonSymbol.diffAdded
+    case FileStatus.Modified: return OcticonSymbol.diffModified
+    case FileStatus.Deleted: return OcticonSymbol.diffRemoved
+    case FileStatus.Renamed: return OcticonSymbol.diffRenamed
+    case FileStatus.Conflicted: return OcticonSymbol.alert
+  }
 
   return assertNever(status, `Unknown file status ${status}`)
 }
