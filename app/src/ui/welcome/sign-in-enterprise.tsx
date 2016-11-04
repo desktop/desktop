@@ -11,7 +11,17 @@ interface ISignInEnterpriseProps {
 export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, void> {
   public render() {
     return (
-      <div>We can't do this yet!</div>
+      <div>
+        <h1>We can't do this yet!</h1>
+
+        <div className='actions'>
+          <button onClick={() => this.everSoSorry()}>Ever so sorry</button>
+        </div>
+      </div>
     )
+  }
+
+  private everSoSorry() {
+    this.props.advance(WelcomeStep.Start)
   }
 }
