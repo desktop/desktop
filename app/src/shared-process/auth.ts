@@ -26,7 +26,7 @@ const DefaultHeaders: {[key: string]: string} = {
 interface IAuthState {
   readonly oAuthState: string
   readonly endpoint: string
-  readonly resolve: (suer: IUser) => void
+  readonly resolve: (user: IUser) => void
   readonly reject: (error: Error) => void
 }
 let authState: IAuthState | null = null
