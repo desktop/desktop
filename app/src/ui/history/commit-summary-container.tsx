@@ -1,11 +1,9 @@
 import * as React from 'react'
-import { Repository } from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../lib/local-git-operations'
 import { CommitSummary } from './commit-summary'
 
 interface ICommitSummaryContainerProps {
-  readonly repository: Repository
   readonly commit: Commit | null
   readonly files: ReadonlyArray<FileChange>
   readonly selectedFile: FileChange | null

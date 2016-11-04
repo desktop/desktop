@@ -62,12 +62,13 @@ export class History extends React.Component<IHistoryProps, void> {
     return (
       <div className='panel-container' id='history'>
         <PersistingResizable configKey='commit-summary-width'>
-          <CommitSummaryContainer repository={this.props.repository}
-                                  commit={commit}
-                                  files={this.props.history.changedFiles}
-                                  selectedFile={this.props.history.selection.file}
-                                  onSelectedFileChanged={file => this.onFileSelected(file)}
-                                  emoji={this.props.emoji}/>
+          <CommitSummaryContainer
+            commit={commit}
+            files={this.props.history.changedFiles}
+            selectedFile={this.props.history.selection.file}
+            onSelectedFileChanged={file => this.onFileSelected(file)}
+            emoji={this.props.emoji}
+          />
         </PersistingResizable>
         { this.renderDiff(commit) }
       </div>
