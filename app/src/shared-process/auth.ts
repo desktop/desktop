@@ -4,6 +4,7 @@ import { guid } from '../lib/guid'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { fatalError } from '../lib/fatal-error'
 import * as appProxy from '../ui/lib/app-proxy'
+import { IUser } from '../models/user'
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
@@ -25,6 +26,8 @@ const DefaultHeaders: {[key: string]: string} = {
 interface IAuthState {
   readonly oAuthState: string
   readonly endpoint: string
+  readonly resolve: (suer: IUser) => void
+  readonly reject: (error: Error) => void
 }
 let authState: IAuthState | null = null
 
@@ -48,6 +51,38 @@ export async function requestToken(code: string): Promise<string> {
   return json.access_token
 }
 
+/**
+ * Resolve the current OAuth request with the given user.
+ *
+ * Note that this can only be called after `askUserToAuth` has been called and
+ * must only be called once.
+ */
+export function resolveAuthRequest(user: IUser) {
+  if (!authState) {
+    return fatalError('`askUserToAuth` must be called before resolving an auth request.')
+  }
+
+  authState.resolve(user)
+
+  authState = null
+}
+
+/**
+ * Reject the current OAuth request with the given error.
+ *
+ * Note that this can only be called after `askUserToAuth` has been called and
+ * must only be called once.
+ */
+export function rejectAuthRequest(error: Error) {
+  if (!authState) {
+    return fatalError('`askUserToAuth` must be called before rejecting an auth request.')
+  }
+
+  authState.reject(error)
+
+  authState = null
+}
+
 function getOAuthAuthorizationURL(authState: IAuthState): string {
   const urlBase = getOAuthURL(authState.endpoint)
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${Scopes}&state=${authState.oAuthState}`
@@ -63,8 +98,8 @@ function getOAuthURL(endpoint: string): string {
   }
 }
 
-export function askUserToAuth(endpoint: string) {
-  authState = { oAuthState: guid(), endpoint }
+export function askUserToAuth(endpoint: string, resolve: (user: IUser) => void, reject: (error: Error) => void) {
+  authState = { oAuthState: guid(), endpoint, resolve, reject }
 
   shell.openExternal(getOAuthAuthorizationURL(authState))
 }

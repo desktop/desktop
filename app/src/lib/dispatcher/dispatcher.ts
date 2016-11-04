@@ -148,9 +148,15 @@ export class Dispatcher {
     await this.dispatchToSharedProcess<ReadonlyArray<number>>({ name: 'remove-repositories', repositoryIDs })
   }
 
-  /** Request the user approve our OAuth request. This will open their browser. */
-  public requestOAuth(): Promise<void> {
-    return this.dispatchToSharedProcess<void>({ name: 'request-oauth' })
+  /**
+   * Request the user approve our OAuth request. This will open their browser.
+   *
+   * The returned promise will only resolve once the entire OAuth flow has been
+   * completed. If the user cancels the OAuth flow, the promise will never
+   * resolve.
+   */
+  public requestOAuth(): Promise<IUser> {
+    return this.dispatchToSharedProcess<IUser>({ name: 'request-oauth' })
   }
 
   /** Refresh the associated GitHub repository. */
