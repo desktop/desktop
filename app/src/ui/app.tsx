@@ -463,6 +463,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     })()
 
     const icon = (function () {
+      if (state.pushPullInProgress) { return OcticonSymbol.sync }
       if (aheadBehind.behind > 0) { return OcticonSymbol.arrowDown }
       if (aheadBehind.ahead > 0) { return OcticonSymbol.arrowUp }
       return OcticonSymbol.sync
@@ -475,6 +476,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       title={title}
       description={description}
       icon={icon}
+      iconClassName={state.pushPullInProgress ? 'spin' : ''}
       onClick={() => this.performPushPullAction(selection.repository, aheadBehind)}/>
   }
 

@@ -54,6 +54,12 @@
   }
 }
 
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
+.spin {
+  animation:spin 1s linear infinite;
+}
+
 /* Toolbar negative margin hackery
  *
  * On Windows we add an artificial title bar at the top of
