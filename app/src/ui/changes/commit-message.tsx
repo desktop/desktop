@@ -6,6 +6,8 @@ import {
 } from '../autocompletion'
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../lib/app-state'
+import { Dispatcher } from '../../lib/dispatcher'
+import { Repository } from '../../models/repository'
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (summary: string, description: string) => void
@@ -13,52 +15,37 @@ interface ICommitMessageProps {
   readonly commitAuthor: CommitIdentity | null
   readonly avatarURL: string
   readonly anyFilesSelected: boolean
-
+  readonly commitMessage: ICommitMessage | null
   readonly contextualCommitMessage: ICommitMessage | null
-
+  readonly repository: Repository
+  readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 }
 
-interface ICommitMessageState {
-  readonly summary: string
-  readonly description: string
-}
+export class CommitMessage extends React.Component<ICommitMessageProps, void> {
 
-export class CommitMessage extends React.Component<ICommitMessageProps, ICommitMessageState> {
-
-  public constructor(props: ICommitMessageProps) {
-    super(props)
-
-    const contextualCommitMessage = props.contextualCommitMessage
-    if (contextualCommitMessage) {
-      this.state = contextualCommitMessage
-    } else {
-      this.state = {
-        summary: '',
-        description: '',
-      }
-    }
-  }
-
-  public componentWillReceiveProps(nextProps: ICommitMessageProps) {
-    const contextualCommitMessage = nextProps.contextualCommitMessage
-    if (contextualCommitMessage && !this.state.summary.length && !this.state.description.length) {
-      this.setState(contextualCommitMessage)
-    }
+  private getCurrentCommitMessage(): ICommitMessage {
+    return this.props.commitMessage
+      || this.props.contextualCommitMessage
+      || { summary: '', description: '' }
   }
 
   private handleSummaryChange(event: React.FormEvent<HTMLInputElement>) {
-    this.setState({
+    const currentMessage = this.getCurrentCommitMessage()
+    const newMessage = {
       summary: event.currentTarget.value,
-      description: this.state.description,
-    })
+      description: currentMessage.description,
+    }
+    this.props.dispatcher.setCommitMessage(this.props.repository, newMessage)
   }
 
   private handleDescriptionChange(event: React.FormEvent<HTMLTextAreaElement>) {
-    this.setState({
-      summary: this.state.summary,
+    const currentMessage = this.getCurrentCommitMessage()
+    const newMessage = {
+      summary: currentMessage.summary,
       description: event.currentTarget.value,
-    })
+    }
+    this.props.dispatcher.setCommitMessage(this.props.repository, newMessage)
   }
 
   private handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {
@@ -68,15 +55,14 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
   private createCommit() {
     if (!this.canCommit) { return }
-    this.props.onCreateCommit(this.state.summary, this.state.description)
-    this.setState({
-      summary: '',
-      description: '',
-    })
+    const msg = this.getCurrentCommitMessage()
+    this.props.onCreateCommit(msg.summary, msg.description)
+    this.props.dispatcher.setCommitMessage(this.props.repository, null)
   }
 
   private canCommit(): boolean {
-    return this.props.anyFilesSelected && this.state.summary.length > 0
+    const msg = this.getCurrentCommitMessage()
+    return this.props.anyFilesSelected && msg.summary.length > 0
   }
 
   private onKeyDown(event: React.KeyboardEvent<Element>) {
@@ -106,6 +92,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
     const buttonEnabled = this.canCommit()
+    const msg = this.getCurrentCommitMessage()
 
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>
@@ -114,7 +101,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
           <AutocompletingInput className='summary-field'
             placeholder='Summary'
-            value={this.state.summary}
+            value={msg.summary}
             onChange={event => this.handleSummaryChange(event)}
             onKeyDown={event => this.onKeyDown(event)}
             autocompletionProviders={this.props.autocompletionProviders}/>
@@ -122,7 +109,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
         <AutocompletingTextArea className='description-field'
           placeholder='Description'
-          value={this.state.description}
+          value={msg.description}
           onChange={event => this.handleDescriptionChange(event)}
           onKeyDown={event => this.onKeyDown(event)}
           autocompletionProviders={this.props.autocompletionProviders}/>
