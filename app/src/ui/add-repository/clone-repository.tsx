@@ -1,9 +1,6 @@
 import * as React from 'react'
 
-import { Dispatcher } from '../../lib/dispatcher'
-
 interface ICloneRepositoryProps {
-  readonly dispatcher: Dispatcher
 }
 
 /** The component for cloning an existing GitHub repository. */
