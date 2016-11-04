@@ -23,7 +23,9 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     if (status === FileStatus.Modified) { return 'Modified' }
     if (status === FileStatus.Deleted) { return 'Deleted' }
     if (status === FileStatus.Renamed) { return 'Renamed' }
-    return 'Unknown'
+    if (status === FileStatus.Conflicted) { return 'Conflicted' }
+
+    return assertNever(status, `Unknown file status ${status}`)
   }
 
   private handleChange(event: React.FormEvent<HTMLInputElement>) {
