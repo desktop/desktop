@@ -18,7 +18,7 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
-import { Toolbar, ToolbarDropdown, DropdownState } from './toolbar'
+import { Toolbar, ToolbarDropdown, DropdownState, ToolbarButton } from './toolbar'
 import { OcticonSymbol } from './octicons'
 import { showPopupAppMenu, setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
@@ -440,6 +440,33 @@ export class App extends React.Component<IAppProps, IAppState> {
       dropdownState={currentState} />
   }
 
+  private renderPushPullToolbarButton() {
+    const selection = this.state.selectedState
+    if (!selection || selection.type === SelectionType.CloningRepository) {
+      return null
+    }
+
+    const state = selection.state
+
+    let aheadBehind = state.aheadBehind
+    if (!aheadBehind) {
+      aheadBehind = { ahead: selection.state.localCommitSHAs.length, behind: 0 }
+    }
+
+    const actionName = (function () {
+      if (aheadBehind.behind > 0) { return 'Pull' }
+      if (aheadBehind.ahead > 0) { return 'Push' }
+      return 'Update'
+    })()
+
+    const title = state.remoteName ? `${actionName} ${state.remoteName}` : actionName
+
+    const description = `${aheadBehind.ahead} ahead, ${aheadBehind.behind} behind`
+    return <ToolbarButton
+      title={title}
+      description={description}/>
+  }
+
   private renderToolbar() {
     return (
       <Toolbar id='desktop-app-toolbar'>
@@ -447,6 +474,10 @@ export class App extends React.Component<IAppProps, IAppState> {
           className='sidebar-section'
           style={{ width: this.state.sidebarWidth }}>
           {this.renderRepositoryToolbarButton()}
+        </div>
+        <div
+          className='sidebar-section'>
+          {this.renderPushPullToolbarButton()}
         </div>
       </Toolbar>
     )
