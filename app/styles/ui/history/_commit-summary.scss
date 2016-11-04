@@ -25,6 +25,12 @@
     word-wrap: break-word;
     white-space: pre-line;
 
+    // Temporary workaround for long commit messages.
+    // The long term solution here will be a
+    // read-more/expand link.
+    max-height: 60px;
+    overflow: scroll;
+
     &:empty {
       display: none;
     }
