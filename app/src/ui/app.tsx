@@ -459,12 +459,19 @@ export class App extends React.Component<IAppProps, IAppState> {
       return 'Update'
     })()
 
+    const icon = (function () {
+      if (aheadBehind.behind > 0) { return OcticonSymbol.arrowDown }
+      if (aheadBehind.ahead > 0) { return OcticonSymbol.arrowUp }
+      return OcticonSymbol.sync
+    })()
+
     const title = state.remoteName ? `${actionName} ${state.remoteName}` : actionName
 
     const description = `${aheadBehind.ahead} ahead, ${aheadBehind.behind} behind`
     return <ToolbarButton
       title={title}
-      description={description}/>
+      description={description}
+      icon={icon}/>
   }
 
   private renderToolbar() {
