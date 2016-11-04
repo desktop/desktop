@@ -1,0 +1,19 @@
+#history {
+  .files {
+    display: flex;
+    flex: 1;
+
+    border-right: var(--base-border);
+
+    .list-item {
+      border-bottom: var(--base-border);
+      padding: var(--spacing);
+    }
+
+    .path {
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+  }
+}

@@ -3,6 +3,20 @@
 /** A React component holding the currently selected repository's history */
 #history {
   display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  // Necessary so that the diff doesn't expand
+  // beyond the width of the history
+  min-width: 0;
+}
+
+#commit-summary-container {
+  flex-grow: 0;
+}
+
+#commit-details {
+  display: flex;
   flex-direction: row;
   flex: 1;
 }
