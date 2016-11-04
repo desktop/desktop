@@ -16,6 +16,7 @@ interface ISignInDotComState {
   readonly password: string
 }
 
+/** The Welcome flow step to login to GitHub.com. */
 export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDotComState> {
   public constructor(props: ISignInDotComProps) {
     super(props)

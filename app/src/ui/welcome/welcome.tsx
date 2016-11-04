@@ -6,11 +6,7 @@ import { SignInDotCom } from './sign-in-dot-com'
 import { SignInEnterprise } from './sign-in-enterprise'
 import { ConfigureGit } from './configure-git'
 
-interface IWelcomeProps {
-  readonly dispatcher: Dispatcher
-  readonly appStore: AppStore
-}
-
+/** The steps along the Welcome flow. */
 export enum WelcomeStep {
   Start,
   SignInToDotCom,
@@ -18,10 +14,16 @@ export enum WelcomeStep {
   ConfigureGit,
 }
 
+interface IWelcomeProps {
+  readonly dispatcher: Dispatcher
+  readonly appStore: AppStore
+}
+
 interface IWelcomeState {
   readonly currentStep: WelcomeStep
 }
 
+/** The Welcome flow. */
 export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   public constructor(props: IWelcomeProps) {
     super(props)

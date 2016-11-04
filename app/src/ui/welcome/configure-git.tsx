@@ -18,6 +18,7 @@ interface IConfigureGitState {
   readonly avatarURL: string | null
 }
 
+/** The Welcome flow step to configure git. */
 export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigureGitState> {
   public constructor(props: IConfigureGitProps) {
     super(props)

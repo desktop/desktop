@@ -5,18 +5,22 @@ import { Dispatcher } from '../../lib/dispatcher'
 
 const CreateAccountURL = 'https://github.com/join?source=github-desktop'
 
+const WelcomeImagePath = 'static/space.png'
+const WelcomeImageDimensions = { width: 552, height: 307 }
+
 interface IStartProps {
   readonly dispatcher: Dispatcher
   readonly advance: (step: WelcomeStep) => void
   readonly cancel: () => void
 }
 
+/** The first step of the Welcome flow. */
 export class Start extends React.Component<IStartProps, void> {
   public render() {
-    const spacePath = `file:///${__dirname}/static/space.png`
+    const spacePath = `file:///${__dirname}/${WelcomeImagePath}`
     return (
       <div id='start'>
-        <img src={spacePath} style={{ width: 552, height: 307 }}/>
+        <img src={spacePath} style={WelcomeImageDimensions}/>
 
         <h1>Welcome to GitHub Desktop</h1>
         <div>Get started by signing into GitHub.com or your GitHub Enterprise server.</div>

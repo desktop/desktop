@@ -8,6 +8,7 @@ interface ISignInEnterpriseProps {
   readonly cancel: () => void
 }
 
+/** The Welcome flow step to login to an Enterprise instance. */
 export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, void> {
   public render() {
     return (
