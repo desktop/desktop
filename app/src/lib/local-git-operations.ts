@@ -139,7 +139,7 @@ export const enum GitResetMode {
 }
 
 /** The number of commits a revision range is ahead/behind. */
-interface IAheadBehind {
+export interface IAheadBehind {
   readonly ahead: number
   readonly behind: number
 }
