@@ -27,8 +27,18 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
   }
 
   public async componentWillMount() {
-    const name = await LocalGitOperations.getGlobalConfigValue('user.name')
-    const email = await LocalGitOperations.getGlobalConfigValue('user.email')
+    let name = await LocalGitOperations.getGlobalConfigValue('user.name')
+    let email = await LocalGitOperations.getGlobalConfigValue('user.email')
+
+    const user = this.props.users[0]
+    if ((!name || !name.length) && user) {
+      name = user.login
+    }
+
+    if ((!email || !email.length) && user) {
+      email = user.emails[0]
+    }
+
     const avatarURL = email ? this.avatarURLForEmail(email) : null
     this.setState({ name: name || '', email: email || '', avatarURL })
   }
