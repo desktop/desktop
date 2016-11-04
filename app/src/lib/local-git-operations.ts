@@ -1,7 +1,8 @@
 import * as Path from 'path'
 import { ChildProcess } from 'child_process'
+import { GitProcess, GitError } from 'git-kitchen-sink'
 
-import { git } from './git/core'
+import { git, GitError as InternalGitError } from './git/core'
 import { GitDiff } from './git/git-diff'
 
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
@@ -135,6 +136,12 @@ export const enum GitResetMode {
   Hard = 0,
   Soft,
   Mixed,
+}
+
+/** The number of commits a revision range is ahead/behind. */
+interface IAheadBehind {
+  readonly ahead: number
+  readonly behind: number
 }
 
 /**
@@ -430,7 +437,7 @@ export class LocalGitOperations {
 
   /** Fetch from the given remote. */
   public static fetch(repository: Repository, user: User | null, remote: string): Promise<void> {
-    return git([ 'fetch', remote ], repository.path, { env: LocalGitOperations.envForAuthentication(user) })
+    return git([ 'fetch', '--prune', remote ], repository.path, { env: LocalGitOperations.envForAuthentication(user) })
   }
 
   /** Get the remote names. */
@@ -676,6 +683,65 @@ export class LocalGitOperations {
     const modeFlag = resetModeToFlag(mode)
     await git([ 'reset', modeFlag, ref, '--' ], repository.path)
     return true
+  }
+
+  /** Calculate the number of commits `branch` is ahead/behind its upstream. */
+  public static async getBranchAheadBehind(repository: Repository, branch: Branch): Promise<IAheadBehind | null> {
+    if (branch.type === BranchType.Remote) {
+      return null
+    }
+
+    const upstream = branch.upstream
+    if (!upstream) { return null }
+
+    const range = `${branch.name}..${upstream}`
+    return this.getAheadBehind(repository, range)
+  }
+
+  /** Calculate the number of commits the range is ahead and behind. */
+  private static async getAheadBehind(repository: Repository, range: string): Promise<IAheadBehind | null> {
+    // `--left-right` annotates the list of commits in the range with which side
+    // they're coming from. When used with `--count`, it tells us how many
+    // commits we have from the two different sides of the range.
+    const args = [ 'rev-list', '--left-right', '--count', range, '--' ]
+    const result = await git(args, repository.path, { successExitCodes: new Set([ 0, 128 ]) })
+    if (result.exitCode === 128) {
+      const error = GitProcess.parseError(result.stderr)
+      // This means one of the refs (most likely the upstream branch) no longer
+      // exists. In that case we can't be ahead/behind at all.
+      if (error && error === GitError.BadRevision) {
+        return null
+      } else {
+        throw new InternalGitError(result, args, error)
+      }
+    }
+
+    const stdout = result.stdout
+    const pieces = stdout.split('\t')
+    if (pieces.length !== 2) { return null }
+
+    const ahead = parseInt(pieces[0], 10)
+    if (isNaN(ahead)) { return null }
+
+    const behind = parseInt(pieces[1], 10)
+    if (isNaN(behind)) { return null }
+
+    return { ahead, behind }
+  }
+
+  /**
+   * Update the ref to a new value.
+   *
+   * @param repository - The repository in which the ref exists.
+   * @param ref        - The ref to update. Must be fully qualified
+   *                     (e.g., `refs/heads/NAME`).
+   * @param oldValue   - The value we expect the ref to have currently. If it
+   *                     doesn't match, the update will be aborted.
+   * @param newValue   - The new value for the ref.
+   * @param reason     - The reflog entry.
+   */
+  public static async updateRef(repository: Repository, ref: string, oldValue: string, newValue: string, reason: string): Promise<void> {
+    await git([ 'update-ref', ref, newValue, oldValue, '-m', reason ], repository.path)
   }
 }
 

@@ -1,6 +1,7 @@
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { LocalGitOperations, Commit, Branch, BranchType, GitResetMode } from '../local-git-operations'
+import { User } from '../../models/user'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -327,9 +328,21 @@ export class GitStore {
   }
 
   /** Clear the contextual commit message. */
-  public clearContextualCommitMessage(repository: Repository): Promise<void> {
+  public clearContextualCommitMessage(): Promise<void> {
     this._contextualCommitMessage = null
     this.emitUpdate()
     return Promise.resolve()
+  }
+
+  /**
+   * Fetch, using the given user for authentication.
+   *
+   * @param user - The user to use for authentication if needed.
+   */
+  public async fetch(user: User | null): Promise<void> {
+    const remote = await LocalGitOperations.getDefaultRemote(this.repository)
+    if (!remote) { return }
+
+    return LocalGitOperations.fetch(this.repository, user, remote)
   }
 }

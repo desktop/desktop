@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.8",
+  "version": "0.0.11",
   "dependencies": {
     "ansi-html": {
       "version": "0.0.5",
@@ -18,9 +18,9 @@
       "resolved": "https://registry.npmjs.org/ansi-styles/-/ansi-styles-2.2.1.tgz"
     },
     "asap": {
-      "version": "2.0.4",
+      "version": "2.0.5",
       "from": "asap@>=2.0.3 <2.1.0",
-      "resolved": "https://registry.npmjs.org/asap/-/asap-2.0.4.tgz"
+      "resolved": "https://registry.npmjs.org/asap/-/asap-2.0.5.tgz"
     },
     "asn1": {
       "version": "0.2.3",
@@ -43,9 +43,9 @@
       "resolved": "https://registry.npmjs.org/aws-sign2/-/aws-sign2-0.6.0.tgz"
     },
     "aws4": {
-      "version": "1.4.1",
+      "version": "1.5.0",
       "from": "aws4@>=1.2.1 <2.0.0",
-      "resolved": "https://registry.npmjs.org/aws4/-/aws4-1.4.1.tgz"
+      "resolved": "https://registry.npmjs.org/aws4/-/aws4-1.5.0.tgz"
     },
     "babel-runtime": {
       "version": "6.11.6",
@@ -292,9 +292,9 @@
       "resolved": "https://registry.npmjs.org/extsprintf/-/extsprintf-1.0.2.tgz"
     },
     "fbjs": {
-      "version": "0.8.3",
-      "from": "fbjs@>=0.8.1 <0.9.0",
-      "resolved": "https://registry.npmjs.org/fbjs/-/fbjs-0.8.3.tgz",
+      "version": "0.8.5",
+      "from": "fbjs@>=0.8.4 <0.9.0",
+      "resolved": "https://registry.npmjs.org/fbjs/-/fbjs-0.8.5.tgz",
       "dependencies": {
         "core-js": {
           "version": "1.2.7",
@@ -309,9 +309,9 @@
       "resolved": "https://registry.npmjs.org/fd-slicer/-/fd-slicer-1.0.1.tgz"
     },
     "file-type": {
-      "version": "3.8.0",
+      "version": "3.9.0",
       "from": "file-type@>=3.8.0 <4.0.0",
-      "resolved": "https://registry.npmjs.org/file-type/-/file-type-3.8.0.tgz"
+      "resolved": "https://registry.npmjs.org/file-type/-/file-type-3.9.0.tgz"
     },
     "forever-agent": {
       "version": "0.6.1",
@@ -319,9 +319,9 @@
       "resolved": "https://registry.npmjs.org/forever-agent/-/forever-agent-0.6.1.tgz"
     },
     "form-data": {
-      "version": "2.0.0",
-      "from": "form-data@>=2.0.0 <2.1.0",
-      "resolved": "https://registry.npmjs.org/form-data/-/form-data-2.0.0.tgz"
+      "version": "2.1.1",
+      "from": "form-data@>=2.1.1 <2.2.0",
+      "resolved": "https://registry.npmjs.org/form-data/-/form-data-2.1.1.tgz"
     },
     "fs.realpath": {
       "version": "1.0.0",
@@ -361,9 +361,9 @@
       }
     },
     "git-kitchen-sink": {
-      "version": "1.11.0",
+      "version": "1.12.0",
       "from": "git-kitchen-sink@>=1.11.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/git-kitchen-sink/-/git-kitchen-sink-1.11.0.tgz"
+      "resolved": "https://registry.npmjs.org/git-kitchen-sink/-/git-kitchen-sink-1.12.0.tgz"
     },
     "glob": {
       "version": "7.0.5",
@@ -618,9 +618,9 @@
       "resolved": "https://registry.npmjs.org/nan/-/nan-2.3.2.tgz"
     },
     "node-fetch": {
-      "version": "1.5.3",
+      "version": "1.6.3",
       "from": "node-fetch@>=1.0.1 <2.0.0",
-      "resolved": "https://registry.npmjs.org/node-fetch/-/node-fetch-1.5.3.tgz"
+      "resolved": "https://registry.npmjs.org/node-fetch/-/node-fetch-1.6.3.tgz"
     },
     "node-status-codes": {
       "version": "2.0.1",
@@ -707,10 +707,15 @@
       "from": "promise@>=7.1.1 <8.0.0",
       "resolved": "https://registry.npmjs.org/promise/-/promise-7.1.1.tgz"
     },
+    "punycode": {
+      "version": "1.4.1",
+      "from": "punycode@>=1.4.1 <2.0.0",
+      "resolved": "https://registry.npmjs.org/punycode/-/punycode-1.4.1.tgz"
+    },
     "qs": {
-      "version": "6.2.1",
-      "from": "qs@>=6.2.0 <6.3.0",
-      "resolved": "https://registry.npmjs.org/qs/-/qs-6.2.1.tgz"
+      "version": "6.3.0",
+      "from": "qs@>=6.3.0 <6.4.0",
+      "resolved": "https://registry.npmjs.org/qs/-/qs-6.3.0.tgz"
     },
     "querystring": {
       "version": "0.2.0",
@@ -718,9 +723,9 @@
       "resolved": "https://registry.npmjs.org/querystring/-/querystring-0.2.0.tgz"
     },
     "react": {
-      "version": "15.3.0",
-      "from": "react@>=15.2.1 <16.0.0",
-      "resolved": "https://registry.npmjs.org/react/-/react-15.3.0.tgz"
+      "version": "15.3.2",
+      "from": "react@>=15.3.0 <16.0.0",
+      "resolved": "https://registry.npmjs.org/react/-/react-15.3.2.tgz"
     },
     "react-addons-shallow-compare": {
       "version": "15.3.0",
@@ -728,9 +733,9 @@
       "resolved": "https://registry.npmjs.org/react-addons-shallow-compare/-/react-addons-shallow-compare-15.3.0.tgz"
     },
     "react-dom": {
-      "version": "15.3.0",
-      "from": "react-dom@>=15.2.1 <16.0.0",
-      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.3.0.tgz"
+      "version": "15.3.2",
+      "from": "react-dom@>=15.3.0 <16.0.0",
+      "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.3.2.tgz"
     },
     "react-virtualized": {
       "version": "8.0.11",
@@ -748,9 +753,9 @@
       "resolved": "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.9.5.tgz"
     },
     "request": {
-      "version": "2.75.0",
+      "version": "2.76.0",
       "from": "request@>=2.74.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/request/-/request-2.75.0.tgz"
+      "resolved": "https://registry.npmjs.org/request/-/request-2.76.0.tgz"
     },
     "rimraf": {
       "version": "2.5.4",
@@ -849,9 +854,9 @@
       "resolved": "https://registry.npmjs.org/timed-out/-/timed-out-2.0.0.tgz"
     },
     "tough-cookie": {
-      "version": "2.3.1",
+      "version": "2.3.2",
       "from": "tough-cookie@>=2.3.0 <2.4.0",
-      "resolved": "https://registry.npmjs.org/tough-cookie/-/tough-cookie-2.3.1.tgz"
+      "resolved": "https://registry.npmjs.org/tough-cookie/-/tough-cookie-2.3.2.tgz"
     },
     "tunnel-agent": {
       "version": "0.4.3",
@@ -924,9 +929,9 @@
       "resolved": "https://registry.npmjs.org/xtend/-/xtend-4.0.1.tgz"
     },
     "yauzl": {
-      "version": "2.6.0",
+      "version": "2.7.0",
       "from": "yauzl@>=2.4.2 <3.0.0",
-      "resolved": "https://registry.npmjs.org/yauzl/-/yauzl-2.6.0.tgz"
+      "resolved": "https://registry.npmjs.org/yauzl/-/yauzl-2.7.0.tgz"
     }
   }
 }
