@@ -3,12 +3,12 @@
   flex-direction: row;
   justify-content: space-between;
 
-  padding: var(--spacing-half);
-
   border-top: var(--base-border);
   background: var(--box-alt-background-color);
 
   .commit-info {
+    padding: var(--spacing-half);
+
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -21,5 +21,12 @@
       font-weight: var(--font-weight-semibold);
       @include ellipsis;
     }
+  }
+
+  // We're creating this wrapper to be able to set the padding. If we had
+  // padding on #undo-commit, the enter/leave animate wouldn't animate the
+  // amount of the padding.
+  .actions {
+    padding: var(--spacing-half);
   }
 }

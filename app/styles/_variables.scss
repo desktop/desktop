@@ -202,4 +202,8 @@
   --diff-hover-background-color: #96b8ec;
   --diff-hover-border-color: #89a9dc;
   --diff-hover-text-color: var(--background-color);
+
+  // Note that this duration *must* match the `UndoCommitAnimationTimeout`
+  // specified in `changes/index.tsx`.
+  --undo-animation-duration: 500ms;
 }

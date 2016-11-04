@@ -61,3 +61,26 @@
     }
   }
 }
+
+.undo-enter {
+  max-height: 0;
+  overflow: hidden;
+}
+
+.undo-enter.undo-enter-active {
+  // It doesn't really matter what `maxHeight` we set here so long as it's
+  // greater than or equal to the height that `UndoCommit` will want.
+  max-height: 200px;
+
+  transition: max-height var(--undo-animation-duration) ease-in;
+}
+
+.undo-leave {
+  max-height: 200px;
+}
+
+.undo-leave.undo-leave-active {
+  max-height: 0;
+
+  transition: max-height var(--undo-animation-duration) ease-out;
+}
