@@ -694,7 +694,7 @@ export class LocalGitOperations {
     const upstream = branch.upstream
     if (!upstream) { return null }
 
-    const range = `${branch.name}..${upstream}`
+    const range = `${branch.name}...${upstream}`
     return this.getAheadBehind(repository, range)
   }
 
