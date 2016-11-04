@@ -1,6 +1,6 @@
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
-import { LocalGitOperations, Commit, Branch, BranchType, GitResetMode } from '../local-git-operations'
+import { LocalGitOperations, Commit, Branch, BranchType, GitResetMode, IAheadBehind } from '../local-git-operations'
 import { User } from '../../models/user'
 
 /** The number of commits to load from history per batch. */
@@ -40,7 +40,11 @@ export class GitStore {
 
   private _localCommitSHAs: ReadonlyArray<string> = []
 
-  private _contextualCommitMessage: ICommitMessage | null
+  private _contextualCommitMessage: ICommitMessage | null = null
+
+  private _aheadBehind: IAheadBehind | null = null
+
+  private _remoteName: string | null = null
 
   public constructor(repository: Repository) {
     this.repository = repository
@@ -340,9 +344,38 @@ export class GitStore {
    * @param user - The user to use for authentication if needed.
    */
   public async fetch(user: User | null): Promise<void> {
-    const remote = await LocalGitOperations.getDefaultRemote(this.repository)
+    const remote = this._remoteName
     if (!remote) { return }
 
     return LocalGitOperations.fetch(this.repository, user, remote)
   }
+
+  /** Calculate the ahead/behind for the current branch. */
+  public async calculateAheadBehindForCurrentBranch(): Promise<void> {
+    const branch = this._currentBranch
+    if (!branch) { return }
+
+    this._aheadBehind = await LocalGitOperations.getBranchAheadBehind(this.repository, branch)
+
+    this.emitUpdate()
+  }
+
+  /** Load the default remote. */
+  public async loadDefaultRemote(): Promise<void> {
+    this._remoteName = await LocalGitOperations.getDefaultRemote(this.repository)
+
+    this.emitUpdate()
+  }
+
+  /**
+   * The number of commits the current branch is ahead and behind, relative to
+   * its upstream.
+   *
+   * It will be `null` if ahead/behind hasn't been calculated yet, or if the
+   * branch doesn't have an upstream.
+   */
+  public get aheadBehind(): IAheadBehind | null { return this._aheadBehind }
+
+  /** Get the name of the remote we're working with. */
+  public get remoteName(): string | null { return this._remoteName }
 }

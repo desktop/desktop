@@ -155,6 +155,8 @@ export class AppStore {
       gitHubUsers: new Map<string, IGitHubUser>(),
       commits: new Map<string, Commit>(),
       localCommitSHAs: [],
+      aheadBehind: null,
+      remoteName: null,
     }
   }
 
@@ -172,6 +174,8 @@ export class AppStore {
         gitHubUsers,
         commits: state.commits,
         localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
       }
     }
 
@@ -197,6 +201,8 @@ export class AppStore {
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
         localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
       }
     })
   }
@@ -213,6 +219,8 @@ export class AppStore {
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
         localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
       }
     })
   }
@@ -229,6 +237,8 @@ export class AppStore {
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
         localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
       }
     })
   }
@@ -310,6 +320,8 @@ export class AppStore {
         gitHubUsers: state.gitHubUsers,
         commits: gitStore.commits,
         localCommitSHAs: gitStore.localCommitSHAs,
+        aheadBehind: gitStore.aheadBehind,
+        remoteName: gitStore.remoteName,
       }
     })
 
@@ -672,6 +684,8 @@ export class AppStore {
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
         localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
       }
     })
     this.emitUpdate()
@@ -851,14 +865,16 @@ export class AppStore {
 
     await gitStore.loadCurrentAndDefaultBranch()
 
+    // We don't need to await this. The GitStore will notify when something
+    // changes.
+    gitStore.loadBranches()
+    gitStore.loadDefaultRemote()
+    gitStore.calculateAheadBehindForCurrentBranch()
+
     // When refreshing we *always* load Changes so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
     // selected.
     await this._loadStatus(repository)
-
-    // We don't need to await this. The GitStore will notify when something
-    // changes.
-    gitStore.loadBranches()
 
     await this.refreshAuthor(repository)
 
@@ -913,6 +929,8 @@ export class AppStore {
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
         localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
       }
     })
     this.emitUpdate()
