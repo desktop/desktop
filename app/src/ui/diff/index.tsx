@@ -165,8 +165,8 @@ export class Diff extends React.Component<IDiffProps, void> {
       }
 
       const start = hunk.unifiedDiffStart
-      const length = hunk.unifiedDiffEnd - hunk.unifiedDiffStart
-      this.selection = new HunkSelection(start, length, desiredSelection, snapshot)
+      const end = hunk.unifiedDiffEnd
+      this.selection = new HunkSelection(start, end, desiredSelection, snapshot)
     } else {
       this.selection = new DragDropSelection(index, desiredSelection, snapshot)
     }
