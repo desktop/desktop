@@ -21,7 +21,7 @@ import { getDiffMode } from './diff-mode'
 import { ISelectionStrategy } from './selection/selection-strategy'
 import { DragDropSelection } from './selection/drag-drop-selection-strategy'
 import { HunkSelection } from './selection/hunk-selection-strategy'
-import { hoverCssClass } from './selection/selection'
+import { hoverCssClass, selectedLineClass } from './selection/selection'
 
 import { fatalError } from '../../lib/fatal-error'
 
@@ -87,12 +87,50 @@ export class Diff extends React.Component<IDiffProps, void> {
     // If we're reloading the same file, we want to save the current scroll
     // position and restore it after the diff's been updated.
     const sameFile = nextProps.file && this.props.file && nextProps.file.id === this.props.file.id
+
+    // Happy path, if the text hasn't changed we won't re-render
+    // and subsequently won't have to restore the scroll position.
+    const textHasChanged = nextProps.diff !== this.props.diff
+
     const codeMirror = this.codeMirror
-    if (codeMirror && sameFile) {
+    if (codeMirror && sameFile && textHasChanged) {
       const scrollInfo = codeMirror.getScrollInfo()
       this.scrollPositionToRestore = { left: scrollInfo.left, top: scrollInfo.top }
     } else {
       this.scrollPositionToRestore = null
+    }
+
+    // HACK: This entire section is a hack. Whenever we receive
+    // props we update all currently visible gutter elements with
+    // the selection state from the file.
+    if (nextProps.file instanceof WorkingDirectoryFileChange) {
+      const selection = nextProps.file.selection
+      const oldSelection = this.props.file instanceof WorkingDirectoryFileChange
+        ? this.props.file.selection
+        : null
+
+      // Nothing has changed
+      if (oldSelection === selection) { return }
+
+      const diff = nextProps.diff
+      this.cachedGutterElements.forEach((element, index) => {
+        const childSpan = element.children[0] as HTMLSpanElement
+        if (!childSpan) {
+          console.error('expected DOM element for diff gutter not found')
+          return
+        }
+
+        const line = diff.diffLineForIndex(index)
+        const isIncludable = line
+          ? line.type === DiffLineType.Add || line.type === DiffLineType.Delete
+          : false
+
+        if (selection.isSelected(index) && isIncludable) {
+          childSpan.classList.add(selectedLineClass)
+        } else {
+          childSpan.classList.remove(selectedLineClass)
+        }
+      })
     }
   }
 
@@ -127,8 +165,8 @@ export class Diff extends React.Component<IDiffProps, void> {
       }
 
       const start = hunk.unifiedDiffStart
-      const length = hunk.unifiedDiffEnd - hunk.unifiedDiffStart
-      this.selection = new HunkSelection(start, length, desiredSelection, snapshot)
+      const end = hunk.unifiedDiffEnd
+      this.selection = new HunkSelection(start, end, desiredSelection, snapshot)
     } else {
       this.selection = new DragDropSelection(index, desiredSelection, snapshot)
     }
@@ -225,18 +263,13 @@ export class Diff extends React.Component<IDiffProps, void> {
       const relativeIndex = index - hunk.unifiedDiffStart
       const diffLine = hunk.lines[relativeIndex]
       if (diffLine) {
-        let isIncluded = false
-        const file = this.props.file
-
-        if (file instanceof WorkingDirectoryFileChange) {
-          isIncluded = file.selection.isSelected(index)
-        }
-
         const diffLineElement = element.children[0] as HTMLSpanElement
 
         const reactContainer = document.createElement('span')
 
         const mouseEnterHandler = (ev: MouseEvent) => {
+          ev.preventDefault()
+
           if (!this.isIncludableLine(diffLine)) {
             return
           }
@@ -249,6 +282,8 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         const mouseLeaveHandler = (ev: MouseEvent) => {
+          ev.preventDefault()
+
           if (!this.isIncludableLine(diffLine)) {
             return
           }
@@ -261,11 +296,20 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         const mouseDownHandler = (ev: MouseEvent) => {
+          ev.preventDefault()
+
           const isHunkSelection = this.isMouseInLeftColumn(ev)
+
+          let isIncluded = false
+          if (this.props.file instanceof WorkingDirectoryFileChange) {
+            isIncluded = this.props.file.selection.isSelected(index)
+          }
           this.onMouseDown(index, isIncluded, isHunkSelection)
         }
 
         const mouseMoveHandler = (ev: MouseEvent) => {
+
+          ev.preventDefault()
 
           // ignoring anything from diff context rows
           if (!this.isIncludableLine(diffLine)) {
@@ -290,7 +334,11 @@ export class Diff extends React.Component<IDiffProps, void> {
           this.selection.paint(this.cachedGutterElements)
         }
 
-        const mouseUpHandler = (ev: UIEvent) => this.onMouseUp(index)
+        const mouseUpHandler = (ev: UIEvent) => {
+          ev.preventDefault()
+
+          this.onMouseUp(index)
+        }
 
         if (!this.props.readOnly) {
           reactContainer.addEventListener('mouseenter', mouseEnterHandler)
@@ -301,6 +349,11 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         this.cachedGutterElements.set(index, reactContainer)
+
+        let isIncluded = false
+        if (this.props.file instanceof WorkingDirectoryFileChange) {
+          isIncluded = this.props.file.selection.isSelected(index)
+        }
 
         ReactDOM.render(
           <DiffLineGutter line={diffLine}
@@ -406,6 +459,10 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
   }
 
+  private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
+    this.codeMirror = cmh === null ? null : cmh.getEditor()
+  }
+
   public render() {
 
     if (this.props.diff.imageDiff) {
@@ -444,7 +501,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         isSelectionEnabled={this.isSelectionEnabled}
         onChanges={this.onChanges}
         onRenderLine={this.renderLine}
-        ref={(cmh) => { this.codeMirror = cmh === null ? null : cmh.getEditor() }}
+        ref={this.getAndStoreCodeMirrorInstance}
       />
     )
   }
