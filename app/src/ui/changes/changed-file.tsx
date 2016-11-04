@@ -4,6 +4,7 @@ import { FileStatus } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from './checkbox'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IChangedFileProps {
   path: string
@@ -98,6 +99,7 @@ function iconForStatus(status: FileStatus): OcticonSymbol {
   if (status === FileStatus.Modified) { return OcticonSymbol.diffModified }
   if (status === FileStatus.Deleted) { return OcticonSymbol.diffRemoved }
   if (status === FileStatus.Renamed) { return OcticonSymbol.diffRenamed }
+  if (status === FileStatus.Conflicted) { return OcticonSymbol.alert }
 
-  return OcticonSymbol.diffModified
+  return assertNever(status, `Unknown file status ${status}`)
 }
