@@ -763,7 +763,13 @@ export class AppStore {
     })
 
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => LocalGitOperations.createCommit(repository, summary, description, files))
+
+    let message = summary
+    if (description.length > 0) {
+      message = `${summary}\n\n${description}`
+    }
+
+    await gitStore.performFailableOperation(() => LocalGitOperations.createCommit(repository, message, files))
 
     return this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
   }
