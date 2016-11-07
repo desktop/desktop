@@ -36,7 +36,7 @@ export class FileList extends React.Component<IFileListProps, void> {
     const file = this.props.files[row]
     const fileStatus = mapStatus(file.status)
 
-    return <div className='changed-file'>
+    return <div className='commit-file'>
       {this.renderPathLabel(file)}
 
       <div className={'status status-' + fileStatus.toLowerCase()} title={fileStatus}>
