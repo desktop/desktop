@@ -33,6 +33,7 @@ import { GitStore, ICommitMessage } from './git-store'
 import { assertNever } from '../fatal-error'
 import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './background-fetcher'
+import { formatCommitMessage } from '../format-commit-message'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -763,14 +764,12 @@ export class AppStore {
     })
 
     const gitStore = this.getGitStore(repository)
-
-    let msg = message.summary
-    if (message.description) {
-      msg += `\n\n${message.description}`
-    }
-
     await gitStore.performFailableOperation(() => {
-      return LocalGitOperations.createCommit(repository, msg, files)
+      return LocalGitOperations.createCommit(
+        repository,
+        formatCommitMessage(message),
+        files
+      )
     })
 
     return this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
