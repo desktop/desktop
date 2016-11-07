@@ -22,30 +22,47 @@ interface ICommitMessageProps {
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 }
 
-export class CommitMessage extends React.Component<ICommitMessageProps, void> {
+interface ICommitMessageState {
+  readonly summary: string | null
+  readonly description: string | null
+}
 
-  private getCurrentCommitMessage(): ICommitMessage {
-    return this.props.commitMessage
+export class CommitMessage extends React.Component<ICommitMessageProps, ICommitMessageState> {
+
+  public constructor(props: ICommitMessageProps) {
+    super(props)
+    this.state = { summary: null, description: null }
+  }
+
+  public componentWillReceiveProps(nextProps: ICommitMessageProps) {
+    if (!this.state.summary && !this.state.description) { return }
+
+    const msg = this.props.commitMessage
       || this.props.contextualCommitMessage
-      || { summary: '', description: '' }
+      || { summary: null, description: null }
+
+    this.setState({
+      summary: msg.summary,
+      description: msg.description,
+    })
+  }
+
+  private updateMessage(summary: string | null, description: string | null) {
+    const newState = {
+      summary: summary || this.state.summary,
+      description: description || this.state.description,
+    }
+
+    this.props.dispatcher.setCommitMessage(this.props.repository, newState as ICommitMessage)
+    this.setState(newState)
   }
 
   private handleSummaryChange(event: React.FormEvent<HTMLInputElement>) {
-    const currentMessage = this.getCurrentCommitMessage()
-    const newMessage = {
-      summary: event.currentTarget.value,
-      description: currentMessage.description,
-    }
-    this.props.dispatcher.setCommitMessage(this.props.repository, newMessage)
+    this.updateMessage(event.currentTarget.value, this.state.description)
   }
 
   private handleDescriptionChange(event: React.FormEvent<HTMLTextAreaElement>) {
-    const currentMessage = this.getCurrentCommitMessage()
-    const newMessage = {
-      summary: currentMessage.summary,
-      description: event.currentTarget.value,
-    }
-    this.props.dispatcher.setCommitMessage(this.props.repository, newMessage)
+    this.updateMessage(this.state.summary, event.currentTarget.value)
   }
 
   private handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {
@@ -55,14 +72,16 @@ export class CommitMessage extends React.Component<ICommitMessageProps, void> {
 
   private createCommit() {
     if (!this.canCommit) { return }
-    const msg = this.getCurrentCommitMessage()
-    this.props.onCreateCommit(msg.summary, msg.description)
+
+    this.props.onCreateCommit(this.state.summary!, description: this.state.description)
+
     this.props.dispatcher.setCommitMessage(this.props.repository, null)
   }
 
   private canCommit(): boolean {
-    const msg = this.getCurrentCommitMessage()
-    return this.props.anyFilesSelected && msg.summary.length > 0
+    return this.props.anyFilesSelected
+      && this.state.summary !== null
+      && this.state.summary.length > 0
   }
 
   private onKeyDown(event: React.KeyboardEvent<Element>) {
@@ -92,7 +111,6 @@ export class CommitMessage extends React.Component<ICommitMessageProps, void> {
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
     const buttonEnabled = this.canCommit()
-    const msg = this.getCurrentCommitMessage()
 
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>
@@ -101,7 +119,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, void> {
 
           <AutocompletingInput className='summary-field'
             placeholder='Summary'
-            value={msg.summary}
+            value={this.state.summary || ''}
             onChange={event => this.handleSummaryChange(event)}
             onKeyDown={event => this.onKeyDown(event)}
             autocompletionProviders={this.props.autocompletionProviders}/>
@@ -109,7 +127,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, void> {
 
         <AutocompletingTextArea className='description-field'
           placeholder='Description'
-          value={msg.description}
+          value={this.state.description || ''}
           onChange={event => this.handleDescriptionChange(event)}
           onKeyDown={event => this.onKeyDown(event)}
           autocompletionProviders={this.props.autocompletionProviders}/>
