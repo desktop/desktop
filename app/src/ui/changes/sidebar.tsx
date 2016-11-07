@@ -59,12 +59,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
 
       this.autocompletionProviders = autocompletionProviders
     }
-
-    if (props.changes.contextualCommitMessage) {
-      // Once we receive the contextual commit message we can clear it. We don't
-      // want to keep receiving it.
-      props.dispatcher.clearContextualCommitMessage(props.repository)
-    }
   }
 
   private onCreateCommit(message: ICommitMessage) {

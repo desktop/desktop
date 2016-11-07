@@ -29,28 +29,40 @@ interface ICommitMessageState {
 
 export class CommitMessage extends React.Component<ICommitMessageProps, ICommitMessageState> {
 
-  public constructor(props: ICommitMessageProps) {
-    super(props)
-    this.state = { summary: null, description: null }
+  public componentWillMount() {
+    this.receiveProps(this.props, true)
   }
 
   public componentWillReceiveProps(nextProps: ICommitMessageProps) {
-    if (!this.state.summary && !this.state.description) { return }
+    this.receiveProps(nextProps, false)
+  }
 
-    const msg = this.props.commitMessage
-      || this.props.contextualCommitMessage
-      || { summary: null, description: null }
-
-    this.setState({
-      summary: msg.summary,
-      description: msg.description,
-    })
+  public receiveProps(nextProps: ICommitMessageProps, initializing: boolean) {
+    if (nextProps.contextualCommitMessage) {
+      this.updateMessage(
+        nextProps.contextualCommitMessage.summary,
+        nextProps.contextualCommitMessage.description,
+      )
+      // Once we receive the contextual commit message we can clear it. We don't
+      // want to keep receiving it.
+      this.props.dispatcher.clearContextualCommitMessage(this.props.repository)
+    } else if (initializing || this.props.repository.id !== nextProps.repository.id) {
+      if (nextProps.commitMessage) {
+        // Don't have to update dispatcher here, we're receiving it
+        this.setState({
+          summary: nextProps.commitMessage.summary,
+          description: nextProps.commitMessage.description,
+        })
+      } else {
+        this.setState({ summary: '', description: null })
+      }
+    }
   }
 
   private updateMessage(summary: string | null, description: string | null) {
     const newState = {
-      summary: summary || this.state.summary,
-      description: description || this.state.description,
+      summary: summary === null ? this.state.summary : summary,
+      description: description === null ? this.state.description : description,
     }
 
     const newMessage = newState.summary
