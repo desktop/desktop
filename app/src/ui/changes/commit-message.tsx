@@ -37,7 +37,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     this.receiveProps(nextProps, false)
   }
 
-  public receiveProps(nextProps: ICommitMessageProps, initializing: boolean) {
+  private receiveProps(nextProps: ICommitMessageProps, initializing: boolean) {
     // This is rather gnarly. We want to persist the commit message (summary,
     // and description) in the dispatcher on a per-repository level (git-store).
     //
@@ -62,10 +62,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     // If we receive a contextual commit message we'll take that and disregard
     // anything currently in the textboxes (this might not be what we want).
     if (nextProps.contextualCommitMessage) {
-      this.updateMessage(
-        nextProps.contextualCommitMessage.summary,
-        nextProps.contextualCommitMessage.description,
-      )
+      this.updateState(nextProps.contextualCommitMessage)
       // Once we receive the contextual commit message we can clear it. We don't
       // want to keep receiving it.
       this.props.dispatcher.clearContextualCommitMessage(this.props.repository)
@@ -91,26 +88,27 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     this.props.dispatcher.setCommitMessage(this.props.repository, null)
   }
 
-  private updateMessage(summary: string | null, description: string | null) {
-    const newState = {
-      summary: summary === null ? this.state.summary : summary,
-      description: description === null ? this.state.description : description,
-    }
-
-    const newMessage = newState.summary
-      ? { summary: newState.summary, description: newState.description }
+  private updateState(state: ICommitMessageState | ICommitMessage) {
+    const newMessage = state.summary
+      ? { summary: state.summary, description: state.description }
       : null
 
     this.props.dispatcher.setCommitMessage(this.props.repository, newMessage)
-    this.setState(newState)
+    this.setState(state)
   }
 
   private handleSummaryChange(event: React.FormEvent<HTMLInputElement>) {
-    this.updateMessage(event.currentTarget.value, this.state.description)
+    this.updateState({
+      summary: event.currentTarget.value,
+      description: this.state.description,
+    })
   }
 
   private handleDescriptionChange(event: React.FormEvent<HTMLTextAreaElement>) {
-    this.updateMessage(this.state.summary, event.currentTarget.value)
+    this.updateState({
+      summary: this.state.summary,
+      description: event.currentTarget.value,
+    })
   }
 
   private handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {
