@@ -38,6 +38,29 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   }
 
   public receiveProps(nextProps: ICommitMessageProps, initializing: boolean) {
+    // This is rather gnarly. We want to persist the commit message (summary,
+    // and description) in the dispatcher on a per-repository level (git-store).
+    //
+    // Our dispatcher is asynchronous and only emits and update on animation
+    // frames. This is a great thing for performance but it gets real messy
+    // when you throw textboxes into the mix. If we went for a traditional
+    // approach of persisting the textbox values in the dispatcher and updating
+    // the virtual dom when we get new props there's an interim state which
+    // means that the browser can't keep track of the cursor for us, see:
+    //
+    //   http://stackoverflow.com/a/28922465
+    //
+    // So in order to work around that we keep the text values in the component
+    // state. Whenever they get updated we submit the update to the dispatcher
+    // but we disregard the message that flows to us on the subsequent animation
+    // frame unless we have switched repositories.
+    //
+    // Then there's the case when we're being mounted (think switching between
+    // history and changes tabs. In that case we have to rely on what's in the
+    // dispatcher since we don't have any state of our own.
+
+    // If we receive a contextual commit message we'll take that and disregard
+    // anything currently in the textboxes (this might not be what we want).
     if (nextProps.contextualCommitMessage) {
       this.updateMessage(
         nextProps.contextualCommitMessage.summary,
@@ -47,13 +70,17 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
       // want to keep receiving it.
       this.props.dispatcher.clearContextualCommitMessage(this.props.repository)
     } else if (initializing || this.props.repository.id !== nextProps.repository.id) {
+      // We're either initializing (ie being mounted) or someone has switched
+      // repositories. If we receieve a message we'll take it
       if (nextProps.commitMessage) {
-        // Don't have to update dispatcher here, we're receiving it
+        // Don't update dispatcher here, we're receiving it, could cause never-
+        // ending loop.
         this.setState({
           summary: nextProps.commitMessage.summary,
           description: nextProps.commitMessage.description,
         })
       } else {
+        // No message, assume clean slate
         this.setState({ summary: '', description: null })
       }
     }
