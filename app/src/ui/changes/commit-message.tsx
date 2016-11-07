@@ -86,6 +86,11 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     }
   }
 
+  private clearCommitMessage() {
+    this.setState({ summary: '', description: null })
+    this.props.dispatcher.setCommitMessage(this.props.repository, null)
+  }
+
   private updateMessage(summary: string | null, description: string | null) {
     const newState = {
       summary: summary === null ? this.state.summary : summary,
@@ -122,7 +127,8 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
       description: this.state.description,
     })
 
-    this.props.dispatcher.setCommitMessage(this.props.repository, null)
+    // TODO: We should really only do this if the commit succeeds
+    this.clearCommitMessage()
   }
 
   private canCommit(): boolean {
