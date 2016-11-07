@@ -1,4 +1,5 @@
 import { DiffSelection } from './diff'
+import { assertNever } from '../lib/fatal-error'
 
 /** the state of the changed file in the working directory */
 export enum FileStatus {
@@ -9,6 +10,20 @@ export enum FileStatus {
   Conflicted,
   Copied,
 }
+
+export function mapStatus(status: FileStatus): string {
+  switch (status) {
+    case FileStatus.New: return 'New'
+    case FileStatus.Modified: return 'Modified'
+    case FileStatus.Deleted: return 'Deleted'
+    case FileStatus.Renamed: return 'Renamed'
+    case FileStatus.Conflicted: return 'Conflicted'
+    case FileStatus.Copied: return 'Copied'
+  }
+
+  return assertNever(status, `Unknown file status ${status}`)
+}
+
 
 export class FileChange {
   /** the relative path to the file in the repository */

@@ -1,10 +1,9 @@
 import * as React from 'react'
 
-import { FileStatus } from '../../models/status'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { FileStatus, mapStatus } from '../../models/status'
+import { Octicon, OcticonSymbol, iconForStatus } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from './checkbox'
-import { assertNever } from '../../lib/fatal-error'
 
 interface IChangedFileProps {
   path: string
@@ -17,19 +16,6 @@ interface IChangedFileProps {
 
 /** a changed file in the working directory for a given repository */
 export class ChangedFile extends React.Component<IChangedFileProps, void> {
-
-  private static mapStatus(status: FileStatus): string {
-    switch (status) {
-      case FileStatus.New: return 'New'
-      case FileStatus.Modified: return 'Modified'
-      case FileStatus.Deleted: return 'Deleted'
-      case FileStatus.Renamed: return 'Renamed'
-      case FileStatus.Conflicted: return 'Conflicted'
-      case FileStatus.Copied: return 'Copied'
-    }
-
-    return assertNever(status, `Unknown file status ${status}`)
-  }
 
   private handleChange(event: React.FormEvent<HTMLInputElement>) {
     const include = event.currentTarget.checked
@@ -64,7 +50,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
   }
 
   public render() {
-    const fileStatus = ChangedFile.mapStatus(this.props.status)
+    const fileStatus = mapStatus(this.props.status)
 
     return (
       <div className='changed-file' onContextMenu={e => this.onContextMenu(e)}>
@@ -97,18 +83,4 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
       showContextualMenu([ item ])
     }
   }
-}
-
-function iconForStatus(status: FileStatus): OcticonSymbol {
-
-  switch (status) {
-    case FileStatus.New: return OcticonSymbol.diffAdded
-    case FileStatus.Modified: return OcticonSymbol.diffModified
-    case FileStatus.Deleted: return OcticonSymbol.diffRemoved
-    case FileStatus.Renamed: return OcticonSymbol.diffRenamed
-    case FileStatus.Conflicted: return OcticonSymbol.alert
-    case FileStatus.Copied: return OcticonSymbol.diffAdded
-  }
-
-  return assertNever(status, `Unknown file status ${status}`)
 }
