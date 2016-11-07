@@ -14,7 +14,7 @@ const RecentBranchesLimit = 5
 /** A commit message summary and description. */
 export interface ICommitMessage {
   readonly summary: string
-  readonly description: string
+  readonly description: string | null
 }
 
 /** The store for a repository's git data. */

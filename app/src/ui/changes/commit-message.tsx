@@ -23,7 +23,7 @@ interface ICommitMessageProps {
 }
 
 interface ICommitMessageState {
-  readonly summary: string | null
+  readonly summary: string
   readonly description: string | null
 }
 
@@ -53,7 +53,11 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
       description: description || this.state.description,
     }
 
-    this.props.dispatcher.setCommitMessage(this.props.repository, newState as ICommitMessage)
+    const newMessage = newState.summary
+      ? { summary: newState.summary, description: newState.description }
+      : null
+
+    this.props.dispatcher.setCommitMessage(this.props.repository, newMessage)
     this.setState(newState)
   }
 
@@ -123,7 +127,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
           <AutocompletingInput className='summary-field'
             placeholder='Summary'
-            value={this.state.summary || ''}
+            value={this.state.summary}
             onChange={event => this.handleSummaryChange(event)}
             onKeyDown={event => this.onKeyDown(event)}
             autocompletionProviders={this.props.autocompletionProviders}/>
