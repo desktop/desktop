@@ -10,7 +10,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 
 interface ICommitMessageProps {
-  readonly onCreateCommit: (summary: string, description: string) => void
+  readonly onCreateCommit: (message: ICommitMessage) => void
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly avatarURL: string
@@ -73,7 +73,11 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   private createCommit() {
     if (!this.canCommit) { return }
 
-    this.props.onCreateCommit(this.state.summary!, description: this.state.description)
+    this.props.onCreateCommit({
+      // We know that summary is non-null thanks to canCommit
+      summary: this.state.summary!,
+      description: this.state.description,
+    })
 
     this.props.dispatcher.setCommitMessage(this.props.repository, null)
   }

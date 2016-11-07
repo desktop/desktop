@@ -21,7 +21,7 @@ interface IChangesListProps {
   readonly onFileSelectionChanged: (row: number) => void
   readonly onIncludeChanged: (row: number, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
-  readonly onCreateCommit: (summary: string, description: string) => void
+  readonly onCreateCommit: (message: ICommitMessage) => void
   readonly onDiscardChanges: (row: number) => void
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
@@ -104,7 +104,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               invalidationProps={this.props.workingDirectory}
               onRowKeyDown={this.props.onRowKeyDown} />
 
-        <CommitMessage onCreateCommit={(summary, description) => this.props.onCreateCommit(summary, description)}
+        <CommitMessage onCreateCommit={this.props.onCreateCommit}
                        branch={this.props.branch}
                        avatarURL={this.props.avatarURL}
                        commitAuthor={this.props.commitAuthor}

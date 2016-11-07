@@ -9,6 +9,7 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { Commit } from '../../lib/local-git-operations'
 import { UndoCommit } from './undo-commit'
 import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocompletionProvider } from '../autocompletion'
+import { ICommitMessage } from '../../lib/app-state'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -66,8 +67,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     }
   }
 
-  private onCreateCommit(summary: string, description: string) {
-    this.props.dispatcher.commitIncludedChanges(this.props.repository, summary, description)
+  private onCreateCommit(message: ICommitMessage) {
+    this.props.dispatcher.commitIncludedChanges(this.props.repository, message)
   }
 
   private onFileSelectionChanged(row: number) {
@@ -178,7 +179,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           workingDirectory={changesState.workingDirectory}
           selectedPath={selectedPath}
           onFileSelectionChanged={file => this.onFileSelectionChanged(file) }
-          onCreateCommit={(summary, description) => this.onCreateCommit(summary, description)}
+          onCreateCommit={(message) => this.onCreateCommit(message)}
           onIncludeChanged={(row, include) => this.onIncludeChanged(row, include)}
           onSelectAll={selectAll => this.onSelectAll(selectAll)}
           onDiscardChanges={row => this.onDiscardChanges(row)}
