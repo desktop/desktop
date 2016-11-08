@@ -381,8 +381,24 @@ export class LocalGitOperations {
   }
 
   /** Look up a config value by name in the repository. */
-  public static async getConfigValue(repository: Repository, name: string): Promise<string | null> {
-    const result = await git([ 'config', '-z', name ], repository.path, { successExitCodes:  new Set([ 0, 1 ]) })
+  public static getConfigValue(repository: Repository, name: string): Promise<string | null> {
+    return this.getConfigValueInPath(name, repository.path)
+  }
+
+  /** Look up a global config value by name. */
+  public static getGlobalConfigValue(name: string): Promise<string | null> {
+    return this.getConfigValueInPath(name, null)
+  }
+
+  private static async getConfigValueInPath(name: string, path: string | null): Promise<string | null> {
+    const flags = [ 'config', '-z' ]
+    if (!path) {
+      flags.push('--global')
+    }
+
+    flags.push(name)
+
+    const result = await git(flags, path || __dirname, { successExitCodes:  new Set([ 0, 1 ]) })
     // Git exits with 1 if the value isn't found. That's OK.
     if (result.exitCode === 1) {
       return null
@@ -391,6 +407,11 @@ export class LocalGitOperations {
     const output = result.stdout
     const pieces = output.split('\0')
     return pieces[0]
+  }
+
+  /** Set the local config value by name. */
+  public static setGlobalConfigValue(name: string, value: string): Promise<void> {
+    return git([ 'config', '--global', name, value ], __dirname)
   }
 
   private static getAskPassTrampolinePath(): string {
