@@ -168,11 +168,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     return (
       <div id='changes-sidebar-contents'>
         <ChangesList
-<<<<<<< HEAD
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
-=======
->>>>>>> master
           workingDirectory={changesState.workingDirectory}
           selectedPath={selectedPath}
           onFileSelectionChanged={file => this.onFileSelectionChanged(file) }
