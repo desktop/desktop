@@ -5,6 +5,7 @@ import { Start } from './start'
 import { SignInDotCom } from './sign-in-dot-com'
 import { SignInEnterprise } from './sign-in-enterprise'
 import { ConfigureGit } from './configure-git'
+import { UiView } from '../ui-view'
 
 /** The steps along the Welcome flow. */
 export enum WelcomeStep {
@@ -56,9 +57,9 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
 
   public render() {
     return (
-      <div id='welcome'>
+      <UiView id='welcome'>
         {this.componentForCurrentStep()}
-      </div>
+      </UiView>
     )
   }
 }
