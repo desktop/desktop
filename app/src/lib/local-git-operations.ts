@@ -172,6 +172,12 @@ export class LocalGitOperations {
     if (status === 'UU') { return FileStatus.Conflicted }   // Unmerged, both modified
     if (status === '??') { return FileStatus.New }          // untracked
 
+    // git log -M --name-status will return a RXXX - where XXX is a percentage
+    if (status.match(/R[0-9]{3}/)) { return FileStatus.Renamed }
+
+    // git log -C --name-status will return a CXXX - where XXX is a percentage
+    if (status.match(/C[0-9]{3}/)) { return FileStatus.Copied }
+
     return FileStatus.Modified
   }
 
@@ -337,7 +343,12 @@ export class LocalGitOperations {
 
   /** Get the files that were changed in the given commit. */
   public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
-    const result = await git([ 'log', sha, '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z' ], repository.path)
+    // opt-in for rename detection (-M) and copies detection (-C)
+    // this is equivalent to the user configuring 'diff.renames' to 'copies'
+    // NOTE: order here matters - doing -M before -C means copies aren't detected
+    const args = [ 'log', sha, '-C', '-M', '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z' ]
+    const result = await git(args, repository.path)
+
     const out = result.stdout
     const lines = out.split('\0')
     // Remove the trailing empty line
@@ -346,9 +357,18 @@ export class LocalGitOperations {
     const files: FileChange[] = []
     for (let i = 0; i < lines.length; i++) {
       const statusText = lines[i]
+
       const status = this.mapStatus(statusText)
-      const name = lines[++i]
-      files.push(new FileChange(name, status))
+
+      let oldPath: string | undefined = undefined
+
+      if (status === FileStatus.Renamed || status === FileStatus.Copied) {
+        oldPath = lines[++i]
+      }
+
+      const path = lines[++i]
+
+      files.push(new FileChange(path, status, oldPath))
     }
 
     return files

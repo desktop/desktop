@@ -49,6 +49,7 @@ function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
     case FileStatus.Renamed:
     case FileStatus.Deleted:
     case FileStatus.Modified:
+    case FileStatus.Copied:
       return formatPatchHeader(file.path, file.path)
   }
 
