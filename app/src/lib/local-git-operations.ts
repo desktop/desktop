@@ -348,7 +348,11 @@ export class LocalGitOperations {
 
   /** Get the files that were changed in the given commit. */
   public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
-    const result = await git([ 'log', sha, '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z' ], repository.path)
+
+    // diff.renames affects this behaviour, so we're overriding it here to
+    // disable detecting copies if the user has this set in their global config
+
+    const result = await git([ '-c', 'diff.renames=true', 'log', sha, '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z' ], repository.path)
     const out = result.stdout
     const lines = out.split('\0')
     // Remove the trailing empty line
