@@ -1,0 +1,50 @@
+#welcome {
+  align-items: center;
+  justify-content: center;
+
+  #start {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #sign-in-dot-com {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    #sign-in-form {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  #configure-git {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 432px;
+
+    .description {
+      text-align: center;
+    }
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+
+    input {
+      flex: 1;
+    }
+  }
+
+  .actions {
+    display: flex;
+    flex-direction: row;
+
+    button {
+      margin: var(--spacing-half);
+    }
+  }
+}

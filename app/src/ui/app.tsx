@@ -3,7 +3,6 @@ import { ipcRenderer, remote } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
-import { NotLoggedIn } from './not-logged-in'
 import { WindowControls } from './window/window-controls'
 import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
@@ -26,6 +25,7 @@ import { updateStore, UpdateState } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { MenuIDs } from '../main-process/menu'
 import { StatsStore, ILaunchStats } from '../lib/stats'
+import { Welcome } from './welcome'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -513,11 +513,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private renderNotLoggedIn() {
+  private renderWelcomeFlow() {
     return (
-      <div id='desktop-app-contents'>
-        <NotLoggedIn dispatcher={this.props.dispatcher}/>
-      </div>
+      <Welcome dispatcher={this.props.dispatcher} appStore={this.props.appStore}/>
     )
   }
 
@@ -525,7 +523,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <div id='desktop-app-chrome'>
         {this.renderTitlebar()}
-        {this.state.users.length > 0 ? this.renderApp() : this.renderNotLoggedIn()}
+        {this.state.showWelcomeFlow ? this.renderWelcomeFlow() : this.renderApp()}
       </div>
     )
   }

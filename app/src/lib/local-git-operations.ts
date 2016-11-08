@@ -172,6 +172,12 @@ export class LocalGitOperations {
     if (status === 'UU') { return FileStatus.Conflicted }   // Unmerged, both modified
     if (status === '??') { return FileStatus.New }          // untracked
 
+    // git log -M --name-status will return a RXXX - where XXX is a percentage
+    if (status.match(/R[0-9]{3}/)) { return FileStatus.Renamed }
+
+    // git log -C --name-status will return a CXXX - where XXX is a percentage
+    if (status.match(/C[0-9]{3}/)) { return FileStatus.Copied }
+
     return FileStatus.Modified
   }
 
@@ -337,7 +343,12 @@ export class LocalGitOperations {
 
   /** Get the files that were changed in the given commit. */
   public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
-    const result = await git([ 'log', sha, '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z' ], repository.path)
+    // opt-in for rename detection (-M) and copies detection (-C)
+    // this is equivalent to the user configuring 'diff.renames' to 'copies'
+    // NOTE: order here matters - doing -M before -C means copies aren't detected
+    const args = [ 'log', sha, '-C', '-M', '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z' ]
+    const result = await git(args, repository.path)
+
     const out = result.stdout
     const lines = out.split('\0')
     // Remove the trailing empty line
@@ -346,9 +357,18 @@ export class LocalGitOperations {
     const files: FileChange[] = []
     for (let i = 0; i < lines.length; i++) {
       const statusText = lines[i]
+
       const status = this.mapStatus(statusText)
-      const name = lines[++i]
-      files.push(new FileChange(name, status))
+
+      let oldPath: string | undefined = undefined
+
+      if (status === FileStatus.Renamed || status === FileStatus.Copied) {
+        oldPath = lines[++i]
+      }
+
+      const path = lines[++i]
+
+      files.push(new FileChange(path, status, oldPath))
     }
 
     return files
@@ -381,8 +401,24 @@ export class LocalGitOperations {
   }
 
   /** Look up a config value by name in the repository. */
-  public static async getConfigValue(repository: Repository, name: string): Promise<string | null> {
-    const result = await git([ 'config', '-z', name ], repository.path, { successExitCodes:  new Set([ 0, 1 ]) })
+  public static getConfigValue(repository: Repository, name: string): Promise<string | null> {
+    return this.getConfigValueInPath(name, repository.path)
+  }
+
+  /** Look up a global config value by name. */
+  public static getGlobalConfigValue(name: string): Promise<string | null> {
+    return this.getConfigValueInPath(name, null)
+  }
+
+  private static async getConfigValueInPath(name: string, path: string | null): Promise<string | null> {
+    const flags = [ 'config', '-z' ]
+    if (!path) {
+      flags.push('--global')
+    }
+
+    flags.push(name)
+
+    const result = await git(flags, path || __dirname, { successExitCodes:  new Set([ 0, 1 ]) })
     // Git exits with 1 if the value isn't found. That's OK.
     if (result.exitCode === 1) {
       return null
@@ -391,6 +427,11 @@ export class LocalGitOperations {
     const output = result.stdout
     const pieces = output.split('\0')
     return pieces[0]
+  }
+
+  /** Set the local config value by name. */
+  public static setGlobalConfigValue(name: string, value: string): Promise<void> {
+    return git([ 'config', '--global', name, value ], __dirname)
   }
 
   private static getAskPassTrampolinePath(): string {

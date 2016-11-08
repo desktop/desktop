@@ -6,7 +6,8 @@ export enum FileStatus {
   Modified,
   Deleted,
   Renamed,
-  Conflicted
+  Conflicted,
+  Copied,
 }
 
 export class FileChange {
