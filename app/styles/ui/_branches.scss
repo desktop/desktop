@@ -1,5 +1,10 @@
+#branches {
+  padding: var(--spacing);
+  height: 100%;
+}
+
 .branches-list-container {
-  height: 200px;
+  height: 100%;
   display: flex;
 
   .branches-list-content {
