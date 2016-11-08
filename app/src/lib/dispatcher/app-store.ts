@@ -1116,8 +1116,6 @@ export class AppStore {
       }
     })
 
-    this.emitUpdate()
-
     return this._refreshRepository(repository)
   }
 
@@ -1276,8 +1274,6 @@ export class AppStore {
       await gitStore.fetch(user)
       await this.fastForwardBranches(repository)
     })
-
-    this.emitUpdate()
 
     return this._refreshRepository(repository)
   }
