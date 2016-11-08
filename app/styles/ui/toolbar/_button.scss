@@ -5,7 +5,8 @@
   border: none;
   box-shadow: none;
   border-radius: 0;
-  background-color: transparent;
+  background-color: var(--toolbar-button-background-color);
+  color: var(--toolbar-button-color);
   text-align: left;
   margin: 0;
   padding: 0;
@@ -13,7 +14,7 @@
   // Reset
   &:active { box-shadow: none; }
 
-  border-right: 1px solid var(--box-border-color);
+  border-right: 1px solid var(--toolbar-button-border-color);
 
   // NB This is important, without this the button
   // element will add an extra 3px of invisible padding
@@ -34,18 +35,23 @@
   }
 
   &:not(:disabled):hover {
-    background-color: var(--box-hover-background-color);
-    color: var(--box-hover-text-color);
+    background-color: var(--toolbar-button-hover-background-color);
+    color: var(--toolbar-button-hover-color);
+    border-color: var(--toolbar-button-hover-border-color);
+
+    .description {
+      color: var(--toolbar-button-secondary-color);
+    }
   }
 
   &.dropdown.open {
-    color: var(--box-selected-text-color);
-    background-color: var(--box-selected-background-color);
+    color: var(--toolbar-button-active-color);
+    background-color: var(--toolbar-button-active-background-color);
 
     // The foldout doesn't have a border so we have to either
     // color ours or remove it entirely for us to match the
     // min-width of the foldout.
-    border-right-color: var(--box-selected-background-color);
+    border-color: var(--toolbar-button-active-border-color);
   }
 
   .icon {
@@ -70,7 +76,7 @@
   }
 
   .description {
-    color: var(--text-secondary-color);
+    color: var(--toolbar-button-secondary-color);
     font-size: var(--font-size-sm);
   }
 
@@ -79,6 +85,6 @@
   // @TODO: Proper focus state
   &:focus {
     outline: none;
-    border-color: var(--box-border-color);
+    border-color: var(--toolbar-button-border-color);
   }
 }
