@@ -11,7 +11,6 @@
   // color is being used. Note that these variables should _never_ be
   // used outside of this scope.
   $blue: #4ca6eb;
-  $orange: #c9510c;
   $yellow: #d0b44c;
   $red: #d0b44c;
   $green: #6cc644;
@@ -119,7 +118,7 @@
   /**
    * Background color for selected boxes with active keyboard focus
    */
-  --box-selected-active-background-color: $orange;
+  --box-selected-active-background-color: $blue;
 
   /**
    * Text color for selected boxes with active keyboard focus
@@ -171,7 +170,7 @@
   --foldout-z-index: calc(var(--popup-z-index) - 2);
 
   /** The highlight color used for focus rings and focus box shadows */
-  --focus-color: $orange;
+  --focus-color: $blue;
 
   /**
    * Diff view
