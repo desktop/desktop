@@ -4,7 +4,7 @@ import { WelcomeStep } from './welcome'
 
 const CreateAccountURL = 'https://github.com/join?source=github-desktop'
 
-const WelcomeImageUri = 'file:///${__dirname}/static/space.png'
+const WelcomeImageUri = `file:///${__dirname}/static/space.png`
 const WelcomeImageDimensions = { width: 552, height: 307 }
 
 interface IStartProps {
