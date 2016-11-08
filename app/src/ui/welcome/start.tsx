@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { shell } from 'electron'
 import { WelcomeStep } from './welcome'
+import { LinkButton } from '../lib/link-button'
 
 const CreateAccountURL = 'https://github.com/join?source=github-desktop'
 
@@ -27,9 +27,9 @@ export class Start extends React.Component<IStartProps, void> {
         </div>
 
         <div>
-          <a href='' onClick={e => this.createAccount(e)}>Create an account</a>
+          <LinkButton uri={CreateAccountURL}>Create an account</LinkButton>
           {' or '}
-          <a href='' onClick={e => this.skip(e)}>skip this step</a>
+          <LinkButton onClick={() => this.skip()}>skip this step</LinkButton>
         </div>
       </div>
     )
@@ -43,15 +43,7 @@ export class Start extends React.Component<IStartProps, void> {
     this.props.advance(WelcomeStep.SignInToEnterprise)
   }
 
-  private createAccount(event: React.MouseEvent<HTMLAnchorElement>) {
-    event.preventDefault()
-
-    shell.openExternal(CreateAccountURL)
-  }
-
-  private skip(event: React.MouseEvent<HTMLAnchorElement>) {
-    event.preventDefault()
-
+  private skip() {
     this.props.advance(WelcomeStep.ConfigureGit)
   }
 }

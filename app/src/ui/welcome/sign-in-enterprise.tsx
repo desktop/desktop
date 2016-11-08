@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
+import { Button } from '../lib/button'
 
 interface ISignInEnterpriseProps {
   readonly advance: (step: WelcomeStep) => void
@@ -14,7 +15,7 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, vo
         <h1>We can't do this yet!</h1>
 
         <div className='actions'>
-          <button onClick={() => this.everSoSorry()}>Ever so sorry</button>
+          <Button onClick={() => this.everSoSorry()}>Ever so sorry</Button>
         </div>
       </div>
     )

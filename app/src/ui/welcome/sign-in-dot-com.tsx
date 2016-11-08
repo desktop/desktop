@@ -1,7 +1,8 @@
 import * as React from 'react'
-import { shell } from 'electron'
 import { WelcomeStep } from './welcome'
 import { Dispatcher } from '../../lib/dispatcher'
+import { LinkButton } from '../lib/link-button'
+import { Button } from '../lib/button'
 
 const ForgotPasswordURL = 'https://github.com/password_reset'
 
@@ -41,11 +42,11 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
             <input type='password' onChange={e => this.onPasswordChange(e)}/>
           </label>
 
-          <a href='' onClick={e => this.forgotPassword(e)}>Forgot password?</a>
+          <LinkButton uri={ForgotPasswordURL}>Forgot password?</LinkButton>
 
           <div className='actions'>
-            <button type='submit' disabled={signInDisabled}>Sign in (But not really. Use the browser for now please and thank you.)</button>
-            <button onClick={e => this.cancel(e)}>Cancel</button>
+            <Button type='submit' disabled={signInDisabled}>Sign in (But not really. Use the browser for now please and thank you.)</Button>
+            <Button onClick={() => this.cancel()}>Cancel</Button>
           </div>
 
           <div>or</div>
@@ -70,12 +71,6 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     })
   }
 
-  private forgotPassword(event: React.MouseEvent<HTMLAnchorElement>) {
-    event.preventDefault()
-
-    shell.openExternal(ForgotPasswordURL)
-  }
-
   private async signInWithBrowser(event: React.MouseEvent<HTMLAnchorElement>) {
     event.preventDefault()
 
@@ -84,7 +79,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     this.advance()
   }
 
-  private cancel(event: React.MouseEvent<HTMLButtonElement>) {
+  private cancel() {
     this.props.advance(WelcomeStep.Start)
   }
 
