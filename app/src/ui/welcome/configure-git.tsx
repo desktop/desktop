@@ -1,12 +1,10 @@
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
-import { Dispatcher } from '../../lib/dispatcher'
 import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
 import { CommitListItem } from '../history/commit-list-item'
 import { User } from '../../models/user'
 
 interface IConfigureGitProps {
-  readonly dispatcher: Dispatcher
   readonly users: ReadonlyArray<User>
   readonly advance: (step: WelcomeStep) => void
   readonly cancel: () => void

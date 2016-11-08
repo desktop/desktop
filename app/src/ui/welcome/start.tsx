@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { shell } from 'electron'
 import { WelcomeStep } from './welcome'
-import { Dispatcher } from '../../lib/dispatcher'
 
 const CreateAccountURL = 'https://github.com/join?source=github-desktop'
 
@@ -9,7 +8,6 @@ const WelcomeImageUri = 'file:///${__dirname}/static/space.png'
 const WelcomeImageDimensions = { width: 552, height: 307 }
 
 interface IStartProps {
-  readonly dispatcher: Dispatcher
   readonly advance: (step: WelcomeStep) => void
   readonly cancel: () => void
 }

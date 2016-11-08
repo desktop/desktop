@@ -1,9 +1,7 @@
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
-import { Dispatcher } from '../../lib/dispatcher'
 
 interface ISignInEnterpriseProps {
-  readonly dispatcher: Dispatcher
   readonly advance: (step: WelcomeStep) => void
   readonly cancel: () => void
 }
