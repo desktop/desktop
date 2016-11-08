@@ -173,7 +173,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     return (
       <div id='changes-sidebar-contents'>
         <ChangesList
-          repository={this.props.repository}
           workingDirectory={changesState.workingDirectory}
           selectedPath={selectedPath}
           onFileSelectionChanged={file => this.onFileSelectionChanged(file) }
@@ -186,8 +185,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           branch={this.props.branch}
           avatarURL={avatarURL}
           contextualCommitMessage={this.props.changes.contextualCommitMessage}
-          autocompletionProviders={this.autocompletionProviders!}/>
-
+          autocompletionProviders={this.autocompletionProviders!}
+        />
           {this.renderMostRecentLocalCommit()}
       </div>
     )
