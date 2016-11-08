@@ -468,6 +468,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
     return <ToolbarDropdown
+      className='branch-button'
       icon={OcticonSymbol.gitBranch}
       title={title}
       description='Current branch'

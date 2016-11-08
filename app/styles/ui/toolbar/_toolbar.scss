@@ -36,6 +36,12 @@
       flex-grow: 1;
     }
   }
+
+  .toolbar-button {
+    &.branch-button {
+      width: 220px;
+    }
+  }
 }
 
 /* Toolbar negative margin hackery
