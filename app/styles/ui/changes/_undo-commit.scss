@@ -7,7 +7,7 @@
   background: var(--box-alt-background-color);
 
   .commit-info {
-    padding: var(--spacing-half);
+    padding: var(--spacing);
 
     min-width: 0;
     display: flex;
@@ -28,6 +28,6 @@
   // padding on #undo-commit, the enter/leave animate wouldn't animate the
   // amount of the padding.
   .actions {
-    padding: var(--spacing-half);
+    padding: var(--spacing);
   }
 }
