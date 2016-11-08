@@ -132,6 +132,6 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
   private cancel(event: React.FormEvent<HTMLButtonElement>) {
     event.preventDefault()
 
-    this.props.cancel()
+    this.props.advance(WelcomeStep.Start)
   }
 }

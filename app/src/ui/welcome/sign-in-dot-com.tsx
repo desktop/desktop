@@ -85,9 +85,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   }
 
   private cancel(event: React.MouseEvent<HTMLButtonElement>) {
-    event.preventDefault()
-
-    this.advance()
+    this.props.advance(WelcomeStep.Start)
   }
 
   private advance() {
