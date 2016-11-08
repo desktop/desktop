@@ -498,6 +498,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           style={{ width: this.state.sidebarWidth }}>
           {this.renderRepositoryToolbarButton()}
         </div>
+        {this.renderBranchToolbarButton()}
       </Toolbar>
     )
   }
