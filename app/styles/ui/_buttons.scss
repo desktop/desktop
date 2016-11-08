@@ -28,3 +28,7 @@
 
   &:disabled { opacity: 0.3; }
 }
+
+a.link-button-component {
+  color: var(--link-button-color);
+}
