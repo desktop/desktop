@@ -161,4 +161,7 @@ export interface IChangesState {
    * message from a recently undone commit.
    */
   readonly contextualCommitMessage: ICommitMessage | null
+
+  /** The commit message for a work-in-progress commit in the changes view. */
+  readonly commitMessage: ICommitMessage | null
 }

@@ -9,6 +9,7 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { Commit } from '../../lib/local-git-operations'
 import { UndoCommit } from './undo-commit'
 import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocompletionProvider } from '../autocompletion'
+import { ICommitMessage } from '../../lib/app-state'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -58,16 +59,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
 
       this.autocompletionProviders = autocompletionProviders
     }
-
-    if (props.changes.contextualCommitMessage) {
-      // Once we receive the contextual commit message we can clear it. We don't
-      // want to keep receiving it.
-      props.dispatcher.clearContextualCommitMessage(props.repository)
-    }
   }
 
-  private onCreateCommit(summary: string, description: string) {
-    this.props.dispatcher.commitIncludedChanges(this.props.repository, summary, description)
+  private onCreateCommit(message: ICommitMessage) {
+    this.props.dispatcher.commitIncludedChanges(this.props.repository, message)
   }
 
   private onFileSelectionChanged(row: number) {
@@ -173,11 +168,12 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     return (
       <div id='changes-sidebar-contents'>
         <ChangesList
+          dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           workingDirectory={changesState.workingDirectory}
           selectedPath={selectedPath}
           onFileSelectionChanged={file => this.onFileSelectionChanged(file) }
-          onCreateCommit={(summary, description) => this.onCreateCommit(summary, description)}
+          onCreateCommit={(message) => this.onCreateCommit(message)}
           onIncludeChanged={(row, include) => this.onIncludeChanged(row, include)}
           onSelectAll={selectAll => this.onSelectAll(selectAll)}
           onDiscardChanges={row => this.onDiscardChanges(row)}
@@ -185,9 +181,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
           avatarURL={avatarURL}
+          commitMessage={this.props.changes.commitMessage}
           contextualCommitMessage={this.props.changes.contextualCommitMessage}
-          autocompletionProviders={this.autocompletionProviders!}/>
-
+          autocompletionProviders={this.autocompletionProviders!}
+        />
           {this.renderMostRecentLocalCommit()}
       </div>
     )

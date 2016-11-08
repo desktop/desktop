@@ -14,7 +14,7 @@ const RecentBranchesLimit = 5
 /** A commit message summary and description. */
 export interface ICommitMessage {
   readonly summary: string
-  readonly description: string
+  readonly description: string | null
 }
 
 /** The store for a repository's git data. */
@@ -40,7 +40,8 @@ export class GitStore {
 
   private _localCommitSHAs: ReadonlyArray<string> = []
 
-  private _contextualCommitMessage: ICommitMessage | null = null
+  private _commitMessage: ICommitMessage | null
+  private _contextualCommitMessage: ICommitMessage | null
 
   private _aheadBehind: IAheadBehind | null = null
 
@@ -323,6 +324,11 @@ export class GitStore {
     }
   }
 
+  /** The commit message for a work-in-progress commit in the changes view. */
+  public get commitMessage(): ICommitMessage | null {
+    return this._commitMessage
+  }
+
   /**
    * The commit message to use based on the contex of the repository, e.g., the
    * message from a recently undone commit.
@@ -378,4 +384,10 @@ export class GitStore {
 
   /** Get the name of the remote we're working with. */
   public get remoteName(): string | null { return this._remoteName }
+
+  public setCommitMessage(message: ICommitMessage | null): Promise<void> {
+    this._commitMessage = message
+    this.emitUpdate()
+    return Promise.resolve()
+  }
 }
