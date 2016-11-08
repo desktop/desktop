@@ -50,7 +50,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
 
           <div>or</div>
 
-          <a href='' onClick={e => this.signInWithBrowser(e)}>Sign in using your browser</a>
+          <LinkButton onClick={() => this.signInWithBrowser()}>Sign in using your browser</LinkButton>
         </form>
       </div>
     )
@@ -70,9 +70,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     })
   }
 
-  private async signInWithBrowser(event: React.MouseEvent<HTMLAnchorElement>) {
-    event.preventDefault()
-
+  private async signInWithBrowser() {
     await this.props.dispatcher.requestOAuth()
 
     this.advance()
