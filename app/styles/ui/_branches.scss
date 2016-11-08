@@ -14,18 +14,6 @@
     padding: var(--spacing-third) var(--spacing);
     font-size: var(--font-size-sm);
   }
-
-  .branches-list-content:hover {
-    background: var(--box-alt-background-color);
-  }
-
-  // Prevent borders from stacking if the first
-  // row is a group label
-  .list-item:first-child {
-    .branches-list-label {
-      border-top: none;
-    }
-  }
 }
 
 .branches-list-item,
