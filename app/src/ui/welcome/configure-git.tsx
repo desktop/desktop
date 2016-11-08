@@ -7,7 +7,7 @@ import { User } from '../../models/user'
 interface IConfigureGitProps {
   readonly users: ReadonlyArray<User>
   readonly advance: (step: WelcomeStep) => void
-  readonly cancel: () => void
+  readonly done: () => void
 }
 
 interface IConfigureGitState {
@@ -116,7 +116,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
   private async continue(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    this.props.cancel()
+    this.props.done()
 
     const name = this.state.name
     if (name.length) {

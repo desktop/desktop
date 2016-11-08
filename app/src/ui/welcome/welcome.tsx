@@ -35,8 +35,8 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   private componentForCurrentStep() {
     const step = this.state.currentStep
     const advance = (step: WelcomeStep) => this.advanceToStep(step)
-    const cancel = () => this.cancel()
-    const props = { dispatcher: this.props.dispatcher, advance, cancel }
+    const done = () => this.done()
+    const props = { dispatcher: this.props.dispatcher, advance, done }
 
     switch (step) {
       case WelcomeStep.Start: return <Start {...props}/>
@@ -51,7 +51,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     this.setState({ currentStep: step })
   }
 
-  private cancel() {
+  private done() {
     this.props.dispatcher.endWelcomeFlow()
   }
 
