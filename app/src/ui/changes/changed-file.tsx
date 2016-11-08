@@ -107,8 +107,7 @@ function iconForStatus(status: FileStatus): OcticonSymbol {
     case FileStatus.Deleted: return OcticonSymbol.diffRemoved
     case FileStatus.Renamed: return OcticonSymbol.diffRenamed
     case FileStatus.Conflicted: return OcticonSymbol.alert
-    // TODO: we don't have an Octicon for when the diff is copied
-    case FileStatus.Copied: return OcticonSymbol.question
+    case FileStatus.Copied: return OcticonSymbol.diffAdded
   }
 
   return assertNever(status, `Unknown file status ${status}`)
