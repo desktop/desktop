@@ -9,7 +9,6 @@ const WelcomeImageDimensions = { width: 552, height: 307 }
 
 interface IStartProps {
   readonly advance: (step: WelcomeStep) => void
-  readonly cancel: () => void
 }
 
 /** The first step of the Welcome flow. */

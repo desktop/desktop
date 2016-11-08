@@ -9,7 +9,6 @@ const ForgotPasswordURL = 'https://github.com/password_reset'
 interface ISignInDotComProps {
   readonly dispatcher: Dispatcher
   readonly advance: (step: WelcomeStep) => void
-  readonly cancel: () => void
 }
 
 interface ISignInDotComState {

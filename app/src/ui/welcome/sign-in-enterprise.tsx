@@ -4,7 +4,6 @@ import { Button } from '../lib/button'
 
 interface ISignInEnterpriseProps {
   readonly advance: (step: WelcomeStep) => void
-  readonly cancel: () => void
 }
 
 /** The Welcome flow step to login to an Enterprise instance. */
