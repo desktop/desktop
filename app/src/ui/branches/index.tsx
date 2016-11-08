@@ -112,7 +112,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
                onChange={event => this.onFilterChanged(event)}
                onKeyDown={event => this.onKeyDown(branchItems, event)}/>
 
-        <div className='popup-inner-content branches-list-container'>
+        <div className='branches-list-container'>
           <List rowCount={branchItems.length}
                 rowRenderer={row => this.renderRow(branchItems, row)}
                 rowHeight={RowHeight}
