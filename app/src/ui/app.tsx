@@ -196,10 +196,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    this.props.dispatcher.showPopup({
-      type: PopupType.ShowBranches,
-      repository: state.repository,
-    })
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
   }
 
   private selectChanges() {
@@ -306,15 +303,6 @@ export class App extends React.Component<IAppProps, IAppState> {
                            dispatcher={this.props.dispatcher}
                            branches={state.branchesState.allBranches}
                            currentBranch={state.branchesState.currentBranch}/>
-    } else if (popup.type === PopupType.ShowBranches) {
-      const repository = popup.repository
-      const state = this.props.appStore.getRepositoryState(repository)
-      return <Branches allBranches={state.branchesState.allBranches}
-                       recentBranches={state.branchesState.recentBranches}
-                       currentBranch={state.branchesState.currentBranch}
-                       defaultBranch={state.branchesState.defaultBranch}
-                       dispatcher={this.props.dispatcher}
-                       repository={popup.repository}/>
     } else if (popup.type === PopupType.AddRepository) {
       return <AddRepository dispatcher={this.props.dispatcher}/>
     } else if (popup.type === PopupType.RenameBranch) {
