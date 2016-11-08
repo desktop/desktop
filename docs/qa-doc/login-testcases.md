@@ -40,5 +40,4 @@
 - [ ] Continue button is visible and highlighted
 - [ ] Cancel button is visible and not highlighted
 - [ ] Click continue button redirects to app start page
-- [ ] Click cancel returns a warning message
 - [ ] Minimize, maximize and close icon functions as expected.
