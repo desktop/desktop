@@ -76,11 +76,13 @@ export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> }
 
 export enum FoldoutType {
-  Repository = 1,
+  Repository,
+  Branch,
 }
 
 export type Foldout =
-  { type: FoldoutType.Repository }
+  { type: FoldoutType.Repository } |
+  { type: FoldoutType.Branch }
 
 export enum RepositorySection {
   Changes,
