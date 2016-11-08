@@ -14,12 +14,6 @@ interface IDiffGutterProps {
    * should be rendered as selected or not.
    */
   readonly isIncluded: boolean
-
-  /**
-   * Is the gutter being used in a readonly diff, e.g., displaying a diff from
-   * history vs. displaying a diff from the working directory.
-   */
-  readonly readOnly: boolean
 }
 
 /** The gutter for a diff's line. */

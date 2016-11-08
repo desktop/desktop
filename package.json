@@ -28,6 +28,7 @@
     "npm": ">= 3"
   },
   "dependencies": {
+    "@niik/tslint-microsoft-contrib": "^2.0.14",
     "aws-sdk": "^2.3.15",
     "chai": "^3.5.0",
     "chai-as-promised": "^5.3.0",

@@ -262,7 +262,7 @@ export class LocalGitOperations {
     return Promise.resolve()
   }
 
-  public static async createCommit(repository: Repository, summary: string, description: string, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+  public static async createCommit(repository: Repository, message: string, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
     // Clear the staging area, our diffs reflect the difference between the
     // working directory and the last commit (if any) so our commits should
     // do the same thing.
@@ -273,11 +273,6 @@ export class LocalGitOperations {
     }
 
     await this.stageFiles(repository, files)
-
-    let message = summary
-    if (description.length > 0) {
-      message = `${summary}\n\n${description}`
-    }
 
     await git([ 'commit', '-F',  '-' ] , repository.path, { stdin: message })
   }
