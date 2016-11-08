@@ -74,7 +74,7 @@ describe('LocalGitOperations', () => {
       let files = status.workingDirectory.files
       expect(files.length).to.equal(1)
 
-      await LocalGitOperations.createCommit(repository!, 'Special commit', '', files)
+      await LocalGitOperations.createCommit(repository!, 'Special commit', files)
 
       status = await LocalGitOperations.getStatus(repository!)
       files = status.workingDirectory.files
@@ -99,7 +99,7 @@ describe('LocalGitOperations', () => {
 
       const allChanges = [ files[0].withIncludeAll(true), files[1].withIncludeAll(true) ]
 
-      await LocalGitOperations.createCommit(repo, 'added two files', 'this is a description', allChanges)
+      await LocalGitOperations.createCommit(repo, 'added two files\n\nthis is a description', allChanges)
 
       const statusAfter = await LocalGitOperations.getStatus(repo)
 
@@ -127,7 +127,7 @@ describe('LocalGitOperations', () => {
 
       expect(files.length).to.equal(1)
 
-      await LocalGitOperations.createCommit(repo, 'renamed a file', '', [ files[0].withIncludeAll(true) ])
+      await LocalGitOperations.createCommit(repo, 'renamed a file', [ files[0].withIncludeAll(true) ])
 
       const statusAfter = await LocalGitOperations.getStatus(repo)
 
@@ -155,7 +155,7 @@ describe('LocalGitOperations', () => {
       const file = new WorkingDirectoryFileChange(newFileName, FileStatus.New, selection)
 
       // commit just this change, ignore everything else
-      await LocalGitOperations.createCommit(repository!, 'title', '', [ file ])
+      await LocalGitOperations.createCommit(repository!, 'title', [ file ])
 
       // verify that the HEAD of the repository has moved
       const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
@@ -195,7 +195,7 @@ describe('LocalGitOperations', () => {
       const updatedFile = file.withSelection(selection)
 
       // commit just this change, ignore everything else
-      await LocalGitOperations.createCommit(repository!, 'title', '', [ updatedFile ])
+      await LocalGitOperations.createCommit(repository!, 'title', [ updatedFile ])
 
       // verify that the HEAD of the repository has moved
       const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
@@ -236,7 +236,7 @@ describe('LocalGitOperations', () => {
       const file = new WorkingDirectoryFileChange(fileName, FileStatus.Modified, selection)
 
       // commit just this change, ignore everything else
-      await LocalGitOperations.createCommit(repository!, 'title', '', [ file ])
+      await LocalGitOperations.createCommit(repository!, 'title', [ file ])
 
       // verify that the HEAD of the repository has moved
       const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
@@ -267,7 +267,7 @@ describe('LocalGitOperations', () => {
       const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
       // commit just this change, ignore everything else
-      await LocalGitOperations.createCommit(repository!, 'title', '', [ updatedFile ])
+      await LocalGitOperations.createCommit(repository!, 'title', [ updatedFile ])
 
       // verify that the HEAD of the repository has moved
       const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
@@ -301,7 +301,7 @@ describe('LocalGitOperations', () => {
       const file = new WorkingDirectoryFileChange(deletedFile, FileStatus.Deleted, selection)
 
       // commit just this change, ignore everything else
-      await LocalGitOperations.createCommit(repository!, 'title', '', [ file ])
+      await LocalGitOperations.createCommit(repository!, 'title', [ file ])
 
       // verify that the HEAD of the repository has moved
       const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
@@ -340,7 +340,7 @@ describe('LocalGitOperations', () => {
 
       expect(files.length).to.equal(1)
 
-      await LocalGitOperations.createCommit(repo, 'renamed a file', '', [ files[0].withIncludeAll(true) ])
+      await LocalGitOperations.createCommit(repo, 'renamed a file', [ files[0].withIncludeAll(true) ])
 
       const statusAfter = await LocalGitOperations.getStatus(repo)
 
@@ -375,7 +375,7 @@ describe('LocalGitOperations', () => {
 
       const partiallySelectedFile = files[0].withSelection(selection)
 
-      await LocalGitOperations.createCommit(repo, 'renamed a file', '', [ partiallySelectedFile ])
+      await LocalGitOperations.createCommit(repo, 'renamed a file', [ partiallySelectedFile ])
 
       const statusAfter = await LocalGitOperations.getStatus(repo)
 
