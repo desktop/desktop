@@ -39,8 +39,13 @@
   }
 
   &.dropdown.open {
-    background-color: var(--box-selected-background-color);
     color: var(--box-selected-text-color);
+    background-color: var(--box-selected-background-color);
+
+    // The foldout doesn't have a border so we have to either
+    // color ours or remove it entirely for us to match the
+    // min-width of the foldout.
+    border-right-color: var(--box-selected-background-color);
   }
 
   .icon {
