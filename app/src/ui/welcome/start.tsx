@@ -28,7 +28,7 @@ export class Start extends React.Component<IStartProps, void> {
 
         <div>
           <a href='' onClick={e => this.createAccount(e)}>Create an account</a>
-          &nbsp;or&nbsp;
+          {' or '}
           <a href='' onClick={e => this.skip(e)}>skip this step</a>
         </div>
       </div>
