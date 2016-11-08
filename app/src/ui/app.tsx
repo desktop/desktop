@@ -440,6 +440,56 @@ export class App extends React.Component<IAppProps, IAppState> {
       dropdownState={currentState} />
   }
 
+  private renderBranchFoldout(repository: Repository): JSX.Element {
+    const state = this.props.appStore.getRepositoryState(repository)
+    return <Branches
+      allBranches={state.branchesState.allBranches}
+      recentBranches={state.branchesState.recentBranches}
+      currentBranch={state.branchesState.currentBranch}
+      defaultBranch={state.branchesState.defaultBranch}
+      dispatcher={this.props.dispatcher}
+      repository={repository}
+    />
+  }
+
+  private renderBranchToolbarButton(): JSX.Element | null {
+    const selection = this.state.selectedState
+
+    if (!selection || selection.type !== SelectionType.Repository) {
+      return null
+    }
+
+    const repository = selection.repository
+
+    const icon = OcticonSymbol.gitBranch
+    const branch = selection.state.branchesState.currentBranch
+
+    // TODO: This is in all likelihood wrong, need to look into
+    // what null means here
+    if (!branch) {
+      return null
+    }
+
+    const title = branch.name
+
+    const isOpen = this.state.currentFoldout
+      && this.state.currentFoldout.type === FoldoutType.Branch
+
+    const onDropdownStateChanged = (newState: DropdownState) => newState === 'open'
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+      : this.props.dispatcher.closeFoldout()
+
+    const currentState: DropdownState = isOpen ? 'open' : 'closed'
+
+    return <ToolbarDropdown
+      icon={icon}
+      title={title}
+      description='Current branch'
+      onDropdownStateChanged={onDropdownStateChanged}
+      dropdownContentRenderer={() => this.renderBranchFoldout(repository)}
+      dropdownState={currentState} />
+  }
+
   private renderToolbar() {
     return (
       <Toolbar id='desktop-app-toolbar'>
