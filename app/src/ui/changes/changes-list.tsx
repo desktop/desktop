@@ -3,7 +3,6 @@ import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
 import { List } from '../list'
 
-import { Repository } from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
@@ -14,7 +13,6 @@ import { IAutocompletionProvider } from '../autocompletion'
 const RowHeight = 30
 
 interface IChangesListProps {
-  readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedPath: string | null
   readonly onFileSelectionChanged: (row: number) => void
