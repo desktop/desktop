@@ -151,8 +151,8 @@ export interface IChangesState {
    * The commit message to use based on the contex of the repository, e.g., the
    * message from a recently undone commit.
    */
-   readonly contextualCommitMessage: ICommitMessage | null
+  readonly contextualCommitMessage: ICommitMessage | null
 
-   /** The commit message for a work-in-progress commit in the changes view. */
-   readonly commitMessage: ICommitMessage | null
+  /** The commit message for a work-in-progress commit in the changes view. */
+  readonly commitMessage: ICommitMessage | null
 }
