@@ -16,7 +16,7 @@ interface ILinkButtonProps {
 export class LinkButton extends React.Component<ILinkButtonProps, void> {
   public render() {
     return (
-      <a className='link-button-component' href={this.props.uri} onClick={e => this.onClick(e)}>{this.props.children}</a>
+      <a className='link-button-component' href={this.props.uri || ''} onClick={e => this.onClick(e)}>{this.props.children}</a>
     )
   }
 
