@@ -348,10 +348,9 @@ export class LocalGitOperations {
 
   /** Get the files that were changed in the given commit. */
   public static async getChangedFiles(repository: Repository, sha: string): Promise<ReadonlyArray<FileChange>> {
-
     // opt-in for rename detection (-M) and copies detection (-C)
     // this is equivalent to the user configuring 'diff.renames' to 'copies'
-    const args = [ 'log', sha, '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z', '-M', '-C' ]
+    const args = [ 'log', sha, '-C', '-M', '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z']
     const result = await git(args, repository.path)
 
     const out = result.stdout
