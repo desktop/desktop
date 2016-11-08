@@ -12,6 +12,7 @@ import { URLActionType } from '../parse-url'
 import { Branch, Commit } from '../local-git-operations'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
+import { ICommitMessage } from './git-store'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -231,8 +232,8 @@ export class Dispatcher {
    * Commit the changes which were marked for inclusion, using the given commit
    * summary and description.
    */
-  public commitIncludedChanges(repository: Repository, summary: string, description: string): Promise<void> {
-    return this.appStore._commitIncludedChanges(repository, summary, description)
+  public commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<void> {
+    return this.appStore._commitIncludedChanges(repository, message)
   }
 
   /** Change the file's includedness. */
@@ -386,5 +387,13 @@ export class Dispatcher {
   /** End the Welcome flow. */
   public endWelcomeFlow(): Promise<void> {
     return this.appStore._endWelcomeFlow()
+  }
+
+  /**
+   * Set the commit summary and description for a work-in-progress
+   * commit in the changes view for a particular repository.
+   */
+  public setCommitMessage(repository: Repository, message: ICommitMessage | null): Promise<void> {
+    return this.appStore._setCommitMessage(repository, message)
   }
 }

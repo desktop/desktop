@@ -9,20 +9,24 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { Checkbox, CheckboxValue } from './checkbox'
 import { ICommitMessage } from '../../lib/app-state'
 import { IAutocompletionProvider } from '../autocompletion'
+import { Dispatcher } from '../../lib/dispatcher'
+import { Repository } from '../../models/repository'
 
 const RowHeight = 30
 
 interface IChangesListProps {
+  readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedPath: string | null
   readonly onFileSelectionChanged: (row: number) => void
   readonly onIncludeChanged: (row: number, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
-  readonly onCreateCommit: (summary: string, description: string) => void
+  readonly onCreateCommit: (message: ICommitMessage) => void
   readonly onDiscardChanges: (row: number) => void
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly avatarURL: string
+  readonly dispatcher: Dispatcher
 
   /**
    * Keyboard handler passed directly to the onRowKeyDown prop of List, see
@@ -30,6 +34,7 @@ interface IChangesListProps {
    */
   readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
 
+  readonly commitMessage: ICommitMessage | null
   readonly contextualCommitMessage: ICommitMessage | null
 
   /** The autocompletion providers available to the repository. */
@@ -99,11 +104,14 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               invalidationProps={this.props.workingDirectory}
               onRowKeyDown={this.props.onRowKeyDown} />
 
-        <CommitMessage onCreateCommit={(summary, description) => this.props.onCreateCommit(summary, description)}
+        <CommitMessage onCreateCommit={this.props.onCreateCommit}
                        branch={this.props.branch}
                        avatarURL={this.props.avatarURL}
                        commitAuthor={this.props.commitAuthor}
                        anyFilesSelected={anyFilesSelected}
+                       repository={this.props.repository}
+                       dispatcher={this.props.dispatcher}
+                       commitMessage={this.props.commitMessage}
                        contextualCommitMessage={this.props.contextualCommitMessage}
                        autocompletionProviders={this.props.autocompletionProviders}/>
       </div>
