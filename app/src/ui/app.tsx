@@ -460,8 +460,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const repository = selection.repository
-
-    const icon = OcticonSymbol.gitBranch
     const branch = selection.state.branchesState.currentBranch
 
     // TODO: This is in all likelihood wrong, need to look into
@@ -482,7 +480,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
     return <ToolbarDropdown
-      icon={icon}
+      icon={OcticonSymbol.gitBranch}
       title={title}
       description='Current branch'
       onDropdownStateChanged={onDropdownStateChanged}
