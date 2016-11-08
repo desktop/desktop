@@ -3,7 +3,6 @@ import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
 import { List } from '../list'
 
-import { Repository } from '../../models/repository'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
@@ -11,6 +10,7 @@ import { Checkbox, CheckboxValue } from './checkbox'
 import { ICommitMessage } from '../../lib/app-state'
 import { IAutocompletionProvider } from '../autocompletion'
 import { Dispatcher } from '../../lib/dispatcher'
+import { Repository } from '../../models/repository'
 
 const RowHeight = 30
 
