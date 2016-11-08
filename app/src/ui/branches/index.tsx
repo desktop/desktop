@@ -6,7 +6,7 @@ import { Branch } from '../../lib/local-git-operations'
 import { groupedAndFilteredBranches, BranchListItemModel } from './grouped-and-filtered-branches'
 import { BranchListItem } from './branch'
 
-const RowHeight = 25
+const RowHeight = 30
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
