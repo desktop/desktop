@@ -428,7 +428,7 @@ describe('LocalGitOperations', () => {
         const testRepoPath = setupFixtureRepository('copies-history-detection')
         repository = new Repository(testRepoPath, -1, null)
 
-        // ensure the test repositories is configured to detect copies
+        // ensure the test repository is configured to detect copies
         await GitProcess.exec([ 'config', 'diff.renames', 'copies' ], repository.path)
 
         const files = await LocalGitOperations.getChangedFiles(repository, 'a500bf415')
