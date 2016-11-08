@@ -9,7 +9,7 @@ import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
 import { MenuEvent } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
-import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType, IAheadBehind } from '../lib/app-state'
+import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
 import { Popuppy } from './popuppy'
 import { CreateBranch } from './create-branch'
 import { Branches } from './branches'
@@ -18,7 +18,7 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
-import { Toolbar, ToolbarDropdown, DropdownState, ToolbarButton } from './toolbar'
+import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
 import { OcticonSymbol } from './octicons'
 import { showPopupAppMenu, setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
@@ -447,47 +447,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const state = selection.state
-
-    const aheadBehind = (function () {
-      if (state.aheadBehind) {
-        return state.aheadBehind
-      } else {
-        return { ahead: selection.state.localCommitSHAs.length, behind: 0 }
-      }
-    })()
-
-    const actionName = (function () {
-      if (aheadBehind.behind > 0) { return 'Pull' }
-      if (aheadBehind.ahead > 0) { return 'Push' }
-      return 'Update'
-    })()
-
-    const icon = (function () {
-      if (state.pushPullInProgress) { return OcticonSymbol.sync }
-      if (aheadBehind.behind > 0) { return OcticonSymbol.arrowDown }
-      if (aheadBehind.ahead > 0) { return OcticonSymbol.arrowUp }
-      return OcticonSymbol.sync
-    })()
-
-    const title = state.remoteName ? `${actionName} ${state.remoteName}` : actionName
-
-    const description = `${aheadBehind.ahead} ahead, ${aheadBehind.behind} behind`
-    return <ToolbarButton
-      title={title}
-      description={description}
-      icon={icon}
-      iconClassName={state.pushPullInProgress ? 'spin' : ''}
-      onClick={() => this.performPushPullAction(selection.repository, aheadBehind)}/>
-  }
-
-  private performPushPullAction(repository: Repository, { ahead, behind }: IAheadBehind) {
-    if (behind > 0) {
-      this.props.dispatcher.pull(repository)
-    } else if (ahead > 0) {
-      this.props.dispatcher.push(repository)
-    } else {
-      this.props.dispatcher.fetch(repository)
+    let aheadBehind = state.aheadBehind
+    if (!aheadBehind) {
+      aheadBehind = { ahead: state.localCommitSHAs.length, behind: 0 }
     }
+
+    return <PushPullButton
+      dispatcher={this.props.dispatcher}
+      repository={selection.repository}
+      aheadBehind={aheadBehind}
+      remoteName={state.remoteName}
+      lastFetched={new Date()}
+      networkActionInProgress={state.pushPullInProgress}/>
   }
 
   private renderToolbar() {
