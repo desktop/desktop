@@ -50,13 +50,9 @@ function formatPatchHeaderForFile(file: WorkingDirectoryFileChange) {
     case FileStatus.Deleted:
     case FileStatus.Modified:
       return formatPatchHeader(file.path, file.path)
-
-    case FileStatus.Unknown:
-    default:
-      // TODO: I hate this but I'll save removing FileStatus.Unknown
-      // to a later PR.
-      throw new Error('unknown file statuses not supported')
   }
+
+  return assertNever(file.status, `Unknown file status ${file.status}`)
 }
 
 /**

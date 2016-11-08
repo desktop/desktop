@@ -4,7 +4,7 @@ import * as moment from 'moment'
 import { Commit } from '../../lib/local-git-operations'
 import { EmojiText } from '../lib/emoji-text'
 
-interface IUndoCommit {
+interface IUndoCommitProps {
   /** The function to call when the Undo button is clicked. */
   readonly onUndo: () => void
 
@@ -15,7 +15,7 @@ interface IUndoCommit {
 }
 
 /** The Undo Commit component. */
-export class UndoCommit extends React.Component<IUndoCommit, void> {
+export class UndoCommit extends React.Component<IUndoCommitProps, void> {
   public render() {
     const relative = moment(this.props.commit.authorDate).fromNow()
     return (
@@ -24,7 +24,9 @@ export class UndoCommit extends React.Component<IUndoCommit, void> {
           <div className='ago'>Committed {relative}</div>
           <EmojiText emoji={this.props.emoji} className='summary'>{this.props.commit.summary}</EmojiText>
         </div>
-        <button onClick={() => this.props.onUndo()}>Undo</button>
+        <div className='actions'>
+          <button onClick={() => this.props.onUndo()}>Undo</button>
+        </div>
       </div>
     )
   }

@@ -4,6 +4,7 @@ import { FileStatus } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from './checkbox'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IChangedFileProps {
   path: string
@@ -18,11 +19,15 @@ interface IChangedFileProps {
 export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
   private static mapStatus(status: FileStatus): string {
-    if (status === FileStatus.New) { return 'New' }
-    if (status === FileStatus.Modified) { return 'Modified' }
-    if (status === FileStatus.Deleted) { return 'Deleted' }
-    if (status === FileStatus.Renamed) { return 'Renamed' }
-    return 'Unknown'
+    switch (status) {
+      case FileStatus.New: return 'New'
+      case FileStatus.Modified: return 'Modified'
+      case FileStatus.Deleted: return 'Deleted'
+      case FileStatus.Renamed: return 'Renamed'
+      case FileStatus.Conflicted: return 'Conflicted'
+    }
+
+    return assertNever(status, `Unknown file status ${status}`)
   }
 
   private handleChange(event: React.FormEvent<HTMLInputElement>) {
@@ -94,10 +99,14 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
 }
 
 function iconForStatus(status: FileStatus): OcticonSymbol {
-  if (status === FileStatus.New) { return OcticonSymbol.diffAdded }
-  if (status === FileStatus.Modified) { return OcticonSymbol.diffModified }
-  if (status === FileStatus.Deleted) { return OcticonSymbol.diffRemoved }
-  if (status === FileStatus.Renamed) { return OcticonSymbol.diffRenamed }
 
-  return OcticonSymbol.diffModified
+  switch (status) {
+    case FileStatus.New: return OcticonSymbol.diffAdded
+    case FileStatus.Modified: return OcticonSymbol.diffModified
+    case FileStatus.Deleted: return OcticonSymbol.diffRemoved
+    case FileStatus.Renamed: return OcticonSymbol.diffRenamed
+    case FileStatus.Conflicted: return OcticonSymbol.alert
+  }
+
+  return assertNever(status, `Unknown file status ${status}`)
 }

@@ -125,6 +125,17 @@ export class Diff {
      })
      return hunk || null
    }
+
+   /**
+    * Locate the diff line for the given (absolute) line number in the
+    * diff.
+    */
+   public diffLineForIndex(index: number): DiffLine | null {
+     const hunk = this.diffHunkForIndex(index)
+     if (!hunk) { return null }
+
+     return hunk.lines[index - hunk.unifiedDiffStart] || null
+   }
 }
 
 export enum DiffSelectionType {

@@ -2,6 +2,7 @@ import * as React from 'react'
 import { DiffLine, DiffLineType } from '../../models/diff'
 import { selectedLineClass } from './selection/selection'
 import { assertNever } from '../../lib/fatal-error'
+import * as classNames from 'classnames'
 
 /** The props for the diff gutter. */
 interface IDiffGutterProps {
@@ -22,6 +23,10 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     return this.props.line.type === DiffLineType.Add || this.props.line.type === DiffLineType.Delete
   }
 
+  private isIncluded(): boolean {
+    return this.isIncludableLine() && this.props.isIncluded
+  }
+
   private getLineClassName(): string {
     const type = this.props.line.type
     switch (type) {
@@ -35,20 +40,15 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   }
 
   private getLineClass(): string {
-    const baseClassName = 'diff-line-gutter'
-    let className = baseClassName
-    if (this.isIncludableLine() && this.props.isIncluded) {
-      className += ` ${selectedLineClass}`
-    }
+    const lineClass = this.getLineClassName()
+    const selectedClass = this.isIncluded() ? selectedLineClass : null
 
-    return className + ` ${this.getLineClassName()}`
+    return classNames('diff-line-gutter', lineClass, selectedClass)
   }
 
   public render() {
-    const className = this.getLineClass()
-
     return (
-      <span className={className}>
+      <span className={this.getLineClass()}>
         <span className='diff-line-number before'>{this.props.line.oldLineNumber || ' '}</span>
         <span className='diff-line-number after'>{this.props.line.newLineNumber || ' '}</span>
       </span>

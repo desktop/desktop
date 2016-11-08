@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 
 interface ITabBarProps {
   /** The currently selected tab. */
@@ -26,11 +27,13 @@ export class TabBar extends React.Component<ITabBarProps, void> {
 
     return children.map((child, index) => {
       const selected = index === this.props.selectedIndex
-      const className = selected ? 'selected' : ''
+      const className = classNames('tab-bar-item', { selected })
       return (
-        <div key={index}
-              className={'tab-bar-item ' + className}
-              onClick={() => this.props.onTabClicked(index)}>
+        <div
+          key={index}
+          className={className}
+          onClick={() => this.props.onTabClicked(index)}
+        >
           {child}
         </div>
       )

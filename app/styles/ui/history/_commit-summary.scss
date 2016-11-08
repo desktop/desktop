@@ -2,21 +2,6 @@
 
 /** A React component holding the selected commit's detailed information */
 #commit-summary {
-  .files {
-    display: flex;
-    flex: 1;
-
-    .list-item {
-      border-bottom: var(--base-border);
-      padding: var(--spacing);
-    }
-
-    .path {
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-  }
 }
 
 .commit-summary {
@@ -39,6 +24,12 @@
     padding: var(--spacing);
     word-wrap: break-word;
     white-space: pre-line;
+
+    // Temporary workaround for long commit messages.
+    // The long term solution here will be a
+    // read-more/expand link.
+    max-height: 60px;
+    overflow: scroll;
 
     &:empty {
       display: none;

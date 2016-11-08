@@ -67,6 +67,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
   }
 
   private createCommit() {
+    if (!this.canCommit) { return }
     this.props.onCreateCommit(this.state.summary, this.state.description)
     this.setState({
       summary: '',
@@ -74,10 +75,15 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     })
   }
 
+  private canCommit(): boolean {
+    return this.props.anyFilesSelected && this.state.summary.length > 0
+  }
+
   private onKeyDown(event: React.KeyboardEvent<Element>) {
     const isShortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
-    if (isShortcutKey && event.key === 'Enter') {
+    if (isShortcutKey && event.key === 'Enter' && this.canCommit()) {
       this.createCommit()
+      event.preventDefault()
     }
   }
 
@@ -99,7 +105,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
-    const buttonEnabled = this.props.anyFilesSelected && this.state.summary.length
+    const buttonEnabled = this.canCommit()
 
     return (
       <form id='commit-message' onSubmit={event => event.stopPropagation()}>
