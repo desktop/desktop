@@ -138,7 +138,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
       top: rect.bottom,
       left: 0,
       width: '100%',
-      height: '100%',
+      height: `calc(100% - ${rect.bottom}px)`,
     }
   }
 
