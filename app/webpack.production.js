@@ -16,7 +16,9 @@ if (process.platform === 'darwin') {
 let environment = 'production'
 if (branchName && branchName.length > 0) {
   const matches = branchName.match(/^__release-([a-zA-Z]+)-.*/)
-  environment = matches[1]
+  if (matches && matches.length === 2) {
+    environment = matches[1]
+  }
 }
 
 const config = {
