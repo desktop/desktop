@@ -21,7 +21,8 @@ const config = {
     ...common.plugins,
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin(Object.assign({}, {
-      __DEV__: true
+      __DEV__: true,
+      __RELEASE_ENV__: 'development'
     }, common.replacements))
   ],
   module: common.module,
