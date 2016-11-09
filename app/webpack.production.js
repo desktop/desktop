@@ -13,8 +13,11 @@ if (process.platform === 'darwin') {
   branchName = process.env.APPVEYOR_REPO_BRANCH
 }
 
-const matches = branchName.match(/^__release-([a-zA-Z]+)-.*/)
-const environment = matches[1]
+let environment = 'production'
+if (branchName && branchName.length > 0) {
+  const matches = branchName.match(/^__release-([a-zA-Z]+)-.*/)
+  environment = matches[1]
+}
 
 const config = {
   devtool: 'cheap-module-source-map',
