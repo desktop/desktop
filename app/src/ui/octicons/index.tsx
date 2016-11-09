@@ -24,9 +24,7 @@ function iconForStatus(status: FileStatus): OcticonSymbol {
 }
 
 export function renderOcticon(status: FileStatus) {
-
   const fileStatus = mapStatus(status)
-
   return (
     <div className={'status status-' + fileStatus.toLowerCase()} title={fileStatus}>
         <Octicon symbol={iconForStatus(status)} />

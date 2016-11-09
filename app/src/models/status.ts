@@ -24,7 +24,6 @@ export function mapStatus(status: FileStatus): string {
   return assertNever(status, `Unknown file status ${status}`)
 }
 
-
 export class FileChange {
   /** the relative path to the file in the repository */
   public readonly path: string
