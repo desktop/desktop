@@ -7,8 +7,11 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 
 interface IPushPullButtonProps {
-  /** The ahead/behind count for the current branch. */
-  readonly aheadBehind: IAheadBehind
+  /**
+   * The ahead/behind count for the current branch. If null, it indicates the
+   * branch doesn't have an upstream.
+   */
+  readonly aheadBehind: IAheadBehind | null
 
   /** The name of the remote. */
   readonly remoteName: string | null
@@ -43,6 +46,8 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private renderAheadBehind() {
+    if (!this.props.aheadBehind) { return null }
+
     const { ahead, behind } = this.props.aheadBehind
     if (ahead === 0 && behind === 0) { return null }
 
@@ -69,6 +74,9 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private getTitle(): string {
+    if (!this.props.remoteName) { return 'Publish repository' }
+    if (!this.props.aheadBehind) { return 'Publish branch' }
+
     const { ahead, behind } = this.props.aheadBehind
     const actionName = (function () {
       if (behind > 0) { return 'Pull' }
@@ -76,10 +84,13 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
       return 'Update'
     })()
 
-    return this.props.remoteName ? `${actionName} ${this.props.remoteName}` : actionName
+    return `${actionName} ${this.props.remoteName}`
   }
 
   private getIcon(): OcticonSymbol {
+    if (!this.props.remoteName) { return OcticonSymbol.cloudUpload }
+    if (!this.props.aheadBehind) { return OcticonSymbol.cloudUpload }
+
     const { ahead, behind } = this.props.aheadBehind
     if (this.props.networkActionInProgress) { return OcticonSymbol.sync }
     if (behind > 0) { return OcticonSymbol.arrowDown }
@@ -98,6 +109,16 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private performAction() {
+    if (!this.props.remoteName) {
+      // TODO: Publish the repository.
+      return
+    }
+
+    if (!this.props.aheadBehind) {
+      this.props.dispatcher.push(this.props.repository)
+      return
+    }
+
     const { ahead, behind } = this.props.aheadBehind
     if (behind > 0) {
       this.props.dispatcher.pull(this.props.repository)

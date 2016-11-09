@@ -447,15 +447,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     const state = selection.state
-    let aheadBehind = state.aheadBehind
-    if (!aheadBehind) {
-      aheadBehind = { ahead: state.localCommitSHAs.length, behind: 0 }
-    }
-
     return <PushPullButton
       dispatcher={this.props.dispatcher}
       repository={selection.repository}
-      aheadBehind={aheadBehind}
+      aheadBehind={state.aheadBehind}
       remoteName={state.remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}/>
