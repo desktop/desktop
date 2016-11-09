@@ -99,6 +99,9 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private getDescription(): string {
+    if (!this.props.remoteName) { return 'Publish this repository to GitHub' }
+    if (!this.props.aheadBehind) { return 'Publish this branch to GitHub' }
+
     const lastFetched = this.props.lastFetched
     if (lastFetched) {
       const relative = moment(lastFetched).fromNow()
