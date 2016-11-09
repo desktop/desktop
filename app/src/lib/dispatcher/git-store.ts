@@ -404,8 +404,8 @@ export class GitStore {
     return new Promise((resolve, reject) => {
       Fs.stat(path, (err, stats) => {
         if (err) {
+          // An error most likely means the repository's never been published.
           this._lastFetched = null
-          reject(err)
         } else {
           this._lastFetched = stats.mtime
           resolve()
