@@ -207,4 +207,10 @@
   // Note that this duration *must* match the `UndoCommitAnimationTimeout`
   // specified in `changes/index.tsx`.
   --undo-animation-duration: 500ms;
+
+  /**
+   * Ahead/behind view
+   */
+  --ahead-behind-border-radius: 8px;
+  --ahead-behind-background-color: #202020;
 }

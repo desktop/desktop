@@ -60,6 +60,26 @@
   animation:spin 1s linear infinite;
 }
 
+.ahead-behind {
+  display: flex;
+
+  background: var(--ahead-behind-background-color);
+  border-radius: var(--ahead-behind-border-radius);
+
+  margin-left: var(--spacing-double);
+
+  padding-left: var(--spacing-half);
+  padding-right: var(--spacing-half);
+
+  span {
+    display: flex;
+    align-items: center;
+
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-third);
+  }
+}
+
 /* Toolbar negative margin hackery
  *
  * On Windows we add an artificial title bar at the top of
