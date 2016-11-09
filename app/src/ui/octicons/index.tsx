@@ -9,7 +9,7 @@ export { OcticonSymbol } from './octicons.generated'
 import { FileStatus, mapStatus } from '../../models/status'
 import { assertNever } from '../../lib/fatal-error'
 
-export function iconForStatus(status: FileStatus): OcticonSymbol {
+function iconForStatus(status: FileStatus): OcticonSymbol {
 
   switch (status) {
     case FileStatus.New: return OcticonSymbol.diffAdded
