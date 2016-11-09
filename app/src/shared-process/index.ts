@@ -1,7 +1,7 @@
 import { TokenStore } from './token-store'
 import { UsersStore } from './users-store'
-import { requestToken, askUserToAuth } from './auth'
-import { User } from '../models/user'
+import { requestToken, askUserToAuth, resolveAuthRequest, rejectAuthRequest } from './auth'
+import { User, IUser } from '../models/user'
 import { Database } from './database'
 import { RepositoriesStore } from './repositories-store'
 import { Repository, IRepository } from '../models/repository'
@@ -88,10 +88,13 @@ register('url-action', async ({ action }: IURLAction) => {
       const token = await requestToken(action.args.code)
       const octo = new Octokat({ token })
       const user = await octo.user.fetch()
-      usersStore.addUser(new User(user.login, getDotComAPIEndpoint(), token, new Array<string>(), user.avatarUrl, user.id))
-      updateUsers()
+      const populatedUser = new User(user.login, getDotComAPIEndpoint(), token, new Array<string>(), user.avatarUrl, user.id)
+      usersStore.addUser(populatedUser)
+
+      updateUsers().then(() => resolveAuthRequest(populatedUser))
     } catch (e) {
       console.error(`Error adding user: ${e}`)
+      rejectAuthRequest(e)
     }
     broadcastUpdate()
     return true
@@ -101,8 +104,15 @@ register('url-action', async ({ action }: IURLAction) => {
 })
 
 register('request-oauth', () => {
-  askUserToAuth(getDotComAPIEndpoint())
-  return Promise.resolve()
+  let resolve: ((user: IUser) => void) | null = null
+  let reject: ((error: Error) => void) | null = null
+  const promise = new Promise<IUser>((resolve_, reject_) => {
+    resolve = resolve_
+    reject = reject_
+  })
+
+  askUserToAuth(getDotComAPIEndpoint(), resolve!, reject!)
+  return promise
 })
 
 register('update-github-repository', async ({ repository }: IUpdateGitHubRepositoryAction) => {
