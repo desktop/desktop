@@ -10,5 +10,5 @@ declare const __DARWIN__: boolean
 /** Is the app being built to run on Win32? */
 declare const __WIN32__: boolean
 
-/** The environment in which the release was created. */
+/** The environment for which the release was created. */
 declare const __RELEASE_ENV__: 'production' | 'beta' | 'test' | 'development'
