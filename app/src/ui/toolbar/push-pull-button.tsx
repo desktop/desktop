@@ -44,6 +44,8 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
 
   private renderAheadBehind() {
     const { ahead, behind } = this.props.aheadBehind
+    if (ahead === 0 && behind === 0) { return null }
+
     const content: JSX.Element[] = []
     if (ahead > 0) {
       content.push(
