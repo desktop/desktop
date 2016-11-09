@@ -3,8 +3,12 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import * as classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
 
+/** The button style. */
 export enum ToolbarButtonStyle {
+  /** The default style with the description above the title. */
   Standard,
+
+  /** A style in which the description is below the title. */
   Subtitle,
 }
 
