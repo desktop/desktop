@@ -457,7 +457,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       repository={selection.repository}
       aheadBehind={aheadBehind}
       remoteName={state.remoteName}
-      lastFetched={new Date()}
+      lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}/>
   }
 

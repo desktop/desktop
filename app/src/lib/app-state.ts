@@ -126,7 +126,11 @@ export interface IRepositoryState {
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
 
+  /** Is a push/pull/update in progress? */
   readonly pushPullInProgress: boolean
+
+  /** The date the repository was last fetched. */
+  readonly lastFetched: Date | null
 }
 
 export interface IBranchesState {

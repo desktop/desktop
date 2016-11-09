@@ -1,3 +1,5 @@
+import * as Fs from 'fs'
+import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { LocalGitOperations, Commit, Branch, BranchType, GitResetMode, IAheadBehind } from '../local-git-operations'
@@ -46,6 +48,8 @@ export class GitStore {
   private _aheadBehind: IAheadBehind | null = null
 
   private _remoteName: string | null = null
+
+  private _lastFetched: Date | null = null
 
   public constructor(repository: Repository) {
     this.repository = repository
@@ -389,5 +393,26 @@ export class GitStore {
     this._commitMessage = message
     this.emitUpdate()
     return Promise.resolve()
+  }
+
+  /** The date the repository was last fetched. */
+  public get lastFetched(): Date | null { return this._lastFetched }
+
+  /** Update the last fetched date. */
+  public updateLastFetched(): Promise<void> {
+    const path = Path.join(this.repository.path, '.git', 'FETCH_HEAD')
+    return new Promise((resolve, reject) => {
+      Fs.stat(path, (err, stats) => {
+        if (err) {
+          this._lastFetched = null
+          reject(err)
+        } else {
+          this._lastFetched = stats.mtime
+          resolve()
+        }
+
+        this.emitUpdate()
+      })
+    })
   }
 }

@@ -167,6 +167,7 @@ export class AppStore {
       aheadBehind: null,
       remoteName: null,
       pushPullInProgress: false,
+      lastFetched: null,
     }
   }
 
@@ -187,6 +188,7 @@ export class AppStore {
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
         pushPullInProgress: state.pushPullInProgress,
+        lastFetched: state.lastFetched,
       }
     }
 
@@ -215,6 +217,7 @@ export class AppStore {
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
         pushPullInProgress: state.pushPullInProgress,
+        lastFetched: state.lastFetched,
       }
     })
   }
@@ -234,6 +237,7 @@ export class AppStore {
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
         pushPullInProgress: state.pushPullInProgress,
+        lastFetched: state.lastFetched,
       }
     })
   }
@@ -253,6 +257,7 @@ export class AppStore {
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
         pushPullInProgress: state.pushPullInProgress,
+        lastFetched: state.lastFetched,
       }
     })
   }
@@ -339,6 +344,7 @@ export class AppStore {
         aheadBehind: gitStore.aheadBehind,
         remoteName: gitStore.remoteName,
         pushPullInProgress: state.pushPullInProgress,
+        lastFetched: gitStore.lastFetched,
       }
     })
 
@@ -705,6 +711,7 @@ export class AppStore {
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
         pushPullInProgress: state.pushPullInProgress,
+        lastFetched: state.lastFetched,
       }
     })
     this.emitUpdate()
@@ -901,6 +908,7 @@ export class AppStore {
     gitStore.loadBranches()
     gitStore.loadDefaultRemote()
     gitStore.calculateAheadBehindForCurrentBranch()
+    gitStore.updateLastFetched()
 
     // When refreshing we *always* load Changes so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
@@ -963,6 +971,7 @@ export class AppStore {
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
         pushPullInProgress: state.pushPullInProgress,
+        lastFetched: state.lastFetched,
       }
     })
     this.emitUpdate()
@@ -1141,6 +1150,7 @@ export class AppStore {
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
         pushPullInProgress: true,
+        lastFetched: state.lastFetched,
       }
     ))
     this.emitUpdate()
@@ -1160,6 +1170,7 @@ export class AppStore {
         aheadBehind: state.aheadBehind,
         remoteName: state.remoteName,
         pushPullInProgress: false,
+        lastFetched: state.lastFetched,
       }
     ))
     this.emitUpdate()

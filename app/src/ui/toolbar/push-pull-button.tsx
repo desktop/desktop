@@ -17,7 +17,7 @@ interface IPushPullButtonProps {
   readonly networkActionInProgress: boolean
 
   /** The date of the last fetch. */
-  readonly lastFetched: Date
+  readonly lastFetched: Date | null
 
   readonly dispatcher: Dispatcher
   readonly repository: Repository
@@ -86,8 +86,13 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private getDescription(): string {
-    const relative = moment(this.props.lastFetched).fromNow()
-    return `Last fetched ${relative}`
+    const lastFetched = this.props.lastFetched
+    if (lastFetched) {
+      const relative = moment(lastFetched).fromNow()
+      return `Last fetched ${relative}`
+    } else {
+      return 'Never fetched'
+    }
   }
 
   private performAction() {
