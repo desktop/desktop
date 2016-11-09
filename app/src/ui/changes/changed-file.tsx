@@ -1,7 +1,8 @@
 import * as React from 'react'
 
-import { FileStatus, mapStatus } from '../../models/status'
-import { Octicon, OcticonSymbol, iconForStatus } from '../octicons'
+import { FileStatus } from '../../models/status'
+import { renderPath } from '../lib/path-label'
+import { renderOcticon } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from './checkbox'
 
@@ -32,26 +33,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     }
   }
 
-  public renderPathLabel() {
-    const props: React.HTMLProps<HTMLLabelElement> = {
-      className: 'path',
-      title: this.props.path,
-    }
-
-    if (this.props.status === FileStatus.Renamed && this.props.oldPath) {
-      return (
-        <label {...props}>
-          {this.props.oldPath} <Octicon symbol={OcticonSymbol.arrowRight} /> {this.props.path}
-        </label>
-      )
-    } else {
-      return <label {...props}>{this.props.path}</label>
-    }
-  }
-
   public render() {
-    const fileStatus = mapStatus(this.props.status)
-
     return (
       <div className='changed-file' onContextMenu={e => this.onContextMenu(e)}>
 
@@ -63,11 +45,8 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
           value={this.checkboxValue}
           onChange={event => this.handleChange(event)}/>
 
-        {this.renderPathLabel()}
-
-        <div className={'status status-' + fileStatus.toLowerCase()} title={fileStatus}>
-          <Octicon symbol={iconForStatus(this.props.status)} />
-        </div>
+        {renderPath(this.props)}
+        {renderOcticon(this.props.status)}
       </div>
     )
   }

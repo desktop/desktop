@@ -1,6 +1,7 @@
 import * as React from 'react'
-import { FileStatus, FileChange, mapStatus } from '../../models/status'
-import { Octicon, OcticonSymbol, iconForStatus } from '../octicons'
+import { FileChange } from '../../models/status'
+import { renderPath } from '../lib/path-label'
+import { renderOcticon } from '../octicons'
 import { List } from '../list'
 
 interface IFileListProps {
@@ -15,33 +16,12 @@ export class FileList extends React.Component<IFileListProps, void> {
     this.props.onSelectedFileChanged(file)
   }
 
-  private renderPathLabel(file: FileChange) {
-    const props: React.HTMLProps<HTMLLabelElement> = {
-      className: 'path',
-      title: file.path,
-    }
-
-    if (file.status === FileStatus.Renamed && file.oldPath) {
-      return (
-        <label {...props}>
-          {file.oldPath} <Octicon symbol={OcticonSymbol.arrowRight} /> {file.path}
-        </label>
-      )
-    } else {
-      return <label {...props}>{file.path}</label>
-    }
-  }
-
   private renderFile(row: number) {
     const file = this.props.files[row]
-    const fileStatus = mapStatus(file.status)
 
     return <div className='commit-file'>
-      {this.renderPathLabel(file)}
-
-      <div className={'status status-' + fileStatus.toLowerCase()} title={fileStatus}>
-        <Octicon symbol={iconForStatus(file.status)} />
-      </div>
+      {renderPath(file)}
+      {renderOcticon(file.status)}
     </div>
   }
 
