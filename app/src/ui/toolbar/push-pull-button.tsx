@@ -1,27 +1,69 @@
 import * as React from 'react'
-import { ToolbarButton } from './button'
+import * as moment from 'moment'
+import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { IAheadBehind } from '../../lib/app-state'
 import { Dispatcher } from '../../lib/dispatcher'
-import { OcticonSymbol } from '../octicons'
+import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 
 interface IPushPullButtonProps {
+  /** The ahead/behind count for the current branch. */
   readonly aheadBehind: IAheadBehind
+
+  /** The name of the remote. */
   readonly remoteName: string | null
+
+  /** Is a push/pull/update in progress? */
   readonly networkActionInProgress: boolean
+
+  /** The date of the last fetch. */
   readonly lastFetched: Date
+
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 }
 
+/**
+ * A button which pushes, pulls, or updates depending on the state of the
+ * repository.
+ */
 export class PushPullButton extends React.Component<IPushPullButtonProps, void> {
   public render() {
-    return <ToolbarButton
-      title={this.getTitle()}
-      description={this.getDescription()}
-      icon={this.getIcon()}
-      iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
-      onClick={() => this.performAction()}/>
+    return (
+      <ToolbarButton
+        title={this.getTitle()}
+        description={this.getDescription()}
+        icon={this.getIcon()}
+        iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
+        onClick={() => this.performAction()}
+        style={ToolbarButtonStyle.Subtitle}>
+        {this.renderAheadBehind()}
+      </ToolbarButton>
+    )
+  }
+
+  private renderAheadBehind() {
+    const { ahead, behind } = this.props.aheadBehind
+    const content: JSX.Element[] = []
+    if (ahead > 0) {
+      content.push(
+        <span key='ahead'>
+          {ahead}
+          <Octicon symbol={OcticonSymbol.arrowUp}/>
+        </span>
+      )
+    }
+
+    if (behind > 0) {
+      content.push(
+        <span key='behind'>
+          {behind}
+          <Octicon symbol={OcticonSymbol.arrowDown}/>
+        </span>
+      )
+    }
+
+    return <div className='ahead-behind'>{content}</div>
   }
 
   private getTitle(): string {
@@ -44,8 +86,8 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private getDescription(): string {
-    const { ahead, behind } = this.props.aheadBehind
-     return `${ahead} ahead, ${behind} behind`
+    const relative = moment(this.props.lastFetched).fromNow()
+    return `Last fetched ${relative}`
   }
 
   private performAction() {
