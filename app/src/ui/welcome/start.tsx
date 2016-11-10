@@ -18,11 +18,11 @@ export class Start extends React.Component<IStartProps, void> {
       <div id='start'>
         <img src={WelcomeImageUri} style={WelcomeImageDimensions}/>
 
-        <h1>Welcome to GitHub Desktop</h1>
-        <div>Get started by signing into GitHub.com or your GitHub Enterprise server.</div>
+        <h1 className='welcome-title'>Welcome to GitHub Desktop</h1>
+        <h2 className='welcome-text'>Get started by signing into GitHub.com or your GitHub Enterprise server.</h2>
         <div className='actions'>
-          <button onClick={() => this.signInToDotCom()}>GitHub.com</button>
-          <button onClick={() => this.signInToEnterprise()}>GitHub Enterprise</button>
+          <button className='button welcome-button' onClick={() => this.signInToDotCom()}>GitHub.com</button>
+          <button className='button welcome-button' onClick={() => this.signInToEnterprise()}>GitHub Enterprise</button>
         </div>
 
         <div>

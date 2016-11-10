@@ -48,3 +48,23 @@
     }
   }
 }
+
+.welcome-title,
+.welcome-text {
+  font-weight: 300;
+}
+
+.welcome-title {
+  font-size: 28px;
+}
+
+.welcome-text {
+  font-size: 16px;
+}
+
+.welcome-button {
+  font-size: var(--font-size);
+  font-weight: 500;
+  padding: var(--spacing) 0;
+  width: 200px;
+}
