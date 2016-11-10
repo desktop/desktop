@@ -26,7 +26,7 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
     }
   }
 
-  private updateAndSchedule(absoluteText: string, relativeText: string, timeout?: number) {
+  private updateAndSchedule(absoluteText: string, relativeText: string, timeout: number) {
     this.timer = window.setTimeout(this.update, timeout)
     this.setState({ absoluteText, relativeText })
   }
