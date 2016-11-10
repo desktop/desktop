@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { assertNever } from '../../lib/fatal-error'
 import { ToolbarButton } from './button'
+import * as classNames from 'classnames'
 
 export type DropdownState = 'open' | 'closed'
 
@@ -32,6 +33,12 @@ export interface IToolbarDropdownProps {
    * Use this to render the contents of the fold out.
    */
   readonly dropdownContentRenderer: () => JSX.Element
+
+  /**
+   * An optional classname that will be appended to the default
+   * class name 'toolbar-button dropdown open|closed'
+   */
+  readonly className?: string,
 }
 
 interface IToolbarDropdownState {
@@ -48,20 +55,6 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
   public constructor(props: IToolbarDropdownProps) {
     super(props)
     this.state = { clientRect: null }
-  }
-
-  private dropdownClassNames(): string | null {
-    const state = this.props.dropdownState
-
-    if (!state) {
-      return null
-    } else if (state === 'open') {
-      return 'dropdown open'
-    } else if (state === 'closed') {
-      return 'dropdown closed'
-    } else {
-      return assertNever(state, `Unknown dropdown state ${state}`)
-    }
   }
 
   private dropdownIcon(state: DropdownState): OcticonSymbol {
@@ -145,7 +138,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
       top: rect.bottom,
       left: 0,
       width: '100%',
-      height: '100%',
+      height: `calc(100% - ${rect.bottom}px)`,
     }
   }
 
@@ -181,6 +174,12 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
 
   public render() {
 
+    const className = classNames(
+      'dropdown',
+      this.props.dropdownState,
+      this.props.className
+    )
+
     return (
       <ToolbarButton
         ref={(c) => this.innerButton = c}
@@ -188,7 +187,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         title={this.props.title}
         description={this.props.description}
         onClick={() => this.onClick()}
-        className={this.dropdownClassNames() || undefined}
+        className={className}
         preContentRenderer={() => this.renderDropdownContents()}
       >
         {this.renderDropdownArrow()}

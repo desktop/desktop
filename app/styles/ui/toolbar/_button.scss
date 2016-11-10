@@ -4,16 +4,14 @@
   // Reset styles from global buttons
   border: none;
   box-shadow: none;
+  background: transparent;
   border-radius: 0;
-  background-color: transparent;
   text-align: left;
   margin: 0;
   padding: 0;
 
   // Reset
   &:active { box-shadow: none; }
-
-  border-right: 1px solid var(--box-border-color);
 
   // NB This is important, without this the button
   // element will add an extra 3px of invisible padding
@@ -31,48 +29,68 @@
     padding: var(--spacing);
     margin: 0;
     overflow: hidden;
+
+    background-color: var(--toolbar-button-background-color);
+    color: var(--toolbar-button-color);
+
+    border-right: 1px solid var(--toolbar-button-border-color);
+
+    .icon {
+      margin-right: var(--spacing);
+    }
+
+    .dropdownArrow {
+      width: 9px;
+      height: 12px;
+      margin-left: var(--spacing);
+    }
+
+    .text {
+      display: flex;
+      flex-direction: column-reverse;
+      flex-grow: 1;
+      min-width: 0;
+    }
+
+    .title {
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .description {
+      color: var(--toolbar-button-secondary-color);
+      font-size: var(--font-size-sm);
+    }
+
+    .title, .description { @include ellipsis }
   }
 
   &:not(:disabled):hover {
-    background-color: var(--box-hover-background-color);
-    color: var(--box-hover-text-color);
+    .toolbar-button-content-wrapper {
+      background-color: var(--toolbar-button-hover-background-color);
+      color: var(--toolbar-button-hover-color);
+      border-color: var(--toolbar-button-hover-border-color);
+
+      .description {
+        color: var(--toolbar-button-secondary-color);
+      }
+    }
   }
 
   &.dropdown.open {
-    background-color: var(--box-selected-background-color);
-    color: var(--box-selected-text-color);
-  }
+    .toolbar-button-content-wrapper {
+      color: var(--toolbar-button-active-color);
+      background-color: var(--toolbar-button-active-background-color);
 
-  .icon {
-    margin-right: var(--spacing);
+      // The foldout doesn't have a border so we have to either
+      // color ours or remove it entirely for us to match the
+      // min-width of the foldout.
+      border-color: var(--toolbar-button-active-border-color);
+    }
   }
-
-  .dropdownArrow {
-    width: 9px;
-    height: 12px;
-  }
-
-  .text {
-    display: flex;
-    flex-direction: column-reverse;
-    flex-grow: 1;
-    min-width: 0;
-  }
-
-  .title {
-    font-weight: var(--font-weight-semibold);
-  }
-
-  .description {
-    color: var(--text-secondary-color);
-    font-size: var(--font-size-sm);
-  }
-
-  .title, .description { @include ellipsis }
 
   // @TODO: Proper focus state
   &:focus {
     outline: none;
-    border-color: var(--box-border-color);
+    border-color: var(--toolbar-button-border-color);
   }
 }
