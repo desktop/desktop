@@ -27,14 +27,14 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
   }
 
   private updateAndSchedule(absoluteText: string, relativeText: string, timeout: number) {
-    this.timer = window.setTimeout(this.update, timeout)
+    console.log(absoluteText, relativeText, timeout)
+    this.clearTimer()
+    this.timer = window.setTimeout(this.updateFromScheduler, timeout)
     this.setState({ absoluteText, relativeText })
   }
 
-  private update = () => {
-    this.clearTimer()
-
-    const then = moment(this.props.date)
+  private updateWithDate(date: Date) {
+    const then = moment(date)
     const now = moment()
     const diff = then.diff(now)
     const duration = Math.abs(diff)
@@ -55,14 +55,16 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
     }
   }
 
+  private updateFromScheduler = () => { this.updateWithDate(this.props.date) }
+
   public componentWillReceiveProps(nextProps: IRelativeTimeProps) {
     if (this.props.date !== nextProps.date) {
-      this.update()
+      this.updateWithDate(nextProps.date)
     }
   }
 
   public componentWillMount() {
-    this.update()
+    this.updateWithDate(this.props.date)
   }
 
   public componentWillUnmount() {
