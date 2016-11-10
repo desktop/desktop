@@ -42,6 +42,7 @@
   .actions {
     display: flex;
     flex-direction: row;
+    margin: var(--spacing-double) 0;
 
     button {
       margin: var(--spacing-half);
@@ -52,6 +53,7 @@
 .welcome-title,
 .welcome-text {
   font-weight: 300;
+  margin: 0;
 }
 
 .welcome-title {
