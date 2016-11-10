@@ -11,6 +11,7 @@ export enum FileStatus {
   Copied,
 }
 
+/** convert the file status to a string */
 export function mapStatus(status: FileStatus): string {
   switch (status) {
     case FileStatus.New: return 'New'
