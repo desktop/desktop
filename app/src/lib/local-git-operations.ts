@@ -730,6 +730,9 @@ export class LocalGitOperations {
     const upstream = branch.upstream
     if (!upstream) { return null }
 
+    // NB: The three dot form means we'll go all the way back to the merge base
+    // of the branch and its upstream. Practically this is important for seeing
+    // "through" merges.
     const range = `${branch.name}...${upstream}`
     return this.getAheadBehind(repository, range)
   }
