@@ -6,7 +6,8 @@ interface IRelativeTimeProps {
 }
 
 interface IRelativeTimeState {
-  readonly text: string
+  readonly absoluteText: string
+  readonly relativeText: string
 }
 
 const SECOND = 1000
@@ -25,6 +26,11 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
     }
   }
 
+  private updateAndSchedule(absoluteText: string, relativeText: string, timeout?: number) {
+    this.timer = window.setTimeout(this.update, timeout)
+    this.setState({ absoluteText, relativeText })
+  }
+
   private update = () => {
     this.clearTimer()
 
@@ -32,24 +38,20 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
     const now = moment()
     const diff = then.diff(now)
     const duration = Math.abs(diff)
+    const absoluteText = then.format('LLLL')
 
     if (diff > 0) {
-      this.timer = window.setTimeout(this.update, duration)
-      this.setState({ text: 'from the future' })
+      this.updateAndSchedule(absoluteText, 'from the future', duration)
     } else if (duration < MINUTE) {
-      this.timer = window.setTimeout(this.update, MINUTE - duration)
-      this.setState({ text: 'just now' })
+      this.updateAndSchedule(absoluteText, 'just now', MINUTE - duration)
     } else if (duration < HOUR) {
-      this.timer = window.setTimeout(this.update, MINUTE)
-      this.setState({ text: then.from(now) })
+      this.updateAndSchedule(absoluteText, then.from(now), MINUTE)
     } else if (duration < DAY) {
-      this.timer = window.setTimeout(this.update, HOUR)
-      this.setState({ text: then.from(now) })
+      this.updateAndSchedule(absoluteText, then.from(now), HOUR)
     } else if (duration < 7 * DAY) {
-      this.timer = window.setTimeout(this.update, 6 * HOUR)
-      this.setState({ text: then.from(now) })
+      this.updateAndSchedule(absoluteText, then.from(now), 6 * HOUR)
     } else {
-      this.setState({ text: then.format('LL') })
+      this.setState({ absoluteText, relativeText: then.format('LL') })
     }
   }
 
@@ -69,7 +71,7 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
 
   public render() {
     return (
-      <span>{this.state.text}</span>
+      <span title={this.state.absoluteText}>{this.state.relativeText}</span>
     )
   }
 }
