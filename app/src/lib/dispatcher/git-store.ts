@@ -401,15 +401,20 @@ export class GitStore {
   /** Update the last fetched date. */
   public updateLastFetched(): Promise<void> {
     const path = Path.join(this.repository.path, '.git', 'FETCH_HEAD')
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       Fs.stat(path, (err, stats) => {
         if (err) {
           // An error most likely means the repository's never been published.
           this._lastFetched = null
-        } else {
-          this._lastFetched = stats.mtime
-          resolve()
         }
+
+        // If the file's empty then it _probably_ means the fetch failed and we
+        // shouldn't update the last fetched date.
+        if (stats.size > 0) {
+          this._lastFetched = stats.mtime
+        }
+
+        resolve()
 
         this.emitUpdate()
       })
