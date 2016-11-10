@@ -22,7 +22,7 @@ const config = {
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin(Object.assign({}, {
       __DEV__: true,
-      __RELEASE_ENV__: 'development'
+      __RELEASE_ENV__: JSON.stringify('development')
     }, common.replacements))
   ],
   module: common.module,
