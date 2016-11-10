@@ -70,3 +70,12 @@
   padding: var(--spacing) 0;
   width: 200px;
 }
+
+.welcome-link-button {
+  font-weight: 500;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;  
+  }
+}
