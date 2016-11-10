@@ -418,7 +418,7 @@ export class LocalGitOperations {
 
     flags.push(name)
 
-    const result = await git(flags, path || __dirname, { successExitCodes:  new Set([ 0, 1 ]) })
+    const result = await git(flags, path || __dirname, { successExitCodes: new Set([ 0, 1 ]) })
     // Git exits with 1 if the value isn't found. That's OK.
     if (result.exitCode === 1) {
       return null
