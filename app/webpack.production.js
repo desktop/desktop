@@ -30,7 +30,7 @@ const config = {
     new webpack.optimize.OccurrenceOrderPlugin(true),
     new webpack.DefinePlugin(Object.assign({}, {
       __DEV__: false,
-      __RELEASE_ENV__: environment
+      __RELEASE_ENV__: JSON.stringify(environment)
     }, common.replacements))
   ],
   module: common.module,
