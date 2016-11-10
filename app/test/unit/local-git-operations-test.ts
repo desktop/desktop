@@ -406,6 +406,42 @@ describe('LocalGitOperations', () => {
         expect(files[0].path).to.equal('README.md')
         expect(files[0].status).to.equal(FileStatus.New)
       })
+
+      it('detects renames', async () => {
+        const testRepoPath = setupFixtureRepository('rename-history-detection')
+        repository = new Repository(testRepoPath, -1, null)
+
+        const first = await LocalGitOperations.getChangedFiles(repository, '55bdecb')
+        expect(first.length).to.equal(1)
+        expect(first[0].status).to.equal(FileStatus.Renamed)
+        expect(first[0].oldPath).to.equal('NEW.md')
+        expect(first[0].path).to.equal('NEWER.md')
+
+        const second = await LocalGitOperations.getChangedFiles(repository, 'c898ca8')
+        expect(second.length).to.equal(1)
+        expect(second[0].status).to.equal(FileStatus.Renamed)
+        expect(second[0].oldPath).to.equal('OLD.md')
+        expect(second[0].path).to.equal('NEW.md')
+      })
+
+      it('detect copies', async () => {
+        const testRepoPath = setupFixtureRepository('copies-history-detection')
+        repository = new Repository(testRepoPath, -1, null)
+
+        // ensure the test repository is configured to detect copies
+        await GitProcess.exec([ 'config', 'diff.renames', 'copies' ], repository.path)
+
+        const files = await LocalGitOperations.getChangedFiles(repository, 'a500bf415')
+        expect(files.length).to.equal(2)
+
+        expect(files[0].status).to.equal(FileStatus.Copied)
+        expect(files[0].oldPath).to.equal('initial.md')
+        expect(files[0].path).to.equal('duplicate-with-edits.md')
+
+        expect(files[1].status).to.equal(FileStatus.Copied)
+        expect(files[1].oldPath).to.equal('initial.md')
+        expect(files[1].path).to.equal('duplicate.md')
+      })
     })
   })
 

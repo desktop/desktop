@@ -1,41 +1,56 @@
-.branches-list-container {
-  height: 200px;
-  display: flex;
+@import '../mixins';
 
-  .branches-list-content {
+#branches {
+  padding: var(--spacing);
+  height: 100%;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+}
+
+.branches-list {
+  &-container {
+    height: 100%;
+    display: flex;
+  }
+
+  &-content {
     display: flex;
     flex: 1;
+  }
 
-    padding: var(--spacing-third) var(--spacing);
+  &-label {
+    flex-grow: 1;
+    padding-top: 5px;
+    margin-top: var(--spacing);
     font-size: var(--font-size-sm);
+    color: var(--text-secondary-color);
   }
 
-  .branches-list-content:hover {
-    background: var(--box-alt-background-color);
-  }
+  &-item {
+    display: flex;
+    flex-direction: row;
+    min-width: 0;
+    flex-grow: 1;
+    align-items: center;
 
-  // Prevent borders from stacking if the first
-  // row is a group label
-  .list-item:first-child {
-    .branches-list-label {
-      border-top: none;
+    .icon {
+      margin-right: var(--spacing-half);
+    }
+
+    .name {
+      flex-grow: 1;
+      @include ellipsis;
+    }
+
+    .description {
+      margin-right: var(--spacing-half);
+      color: var(--text-secondary-color);
+      font-size: var(--font-size-sm);
     }
   }
 }
 
-.branches-list-item,
-.branches-list-label {
-  flex-grow: 1;
-}
-
-.branches-list-label {
-  background: var(--box-alt-background-color);
-  border-top: var(--base-border);
-  border-bottom: var(--base-border);
-}
-
 .branch-filter-input {
   margin: 0;
-  margin-bottom: var(--spacing);
-  width: 100%;
 }
