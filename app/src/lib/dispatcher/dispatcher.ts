@@ -130,11 +130,14 @@ export class Dispatcher {
 
     const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', paths: validatedPaths })
     const addedRepositories = json.map(Repository.fromJSON)
+
+    const refreshedRepositories = new Array<Repository>()
     for (const repository of addedRepositories) {
-      this.refreshGitHubRepositoryInfo(repository)
+      const refreshedRepository = await this.refreshGitHubRepositoryInfo(repository)
+      refreshedRepositories.push(refreshedRepository)
     }
 
-    return addedRepositories
+    return refreshedRepositories
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
