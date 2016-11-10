@@ -20,6 +20,9 @@ interface ICheckboxProps {
 /** A checkbox component which supports the mixed value. */
 export class Checkbox extends React.Component<ICheckboxProps, void> {
   private onChange(event: React.FormEvent<HTMLInputElement>) {
+
+    console.log(`checkbox says include: ${event.currentTarget.checked}`)
+
     if (this.props.onChange) {
       this.props.onChange(event)
     }

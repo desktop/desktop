@@ -33,6 +33,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
   private handleChange(event: React.FormEvent<HTMLInputElement>) {
     const include = event.currentTarget.checked
+    console.log(`changed-file says include: ${include}`)
     this.props.onIncludeChanged(include)
   }
 
@@ -75,7 +76,11 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
           // while focused on a row will toggle selection.
           tabIndex={-1}
           value={this.checkboxValue}
-          onChange={event => this.handleChange(event)}/>
+          onChange={event => {
+            debugger
+            console.log(`event handler gets ${event.currentTarget.checked}`)
+            this.handleChange(event)
+          }}/>
 
         {this.renderPathLabel()}
 

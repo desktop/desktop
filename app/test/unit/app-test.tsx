@@ -20,7 +20,7 @@ import { TestStatsDatabase } from '../test-stats-database'
 import { TestIssuesDatabase } from '../test-issues-database'
 import { StatsStore } from '../../src/lib/stats'
 
-describe('App', () => {
+describe('<App />', () => {
   let appStore: AppStore | null = null
   let dispatcher: Dispatcher | null = null
   let statsStore: StatsStore | null = null
