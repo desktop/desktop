@@ -164,11 +164,12 @@ export class Dispatcher {
   }
 
   /** Refresh the associated GitHub repository. */
-  public async refreshGitHubRepositoryInfo(repository: Repository): Promise<void> {
+  public async refreshGitHubRepositoryInfo(repository: Repository): Promise<Repository> {
     const refreshedRepository = await this.appStore._repositoryWithRefreshedGitHubRepository(repository)
-    if (refreshedRepository === repository) { return }
+    if (refreshedRepository === repository) { return refreshedRepository }
 
-    return this.dispatchToSharedProcess<void>({ name: 'update-github-repository', repository: refreshedRepository })
+    const repo = await this.dispatchToSharedProcess<IRepository>({ name: 'update-github-repository', repository: refreshedRepository })
+    return Repository.fromJSON(repo)
   }
 
   /** Load the history for the repository. */
@@ -302,7 +303,7 @@ export class Dispatcher {
   }
 
   /** Publish the repository to GitHub with the given properties. */
-  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
+  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<Repository> {
     await this.appStore._publishRepository(repository, name, description, private_, account, org)
     return this.refreshGitHubRepositoryInfo(repository)
   }
