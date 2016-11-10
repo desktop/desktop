@@ -6,7 +6,7 @@ import { Branch } from '../../lib/local-git-operations'
 import { groupedAndFilteredBranches, BranchListItemModel } from './grouped-and-filtered-branches'
 import { BranchListItem } from './branch'
 
-const RowHeight = 25
+const RowHeight = 30
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -112,7 +112,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
                onChange={event => this.onFilterChanged(event)}
                onKeyDown={event => this.onKeyDown(branchItems, event)}/>
 
-        <div className='popup-inner-content branches-list-container'>
+        <div className='branches-list-container'>
           <List rowCount={branchItems.length}
                 rowRenderer={row => this.renderRow(branchItems, row)}
                 rowHeight={RowHeight}

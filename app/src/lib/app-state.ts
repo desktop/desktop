@@ -60,7 +60,6 @@ export interface IAppError {
 
 export enum PopupType {
   CreateBranch = 1,
-  ShowBranches,
   AddRepository,
   RenameBranch,
   PublishRepository,
@@ -69,7 +68,6 @@ export enum PopupType {
 }
 
 export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
-                    { type: PopupType.ShowBranches, repository: Repository } |
                     { type: PopupType.AddRepository } |
                     { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.PublishRepository, repository: Repository } |
@@ -77,11 +75,13 @@ export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> }
 
 export enum FoldoutType {
-  Repository = 1,
+  Repository,
+  Branch,
 }
 
 export type Foldout =
-  { type: FoldoutType.Repository }
+  { type: FoldoutType.Repository } |
+  { type: FoldoutType.Branch }
 
 export enum RepositorySection {
   Changes,
