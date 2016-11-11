@@ -47,7 +47,8 @@
     margin: var(--spacing-double) 0;
 
     button {
-      margin: var(--spacing-half);
+      margin: 0 var(--spacing-half);
+      flex: 1;
     }
   }
 }
