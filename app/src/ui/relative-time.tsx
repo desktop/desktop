@@ -2,6 +2,10 @@ import * as React from 'react'
 import * as moment from 'moment'
 
 interface IRelativeTimeProps {
+  /**
+   * The date instance that will be used for calculating
+   * the relative time elapsed
+   */
   readonly date: Date
 }
 
@@ -15,6 +19,17 @@ const MINUTE = SECOND * 60
 const HOUR = MINUTE * 60
 const DAY = HOUR * 24
 
+/**
+ * An auto-updating component rendering a relative time in human readable form.
+ *
+ * Example: 'just now', '4 minutes ago', '3 days ago'.
+ *
+ * For timestamps that are more than 7 days in the past the absolute
+ * date is rendered instead.
+ *
+ * This component will automatically re-render when the relative time
+ * changes by scheduling state changes at reasonable intervals.
+ */
 export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeTimeState> {
 
   private timer: number | null
