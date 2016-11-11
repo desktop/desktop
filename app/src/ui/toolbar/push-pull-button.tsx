@@ -36,6 +36,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
       <ToolbarButton
         title={this.getTitle()}
         description={this.getDescription()}
+        className='push-pull-button'
         icon={this.getIcon()}
         iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
         onClick={() => this.performAction()}
@@ -56,7 +57,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
       content.push(
         <span key='ahead'>
           {ahead}
-          <Octicon symbol={OcticonSymbol.arrowUp}/>
+          <Octicon symbol={OcticonSymbol.arrowSmallUp}/>
         </span>
       )
     }
@@ -65,7 +66,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
       content.push(
         <span key='behind'>
           {behind}
-          <Octicon symbol={OcticonSymbol.arrowDown}/>
+          <Octicon symbol={OcticonSymbol.arrowSmallDown}/>
         </span>
       )
     }

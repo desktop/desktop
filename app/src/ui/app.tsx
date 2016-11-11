@@ -502,10 +502,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}
-        <div
-          className='sidebar-section'>
-          {this.renderPushPullToolbarButton()}
-        </div>
+        {this.renderPushPullToolbarButton()}
       </Toolbar>
     )
   }
