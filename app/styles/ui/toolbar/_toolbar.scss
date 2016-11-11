@@ -53,10 +53,10 @@
 .ahead-behind {
   display: flex;
 
+  margin-left: var(--spacing);
   background: var(--ahead-behind-background-color);
   border-radius: var(--ahead-behind-border-radius);
 
-  margin-left: var(--spacing-double);
 
   padding-left: var(--spacing-half);
   padding-right: var(--spacing-half);
