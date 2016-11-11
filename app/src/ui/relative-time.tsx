@@ -34,6 +34,11 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
 
   private timer: number | null
 
+  public constructor(props: IRelativeTimeProps) {
+    super(props)
+    this.state = { absoluteText: '', relativeText: '' }
+  }
+
   private clearTimer() {
     if (this.timer) {
       clearTimeout(this.timer)
@@ -87,6 +92,12 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
 
   public componentWillUnmount() {
     this.clearTimer()
+  }
+
+  public shouldComponentUpdate(nextProps: IRelativeTimeProps, nextState: IRelativeTimeState) {
+    return nextProps.date !== this.props.date
+      || nextState.absoluteText !== this.state.absoluteText
+      || nextState.relativeText !== this.state.relativeText
   }
 
   public render() {
