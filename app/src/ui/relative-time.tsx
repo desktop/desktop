@@ -19,6 +19,11 @@ const MINUTE = SECOND * 60
 const HOUR = MINUTE * 60
 const DAY = HOUR * 24
 
+// The maximum value that can be used in setInterval or
+// setTimeout without it overflowing (2 ^ 31 - 1). See
+//  http://stackoverflow.com/a/16314807
+const MAX_INTERVAL = 2147483647
+
 /**
  * An auto-updating component rendering a relative time in human readable form.
  *
@@ -48,7 +53,7 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
 
   private updateAndSchedule(absoluteText: string, relativeText: string, timeout: number) {
     this.clearTimer()
-    this.timer = window.setTimeout(this.updateFromScheduler, Math.min(timeout, 2147483647))
+    this.timer = window.setTimeout(this.updateFromScheduler, Math.min(timeout, MAX_INTERVAL))
     this.setState({ absoluteText, relativeText })
   }
 
