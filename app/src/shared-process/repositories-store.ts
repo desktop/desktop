@@ -59,7 +59,7 @@ export class RepositoriesStore {
   }
 
   /** Update or add the repository's GitHub repository. */
-  public async updateGitHubRepository(repository: Repository): Promise<void> {
+  public async updateGitHubRepository(repository: Repository): Promise<Repository> {
     const repoID = repository.id
     if (!repoID) {
       return fatalError('`updateGitHubRepository` can only update a GitHub repository for a repository which has been added to the database.')
@@ -70,6 +70,7 @@ export class RepositoriesStore {
       return fatalError('`updateGitHubRepository` can only update a GitHub repository. It cannot remove one.')
     }
 
+    let gitHubRepositoryID: number | null = null
     const db = this.db
     const transaction = this.db.transaction('rw', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*() {
       const localRepo = yield db.repositories.get(repoID)
@@ -77,6 +78,8 @@ export class RepositoriesStore {
       let existingGitHubRepo: IDatabaseGitHubRepository | null = null
       let ownerID: number | null = null
       if (localRepo.gitHubRepositoryID) {
+        gitHubRepositoryID = localRepo.gitHubRepositoryID
+
         existingGitHubRepo = yield db.gitHubRepositories.get(localRepo.gitHubRepositoryID)
         if (!existingGitHubRepo) {
           return fatalError(`Couldn't look up an existing GitHub repository.`)
@@ -110,10 +113,12 @@ export class RepositoriesStore {
         info.id = existingGitHubRepo.id
       }
 
-      const gitHubRepositoryID = yield db.gitHubRepositories.put(info)
+      gitHubRepositoryID = yield db.gitHubRepositories.put(info)
       yield db.repositories.update(localRepo.id, { gitHubRepositoryID })
     })
 
     await transaction
+
+    return repository.withGitHubRepository(new GitHubRepository(newGitHubRepo.name, newGitHubRepo.owner, gitHubRepositoryID!, newGitHubRepo.private, newGitHubRepo.fork, newGitHubRepo.htmlURL, newGitHubRepo.defaultBranch))
   }
 }
