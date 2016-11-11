@@ -12,13 +12,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-
-    #sign-in-form {
-      display: flex;
-      flex-direction: column;
-      margin: var(--spacing-double) 0;
-      width: 320px;
-    }
   }
 
   #configure-git {
@@ -120,4 +113,12 @@
 .link-with-icon svg {
   margin-left: 0.25em;
   vertical-align: middle;
+}
+
+
+.sign-in-form {
+  display: flex;
+  flex-direction: column;
+  margin: var(--spacing-double) 0;
+  width: 320px;
 }

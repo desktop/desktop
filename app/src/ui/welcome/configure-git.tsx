@@ -60,19 +60,21 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     const emoji = new Map()
     return (
       <div id='configure-git'>
-        <h1>Configure Git</h1>
-        <div className='description'>This is used to identify the commits you create. Anyone will be able to see this information if you publish commits.</div>
+        <h1 className='welcome-title'>Configure Git</h1>
+        <p className='welcome-text'>
+          This is used to identify the commits you create. Anyone will be able to see this information if you publish commits.
+        </p>
 
-        <form onSubmit={e => this.continue(e)}>
-          <label>
-            Name
-            <input placeholder='Hubot' value={this.state.name} onChange={e => this.onNameChange(e)}/>
-          </label>
+        <form className='sign-in-form' onSubmit={e => this.continue(e)}>
+          <div className='field-group'>
+            <label>Name</label>
+            <input className='sign-in-field text-field' placeholder='Hubot' value={this.state.name} onChange={e => this.onNameChange(e)}/>
+          </div>
 
-          <label>
-            Email
-            <input placeholder='hubot@github.com' value={this.state.email} onChange={e => this.onEmailChange(e)}/>
-          </label>
+          <div className='field-group'>
+            <label>Email</label>
+            <input className='sign-in-field text-field' placeholder='hubot@github.com' value={this.state.email} onChange={e => this.onEmailChange(e)}/>
+          </div>
 
           <div className='actions'>
             <button type='submit'>Continue</button>

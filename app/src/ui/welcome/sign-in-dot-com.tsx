@@ -35,7 +35,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
           (But not really. Use the browser for now please and thank you.)
         </p>
 
-        <form id='sign-in-form' onSubmit={e => this.signIn(e)}>
+        <form className='sign-in-form' onSubmit={e => this.signIn(e)}>
           <div className='field-group'>
             <label>Username or email address</label>
             <input className='text-field sign-in-field' type='email' onChange={e => this.onUsernameChange(e)}/>
