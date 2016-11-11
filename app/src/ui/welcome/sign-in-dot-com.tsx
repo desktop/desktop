@@ -29,19 +29,20 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length) || true
     return (
       <div id='sign-in-dot-com'>
-        <h1>Sign in to GitHub.com</h1>
-        <div>Get started by signing into GitHub.com</div>
+        <h1 className='welcome-title'>Sign in to GitHub.com</h1>
 
         <form id='sign-in-form' onSubmit={e => this.signIn(e)}>
-          <label>Username or email address
-            <input onChange={e => this.onUsernameChange(e)}/>
-          </label>
+          <div>
+            <label>Username or email address</label>
+            <input className='text-field sign-in-field' type='email' onChange={e => this.onUsernameChange(e)}/>
+          </div>
 
-          <label>Password
-            <input type='password' onChange={e => this.onPasswordChange(e)}/>
-          </label>
+          <div>
+            <label>Password</label>
+            <input className='sign-in-field' type='password' onChange={e => this.onPasswordChange(e)}/>
+          </div>
 
-          <LinkButton uri={ForgotPasswordURL}>Forgot password?</LinkButton>
+          <LinkButton className='forgot-password-link' uri={ForgotPasswordURL}>Forgot password?</LinkButton>
 
           <div className='actions'>
             <Button type='submit' disabled={signInDisabled}>Sign in (But not really. Use the browser for now please and thank you.)</Button>

@@ -3,7 +3,9 @@ input[type='date'],
 input[type='email'],
 input[type='range'],
 input[type='search'],
-textarea {
+input[type='password'],
+textarea,
+.text-field {
   border: 1px solid var(--box-border-color);
   border-radius: var(--border-radius);
   color: currentColor;

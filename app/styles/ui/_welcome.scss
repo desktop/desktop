@@ -16,6 +16,7 @@
     #sign-in-form {
       display: flex;
       flex-direction: column;
+      width: 320px;
     }
   }
 
@@ -76,6 +77,15 @@
   text-decoration: none;
 
   &:hover {
-    text-decoration: underline;  
+    text-decoration: underline;
   }
 }
+
+.forgot-password-link {
+  float: right;
+}
+
+.sign-in-field {
+  width: 100%;
+}
+
