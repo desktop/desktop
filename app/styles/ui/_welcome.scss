@@ -67,15 +67,6 @@
   width: 200px;
 }
 
-.welcome-link-button {
-  font-weight: 500;
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 .forgot-password-link {
   float: right;
 }
@@ -114,7 +105,6 @@
   margin-left: 0.25em;
   vertical-align: middle;
 }
-
 
 .sign-in-form {
   display: flex;

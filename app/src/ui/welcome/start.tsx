@@ -26,9 +26,9 @@ export class Start extends React.Component<IStartProps, void> {
         </div>
 
         <div>
-          <LinkButton className='welcome-link-button' uri={CreateAccountURL}>Create an account</LinkButton>
+          <LinkButton uri={CreateAccountURL}>Create an account</LinkButton>
           {' or '}
-          <LinkButton className='welcome-link-button' onClick={() => this.skip()}>skip this step</LinkButton>
+          <LinkButton onClick={() => this.skip()}>skip this step</LinkButton>
         </div>
       </div>
     )

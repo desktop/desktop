@@ -28,6 +28,11 @@ input[type='submit'],
 
 a.link-button-component {
   color: var(--link-button-color);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .secondary-button {
