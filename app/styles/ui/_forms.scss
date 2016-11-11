@@ -33,3 +33,7 @@ input[type='checkbox'] {
 textarea {
   min-height: 100px;
 }
+
+.field-group {
+  margin: var(--spacing-half) 0;  
+}

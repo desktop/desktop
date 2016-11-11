@@ -16,6 +16,7 @@
     #sign-in-form {
       display: flex;
       flex-direction: column;
+      margin: var(--spacing-double) 0;
       width: 320px;
     }
   }
@@ -85,7 +86,37 @@
   float: right;
 }
 
+.horizontal-rule {
+  text-align: center;
+  position: relative;
+
+  &:after {
+    border-bottom: 1px solid #ddd;
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.5em;
+  }
+
+  span {
+    display: inline-block;
+    background: white;
+    padding: 0 0.5em;
+    position: relative;
+    z-index: 1;
+  }
+}
+
 .sign-in-field {
   width: 100%;
 }
 
+.center {
+  text-align: center;
+}
+
+.link-with-icon svg {
+  margin-left: 0.25em;
+  vertical-align: middle;
+}

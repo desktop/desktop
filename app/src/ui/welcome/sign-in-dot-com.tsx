@@ -2,6 +2,7 @@ import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { Dispatcher } from '../../lib/dispatcher'
 import { LinkButton } from '../lib/link-button'
+import { Octicon, OcticonSymbol } from '../octicons'
 import { Button } from '../lib/button'
 
 const ForgotPasswordURL = 'https://github.com/password_reset'
@@ -30,14 +31,17 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     return (
       <div id='sign-in-dot-com'>
         <h1 className='welcome-title'>Sign in to GitHub.com</h1>
+        <p className='welcome-text'>
+          (But not really. Use the browser for now please and thank you.)
+        </p>
 
         <form id='sign-in-form' onSubmit={e => this.signIn(e)}>
-          <div>
+          <div className='field-group'>
             <label>Username or email address</label>
             <input className='text-field sign-in-field' type='email' onChange={e => this.onUsernameChange(e)}/>
           </div>
 
-          <div>
+          <div className='field-group'>
             <label>Password</label>
             <input className='sign-in-field' type='password' onChange={e => this.onPasswordChange(e)}/>
           </div>
@@ -45,13 +49,20 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
           <LinkButton className='forgot-password-link' uri={ForgotPasswordURL}>Forgot password?</LinkButton>
 
           <div className='actions'>
-            <Button type='submit' disabled={signInDisabled}>Sign in (But not really. Use the browser for now please and thank you.)</Button>
+            <Button type='submit' disabled={signInDisabled}>Sign in </Button>
             <Button onClick={() => this.cancel()}>Cancel</Button>
           </div>
 
-          <div>or</div>
+          <div className='horizontal-rule'>
+            <span>or</span>
+          </div>
 
-          <LinkButton onClick={() => this.signInWithBrowser()}>Sign in using your browser</LinkButton>
+          <p className='center'>
+            <LinkButton className='welcome-link-button link-with-icon' onClick={() => this.signInWithBrowser()}>
+              Sign in using your browser
+              <Octicon symbol={OcticonSymbol.linkExternal} />
+            </LinkButton>
+          </p>
         </form>
       </div>
     )
