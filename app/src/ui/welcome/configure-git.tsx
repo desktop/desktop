@@ -78,7 +78,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
 
           <div className='actions'>
             <button type='submit'>Continue</button>
-            <button onClick={e => this.cancel(e)}>Cancel</button>
+            <button className='secondary-button' onClick={e => this.cancel(e)}>Cancel</button>
           </div>
         </form>
 

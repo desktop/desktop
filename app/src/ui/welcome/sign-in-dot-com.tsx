@@ -50,7 +50,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
 
           <div className='actions'>
             <Button type='submit' disabled={signInDisabled}>Sign in </Button>
-            <Button onClick={() => this.cancel()}>Cancel</Button>
+            <Button className='secondary-button' onClick={() => this.cancel()}>Cancel</Button>
           </div>
 
           <div className='horizontal-rule'>

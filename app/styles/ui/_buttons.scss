@@ -2,7 +2,6 @@ button,
 input[type='submit'],
 .button {
   background-color: var(--button-background);
-  box-shadow: 0 1px 1px rgba(5, 5, 5, 0.04);
   color: var(--button-text-color);
 
   // Chrome on Windows ignores the body element
@@ -29,4 +28,13 @@ input[type='submit'],
 
 a.link-button-component {
   color: var(--link-button-color);
+}
+
+.secondary-button {
+  color: var(--text-color);
+  background-color: #F0F0F0;
+
+  &:not(:disabled):hover {
+    background-color: darken(#F0F0F0, 5%);
+  }
 }

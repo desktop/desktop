@@ -12,6 +12,9 @@ interface IButtonProps {
 
   /** Whether the button is a submit. */
   readonly type?: 'submit'
+
+  /** CSS class names */
+  readonly className?: string
 }
 
 /** A button component. */
@@ -19,7 +22,7 @@ export class Button extends React.Component<IButtonProps, void> {
   public render() {
     return (
       <button
-        className='button-component'
+        className={this.props.className ? this.props.className : '' }
         disabled={this.props.disabled}
         onClick={e => this.onClick(e)}
         type={this.props.type}>
