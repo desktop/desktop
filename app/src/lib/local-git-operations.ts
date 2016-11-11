@@ -418,7 +418,7 @@ export class LocalGitOperations {
 
     flags.push(name)
 
-    const result = await git(flags, path || __dirname, { successExitCodes:  new Set([ 0, 1 ]) })
+    const result = await git(flags, path || __dirname, { successExitCodes: new Set([ 0, 1 ]) })
     // Git exits with 1 if the value isn't found. That's OK.
     if (result.exitCode === 1) {
       return null
@@ -601,7 +601,7 @@ export class LocalGitOperations {
     // but by using log we can give it a max number which should prevent us from balling out
     // of control when there's ginormous reflogs around (as in e.g. github/github).
     const regex = new RegExp(/.*? checkout: moving from .*? to (.*?)$/i)
-    const result = await git([ 'log', '-g', '--abbrev-commit', '--pretty=oneline', 'HEAD', '-n', '2500' ], repository.path, new Set([ 0, 128 ]))
+    const result = await git([ 'log', '-g', '--abbrev-commit', '--pretty=oneline', 'HEAD', '-n', '2500', '--' ], repository.path, { successExitCodes: new Set([ 0, 128 ]) })
 
     if (result.exitCode === 128) {
       // error code 128 is returned if the branch is unborn
