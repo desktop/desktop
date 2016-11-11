@@ -71,7 +71,9 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
     }
   }
 
-  private updateFromScheduler = () => { this.updateWithDate(this.props.date) }
+  private readonly updateFromScheduler = () => {
+    this.updateWithDate(this.props.date)
+  }
 
   public componentWillReceiveProps(nextProps: IRelativeTimeProps) {
     if (this.props.date !== nextProps.date) {
