@@ -1,10 +1,10 @@
 import * as React from 'react'
-import * as moment from 'moment'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { IAheadBehind } from '../../lib/app-state'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
+import { RelativeTime } from '../relative-time'
 
 interface IPushPullButtonProps {
   /**
@@ -98,14 +98,13 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
     return OcticonSymbol.sync
   }
 
-  private getDescription(): string {
+  private getDescription(): JSX.Element | string {
     if (!this.props.remoteName) { return 'Publish this repository to GitHub' }
     if (!this.props.aheadBehind) { return 'Publish this branch to GitHub' }
 
     const lastFetched = this.props.lastFetched
     if (lastFetched) {
-      const relative = moment(lastFetched).fromNow()
-      return `Last fetched ${relative}`
+      return <div>Last fetched <RelativeTime date={lastFetched} /></div>
     } else {
       return 'Never fetched'
     }
