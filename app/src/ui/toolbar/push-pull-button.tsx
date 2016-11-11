@@ -36,6 +36,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
       <ToolbarButton
         title={this.getTitle()}
         description={this.getDescription()}
+        className='push-pull-button'
         icon={this.getIcon()}
         iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
         onClick={() => this.performAction()}
