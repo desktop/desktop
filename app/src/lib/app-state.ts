@@ -2,13 +2,14 @@ import { User } from '../models/user'
 import { CommitIdentity } from '../models/commit-identity'
 import { Diff } from '../models/diff'
 import { Repository } from '../models/repository'
-import { Commit, Branch } from './local-git-operations'
+import { Commit, Branch, IAheadBehind } from './local-git-operations'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
 
 export { ICloningRepositoryState } from './dispatcher'
 export { ICommitMessage } from './dispatcher/git-store'
+export { IAheadBehind } from './local-git-operations'
 
 export enum SelectionType {
   Repository,
@@ -118,6 +119,18 @@ export interface IRepositoryState {
    * `commits.`
    */
   readonly localCommitSHAs: ReadonlyArray<string>
+
+  /** The name of the remote. */
+  readonly remoteName: string | null
+
+  /** The state of the current branch in relation to its upstream. */
+  readonly aheadBehind: IAheadBehind | null
+
+  /** Is a push/pull/update in progress? */
+  readonly pushPullInProgress: boolean
+
+  /** The date the repository was last fetched. */
+  readonly lastFetched: Date | null
 }
 
 export interface IBranchesState {

@@ -139,7 +139,7 @@ export const enum GitResetMode {
 }
 
 /** The number of commits a revision range is ahead/behind. */
-interface IAheadBehind {
+export interface IAheadBehind {
   readonly ahead: number
   readonly behind: number
 }
@@ -730,7 +730,10 @@ export class LocalGitOperations {
     const upstream = branch.upstream
     if (!upstream) { return null }
 
-    const range = `${branch.name}..${upstream}`
+    // NB: The three dot form means we'll go all the way back to the merge base
+    // of the branch and its upstream. Practically this is important for seeing
+    // "through" merges.
+    const range = `${branch.name}...${upstream}`
     return this.getAheadBehind(repository, range)
   }
 

@@ -1,6 +1,8 @@
+import * as Fs from 'fs'
+import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
-import { LocalGitOperations, Commit, Branch, BranchType, GitResetMode } from '../local-git-operations'
+import { LocalGitOperations, Commit, Branch, BranchType, GitResetMode, IAheadBehind } from '../local-git-operations'
 import { User } from '../../models/user'
 
 /** The number of commits to load from history per batch. */
@@ -42,6 +44,12 @@ export class GitStore {
 
   private _commitMessage: ICommitMessage | null
   private _contextualCommitMessage: ICommitMessage | null
+
+  private _aheadBehind: IAheadBehind | null = null
+
+  private _remoteName: string | null = null
+
+  private _lastFetched: Date | null = null
 
   public constructor(repository: Repository) {
     this.repository = repository
@@ -346,15 +354,70 @@ export class GitStore {
    * @param user - The user to use for authentication if needed.
    */
   public async fetch(user: User | null): Promise<void> {
-    const remote = await LocalGitOperations.getDefaultRemote(this.repository)
+    const remote = this._remoteName
     if (!remote) { return }
 
     return LocalGitOperations.fetch(this.repository, user, remote)
   }
 
+  /** Calculate the ahead/behind for the current branch. */
+  public async calculateAheadBehindForCurrentBranch(): Promise<void> {
+    const branch = this._currentBranch
+    if (!branch) { return }
+
+    this._aheadBehind = await LocalGitOperations.getBranchAheadBehind(this.repository, branch)
+
+    this.emitUpdate()
+  }
+
+  /** Load the default remote. */
+  public async loadDefaultRemote(): Promise<void> {
+    this._remoteName = await LocalGitOperations.getDefaultRemote(this.repository)
+
+    this.emitUpdate()
+  }
+
+  /**
+   * The number of commits the current branch is ahead and behind, relative to
+   * its upstream.
+   *
+   * It will be `null` if ahead/behind hasn't been calculated yet, or if the
+   * branch doesn't have an upstream.
+   */
+  public get aheadBehind(): IAheadBehind | null { return this._aheadBehind }
+
+  /** Get the name of the remote we're working with. */
+  public get remoteName(): string | null { return this._remoteName }
+
   public setCommitMessage(message: ICommitMessage | null): Promise<void> {
     this._commitMessage = message
     this.emitUpdate()
     return Promise.resolve()
+  }
+
+  /** The date the repository was last fetched. */
+  public get lastFetched(): Date | null { return this._lastFetched }
+
+  /** Update the last fetched date. */
+  public updateLastFetched(): Promise<void> {
+    const path = Path.join(this.repository.path, '.git', 'FETCH_HEAD')
+    return new Promise<void>((resolve, reject) => {
+      Fs.stat(path, (err, stats) => {
+        if (err) {
+          // An error most likely means the repository's never been published.
+          this._lastFetched = null
+        }
+
+        // If the file's empty then it _probably_ means the fetch failed and we
+        // shouldn't update the last fetched date.
+        if (stats.size > 0) {
+          this._lastFetched = stats.mtime
+        }
+
+        resolve()
+
+        this.emitUpdate()
+      })
+    })
   }
 }

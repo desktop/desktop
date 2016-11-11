@@ -384,6 +384,11 @@ export class Dispatcher {
     return this.appStore._updateIssues(repository)
   }
 
+  /** Fetch the repository. */
+  public fetch(repository: Repository): Promise<void> {
+    return this.appStore.fetch(repository)
+  }
+
   /** End the Welcome flow. */
   public endWelcomeFlow(): Promise<void> {
     return this.appStore._endWelcomeFlow()
