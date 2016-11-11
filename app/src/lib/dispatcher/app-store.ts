@@ -164,6 +164,10 @@ export class AppStore {
       gitHubUsers: new Map<string, IGitHubUser>(),
       commits: new Map<string, Commit>(),
       localCommitSHAs: [],
+      aheadBehind: null,
+      remoteName: null,
+      pushPullInProgress: false,
+      lastFetched: null,
     }
   }
 
@@ -181,6 +185,10 @@ export class AppStore {
         gitHubUsers,
         commits: state.commits,
         localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
+        lastFetched: state.lastFetched,
       }
     }
 
@@ -206,6 +214,10 @@ export class AppStore {
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
         localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
+        lastFetched: state.lastFetched,
       }
     })
   }
@@ -222,6 +234,10 @@ export class AppStore {
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
         localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
+        lastFetched: state.lastFetched,
       }
     })
   }
@@ -238,6 +254,10 @@ export class AppStore {
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
         localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
+        lastFetched: state.lastFetched,
       }
     })
   }
@@ -321,6 +341,10 @@ export class AppStore {
         gitHubUsers: state.gitHubUsers,
         commits: gitStore.commits,
         localCommitSHAs: gitStore.localCommitSHAs,
+        aheadBehind: gitStore.aheadBehind,
+        remoteName: gitStore.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
+        lastFetched: gitStore.lastFetched,
       }
     })
 
@@ -684,6 +708,10 @@ export class AppStore {
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
         localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
+        lastFetched: state.lastFetched,
       }
     })
     this.emitUpdate()
@@ -777,6 +805,8 @@ export class AppStore {
         files
       )
     })
+
+    await this._refreshRepository(repository)
 
     return this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
   }
@@ -873,14 +903,17 @@ export class AppStore {
 
     await gitStore.loadCurrentAndDefaultBranch()
 
+    // We don't need to await this. The GitStore will notify when something
+    // changes.
+    gitStore.loadBranches()
+    gitStore.loadDefaultRemote()
+    gitStore.calculateAheadBehindForCurrentBranch()
+    gitStore.updateLastFetched()
+
     // When refreshing we *always* load Changes so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
     // selected.
     await this._loadStatus(repository)
-
-    // We don't need to await this. The GitStore will notify when something
-    // changes.
-    gitStore.loadBranches()
 
     await this.refreshAuthor(repository)
 
@@ -935,6 +968,10 @@ export class AppStore {
         gitHubUsers: state.gitHubUsers,
         commits: state.commits,
         localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: state.pushPullInProgress,
+        lastFetched: state.lastFetched,
       }
     })
     this.emitUpdate()
@@ -1070,49 +1107,93 @@ export class AppStore {
   }
 
   public async _push(repository: Repository): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    const remote = await gitStore.performFailableOperation(() => LocalGitOperations.getDefaultRemote(repository))
-    if (!remote) {
-      this._showPopup({
-        type: PopupType.PublishRepository,
-        repository,
-      })
-      return
-    }
+    await this.withPushPull(repository, async () => {
+      const gitStore = this.getGitStore(repository)
+      const remote = gitStore.remoteName
+      if (!remote) {
+        this._showPopup({
+          type: PopupType.PublishRepository,
+          repository,
+        })
+        return
+      }
 
-    const state = this.getRepositoryState(repository)
-    const branch = state.branchesState.currentBranch
-    if (!branch) {
-      return Promise.reject(new Error('The current branch is unborn.'))
-    }
+      const state = this.getRepositoryState(repository)
+      const branch = state.branchesState.currentBranch
+      if (!branch) {
+        return Promise.reject(new Error('The current branch is unborn.'))
+      }
 
-    const user = this.getUserForRepository(repository)
-    const upstream = branch.upstream
-    if (upstream) {
-      await gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, false))
-    } else {
-      await gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, true))
-    }
+      const user = this.getUserForRepository(repository)
+      const upstream = branch.upstream
+      if (upstream) {
+        await gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, false))
+      } else {
+        await gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, true))
+      }
+    })
 
     return this._refreshRepository(repository)
   }
 
+  private async withPushPull(repository: Repository, fn: () => Promise<void>): Promise<void> {
+    this.updateRepositoryState(repository, state => (
+      {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        commitAuthor: state.commitAuthor,
+        branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: true,
+        lastFetched: state.lastFetched,
+      }
+    ))
+    this.emitUpdate()
+
+    await fn()
+
+    this.updateRepositoryState(repository, state => (
+      {
+        historyState: state.historyState,
+        changesState: state.changesState,
+        selectedSection: state.selectedSection,
+        commitAuthor: state.commitAuthor,
+        branchesState: state.branchesState,
+        gitHubUsers: state.gitHubUsers,
+        commits: state.commits,
+        localCommitSHAs: state.localCommitSHAs,
+        aheadBehind: state.aheadBehind,
+        remoteName: state.remoteName,
+        pushPullInProgress: false,
+        lastFetched: state.lastFetched,
+      }
+    ))
+    this.emitUpdate()
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _pull(repository: Repository): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    const remote = await gitStore.performFailableOperation(() => LocalGitOperations.getDefaultRemote(repository))
-    if (!remote) {
-      return Promise.reject(new Error('The repository has no remotes.'))
-    }
+    await this.withPushPull(repository, async () => {
+      const gitStore = this.getGitStore(repository)
+      const remote = gitStore.remoteName
+      if (!remote) {
+        return Promise.reject(new Error('The repository has no remotes.'))
+      }
 
-    const state = this.getRepositoryState(repository)
-    const branch = state.branchesState.currentBranch
-    if (!branch) {
-      return Promise.reject(new Error('The current branch is unborn.'))
-    }
+      const state = this.getRepositoryState(repository)
+      const branch = state.branchesState.currentBranch
+      if (!branch) {
+        return Promise.reject(new Error('The current branch is unborn.'))
+      }
 
-    const user = this.getUserForRepository(repository)
-    await gitStore.performFailableOperation(() => LocalGitOperations.pull(repository, user, remote, branch.name))
+      const user = this.getUserForRepository(repository)
+      await gitStore.performFailableOperation(() => LocalGitOperations.pull(repository, user, remote, branch.name))
+    })
 
     this._refreshRepository(repository)
 
@@ -1204,11 +1285,14 @@ export class AppStore {
     return gitStore.clearContextualCommitMessage()
   }
 
-  private async fetch(repository: Repository): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    const user = this.getUserForRepository(repository)
-    await gitStore.fetch(user)
-    await this.fastForwardBranches(repository)
+  /** Fetch the repository. */
+  public async fetch(repository: Repository): Promise<void> {
+    await this.withPushPull(repository, async () => {
+      const gitStore = this.getGitStore(repository)
+      const user = this.getUserForRepository(repository)
+      await gitStore.fetch(user)
+      await this.fastForwardBranches(repository)
+    })
 
     return this._refreshRepository(repository)
   }

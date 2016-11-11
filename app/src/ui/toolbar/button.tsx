@@ -1,6 +1,16 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import * as classNames from 'classnames'
+import { assertNever } from '../../lib/fatal-error'
+
+/** The button style. */
+export enum ToolbarButtonStyle {
+  /** The default style with the description above the title. */
+  Standard,
+
+  /** A style in which the description is below the title. */
+  Subtitle,
+}
 
 export interface IToolbarButtonProps {
   /** The primary button text, describing its function */
@@ -11,6 +21,8 @@ export interface IToolbarButtonProps {
 
   /** An optional symbol to be displayed next to the button text */
   readonly icon?: OcticonSymbol,
+
+  readonly iconClassName?: string,
 
   /**
    * An optional event handler for when the button is activated
@@ -30,6 +42,9 @@ export interface IToolbarButtonProps {
    * dropdown component to render the foldout.
    */
   readonly preContentRenderer?: () => JSX.Element | null
+
+  /** The button's style. Defaults to `ToolbarButtonStyle.Standard`. */
+  readonly style?: ToolbarButtonStyle
 }
 
 /**
@@ -47,11 +62,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
 
   public render() {
     const icon = this.props.icon
-      ? <Octicon symbol={this.props.icon} className='icon' />
-      : null
-
-    const description = this.props.description
-      ? <div className='description'>{this.props.description}</div>
+      ? <Octicon symbol={this.props.icon} className={classNames('icon', this.props.iconClassName)} />
       : null
 
     const className = classNames('toolbar-button', this.props.className)
@@ -67,13 +78,38 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
         {preContent}
         <div className='toolbar-button-content-wrapper'>
           {icon}
-          <div className='text'>
-            <div className='title'>{this.props.title}</div>
-            {description}
-          </div>
+          {this.renderText()}
           {this.props.children}
         </div>
       </button>
     )
+  }
+
+  private renderText() {
+    const description = this.props.description
+      ? <div className='description'>{this.props.description}</div>
+      : null
+
+    const style = this.props.style || ToolbarButtonStyle.Standard
+    switch (style) {
+      case ToolbarButtonStyle.Standard:
+        return (
+          <div className='text'>
+            <div className='title'>{this.props.title}</div>
+            {description}
+          </div>
+        )
+
+      case ToolbarButtonStyle.Subtitle:
+        return (
+          <div className='text'>
+            {description}
+            <div className='title'>{this.props.title}</div>
+          </div>
+        )
+
+      default:
+        return assertNever(style, `Unknown button style: ${style}`)
+    }
   }
 }
