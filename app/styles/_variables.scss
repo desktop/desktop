@@ -56,6 +56,9 @@
   --font-size-md: 16px;
   --font-size-xl: 32px;
 
+  /** Extra small font size, be very conservative with the use of this */
+  --font-size-xs: 9px;
+
   /**
    * Background color for custom scroll bars.
    * The color is applied to the thumb part of the scrollbar.
