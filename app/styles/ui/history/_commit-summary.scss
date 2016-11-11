@@ -47,6 +47,7 @@
     @include ellipsis;
     flex: 1 0 max-content;
     margin-right: var(--spacing);
+    font-size: var(--font-size-sm);
 
     .octicon {
       margin-right: var(--spacing-third);
