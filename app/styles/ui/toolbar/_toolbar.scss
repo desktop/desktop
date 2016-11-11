@@ -38,9 +38,8 @@
   }
 
   .toolbar-button {
-    &.branch-button {
-      width: 220px;
-    }
+    &.branch-button { width: 220px; }
+    &.push-pull-button { min-width: 200px; }
   }
 }
 
@@ -53,20 +52,32 @@
 .ahead-behind {
   display: flex;
 
+  margin-left: var(--spacing);
   background: var(--ahead-behind-background-color);
-  border-radius: var(--ahead-behind-border-radius);
 
-  margin-left: var(--spacing-double);
+  // Perfectly round semi circle ends with real tight
+  // padding on either side
+  height: 16px;
+  border-radius: 8px;
+  padding: 0 6px;
 
-  padding-left: var(--spacing-half);
-  padding-right: var(--spacing-half);
+  font-size: var(--font-size-xs);
 
   span {
     display: flex;
     align-items: center;
 
-    font-size: var(--font-size-sm);
-    padding: var(--spacing-third);
+    // Only add left margin if both ahead and behind are
+    // showing at the same time.
+    &:nth-child(2) { margin-left: var(--spacing-third); }
+
+    // We're using arrowSmallUp and arrowSmallDown which are
+    // both exactly 6px wide. Let's use that so that spacing
+    // gets easier to reason about.
+    .octicon {
+      width: 6px;
+      margin-left: var(--spacing-third);
+    }
   }
 }
 
