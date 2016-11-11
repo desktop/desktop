@@ -55,11 +55,12 @@
 
   margin-left: var(--spacing);
   background: var(--ahead-behind-background-color);
-  border-radius: var(--ahead-behind-border-radius);
 
-
-  padding-left: var(--spacing-half);
-  padding-right: var(--spacing-half);
+  // Perfectly round semi circle ends with real tight
+  // padding on either side
+  height: 16px;
+  border-radius: 8px;
+  padding: 0 6px;
 
   font-size: var(--font-size-xs);
 
