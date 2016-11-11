@@ -82,7 +82,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
           </div>
         </form>
 
-        <div id='commit-list'>
+        <div id='commit-list' className='commit-list-example'>
           <CommitListItem commit={dummyCommit1} emoji={emoji} avatarURL={null}/>
           <CommitListItem commit={dummyCommit2} emoji={emoji} avatarURL={this.state.avatarURL}/>
           <CommitListItem commit={dummyCommit3} emoji={emoji} avatarURL={null}/>

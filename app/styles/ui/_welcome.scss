@@ -112,3 +112,21 @@
   margin: var(--spacing-double) 0;
   width: 320px;
 }
+
+.commit-list-example {
+  position: relative;
+
+  &:before {
+    background: linear-gradient(to bottom, white, rgba(255,255,255,0), white);
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .commit {
+    padding: var(--spacing-half) !important;
+  }
+}
