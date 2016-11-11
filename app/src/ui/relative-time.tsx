@@ -54,8 +54,10 @@ export class RelativeTime extends React.Component<IRelativeTimeProps, IRelativeT
     const duration = Math.abs(diff)
     const absoluteText = then.format('LLLL')
 
-    if (diff > 0) {
-      this.updateAndSchedule(absoluteText, 'from the future', duration)
+    // Future date, let's just show as absolute and reschedule. If it's less
+    // than a minute into the future we'll treat it as 'just now'.
+    if (diff > 0 && duration > MINUTE) {
+      this.updateAndSchedule(absoluteText, then.format('LLL'), duration)
     } else if (duration < MINUTE) {
       this.updateAndSchedule(absoluteText, 'just now', MINUTE - duration)
     } else if (duration < HOUR) {
