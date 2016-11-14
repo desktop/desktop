@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { FileChange } from '../../models/status'
+import { FileChange, mapStatus } from '../../models/status'
 import { renderPath } from '../lib/path-label'
-import { renderOcticon } from '../octicons'
+import { Octicon, iconForStatus } from '../octicons'
 import { List } from '../list'
 
 interface IFileListProps {
@@ -18,10 +18,17 @@ export class FileList extends React.Component<IFileListProps, void> {
 
   private renderFile(row: number) {
     const file = this.props.files[row]
+    const status = file.status
+    const fileStatus = mapStatus(status)
 
-    return <div className='commit-file'>
+    return <div className='file'>
+
       {renderPath(file)}
-      {renderOcticon(file.status)}
+
+      <div title={fileStatus}>
+        <Octicon symbol={iconForStatus(status)}
+                 className={'status status-' + fileStatus.toLowerCase()} />
+      </div>
     </div>
   }
 

@@ -1,8 +1,8 @@
 import * as React from 'react'
 
-import { FileStatus } from '../../models/status'
+import { FileStatus, mapStatus } from '../../models/status'
 import { renderPath } from '../lib/path-label'
-import { renderOcticon } from '../octicons'
+import { iconForStatus, Octicon } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from './checkbox'
 
@@ -34,8 +34,11 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
   }
 
   public render() {
+    const status = this.props.status
+    const fileStatus = mapStatus(status)
+
     return (
-      <div className='changed-file' onContextMenu={e => this.onContextMenu(e)}>
+      <div className='file' onContextMenu={e => this.onContextMenu(e)}>
 
         <Checkbox
           // The checkbox doesn't need to be tab reachable since we emulate
@@ -46,7 +49,10 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
           onChange={event => this.handleChange(event)}/>
 
         {renderPath(this.props)}
-        {renderOcticon(this.props.status)}
+
+        <div title={fileStatus}>
+            <Octicon symbol={iconForStatus(status)} className={'status status-' + fileStatus.toLowerCase()} />
+        </div>
       </div>
     )
   }
