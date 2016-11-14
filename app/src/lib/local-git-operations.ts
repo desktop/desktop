@@ -41,6 +41,7 @@ export class StatusResult {
     this.workingDirectory = workingDirectory
   }
 }
+/* tslint:disable:no-stateless-class */
 
 /** A git commit. */
 export class Commit {
