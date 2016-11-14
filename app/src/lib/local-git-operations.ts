@@ -14,6 +14,7 @@ import { formatPatch } from './patch-formatter'
 import { mapStatus } from './git/status'
 
 import { assertNever } from './fatal-error'
+import { isHeadUnborn } from './git/repository'
 
 const byline = require('byline')
 
@@ -126,26 +127,7 @@ export interface IAheadBehind {
  */
 export class LocalGitOperations {
 
-  /**
-   * Attempts to dereference the HEAD symbolic link to a commit sha.
-   * Returns null if HEAD is unborn.
-   */
-  private static async resolveHEAD(repository: Repository): Promise<string | null> {
-    const result = await git([ 'rev-parse', '--verify', 'HEAD^{commit}' ], repository.path, { successExitCodes: new Set([ 0, 128 ]) })
-    if (result.exitCode === 0) {
-      return result.stdout
-    } else {
-      return null
-    }
-  }
 
-  /**
-   * Attempts to dereference the HEAD symbolic reference to a commit in order
-   * to determine if HEAD is unborn or not.
-   */
-  private static async isHeadUnborn(repository: Repository): Promise<boolean> {
-    return await this.resolveHEAD(repository) === null
-  }
 
   private static async addFileToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
 
@@ -199,7 +181,7 @@ export class LocalGitOperations {
     // Clear the staging area, our diffs reflect the difference between the
     // working directory and the last commit (if any) so our commits should
     // do the same thing.
-    if (await this.isHeadUnborn(repository)) {
+    if (await isHeadUnborn(repository)) {
       await git([ 'reset' ], repository.path)
     } else {
       await git([ 'reset', 'HEAD', '--mixed' ], repository.path)
@@ -544,31 +526,6 @@ export class LocalGitOperations {
     if (commits.length < 1) { return null }
 
     return commits[0]
-  }
-
-  /** Get the git dir of the path. */
-  public static async getGitDir(path: string): Promise<string | null> {
-    const result = await git([ 'rev-parse', '--git-dir' ], path, { successExitCodes: new Set([ 0, 128 ]) })
-    // Exit code 128 means it was run in a directory that's not a git
-    // repository.
-    if (result.exitCode === 128) {
-      return null
-    }
-
-    const gitDir = result.stdout
-    const trimmedDir = gitDir.trim()
-    return Path.join(path, trimmedDir)
-  }
-
-  /** Is the path a git repository? */
-  public static async isGitRepository(path: string): Promise<boolean> {
-    const result = await this.getGitDir(path)
-    return !!result
-  }
-
-  /** Init a new git repository in the given path. */
-  public static initGitRepository(path: string): Promise<void> {
-    return git([ 'init' ], path)
   }
 
   /** Clone the repository to the path. */

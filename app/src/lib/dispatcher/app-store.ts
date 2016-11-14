@@ -24,6 +24,7 @@ import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
+import { getGitDir } from '../git/rev-parse'
 import { getStatus } from '../git/status'
 import { getAuthorIdentity } from '../git/var'
 import { getCommitDiff, getWorkingDirectoryDiff } from '../git/git-diff'
@@ -1076,7 +1077,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _validatedRepositoryPath(path: string): Promise<string | null> {
     try {
-      const gitDir = await LocalGitOperations.getGitDir(path)
+      const gitDir = await getGitDir(path)
       if (!gitDir) { return null }
 
       return Path.dirname(gitDir)

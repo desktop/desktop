@@ -2,7 +2,7 @@ import { remote } from 'electron'
 import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { LocalGitOperations } from '../../lib/local-git-operations'
+import { initGitRepository, isGitRepository } from '../../lib/git/repository'
 
 const untildify: (str: string) => string = require('untildify')
 
@@ -76,13 +76,13 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
     const token = ++this.checkGitRepositoryToken
 
-    const isGitRepository = await LocalGitOperations.isGitRepository(this.resolvedPath(path))
+    const isRepo = await isGitRepository(this.resolvedPath(path))
 
     // Another path check was requested so don't update state based on the old
     // path.
     if (token !== this.checkGitRepositoryToken) { return }
 
-    this.setState({ path: this.state.path, isGitRepository })
+    this.setState({ path: this.state.path, isGitRepository: isRepo })
   }
 
   private resolvedPath(path: string): string {
@@ -92,7 +92,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   private async addRepository() {
     const resolvedPath = this.resolvedPath(this.state.path)
     if (!this.state.isGitRepository) {
-      await LocalGitOperations.initGitRepository(resolvedPath)
+      await initGitRepository(resolvedPath)
     }
 
     this.props.dispatcher.addRepositories([ resolvedPath ])
