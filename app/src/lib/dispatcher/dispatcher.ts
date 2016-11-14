@@ -66,32 +66,27 @@ export class Dispatcher {
   }
 
   private send<T>(name: string, args: Object): Promise<T> {
-    let resolve: ((value: T) => void) | null = null
-    let reject: ((error: Error) => void) | null = null
-    const promise = new Promise<T>((_resolve, _reject) => {
-      resolve = _resolve
-      reject = _reject
-    })
+    return new Promise<T>((resolve, reject) => {
 
-    const requestGuid = guid()
-    ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
-      const response: IPCResponse<T> = args[0]
-      if (response.type === 'result') {
-        resolve!(response.result)
-      } else {
-        const errorInfo = response.error
-        const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
-        if (__DEV__) {
-          console.error(`Error from IPC in response to ${name}:`)
-          console.error(error)
+      const requestGuid = guid()
+      ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
+        const response: IPCResponse<T> = args[0]
+        if (response.type === 'result') {
+          resolve(response.result)
+        } else {
+          const errorInfo = response.error
+          const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
+          if (__DEV__) {
+            console.error(`Error from IPC in response to ${name}:`)
+            console.error(error)
+          }
+
+          reject(error)
         }
+      })
 
-        reject!(error)
-      }
+      ipcRenderer.send('shared/request', [ { guid: requestGuid, name, args } ])
     })
-
-    ipcRenderer.send('shared/request', [ { guid: requestGuid, name, args } ])
-    return promise
   }
 
   private onSharedDidUpdate(event: Electron.IpcRendererEvent, args: any[]) {
@@ -130,11 +125,14 @@ export class Dispatcher {
 
     const json = await this.dispatchToSharedProcess<ReadonlyArray<IRepository>>({ name: 'add-repositories', paths: validatedPaths })
     const addedRepositories = json.map(Repository.fromJSON)
+
+    const refreshedRepositories = new Array<Repository>()
     for (const repository of addedRepositories) {
-      this.refreshGitHubRepositoryInfo(repository)
+      const refreshedRepository = await this.refreshGitHubRepositoryInfo(repository)
+      refreshedRepositories.push(refreshedRepository)
     }
 
-    return addedRepositories
+    return refreshedRepositories
   }
 
   /** Remove the repositories represented by the given IDs from local storage. */
@@ -161,11 +159,12 @@ export class Dispatcher {
   }
 
   /** Refresh the associated GitHub repository. */
-  public async refreshGitHubRepositoryInfo(repository: Repository): Promise<void> {
+  public async refreshGitHubRepositoryInfo(repository: Repository): Promise<Repository> {
     const refreshedRepository = await this.appStore._repositoryWithRefreshedGitHubRepository(repository)
-    if (refreshedRepository === repository) { return }
+    if (refreshedRepository === repository) { return refreshedRepository }
 
-    return this.dispatchToSharedProcess<void>({ name: 'update-github-repository', repository: refreshedRepository })
+    const repo = await this.dispatchToSharedProcess<IRepository>({ name: 'update-github-repository', repository: refreshedRepository })
+    return Repository.fromJSON(repo)
   }
 
   /** Load the history for the repository. */
@@ -299,7 +298,7 @@ export class Dispatcher {
   }
 
   /** Publish the repository to GitHub with the given properties. */
-  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
+  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<Repository> {
     await this.appStore._publishRepository(repository, name, description, private_, account, org)
     return this.refreshGitHubRepositoryInfo(repository)
   }
@@ -382,6 +381,11 @@ export class Dispatcher {
   /** Update the repository's issues from GitHub. */
   public updateIssues(repository: GitHubRepository): Promise<void> {
     return this.appStore._updateIssues(repository)
+  }
+
+  /** Fetch the repository. */
+  public fetch(repository: Repository): Promise<void> {
+    return this.appStore.fetch(repository)
   }
 
   /** End the Welcome flow. */

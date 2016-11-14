@@ -38,8 +38,45 @@
   }
 
   .toolbar-button {
-    &.branch-button {
-      width: 220px;
+    &.branch-button { width: 220px; }
+    &.push-pull-button { min-width: 200px; }
+  }
+}
+
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
+.spin {
+  animation:spin 1s linear infinite;
+}
+
+.ahead-behind {
+  display: flex;
+
+  margin-left: var(--spacing);
+  background: var(--ahead-behind-background-color);
+
+  // Perfectly round semi circle ends with real tight
+  // padding on either side
+  height: 16px;
+  border-radius: 8px;
+  padding: 0 6px;
+
+  font-size: var(--font-size-xs);
+
+  span {
+    display: flex;
+    align-items: center;
+
+    // Only add left margin if both ahead and behind are
+    // showing at the same time.
+    &:nth-child(2) { margin-left: var(--spacing-third); }
+
+    // We're using arrowSmallUp and arrowSmallDown which are
+    // both exactly 6px wide. Let's use that so that spacing
+    // gets easier to reason about.
+    .octicon {
+      width: 6px;
+      margin-left: var(--spacing-third);
     }
   }
 }

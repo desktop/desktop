@@ -17,7 +17,7 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
-import { Toolbar, ToolbarDropdown, DropdownState } from './toolbar'
+import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
 import { OcticonSymbol } from './octicons'
 import { showPopupAppMenu, setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
@@ -428,6 +428,22 @@ export class App extends React.Component<IAppProps, IAppState> {
       dropdownState={currentState} />
   }
 
+  private renderPushPullToolbarButton() {
+    const selection = this.state.selectedState
+    if (!selection || selection.type === SelectionType.CloningRepository) {
+      return null
+    }
+
+    const state = selection.state
+    return <PushPullButton
+      dispatcher={this.props.dispatcher}
+      repository={selection.repository}
+      aheadBehind={state.aheadBehind}
+      remoteName={state.remoteName}
+      lastFetched={state.lastFetched}
+      networkActionInProgress={state.pushPullInProgress}/>
+  }
+
   private renderBranchFoldout(repository: Repository): JSX.Element {
     const state = this.props.appStore.getRepositoryState(repository)
     return <Branches
@@ -486,6 +502,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}
+        {this.renderPushPullToolbarButton()}
       </Toolbar>
     )
   }

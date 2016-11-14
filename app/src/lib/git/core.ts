@@ -91,7 +91,7 @@ export async function git(args: string[], path: string, options?: IGitExecutionO
   const exitCode = result.exitCode
 
   if (!opts.successExitCodes!.has(exitCode)) {
-    console.error(`The command \`${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
+    console.error(`The command \`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
     if (result.stdout.length) {
       console.error(result.stdout)
     }
