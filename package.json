@@ -74,6 +74,7 @@
     "@types/keytar": "^3.0.28",
     "@types/mocha": "^2.2.29",
     "@types/node": "^6.0.31",
+    "@types/node-uuid": "0.0.28",
     "@types/react": "0.14.34",
     "@types/react-addons-css-transition-group": "^0.14.17",
     "@types/react-addons-test-utils": "^0.14.14",
