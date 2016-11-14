@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { Button } from '../lib/button'
+import { createAuthorization } from '../../lib/api'
 
 const ForgotPasswordURL = 'https://github.com/password_reset'
 
@@ -63,8 +64,11 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     })
   }
 
-  private signIn(event: React.FormEvent<HTMLFormElement>) {
+  private async signIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+
+    const response = await createAuthorization('https://api.github.com', this.state.username, this.state.password, null)
+    console.log(response)
 
     // TODO: Actually sign in lolololol
   }
