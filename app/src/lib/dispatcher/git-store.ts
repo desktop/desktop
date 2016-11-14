@@ -3,6 +3,7 @@ import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { LocalGitOperations, Commit, Branch, BranchType, GitResetMode, IAheadBehind } from '../local-git-operations'
+import { fetch as fetchRepo } from '../git/fetch'
 import { User } from '../../models/user'
 
 /** The number of commits to load from history per batch. */
@@ -357,7 +358,7 @@ export class GitStore {
     const remote = this._remoteName
     if (!remote) { return }
 
-    return LocalGitOperations.fetch(this.repository, user, remote)
+    return fetchRepo(this.repository, user, remote)
   }
 
   /** Calculate the ahead/behind for the current branch. */

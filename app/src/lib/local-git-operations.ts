@@ -6,10 +6,8 @@ import { getWorkingDirectoryDiff } from './git/git-diff'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
 import { DiffSelectionType } from '../models/diff'
 import { Repository } from '../models/repository'
-import { User } from '../models/user'
 
 import { formatPatch } from './patch-formatter'
-import { envForAuthentication } from './git/core'
 import { mapStatus } from './git/status'
 
 import { assertNever } from './fatal-error'
@@ -278,11 +276,6 @@ export class LocalGitOperations {
     }
 
     return files
-  }
-
-  /** Fetch from the given remote. */
-  public static fetch(repository: Repository, user: User | null, remote: string): Promise<void> {
-    return git([ 'fetch', '--prune', remote ], repository.path, { env: envForAuthentication(user) })
   }
 
   /** Get the remote names. */
