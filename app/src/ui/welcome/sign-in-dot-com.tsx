@@ -19,7 +19,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, void> {
 
         <SignInDotComFragment
           additionalButtons={[
-            <Button onClick={() => this.cancel()}>Cancel</Button>,
+            <Button key='cancel' onClick={() => this.cancel()}>Cancel</Button>,
           ]}
           onSignInWithBrowser={() => this.signInWithBrowser()}/>
       </div>
