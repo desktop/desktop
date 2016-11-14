@@ -26,6 +26,7 @@ import { caseInsenstiveCompare } from '../compare'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { getGitDir } from '../git/rev-parse'
 import { getStatus } from '../git/status'
+import { getConfigValue } from '../git/config'
 import { getAuthorIdentity } from '../git/var'
 import { getCommitDiff, getWorkingDirectoryDiff } from '../git/git-diff'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
@@ -1045,7 +1046,7 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
     // TODO: This is all kinds of wrong. We shouldn't assume the remote is named
     // `origin`.
-    const remote = await gitStore.performFailableOperation(() => LocalGitOperations.getConfigValue(repository, 'remote.origin.url'))
+    const remote = await gitStore.performFailableOperation(() => getConfigValue(repository, 'remote.origin.url'))
     if (!remote) { return null }
 
     return matchGitHubRepository(this.users, remote)
