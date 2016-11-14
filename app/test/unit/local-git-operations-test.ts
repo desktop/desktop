@@ -9,7 +9,6 @@ const temp = require('temp').track()
 import { Repository } from '../../src/models/repository'
 import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operations'
 import { getStatus } from '../../src/lib/git/status'
-import { getConfigValue } from '../../src/lib/git/config'
 import { getWorkingDirectoryDiff } from '../../src/lib/git/git-diff'
 import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../../src/models/diff'
@@ -405,18 +404,6 @@ describe('LocalGitOperations', () => {
         expect(files[1].oldPath).to.equal('initial.md')
         expect(files[1].path).to.equal('duplicate.md')
       })
-    })
-  })
-
-  describe('config', () => {
-    it('looks up config values', async () => {
-      const bare = await getConfigValue(repository!, 'core.bare')
-      expect(bare).to.equal('false')
-    })
-
-    it('returns null for undefined values', async () => {
-      const value = await getConfigValue(repository!, 'core.the-meaning-of-life')
-      expect(value).to.equal(null)
     })
   })
 
