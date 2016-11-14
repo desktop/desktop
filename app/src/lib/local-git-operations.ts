@@ -280,11 +280,6 @@ export class LocalGitOperations {
     return files
   }
 
-  /** Pull from the remote to the branch. */
-  public static pull(repository: Repository, user: User | null, remote: string, branch: string): Promise<void> {
-    return git([ 'pull', remote, branch ], repository.path, { env: envForAuthentication(user) })
-  }
-
   /** Push from the remote to the branch, optionally setting the upstream. */
   public static push(repository: Repository, user: User | null, remote: string, branch: string, setUpstream: boolean): Promise<void> {
     const args = [ 'push', remote, branch ]

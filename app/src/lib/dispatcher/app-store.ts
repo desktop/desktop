@@ -28,6 +28,7 @@ import { getGitDir } from '../git/rev-parse'
 import { getStatus } from '../git/status'
 import { getConfigValue } from '../git/config'
 import { getAuthorIdentity } from '../git/var'
+import { pull as pullRepo } from '../git/pull'
 import { getCommitDiff, getWorkingDirectoryDiff } from '../git/git-diff'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
@@ -1196,7 +1197,7 @@ export class AppStore {
       }
 
       const user = this.getUserForRepository(repository)
-      await gitStore.performFailableOperation(() => LocalGitOperations.pull(repository, user, remote, branch.name))
+      await gitStore.performFailableOperation(() => pullRepo(repository, user, remote, branch.name))
     })
 
     this._refreshRepository(repository)
