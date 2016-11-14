@@ -1,4 +1,3 @@
-import * as Path from 'path'
 import { ChildProcess } from 'child_process'
 import { GitProcess, GitError } from 'git-kitchen-sink'
 
@@ -11,6 +10,7 @@ import { Repository } from '../models/repository'
 import { User } from '../models/user'
 
 import { formatPatch } from './patch-formatter'
+import { envForAuthentication } from './git/core'
 import { mapStatus } from './git/status'
 
 import { assertNever } from './fatal-error'
@@ -283,65 +283,9 @@ export class LocalGitOperations {
     return files
   }
 
-  /** Look up a config value by name in the repository. */
-  public static getConfigValue(repository: Repository, name: string): Promise<string | null> {
-    return this.getConfigValueInPath(name, repository.path)
-  }
-
-  /** Look up a global config value by name. */
-  public static getGlobalConfigValue(name: string): Promise<string | null> {
-    return this.getConfigValueInPath(name, null)
-  }
-
-  private static async getConfigValueInPath(name: string, path: string | null): Promise<string | null> {
-    const flags = [ 'config', '-z' ]
-    if (!path) {
-      flags.push('--global')
-    }
-
-    flags.push(name)
-
-    const result = await git(flags, path || __dirname, { successExitCodes: new Set([ 0, 1 ]) })
-    // Git exits with 1 if the value isn't found. That's OK.
-    if (result.exitCode === 1) {
-      return null
-    }
-
-    const output = result.stdout
-    const pieces = output.split('\0')
-    return pieces[0]
-  }
-
-  /** Set the local config value by name. */
-  public static setGlobalConfigValue(name: string, value: string): Promise<void> {
-    return git([ 'config', '--global', name, value ], __dirname)
-  }
-
-  private static getAskPassTrampolinePath(): string {
-    const extension = __WIN32__ ? 'bat' : 'sh'
-    return Path.resolve(__dirname, 'static', `ask-pass-trampoline.${extension}`)
-  }
-
-  private static getAskPassScriptPath(): string {
-    return Path.resolve(__dirname, 'ask-pass.js')
-  }
-
-  /** Get the environment for authenticating remote operations. */
-  private static envForAuthentication(user: User | null): Object {
-    if (!user) { return {} }
-
-    return {
-      'DESKTOP_PATH': process.execPath,
-      'DESKTOP_ASKPASS_SCRIPT': LocalGitOperations.getAskPassScriptPath(),
-      'DESKTOP_USERNAME': user.login,
-      'DESKTOP_ENDPOINT': user.endpoint,
-      'GIT_ASKPASS': LocalGitOperations.getAskPassTrampolinePath(),
-    }
-  }
-
   /** Pull from the remote to the branch. */
   public static pull(repository: Repository, user: User | null, remote: string, branch: string): Promise<void> {
-    return git([ 'pull', remote, branch ], repository.path, { env: LocalGitOperations.envForAuthentication(user) })
+    return git([ 'pull', remote, branch ], repository.path, { env: envForAuthentication(user) })
   }
 
   /** Push from the remote to the branch, optionally setting the upstream. */
@@ -351,7 +295,7 @@ export class LocalGitOperations {
       args.push('--set-upstream')
     }
 
-    return git(args, repository.path, { env: LocalGitOperations.envForAuthentication(user) })
+    return git(args, repository.path, { env: envForAuthentication(user) })
   }
 
   /** Fetch from the given remote. */
@@ -530,7 +474,7 @@ export class LocalGitOperations {
 
   /** Clone the repository to the path. */
   public static clone(url: string, path: string, user: User | null, progress: (progress: string) => void): Promise<void> {
-    const env = LocalGitOperations.envForAuthentication(user)
+    const env = envForAuthentication(user)
     const processCallback = (process: ChildProcess) => {
       byline(process.stderr).on('data', (chunk: string) => {
         progress(chunk)
