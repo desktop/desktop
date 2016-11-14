@@ -1,12 +1,14 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { Button } from '../lib/button'
-import { createAuthorization } from '../../lib/api'
+import { getDotComAPIEndpoint, createAuthorization, AuthorizationResponse, fetchUser } from '../../lib/api'
+import { User } from '../../models/user'
 
 const ForgotPasswordURL = 'https://github.com/password_reset'
 
 interface ISignInDotComProps {
   readonly onSignInWithBrowser: () => void
+  readonly onDidSignIn: (user: User) => void
 
   readonly additionalButtons?: ReadonlyArray<JSX.Element>
 }
@@ -14,6 +16,8 @@ interface ISignInDotComProps {
 interface ISignInDotComState {
   readonly username: string
   readonly password: string
+
+  readonly response: AuthorizationResponse | null
 }
 
 /** The GitHub.com sign in component. */
@@ -21,7 +25,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   public constructor(props: ISignInDotComProps) {
     super(props)
 
-    this.state = { username: '', password: '' }
+    this.state = { username: '', password: '', response: null }
   }
 
   public render() {
@@ -54,6 +58,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     this.setState({
       username: event.currentTarget.value,
       password: this.state.password,
+      response: null,
     })
   }
 
@@ -61,15 +66,25 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     this.setState({
       username: this.state.username,
       password: event.currentTarget.value,
+      response: null,
     })
   }
 
   private async signIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const response = await createAuthorization('https://api.github.com', this.state.username, this.state.password, null)
-    console.log(response)
+    const endpoint = getDotComAPIEndpoint()
+    const response = await createAuthorization(endpoint, this.state.username, this.state.password, null)
+    this.setState({
+      username: this.state.username,
+      password: this.state.password,
+      response,
+    })
 
-    // TODO: Actually sign in lolololol
+    if (response.kind === 'authorized') {
+      const token = response.token
+      const user = await fetchUser(endpoint, token)
+      this.props.onDidSignIn(user)
+    }
   }
 }

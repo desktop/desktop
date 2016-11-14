@@ -204,21 +204,21 @@ export class API {
   }
 }
 
-type AuthorizationResponse = { kind: 'authorized', token: string } |
-                             { kind: 'failed' } |
-                             { kind: '2fa' } |
-                             { kind: 'error', response: any }
+export type AuthorizationResponse = { kind: 'authorized', token: string } |
+                                    { kind: 'failed' } |
+                                    { kind: '2fa' } |
+                                    { kind: 'error', response: any }
 
 /**
  * Create an authorization with the given login, password, and one-time
  * password.
  */
-export async function createAuthorization(baseURL: string, login: string, password: string, oneTimePassword: string | null): Promise<AuthorizationResponse> {
+export async function createAuthorization(endpoint: string, login: string, password: string, oneTimePassword: string | null): Promise<AuthorizationResponse> {
   const creds = new Buffer(`${login}:${password}`).toString('base64')
   const authorization = `Basic ${creds}`
   const headers = oneTimePassword ? { 'X-GitHub-OTP': oneTimePassword } : {}
 
-  const response = await request(baseURL, authorization, 'POST', 'authorizations', {
+  const response = await request(endpoint, authorization, 'POST', 'authorizations', {
     'scopes': Scopes,
     'client_id': ClientID,
     'client_secret': ClientSecret,
@@ -247,8 +247,14 @@ export async function createAuthorization(baseURL: string, login: string, passwo
   return { kind: 'failed', response }
 }
 
-function request(baseURL: string, authorization: string, method: HTTPMethod, path: string, body: Object | null, headers?: Object): Promise<IGotResponse> {
-  const url = `${baseURL}/${path}`
+export async function fetchUser(endpoint: string, token: string): Promise<User> {
+  const octo = new Octokat({ token })
+  const user = await octo.user.fetch()
+  return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id)
+}
+
+function request(endpoint: string, authorization: string, method: HTTPMethod, path: string, body: Object | null, headers?: Object): Promise<IGotResponse> {
+  const url = `${endpoint}/${path}`
   const options: any = {
     headers: Object.assign({}, {
       'Authorization': authorization,
