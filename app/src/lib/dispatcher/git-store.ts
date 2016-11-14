@@ -406,11 +406,9 @@ export class GitStore {
         if (err) {
           // An error most likely means the repository's never been published.
           this._lastFetched = null
-        }
-
-        // If the file's empty then it _probably_ means the fetch failed and we
-        // shouldn't update the last fetched date.
-        if (stats.size > 0) {
+        } else if (stats.size > 0) {
+          // If the file's empty then it _probably_ means the fetch failed and we
+          // shouldn't update the last fetched date.
           this._lastFetched = stats.mtime
         }
 
