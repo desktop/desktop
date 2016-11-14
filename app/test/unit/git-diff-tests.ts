@@ -5,7 +5,7 @@ import * as path from 'path'
 const fs = require('fs-extra')
 
 import { Repository } from '../../src/models/repository'
-import { GitDiff } from '../../src/lib/git/git-diff'
+import * as GitDiff from '../../src/lib/git/git-diff'
 import { LocalGitOperations } from '../../src/lib/local-git-operations'
 import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../../src/models/diff'

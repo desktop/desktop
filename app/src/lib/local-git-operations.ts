@@ -3,7 +3,7 @@ import { ChildProcess } from 'child_process'
 import { GitProcess, GitError } from 'git-kitchen-sink'
 
 import { git, GitError as InternalGitError } from './git/core'
-import { GitDiff } from './git/git-diff'
+import { getWorkingDirectoryDiff } from './git/git-diff'
 
 import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
 import { DiffSelectionType, DiffSelection } from '../models/diff'
@@ -260,7 +260,7 @@ export class LocalGitOperations {
 
     const applyArgs: string[] = [ 'apply', '--cached', '--unidiff-zero', '--whitespace=nowarn', '-' ]
 
-    const diff = await GitDiff.getWorkingDirectoryDiff(repository, file)
+    const diff = await getWorkingDirectoryDiff(repository, file)
 
     const patch = await formatPatch(file, diff)
     await git(applyArgs, repository.path, { stdin: patch })
