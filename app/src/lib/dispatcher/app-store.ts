@@ -25,6 +25,7 @@ import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
 import { getStatus } from '../git/status'
+import { getAuthorIdentity } from '../git/var'
 import { getCommitDiff, getWorkingDirectoryDiff } from '../git/git-diff'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
@@ -957,7 +958,7 @@ export class AppStore {
 
   private async refreshAuthor(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    const commitAuthor = await gitStore.performFailableOperation(() => LocalGitOperations.getAuthorIdentity(repository))
+    const commitAuthor = await gitStore.performFailableOperation(() => getAuthorIdentity(repository))
 
     this.updateRepositoryState(repository, state => {
       return {
