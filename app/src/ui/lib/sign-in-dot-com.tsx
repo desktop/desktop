@@ -107,13 +107,13 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
       const token = response.token
       const user = await fetchUser(endpoint, token)
       this.props.onDidSignIn(user)
-    } else {
-      this.setState({
-        username: this.state.username,
-        password: this.state.password,
-        networkRequestInFlight: false,
-        response,
-      })
     }
+
+    this.setState({
+      username: this.state.username,
+      password: this.state.password,
+      networkRequestInFlight: false,
+      response,
+    })
   }
 }
