@@ -8,7 +8,6 @@ const temp = require('temp').track()
 
 import { Repository } from '../../src/models/repository'
 import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operations'
-import { isGitRepository } from '../../src/lib/git/repository'
 import { getStatus } from '../../src/lib/git/status'
 import { getWorkingDirectoryDiff } from '../../src/lib/git/git-diff'
 import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
@@ -492,18 +491,6 @@ describe('LocalGitOperations', () => {
         const branches = await LocalGitOperations.getBranches(repo, '', BranchType.Local)
         expect(branches.length).to.equal(0)
       })
-    })
-  })
-
-  describe('isGitRepository', () => {
-    it('should return true for a repository', async () => {
-      const result = await isGitRepository(repository!.path)
-      expect(result).to.equal(true)
-    })
-
-    it('should return false for a directory', async () => {
-      const result = await isGitRepository(path.dirname(repository!.path))
-      expect(result).to.equal(false)
     })
   })
 })
