@@ -280,16 +280,6 @@ export class LocalGitOperations {
     return files
   }
 
-  /** Push from the remote to the branch, optionally setting the upstream. */
-  public static push(repository: Repository, user: User | null, remote: string, branch: string, setUpstream: boolean): Promise<void> {
-    const args = [ 'push', remote, branch ]
-    if (setUpstream) {
-      args.push('--set-upstream')
-    }
-
-    return git(args, repository.path, { env: envForAuthentication(user) })
-  }
-
   /** Fetch from the given remote. */
   public static fetch(repository: Repository, user: User | null, remote: string): Promise<void> {
     return git([ 'fetch', '--prune', remote ], repository.path, { env: envForAuthentication(user) })

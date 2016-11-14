@@ -29,6 +29,7 @@ import { getStatus } from '../git/status'
 import { getConfigValue } from '../git/config'
 import { getAuthorIdentity } from '../git/var'
 import { pull as pullRepo } from '../git/pull'
+import { push as pushRepo } from '../git/push'
 import { getCommitDiff, getWorkingDirectoryDiff } from '../git/git-diff'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
@@ -1132,9 +1133,9 @@ export class AppStore {
       const user = this.getUserForRepository(repository)
       const upstream = branch.upstream
       if (upstream) {
-        await gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, false))
+        await gitStore.performFailableOperation(() => pushRepo(repository, user, remote, branch.name, false))
       } else {
-        await gitStore.performFailableOperation(() => LocalGitOperations.push(repository, user, remote, branch.name, true))
+        await gitStore.performFailableOperation(() => pushRepo(repository, user, remote, branch.name, true))
       }
     })
 
