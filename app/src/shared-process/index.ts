@@ -1,4 +1,4 @@
-import { TokenStore } from './token-store'
+import * as TokenStore from '../shared-process/token-store'
 import { UsersStore } from './users-store'
 import { requestToken, askUserToAuth, resolveAuthRequest, rejectAuthRequest } from './auth'
 import { User, IUser } from '../models/user'
