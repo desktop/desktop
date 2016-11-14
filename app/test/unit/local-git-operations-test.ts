@@ -8,6 +8,7 @@ const temp = require('temp').track()
 
 import { Repository } from '../../src/models/repository'
 import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operations'
+import { getStatus } from '../../src/lib/git/status'
 import { getWorkingDirectoryDiff } from '../../src/lib/git/git-diff'
 import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../../src/models/diff'
@@ -31,7 +32,7 @@ describe('LocalGitOperations', () => {
     it('parses changed files', async () => {
       fs.writeFileSync(path.join(repository!.path, 'README.md'), 'Hi world\n')
 
-      const status = await LocalGitOperations.getStatus(repository!)
+      const status = await getStatus(repository!)
       const files = status.workingDirectory.files
       expect(files.length).to.equal(1)
 
@@ -41,7 +42,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('returns an empty array when there are no changes', async () => {
-      const status = await LocalGitOperations.getStatus(repository!)
+      const status = await getStatus(repository!)
       const files = status.workingDirectory.files
       expect(files.length).to.equal(0)
     })
@@ -56,7 +57,7 @@ describe('LocalGitOperations', () => {
       await GitProcess.exec([ 'commit', '-m', 'Initial commit' ], repo.path)
       await GitProcess.exec([ 'mv', 'foo', 'bar' ], repo.path)
 
-      const status = await LocalGitOperations.getStatus(repo)
+      const status = await getStatus(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
@@ -70,13 +71,13 @@ describe('LocalGitOperations', () => {
     it('commits the given files', async () => {
       fs.writeFileSync(path.join(repository!.path, 'README.md'), 'Hi world\n')
 
-      let status = await LocalGitOperations.getStatus(repository!)
+      let status = await getStatus(repository!)
       let files = status.workingDirectory.files
       expect(files.length).to.equal(1)
 
       await LocalGitOperations.createCommit(repository!, 'Special commit', files)
 
-      status = await LocalGitOperations.getStatus(repository!)
+      status = await getStatus(repository!)
       files = status.workingDirectory.files
       expect(files.length).to.equal(0)
 
@@ -92,7 +93,7 @@ describe('LocalGitOperations', () => {
       fs.writeFileSync(path.join(repo.path, 'foo'), 'foo\n')
       fs.writeFileSync(path.join(repo.path, 'bar'), 'bar\n')
 
-      const status = await LocalGitOperations.getStatus(repo)
+      const status = await getStatus(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(2)
@@ -101,7 +102,7 @@ describe('LocalGitOperations', () => {
 
       await LocalGitOperations.createCommit(repo, 'added two files\n\nthis is a description', allChanges)
 
-      const statusAfter = await LocalGitOperations.getStatus(repo)
+      const statusAfter = await getStatus(repo)
 
       expect(statusAfter.workingDirectory.files.length).to.equal(0)
 
@@ -122,14 +123,14 @@ describe('LocalGitOperations', () => {
       await GitProcess.exec([ 'commit', '-m', 'Initial commit' ], repo.path)
       await GitProcess.exec([ 'mv', 'foo', 'bar' ], repo.path)
 
-      const status = await LocalGitOperations.getStatus(repo)
+      const status = await getStatus(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
 
       await LocalGitOperations.createCommit(repo, 'renamed a file', [ files[0].withIncludeAll(true) ])
 
-      const statusAfter = await LocalGitOperations.getStatus(repo)
+      const statusAfter = await getStatus(repo)
 
       expect(statusAfter.workingDirectory.files.length).to.equal(0)
     })
@@ -168,7 +169,7 @@ describe('LocalGitOperations', () => {
       expect(changedFiles[0].path).to.equal(newFileName)
 
       // verify that changes remain for this new file
-      const status = await LocalGitOperations.getStatus(repository!)
+      const status = await getStatus(repository!)
       expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is now tracked
@@ -208,7 +209,7 @@ describe('LocalGitOperations', () => {
       expect(changedFiles[0].path).to.equal(modifiedFile)
 
       // verify that changes remain for this modified file
-      const status = await LocalGitOperations.getStatus(repository!)
+      const status = await getStatus(repository!)
       expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is still marked as modified
@@ -280,7 +281,7 @@ describe('LocalGitOperations', () => {
       expect(changedFiles[0].path).to.equal(modifiedFile)
 
       // verify that changes remain for this modified file
-      const status = await LocalGitOperations.getStatus(repository!)
+      const status = await getStatus(repository!)
       expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is still marked as modified
@@ -314,7 +315,7 @@ describe('LocalGitOperations', () => {
       expect(changedFiles[0].path).to.equal(deletedFile)
 
       // verify that changes remain for this new file
-      const status = await LocalGitOperations.getStatus(repository!)
+      const status = await getStatus(repository!)
       expect(status.workingDirectory.files.length).to.equal(4)
 
       // verify that the file is now tracked
@@ -335,14 +336,14 @@ describe('LocalGitOperations', () => {
 
       fs.writeFileSync(path.join(repo.path, 'bar'), 'bar\n')
 
-      const status = await LocalGitOperations.getStatus(repo)
+      const status = await getStatus(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
 
       await LocalGitOperations.createCommit(repo, 'renamed a file', [ files[0].withIncludeAll(true) ])
 
-      const statusAfter = await LocalGitOperations.getStatus(repo)
+      const statusAfter = await getStatus(repo)
 
       expect(statusAfter.workingDirectory.files.length).to.equal(0)
     })
@@ -362,7 +363,7 @@ describe('LocalGitOperations', () => {
 
       fs.writeFileSync(path.join(repo.path, 'bar'), 'line1\nline2\nline3\n')
 
-      const status = await LocalGitOperations.getStatus(repo)
+      const status = await getStatus(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
@@ -377,7 +378,7 @@ describe('LocalGitOperations', () => {
 
       await LocalGitOperations.createCommit(repo, 'renamed a file', [ partiallySelectedFile ])
 
-      const statusAfter = await LocalGitOperations.getStatus(repo)
+      const statusAfter = await getStatus(repo)
 
       expect(statusAfter.workingDirectory.files.length).to.equal(1)
 

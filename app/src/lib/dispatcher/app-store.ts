@@ -24,6 +24,7 @@ import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
 import { LocalGitOperations, Commit, Branch, BranchType } from '../local-git-operations'
+import { getStatus } from '../git/status'
 import { getCommitDiff, getWorkingDirectoryDiff } from '../git/git-diff'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
@@ -633,7 +634,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadStatus(repository: Repository, clearPartialState: boolean = false): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    const status = await gitStore.performFailableOperation(() => LocalGitOperations.getStatus(repository))
+    const status = await gitStore.performFailableOperation(() => getStatus(repository))
     if (!status) { return }
 
     const workingDirectory = status.workingDirectory

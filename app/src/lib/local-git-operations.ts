@@ -5,42 +5,19 @@ import { GitProcess, GitError } from 'git-kitchen-sink'
 import { git, GitError as InternalGitError } from './git/core'
 import { getWorkingDirectoryDiff } from './git/git-diff'
 
-import { WorkingDirectoryStatus, WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
-import { DiffSelectionType, DiffSelection } from '../models/diff'
+import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../models/status'
+import { DiffSelectionType } from '../models/diff'
 import { Repository } from '../models/repository'
 import { CommitIdentity } from '../models/commit-identity'
 import { User } from '../models/user'
 
 import { formatPatch } from './patch-formatter'
-import { parsePorcelainStatus } from './status-parser'
+import { mapStatus } from './git/status'
 
 import { assertNever } from './fatal-error'
 
 const byline = require('byline')
 
-/** The encapsulation of the result from 'git status' */
-export class StatusResult {
-  /** true if the repository exists at the given location */
-  public readonly exists: boolean
-
-  /** the absolute path to the repository's working directory */
-  public readonly workingDirectory: WorkingDirectoryStatus
-
-  /** factory method when 'git status' is unsuccessful */
-  public static NotFound(): StatusResult {
-    return new StatusResult(false, new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true))
-  }
-
-  /** factory method for a successful 'git status' result  */
-  public static FromStatus(status: WorkingDirectoryStatus): StatusResult {
-    return new StatusResult(true, status)
-  }
-
-  public constructor(exists: boolean, workingDirectory: WorkingDirectoryStatus) {
-    this.exists = exists
-    this.workingDirectory = workingDirectory
-  }
-}
 /* tslint:disable:no-stateless-class */
 
 /** A git commit. */
@@ -149,56 +126,6 @@ export interface IAheadBehind {
  * Interactions with a local Git repository
  */
 export class LocalGitOperations {
-
-  /**
-   * map the raw status text from Git to an app-friendly value
-   * shamelessly borrowed from GitHub Desktop (Windows)
-   */
-  private static mapStatus(rawStatus: string): FileStatus {
-
-    const status = rawStatus.trim()
-
-    if (status === 'M') { return FileStatus.Modified }      // modified
-    if (status === 'A') { return FileStatus.New }           // added
-    if (status === 'D') { return FileStatus.Deleted }       // deleted
-    if (status === 'R') { return FileStatus.Renamed }       // renamed
-    if (status === 'RM') { return FileStatus.Renamed }      // renamed in index, modified in working directory
-    if (status === 'RD') { return FileStatus.Conflicted }   // renamed in index, deleted in working directory
-    if (status === 'DD') { return FileStatus.Conflicted }   // Unmerged, both deleted
-    if (status === 'AU') { return FileStatus.Conflicted }   // Unmerged, added by us
-    if (status === 'UD') { return FileStatus.Conflicted }   // Unmerged, deleted by them
-    if (status === 'UA') { return FileStatus.Conflicted }   // Unmerged, added by them
-    if (status === 'DU') { return FileStatus.Conflicted }   // Unmerged, deleted by us
-    if (status === 'AA') { return FileStatus.Conflicted }   // Unmerged, added by both
-    if (status === 'UU') { return FileStatus.Conflicted }   // Unmerged, both modified
-    if (status === '??') { return FileStatus.New }          // untracked
-
-    // git log -M --name-status will return a RXXX - where XXX is a percentage
-    if (status.match(/R[0-9]{3}/)) { return FileStatus.Renamed }
-
-    // git log -C --name-status will return a CXXX - where XXX is a percentage
-    if (status.match(/C[0-9]{3}/)) { return FileStatus.Copied }
-
-    return FileStatus.Modified
-  }
-
-  /**
-   *  Retrieve the status for a given repository,
-   *  and fail gracefully if the location is not a Git repository
-   */
-  public static async getStatus(repository: Repository): Promise<StatusResult> {
-    const result = await git([ 'status', '--untracked-files=all', '--porcelain', '-z' ], repository.path)
-    const entries = parsePorcelainStatus(result.stdout)
-
-    const files = entries.map(({ path, statusCode, oldPath }) => {
-      const status = this.mapStatus(statusCode)
-      const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-
-      return new WorkingDirectoryFileChange(path, status, selection, oldPath)
-    })
-
-    return StatusResult.FromStatus(new WorkingDirectoryStatus(files, true))
-  }
 
   /**
    * Attempts to dereference the HEAD symbolic link to a commit sha.
@@ -359,7 +286,7 @@ export class LocalGitOperations {
     for (let i = 0; i < lines.length; i++) {
       const statusText = lines[i]
 
-      const status = this.mapStatus(statusText)
+      const status = mapStatus(statusText)
 
       let oldPath: string | undefined = undefined
 

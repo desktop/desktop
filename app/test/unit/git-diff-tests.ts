@@ -6,7 +6,7 @@ const fs = require('fs-extra')
 
 import { Repository } from '../../src/models/repository'
 import * as GitDiff from '../../src/lib/git/git-diff'
-import { LocalGitOperations } from '../../src/lib/local-git-operations'
+import { getStatus } from '../../src/lib/git/status'
 import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../../src/models/diff'
 import { setupFixtureRepository, setupEmptyRepository } from '../fixture-helper'
@@ -159,7 +159,7 @@ describe('GitDiff', () => {
       await GitProcess.exec([ 'commit', '-m', 'Initial commit' ], repo.path)
       await GitProcess.exec([ 'mv', 'foo', 'bar' ], repo.path)
 
-      const status = await LocalGitOperations.getStatus(repo)
+      const status = await getStatus(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
@@ -185,7 +185,7 @@ describe('GitDiff', () => {
 
       fs.writeFileSync(path.join(repo.path, 'bar'), 'bar\n')
 
-      const status = await LocalGitOperations.getStatus(repo)
+      const status = await getStatus(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
