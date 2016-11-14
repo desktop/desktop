@@ -1,4 +1,3 @@
-import { ChildProcess } from 'child_process'
 import { GitProcess, GitError } from 'git-kitchen-sink'
 
 import { git, GitError as InternalGitError } from './git/core'
@@ -15,8 +14,6 @@ import { mapStatus } from './git/status'
 
 import { assertNever } from './fatal-error'
 import { isHeadUnborn } from './git/repository'
-
-const byline = require('byline')
 
 /* tslint:disable:no-stateless-class */
 
@@ -470,18 +467,6 @@ export class LocalGitOperations {
     if (commits.length < 1) { return null }
 
     return commits[0]
-  }
-
-  /** Clone the repository to the path. */
-  public static clone(url: string, path: string, user: User | null, progress: (progress: string) => void): Promise<void> {
-    const env = envForAuthentication(user)
-    const processCallback = (process: ChildProcess) => {
-      byline(process.stderr).on('data', (chunk: string) => {
-        progress(chunk)
-      })
-    }
-
-    return git([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, { env, processCallback })
   }
 
   /** Rename the given branch to a new name. */
