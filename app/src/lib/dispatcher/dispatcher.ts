@@ -66,32 +66,27 @@ export class Dispatcher {
   }
 
   private send<T>(name: string, args: Object): Promise<T> {
-    let resolve: ((value: T) => void) | null = null
-    let reject: ((error: Error) => void) | null = null
-    const promise = new Promise<T>((_resolve, _reject) => {
-      resolve = _resolve
-      reject = _reject
-    })
+    return new Promise<T>((resolve, reject) => {
 
-    const requestGuid = guid()
-    ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
-      const response: IPCResponse<T> = args[0]
-      if (response.type === 'result') {
-        resolve!(response.result)
-      } else {
-        const errorInfo = response.error
-        const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
-        if (__DEV__) {
-          console.error(`Error from IPC in response to ${name}:`)
-          console.error(error)
+      const requestGuid = guid()
+      ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
+        const response: IPCResponse<T> = args[0]
+        if (response.type === 'result') {
+          resolve(response.result)
+        } else {
+          const errorInfo = response.error
+          const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
+          if (__DEV__) {
+            console.error(`Error from IPC in response to ${name}:`)
+            console.error(error)
+          }
+
+          reject(error)
         }
+      })
 
-        reject!(error)
-      }
+      ipcRenderer.send('shared/request', [ { guid: requestGuid, name, args } ])
     })
-
-    ipcRenderer.send('shared/request', [ { guid: requestGuid, name, args } ])
-    return promise
   }
 
   private onSharedDidUpdate(event: Electron.IpcRendererEvent, args: any[]) {

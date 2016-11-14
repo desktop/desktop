@@ -47,6 +47,7 @@
       "check-whitespace"
     ],
     "prefer-const": true,
+    "promise-must-complete": true,
     "quotemark": [
       true,
       "single"
