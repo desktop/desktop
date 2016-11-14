@@ -1,11 +1,35 @@
+import * as OS from 'os'
 import * as URL from 'url'
 import * as Querystring from 'querystring'
 import * as HTTP from 'http'
+import { v4 as guid } from 'node-uuid'
 import { User } from '../models/user'
 import * as appProxy from '../ui/lib/app-proxy'
 
 const Octokat = require('octokat')
 const got = require('got')
+
+interface IGotResponse extends HTTP.IncomingMessage {
+  readonly body: any
+}
+
+const ClientID = 'de0e3c7e9973e1c4dd77'
+const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
+if (!ClientSecret || !ClientSecret.length) {
+  console.warn(`DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
+}
+
+const Scopes = [
+  'repo',
+  'user',
+]
+
+const NoteURL = 'https://desktop.github.com/'
+
+/** The fingerprint used to uniquely identify this authorization. */
+const FingerprintKey = 'authorization/fingerprint'
+
+type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
 /**
  * Information about a repository as returned by the GitHub API.
@@ -168,20 +192,91 @@ export class API {
     return allItems.filter((i: any) => !i.pullRequest)
   }
 
+  private authenticatedRequest(method: HTTPMethod, path: string, body: Object | null): Promise<IGotResponse> {
+    return request(this.user.endpoint, `token ${this.user.token}`, method, path, body)
+  }
+
   /** Get the allowed poll interval for fetching. */
   public async getFetchPollInterval(owner: string, name: string): Promise<number> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
-    const url = `${this.user.endpoint}/${path}`
-    const options: any = {
-      headers: {
-        'Authorization': `token ${this.user.token}`,
-        'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
-      },
-    }
-
-    const response: HTTP.IncomingMessage = await got.head(url, options)
+    const response = await this.authenticatedRequest('HEAD', path, null)
     return response.headers['x-poll-interval'] || 0
   }
+}
+
+type AuthorizationResponse = { kind: 'authorized', token: string } |
+                             { kind: 'failed' } |
+                             { kind: '2fa' } |
+                             { kind: 'error', response: any }
+
+/**
+ * Create an authorization with the given login, password, and one-time
+ * password.
+ */
+export async function createAuthorization(baseURL: string, login: string, password: string, oneTimePassword: string | null): Promise<AuthorizationResponse> {
+  const creds = new Buffer(`${login}:${password}`).toString('base64')
+  const authorization = `Basic ${creds}`
+  const headers = oneTimePassword ? { 'X-GitHub-OTP': oneTimePassword } : {}
+
+  const response = await request(baseURL, authorization, 'POST', 'authorizations', {
+    'scopes': Scopes,
+    'client_id': ClientID,
+    'client_secret': ClientSecret,
+    'note': getNote(),
+    'note_url': NoteURL,
+    'fingerprint': getFingerprint(),
+  }, headers)
+
+  if (response.statusCode === 401) {
+    const otpResponse: string | null = response.headers['X-GitHub-OTP']
+    if (otpResponse === 'required; :2fa-type') {
+      return { kind: '2fa' }
+    } else {
+      return { kind: 'failed' }
+    }
+  }
+
+  console.log(response)
+
+  const body = response.body
+  const token = body.token
+  if (token && token.length) {
+    return { kind: 'authorized', token }
+  }
+
+  return { kind: 'failed', response }
+}
+
+function request(baseURL: string, authorization: string, method: HTTPMethod, path: string, body: Object | null, headers?: Object): Promise<IGotResponse> {
+  const url = `${baseURL}/${path}`
+  const options: any = {
+    headers: Object.assign({}, {
+      'Authorization': authorization,
+      'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
+    }, headers),
+    method,
+    body,
+  }
+
+  if (body) {
+    options.body = JSON.stringify(body)
+    options.json = true
+  }
+
+  return got(url, options).catch((e: any) => e.response)
+}
+
+function getNote(): string {
+  return `GitHub Desktop on ${OS.hostname()}`
+}
+
+function getFingerprint(): string {
+  const existing = localStorage.getItem(FingerprintKey)
+  if (existing) { return existing }
+
+  const fingerprint = guid()
+  localStorage.setItem(FingerprintKey, fingerprint)
+  return fingerprint
 }
 
 /**
