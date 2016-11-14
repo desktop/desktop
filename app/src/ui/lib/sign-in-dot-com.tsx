@@ -3,6 +3,7 @@ import { LinkButton } from '../lib/link-button'
 import { Button } from '../lib/button'
 import { getDotComAPIEndpoint, createAuthorization, AuthorizationResponse, fetchUser } from '../../lib/api'
 import { User } from '../../models/user'
+import { assertNever } from '../../lib/fatal-error'
 
 const ForgotPasswordURL = 'https://github.com/password_reset'
 
@@ -17,6 +18,7 @@ interface ISignInDotComState {
   readonly username: string
   readonly password: string
 
+  readonly networkRequestInFlight: boolean
   readonly response: AuthorizationResponse | null
 }
 
@@ -25,7 +27,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   public constructor(props: ISignInDotComProps) {
     super(props)
 
-    this.state = { username: '', password: '', response: null }
+    this.state = { username: '', password: '', networkRequestInFlight: false, response: null }
   }
 
   public render() {
@@ -39,6 +41,8 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
         <label>Password
           <input type='password' onChange={e => this.onPasswordChange(e)}/>
         </label>
+
+        {this.renderError()}
 
         <LinkButton uri={ForgotPasswordURL}>Forgot password?</LinkButton>
 
@@ -54,10 +58,25 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     )
   }
 
+  private renderError() {
+    const response = this.state.response
+    if (!response) { return null }
+
+    const kind = response.kind
+    switch (kind) {
+      case 'failed': return <div>The username or password are incorrect.</div>
+      case '2fa': return <div>2FA pls.</div>
+      case 'error': return <div>An error occurred.</div>
+      case 'authorized': return null
+      default: return assertNever(kind, `Unknown response kind: ${kind}`)
+    }
+  }
+
   private onUsernameChange(event: React.FormEvent<HTMLInputElement>) {
     this.setState({
       username: event.currentTarget.value,
       password: this.state.password,
+      networkRequestInFlight: this.state.networkRequestInFlight,
       response: null,
     })
   }
@@ -66,6 +85,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     this.setState({
       username: this.state.username,
       password: event.currentTarget.value,
+      networkRequestInFlight: this.state.networkRequestInFlight,
       response: null,
     })
   }
@@ -73,18 +93,27 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   private async signIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
-    const endpoint = getDotComAPIEndpoint()
-    const response = await createAuthorization(endpoint, this.state.username, this.state.password, null)
     this.setState({
       username: this.state.username,
       password: this.state.password,
-      response,
+      networkRequestInFlight: true,
+      response: null,
     })
+
+    const endpoint = getDotComAPIEndpoint()
+    const response = await createAuthorization(endpoint, this.state.username, this.state.password, null)
 
     if (response.kind === 'authorized') {
       const token = response.token
       const user = await fetchUser(endpoint, token)
       this.props.onDidSignIn(user)
+    } else {
+      this.setState({
+        username: this.state.username,
+        password: this.state.password,
+        networkRequestInFlight: false,
+        response,
+      })
     }
   }
 }

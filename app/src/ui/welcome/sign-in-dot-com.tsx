@@ -3,6 +3,7 @@ import { WelcomeStep } from './welcome'
 import { SignInDotCom as SignInDotComFragment } from '../lib/sign-in-dot-com'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Button } from '../lib/button'
+import { User } from '../../models/user'
 
 interface ISignInDotComProps {
   readonly dispatcher: Dispatcher
@@ -21,7 +22,8 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, void> {
           additionalButtons={[
             <Button key='cancel' onClick={() => this.cancel()}>Cancel</Button>,
           ]}
-          onSignInWithBrowser={() => this.signInWithBrowser()}/>
+          onSignInWithBrowser={() => this.signInWithBrowser()}
+          onDidSignIn={u => this.onDidSignIn(u)}/>
       </div>
     )
   }
@@ -34,5 +36,9 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, void> {
 
   private cancel() {
     this.props.advance(WelcomeStep.Start)
+  }
+
+  private onDidSignIn(user: User) {
+    console.log(user)
   }
 }
