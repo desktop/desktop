@@ -40,7 +40,7 @@ export class FileList extends React.Component<IFileListProps, void> {
 
   public render() {
     return (
-      <div className='files'>
+      <div className='file-list'>
         <List rowRenderer={row => this.renderFile(row)}
               rowCount={this.props.files.length}
               rowHeight={40}
