@@ -51,7 +51,8 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
         {renderPath(this.props)}
 
         <div title={fileStatus}>
-            <Octicon symbol={iconForStatus(status)} className={'status status-' + fileStatus.toLowerCase()} />
+            <Octicon symbol={iconForStatus(status)}
+                     className={'status status-' + fileStatus.toLowerCase()} />
         </div>
       </div>
     )
