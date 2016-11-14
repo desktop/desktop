@@ -3,7 +3,6 @@ import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
-import { guid } from '../guid'
 import { RepositorySection, Popup, Foldout, IAppError } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
@@ -13,6 +12,7 @@ import { Branch, Commit } from '../local-git-operations'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
+import { v4 as guid } from 'node-uuid'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
