@@ -206,7 +206,7 @@ export class API {
 
 export type AuthorizationResponse = { kind: 'authorized', token: string } |
                                     { kind: 'failed' } |
-                                    { kind: '2fa' } |
+                                    { kind: '2fa', type: string } |
                                     { kind: 'error', response: any }
 
 /**
@@ -227,16 +227,18 @@ export async function createAuthorization(endpoint: string, login: string, passw
     'fingerprint': getFingerprint(),
   }, headers)
 
+  console.log(response)
+
   if (response.statusCode === 401) {
-    const otpResponse: string | null = response.headers['X-GitHub-OTP']
-    if (otpResponse === 'required; :2fa-type') {
-      return { kind: '2fa' }
+    const otpResponse: string | null = response.headers['x-github-otp']
+    if (otpResponse) {
+      const pieces = otpResponse.split(';')
+      const type = pieces[1].trim()
+      return { kind: '2fa', type }
     } else {
       return { kind: 'failed' }
     }
   }
-
-  console.log(response)
 
   const body = response.body
   const token = body.token
