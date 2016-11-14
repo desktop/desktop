@@ -9,7 +9,6 @@ const temp = require('temp').track()
 import { Repository } from '../../src/models/repository'
 import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operations'
 import { isGitRepository } from '../../src/lib/git/repository'
-import { getGitDir } from '../../src/lib/git/rev-parse'
 import { getStatus } from '../../src/lib/git/status'
 import { getWorkingDirectoryDiff } from '../../src/lib/git/git-diff'
 import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
@@ -505,18 +504,6 @@ describe('LocalGitOperations', () => {
     it('should return false for a directory', async () => {
       const result = await isGitRepository(path.dirname(repository!.path))
       expect(result).to.equal(false)
-    })
-  })
-
-  describe('getGitDir', () => {
-    it('should return the git dir path for a repository', async () => {
-      const result = await getGitDir(repository!.path)
-      expect(result).to.equal(path.join(repository!.path, '.git'))
-    })
-
-    it('should return null for a directory', async () => {
-      const result = await getGitDir(path.dirname(repository!.path))
-      expect(result).to.equal(null)
     })
   })
 })
