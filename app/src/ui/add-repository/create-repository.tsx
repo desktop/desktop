@@ -5,7 +5,7 @@ import * as OS from 'os'
 import * as FS from 'fs'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { initGitRepository } from '../../lib/git/repository'
+import { initGitRepository } from '../../lib/git/init'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
 
 interface ICreateRepositoryProps {
