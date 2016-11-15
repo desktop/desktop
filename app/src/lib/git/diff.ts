@@ -35,21 +35,24 @@ export async function getCommitDiff(repository: Repository, file: FileChange, co
 
   debugResult(diffEncoding)
 
-  let diff: Diff | null = null
+  const diffSource = diffEncoding.confidence > 50
+    ? tryConvertLocal(binaryDiff, diffEncoding.charset)
+    : binaryDiff.toString('utf8')
 
-  if (diffEncoding.confidence > 50) {
-    const conversion = tryConvert(binaryDiff, diffEncoding.charset)
-    if (conversion.result) {
-      diff = await diffFromRawDiffOutput(conversion.result)
-    } else {
-      // TODO: ugh
-      diff = await diffFromRawDiffOutput(binaryDiff.toString('utf8'))
-    }
-  } else {
-    diff = await diffFromRawDiffOutput(binaryDiff.toString('utf8'))
-  }
+  const diff = await diffFromRawDiffOutput(diffSource)
 
   return await attachImageDiff(repository, file, diff)
+}
+
+/**
+ * Attempt to convert a given buffer to the appropriate encoding set, or return
+ * a UTF-8 encoded string from the buffer if the conversion fails
+ */
+function tryConvertLocal(buffer: Buffer, charset: string): string {
+    const conversion = tryConvert(buffer, charset)
+    return conversion.result
+      ? conversion.result 
+      : buffer.toString('utf8')
 }
 
 /**
