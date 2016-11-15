@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { assertNever } from '../../lib/fatal-error'
@@ -80,7 +78,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     return <Octicon symbol={this.dropdownIcon(state)} className='dropdownArrow' />
   }
 
-  private onClick() {
+  private onClick = () => {
     const newState: DropdownState = this.props.dropdownState === 'open'
       ? 'closed'
       : 'open'
@@ -121,11 +119,11 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     this.innerButton = null
   }
 
-  public componentDidUpdate() {
+  public componentDidUpdate = () => {
     this.updateClientRectIfNecessary()
   }
 
-  private handleOverlayClick() {
+  private handleOverlayClick = () => {
     this.props.onDropdownStateChanged('closed')
   }
 
@@ -159,19 +157,23 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     }
   }
 
-  private renderDropdownContents(): JSX.Element | null {
+  private renderDropdownContents = (): JSX.Element | null => {
     if (this.props.dropdownState !== 'open') {
       return null
     }
 
     return (
       <div id='foldout-container' style={this.getFoldoutContainerStyle()}>
-        <div className='overlay' onClick={() => this.handleOverlayClick}></div>
+        <div className='overlay' onClick={this.handleOverlayClick}></div>
         <div className='foldout' style={this.getFoldoutStyle()}>
           {this.props.dropdownContentRenderer()}
         </div>
       </div>
     )
+  }
+
+  private onRef = (ref: ToolbarButton) => {
+    this.innerButton = ref
   }
 
   public render() {
@@ -184,13 +186,13 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
 
     return (
       <ToolbarButton
-        ref={(c) => this.innerButton = c}
+        ref={this.onRef}
         icon={this.props.icon}
         title={this.props.title}
         description={this.props.description}
-        onClick={() => this.onClick()}
+        onClick={this.onClick}
         className={className}
-        preContentRenderer={() => this.renderDropdownContents()}
+        preContentRenderer={this.renderDropdownContents}
       >
         {this.renderDropdownArrow()}
       </ToolbarButton>
