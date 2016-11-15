@@ -1,5 +1,5 @@
 import { git } from './core'
-import { isHeadUnborn } from './repository'
+import { isHeadUnborn } from './rev-parse'
 import { stageFiles } from './add'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'

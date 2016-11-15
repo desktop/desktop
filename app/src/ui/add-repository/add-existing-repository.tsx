@@ -2,7 +2,8 @@ import { remote } from 'electron'
 import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { initGitRepository, isGitRepository } from '../../lib/git/repository'
+import { initGitRepository } from '../../lib/git/init'
+import { isGitRepository } from '../../lib/git/rev-parse'
 
 const untildify: (str: string) => string = require('untildify')
 
