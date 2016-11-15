@@ -25,9 +25,10 @@ export class FileList extends React.Component<IFileListProps, void> {
 
       {renderPath(file)}
 
-      <div title={fileStatus}>
+      <div className="status">
         <Octicon symbol={iconForStatus(status)}
-                 className={'status status-' + fileStatus.toLowerCase()} />
+                 className={'status-' + fileStatus.toLowerCase()}
+                 title={fileStatus} />
       </div>
     </div>
   }
