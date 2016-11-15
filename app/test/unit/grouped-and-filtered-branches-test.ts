@@ -2,7 +2,8 @@ import * as chai from 'chai'
 const expect = chai.expect
 
 import { groupedAndFilteredBranches } from '../../src/ui/branches/grouped-and-filtered-branches'
-import { Branch, BranchType, Commit } from '../../src/lib/local-git-operations'
+import { Branch, BranchType } from '../../src/models/branch'
+import { Commit } from '../../src/models/commit'
 
 describe('Branches grouping', () => {
 

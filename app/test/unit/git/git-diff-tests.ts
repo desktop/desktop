@@ -4,16 +4,22 @@ const expect = chai.expect
 import * as path from 'path'
 const fs = require('fs-extra')
 
-import { Repository } from '../../src/models/repository'
-import { GitDiff } from '../../src/lib/git/git-diff'
-import { LocalGitOperations } from '../../src/lib/local-git-operations'
-import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
-import { DiffSelectionType, DiffSelection } from '../../src/models/diff'
-import { setupFixtureRepository, setupEmptyRepository } from '../fixture-helper'
+import { Repository } from '../../../src/models/repository'
+import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
+import { DiffSelectionType, DiffSelection } from '../../../src/models/diff'
+import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
+
+import {
+  getStatus,
+  getWorkingDirectoryDiff,
+  getWorkingDirectoryImage,
+  getBlobImage,
+} from '../../../src/lib/git'
+
 
 import { GitProcess } from 'git-kitchen-sink'
 
-describe('GitDiff', () => {
+describe('git/diff', () => {
   let repository: Repository | null = null
 
   beforeEach(() => {
@@ -26,7 +32,7 @@ describe('GitDiff', () => {
     it('retrieves valid image for new file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('new-image.png', FileStatus.New, diffSelection)
-      const current = await GitDiff.getWorkingDirectoryImage(repository!, file)
+      const current = await getWorkingDirectoryImage(repository!, file)
 
       expect(current.mediaType).to.equal('image/png')
       expect(current.contents).to.match(/A2HkbLsBYSgAAAABJRU5ErkJggg==$/)
@@ -35,7 +41,7 @@ describe('GitDiff', () => {
     it('retrieves valid images for modified file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, diffSelection)
-      const current = await GitDiff.getWorkingDirectoryImage(repository!, file)
+      const current = await getWorkingDirectoryImage(repository!, file)
       expect(current.mediaType).to.equal('image/jpg')
       expect(current.contents).to.match(/gdTTb6MClWJ3BU8T8PTtXoB88kFL\/9k=$/)
     })
@@ -46,7 +52,7 @@ describe('GitDiff', () => {
     it('retrieves valid image for modified file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, diffSelection)
-      const current = await GitDiff.getBlobImage(repository!, file)
+      const current = await getBlobImage(repository!, file)
 
       expect(current.mediaType).to.equal('image/jpg')
       expect(current.contents).to.match(/zcabBFNf6G8U1y7QpBYtbOWQivIsDU8T4kYKKTQFg7v\/9k=/)
@@ -55,7 +61,7 @@ describe('GitDiff', () => {
     it('retrieves valid images for deleted file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('new-animated-image.gif', FileStatus.Deleted, diffSelection)
-      const previous = await GitDiff.getBlobImage(repository!, file)
+      const previous = await getBlobImage(repository!, file)
 
       expect(previous.mediaType).to.equal('image/gif')
       expect(previous.contents).to.match(/pSQ0J85QG55rqWbgLdEmOWQJ1MjFS3WWA2slfZxeEAtp3AykkAAA7$/)
@@ -66,7 +72,7 @@ describe('GitDiff', () => {
     it('changes for images are set', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, diffSelection)
-      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository!, file)
 
       expect(diff.isBinary).is.true
       expect(diff.imageDiff!.previous).is.not.undefined
@@ -79,7 +85,7 @@ describe('GitDiff', () => {
 
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
-      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository!, file)
 
       expect(diff.isBinary).is.false
       expect(diff.imageDiff).is.undefined
@@ -95,7 +101,7 @@ describe('GitDiff', () => {
     it('counts lines for new file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
-      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository!, file)
 
       const hunk = diff.hunks[0]
 
@@ -110,7 +116,7 @@ describe('GitDiff', () => {
     it('counts lines for modified file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('modified-file.md', FileStatus.Modified, diffSelection)
-      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository!, file)
 
       const first = diff.hunks[0]
       expect(first.lines[0].text).to.have.string('@@ -4,10 +4,6 @@')
@@ -132,7 +138,7 @@ describe('GitDiff', () => {
     it('counts lines for staged file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('staged-file.md', FileStatus.Modified, diffSelection)
-      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository!, file)
 
       const first = diff.hunks[0]
       expect(first.lines[0].text).to.have.string('@@ -2,7 +2,7 @@ ')
@@ -159,12 +165,12 @@ describe('GitDiff', () => {
       await GitProcess.exec([ 'commit', '-m', 'Initial commit' ], repo.path)
       await GitProcess.exec([ 'mv', 'foo', 'bar' ], repo.path)
 
-      const status = await LocalGitOperations.getStatus(repo)
+      const status = await getStatus(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
 
-      const diff = await GitDiff.getWorkingDirectoryDiff(repo, files[0])
+      const diff = await getWorkingDirectoryDiff(repo, files[0])
 
       expect(diff.hunks.length).to.equal(0)
     })
@@ -185,12 +191,12 @@ describe('GitDiff', () => {
 
       fs.writeFileSync(path.join(repo.path, 'bar'), 'bar\n')
 
-      const status = await LocalGitOperations.getStatus(repo)
+      const status = await getStatus(repo)
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
 
-      const diff = await GitDiff.getWorkingDirectoryDiff(repo, files[0])
+      const diff = await getWorkingDirectoryDiff(repo, files[0])
 
       expect(diff.hunks.length).to.equal(1)
       expect(diff.hunks[0].lines.length).to.equal(3)

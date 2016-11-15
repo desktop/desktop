@@ -1,14 +1,12 @@
-import * as chai from 'chai'
+import { expect, use as chaiUse } from 'chai'
+import { Repository } from '../../../src/models/repository'
+import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
+import { getBranches, getCurrentBranch } from '../../../src/lib/git/for-each-ref'
+import { BranchType } from '../../../src/models/branch'
 
-chai.use(require('chai-datetime'))
+chaiUse(require('chai-datetime'))
 
-const expect = chai.expect
-
-import { Repository } from '../../src/models/repository'
-import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operations'
-import { setupFixtureRepository } from '../fixture-helper'
-
-describe('git-branches', () => {
+describe('git/for-each-ref', () => {
   let repository: Repository | null = null
 
   beforeEach(() => {
@@ -18,7 +16,7 @@ describe('git-branches', () => {
 
   describe('getBranches', () => {
     it('fetches branches using for-each-ref', async () => {
-      const branches = await LocalGitOperations.getBranches(repository!, 'refs/heads', BranchType.Local)
+      const branches = await getBranches(repository!, 'refs/heads', BranchType.Local)
 
       expect(branches.length).to.equal(3)
 
@@ -45,11 +43,17 @@ describe('git-branches', () => {
       expect(master.tip.summary).to.equal('stubbed a README')
       expect(master.tip.parentSHAs.length).to.equal(1)
     })
+
+    it('should return empty list for empty repo', async () => {
+      const repo = await setupEmptyRepository()
+      const branches = await getBranches(repo, '', BranchType.Local)
+      expect(branches.length).to.equal(0)
+    })
   })
 
   describe('getCurrentBranch', () => {
     it('fetches branch using for-each-ref', async () => {
-      const currentBranch = await LocalGitOperations.getCurrentBranch(repository!)
+      const currentBranch = await getCurrentBranch(repository!)
 
       expect(currentBranch!.name).to.equal('commit-with-long-description')
       expect(currentBranch!.upstream).to.be.null
@@ -62,6 +66,12 @@ describe('git-branches', () => {
       expect(date).to.equalDate(new Date('Tue Oct 18 16:23:42 2016 +1100'))
 
       expect(currentBranch!.tip.parentSHAs.length).to.equal(1)
+    })
+
+    it('should return null for empty repo', async () => {
+      const repo = await setupEmptyRepository()
+      const branch = await getCurrentBranch(repo)
+      expect(branch).to.be.null
     })
   })
 })

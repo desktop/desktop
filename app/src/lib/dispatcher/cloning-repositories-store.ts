@@ -2,7 +2,7 @@ import * as Path from 'path'
 
 import { Emitter, Disposable } from 'event-kit'
 
-import { LocalGitOperations } from '../local-git-operations'
+import { clone as cloneRepo } from '../git'
 import { CloneProgressParser } from '../clone-progress-parser'
 import { User } from '../../models/user'
 
@@ -62,8 +62,7 @@ export class CloningRepositoriesStore {
 
     const progressParser = new CloneProgressParser()
 
-    const promise = LocalGitOperations
-      .clone(url, path, user, progress => {
+    const promise = cloneRepo(url, path, user, progress => {
         this.stateByID.set(repository.id, {
           output: progress,
           progressValue: progressParser.parse(progress),
