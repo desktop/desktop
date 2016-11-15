@@ -72,8 +72,12 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     this.props.advance(WelcomeStep.Start)
   }
 
-  private onDidSignIn(user: User) {
+  private async onDidSignIn(user: User) {
     console.log(user)
+
+    await this.props.dispatcher.addUser(user)
+
+    this.props.advance(WelcomeStep.ConfigureGit)
   }
 
   private onNeeds2FA(login: string, password: string) {

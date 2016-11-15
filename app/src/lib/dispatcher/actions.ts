@@ -1,5 +1,6 @@
 import { IRepository } from '../../models/repository'
 import { URLActionType } from '../parse-url'
+import { IUser } from '../../models/user'
 
 export interface IGetUsersAction {
   name: 'get-users'
@@ -33,7 +34,12 @@ export interface IUpdateGitHubRepositoryAction {
   readonly repository: IRepository
 }
 
+export interface IAddUserAction {
+  readonly name: 'add-user'
+  readonly user: IUser
+}
+
 export type Action = IGetUsersAction | IGetRepositoriesAction |
                      IAddRepositoriesAction | IRequestOAuthAction |
                      IURLAction | IUpdateGitHubRepositoryAction |
-                     IRemoveRepositoriesAction
+                     IRemoveRepositoriesAction | IAddUserAction

@@ -401,4 +401,9 @@ export class Dispatcher {
   public setCommitMessage(repository: Repository, message: ICommitMessage | null): Promise<void> {
     return this.appStore._setCommitMessage(repository, message)
   }
+
+  /** Add the user to the app. */
+  public async addUser(user: User): Promise<void> {
+    return this.dispatchToSharedProcess<void>({ name: 'add-user', user })
+  }
 }
