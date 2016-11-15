@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 
 import { FileStatus } from '../../models/status'
@@ -33,9 +31,10 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     return assertNever(status, `Unknown file status ${status}`)
   }
 
-  private handleChange(event: React.FormEvent<HTMLInputElement>) {
+  private handleCheckboxChange = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
     this.props.onIncludeChanged(include)
+    event.preventDefault()
   }
 
   private get checkboxValue(): CheckboxValue {
@@ -69,7 +68,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     const fileStatus = ChangedFile.mapStatus(this.props.status)
 
     return (
-      <div className='changed-file' onContextMenu={e => this.onContextMenu(e)}>
+      <div className='changed-file' onContextMenu={this.onContextMenu}>
 
         <Checkbox
           // The checkbox doesn't need to be tab reachable since we emulate
@@ -77,7 +76,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
           // while focused on a row will toggle selection.
           tabIndex={-1}
           value={this.checkboxValue}
-          onChange={event => this.handleChange(event)}/>
+          onChange={this.handleCheckboxChange}/>
 
         {this.renderPathLabel()}
 
@@ -88,7 +87,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     )
   }
 
-  private onContextMenu(event: React.MouseEvent<any>) {
+  private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
     if (!__WIN32__) {
