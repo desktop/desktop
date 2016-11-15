@@ -10,7 +10,6 @@ import { formatPatch } from './patch-formatter'
 
 import { isHeadUnborn } from './git/repository'
 import { stageFiles } from './git/add'
-import { getBranches } from './git/for-each-ref'
 
 import { Branch, BranchType } from '../models/branch'
 
@@ -76,25 +75,6 @@ export class LocalGitOperations {
     await stageFiles(repository, files)
 
     await git([ 'commit', '-F',  '-' ] , repository.path, { stdin: message })
-  }
-
-  /** Get the name of the current branch. */
-  public static async getCurrentBranch(repository: Repository): Promise<Branch | null> {
-    const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 1, 128 ]) })
-    // error code 1 is returned if no upstream
-    // error code 128 is returned if the branch is unborn
-    if (revParseResult.exitCode === 1 || revParseResult.exitCode === 128) {
-      return null
-    }
-
-    const untrimmedName = revParseResult.stdout
-    let name = untrimmedName.trim()
-    // New branches have a `heads/` prefix.
-    name = name.replace(/^heads\//, '')
-
-    const branches = await getBranches(repository, `refs/heads/${name}`, BranchType.Local)
-
-    return branches[0]
   }
 
   /** Get the number of commits in HEAD. */

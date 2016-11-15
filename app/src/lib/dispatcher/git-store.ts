@@ -8,7 +8,7 @@ import { reset, GitResetMode } from '../git/reset'
 import { getDefaultRemote } from '../git/remote'
 import { fetch as fetchRepo } from '../git/fetch'
 import { getRecentBranches } from '../git/reflog'
-import { getBranches } from '../git/for-each-ref'
+import { getBranches, getCurrentBranch } from '../git/for-each-ref'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
 import { getCommits } from '../git/log'
@@ -154,7 +154,7 @@ export class GitStore {
 
   /** Load the current and default branches. */
   public async loadCurrentAndDefaultBranch() {
-    const currentBranch = await this.performFailableOperation(() => LocalGitOperations.getCurrentBranch(this.repository))
+    const currentBranch = await this.performFailableOperation(() => getCurrentBranch(this.repository))
     if (!currentBranch) { return }
 
     this._currentBranch = currentBranch

@@ -5,8 +5,7 @@ chai.use(require('chai-datetime'))
 const expect = chai.expect
 
 import { Repository } from '../../src/models/repository'
-import { LocalGitOperations } from '../../src/lib/local-git-operations'
-import { getBranches } from '../../src/lib/git/for-each-ref'
+import { getBranches, getCurrentBranch } from '../../src/lib/git/for-each-ref'
 import { BranchType } from '../../src/models/branch'
 import { setupFixtureRepository } from '../fixture-helper'
 
@@ -51,7 +50,7 @@ describe('git-branches', () => {
 
   describe('getCurrentBranch', () => {
     it('fetches branch using for-each-ref', async () => {
-      const currentBranch = await LocalGitOperations.getCurrentBranch(repository!)
+      const currentBranch = await getCurrentBranch(repository!)
 
       expect(currentBranch!.name).to.equal('commit-with-long-description')
       expect(currentBranch!.upstream).to.be.null
