@@ -26,9 +26,11 @@ export class Checkbox extends React.Component<ICheckboxProps, void> {
   }
 
   private onInputRef = (input: HTMLInputElement) => {
-    const value = this.props.value
-    input.indeterminate = value === CheckboxValue.Mixed
-    input.checked = value !== CheckboxValue.Off
+    if (input) {
+      const value = this.props.value
+      input.indeterminate = value === CheckboxValue.Mixed
+      input.checked = value !== CheckboxValue.Off
+    }
   }
 
   public render() {
