@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 import { Repository as Repo } from '../models/repository'
 import { UiView } from './ui-view'
@@ -34,7 +32,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
       : Tab.History
 
     return (
-      <TabBar selectedIndex={selectedTab} onTabClicked={index => this.onTabClicked(index)}>
+      <TabBar selectedIndex={selectedTab} onTabClicked={this.onTabClicked}>
         <span>
           <span>Changes</span>
           {hasChanges ? <span className='indicator'/> : null}
@@ -93,8 +91,8 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
       <Resizable
         id='repository-sidebar'
         width={this.props.sidebarWidth}
-        onReset={() => this.props.dispatcher.resetSidebarWidth()}
-        onResize={(w) => this.props.dispatcher.setSidebarWidth(w)}>
+        onReset={this.props.dispatcher.resetSidebarWidth}
+        onResize={this.props.dispatcher.setSidebarWidth}>
         {this.renderTabs()}
         {this.renderSidebarContents()}
       </Resizable>
@@ -121,14 +119,14 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
 
   public render() {
     return (
-      <UiView id='repository' onKeyDown={(e) => this.onKeyDown(e)}>
+      <UiView id='repository' onKeyDown={this.onKeyDown}>
         {this.renderSidebar()}
         {this.renderContent()}
       </UiView>
     )
   }
 
-  private onKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+  private onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     // Toggle tab selection on Ctrl+Tab. Note that we don't care
     // about the shift key here, we can get away with that as long
     // as there's only two tabs.
@@ -143,7 +141,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     }
   }
 
-  private onTabClicked(tab: Tab) {
+  private onTabClicked = (tab: Tab) => {
     const section = tab === Tab.History ? RepositorySection.History : RepositorySection.Changes
     this.props.dispatcher.changeRepositorySection(this.props.repository, section)
   }
