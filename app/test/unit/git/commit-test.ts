@@ -7,7 +7,7 @@ import {
   createCommit,
   getCommits,
   getChangedFiles,
-  getWorkingDirectoryDiff
+  getWorkingDirectoryDiff,
 } from '../../../src/lib/git'
 
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
