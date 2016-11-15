@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
-import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
+import { Commit } from '../../models/commit'
+import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
 import { CommitListItem } from '../history/commit-list-item'
 import { User } from '../../models/user'
 
@@ -25,8 +26,8 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
   }
 
   public async componentWillMount() {
-    let name = await LocalGitOperations.getGlobalConfigValue('user.name')
-    let email = await LocalGitOperations.getGlobalConfigValue('user.email')
+    let name = await getGlobalConfigValue('user.name')
+    let email = await getGlobalConfigValue('user.email')
 
     const user = this.props.users[0]
     if ((!name || !name.length) && user) {
@@ -120,12 +121,12 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
 
     const name = this.state.name
     if (name.length) {
-      await LocalGitOperations.setGlobalConfigValue('user.name', name)
+      await setGlobalConfigValue('user.name', name)
     }
 
     const email = this.state.email
     if (email.length) {
-      await LocalGitOperations.setGlobalConfigValue('user.email', email)
+      await setGlobalConfigValue('user.email', email)
     }
   }
 

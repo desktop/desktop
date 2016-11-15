@@ -1,3 +1,6 @@
+import * as Path from 'path'
+import { User } from '../../models/user'
+
 import {
   GitProcess,
   IGitResult,
@@ -113,4 +116,26 @@ export async function git(args: string[], path: string, options?: IGitExecutionO
   }
 
   return result
+}
+
+function getAskPassTrampolinePath(): string {
+  const extension = __WIN32__ ? 'bat' : 'sh'
+  return Path.resolve(__dirname, 'static', `ask-pass-trampoline.${extension}`)
+}
+
+function getAskPassScriptPath(): string {
+  return Path.resolve(__dirname, 'ask-pass.js')
+}
+
+/** Get the environment for authenticating remote operations. */
+export function envForAuthentication(user: User | null): Object {
+  if (!user) { return {} }
+
+  return {
+    'DESKTOP_PATH': process.execPath,
+    'DESKTOP_ASKPASS_SCRIPT': getAskPassScriptPath(),
+    'DESKTOP_USERNAME': user.login,
+    'DESKTOP_ENDPOINT': user.endpoint,
+    'GIT_ASKPASS': getAskPassTrampolinePath(),
+  }
 }

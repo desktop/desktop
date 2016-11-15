@@ -1,4 +1,4 @@
-import { Branch } from '../../lib/local-git-operations'
+import { Branch } from '../../models/branch'
 
 export type BranchListItemModel = { kind: 'branch', branch: Branch } | { kind: 'label', label: string }
 

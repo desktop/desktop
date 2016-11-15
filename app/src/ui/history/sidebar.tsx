@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
-import { Commit } from '../../lib/local-git-operations'
+import { Commit } from '../../models/commit'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
