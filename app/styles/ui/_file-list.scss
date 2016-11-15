@@ -1,5 +1,10 @@
 .file-list {
 
+  // this value affects virtualized lists, and without it
+  // you'll see react-virtualized just skip rendering
+  // as the available vertical space is computed as zero
+  height: 100%;
+
   .list-item {
     padding: var(--spacing-half);
     border-bottom: var(--base-border);
