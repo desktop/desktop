@@ -1,15 +1,12 @@
-import * as chai from 'chai'
+import { expect, use as chaiUse } from 'chai'
+import { Repository } from '../../../src/models/repository'
+import { setupFixtureRepository } from '../../fixture-helper'
+import { getBranches, getCurrentBranch } from '../../../src/lib/git/for-each-ref'
+import { BranchType } from '../../../src/models/branch'
 
-chai.use(require('chai-datetime'))
+chaiUse(require('chai-datetime'))
 
-const expect = chai.expect
-
-import { Repository } from '../../src/models/repository'
-import { getBranches, getCurrentBranch } from '../../src/lib/git/for-each-ref'
-import { BranchType } from '../../src/models/branch'
-import { setupFixtureRepository } from '../fixture-helper'
-
-describe('git-branches', () => {
+describe('git/for-each-ref', () => {
   let repository: Repository | null = null
 
   beforeEach(() => {
