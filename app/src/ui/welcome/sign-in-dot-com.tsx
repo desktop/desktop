@@ -54,10 +54,10 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
           </div>
 
           <div className='horizontal-rule'>
-            <span>or</span>
+            <span className='horizontal-rule-content'>or</span>
           </div>
 
-          <p className='center'>
+          <p className='sign-in-footer'>
             <LinkButton className='welcome-link-button link-with-icon' onClick={() => this.signInWithBrowser()}>
               Sign in using your browser
               <Octicon symbol={OcticonSymbol.linkExternal} />

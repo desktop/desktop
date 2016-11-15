@@ -50,6 +50,7 @@
 .welcome-text {
   font-weight: 300;
   margin: 0;
+  text-align: center;
 }
 
 .welcome-title {
@@ -84,7 +85,7 @@
     bottom: 0.5em;
   }
 
-  span {
+  .horizontal-rule-content {
     display: inline-block;
     background: white;
     padding: 0 0.5em;
@@ -97,7 +98,7 @@
   width: 100%;
 }
 
-.center {
+.sign-in-footer {
   text-align: center;
 }
 
