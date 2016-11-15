@@ -9,9 +9,9 @@ import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
 
-export { ICloningRepositoryState } from './dispatcher'
-export { ICommitMessage } from './dispatcher/git-store'
-export { IAheadBehind } from './git/rev-list'
+export { ICloningRepositoryState }
+export { ICommitMessage }
+export { IAheadBehind }
 
 export enum SelectionType {
   Repository,
