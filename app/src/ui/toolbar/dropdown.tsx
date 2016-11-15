@@ -34,7 +34,7 @@ export interface IToolbarDropdownProps {
    * An render callback for when the dropdown is open.
    * Use this to render the contents of the fold out.
    */
-  readonly dropdownContentRenderer: () => JSX.Element
+  readonly dropdownContentRenderer: () => JSX.Element | null
 
   /**
    * An optional classname that will be appended to the default
