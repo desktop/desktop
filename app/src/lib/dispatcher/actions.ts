@@ -34,6 +34,7 @@ export interface IUpdateGitHubRepositoryAction {
   readonly repository: IRepository
 }
 
+/** Add a user to the app. */
 export interface IAddUserAction {
   readonly name: 'add-user'
   readonly user: IUser

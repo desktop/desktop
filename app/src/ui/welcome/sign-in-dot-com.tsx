@@ -73,8 +73,6 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   }
 
   private async onDidSignIn(user: User) {
-    console.log(user)
-
     await this.props.dispatcher.addUser(user)
 
     this.props.advance(WelcomeStep.ConfigureGit)

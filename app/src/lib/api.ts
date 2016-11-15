@@ -9,9 +9,13 @@ import * as appProxy from '../ui/lib/app-proxy'
 const Octokat = require('octokat')
 const got = require('got')
 
-interface IGotResponse extends HTTP.IncomingMessage {
+/** The response from `got` requests. */
+interface IHTTPResponse extends HTTP.IncomingMessage {
   readonly body: any
 }
+
+/** The HTTP methods available. */
+type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
@@ -19,17 +23,17 @@ if (!ClientSecret || !ClientSecret.length) {
   console.warn(`DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
 }
 
+/** The OAuth scopes we need. */
 const Scopes = [
   'repo',
   'user',
 ]
 
+/** The note URL used for authorizations the app creates. */
 const NoteURL = 'https://desktop.github.com/'
 
 /** The fingerprint used to uniquely identify this authorization. */
 const FingerprintKey = 'authorization/fingerprint'
-
-type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
 /**
  * Information about a repository as returned by the GitHub API.
@@ -192,7 +196,7 @@ export class API {
     return allItems.filter((i: any) => !i.pullRequest)
   }
 
-  private authenticatedRequest(method: HTTPMethod, path: string, body: Object | null): Promise<IGotResponse> {
+  private authenticatedRequest(method: HTTPMethod, path: string, body: Object | null): Promise<IHTTPResponse> {
     return request(this.user.endpoint, `token ${this.user.token}`, method, path, body)
   }
 
@@ -204,10 +208,17 @@ export class API {
   }
 }
 
-export type AuthorizationResponse = { kind: 'authorized', token: string } |
-                                    { kind: 'failed' } |
-                                    { kind: '2fa', type: string } |
-                                    { kind: 'error', response: any }
+export enum AuthorizationResponseKind {
+  Authorized,
+  Failed,
+  TwoFactorAuthenticationRequired,
+  Error,
+}
+
+export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
+                                    { kind: AuthorizationResponseKind.Failed } |
+                                    { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: string } |
+                                    { kind: AuthorizationResponseKind.Error, response: IHTTPResponse }
 
 /**
  * Create an authorization with the given login, password, and one-time
@@ -227,35 +238,44 @@ export async function createAuthorization(endpoint: string, login: string, passw
     'fingerprint': getFingerprint(),
   }, headers)
 
-  console.log(response)
-
   if (response.statusCode === 401) {
     const otpResponse: string | null = response.headers['x-github-otp']
     if (otpResponse) {
       const pieces = otpResponse.split(';')
       const type = pieces[1].trim()
-      return { kind: '2fa', type }
+      return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type }
     } else {
-      return { kind: 'failed' }
+      return { kind: AuthorizationResponseKind.Failed }
     }
   }
 
   const body = response.body
   const token = body.token
   if (token && token.length) {
-    return { kind: 'authorized', token }
+    return { kind: AuthorizationResponseKind.Authorized, token }
   }
 
-  return { kind: 'failed', response }
+  return { kind: AuthorizationResponseKind.Failed, response }
 }
 
+/** Fetch the user authenticated by the token. */
 export async function fetchUser(endpoint: string, token: string): Promise<User> {
   const octo = new Octokat({ token })
   const user = await octo.user.fetch()
   return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id)
 }
 
-function request(endpoint: string, authorization: string, method: HTTPMethod, path: string, body: Object | null, headers?: Object): Promise<IGotResponse> {
+/**
+ * Make an API request.
+ *
+ * {endpoint}      - The API endpoint.
+ * {authorization} - The value to pass in the `Authorization` header.
+ * {method}        - The HTTP method.
+ * {path}          - The path without a leading /.
+ * {body}          - The body to send.
+ * {headers}       - Any optional additional headers to send.
+ */
+function request(endpoint: string, authorization: string, method: HTTPMethod, path: string, body: Object | null, headers?: Object): Promise<IHTTPResponse> {
   const url = `${endpoint}/${path}`
   const options: any = {
     headers: Object.assign({}, {
@@ -274,10 +294,12 @@ function request(endpoint: string, authorization: string, method: HTTPMethod, pa
   return got(url, options).catch((e: any) => e.response)
 }
 
+/** The note used for created authorizations. */
 function getNote(): string {
   return `GitHub Desktop on ${OS.hostname()}`
 }
 
+/** The fingerprint used to uniquely identify authorizations. */
 function getFingerprint(): string {
   const existing = localStorage.getItem(FingerprintKey)
   if (existing) { return existing }

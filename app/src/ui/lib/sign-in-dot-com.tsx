@@ -1,17 +1,32 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { Button } from '../lib/button'
-import { getDotComAPIEndpoint, createAuthorization, AuthorizationResponse, fetchUser } from '../../lib/api'
+import {
+  getDotComAPIEndpoint,
+  createAuthorization,
+  AuthorizationResponse,
+  fetchUser,
+  AuthorizationResponseKind,
+} from '../../lib/api'
 import { User } from '../../models/user'
 import { assertNever } from '../../lib/fatal-error'
 
 const ForgotPasswordURL = 'https://github.com/password_reset'
 
 interface ISignInDotComProps {
+  /**
+   * Called when the user chooses to use OAuth. It should open the browser to
+   * start the OAuth dance.
+   */
   readonly onSignInWithBrowser: () => void
+
+  /** Called after the user has signed in. */
   readonly onDidSignIn: (user: User) => void
+
+  /** Called when two-factor authentication is required. */
   readonly onNeeds2FA: (login: string, password: string) => void
 
+  /** An array of additional buttons to render after the "Sign In" button. */
   readonly additionalButtons?: ReadonlyArray<JSX.Element>
 }
 
@@ -65,10 +80,10 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
 
     const kind = response.kind
     switch (kind) {
-      case 'failed': return <div>The username or password are incorrect.</div>
-      case 'error': return <div>An error occurred.</div>
-      case '2fa': return null
-      case 'authorized': return null
+      case AuthorizationResponseKind.Failed: return <div>The username or password are incorrect.</div>
+      case AuthorizationResponseKind.Error: return <div>An error occurred.</div>
+      case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return null
+      case AuthorizationResponseKind.Authorized: return null
       default: return assertNever(kind, `Unknown response kind: ${kind}`)
     }
   }
@@ -106,11 +121,11 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     const endpoint = getDotComAPIEndpoint()
     const response = await createAuthorization(endpoint, username, password, null)
 
-    if (response.kind === 'authorized') {
+    if (response.kind === AuthorizationResponseKind.Authorized) {
       const token = response.token
       const user = await fetchUser(endpoint, token)
       this.props.onDidSignIn(user)
-    } else if (response.kind === '2fa') {
+    } else if (response.kind === AuthorizationResponseKind.TwoFactorAuthenticationRequired) {
       this.props.onNeeds2FA(username, password)
     } else {
       this.setState({
