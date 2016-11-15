@@ -6,6 +6,7 @@ const expect = chai.expect
 
 import { Repository } from '../../src/models/repository'
 import { LocalGitOperations } from '../../src/lib/local-git-operations'
+import { getBranches } from '../../src/lib/git/for-each-ref'
 import { BranchType } from '../../src/models/branch'
 import { setupFixtureRepository } from '../fixture-helper'
 
@@ -19,7 +20,7 @@ describe('git-branches', () => {
 
   describe('getBranches', () => {
     it('fetches branches using for-each-ref', async () => {
-      const branches = await LocalGitOperations.getBranches(repository!, 'refs/heads', BranchType.Local)
+      const branches = await getBranches(repository!, 'refs/heads', BranchType.Local)
 
       expect(branches.length).to.equal(3)
 

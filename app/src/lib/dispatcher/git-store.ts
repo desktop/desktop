@@ -8,6 +8,7 @@ import { reset, GitResetMode } from '../git/reset'
 import { getDefaultRemote } from '../git/remote'
 import { fetch as fetchRepo } from '../git/fetch'
 import { getRecentBranches } from '../git/reflog'
+import { getBranches } from '../git/for-each-ref'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
 import { getCommits } from '../git/log'
@@ -176,12 +177,12 @@ export class GitStore {
 
   /** Load all the branches. */
   public async loadBranches() {
-    let localBranches = await this.performFailableOperation(() => LocalGitOperations.getBranches(this.repository, 'refs/heads', BranchType.Local))
+    let localBranches = await this.performFailableOperation(() => getBranches(this.repository, 'refs/heads', BranchType.Local))
     if (!localBranches) {
       localBranches = []
     }
 
-    let remoteBranches = await this.performFailableOperation(() => LocalGitOperations.getBranches(this.repository, 'refs/remotes', BranchType.Remote))
+    let remoteBranches = await this.performFailableOperation(() => getBranches(this.repository, 'refs/remotes', BranchType.Remote))
     if (!remoteBranches) {
       remoteBranches = []
     }
@@ -225,12 +226,12 @@ export class GitStore {
    * remote branches.
    */
   private async loadBranch(branchName: string): Promise<Branch | null> {
-    const localBranches = await this.performFailableOperation(() => LocalGitOperations.getBranches(this.repository, `refs/heads/${branchName}`, BranchType.Local))
+    const localBranches = await this.performFailableOperation(() => getBranches(this.repository, `refs/heads/${branchName}`, BranchType.Local))
     if (localBranches && localBranches.length) {
       return localBranches[0]
     }
 
-    const remoteBranches = await this.performFailableOperation(() => LocalGitOperations.getBranches(this.repository, `refs/remotes/${branchName}`, BranchType.Remote))
+    const remoteBranches = await this.performFailableOperation(() => getBranches(this.repository, `refs/remotes/${branchName}`, BranchType.Remote))
     if (remoteBranches && remoteBranches.length) {
       return remoteBranches[0]
     }
