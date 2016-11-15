@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { ChangesList } from './changes-list'
@@ -63,11 +61,11 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     }
   }
 
-  private onCreateCommit(message: ICommitMessage) {
+  private onCreateCommit = (message: ICommitMessage) => {
     this.props.dispatcher.commitIncludedChanges(this.props.repository, message)
   }
 
-  private onFileSelectionChanged(row: number) {
+  private onFileSelectionChanged = (row: number) => {
     const file = this.props.changes.workingDirectory.files[row]
     this.props.dispatcher.changeChangesSelection(this.props.repository, file)
   }
@@ -83,7 +81,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     this.props.dispatcher.changeFileIncluded(this.props.repository, file, include)
   }
 
-  private onSelectAll(selectAll: boolean) {
+  private onSelectAll = (selectAll: boolean) => {
     this.props.dispatcher.changeIncludeAllFiles(this.props.repository, selectAll)
   }
 
@@ -127,11 +125,19 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
    * Handles keyboard events from the List item container, note that this is
    * Not the same thing as the element returned by the row renderer in ChangesList
    */
-  private onChangedItemKeyDown(row: number, event: React.KeyboardEvent<any>) {
+  private onChangedItemKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
     // Toggle selection when user presses the spacebar while focused on a list item
     if (event.key === ' ') {
       event.preventDefault()
       this.onToggleInclude(row)
+    }
+  }
+
+  private onUndo = () => {
+    const commit = this.props.mostRecentLocalCommit
+
+    if (commit) {
+      this.props.dispatcher.undoCommit(this.props.repository, commit)
     }
   }
 
@@ -141,7 +147,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     if (commit) {
       child = <UndoCommit
         commit={commit}
-        onUndo={() => this.props.dispatcher.undoCommit(this.props.repository, commit)}
+        onUndo={this.onUndo}
         emoji={this.props.emoji}/>
     }
 
@@ -180,12 +186,12 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           repository={this.props.repository}
           workingDirectory={changesState.workingDirectory}
           selectedPath={selectedPath}
-          onFileSelectionChanged={file => this.onFileSelectionChanged(file) }
-          onCreateCommit={(message) => this.onCreateCommit(message)}
+          onFileSelectionChanged={this.onFileSelectionChanged}
+          onCreateCommit={this.onCreateCommit}
           onIncludeChanged={this.onIncludeChanged}
-          onSelectAll={selectAll => this.onSelectAll(selectAll)}
+          onSelectAll={this.onSelectAll}
           onDiscardChanges={this.onDiscardChanges}
-          onRowKeyDown={(row, e) => this.onChangedItemKeyDown(row, e)}
+          onRowKeyDown={this.onChangedItemKeyDown}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
           avatarURL={avatarURL}
