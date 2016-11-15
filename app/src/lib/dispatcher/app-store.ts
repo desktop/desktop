@@ -32,6 +32,7 @@ import { getAuthorIdentity } from '../git/var'
 import { pull as pullRepo } from '../git/pull'
 import { push as pushRepo } from '../git/push'
 import { getCommitDiff, getWorkingDirectoryDiff } from '../git/git-diff'
+import { getChangedFiles } from '../git/log'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
@@ -420,7 +421,7 @@ export class AppStore {
     if (!currentSHA) { return }
 
     const gitStore = this.getGitStore(repository)
-    const changedFiles = await gitStore.performFailableOperation(() => LocalGitOperations.getChangedFiles(repository, currentSHA))
+    const changedFiles = await gitStore.performFailableOperation(() => getChangedFiles(repository, currentSHA))
     if (!changedFiles) { return }
 
     // The selection could have changed between when we started loading the

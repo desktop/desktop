@@ -9,6 +9,7 @@ const temp = require('temp').track()
 import { Repository } from '../../src/models/repository'
 import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operations'
 import { getStatus } from '../../src/lib/git/status'
+import { getCommits, getChangedFiles } from '../../src/lib/git/log'
 import { getWorkingDirectoryDiff } from '../../src/lib/git/git-diff'
 import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../../src/models/diff'
@@ -42,7 +43,7 @@ describe('LocalGitOperations', () => {
       files = status.workingDirectory.files
       expect(files.length).to.equal(0)
 
-      const commits = await LocalGitOperations.getCommits(repository!, 'HEAD', 100)
+      const commits = await getCommits(repository!, 'HEAD', 100)
       expect(commits.length).to.equal(6)
       expect(commits[0].summary).to.equal('Special commit')
     })
@@ -67,7 +68,7 @@ describe('LocalGitOperations', () => {
 
       expect(statusAfter.workingDirectory.files.length).to.equal(0)
 
-      const history = await LocalGitOperations.getCommits(repo, 'HEAD', 2)
+      const history = await getCommits(repo, 'HEAD', 2)
 
       expect(history.length).to.equal(1)
       expect(history[0].summary).to.equal('added two files')
@@ -105,7 +106,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('can commit some lines from new file', async () => {
-      const previousTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
+      const previousTip = (await getCommits(repository!, 'HEAD', 1))[0]
 
       const newFileName = 'new-file.md'
 
@@ -120,12 +121,12 @@ describe('LocalGitOperations', () => {
       await LocalGitOperations.createCommit(repository!, 'title', [ file ])
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
+      const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).to.not.equal(previousTip.sha)
       expect(newTip.summary).to.equal('title')
 
       // verify that the contents of this new commit are just the new file
-      const changedFiles = await LocalGitOperations.getChangedFiles(repository!, newTip.sha)
+      const changedFiles = await getChangedFiles(repository!, newTip.sha)
       expect(changedFiles.length).to.equal(1)
       expect(changedFiles[0].path).to.equal(newFileName)
 
@@ -141,7 +142,7 @@ describe('LocalGitOperations', () => {
 
     it('can commit second hunk from modified file', async () => {
 
-      const previousTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
+      const previousTip = (await getCommits(repository!, 'HEAD', 1))[0]
 
       const modifiedFile = 'modified-file.md'
 
@@ -160,12 +161,12 @@ describe('LocalGitOperations', () => {
       await LocalGitOperations.createCommit(repository!, 'title', [ updatedFile ])
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
+      const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).to.not.equal(previousTip.sha)
       expect(newTip.summary).to.equal('title')
 
       // verify that the contents of this new commit are just the modified file
-      const changedFiles = await LocalGitOperations.getChangedFiles(repository!, newTip.sha)
+      const changedFiles = await getChangedFiles(repository!, newTip.sha)
       expect(changedFiles.length).to.equal(1)
       expect(changedFiles[0].path).to.equal(modifiedFile)
 
@@ -180,7 +181,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('can commit single delete from modified file', async () => {
-      const previousTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
+      const previousTip = (await getCommits(repository!, 'HEAD', 1))[0]
 
       const fileName = 'modified-file.md'
 
@@ -201,19 +202,19 @@ describe('LocalGitOperations', () => {
       await LocalGitOperations.createCommit(repository!, 'title', [ file ])
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
+      const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).to.not.equal(previousTip.sha)
       expect(newTip.summary).to.equal('title')
 
       // verify that the contents of this new commit are just the modified file
-      const changedFiles = await LocalGitOperations.getChangedFiles(repository!, newTip.sha)
+      const changedFiles = await getChangedFiles(repository!, newTip.sha)
       expect(changedFiles.length).to.equal(1)
       expect(changedFiles[0].path).to.equal(fileName)
     })
 
     it('can commit multiple hunks from modified file', async () => {
 
-      const previousTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
+      const previousTip = (await getCommits(repository!, 'HEAD', 1))[0]
 
       const modifiedFile = 'modified-file.md'
 
@@ -232,12 +233,12 @@ describe('LocalGitOperations', () => {
       await LocalGitOperations.createCommit(repository!, 'title', [ updatedFile ])
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
+      const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).to.not.equal(previousTip.sha)
       expect(newTip.summary).to.equal('title')
 
       // verify that the contents of this new commit are just the modified file
-      const changedFiles = await LocalGitOperations.getChangedFiles(repository!, newTip.sha)
+      const changedFiles = await getChangedFiles(repository!, newTip.sha)
       expect(changedFiles.length).to.equal(1)
       expect(changedFiles[0].path).to.equal(modifiedFile)
 
@@ -252,7 +253,7 @@ describe('LocalGitOperations', () => {
     })
 
     it('can commit some lines from deleted file', async () => {
-      const previousTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
+      const previousTip = (await getCommits(repository!, 'HEAD', 1))[0]
 
       const deletedFile = 'deleted-file.md'
 
@@ -266,12 +267,12 @@ describe('LocalGitOperations', () => {
       await LocalGitOperations.createCommit(repository!, 'title', [ file ])
 
       // verify that the HEAD of the repository has moved
-      const newTip = (await LocalGitOperations.getCommits(repository!, 'HEAD', 1))[0]
+      const newTip = (await getCommits(repository!, 'HEAD', 1))[0]
       expect(newTip.sha).to.not.equal(previousTip.sha)
       expect(newTip.summary).to.equal('title')
 
       // verify that the contents of this new commit are just the new file
-      const changedFiles = await LocalGitOperations.getChangedFiles(repository!, newTip.sha)
+      const changedFiles = await getChangedFiles(repository!, newTip.sha)
       expect(changedFiles.length).to.equal(1)
       expect(changedFiles[0].path).to.equal(deletedFile)
 
@@ -353,7 +354,7 @@ describe('LocalGitOperations', () => {
 
   describe('history', () => {
     it('loads history', async () => {
-      const commits = await LocalGitOperations.getCommits(repository!, 'HEAD', 100)
+      const commits = await getCommits(repository!, 'HEAD', 100)
       expect(commits.length).to.equal(5)
 
       const firstCommit = commits[commits.length - 1]
@@ -363,7 +364,7 @@ describe('LocalGitOperations', () => {
 
     describe('changed files', () => {
       it('loads the files changed in the commit', async () => {
-        const files = await LocalGitOperations.getChangedFiles(repository!, '7cd6640e5b6ca8dbfd0b33d0281ebe702127079c')
+        const files = await getChangedFiles(repository!, '7cd6640e5b6ca8dbfd0b33d0281ebe702127079c')
         expect(files.length).to.equal(1)
         expect(files[0].path).to.equal('README.md')
         expect(files[0].status).to.equal(FileStatus.New)
@@ -373,13 +374,13 @@ describe('LocalGitOperations', () => {
         const testRepoPath = setupFixtureRepository('rename-history-detection')
         repository = new Repository(testRepoPath, -1, null)
 
-        const first = await LocalGitOperations.getChangedFiles(repository, '55bdecb')
+        const first = await getChangedFiles(repository, '55bdecb')
         expect(first.length).to.equal(1)
         expect(first[0].status).to.equal(FileStatus.Renamed)
         expect(first[0].oldPath).to.equal('NEW.md')
         expect(first[0].path).to.equal('NEWER.md')
 
-        const second = await LocalGitOperations.getChangedFiles(repository, 'c898ca8')
+        const second = await getChangedFiles(repository, 'c898ca8')
         expect(second.length).to.equal(1)
         expect(second[0].status).to.equal(FileStatus.Renamed)
         expect(second[0].oldPath).to.equal('OLD.md')
@@ -393,7 +394,7 @@ describe('LocalGitOperations', () => {
         // ensure the test repository is configured to detect copies
         await GitProcess.exec([ 'config', 'diff.renames', 'copies' ], repository.path)
 
-        const files = await LocalGitOperations.getChangedFiles(repository, 'a500bf415')
+        const files = await getChangedFiles(repository, 'a500bf415')
         expect(files.length).to.equal(2)
 
         expect(files[0].status).to.equal(FileStatus.Copied)

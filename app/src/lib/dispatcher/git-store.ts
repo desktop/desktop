@@ -6,6 +6,7 @@ import { LocalGitOperations, Branch, BranchType, GitResetMode, IAheadBehind } fr
 import { fetch as fetchRepo } from '../git/fetch'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
+import { getCommits } from '../git/log'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -90,7 +91,7 @@ export class GitStore {
 
     this.requestsInFight.add(LoadingHistoryRequestKey)
 
-    let commits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, 'HEAD', CommitBatchSize))
+    let commits = await this.performFailableOperation(() => getCommits(this.repository, 'HEAD', CommitBatchSize))
     if (!commits) { return }
 
     let existingHistory = this._history
@@ -131,7 +132,7 @@ export class GitStore {
 
     this.requestsInFight.add(requestKey)
 
-    const commits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, `${lastSHA}^`, CommitBatchSize))
+    const commits = await this.performFailableOperation(() => getCommits(this.repository, `${lastSHA}^`, CommitBatchSize))
     if (!commits) { return }
 
     this._history = this._history.concat(commits.map(c => c.sha))
@@ -262,9 +263,9 @@ export class GitStore {
     let localCommits: ReadonlyArray<Commit> | undefined
     if (branch.upstream) {
       const revRange = `${branch.upstream}..${branch.name}`
-      localCommits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, revRange, CommitBatchSize))
+      localCommits = await this.performFailableOperation(() => getCommits(this.repository, revRange, CommitBatchSize))
     } else {
-      localCommits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, 'HEAD', CommitBatchSize, [ '--not', '--remotes' ]))
+      localCommits = await this.performFailableOperation(() => getCommits(this.repository, 'HEAD', CommitBatchSize, [ '--not', '--remotes' ]))
     }
 
     if (!localCommits) { return }
