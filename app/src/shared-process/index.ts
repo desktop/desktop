@@ -1,23 +1,19 @@
 import * as TokenStore from '../shared-process/token-store'
 import { UsersStore } from './users-store'
-import { requestToken, askUserToAuth, resolveAuthRequest, rejectAuthRequest } from './auth'
-import { User, IUser } from '../models/user'
+import { User } from '../models/user'
 import { Database } from './database'
 import { RepositoriesStore } from './repositories-store'
 import { Repository, IRepository } from '../models/repository'
 import { register, broadcastUpdate as broadcastUpdate_ } from './communication'
 import {
-  IURLAction,
   IAddRepositoriesAction,
   IUpdateGitHubRepositoryAction,
   IRemoveRepositoriesAction,
   IAddUserAction,
 } from '../lib/dispatcher'
-import { API,  getDotComAPIEndpoint } from '../lib/api'
+import { API } from '../lib/api'
 import { reportError } from '../lib/exception-reporting'
 import * as appProxy from '../ui/lib/app-proxy'
-
-const Octokat = require('octokat')
 
 process.on('uncaughtException', (error: Error) => {
   reportError(error, appProxy.getVersion())
@@ -92,33 +88,6 @@ register('remove-repositories', async ({ repositoryIDs }: IRemoveRepositoriesAct
 
 register('get-repositories', () => {
   return repositoriesStore.getRepositories()
-})
-
-register('url-action', async ({ action }: IURLAction) => {
-  if (action.name === 'oauth') {
-    try {
-      const token = await requestToken(action.args.code)
-      const octo = new Octokat({ token })
-      const user = await octo.user.fetch()
-      const populatedUser = new User(user.login, getDotComAPIEndpoint(), token, new Array<string>(), user.avatarUrl, user.id)
-      usersStore.addUser(populatedUser)
-
-      updateUsers().then(() => resolveAuthRequest(populatedUser))
-    } catch (e) {
-      console.error(`Error adding user: ${e}`)
-      rejectAuthRequest(e)
-    }
-    broadcastUpdate()
-    return true
-  } else {
-    return false
-  }
-})
-
-register('request-oauth', () => {
-  return new Promise<IUser>((resolve, reject) => {
-    askUserToAuth(getDotComAPIEndpoint(), resolve, reject)
-  })
 })
 
 register('update-github-repository', async ({ repository }: IUpdateGitHubRepositoryAction) => {

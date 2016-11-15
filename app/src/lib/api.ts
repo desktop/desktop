@@ -275,7 +275,7 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
  * {body}          - The body to send.
  * {headers}       - Any optional additional headers to send.
  */
-function request(endpoint: string, authorization: string, method: HTTPMethod, path: string, body: Object | null, headers?: Object): Promise<IHTTPResponse> {
+function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body: Object | null, headers?: Object): Promise<IHTTPResponse> {
   const url = `${endpoint}/${path}`
   const options: any = {
     headers: Object.assign({}, {
@@ -334,4 +334,31 @@ export function getDotComAPIEndpoint(): string {
 /** Get the user for the endpoint. */
 export function getUserForEndpoint(users: ReadonlyArray<User>, endpoint: string): User {
   return users.filter(u => u.endpoint === endpoint)[0]
+}
+
+function getOAuthURL(endpoint: string): string {
+  if (endpoint === getDotComAPIEndpoint()) {
+    // GitHub.com is A Special Snowflake in that the API lives at a subdomain
+    // but OAuth lives on the parent domain.
+    return 'https://github.com'
+  } else {
+    return endpoint
+  }
+}
+
+export function getOAuthAuthorizationURL(endpoint: string, state: string): string {
+  const urlBase = getOAuthURL(endpoint)
+  return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${Scopes.join(' ')}&state=${state}`
+}
+
+export async function requestOAuthToken(endpoint: string, state: string, code: string): Promise<string> {
+  const urlBase = getOAuthURL(endpoint)
+  const response = await request(urlBase, null, 'POST', 'login/oauth/access_token', {
+    'client_id': ClientID,
+    'client_secret': ClientSecret,
+    'code': code,
+    'state': state,
+  })
+
+  return response.body.access_token
 }

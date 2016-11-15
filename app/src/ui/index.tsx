@@ -17,6 +17,7 @@ import { reportError } from '../lib/exception-reporting'
 import * as appProxy from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore } from '../lib/dispatcher'
+import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
 
 const startTime = Date.now()
 
@@ -65,11 +66,18 @@ ipcRenderer.on('focus', () => {
 })
 
 ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
-  const handled = await dispatcher.handleURLAction(action)
-  if (handled) { return }
-
-  if (action.name === 'open-repository') {
+  if (action.name === 'oauth') {
+    try {
+      const user = await requestAuthenticatedUser(action.args.code)
+      resolveOAuthRequest(user)
+      dispatcher.addUser(user)
+    } catch (e) {
+      rejectOAuthRequest(e)
+    }
+  } else if (action.name === 'open-repository') {
     openRepository(action.args)
+  } else {
+    console.log(`Unknown URL action: ${action.name}`)
   }
 })
 
