@@ -26,6 +26,27 @@ const imageFileExtensions = new Set([ '.png', '.jpg', '.jpeg', '.gif' ])
 export async function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<Diff> {
   const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--binary', '--', file.path ]
 
+  return await computeDiff(repository, file, args)
+}
+
+/**
+ * Attempt to convert a given buffer to the appropriate encoding set, or return
+ * a UTF-8 encoded string from the buffer if the conversion fails
+ */
+function tryConvertLocal(buffer: Buffer, charset: string): string {
+    const conversion = tryConvert(buffer, charset)
+    return conversion.result
+      ? conversion.result
+      : buffer.toString('utf8')
+}
+
+/**
+ * Generate the diff model from a set of Git arguments
+ *
+ * Assumes --binary is provided as a flag, so encoding detection can detect the correct bytes.
+ * If not included, UTF-8 bytes will be provided and encoding detection will not work.
+ */
+async function computeDiff(repository: Repository, file: FileChange, args: string[]): Promise<Diff> {
   const setBinaryEncoding: (process: ChildProcess) => void = cb => cb.stdout.setEncoding('binary')
   const result = await git(args, repository.path, { processCallback: setBinaryEncoding })
 
@@ -42,17 +63,6 @@ export async function getCommitDiff(repository: Repository, file: FileChange, co
   const diff = await diffFromRawDiffOutput(diffSource)
 
   return await attachImageDiff(repository, file, diff)
-}
-
-/**
- * Attempt to convert a given buffer to the appropriate encoding set, or return
- * a UTF-8 encoded string from the buffer if the conversion fails
- */
-function tryConvertLocal(buffer: Buffer, charset: string): string {
-    const conversion = tryConvert(buffer, charset)
-    return conversion.result
-      ? conversion.result 
-      : buffer.toString('utf8')
 }
 
 /**
@@ -91,22 +101,7 @@ export async function getWorkingDirectoryDiff(repository: Repository, file: Work
     args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--binary', '--', file.path ]
   }
 
-  const setBinaryEncoding: (process: ChildProcess) => void = cb => cb.stdout.setEncoding('binary')
-  const result = await git(args, repository.path, { processCallback: setBinaryEncoding })
-
-  const binaryDiff = Buffer.from(result.stdout, 'binary')
-
-  let diffEncoding = detect(binaryDiff)
-
-  debugResult(diffEncoding)
-
-  const diffSource = diffEncoding.confidence > 50
-    ? tryConvertLocal(binaryDiff, diffEncoding.charset)
-    : binaryDiff.toString('utf8')
-
-  const diff = await diffFromRawDiffOutput(diffSource)
-
-  return await attachImageDiff(repository, file, diff)
+  return await computeDiff(repository, file, args)
 }
 
 async function attachImageDiff(repository: Repository, file: FileChange, diff: Diff): Promise<Diff> {
