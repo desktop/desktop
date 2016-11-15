@@ -37,6 +37,7 @@ import { getCommitDiff, getWorkingDirectoryDiff } from '../git/git-diff'
 import { getChangedFiles } from '../git/log'
 import { updateRef } from '../git/update-ref'
 import { addRemote } from '../git/remote'
+import { getBranchAheadBehind } from '../git/rev-list'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
@@ -1228,7 +1229,7 @@ export class AppStore {
     })
 
     for (const branch of eligibleBranches) {
-      const aheadBehind = await LocalGitOperations.getBranchAheadBehind(repository, branch)
+      const aheadBehind = await getBranchAheadBehind(repository, branch)
       if (!aheadBehind) { continue }
 
       const { ahead, behind } = aheadBehind

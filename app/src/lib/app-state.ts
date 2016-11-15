@@ -2,7 +2,7 @@ import { User } from '../models/user'
 import { CommitIdentity } from '../models/commit-identity'
 import { Diff } from '../models/diff'
 import { Repository } from '../models/repository'
-import { IAheadBehind } from './local-git-operations'
+import { IAheadBehind } from './git/rev-list'
 import { Branch } from '../models/branch'
 import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
@@ -11,7 +11,7 @@ import { ICommitMessage } from './dispatcher/git-store'
 
 export { ICloningRepositoryState } from './dispatcher'
 export { ICommitMessage } from './dispatcher/git-store'
-export { IAheadBehind } from './local-git-operations'
+export { IAheadBehind } from './git/rev-list'
 
 export enum SelectionType {
   Repository,
