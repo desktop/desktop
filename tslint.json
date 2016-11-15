@@ -10,6 +10,7 @@
       true,
       "spaces"
     ],
+    "insecure-random": [ true ],
     "interface-name": [ true, "always-prefix"],
     "jsdoc-format": true,
     "literal-spacing": [
@@ -47,6 +48,7 @@
       "check-whitespace"
     ],
     "prefer-const": true,
+    "promise-must-complete": true,
     "quotemark": [
       true,
       "single"

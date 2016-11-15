@@ -23,7 +23,7 @@ function packageOSX () {
   const dest = distInfo.getOSXZipPath()
   fs.removeSync(dest)
 
-  cp.execSync(`ditto -ck --keepParent ${distPath}/${productName}.app ${dest}`)
+  cp.execSync(`ditto -ck --keepParent "${distPath}/${productName}.app" "${dest}"`)
   console.log(`Zipped to ${dest}`)
 }
 

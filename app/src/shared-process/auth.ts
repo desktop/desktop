@@ -1,10 +1,10 @@
 import { shell } from 'electron'
 
-import { guid } from '../lib/guid'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { fatalError } from '../lib/fatal-error'
 import * as appProxy from '../ui/lib/app-proxy'
 import { IUser } from '../models/user'
+import { v4 as guid } from 'node-uuid'
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__

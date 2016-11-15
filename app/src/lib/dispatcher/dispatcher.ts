@@ -3,7 +3,6 @@ import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
-import { guid } from '../guid'
 import { RepositorySection, Popup, Foldout, IAppError } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
@@ -13,6 +12,7 @@ import { Branch, Commit } from '../local-git-operations'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
+import { v4 as guid } from 'node-uuid'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -66,32 +66,27 @@ export class Dispatcher {
   }
 
   private send<T>(name: string, args: Object): Promise<T> {
-    let resolve: ((value: T) => void) | null = null
-    let reject: ((error: Error) => void) | null = null
-    const promise = new Promise<T>((_resolve, _reject) => {
-      resolve = _resolve
-      reject = _reject
-    })
+    return new Promise<T>((resolve, reject) => {
 
-    const requestGuid = guid()
-    ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
-      const response: IPCResponse<T> = args[0]
-      if (response.type === 'result') {
-        resolve!(response.result)
-      } else {
-        const errorInfo = response.error
-        const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
-        if (__DEV__) {
-          console.error(`Error from IPC in response to ${name}:`)
-          console.error(error)
+      const requestGuid = guid()
+      ipcRenderer.once(`shared/response/${requestGuid}`, (event: any, args: any[]) => {
+        const response: IPCResponse<T> = args[0]
+        if (response.type === 'result') {
+          resolve(response.result)
+        } else {
+          const errorInfo = response.error
+          const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
+          if (__DEV__) {
+            console.error(`Error from IPC in response to ${name}:`)
+            console.error(error)
+          }
+
+          reject(error)
         }
+      })
 
-        reject!(error)
-      }
+      ipcRenderer.send('shared/request', [ { guid: requestGuid, name, args } ])
     })
-
-    ipcRenderer.send('shared/request', [ { guid: requestGuid, name, args } ])
-    return promise
   }
 
   private onSharedDidUpdate(event: Electron.IpcRendererEvent, args: any[]) {
