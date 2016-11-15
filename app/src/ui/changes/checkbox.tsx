@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 
 /** The possible values for a Checkbox component. */
@@ -21,25 +19,26 @@ interface ICheckboxProps {
 
 /** A checkbox component which supports the mixed value. */
 export class Checkbox extends React.Component<ICheckboxProps, void> {
-  private onChange(event: React.FormEvent<HTMLInputElement>) {
+  private onChange = (event: React.FormEvent<HTMLInputElement>) => {
     if (this.props.onChange) {
       this.props.onChange(event)
     }
   }
 
-  public render() {
+  private onInputRef = (input: HTMLInputElement) => {
     const value = this.props.value
+    input.indeterminate = value === CheckboxValue.Mixed
+    input.checked = value !== CheckboxValue.Off
+  }
+
+  public render() {
     return (
       <input
         tabIndex={this.props.tabIndex}
         type='checkbox'
-        onChange={event => this.onChange(event)}
-        ref={function(input) {
-          if (input) {
-            input.indeterminate = value === CheckboxValue.Mixed
-            input.checked = value !== CheckboxValue.Off
-          }
-        }}/>
+        onChange={this.onChange}
+        ref={this.onInputRef}
+      />
     )
   }
 }
