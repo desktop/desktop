@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 
 import { Commit } from '../../lib/local-git-operations'
@@ -27,7 +25,7 @@ export class UndoCommit extends React.Component<IUndoCommitProps, void> {
           <EmojiText emoji={this.props.emoji} className='summary'>{this.props.commit.summary}</EmojiText>
         </div>
         <div className='actions'>
-          <button className='button' onClick={() => this.props.onUndo()}>Undo</button>
+          <button className='button' onClick={this.props.onUndo}>Undo</button>
         </div>
       </div>
     )
