@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 import { Commit } from '../../lib/local-git-operations'
 import { CommitListItem } from './commit-list-item'
@@ -23,7 +21,7 @@ interface ICommitListProps {
 export class CommitList extends React.Component<ICommitListProps, void> {
   private list: List | null
 
-  private renderCommit(row: number) {
+  private renderCommit = (row: number) => {
     const sha = this.props.history[row]
     const commit = this.props.commits.get(sha)
     if (commit) {
@@ -35,7 +33,7 @@ export class CommitList extends React.Component<ICommitListProps, void> {
     }
   }
 
-  private onRowChanged(row: number) {
+  private onRowChanged = (row: number) => {
     const sha = this.props.history[row]
     const commit = this.props.commits.get(sha)
     if (commit) {
@@ -43,7 +41,7 @@ export class CommitList extends React.Component<ICommitListProps, void> {
     }
   }
 
-  private onScroll(scrollTop: number, clientHeight: number) {
+  private onScroll = (scrollTop: number, clientHeight: number) => {
     const numberOfRows = Math.ceil(clientHeight / RowHeight)
     const top = Math.floor(scrollTop / RowHeight)
     const bottom = top + numberOfRows
@@ -66,6 +64,10 @@ export class CommitList extends React.Component<ICommitListProps, void> {
     }
   }
 
+  private onListRef = (ref: List) => {
+    this.list = ref
+  }
+
   public render() {
 
     if (this.props.history.length === 0) {
@@ -78,13 +80,13 @@ export class CommitList extends React.Component<ICommitListProps, void> {
 
     return (
       <div id='commit-list'>
-        <List ref={ref => this.list = ref}
+        <List ref={this.onListRef}
               rowCount={this.props.history.length}
               rowHeight={RowHeight}
               selectedRow={this.rowForSHA(this.props.selectedSHA)}
-              rowRenderer={row => this.renderCommit(row)}
-              onSelectionChanged={row => this.onRowChanged(row)}
-              onScroll={(scrollTop, clientHeight) => this.onScroll(scrollTop, clientHeight)}
+              rowRenderer={this.renderCommit}
+              onSelectionChanged={this.onRowChanged}
+              onScroll={this.onScroll}
               invalidationProps={{ commits: this.props.commits, gitHubUsers: this.props.gitHubUsers }}/>
       </div>
     )
