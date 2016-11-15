@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
-import { Commit } from '../../lib/local-git-operations'
+import { Commit } from '../../models/commit'
 import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
 import { CommitListItem } from '../history/commit-list-item'
 import { User } from '../../models/user'
