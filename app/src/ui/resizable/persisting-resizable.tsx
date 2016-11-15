@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { Resizable } from '../resizable'
@@ -93,12 +91,12 @@ export class PersistingResizable extends React.Component<IPersistingResizablePro
       : this.props.defaultWidth || PersistingResizable.defaultProps.defaultWidth!
   }
 
-  private handleResize(newWidth: number) {
+  private handleResize = (newWidth: number) => {
     this.setPersistedWidth(newWidth)
     this.setState({ width: newWidth })
   }
 
-  private handleReset() {
+  private handleReset = () => {
     this.clearPersistedWidth()
     this.setState({ width: undefined })
   }
@@ -110,8 +108,8 @@ export class PersistingResizable extends React.Component<IPersistingResizablePro
         width={this.getCurrentWidth()}
         minimumWidth={this.props.minimumWidth}
         maximumWidth={this.props.maximumWidth}
-        onResize={(newWidth) => this.handleResize(newWidth)}
-        onReset={() => this.handleReset()}
+        onResize={this.handleResize}
+        onReset={this.handleReset}
       >
       {this.props.children}
       </Resizable>
