@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 import * as CodeMirror from 'codemirror'
 
@@ -109,9 +107,13 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     }
   }
 
+  private onRef = (ref: HTMLDivElement) => {
+    this.wrapper = ref
+  }
+
   public render() {
     return (
-      <div className={this.props.className} ref={(e) => this.wrapper = e}>
+      <div className={this.props.className} ref={this.onRef}>
       </div>
     )
   }
