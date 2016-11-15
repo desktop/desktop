@@ -33,6 +33,7 @@ import { pull as pullRepo } from '../git/pull'
 import { push as pushRepo } from '../git/push'
 import { getCommitDiff, getWorkingDirectoryDiff } from '../git/git-diff'
 import { getChangedFiles } from '../git/log'
+import { updateRef } from '../git/update-ref'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
@@ -1233,7 +1234,7 @@ export class AppStore {
         // out any branches will null upstreams above when creating
         // `eligibleBranches`.
         const upstreamRef = branch.upstream!
-        await LocalGitOperations.updateRef(repository, `refs/heads/${branch.name}`, branch.tip.sha, upstreamRef, 'pull: Fast-forward')
+        await updateRef(repository, `refs/heads/${branch.name}`, branch.tip.sha, upstreamRef, 'pull: Fast-forward')
       }
     }
   }
