@@ -29,7 +29,14 @@ export interface IRowRendererParams {
 }
 
 interface IListProps {
-  readonly rowRenderer: (row: number) => JSX.Element
+  /**
+   * Mandatory callback for rendering the contents of a particular
+   * row. The callback is not responsible for the outer wrapper
+   * of the row, only its contents and may return null although
+   * that will result in an empty list item.
+   */
+  readonly rowRenderer: (row: number) => JSX.Element | null
+
   readonly rowCount: number
   readonly rowHeight: number
   readonly selectedRow: number
