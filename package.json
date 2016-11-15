@@ -45,7 +45,7 @@
     "got": "^6.3.0",
     "html-webpack-plugin": "^2.21.0",
     "mocha": "^3.0.2",
-    "node-sass": "^3.7.0",
+    "node-sass": "^3.12.2",
     "request": "^2.72.0",
     "rimraf": "^2.5.2",
     "sass-loader": "^3.2.0",
