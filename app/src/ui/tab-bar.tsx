@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 import * as classNames from 'classnames'
 
@@ -23,6 +21,10 @@ export class TabBar extends React.Component<ITabBarProps, void> {
     )
   }
 
+  private onTabClicked = () => {
+    this.props.onTabClicked(this.props.selectedIndex)
+  }
+
   private renderItems() {
     const children = this.props.children as (ReadonlyArray<JSX.Element> | null)
     if (!children) { return null }
@@ -34,7 +36,7 @@ export class TabBar extends React.Component<ITabBarProps, void> {
         <div
           key={index}
           className={className}
-          onClick={() => this.props.onTabClicked(index)}
+          onClick={this.onTabClicked}
         >
           {child}
         </div>
