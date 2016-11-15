@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -22,7 +20,7 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
       : path
 
     return (
-      <div onContextMenu={e => this.onContextMenu(e)} className='repository-list-item' title={tooltip}>
+      <div onContextMenu={this.onContextMenu} className='repository-list-item' title={tooltip}>
         <Octicon symbol={iconForRepository(repository)} />
         <div className='name'>{repository.name}</div>
       </div>
@@ -37,7 +35,7 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
     }
   }
 
-  private onContextMenu(event: React.MouseEvent<any>) {
+  private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
     if (!__WIN32__) {
       const item = {
