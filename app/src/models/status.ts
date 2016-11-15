@@ -1,4 +1,6 @@
 import { DiffSelection } from './diff'
+import { OcticonSymbol } from '../ui/octicons'
+
 import { assertNever } from '../lib/fatal-error'
 
 /** the state of the changed file in the working directory */
@@ -30,6 +32,26 @@ export function mapStatus(status: FileStatus): string {
 
   return assertNever(status, `Unknown file status ${status}`)
 }
+
+/** Converts a given FileStatus value to an Octicon symbol
+ *  presented to users when displaying the file path.
+ *
+ *  Used in file lists.
+ */
+export function iconForStatus(status: FileStatus): OcticonSymbol {
+
+  switch (status) {
+    case FileStatus.New: return OcticonSymbol.diffAdded
+    case FileStatus.Modified: return OcticonSymbol.diffModified
+    case FileStatus.Deleted: return OcticonSymbol.diffRemoved
+    case FileStatus.Renamed: return OcticonSymbol.diffRenamed
+    case FileStatus.Conflicted: return OcticonSymbol.alert
+    case FileStatus.Copied: return OcticonSymbol.diffAdded
+  }
+
+  return assertNever(status, `Unknown file status ${status}`)
+}
+
 
 export class FileChange {
   /** the relative path to the file in the repository */

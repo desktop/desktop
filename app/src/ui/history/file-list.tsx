@@ -1,7 +1,7 @@
 import * as React from 'react'
-import { FileChange, mapStatus } from '../../models/status'
+import { FileChange, mapStatus, iconForStatus } from '../../models/status'
 import { renderPath } from '../lib/path-label'
-import { Octicon, iconForStatus } from '../octicons'
+import { Octicon } from '../octicons'
 import { List } from '../list'
 
 interface IFileListProps {

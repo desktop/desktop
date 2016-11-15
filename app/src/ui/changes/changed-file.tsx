@@ -1,8 +1,8 @@
 import * as React from 'react'
 
-import { FileStatus, mapStatus } from '../../models/status'
+import { FileStatus, mapStatus, iconForStatus } from '../../models/status'
 import { renderPath } from '../lib/path-label'
-import { iconForStatus, Octicon } from '../octicons'
+import { Octicon } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from './checkbox'
 
