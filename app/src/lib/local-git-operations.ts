@@ -4,12 +4,12 @@ import { git, GitError as InternalGitError } from './git/core'
 import { getWorkingDirectoryDiff } from './git/git-diff'
 
 import { WorkingDirectoryFileChange, FileStatus } from '../models/status'
-import { DiffSelectionType } from '../models/diff'
 import { Repository } from '../models/repository'
 
 import { formatPatch } from './patch-formatter'
 
 import { isHeadUnborn } from './git/repository'
+import { stageFiles } from './git/add'
 
 import { Commit } from '../models/commit'
 import { Branch, BranchType } from '../models/branch'
@@ -27,21 +27,7 @@ export interface IAheadBehind {
  */
 export class LocalGitOperations {
 
-
-
-  private static async addFileToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
-
-    if (file.status === FileStatus.New) {
-      await git([ 'add', '--', file.path ], repository.path)
-    } else if (file.status === FileStatus.Renamed && file.oldPath) {
-      await git([ 'add', '--', file.path ], repository.path)
-      await git([ 'add', '-u', '--', file.oldPath ], repository.path)
-    } else {
-      await git([ 'add', '-u', '--', file.path ], repository.path)
-    }
-  }
-
-  private static async applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
+  public static async applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
 
     // If the file was a rename we have to recreate that rename since we've
     // just blown away the index. Think of this block of weird looking commands
@@ -87,23 +73,9 @@ export class LocalGitOperations {
       await git([ 'reset', 'HEAD', '--mixed' ], repository.path)
     }
 
-    await this.stageFiles(repository, files)
+    await stageFiles(repository, files)
 
     await git([ 'commit', '-F',  '-' ] , repository.path, { stdin: message })
-  }
-
-  /**
-   * Stage all the given files by either staging the entire path or by applying
-   * a patch.
-   */
-  private static async stageFiles(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
-    for (const file of files) {
-      if (file.selection.getSelectionType() === DiffSelectionType.All) {
-        await this.addFileToIndex(repository, file)
-      } else {
-        await this.applyPatchToIndex(repository, file)
-      }
-    }
   }
 
   /** Get the name of the current branch. */
