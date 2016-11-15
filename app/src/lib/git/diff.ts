@@ -49,9 +49,7 @@ export async function getCommitDiff(repository: Repository, file: FileChange, co
     diff = await diffFromRawDiffOutput(binaryDiff.toString('utf8'))
   }
 
-  const output = attachImageDiff(repository, file, diff)
-
-  return output
+  return await attachImageDiff(repository, file, diff)
 }
 
 /**
