@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
@@ -36,37 +34,37 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
   public render() {
     const disabled = !this.state.newName.length
     return (
-      <form className='panel' onSubmit={event => this.renameBranch(event)}>
+      <form className='panel' onSubmit={this.renameBranch}>
         <label>
           Name <input value={this.state.newName}
                       autoFocus={true}
-                      onChange={event => this.onNameChange(event)}
-                      onKeyDown={event => this.onKeyDown(event)}/>
+                      onChange={this.onNameChange}
+                      onKeyDown={this.onKeyDown}/>
         </label>
 
         {this.renderError()}
 
-        <button onClick={() => this.cancel()}>Cancel</button>
+        <button onClick={this.cancel}>Cancel</button>
         <button type='submit' disabled={disabled}>Rename {this.props.branch.name}</button>
       </form>
     )
   }
 
-  private onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       this.props.dispatcher.closePopup()
     }
   }
 
-  private onNameChange(event: React.FormEvent<HTMLInputElement>) {
+  private onNameChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({ newName: event.currentTarget.value })
   }
 
-  private cancel() {
+  private cancel = () => {
     this.props.dispatcher.closePopup()
   }
 
-  private renameBranch(event: React.FormEvent<HTMLFormElement>) {
+  private renameBranch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const name = sanitizedBranchName(this.state.newName)
