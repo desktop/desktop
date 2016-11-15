@@ -1,3 +1,5 @@
+/* tslint:disable:react-this-binding-issue */
+
 import * as React from 'react'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'

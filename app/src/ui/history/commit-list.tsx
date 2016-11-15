@@ -1,3 +1,5 @@
+/* tslint:disable:react-this-binding-issue */
+
 import * as React from 'react'
 import { Commit } from '../../lib/local-git-operations'
 import { CommitListItem } from './commit-list-item'

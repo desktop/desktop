@@ -1,3 +1,5 @@
+/* tslint:disable:react-this-binding-issue */
+
 import * as React from 'react'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
 import { IAheadBehind } from '../../lib/app-state'

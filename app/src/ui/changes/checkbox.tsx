@@ -1,3 +1,5 @@
+/* tslint:disable:react-this-binding-issue */
+
 import * as React from 'react'
 
 /** The possible values for a Checkbox component. */

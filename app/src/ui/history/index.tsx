@@ -1,3 +1,5 @@
+/* tslint:disable:react-this-binding-issue */
+
 import * as React from 'react'
 import { CommitSummary } from './commit-summary'
 import { Diff } from '../diff'

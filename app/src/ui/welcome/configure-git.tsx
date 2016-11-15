@@ -1,3 +1,5 @@
+/* tslint:disable:react-this-binding-issue */
+
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { LocalGitOperations, Commit } from '../../lib/local-git-operations'

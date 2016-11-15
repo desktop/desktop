@@ -1,3 +1,5 @@
+/* tslint:disable:react-this-binding-issue */
+
 import * as React from 'react'
 import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { ChangesList } from './changes-list'

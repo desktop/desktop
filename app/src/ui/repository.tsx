@@ -1,3 +1,5 @@
+/* tslint:disable:react-this-binding-issue */
+
 import * as React from 'react'
 import { Repository as Repo } from '../models/repository'
 import { UiView } from './ui-view'

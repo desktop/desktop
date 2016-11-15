@@ -1,3 +1,5 @@
+/* tslint:disable:react-this-binding-issue */
+
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import * as classNames from 'classnames'

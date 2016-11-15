@@ -1,3 +1,5 @@
+/* tslint:disable:react-this-binding-issue */
+
 import { remote } from 'electron'
 import * as React from 'react'
 import * as Path from 'path'
