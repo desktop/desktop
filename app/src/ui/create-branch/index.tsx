@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 
 import { Repository } from '../../models/repository'
@@ -52,21 +50,21 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     const disabled = !proposedName.length || !!this.state.currentError
     const currentBranch = this.props.currentBranch
     return (
-      <form id='create-branch' className='panel' onSubmit={event => this.createBranch(event)}>
+      <form id='create-branch' className='panel' onSubmit={this.createBranch}>
         <div className='header'>Create New Branch</div>
         <hr/>
 
         <label>Name
           <input type='text'
                  autoFocus={true}
-                 onChange={event => this.onBranchNameChange(event)}
-                 onKeyDown={event => this.onKeyDown(event)}/>
+                 onChange={this.onBranchNameChange}
+                 onKeyDown={this.onKeyDown}/>
         </label>
 
         {this.renderError()}
 
         <label>From
-          <select onChange={event => this.onBaseBranchChange(event)}
+          <select onChange={this.onBaseBranchChange}
                   defaultValue={currentBranch ? currentBranch.name : undefined}>
             {this.props.branches.map(branch => <option key={branch.name} value={branch.name}>{branch.name}</option>)}
           </select>
@@ -78,13 +76,13 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     )
   }
 
-  private onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       this.props.dispatcher.closePopup()
     }
   }
 
-  private onBranchNameChange(event: React.FormEvent<HTMLInputElement>) {
+  private onBranchNameChange = (event: React.FormEvent<HTMLInputElement>) => {
     const str = event.currentTarget.value
     const sanitizedName = sanitizedBranchName(str)
     const alreadyExists = this.props.branches.findIndex(b => b.name === sanitizedName) > -1
@@ -101,7 +99,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     })
   }
 
-  private onBaseBranchChange(event: React.FormEvent<HTMLSelectElement>) {
+  private onBaseBranchChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const baseBranchName = event.currentTarget.value
     const baseBranch = this.props.branches.find(b => b.name === baseBranchName)!
     this.setState({
@@ -112,7 +110,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     })
   }
 
-  private createBranch(event: React.FormEvent<HTMLFormElement>) {
+  private createBranch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const name = this.state.sanitizedName
