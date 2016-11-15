@@ -60,7 +60,7 @@ function tryConvertLocal(buffer: Buffer, charset: string): string {
  * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
  * that all content in the file will be treated as additions.
  */
-export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<Diff> {
+export async function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<Diff> {
 
   let opts: IGitExecutionOptions | undefined
   let args: Array<string>
@@ -77,7 +77,7 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
     // citation in source:
     // https://github.com/git/git/blob/1f66975deb8402131fbf7c14330d0c7cdebaeaa2/diff-no-index.c#L300
     opts = { successExitCodes: new Set([ 0, 1 ]) }
-    args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--', '/dev/null', file.path ]
+    args = [ 'diff', '--no-index', '--patch-with-raw', '-z', '--binary', '--', '/dev/null', file.path ]
   } else if (file.status === FileStatus.Renamed) {
     // NB: Technically this is incorrect, the best kind of incorrect.
     // In order to show exactly what will end up in the commit we should
@@ -86,14 +86,27 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
     // already staged to the renamed file which differs from our other diffs.
     // The closest I got to that was running hash-object and then using
     // git diff <blob> <blob> but that seems a bit excessive.
-    args = [ 'diff', '--patch-with-raw', '-z', '--', file.path ]
+    args = [ 'diff', '--patch-with-raw', '-z', '--binary', '--', file.path ]
   } else {
-    args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
+    args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--binary', '--', file.path ]
   }
 
-  return git(args, repository.path, opts)
-    .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => attachImageDiff(repository, file, diff))
+  const setBinaryEncoding: (process: ChildProcess) => void = cb => cb.stdout.setEncoding('binary')
+  const result = await git(args, repository.path, { processCallback: setBinaryEncoding })
+
+  const binaryDiff = Buffer.from(result.stdout, 'binary')
+
+  let diffEncoding = detect(binaryDiff)
+
+  debugResult(diffEncoding)
+
+  const diffSource = diffEncoding.confidence > 50
+    ? tryConvertLocal(binaryDiff, diffEncoding.charset)
+    : binaryDiff.toString('utf8')
+
+  const diff = await diffFromRawDiffOutput(diffSource)
+
+  return await attachImageDiff(repository, file, diff)
 }
 
 async function attachImageDiff(repository: Repository, file: FileChange, diff: Diff): Promise<Diff> {
