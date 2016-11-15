@@ -32,6 +32,7 @@ import { getConfigValue } from '../git/config'
 import { getAuthorIdentity } from '../git/var'
 import { pull as pullRepo } from '../git/pull'
 import { push as pushRepo } from '../git/push'
+import { createBranch, renameBranch, deleteBranch } from '../git/branch'
 import { getCommitDiff, getWorkingDirectoryDiff } from '../git/git-diff'
 import { getChangedFiles } from '../git/log'
 import { updateRef } from '../git/update-ref'
@@ -1019,7 +1020,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => LocalGitOperations.createBranch(repository, name, startPoint))
+    await gitStore.performFailableOperation(() => createBranch(repository, name, startPoint))
     return this._checkoutBranch(repository, name)
   }
 
@@ -1098,7 +1099,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => LocalGitOperations.renameBranch(repository, branch, newName))
+    await gitStore.performFailableOperation(() => renameBranch(repository, branch, newName))
 
     return this._refreshRepository(repository)
   }
@@ -1112,7 +1113,7 @@ export class AppStore {
 
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => LocalGitOperations.checkoutBranch(repository, defaultBranch.name))
-    await gitStore.performFailableOperation(() => LocalGitOperations.deleteBranch(repository, branch))
+    await gitStore.performFailableOperation(() => deleteBranch(repository, branch))
 
     return this._refreshRepository(repository)
   }

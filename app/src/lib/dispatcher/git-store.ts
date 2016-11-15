@@ -9,6 +9,7 @@ import { getDefaultRemote } from '../git/remote'
 import { fetch as fetchRepo } from '../git/fetch'
 import { getRecentBranches } from '../git/reflog'
 import { getBranches, getCurrentBranch } from '../git/for-each-ref'
+import { deleteBranch } from '../git/branch'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
 import { getCommits } from '../git/log'
@@ -303,7 +304,7 @@ export class GitStore {
     if (!commit.parentSHAs.length) {
       const branch = this._currentBranch
       if (branch) {
-        success = await this.performFailableOperation(() => LocalGitOperations.deleteBranch(this.repository, branch))
+        success = await this.performFailableOperation(() => deleteBranch(this.repository, branch))
       } else {
         console.error(`Can't undo ${commit.sha} because it doesn't have any parents and there's no current branch. How on earth did we get here?!`)
         return Promise.resolve()

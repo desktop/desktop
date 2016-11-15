@@ -89,37 +89,12 @@ export class LocalGitOperations {
     }
   }
 
-  /** Create a new branch from the given start point. */
-  public static createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
-    return git([ 'branch', name, startPoint ], repository.path)
-  }
 
   /** Check out the given branch. */
   public static checkoutBranch(repository: Repository, name: string): Promise<void> {
     return git([ 'checkout', name, '--' ], repository.path)
   }
 
-  /** Rename the given branch to a new name. */
-  public static renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
-    return git([ 'branch', '-m', branch.nameWithoutRemote, newName ], repository.path)
-  }
-
-  /**
-   * Delete the branch. If the branch has a remote branch, it too will be
-   * deleted.
-   */
-  public static async deleteBranch(repository: Repository, branch: Branch): Promise<true> {
-    if (branch.type === BranchType.Local) {
-      await git([ 'branch', '-D', branch.name ], repository.path)
-    }
-
-    const remote = branch.remote
-    if (remote) {
-      await git([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path)
-    }
-
-    return true
-  }
 
   /** Check out the paths at HEAD. */
   public static checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
