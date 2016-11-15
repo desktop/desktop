@@ -23,7 +23,6 @@ import { DiffSelection, DiffSelectionType, DiffLineType } from '../../models/dif
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
-import { LocalGitOperations } from '../local-git-operations'
 import { Branch, BranchType } from '../../models/branch'
 import { Commit } from '../../models/commit'
 import { getGitDir } from '../git/rev-parse'
@@ -39,6 +38,7 @@ import { updateRef } from '../git/update-ref'
 import { addRemote } from '../git/remote'
 import { getBranchAheadBehind } from '../git/rev-list'
 import { createCommit } from '../git/commit'
+import { checkoutPaths, checkoutBranch } from '../git/checkout'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
@@ -1029,7 +1029,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(repository: Repository, name: string): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => LocalGitOperations.checkoutBranch(repository, name))
+    await gitStore.performFailableOperation(() => checkoutBranch(repository, name))
 
     return this._refreshRepository(repository)
   }
@@ -1114,7 +1114,7 @@ export class AppStore {
     }
 
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => LocalGitOperations.checkoutBranch(repository, defaultBranch.name))
+    await gitStore.performFailableOperation(() => checkoutBranch(repository, defaultBranch.name))
     await gitStore.performFailableOperation(() => deleteBranch(repository, branch))
 
     return this._refreshRepository(repository)
@@ -1282,7 +1282,7 @@ export class AppStore {
 
     const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => LocalGitOperations.checkoutPaths(repository, modifiedFiles.map(f => f.path)))
+    await gitStore.performFailableOperation(() => checkoutPaths(repository, modifiedFiles.map(f => f.path)))
 
     return this._refreshRepository(repository)
   }
