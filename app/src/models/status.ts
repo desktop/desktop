@@ -11,7 +11,13 @@ export enum FileStatus {
   Copied,
 }
 
-/** convert the file status to a string */
+/** Converts a given FileStatus value to a human-readable string to be
+ *  presented to users which describes the state of a file.
+ *
+ *  Typically this will be the same value as that of the enum key.
+ *
+ *  Used in file lists.
+ */
 export function mapStatus(status: FileStatus): string {
   switch (status) {
     case FileStatus.New: return 'New'
