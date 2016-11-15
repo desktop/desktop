@@ -38,6 +38,7 @@ import { getChangedFiles } from '../git/log'
 import { updateRef } from '../git/update-ref'
 import { addRemote } from '../git/remote'
 import { getBranchAheadBehind } from '../git/rev-list'
+import { createCommit } from '../git/commit'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
@@ -812,7 +813,7 @@ export class AppStore {
 
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => {
-      return LocalGitOperations.createCommit(
+      return createCommit(
         repository,
         formatCommitMessage(message),
         files
