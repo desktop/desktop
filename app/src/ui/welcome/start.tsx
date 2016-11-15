@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { LinkButton } from '../lib/link-button'
@@ -23,28 +21,28 @@ export class Start extends React.Component<IStartProps, void> {
         <h1>Welcome to GitHub Desktop</h1>
         <div>Get started by signing into GitHub.com or your GitHub Enterprise server.</div>
         <div className='actions'>
-          <button onClick={() => this.signInToDotCom()}>GitHub.com</button>
-          <button onClick={() => this.signInToEnterprise()}>GitHub Enterprise</button>
+          <button onClick={this.signInToDotCom}>GitHub.com</button>
+          <button onClick={this.signInToEnterprise}>GitHub Enterprise</button>
         </div>
 
         <div>
           <LinkButton uri={CreateAccountURL}>Create an account</LinkButton>
           {' or '}
-          <LinkButton onClick={() => this.skip()}>skip this step</LinkButton>
+          <LinkButton onClick={this.skip}>skip this step</LinkButton>
         </div>
       </div>
     )
   }
 
-  private signInToDotCom() {
+  private signInToDotCom = () => {
     this.props.advance(WelcomeStep.SignInToDotCom)
   }
 
-  private signInToEnterprise() {
+  private signInToEnterprise = () => {
     this.props.advance(WelcomeStep.SignInToEnterprise)
   }
 
-  private skip() {
+  private skip = () => {
     this.props.advance(WelcomeStep.ConfigureGit)
   }
 }
