@@ -168,28 +168,6 @@ export class LocalGitOperations {
     }
   }
 
-  /** Get the remote names. */
-  private static async getRemotes(repository: Repository): Promise<ReadonlyArray<string>> {
-    const result = await git([ 'remote' ], repository.path)
-    const lines = result.stdout
-    return lines.split('\n')
-  }
-
-  /** Get the name of the default remote. */
-  public static async getDefaultRemote(repository: Repository): Promise<string | null> {
-    const remotes = await LocalGitOperations.getRemotes(repository)
-    if (remotes.length === 0) {
-      return null
-    }
-
-    const index = remotes.indexOf('origin')
-    if (index > -1) {
-      return remotes[index]
-    } else {
-      return remotes[0]
-    }
-  }
-
   /** Get the name of the current branch. */
   public static async getCurrentBranch(repository: Repository): Promise<Branch | null> {
     const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 1, 128 ]) })

@@ -3,6 +3,7 @@ import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { LocalGitOperations, Branch, BranchType, GitResetMode, IAheadBehind } from '../local-git-operations'
+import { getDefaultRemote } from '../git/remote'
 import { fetch as fetchRepo } from '../git/fetch'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
@@ -375,7 +376,7 @@ export class GitStore {
 
   /** Load the default remote. */
   public async loadDefaultRemote(): Promise<void> {
-    this._remoteName = await LocalGitOperations.getDefaultRemote(this.repository)
+    this._remoteName = await getDefaultRemote(this.repository)
 
     this.emitUpdate()
   }
