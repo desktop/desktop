@@ -2,9 +2,10 @@ import * as Fs from 'fs'
 import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
-import { LocalGitOperations, Commit, Branch, BranchType, GitResetMode, IAheadBehind } from '../local-git-operations'
+import { LocalGitOperations, Branch, BranchType, GitResetMode, IAheadBehind } from '../local-git-operations'
 import { fetch as fetchRepo } from '../git/fetch'
 import { User } from '../../models/user'
+import { Commit } from '../../models/commit'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
