@@ -44,9 +44,8 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
           <div className='field-group'>
             <label>Password</label>
             <input className='sign-in-field' type='password' onChange={e => this.onPasswordChange(e)}/>
+            <LinkButton className='forgot-password-link' uri={ForgotPasswordURL}>Forgot password?</LinkButton>
           </div>
-
-          <LinkButton className='forgot-password-link' uri={ForgotPasswordURL}>Forgot password?</LinkButton>
 
           <div className='actions'>
             <Button type='submit' disabled={signInDisabled}>Sign in </Button>

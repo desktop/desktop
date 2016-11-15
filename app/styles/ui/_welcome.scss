@@ -69,7 +69,9 @@
 }
 
 .forgot-password-link {
-  float: right;
+  position: absolute;
+  top: 0;
+  right: 0;
 }
 
 .horizontal-rule {
@@ -130,4 +132,8 @@
   .commit {
     padding: var(--spacing-half) !important;
   }
+}
+
+.field-group {
+  position: relative;
 }
