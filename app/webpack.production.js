@@ -6,6 +6,21 @@ const webpack = require('webpack')
 const webpackTargetElectronRenderer = require('webpack-target-electron-renderer')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
+let branchName = ''
+if (process.platform === 'darwin') {
+  branchName = process.env.TRAVIS_BRANCH
+} else if (process.platform === 'win32') {
+  branchName = process.env.APPVEYOR_REPO_BRANCH
+}
+
+let environment = 'production'
+if (branchName && branchName.length > 0) {
+  const matches = branchName.match(/^__release-([a-zA-Z]+)-.*/)
+  if (matches && matches.length === 2) {
+    environment = matches[1]
+  }
+}
+
 const config = {
   devtool: 'cheap-module-source-map',
   entry: common.entry,
@@ -14,7 +29,8 @@ const config = {
     ...common.plugins,
     new webpack.optimize.OccurrenceOrderPlugin(true),
     new webpack.DefinePlugin(Object.assign({}, {
-      __DEV__: false
+      __DEV__: false,
+      __RELEASE_ENV__: JSON.stringify(environment)
     }, common.replacements))
   ],
   module: common.module,

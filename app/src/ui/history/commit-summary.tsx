@@ -24,7 +24,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
             {this.props.summary}
           </EmojiText>
 
-          <ul className='commit-summary-meta byline'>
+          <ul className='commit-summary-meta'>
             <li className='commit-summary-meta-item'
               title={this.props.authorName} aria-label='Author'>
               <span aria-hidden='true'>

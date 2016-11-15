@@ -1,8 +1,9 @@
 button,
-input[type='submit'] {
+input[type='submit'],
+.button {
   background-color: var(--button-background);
   box-shadow: 0 1px 1px rgba(5, 5, 5, 0.04);
-  color: var(--text-color);
+  color: var(--button-text-color);
 
   // Chrome on Windows ignores the body element
   // font-family and uses Arial so we redefine
@@ -12,15 +13,10 @@ input[type='submit'] {
 
   padding: var(--spacing-half) var(--spacing);
 
-  border: 1px solid var(--box-border-color);
-  border-radius: var(--border-radius);
+  border: none;
 
   &:not(:disabled):hover {
     background-color: var(--button-hover-background);
-  }
-
-  &:active {
-    box-shadow: inset 0 0 1px rgba(5, 5, 5, 0.15);
   }
 
   &:focus {

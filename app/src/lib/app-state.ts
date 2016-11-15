@@ -2,13 +2,16 @@ import { User } from '../models/user'
 import { CommitIdentity } from '../models/commit-identity'
 import { Diff } from '../models/diff'
 import { Repository } from '../models/repository'
-import { Commit, Branch } from './local-git-operations'
+import { IAheadBehind } from './git'
+import { Branch } from '../models/branch'
+import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
 
-export { ICloningRepositoryState } from './dispatcher'
-export { ICommitMessage } from './dispatcher/git-store'
+export { ICloningRepositoryState }
+export { ICommitMessage }
+export { IAheadBehind }
 
 export enum SelectionType {
   Repository,
@@ -60,7 +63,6 @@ export interface IAppError {
 
 export enum PopupType {
   CreateBranch = 1,
-  ShowBranches,
   AddRepository,
   RenameBranch,
   PublishRepository,
@@ -69,7 +71,6 @@ export enum PopupType {
 }
 
 export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
-                    { type: PopupType.ShowBranches, repository: Repository } |
                     { type: PopupType.AddRepository } |
                     { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.PublishRepository, repository: Repository } |
@@ -77,11 +78,13 @@ export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> }
 
 export enum FoldoutType {
-  Repository = 1,
+  Repository,
+  Branch,
 }
 
 export type Foldout =
-  { type: FoldoutType.Repository }
+  { type: FoldoutType.Repository } |
+  { type: FoldoutType.Branch }
 
 export enum RepositorySection {
   Changes,
@@ -118,6 +121,18 @@ export interface IRepositoryState {
    * `commits.`
    */
   readonly localCommitSHAs: ReadonlyArray<string>
+
+  /** The name of the remote. */
+  readonly remoteName: string | null
+
+  /** The state of the current branch in relation to its upstream. */
+  readonly aheadBehind: IAheadBehind | null
+
+  /** Is a push/pull/update in progress? */
+  readonly pushPullInProgress: boolean
+
+  /** The date the repository was last fetched. */
+  readonly lastFetched: Date | null
 }
 
 export interface IBranchesState {

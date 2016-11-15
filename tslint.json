@@ -10,6 +10,7 @@
       true,
       "spaces"
     ],
+    "insecure-random": [ true ],
     "interface-name": [ true, "always-prefix"],
     "jsdoc-format": true,
     "literal-spacing": [
@@ -36,6 +37,7 @@
     "no-eval": true,
     "no-internal-module": true,
     "no-invalid-this": true,
+    "no-stateless-class": true,
     "no-trailing-whitespace": true,
     "no-unused-expression": true,
     "no-unused-variable": [true, "react"],
@@ -47,6 +49,7 @@
       "check-whitespace"
     ],
     "prefer-const": true,
+    "promise-must-complete": true,
     "quotemark": [
       true,
       "single"

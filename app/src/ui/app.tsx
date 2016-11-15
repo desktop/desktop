@@ -17,7 +17,7 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
-import { Toolbar, ToolbarDropdown, DropdownState } from './toolbar'
+import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
 import { OcticonSymbol } from './octicons'
 import { showPopupAppMenu, setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
@@ -141,7 +141,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private checkForUpdates() {
-    if (process.env.NODE_ENV === 'development' || process.env.TEST_ENV) { return }
+    if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') { return }
 
     const dotComUsers = this.props.appStore.getState().users.filter(u => u.endpoint === getDotComAPIEndpoint())
     const login = dotComUsers.length ? dotComUsers[0].login : ''
@@ -196,10 +196,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    this.props.dispatcher.showPopup({
-      type: PopupType.ShowBranches,
-      repository: state.repository,
-    })
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
   }
 
   private selectChanges() {
@@ -306,15 +303,6 @@ export class App extends React.Component<IAppProps, IAppState> {
                            dispatcher={this.props.dispatcher}
                            branches={state.branchesState.allBranches}
                            currentBranch={state.branchesState.currentBranch}/>
-    } else if (popup.type === PopupType.ShowBranches) {
-      const repository = popup.repository
-      const state = this.props.appStore.getRepositoryState(repository)
-      return <Branches allBranches={state.branchesState.allBranches}
-                       recentBranches={state.branchesState.recentBranches}
-                       currentBranch={state.branchesState.currentBranch}
-                       defaultBranch={state.branchesState.defaultBranch}
-                       dispatcher={this.props.dispatcher}
-                       repository={popup.repository}/>
     } else if (popup.type === PopupType.AddRepository) {
       return <AddRepository dispatcher={this.props.dispatcher}/>
     } else if (popup.type === PopupType.RenameBranch) {
@@ -440,6 +428,71 @@ export class App extends React.Component<IAppProps, IAppState> {
       dropdownState={currentState} />
   }
 
+  private renderPushPullToolbarButton() {
+    const selection = this.state.selectedState
+    if (!selection || selection.type === SelectionType.CloningRepository) {
+      return null
+    }
+
+    const state = selection.state
+    return <PushPullButton
+      dispatcher={this.props.dispatcher}
+      repository={selection.repository}
+      aheadBehind={state.aheadBehind}
+      remoteName={state.remoteName}
+      lastFetched={state.lastFetched}
+      networkActionInProgress={state.pushPullInProgress}/>
+  }
+
+  private renderBranchFoldout(repository: Repository): JSX.Element {
+    const state = this.props.appStore.getRepositoryState(repository)
+    return <Branches
+      allBranches={state.branchesState.allBranches}
+      recentBranches={state.branchesState.recentBranches}
+      currentBranch={state.branchesState.currentBranch}
+      defaultBranch={state.branchesState.defaultBranch}
+      dispatcher={this.props.dispatcher}
+      repository={repository}
+    />
+  }
+
+  private renderBranchToolbarButton(): JSX.Element | null {
+    const selection = this.state.selectedState
+
+    if (!selection || selection.type !== SelectionType.Repository) {
+      return null
+    }
+
+    const repository = selection.repository
+    const branch = selection.state.branchesState.currentBranch
+
+    // TODO: This is in all likelihood wrong, need to look into
+    // what null means here
+    if (!branch) {
+      return null
+    }
+
+    const title = branch.name
+
+    const isOpen = this.state.currentFoldout
+      && this.state.currentFoldout.type === FoldoutType.Branch
+
+    const onDropdownStateChanged = (newState: DropdownState) => newState === 'open'
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+      : this.props.dispatcher.closeFoldout()
+
+    const currentState: DropdownState = isOpen ? 'open' : 'closed'
+
+    return <ToolbarDropdown
+      className='branch-button'
+      icon={OcticonSymbol.gitBranch}
+      title={title}
+      description='Current branch'
+      onDropdownStateChanged={onDropdownStateChanged}
+      dropdownContentRenderer={() => this.renderBranchFoldout(repository)}
+      dropdownState={currentState} />
+  }
+
   private renderToolbar() {
     return (
       <Toolbar id='desktop-app-toolbar'>
@@ -448,6 +501,8 @@ export class App extends React.Component<IAppProps, IAppState> {
           style={{ width: this.state.sidebarWidth }}>
           {this.renderRepositoryToolbarButton()}
         </div>
+        {this.renderBranchToolbarButton()}
+        {this.renderPushPullToolbarButton()}
       </Toolbar>
     )
   }

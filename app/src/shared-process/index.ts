@@ -1,4 +1,4 @@
-import { TokenStore } from './token-store'
+import * as TokenStore from '../shared-process/token-store'
 import { UsersStore } from './users-store'
 import { requestToken, askUserToAuth, resolveAuthRequest, rejectAuthRequest } from './auth'
 import { User, IUser } from '../models/user'
@@ -104,19 +104,16 @@ register('url-action', async ({ action }: IURLAction) => {
 })
 
 register('request-oauth', () => {
-  let resolve: ((user: IUser) => void) | null = null
-  let reject: ((error: Error) => void) | null = null
-  const promise = new Promise<IUser>((resolve_, reject_) => {
-    resolve = resolve_
-    reject = reject_
+  return new Promise<IUser>((resolve, reject) => {
+    askUserToAuth(getDotComAPIEndpoint(), resolve, reject)
   })
-
-  askUserToAuth(getDotComAPIEndpoint(), resolve!, reject!)
-  return promise
 })
 
 register('update-github-repository', async ({ repository }: IUpdateGitHubRepositoryAction) => {
   const inflatedRepository = Repository.fromJSON(repository as IRepository)
-  await repositoriesStore.updateGitHubRepository(inflatedRepository)
+  const updatedRepository = await repositoriesStore.updateGitHubRepository(inflatedRepository)
+
   broadcastUpdate()
+
+  return updatedRepository
 })

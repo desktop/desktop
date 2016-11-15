@@ -1,9 +1,9 @@
 {
   "name": "desktop",
-  "productName": "GitHub",
+  "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
     "got": "^6.5.0",
     "keytar": "^3.0.2",
     "moment": "^2.14.1",
+    "node-uuid": "^1.4.7",
     "octokat": "^0.5.0-beta.0",
     "react": "^15.3.2",
     "react-addons-css-transition-group": "^15.3.2",

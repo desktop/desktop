@@ -10,11 +10,12 @@
   // in variables. It also makes it easier to read and understand what
   // color is being used. Note that these variables should _never_ be
   // used outside of this scope.
-  $blue: #4ca6eb;
+  $blue: #3d76c2;
   $yellow: #d0b44c;
   $red: #d0b44c;
   $green: #6cc644;
   $darkGray: #5f717f;
+  $darkerGray: #3b3f46;
   $gray: #ccc;
   $lightGray: #f9f9f9;
   $white: #fff;
@@ -27,9 +28,9 @@
   --text-secondary-color: #8A9499;
   --background-color: $white;
 
-
-  --button-background: $lightGray;
-  --button-hover-background: $white;
+  --button-background: $blue;
+  --button-hover-background: lighten($blue, 5%);
+  --button-text-color: $white;
 
   --link-button-color: $blue;
 
@@ -54,6 +55,9 @@
   --font-size-sm: 11px;
   --font-size-md: 16px;
   --font-size-xl: 32px;
+
+  /** Extra small font size, be very conservative with the use of this */
+  --font-size-xs: 9px;
 
   /**
    * Background color for custom scroll bars.
@@ -152,9 +156,29 @@
 
   --toolbar-height: 52px;
 
+  --toolbar-background-color: $darkerGray;
+  --toolbar-sidebar-background-color: darken($darkerGray, 10%);
+  --toolbar-text-color: $white;
+  --toolbar-text-secondary-color: #9D9FA2;
+
+  --toolbar-button-color: var(--toolbar-text-color);
+  --toolbar-button-background-color: transparent;
+  --toolbar-button-border-color: darken($darkerGray, 20%);
+  --toolbar-button-secondary-color: var(--toolbar-text-secondary-color);
+
+  --toolbar-button-hover-color: $white;
+  --toolbar-button-hover-background-color: lighten($darkerGray, 5%);
+  --toolbar-button-hover-border-color: var(--toolbar-button-border-color);
+  --toolbar-button-secondary-color: #9D9FA2;
+
+  --toolbar-button-active-color: var(--text-color);
+  --toolbar-button-active-background-color: var(--background-color);
+  --toolbar-button-active-border-color: var(--background-color);
+  --toolbar-button-secondary-color: var(--text-secondary-color);
+
   --tab-bar-height: 35px;
-  --tab-bar-active-color: #3D76C2;
-  --tab-bar-background-color: #ffffff;
+  --tab-bar-active-color: $blue;
+  --tab-bar-background-color: $white;
 
   /** Win32 has custom scrol bars, see _scroll.scss */
   --win32-scroll-bar-size: 10px;
@@ -207,4 +231,9 @@
   // Note that this duration *must* match the `UndoCommitAnimationTimeout`
   // specified in `changes/index.tsx`.
   --undo-animation-duration: 500ms;
+
+  /**
+   * Ahead/behind view
+   */
+  --ahead-behind-background-color: #202020;
 }
