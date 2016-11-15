@@ -10,6 +10,7 @@ const ForgotPasswordURL = 'https://github.com/password_reset'
 interface ISignInDotComProps {
   readonly onSignInWithBrowser: () => void
   readonly onDidSignIn: (user: User) => void
+  readonly onNeeds2FA: (login: string, password: string) => void
 
   readonly additionalButtons?: ReadonlyArray<JSX.Element>
 }
@@ -35,7 +36,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     return (
       <form id='sign-in-form' onSubmit={e => this.signIn(e)}>
         <label>Username or email address
-          <input onChange={e => this.onUsernameChange(e)}/>
+          <input autoFocus={true} onChange={e => this.onUsernameChange(e)}/>
         </label>
 
         <label>Password
@@ -65,8 +66,8 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     const kind = response.kind
     switch (kind) {
       case 'failed': return <div>The username or password are incorrect.</div>
-      case '2fa': return <div>2FA pls.</div>
       case 'error': return <div>An error occurred.</div>
+      case '2fa': return null
       case 'authorized': return null
       default: return assertNever(kind, `Unknown response kind: ${kind}`)
     }
@@ -93,27 +94,31 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   private async signIn(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
+    const username = this.state.username
+    const password = this.state.password
     this.setState({
-      username: this.state.username,
-      password: this.state.password,
+      username,
+      password,
       networkRequestInFlight: true,
       response: null,
     })
 
     const endpoint = getDotComAPIEndpoint()
-    const response = await createAuthorization(endpoint, this.state.username, this.state.password, null)
+    const response = await createAuthorization(endpoint, username, password, null)
 
     if (response.kind === 'authorized') {
       const token = response.token
       const user = await fetchUser(endpoint, token)
       this.props.onDidSignIn(user)
+    } else if (response.kind === '2fa') {
+      this.props.onNeeds2FA(username, password)
+    } else {
+      this.setState({
+        username,
+        password,
+        networkRequestInFlight: false,
+        response,
+      })
     }
-
-    this.setState({
-      username: this.state.username,
-      password: this.state.password,
-      networkRequestInFlight: false,
-      response,
-    })
   }
 }
