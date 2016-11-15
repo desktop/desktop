@@ -9,7 +9,6 @@ import { Repository } from '../models/repository'
 
 import { formatPatch } from './patch-formatter'
 
-import { assertNever } from './fatal-error'
 import { isHeadUnborn } from './git/repository'
 
 import { Commit } from '../models/commit'
@@ -69,13 +68,6 @@ export class Branch {
       return pieces[1]
     }
   }
-}
-
-/** The reset modes which are supported. */
-export const enum GitResetMode {
-  Hard = 0,
-  Soft,
-  Mixed,
 }
 
 /** The number of commits a revision range is ahead/behind. */
@@ -295,13 +287,6 @@ export class LocalGitOperations {
     return git([ 'checkout', '--', ...paths ], repository.path)
   }
 
-  /** Reset with the mode to the ref. */
-  public static async reset(repository: Repository, mode: GitResetMode, ref: string): Promise<true> {
-    const modeFlag = resetModeToFlag(mode)
-    await git([ 'reset', modeFlag, ref, '--' ], repository.path)
-    return true
-  }
-
   /** Calculate the number of commits `branch` is ahead/behind its upstream. */
   public static async getBranchAheadBehind(repository: Repository, branch: Branch): Promise<IAheadBehind | null> {
     if (branch.type === BranchType.Remote) {
@@ -347,14 +332,5 @@ export class LocalGitOperations {
     if (isNaN(behind)) { return null }
 
     return { ahead, behind }
-  }
-}
-
-function resetModeToFlag(mode: GitResetMode): string {
-  switch (mode) {
-    case GitResetMode.Hard: return '--hard'
-    case GitResetMode.Mixed: return '--mixed'
-    case GitResetMode.Soft: return '--soft'
-    default: return assertNever(mode, `Unknown reset mode: ${mode}`)
   }
 }

@@ -2,7 +2,8 @@ import * as Fs from 'fs'
 import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
-import { LocalGitOperations, Branch, BranchType, GitResetMode, IAheadBehind } from '../local-git-operations'
+import { LocalGitOperations, Branch, BranchType, IAheadBehind } from '../local-git-operations'
+import { reset, GitResetMode } from '../git/reset'
 import { getDefaultRemote } from '../git/remote'
 import { fetch as fetchRepo } from '../git/fetch'
 import { getRecentBranches } from '../git/reflog'
@@ -306,7 +307,7 @@ export class GitStore {
         return Promise.resolve()
       }
     } else {
-      success = await this.performFailableOperation(() => LocalGitOperations.reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0]))
+      success = await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0]))
     }
 
     if (success) {
