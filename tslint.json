@@ -59,6 +59,7 @@
         "state-interface-regex": "State$"
       }
     ],
+    "react-this-binding-issue": true,
     "semicolon": [
       true,
       "never"
