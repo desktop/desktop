@@ -223,11 +223,6 @@ export class LocalGitOperations {
     return true
   }
 
-  /** Add a new remote with the given URL. */
-  public static addRemote(path: string, name: string, url: string): Promise<void> {
-    return git([ 'remote', 'add', name, url ], path)
-  }
-
   /** Check out the paths at HEAD. */
   public static checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
     return git([ 'checkout', '--', ...paths ], repository.path)

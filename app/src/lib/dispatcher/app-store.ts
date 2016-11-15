@@ -35,6 +35,7 @@ import { push as pushRepo } from '../git/push'
 import { getCommitDiff, getWorkingDirectoryDiff } from '../git/git-diff'
 import { getChangedFiles } from '../git/log'
 import { updateRef } from '../git/update-ref'
+import { addRemote } from '../git/remote'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
@@ -1253,7 +1254,7 @@ export class AppStore {
     const apiRepository = await api.createRepository(org, name, description, private_)
 
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => LocalGitOperations.addRemote(repository.path, 'origin', apiRepository.cloneUrl))
+    await gitStore.performFailableOperation(() => addRemote(repository.path, 'origin', apiRepository.cloneUrl))
 
     return this._push(repository)
   }
