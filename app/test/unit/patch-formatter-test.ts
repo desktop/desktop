@@ -9,7 +9,7 @@ import { WorkingDirectoryFileChange, FileStatus } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
 import { DiffParser } from '../../src/lib/diff-parser'
 import { formatPatch } from '../../src/lib/patch-formatter'
-import { getWorkingDirectoryDiff } from '../../src/lib/git/git-diff'
+import { getWorkingDirectoryDiff } from '../../src/lib/git'
 import { setupFixtureRepository } from '../fixture-helper'
 
 function parseDiff(diff: string) {

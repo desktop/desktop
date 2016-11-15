@@ -3,16 +3,22 @@ import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
-import { reset, GitResetMode } from '../git/reset'
-import { getDefaultRemote } from '../git/remote'
-import { fetch as fetchRepo } from '../git/fetch'
-import { getRecentBranches } from '../git/reflog'
-import { getBranches, getCurrentBranch } from '../git/for-each-ref'
-import { deleteBranch } from '../git/branch'
-import { IAheadBehind, getBranchAheadBehind } from '../git/rev-list'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
-import { getCommits } from '../git/log'
+
+import {
+  reset,
+  GitResetMode,
+  getDefaultRemote,
+  fetch as fetchRepo,
+  getRecentBranches,
+  getBranches,
+  getCurrentBranch,
+  deleteBranch,
+  IAheadBehind,
+  getBranchAheadBehind,
+  getCommits,
+} from '../git'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100

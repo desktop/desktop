@@ -2,7 +2,7 @@ import * as Path from 'path'
 
 import { Emitter, Disposable } from 'event-kit'
 
-import { clone as cloneRepo } from '../git/clone'
+import { clone as cloneRepo } from '../git'
 import { CloneProgressParser } from '../clone-progress-parser'
 import { User } from '../../models/user'
 

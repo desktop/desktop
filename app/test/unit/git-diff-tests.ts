@@ -6,7 +6,7 @@ const fs = require('fs-extra')
 
 import { Repository } from '../../src/models/repository'
 import * as GitDiff from '../../src/lib/git/git-diff'
-import { getStatus } from '../../src/lib/git/status'
+import { getStatus } from '../../src/lib/git'
 import { FileStatus, WorkingDirectoryFileChange } from '../../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../../src/models/diff'
 import { setupFixtureRepository, setupEmptyRepository } from '../fixture-helper'

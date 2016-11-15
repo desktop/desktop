@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
-import { getConfigValue } from '../../../src/lib/git/config'
+import { getConfigValue } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../fixture-helper'
 
 const temp = require('temp').track()

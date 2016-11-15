@@ -25,20 +25,6 @@ import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
 import { Commit } from '../../models/commit'
-import { getGitDir } from '../git/rev-parse'
-import { getStatus } from '../git/status'
-import { getConfigValue } from '../git/config'
-import { getAuthorIdentity } from '../git/var'
-import { pull as pullRepo } from '../git/pull'
-import { push as pushRepo } from '../git/push'
-import { createBranch, renameBranch, deleteBranch } from '../git/branch'
-import { getCommitDiff, getWorkingDirectoryDiff } from '../git/git-diff'
-import { getChangedFiles } from '../git/log'
-import { updateRef } from '../git/update-ref'
-import { addRemote } from '../git/remote'
-import { getBranchAheadBehind } from '../git/rev-list'
-import { createCommit } from '../git/commit'
-import { checkoutPaths, checkoutBranch } from '../git/checkout'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
@@ -48,6 +34,27 @@ import { assertNever } from '../fatal-error'
 import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
+
+import {
+  getGitDir,
+  getStatus,
+  getConfigValue,
+  getAuthorIdentity,
+  pull as pullRepo,
+  push as pushRepo,
+  createBranch,
+  renameBranch,
+  deleteBranch,
+  getCommitDiff,
+  getWorkingDirectoryDiff,
+  getChangedFiles,
+  updateRef,
+  addRemote,
+  getBranchAheadBehind,
+  createCommit,
+  checkoutPaths,
+  checkoutBranch,
+} from '../git'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
