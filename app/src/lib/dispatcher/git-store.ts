@@ -310,7 +310,7 @@ export class GitStore {
     if (!commit.parentSHAs.length) {
       const branch = this._currentBranch
       if (branch) {
-        success = await this.performFailableOperation(() => deleteBranch(this.repository, branch))
+        success = await this.performFailableOperation(() => deleteBranch(this.repository, branch, null))
       } else {
         console.error(`Can't undo ${commit.sha} because it doesn't have any parents and there's no current branch. How on earth did we get here?!`)
         return Promise.resolve()

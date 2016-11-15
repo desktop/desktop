@@ -1120,9 +1120,11 @@ export class AppStore {
       return Promise.reject(new Error(`No default branch!`))
     }
 
+    const user = this.getUserForRepository(repository)
+
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => checkoutBranch(repository, defaultBranch.name))
-    await gitStore.performFailableOperation(() => deleteBranch(repository, branch))
+    await gitStore.performFailableOperation(() => deleteBranch(repository, branch, user))
 
     return this._refreshRepository(repository)
   }
