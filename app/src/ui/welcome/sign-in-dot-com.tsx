@@ -34,59 +34,59 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
         <h1>Sign in to GitHub.com</h1>
         <div>Get started by signing into GitHub.com</div>
 
-        <form id='sign-in-form' onSubmit={e => this.signIn(e)}>
+        <form id='sign-in-form' onSubmit={this.signIn}>
           <label>Username or email address
-            <input onChange={e => this.onUsernameChange(e)}/>
+            <input onChange={this.onUsernameChange}/>
           </label>
 
           <label>Password
-            <input type='password' onChange={e => this.onPasswordChange(e)}/>
+            <input type='password' onChange={this.onPasswordChange}/>
           </label>
 
           <LinkButton uri={ForgotPasswordURL}>Forgot password?</LinkButton>
 
           <div className='actions'>
             <Button type='submit' disabled={signInDisabled}>Sign in (But not really. Use the browser for now please and thank you.)</Button>
-            <Button onClick={() => this.cancel()}>Cancel</Button>
+            <Button onClick={this.cancel}>Cancel</Button>
           </div>
 
           <div>or</div>
 
-          <LinkButton onClick={() => this.signInWithBrowser()}>Sign in using your browser</LinkButton>
+          <LinkButton onClick={this.signInWithBrowser}>Sign in using your browser</LinkButton>
         </form>
       </div>
     )
   }
 
-  private onUsernameChange(event: React.FormEvent<HTMLInputElement>) {
+  private onUsernameChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       username: event.currentTarget.value,
       password: this.state.password,
     })
   }
 
-  private onPasswordChange(event: React.FormEvent<HTMLInputElement>) {
+  private onPasswordChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       username: this.state.username,
       password: event.currentTarget.value,
     })
   }
 
-  private async signInWithBrowser() {
+  private signInWithBrowser = async () => {
     await this.props.dispatcher.requestOAuth()
 
     this.advance()
   }
 
-  private cancel() {
+  private cancel = () => {
     this.props.advance(WelcomeStep.Start)
   }
 
-  private advance() {
+  private advance = () => {
     this.props.advance(WelcomeStep.ConfigureGit)
   }
 
-  private signIn(event: React.FormEvent<HTMLFormElement>) {
+  private signIn = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     // TODO: Actually sign in lolololol
