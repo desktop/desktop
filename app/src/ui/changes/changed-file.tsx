@@ -11,8 +11,8 @@ interface IChangedFileProps {
   status: FileStatus
   oldPath?: string
   include: boolean | null
-  onIncludeChanged: (include: boolean) => void
-  onDiscardChanges: () => void
+  onIncludeChanged: (path: string, include: boolean) => void
+  onDiscardChanges: (path: string) => void
 }
 
 /** a changed file in the working directory for a given repository */
@@ -33,7 +33,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
   private handleCheckboxChange = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
-    this.props.onIncludeChanged(include)
+    this.props.onIncludeChanged(this.props.path, include)
     event.preventDefault()
   }
 
@@ -93,7 +93,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     if (!__WIN32__) {
       const item = {
         label: 'Discard Changes',
-        action: () => this.props.onDiscardChanges(),
+        action: () => this.props.onDiscardChanges(this.props.path),
       }
       showContextualMenu([ item ])
     }

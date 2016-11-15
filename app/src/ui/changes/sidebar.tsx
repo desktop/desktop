@@ -72,11 +72,11 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     this.props.dispatcher.changeChangesSelection(this.props.repository, file)
   }
 
-  private onIncludeChanged(row: number, include: boolean) {
+  private onIncludeChanged = (path: string, include: boolean) => {
     const workingDirectory = this.props.changes.workingDirectory
-    const file = workingDirectory.files[row]
+    const file = workingDirectory.files.find(f => f.path === path)
     if (!file) {
-      console.error('unable to find working directory path to apply included change: ' + row)
+      console.error('unable to find working directory file to apply included change: ' + path)
       return
     }
 
@@ -87,9 +87,15 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     this.props.dispatcher.changeIncludeAllFiles(this.props.repository, selectAll)
   }
 
-  private onDiscardChanges(row: number) {
+  private onDiscardChanges = (path: string) => {
     const workingDirectory = this.props.changes.workingDirectory
-    const file = workingDirectory.files[row]
+    const file = workingDirectory.files.find(f => f.path === path)
+
+    if (!file) {
+      console.error('unable to find working directory file to discard ' + path)
+      return
+    }
+
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
       repository: this.props.repository,
@@ -176,9 +182,9 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           selectedPath={selectedPath}
           onFileSelectionChanged={file => this.onFileSelectionChanged(file) }
           onCreateCommit={(message) => this.onCreateCommit(message)}
-          onIncludeChanged={(row, include) => this.onIncludeChanged(row, include)}
+          onIncludeChanged={this.onIncludeChanged}
           onSelectAll={selectAll => this.onSelectAll(selectAll)}
-          onDiscardChanges={row => this.onDiscardChanges(row)}
+          onDiscardChanges={this.onDiscardChanges}
           onRowKeyDown={(row, e) => this.onChangedItemKeyDown(row, e)}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
