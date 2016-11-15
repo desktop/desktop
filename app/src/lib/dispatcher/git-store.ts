@@ -5,6 +5,7 @@ import { Repository } from '../../models/repository'
 import { LocalGitOperations, Branch, BranchType, GitResetMode, IAheadBehind } from '../local-git-operations'
 import { getDefaultRemote } from '../git/remote'
 import { fetch as fetchRepo } from '../git/fetch'
+import { getRecentBranches } from '../git/reflog'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
 import { getCommits } from '../git/log'
@@ -249,7 +250,7 @@ export class GitStore {
 
   /** Load the recent branches. */
   private async loadRecentBranches() {
-    const recentBranches = await this.performFailableOperation(() => LocalGitOperations.getRecentBranches(this.repository, this._allBranches, RecentBranchesLimit))
+    const recentBranches = await this.performFailableOperation(() => getRecentBranches(this.repository, this._allBranches, RecentBranchesLimit))
     if (recentBranches) {
       this._recentBranches = recentBranches
     } else {
