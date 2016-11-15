@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import * as classNames from 'classnames'
@@ -56,10 +54,14 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
 
   public buttonElement: HTMLButtonElement | null = null
 
-  private onClick() {
+  private onClick = () => {
     if (this.props.onClick) {
       this.props.onClick()
     }
+  }
+
+  private onButtonRef = (ref: HTMLButtonElement) => {
+    this.buttonElement = ref
   }
 
   public render() {
@@ -75,8 +77,8 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     return (
       <button
         className={className}
-        onClick={(e) => this.onClick()}
-        ref={(b) => this.buttonElement = b}>
+        onClick={this.onClick}
+        ref={this.onButtonRef}>
         {preContent}
         <div className='toolbar-button-content-wrapper'>
           {icon}
