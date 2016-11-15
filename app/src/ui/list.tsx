@@ -37,8 +37,25 @@ interface IListProps {
    */
   readonly rowRenderer: (row: number) => JSX.Element | null
 
+  /**
+   * The total number of rows in the list. This is used for
+   * scroll virtualization purposes when calculating the theoretical
+   * height of the list.
+   */
   readonly rowCount: number
+
+  /**
+   * The height of each individual row in the list. This height
+   * is enforced for each row container and attempting to render a row
+   * which does not fit inside that height is forbidden.
+   */
   readonly rowHeight: number
+
+  /**
+   * The currently selected row index. Used to attach a special
+   * selection class on that row container as well as being used
+   * for keyboard selection.
+   */
   readonly selectedRow: number
 
   /**
