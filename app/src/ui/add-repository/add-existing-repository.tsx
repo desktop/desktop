@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import { remote } from 'electron'
 import * as React from 'react'
 
@@ -38,15 +36,15 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
             <input value={this.state.path}
                    type='text'
                    placeholder='repository path'
-                   onChange={event => this.onPathChanged(event)}
-                   onKeyDown={event => this.onKeyDown(event)}/>
+                   onChange={this.onPathChanged}
+                   onKeyDown={this.onKeyDown}/>
 
-            <button onClick={() => this.showFilePicker()}>Choose…</button>
+            <button onClick={this.showFilePicker}>Choose…</button>
           </div>
         </div>
 
         <div className='popup-actions'>
-          <button disabled={disabled} onClick={() => this.addRepository()}>
+          <button disabled={disabled} onClick={this.addRepository}>
             {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
           </button>
         </div>
@@ -54,18 +52,18 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     )
   }
 
-  private onPathChanged(event: React.FormEvent<HTMLInputElement>) {
+  private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
     this.checkIfPathIsRepository(path)
   }
 
-  private onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
+  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       this.props.dispatcher.closePopup()
     }
   }
 
-  private showFilePicker() {
+  private showFilePicker = () => {
     const directory: string[] | null = remote.dialog.showOpenDialog({ properties: [ 'createDirectory', 'openDirectory' ] })
     if (!directory) { return }
 
@@ -91,7 +89,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     return untildify(path)
   }
 
-  private async addRepository() {
+  private addRepository = async () => {
     const resolvedPath = this.resolvedPath(this.state.path)
     if (!this.state.isGitRepository) {
       await LocalGitOperations.initGitRepository(resolvedPath)
