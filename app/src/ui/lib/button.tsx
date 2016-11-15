@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 
 interface IButtonProps {
@@ -23,14 +21,14 @@ export class Button extends React.Component<IButtonProps, void> {
       <button
         className='button-component'
         disabled={this.props.disabled}
-        onClick={e => this.onClick(e)}
+        onClick={this.onClick}
         type={this.props.type}>
         {this.props.children}
       </button>
     )
   }
 
-  private onClick(event: React.MouseEvent<HTMLButtonElement>) {
+  private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
 
     const onClick = this.props.onClick
