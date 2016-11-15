@@ -16,13 +16,13 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, vo
         <h1>We can't do this yet!</h1>
 
         <div className='actions'>
-          <Button onClick={() => this.everSoSorry()}>Ever so sorry</Button>
+          <Button onClick={this.everSoSorry}>Ever so sorry</Button>
         </div>
       </div>
     )
   }
 
-  private everSoSorry() {
+  private everSoSorry = () => {
     this.props.advance(WelcomeStep.Start)
   }
 }
