@@ -63,7 +63,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   }
 
   private async signInWithBrowser() {
-    await this.props.dispatcher.requestOAuth()
+    await this.props.dispatcher.requestOAuth(getDotComAPIEndpoint())
 
     this.props.advance(WelcomeStep.ConfigureGit)
   }
