@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import * as classNames from 'classnames'
@@ -124,7 +122,7 @@ export class List extends React.Component<IListProps, void> {
 
   private grid: React.Component<any, any> | null
 
-  private handleKeyDown(e: React.KeyboardEvent<any>) {
+  private handleKeyDown = (e: React.KeyboardEvent<any>) => {
     let direction: 'up' | 'down'
     if (e.key === 'ArrowDown') {
       direction = 'down'
@@ -250,7 +248,7 @@ export class List extends React.Component<IListProps, void> {
     return (
       <div id={this.props.id}
            className='list'
-           onKeyDown={e => this.handleKeyDown(e)}>
+           onKeyDown={this.handleKeyDown}>
         <AutoSizer disableWidth disableHeight>
           {({ width, height }: { width: number, height: number }) => this.renderContents(width, height)}
         </AutoSizer>
@@ -279,6 +277,14 @@ export class List extends React.Component<IListProps, void> {
     return this.renderGrid(width, height)
   }
 
+  private onGridRef = (ref: React.Component<any, any>) => {
+    this.grid = ref
+  }
+
+  private onFakeScrollRef = (ref: HTMLDivElement) => {
+    this.fakeScroll = ref
+  }
+
   /**
    * Renders the react-virtualized Grid component
    *
@@ -300,7 +306,7 @@ export class List extends React.Component<IListProps, void> {
 
     return (
       <Grid
-        ref={(ref: React.Component<any, any>) => this.grid = ref}
+        ref={this.onGridRef}
         autoContainerWidth
         width={width}
         height={height}
@@ -339,9 +345,9 @@ export class List extends React.Component<IListProps, void> {
     return (
       <div
         className='fake-scroll'
-        ref={(ref) => { this.fakeScroll = ref }}
+        ref={this.onFakeScrollRef}
         style={{ height }}
-        onScroll={(e) => { this.onFakeScroll(e) }}>
+        onScroll={this.onFakeScroll}>
         <div style={{ height: this.props.rowHeight * this.props.rowCount, pointerEvents: 'none' }}></div>
       </div>
     )
@@ -351,7 +357,7 @@ export class List extends React.Component<IListProps, void> {
   // of the fake scroll bar. This is for mousewheel/touchpad
   // scrolling on top of the fake Grid or actual dragging of
   // the scroll thumb.
-  private onFakeScroll(e: React.UIEvent<HTMLDivElement>) {
+  private onFakeScroll = (e: React.UIEvent<HTMLDivElement>) => {
 
     // We're getting this event in reaction to the Grid
     // having been scrolled and subsequently updating the
