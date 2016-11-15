@@ -1,7 +1,7 @@
 import { git } from './core'
 import { FileStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
-import { getWorkingDirectoryDiff } from './git-diff'
+import { getWorkingDirectoryDiff } from './diff'
 import { formatPatch } from '../patch-formatter'
 
 export async function applyPatchToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
