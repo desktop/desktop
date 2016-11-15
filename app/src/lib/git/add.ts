@@ -2,7 +2,7 @@ import { git } from './core'
 import { FileStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { DiffSelectionType } from '../../models/diff'
-import { LocalGitOperations } from '../local-git-operations'
+import { applyPatchToIndex } from './apply'
 
 export async function addFileToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
 
@@ -25,7 +25,7 @@ export async function stageFiles(repository: Repository, files: ReadonlyArray<Wo
     if (file.selection.getSelectionType() === DiffSelectionType.All) {
       await addFileToIndex(repository, file)
     } else {
-      await LocalGitOperations.applyPatchToIndex(repository, file)
+      await applyPatchToIndex(repository, file)
     }
   }
 }
