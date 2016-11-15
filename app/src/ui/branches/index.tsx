@@ -2,7 +2,7 @@ import * as React from 'react'
 import { List } from '../list'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
-import { Branch } from '../../lib/local-git-operations'
+import { Branch } from '../../models/branch'
 import { groupedAndFilteredBranches, BranchListItemModel } from './grouped-and-filtered-branches'
 import { BranchListItem } from './branch'
 

@@ -1,6 +1,6 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
-import { Branch } from '../local-git-operations'
+import { Branch } from '../../models/branch'
 
 /** Get the `limit` most recently checked out branches. */
 export async function getRecentBranches(repository: Repository, branches: ReadonlyArray<Branch>, limit: number): Promise<ReadonlyArray<Branch>> {

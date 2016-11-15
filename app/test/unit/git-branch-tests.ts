@@ -5,7 +5,8 @@ chai.use(require('chai-datetime'))
 const expect = chai.expect
 
 import { Repository } from '../../src/models/repository'
-import { LocalGitOperations, BranchType } from '../../src/lib/local-git-operations'
+import { LocalGitOperations } from '../../src/lib/local-git-operations'
+import { BranchType } from '../../src/models/branch'
 import { setupFixtureRepository } from '../fixture-helper'
 
 describe('git-branches', () => {

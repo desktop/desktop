@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
-import { Branch } from '../../lib/local-git-operations'
+import { Branch } from '../../models/branch'
 
 interface IDeleteBranchProps {
   readonly dispatcher: Dispatcher
