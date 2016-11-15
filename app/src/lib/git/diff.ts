@@ -10,6 +10,8 @@ import { Diff, Image  } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
+import { detect, tryConvert, debugResult } from '../encoding-converter'
+
 /**
  *  Defining the list of known extensions we can render inside the app
  */
@@ -21,13 +23,35 @@ const imageFileExtensions = new Set([ '.png', '.jpg', '.jpeg', '.gif' ])
  * @param commitish A commit SHA or some other identifier that ultimately dereferences
  *                  to a commit.
  */
-export function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<Diff> {
+export async function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<Diff> {
+  const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--binary', '--', file.path ]
 
-  const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
+  const setBinaryEncoding: (process: ChildProcess) => void = cb => cb.stdout.setEncoding('binary')
+  const result = await git(args, repository.path, { processCallback: setBinaryEncoding })
 
-  return git(args, repository.path)
-    .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => attachImageDiff(repository, file, diff))
+  const binaryDiff = Buffer.from(result.stdout, 'binary')
+
+  let diffEncoding = detect(binaryDiff)
+
+  debugResult(diffEncoding)
+
+  let diff: Diff | null = null
+
+  if (diffEncoding.confidence > 50) {
+    const conversion = tryConvert(binaryDiff, diffEncoding.charset)
+    if (conversion.result) {
+      diff = await diffFromRawDiffOutput(conversion.result)
+    } else {
+      // TODO: ugh
+      diff = await diffFromRawDiffOutput(binaryDiff.toString('utf8'))
+    }
+  } else {
+    diff = await diffFromRawDiffOutput(binaryDiff.toString('utf8'))
+  }
+
+  const output = attachImageDiff(repository, file, diff)
+
+  return output
 }
 
 /**

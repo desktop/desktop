@@ -11,6 +11,12 @@ export interface EncodingConversion {
   result?: string
 }
 
+export function debugResult(result: EncodingDetection) {
+  console.log(`charset: ${result.charset}`)
+  console.log(`language: ${result.language}`)
+  console.log(`confidence: ${result.confidence}`)
+}
+
 export function tryConvert(buffer: Buffer, charset: string): EncodingConversion {
 
   let parsedOutput: string | undefined = undefined
@@ -23,9 +29,9 @@ export function tryConvert(buffer: Buffer, charset: string): EncodingConversion 
   }
 
   if (!defaultFailed) {
-    if (parsedOutput) {
-      console.log(`initial parse succeeded: ${parsedOutput}`)
-    }
+    //if (parsedOutput) {
+    //  console.log(`initial parse succeeded: ${parsedOutput}`)
+    //}
     return { result: parsedOutput }
   }
 
@@ -38,13 +44,13 @@ export function tryConvert(buffer: Buffer, charset: string): EncodingConversion 
   }
 
   if (!fallbackFailed) {
-    if (parsedOutput) {
-      console.log(`fallback parse succeeded: ${parsedOutput}`)
-    }
+    //if (parsedOutput) {
+    //  console.log(`fallback parse succeeded: ${parsedOutput}`)
+    //}
     return { result: parsedOutput }
   }
 
-  console.log(`both failed, lol`)
+  //console.log(`both failed, lol`)
 
   return { result: parsedOutput }
 }
