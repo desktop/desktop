@@ -69,8 +69,12 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
   if (action.name === 'oauth') {
     try {
       const user = await requestAuthenticatedUser(action.args.code)
-      resolveOAuthRequest(user)
-      dispatcher.addUser(user)
+      if (user) {
+        resolveOAuthRequest(user)
+        dispatcher.addUser(user)
+      } else {
+        rejectOAuthRequest(new Error('No user'))
+      }
     } catch (e) {
       rejectOAuthRequest(e)
     }

@@ -34,13 +34,17 @@ export function askUserToOAuth(endpoint: string) {
   })
 }
 
-export async function requestAuthenticatedUser(code: string): Promise<User> {
+export async function requestAuthenticatedUser(code: string): Promise<User | null> {
   if (!oauthState) {
     return fatalError('`askUserToOAuth` must be called before requesting an authenticated user.')
   }
 
-  const token = await requestOAuthToken(oauthState.endpoint, code, oauthState.state)
-  return fetchUser(oauthState.endpoint, token)
+  const token = await requestOAuthToken(oauthState.endpoint, oauthState.state, code)
+  if (token) {
+    return fetchUser(oauthState.endpoint, token)
+  } else {
+    return null
+  }
 }
 
 /**
