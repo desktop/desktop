@@ -108,7 +108,7 @@ export class Diff {
     * If the file can be represented as a visual diff
     * TODO: a better abstraction than poking a property?
     */
-   public imageDiff: ImageDiff | undefined
+   public imageDiff?: ImageDiff
 
    public constructor(hunks: ReadonlyArray<DiffHunk>, isBinary: boolean = false) {
      this.hunks = hunks
