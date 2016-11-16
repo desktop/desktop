@@ -19,18 +19,33 @@ interface ICheckboxProps {
 
 /** A checkbox component which supports the mixed value. */
 export class Checkbox extends React.Component<ICheckboxProps, void> {
+
+  private input: HTMLInputElement | null
+
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
     if (this.props.onChange) {
       this.props.onChange(event)
     }
   }
 
-  private onInputRef = (input: HTMLInputElement) => {
+  public componentDidUpdate() {
+    this.updateInputState()
+  }
+
+  private updateInputState() {
+    const input = this.input
     if (input) {
       const value = this.props.value
       input.indeterminate = value === CheckboxValue.Mixed
       input.checked = value !== CheckboxValue.Off
     }
+  }
+
+  private onInputRef = (input: HTMLInputElement) => {
+    this.input = input
+    // Necessary since componentDidUpdate doesn't run on initial
+    // render
+    this.updateInputState()
   }
 
   public render() {
