@@ -3,7 +3,7 @@ import { User } from '../../models/user'
 
 import {
   GitProcess,
-  IGitResult,
+  IGitResult as GitKitchenSinkResult,
   GitError as GitKitchenSinkError,
   IGitExecutionOptions as GitKitchenSinkExecutionOptions,
 } from 'git-kitchen-sink'
@@ -27,6 +27,17 @@ export interface IGitExecutionOptions extends GitKitchenSinkExecutionOptions {
    */
   readonly expectedErrors?: Set<GitKitchenSinkError>
 }
+
+export interface IGitResult extends GitKitchenSinkResult {
+  /**
+   * The parsed git error. This will be null when the exit code is include in
+   * the `successExitCodes`, or when git-kitchen-sink was unable to parse the
+   * error.
+   */
+  readonly gitError: GitKitchenSinkError | null
+
+  /** The human-readable error description, based on `gitError`. */
+  readonly gitErrorDescription: string | null
 }
 
 export class GitError {
@@ -36,22 +47,15 @@ export class GitError {
   /** The args for the failed command. */
   public readonly args: ReadonlyArray<string>
 
-  /**
-   * The error as parsed by git-kitchen-sink. May be null if it wasn't able to
-   * determine the error.
-   */
-  public readonly parsedError: GitKitchenSinkError | null
-
-  public constructor(result: IGitResult, args: ReadonlyArray<string>, parsedError: GitKitchenSinkError | null) {
+  public constructor(result: IGitResult, args: ReadonlyArray<string>) {
     this.result = result
     this.args = args
-    this.parsedError = parsedError
   }
 
   public get message(): string {
-    const parsedError = this.parsedError
-    if (parsedError) {
-      return `Error ${parsedError}`
+    const description = this.result.gitErrorDescription
+    if (description) {
+      return description
     }
 
     if (this.result.stderr.length) {
@@ -111,6 +115,9 @@ export async function git(args: string[], path: string, options?: IGitExecutionO
     }
   }
 
+  const gitErrorDescription = gitError ? getDescriptionForError(gitError) : null
+  const gitResult = Object.assign({}, result, { gitError, gitErrorDescription })
+
   if (!acceptableExitCode || (gitError && !opts.expectedErrors!.has(gitError))) {
     console.error(`The command \`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
     if (result.stdout.length) {
@@ -122,13 +129,17 @@ export async function git(args: string[], path: string, options?: IGitExecutionO
     }
 
     if (gitError) {
-      console.error(`(The error was parsed as ${gitError}.)`)
+      console.error(`(The error was parsed as ${gitError}: ${gitErrorDescription})`)
     }
 
-    throw new GitError(result, args, gitError)
+    throw new GitError(gitResult, args)
   }
 
-  return result
+  return gitResult
+}
+
+function getDescriptionForError(error: GitKitchenSinkError): string {
+  return ''
 }
 
 function getAskPassTrampolinePath(): string {
