@@ -9,12 +9,12 @@ interface IFileListProps {
 }
 
 export class FileList extends React.Component<IFileListProps, void> {
-  private onSelectionChanged(row: number) {
+  private onSelectionChanged = (row: number) => {
     const file = this.props.files[row]
     this.props.onSelectedFileChanged(file)
   }
 
-  private renderFile(row: number) {
+  private renderFile = (row: number) => {
     const file = this.props.files[row]
     return <div key={file.path}
                 title={file.path}
@@ -30,11 +30,11 @@ export class FileList extends React.Component<IFileListProps, void> {
   public render() {
     return (
       <div className='files'>
-        <List rowRenderer={row => this.renderFile(row)}
+        <List rowRenderer={this.renderFile}
               rowCount={this.props.files.length}
               rowHeight={40}
               selectedRow={this.rowForFile(this.props.selectedFile)}
-              onSelectionChanged={row => this.onSelectionChanged(row)}/>
+              onSelectionChanged={this.onSelectionChanged}/>
       </div>
     )
   }

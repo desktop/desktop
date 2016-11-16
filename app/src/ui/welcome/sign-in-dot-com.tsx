@@ -46,32 +46,32 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     if (step.kind === SignInStep.UsernamePassword) {
       return <SignInDotComFragment
         additionalButtons={[
-          <Button key='cancel' onClick={() => this.cancel()}>Cancel</Button>,
+          <Button key='cancel' onClick={this.cancel}>Cancel</Button>,
         ]}
-        onDidSignIn={u => this.onDidSignIn(u)}
-        onNeeds2FA={(login, password) => this.onNeeds2FA(login, password)}/>
+        onDidSignIn={this.onDidSignIn}
+        onNeeds2FA={this.onNeeds2FA}/>
     } else if (step.kind === SignInStep.TwoFactorAuthentication) {
       return <TwoFactorAuthentication
         endpoint={getDotComAPIEndpoint()}
         login={step.login}
         password={step.password}
-        onDidSignIn={u => this.onDidSignIn(u)}/>
+        onDidSignIn={this.onDidSignIn}/>
     } else {
       return assertNever(step, `Unknown sign-in step: ${step}`)
     }
   }
 
-  private cancel() {
+  private cancel = () => {
     this.props.advance(WelcomeStep.Start)
   }
 
-  private async onDidSignIn(user: User) {
+  private onDidSignIn = async (user: User) => {
     await this.props.dispatcher.addUser(user)
 
     this.props.advance(WelcomeStep.ConfigureGit)
   }
 
-  private onNeeds2FA(login: string, password: string) {
+  private onNeeds2FA = (login: string, password: string) => {
     this.setState({
       step: { kind: SignInStep.TwoFactorAuthentication, login, password },
     })

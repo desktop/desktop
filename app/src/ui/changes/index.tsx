@@ -19,7 +19,7 @@ interface IChangesProps {
 
 export class Changes extends React.Component<IChangesProps, void> {
 
-  private onDiffLineIncludeChanged(diffSelection: DiffSelection) {
+  private onDiffLineIncludeChanged = (diffSelection: DiffSelection) => {
     const file = this.props.changes.selectedFile
     if (!file) {
       console.error('diff line selection changed despite no file error - what?')
@@ -45,7 +45,7 @@ export class Changes extends React.Component<IChangesProps, void> {
       <Diff repository={this.props.repository}
         file={file}
         readOnly={false}
-        onIncludeChanged={(diffSelection) => this.onDiffLineIncludeChanged(diffSelection)}
+        onIncludeChanged={this.onDiffLineIncludeChanged}
         diff={diff}
         dispatcher={this.props.dispatcher} />
     )

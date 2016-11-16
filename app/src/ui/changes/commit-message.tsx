@@ -88,7 +88,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     this.props.dispatcher.setCommitMessage(this.props.repository, null)
   }
 
-  private updateState(state: ICommitMessageState | ICommitMessage) {
+  private updateState = (state: ICommitMessageState | ICommitMessage) => {
     const newMessage = state.summary
       ? { summary: state.summary, description: state.description }
       : null
@@ -97,21 +97,21 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     this.setState(state)
   }
 
-  private handleSummaryChange(event: React.FormEvent<HTMLInputElement>) {
+  private handleSummaryChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.updateState({
       summary: event.currentTarget.value,
       description: this.state.description,
     })
   }
 
-  private handleDescriptionChange(event: React.FormEvent<HTMLTextAreaElement>) {
+  private handleDescriptionChange = (event: React.FormEvent<HTMLTextAreaElement>) => {
     this.updateState({
       summary: this.state.summary,
       description: event.currentTarget.value,
     })
   }
 
-  private handleSubmit(event: React.MouseEvent<HTMLButtonElement>) {
+  private handleSubmit = (event: React.MouseEvent<HTMLButtonElement>) => {
     this.createCommit()
     event.preventDefault()
   }
@@ -135,7 +135,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
       && this.state.summary.length > 0
   }
 
-  private onKeyDown(event: React.KeyboardEvent<Element>) {
+  private onKeyDown = (event: React.KeyboardEvent<Element>) => {
     const isShortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
     if (isShortcutKey && event.key === 'Enter' && this.canCommit()) {
       this.createCommit()
@@ -159,31 +159,35 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     )
   }
 
+  private onFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.stopPropagation()
+  }
+
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
     const buttonEnabled = this.canCommit()
 
     return (
-      <form id='commit-message' onSubmit={event => event.stopPropagation()}>
+      <form id='commit-message' onSubmit={this.onFormSubmit}>
         <div className='summary'>
           {this.renderAvatar()}
 
           <AutocompletingInput className='summary-field'
             placeholder='Summary'
             value={this.state.summary}
-            onChange={event => this.handleSummaryChange(event)}
-            onKeyDown={event => this.onKeyDown(event)}
+            onChange={this.handleSummaryChange}
+            onKeyDown={this.onKeyDown}
             autocompletionProviders={this.props.autocompletionProviders}/>
         </div>
 
         <AutocompletingTextArea className='description-field'
           placeholder='Description'
           value={this.state.description || ''}
-          onChange={event => this.handleDescriptionChange(event)}
-          onKeyDown={event => this.onKeyDown(event)}
+          onChange={this.handleDescriptionChange}
+          onKeyDown={this.onKeyDown}
           autocompletionProviders={this.props.autocompletionProviders}/>
 
-        <button className='button commit-button' onClick={event => this.handleSubmit(event)} disabled={!buttonEnabled}>
+        <button className='button commit-button' onClick={this.handleSubmit} disabled={!buttonEnabled}>
           <div>Commit to <strong>{branchName}</strong></div>
         </button>
       </form>

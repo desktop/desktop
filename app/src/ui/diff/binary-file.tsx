@@ -14,7 +14,7 @@ interface IBinaryFileProps {
 /** represents the default view for a file that we cannot render a diff for */
 export class BinaryFile extends React.Component<IBinaryFileProps, void> {
 
-  private handleClick(e: React.MouseEvent<HTMLAnchorElement>) {
+  private handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const fullPath = Path.join(this.props.repository.path, this.props.path)
     openFile(fullPath, this.props.dispatcher)
   }
@@ -25,7 +25,7 @@ export class BinaryFile extends React.Component<IBinaryFileProps, void> {
         This binary file has changed.
       </div>
       <div className='image-header'>
-        <a href='#' onClick={e => this.handleClick(e)}>Open file in external program.</a>
+        <a href='#' onClick={this.handleClick}>Open file in external program.</a>
       </div>
     </div>
   }

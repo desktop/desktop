@@ -39,7 +39,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
         className='push-pull-button'
         icon={this.getIcon()}
         iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
-        onClick={() => this.performAction()}
+        onClick={this.performAction}
         style={ToolbarButtonStyle.Subtitle}>
         {this.renderAheadBehind()}
       </ToolbarButton>
@@ -111,7 +111,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
     }
   }
 
-  private performAction() {
+  private performAction = () => {
     if (!this.props.remoteName) {
       // TODO: Publish the repository.
       return

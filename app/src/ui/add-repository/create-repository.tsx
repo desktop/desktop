@@ -25,17 +25,17 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     this.state = { path: defaultPath(), name: '' }
   }
 
-  private onPathChanged(event: React.FormEvent<HTMLInputElement>) {
+  private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
     this.setState({ path, name: this.state.name })
   }
 
-  private onNameChanged(event: React.FormEvent<HTMLInputElement>) {
+  private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const name = event.currentTarget.value
     this.setState({ path: this.state.path, name })
   }
 
-  private showFilePicker() {
+  private showFilePicker = () => {
     const directory: string[] | null = remote.dialog.showOpenDialog({ properties: [ 'createDirectory', 'openDirectory' ] })
     if (!directory) { return }
 
@@ -43,7 +43,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     this.setState({ path, name: this.state.name })
   }
 
-  private async createRepository() {
+  private createRepository = async () => {
     const fullPath = Path.join(this.state.path, sanitizedRepositoryName(this.state.name))
 
     // NB: This exists & create check is race-y :(
@@ -74,7 +74,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           <label>Name
             <input value={this.state.name}
                    placeholder='repository name'
-                   onChange={event => this.onNameChanged(event)}/>
+                   onChange={this.onNameChanged}/>
           </label>
         </div>
 
@@ -84,15 +84,15 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           <label>Local Path
             <input value={this.state.path}
                    placeholder='repository path'
-                   onChange={event => this.onPathChanged(event)}/>
+                   onChange={this.onPathChanged}/>
           </label>
 
-          <button onClick={() => this.showFilePicker()}>Choose…</button>
+          <button onClick={this.showFilePicker}>Choose…</button>
         </div>
 
         <hr/>
 
-        <button disabled={disabled} onClick={() => this.createRepository()}>
+        <button disabled={disabled} onClick={this.createRepository}>
           Create Repository
         </button>
       </div>

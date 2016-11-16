@@ -44,13 +44,13 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   public render() {
     const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length)
     return (
-      <form id='sign-in-form' onSubmit={e => this.signIn(e)}>
+      <form id='sign-in-form' onSubmit={this.signIn}>
         <label>Username or email address
-          <input autoFocus={true} onChange={e => this.onUsernameChange(e)}/>
+          <input autoFocus={true} onChange={this.onUsernameChange}/>
         </label>
 
         <label>Password
-          <input type='password' onChange={e => this.onPasswordChange(e)}/>
+          <input type='password' onChange={this.onPasswordChange}/>
         </label>
 
         {this.renderError()}
@@ -64,7 +64,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
 
         <div>or</div>
 
-        <LinkButton onClick={() => this.signInWithBrowser()}>Sign in using your browser</LinkButton>
+        <LinkButton onClick={this.signInWithBrowser}>Sign in using your browser</LinkButton>
       </form>
     )
   }
@@ -83,7 +83,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     }
   }
 
-  private onUsernameChange(event: React.FormEvent<HTMLInputElement>) {
+  private onUsernameChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       username: event.currentTarget.value,
       password: this.state.password,
@@ -92,7 +92,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     })
   }
 
-  private onPasswordChange(event: React.FormEvent<HTMLInputElement>) {
+  private onPasswordChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       username: this.state.username,
       password: event.currentTarget.value,
@@ -101,13 +101,13 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     })
   }
 
-  private async signInWithBrowser() {
+  private signInWithBrowser = async () => {
     const endpoint = getDotComAPIEndpoint()
     const user = await askUserToOAuth(endpoint)
     this.props.onDidSignIn(user)
   }
 
-  private async signIn(event: React.FormEvent<HTMLFormElement>) {
+  private signIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const username = this.state.username

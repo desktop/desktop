@@ -64,20 +64,20 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
         <h1>Configure Git</h1>
         <div className='description'>This is used to identify the commits you create. Anyone will be able to see this information if you publish commits.</div>
 
-        <form onSubmit={e => this.continue(e)}>
+        <form onSubmit={this.continue}>
           <label>
             Name
-            <input placeholder='Hubot' value={this.state.name} onChange={e => this.onNameChange(e)}/>
+            <input placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
           </label>
 
           <label>
             Email
-            <input placeholder='hubot@github.com' value={this.state.email} onChange={e => this.onEmailChange(e)}/>
+            <input placeholder='hubot@github.com' value={this.state.email} onChange={this.onEmailChange}/>
           </label>
 
           <div className='actions'>
             <button type='submit'>Continue</button>
-            <button onClick={e => this.cancel(e)}>Cancel</button>
+            <button onClick={this.cancel}>Cancel</button>
           </div>
         </form>
 
@@ -90,7 +90,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     )
   }
 
-  private onNameChange(event: React.FormEvent<HTMLInputElement>) {
+  private onNameChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       name: event.currentTarget.value,
       email: this.state.email,
@@ -98,7 +98,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     })
   }
 
-  private onEmailChange(event: React.FormEvent<HTMLInputElement>) {
+  private onEmailChange = (event: React.FormEvent<HTMLInputElement>) => {
     const email = event.currentTarget.value
     const avatarURL = this.avatarURLForEmail(email)
 
@@ -114,7 +114,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     return matchingUser ? matchingUser.avatarURL : null
   }
 
-  private async continue(event: React.FormEvent<HTMLFormElement>) {
+  private continue = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     this.props.done()
@@ -130,7 +130,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     }
   }
 
-  private cancel(event: React.FormEvent<HTMLButtonElement>) {
+  private cancel = (event: React.FormEvent<HTMLButtonElement>) => {
     event.preventDefault()
 
     this.props.advance(WelcomeStep.Start)

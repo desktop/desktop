@@ -34,9 +34,9 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
   public render() {
     const disabled = !this.state.otp.length
     return (
-      <form id='2fa-form' onSubmit={e => this.signIn(e)}>
+      <form id='2fa-form' onSubmit={this.signIn}>
         <label>Authentication code
-          <input autoFocus={true} onChange={e => this.onOTPChange(e)}/>
+          <input autoFocus={true} onChange={this.onOTPChange}/>
         </label>
 
         {this.renderError()}
@@ -60,14 +60,14 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
     }
   }
 
-  private onOTPChange(event: React.FormEvent<HTMLInputElement>) {
+  private onOTPChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       otp: event.currentTarget.value,
       response: null,
     })
   }
 
-  private async signIn(event: React.FormEvent<HTMLFormElement>) {
+  private signIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const response = await createAuthorization(this.props.endpoint, this.props.login, this.props.password, this.state.otp)
