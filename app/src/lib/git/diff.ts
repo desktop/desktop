@@ -124,12 +124,10 @@ async function attachImageDiff(repository: Repository, file: FileChange, diff: D
     }
   }
 
-  diff.imageDiff = {
+  return diff.withImageDiff({
     previous: previous,
     current: current,
-  }
-
-  return diff
+  })
 }
 
 /**
