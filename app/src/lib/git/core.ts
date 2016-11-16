@@ -124,7 +124,7 @@ export async function git(args: string[], path: string, options?: IGitExecutionO
   const gitResult = Object.assign({}, result, { gitError, gitErrorDescription })
 
   const acceptableError = !gitError || (gitError && opts.expectedErrors!.has(gitError))
-  if (!acceptableExitCode || !acceptableError) {
+  if (!acceptableExitCode && !acceptableError) {
     console.error(`The command \`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
     if (result.stdout.length) {
       console.error(result.stdout)
