@@ -20,6 +20,13 @@ export interface IGitExecutionOptions extends GitKitchenSinkExecutionOptions {
    * error thrown. Defaults to 0 if undefined.
    */
   readonly successExitCodes?: Set<number>
+
+  /**
+   * The git errors which indicate success to the caller. Unexpected errors will
+   * be logged and an error thrown.
+   */
+  readonly successErrors?: Set<GitKitchenSinkError>
+}
 }
 
 export class GitError {
@@ -69,12 +76,14 @@ export class GitError {
  *                           see IGitExecutionOptions for more information.
  *
  * Returns the result. If the command exits with a code not in
- * `successExitCodes` a `GitError` will be thrown.
+ * `successExitCodes` or an error not in `successErrors`, a `GitError` will be
+ * thrown.
  */
 export async function git(args: string[], path: string, options?: IGitExecutionOptions): Promise<IGitResult> {
 
   const defaultOptions: IGitExecutionOptions = {
     successExitCodes: new Set([ 0 ]),
+    successErrors: new Set(),
   }
 
   const opts = Object.assign({ }, defaultOptions, options)
@@ -93,7 +102,16 @@ export async function git(args: string[], path: string, options?: IGitExecutionO
 
   const exitCode = result.exitCode
 
-  if (!opts.successExitCodes!.has(exitCode)) {
+  let gitError: GitKitchenSinkError | null = null
+  const acceptableExitCode = opts.successExitCodes!.has(exitCode)
+  if (!acceptableExitCode) {
+    gitError = GitProcess.parseError(result.stderr)
+    if (!gitError) {
+      gitError = GitProcess.parseError(result.stdout)
+    }
+  }
+
+  if (!acceptableExitCode || (gitError && !opts.successErrors!.has(gitError))) {
     console.error(`The command \`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
     if (result.stdout.length) {
       console.error(result.stdout)
@@ -101,11 +119,6 @@ export async function git(args: string[], path: string, options?: IGitExecutionO
 
     if (result.stderr.length) {
       console.error(result.stderr)
-    }
-
-    let gitError = GitProcess.parseError(result.stderr)
-    if (!gitError) {
-      gitError = GitProcess.parseError(result.stdout)
     }
 
     if (gitError) {
