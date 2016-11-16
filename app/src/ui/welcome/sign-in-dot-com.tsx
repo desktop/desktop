@@ -48,7 +48,6 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
         additionalButtons={[
           <Button key='cancel' onClick={() => this.cancel()}>Cancel</Button>,
         ]}
-        onSignInWithBrowser={() => this.signInWithBrowser()}
         onDidSignIn={u => this.onDidSignIn(u)}
         onNeeds2FA={(login, password) => this.onNeeds2FA(login, password)}/>
     } else if (step.kind === SignInStep.TwoFactorAuthentication) {
@@ -60,12 +59,6 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     } else {
       return assertNever(step, `Unknown sign-in step: ${step}`)
     }
-  }
-
-  private async signInWithBrowser() {
-    await this.props.dispatcher.requestOAuth(getDotComAPIEndpoint())
-
-    this.props.advance(WelcomeStep.ConfigureGit)
   }
 
   private cancel() {

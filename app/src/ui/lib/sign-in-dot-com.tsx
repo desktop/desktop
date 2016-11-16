@@ -10,16 +10,11 @@ import {
 } from '../../lib/api'
 import { User } from '../../models/user'
 import { assertNever } from '../../lib/fatal-error'
+import { askUserToOAuth } from '../../lib/oauth'
 
 const ForgotPasswordURL = 'https://github.com/password_reset'
 
 interface ISignInDotComProps {
-  /**
-   * Called when the user chooses to use OAuth. It should open the browser to
-   * start the OAuth dance.
-   */
-  readonly onSignInWithBrowser: () => void
-
   /** Called after the user has signed in. */
   readonly onDidSignIn: (user: User) => void
 
@@ -69,7 +64,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
 
         <div>or</div>
 
-        <LinkButton onClick={() => this.props.onSignInWithBrowser()}>Sign in using your browser</LinkButton>
+        <LinkButton onClick={() => this.signInWithBrowser()}>Sign in using your browser</LinkButton>
       </form>
     )
   }
@@ -104,6 +99,12 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
       networkRequestInFlight: this.state.networkRequestInFlight,
       response: null,
     })
+  }
+
+  private async signInWithBrowser() {
+    const endpoint = getDotComAPIEndpoint()
+    const user = await askUserToOAuth(endpoint)
+    this.props.onDidSignIn(user)
   }
 
   private async signIn(event: React.FormEvent<HTMLFormElement>) {
