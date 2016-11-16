@@ -10,7 +10,7 @@ import { Diff, Image  } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
-import { detect, tryConvert, debugResult } from '../encoding-converter'
+import { detect, tryConvert } from '../encoding-converter'
 
 /**
  *  Defining the list of known extensions we can render inside the app
@@ -59,13 +59,22 @@ async function computeDiff(repository: Repository, file: FileChange, args: strin
 
   const binaryDiff = Buffer.from(result.stdout, 'binary')
 
-  let diffEncoding = detect(binaryDiff)
+  const startTime = (performance && performance.now) ? performance.now() : null
 
-  debugResult(diffEncoding)
+  const diffEncoding = detect(binaryDiff)
 
   const diffSource = diffEncoding.confidence > 50
     ? tryConvertLocal(binaryDiff, diffEncoding.charset)
     : binaryDiff.toString('utf8')
+
+  if (console.debug && startTime) {
+    const rawTime = performance.now() - startTime
+    if (rawTime > 100) {
+     const timeInSeconds = (rawTime / 1000).toFixed(3)
+     console.debug(`detecting encodings for ${file.path} (took ${timeInSeconds}s)`)
+    }
+  }
+
 
   const diff = await diffFromRawDiffOutput(diffSource)
 
