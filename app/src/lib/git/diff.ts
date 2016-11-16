@@ -1,8 +1,8 @@
 import * as Path from 'path'
-import { ChildProcess } from 'child_process'
 import * as Fs from 'fs'
 
 import { git, IGitExecutionOptions } from './core'
+import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
@@ -137,44 +137,12 @@ function diffFromRawDiffOutput(result: string): Diff {
 
 export async function getBlobImage(repository: Repository, file: FileChange): Promise<Image> {
   const extension = Path.extname(file.path)
-  const contents = await getBlobContents(repository, file)
+  const contents = await getBlobContents(repository, 'HEAD', file.path)
   const diff: Image =  {
-    contents: contents,
+    contents: contents.toString('base64'),
     mediaType: getMediaType(extension),
   }
   return diff
-}
-
-/**
- * Retrieve the binary contents of a blob from the repository
- *
- * Returns a promise containing the base64 encoded string,
- * as <img> tags support the data URI scheme instead of
- * needing to reference a file:// URI
- *
- * https://en.wikipedia.org/wiki/Data_URI_scheme
- *
- */
-async function getBlobContents(repository: Repository, file: FileChange): Promise<string> {
-
-  const successExitCodes = new Set([ 0, 1 ])
-
-  const lsTreeArgs = [ 'ls-tree', 'HEAD', '-z', '--', file.path ]
-  const blobRow = await git(lsTreeArgs, repository.path, { successExitCodes })
-
-  // a mixture of whitespace and tab characters here
-  // so let's just split on everything interesting
-  const blobDetails = blobRow.stdout.split(/\s/)
-  const blob = blobDetails[2]
-
-  const catFileArgs = [ 'cat-file', '-p', blob ]
-
-  const setBinaryEncoding: (process: ChildProcess) => void = cb => cb.stdout.setEncoding('binary')
-
-  const blobContents = await git(catFileArgs, repository.path, { successExitCodes, processCallback: setBinaryEncoding })
-  const base64Contents = Buffer.from(blobContents.stdout, 'binary').toString('base64')
-
-  return base64Contents
 }
 
 export async function getWorkingDirectoryImage(repository: Repository, file: FileChange): Promise<Image> {
