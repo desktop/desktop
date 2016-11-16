@@ -29,6 +29,10 @@ export interface IGitExecutionOptions extends GitKitchenSinkExecutionOptions {
   readonly expectedErrors?: Set<GitKitchenSinkError>
 }
 
+/**
+ * The result of using `git`. This wraps git-kitchen-sink's results to provide
+ * the parsed error if one occurs.
+ */
 export interface IGitResult extends GitKitchenSinkResult {
   /**
    * The parsed git error. This will be null when the exit code is include in
@@ -119,7 +123,8 @@ export async function git(args: string[], path: string, options?: IGitExecutionO
   const gitErrorDescription = gitError ? getDescriptionForError(gitError) : null
   const gitResult = Object.assign({}, result, { gitError, gitErrorDescription })
 
-  if (!acceptableExitCode || (gitError && !opts.expectedErrors!.has(gitError))) {
+  const acceptableError = gitError && opts.expectedErrors!.has(gitError)
+  if (!acceptableExitCode || !acceptableError) {
     console.error(`The command \`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
     if (result.stdout.length) {
       console.error(result.stdout)
