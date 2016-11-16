@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { FileChange, mapStatus, iconForStatus } from '../../models/status'
-import { renderPath } from '../lib/path-label'
+import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
 import { List } from '../list'
 
@@ -23,7 +23,9 @@ export class FileList extends React.Component<IFileListProps, void> {
 
     return <div className='file'>
 
-      {renderPath(file)}
+      <PathLabel path={file.path}
+                 oldPath={file.oldPath}
+                 status={file.status} />
 
       <div className='status'>
         <Octicon symbol={iconForStatus(status)}

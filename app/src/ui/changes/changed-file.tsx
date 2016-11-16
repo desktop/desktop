@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { FileStatus, mapStatus, iconForStatus } from '../../models/status'
-import { renderPath } from '../lib/path-label'
+import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from './checkbox'
@@ -48,7 +48,9 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
           value={this.checkboxValue}
           onChange={event => this.handleChange(event)}/>
 
-        {renderPath(this.props)}
+        <PathLabel path={this.props.path}
+                    oldPath={this.props.oldPath}
+                    status={this.props.status} />
 
         <div className='status'>
             <Octicon symbol={iconForStatus(status)}
