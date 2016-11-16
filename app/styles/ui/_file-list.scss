@@ -29,7 +29,7 @@
     // See https://css-tricks.com/flexbox-truncated-text/
     min-width: 0;
 
-    input, .status { flex-shrink: 0; }
+    input { flex-shrink: 0; }
 
     .path {
       flex-grow: 1;
