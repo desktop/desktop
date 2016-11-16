@@ -289,7 +289,6 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
   const options: any = {
     headers,
     method,
-    body,
   }
 
   if (body) {
