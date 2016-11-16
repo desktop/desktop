@@ -19,10 +19,6 @@ export interface IRemoveRepositoriesAction {
   readonly repositoryIDs: ReadonlyArray<number>
 }
 
-export interface IRequestOAuthAction {
-  name: 'request-oauth'
-}
-
 export interface IUpdateGitHubRepositoryAction {
   name: 'update-github-repository'
   readonly repository: IRepository
@@ -35,6 +31,5 @@ export interface IAddUserAction {
 }
 
 export type Action = IGetUsersAction | IGetRepositoriesAction |
-                     IAddRepositoriesAction | IRequestOAuthAction |
-                     IUpdateGitHubRepositoryAction | IRemoveRepositoriesAction |
-                     IAddUserAction
+                     IAddRepositoriesAction | IUpdateGitHubRepositoryAction |
+                     IRemoveRepositoriesAction | IAddUserAction

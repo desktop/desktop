@@ -13,7 +13,6 @@ import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
 import { v4 as guid } from 'node-uuid'
-import { askUserToOAuth } from '../oauth'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -146,17 +145,6 @@ export class Dispatcher {
 
     const repositoryIDs = localRepositories.map(r => r.id)
     await this.dispatchToSharedProcess<ReadonlyArray<number>>({ name: 'remove-repositories', repositoryIDs })
-  }
-
-  /**
-   * Request the user approve our OAuth request. This will open their browser.
-   *
-   * The returned promise will only resolve once the entire OAuth flow has been
-   * completed. If the user cancels the OAuth flow, the promise will never
-   * resolve.
-   */
-  public requestOAuth(endpoint: string): Promise<User> {
-    return askUserToOAuth(endpoint)
   }
 
   /** Refresh the associated GitHub repository. */
