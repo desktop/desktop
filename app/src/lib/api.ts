@@ -351,7 +351,7 @@ export function getOAuthAuthorizationURL(endpoint: string, state: string): strin
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${Scopes.join(' ')}&state=${state}`
 }
 
-export async function requestOAuthToken(endpoint: string, state: string, code: string): Promise<string> {
+export async function requestOAuthToken(endpoint: string, state: string, code: string): Promise<string | null> {
   const urlBase = getOAuthURL(endpoint)
   const response = await request(urlBase, null, 'POST', 'login/oauth/access_token', {
     'client_id': ClientID,
