@@ -273,15 +273,21 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
  * {method}        - The HTTP method.
  * {path}          - The path without a leading /.
  * {body}          - The body to send.
- * {headers}       - Any optional additional headers to send.
+ * {customHeaders} - Any optional additional headers to send.
  */
-function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body: Object | null, headers?: Object): Promise<IHTTPResponse> {
+function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body: Object | null, customHeaders?: Object): Promise<IHTTPResponse> {
   const url = `${endpoint}/${path}`
+  const headers: any = Object.assign({}, {
+    'Accept': 'application/vnd.github.v3+json, application/json',
+    'Content-Type': 'application/json',
+    'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
+  }, customHeaders)
+  if (authorization) {
+    headers['Authorization'] = authorization
+  }
+
   const options: any = {
-    headers: Object.assign({}, {
-      'Authorization': authorization,
-      'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
-    }, headers),
+    headers,
     method,
     body,
   }
