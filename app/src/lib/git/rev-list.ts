@@ -28,7 +28,7 @@ async function getAheadBehind(repository: Repository, range: string): Promise<IA
   // commits we have from the two different sides of the range.
   const args = [ 'rev-list', '--left-right', '--count', range, '--' ]
   const result = await git(args, repository.path, {
-    successErrors: new Set([ GitError.BadRevision ]),
+    expectedErrors: new Set([ GitError.BadRevision ]),
   })
 
   // This means one of the refs (most likely the upstream branch) no longer

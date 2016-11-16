@@ -22,10 +22,10 @@ export interface IGitExecutionOptions extends GitKitchenSinkExecutionOptions {
   readonly successExitCodes?: Set<number>
 
   /**
-   * The git errors which indicate success to the caller. Unexpected errors will
+   * The git errors which are expected by the caller. Unexpected errors will
    * be logged and an error thrown.
    */
-  readonly successErrors?: Set<GitKitchenSinkError>
+  readonly expectedErrors?: Set<GitKitchenSinkError>
 }
 }
 
@@ -76,14 +76,14 @@ export class GitError {
  *                           see IGitExecutionOptions for more information.
  *
  * Returns the result. If the command exits with a code not in
- * `successExitCodes` or an error not in `successErrors`, a `GitError` will be
+ * `successExitCodes` or an error not in `expectedErrors`, a `GitError` will be
  * thrown.
  */
 export async function git(args: string[], path: string, options?: IGitExecutionOptions): Promise<IGitResult> {
 
   const defaultOptions: IGitExecutionOptions = {
     successExitCodes: new Set([ 0 ]),
-    successErrors: new Set(),
+    expectedErrors: new Set(),
   }
 
   const opts = Object.assign({ }, defaultOptions, options)
@@ -111,7 +111,7 @@ export async function git(args: string[], path: string, options?: IGitExecutionO
     }
   }
 
-  if (!acceptableExitCode || (gitError && !opts.successErrors!.has(gitError))) {
+  if (!acceptableExitCode || (gitError && !opts.expectedErrors!.has(gitError))) {
     console.error(`The command \`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
     if (result.stdout.length) {
       console.error(result.stdout)
