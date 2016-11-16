@@ -27,7 +27,7 @@ export function getCommitDiff(repository: Repository, file: FileChange, commitis
 
   return git(args, repository.path)
     .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => attachImageDiff(repository, file, diff))
+    .then(diff => attachImageDiff(repository, file, diff, commitish))
 }
 
 /**
@@ -68,10 +68,10 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
 
   return git(args, repository.path, opts)
     .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => attachImageDiff(repository, file, diff))
+    .then(diff => attachImageDiff(repository, file, diff, 'HEAD'))
 }
 
-async function attachImageDiff(repository: Repository, file: FileChange, diff: Diff): Promise<Diff> {
+async function attachImageDiff(repository: Repository, file: FileChange, diff: Diff, commitish: string): Promise<Diff> {
 
   // already have a text diff, no point trying out this
   if (!diff.isBinary) {
@@ -89,14 +89,39 @@ async function attachImageDiff(repository: Repository, file: FileChange, diff: D
   let current: Image | undefined = undefined
   let previous: Image | undefined = undefined
 
-  if (file.status === FileStatus.New || file.status === FileStatus.Modified) {
-    current = await getWorkingDirectoryImage(repository, file)
-  }
+  // Are we looking at a file in the working directory or a file in a commit?
+  if (file instanceof WorkingDirectoryFileChange) {
+    // No idea what to do about this, a conflicted binary (presumably) file.
+    // Ideally we'd show all three versions and let the user pick but that's
+    // a bit out of scope for now.
+    if (file.status === FileStatus.Conflicted) {
+      return diff
+    }
 
-  if (file.status === FileStatus.Modified
-      || file.status === FileStatus.Renamed
-      || file.status === FileStatus.Deleted) {
-    previous = await getBlobImage(repository, file)
+    // Does it even exist in the working directory?
+    if (file.status !== FileStatus.Deleted) {
+      current = await getWorkingDirectoryImage(repository, file)
+    }
+
+    if (file.status !== FileStatus.New) {
+      // If we have file.oldPath that means it's a rename so we'll
+      // look for that file.
+      previous = await getBlobImage(repository, file.oldPath || file.path, 'HEAD')
+    }
+  } else {
+    // File status can't be conflicted for a file in a commit
+    if (file.status !== FileStatus.Deleted) {
+      current = await getBlobImage(repository, file.path, commitish)
+    }
+
+    // File status can't be conflicted for a file in a commit
+    if (file.status !== FileStatus.New) {
+      // TODO: commitish^ won't work for the first commit
+      //
+      // If we have file.oldPath that means it's a rename so we'll
+      // look for that file.
+      previous = await getBlobImage(repository, file.oldPath || file.path, `${commitish}^`)
+    }
   }
 
   diff.imageDiff = {
@@ -136,9 +161,9 @@ function diffFromRawDiffOutput(result: string): Diff {
   return parser.parse(pieces[pieces.length - 1])
 }
 
-export async function getBlobImage(repository: Repository, file: FileChange): Promise<Image> {
-  const extension = Path.extname(file.path)
-  const contents = await getBlobContents(repository, 'HEAD', file.path)
+export async function getBlobImage(repository: Repository, path: string, commitish: string): Promise<Image> {
+  const extension = Path.extname(path)
+  const contents = await getBlobContents(repository, commitish, path)
   const diff: Image =  {
     contents: contents.toString('base64'),
     mediaType: getMediaType(extension),
