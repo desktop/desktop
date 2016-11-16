@@ -1,5 +1,3 @@
-/* tslint:disable:react-this-binding-issue */
-
 import * as React from 'react'
 
 import { List } from '../list'
@@ -16,12 +14,53 @@ interface IRepositoriesListProps {
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
 }
 
+interface IRepositoriesListState {
+  readonly listItems: ReadonlyArray<RepositoryListItemModel>
+  readonly selectedRowIndex: number
+}
+
 const RowHeight = 30
 
+/**
+ * Utility function for finding the index of a selected repository
+ * among a list of repository list item models.
+ */
+function getSelectedRowIndex(repositories: ReadonlyArray<RepositoryListItemModel>, selectedRepository: Repositoryish | null): number {
+  if (!selectedRepository) { return -1 }
+
+  return repositories.findIndex(item => {
+    if (item.kind === 'repository') {
+      const repository = item.repository
+      return repository.constructor === selectedRepository.constructor && repository.id === selectedRepository.id
+    } else {
+      return false
+    }
+  })
+}
+
 /** The list of user-added repositories. */
-export class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
-  private renderRow(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
-    const item = groupedItems[row]
+export class RepositoriesList extends React.Component<IRepositoriesListProps, IRepositoriesListState> {
+
+  public constructor(props: IRepositoriesListProps) {
+    super(props)
+
+    this.state = this.createState(props)
+  }
+
+  private createState(props: IRepositoriesListProps): IRepositoriesListState {
+
+    const listItems = groupRepositories(props.repositories)
+    const selectedRowIndex = getSelectedRowIndex(listItems, props.selectedRepository)
+
+    return { listItems, selectedRowIndex }
+  }
+
+  public componentWillReceiveProps(nextProps: IRepositoriesListProps) {
+    this.setState(this.createState(nextProps))
+  }
+
+  private renderRow = (row: number) => {
+    const item = this.state.listItems[row]
     if (item.kind === 'repository') {
       return <RepositoryListItem key={row}
                                  repository={item.repository}
@@ -31,29 +70,15 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
     }
   }
 
-  private selectedRow(groupedItems: ReadonlyArray<RepositoryListItemModel>): number {
-    const selectedRepository = this.props.selectedRepository
-    if (!selectedRepository) { return -1 }
-
-    return groupedItems.findIndex(item => {
-      if (item.kind === 'repository') {
-        const repository = item.repository
-        return repository.constructor === selectedRepository.constructor && repository.id === selectedRepository.id
-      } else {
-        return false
-      }
-    })
-  }
-
-  private onSelectionChanged(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
-    const item = groupedItems[row]
+  private onSelectionChanged = (row: number) => {
+    const item = this.state.listItems[row]
     if (item.kind === 'repository') {
       this.props.onSelectionChanged(item.repository)
     }
   }
 
-  private canSelectRow(groupedItems: ReadonlyArray<RepositoryListItemModel>, row: number) {
-    const item = groupedItems[row]
+  private canSelectRow = (row: number) => {
+    const item = this.state.listItems[row]
     return item.kind === 'repository'
   }
 
@@ -66,15 +91,14 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
       return <NoRepositories/>
     }
 
-    const grouped = groupRepositories(this.props.repositories)
     return (
       <List id='repository-list'
-            rowCount={grouped.length}
+            rowCount={this.state.listItems.length}
             rowHeight={RowHeight}
-            rowRenderer={row => this.renderRow(grouped, row)}
-            selectedRow={this.selectedRow(grouped)}
-            onSelectionChanged={row => this.onSelectionChanged(grouped, row)}
-            canSelectRow={row => this.canSelectRow(grouped, row)}
+            rowRenderer={this.renderRow}
+            selectedRow={this.state.selectedRowIndex}
+            onSelectionChanged={this.onSelectionChanged}
+            canSelectRow={this.canSelectRow}
             invalidationProps={this.props.repositories}/>
     )
   }
