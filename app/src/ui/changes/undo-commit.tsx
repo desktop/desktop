@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { Commit } from '../../lib/local-git-operations'
+import { Commit } from '../../models/commit'
 import { EmojiText } from '../lib/emoji-text'
 import { RelativeTime } from '../relative-time'
 

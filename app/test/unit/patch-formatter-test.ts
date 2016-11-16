@@ -9,7 +9,7 @@ import { WorkingDirectoryFileChange, FileStatus } from '../../src/models/status'
 import { DiffSelection, DiffSelectionType } from '../../src/models/diff'
 import { DiffParser } from '../../src/lib/diff-parser'
 import { formatPatch } from '../../src/lib/patch-formatter'
-import { GitDiff } from '../../src/lib/git/git-diff'
+import { getWorkingDirectoryDiff } from '../../src/lib/git'
 import { setupFixtureRepository } from '../fixture-helper'
 
 function parseDiff(diff: string) {
@@ -34,7 +34,7 @@ describe('patch formatting', () => {
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository!, file)
 
       const selection = DiffSelection
         .fromInitialSelection(DiffSelectionType.All)
@@ -55,7 +55,7 @@ describe('patch formatting', () => {
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository!, file)
 
       const selection = DiffSelection
         .fromInitialSelection(DiffSelectionType.All)
@@ -77,7 +77,7 @@ describe('patch formatting', () => {
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository!, file)
 
       const selection = DiffSelection
         .fromInitialSelection(DiffSelectionType.All)
@@ -98,7 +98,7 @@ describe('patch formatting', () => {
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await GitDiff.getWorkingDirectoryDiff(repository!, file)
+      const diff = await getWorkingDirectoryDiff(repository!, file)
 
       let selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const hunk = diff.hunks[0]

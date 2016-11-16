@@ -5,7 +5,7 @@ import * as OS from 'os'
 import * as FS from 'fs'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { LocalGitOperations } from '../../lib/local-git-operations'
+import { initGitRepository } from '../../lib/git'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
 
 interface ICreateRepositoryProps {
@@ -49,7 +49,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     // NB: This exists & create check is race-y :(
     FS.exists(fullPath, exists => {
       FS.mkdir(fullPath, async () => {
-        await LocalGitOperations.initGitRepository(fullPath)
+        await initGitRepository(fullPath)
 
         this.props.dispatcher.addRepositories([ fullPath ])
         this.props.dispatcher.closePopup()

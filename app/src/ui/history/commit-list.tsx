@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Commit } from '../../lib/local-git-operations'
+import { Commit } from '../../models/commit'
 import { CommitListItem } from './commit-list-item'
 import { List } from '../list'
 import { CommitFacadeListItem } from './commit-facade-list-item'
