@@ -46,9 +46,16 @@ function tryConvertLocal(buffer: Buffer, charset: string): string {
  * Assumes --binary is provided as a flag, so encoding detection can detect the correct bytes.
  * If not included, UTF-8 bytes will be provided and encoding detection will not work.
  */
-async function computeDiff(repository: Repository, file: FileChange, args: string[]): Promise<Diff> {
+async function computeDiff(repository: Repository, file: FileChange, args: string[], options?: IGitExecutionOptions): Promise<Diff> {
   const setBinaryEncoding: (process: ChildProcess) => void = cb => cb.stdout.setEncoding('binary')
-  const result = await git(args, repository.path, { processCallback: setBinaryEncoding })
+
+  const defaultOptions: IGitExecutionOptions = {
+    successExitCodes: new Set([ 0 ]),
+    processCallback: setBinaryEncoding
+  }
+
+  const opts = Object.assign({ }, defaultOptions, options)
+  const result = await git(args, repository.path, opts)
 
   const binaryDiff = Buffer.from(result.stdout, 'binary')
 
@@ -101,7 +108,7 @@ export async function getWorkingDirectoryDiff(repository: Repository, file: Work
     args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--binary', '--', file.path ]
   }
 
-  return await computeDiff(repository, file, args)
+  return await computeDiff(repository, file, args, opts)
 }
 
 async function attachImageDiff(repository: Repository, file: FileChange, diff: Diff): Promise<Diff> {
