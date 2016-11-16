@@ -19,21 +19,48 @@ interface IBranchesProps {
 
 interface IBranchesState {
   readonly filter: string
+  readonly branchItems: ReadonlyArray<BranchListItemModel>
+  readonly selectedRow: number
 }
 
 export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   private list: List | null = null
   private scrollToRow = -1
-  private selectedRow = -1
 
   public constructor(props: IBranchesProps) {
     super(props)
 
-    this.state = { filter: '' }
+    this.state = this.createState(props, '', -1)
   }
 
-  private renderRow(branchItems: ReadonlyArray<BranchListItemModel>, row: number) {
-    const item = branchItems[row]
+  private createState(props: IBranchesProps, newFilter: string, newSelectedRow: number): IBranchesState {
+    const branchItems = groupedAndFilteredBranches(
+      this.props.defaultBranch,
+      this.props.currentBranch,
+      this.props.allBranches,
+      this.props.recentBranches,
+      newFilter
+    )
+
+    const selectedRow = newSelectedRow < 0 || newSelectedRow >= branchItems.length
+      ? branchItems.findIndex(item => item.kind === 'branch')
+      : newSelectedRow
+
+    const filter = newFilter
+
+    return { filter, selectedRow, branchItems }
+  }
+
+  private receiveProps(nextProps: IBranchesProps) {
+    this.setState(this.createState(nextProps, this.state.filter, this.state.selectedRow))
+  }
+
+  public componentWillReceiveProps(nextProps: IBranchesProps) {
+    this.receiveProps(nextProps)
+  }
+
+  private renderRow = (row: number) => {
+    const item = this.state.branchItems[row]
     if (item.kind === 'branch') {
       const branch = item.branch
       const commit = branch.tip
@@ -47,8 +74,8 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     }
   }
 
-  private onRowSelected(branchItems: ReadonlyArray<BranchListItemModel>, row: number) {
-    const item = branchItems[row]
+  private onRowSelected = (row: number) => {
+    const item = this.state.branchItems[row]
     if (item.kind !== 'branch') { return }
 
     const branch = item.branch
@@ -56,30 +83,34 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     this.props.dispatcher.checkoutBranch(this.props.repository, branch.nameWithoutRemote)
   }
 
-  private canSelectRow(branchItems: ReadonlyArray<BranchListItemModel>, row: number) {
-    const item = branchItems[row]
+  private canSelectRow = (row: number) => {
+    const item = this.state.branchItems[row]
     return item.kind === 'branch'
   }
 
-  private onFilterChanged(event: React.FormEvent<HTMLInputElement>) {
+  private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const text = event.currentTarget.value
-    this.setState({ filter: text })
+    this.setState(this.createState(this.props, text, this.state.selectedRow))
   }
 
-  private onKeyDown(branchItems: ReadonlyArray<BranchListItemModel>, event: React.KeyboardEvent<HTMLInputElement>) {
+  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const list = this.list
     if (!list) { return }
 
-    let nextRow = this.selectedRow
+    let nextRow = this.state.selectedRow
     if (event.key === 'ArrowDown') {
-      nextRow = list.nextSelectableRow('down', this.selectedRow)
+      nextRow = list.nextSelectableRow('down', this.state.selectedRow)
+      event.preventDefault()
     } else if (event.key === 'ArrowUp') {
-      nextRow = list.nextSelectableRow('up', this.selectedRow)
+      nextRow = list.nextSelectableRow('up', this.state.selectedRow)
+      event.preventDefault()
     } else if (event.key === 'Enter') {
-      this.onRowSelected(branchItems, this.selectedRow)
+      this.onRowSelected(this.state.selectedRow)
+      event.preventDefault()
     } else if (event.key === 'Escape') {
       if (this.state.filter.length === 0) {
         this.props.dispatcher.closePopup()
+        event.preventDefault()
         return
       }
     } else {
@@ -87,21 +118,16 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     }
 
     this.scrollToRow = nextRow
-    this.selectedRow = nextRow
-    this.forceUpdate()
+    this.setState(this.createState(this.props, this.state.filter, nextRow))
+  }
+
+  private storeListRef = (ref: List) => {
+    this.list = ref
   }
 
   public render() {
     const scrollToRow = this.scrollToRow
     this.scrollToRow = -1
-
-    const branchItems = groupedAndFilteredBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches, this.state.filter)
-    let selectedRow = this.selectedRow
-    if (selectedRow < 0 || selectedRow >= branchItems.length) {
-      selectedRow = branchItems.findIndex(item => item.kind === 'branch')
-    }
-
-    this.selectedRow = selectedRow
 
     return (
       <div id='branches'>
@@ -109,18 +135,18 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
                type='search'
                autoFocus={true}
                placeholder='Filter'
-               onChange={event => this.onFilterChanged(event)}
-               onKeyDown={event => this.onKeyDown(branchItems, event)}/>
+               onChange={this.onFilterChanged}
+               onKeyDown={this.onKeyDown}/>
 
         <div className='branches-list-container'>
-          <List rowCount={branchItems.length}
-                rowRenderer={row => this.renderRow(branchItems, row)}
+          <List rowCount={this.state.branchItems.length}
+                rowRenderer={this.renderRow}
                 rowHeight={RowHeight}
-                selectedRow={selectedRow}
-                onRowSelected={row => this.onRowSelected(branchItems, row)}
-                canSelectRow={row => this.canSelectRow(branchItems, row)}
+                selectedRow={this.state.selectedRow}
+                onRowSelected={this.onRowSelected}
+                canSelectRow={this.canSelectRow}
                 scrollToRow={scrollToRow}
-                ref={ref => this.list = ref}
+                ref={this.storeListRef}
                 invalidationProps={this.props}/>
         </div>
       </div>
