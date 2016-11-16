@@ -34,6 +34,10 @@ export function askUserToOAuth(endpoint: string) {
   })
 }
 
+/**
+ * Request the authenticated using, using the code given to us by the OAuth
+ * callback.
+ */
 export async function requestAuthenticatedUser(code: string): Promise<User | null> {
   if (!oauthState) {
     return fatalError('`askUserToOAuth` must be called before requesting an authenticated user.')
