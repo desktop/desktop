@@ -1,6 +1,5 @@
 import { DiffSelection } from './diff'
 import { OcticonSymbol } from '../ui/octicons'
-
 import { assertNever } from '../lib/fatal-error'
 
 /** the state of the changed file in the working directory */
@@ -13,12 +12,13 @@ export enum FileStatus {
   Copied,
 }
 
-/** Converts a given FileStatus value to a human-readable string to be
- *  presented to users which describes the state of a file.
+/**
+ * Converts a given FileStatus value to a human-readable string to be
+ * presented to users which describes the state of a file.
  *
- *  Typically this will be the same value as that of the enum key.
+ * Typically this will be the same value as that of the enum key.
  *
- *  Used in file lists.
+ * Used in file lists.
  */
 export function mapStatus(status: FileStatus): string {
   switch (status) {
@@ -33,10 +33,11 @@ export function mapStatus(status: FileStatus): string {
   return assertNever(status, `Unknown file status ${status}`)
 }
 
-/** Converts a given FileStatus value to an Octicon symbol
- *  presented to users when displaying the file path.
+/**
+ * Converts a given FileStatus value to an Octicon symbol
+ * presented to users when displaying the file path.
  *
- *  Used in file lists.
+ * Used in file lists.
  */
 export function iconForStatus(status: FileStatus): OcticonSymbol {
 
@@ -51,7 +52,6 @@ export function iconForStatus(status: FileStatus): OcticonSymbol {
 
   return assertNever(status, `Unknown file status ${status}`)
 }
-
 
 export class FileChange {
   /** the relative path to the file in the repository */
