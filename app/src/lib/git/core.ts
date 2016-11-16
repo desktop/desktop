@@ -1,5 +1,6 @@
 import * as Path from 'path'
 import { User } from '../../models/user'
+import { assertNever } from '../fatal-error'
 
 import {
   GitProcess,
@@ -139,7 +140,37 @@ export async function git(args: string[], path: string, options?: IGitExecutionO
 }
 
 function getDescriptionForError(error: GitKitchenSinkError): string {
-  return ''
+  switch (error) {
+    case GitKitchenSinkError.GitNotFound: return 'Git not found'
+    case GitKitchenSinkError.SSHKeyAuditUnverified: return 'The SSH key is unverified'
+    case GitKitchenSinkError.SSHAuthenticationFailed: return 'Authentication failed'
+    case GitKitchenSinkError.SSHPermissionDenied: return 'Permission denied'
+    case GitKitchenSinkError.HTTPSAuthenticationFailed: return 'Authentication failed'
+    case GitKitchenSinkError.RemoteDisconnection: return 'The remote disconnected'
+    case GitKitchenSinkError.HostDown: return 'The host is down'
+    case GitKitchenSinkError.RebaseConflicts: return 'There are rebase conflicts'
+    case GitKitchenSinkError.MergeConflicts: return 'There are merge conflicts'
+    case GitKitchenSinkError.HTTPSRepositoryNotFound: return 'The repository could not be found'
+    case GitKitchenSinkError.SSHRepositoryNotFound: return 'The repository could not be found'
+    case GitKitchenSinkError.PushNotFastForward: return 'The push was rejected. Pull and try again.'
+    case GitKitchenSinkError.BranchDeletionFailed: return 'Branch deletion failed'
+    case GitKitchenSinkError.DefaultBranchDeletionFailed: return 'Cannot delete the default branch'
+    case GitKitchenSinkError.RevertConflicts: return 'There are conflicts after reverting'
+    case GitKitchenSinkError.EmptyRebasePatch: return 'Could not apply patch'
+    case GitKitchenSinkError.NoMatchingRemoteBranch: return 'No matching remote branch'
+    case GitKitchenSinkError.NothingToCommit: return 'There is nothing to commit'
+    case GitKitchenSinkError.NoSubmoduleMapping: return 'There is no submodule mapping'
+    case GitKitchenSinkError.SubmoduleRepositoryDoesNotExist: return 'Submodule repository does not exist'
+    case GitKitchenSinkError.InvalidSubmoduleSHA: return 'Invalid submodule SHA'
+    case GitKitchenSinkError.LocalPermissionDenied: return 'Permission denied'
+    case GitKitchenSinkError.InvalidMerge: return 'Invalid merge'
+    case GitKitchenSinkError.InvalidRebase: return 'Invalid rebase'
+    case GitKitchenSinkError.NonFastForwardMergeIntoEmptyHead: return 'Non-fast forward merge into an empty HEAD'
+    case GitKitchenSinkError.PatchDoesNotApply: return 'Patch does not apply'
+    case GitKitchenSinkError.BranchAlreadyExists: return 'A branch with that name already exists'
+    case GitKitchenSinkError.BadRevision: return 'Bad revision'
+    default: return assertNever(error, `Unknown error: ${error}`)
+  }
 }
 
 function getAskPassTrampolinePath(): string {
