@@ -19,10 +19,10 @@ interface IChangesListProps {
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedPath: string | null
   readonly onFileSelectionChanged: (row: number) => void
-  readonly onIncludeChanged: (row: number, include: boolean) => void
+  readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (message: ICommitMessage) => void
-  readonly onDiscardChanges: (row: number) => void
+  readonly onDiscardChanges: (path: string) => void
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly avatarURL: string
@@ -42,12 +42,12 @@ interface IChangesListProps {
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
-  private onIncludeAllChange(event: React.FormEvent<HTMLInputElement>) {
+  private onIncludeAllChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
     this.props.onSelectAll(include)
   }
 
-  private renderRow(row: number): JSX.Element {
+  private renderRow = (row: number): JSX.Element => {
     const file = this.props.workingDirectory.files[row]
     const selection = file.selection.getSelectionType()
 
@@ -61,8 +61,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
                    oldPath={file.oldPath}
                    include={includeAll}
                    key={file.id}
-                   onIncludeChanged={include => this.props.onIncludeChanged(row, include)}
-                   onDiscardChanges={() => this.props.onDiscardChanges(row)}/>
+                   onIncludeChanged={this.props.onIncludeChanged}
+                   onDiscardChanges={this.props.onDiscardChanges}/>
     )
   }
 
@@ -88,7 +88,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     return (
       <div className='changes-list-container file-list'>
         <div id='select-all' className='header'>
-          <Checkbox value={this.includeAllValue} onChange={event => this.onIncludeAllChange(event)}/>
+          <Checkbox value={this.includeAllValue} onChange={this.onIncludeAllChanged}/>
 
           <label>
             {filesDescription}
@@ -98,9 +98,9 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         <List id='changes-list'
               rowCount={this.props.workingDirectory.files.length}
               rowHeight={RowHeight}
-              rowRenderer={row => this.renderRow(row)}
+              rowRenderer={this.renderRow}
               selectedRow={selectedRow}
-              onSelectionChanged={row => this.props.onFileSelectionChanged(row)}
+              onSelectionChanged={this.props.onFileSelectionChanged}
               invalidationProps={this.props.workingDirectory}
               onRowKeyDown={this.props.onRowKeyDown} />
 

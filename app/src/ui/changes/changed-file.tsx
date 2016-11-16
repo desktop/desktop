@@ -11,16 +11,16 @@ interface IChangedFileProps {
   status: FileStatus
   oldPath?: string
   include: boolean | null
-  onIncludeChanged: (include: boolean) => void
-  onDiscardChanges: () => void
+  onIncludeChanged: (path: string, include: boolean) => void
+  onDiscardChanges: (path: string) => void
 }
 
 /** a changed file in the working directory for a given repository */
 export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
-  private handleChange(event: React.FormEvent<HTMLInputElement>) {
+  private handleCheckboxChange = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
-    this.props.onIncludeChanged(include)
+    this.props.onIncludeChanged(this.props.path, include)
   }
 
   private get checkboxValue(): CheckboxValue {
@@ -38,7 +38,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     const fileStatus = mapStatus(status)
 
     return (
-      <div className='file' onContextMenu={e => this.onContextMenu(e)}>
+      <div className='file' onContextMenu={this.onContextMenu}>
 
         <Checkbox
           // The checkbox doesn't need to be tab reachable since we emulate
@@ -46,7 +46,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
           // while focused on a row will toggle selection.
           tabIndex={-1}
           value={this.checkboxValue}
-          onChange={event => this.handleChange(event)}/>
+          onChange={this.handleCheckboxChange}/>
 
         <PathLabel path={this.props.path}
                     oldPath={this.props.oldPath}
@@ -59,13 +59,13 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     )
   }
 
-  private onContextMenu(event: React.MouseEvent<any>) {
+  private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
 
     if (!__WIN32__) {
       const item = {
         label: 'Discard Changes',
-        action: () => this.props.onDiscardChanges(),
+        action: () => this.props.onDiscardChanges(this.props.path),
       }
       showContextualMenu([ item ])
     }
