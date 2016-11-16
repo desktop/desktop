@@ -82,25 +82,26 @@ async function attachImageDiff(repository: Repository, file: FileChange, diff: D
   const extension = Path.extname(file.path)
 
   // some extension we don't know how to parse, never mind
-  if (imageFileExtensions.has(extension)) {
+  if (!imageFileExtensions.has(extension)) {
+    return diff
+  }
 
-    let current: Image | undefined = undefined
-    let previous: Image | undefined = undefined
+  let current: Image | undefined = undefined
+  let previous: Image | undefined = undefined
 
-    if (file.status === FileStatus.New || file.status === FileStatus.Modified) {
-      current = await getWorkingDirectoryImage(repository, file)
-    }
+  if (file.status === FileStatus.New || file.status === FileStatus.Modified) {
+    current = await getWorkingDirectoryImage(repository, file)
+  }
 
-    if (file.status === FileStatus.Modified
-        || file.status === FileStatus.Renamed
-        || file.status === FileStatus.Deleted) {
-      previous = await getBlobImage(repository, file)
-    }
+  if (file.status === FileStatus.Modified
+      || file.status === FileStatus.Renamed
+      || file.status === FileStatus.Deleted) {
+    previous = await getBlobImage(repository, file)
+  }
 
-    diff.imageDiff = {
-      previous: previous,
-      current: current,
-    }
+  diff.imageDiff = {
+    previous: previous,
+    current: current,
   }
 
   return diff
