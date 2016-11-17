@@ -308,14 +308,14 @@ export class GitStore {
    * @param commit - The commit to remove - should be the tip of the current branch.
    * @param user - The user to use for authentication, if needed.
    */
-  public async undoCommit(commit: Commit, user: User | null): Promise<void> {
+  public async undoCommit(commit: Commit): Promise<void> {
     // For an initial commit, just delete the reference but leave HEAD. This
     // will make the branch unborn again.
     let success: true | undefined = undefined
     if (!commit.parentSHAs.length) {
       const branch = this._currentBranch
       if (branch) {
-        success = await this.performFailableOperation(() => deleteBranch(this.repository, branch, user))
+        success = await this.performFailableOperation(() => deleteBranch(this.repository, branch, null))
       } else {
         console.error(`Can't undo ${commit.sha} because it doesn't have any parents and there's no current branch. How on earth did we get here?!`)
         return Promise.resolve()
