@@ -18,9 +18,10 @@ const DiffPrefixAdd: '+' = '+'
 const DiffPrefixDelete: '-' = '-'
 const DiffPrefixContext: ' ' = ' '
 const DiffPrefixNoNewline: '\\' = '\\'
+const DiffPrefixNoNewlineAlternate: '¥' = '¥'
 
-type DiffLinePrefix = typeof DiffPrefixAdd | typeof DiffPrefixDelete | typeof DiffPrefixContext | typeof DiffPrefixNoNewline
-const DiffLinePrefixChars: Set<DiffLinePrefix> = new Set([ DiffPrefixAdd, DiffPrefixDelete, DiffPrefixContext, DiffPrefixNoNewline ])
+type DiffLinePrefix = typeof DiffPrefixAdd | typeof DiffPrefixDelete | typeof DiffPrefixContext | typeof DiffPrefixNoNewline | typeof DiffPrefixNoNewlineAlternate
+const DiffLinePrefixChars: Set<DiffLinePrefix> = new Set([ DiffPrefixAdd, DiffPrefixDelete, DiffPrefixContext, DiffPrefixNoNewline, DiffPrefixNoNewlineAlternate ])
 
 interface IDiffHeaderInfo {
   /**
@@ -287,6 +288,20 @@ export class DiffParser {
       // When we find it we have to look up the previous line and set the
       // noTrailingNewLine flag
       if (c === DiffPrefixNoNewline) {
+
+        // See https://github.com/git/git/blob/21f862b498925194f8f1ebe8203b7a7df756555b/apply.c#L1725-L1732
+        if (line.length < 12) {
+          throw new Error(`Expected no newline at end of file marker but got ${line}`)
+        }
+
+        const previousLineIndex = lines.length - 1
+        const previousLine = lines[previousLineIndex]
+        lines[previousLineIndex] = previousLine.withNoTrailingNewLine(true)
+
+        continue
+      }
+
+      if (c === DiffPrefixNoNewlineAlternate) {
 
         // See https://github.com/git/git/blob/21f862b498925194f8f1ebe8203b7a7df756555b/apply.c#L1725-L1732
         if (line.length < 12) {

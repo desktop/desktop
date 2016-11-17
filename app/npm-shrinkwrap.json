@@ -1,12 +1,7 @@
 {
   "name": "desktop",
-  "version": "0.0.11",
+  "version": "0.0.13",
   "dependencies": {
-    "ansi-html": {
-      "version": "0.0.5",
-      "from": "ansi-html@0.0.5",
-      "resolved": "https://registry.npmjs.org/ansi-html/-/ansi-html-0.0.5.tgz"
-    },
     "ansi-regex": {
       "version": "2.0.0",
       "from": "ansi-regex@>=2.0.0 <3.0.0",
@@ -422,6 +417,18 @@
       "from": "http-signature@>=1.1.0 <1.2.0",
       "resolved": "https://registry.npmjs.org/http-signature/-/http-signature-1.1.1.tgz"
     },
+    "iconv": {
+      "version": "2.2.1",
+      "from": "iconv@latest",
+      "resolved": "https://registry.npmjs.org/iconv/-/iconv-2.2.1.tgz",
+      "dependencies": {
+        "nan": {
+          "version": "2.4.0",
+          "from": "nan@>=2.3.5 <3.0.0",
+          "resolved": "https://registry.npmjs.org/nan/-/nan-2.4.0.tgz"
+        }
+      }
+    },
     "iconv-lite": {
       "version": "0.4.13",
       "from": "iconv-lite@>=0.4.13 <0.5.0",
@@ -621,6 +628,18 @@
       "version": "1.6.3",
       "from": "node-fetch@>=1.0.1 <2.0.0",
       "resolved": "https://registry.npmjs.org/node-fetch/-/node-fetch-1.6.3.tgz"
+    },
+    "node-icu-charset-detector": {
+      "version": "0.2.0",
+      "from": "node-icu-charset-detector@latest",
+      "resolved": "https://registry.npmjs.org/node-icu-charset-detector/-/node-icu-charset-detector-0.2.0.tgz",
+      "dependencies": {
+        "nan": {
+          "version": "2.4.0",
+          "from": "nan@>=2.3.3 <3.0.0",
+          "resolved": "https://registry.npmjs.org/nan/-/nan-2.4.0.tgz"
+        }
+      }
     },
     "node-status-codes": {
       "version": "2.0.1",
