@@ -5,7 +5,8 @@ import { SignIn } from '../lib/sign-in'
 import { TwoFactorAuthentication } from '../lib/two-factor-authentication'
 import { User } from '../../models/user'
 import { Dispatcher } from '../../lib/dispatcher'
-import { assertNever } from '../../lib/fatal-error'
+import { assertNever, fatalError } from '../../lib/fatal-error'
+import { EnterpriseServerEntry, AuthenticationMethods } from '../lib/enterprise-server-entry'
 
 interface ISignInEnterpriseProps {
   readonly dispatcher: Dispatcher
@@ -48,7 +49,7 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, IS
   private renderStep() {
     const step = this.state.step
     if (step.kind === SignInStep.ServerEntry) {
-      return null
+      return <EnterpriseServerEntry onContinue={this.onServerEntry}/>
     } else if (step.kind === SignInStep.UsernamePassword) {
       return <SignIn
         endpoint={step.endpoint}
@@ -68,6 +69,12 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, IS
     }
   }
 
+  private onServerEntry = (endpoint: string, authMethods: Set<AuthenticationMethods>) => {
+    this.setState({
+      step: { kind: SignInStep.UsernamePassword, endpoint },
+    })
+  }
+
   private cancel = () => {
     this.props.advance(WelcomeStep.Start)
   }
@@ -79,8 +86,13 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, IS
   }
 
   private onNeeds2FA = (login: string, password: string) => {
-    this.setState({
-      step: { kind: SignInStep.TwoFactorAuthentication, login, password },
-    })
+    const step = this.state.step
+    if (step.kind === SignInStep.UsernamePassword) {
+      this.setState({
+        step: { kind: SignInStep.TwoFactorAuthentication, login, password, endpoint: step.endpoint },
+      })
+    } else {
+      fatalError('How did you get here O_o')
+    }
   }
 }
