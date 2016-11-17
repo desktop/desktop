@@ -72,9 +72,6 @@ export class Resizable extends React.Component<IResizableProps, void> {
   /**
    * Handler for when the user presses the mouse button over the resize
    * handle.
-   *
-   * Note: This method is intentionally bound using `=>` so that
-   * we can avoid creating anonymous functions repeatedly in render()
    */
   private handleDragStart = (e: React.MouseEvent<any>) => {
     this.startX = e.clientX
@@ -86,9 +83,6 @@ export class Resizable extends React.Component<IResizableProps, void> {
 
   /**
    * Handler for when the user moves the mouse while dragging
-   *
-   * Note: This method is intentionally bound using `=>` so that
-   * we can avoid creating anonymous functions repeatedly in render()
    */
   private handleDragMove = (e: MouseEvent) => {
     const deltaX = e.clientX - this.startX
@@ -104,9 +98,6 @@ export class Resizable extends React.Component<IResizableProps, void> {
   /**
    * Handler for when the user lets go of the mouse button during
    * a resize operation.
-   *
-   * Note: This method is intentionally bound using `=>` so that
-   * we can avoid creating anonymous functions repeatedly in render()
    */
   private handleDragStop = (e: MouseEvent) => {
     document.removeEventListener('mousemove', this.handleDragMove)
@@ -118,9 +109,6 @@ export class Resizable extends React.Component<IResizableProps, void> {
    *
    * Resets the panel width to its default value and clears
    * any persisted value.
-   *
-   * Note: This method is intentionally bound using `=>` so that
-   * we can avoid creating anonymous functions repeatedly in render()
    */
   private handleDoubleClick = () => {
     if (this.props.onReset) {

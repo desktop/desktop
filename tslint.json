@@ -1,7 +1,8 @@
 {
   "rulesDirectory": [
     "node_modules/vrsource-tslint-rules/rules",
-    "node_modules/@niik/tslint-microsoft-contrib/"
+    "node_modules/@niik/tslint-microsoft-contrib/",
+    "tslint-rules/"
   ],
   "rules": {
     "class-name": true,
@@ -54,6 +55,7 @@
       true,
       "single"
     ],
+    "react-no-unbound-dispatcher-props": true,
     "react-unused-props-and-state": [ true,
       {
         "props-interface-regex": "Props$",
