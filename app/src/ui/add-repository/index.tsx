@@ -32,7 +32,7 @@ export class AddRepository extends React.Component<IAddRepositoryProps, IAddRepo
     this.state = { selectedTab: AddRepositoryTab.AddExisting }
   }
 
-  private onTabClicked(tab: AddRepositoryTab) {
+  private onTabClicked = (tab: AddRepositoryTab) => {
     this.setState({ selectedTab: tab })
   }
 
@@ -56,7 +56,7 @@ export class AddRepository extends React.Component<IAddRepositoryProps, IAddRepo
     return (
       <div>
         <nav className='popup-navigation'>
-          <TabBar onTabClicked={index => this.onTabClicked(index)} selectedIndex={this.state.selectedTab}>
+          <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedTab}>
             <span role='button'>Add</span>
             <span role='button'>Create</span>
             <span role='button'>Clone</span>

@@ -285,7 +285,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   /** Put the main application menu into a context menu for now (win only) */
-  private onContextMenu(e: React.MouseEvent<any>) {
+  private onContextMenu = (e: React.MouseEvent<any>) => {
     if (__WIN32__) {
       e.preventDefault()
       showPopupAppMenu()
@@ -326,28 +326,31 @@ export class App extends React.Component<IAppProps, IAppState> {
     return assertNever(popup, `Unknown popup type: ${popup}`)
   }
 
+  private onPopupOverlayClick = () => { this.props.dispatcher.closePopup() }
+
   private renderPopup(): JSX.Element | null {
-    const handleOverlayClick = () => {this.props.dispatcher.closePopup()}
     const content = this.currentPopupContent()
     if (!content) { return null }
 
     return (
       <div className='fill-window'>
-        <div className='fill-window popup-overlay' onClick={handleOverlayClick}></div>
+        <div className='fill-window popup-overlay' onClick={this.onPopupOverlayClick}></div>
         <Popuppy>{content}</Popuppy>
       </div>
     )
   }
 
+  private clearErrors = () => {
+    const errors = this.state.errors
+
+    for (const error of errors) {
+      this.props.dispatcher.clearError(error)
+    }
+  }
+
   private renderErrors() {
     const errors = this.state.errors
     if (!errors.length) { return null }
-
-    const clearErrors = () => {
-      for (const error of errors) {
-        this.props.dispatcher.clearError(error)
-      }
-    }
 
     const msgs = errors.map(e => e.message)
     return (
@@ -355,7 +358,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         {msgs.map((msg, i) => <pre className='popup-error-output' key={i}>{msg}</pre>)}
 
         <div className='popup-actions'>
-          <button onClick={clearErrors}>OK</button>
+          <button onClick={this.clearErrors}>OK</button>
         </div>
       </Popuppy>
     )
@@ -363,7 +366,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderApp() {
     return (
-      <div id='desktop-app-contents' onContextMenu={e => this.onContextMenu(e)}>
+      <div id='desktop-app-contents' onContextMenu={this.onContextMenu}>
         {this.renderToolbar()}
         {this.renderRepository()}
         {this.renderPopup()}
@@ -386,16 +389,22 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private renderRepositoryList(): JSX.Element {
+  private renderRepositoryList = (): JSX.Element => {
     const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
 
     return <RepositoriesList
       selectedRepository={selectedRepository}
-      onSelectionChanged={repository => this.onSelectionChanged(repository)}
+      onSelectionChanged={this.onSelectionChanged}
       dispatcher={this.props.dispatcher}
       repositories={this.state.repositories}
       loading={this.state.loading}
     />
+  }
+
+  private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
+    newState === 'open'
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+      : this.props.dispatcher.closeFoldout()
   }
 
   private renderRepositoryToolbarButton() {
@@ -413,18 +422,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     const isOpen = this.state.currentFoldout
       && this.state.currentFoldout.type === FoldoutType.Repository
 
-    const onDropdownStateChanged = (newState: DropdownState) => newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
-      : this.props.dispatcher.closeFoldout()
-
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
     return <ToolbarDropdown
       icon={icon}
       title={title}
       description='Current repository'
-      onDropdownStateChanged={onDropdownStateChanged}
-      dropdownContentRenderer={() => this.renderRepositoryList()}
+      onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
+      dropdownContentRenderer={this.renderRepositoryList}
       dropdownState={currentState} />
   }
 
@@ -444,7 +449,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       networkActionInProgress={state.pushPullInProgress}/>
   }
 
-  private renderBranchFoldout(repository: Repository): JSX.Element {
+  private renderBranchFoldout = (): JSX.Element | null => {
+    const selection = this.state.selectedState
+
+    // NB: This should never happen but in the case someone
+    // manages to delete the last repository while the drop down is
+    // open we'll just bail here.
+    if (!selection || selection.type !== SelectionType.Repository) {
+      return null
+    }
+    const repository = selection.repository
+
     const state = this.props.appStore.getRepositoryState(repository)
     return <Branches
       allBranches={state.branchesState.allBranches}
@@ -456,14 +471,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     />
   }
 
+  private onBranchDropdownStateChanged = (newState: DropdownState) => {
+    newState === 'open'
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+      : this.props.dispatcher.closeFoldout()
+  }
+
   private renderBranchToolbarButton(): JSX.Element | null {
     const selection = this.state.selectedState
 
     if (!selection || selection.type !== SelectionType.Repository) {
       return null
     }
-
-    const repository = selection.repository
     const branch = selection.state.branchesState.currentBranch
 
     // TODO: This is in all likelihood wrong, need to look into
@@ -477,10 +496,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     const isOpen = this.state.currentFoldout
       && this.state.currentFoldout.type === FoldoutType.Branch
 
-    const onDropdownStateChanged = (newState: DropdownState) => newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
-      : this.props.dispatcher.closeFoldout()
-
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
     return <ToolbarDropdown
@@ -488,8 +503,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       icon={OcticonSymbol.gitBranch}
       title={title}
       description='Current branch'
-      onDropdownStateChanged={onDropdownStateChanged}
-      dropdownContentRenderer={() => this.renderBranchFoldout(repository)}
+      onDropdownStateChanged={this.onBranchDropdownStateChanged}
+      dropdownContentRenderer={this.renderBranchFoldout}
       dropdownState={currentState} />
   }
 
@@ -545,7 +560,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onSelectionChanged(repository: Repository | CloningRepository) {
+  private onSelectionChanged = (repository: Repository | CloningRepository) => {
     this.props.dispatcher.selectRepository(repository)
 
     if (repository instanceof Repository) {
