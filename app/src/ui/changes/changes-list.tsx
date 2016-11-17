@@ -86,7 +86,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     const anyFilesSelected = fileCount > 0 && this.includeAllValue !== CheckboxValue.Off
 
     return (
-      <div className='changes-list-container'>
+      <div className='changes-list-container file-list'>
         <div id='select-all' className='header'>
           <Checkbox value={this.includeAllValue} onChange={this.onIncludeAllChanged}/>
 

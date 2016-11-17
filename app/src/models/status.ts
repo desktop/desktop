@@ -1,4 +1,6 @@
 import { DiffSelection } from './diff'
+import { OcticonSymbol } from '../ui/octicons'
+import { assertNever } from '../lib/fatal-error'
 
 /** the state of the changed file in the working directory */
 export enum FileStatus {
@@ -8,6 +10,47 @@ export enum FileStatus {
   Renamed,
   Conflicted,
   Copied,
+}
+
+/**
+ * Converts a given FileStatus value to a human-readable string to be
+ * presented to users which describes the state of a file.
+ *
+ * Typically this will be the same value as that of the enum key.
+ *
+ * Used in file lists.
+ */
+export function mapStatus(status: FileStatus): string {
+  switch (status) {
+    case FileStatus.New: return 'New'
+    case FileStatus.Modified: return 'Modified'
+    case FileStatus.Deleted: return 'Deleted'
+    case FileStatus.Renamed: return 'Renamed'
+    case FileStatus.Conflicted: return 'Conflicted'
+    case FileStatus.Copied: return 'Copied'
+  }
+
+  return assertNever(status, `Unknown file status ${status}`)
+}
+
+/**
+ * Converts a given FileStatus value to an Octicon symbol
+ * presented to users when displaying the file path.
+ *
+ * Used in file lists.
+ */
+export function iconForStatus(status: FileStatus): OcticonSymbol {
+
+  switch (status) {
+    case FileStatus.New: return OcticonSymbol.diffAdded
+    case FileStatus.Modified: return OcticonSymbol.diffModified
+    case FileStatus.Deleted: return OcticonSymbol.diffRemoved
+    case FileStatus.Renamed: return OcticonSymbol.diffRenamed
+    case FileStatus.Conflicted: return OcticonSymbol.alert
+    case FileStatus.Copied: return OcticonSymbol.diffAdded
+  }
+
+  return assertNever(status, `Unknown file status ${status}`)
 }
 
 export class FileChange {

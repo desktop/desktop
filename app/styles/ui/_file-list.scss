@@ -1,0 +1,43 @@
+.file-list {
+
+  // this value affects virtualized lists, and without it
+  // you'll see react-virtualized just skip rendering
+  // as the available vertical space is computed as zero
+  height: 100%;
+
+  .list-item {
+    padding: var(--spacing-half);
+    border-bottom: var(--base-border);
+  }
+
+  // Only use special colors for the change type icons when
+  // the list item doesn't have active focus. If it does we
+  // fall back to using the ambient foreground color of the
+  // list item.
+  .list-item:not(:focus) {
+    .status {
+      &-new { fill: var(--color-new); }
+      &-modified { fill: var(--color-modified); }
+      &-deleted { fill: var(--color-deleted); }
+    }
+  }
+
+  .file {
+    display: flex;
+    flex-grow: 1;
+
+    // See https://css-tricks.com/flexbox-truncated-text/
+    min-width: 0;
+
+    input, .status { flex-shrink: 0; }
+
+    .path {
+      flex-grow: 1;
+      @include ellipsis;
+    }
+
+    .octicon {
+      vertical-align: text-bottom;
+    }
+  }
+}
