@@ -24,9 +24,9 @@ export async function deleteBranch(repository: Repository, branch: Branch, user:
 
   const remote = branch.remote
 
-  // If the user is not authenticated, the push is going to fail.
-  // Silently skipping this operation in that case seem reasonable but maybe not?
-  if (remote && user) {
+  // If the user is not authenticated, the push is going to fail
+  // Let this propagate and leave it to the caller to handle
+  if (remote) {
     await git([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path, { env: envForAuthentication(user) })
   }
 
