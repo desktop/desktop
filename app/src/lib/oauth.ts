@@ -20,7 +20,7 @@ let oauthState: IOAuthState | null = null
 /**
  * Ask the user to auth with the given endpoint. This will open their browser.
  *
- * {endpoint} - The endpoint to auth against.
+ * @param endpoint - The endpoint to auth against.
  *
  * Returns a {Promise} which will resolve when the OAuth flow as been completed.
  */

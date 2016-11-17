@@ -270,12 +270,12 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 /**
  * Make an API request.
  *
- * {endpoint}      - The API endpoint.
- * {authorization} - The value to pass in the `Authorization` header.
- * {method}        - The HTTP method.
- * {path}          - The path without a leading /.
- * {body}          - The body to send.
- * {customHeaders} - Any optional additional headers to send.
+ * @param endpoint      - The API endpoint.
+ * @param authorization - The value to pass in the `Authorization` header.
+ * @param method        - The HTTP method.
+ * @param path          - The path without a leading /.
+ * @param body          - The body to send.
+ * @param customHeaders - Any optional additional headers to send.
  */
 function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body: Object | null, customHeaders?: Object): Promise<IHTTPResponse> {
   const url = `${endpoint}/${path}`
