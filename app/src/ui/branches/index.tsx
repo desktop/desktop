@@ -79,7 +79,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     if (item.kind !== 'branch') { return }
 
     const branch = item.branch
-    this.props.dispatcher.closePopup()
+    this.props.dispatcher.closeFoldout()
     this.props.dispatcher.checkoutBranch(this.props.repository, branch.nameWithoutRemote)
   }
 
@@ -109,7 +109,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       event.preventDefault()
     } else if (event.key === 'Escape') {
       if (this.state.filter.length === 0) {
-        this.props.dispatcher.closePopup()
+        this.props.dispatcher.closeFoldout()
         event.preventDefault()
         return
       }
