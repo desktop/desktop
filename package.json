@@ -18,7 +18,9 @@
     "clean": "rimraf build",
     "rebuild:dev": "npm run clean && npm run build:dev",
     "rebuild:prod": "npm run clean && npm run build:prod",
-    "lint": "tslint \"./app/src/**/*.ts\" \"./app/src/**/*.tsx\" \"./app/test/**/*.ts\" \"./app/test/**/*.tsx\"",
+    "clean:tslint": "rimraf tslint-rules/*.js",
+    "compile:tslint": "tsc -p tslint-rules",
+    "lint": "npm run compile:tslint && tslint \"./app/src/**/*.ts\" \"./app/src/**/*.tsx\" \"./app/test/**/*.ts\" \"./app/test/**/*.tsx\"",
     "publish": "node script/publish"
   },
   "author": "",
