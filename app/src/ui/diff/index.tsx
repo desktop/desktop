@@ -228,7 +228,8 @@ export class Diff extends React.Component<IDiffProps, void> {
     const element = this.cachedGutterElements.get(row)
 
     if (!element) {
-      console.error('expected gutter element not found')
+      // no point trying to render this element, as it's not
+      // currently cached by the editor
       return
     }
 
