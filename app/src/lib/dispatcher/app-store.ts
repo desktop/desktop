@@ -1121,8 +1121,8 @@ export class AppStore {
     }
 
     const user = this.getUserForRepository(repository)
-
     const gitStore = this.getGitStore(repository)
+
     await gitStore.performFailableOperation(() => checkoutBranch(repository, defaultBranch.name))
     await gitStore.performFailableOperation(() => deleteBranch(repository, branch, user))
 
@@ -1301,6 +1301,7 @@ export class AppStore {
   public async _undoCommit(repository: Repository, commit: Commit): Promise<void> {
     const gitStore = this.getGitStore(repository)
     const user = this.getUserForRepository(repository)
+
     await gitStore.undoCommit(commit, user)
 
     return this._refreshRepository(repository)
