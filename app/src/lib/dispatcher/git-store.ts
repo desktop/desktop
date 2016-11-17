@@ -306,7 +306,6 @@ export class GitStore {
    * Undo a specific commit for the current repository.
    *
    * @param commit - The commit to remove - should be the tip of the current branch.
-   * @param user - The user to use for authentication, if needed.
    */
   public async undoCommit(commit: Commit): Promise<void> {
     // For an initial commit, just delete the reference but leave HEAD. This
