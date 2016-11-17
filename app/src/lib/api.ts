@@ -233,7 +233,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
     'scopes': Scopes,
     'client_id': ClientID,
     'client_secret': ClientSecret,
-    'note': getNote(),
+    'note': getNote(login),
     'note_url': NoteURL,
     'fingerprint': getFingerprint(),
   }, headers)
@@ -302,8 +302,8 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
 }
 
 /** The note used for created authorizations. */
-function getNote(): string {
-  return `GitHub Desktop on ${OS.hostname()}`
+function getNote(login: string): string {
+  return `GitHub Desktop on ${OS.hostname()} as ${login}`
 }
 
 /** The fingerprint used to uniquely identify authorizations. */
