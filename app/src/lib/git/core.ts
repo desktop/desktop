@@ -112,7 +112,7 @@ export async function git(args: string[], path: string, options?: IGitExecutionO
   const exitCode = result.exitCode
 
   let gitError: GitKitchenSinkError | null = null
-  const acceptableExitCode = opts.successExitCodes!.has(exitCode)
+  const acceptableExitCode = opts.successExitCodes && opts.successExitCodes.has(exitCode)
   if (!acceptableExitCode) {
     gitError = GitProcess.parseError(result.stderr)
     if (!gitError) {
@@ -123,7 +123,7 @@ export async function git(args: string[], path: string, options?: IGitExecutionO
   const gitErrorDescription = gitError ? getDescriptionForError(gitError) : null
   const gitResult = Object.assign({}, result, { gitError, gitErrorDescription })
 
-  const acceptableError = !gitError || (gitError && opts.expectedErrors!.has(gitError))
+  const acceptableError = !gitError || (gitError && opts.expectedErrors && opts.expectedErrors.has(gitError))
   if (!acceptableExitCode && !acceptableError) {
     console.error(`The command \`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
     if (result.stdout.length) {
