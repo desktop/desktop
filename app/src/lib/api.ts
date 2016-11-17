@@ -279,7 +279,7 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
  */
 function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body: Object | null, customHeaders?: Object): Promise<IHTTPResponse> {
   const url = `${endpoint}/${path}`
-  const headers: Object = Object.assign({}, {
+  const headers = Object.assign({}, {
     'Accept': 'application/vnd.github.v3+json, application/json',
     'Content-Type': 'application/json',
     'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
