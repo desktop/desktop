@@ -1,3 +1,24 @@
+/**
+ * react-no-unbound-dispatcher-props
+ *
+ * This custom tslint rule is highly specific to GitHub Desktop and attempts
+ * to prevent errors caused by passing unbound dispatcher methods as callbacks
+ * to components.
+ *
+ * Example
+ *
+ * <Resizable onReset={this.props.dispatcher.resetSidebarWidth} />
+ *
+ * The example above will fail at runtime because the resetSidebarWidth method
+ * is invoked with the `this` context not set to the dispatcher instance. The
+ * solution is to wrap the dispatcher callback in a bound instance method and
+ * passing that to the component in question.
+ *
+ * private handleReset = () => { this.props.dispatcher.resetSidebarWidth }
+ * ...
+ * <Resizable onReset={this.handleReset} />
+ */
+
 import * as ts from 'typescript'
 import * as Lint from 'tslint/lib/lint'
 
