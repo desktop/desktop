@@ -8,6 +8,7 @@ import * as appProxy from '../ui/lib/app-proxy'
 
 const Octokat = require('octokat')
 const got = require('got')
+const username: () => Promise<string> = require('username')
 
 /** The response from `got` requests. */
 interface IHTTPResponse extends HTTP.IncomingMessage {
@@ -226,11 +227,13 @@ export async function createAuthorization(endpoint: string, login: string, passw
   const authorization = `Basic ${creds}`
   const headers = oneTimePassword ? { 'X-GitHub-OTP': oneTimePassword } : {}
 
+  const note = await getNote()
+
   const response = await request(endpoint, authorization, 'POST', 'authorizations', {
     'scopes': Scopes,
     'client_id': ClientID,
     'client_secret': ClientSecret,
-    'note': getNote(login),
+    'note': note,
     'note_url': NoteURL,
     'fingerprint': guid(),
   }, headers)
@@ -299,10 +302,17 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
 }
 
 /** The note used for created authorizations. */
-function getNote(login: string): string {
-  return `GitHub Desktop on ${OS.hostname()} as ${login}`
-}
+async function getNote(): Promise<string> {
+  let localUsername = 'unknown'
+  try {
+    localUsername = await username()
+  } catch (e) {
+    console.log(`Error getting username:`)
+    console.error(e)
+    console.log(`We'll just use 'unknown'.`)
+  }
 
+  return `GitHub Desktop on ${localUsername}@${OS.hostname()}`
 }
 
 /**
