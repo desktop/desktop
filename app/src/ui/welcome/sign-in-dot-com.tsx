@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
-import { SignInDotCom as SignInDotComFragment } from '../lib/sign-in-dot-com'
+import { SignIn } from '../lib/sign-in'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Button } from '../lib/button'
 import { User } from '../../models/user'
@@ -44,7 +44,8 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   private renderStep() {
     const step = this.state.step
     if (step.kind === SignInStep.UsernamePassword) {
-      return <SignInDotComFragment
+      return <SignIn
+        endpoint={getDotComAPIEndpoint()}
         additionalButtons={[
           <Button key='cancel' onClick={this.cancel}>Cancel</Button>,
         ]}
