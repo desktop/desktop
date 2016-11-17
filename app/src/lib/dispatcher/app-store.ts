@@ -1300,7 +1300,8 @@ export class AppStore {
 
   public async _undoCommit(repository: Repository, commit: Commit): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    await gitStore.undoCommit(commit)
+    const user = this.getUserForRepository(repository)
+    await gitStore.undoCommit(commit, user)
 
     return this._refreshRepository(repository)
   }
