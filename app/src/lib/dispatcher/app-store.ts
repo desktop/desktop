@@ -1154,7 +1154,9 @@ export class AppStore {
       }
     })
 
-    return this._refreshRepository(repository)
+    this._refreshRepository(repository)
+
+    return this.fetch(repository)
   }
 
   private async withPushPull(repository: Repository, fn: () => Promise<void>): Promise<void> {
