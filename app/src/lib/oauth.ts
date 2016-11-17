@@ -23,8 +23,12 @@ let oauthState: IOAuthState | null = null
  * @param endpoint - The endpoint to auth against.
  *
  * Returns a {Promise} which will resolve when the OAuth flow as been completed.
+ * Note that the promise may not complete if the user doesn't complete the OAuth
+ * flow.
  */
 export function askUserToOAuth(endpoint: string) {
+  // Disable the lint warning since we're storing the `resolve` and `reject`
+  // functions.
   // tslint:disable-next-line:promise-must-complete
   return new Promise<User>((resolve, reject) => {
     oauthState = { state: guid(), endpoint, resolve, reject }
