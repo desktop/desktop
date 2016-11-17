@@ -225,7 +225,7 @@ export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized
  * password.
  */
 export async function createAuthorization(endpoint: string, login: string, password: string, oneTimePassword: string | null): Promise<AuthorizationResponse> {
-  const creds = new Buffer(`${login}:${password}`).toString('base64')
+  const creds = Buffer.from(`${login}:${password}`, 'utf8').toString('base64')
   const authorization = `Basic ${creds}`
   const headers = oneTimePassword ? { 'X-GitHub-OTP': oneTimePassword } : {}
 
