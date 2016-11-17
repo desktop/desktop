@@ -82,6 +82,15 @@ export interface IAPIIssue {
   readonly state: 'open' | 'closed'
 }
 
+/** The metadata about a GitHub server. */
+export interface IServerMetadata {
+  /**
+   * Does the server support password-based authentication? If not, the user
+   * must go through the OAuth flow to authenticate.
+   */
+  readonly verifiablePasswordAuthentication: boolean
+}
+
 /**
  * An object for making authenticated requests to the GitHub API
  */
@@ -265,6 +274,12 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
   const octo = new Octokat({ token })
   const user = await octo.user.fetch()
   return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id)
+}
+
+/** Get metadata from the server. */
+export async function fetchMetadata(endpoint: string): Promise<IServerMetadata> {
+  const response = await request(endpoint, null, 'GET', 'meta', null)
+  return response.body
 }
 
 /**
