@@ -199,7 +199,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     return line.type === DiffLineType.Add || line.type === DiffLineType.Delete
   }
 
-  private isMouseInLeftColumn(ev: MouseEvent): boolean {
+  private isMouseInHunkSelectionZone(ev: MouseEvent): boolean {
     // MouseEvent is not generic, but getBoundingClientRect should be
     // available for all HTML elements
     // docs: https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
@@ -208,9 +208,9 @@ export class Diff extends React.Component<IDiffProps, void> {
     const offset: ClientRect = element.getBoundingClientRect()
     const relativeLeft = ev.clientX - offset.left
 
-    const width = offset.width
+    const edge = offset.width - 10
 
-    return relativeLeft < (width / 2)
+    return relativeLeft >= edge
   }
 
   private highlightHunk(hunk: DiffHunk, show: boolean) {
@@ -275,7 +275,7 @@ export class Diff extends React.Component<IDiffProps, void> {
             return
           }
 
-          if (this.isMouseInLeftColumn(ev)) {
+          if (this.isMouseInHunkSelectionZone(ev)) {
             this.highlightHunk(hunk, true)
           } else {
             this.highlightLine(index, true)
@@ -289,7 +289,7 @@ export class Diff extends React.Component<IDiffProps, void> {
             return
           }
 
-          if (this.isMouseInLeftColumn(ev)) {
+          if (this.isMouseInHunkSelectionZone(ev)) {
             this.highlightHunk(hunk, false)
           } else {
             this.highlightLine(index, false)
@@ -299,7 +299,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         const mouseDownHandler = (ev: MouseEvent) => {
           ev.preventDefault()
 
-          const isHunkSelection = this.isMouseInLeftColumn(ev)
+          const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
 
           let isIncluded = false
           if (this.props.file instanceof WorkingDirectoryFileChange) {
@@ -323,7 +323,7 @@ export class Diff extends React.Component<IDiffProps, void> {
             // clear hunk selection in case transitioning from hunk->line
             this.highlightHunk(hunk, false)
 
-            if (this.isMouseInLeftColumn(ev)) {
+            if (this.isMouseInHunkSelectionZone(ev)) {
               this.highlightHunk(hunk, true)
             } else {
               this.highlightLine(index, true)
