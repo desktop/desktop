@@ -1,0 +1,71 @@
+import * as ts from 'typescript'
+import * as Lint from 'tslint/lib/lint'
+
+export class Rule extends Lint.Rules.AbstractRule {
+    public apply(sourceFile: ts.SourceFile): Lint.RuleFailure[] {
+      if (sourceFile.languageVariant === ts.LanguageVariant.JSX) {
+        return this.applyWithWalker(new ReactNoUnboundDispatcherPropsWalker(sourceFile, this.getOptions()))
+      } else {
+          return []
+      }
+    }
+}
+
+// The walker takes care of all the work.
+class ReactNoUnboundDispatcherPropsWalker extends Lint.RuleWalker {
+
+  protected visitJsxElement(node: ts.JsxElement): void {
+    this.visitJsxOpeningElement(node.openingElement) // a normal JSX element has-a OpeningElement
+    super.visitJsxElement(node)
+  }
+
+  protected visitJsxSelfClosingElement(node: ts.JsxSelfClosingElement): void {
+    this.visitJsxOpeningElement(node)  // a self closing JSX element is-a OpeningElement
+    super.visitJsxSelfClosingElement(node)
+  }
+
+  private visitJsxOpeningElement(node: ts.JsxOpeningElement): void {
+    // create violations if the listener is a reference to a class method that was not bound to 'this' in the constructor
+    node.attributes.forEach(attributeLikeElement => {
+
+      if (attributeLikeElement.kind !== ts.SyntaxKind.JsxAttribute) { return }
+
+      // This is some weak sauce, why doesn't JsxAttribute specify a literal kind
+      // so that it can be narrowed automatically?
+      const attribute: ts.JsxAttribute = <ts.JsxAttribute>attributeLikeElement
+
+      // This means that the attribute is an inferred boolean true value. See:
+      //
+      // https://github.com/Microsoft/TypeScript/blob/52ec508/src/compiler/types.ts#L1483
+      // https://facebook.github.io/react/docs/jsx-in-depth.html#props-default-to-true
+      if (!attribute.initializer) { return }
+
+      // This likely means that the attribute is a string literal
+      // ie <foo className='foo' />
+      if (attribute.initializer.kind !== ts.SyntaxKind.JsxExpression) { return }
+
+      const jsxExpression: ts.JsxExpression = attribute.initializer
+
+      // We only care about property accesses, direct method invocation on
+      // dispatcher is still okay. This excludes things like
+      // <A foo={1} />, <B foo={this.method()} />, <C foo={{ foo: 'bar' }} etc.
+      if (!jsxExpression.expression || jsxExpression.expression.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+        return
+      }
+
+      const propAccess: ts.PropertyAccessExpression = <ts.PropertyAccessExpression>jsxExpression.expression
+      const propAccessText = propAccess.getText()
+
+      if (/^this\.props\.dispatcher\./.test(propAccessText)) {
+        const start = propAccess.getStart()
+        const widget = propAccess.getWidth()
+        const error = `Use of unbound dispatcher method: ${propAccessText}.`
+        const explanation = 'Consider extracting the method call to a bound instance method.'
+
+        const message = `${error} ${explanation}`
+
+        this.addFailure(this.createFailure(start, widget, message))
+      }
+    })
+  }
+}
