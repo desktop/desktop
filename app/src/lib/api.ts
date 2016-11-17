@@ -8,6 +8,7 @@ import * as appProxy from '../ui/lib/app-proxy'
 
 const Octokat = require('octokat')
 const got = require('got')
+const username: () => Promise<string> = require('username')
 
 /** The response from `got` requests. */
 interface IHTTPResponse extends HTTP.IncomingMessage {
@@ -31,9 +32,6 @@ const Scopes = [
 
 /** The note URL used for authorizations the app creates. */
 const NoteURL = 'https://desktop.github.com/'
-
-/** The fingerprint used to uniquely identify this authorization. */
-const FingerprintKey = 'authorization/fingerprint'
 
 /**
  * Information about a repository as returned by the GitHub API.
@@ -229,13 +227,15 @@ export async function createAuthorization(endpoint: string, login: string, passw
   const authorization = `Basic ${creds}`
   const headers = oneTimePassword ? { 'X-GitHub-OTP': oneTimePassword } : {}
 
+  const note = await getNote()
+
   const response = await request(endpoint, authorization, 'POST', 'authorizations', {
     'scopes': Scopes,
     'client_id': ClientID,
     'client_secret': ClientSecret,
-    'note': getNote(login),
+    'note': note,
     'note_url': NoteURL,
-    'fingerprint': getFingerprint(),
+    'fingerprint': guid(),
   }, headers)
 
   if (response.statusCode === 401) {
@@ -302,18 +302,17 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
 }
 
 /** The note used for created authorizations. */
-function getNote(login: string): string {
-  return `GitHub Desktop on ${OS.hostname()} as ${login}`
-}
+async function getNote(): Promise<string> {
+  let localUsername = 'unknown'
+  try {
+    localUsername = await username()
+  } catch (e) {
+    console.log(`Error getting username:`)
+    console.error(e)
+    console.log(`We'll just use 'unknown'.`)
+  }
 
-/** The fingerprint used to uniquely identify authorizations. */
-function getFingerprint(): string {
-  const existing = localStorage.getItem(FingerprintKey)
-  if (existing) { return existing }
-
-  const fingerprint = guid()
-  localStorage.setItem(FingerprintKey, fingerprint)
-  return fingerprint
+  return `GitHub Desktop on ${localUsername}@${OS.hostname()}`
 }
 
 /**
