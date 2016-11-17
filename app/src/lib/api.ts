@@ -355,7 +355,8 @@ function getOAuthURL(endpoint: string): string {
 
 export function getOAuthAuthorizationURL(endpoint: string, state: string): string {
   const urlBase = getOAuthURL(endpoint)
-  return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${Scopes.join(' ')}&state=${state}`
+  const scope = encodeURIComponent(Scopes.join(' '))
+  return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
 }
 
 export async function requestOAuthToken(endpoint: string, state: string, code: string): Promise<string | null> {
