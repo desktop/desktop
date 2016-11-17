@@ -193,12 +193,12 @@ async function getWorkingDirectoryContents(repository: Repository, file: FileCha
   return new Promise<string>((resolve, reject) => {
     const path = Path.join(repository.path, file.path)
 
-    Fs.readFile(path, { encoding: 'binary', flag: 'r' }, (error, data) => {
+    Fs.readFile(path, { flag: 'r' }, (error, buffer) => {
       if (error) {
         reject(error)
         return
       }
-      resolve(Buffer.from(data, 'binary').toString('base64'))
+      resolve(buffer.toString('base64'))
     })
   })
 }
