@@ -242,11 +242,13 @@ export async function createAuthorization(endpoint: string, login: string, passw
     const otpResponse: string | null = response.headers['x-github-otp']
     if (otpResponse) {
       const pieces = otpResponse.split(';')
-      const type = pieces[1].trim()
-      return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type }
-    } else {
-      return { kind: AuthorizationResponseKind.Failed }
+      if (pieces.length === 2) {
+        const type = pieces[1].trim()
+        return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type }
+      }
     }
+
+    return { kind: AuthorizationResponseKind.Failed }
   }
 
   const body = response.body
