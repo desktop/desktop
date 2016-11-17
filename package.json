@@ -20,7 +20,7 @@
     "rebuild:prod": "npm run clean && npm run build:prod",
     "lint": "tslint \"./app/src/**/*.ts\" \"./app/src/**/*.tsx\" \"./app/test/**/*.ts\" \"./app/test/**/*.tsx\"",
     "publish": "node script/publish",
-    "clean-slate": "rimraf node_modules app/node_modules && npm run clean && npm install",
+    "clean-slate": "npm run clean && rimraf node_modules app/node_modules && npm install",
     "rebuild-hard:dev": "npm run clean-slate && npm rebuild:dev",
     "rebuild-hard:prod": "npm run clean-slate && npm rebuild:prod"
   },
