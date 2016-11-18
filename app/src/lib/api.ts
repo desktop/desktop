@@ -357,8 +357,12 @@ export function getHTMLURL(endpoint: string): string {
   //  E.g., https://github.mycompany.com/api/v3 -> https://github.mycompany.com
   //
   // We need to normalize them.
-  const parsed = URL.parse(endpoint)
-  return `${parsed.protocol}//${parsed.hostname}`
+  if (endpoint === getDotComAPIEndpoint()) {
+    return 'https://github.com'
+  } else {
+    const parsed = URL.parse(endpoint)
+    return `${parsed.protocol}//${parsed.hostname}`
+  }
 }
 
 /**
