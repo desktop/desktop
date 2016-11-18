@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { Button } from './button'
 import { getEnterpriseAPIURL, fetchMetadata } from '../../lib/api'
+import { Loading } from './loading'
 
 /** The authentication methods a server may allow. */
 export enum AuthenticationMethods {
@@ -18,6 +19,8 @@ interface IEnterpriseServerEntryProps {
 
 interface IEnterpriseServerEntryState {
   readonly serverAddress: string
+
+  readonly loading: boolean
 }
 
 /** An entry form for an Enterprise server. */
@@ -25,24 +28,27 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
   public constructor(props: IEnterpriseServerEntryProps) {
     super(props)
 
-    this.state = { serverAddress: '' }
+    this.state = { serverAddress: '', loading: false }
   }
 
   public render() {
-    const disabled = !this.state.serverAddress.length
+    const disableEntry = this.state.loading
+    const disableSubmission = !this.state.serverAddress.length || this.state.loading
     return (
       <form id='enterprise-server-entry' onSubmit={this.onSubmit}>
         <label>Enterprise server address
-          <input autoFocus={true} onChange={this.onServerAddressChanged}/>
+          <input autoFocus={true} disabled={disableEntry} onChange={this.onServerAddressChanged}/>
         </label>
 
-        <Button type='submit' disabled={disabled}>Continue</Button>
+        <Button type='submit' disabled={disableSubmission}>Continue</Button>
+
+        {this.state.loading ? <Loading/> : null}
       </form>
     )
   }
 
   private onServerAddressChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({ serverAddress: event.currentTarget.value })
+    this.setState({ serverAddress: event.currentTarget.value, loading: false })
   }
 
   private onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -53,12 +59,16 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
       AuthenticationMethods.OAuth,
     ])
 
+    this.setState({ serverAddress: this.state.serverAddress, loading: true })
+
     const address = this.state.serverAddress
     const endpoint = getEnterpriseAPIURL(address)
     const response = await fetchMetadata(endpoint)
     if (!response.verifiablePasswordAuthentication) {
       authMethods.delete(AuthenticationMethods.BasicAuth)
     }
+
+    this.setState({ serverAddress: this.state.serverAddress, loading: false })
 
     this.props.onContinue(endpoint, authMethods)
   }
