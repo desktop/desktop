@@ -272,7 +272,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
 
 /** Fetch the user authenticated by the token. */
 export async function fetchUser(endpoint: string, token: string): Promise<User> {
-  const octo = new Octokat({ token })
+  const octo = new Octokat({ token, rootURL: endpoint })
   const user = await octo.user.fetch()
   return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id)
 }
