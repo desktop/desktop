@@ -2,10 +2,9 @@ import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { Button } from '../lib/button'
 import { SignIn } from '../lib/sign-in'
-import { TwoFactorAuthentication } from '../lib/two-factor-authentication'
 import { User } from '../../models/user'
 import { Dispatcher } from '../../lib/dispatcher'
-import { assertNever, fatalError } from '../../lib/fatal-error'
+import { assertNever } from '../../lib/fatal-error'
 import { EnterpriseServerEntry, AuthenticationMethods } from '../lib/enterprise-server-entry'
 
 interface ISignInEnterpriseProps {
@@ -15,13 +14,11 @@ interface ISignInEnterpriseProps {
 
 enum SignInStep {
   ServerEntry,
-  UsernamePassword,
-  TwoFactorAuthentication,
+  Authentication,
 }
 
 type Step = { kind: SignInStep.ServerEntry } |
-            { kind: SignInStep.UsernamePassword, endpoint: string, authMethods: Set<AuthenticationMethods> } |
-            { kind: SignInStep.TwoFactorAuthentication, endpoint: string, login: string, password: string }
+            { kind: SignInStep.Authentication, endpoint: string, authMethods: Set<AuthenticationMethods> }
 
 interface ISignInEnterpriseState {
   readonly step: Step
@@ -50,20 +47,13 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, IS
     const step = this.state.step
     if (step.kind === SignInStep.ServerEntry) {
       return <EnterpriseServerEntry onContinue={this.onServerEntry}/>
-    } else if (step.kind === SignInStep.UsernamePassword) {
+    } else if (step.kind === SignInStep.Authentication) {
       return <SignIn
         endpoint={step.endpoint}
         supportsBasicAuth={step.authMethods.has(AuthenticationMethods.BasicAuth)}
         additionalButtons={[
           <Button key='cancel' onClick={this.cancel}>Cancel</Button>,
         ]}
-        onDidSignIn={this.onDidSignIn}
-        onNeeds2FA={this.onNeeds2FA}/>
-    } else if (step.kind === SignInStep.TwoFactorAuthentication) {
-      return <TwoFactorAuthentication
-        endpoint={step.endpoint}
-        login={step.login}
-        password={step.password}
         onDidSignIn={this.onDidSignIn}/>
     } else {
       return assertNever(step, `Unknown sign-in step: ${step}`)
@@ -72,7 +62,7 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, IS
 
   private onServerEntry = (endpoint: string, authMethods: Set<AuthenticationMethods>) => {
     this.setState({
-      step: { kind: SignInStep.UsernamePassword, endpoint, authMethods },
+      step: { kind: SignInStep.Authentication, endpoint, authMethods },
     })
   }
 
@@ -84,16 +74,5 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, IS
     await this.props.dispatcher.addUser(user)
 
     this.props.advance(WelcomeStep.ConfigureGit)
-  }
-
-  private onNeeds2FA = (login: string, password: string) => {
-    const step = this.state.step
-    if (step.kind === SignInStep.UsernamePassword) {
-      this.setState({
-        step: { kind: SignInStep.TwoFactorAuthentication, login, password, endpoint: step.endpoint },
-      })
-    } else {
-      fatalError('How did you get here O_o')
-    }
   }
 }
