@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { Button } from '../lib/button'
+import { Octicon, OcticonSymbol } from '../octicons'
 import {
   getDotComAPIEndpoint,
   createAuthorization,
@@ -44,27 +45,36 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   public render() {
     const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length)
     return (
-      <form id='sign-in-form' onSubmit={this.signIn}>
-        <label>Username or email address
-          <input autoFocus={true} onChange={this.onUsernameChange}/>
-        </label>
+      <form className='sign-in-form' onSubmit={this.signIn}>
+        <div className='field-group'>
+          <label>Username or email address</label>
+          <input className='text-field sign-in-field' autoFocus={true} onChange={this.onUsernameChange}/>
+        </div>
 
-        <label>Password
-          <input type='password' onChange={this.onPasswordChange}/>
-        </label>
+        <div className='field-group'>
+          <label>Password</label>
+          <input className='sign-in-field' type='password' onChange={this.onPasswordChange}/>
+          <LinkButton className='forgot-password-link' uri={ForgotPasswordURL}>Forgot password?</LinkButton>
+        </div>
+
 
         {this.renderError()}
-
-        <LinkButton uri={ForgotPasswordURL}>Forgot password?</LinkButton>
 
         <div className='actions'>
           <Button type='submit' disabled={signInDisabled}>Sign in</Button>
           {this.props.additionalButtons}
         </div>
 
-        <div>or</div>
+        <div className='horizontal-rule'>
+          <span className='horizontal-rule-content'>or</span>
+        </div>
 
-        <LinkButton onClick={this.signInWithBrowser}>Sign in using your browser</LinkButton>
+        <p className='sign-in-footer'>
+          <LinkButton className='welcome-link-button link-with-icon' onClick={this.signInWithBrowser}>
+            Sign in using your browser
+            <Octicon symbol={OcticonSymbol.linkExternal} />
+          </LinkButton>
+        </p>
       </form>
     )
   }
