@@ -89,7 +89,7 @@ export class GitError {
  * `successExitCodes` or an error not in `expectedErrors`, a `GitError` will be
  * thrown.
  */
-export async function git(args: string[], path: string, name?: string, options?: IGitExecutionOptions): Promise<IGitResult> {
+export async function git(args: string[], path: string, name: string, options?: IGitExecutionOptions): Promise<IGitResult> {
 
   const defaultOptions: IGitExecutionOptions = {
     successExitCodes: new Set([ 0 ]),
