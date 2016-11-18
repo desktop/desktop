@@ -35,21 +35,21 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
           (But not really. Use the browser for now please and thank you.)
         </p>
 
-        <form className='sign-in-form' onSubmit={e => this.signIn(e)}>
+        <form id='sign-in-form' onSubmit={this.signIn}>
           <div className='field-group'>
             <label>Username or email address</label>
-            <input className='text-field sign-in-field' type='email' onChange={e => this.onUsernameChange(e)}/>
+            <input onChange={this.onUsernameChange}/>
           </div>
 
           <div className='field-group'>
             <label>Password</label>
-            <input className='sign-in-field' type='password' onChange={e => this.onPasswordChange(e)}/>
+            <input className='sign-in-field' type='password' onChange={this.onPasswordChange}/>
             <LinkButton className='forgot-password-link' uri={ForgotPasswordURL}>Forgot password?</LinkButton>
           </div>
 
           <div className='actions'>
             <Button type='submit' disabled={signInDisabled}>Sign in </Button>
-            <Button className='secondary-button' onClick={() => this.cancel()}>Cancel</Button>
+            <Button className='secondary-button' onClick={this.cancel}>Cancel</Button>
           </div>
 
           <div className='horizontal-rule'>
@@ -57,7 +57,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
           </div>
 
           <p className='sign-in-footer'>
-            <LinkButton className='welcome-link-button link-with-icon' onClick={() => this.signInWithBrowser()}>
+            <LinkButton className='welcome-link-button link-with-icon' onClick={this.signInWithBrowser}>
               Sign in using your browser
               <Octicon symbol={OcticonSymbol.linkExternal} />
             </LinkButton>
@@ -67,35 +67,35 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     )
   }
 
-  private onUsernameChange(event: React.FormEvent<HTMLInputElement>) {
+  private onUsernameChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       username: event.currentTarget.value,
       password: this.state.password,
     })
   }
 
-  private onPasswordChange(event: React.FormEvent<HTMLInputElement>) {
+  private onPasswordChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       username: this.state.username,
       password: event.currentTarget.value,
     })
   }
 
-  private async signInWithBrowser() {
+  private signInWithBrowser = async () => {
     await this.props.dispatcher.requestOAuth()
 
     this.advance()
   }
 
-  private cancel() {
+  private cancel = () => {
     this.props.advance(WelcomeStep.Start)
   }
 
-  private advance() {
+  private advance = () => {
     this.props.advance(WelcomeStep.ConfigureGit)
   }
 
-  private signIn(event: React.FormEvent<HTMLFormElement>) {
+  private signIn = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     // TODO: Actually sign in lolololol

@@ -2,8 +2,23 @@ import * as Fs from 'fs'
 import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
-import { LocalGitOperations, Commit, Branch, BranchType, GitResetMode, IAheadBehind } from '../local-git-operations'
+import { Branch, BranchType } from '../../models/branch'
 import { User } from '../../models/user'
+import { Commit } from '../../models/commit'
+
+import {
+  reset,
+  GitResetMode,
+  getDefaultRemote,
+  fetch as fetchRepo,
+  getRecentBranches,
+  getBranches,
+  getCurrentBranch,
+  deleteBranch,
+  IAheadBehind,
+  getBranchAheadBehind,
+  getCommits,
+} from '../git'
 
 /** The number of commits to load from history per batch. */
 const CommitBatchSize = 100
@@ -88,7 +103,7 @@ export class GitStore {
 
     this.requestsInFight.add(LoadingHistoryRequestKey)
 
-    let commits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, 'HEAD', CommitBatchSize))
+    let commits = await this.performFailableOperation(() => getCommits(this.repository, 'HEAD', CommitBatchSize))
     if (!commits) { return }
 
     let existingHistory = this._history
@@ -129,7 +144,7 @@ export class GitStore {
 
     this.requestsInFight.add(requestKey)
 
-    const commits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, `${lastSHA}^`, CommitBatchSize))
+    const commits = await this.performFailableOperation(() => getCommits(this.repository, `${lastSHA}^`, CommitBatchSize))
     if (!commits) { return }
 
     this._history = this._history.concat(commits.map(c => c.sha))
@@ -146,7 +161,7 @@ export class GitStore {
 
   /** Load the current and default branches. */
   public async loadCurrentAndDefaultBranch() {
-    const currentBranch = await this.performFailableOperation(() => LocalGitOperations.getCurrentBranch(this.repository))
+    const currentBranch = await this.performFailableOperation(() => getCurrentBranch(this.repository))
     if (!currentBranch) { return }
 
     this._currentBranch = currentBranch
@@ -169,12 +184,12 @@ export class GitStore {
 
   /** Load all the branches. */
   public async loadBranches() {
-    let localBranches = await this.performFailableOperation(() => LocalGitOperations.getBranches(this.repository, 'refs/heads', BranchType.Local))
+    let localBranches = await this.performFailableOperation(() => getBranches(this.repository, 'refs/heads', BranchType.Local))
     if (!localBranches) {
       localBranches = []
     }
 
-    let remoteBranches = await this.performFailableOperation(() => LocalGitOperations.getBranches(this.repository, 'refs/remotes', BranchType.Remote))
+    let remoteBranches = await this.performFailableOperation(() => getBranches(this.repository, 'refs/remotes', BranchType.Remote))
     if (!remoteBranches) {
       remoteBranches = []
     }
@@ -218,12 +233,12 @@ export class GitStore {
    * remote branches.
    */
   private async loadBranch(branchName: string): Promise<Branch | null> {
-    const localBranches = await this.performFailableOperation(() => LocalGitOperations.getBranches(this.repository, `refs/heads/${branchName}`, BranchType.Local))
+    const localBranches = await this.performFailableOperation(() => getBranches(this.repository, `refs/heads/${branchName}`, BranchType.Local))
     if (localBranches && localBranches.length) {
       return localBranches[0]
     }
 
-    const remoteBranches = await this.performFailableOperation(() => LocalGitOperations.getBranches(this.repository, `refs/remotes/${branchName}`, BranchType.Remote))
+    const remoteBranches = await this.performFailableOperation(() => getBranches(this.repository, `refs/remotes/${branchName}`, BranchType.Remote))
     if (remoteBranches && remoteBranches.length) {
       return remoteBranches[0]
     }
@@ -245,7 +260,7 @@ export class GitStore {
 
   /** Load the recent branches. */
   private async loadRecentBranches() {
-    const recentBranches = await this.performFailableOperation(() => LocalGitOperations.getRecentBranches(this.repository, this._allBranches, RecentBranchesLimit))
+    const recentBranches = await this.performFailableOperation(() => getRecentBranches(this.repository, this._allBranches, RecentBranchesLimit))
     if (recentBranches) {
       this._recentBranches = recentBranches
     } else {
@@ -260,9 +275,9 @@ export class GitStore {
     let localCommits: ReadonlyArray<Commit> | undefined
     if (branch.upstream) {
       const revRange = `${branch.upstream}..${branch.name}`
-      localCommits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, revRange, CommitBatchSize))
+      localCommits = await this.performFailableOperation(() => getCommits(this.repository, revRange, CommitBatchSize))
     } else {
-      localCommits = await this.performFailableOperation(() => LocalGitOperations.getCommits(this.repository, 'HEAD', CommitBatchSize, [ '--not', '--remotes' ]))
+      localCommits = await this.performFailableOperation(() => getCommits(this.repository, 'HEAD', CommitBatchSize, [ '--not', '--remotes' ]))
     }
 
     if (!localCommits) { return }
@@ -287,7 +302,11 @@ export class GitStore {
     }
   }
 
-  /** Undo the given commit. */
+  /**
+   * Undo a specific commit for the current repository.
+   *
+   * @param commit - The commit to remove - should be the tip of the current branch.
+   */
   public async undoCommit(commit: Commit): Promise<void> {
     // For an initial commit, just delete the reference but leave HEAD. This
     // will make the branch unborn again.
@@ -295,13 +314,13 @@ export class GitStore {
     if (!commit.parentSHAs.length) {
       const branch = this._currentBranch
       if (branch) {
-        success = await this.performFailableOperation(() => LocalGitOperations.deleteBranch(this.repository, branch))
+        success = await this.performFailableOperation(() => deleteBranch(this.repository, branch, null))
       } else {
         console.error(`Can't undo ${commit.sha} because it doesn't have any parents and there's no current branch. How on earth did we get here?!`)
         return Promise.resolve()
       }
     } else {
-      success = await this.performFailableOperation(() => LocalGitOperations.reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0]))
+      success = await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, commit.parentSHAs[0]))
     }
 
     if (success) {
@@ -357,7 +376,7 @@ export class GitStore {
     const remote = this._remoteName
     if (!remote) { return }
 
-    return LocalGitOperations.fetch(this.repository, user, remote)
+    return fetchRepo(this.repository, user, remote)
   }
 
   /** Calculate the ahead/behind for the current branch. */
@@ -365,14 +384,14 @@ export class GitStore {
     const branch = this._currentBranch
     if (!branch) { return }
 
-    this._aheadBehind = await LocalGitOperations.getBranchAheadBehind(this.repository, branch)
+    this._aheadBehind = await getBranchAheadBehind(this.repository, branch)
 
     this.emitUpdate()
   }
 
   /** Load the default remote. */
   public async loadDefaultRemote(): Promise<void> {
-    this._remoteName = await LocalGitOperations.getDefaultRemote(this.repository)
+    this._remoteName = await getDefaultRemote(this.repository)
 
     this.emitUpdate()
   }

@@ -24,14 +24,14 @@ export class Button extends React.Component<IButtonProps, void> {
       <button
         className={this.props.className ? this.props.className : '' }
         disabled={this.props.disabled}
-        onClick={e => this.onClick(e)}
+        onClick={this.onClick}
         type={this.props.type}>
         {this.props.children}
       </button>
     )
   }
 
-  private onClick(event: React.MouseEvent<HTMLButtonElement>) {
+  private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
 
     const onClick = this.props.onClick

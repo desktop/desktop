@@ -2,14 +2,16 @@ import { User } from '../models/user'
 import { CommitIdentity } from '../models/commit-identity'
 import { Diff } from '../models/diff'
 import { Repository } from '../models/repository'
-import { Commit, Branch, IAheadBehind } from './local-git-operations'
+import { IAheadBehind } from './git'
+import { Branch } from '../models/branch'
+import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
 
-export { ICloningRepositoryState } from './dispatcher'
-export { ICommitMessage } from './dispatcher/git-store'
-export { IAheadBehind } from './local-git-operations'
+export { ICloningRepositoryState }
+export { ICommitMessage }
+export { IAheadBehind }
 
 export enum SelectionType {
   Repository,

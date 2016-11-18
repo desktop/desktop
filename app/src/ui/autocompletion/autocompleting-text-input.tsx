@@ -78,7 +78,10 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     this.state = { autocompletionState: null }
   }
 
-  private renderItem<T>(state: IAutocompletionState<T>, row: number) {
+  private renderItem = (row: number): JSX.Element | null => {
+    const state = this.state.autocompletionState
+    if (!state) { return null }
+
     const item = state.items[row]
     const selected = item === state.selectedItem ? 'selected' : ''
     return (
@@ -86,6 +89,10 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
         {state.provider.renderItem(item)}
       </div>
     )
+  }
+
+  private storeAutocompletionListRef = (ref: List) => {
+    this.autocompletionList = ref
   }
 
   private renderAutocompletions() {
@@ -134,19 +141,28 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
 
     return (
       <div className='autocompletion-popup' style={{ top, left, height }}>
-        <List ref={ref => this.autocompletionList = ref}
+        <List ref={this.storeAutocompletionListRef}
               rowCount={items.length}
               rowHeight={RowHeight}
               selectedRow={selectedRow}
-              rowRenderer={row => this.renderItem(state, row)}
+              rowRenderer={this.renderItem}
               scrollToRow={scrollToRow}
-              onRowSelected={row => this.insertCompletionOnClick(items[row])}
+              onRowSelected={this.insertCompletionOnClick}
               invalidationProps={searchText}/>
       </div>
     )
   }
 
-  private insertCompletionOnClick(item: string) {
+  private insertCompletionOnClick = (row: number): void => {
+
+    const state = this.state.autocompletionState
+    if (!state) { return }
+
+    const items = state.items
+    if (!items.length) { return }
+
+    const item = items[row]
+
     this.insertCompletion(item)
 
     // This is pretty gross. Clicking on the list moves focus off the text area.

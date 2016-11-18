@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { CommitList } from './commit-list'
 import { Repository } from '../../models/repository'
-import { Commit } from '../../lib/local-git-operations'
+import { Commit } from '../../models/commit'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
@@ -22,7 +22,7 @@ interface IHistorySidebarProps {
 export class HistorySidebar extends React.Component<IHistorySidebarProps, void> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
-  private onCommitChanged(commit: Commit) {
+  private onCommitChanged = (commit: Commit) => {
     this.props.dispatcher.changeHistoryCommitSelection(this.props.repository, commit.sha)
 
     this.loadChangedFilesScheduler.queue(() => {
@@ -30,7 +30,7 @@ export class HistorySidebar extends React.Component<IHistorySidebarProps, void> 
     })
   }
 
-  private onScroll(start: number, end: number) {
+  private onScroll = (start: number, end: number) => {
     const history = this.props.history.history
     if (history.length - end <= CloseToBottomThreshold) {
       this.props.dispatcher.loadNextHistoryBatch(this.props.repository)
@@ -47,8 +47,8 @@ export class HistorySidebar extends React.Component<IHistorySidebarProps, void> 
         commits={this.props.commits}
         history={this.props.history.history}
         selectedSHA={this.props.history.selection.sha}
-        onCommitChanged={commit => this.onCommitChanged(commit)}
-        onScroll={(start, end) => this.onScroll(start, end)}
+        onCommitChanged={this.onCommitChanged}
+        onScroll={this.onScroll}
         gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}
       />

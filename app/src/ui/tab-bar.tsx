@@ -21,22 +21,48 @@ export class TabBar extends React.Component<ITabBarProps, void> {
     )
   }
 
+  private onTabClicked = (index: number) => {
+    this.props.onTabClicked(index)
+  }
+
   private renderItems() {
     const children = this.props.children as (ReadonlyArray<JSX.Element> | null)
     if (!children) { return null }
 
     return children.map((child, index) => {
       const selected = index === this.props.selectedIndex
-      const className = classNames('tab-bar-item', { selected })
       return (
-        <div
+        <TabBarItem
           key={index}
-          className={className}
-          onClick={() => this.props.onTabClicked(index)}
+          selected={selected}
+          index={index}
+          onClick={this.onTabClicked}
         >
           {child}
-        </div>
+        </TabBarItem>
       )
     })
+  }
+}
+
+interface ITabBarItemProps {
+  index: number
+  selected: boolean
+  onClick: (index: number ) => void
+}
+
+class TabBarItem extends React.Component<ITabBarItemProps, void> {
+  private onClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    this.props.onClick(this.props.index)
+  }
+
+  public render() {
+    const selected = this.props.selected
+    const className = classNames('tab-bar-item', { selected })
+    return (
+      <div className={className} onClick={this.onClick}>
+        {this.props.children}
+      </div>
+    )
   }
 }

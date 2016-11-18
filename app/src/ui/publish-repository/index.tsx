@@ -48,7 +48,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
     })
   }
 
-  private onNameChange(event: React.FormEvent<HTMLInputElement>) {
+  private onNameChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       name: event.currentTarget.value,
       description: this.state.description,
@@ -58,7 +58,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
     })
   }
 
-  private onDescriptionChange(event: React.FormEvent<HTMLInputElement>) {
+  private onDescriptionChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       name: this.state.name,
       description: event.currentTarget.value,
@@ -68,7 +68,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
     })
   }
 
-  private onPrivateChange(event: React.FormEvent<HTMLInputElement>) {
+  private onPrivateChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       name: this.state.name,
       description: this.state.description,
@@ -107,7 +107,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
     return this.state.selectedUser
   }
 
-  private publishRepository(event: React.FormEvent<HTMLFormElement>) {
+  private publishRepository = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     const owningAccount = this.findOwningUserForSelectedUser()!
@@ -115,7 +115,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
     this.props.dispatcher.closePopup()
   }
 
-  private onAccountChange(event: React.FormEvent<HTMLSelectElement>) {
+  private onAccountChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const value = event.currentTarget.value
     const selectedUser = JSON.parse(value)
 
@@ -144,8 +144,10 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
       )
     }
 
+    const value = JSON.stringify(this.state.selectedUser)
+
     return (
-      <select value={JSON.stringify(this.state.selectedUser)} onChange={event => this.onAccountChange(event)}>
+      <select value={value} onChange={this.onAccountChange}>
         {optionGroups}
       </select>
     )
@@ -154,22 +156,22 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   public render() {
     const disabled = !this.state.name.length
     return (
-      <form id='publish-repository' className='panel' onSubmit={event => this.publishRepository(event)}>
+      <form id='publish-repository' className='panel' onSubmit={this.publishRepository}>
         <label>
           Name:
-          <input type='text' value={this.state.name} autoFocus={true} onChange={event => this.onNameChange(event)}/>
+          <input type='text' value={this.state.name} autoFocus={true} onChange={this.onNameChange}/>
         </label>
 
         <label>
           Description:
-          <input type='text' value={this.state.description} onChange={event => this.onDescriptionChange(event)}/>
+          <input type='text' value={this.state.description} onChange={this.onDescriptionChange}/>
         </label>
 
         <hr/>
 
         <label>
           Keep this code private
-          <input type='checkbox' checked={this.state.private} onChange={event => this.onPrivateChange(event)}/>
+          <input type='checkbox' checked={this.state.private} onChange={this.onPrivateChange}/>
         </label>
 
         <label>

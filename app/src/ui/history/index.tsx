@@ -4,7 +4,7 @@ import { Diff } from '../diff'
 import { FileList } from './file-list'
 import { Repository } from '../../models/repository'
 import { FileChange } from '../../models/status'
-import { Commit } from '../../lib/local-git-operations'
+import { Commit } from '../../models/commit'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
@@ -26,7 +26,7 @@ interface IHistoryProps {
 export class History extends React.Component<IHistoryProps, void> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
 
-  private onFileSelected(file: FileChange) {
+  private onFileSelected = (file: FileChange) => {
     this.props.dispatcher.changeHistoryFileSelection(this.props.repository, file)
   }
 
@@ -83,7 +83,7 @@ export class History extends React.Component<IHistoryProps, void> {
           <PersistingResizable configKey='commit-summary-width'>
             <FileList
               files={this.props.history.changedFiles}
-              onSelectedFileChanged={file => this.onFileSelected(file)}
+              onSelectedFileChanged={this.onFileSelected}
               selectedFile={this.props.history.selection.file}
             />
           </PersistingResizable>

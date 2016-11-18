@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
-import { LocalGitOperations, Commit } from '../../lib/local-git-operations'
+import { Commit } from '../../models/commit'
+import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
 import { CommitListItem } from '../history/commit-list-item'
 import { User } from '../../models/user'
 
@@ -25,8 +26,8 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
   }
 
   public async componentWillMount() {
-    let name = await LocalGitOperations.getGlobalConfigValue('user.name')
-    let email = await LocalGitOperations.getGlobalConfigValue('user.email')
+    let name = await getGlobalConfigValue('user.name')
+    let email = await getGlobalConfigValue('user.email')
 
     const user = this.props.users[0]
     if ((!name || !name.length) && user) {
@@ -65,20 +66,20 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
           This is used to identify the commits you create. Anyone will be able to see this information if you publish commits.
         </p>
 
-        <form className='sign-in-form' onSubmit={e => this.continue(e)}>
+        <form className='sign-in-form' onSubmit={this.continue}>
           <div className='field-group'>
             <label>Name</label>
-            <input className='sign-in-field text-field' placeholder='Hubot' value={this.state.name} onChange={e => this.onNameChange(e)}/>
+            <input className='sign-in-field text-field' placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
           </div>
 
           <div className='field-group'>
             <label>Email</label>
-            <input className='sign-in-field text-field' placeholder='hubot@github.com' value={this.state.email} onChange={e => this.onEmailChange(e)}/>
+            <input className='sign-in-field text-field' placeholder='hubot@github.com' value={this.state.email} onChange={this.onEmailChange}/>
           </div>
 
           <div className='actions'>
             <button type='submit'>Continue</button>
-            <button className='secondary-button' onClick={e => this.cancel(e)}>Cancel</button>
+            <button className='secondary-button' onClick={this.cancel}>Cancel</button>
           </div>
         </form>
 
@@ -91,7 +92,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     )
   }
 
-  private onNameChange(event: React.FormEvent<HTMLInputElement>) {
+  private onNameChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       name: event.currentTarget.value,
       email: this.state.email,
@@ -99,7 +100,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     })
   }
 
-  private onEmailChange(event: React.FormEvent<HTMLInputElement>) {
+  private onEmailChange = (event: React.FormEvent<HTMLInputElement>) => {
     const email = event.currentTarget.value
     const avatarURL = this.avatarURLForEmail(email)
 
@@ -115,23 +116,23 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     return matchingUser ? matchingUser.avatarURL : null
   }
 
-  private async continue(event: React.FormEvent<HTMLFormElement>) {
+  private continue = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     this.props.done()
 
     const name = this.state.name
     if (name.length) {
-      await LocalGitOperations.setGlobalConfigValue('user.name', name)
+      await setGlobalConfigValue('user.name', name)
     }
 
     const email = this.state.email
     if (email.length) {
-      await LocalGitOperations.setGlobalConfigValue('user.email', email)
+      await setGlobalConfigValue('user.email', email)
     }
   }
 
-  private cancel(event: React.FormEvent<HTMLButtonElement>) {
+  private cancel = (event: React.FormEvent<HTMLButtonElement>) => {
     event.preventDefault()
 
     this.props.advance(WelcomeStep.Start)

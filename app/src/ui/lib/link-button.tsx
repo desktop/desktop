@@ -18,12 +18,17 @@ interface ILinkButtonProps {
 /** A link component. */
 export class LinkButton extends React.Component<ILinkButtonProps, void> {
   public render() {
+    const href = this.props.uri || ''
+    const className = this.props.className ? `link-button-component ${this.props.className}` : 'link-button-component'
+
     return (
-      <a className={`link-button-component ${this.props.className}`} href={this.props.uri || ''} onClick={e => this.onClick(e)}>{this.props.children}</a>
+      <a className={className} href={href} onClick={this.onClick}>
+        {this.props.children}
+      </a>
     )
   }
 
-  private onClick(event: React.MouseEvent<HTMLAnchorElement>) {
+  private onClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault()
 
     const uri = this.props.uri
