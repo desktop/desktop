@@ -60,6 +60,6 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
       authMethods.delete(AuthenticationMethods.BasicAuth)
     }
 
-    this.props.onContinue(this.state.endpoint, authMethods)
+    this.props.onContinue(apiURL, authMethods)
   }
 }
