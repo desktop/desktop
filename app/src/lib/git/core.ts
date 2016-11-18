@@ -104,13 +104,9 @@ export async function git(args: string[], path: string, name: string, options?: 
 
   const startTime = (performance && performance.now) ? performance.now() : null
 
-  const id = GitPerf.getNextID()
   const commandName = `${name}: git ${args.join(' ')}`
-  GitPerf.markBegin(id, commandName)
 
-  const result = await GitProcess.exec(args, path, options)
-
-  GitPerf.markEnd(id, commandName)
+  const result = await GitPerf.measure(commandName, () => GitProcess.exec(args, path, options))
 
   if (console.debug && startTime) {
     const rawTime = performance.now() - startTime
