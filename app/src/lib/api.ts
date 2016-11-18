@@ -306,11 +306,11 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
   const options: any = {
     headers,
     method,
+    json: true,
   }
 
   if (body) {
     options.body = JSON.stringify(body)
-    options.json = true
   }
 
   return got(url, options).catch((e: any) => e.response)
