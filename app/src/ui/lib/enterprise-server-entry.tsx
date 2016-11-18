@@ -12,12 +12,12 @@ export enum AuthenticationMethods {
 }
 
 interface IEnterpriseServerEntryProps {
-  /** Called after the user has entered their Enterprise endpoint. */
+  /** Called after the user has entered their Enterprise server address. */
   readonly onContinue: (endpoint: string, authMethods: Set<AuthenticationMethods>) => void
 }
 
 interface IEnterpriseServerEntryState {
-  readonly endpoint: string
+  readonly serverAddress: string
 }
 
 /** An entry form for an Enterprise server. */
@@ -25,15 +25,15 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
   public constructor(props: IEnterpriseServerEntryProps) {
     super(props)
 
-    this.state = { endpoint: '' }
+    this.state = { serverAddress: '' }
   }
 
   public render() {
-    const disabled = !this.state.endpoint.length
+    const disabled = !this.state.serverAddress.length
     return (
       <form id='enterprise-server-entry' onSubmit={this.onSubmit}>
         <label>Enterprise server address
-          <input autoFocus={true} onChange={this.onEndpointChanged}/>
+          <input autoFocus={true} onChange={this.onServerAddressChanged}/>
         </label>
 
         <Button type='submit' disabled={disabled}>Continue</Button>
@@ -41,8 +41,8 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
     )
   }
 
-  private onEndpointChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({ endpoint: event.currentTarget.value })
+  private onServerAddressChanged = (event: React.FormEvent<HTMLInputElement>) => {
+    this.setState({ serverAddress: event.currentTarget.value })
   }
 
   private onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -53,13 +53,13 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
       AuthenticationMethods.OAuth,
     ])
 
-    const endpoint = this.state.endpoint
-    const apiURL = getEnterpriseAPIURL(endpoint)
-    const response = await fetchMetadata(apiURL)
+    const address = this.state.serverAddress
+    const endpoint = getEnterpriseAPIURL(address)
+    const response = await fetchMetadata(endpoint)
     if (!response.verifiablePasswordAuthentication) {
       authMethods.delete(AuthenticationMethods.BasicAuth)
     }
 
-    this.props.onContinue(apiURL, authMethods)
+    this.props.onContinue(endpoint, authMethods)
   }
 }
