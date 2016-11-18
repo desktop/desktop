@@ -33,7 +33,7 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
     return (
       <form id='enterprise-server-entry' onSubmit={this.onSubmit}>
         <label>Enterprise server address
-          <input onChange={this.onEndpointChanged}/>
+          <input autoFocus={true} onChange={this.onEndpointChanged}/>
         </label>
 
         <Button type='submit' disabled={disabled}>Continue</Button>
@@ -48,15 +48,18 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
   private onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const endpoint = this.state.endpoint
-    const apiURL = getAPIURL(endpoint)
-    const response = await fetchMetadata(apiURL)
-    console.log(response)
-
     const authMethods = new Set([
       AuthenticationMethods.BasicAuth,
       AuthenticationMethods.OAuth,
     ])
+
+    const endpoint = this.state.endpoint
+    const apiURL = getAPIURL(endpoint)
+    const response = await fetchMetadata(apiURL)
+    if (!response.verifiablePasswordAuthentication) {
+      authMethods.delete(AuthenticationMethods.BasicAuth)
+    }
+
     this.props.onContinue(this.state.endpoint, authMethods)
   }
 }

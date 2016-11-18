@@ -20,7 +20,7 @@ enum SignInStep {
 }
 
 type Step = { kind: SignInStep.ServerEntry } |
-            { kind: SignInStep.UsernamePassword, endpoint: string } |
+            { kind: SignInStep.UsernamePassword, endpoint: string, authMethods: Set<AuthenticationMethods> } |
             { kind: SignInStep.TwoFactorAuthentication, endpoint: string, login: string, password: string }
 
 interface ISignInEnterpriseState {
@@ -53,6 +53,7 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, IS
     } else if (step.kind === SignInStep.UsernamePassword) {
       return <SignIn
         endpoint={step.endpoint}
+        supportsBasicAuth={step.authMethods.has(AuthenticationMethods.BasicAuth)}
         additionalButtons={[
           <Button key='cancel' onClick={this.cancel}>Cancel</Button>,
         ]}
@@ -71,7 +72,7 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, IS
 
   private onServerEntry = (endpoint: string, authMethods: Set<AuthenticationMethods>) => {
     this.setState({
-      step: { kind: SignInStep.UsernamePassword, endpoint },
+      step: { kind: SignInStep.UsernamePassword, endpoint, authMethods },
     })
   }
 

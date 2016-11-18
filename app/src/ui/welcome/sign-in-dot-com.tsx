@@ -46,6 +46,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     if (step.kind === SignInStep.UsernamePassword) {
       return <SignIn
         endpoint={getDotComAPIEndpoint()}
+        supportsBasicAuth={true}
         additionalButtons={[
           <Button key='cancel' onClick={this.cancel}>Cancel</Button>,
         ]}
