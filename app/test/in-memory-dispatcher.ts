@@ -6,10 +6,6 @@ import { Repository } from '../src/models/repository'
 type State = {users: ReadonlyArray<User>, repositories: ReadonlyArray<Repository>}
 
 export class InMemoryDispatcher extends Dispatcher {
-  public requestOAuth(): Promise<void> {
-    return Promise.resolve()
-  }
-
   public onDidUpdate(fn: (state: State) => void): Disposable {
     return new Disposable(() => {})
   }

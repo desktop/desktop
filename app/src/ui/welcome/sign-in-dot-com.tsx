@@ -1,19 +1,25 @@
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
+import { SignInDotCom as SignInDotComFragment } from '../lib/sign-in-dot-com'
 import { Dispatcher } from '../../lib/dispatcher'
-import { LinkButton } from '../lib/link-button'
 import { Button } from '../lib/button'
-
-const ForgotPasswordURL = 'https://github.com/password_reset'
+import { User } from '../../models/user'
+import { assertNever } from '../../lib/fatal-error'
+import { TwoFactorAuthentication } from '../lib/two-factor-authentication'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 interface ISignInDotComProps {
   readonly dispatcher: Dispatcher
   readonly advance: (step: WelcomeStep) => void
 }
 
+enum SignInStep {
+  UsernamePassword,
+  TwoFactorAuthentication,
+}
+
 interface ISignInDotComState {
-  readonly username: string
-  readonly password: string
+  readonly step: { kind: SignInStep.UsernamePassword } | { kind: SignInStep.TwoFactorAuthentication, login: string, password: string }
 }
 
 /** The Welcome flow step to login to GitHub.com. */
@@ -21,72 +27,53 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   public constructor(props: ISignInDotComProps) {
     super(props)
 
-    this.state = { username: '', password: '' }
+    this.state = { step: { kind: SignInStep.UsernamePassword } }
   }
 
   public render() {
-    // Always disabled as we don't support sign in in-app yet.
-    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length) || true
     return (
       <div id='sign-in-dot-com'>
         <h1>Sign in to GitHub.com</h1>
         <div>Get started by signing into GitHub.com</div>
 
-        <form id='sign-in-form' onSubmit={this.signIn}>
-          <label>Username or email address
-            <input onChange={this.onUsernameChange}/>
-          </label>
-
-          <label>Password
-            <input type='password' onChange={this.onPasswordChange}/>
-          </label>
-
-          <LinkButton uri={ForgotPasswordURL}>Forgot password?</LinkButton>
-
-          <div className='actions'>
-            <Button type='submit' disabled={signInDisabled}>Sign in (But not really. Use the browser for now please and thank you.)</Button>
-            <Button onClick={this.cancel}>Cancel</Button>
-          </div>
-
-          <div>or</div>
-
-          <LinkButton onClick={this.signInWithBrowser}>Sign in using your browser</LinkButton>
-        </form>
+        {this.renderStep()}
       </div>
     )
   }
 
-  private onUsernameChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      username: event.currentTarget.value,
-      password: this.state.password,
-    })
-  }
-
-  private onPasswordChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      username: this.state.username,
-      password: event.currentTarget.value,
-    })
-  }
-
-  private signInWithBrowser = async () => {
-    await this.props.dispatcher.requestOAuth()
-
-    this.advance()
+  private renderStep() {
+    const step = this.state.step
+    if (step.kind === SignInStep.UsernamePassword) {
+      return <SignInDotComFragment
+        additionalButtons={[
+          <Button key='cancel' onClick={this.cancel}>Cancel</Button>,
+        ]}
+        onDidSignIn={this.onDidSignIn}
+        onNeeds2FA={this.onNeeds2FA}/>
+    } else if (step.kind === SignInStep.TwoFactorAuthentication) {
+      return <TwoFactorAuthentication
+        endpoint={getDotComAPIEndpoint()}
+        login={step.login}
+        password={step.password}
+        onDidSignIn={this.onDidSignIn}/>
+    } else {
+      return assertNever(step, `Unknown sign-in step: ${step}`)
+    }
   }
 
   private cancel = () => {
     this.props.advance(WelcomeStep.Start)
   }
 
-  private advance = () => {
+  private onDidSignIn = async (user: User) => {
+    await this.props.dispatcher.addUser(user)
+
     this.props.advance(WelcomeStep.ConfigureGit)
   }
 
-  private signIn = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    // TODO: Actually sign in lolololol
+  private onNeeds2FA = (login: string, password: string) => {
+    this.setState({
+      step: { kind: SignInStep.TwoFactorAuthentication, login, password },
+    })
   }
 }
