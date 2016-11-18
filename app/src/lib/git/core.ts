@@ -82,6 +82,10 @@ export class GitError {
  * @param {path}             The working directory path for the execution of the
  *                           command.
  *
+ * @param {name}             The name for the command based on its caller's
+ *                           context. This will be used for performance
+ *                           measurements and debugging.
+ *
  * @param {options}          Configuration options for the execution of git,
  *                           see IGitExecutionOptions for more information.
  *
