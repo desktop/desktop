@@ -1,11 +1,37 @@
+import * as OS from 'os'
 import * as URL from 'url'
 import * as Querystring from 'querystring'
 import * as HTTP from 'http'
+import { v4 as guid } from 'node-uuid'
 import { User } from '../models/user'
 import * as appProxy from '../ui/lib/app-proxy'
 
 const Octokat = require('octokat')
 const got = require('got')
+const username: () => Promise<string> = require('username')
+
+/** The response from `got` requests. */
+interface IHTTPResponse extends HTTP.IncomingMessage {
+  readonly body: any
+}
+
+/** The HTTP methods available. */
+type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
+
+const ClientID = 'de0e3c7e9973e1c4dd77'
+const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
+if (!ClientSecret || !ClientSecret.length) {
+  console.warn(`DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
+}
+
+/** The OAuth scopes we need. */
+const Scopes = [
+  'repo',
+  'user',
+]
+
+/** The note URL used for authorizations the app creates. */
+const NoteURL = 'https://desktop.github.com/'
 
 /**
  * Information about a repository as returned by the GitHub API.
@@ -168,20 +194,125 @@ export class API {
     return allItems.filter((i: any) => !i.pullRequest)
   }
 
+  private authenticatedRequest(method: HTTPMethod, path: string, body: Object | null): Promise<IHTTPResponse> {
+    return request(this.user.endpoint, `token ${this.user.token}`, method, path, body)
+  }
+
   /** Get the allowed poll interval for fetching. */
   public async getFetchPollInterval(owner: string, name: string): Promise<number> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
-    const url = `${this.user.endpoint}/${path}`
-    const options: any = {
-      headers: {
-        'Authorization': `token ${this.user.token}`,
-        'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
-      },
-    }
-
-    const response: HTTP.IncomingMessage = await got.head(url, options)
+    const response = await this.authenticatedRequest('HEAD', path, null)
     return response.headers['x-poll-interval'] || 0
   }
+}
+
+export enum AuthorizationResponseKind {
+  Authorized,
+  Failed,
+  TwoFactorAuthenticationRequired,
+  Error,
+}
+
+export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
+                                    { kind: AuthorizationResponseKind.Failed } |
+                                    { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: string } |
+                                    { kind: AuthorizationResponseKind.Error, response: IHTTPResponse }
+
+/**
+ * Create an authorization with the given login, password, and one-time
+ * password.
+ */
+export async function createAuthorization(endpoint: string, login: string, password: string, oneTimePassword: string | null): Promise<AuthorizationResponse> {
+  const creds = Buffer.from(`${login}:${password}`, 'utf8').toString('base64')
+  const authorization = `Basic ${creds}`
+  const headers = oneTimePassword ? { 'X-GitHub-OTP': oneTimePassword } : {}
+
+  const note = await getNote()
+
+  const response = await request(endpoint, authorization, 'POST', 'authorizations', {
+    'scopes': Scopes,
+    'client_id': ClientID,
+    'client_secret': ClientSecret,
+    'note': note,
+    'note_url': NoteURL,
+    'fingerprint': guid(),
+  }, headers)
+
+  if (response.statusCode === 401) {
+    const otpResponse: string | null = response.headers['x-github-otp']
+    if (otpResponse) {
+      const pieces = otpResponse.split(';')
+      if (pieces.length === 2) {
+        const type = pieces[1].trim()
+        return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type }
+      }
+    }
+
+    return { kind: AuthorizationResponseKind.Failed }
+  }
+
+  const body = response.body
+  const token = body.token
+  if (token && token.length) {
+    return { kind: AuthorizationResponseKind.Authorized, token }
+  }
+
+  return { kind: AuthorizationResponseKind.Failed, response }
+}
+
+/** Fetch the user authenticated by the token. */
+export async function fetchUser(endpoint: string, token: string): Promise<User> {
+  const octo = new Octokat({ token })
+  const user = await octo.user.fetch()
+  return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id)
+}
+
+/**
+ * Make an API request.
+ *
+ * @param endpoint      - The API endpoint.
+ * @param authorization - The value to pass in the `Authorization` header.
+ * @param method        - The HTTP method.
+ * @param path          - The path without a leading /.
+ * @param body          - The body to send.
+ * @param customHeaders - Any optional additional headers to send.
+ */
+function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body: Object | null, customHeaders?: Object): Promise<IHTTPResponse> {
+  const url = `${endpoint}/${path}`
+  const headers: any = Object.assign({}, {
+    'Accept': 'application/vnd.github.v3+json, application/json',
+    'Content-Type': 'application/json',
+    'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
+  }, customHeaders)
+  if (authorization) {
+    headers['Authorization'] = authorization
+  }
+
+  const options: any = {
+    headers,
+    method,
+  }
+
+  if (body) {
+    options.body = JSON.stringify(body)
+    options.json = true
+  }
+
+  return got(url, options).catch((e: any) => e.response)
+}
+
+/** The note used for created authorizations. */
+async function getNote(): Promise<string> {
+  let localUsername = 'unknown'
+  try {
+    localUsername = await username()
+  } catch (e) {
+    console.log(`Error getting username:`)
+    console.error(e)
+    console.log(`We'll just use 'unknown'.`)
+  }
+
+  return `GitHub Desktop on ${localUsername}@${OS.hostname()}`
 }
 
 /**
@@ -209,4 +340,32 @@ export function getDotComAPIEndpoint(): string {
 /** Get the user for the endpoint. */
 export function getUserForEndpoint(users: ReadonlyArray<User>, endpoint: string): User {
   return users.filter(u => u.endpoint === endpoint)[0]
+}
+
+function getOAuthURL(endpoint: string): string {
+  if (endpoint === getDotComAPIEndpoint()) {
+    // GitHub.com is A Special Snowflake in that the API lives at a subdomain
+    // but OAuth lives on the parent domain.
+    return 'https://github.com'
+  } else {
+    return endpoint
+  }
+}
+
+export function getOAuthAuthorizationURL(endpoint: string, state: string): string {
+  const urlBase = getOAuthURL(endpoint)
+  const scope = encodeURIComponent(Scopes.join(' '))
+  return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
+}
+
+export async function requestOAuthToken(endpoint: string, state: string, code: string): Promise<string | null> {
+  const urlBase = getOAuthURL(endpoint)
+  const response = await request(urlBase, null, 'POST', 'login/oauth/access_token', {
+    'client_id': ClientID,
+    'client_secret': ClientSecret,
+    'code': code,
+    'state': state,
+  })
+
+  return response.body.access_token
 }

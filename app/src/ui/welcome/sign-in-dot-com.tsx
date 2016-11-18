@@ -1,20 +1,25 @@
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
+import { SignInDotCom as SignInDotComFragment } from '../lib/sign-in-dot-com'
 import { Dispatcher } from '../../lib/dispatcher'
-import { LinkButton } from '../lib/link-button'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { Button } from '../lib/button'
-
-const ForgotPasswordURL = 'https://github.com/password_reset'
+import { User } from '../../models/user'
+import { assertNever } from '../../lib/fatal-error'
+import { TwoFactorAuthentication } from '../lib/two-factor-authentication'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 interface ISignInDotComProps {
   readonly dispatcher: Dispatcher
   readonly advance: (step: WelcomeStep) => void
 }
 
+enum SignInStep {
+  UsernamePassword,
+  TwoFactorAuthentication,
+}
+
 interface ISignInDotComState {
-  readonly username: string
-  readonly password: string
+  readonly step: { kind: SignInStep.UsernamePassword } | { kind: SignInStep.TwoFactorAuthentication, login: string, password: string }
 }
 
 /** The Welcome flow step to login to GitHub.com. */
@@ -22,12 +27,10 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   public constructor(props: ISignInDotComProps) {
     super(props)
 
-    this.state = { username: '', password: '' }
+    this.state = { step: { kind: SignInStep.UsernamePassword } }
   }
 
   public render() {
-    // Always disabled as we don't support sign in in-app yet.
-    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length) || true
     return (
       <div id='sign-in-dot-com'>
         <h1 className='welcome-title'>Sign in to GitHub.com</h1>
@@ -35,69 +38,44 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
           (But not really. Use the browser for now please and thank you.)
         </p>
 
-        <form id='sign-in-form' onSubmit={this.signIn}>
-          <div className='field-group'>
-            <label>Username or email address</label>
-            <input onChange={this.onUsernameChange}/>
-          </div>
-
-          <div className='field-group'>
-            <label>Password</label>
-            <input className='sign-in-field' type='password' onChange={this.onPasswordChange}/>
-            <LinkButton className='forgot-password-link' uri={ForgotPasswordURL}>Forgot password?</LinkButton>
-          </div>
-
-          <div className='actions'>
-            <Button type='submit' disabled={signInDisabled}>Sign in </Button>
-            <Button className='secondary-button' onClick={this.cancel}>Cancel</Button>
-          </div>
-
-          <div className='horizontal-rule'>
-            <span className='horizontal-rule-content'>or</span>
-          </div>
-
-          <p className='sign-in-footer'>
-            <LinkButton className='welcome-link-button link-with-icon' onClick={this.signInWithBrowser}>
-              Sign in using your browser
-              <Octicon symbol={OcticonSymbol.linkExternal} />
-            </LinkButton>
-          </p>
-        </form>
+        {this.renderStep()}
       </div>
     )
   }
 
-  private onUsernameChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      username: event.currentTarget.value,
-      password: this.state.password,
-    })
-  }
-
-  private onPasswordChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      username: this.state.username,
-      password: event.currentTarget.value,
-    })
-  }
-
-  private signInWithBrowser = async () => {
-    await this.props.dispatcher.requestOAuth()
-
-    this.advance()
+  private renderStep() {
+    const step = this.state.step
+    if (step.kind === SignInStep.UsernamePassword) {
+      return <SignInDotComFragment
+        additionalButtons={[
+          <Button key='cancel' onClick={this.cancel}>Cancel</Button>,
+        ]}
+        onDidSignIn={this.onDidSignIn}
+        onNeeds2FA={this.onNeeds2FA}/>
+    } else if (step.kind === SignInStep.TwoFactorAuthentication) {
+      return <TwoFactorAuthentication
+        endpoint={getDotComAPIEndpoint()}
+        login={step.login}
+        password={step.password}
+        onDidSignIn={this.onDidSignIn}/>
+    } else {
+      return assertNever(step, `Unknown sign-in step: ${step}`)
+    }
   }
 
   private cancel = () => {
     this.props.advance(WelcomeStep.Start)
   }
 
-  private advance = () => {
+  private onDidSignIn = async (user: User) => {
+    await this.props.dispatcher.addUser(user)
+
     this.props.advance(WelcomeStep.ConfigureGit)
   }
 
-  private signIn = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    // TODO: Actually sign in lolololol
+  private onNeeds2FA = (login: string, password: string) => {
+    this.setState({
+      step: { kind: SignInStep.TwoFactorAuthentication, login, password },
+    })
   }
 }
