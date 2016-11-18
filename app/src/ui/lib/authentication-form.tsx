@@ -94,7 +94,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
       <div>
         <LinkButton onClick={this.signInWithBrowser}>Sign in using your browser</LinkButton>
 
-        {this.renderActions()}
+        {this.props.supportsBasicAuth ? null : this.renderActions()}
       </div>
     )
   }
