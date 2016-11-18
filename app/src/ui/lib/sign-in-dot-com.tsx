@@ -84,8 +84,8 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
 
     const kind = response.kind
     switch (kind) {
-      case AuthorizationResponseKind.Failed: return <div>The username or password are incorrect.</div>
-      case AuthorizationResponseKind.Error: return <div>An error occurred.</div>
+      case AuthorizationResponseKind.Failed: return <div className='form-errors'>The username or password are incorrect.</div>
+      case AuthorizationResponseKind.Error: return <div className='form-errors'>An error occurred.</div>
       case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return null
       case AuthorizationResponseKind.Authorized: return null
       default: return assertNever(kind, `Unknown response kind: ${kind}`)

@@ -35,5 +35,14 @@ textarea {
 }
 
 .field-group {
-  margin: var(--spacing-half) 0;  
+  margin: var(--spacing-half) 0;
+}
+
+.form-errors {
+  background: #fddede;
+  border: 1px solid #d3b2b2;
+  border-radius: var(--border-radius);
+  color: var(--error-color);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-half);
 }

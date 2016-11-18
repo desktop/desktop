@@ -59,9 +59,9 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
     const kind = response.kind
     switch (kind) {
       case AuthorizationResponseKind.Authorized: return null
-      case AuthorizationResponseKind.Failed: return <div>Failed</div>
-      case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return <div>2fa</div>
-      case AuthorizationResponseKind.Error: return <div>Error</div>
+      case AuthorizationResponseKind.Failed: return <div className='form-errors'>Failed</div>
+      case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return <div className='form-errors'>2fa</div>
+      case AuthorizationResponseKind.Error: return <div className='form-errors'>Error</div>
       default: return assertNever(kind, `Unknown response kind: ${kind}`)
     }
   }
