@@ -34,7 +34,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     return (
       <div id='sign-in-dot-com'>
         <h1 className='welcome-title'>Sign in to GitHub.com</h1>
-        
+
         {this.renderStep()}
       </div>
     )
@@ -45,7 +45,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     if (step.kind === SignInStep.UsernamePassword) {
       return <SignInDotComFragment
         additionalButtons={[
-          <Button key='cancel' onClick={this.cancel}>Cancel</Button>,
+          <Button className='secondary-button' key='cancel' onClick={this.cancel}>Cancel</Button>,
         ]}
         onDidSignIn={this.onDidSignIn}
         onNeeds2FA={this.onNeeds2FA}/>
