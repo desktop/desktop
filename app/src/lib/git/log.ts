@@ -20,7 +20,7 @@ export async function getCommits(repository: Repository, revisionRange: string, 
     '%P', // parent SHAs
   ].join(`%x${delimiter}`)
 
-  const result = await git([ 'log', revisionRange, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color', ...additionalArgs ], repository.path,  { successExitCodes: new Set([ 0, 128 ]) })
+  const result = await git([ 'log', revisionRange, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color', ...additionalArgs ], repository.path, 'getCommits', { successExitCodes: new Set([ 0, 128 ]) })
 
   // if the repository has an unborn HEAD, return an empty history of commits
   if (result.exitCode === 128) {
@@ -54,7 +54,7 @@ export async function getChangedFiles(repository: Repository, sha: string): Prom
   // this is equivalent to the user configuring 'diff.renames' to 'copies'
   // NOTE: order here matters - doing -M before -C means copies aren't detected
   const args = [ 'log', sha, '-C', '-M', '-m', '-1', '--first-parent', '--name-status', '--format=format:', '-z' ]
-  const result = await git(args, repository.path)
+  const result = await git(args, repository.path, 'getChangedFiles')
 
   const out = result.stdout
   const lines = out.split('\0')

@@ -5,12 +5,12 @@ import { User } from '../../models/user'
 
 /** Create a new branch from the given start point. */
 export async function createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
-  await git([ 'branch', name, startPoint ], repository.path)
+  await git([ 'branch', name, startPoint ], repository.path, 'createBranch')
 }
 
 /** Rename the given branch to a new name. */
 export async function renameBranch(repository: Repository, branch: Branch, newName: string): Promise<void> {
-  await git([ 'branch', '-m', branch.nameWithoutRemote, newName ], repository.path)
+  await git([ 'branch', '-m', branch.nameWithoutRemote, newName ], repository.path, 'renameBranch')
 }
 
 /**
@@ -19,7 +19,7 @@ export async function renameBranch(repository: Repository, branch: Branch, newNa
  */
 export async function deleteBranch(repository: Repository, branch: Branch, user: User | null): Promise<true> {
   if (branch.type === BranchType.Local) {
-    await git([ 'branch', '-D', branch.name ], repository.path)
+    await git([ 'branch', '-D', branch.name ], repository.path, 'deleteBranch')
   }
 
   const remote = branch.remote
@@ -27,7 +27,7 @@ export async function deleteBranch(repository: Repository, branch: Branch, user:
   // If the user is not authenticated, the push is going to fail
   // Let this propagate and leave it to the caller to handle
   if (remote) {
-    await git([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path, { env: envForAuthentication(user) })
+    await git([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path, 'deleteBranch', { env: envForAuthentication(user) })
   }
 
   return true

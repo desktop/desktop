@@ -3,7 +3,7 @@ import { Repository } from '../../models/repository'
 
 /** Get the remote names. */
 export async function getRemotes(repository: Repository): Promise<ReadonlyArray<string>> {
-  const result = await git([ 'remote' ], repository.path)
+  const result = await git([ 'remote' ], repository.path, 'getRemotes')
   const lines = result.stdout
   return lines.split('\n')
 }
@@ -25,5 +25,5 @@ export async function getDefaultRemote(repository: Repository): Promise<string |
 
 /** Add a new remote with the given URL. */
 export async function addRemote(path: string, name: string, url: string): Promise<void> {
-  await git([ 'remote', 'add', name, url ], path)
+  await git([ 'remote', 'add', name, url ], path, 'addRemote')
 }

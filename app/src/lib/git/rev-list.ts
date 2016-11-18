@@ -11,7 +11,7 @@ export interface IAheadBehind {
 
 /** Get the number of commits in HEAD. */
 export async function getCommitCount(repository: Repository): Promise<number> {
-  const result = await git([ 'rev-list', '--count', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 128 ]) })
+  const result = await git([ 'rev-list', '--count', 'HEAD' ], repository.path, 'getCommitCount', { successExitCodes: new Set([ 0, 128 ]) })
   // error code 128 is returned if the branch is unborn
   if (result.exitCode === 128) {
     return 0
@@ -27,7 +27,7 @@ async function getAheadBehind(repository: Repository, range: string): Promise<IA
   // they're coming from. When used with `--count`, it tells us how many
   // commits we have from the two different sides of the range.
   const args = [ 'rev-list', '--left-right', '--count', range, '--' ]
-  const result = await git(args, repository.path, {
+  const result = await git(args, repository.path, 'getAheadBehind', {
     expectedErrors: new Set([ GitError.BadRevision ]),
   })
 

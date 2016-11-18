@@ -13,5 +13,5 @@ export async function clone(url: string, path: string, user: User | null, progre
     })
   }
 
-  await git([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, { env, processCallback })
+  await git([ 'clone', '--recursive', '--progress', '--', url, path ], __dirname, 'clone', { env, processCallback })
 }

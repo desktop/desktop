@@ -21,6 +21,6 @@ function resetModeToFlag(mode: GitResetMode): string {
 /** Reset with the mode to the ref. */
 export async function reset(repository: Repository, mode: GitResetMode, ref: string): Promise<true> {
   const modeFlag = resetModeToFlag(mode)
-  await git([ 'reset', modeFlag, ref, '--' ], repository.path)
+  await git([ 'reset', modeFlag, ref, '--' ], repository.path, 'reset')
   return true
 }
