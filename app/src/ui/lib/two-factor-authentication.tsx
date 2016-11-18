@@ -40,8 +40,10 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
           authentication code and verify your identity.
         </p>
 
-        <label>Authentication code</label>
-        <input className='text-field' autoFocus={true} onChange={this.onOTPChange}/>
+        <div className='field-group'>
+          <label>Authentication code</label>
+          <input className='text-field sign-in-field' autoFocus={true} onChange={this.onOTPChange}/>
+        </div>
 
         {this.renderError()}
 
