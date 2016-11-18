@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Button } from './button'
+import { getAPIURL, fetchMetadata } from '../../lib/api'
 
 /** The authentication methods a server may allow. */
 export enum AuthenticationMethods {
@@ -44,8 +45,13 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
     this.setState({ endpoint: event.currentTarget.value })
   }
 
-  private onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  private onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+
+    const endpoint = this.state.endpoint
+    const apiURL = getAPIURL(endpoint)
+    const response = await fetchMetadata(apiURL)
+    console.log(response)
 
     const authMethods = new Set([
       AuthenticationMethods.BasicAuth,

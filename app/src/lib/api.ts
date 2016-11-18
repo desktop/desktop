@@ -347,6 +347,16 @@ export function getHTMLURL(endpoint: string): string {
   }
 }
 
+/**
+ * Get the API URL for an HTML URL. For example:
+ *
+ * http://github.mycompany.com -> http://github.mycompany.com/api/v3
+ */
+export function getAPIURL(endpoint: string): string {
+  const parsed = URL.parse(endpoint)
+  return `${parsed.protocol}//${parsed.hostname}/api/v3`
+}
+
 /** Get github.com's API endpoint. */
 export function getDotComAPIEndpoint(): string {
   return 'https://api.github.com'
