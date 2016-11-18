@@ -34,14 +34,20 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
   public render() {
     const disabled = !this.state.otp.length
     return (
-      <form id='2fa-form' onSubmit={this.signIn}>
-        <label>Authentication code
-          <input autoFocus={true} onChange={this.onOTPChange}/>
-        </label>
+      <form id='2fa-form' className='sign-in-form' onSubmit={this.signIn}>
+        <p className='welcome-text'>
+          Open the two-factor authentication app on your device to view your
+          authentication code and verify your identity.
+        </p>
+
+        <label>Authentication code</label>
+        <input className='text-field' autoFocus={true} onChange={this.onOTPChange}/>
 
         {this.renderError()}
 
-        <Button type='submit' disabled={disabled}>Sign In</Button>
+        <div className='actions'>
+          <Button type='submit' disabled={disabled}>Verify</Button>
+        </div>
       </form>
     )
   }
