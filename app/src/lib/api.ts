@@ -349,14 +349,16 @@ function toCamelCase(body: any): any {
  * http://github.mycompany.com/api -> http://github.mycompany.com/
  */
 export function getHTMLURL(endpoint: string): string {
-  if (endpoint === getDotComAPIEndpoint()) {
-    // GitHub.com is A Special Snowflake in that the API lives at a subdomain
-    // but the site itself lives on the parent domain.
-    return 'https://github.com'
-  } else {
-    const parsed = URL.parse(endpoint)
-    return `${parsed.protocol}//${parsed.hostname}`
-  }
+  // In the case of GitHub.com, the HTML site lives on the parent domain.
+  //  E.g., https://api.github.com -> https://github.com
+  //
+  // Whereas with Enterprise, it lives on the same domain but without the
+  // API path:
+  //  E.g., https://github.mycompany.com/api/v3 -> https://github.mycompany.com
+  //
+  // We need to normalize them.
+  const parsed = URL.parse(endpoint)
+  return `${parsed.protocol}//${parsed.hostname}`
 }
 
 /**
@@ -379,27 +381,14 @@ export function getUserForEndpoint(users: ReadonlyArray<User>, endpoint: string)
   return users.filter(u => u.endpoint === endpoint)[0]
 }
 
-function getOAuthURL(endpoint: string): string {
-  // In the case of GitHub.com, the OAuth site lives on the parent domain.
-  //  E.g., https://api.github.com vs. https://github.com/login/oauth/authorize
-  //
-  // Whereas with Enterprise, the API lives on the same domain but without the
-  // API path:
-  //  E.g., https://github.mycompany.com vs. https://github.mycompany.com/login/oauth/authorize
-  //
-  // We need to normalize them.
-  const parsed = URL.parse(endpoint)
-  return `${parsed.protocol}//${parsed.hostname}`
-}
-
 export function getOAuthAuthorizationURL(endpoint: string, state: string): string {
-  const urlBase = getOAuthURL(endpoint)
+  const urlBase = getHTMLURL(endpoint)
   const scope = encodeURIComponent(Scopes.join(' '))
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
 }
 
 export async function requestOAuthToken(endpoint: string, state: string, code: string): Promise<string | null> {
-  const urlBase = getOAuthURL(endpoint)
+  const urlBase = getHTMLURL(endpoint)
   const response = await request(urlBase, null, 'POST', 'login/oauth/access_token', {
     'client_id': ClientID,
     'client_secret': ClientSecret,
