@@ -54,7 +54,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
 
         {this.props.supportsBasicAuth ? <div>or</div> : null}
 
-        <LinkButton onClick={this.signInWithBrowser}>Sign in using your browser</LinkButton>
+        {this.renderSignInWithBrowser()}
       </form>
     )
   }
@@ -62,7 +62,6 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   private renderUsernamePassword() {
     if (!this.props.supportsBasicAuth) { return null }
 
-    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length)
     return (
       <div>
         <label>Username or email address
@@ -75,10 +74,27 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
 
         <LinkButton uri={this.getForgotPasswordURL()}>Forgot password?</LinkButton>
 
-        <div className='actions'>
-          <Button type='submit' disabled={signInDisabled}>Sign in</Button>
-          {this.props.additionalButtons}
-        </div>
+        {this.renderActions()}
+      </div>
+    )
+  }
+
+  private renderActions() {
+    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length)
+    return (
+      <div className='actions'>
+        {this.props.supportsBasicAuth ? <Button type='submit' disabled={signInDisabled}>Sign in</Button> : null}
+        {this.props.additionalButtons}
+      </div>
+    )
+  }
+
+  private renderSignInWithBrowser() {
+    return (
+      <div>
+        <LinkButton onClick={this.signInWithBrowser}>Sign in using your browser</LinkButton>
+
+        {this.renderActions()}
       </div>
     )
   }
