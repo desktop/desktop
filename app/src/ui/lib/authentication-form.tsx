@@ -52,8 +52,6 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
 
         {this.renderError()}
 
-        {this.props.supportsBasicAuth ? <div>or</div> : null}
-
         {this.renderSignInWithBrowser()}
       </form>
     )
@@ -90,11 +88,14 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   }
 
   private renderSignInWithBrowser() {
+    const basicAuth = this.props.supportsBasicAuth
     return (
       <div>
+        {basicAuth ? <div>or</div> : null}
+
         <LinkButton onClick={this.signInWithBrowser}>Sign in using your browser</LinkButton>
 
-        {this.props.supportsBasicAuth ? null : this.renderActions()}
+        {basicAuth ? null : this.renderActions()}
       </div>
     )
   }

@@ -3,7 +3,7 @@ import { Button } from './button'
 import { getEnterpriseAPIURL, fetchMetadata } from '../../lib/api'
 import { Loading } from './loading'
 
-/** The authentication methods a server may allow. */
+/** The authentication methods server allows. */
 export enum AuthenticationMethods {
   /** Basic auth in order to create authorization tokens. */
   BasicAuth,
@@ -23,7 +23,7 @@ interface IEnterpriseServerEntryState {
   readonly loading: boolean
 }
 
-/** An entry form for an Enterprise server. */
+/** An entry form for an Enterprise server address. */
 export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntryProps, IEnterpriseServerEntryState> {
   public constructor(props: IEnterpriseServerEntryProps) {
     super(props)
@@ -63,13 +63,20 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
 
     const address = this.state.serverAddress
     const endpoint = getEnterpriseAPIURL(address)
-    const response = await fetchMetadata(endpoint)
-    if (!response.verifiablePasswordAuthentication) {
-      authMethods.delete(AuthenticationMethods.BasicAuth)
+
+    try {
+      const response = await fetchMetadata(endpoint)
+      if (!response.verifiablePasswordAuthentication) {
+        authMethods.delete(AuthenticationMethods.BasicAuth)
+      }
+
+      this.setState({ serverAddress: this.state.serverAddress, loading: false })
+
+      this.props.onContinue(endpoint, authMethods)
+    } catch (e) {
+      this.setState({ serverAddress: this.state.serverAddress, loading: false })
+
+      // TODO: probably means the server URL is bad or Enterprise is Real Old.
     }
-
-    this.setState({ serverAddress: this.state.serverAddress, loading: false })
-
-    this.props.onContinue(endpoint, authMethods)
   }
 }
