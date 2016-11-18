@@ -34,10 +34,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
     return (
       <div id='sign-in-dot-com'>
         <h1 className='welcome-title'>Sign in to GitHub.com</h1>
-        <p className='welcome-text'>
-          (But not really. Use the browser for now please and thank you.)
-        </p>
-
+        
         {this.renderStep()}
       </div>
     )

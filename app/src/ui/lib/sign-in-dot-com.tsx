@@ -57,7 +57,6 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
           <LinkButton className='forgot-password-link' uri={ForgotPasswordURL}>Forgot password?</LinkButton>
         </div>
 
-
         {this.renderError()}
 
         <div className='actions'>
