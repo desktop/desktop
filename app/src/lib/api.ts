@@ -9,6 +9,7 @@ import * as appProxy from '../ui/lib/app-proxy'
 const Octokat = require('octokat')
 const got = require('got')
 const username: () => Promise<string> = require('username')
+const camelCase: (str: string) => string = require('to-camel-case')
 
 /** The response from `got` requests. */
 interface IHTTPResponse extends HTTP.IncomingMessage {
@@ -279,7 +280,7 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 /** Get metadata from the server. */
 export async function fetchMetadata(endpoint: string): Promise<IServerMetadata> {
   const response = await request(endpoint, null, 'GET', 'meta', null)
-  return response.body
+  return toCamelCase(response.body)
 }
 
 /**
@@ -328,6 +329,17 @@ async function getNote(): Promise<string> {
   }
 
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`
+}
+
+/** Turn keys into camel case. */
+function toCamelCase(body: any): any {
+  const result: any = {}
+  for (const key in body) {
+    const value = body[key]
+    result[camelCase(key)] = value
+  }
+
+  return result
 }
 
 /**
