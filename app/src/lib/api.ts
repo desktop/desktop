@@ -380,13 +380,16 @@ export function getUserForEndpoint(users: ReadonlyArray<User>, endpoint: string)
 }
 
 function getOAuthURL(endpoint: string): string {
-  if (endpoint === getDotComAPIEndpoint()) {
-    // GitHub.com is A Special Snowflake in that the API lives at a subdomain
-    // but OAuth lives on the parent domain.
-    return 'https://github.com'
-  } else {
-    return endpoint
-  }
+  // In the case of GitHub.com, the OAuth site lives on the parent domain.
+  //  E.g., https://api.github.com vs. https://github.com/login/oauth/authorize
+  //
+  // Whereas with Enterprise, the API lives on the same domain but without the
+  // API path:
+  //  E.g., https://github.mycompany.com vs. https://github.mycompany.com/login/oauth/authorize
+  //
+  // We need to normalize them.
+  const parsed = URL.parse(endpoint)
+  return `${parsed.protocol}//${parsed.hostname}`
 }
 
 export function getOAuthAuthorizationURL(endpoint: string, state: string): string {
