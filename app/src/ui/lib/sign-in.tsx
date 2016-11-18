@@ -16,6 +16,9 @@ interface ISignInProps {
   /** The endpoint against which the user is authenticating. */
   readonly endpoint: string
 
+  /** Does the server support basic auth? */
+  readonly supportsBasicAuth: boolean
+
   /** Called after the user has signed in. */
   readonly onDidSignIn: (user: User) => void
 
@@ -43,9 +46,25 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   }
 
   public render() {
-    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length)
     return (
       <form id='sign-in-form' onSubmit={this.signIn}>
+        {this.renderUsernamePassword()}
+
+        {this.renderError()}
+
+        {this.props.supportsBasicAuth ? <div>or</div> : null}
+
+        <LinkButton onClick={this.signInWithBrowser}>Sign in using your browser</LinkButton>
+      </form>
+    )
+  }
+
+  private renderUsernamePassword() {
+    if (!this.props.supportsBasicAuth) { return null }
+
+    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length)
+    return (
+      <div>
         <label>Username or email address
           <input autoFocus={true} onChange={this.onUsernameChange}/>
         </label>
@@ -54,19 +73,13 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
           <input type='password' onChange={this.onPasswordChange}/>
         </label>
 
-        {this.renderError()}
-
         <LinkButton uri={this.getForgotPasswordURL()}>Forgot password?</LinkButton>
 
         <div className='actions'>
           <Button type='submit' disabled={signInDisabled}>Sign in</Button>
           {this.props.additionalButtons}
         </div>
-
-        <div>or</div>
-
-        <LinkButton onClick={this.signInWithBrowser}>Sign in using your browser</LinkButton>
-      </form>
+      </div>
     )
   }
 
