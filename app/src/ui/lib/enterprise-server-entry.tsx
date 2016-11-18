@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Button } from './button'
-import { getAPIURL, fetchMetadata } from '../../lib/api'
+import { getEnterpriseAPIURL, fetchMetadata } from '../../lib/api'
 
 /** The authentication methods a server may allow. */
 export enum AuthenticationMethods {
@@ -54,7 +54,7 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
     ])
 
     const endpoint = this.state.endpoint
-    const apiURL = getAPIURL(endpoint)
+    const apiURL = getEnterpriseAPIURL(endpoint)
     const response = await fetchMetadata(apiURL)
     if (!response.verifiablePasswordAuthentication) {
       authMethods.delete(AuthenticationMethods.BasicAuth)
