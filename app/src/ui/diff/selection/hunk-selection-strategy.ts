@@ -24,8 +24,9 @@ export class HunkSelection implements ISelectionStrategy {
   public paint(elements: Map<number, HTMLSpanElement>) {
     range(this._start, this._end).forEach(row => {
       const element = elements.get(row)
+
       if (!element) {
-        console.error('expected gutter element not found')
+        // if the element has not been rendered, it's not visible to the user
         return
       }
 
