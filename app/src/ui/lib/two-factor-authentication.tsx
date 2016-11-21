@@ -3,6 +3,7 @@ import { createAuthorization, AuthorizationResponse, fetchUser, AuthorizationRes
 import { User } from '../../models/user'
 import { Button } from './button'
 import { assertNever } from '../../lib/fatal-error'
+import { Loading } from './loading'
 
 interface ITwoFactorAuthenticationProps {
   /** The endpoint to authenticate against. */
@@ -21,6 +22,7 @@ interface ITwoFactorAuthenticationProps {
 interface ITwoFactorAuthenticationState {
   readonly otp: string
   readonly response: AuthorizationResponse | null
+  readonly loading: boolean
 }
 
 /** The two-factor authentication component. */
@@ -28,20 +30,23 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
   public constructor(props: ITwoFactorAuthenticationProps) {
     super(props)
 
-    this.state = { otp: '', response: null }
+    this.state = { otp: '', response: null, loading: false }
   }
 
   public render() {
-    const disabled = !this.state.otp.length
+    const textEntryDisabled = this.state.loading
+    const signInDisabled = !this.state.otp.length || this.state.loading
     return (
       <form id='2fa-form' onSubmit={this.signIn}>
         <label>Authentication code
-          <input autoFocus={true} onChange={this.onOTPChange}/>
+          <input disabled={textEntryDisabled} autoFocus={true} onChange={this.onOTPChange}/>
         </label>
 
         {this.renderError()}
 
-        <Button type='submit' disabled={disabled}>Sign In</Button>
+        <Button type='submit' disabled={signInDisabled}>Sign In</Button>
+
+        {this.state.loading ? <Loading/> : null}
       </form>
     )
   }
@@ -50,13 +55,19 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
     const response = this.state.response
     if (!response) { return null }
 
-    const kind = response.kind
-    switch (kind) {
+    switch (response.kind) {
       case AuthorizationResponseKind.Authorized: return null
       case AuthorizationResponseKind.Failed: return <div>Failed</div>
       case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return <div>2fa</div>
-      case AuthorizationResponseKind.Error: return <div>Error</div>
-      default: return assertNever(kind, `Unknown response kind: ${kind}`)
+      case AuthorizationResponseKind.Error: {
+        const error = response.response.error
+        if (error) {
+          return <div>An error occurred: {error.message}</div>
+        } else {
+          return <div>An unknown error occurred: {response.response.statusCode}: {response.response.body}</div>
+        }
+      }
+      default: return assertNever(response, `Unknown response kind: ${response}`)
     }
   }
 
@@ -64,11 +75,18 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
     this.setState({
       otp: event.currentTarget.value,
       response: null,
+      loading: false,
     })
   }
 
   private signIn = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+
+    this.setState({
+      otp: this.state.otp,
+      response: null,
+      loading: true,
+    })
 
     const response = await createAuthorization(this.props.endpoint, this.props.login, this.props.password, this.state.otp)
     if (response.kind === AuthorizationResponseKind.Authorized) {
@@ -79,6 +97,7 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
       this.setState({
         otp: this.state.otp,
         response,
+        loading: false,
       })
     }
   }
