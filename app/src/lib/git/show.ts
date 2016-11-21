@@ -33,7 +33,7 @@ export async function getBlobContents(repository: Repository, commitish: string,
     processCallback: setBinaryEncoding,
   }
 
-  const blobContents = await git(args, repository.path, opts)
+  const blobContents = await git(args, repository.path, 'getBlobContents', opts)
 
   return Buffer.from(blobContents.stdout, 'binary')
 }
