@@ -332,7 +332,7 @@ async function getNote(): Promise<string> {
 }
 
 /** Turn keys into camel case. */
-function toCamelCase(body: any): any {
+export function toCamelCase(body: any): any {
   const result: any = {}
   for (const key in body) {
     const value = body[key]
