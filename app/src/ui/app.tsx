@@ -277,7 +277,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       : null
 
     return (
-      <div id='desktop-app-title-bar'>
+      <div className='light-title-bar' id='desktop-app-title-bar'>
         <span className='app-title'>GitHub Desktop</span>
         {winControls}
       </div>
