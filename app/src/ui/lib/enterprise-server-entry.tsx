@@ -66,7 +66,7 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
 
     try {
       const response = await fetchMetadata(endpoint)
-      if (!response.verifiablePasswordAuthentication) {
+      if (response.verifiablePasswordAuthentication === false) {
         authMethods.delete(AuthenticationMethods.BasicAuth)
       }
 
