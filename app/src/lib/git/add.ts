@@ -7,12 +7,12 @@ import { applyPatchToIndex } from './apply'
 export async function addFileToIndex(repository: Repository, file: WorkingDirectoryFileChange): Promise<void> {
 
   if (file.status === FileStatus.New) {
-    await git([ 'add', '--', file.path ], repository.path)
+    await git([ 'add', '--', file.path ], repository.path, 'addFileToIndex')
   } else if (file.status === FileStatus.Renamed && file.oldPath) {
-    await git([ 'add', '--', file.path ], repository.path)
-    await git([ 'add', '-u', '--', file.oldPath ], repository.path)
+    await git([ 'add', '--', file.path ], repository.path, 'addFileToIndex')
+    await git([ 'add', '-u', '--', file.oldPath ], repository.path, 'addFileToIndex')
   } else {
-    await git([ 'add', '-u', '--', file.path ], repository.path)
+    await git([ 'add', '-u', '--', file.path ], repository.path, 'addFileToIndex')
   }
 }
 
