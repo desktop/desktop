@@ -120,6 +120,7 @@ export class AppStore {
   private readonly gitStores = new Map<number, GitStore>()
 
   private sidebarWidth: number = defaultSidebarWidth
+  private hideToolbar: boolean
 
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore) {
     this.gitHubUserStore = gitHubUserStore
@@ -320,6 +321,7 @@ export class AppStore {
       showWelcomeFlow: this.showWelcomeFlow,
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
+      hideToolbar: this.hideToolbar,
     }
   }
 
