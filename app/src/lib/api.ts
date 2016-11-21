@@ -9,6 +9,7 @@ import * as appProxy from '../ui/lib/app-proxy'
 const Octokat = require('octokat')
 const got = require('got')
 const username: () => Promise<string> = require('username')
+const camelCase: (str: string) => string = require('to-camel-case')
 
 /** The response from `got` requests. */
 interface IHTTPResponse extends HTTP.IncomingMessage {
@@ -80,6 +81,15 @@ export interface IAPIIssue {
   readonly number: number
   readonly title: string
   readonly state: 'open' | 'closed'
+}
+
+/** The metadata about a GitHub server. */
+export interface IServerMetadata {
+  /**
+   * Does the server support password-based authentication? If not, the user
+   * must go through the OAuth flow to authenticate.
+   */
+  readonly verifiablePasswordAuthentication: boolean
 }
 
 /**
@@ -262,9 +272,15 @@ export async function createAuthorization(endpoint: string, login: string, passw
 
 /** Fetch the user authenticated by the token. */
 export async function fetchUser(endpoint: string, token: string): Promise<User> {
-  const octo = new Octokat({ token })
+  const octo = new Octokat({ token, rootURL: endpoint })
   const user = await octo.user.fetch()
   return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id)
+}
+
+/** Get metadata from the server. */
+export async function fetchMetadata(endpoint: string): Promise<IServerMetadata> {
+  const response = await request(endpoint, null, 'GET', 'meta', null)
+  return toCamelCase(response.body)
 }
 
 /**
@@ -291,11 +307,11 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
   const options: any = {
     headers,
     method,
+    json: true,
   }
 
   if (body) {
     options.body = JSON.stringify(body)
-    options.json = true
   }
 
   return got(url, options).catch((e: any) => e.response)
@@ -315,6 +331,17 @@ async function getNote(): Promise<string> {
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`
 }
 
+/** Turn keys into camel case. */
+export function toCamelCase(body: any): any {
+  const result: any = {}
+  for (const key in body) {
+    const value = body[key]
+    result[camelCase(key)] = value
+  }
+
+  return result
+}
+
 /**
  * Get the URL for the HTML site. For example:
  *
@@ -322,14 +349,30 @@ async function getNote(): Promise<string> {
  * http://github.mycompany.com/api -> http://github.mycompany.com/
  */
 export function getHTMLURL(endpoint: string): string {
+  // In the case of GitHub.com, the HTML site lives on the parent domain.
+  //  E.g., https://api.github.com -> https://github.com
+  //
+  // Whereas with Enterprise, it lives on the same domain but without the
+  // API path:
+  //  E.g., https://github.mycompany.com/api/v3 -> https://github.mycompany.com
+  //
+  // We need to normalize them.
   if (endpoint === getDotComAPIEndpoint()) {
-    // GitHub.com is A Special Snowflake in that the API lives at a subdomain
-    // but the site itself lives on the parent domain.
     return 'https://github.com'
   } else {
     const parsed = URL.parse(endpoint)
     return `${parsed.protocol}//${parsed.hostname}`
   }
+}
+
+/**
+ * Get the API URL for an HTML URL. For example:
+ *
+ * http://github.mycompany.com -> http://github.mycompany.com/api/v3
+ */
+export function getEnterpriseAPIURL(endpoint: string): string {
+  const parsed = URL.parse(endpoint)
+  return `${parsed.protocol}//${parsed.hostname}/api/v3`
 }
 
 /** Get github.com's API endpoint. */
@@ -342,24 +385,14 @@ export function getUserForEndpoint(users: ReadonlyArray<User>, endpoint: string)
   return users.filter(u => u.endpoint === endpoint)[0]
 }
 
-function getOAuthURL(endpoint: string): string {
-  if (endpoint === getDotComAPIEndpoint()) {
-    // GitHub.com is A Special Snowflake in that the API lives at a subdomain
-    // but OAuth lives on the parent domain.
-    return 'https://github.com'
-  } else {
-    return endpoint
-  }
-}
-
 export function getOAuthAuthorizationURL(endpoint: string, state: string): string {
-  const urlBase = getOAuthURL(endpoint)
+  const urlBase = getHTMLURL(endpoint)
   const scope = encodeURIComponent(Scopes.join(' '))
   return `${urlBase}/login/oauth/authorize?client_id=${ClientID}&scope=${scope}&state=${state}`
 }
 
 export async function requestOAuthToken(endpoint: string, state: string, code: string): Promise<string | null> {
-  const urlBase = getOAuthURL(endpoint)
+  const urlBase = getHTMLURL(endpoint)
   const response = await request(urlBase, null, 'POST', 'login/oauth/access_token', {
     'client_id': ClientID,
     'client_secret': ClientSecret,

@@ -2,19 +2,23 @@ import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { Button } from '../lib/button'
 import {
-  getDotComAPIEndpoint,
   createAuthorization,
   AuthorizationResponse,
   fetchUser,
   AuthorizationResponseKind,
+  getHTMLURL,
 } from '../../lib/api'
 import { User } from '../../models/user'
 import { assertNever } from '../../lib/fatal-error'
 import { askUserToOAuth } from '../../lib/oauth'
 
-const ForgotPasswordURL = 'https://github.com/password_reset'
+interface IAuthenticationFormProps {
+  /** The endpoint against which the user is authenticating. */
+  readonly endpoint: string
 
-interface ISignInDotComProps {
+  /** Does the server support basic auth? */
+  readonly supportsBasicAuth: boolean
+
   /** Called after the user has signed in. */
   readonly onDidSignIn: (user: User) => void
 
@@ -25,7 +29,7 @@ interface ISignInDotComProps {
   readonly additionalButtons?: ReadonlyArray<JSX.Element>
 }
 
-interface ISignInDotComState {
+interface IAuthenticationFormState {
   readonly username: string
   readonly password: string
 
@@ -33,18 +37,31 @@ interface ISignInDotComState {
   readonly response: AuthorizationResponse | null
 }
 
-/** The GitHub.com sign in component. */
-export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDotComState> {
-  public constructor(props: ISignInDotComProps) {
+/** The GitHub authentication component. */
+export class AuthenticationForm extends React.Component<IAuthenticationFormProps, IAuthenticationFormState> {
+  public constructor(props: IAuthenticationFormProps) {
     super(props)
 
     this.state = { username: '', password: '', networkRequestInFlight: false, response: null }
   }
 
   public render() {
-    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length)
     return (
       <form id='sign-in-form' onSubmit={this.signIn}>
+        {this.renderUsernamePassword()}
+
+        {this.renderError()}
+
+        {this.renderSignInWithBrowser()}
+      </form>
+    )
+  }
+
+  private renderUsernamePassword() {
+    if (!this.props.supportsBasicAuth) { return null }
+
+    return (
+      <div>
         <label>Username or email address
           <input autoFocus={true} onChange={this.onUsernameChange}/>
         </label>
@@ -53,19 +70,33 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
           <input type='password' onChange={this.onPasswordChange}/>
         </label>
 
-        {this.renderError()}
+        <LinkButton uri={this.getForgotPasswordURL()}>Forgot password?</LinkButton>
 
-        <LinkButton uri={ForgotPasswordURL}>Forgot password?</LinkButton>
+        {this.renderActions()}
+      </div>
+    )
+  }
 
-        <div className='actions'>
-          <Button type='submit' disabled={signInDisabled}>Sign in</Button>
-          {this.props.additionalButtons}
-        </div>
+  private renderActions() {
+    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length)
+    return (
+      <div className='actions'>
+        {this.props.supportsBasicAuth ? <Button type='submit' disabled={signInDisabled}>Sign in</Button> : null}
+        {this.props.additionalButtons}
+      </div>
+    )
+  }
 
-        <div>or</div>
+  private renderSignInWithBrowser() {
+    const basicAuth = this.props.supportsBasicAuth
+    return (
+      <div>
+        {basicAuth ? <div>or</div> : null}
 
         <LinkButton onClick={this.signInWithBrowser}>Sign in using your browser</LinkButton>
-      </form>
+
+        {basicAuth ? null : this.renderActions()}
+      </div>
     )
   }
 
@@ -81,6 +112,10 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
       case AuthorizationResponseKind.Authorized: return null
       default: return assertNever(kind, `Unknown response kind: ${kind}`)
     }
+  }
+
+  private getForgotPasswordURL(): string {
+    return `${getHTMLURL(this.props.endpoint)}/password_reset`
   }
 
   private onUsernameChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -102,8 +137,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
   }
 
   private signInWithBrowser = async () => {
-    const endpoint = getDotComAPIEndpoint()
-    const user = await askUserToOAuth(endpoint)
+    const user = await askUserToOAuth(this.props.endpoint)
     this.props.onDidSignIn(user)
   }
 
@@ -119,7 +153,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, ISignInDot
       response: null,
     })
 
-    const endpoint = getDotComAPIEndpoint()
+    const endpoint = this.props.endpoint
     const response = await createAuthorization(endpoint, username, password, null)
 
     if (response.kind === AuthorizationResponseKind.Authorized) {
