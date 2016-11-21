@@ -35,8 +35,8 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, IS
   public render() {
     return (
       <div id='sign-in-enterprise'>
-        <h1>Sign in to your GitHub Enterprise server</h1>
-        <div>Get started by signing into GitHub Enterprise</div>
+        <h1 className='welcome-title'>Sign in to your GitHub Enterprise server</h1>
+        <p className='welcome-text'>Get started by signing into GitHub Enterprise</p>
 
         {this.renderStep()}
       </div>
