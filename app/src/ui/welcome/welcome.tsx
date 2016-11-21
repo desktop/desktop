@@ -56,6 +56,8 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   }
 
   public render() {
+    this.props.dispatcher.hideTitlebar()
+
     return (
       <UiView id='welcome'>
         {this.componentForCurrentStep()}

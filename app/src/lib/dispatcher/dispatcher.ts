@@ -374,7 +374,17 @@ export class Dispatcher {
 
   /** End the Welcome flow. */
   public endWelcomeFlow(): Promise<void> {
+    this.appStore._showTitlebar()
     return this.appStore._endWelcomeFlow()
+  }
+
+  /** Hide and show app titlebar **/
+  public hideTitlebar(): Promise<void> {
+    return this.appStore._hideTitlebar()
+  }
+
+  public showTitlebar(): Promise<void> {
+    return this.appStore._showTitlebar()
   }
 
   /**

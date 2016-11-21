@@ -275,9 +275,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     const winControls = __WIN32__
       ? <WindowControls />
       : null
+    const hideTitlebar = this.state.hideTitlebar
 
     return (
-      <div className='light-title-bar' id='desktop-app-title-bar'>
+      <div className={hideTitlebar ? 'light-title-bar' : ''} id='desktop-app-title-bar'>
         <span className='app-title'>GitHub Desktop</span>
         {winControls}
       </div>
@@ -546,6 +547,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderWelcomeFlow() {
+    this.props.dispatcher.hideTitlebar()
+
     return (
       <Welcome dispatcher={this.props.dispatcher} appStore={this.props.appStore}/>
     )
