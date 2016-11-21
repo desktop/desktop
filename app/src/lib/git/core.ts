@@ -1,6 +1,7 @@
 import * as Path from 'path'
 import { User } from '../../models/user'
 import { assertNever } from '../fatal-error'
+import * as GitPerf from '../../ui/lib/git-perf'
 
 import {
   GitProcess,
@@ -81,6 +82,10 @@ export class GitError {
  * @param {path}             The working directory path for the execution of the
  *                           command.
  *
+ * @param {name}             The name for the command based on its caller's
+ *                           context. This will be used for performance
+ *                           measurements and debugging.
+ *
  * @param {options}          Configuration options for the execution of git,
  *                           see IGitExecutionOptions for more information.
  *
@@ -88,7 +93,7 @@ export class GitError {
  * `successExitCodes` or an error not in `expectedErrors`, a `GitError` will be
  * thrown.
  */
-export async function git(args: string[], path: string, options?: IGitExecutionOptions): Promise<IGitResult> {
+export async function git(args: string[], path: string, name: string, options?: IGitExecutionOptions): Promise<IGitResult> {
 
   const defaultOptions: IGitExecutionOptions = {
     successExitCodes: new Set([ 0 ]),
@@ -99,13 +104,15 @@ export async function git(args: string[], path: string, options?: IGitExecutionO
 
   const startTime = (performance && performance.now) ? performance.now() : null
 
-  const result = await GitProcess.exec(args, path, options)
+  const commandName = `${name}: git ${args.join(' ')}`
+
+  const result = await GitPerf.measure(commandName, () => GitProcess.exec(args, path, options))
 
   if (console.debug && startTime) {
     const rawTime = performance.now() - startTime
     if (rawTime > 100) {
      const timeInSeconds = (rawTime / 1000).toFixed(3)
-     console.debug(`executing: git ${args.join(' ')} (took ${timeInSeconds}s)`)
+     console.debug(`executing: ${commandName} (took ${timeInSeconds}s)`)
     }
   }
 

@@ -13,5 +13,5 @@ import { Repository } from '../../models/repository'
  * @param reason     - The reflog entry.
  */
 export async function updateRef(repository: Repository, ref: string, oldValue: string, newValue: string, reason: string): Promise<void> {
-  await git([ 'update-ref', ref, newValue, oldValue, '-m', reason ], repository.path)
+  await git([ 'update-ref', ref, newValue, oldValue, '-m', reason ], repository.path, 'updateRef')
 }

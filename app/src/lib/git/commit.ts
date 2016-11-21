@@ -9,12 +9,12 @@ export async function createCommit(repository: Repository, message: string, file
   // working directory and the last commit (if any) so our commits should
   // do the same thing.
   if (await isHeadUnborn(repository)) {
-    await git([ 'reset' ], repository.path)
+    await git([ 'reset' ], repository.path, 'createCommit')
   } else {
-    await git([ 'reset', 'HEAD', '--mixed' ], repository.path)
+    await git([ 'reset', 'HEAD', '--mixed' ], repository.path, 'createCommit')
   }
 
   await stageFiles(repository, files)
 
-  await git([ 'commit', '-F',  '-' ] , repository.path, { stdin: message })
+  await git([ 'commit', '-F',  '-' ] , repository.path, 'createCommit', { stdin: message })
 }

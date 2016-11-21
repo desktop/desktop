@@ -17,17 +17,17 @@ export async function applyPatchToIndex(repository: Repository, file: WorkingDir
     // partial stages vs full-file stages happen. By using git add the
     // worst that could happen is that we re-stage a file already staged
     // by addFileToIndex
-    await git([ 'add', '--u', '--', file.oldPath ], repository.path)
+    await git([ 'add', '--u', '--', file.oldPath ], repository.path, 'applyPatchToIndex')
 
     // Figure out the blob oid of the removed file
     // <mode> SP <type> SP <object> TAB <file>
-    const oldFile = await git([ 'ls-tree', 'HEAD', '--', file.oldPath ], repository.path)
+    const oldFile = await git([ 'ls-tree', 'HEAD', '--', file.oldPath ], repository.path, 'applyPatchToIndex')
 
     const [ info ] = oldFile.stdout.split('\t', 1)
     const [ mode, , oid ] = info.split(' ', 3)
 
     // Add the old file blob to the index under the new name
-    await git([ 'update-index', '--add', '--cacheinfo', mode, oid, file.path ], repository.path)
+    await git([ 'update-index', '--add', '--cacheinfo', mode, oid, file.path ], repository.path, 'applyPatchToIndex')
   }
 
   const applyArgs: string[] = [ 'apply', '--cached', '--unidiff-zero', '--whitespace=nowarn', '-' ]
@@ -35,7 +35,7 @@ export async function applyPatchToIndex(repository: Repository, file: WorkingDir
   const diff = await getWorkingDirectoryDiff(repository, file)
 
   const patch = await formatPatch(file, diff)
-  await git(applyArgs, repository.path, { stdin: patch })
+  await git(applyArgs, repository.path, 'applyPatchToIndex', { stdin: patch })
 
   return Promise.resolve()
 }
