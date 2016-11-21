@@ -19,6 +19,12 @@ import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
 
+if (__DEV__) {
+  const g: any = global
+  // Expose GitPerf as a global so it can be started.
+  g.GitPerf = require('./lib/git-perf')
+}
+
 const startTime = Date.now()
 
 if (!process.env.TEST_ENV) {

@@ -65,7 +65,7 @@ export function mapStatus(rawStatus: string): FileStatus {
  *  and fail gracefully if the location is not a Git repository
  */
 export async function getStatus(repository: Repository): Promise<StatusResult> {
-  const result = await git([ 'status', '--untracked-files=all', '--porcelain', '-z' ], repository.path)
+  const result = await git([ 'status', '--untracked-files=all', '--porcelain', '-z' ], repository.path, 'getStatus')
   const entries = parsePorcelainStatus(result.stdout)
 
   const files = entries.map(({ path, statusCode, oldPath }) => {

@@ -25,7 +25,7 @@ export function getCommitDiff(repository: Repository, file: FileChange, commitis
 
   const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
 
-  return git(args, repository.path)
+  return git(args, repository.path, 'getCommitDiff')
     .then(value => diffFromRawDiffOutput(value.stdout))
     .then(diff => attachImageDiff(repository, file, diff))
 }
@@ -66,7 +66,7 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
     args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
   }
 
-  return git(args, repository.path, opts)
+  return git(args, repository.path, 'getWorkingDirectoryDiff', opts)
     .then(value => diffFromRawDiffOutput(value.stdout))
     .then(diff => attachImageDiff(repository, file, diff))
 }
@@ -160,7 +160,7 @@ async function getBlobContents(repository: Repository, file: FileChange): Promis
   const successExitCodes = new Set([ 0, 1 ])
 
   const lsTreeArgs = [ 'ls-tree', 'HEAD', '-z', '--', file.path ]
-  const blobRow = await git(lsTreeArgs, repository.path, { successExitCodes })
+  const blobRow = await git(lsTreeArgs, repository.path, 'getBlobContents', { successExitCodes })
 
   // a mixture of whitespace and tab characters here
   // so let's just split on everything interesting
@@ -171,7 +171,7 @@ async function getBlobContents(repository: Repository, file: FileChange): Promis
 
   const setBinaryEncoding: (process: ChildProcess) => void = cb => cb.stdout.setEncoding('binary')
 
-  const blobContents = await git(catFileArgs, repository.path, { successExitCodes, processCallback: setBinaryEncoding })
+  const blobContents = await git(catFileArgs, repository.path, 'getBlobContents', { successExitCodes, processCallback: setBinaryEncoding })
   const base64Contents = Buffer.from(blobContents.stdout, 'binary').toString('base64')
 
   return base64Contents
