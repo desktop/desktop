@@ -14,6 +14,7 @@ const camelCase: (str: string) => string = require('to-camel-case')
 /** The response from `got` requests. */
 interface IHTTPResponse extends HTTP.IncomingMessage {
   readonly body: any
+  readonly error?: Error
 }
 
 /** The HTTP methods available. */
@@ -224,7 +225,7 @@ export enum AuthorizationResponseKind {
 }
 
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
-                                    { kind: AuthorizationResponseKind.Failed } |
+                                    { kind: AuthorizationResponseKind.Failed, response: IHTTPResponse } |
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: string } |
                                     { kind: AuthorizationResponseKind.Error, response: IHTTPResponse }
 
@@ -258,7 +259,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
       }
     }
 
-    return { kind: AuthorizationResponseKind.Failed }
+    return { kind: AuthorizationResponseKind.Failed, response }
   }
 
   const body = response.body
@@ -267,7 +268,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
     return { kind: AuthorizationResponseKind.Authorized, token }
   }
 
-  return { kind: AuthorizationResponseKind.Failed, response }
+  return { kind: AuthorizationResponseKind.Error, response }
 }
 
 /** Fetch the user authenticated by the token. */
@@ -314,7 +315,11 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
     options.body = JSON.stringify(body)
   }
 
-  return got(url, options).catch((e: any) => e.response)
+  return got(url, options).catch((e: any) => {
+    const response = e.response
+    response.error = e
+    return response
+  })
 }
 
 /** The note used for created authorizations. */

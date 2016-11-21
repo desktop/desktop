@@ -107,13 +107,19 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     const response = this.state.response
     if (!response) { return null }
 
-    const kind = response.kind
-    switch (kind) {
+    switch (response.kind) {
       case AuthorizationResponseKind.Failed: return <div>The username or password are incorrect.</div>
-      case AuthorizationResponseKind.Error: return <div>An error occurred.</div>
+      case AuthorizationResponseKind.Error: {
+        const error = response.response.error
+        if (error) {
+          return <div>An error occurred: {error.message}</div>
+        } else {
+          return <div>An unknown error occurred: {response.response.statusCode}: {response.response.body}</div>
+        }
+      }
       case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return null
       case AuthorizationResponseKind.Authorized: return null
-      default: return assertNever(kind, `Unknown response kind: ${kind}`)
+      default: return assertNever(response, `Unknown response: ${response}`)
     }
   }
 
