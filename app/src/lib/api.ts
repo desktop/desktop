@@ -279,9 +279,13 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 }
 
 /** Get metadata from the server. */
-export async function fetchMetadata(endpoint: string): Promise<IServerMetadata> {
+export async function fetchMetadata(endpoint: string): Promise<IServerMetadata | null> {
   const response = await request(endpoint, null, 'GET', 'meta', null)
-  return toCamelCase(response.body)
+  if (response.statusCode === 200) {
+    return toCamelCase(response.body)
+  } else {
+    return null
+  }
 }
 
 /**
