@@ -410,14 +410,17 @@ export class App extends React.Component<IAppProps, IAppState> {
   private renderRepositoryToolbarButton() {
     const selection = this.state.selectedState
 
-    if (!selection) {
-      return null
+    const repository = selection ? selection.repository : null
+
+    let icon: OcticonSymbol
+    let title: string
+    if (repository) {
+      icon = this.iconForRepository(repository)
+      title = repository.name
+    } else {
+      icon = OcticonSymbol.repo
+      title = 'Select a repository'
     }
-
-    const repository = selection.repository
-
-    const icon = this.iconForRepository(repository)
-    const title = repository.name
 
     const isOpen = this.state.currentFoldout
       && this.state.currentFoldout.type === FoldoutType.Repository
