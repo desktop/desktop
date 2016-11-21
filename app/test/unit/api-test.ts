@@ -8,16 +8,23 @@ describe('API', () => {
     it('converts keys to camel case', () => {
       const sampleResponse = {
         'verifiable_password_authentication': true,
-        'services_sha': 'deadbeef',
+        'github_services_sha': 'deadbeef',
+        'hooks': [
+          '127.0.0.1/32',
+        ],
       }
       const expected = {
         verifiablePasswordAuthentication: true,
-        servicesSha: 'deadbeef',
+        githubServicesSha: 'deadbeef',
+        hooks: [
+          '127.0.0.1/32',
+        ],
       }
       const result = toCamelCase(sampleResponse)
 
       expect(result.verifiablePasswordAuthentication).to.equal(expected.verifiablePasswordAuthentication)
-      expect(result.servicesSha).to.equal(expected.servicesSha)
+      expect(result.githubServicesSha).to.equal(expected.githubServicesSha)
+      expect(result.hooks[0]).to.equal(expected.hooks[0])
     })
   })
 })
