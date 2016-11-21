@@ -11,6 +11,7 @@ import {
 import { User } from '../../models/user'
 import { assertNever } from '../../lib/fatal-error'
 import { askUserToOAuth } from '../../lib/oauth'
+import { Loading } from './loading'
 
 interface IAuthenticationFormProps {
   /** The endpoint against which the user is authenticating. */
@@ -33,7 +34,7 @@ interface IAuthenticationFormState {
   readonly username: string
   readonly password: string
 
-  readonly networkRequestInFlight: boolean
+  readonly loading: boolean
   readonly response: AuthorizationResponse | null
 }
 
@@ -42,7 +43,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   public constructor(props: IAuthenticationFormProps) {
     super(props)
 
-    this.state = { username: '', password: '', networkRequestInFlight: false, response: null }
+    this.state = { username: '', password: '', loading: false, response: null }
   }
 
   public render() {
@@ -60,14 +61,15 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   private renderUsernamePassword() {
     if (!this.props.supportsBasicAuth) { return null }
 
+    const disabled = this.state.loading
     return (
       <div>
         <label>Username or email address
-          <input autoFocus={true} onChange={this.onUsernameChange}/>
+          <input disabled={disabled} autoFocus={true} onChange={this.onUsernameChange}/>
         </label>
 
         <label>Password
-          <input type='password' onChange={this.onPasswordChange}/>
+          <input disabled={disabled} type='password' onChange={this.onPasswordChange}/>
         </label>
 
         <LinkButton uri={this.getForgotPasswordURL()}>Forgot password?</LinkButton>
@@ -78,11 +80,12 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   }
 
   private renderActions() {
-    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length)
+    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length || this.state.loading)
     return (
       <div className='actions'>
         {this.props.supportsBasicAuth ? <Button type='submit' disabled={signInDisabled}>Sign in</Button> : null}
         {this.props.additionalButtons}
+        {this.state.loading ? <Loading/> : null}
       </div>
     )
   }
@@ -122,7 +125,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     this.setState({
       username: event.currentTarget.value,
       password: this.state.password,
-      networkRequestInFlight: this.state.networkRequestInFlight,
+      loading: this.state.loading,
       response: null,
     })
   }
@@ -131,7 +134,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     this.setState({
       username: this.state.username,
       password: event.currentTarget.value,
-      networkRequestInFlight: this.state.networkRequestInFlight,
+      loading: this.state.loading,
       response: null,
     })
   }
@@ -149,7 +152,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     this.setState({
       username,
       password,
-      networkRequestInFlight: true,
+      loading: true,
       response: null,
     })
 
@@ -166,7 +169,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
       this.setState({
         username,
         password,
-        networkRequestInFlight: false,
+        loading: false,
         response,
       })
     }
