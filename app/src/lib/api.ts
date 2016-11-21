@@ -317,8 +317,12 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
 
   return got(url, options).catch((e: any) => {
     const response = e.response
-    response.error = e
-    return response
+    if (response) {
+      response.error = e
+      return response
+    } else {
+      throw e
+    }
   })
 }
 
