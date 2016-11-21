@@ -21,7 +21,7 @@ export async function getBranches(repository: Repository, prefix: string, type: 
     '%(body)',
     `%${delimiter}`, // indicate end-of-line as %(body) may contain newlines
   ].join('%00')
-  const result = await git([ 'for-each-ref', `--format=${format}`, prefix ], repository.path)
+  const result = await git([ 'for-each-ref', `--format=${format}`, prefix ], repository.path, 'getBranches')
   const names = result.stdout
   const lines = names.split(delimiterString)
 
@@ -59,7 +59,7 @@ export async function getBranches(repository: Repository, prefix: string, type: 
 
 /** Get the name of the current branch. */
 export async function getCurrentBranch(repository: Repository): Promise<Branch | null> {
-  const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 1, 128 ]) })
+  const revParseResult = await git([ 'rev-parse', '--abbrev-ref', 'HEAD' ], repository.path, 'getCurrentBranch', { successExitCodes: new Set([ 0, 1, 128 ]) })
   // error code 1 is returned if no upstream
   // error code 128 is returned if the branch is unborn
   if (revParseResult.exitCode === 1 || revParseResult.exitCode === 128) {

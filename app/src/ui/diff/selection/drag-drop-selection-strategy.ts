@@ -1,6 +1,7 @@
 import { DiffSelection } from '../../../models/diff'
 import { ISelectionStrategy } from './selection-strategy'
 import { selectedLineClass } from './selection'
+import { compare } from '../../../lib/compare'
 import { range } from '../../../lib/range'
 
 /** apply a drag-and-drop change to the current diff */
@@ -9,7 +10,13 @@ export class DragDropSelection implements ISelectionStrategy {
   private readonly desiredSelection: boolean
   private readonly snapshot: DiffSelection
 
+  // the current row the cursor is hovering over
   private current: number
+
+  // to track the gesture range so that we repaint over the
+  // entire range of elements while the gesture is in-flight
+  private maximumDirtyRange: number
+  private minimumDirtyRange: number
 
   public constructor(start: number, desiredSelection: boolean, snapshot: DiffSelection) {
     this.start = start
@@ -17,6 +24,8 @@ export class DragDropSelection implements ISelectionStrategy {
     this.snapshot = snapshot
 
     this.current = start
+    this.maximumDirtyRange = start
+    this.minimumDirtyRange = start
   }
 
   /**
@@ -46,6 +55,14 @@ export class DragDropSelection implements ISelectionStrategy {
    */
   public update(current: number) {
     this.current = current
+
+    if (current > this.maximumDirtyRange) {
+      this.maximumDirtyRange = current
+    }
+
+    if (current < this.minimumDirtyRange) {
+      this.minimumDirtyRange = current
+    }
   }
 
   /**
@@ -63,22 +80,52 @@ export class DragDropSelection implements ISelectionStrategy {
   }
 
   /**
-   * repaint the current diff gutter to visualize the current state
+   * Compute the range of lines to repaint, based on how far the user
+   * has moved their cursor
    */
-  public paint(elements: Map<number, HTMLSpanElement>) {
+  private determineDirtyRange(elements: Map<number, HTMLSpanElement>): { start: number, end: number} {
 
     // as user can go back and forth when doing drag-and-drop, we should
     // update rows outside the current selected range
+
+    // keys are by default sorted by insertion order
+    // source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
+    //
+    // this ensures we get the latest index that's drawn onscreen
+    const sortedKeys = Array.from(elements.keys()).sort(compare)
+    const lastKey = sortedKeys[sortedKeys.length - 1]
+    const maximum = lastKey
+
     let start = this.lowerIndex
+    // ensure we repaint over previously touched rows before the start
+    if (this.minimumDirtyRange < start) {
+      start = this.minimumDirtyRange - 1
+    }
+
     if (start < 1) {
       start = 1 // 0 is always the diff context
     }
 
-    const maximum = elements.size
     let end = this.upperIndex + 1
-    if (end >= maximum) {
-      end = maximum - 1 // ensure that we stay within the diff bounds
+    // ensure we repaint over previously touched rows after the end
+    if (this.maximumDirtyRange > end) {
+      end = this.maximumDirtyRange + 1
     }
+
+    // ensure that we stay within the range of rows painted
+    if (end >= maximum) {
+      end = maximum - 1
+    }
+
+    return { start, end }
+  }
+
+  /**
+   * repaint the current diff gutter to visualize the current state
+   */
+  public paint(elements: Map<number, HTMLSpanElement>) {
+
+    const { start, end } = this.determineDirtyRange(elements)
 
     range(start, end).forEach(row => {
       const element = elements.get(row)

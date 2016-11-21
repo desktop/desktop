@@ -18,7 +18,7 @@ import { CommitIdentity } from '../../models/commit-identity'
  * commits can be expected to fail as well.
  */
 export async function getAuthorIdentity(repository: Repository): Promise<CommitIdentity | null> {
-  const result = await git([ 'var', 'GIT_AUTHOR_IDENT' ], repository.path, { successExitCodes: new Set([ 0, 128 ]) })
+  const result = await git([ 'var', 'GIT_AUTHOR_IDENT' ], repository.path, 'getAuthorIdentity', { successExitCodes: new Set([ 0, 128 ]) })
 
   // If user.user.useconfigonly is set and no user.name or user.email
   if (result.exitCode === 128) {

@@ -7,7 +7,6 @@ import { RepositorySection, Popup, Foldout, IAppError } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
-import { URLActionType } from '../parse-url'
 import { Branch } from '../../models/branch'
 import { Commit } from '../../models/commit'
 import { IAPIUser } from '../../lib/api'
@@ -146,17 +145,6 @@ export class Dispatcher {
 
     const repositoryIDs = localRepositories.map(r => r.id)
     await this.dispatchToSharedProcess<ReadonlyArray<number>>({ name: 'remove-repositories', repositoryIDs })
-  }
-
-  /**
-   * Request the user approve our OAuth request. This will open their browser.
-   *
-   * The returned promise will only resolve once the entire OAuth flow has been
-   * completed. If the user cancels the OAuth flow, the promise will never
-   * resolve.
-   */
-  public requestOAuth(): Promise<IUser> {
-    return this.dispatchToSharedProcess<IUser>({ name: 'request-oauth' })
   }
 
   /** Refresh the associated GitHub repository. */
@@ -314,11 +302,6 @@ export class Dispatcher {
     return this.appStore._clearError(error)
   }
 
-  /** Handle the URL action. Returns whether the shared process handled it. */
-  public handleURLAction(action: URLActionType): Promise<boolean> {
-    return this.dispatchToSharedProcess<boolean>({ name: 'url-action', action })
-  }
-
   /** Clone the repository to the path. */
   public async clone(url: string, path: string, user: User | null): Promise<void> {
     const { promise, repository } = this.appStore._clone(url, path, user)
@@ -400,5 +383,10 @@ export class Dispatcher {
    */
   public setCommitMessage(repository: Repository, message: ICommitMessage | null): Promise<void> {
     return this.appStore._setCommitMessage(repository, message)
+  }
+
+  /** Add the user to the app. */
+  public async addUser(user: User): Promise<void> {
+    return this.dispatchToSharedProcess<void>({ name: 'add-user', user })
   }
 }

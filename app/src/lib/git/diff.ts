@@ -25,7 +25,7 @@ export function getCommitDiff(repository: Repository, file: FileChange, commitis
 
   const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
 
-  return git(args, repository.path)
+  return git(args, repository.path, 'getCommitDiff')
     .then(value => diffFromRawDiffOutput(value.stdout))
     .then(diff => attachImageDiff(repository, file, diff, commitish))
 }
@@ -66,7 +66,7 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
     args = [ 'diff', 'HEAD', '--patch-with-raw', '-z', '--', file.path ]
   }
 
-  return git(args, repository.path, opts)
+  return git(args, repository.path, 'getWorkingDirectoryDiff', opts)
     .then(value => diffFromRawDiffOutput(value.stdout))
     .then(diff => attachImageDiff(repository, file, diff, 'HEAD'))
 }

@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "0.0.13",
+  "version": "0.0.15",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -31,7 +31,8 @@
     "react-dom": "^15.3.2",
     "react-virtualized": "^8.0.11",
     "textarea-caret": "^3.0.1",
-    "untildify": "^3.0.2"
+    "untildify": "^3.0.2",
+    "username": "^2.2.2"
   },
   "devDependencies": {
     "fs-extra": "^0.30.0",

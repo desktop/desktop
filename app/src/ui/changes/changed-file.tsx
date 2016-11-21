@@ -1,10 +1,10 @@
 import * as React from 'react'
 
-import { FileStatus } from '../../models/status'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { FileStatus, mapStatus, iconForStatus } from '../../models/status'
+import { PathLabel } from '../lib/path-label'
+import { Octicon } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from './checkbox'
-import { assertNever } from '../../lib/fatal-error'
 
 interface IChangedFileProps {
   path: string
@@ -17,19 +17,6 @@ interface IChangedFileProps {
 
 /** a changed file in the working directory for a given repository */
 export class ChangedFile extends React.Component<IChangedFileProps, void> {
-
-  private static mapStatus(status: FileStatus): string {
-    switch (status) {
-      case FileStatus.New: return 'New'
-      case FileStatus.Modified: return 'Modified'
-      case FileStatus.Deleted: return 'Deleted'
-      case FileStatus.Renamed: return 'Renamed'
-      case FileStatus.Conflicted: return 'Conflicted'
-      case FileStatus.Copied: return 'Copied'
-    }
-
-    return assertNever(status, `Unknown file status ${status}`)
-  }
 
   private handleCheckboxChange = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
@@ -46,28 +33,12 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     }
   }
 
-  public renderPathLabel() {
-    const props: React.HTMLProps<HTMLLabelElement> = {
-      className: 'path',
-      title: this.props.path,
-    }
-
-    if (this.props.status === FileStatus.Renamed && this.props.oldPath) {
-      return (
-        <label {...props}>
-          {this.props.oldPath} <Octicon symbol={OcticonSymbol.arrowRight} /> {this.props.path}
-        </label>
-      )
-    } else {
-      return <label {...props}>{this.props.path}</label>
-    }
-  }
-
   public render() {
-    const fileStatus = ChangedFile.mapStatus(this.props.status)
+    const status = this.props.status
+    const fileStatus = mapStatus(status)
 
     return (
-      <div className='changed-file' onContextMenu={this.onContextMenu}>
+      <div className='file' onContextMenu={this.onContextMenu}>
 
         <Checkbox
           // The checkbox doesn't need to be tab reachable since we emulate
@@ -77,11 +48,13 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
           value={this.checkboxValue}
           onChange={this.handleCheckboxChange}/>
 
-        {this.renderPathLabel()}
+        <PathLabel path={this.props.path}
+                   oldPath={this.props.oldPath}
+                   status={this.props.status} />
 
-        <div className={'status status-' + fileStatus.toLowerCase()} title={fileStatus}>
-          <Octicon symbol={iconForStatus(this.props.status)} />
-        </div>
+        <Octicon symbol={iconForStatus(status)}
+                 className={'status status-' + fileStatus.toLowerCase()}
+                 title={fileStatus} />
       </div>
     )
   }
@@ -97,18 +70,4 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
       showContextualMenu([ item ])
     }
   }
-}
-
-function iconForStatus(status: FileStatus): OcticonSymbol {
-
-  switch (status) {
-    case FileStatus.New: return OcticonSymbol.diffAdded
-    case FileStatus.Modified: return OcticonSymbol.diffModified
-    case FileStatus.Deleted: return OcticonSymbol.diffRemoved
-    case FileStatus.Renamed: return OcticonSymbol.diffRenamed
-    case FileStatus.Conflicted: return OcticonSymbol.alert
-    case FileStatus.Copied: return OcticonSymbol.diffAdded
-  }
-
-  return assertNever(status, `Unknown file status ${status}`)
 }

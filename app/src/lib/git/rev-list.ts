@@ -1,5 +1,5 @@
-import { GitProcess, GitError } from 'git-kitchen-sink'
-import { git, GitError as InternalGitError } from './core'
+import { GitError } from 'git-kitchen-sink'
+import { git } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 
@@ -11,7 +11,7 @@ export interface IAheadBehind {
 
 /** Get the number of commits in HEAD. */
 export async function getCommitCount(repository: Repository): Promise<number> {
-  const result = await git([ 'rev-list', '--count', 'HEAD' ], repository.path, { successExitCodes: new Set([ 0, 128 ]) })
+  const result = await git([ 'rev-list', '--count', 'HEAD' ], repository.path, 'getCommitCount', { successExitCodes: new Set([ 0, 128 ]) })
   // error code 128 is returned if the branch is unborn
   if (result.exitCode === 128) {
     return 0
@@ -27,16 +27,14 @@ async function getAheadBehind(repository: Repository, range: string): Promise<IA
   // they're coming from. When used with `--count`, it tells us how many
   // commits we have from the two different sides of the range.
   const args = [ 'rev-list', '--left-right', '--count', range, '--' ]
-  const result = await git(args, repository.path, { successExitCodes: new Set([ 0, 128 ]) })
-  if (result.exitCode === 128) {
-    const error = GitProcess.parseError(result.stderr)
-    // This means one of the refs (most likely the upstream branch) no longer
-    // exists. In that case we can't be ahead/behind at all.
-    if (error && error === GitError.BadRevision) {
-      return null
-    } else {
-      throw new InternalGitError(result, args, error)
-    }
+  const result = await git(args, repository.path, 'getAheadBehind', {
+    expectedErrors: new Set([ GitError.BadRevision ]),
+  })
+
+  // This means one of the refs (most likely the upstream branch) no longer
+  // exists. In that case we can't be ahead/behind at all.
+  if (result.gitError === GitError.BadRevision) {
+    return null
   }
 
   const stdout = result.stdout

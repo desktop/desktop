@@ -15,6 +15,11 @@ interface IOcticonProps {
    * class name 'octicon'
    */
   className?: string
+
+  /**
+   * An optional string to use as a tooltip for the icon
+   */
+  title?: string
 }
 
 /**
@@ -47,6 +52,16 @@ export class Octicon extends React.Component<IOcticonProps, void> {
      return false
   }
 
+  private renderTitle() {
+    const title = this.props.title
+
+    if (!title) {
+     return null
+    }
+
+    return <title>{title}</title>
+  }
+
   public render() {
     const symbol = this.props.symbol
     const viewBox = `0 0 ${symbol.w} ${symbol.h}`
@@ -54,7 +69,9 @@ export class Octicon extends React.Component<IOcticonProps, void> {
 
     return (
       <svg aria-hidden='true' className={className} role='img' version='1.1' viewBox={viewBox}>
-        <path d={symbol.d}></path>
+        <path d={symbol.d}>
+          { this.renderTitle() }
+        </path>
       </svg>
     )
   }

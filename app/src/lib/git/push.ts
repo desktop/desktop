@@ -9,5 +9,5 @@ export async function push(repository: Repository, user: User | null, remote: st
     args.push('--set-upstream')
   }
 
-  await git(args, repository.path, { env: envForAuthentication(user) })
+  await git(args, repository.path, 'push', { env: envForAuthentication(user) })
 }

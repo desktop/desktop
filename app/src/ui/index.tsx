@@ -17,6 +17,13 @@ import { reportError } from '../lib/exception-reporting'
 import * as appProxy from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore } from '../lib/dispatcher'
+import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
+
+if (__DEV__) {
+  const g: any = global
+  // Expose GitPerf as a global so it can be started.
+  g.GitPerf = require('./lib/git-perf')
+}
 
 const startTime = Date.now()
 
@@ -65,11 +72,21 @@ ipcRenderer.on('focus', () => {
 })
 
 ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
-  const handled = await dispatcher.handleURLAction(action)
-  if (handled) { return }
-
-  if (action.name === 'open-repository') {
+  if (action.name === 'oauth') {
+    try {
+      const user = await requestAuthenticatedUser(action.args.code)
+      if (user) {
+        resolveOAuthRequest(user)
+      } else {
+        rejectOAuthRequest(new Error('Unable to fetch authenticated user.'))
+      }
+    } catch (e) {
+      rejectOAuthRequest(e)
+    }
+  } else if (action.name === 'open-repository') {
     openRepository(action.args)
+  } else {
+    console.log(`Unknown URL action: ${action.name}`)
   }
 })
 

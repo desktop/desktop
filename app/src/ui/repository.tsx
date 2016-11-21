@@ -86,13 +86,21 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     }
   }
 
+  private handleSidebarWidthReset = () => {
+    this.props.dispatcher.resetSidebarWidth()
+  }
+
+  private handleSidebarResize = (width: number) => {
+    this.props.dispatcher.setSidebarWidth(width)
+  }
+
   private renderSidebar(): JSX.Element {
     return (
       <Resizable
         id='repository-sidebar'
         width={this.props.sidebarWidth}
-        onReset={this.props.dispatcher.resetSidebarWidth}
-        onResize={this.props.dispatcher.setSidebarWidth}>
+        onReset={this.handleSidebarWidthReset}
+        onResize={this.handleSidebarResize}>
         {this.renderTabs()}
         {this.renderSidebarContents()}
       </Resizable>
