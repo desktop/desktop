@@ -48,7 +48,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
 
   public render() {
     return (
-      <form id='sign-in-form' onSubmit={this.signIn}>
+      <form className='sign-in-form' onSubmit={this.signIn}>
         {this.renderUsernamePassword()}
 
         {this.renderError()}
@@ -71,10 +71,8 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
         <div className='field-group'>
           <label>Password</label>
           <input className='sign-in-field' type='password' onChange={this.onPasswordChange}/>
-          <LinkButton className='forgot-password-link' uri={ForgotPasswordURL}>Forgot password?</LinkButton>
+          <LinkButton className='forgot-password-link' uri={this.getForgotPasswordURL()}>Forgot password?</LinkButton>
         </div>
-
-        <LinkButton uri={this.getForgotPasswordURL()}>Forgot password?</LinkButton>
 
         {this.renderActions()}
       </div>
