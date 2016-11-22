@@ -547,7 +547,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderWelcomeFlow() {
-    this.props.dispatcher.hideTitlebar()
 
     return (
       <Welcome dispatcher={this.props.dispatcher} appStore={this.props.appStore}/>
