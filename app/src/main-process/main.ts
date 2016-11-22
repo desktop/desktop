@@ -120,6 +120,41 @@ app.on('ready', () => {
     const window = BrowserWindow.fromWebContents(event.sender)
     menu.popup(window)
   })
+
+  ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { requestGuid, options}: { requestGuid: string, options: Electron.RequestOptions}) => {
+
+    // TODO: cache this module after ready
+    const { net } = require('electron')
+
+    // TODO: add default parameters?
+
+    const promise = new Promise<Electron.IncomingMessage>((resolve, reject) => {
+
+      const req = net.request(options)
+
+      req.on('login', auth => {
+        // TODO: grab this information and attempt to complete flow
+      })
+
+      req.on('response', response => {
+
+        // TODO: handle proxy response
+        // TODO: other event handling
+
+        response.on('error', error => {
+          // TODO: how to fail here?
+        })
+
+        response.on('end', () => {
+          // TODO: success?
+        })
+      })
+
+      // TODO: do we need to pass in this id again?
+      // TODO: this should be a promise
+      event.sender.send(`proxy/response/${requestGuid}`, promise)
+    })
+  })
 })
 
 app.on('activate', () => {

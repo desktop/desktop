@@ -1,5 +1,7 @@
 import { ipcRenderer } from 'electron'
 import { MenuIDs } from '../main-process/menu'
+import { v4 as guid } from 'node-uuid'
+
 
 /** Show the app menu as a popup. */
 export function showPopupAppMenu() {
@@ -34,4 +36,21 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   })
 
   ipcRenderer.send('show-contextual-menu', items)
+}
+
+export function proxyRequest(options: Electron.RequestOptions): Promise<Electron.IncomingMessage> {
+  return new Promise<Electron.IncomingMessage>((resolve, reject) => {
+
+    const requestGuid = guid()
+    ipcRenderer.once(`proxy/response/${requestGuid}`, (event: any, args: any[]) => {
+      const response: Electron.IncomingMessage = args[0]
+      if (response) {
+        resolve(response)
+      } else {
+        reject()
+      }
+    })
+
+    ipcRenderer.send('proxy/request', { guid: requestGuid, options })
+  })
 }
