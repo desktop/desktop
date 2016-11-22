@@ -11,6 +11,8 @@ import { reportError } from '../lib/exception-reporting'
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
+let network: Electron.Net | null = null
+
 const launchTime = Date.now()
 
 let readyTime: number | null = null
@@ -55,6 +57,10 @@ if (shouldQuit) {
 app.on('ready', () => {
   const now = Date.now()
   readyTime = now - launchTime
+
+  // the network module can only be resolved after the app is ready
+  const { net } = require('electron')
+  network = net
 
   app.setAsDefaultProtocolClient('x-github-client')
   // Also support Desktop Classic's protocols.
@@ -123,14 +129,17 @@ app.on('ready', () => {
 
   ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { requestGuid, options}: { requestGuid: string, options: Electron.RequestOptions}) => {
 
-    // TODO: cache this module after ready
-    const { net } = require('electron')
+    if (network === null) {
+      // TODO: defer requests to be executed afterwards
+      // TODO: return a promise ready to go
+      return
+    }
 
     // TODO: add default parameters?
 
     const promise = new Promise<Electron.IncomingMessage>((resolve, reject) => {
 
-      const req = net.request(options)
+      const req = network!.request(options)
 
       req.on('login', auth => {
         // TODO: grab this information and attempt to complete flow
