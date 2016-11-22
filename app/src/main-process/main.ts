@@ -151,8 +151,6 @@ app.on('ready', () => {
         // TODO: grab this information and attempt to complete flow
       })
 
-
-
       req.on('response', response => {
 
         // TODO: handle proxy response
@@ -166,11 +164,11 @@ app.on('ready', () => {
           // TODO: success?
         })
       })
-
-      // TODO: do we need to pass in this id again?
-      // TODO: this should be a promise
-      event.sender.send(`proxy/response/${guid}`, promise)
     })
+
+    // TODO: do we need to pass in this id again?
+    // TODO: this should be a promise
+    event.sender.send(`proxy/response/${guid}`, promise)
   })
 })
 
