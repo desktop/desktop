@@ -62,6 +62,8 @@ app.on('ready', () => {
   const { net } = require('electron')
   network = net
 
+  // TODO: drain queued requests now that we have a valid module
+
   app.setAsDefaultProtocolClient('x-github-client')
   // Also support Desktop Classic's protocols.
   if (__DARWIN__) {
