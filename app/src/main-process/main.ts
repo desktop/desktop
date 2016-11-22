@@ -127,7 +127,7 @@ app.on('ready', () => {
     menu.popup(window)
   })
 
-  ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { requestGuid, options}: { requestGuid: string, options: Electron.RequestOptions}) => {
+  ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { guid, options, body}: { guid: string, options: Electron.RequestOptions, body: string | Buffer | undefined}) => {
 
     if (network === null) {
       // TODO: defer requests to be executed afterwards
@@ -141,9 +141,15 @@ app.on('ready', () => {
 
       const req = network!.request(options)
 
+      if (body) {
+        req.write(body)
+      }
+
       req.on('login', auth => {
         // TODO: grab this information and attempt to complete flow
       })
+
+
 
       req.on('response', response => {
 
@@ -161,7 +167,7 @@ app.on('ready', () => {
 
       // TODO: do we need to pass in this id again?
       // TODO: this should be a promise
-      event.sender.send(`proxy/response/${requestGuid}`, promise)
+      event.sender.send(`proxy/response/${guid}`, promise)
     })
   })
 })

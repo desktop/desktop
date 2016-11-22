@@ -38,7 +38,7 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   ipcRenderer.send('show-contextual-menu', items)
 }
 
-export function proxyRequest(options: Electron.RequestOptions): Promise<Electron.IncomingMessage> {
+export function proxyRequest(options: Electron.RequestOptions, body: string | Buffer | undefined): Promise<Electron.IncomingMessage> {
   return new Promise<Electron.IncomingMessage>((resolve, reject) => {
 
     const requestGuid = guid()
@@ -51,6 +51,6 @@ export function proxyRequest(options: Electron.RequestOptions): Promise<Electron
       }
     })
 
-    ipcRenderer.send('proxy/request', { guid: requestGuid, options })
+    ipcRenderer.send('proxy/request', { guid: requestGuid, options, body })
   })
 }
