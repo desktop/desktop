@@ -52,7 +52,7 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, IS
         endpoint={step.endpoint}
         supportsBasicAuth={step.authMethods.has(AuthenticationMethods.BasicAuth)}
         additionalButtons={[
-          <Button key='cancel' onClick={this.cancel}>Cancel</Button>,
+          <Button className='secondary-button' key='cancel' onClick={this.cancel}>Cancel</Button>,
         ]}
         onDidSignIn={this.onDidSignIn}/>
     } else {
