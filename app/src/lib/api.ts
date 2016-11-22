@@ -323,11 +323,9 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
     requestBody = JSON.stringify(body)
   }
 
-  return proxyRequest(options, requestBody)
-
   // TODO: error handling
 
-  // return got(url, options).catch((e: any) => e.response)
+  return proxyRequest(options, requestBody)
 }
 
 /** The note used for created authorizations. */
