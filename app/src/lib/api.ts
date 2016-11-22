@@ -6,6 +6,8 @@ import { v4 as guid } from 'node-uuid'
 import { User } from '../models/user'
 import * as appProxy from '../ui/lib/app-proxy'
 
+import { proxyRequest } from '../ui/main-process-proxy'
+
 const Octokat = require('octokat')
 const got = require('got')
 const username: () => Promise<string> = require('username')
@@ -300,21 +302,32 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
     'Content-Type': 'application/json',
     'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
   }, customHeaders)
+
   if (authorization) {
     headers['Authorization'] = authorization
   }
 
-  const options: any = {
+  // TODO: how do we port this?
+  //const options: any = {
+  //  json: true,
+  //}
+
+  const options = {
+    url,
     headers,
-    method,
-    json: true,
+    method
   }
 
+  let requestBody: string | undefined
   if (body) {
-    options.body = JSON.stringify(body)
+    requestBody = JSON.stringify(body)
   }
 
-  return got(url, options).catch((e: any) => e.response)
+  return proxyRequest(options, requestBody)
+
+  // TODO: error handling
+
+  // return got(url, options).catch((e: any) => e.response)
 }
 
 /** The note used for created authorizations. */
