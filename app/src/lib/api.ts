@@ -9,7 +9,6 @@ import * as appProxy from '../ui/lib/app-proxy'
 import { proxyRequest } from '../ui/main-process-proxy'
 
 const Octokat = require('octokat')
-const got = require('got')
 const username: () => Promise<string> = require('username')
 const camelCase: (str: string) => string = require('to-camel-case')
 
@@ -323,7 +322,7 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
     requestBody = JSON.stringify(body)
   }
 
-  // TODO: error handling
+  // TODO: error handling, the right way
 
   return proxyRequest(options, requestBody)
 }

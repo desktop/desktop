@@ -43,6 +43,7 @@ export function proxyRequest(options: Electron.RequestOptions, body: string | Bu
 
     const requestGuid = guid()
     ipcRenderer.once(`proxy/response/${requestGuid}`, (event: any, args: any[]) => {
+      // TODO: is there any more plumbing to insert here?
       const promise: Promise<Electron.IncomingMessage> = args[0]
       if (promise) {
         resolve(promise)
