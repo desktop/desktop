@@ -75,17 +75,14 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     const preContent = preContentRenderer && preContentRenderer()
 
     return (
-      <button
-        className={className}
-        onClick={this.onClick}
-        ref={this.onButtonRef}>
+      <div className={className}>
         {preContent}
-        <div className='toolbar-button-content-wrapper'>
+        <button onClick={this.onClick} ref={this.onButtonRef}>
           {icon}
           {this.renderText()}
           {this.props.children}
-        </div>
-      </button>
+        </button>
+      </div>
     )
   }
 
