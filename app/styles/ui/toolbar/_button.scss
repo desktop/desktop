@@ -1,5 +1,9 @@
 .toolbar-button {
 
+  // Make sure the contents shrink beyond their intrinsic width
+  // See https://css-tricks.com/flexbox-truncated-text/
+  min-width: 0;
+
   // General button behavior, mostly resets.
   // For the button content styling see second button style. Note that we
   // explicitly use > here to only target the direct descendant button since
@@ -53,6 +57,7 @@
     border-right: 1px solid var(--toolbar-button-border-color);
 
     .icon {
+      flex-shrink: 0;
       margin-right: var(--spacing);
     }
 
@@ -60,6 +65,7 @@
       width: 9px;
       height: 12px;
       margin-left: var(--spacing);
+      flex-shrink: 0;
     }
 
     .text {
