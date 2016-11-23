@@ -275,10 +275,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     const winControls = __WIN32__
       ? <WindowControls />
       : null
-    const hideTitlebar = this.state.hideTitlebar
 
     return (
-      <div className={hideTitlebar ? 'light-title-bar' : ''} id='desktop-app-title-bar'>
+      <div className={this.state.titleBarStyle} id='desktop-app-title-bar'>
         <span className='app-title'>GitHub Desktop</span>
         {winControls}
       </div>

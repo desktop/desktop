@@ -53,7 +53,7 @@ export interface IAppState {
   readonly sidebarWidth: number
 
   // Whether we should hide the toolbar (and show inverted window controls)
-  readonly hideTitlebar: boolean
+  readonly titleBarStyle: 'light-title-bar' | ''
 }
 
 export interface IAppError {

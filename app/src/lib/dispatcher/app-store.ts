@@ -120,7 +120,6 @@ export class AppStore {
   private readonly gitStores = new Map<number, GitStore>()
 
   private sidebarWidth: number = defaultSidebarWidth
-  private hideTitlebar: boolean
 
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore) {
     this.gitHubUserStore = gitHubUserStore
@@ -321,7 +320,7 @@ export class AppStore {
       showWelcomeFlow: this.showWelcomeFlow,
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
-      hideTitlebar: this.hideTitlebar,
+      titleBarStyle: this.showWelcomeFlow ? 'light-title-bar' : '',
     }
   }
 
@@ -1354,19 +1353,5 @@ export class AppStore {
   public _setCommitMessage(repository: Repository, message: ICommitMessage | null): Promise<void> {
     const gitStore = this.getGitStore(repository)
     return gitStore.setCommitMessage(message)
-  }
-
-  public _showTitlebar(): Promise<void> {
-    this.hideTitlebar = false
-    this.emitUpdate()
-
-    return Promise.resolve()
-  }
-
-  public _hideTitlebar(): Promise<void> {
-    this.hideTitlebar = true
-    this.emitUpdate()
-
-    return Promise.resolve()
   }
 }
