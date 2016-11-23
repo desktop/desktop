@@ -105,14 +105,15 @@ export class Diff {
    public readonly isBinary: boolean
 
    /**
-    * If the file can be represented as a visual diff
-    * TODO: a better abstraction than poking a property?
+    * Present if the diff can be represented as a visual diff, ie
+    * it's an new, modified or deleted image.
     */
-   public imageDiff: ImageDiff | undefined
+   public readonly imageDiff?: ImageDiff
 
-   public constructor(hunks: ReadonlyArray<DiffHunk>, isBinary: boolean = false) {
+   public constructor(hunks: ReadonlyArray<DiffHunk>, isBinary: boolean = false, imageDiff?: ImageDiff) {
      this.hunks = hunks
      this.isBinary = isBinary
+     this.imageDiff = imageDiff
    }
 
    /**
@@ -135,6 +136,10 @@ export class Diff {
      if (!hunk) { return null }
 
      return hunk.lines[index - hunk.unifiedDiffStart] || null
+   }
+
+   public withImageDiff(imageDiff: ImageDiff): Diff {
+     return new Diff(this.hunks, this.isBinary, imageDiff)
    }
 }
 
