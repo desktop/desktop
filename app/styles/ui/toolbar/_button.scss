@@ -57,6 +57,7 @@
     border-right: 1px solid var(--toolbar-button-border-color);
 
     .icon {
+      flex-shrink: 0;
       margin-right: var(--spacing);
     }
 
@@ -64,6 +65,7 @@
       width: 9px;
       height: 12px;
       margin-left: var(--spacing);
+      flex-shrink: 0;
     }
 
     .text {
