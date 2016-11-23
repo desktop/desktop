@@ -22,8 +22,6 @@ import { Repository } from '../../models/repository'
  */
 export async function getBlobContents(repository: Repository, commitish: string, path: string): Promise<Buffer> {
 
-  console.log('get blob contents', commitish, path)
-
   const successExitCodes = new Set([ 0, 1 ])
   const setBinaryEncoding: (process: ChildProcess) => void = cb => cb.stdout.setEncoding('binary')
 
