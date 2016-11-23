@@ -40,7 +40,7 @@
     "chai-datetime": "^1.4.1",
     "cross-env": "^1.0.8",
     "css-loader": "^0.23.1",
-    "electron": "https://github.com/electron-userland/electron-prebuilt#33435e1e40c19143bdb828118105cd004b371b06",
+    "electron": "https://github.com/electron-userland/electron-prebuilt#c11d6db3cf2f20af45ccf178693e9ad1cf74b3f8",
     "electron-mocha": "3.0.5",
     "electron-packager": "8.1.0",
     "electron-winstaller": "^2.3.0",
