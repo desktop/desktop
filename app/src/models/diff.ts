@@ -113,10 +113,7 @@ export class Diff {
    public constructor(hunks: ReadonlyArray<DiffHunk>, isBinary: boolean = false, imageDiff?: ImageDiff) {
      this.hunks = hunks
      this.isBinary = isBinary
-
-     if (imageDiff) {
-       this.imageDiff = imageDiff
-     }
+     this.imageDiff = imageDiff
    }
 
    /**
