@@ -144,14 +144,14 @@ app.on('ready', () => {
 
     request.on('response', (response: Electron.IncomingMessage) => {
 
-      let raw: string = ''
+      let text: string = ''
 
       response.on('abort', () => {
         event.sender.send(channel, { error: new Error('request aborted by the client'), response: undefined })
       })
 
       response.on('data', (chunk: Buffer) => {
-        raw += chunk
+        text += chunk
       })
 
       response.on('end', () => {
@@ -169,12 +169,11 @@ app.on('ready', () => {
 
         // there's more to do here around parsing the body
         // but for now this works around a joke that has been placed on me
-        if (statusCode !== 204 && raw.length > 0) {
+        if (statusCode !== 204 && text.length > 0) {
           try {
-            body = JSON.parse(raw)
+            body = JSON.parse(text)
           } catch (e) {
-            // leaving this here for diagnostics for the moment
-            sharedProcess!.console.log(`JSON.parse failed for: '${raw}'`)
+            sharedProcess!.console.log(`JSON.parse failed for: '${text}'`)
             sharedProcess!.console.log(`Headers: '${JSON.stringify(response.headers)}'`)
           }
         }
