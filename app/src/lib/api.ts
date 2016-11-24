@@ -322,7 +322,7 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
   const options = {
     url,
     headers,
-    method
+    method,
   }
 
   let requestBody: string | undefined

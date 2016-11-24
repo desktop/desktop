@@ -151,9 +151,9 @@ app.on('ready', () => {
 
       response.on('end', () => {
 
-         let headers = <any>{ }
+        const headers = <any>{ }
 
-        for(const h in response.headers) {
+        for (const h in response.headers) {
           const values = response.headers[h]
           headers[h] = values
         }
@@ -161,7 +161,7 @@ app.on('ready', () => {
         const payload: IHTTPResponseNexus = {
           statusCode:  response.statusCode,
           headers,
-          body
+          body,
         }
         event.sender.send(`proxy/response/${id}`, payload)
       })
