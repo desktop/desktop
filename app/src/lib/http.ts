@@ -1,7 +1,7 @@
 export interface IHTTPResponseNexus {
   statusCode: number,
   headers: { },
-  body: { }
+  body: { } | undefined
 }
 
 export function getHeader(response: IHTTPResponseNexus, key: string): string | null {

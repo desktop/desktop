@@ -224,8 +224,6 @@ export class API {
   public async getFetchPollInterval(owner: string, name: string): Promise<number> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
     const response = await this.authenticatedRequest('HEAD', path, null)
-
-    // TODO: this is an array of strings, we should use some T Y P E S here to make it clearer
     const interval = getHeader(response, 'x-poll-interval')
     if (interval) {
       return parseInt(interval, 10)

@@ -143,13 +143,15 @@ app.on('ready', () => {
 
     request.on('response', response => {
 
-      let body: string = ''
+      let raw: string = ''
 
       response.on('data', (chunk: Buffer) => {
-        body += chunk
+        raw += chunk
       })
 
       response.on('end', () => {
+
+        const statusCode = response.statusCode
 
         const headers = <any>{ }
 
@@ -158,11 +160,16 @@ app.on('ready', () => {
           headers[h] = values
         }
 
+        const body: { } | undefined = raw.length > 0
+          ? JSON.parse(raw)
+          : undefined
+
         const payload: IHTTPResponseNexus = {
-          statusCode:  response.statusCode,
+          statusCode,
           headers,
-          body: JSON.parse(body),
+          body,
         }
+
         event.sender.send(`proxy/response/${id}`, payload)
       })
     })
