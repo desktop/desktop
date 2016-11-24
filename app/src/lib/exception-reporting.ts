@@ -1,4 +1,4 @@
-const got = require('got')
+import { proxyRequest } from '../ui/main-process-proxy'
 
 const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
 
@@ -18,13 +18,13 @@ export async function reportError(error: Error, version: string) {
     version,
   }
 
-  const options = {
-    body,
-    json: true,
+  const options: Electron.RequestOptions = {
+    method: 'POST',
+    url: ErrorEndpoint,
   }
 
   try {
-    await got.post(ErrorEndpoint, options)
+    await proxyRequest(options, JSON.stringify(body))
     console.log('Exception reported.')
   } catch (e) {
     console.error('Error submitting exception report:')
