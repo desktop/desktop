@@ -39,16 +39,11 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
 }
 
 export function proxyRequest(options: Electron.RequestOptions, body: string | Buffer | undefined): Promise<IHTTPResponseNexus> {
-
   return new Promise<IHTTPResponseNexus>((resolve, reject) => {
-
-    console.debug(`[request] ${options.url}`)
-
     const id = guid()
 
     ipcRenderer.once(`proxy/response/${id}`, (event: any, response: IHTTPResponseNexus) => {
-
-      console.debug(`[response] ${options.url}`)
+      // TODO: what error handling do we need to introduce here?
 
       if (response === null) {
         reject('no response received, request must have aborted')

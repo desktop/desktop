@@ -145,7 +145,7 @@ app.on('ready', () => {
 
       let body: string = ''
 
-      response.on('data', chunk => {
+      response.on('data', (chunk: Buffer) => {
         body += chunk
       })
 

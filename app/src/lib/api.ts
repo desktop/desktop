@@ -323,11 +323,6 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
     headers['Authorization'] = authorization
   }
 
-  // TODO: how do we port this?
-  //const options: any = {
-  //  json: true,
-  //}
-
   const options = {
     url,
     headers,
@@ -338,8 +333,6 @@ function request(endpoint: string, authorization: string | null, method: HTTPMet
   if (body) {
     requestBody = JSON.stringify(body)
   }
-
-  // TODO: error handling, the right way
 
   return proxyRequest(options, requestBody)
 }
