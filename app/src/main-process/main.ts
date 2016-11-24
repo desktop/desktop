@@ -139,7 +139,7 @@ app.on('ready', () => {
     const requestOptions = {
       url: options.url,
       headers: options.headers,
-      method: options.method
+      method: options.method,
     }
 
     const request = network.request(requestOptions)
