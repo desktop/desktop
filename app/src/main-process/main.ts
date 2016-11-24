@@ -132,24 +132,42 @@ app.on('ready', () => {
   ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options, body }: { id: string, options: Electron.RequestOptions, body: Buffer | string | undefined }) => {
 
     if (network === null) {
-      // TODO: defer requests to be executed afterwards
-      // TODO: return a promise ready to go
       return
     }
 
     // TODO: add default parameters?
 
-    const request = network!.request(options)
-
-    if (body) {
-      request.write(body)
-    }
+    const request = network.request(options)
 
     request.on('response', response => {
-      event.sender.send(`proxy/response/${id}`, response)
+
+      let body: string = ''
+
+      response.on('data', chunk => {
+        body += chunk
+      })
+
+      response.on('end', () => {
+        console.log('No more data in response.')
+        const statusCode = response.statusCode
+        const headers = response.headers
+        event.sender.send(`proxy/response/${id}`, {
+          statusCode,
+          headers,
+          body
+        })
+      })
     })
 
-    request.end()
+    request.on('abort', () => {
+      event.sender.send(`proxy/response/${id}`, null)
+    })
+
+    request.on('aborted', () => {
+      event.sender.send(`proxy/response/${id}`, null)
+    })
+
+    request.end(body)
   })
 })
 

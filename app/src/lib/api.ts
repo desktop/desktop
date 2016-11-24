@@ -1,7 +1,6 @@
 import * as OS from 'os'
 import * as URL from 'url'
 import * as Querystring from 'querystring'
-import * as HTTP from 'http'
 import { v4 as guid } from 'node-uuid'
 import { User } from '../models/user'
 import * as appProxy from '../ui/lib/app-proxy'
@@ -13,7 +12,7 @@ const username: () => Promise<string> = require('username')
 const camelCase: (str: string) => string = require('to-camel-case')
 
 /** The response from `got` requests. */
-interface IHTTPResponse extends HTTP.IncomingMessage {
+interface IHTTPResponse extends Electron.IncomingMessage {
   readonly body: any
 }
 
@@ -211,9 +210,14 @@ export class API {
 
   /** Get the allowed poll interval for fetching. */
   public async getFetchPollInterval(owner: string, name: string): Promise<number> {
+    debugger
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
     const response = await this.authenticatedRequest('HEAD', path, null)
-    return response.headers['x-poll-interval'] || 0
+    const interval = response.headers['x-poll-interval']
+    if (interval) {
+      return parseInt(interval, 10)
+    }
+    return 0
   }
 }
 
