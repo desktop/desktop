@@ -5,15 +5,12 @@ import { v4 as guid } from 'node-uuid'
 import { User } from '../models/user'
 import * as appProxy from '../ui/lib/app-proxy'
 
-import { IHTTPResponseNexus, getHeader } from './http'
+import { IHTTPResponseNexus, getHeader, HTTPMethod } from './http'
 import { proxyRequest } from '../ui/main-process-proxy'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
 const camelCase: (str: string) => string = require('to-camel-case')
-
-/** The HTTP methods available. */
-type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
