@@ -48,17 +48,17 @@ export class StatsStore {
 
     const now = Date.now()
     const stats = await this.getDailyStats()
-    const body = JSON.stringify(stats)
-    const options: Electron.RequestOptions = {
+    const options = {
       url: StatsEndpoint,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: stats,
     }
 
     try {
-      await proxyRequest(options, body)
+      await proxyRequest(options)
       console.log('Stats reported.')
 
       await this.clearLaunchStats()

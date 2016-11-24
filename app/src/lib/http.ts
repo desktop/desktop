@@ -2,7 +2,7 @@ import * as appProxy from '../ui/lib/app-proxy'
 
 import { proxyRequest } from '../ui/main-process-proxy'
 
-/** The HTTP payload sent by Electron's net module */
+/** The HTTP payload returned by Electron's net module */
 export interface IHTTPResponse {
   /** The HTTP status code */
   statusCode: number | undefined,
@@ -10,6 +10,18 @@ export interface IHTTPResponse {
   headers: Object,
   /** The deserialized JSON response body */
   body: Object | undefined
+}
+
+/** The HTTP request to map to Electron's net module */
+export interface IHTTPRequest {
+  /** The resource to access */
+  url: string,
+  /** The verb associated with the request */
+  method: string,
+  /** The key-value collection of headers associated with the request */
+  headers: Object | null,
+  /** The request object to serialize */
+  body: Object | null
 }
 
 /** The HTTP methods available. */
@@ -53,11 +65,8 @@ export function request(endpoint: string, authorization: string | null, method: 
     url,
     headers,
     method,
+    body,
   }
 
-  const requestBody: string | undefined = body
-    ? JSON.stringify(body)
-    : undefined
-
-  return proxyRequest(options, requestBody)
+  return proxyRequest(options)
 }

@@ -18,13 +18,15 @@ export async function reportError(error: Error, version: string) {
     version,
   }
 
-  const options: Electron.RequestOptions = {
+  const options = {
     method: 'POST',
     url: ErrorEndpoint,
+    headers: null,
+    body,
   }
 
   try {
-    await proxyRequest(options, JSON.stringify(body))
+    await proxyRequest(options)
     console.log('Exception reported.')
   } catch (e) {
     console.error('Error submitting exception report:')

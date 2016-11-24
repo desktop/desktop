@@ -1,8 +1,7 @@
 import { ipcRenderer } from 'electron'
 import { MenuIDs } from '../main-process/menu'
 import { v4 as guid } from 'node-uuid'
-import { IHTTPResponse } from '../lib/http'
-import * as HTTP from 'http'
+import { IHTTPRequest, IHTTPResponse } from '../lib/http'
 
 /** Show the app menu as a popup. */
 export function showPopupAppMenu() {
@@ -39,7 +38,7 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   ipcRenderer.send('show-contextual-menu', items)
 }
 
-export function proxyRequest(options: HTTP.RequestOptions, body: string | Buffer | undefined): Promise<IHTTPResponse> {
+export function proxyRequest(options: IHTTPRequest): Promise<IHTTPResponse> {
   return new Promise<IHTTPResponse>((resolve, reject) => {
     const id = guid()
 
@@ -58,6 +57,10 @@ export function proxyRequest(options: HTTP.RequestOptions, body: string | Buffer
 
       resolve(response)
     })
+
+    const body: string | undefined = options.body
+      ? JSON.stringify(options.body)
+      : undefined
 
     ipcRenderer.send('proxy/request', { id, options, body })
   })
