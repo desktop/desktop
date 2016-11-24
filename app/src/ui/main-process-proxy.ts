@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron'
 import { MenuIDs } from '../main-process/menu'
 import { v4 as guid } from 'node-uuid'
-
+import { IHTTPResponseNexus } from '../lib/http'
 
 /** Show the app menu as a popup. */
 export function showPopupAppMenu() {
@@ -38,25 +38,28 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   ipcRenderer.send('show-contextual-menu', items)
 }
 
-export function proxyRequest(options: Electron.RequestOptions, body: string | Buffer | undefined): Promise<Electron.IncomingMessage> {
+export function proxyRequest(options: Electron.RequestOptions, body: string | Buffer | undefined): Promise<IHTTPResponseNexus> {
 
-  return new Promise<Electron.IncomingMessage>((resolve, reject) => {
+  return new Promise<IHTTPResponseNexus>((resolve, reject) => {
 
     console.debug(`[request] ${options.url}`)
 
     const id = guid()
 
-    ipcRenderer.once(`proxy/response/${id}`, (event: any, {statusCode, headers, body }: { statusCode: string, headers: any, body: string | undefined }) => {
+    ipcRenderer.once(`proxy/response/${id}`, (event: any, response: IHTTPResponseNexus) => {
 
       console.debug(`[response] ${options.url}`)
 
-      // TODO: is there any more plumbing to insert here?
+      if (response === null) {
+        reject('no response received, request must have aborted')
+        return
+      }
 
-      debugger
+      console.debug(`STATUS: ${response.statusCode}`)
+      console.debug(`HEADERS: ${JSON.stringify(response.headers)}`)
+      console.debug(`BODY: '${response.body}'`)
 
-      console.log(`STATUS: ${statusCode}`)
-      console.log(`HEADERS: ${JSON.stringify(headers)}`)
-      console.log(`BODY: '${body}'`)
+      resolve(response)
     })
 
     ipcRenderer.send('proxy/request', { id, options, body })

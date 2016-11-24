@@ -7,6 +7,8 @@ import { handleSquirrelEvent } from './updates'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
+import { IHTTPResponseNexus } from '../lib/http'
+
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -148,14 +150,20 @@ app.on('ready', () => {
       })
 
       response.on('end', () => {
-        console.log('No more data in response.')
-        const statusCode = response.statusCode
-        const headers = response.headers
-        event.sender.send(`proxy/response/${id}`, {
-          statusCode,
+
+         let headers = <any>{ }
+
+        for(const h in response.headers) {
+          const values = response.headers[h]
+          headers[h] = values
+        }
+
+        const payload: IHTTPResponseNexus = {
+          statusCode:  response.statusCode,
           headers,
           body
-        })
+        }
+        event.sender.send(`proxy/response/${id}`, payload)
       })
     })
 
