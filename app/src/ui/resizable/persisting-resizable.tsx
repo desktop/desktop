@@ -4,10 +4,10 @@ import { Resizable } from '../resizable'
 
 interface IPersistingResizableProps {
   /** String key used when persisting the panel width to localStorage */
-  configKey: string
+  readonly configKey: string
 
   /** The optional ID for the root element. */
-  id?: string
+  readonly id?: string
 
   /**
    * The default width of the panel.
@@ -18,20 +18,20 @@ interface IPersistingResizableProps {
    *
    * @default 250
    */
-  defaultWidth?: number
+  readonly defaultWidth?: number
 
   /** The maximum width the panel can be resized to.
    *
    * @default 350
    */
-  maximumWidth?: number
+  readonly maximumWidth?: number
 
   /**
    * The minimum width the panel can be resized to.
    *
    * @default 150
    */
-  minimumWidth?: number
+  readonly minimumWidth?: number
 }
 
 interface IPersistingResizableState {
@@ -39,7 +39,7 @@ interface IPersistingResizableState {
    * The width of the panel in pixels.
    * Optional
    */
-  width?: number
+  readonly width?: number
 }
 
 /**
