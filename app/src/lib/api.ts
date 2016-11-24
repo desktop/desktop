@@ -3,10 +3,8 @@ import * as URL from 'url'
 import * as Querystring from 'querystring'
 import { v4 as guid } from 'node-uuid'
 import { User } from '../models/user'
-import * as appProxy from '../ui/lib/app-proxy'
 
-import { IHTTPResponseNexus, getHeader, HTTPMethod } from './http'
-import { proxyRequest } from '../ui/main-process-proxy'
+import { IHTTPResponseNexus, getHeader, HTTPMethod, request } from './http'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -294,42 +292,6 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 export async function fetchMetadata(endpoint: string): Promise<IServerMetadata> {
   const response = await request(endpoint, null, 'GET', 'meta', null)
   return toCamelCase(response.body)
-}
-
-/**
- * Make an API request.
- *
- * @param endpoint      - The API endpoint.
- * @param authorization - The value to pass in the `Authorization` header.
- * @param method        - The HTTP method.
- * @param path          - The path without a leading /.
- * @param body          - The body to send.
- * @param customHeaders - Any optional additional headers to send.
- */
-function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body: Object | null, customHeaders?: Object): Promise<IHTTPResponseNexus> {
-  const url = `${endpoint}/${path}`
-  const headers: any = Object.assign({}, {
-    'Accept': 'application/vnd.github.v3+json, application/json',
-    'Content-Type': 'application/json',
-    'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
-  }, customHeaders)
-
-  if (authorization) {
-    headers['Authorization'] = authorization
-  }
-
-  const options = {
-    url,
-    headers,
-    method,
-  }
-
-  let requestBody: string | undefined
-  if (body) {
-    requestBody = JSON.stringify(body)
-  }
-
-  return proxyRequest(options, requestBody)
 }
 
 /** The note used for created authorizations. */
