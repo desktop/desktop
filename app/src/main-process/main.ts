@@ -135,16 +135,24 @@ app.on('ready', () => {
   ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options, body }: { id: string, options: HTTP.RequestOptions, body: Buffer | string | undefined }) => {
 
     if (network === null) {
+      sharedProcess!.console.error('Electron net module not resolved, should never be in this state')
       return
     }
 
     // TODO: add default parameters?
+
+    const channel = `proxy/response/${id}`
 
     const request = network.request(options)
 
     request.on('response', (response: HTTP.IncomingMessage) => {
 
       let raw: string = ''
+
+      response.on('abort', () => {
+        event.sender.send(channel, { error: new Error('request aborted by the client'), response: undefined })
+      })
+
 
       response.on('data', (chunk: Buffer) => {
         raw += chunk
@@ -171,16 +179,16 @@ app.on('ready', () => {
           body,
         }
 
-        event.sender.send(`proxy/response/${id}`, payload)
+        event.sender.send(channel, { error: undefined, response: payload })
       })
     })
 
     request.on('abort', () => {
-      event.sender.send(`proxy/response/${id}`, null)
+      event.sender.send(channel, { error: new Error('request aborted by the client'), response: undefined })
     })
 
     request.on('aborted', () => {
-      event.sender.send(`proxy/response/${id}`, null)
+      event.sender.send(channel, { error: new Error('request aborted by the server'), response: undefined })
     })
 
     request.end(body)

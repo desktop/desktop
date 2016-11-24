@@ -43,17 +43,18 @@ export function proxyRequest(options: HTTP.RequestOptions, body: string | Buffer
   return new Promise<IHTTPResponse>((resolve, reject) => {
     const id = guid()
 
-    ipcRenderer.once(`proxy/response/${id}`, (event: any, response: IHTTPResponse) => {
+    ipcRenderer.once(`proxy/response/${id}`, (event: any, { error, response}: { error: Error | undefined, response: IHTTPResponse | undefined }) => {
       // TODO: what error handling do we need to introduce here?
 
-      if (response === null) {
-        reject('no response received, request must have aborted')
+      if (error) {
+        reject(error)
         return
       }
 
-      console.debug(`STATUS: ${response.statusCode}`)
-      console.debug(`HEADERS: ${JSON.stringify(response.headers)}`)
-      console.debug(`BODY: '${response.body}'`)
+      if (response === undefined) {
+        reject('no response received, and no error reported. should probably look into this')
+        return
+      }
 
       resolve(response)
     })
