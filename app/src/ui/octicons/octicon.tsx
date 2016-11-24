@@ -8,18 +8,18 @@ interface IOcticonProps {
    * type. Supports custom paths as well as those provided
    * through the static properties of the OcticonSymbol class.
    */
-  symbol: OcticonSymbol
+  readonly symbol: OcticonSymbol
 
   /**
    * An optional classname that will be appended to the default
    * class name 'octicon'
    */
-  className?: string
+  readonly className?: string
 
   /**
    * An optional string to use as a tooltip for the icon
    */
-  title?: string
+  readonly title?: string
 }
 
 /**
