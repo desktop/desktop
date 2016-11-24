@@ -3,7 +3,7 @@ import * as appProxy from '../ui/lib/app-proxy'
 import { proxyRequest } from '../ui/main-process-proxy'
 
 /** The HTTP payload sent by Electron's net module */
-export interface IHTTPResponseNexus {
+export interface IHTTPResponse {
   /** The HTTP status code */
   statusCode: number | undefined,
   /** The key-value collection of headers associated with the response */
@@ -16,7 +16,7 @@ export interface IHTTPResponseNexus {
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
 /** Resolve a given header on the HTTP response */
-export function getHeader(response: IHTTPResponseNexus, key: string): string | null {
+export function getHeader(response: IHTTPResponse, key: string): string | null {
   const headers = <any>response.headers
   const header = headers[key]
   if (header) {
@@ -37,7 +37,7 @@ export function getHeader(response: IHTTPResponseNexus, key: string): string | n
  * @param body          - The body to send.
  * @param customHeaders - Any optional additional headers to send.
  */
-export function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body: Object | null, customHeaders?: Object): Promise<IHTTPResponseNexus> {
+export function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body: Object | null, customHeaders?: Object): Promise<IHTTPResponse> {
   const url = `${endpoint}/${path}`
   const headers: any = Object.assign({}, {
     'Accept': 'application/vnd.github.v3+json, application/json',

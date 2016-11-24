@@ -4,7 +4,7 @@ import * as Querystring from 'querystring'
 import { v4 as guid } from 'node-uuid'
 import { User } from '../models/user'
 
-import { IHTTPResponseNexus, getHeader, HTTPMethod, request } from './http'
+import { IHTTPResponse, getHeader, HTTPMethod, request } from './http'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -211,7 +211,7 @@ export class API {
     return allItems.filter((i: any) => !i.pullRequest)
   }
 
-  private authenticatedRequest(method: HTTPMethod, path: string, body: Object | null): Promise<IHTTPResponseNexus> {
+  private authenticatedRequest(method: HTTPMethod, path: string, body: Object | null): Promise<IHTTPResponse> {
     return request(this.user.endpoint, `token ${this.user.token}`, method, path, body)
   }
 
@@ -237,7 +237,7 @@ export enum AuthorizationResponseKind {
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
                                     { kind: AuthorizationResponseKind.Failed } |
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: string } |
-                                    { kind: AuthorizationResponseKind.Error, response: IHTTPResponseNexus }
+                                    { kind: AuthorizationResponseKind.Error, response: IHTTPResponse }
 
 /**
  * Create an authorization with the given login, password, and one-time

@@ -10,7 +10,7 @@ import { reportError } from '../lib/exception-reporting'
 
 import * as HTTP from 'http'
 
-import { IHTTPResponseNexus } from '../lib/http'
+import { IHTTPResponse } from '../lib/http'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -165,7 +165,7 @@ app.on('ready', () => {
           ? JSON.parse(raw)
           : undefined
 
-        const payload: IHTTPResponseNexus = {
+        const payload: IHTTPResponse = {
           statusCode,
           headers,
           body,

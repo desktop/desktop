@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron'
 import { MenuIDs } from '../main-process/menu'
 import { v4 as guid } from 'node-uuid'
-import { IHTTPResponseNexus } from '../lib/http'
+import { IHTTPResponse } from '../lib/http'
 import * as HTTP from 'http'
 
 /** Show the app menu as a popup. */
@@ -39,11 +39,11 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   ipcRenderer.send('show-contextual-menu', items)
 }
 
-export function proxyRequest(options: HTTP.RequestOptions, body: string | Buffer | undefined): Promise<IHTTPResponseNexus> {
-  return new Promise<IHTTPResponseNexus>((resolve, reject) => {
+export function proxyRequest(options: HTTP.RequestOptions, body: string | Buffer | undefined): Promise<IHTTPResponse> {
+  return new Promise<IHTTPResponse>((resolve, reject) => {
     const id = guid()
 
-    ipcRenderer.once(`proxy/response/${id}`, (event: any, response: IHTTPResponseNexus) => {
+    ipcRenderer.once(`proxy/response/${id}`, (event: any, response: IHTTPResponse) => {
       // TODO: what error handling do we need to introduce here?
 
       if (response === null) {
