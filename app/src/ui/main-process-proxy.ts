@@ -39,19 +39,33 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
 }
 
 export function proxyRequest(options: Electron.RequestOptions, body: string | Buffer | undefined): Promise<Electron.IncomingMessage> {
+
+  console.debug(`[request] ${options.url}`)
+
   return new Promise<Electron.IncomingMessage>((resolve, reject) => {
 
-    const requestGuid = guid()
-    ipcRenderer.once(`proxy/response/${requestGuid}`, (event: any, args: any[]) => {
+    const id = guid()
+
+    ipcRenderer.once(`proxy/response/${id}`, (event: any, response: Electron.IncomingMessage) => {
+
+      console.debug(`[response] ${options.url}`)
+
       // TODO: is there any more plumbing to insert here?
-      const promise: Promise<Electron.IncomingMessage> = args[0]
-      if (promise) {
-        resolve(promise)
-      } else {
-        reject()
+
+      if (response === null) {
+        reject('no response received')
+        return
       }
+
+      response.on('end', () => {
+        resolve(response)
+      })
+
+      response.on('error', error => {
+        reject(error)
+      })
     })
 
-    ipcRenderer.send('proxy/request', { guid: requestGuid, options, body })
+    ipcRenderer.send('proxy/request', { id: id, options, body })
   })
 }

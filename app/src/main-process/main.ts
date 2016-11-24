@@ -129,7 +129,7 @@ app.on('ready', () => {
     menu.popup(window)
   })
 
-  ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { guid, options, body}: { guid: string, options: Electron.RequestOptions, body: string | Buffer | undefined}) => {
+  ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options, body }: { id: string, options: Electron.RequestOptions, body: Buffer | string | undefined }) => {
 
     if (network === null) {
       // TODO: defer requests to be executed afterwards
@@ -139,36 +139,17 @@ app.on('ready', () => {
 
     // TODO: add default parameters?
 
-    const promise = new Promise<Electron.IncomingMessage>((resolve, reject) => {
+    const request = network!.request(options)
 
-      const req = network!.request(options)
+    if (body) {
+      request.write(body)
+    }
 
-      if (body) {
-        req.write(body)
-      }
-
-      req.on('login', auth => {
-        // TODO: grab this information and attempt to complete flow
-      })
-
-      req.on('response', response => {
-
-        // TODO: handle proxy response
-        // TODO: other event handling
-
-        response.on('error', error => {
-          // TODO: how to fail here?
-        })
-
-        response.on('end', () => {
-          // TODO: success?
-        })
-      })
+    request.on('response', response => {
+      event.sender.send(`proxy/response/${id}`, response)
     })
 
-    // TODO: do we need to pass in this id again?
-    // TODO: this should be a promise
-    event.sender.send(`proxy/response/${guid}`, promise)
+    request.end()
   })
 })
 
