@@ -4,6 +4,10 @@
  * This custom tslint rule is highly specific to GitHub Desktop and attempts
  * to prevent props and state interfaces from being declared with mutable
  * members.
+ *
+ * While it's technically possible to modify this.props there's never a good
+ * reason to do so and marking our interfaces as read only ensures that we
+ * get compiler support for that fact.
  */
 
 import * as ts from 'typescript'
