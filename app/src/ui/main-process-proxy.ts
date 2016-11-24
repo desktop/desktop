@@ -43,8 +43,6 @@ export function proxyRequest(options: IHTTPRequest): Promise<IHTTPResponse> {
     const id = guid()
 
     ipcRenderer.once(`proxy/response/${id}`, (event: any, { error, response }: { error: Error | undefined, response: IHTTPResponse | undefined }) => {
-      // TODO: what error handling do we need to introduce here?
-
       if (error) {
         reject(error)
         return
