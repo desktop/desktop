@@ -5,17 +5,12 @@ import { v4 as guid } from 'node-uuid'
 import { User } from '../models/user'
 import * as appProxy from '../ui/lib/app-proxy'
 
-import { IHTTPResponseNexus } from './http'
+import { IHTTPResponseNexus, getHeader } from './http'
 import { proxyRequest } from '../ui/main-process-proxy'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
 const camelCase: (str: string) => string = require('to-camel-case')
-
-/** The response from `got` requests. */
-interface IHTTPResponse extends Electron.IncomingMessage {
-  readonly body: any
-}
 
 /** The HTTP methods available. */
 type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
@@ -91,6 +86,22 @@ export interface IServerMetadata {
    * must go through the OAuth flow to authenticate.
    */
   readonly verifiablePasswordAuthentication: boolean
+}
+
+/** The server response when handling the OAuth callback (with code) to obtain an access token */
+interface IAPIAccessToken {
+  readonly access_token: string
+  readonly scope: string
+  readonly token_type: string
+}
+
+/** The partial server response when creating a new authorization on behalf of a user */
+interface IAPIAuthorization {
+  readonly id: number
+  readonly url: string
+  readonly token: string
+  readonly token_last_eight: string
+  readonly hashed_token: string
 }
 
 /**
@@ -215,11 +226,9 @@ export class API {
     const response = await this.authenticatedRequest('HEAD', path, null)
 
     // TODO: this is an array of strings, we should use some T Y P E S here to make it clearer
-    const headers = <any>response.headers
-    const interval = headers['x-poll-interval']
-    const value: string = interval[0]
-    if (value) {
-      return parseInt(value, 10)
+    const interval = getHeader(response, 'x-poll-interval')
+    if (interval) {
+      return parseInt(interval, 10)
     }
     return 0
   }
@@ -235,7 +244,7 @@ export enum AuthorizationResponseKind {
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
                                     { kind: AuthorizationResponseKind.Failed } |
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: string } |
-                                    { kind: AuthorizationResponseKind.Error, response: IHTTPResponse }
+                                    { kind: AuthorizationResponseKind.Error, response: IHTTPResponseNexus }
 
 /**
  * Create an authorization with the given login, password, and one-time
@@ -258,7 +267,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
   }, headers)
 
   if (response.statusCode === 401) {
-    const otpResponse: string | null = response.headers['x-github-otp']
+    const otpResponse = getHeader(response, 'x-github-otp')
     if (otpResponse) {
       const pieces = otpResponse.split(';')
       if (pieces.length === 2) {
@@ -270,7 +279,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
     return { kind: AuthorizationResponseKind.Failed }
   }
 
-  const body = response.body
+  const body = <IAPIAuthorization>response.body
   const token = body.token
   if (token && token.length) {
     return { kind: AuthorizationResponseKind.Authorized, token }
@@ -302,7 +311,7 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata> 
  * @param body          - The body to send.
  * @param customHeaders - Any optional additional headers to send.
  */
-function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body: Object | null, customHeaders?: Object): Promise<IHTTPResponse> {
+function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body: Object | null, customHeaders?: Object): Promise<IHTTPResponseNexus> {
   const url = `${endpoint}/${path}`
   const headers: any = Object.assign({}, {
     'Accept': 'application/vnd.github.v3+json, application/json',
@@ -418,5 +427,6 @@ export async function requestOAuthToken(endpoint: string, state: string, code: s
     'state': state,
   })
 
-  return response.body.access_token
+  const body = <IAPIAccessToken>response.body
+  return body.access_token
 }
