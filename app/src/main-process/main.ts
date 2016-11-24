@@ -163,14 +163,12 @@ app.on('ready', () => {
         const statusCode = response.statusCode
 
         const headers = <any>{ }
-
         for (const h in response.headers) {
           const values = response.headers[h]
           headers[h] = values
         }
 
         let body: Object | undefined
-
         // there's more to do here around parsing the body
         // but for now this works around a joke that has been placed on me
         if (statusCode !== 204 && text.length > 0) {
