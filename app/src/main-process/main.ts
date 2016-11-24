@@ -7,15 +7,12 @@ import { handleSquirrelEvent } from './updates'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
-
-import * as HTTP from 'http'
-
 import { IHTTPResponse } from '../lib/http'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
-let network: any | null = null
+let network: Electron.Net | null = null
 
 const launchTime = Date.now()
 
@@ -132,7 +129,7 @@ app.on('ready', () => {
     menu.popup(window)
   })
 
-  ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options, body }: { id: string, options: HTTP.RequestOptions, body: Buffer | string | undefined }) => {
+  ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options, body }: { id: string, options: Electron.RequestOptions, body: Buffer | string | undefined }) => {
 
     if (network === null) {
       sharedProcess!.console.error('Electron net module not resolved, should never be in this state')
@@ -145,7 +142,7 @@ app.on('ready', () => {
 
     const request = network.request(options)
 
-    request.on('response', (response: HTTP.IncomingMessage) => {
+    request.on('response', (response: Electron.IncomingMessage) => {
 
       let raw: string = ''
 
