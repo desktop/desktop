@@ -4,5 +4,14 @@
         "**/node_modules": true,
         "**/dist": true,
         "**/out": true
+    },
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/out": true
     }
 }
