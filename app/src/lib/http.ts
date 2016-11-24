@@ -7,9 +7,9 @@ export interface IHTTPResponse {
   /** The HTTP status code */
   statusCode: number | undefined,
   /** The key-value collection of headers associated with the response */
-  headers: { },
+  headers: Object,
   /** The deserialized JSON response body */
-  body: { } | undefined
+  body: Object | undefined
 }
 
 /** The HTTP methods available. */
