@@ -63,7 +63,8 @@ app.on('ready', () => {
   readyTime = now - launchTime
 
   // the network module can only be resolved after the app is ready
-  network = require('electron').net
+  const electron_: any = require('electron')
+  network = electron_.net
 
   // TODO: drain queued requests now that we have a valid module
 
