@@ -58,10 +58,6 @@ export function proxyRequest(options: IHTTPRequest): Promise<IHTTPResponse> {
       resolve(response)
     })
 
-    const body: string | undefined = options.body
-      ? JSON.stringify(options.body)
-      : undefined
-
-    ipcRenderer.send('proxy/request', { id, options, body })
+    ipcRenderer.send('proxy/request', { id, options })
   })
 }

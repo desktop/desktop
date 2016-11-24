@@ -7,7 +7,7 @@ import { handleSquirrelEvent } from './updates'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
-import { IHTTPResponse } from '../lib/http'
+import { IHTTPRequest, IHTTPResponse } from '../lib/http'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -129,18 +129,22 @@ app.on('ready', () => {
     menu.popup(window)
   })
 
-  ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options, body }: { id: string, options: Electron.RequestOptions, body: Buffer | string | undefined }) => {
+  ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options }: { id: string, options: IHTTPRequest }) => {
 
     if (network === null) {
       sharedProcess!.console.error('Electron net module not resolved, should never be in this state')
       return
     }
 
-    // TODO: add default parameters?
-
     const channel = `proxy/response/${id}`
 
-    const request = network.request(options)
+    const requestOptions = {
+      url: options.url,
+      headers: options.headers,
+      method: options.method
+    }
+
+    const request = network.request(requestOptions)
 
     request.on('response', (response: Electron.IncomingMessage) => {
 
@@ -195,6 +199,10 @@ app.on('ready', () => {
     request.on('aborted', () => {
       event.sender.send(channel, { error: new Error('request aborted by the server'), response: undefined })
     })
+
+    const body: string | undefined = options.body
+      ? JSON.stringify(options.body)
+      : undefined
 
     request.end(body)
   })

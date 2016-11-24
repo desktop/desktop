@@ -21,7 +21,7 @@ export async function reportError(error: Error, version: string) {
   const options = {
     method: 'POST',
     url: ErrorEndpoint,
-    headers: null,
+    headers: undefined,
     body,
   }
 

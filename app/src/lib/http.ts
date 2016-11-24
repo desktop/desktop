@@ -7,7 +7,7 @@ export interface IHTTPResponse {
   /** The HTTP status code */
   statusCode: number | undefined,
   /** The key-value collection of headers associated with the response */
-  headers: Object,
+  headers: { [key: string]: any; } | undefined,
   /** The deserialized JSON response body */
   body: Object | undefined
 }
@@ -19,7 +19,7 @@ export interface IHTTPRequest {
   /** The verb associated with the request */
   method: string,
   /** The key-value collection of headers associated with the request */
-  headers: Object | null,
+  headers: { [key: string]: any; } | undefined,
   /** The request object to serialize */
   body: Object | null
 }
