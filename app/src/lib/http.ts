@@ -55,10 +55,9 @@ export function request(endpoint: string, authorization: string | null, method: 
     method,
   }
 
-  let requestBody: string | undefined
-  if (body) {
-    requestBody = JSON.stringify(body)
-  }
+  const requestBody: string | undefined = body
+    ? JSON.stringify(body)
+    : undefined
 
   return proxyRequest(options, requestBody)
 }
