@@ -9,11 +9,10 @@ import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
 import { IHTTPResponseNexus } from '../lib/http'
 
-
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
-let network: Electron.Net | null = null
+let network: any | null = null
 
 const launchTime = Date.now()
 
@@ -61,8 +60,7 @@ app.on('ready', () => {
   readyTime = now - launchTime
 
   // the network module can only be resolved after the app is ready
-  const { net } = require('electron')
-  network = net
+  network = require('electron').net
 
   // TODO: drain queued requests now that we have a valid module
 
