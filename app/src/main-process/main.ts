@@ -7,6 +7,9 @@ import { handleSquirrelEvent } from './updates'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
+
+import * as HTTP from 'http'
+
 import { IHTTPResponseNexus } from '../lib/http'
 
 let mainWindow: AppWindow | null = null
@@ -129,7 +132,7 @@ app.on('ready', () => {
     menu.popup(window)
   })
 
-  ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options, body }: { id: string, options: Electron.RequestOptions, body: Buffer | string | undefined }) => {
+  ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options, body }: { id: string, options: HTTP.RequestOptions, body: Buffer | string | undefined }) => {
 
     if (network === null) {
       return
@@ -139,7 +142,7 @@ app.on('ready', () => {
 
     const request = network.request(options)
 
-    request.on('response', response => {
+    request.on('response', (response: HTTP.IncomingMessage) => {
 
       let raw: string = ''
 

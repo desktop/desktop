@@ -5,7 +5,7 @@ import { proxyRequest } from '../ui/main-process-proxy'
 /** The HTTP payload sent by Electron's net module */
 export interface IHTTPResponseNexus {
   /** The HTTP status code */
-  statusCode: number,
+  statusCode: number | undefined,
   /** The key-value collection of headers associated with the response */
   headers: { },
   /** The deserialized JSON response body */
