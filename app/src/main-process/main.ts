@@ -150,7 +150,6 @@ app.on('ready', () => {
         event.sender.send(channel, { error: new Error('request aborted by the client'), response: undefined })
       })
 
-
       response.on('data', (chunk: Buffer) => {
         raw += chunk
       })
@@ -166,9 +165,19 @@ app.on('ready', () => {
           headers[h] = values
         }
 
-        const body: { } | undefined = raw.length > 0
-          ? JSON.parse(raw)
-          : undefined
+        let body: Object | undefined
+
+        // there's more to do here around parsing the body
+        // but for now this works around a joke that has been placed on me
+        if (statusCode !== 204 && raw.length > 0) {
+          try {
+            body = JSON.parse(raw)
+          } catch (e) {
+            // leaving this here for diagnostics for the moment
+            sharedProcess!.console.log(`JSON.parse failed for: '${raw}'`)
+            sharedProcess!.console.log(`Headers: '${JSON.stringify(response.headers)}'`)
+          }
+        }
 
         const payload: IHTTPResponse = {
           statusCode,
