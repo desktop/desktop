@@ -20,7 +20,6 @@
     "electron-window-state": "^3.1.0",
     "event-kit": "^2.0.0",
     "git-kitchen-sink": "^1.12.0",
-    "got": "^6.5.0",
     "keytar": "^3.0.2",
     "moment": "^2.14.1",
     "node-uuid": "^1.4.7",
