@@ -161,7 +161,7 @@ app.on('ready', () => {
         const payload: IHTTPResponseNexus = {
           statusCode:  response.statusCode,
           headers,
-          body,
+          body: JSON.parse(body),
         }
         event.sender.send(`proxy/response/${id}`, payload)
       })
