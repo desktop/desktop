@@ -17,7 +17,6 @@
   .menu-pane {
     height: 100%;
     width: 200px;
-    padding-top: var(--spacing);
 
     &:not(:last-child) {
       border-right: var(--base-border);
