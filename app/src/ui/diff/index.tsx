@@ -356,6 +356,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           this.cachedGutterElements.delete(index)
 
           if (element_) {
+            // TODO: i'm concerned about this being undefined now. like, really worried.
             element_.cleanup()
           }
 
