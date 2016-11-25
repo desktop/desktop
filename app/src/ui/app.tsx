@@ -26,6 +26,7 @@ import { getDotComAPIEndpoint } from '../lib/api'
 import { MenuIDs } from '../main-process/menu'
 import { StatsStore, ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
+import { AppMenu } from './app-menu'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -401,7 +402,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    return null
+    return <AppMenu menu={this.state.appMenu} />
   }
 
   private onAppMenuDropdownStateChanged = (newState: DropdownState) => {
