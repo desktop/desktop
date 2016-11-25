@@ -32,6 +32,7 @@ export interface IAppState {
   readonly loading: boolean
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
+  readonly appMenu: Electron.Menu | null
 
   readonly errors: ReadonlyArray<IAppError>
 

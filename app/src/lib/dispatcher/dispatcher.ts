@@ -389,4 +389,8 @@ export class Dispatcher {
   public async addUser(user: User): Promise<void> {
     return this.dispatchToSharedProcess<void>({ name: 'add-user', user })
   }
+
+  public setAppMenu(menu: Electron.Menu): Promise<void> {
+    return this.appStore._setAppMenu(menu)
+  }
 }

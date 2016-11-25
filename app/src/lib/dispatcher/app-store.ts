@@ -119,6 +119,8 @@ export class AppStore {
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
 
+  private appMenu: Electron.Menu | null = null
+
   private sidebarWidth: number = defaultSidebarWidth
 
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore) {
@@ -320,6 +322,7 @@ export class AppStore {
       showWelcomeFlow: this.showWelcomeFlow,
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
+      appMenu: this.appMenu,
     }
   }
 
@@ -1352,5 +1355,11 @@ export class AppStore {
   public _setCommitMessage(repository: Repository, message: ICommitMessage | null): Promise<void> {
     const gitStore = this.getGitStore(repository)
     return gitStore.setCommitMessage(message)
+  }
+
+  public _setAppMenu(menu: Electron.Menu): Promise<void> {
+    this.appMenu = menu
+    this.emitUpdate()
+    return Promise.resolve()
   }
 }
