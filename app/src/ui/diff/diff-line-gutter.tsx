@@ -107,7 +107,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   }
 
   private mouseMoveHandler = (ev: MouseEvent) => {
-
     ev.preventDefault()
 
     // ignoring anything from diff context rows
@@ -141,11 +140,11 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private elem_: HTMLSpanElement | undefined
 
   private renderEventHandlers = (elem: HTMLSpanElement) => {
-    this.elem_ = elem
-
     if (this.props.readOnly) {
       return
     }
+
+    this.elem_ = elem
 
     elem.addEventListener('mouseenter', this.mouseEnterHandler)
     elem.addEventListener('mouseleave', this.mouseLeaveHandler)
@@ -160,11 +159,13 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
       return
     }
 
-    this.elem_!.removeEventListener('mouseenter', this.mouseEnterHandler)
-    this.elem_!.removeEventListener('mouseleave', this.mouseLeaveHandler)
-    this.elem_!.removeEventListener('mousemove', this.mouseMoveHandler)
-    this.elem_!.removeEventListener('mousedown', this.mouseDownHandler)
-    this.elem_!.removeEventListener('mouseup', this.mouseUpHandler)
+    if (this.elem_) {
+      this.elem_.removeEventListener('mouseenter', this.mouseEnterHandler)
+      this.elem_.removeEventListener('mouseleave', this.mouseLeaveHandler)
+      this.elem_.removeEventListener('mousemove', this.mouseMoveHandler)
+      this.elem_.removeEventListener('mousedown', this.mouseDownHandler)
+      this.elem_.removeEventListener('mouseup', this.mouseUpHandler)
+    }
   }
 
   public render() {
