@@ -412,9 +412,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onAppMenuDropdownStateChanged = (newState: DropdownState) => {
-    newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu })
-      : this.props.dispatcher.closeFoldout()
+    if (newState === 'open') {
+      this.props.dispatcher.setAppMenuSelection([])
+      this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu })
+    } else {
+      this.props.dispatcher.closeFoldout()
+    }
   }
 
   private renderAppMenuToolbarButton() {
