@@ -97,10 +97,6 @@ export class AppWindow {
       this.window.webContents.send('focus')
     })
 
-    ipcMain.on('get-app-menu', () => {
-      this.sendAppMenu()
-    })
-
     this.registerWindowStateChangedEvents()
 
     // We don't have a menu bar on windows so we'll cheat

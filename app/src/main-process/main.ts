@@ -120,6 +120,12 @@ app.on('ready', () => {
     const window = BrowserWindow.fromWebContents(event.sender)
     menu.popup(window)
   })
+
+  ipcMain.on('get-app-menu', () => {
+    if (mainWindow) {
+      mainWindow.sendAppMenu()
+    }
+  })
 })
 
 app.on('activate', () => {
