@@ -90,6 +90,10 @@ app.on('ready', () => {
     const menuItem = findMenuItemByID(menu, id)
     if (menuItem) {
       menuItem.enabled = enabled
+
+      if (mainWindow) {
+        mainWindow.sendAppMenu()
+      }
     } else {
       fatalError(`Unknown menu id: ${id}`)
     }
@@ -99,6 +103,10 @@ app.on('ready', () => {
     const menuItem = findMenuItemByID(menu, id)
     if (menuItem) {
       menuItem.visible = visible
+
+      if (mainWindow) {
+        mainWindow.sendAppMenu()
+      }
     } else {
       fatalError(`Unknown menu id: ${id}`)
     }
