@@ -7,3 +7,16 @@
     margin: 0 var(--spacing);
   }
 }
+
+#app-menu-foldout {
+  height: 100%;
+
+  .menu-pane {
+    height: 100%;
+    width: 200px;
+  }
+
+  .menu-item {
+    margin: 0 var(--spacing);
+  }
+}
