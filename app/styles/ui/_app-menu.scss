@@ -24,14 +24,15 @@
   }
 
   .menu-item {
-    @include ellipsis;
     display: flex;
     width: 100%;
+    min-width: 0;
     margin-left: var(--spacing-double);
 
     .label {
       flex-grow: 1;
       margin-right: var(--spacing);
+      @include ellipsis;
     }
 
     .submenu-arrow {
