@@ -81,11 +81,13 @@ export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
 export enum FoldoutType {
   Repository,
   Branch,
+  AppMenu,
 }
 
 export type Foldout =
   { type: FoldoutType.Repository } |
-  { type: FoldoutType.Branch }
+  { type: FoldoutType.Branch } |
+  { type: FoldoutType.AppMenu }
 
 export enum RepositorySection {
   Changes,

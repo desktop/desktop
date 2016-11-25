@@ -1,0 +1,9 @@
+.toolbar-button.app-menu {
+  .text, .dropdownArrow {
+    display: none;
+  }
+
+  .icon {
+    margin: 0 var(--spacing);
+  }
+}

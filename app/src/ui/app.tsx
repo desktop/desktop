@@ -395,6 +395,40 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+
+  private renderAppMenu = (): JSX.Element | null => {
+    if (!this.state.appMenu) {
+      return null
+    }
+
+    return null
+  }
+
+  private onAppMenuDropdownStateChanged = (newState: DropdownState) => {
+    newState === 'open'
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu })
+      : this.props.dispatcher.closeFoldout()
+  }
+
+  private renderAppMenuToolbarButton() {
+    if (!this.state.appMenu) {
+      return null
+    }
+
+    const isOpen = this.state.currentFoldout
+      && this.state.currentFoldout.type === FoldoutType.AppMenu
+
+    const currentState: DropdownState = isOpen ? 'open' : 'closed'
+
+    return <ToolbarDropdown
+      icon={OcticonSymbol.threeBars}
+      title='Menu'
+      className='app-menu'
+      onDropdownStateChanged={this.onAppMenuDropdownStateChanged}
+      dropdownContentRenderer={this.renderAppMenu}
+      dropdownState={currentState} />
+  }
+
   private renderRepositoryList = (): JSX.Element => {
     const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
 
@@ -520,6 +554,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         <div
           className='sidebar-section'
           style={{ width: this.state.sidebarWidth }}>
+          {this.renderAppMenuToolbarButton()}
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}
