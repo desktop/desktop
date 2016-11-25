@@ -51,7 +51,9 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       FS.mkdir(fullPath, async () => {
         await initGitRepository(fullPath)
 
-        this.props.dispatcher.addRepositories([ fullPath ])
+        const repositories = await this.props.dispatcher.addRepositories([ fullPath ])
+        this.props.dispatcher.selectRepository(repositories[0])
+
         this.props.dispatcher.closePopup()
       })
     })
