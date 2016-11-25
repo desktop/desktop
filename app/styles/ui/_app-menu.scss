@@ -16,23 +16,26 @@
   .menu-pane {
     height: 100%;
     width: 200px;
-    margin: var(--spacing);
+    padding-top: var(--spacing);
   }
 
   .menu-item {
     @include ellipsis;
-    margin: var(--spacing-double) 0;
     display: flex;
     width: 100%;
+    margin-left: var(--spacing-double);
 
     .label {
       flex-grow: 1;
-      margin-left: var(--spacing);
+      margin-right: var(--spacing);
     }
 
     .submenu-arrow {
       flex-shrink: 0;
-      margin-left: var(--spacing);
+      opacity: 0.7;
+      // TODO: Draw a custom path here instead of resizing the existing arrow
+      height: 12px;
+      margin-right: var(--spacing);
     }
   }
 }
