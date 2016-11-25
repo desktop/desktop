@@ -145,72 +145,8 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.lineCleanup.clear()
   }
 
-  private onMouseDown(index: number, selected: boolean, isHunkSelection: boolean) {
-    if (this.props.readOnly) {
-      return
-    }
-
-    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
-      fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
-      return
-    }
-    const snapshot = this.props.file.selection
-    const desiredSelection = !selected
-
-    if (isHunkSelection) {
-      const hunk = this.props.diff.diffHunkForIndex(index)
-      if (!hunk) {
-        console.error('unable to find hunk for given line in diff')
-        return
-      }
-
-      const start = hunk.unifiedDiffStart
-      const end = hunk.unifiedDiffEnd
-      this.selection = new HunkSelection(start, end, desiredSelection, snapshot)
-    } else {
-      this.selection = new DragDropSelection(index, desiredSelection, snapshot)
-    }
-
-    this.selection.paint(this.cachedGutterElements)
-  }
-
-  private onMouseUp(index: number) {
-    if (this.props.readOnly || !this.props.onIncludeChanged) {
-      return
-    }
-
-    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
-      fatalError('must not complete selection when selected file is not a WorkingDirectoryFileChange')
-      return
-    }
-
-    const selection = this.selection
-    if (!selection) {
-      return
-    }
-
-    selection.apply(this.props.onIncludeChanged)
-
-    // operation is completed, clean this up
-    this.selection = null
-  }
-
   private isIncludableLine(line: DiffLine): boolean {
     return line.type === DiffLineType.Add || line.type === DiffLineType.Delete
-  }
-
-  private isMouseInHunkSelectionZone(ev: MouseEvent): boolean {
-    // MouseEvent is not generic, but getBoundingClientRect should be
-    // available for all HTML elements
-    // docs: https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
-
-    const element: any = ev.currentTarget
-    const offset: ClientRect = element.getBoundingClientRect()
-    const relativeLeft = ev.clientX - offset.left
-
-    const edge = offset.width - 10
-
-    return relativeLeft >= edge
   }
 
   private highlightHunk(hunk: DiffHunk, show: boolean) {
@@ -246,6 +182,113 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
   }
 
+  private onMouseUpNexus = () => {
+    if (!this.props.onIncludeChanged) {
+      return
+    }
+
+    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
+      fatalError('must not complete selection when selected file is not a WorkingDirectoryFileChange')
+      return
+    }
+
+    const selection = this.selection
+    if (!selection) {
+      return
+    }
+
+    selection.apply(this.props.onIncludeChanged)
+
+    // operation is completed, clean this up
+    this.selection = null
+  }
+
+  private onMouseEnterNexus = (index: number, isHunkSelection: boolean) => {
+    if (isHunkSelection) {
+
+      const hunk = this.props.diff.diffHunkForIndex(index)
+      if (!hunk) {
+        console.error('unable to find hunk for given line in diff')
+        return
+      }
+
+      this.highlightHunk(hunk, true)
+    } else {
+      this.highlightLine(index, true)
+    }
+  }
+
+  private onMouseLeaveNexus = (index: number, isHunkSelection: boolean) => {
+    if (isHunkSelection) {
+
+      const hunk = this.props.diff.diffHunkForIndex(index)
+      if (!hunk) {
+        console.error('unable to find hunk for given line in diff')
+        return
+      }
+
+      this.highlightHunk(hunk, false)
+    } else {
+      this.highlightLine(index, false)
+    }
+  }
+
+  private onMouseDownNexus = (index: number, isHunkSelection: boolean) => {
+    let selected = false
+    if (this.props.file instanceof WorkingDirectoryFileChange) {
+      selected = this.props.file.selection.isSelected(index)
+    }
+
+    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
+      fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
+      return
+    }
+
+    const snapshot = this.props.file.selection
+    const desiredSelection = !selected
+
+    if (isHunkSelection) {
+      const hunk = this.props.diff.diffHunkForIndex(index)
+      if (!hunk) {
+        console.error('unable to find hunk for given line in diff')
+        return
+      }
+
+      const start = hunk.unifiedDiffStart
+      const end = hunk.unifiedDiffEnd
+      this.selection = new HunkSelection(start, end, desiredSelection, snapshot)
+    } else {
+      this.selection = new DragDropSelection(index, desiredSelection, snapshot)
+    }
+
+    this.selection.paint(this.cachedGutterElements)
+  }
+
+  private onMouseMoveNexus = (index: number, isHunkSelection: boolean) => {
+
+    const hunk = this.props.diff.diffHunkForIndex(index)
+    if (!hunk) {
+      return
+    }
+
+    // if selection is active, perform highlighting
+    if (!this.selection) {
+
+      // clear hunk selection in case transitioning from hunk->line
+      this.highlightHunk(hunk, false)
+
+      if (isHunkSelection) {
+        this.highlightHunk(hunk, true)
+      } else {
+        this.highlightLine(index, true)
+      }
+      return
+    }
+
+    this.selection.update(index)
+    this.selection.paint(this.cachedGutterElements)
+  }
+
   public renderLine = (instance: any, line: any, element: HTMLElement) => {
 
     const existingLineDisposable = this.lineCleanup.get(line)
@@ -268,85 +311,12 @@ export class Diff extends React.Component<IDiffProps, void> {
 
         const reactContainer = document.createElement('span')
 
-        const mouseEnterHandler = (ev: MouseEvent) => {
-          ev.preventDefault()
-
-          if (!this.isIncludableLine(diffLine)) {
-            return
-          }
-
-          if (this.isMouseInHunkSelectionZone(ev)) {
-            this.highlightHunk(hunk, true)
-          } else {
-            this.highlightLine(index, true)
-          }
-        }
-
-        const mouseLeaveHandler = (ev: MouseEvent) => {
-          ev.preventDefault()
-
-          if (!this.isIncludableLine(diffLine)) {
-            return
-          }
-
-          if (this.isMouseInHunkSelectionZone(ev)) {
-            this.highlightHunk(hunk, false)
-          } else {
-            this.highlightLine(index, false)
-          }
-        }
-
-        const mouseDownHandler = (ev: MouseEvent) => {
-          ev.preventDefault()
-
-          const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
-
-          let isIncluded = false
-          if (this.props.file instanceof WorkingDirectoryFileChange) {
-            isIncluded = this.props.file.selection.isSelected(index)
-          }
-          this.onMouseDown(index, isIncluded, isHunkSelection)
-        }
-
-        const mouseMoveHandler = (ev: MouseEvent) => {
-
-          ev.preventDefault()
-
-          // ignoring anything from diff context rows
-          if (!this.isIncludableLine(diffLine)) {
-            return
-          }
-
-          // if selection is active, perform highlighting
-          if (!this.selection) {
-
-            // clear hunk selection in case transitioning from hunk->line
-            this.highlightHunk(hunk, false)
-
-            if (this.isMouseInHunkSelectionZone(ev)) {
-              this.highlightHunk(hunk, true)
-            } else {
-              this.highlightLine(index, true)
-            }
-            return
-          }
-
-          this.selection.update(index)
-          this.selection.paint(this.cachedGutterElements)
-        }
-
-        const mouseUpHandler = (ev: UIEvent) => {
-          ev.preventDefault()
-
-          this.onMouseUp(index)
-        }
-
         if (!this.props.readOnly) {
-          reactContainer.addEventListener('mouseenter', mouseEnterHandler)
-          reactContainer.addEventListener('mouseleave', mouseLeaveHandler)
-          reactContainer.addEventListener('mousemove', mouseMoveHandler)
-          reactContainer.addEventListener('mousedown', mouseDownHandler)
-          reactContainer.addEventListener('mouseup', mouseUpHandler)
+          //reactContainer.addEventListener('mouseenter', mouseEnterHandler)
+          //reactContainer.addEventListener('mouseleave', mouseLeaveHandler)
+          //reactContainer.addEventListener('mousemove', mouseMoveHandler)
+          //reactContainer.addEventListener('mousedown', mouseDownHandler)
+          //reactContainer.addEventListener('mouseup', mouseUpHandler)
         }
 
         this.cachedGutterElements.set(index, reactContainer)
@@ -356,11 +326,27 @@ export class Diff extends React.Component<IDiffProps, void> {
           isIncluded = this.props.file.selection.isSelected(index)
         }
 
+        // TODO: if we have a reference to this we can invoke methods
+        // on it to dispose. maybe?
+        let element_: DiffLineGutter | undefined
+
         ReactDOM.render(
           <DiffLineGutter
             line={diffLine}
             isIncluded={isIncluded}
-          />, reactContainer)
+            index={index}
+            readOnly={this.props.readOnly}
+            onMouseUp={this.onMouseUpNexus}
+            onMouseDown={this.onMouseDownNexus}
+            onMouseMove={this.onMouseMoveNexus}
+            onMouseLeave={this.onMouseLeaveNexus}
+            onMouseEnter={this.onMouseEnterNexus} />,
+          reactContainer,
+          (element: DiffLineGutter) => {
+            element_ = element
+          }
+        )
+
         element.insertBefore(reactContainer, diffLineElement)
 
         // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
@@ -381,15 +367,7 @@ export class Diff extends React.Component<IDiffProps, void> {
 
           this.cachedGutterElements.delete(index)
 
-          if (!this.props.readOnly) {
-            reactContainer.removeEventListener('mouseenter', mouseEnterHandler)
-            reactContainer.removeEventListener('mouseleave', mouseLeaveHandler)
-            reactContainer.removeEventListener('mousedown', mouseDownHandler)
-            reactContainer.removeEventListener('mousemove', mouseMoveHandler)
-            reactContainer.removeEventListener('mouseup', mouseUpHandler)
-          }
-
-          ReactDOM.unmountComponentAtNode(reactContainer)
+          element_!.cleanup()
 
           line.off('delete', deleteHandler)
         })

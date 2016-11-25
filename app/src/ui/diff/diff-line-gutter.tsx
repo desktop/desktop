@@ -14,6 +14,20 @@ interface IDiffGutterProps {
    * should be rendered as selected or not.
    */
   readonly isIncluded: boolean
+
+  readonly index: number
+
+  readonly readOnly: boolean
+
+  readonly onMouseUp: (index: number) => void
+
+  readonly onMouseDown: (index: number, isHunkSelection: boolean) => void
+
+  readonly onMouseMove: (index: number, isHunkSelection: boolean) => void
+
+  readonly onMouseLeave: (index: number, isHunkSelection: boolean) => void
+
+  readonly onMouseEnter: (index: number, isHunkSelection: boolean) => void
 }
 
 /** The gutter for a diff's line. */
@@ -46,9 +60,117 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     return classNames('diff-line-gutter', lineClass, selectedClass)
   }
 
+  // TODO: this doesn't consider mouse events outside the right edge
+
+  private isMouseInHunkSelectionZone(ev: MouseEvent): boolean {
+    // MouseEvent is not generic, but getBoundingClientRect should be
+    // available for all HTML elements
+    // docs: https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
+
+    const element: any = ev.currentTarget
+    const offset: ClientRect = element.getBoundingClientRect()
+    const relativeLeft = ev.clientX - offset.left
+
+    const edge = offset.width - 10
+
+    return relativeLeft >= edge
+  }
+
+  private isIncludeable(): boolean {
+    const type = this.props.line.type
+    return type === DiffLineType.Add || type === DiffLineType.Delete
+  }
+
+  private mouseEnterHandler = (ev: MouseEvent) => {
+    ev.preventDefault()
+
+    if (!this.isIncludeable()) {
+      return
+    }
+
+    const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
+
+    this.props.onMouseEnter(this.props.index, isHunkSelection)
+  }
+
+  private mouseLeaveHandler = (ev: MouseEvent) => {
+    ev.preventDefault()
+
+    // ignoring anything from diff context rows
+    if (!this.isIncludeable()) {
+      return
+    }
+
+    const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
+
+    this.props.onMouseLeave(this.props.index, isHunkSelection)
+  }
+
+  private mouseMoveHandler = (ev: MouseEvent) => {
+
+    ev.preventDefault()
+
+    // ignoring anything from diff context rows
+    if (!this.isIncludeable()) {
+      return
+    }
+
+    const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
+
+    this.props.onMouseMove(this.props.index, isHunkSelection)
+  }
+
+  private mouseUpHandler = (ev: UIEvent) => {
+    ev.preventDefault()
+
+    if (!this.props.onMouseUp) {
+      return
+    }
+
+    this.props.onMouseUp(this.props.index)
+  }
+
+  private mouseDownHandler = (ev: MouseEvent) => {
+    ev.preventDefault()
+
+    const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
+
+    this.props.onMouseDown(this.props.index, isHunkSelection)
+  }
+
+  private elem_: HTMLSpanElement | undefined
+
+  private renderEventHandlers = (elem: HTMLSpanElement) => {
+    this.elem_ = elem
+
+    if (this.props.readOnly) {
+      return
+    }
+
+    elem.addEventListener('mouseenter', this.mouseEnterHandler)
+    elem.addEventListener('mouseleave', this.mouseLeaveHandler)
+    elem.addEventListener('mousemove', this.mouseMoveHandler)
+    elem.addEventListener('mousedown', this.mouseDownHandler)
+    elem.addEventListener('mouseup', this.mouseUpHandler)
+  }
+
+  public cleanup() {
+
+    if (this.props.readOnly) {
+      return
+    }
+
+    this.elem_!.removeEventListener('mouseenter', this.mouseEnterHandler)
+    this.elem_!.removeEventListener('mouseleave', this.mouseLeaveHandler)
+    this.elem_!.removeEventListener('mousemove', this.mouseMoveHandler)
+    this.elem_!.removeEventListener('mousedown', this.mouseDownHandler)
+    this.elem_!.removeEventListener('mouseup', this.mouseUpHandler)
+  }
+
   public render() {
     return (
-      <span className={this.getLineClass()}>
+      <span className={this.getLineClass()}
+            ref={this.renderEventHandlers}>
         <span className='diff-line-number before'>{this.props.line.oldLineNumber || ' '}</span>
         <span className='diff-line-number after'>{this.props.line.newLineNumber || ' '}</span>
       </span>
