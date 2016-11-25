@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from 'electron'
+import { BrowserWindow, ipcMain, Menu } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 
 import { SharedProcess } from '../shared-process/shared-process'
@@ -95,6 +95,10 @@ export class AppWindow {
 
     this.window.on('focus', () => {
       this.window.webContents.send('focus')
+    })
+
+    ipcMain.on('get-app-menu', () => {
+      this.sendAppMenu()
     })
 
     this.registerWindowStateChangedEvents()
@@ -200,6 +204,11 @@ export class AppWindow {
   /** Send the app launch timing stats to the renderer. */
   public sendLaunchTimingStats(stats: ILaunchStats) {
     this.window.webContents.send('launch-timing-stats', { stats })
+  }
+
+  /** Send the app menu to the renderer. */
+  public sendAppMenu() {
+    this.window.webContents.send('app-menu', { menu: Menu.getApplicationMenu() })
   }
 
   /**
