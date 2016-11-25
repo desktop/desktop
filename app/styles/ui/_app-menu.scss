@@ -1,3 +1,5 @@
+@import "../mixins";
+
 .toolbar-button.app-menu {
   .text, .dropdownArrow {
     display: none;
@@ -14,9 +16,23 @@
   .menu-pane {
     height: 100%;
     width: 200px;
+    margin: var(--spacing);
   }
 
   .menu-item {
-    margin: 0 var(--spacing);
+    @include ellipsis;
+    margin: var(--spacing-double) 0;
+    display: flex;
+    width: 100%;
+
+    .label {
+      flex-grow: 1;
+      margin-left: var(--spacing);
+    }
+
+    .submenu-arrow {
+      flex-shrink: 0;
+      margin-left: var(--spacing);
+    }
   }
 }

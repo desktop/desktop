@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { List } from '../list'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IMenuPaneProps {
   readonly items: ReadonlyArray<Electron.MenuItem>
@@ -12,7 +13,20 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
   private renderMenuItem = (row: number) => {
     const item = this.props.items[row]
 
-    return <div className='menu-item'>{item.label}</div>
+    if (item.type === 'separator') {
+      return null
+    }
+
+    const arrow = item.type === 'submenu'
+      ? <Octicon className='submenu-arrow' symbol={OcticonSymbol.triangleRight} />
+      : null
+
+    return (
+      <div className='menu-item'>
+        <div className='label'>{item.label}</div>
+        {arrow}
+      </div>
+    )
   }
 
   public render(): JSX.Element {
