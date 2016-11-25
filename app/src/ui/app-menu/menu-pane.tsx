@@ -65,6 +65,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
           onRowSelected={this.onRowSelected}
           onSelectionChanged={this.onSelectionChanged}
           onRowKeyDown={this.onRowKeyDown}
+          invalidationProps={this.props.items}
         />
       </div>
     )
