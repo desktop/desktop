@@ -34,6 +34,22 @@ function isIncludeable(type: DiffLineType): boolean {
   return type === DiffLineType.Add || type === DiffLineType.Delete
 }
 
+// TODO: this doesn't consider mouse events outside the right edge
+
+function isMouseInHunkSelectionZone(ev: MouseEvent): boolean {
+  // MouseEvent is not generic, but getBoundingClientRect should be
+  // available for all HTML elements
+  // docs: https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
+
+  const element: any = ev.currentTarget
+  const offset: ClientRect = element.getBoundingClientRect()
+  const relativeLeft = ev.clientX - offset.left
+
+  const edge = offset.width - 10
+
+  return relativeLeft >= edge
+}
+
 /** The gutter for a diff's line. */
 export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   /** Can this line be selected for inclusion/exclusion? */
@@ -64,40 +80,24 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     return classNames('diff-line-gutter', lineClass, selectedClass)
   }
 
-  // TODO: this doesn't consider mouse events outside the right edge
-
-  private isMouseInHunkSelectionZone(ev: MouseEvent): boolean {
-    // MouseEvent is not generic, but getBoundingClientRect should be
-    // available for all HTML elements
-    // docs: https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
-
-    const element: any = ev.currentTarget
-    const offset: ClientRect = element.getBoundingClientRect()
-    const relativeLeft = ev.clientX - offset.left
-
-    const edge = offset.width - 10
-
-    return relativeLeft >= edge
-  }
-
   private mouseEnterHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
+    const isHunkSelection = isMouseInHunkSelectionZone(ev)
     this.props.onMouseEnter(this.props.index, isHunkSelection)
   }
 
   private mouseLeaveHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
+    const isHunkSelection = isMouseInHunkSelectionZone(ev)
     this.props.onMouseLeave(this.props.index, isHunkSelection)
   }
 
   private mouseMoveHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
+    const isHunkSelection = isMouseInHunkSelectionZone(ev)
     this.props.onMouseMove(this.props.index, isHunkSelection)
   }
 
@@ -110,7 +110,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private mouseDownHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
+    const isHunkSelection = isMouseInHunkSelectionZone(ev)
     this.props.onMouseDown(this.props.index, isHunkSelection)
   }
 
