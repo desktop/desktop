@@ -182,7 +182,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
   }
 
-  private onMouseUpNexus = () => {
+  private onMouseUp = () => {
     if (!this.props.onIncludeChanged) {
       return
     }
@@ -203,7 +203,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.selection = null
   }
 
-  private onMouseEnterNexus = (index: number, isHunkSelection: boolean) => {
+  private onMouseEnter = (index: number, isHunkSelection: boolean) => {
     if (isHunkSelection) {
 
       const hunk = this.props.diff.diffHunkForIndex(index)
@@ -218,7 +218,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
   }
 
-  private onMouseLeaveNexus = (index: number, isHunkSelection: boolean) => {
+  private onMouseLeave = (index: number, isHunkSelection: boolean) => {
     if (isHunkSelection) {
 
       const hunk = this.props.diff.diffHunkForIndex(index)
@@ -233,7 +233,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
   }
 
-  private onMouseDownNexus = (index: number, isHunkSelection: boolean) => {
+  private onMouseDown = (index: number, isHunkSelection: boolean) => {
     let selected = false
     if (this.props.file instanceof WorkingDirectoryFileChange) {
       selected = this.props.file.selection.isSelected(index)
@@ -264,7 +264,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.selection.paint(this.cachedGutterElements)
   }
 
-  private onMouseMoveNexus = (index: number, isHunkSelection: boolean) => {
+  private onMouseMove = (index: number, isHunkSelection: boolean) => {
 
     const hunk = this.props.diff.diffHunkForIndex(index)
     if (!hunk) {
@@ -311,14 +311,6 @@ export class Diff extends React.Component<IDiffProps, void> {
 
         const reactContainer = document.createElement('span')
 
-        if (!this.props.readOnly) {
-          //reactContainer.addEventListener('mouseenter', mouseEnterHandler)
-          //reactContainer.addEventListener('mouseleave', mouseLeaveHandler)
-          //reactContainer.addEventListener('mousemove', mouseMoveHandler)
-          //reactContainer.addEventListener('mousedown', mouseDownHandler)
-          //reactContainer.addEventListener('mouseup', mouseUpHandler)
-        }
-
         this.cachedGutterElements.set(index, reactContainer)
 
         let isIncluded = false
@@ -326,8 +318,6 @@ export class Diff extends React.Component<IDiffProps, void> {
           isIncluded = this.props.file.selection.isSelected(index)
         }
 
-        // TODO: if we have a reference to this we can invoke methods
-        // on it to dispose. maybe?
         let element_: DiffLineGutter | undefined
 
         ReactDOM.render(
@@ -336,15 +326,13 @@ export class Diff extends React.Component<IDiffProps, void> {
             isIncluded={isIncluded}
             index={index}
             readOnly={this.props.readOnly}
-            onMouseUp={this.onMouseUpNexus}
-            onMouseDown={this.onMouseDownNexus}
-            onMouseMove={this.onMouseMoveNexus}
-            onMouseLeave={this.onMouseLeaveNexus}
-            onMouseEnter={this.onMouseEnterNexus} />,
+            onMouseUp={this.onMouseUp}
+            onMouseDown={this.onMouseDown}
+            onMouseMove={this.onMouseMove}
+            onMouseLeave={this.onMouseLeave}
+            onMouseEnter={this.onMouseEnter} />,
           reactContainer,
-          (element: DiffLineGutter) => {
-            element_ = element
-          }
+          (element: DiffLineGutter) => { element_ = element }
         )
 
         element.insertBefore(reactContainer, diffLineElement)
