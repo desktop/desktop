@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 interface IToolbarProps {
-  id?: string
+  readonly id?: string
 }
 
 /** The main application toolbar component. */

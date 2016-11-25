@@ -2,23 +2,23 @@ import * as React from 'react'
 
 export interface IResizableProps extends React.Props<Resizable> {
 
-  width: number
+  readonly width: number
 
   /** The maximum width the panel can be resized to.
    *
    * @default 350
    */
-  maximumWidth?: number
+  readonly maximumWidth?: number
 
   /**
    * The minimum width the panel can be resized to.
    *
    * @default 150
    */
-  minimumWidth?: number
+  readonly minimumWidth?: number
 
   /** The optional ID for the root element. */
-  id?: string
+  readonly id?: string
 
   /**
    * Handler called when the width of the component has changed

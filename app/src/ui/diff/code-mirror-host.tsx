@@ -6,22 +6,22 @@ interface ICodeMirrorHostProps {
    * An optional class name for the wrapper element around the
    * CodeMirror component
    */
-  className?: string
+  readonly className?: string
 
   /** The text contents for the editor */
-  value: string,
+  readonly value: string,
 
   /** Any CodeMirror specific settings */
-  options?: CodeMirror.EditorConfiguration
+  readonly options?: CodeMirror.EditorConfiguration
 
   /** Callback for diff to control whether selection is enabled */
-  isSelectionEnabled?: () => boolean
+  readonly isSelectionEnabled?: () => boolean
 
   /** Callback for when CodeMirror renders (or re-renders) a line */
-  onRenderLine?: (cm: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void
+  readonly onRenderLine?: (cm: CodeMirror.Editor, line: CodeMirror.LineHandle, element: HTMLElement) => void
 
   /** Callback for when CodeMirror has completed a batch of changes to the editor */
-  onChanges?: (cm: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void
+  readonly onChanges?: (cm: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void
 }
 
 /**

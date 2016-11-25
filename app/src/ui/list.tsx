@@ -79,7 +79,7 @@ interface IListProps {
    * bar in order to toggle selection. This function is responsible
    * for calling event.preventDefault() when acting on a key press.
    */
-  onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
+  readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
 
   /**
    * An optional handler called to determine whether a given row is

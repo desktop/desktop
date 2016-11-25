@@ -11,7 +11,7 @@ const maximizePath = 'M 0,0 0,10 10,10 10,0 Z M 1,1 9,1 9,9 1,9 Z'
 const minimizePath = 'M 0,5 10,5 10,6 0,6 Z'
 
 interface IWindowControlState {
-  windowState: WindowState
+  readonly windowState: WindowState
 }
 
 /**
