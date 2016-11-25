@@ -393,4 +393,8 @@ export class Dispatcher {
   public setAppMenu(menu: Electron.Menu): Promise<void> {
     return this.appStore._setAppMenu(menu)
   }
+
+  public setAppMenuSelection(selection: ReadonlyArray<Electron.MenuItem>): Promise<void> {
+    return this.appStore._setAppMenuSelection(selection)
+  }
 }

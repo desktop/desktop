@@ -120,6 +120,7 @@ export class AppStore {
   private readonly gitStores = new Map<number, GitStore>()
 
   private appMenu: Electron.Menu | null = null
+  private appMenuSelection: ReadonlyArray<Electron.MenuItem> = []
 
   private sidebarWidth: number = defaultSidebarWidth
 
@@ -323,6 +324,7 @@ export class AppStore {
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
       appMenu: this.appMenu,
+      appMenuSelection: this.appMenuSelection,
     }
   }
 
@@ -1359,6 +1361,12 @@ export class AppStore {
 
   public _setAppMenu(menu: Electron.Menu): Promise<void> {
     this.appMenu = menu
+    this.emitUpdate()
+    return Promise.resolve()
+  }
+
+  public _setAppMenuSelection(selection: ReadonlyArray<Electron.MenuItem>): Promise<void> {
+    this.appMenuSelection = selection
     this.emitUpdate()
     return Promise.resolve()
   }
