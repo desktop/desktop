@@ -30,6 +30,10 @@ interface IDiffGutterProps {
   readonly onMouseEnter: (index: number, isHunkSelection: boolean) => void
 }
 
+function isIncludeable(type: DiffLineType): boolean {
+  return type === DiffLineType.Add || type === DiffLineType.Delete
+}
+
 /** The gutter for a diff's line. */
 export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   /** Can this line be selected for inclusion/exclusion? */
@@ -76,16 +80,10 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     return relativeLeft >= edge
   }
 
-  private isIncludeable(): boolean {
-    const type = this.props.line.type
-    return type === DiffLineType.Add || type === DiffLineType.Delete
-  }
-
   private mouseEnterHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
     const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
-
     this.props.onMouseEnter(this.props.index, isHunkSelection)
   }
 
@@ -93,7 +91,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     ev.preventDefault()
 
     const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
-
     this.props.onMouseLeave(this.props.index, isHunkSelection)
   }
 
@@ -101,7 +98,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     ev.preventDefault()
 
     const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
-
     this.props.onMouseMove(this.props.index, isHunkSelection)
   }
 
@@ -115,22 +111,21 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     ev.preventDefault()
 
     const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
-
     this.props.onMouseDown(this.props.index, isHunkSelection)
   }
 
   private elem_: HTMLSpanElement | undefined
 
   private renderEventHandlers = (elem: HTMLSpanElement) => {
+    // read-only diffs do not support any interactivity
     if (this.props.readOnly) {
       return
     }
 
-    // ignoring anything from diff context rows
-    if (!this.isIncludeable()) {
+    // ignore anything from diff context rows
+    if (!isIncludeable(this.props.line.type)) {
       return
     }
-
 
     this.elem_ = elem
 
@@ -142,12 +137,13 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   }
 
   public cleanup() {
+    // read-only diffs do not support any interactivity
     if (this.props.readOnly) {
       return
     }
 
-    // ignoring anything from diff context rows
-    if (!this.isIncludeable()) {
+    // ignore anything from diff context rows
+    if (!isIncludeable(this.props.line.type)) {
       return
     }
 
