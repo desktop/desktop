@@ -53,6 +53,8 @@ function isMouseInHunkSelectionZone(ev: MouseEvent): boolean {
 /** The gutter for a diff's line. */
 export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
+  private elem_: HTMLSpanElement | undefined
+
   private isIncluded(): boolean {
     return isIncludeable(this.props.line.type) && this.props.isIncluded
   }
@@ -109,8 +111,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     const isHunkSelection = isMouseInHunkSelectionZone(ev)
     this.props.onMouseDown(this.props.index, isHunkSelection)
   }
-
-  private elem_: HTMLSpanElement | undefined
 
   private renderEventHandlers = (elem: HTMLSpanElement) => {
     // read-only diffs do not support any interactivity
