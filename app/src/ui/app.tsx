@@ -402,7 +402,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    return <AppMenu menu={this.state.appMenu} />
+    return (
+      <AppMenu
+        menu={this.state.appMenu}
+        selection={this.state.appMenuSelection}
+        dispatcher={this.props.dispatcher}
+      />
+    )
   }
 
   private onAppMenuDropdownStateChanged = (newState: DropdownState) => {
