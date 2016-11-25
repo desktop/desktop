@@ -52,13 +52,9 @@ function isMouseInHunkSelectionZone(ev: MouseEvent): boolean {
 
 /** The gutter for a diff's line. */
 export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
-  /** Can this line be selected for inclusion/exclusion? */
-  private isIncludableLine(): boolean {
-    return this.props.line.type === DiffLineType.Add || this.props.line.type === DiffLineType.Delete
-  }
 
   private isIncluded(): boolean {
-    return this.isIncludableLine() && this.props.isIncluded
+    return isIncludeable(this.props.line.type) && this.props.isIncluded
   }
 
   private getLineClassName(): string {
