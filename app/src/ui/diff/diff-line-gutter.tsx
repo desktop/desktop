@@ -84,10 +84,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private mouseEnterHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    if (!this.isIncludeable()) {
-      return
-    }
-
     const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
 
     this.props.onMouseEnter(this.props.index, isHunkSelection)
@@ -95,11 +91,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
   private mouseLeaveHandler = (ev: MouseEvent) => {
     ev.preventDefault()
-
-    // ignoring anything from diff context rows
-    if (!this.isIncludeable()) {
-      return
-    }
 
     const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
 
@@ -109,11 +100,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private mouseMoveHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    // ignoring anything from diff context rows
-    if (!this.isIncludeable()) {
-      return
-    }
-
     const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
 
     this.props.onMouseMove(this.props.index, isHunkSelection)
@@ -121,10 +107,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
   private mouseUpHandler = (ev: UIEvent) => {
     ev.preventDefault()
-
-    if (!this.props.onMouseUp) {
-      return
-    }
 
     this.props.onMouseUp(this.props.index)
   }
@@ -144,6 +126,12 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
       return
     }
 
+    // ignoring anything from diff context rows
+    if (!this.isIncludeable()) {
+      return
+    }
+
+
     this.elem_ = elem
 
     elem.addEventListener('mouseenter', this.mouseEnterHandler)
@@ -154,8 +142,12 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   }
 
   public cleanup() {
-
     if (this.props.readOnly) {
+      return
+    }
+
+    // ignoring anything from diff context rows
+    if (!this.isIncludeable()) {
       return
     }
 

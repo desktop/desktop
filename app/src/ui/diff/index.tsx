@@ -355,7 +355,9 @@ export class Diff extends React.Component<IDiffProps, void> {
 
           this.cachedGutterElements.delete(index)
 
-          element_!.cleanup()
+          if (element_) {
+            element_.cleanup()
+          }
 
           line.off('delete', deleteHandler)
         })
