@@ -195,6 +195,8 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       panes.push(this.renderMenuPane(depth++, menuWithSelection))
     }
 
+    // Clear out any old references we might have to panes that are
+    // no longer displayed.
     this.paneRefs = this.paneRefs.slice(0, panes.length)
 
     return (
@@ -204,6 +206,10 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     )
   }
 
+  /**
+   * Called after mounting or re-rendering and ensures that the
+   * appropriate (if any) MenuPane list receives keyboard focus.
+   */
   private ensurePaneFocus() {
     if (this.focusPane >= 0) {
       const pane = this.paneRefs[this.focusPane]
