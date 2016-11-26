@@ -150,6 +150,7 @@ export class List extends React.Component<IListProps, void> {
     if (this.props.selectOnHover && this.canSelectRow(row)) {
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row)
+        this.scrollRowToVisible(row)
       }
     }
   }
