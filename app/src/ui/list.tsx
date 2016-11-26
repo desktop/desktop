@@ -37,6 +37,16 @@ export interface IMouseDownSelectionSource {
 
 /**
  * Interface describing a user initiated selection change event
+ * originating from a pointer device hovering over an item.
+ * Only applicable when selectedOnHover is set.
+ */
+export interface IHoverSelectionSource {
+  readonly kind: 'hover',
+  readonly event: React.MouseEvent<any>
+}
+
+/**
+ * Interface describing a user initiated selection change event
  * originating from a keyboard
  */
 export interface IKeyboardSelectionSource {
@@ -47,6 +57,7 @@ export interface IKeyboardSelectionSource {
 /** A type union of possible sources of a selection changed event */
 export type SelectionSource =
   IMouseDownSelectionSource |
+  IHoverSelectionSource |
   IKeyboardSelectionSource
 
 interface IListProps {
@@ -93,7 +104,8 @@ interface IListProps {
    *
    * @param row    - The index of the row that was just selected
    * @param source - The kind of user action that provoced the change, either
-   *                 a pointer device press or keyboard
+   *                 a pointer device press, hover (if selectOnHover is set) or
+   *                 a keyboard event (arrow up/down)
    */
   readonly onSelectionChanged?: (row: number, source: SelectionSource) => void
 
