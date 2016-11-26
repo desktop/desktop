@@ -99,6 +99,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
         onItemKeyDown={this.onItemKeyDown}
         onSelectionChanged={this.onSelectionChanged}
         selectedItem={menu.selectedItem}
+        parentItem={menu.parentItem}
       />
     )
   }

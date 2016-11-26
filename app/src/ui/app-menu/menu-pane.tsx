@@ -5,9 +5,10 @@ import { Octicon, OcticonSymbol } from '../octicons'
 interface IMenuPaneProps {
   readonly depth: number,
   readonly menu: Electron.Menu
+  readonly parentItem?: Electron.MenuItem
   readonly selectedItem?: Electron.MenuItem
   readonly onItemClicked: (depth: number, item: Electron.MenuItem) => void
-  readonly onItemKeyDown: (depth: number, item: Electron.MenuItem, event: React.KeyboardEvent<any>) => void
+  readonly onItemKeyDown: (depth: number, item: Electron.MenuItem, event: React.KeyboardEvent<any>, parentItem?: Electron.MenuItem) => void
   readonly onSelectionChanged: (depth: number, item: Electron.MenuItem) => void
 }
 
@@ -46,7 +47,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
     const item = this.props.menu.items[row]
-    this.props.onItemKeyDown(this.props.depth, item, event)
+    this.props.onItemKeyDown(this.props.depth, item, event, this.props.parentItem)
   }
 
   public render(): JSX.Element {
