@@ -16,6 +16,10 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
 
   }
 
+  private onItemKeyDown = (depth: number, item: Electron.MenuItem, event: React.KeyboardEvent<any>) => {
+
+  }
+
   private expandSubmenu = (depth: number, item: Electron.MenuItem) => {
     const currentState = this.props.state
     const newState = currentState.slice(0, depth + 1)
@@ -92,6 +96,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
         depth={depth}
         menu={menu.menu}
         onItemClicked={this.onItemClicked}
+        onItemKeyDown={this.onItemKeyDown}
         onSelectionChanged={this.onSelectionChanged}
         selectedItem={menu.selectedItem}
       />

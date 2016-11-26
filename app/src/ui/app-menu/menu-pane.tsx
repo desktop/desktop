@@ -7,6 +7,7 @@ interface IMenuPaneProps {
   readonly menu: Electron.Menu
   readonly selectedItem?: Electron.MenuItem
   readonly onItemClicked: (depth: number, item: Electron.MenuItem) => void
+  readonly onItemKeyDown: (depth: number, item: Electron.MenuItem, event: React.KeyboardEvent<any>) => void
   readonly onSelectionChanged: (depth: number, item: Electron.MenuItem) => void
 }
 
@@ -45,11 +46,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
     const item = this.props.menu.items[row]
-
-    if (item.type === 'submenu' && event.key === 'ArrowRight') {
-      this.props.onItemClicked(this.props.depth, item)
-      event.preventDefault()
-    }
+    this.props.onItemKeyDown(this.props.depth, item, event)
   }
 
   public render(): JSX.Element {
