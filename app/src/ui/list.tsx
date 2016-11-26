@@ -26,6 +26,29 @@ export interface IRowRendererParams {
   readonly style: React.CSSProperties
 }
 
+/**
+ * Interface describing a user initiated selection change event
+ * originating from a pointer device clicking or pressing on an item.
+ */
+export interface IMouseDownSelectionSource {
+  readonly kind: 'mousedown',
+  readonly event: React.MouseEvent<any>
+}
+
+/**
+ * Interface describing a user initiated selection change event
+ * originating from a keyboard
+ */
+export interface IKeyboardSelectionSource {
+  readonly kind: 'keyboard',
+  readonly event: React.KeyboardEvent<any>
+}
+
+/** A type union of possible sources of a selection changed event */
+export type SelectionSource =
+  IMouseDownSelectionSource |
+  IKeyboardSelectionSource
+
 interface IListProps {
   /**
    * Mandatory callback for rendering the contents of a particular
@@ -63,11 +86,16 @@ interface IListProps {
   readonly onRowSelected?: (row: number) => void
 
   /**
-   * This function will be called when the selection changes. Note that this
+   * This function will be called when the selection changes as a result of a
+   * user keyboard or mouse action (i.e. not when props change). Note that this
    * differs from `onRowSelected`. For example, it won't be called if an already
    * selected row is clicked on.
+   *
+   * @param row    - The index of the row that was just selected
+   * @param source - The kind of user action that provoced the change, either
+   *                 a pointer device press or keyboard
    */
-  readonly onSelectionChanged?: (row: number) => void
+  readonly onSelectionChanged?: (row: number, source: SelectionSource) => void
 
   /**
    * A handler called whenever a key down event is received on the
@@ -132,7 +160,7 @@ export class List extends React.Component<IListProps, void> {
       return
     }
 
-    this.moveSelection(direction)
+    this.moveSelection(direction, e)
 
     e.preventDefault()
   }
@@ -175,11 +203,11 @@ export class List extends React.Component<IListProps, void> {
       : true
   }
 
-  private moveSelection(direction: 'up' | 'down') {
+  private moveSelection(direction: 'up' | 'down', event: React.KeyboardEvent<any>) {
     const newRow = this.nextSelectableRow(direction, this.props.selectedRow)
 
     if (this.props.onSelectionChanged) {
-      this.props.onSelectionChanged(newRow)
+      this.props.onSelectionChanged(newRow, { kind: 'keyboard', event })
     }
 
     if (this.props.onRowSelected) {
@@ -236,7 +264,7 @@ export class List extends React.Component<IListProps, void> {
            className={className}
            tabIndex={tabIndex}
            ref={ref}
-           onMouseDown={() => this.handleMouseDown(rowIndex)}
+           onMouseDown={(e) => this.handleMouseDown(rowIndex, e)}
            onKeyDown={(e) => this.handleRowKeyDown(rowIndex, e)}
            style={params.style}>
         {element}
@@ -378,10 +406,10 @@ export class List extends React.Component<IListProps, void> {
     }
   }
 
-  private handleMouseDown = (row: number) => {
+  private handleMouseDown = (row: number, event: React.MouseEvent<any>) => {
     if (this.canSelectRow(row)) {
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
-        this.props.onSelectionChanged(row)
+        this.props.onSelectionChanged(row, { kind: 'mousedown', event })
       }
 
       if (this.props.onRowSelected) {
