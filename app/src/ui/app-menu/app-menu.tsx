@@ -188,12 +188,8 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
 
   public render() {
 
-    const panes: JSX.Element[] = [ ]
-    let depth = 0
-
-    for (const menuWithSelection of this.props.state) {
-      panes.push(this.renderMenuPane(depth++, menuWithSelection))
-    }
+    const menus = this.props.state
+    const panes = menus.map((m, depth) => this.renderMenuPane(depth, m))
 
     // Clear out any old references we might have to panes that are
     // no longer displayed.
