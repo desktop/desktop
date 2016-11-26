@@ -52,20 +52,22 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   private onItemKeyDown = (depth: number, item: Electron.MenuItem, event: React.KeyboardEvent<any>, parentItem?: Electron.MenuItem) => {
     if (event.key === 'ArrowLeft' || event.key === 'Escape') {
 
-      if (depth === 0) {
-
-        // Only actually close the whole thing when hitting escape
-        if (event.key === 'Escape') {
-          this.props.onClose()
-        } else {
-          // Close any open submenus below the current depth
-          this.collapseSubmenu(depth, parentItem)
-        }
+      // Only actually close the foldout when hitting escape
+      // on the root menu
+      if (depth === 0 && event.key === 'Escape') {
+        this.props.onClose()
       } else {
         // Close any open submenus below and including the current depth
-        this.collapseSubmenu(depth - 1, parentItem)
+        // but never close the root menu. Note that if we're on the root
+        // menu the parentItem will be undefined but that works our well
+        // since collapseSubmenu handles that case by keeping the current
+        // selection
+        this.collapseSubmenu(Math.max(0, depth - 1), parentItem)
       }
 
+      // Focus the previous menu, this might end up being -1 which is
+      // okay since ensurePaneFocus will ignore negative values and in
+      // this case the pane already has focus.
       this.focusPane = depth - 1
       event.preventDefault()
     } else if (event.key === 'ArrowRight') {
@@ -77,7 +79,6 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
         event.preventDefault()
       }
     }
-
   }
 
   private expandSubmenu = (depth: number, item: Electron.MenuItem, selectedItem?: Electron.MenuItem) => {
