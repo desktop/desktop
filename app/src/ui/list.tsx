@@ -186,7 +186,7 @@ export class List extends React.Component<IListProps, void> {
     }
   }
 
-  private onItemMouseOver = (row: number, event: React.MouseEvent<any>) => {
+  private onRowMouseOver = (row: number, event: React.MouseEvent<any>) => {
     if (this.props.selectOnHover && this.canSelectRow(row)) {
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row, { kind: 'hover', event })
@@ -287,7 +287,7 @@ export class List extends React.Component<IListProps, void> {
            className={className}
            tabIndex={tabIndex}
            ref={ref}
-           onMouseOver={(e) => this.onItemMouseOver(rowIndex, e)}
+           onMouseOver={(e) => this.onRowMouseOver(rowIndex, e)}
            onMouseDown={(e) => this.handleMouseDown(rowIndex, e)}
            onKeyDown={(e) => this.handleRowKeyDown(rowIndex, e)}
            style={params.style}>
