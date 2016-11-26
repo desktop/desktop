@@ -10,6 +10,7 @@ import { Commit } from '../../models/commit'
 import { UndoCommit } from './undo-commit'
 import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocompletionProvider } from '../autocompletion'
 import { ICommitMessage } from '../../lib/app-state'
+import { ClickSource } from '../list'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -122,13 +123,13 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
   }
 
   /**
-   * Handles keyboard events from the List item container, note that this is
+   * Handles click events from the List item container, note that this is
    * Not the same thing as the element returned by the row renderer in ChangesList
    */
-  private onChangedItemKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
-    // Toggle selection when user presses the spacebar while focused on a list item
-    if (event.key === ' ') {
-      event.preventDefault()
+  private onChangedItemClick = (row: number, source: ClickSource) => {
+    // Toggle selection when user presses the spacebar or enter while focused
+    // on a list item
+    if (source.kind === 'keyboard') {
       this.onToggleInclude(row)
     }
   }
@@ -191,7 +192,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           onIncludeChanged={this.onIncludeChanged}
           onSelectAll={this.onSelectAll}
           onDiscardChanges={this.onDiscardChanges}
-          onRowKeyDown={this.onChangedItemKeyDown}
+          onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
           avatarURL={avatarURL}
