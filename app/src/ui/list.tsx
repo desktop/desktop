@@ -146,7 +146,7 @@ export class List extends React.Component<IListProps, void> {
     }
   }
 
-  private onItemMouseOver = (row: number) => {
+  private onRowMouseOver = (row: number) => {
     if (this.props.selectOnHover && this.canSelectRow(row)) {
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row)
@@ -240,9 +240,6 @@ export class List extends React.Component<IListProps, void> {
 
     const element = this.props.rowRenderer(params.rowIndex)
     const role = selectable ? 'button' : undefined
-    const onMouseOver = selectable && this.props.selectOnHover
-      ? () => this.onItemMouseOver(rowIndex)
-      : undefined
 
     return (
       <div key={params.key}
@@ -250,7 +247,7 @@ export class List extends React.Component<IListProps, void> {
            className={className}
            tabIndex={tabIndex}
            ref={ref}
-           onMouseOver={onMouseOver}
+           onMouseOver={() => this.onRowMouseOver(rowIndex)}
            onMouseDown={() => this.handleMouseDown(rowIndex)}
            onKeyDown={(e) => this.handleRowKeyDown(rowIndex, e)}
            style={params.style}>
