@@ -20,6 +20,20 @@
 
     &:not(:last-child) {
       border-right: var(--base-border);
+
+      // We want list items in previous menus to behave as if they have focus
+      // even though they don't, ie we want the selected+focus state
+      // to be in effect for all parent selected menu items as well as
+      // the current
+      .list-item {
+        &.selected {
+          --text-color: var(--box-selected-active-text-color);
+          --text-secondary-color: var(--box-selected-active-text-color);
+
+          color: var(--text-color);
+          background-color: var(--box-selected-active-background-color);
+        }
+      }
     }
   }
 
