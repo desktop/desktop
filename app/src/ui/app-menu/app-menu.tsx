@@ -59,11 +59,11 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
           this.props.onClose()
         } else {
           // Close any open submenus below the current depth
-          this.collapseSubmenu(depth)
+          this.collapseSubmenu(depth, parentItem)
         }
       } else {
         // Close any open submenus below and including the current depth
-        this.collapseSubmenu(depth - 1)
+        this.collapseSubmenu(depth - 1, parentItem)
       }
 
       this.focusPane = depth - 1
