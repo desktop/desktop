@@ -27,6 +27,13 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
    * See focusPane and ensurePaneFocus
    */
   private paneRefs: MenuPane[] = []
+
+  /**
+   * A numeric reference to a setTimeout timer id which is used for
+   * opening and closing submenus after a delay.
+   *
+   * See scheduleExpand and scheduleCollapse
+   */
   private expandCollapseTimer: number | null = null
 
   public constructor(props: IAppMenuProps) {
