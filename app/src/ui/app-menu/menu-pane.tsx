@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { List, ClickSource } from '../list'
+import { List, ClickSource, SelectionSource } from '../list'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IMenuPaneProps {
@@ -9,7 +9,7 @@ interface IMenuPaneProps {
   readonly selectedItem?: Electron.MenuItem
   readonly onItemClicked: (depth: number, item: Electron.MenuItem) => void
   readonly onItemKeyDown: (depth: number, item: Electron.MenuItem, event: React.KeyboardEvent<any>, parentItem?: Electron.MenuItem) => void
-  readonly onSelectionChanged: (depth: number, item: Electron.MenuItem) => void
+  readonly onSelectionChanged: (depth: number, item: Electron.MenuItem, source: SelectionSource) => void
 }
 
 const RowHeight = 30
@@ -40,9 +40,9 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
     this.props.onItemClicked(this.props.depth, item)
   }
 
-  private onSelectionChanged = (row: number) => {
+  private onSelectionChanged = (row: number, source: SelectionSource) => {
     const item = this.props.menu.items[row]
-    this.props.onSelectionChanged(this.props.depth, item)
+    this.props.onSelectionChanged(this.props.depth, item, source)
   }
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {

@@ -2,10 +2,12 @@ import * as React from 'react'
 import { MenuPane } from './menu-pane'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IMenuWithSelection } from '../../lib/app-state'
+import { SelectionSource } from '../list'
 
 interface IAppMenuProps {
   readonly state: ReadonlyArray<IMenuWithSelection>
   readonly dispatcher: Dispatcher
+  readonly onClose: () => void
 }
 
 export class AppMenu extends React.Component<IAppMenuProps, void> {
@@ -13,21 +15,62 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   private expandCollapseTimer: number | null = null
 
   private onItemClicked = (depth: number, item: Electron.MenuItem) => {
+    if (item.type === 'submenu') {
+      this.expandSubmenu(depth, item)
+    } else {
+      // TODO: This is where the magic should happen
+    }
+  }
+
+  private onItemKeyDown = (depth: number, item: Electron.MenuItem, event: React.KeyboardEvent<any>, parentItem?: Electron.MenuItem) => {
+    if (event.key === 'ArrowLeft' || event.key === 'Escape') {
+
+      if (depth === 0) {
+
+        // Only actually close the whole thing when hitting escape
+        if (event.key === 'Escape') {
+          this.props.onClose()
+        } else {
+          // Close any open submenus below the current depth
+          this.collapseSubmenu(depth)
+        }
+      } else {
+        // Close any open submenus below and including the current depth
+        this.collapseSubmenu(depth - 1)
+      }
+
+      event.preventDefault()
+    } else if (event.key === 'ArrowRight') {
+      // Open the submenu and select the first item
+      if (item.type === 'submenu') {
+        const submenu = item.submenu as Electron.Menu
+        this.expandSubmenu(depth, item, submenu.items[0])
+        event.preventDefault()
+      }
+    }
 
   }
 
-  private onItemKeyDown = (depth: number, item: Electron.MenuItem, event: React.KeyboardEvent<any>) => {
-
-  }
-
-  private expandSubmenu = (depth: number, item: Electron.MenuItem) => {
+  private expandSubmenu = (depth: number, item: Electron.MenuItem, selectedItem?: Electron.MenuItem) => {
     const currentState = this.props.state
     const newState = currentState.slice(0, depth + 1)
 
     newState.push({
       menu: item.submenu as Electron.Menu,
       parentItem: item,
+      selectedItem,
     })
+
+    this.props.dispatcher.setAppMenuState(newState)
+  }
+
+  private collapseSubmenu = (depth: number, selectedItem?: Electron.MenuItem) => {
+    const currentState = this.props.state
+    const newState = currentState.slice(0, depth + 1)
+
+    if (selectedItem) {
+      newState[depth] = Object.assign({}, newState[depth], { selectedItem })
+    }
 
     this.props.dispatcher.setAppMenuState(newState)
   }
@@ -49,14 +92,11 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   private scheduleCollapse(depth: number) {
     this.clearExpandCollapseTimer()
     this.expandCollapseTimer = window.setTimeout(() => {
-      const currentState = this.props.state
-      const newState = currentState.slice(0, depth + 1)
-
-      this.props.dispatcher.setAppMenuState(newState)
+      this.collapseSubmenu(depth)
     }, 500)
   }
 
-  private onSelectionChanged = (depth: number, item: Electron.MenuItem) => {
+  private onSelectionChanged = (depth: number, item: Electron.MenuItem, source: SelectionSource) => {
     this.clearExpandCollapseTimer()
 
     // Create a copy of the current state
@@ -65,13 +105,18 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     // Update the currently active menu with the newly selected item
     newState[depth] = Object.assign({}, newState[depth], { selectedItem: item })
 
-    // If the newly selected item is a submenu we'll wait a bit and then expand
-    // it unless the user makes another selection in between. If it's not then
-    // we'll make sure to collapse any open menu below this level.
-    if (item.type === 'submenu') {
-      this.scheduleExpand(depth, item)
+    if (source.kind === 'keyboard') {
+      // Immediately close any open submenus if we're navigating by keyboard.
+      newState.splice(depth + 1)
     } else {
-      this.scheduleCollapse(depth)
+      // If the newly selected item is a submenu we'll wait a bit and then expand
+      // it unless the user makes another selection in between. If it's not then
+      // we'll make sure to collapse any open menu below this level.
+      if (item.type === 'submenu') {
+        this.scheduleExpand(depth, item)
+      } else {
+        this.scheduleCollapse(depth)
+      }
     }
 
     // All submenus below the active menu should have their selection cleared

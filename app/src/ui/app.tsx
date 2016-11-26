@@ -396,6 +396,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private closeAppMenu = () => {
+    this.props.dispatcher.closeFoldout()
+  }
 
   private renderAppMenu = (): JSX.Element | null => {
     if (!this.state.appMenuState) {
@@ -406,6 +409,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       <AppMenu
         state={this.state.appMenuState}
         dispatcher={this.props.dispatcher}
+        onClose={this.closeAppMenu}
       />
     )
   }
