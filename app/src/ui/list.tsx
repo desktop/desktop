@@ -485,6 +485,16 @@ export class List extends React.Component<IListProps, void> {
     }
   }
 
+  /**
+   * Explicitly put keyboard focus on the list or the selected item in the list.
+   *
+   * If the list a selected item it will be scrolled (if it's not already
+   * visible) and it will receive keyboard focus. If the list has no selected
+   * item the list itself will receive focus. From there keyboard navigation
+   * can be used to select the first or last items in the list.
+   *
+   * This method is a noop if the list has not yet been mounted.
+   */
   public focus() {
     if (this.props.selectedRow >= 0 && this.props.selectedRow < this.props.rowCount) {
       this.scrollRowToVisible(this.props.selectedRow)
