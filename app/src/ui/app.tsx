@@ -398,14 +398,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
 
   private renderAppMenu = (): JSX.Element | null => {
-    if (!this.state.appMenu) {
+    if (!this.state.appMenuState) {
       return null
     }
 
     return (
       <AppMenu
-        menu={this.state.appMenu}
-        selection={this.state.appMenuSelection}
+        state={this.state.appMenuState}
         dispatcher={this.props.dispatcher}
       />
     )
@@ -413,7 +412,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onAppMenuDropdownStateChanged = (newState: DropdownState) => {
     if (newState === 'open') {
-      this.props.dispatcher.setAppMenuSelection([])
+      this.props.dispatcher.resetAppMenuState()
       this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu })
     } else {
       this.props.dispatcher.closeFoldout()
@@ -421,7 +420,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderAppMenuToolbarButton() {
-    if (!this.state.appMenu) {
+    if (!this.state.appMenuState) {
       return null
     }
 

@@ -3,7 +3,7 @@ import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
-import { RepositorySection, Popup, Foldout, IAppError } from '../app-state'
+import { RepositorySection, Popup, Foldout, IAppError, IMenuWithSelection } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
@@ -394,7 +394,11 @@ export class Dispatcher {
     return this.appStore._setAppMenu(menu)
   }
 
-  public setAppMenuSelection(selection: ReadonlyArray<Electron.MenuItem>): Promise<void> {
-    return this.appStore._setAppMenuSelection(selection)
+  public setAppMenuState(state: ReadonlyArray<IMenuWithSelection>): Promise<void> {
+    return this.appStore._setAppMenuState(state)
+  }
+
+  public resetAppMenuState(): Promise<void> {
+    return this.appStore._resetAppMenuState()
   }
 }

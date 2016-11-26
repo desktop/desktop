@@ -32,8 +32,7 @@ export interface IAppState {
   readonly loading: boolean
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
-  readonly appMenu: Electron.Menu | null
-  readonly appMenuSelection: ReadonlyArray<Electron.MenuItem>
+  readonly appMenuState: ReadonlyArray<IMenuWithSelection>
 
   readonly errors: ReadonlyArray<IAppError>
 
@@ -53,6 +52,12 @@ export interface IAppState {
    * repository.
    */
   readonly sidebarWidth: number
+}
+
+export interface IMenuWithSelection {
+  readonly menu: Electron.Menu
+  readonly parentItem?: Electron.MenuItem
+  readonly selectedItem?: Electron.MenuItem
 }
 
 export interface IAppError {

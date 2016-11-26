@@ -1,10 +1,10 @@
 import * as React from 'react'
 import { MenuPane } from './menu-pane'
 import { Dispatcher } from '../../lib/dispatcher'
+import { IMenuWithSelection } from '../../lib/app-state'
 
 interface IAppMenuProps {
-  readonly menu: Electron.Menu
-  readonly selection: ReadonlyArray<Electron.MenuItem>
+  readonly state: ReadonlyArray<IMenuWithSelection>
   readonly dispatcher: Dispatcher
 }
 
@@ -15,23 +15,47 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   }
 
   private onSelectionChanged = (depth: number, item: Electron.MenuItem) => {
-    const curSelection = this.props.selection
-    const newSelection: Electron.MenuItem[] = curSelection.slice(0, depth)
+    // Create a copy of the current state
+    const newState = this.props.state.slice(0, depth + 1)
 
-    newSelection.push(item)
+    // Update the currently active menu with the newly selected item
+    newState[depth] = Object.assign({}, newState[depth], { selectedItem: item })
 
-    this.props.dispatcher.setAppMenuSelection(newSelection)
+    // If the newly selected item is a submenu we'll wait a bit and then expand
+    // it unless the user makes another selection in between. If it's not then
+    // we'll make sure to collapse any open menu below this level.
+    if (item.type === 'submenu') {
+      newState.push({
+        menu: item.submenu as Electron.Menu,
+        parentItem: item,
+      })
+    }
+
+    // All submenus below the active menu should have their selection cleared
+    for (let i = depth + 1; i < newState.length; i++) {
+      newState[i] =  Object.assign({}, newState[i], { selectedItem: undefined })
+    }
+
+    // Ensure that the path that lead us to the currently selected menu is
+    // selected. i.e. all menus above the currently active menu should have
+    // their selection reset to point to the currently active menu.
+    for (let i = depth - 1; i >= 0; i--) {
+      newState[i] =  Object.assign({}, newState[i], { selectedItem: newState[i + 1].parentItem })
+    }
+
+    this.props.dispatcher.setAppMenuState(newState)
   }
 
-  private renderMenuPane(depth: number, menu: Electron.Menu, selectedItem?: Electron.MenuItem): JSX.Element {
+  private renderMenuPane(depth: number, menu: IMenuWithSelection): JSX.Element {
     return (
       <MenuPane
         key={depth}
         depth={depth}
-        items={menu.items}
+        menu={menu.menu}
         onItemClicked={this.onItemClicked}
         onSelectionChanged={this.onSelectionChanged}
-        selectedItem={selectedItem}
+        selectedItem={menu.selectedItem}
+        parentItem={menu.parentItem}
       />
     )
   }
@@ -39,24 +63,10 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   public render() {
 
     const panes: JSX.Element[] = [ ]
-    let parentMenu: Electron.Menu | null = this.props.menu
     let depth = 0
 
-    const selection = this.props.selection
-
-    for (const selectedItem of selection) {
-      panes.push(this.renderMenuPane(depth++, parentMenu, selectedItem))
-      const submenu = selectedItem.submenu as Electron.Menu
-      if (!submenu || !submenu.items) {
-        parentMenu = null
-        break
-      } else {
-        parentMenu = submenu
-      }
-    }
-
-    if (parentMenu != null) {
-      panes.push(this.renderMenuPane(depth++, parentMenu))
+    for (const menuWithSelection of this.props.state) {
+      panes.push(this.renderMenuPane(depth++, menuWithSelection))
     }
 
     return (
