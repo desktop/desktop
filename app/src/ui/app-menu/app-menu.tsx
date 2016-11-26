@@ -12,7 +12,14 @@ interface IAppMenuProps {
 
 export class AppMenu extends React.Component<IAppMenuProps, void> {
 
+  private focusPane: number = - 1
+  private paneRefs: MenuPane[] = []
   private expandCollapseTimer: number | null = null
+
+  public constructor(props: IAppMenuProps) {
+    super(props)
+    this.focusPane = props.state.length - 1
+  }
 
   private onItemClicked = (depth: number, item: Electron.MenuItem) => {
     if (item.type === 'submenu') {
@@ -39,12 +46,14 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
         this.collapseSubmenu(depth - 1)
       }
 
+      this.focusPane = depth - 1
       event.preventDefault()
     } else if (event.key === 'ArrowRight') {
       // Open the submenu and select the first item
       if (item.type === 'submenu') {
         const submenu = item.submenu as Electron.Menu
         this.expandSubmenu(depth, item, submenu.items[0])
+        this.focusPane = depth + 1
         event.preventDefault()
       }
     }
@@ -134,10 +143,17 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     this.props.dispatcher.setAppMenuState(newState)
   }
 
+  private onMenuPaneRef = (pane: MenuPane) => {
+    if (pane) {
+      this.paneRefs[pane.props.depth] = pane
+    }
+  }
+
   private renderMenuPane(depth: number, menu: IMenuWithSelection): JSX.Element {
     return (
       <MenuPane
         key={depth}
+        ref={this.onMenuPaneRef}
         depth={depth}
         menu={menu.menu}
         onItemClicked={this.onItemClicked}
@@ -158,10 +174,30 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       panes.push(this.renderMenuPane(depth++, menuWithSelection))
     }
 
+    this.paneRefs = this.paneRefs.slice(0, panes.length)
+
     return (
       <div id='app-menu-foldout'>
         {panes}
       </div>
     )
+  }
+
+  private ensurePaneFocus() {
+    if (this.focusPane >= 0) {
+      const pane = this.paneRefs[this.focusPane]
+      if (pane) {
+        pane.focus()
+        this.focusPane = -1
+      }
+    }
+  }
+
+  public componentDidMount() {
+    this.ensurePaneFocus()
+  }
+
+  public componentDidUpdate() {
+    this.ensurePaneFocus()
   }
 }

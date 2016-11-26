@@ -485,6 +485,19 @@ export class List extends React.Component<IListProps, void> {
     }
   }
 
+  public focus() {
+    if (this.props.selectedRow >= 0 && this.props.selectedRow < this.props.rowCount) {
+      this.scrollRowToVisible(this.props.selectedRow)
+    } else {
+      if (this.grid) {
+        const element = ReactDOM.findDOMNode(this.grid) as HTMLDivElement
+        if (element) {
+          element.focus()
+        }
+      }
+    }
+  }
+
   public forceUpdate(callback?: () => any) {
     super.forceUpdate(callback)
 

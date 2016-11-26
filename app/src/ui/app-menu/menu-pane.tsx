@@ -16,6 +16,8 @@ const RowHeight = 30
 
 export class MenuPane extends React.Component<IMenuPaneProps, void> {
 
+  private list: List
+
   private renderMenuItem = (row: number) => {
     const item = this.props.menu.items[row]
 
@@ -50,6 +52,10 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
     this.props.onItemKeyDown(this.props.depth, item, event, this.props.parentItem)
   }
 
+  private onListRef = (list: List) => {
+    this.list = list
+  }
+
   public render(): JSX.Element {
 
     const selectedRow = this.props.selectedItem
@@ -59,6 +65,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
     return (
       <div className='menu-pane'>
         <List
+          ref={this.onListRef}
           rowCount={this.props.menu.items.length}
           rowHeight={RowHeight}
           rowRenderer={this.renderMenuItem}
@@ -71,5 +78,11 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
         />
       </div>
     )
+  }
+
+  public focus() {
+    if (this.list) {
+      this.list.focus()
+    }
   }
 }
