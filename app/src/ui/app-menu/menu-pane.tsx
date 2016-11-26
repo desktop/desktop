@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { List } from '../list'
+import { List, ClickSource } from '../list'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IMenuPaneProps {
@@ -34,7 +34,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
     )
   }
 
-  private onRowSelected = (row: number) => {
+  private onRowClick = (row: number, source: ClickSource) => {
     const item = this.props.menu.items[row]
     this.props.onItemClicked(this.props.depth, item, this.props.parentItem)
   }
@@ -47,8 +47,9 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
     const item = this.props.menu.items[row]
 
-    if (event.key === 'Enter' || (item.type === 'submenu' && event.key === 'ArrowRight')) {
-      this.props.onItemClicked(this.props.depth, item, this.props.parentItem)
+    if (item.type === 'submenu' && event.key === 'ArrowRight') {
+      this.props.onItemClicked(this.props.depth, item)
+      event.preventDefault()
     }
   }
 
@@ -65,7 +66,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
           rowHeight={RowHeight}
           rowRenderer={this.renderMenuItem}
           selectedRow={selectedRow}
-          onRowSelected={this.onRowSelected}
+          onRowClick={this.onRowClick}
           onSelectionChanged={this.onSelectionChanged}
           onRowKeyDown={this.onRowKeyDown}
           invalidationProps={this.props.menu}
