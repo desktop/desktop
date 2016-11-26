@@ -199,8 +199,8 @@ export class List extends React.Component<IListProps, void> {
     // consumers add their own semantics for keyboard presses.
     if (!event.defaultPrevented && this.props.onRowClick) {
       if (event.key === 'Enter' || event.key === ' ') {
-          this.props.onRowClick(rowIndex, { kind: 'keyboard', event })
-          event.preventDefault()
+        this.props.onRowClick(rowIndex, { kind: 'keyboard', event })
+        event.preventDefault()
       }
     }
   }
