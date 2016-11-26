@@ -30,8 +30,8 @@ export interface IRowRendererParams {
  * Interface describing a user initiated selection change event
  * originating from a pointer device clicking or pressing on an item.
  */
-export interface IMouseDownSelectionSource {
-  readonly kind: 'mousedown',
+export interface IMouseClickSource {
+  readonly kind: 'mouseclick',
   readonly event: React.MouseEvent<any>
 }
 
@@ -40,7 +40,7 @@ export interface IMouseDownSelectionSource {
  * originating from a pointer device hovering over an item.
  * Only applicable when selectedOnHover is set.
  */
-export interface IHoverSelectionSource {
+export interface IHoverSource {
   readonly kind: 'hover',
   readonly event: React.MouseEvent<any>
 }
@@ -49,16 +49,21 @@ export interface IHoverSelectionSource {
  * Interface describing a user initiated selection change event
  * originating from a keyboard
  */
-export interface IKeyboardSelectionSource {
+export interface IKeyboardSource {
   readonly kind: 'keyboard',
   readonly event: React.KeyboardEvent<any>
 }
 
 /** A type union of possible sources of a selection changed event */
 export type SelectionSource =
-  IMouseDownSelectionSource |
-  IHoverSelectionSource |
-  IKeyboardSelectionSource
+  IMouseClickSource |
+  IHoverSource |
+  IKeyboardSource
+
+
+export type ClickSource =
+  IMouseClickSource |
+  IKeyboardSource
 
 interface IListProps {
   /**
@@ -91,10 +96,19 @@ interface IListProps {
   readonly selectedRow: number
 
   /**
-   * This function will be called when a row is selected, either by being
-   * clicked on or by keyboard navigation.
+   * This function will be called when a pointer device is pressed and then
+   * released on a selectable row. Note that this follows the conventions
+   * of button elements such that pressing Enter or Space on a keyboard
+   * while focused on a particular row will also trigger this event. Consumers
+   * can differentiate between the two using the source parameter.
+   *
+   * Note that this event handler will not be called for keyboard events
+   * if event.preventDefault was called in the onRowKeyDown event handler.
+   *
+   * Consumers of this event do _not_ have to call event.preventDefault,
+   * when this event is subscribed to the list will automatically call it.
    */
-  readonly onRowSelected?: (row: number) => void
+  readonly onRowClick?: (row: number, soure: ClickSource) => void
 
   /**
    * This function will be called when the selection changes as a result of a
@@ -180,9 +194,16 @@ export class List extends React.Component<IListProps, void> {
     e.preventDefault()
   }
 
-  private handleRowKeyDown(rowIndex: number, e: React.KeyboardEvent<any>) {
+  private handleRowKeyDown(rowIndex: number, event: React.KeyboardEvent<any>) {
     if (this.props.onRowKeyDown) {
-      this.props.onRowKeyDown(rowIndex, e)
+      this.props.onRowKeyDown(rowIndex, event)
+    }
+
+    if (!event.defaultPrevented && this.props.onRowClick) {
+      if (event.key === 'Enter' || event.key === ' ') {
+          this.props.onRowClick(rowIndex, { kind: 'keyboard', event })
+          event.preventDefault()
+      }
     }
   }
 
@@ -231,10 +252,6 @@ export class List extends React.Component<IListProps, void> {
 
     if (this.props.onSelectionChanged) {
       this.props.onSelectionChanged(newRow, { kind: 'keyboard', event })
-    }
-
-    if (this.props.onRowSelected) {
-      this.props.onRowSelected(newRow)
     }
 
     this.scrollRowToVisible(newRow)
@@ -289,6 +306,7 @@ export class List extends React.Component<IListProps, void> {
            ref={ref}
            onMouseOver={(e) => this.onRowMouseOver(rowIndex, e)}
            onMouseDown={(e) => this.handleMouseDown(rowIndex, e)}
+           onClick={(e) => this.onRowClick(rowIndex, e)}
            onKeyDown={(e) => this.handleRowKeyDown(rowIndex, e)}
            style={params.style}>
         {element}
@@ -433,12 +451,14 @@ export class List extends React.Component<IListProps, void> {
   private handleMouseDown = (row: number, event: React.MouseEvent<any>) => {
     if (this.canSelectRow(row)) {
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
-        this.props.onSelectionChanged(row, { kind: 'mousedown', event })
+        this.props.onSelectionChanged(row, { kind: 'mouseclick', event })
       }
+    }
+  }
 
-      if (this.props.onRowSelected) {
-        this.props.onRowSelected(row)
-      }
+  private onRowClick = (row: number, event: React.MouseEvent<any>) => {
+    if (this.canSelectRow(row) && this.props.onRowClick) {
+      this.props.onRowClick(row, { kind: 'mouseclick', event })
     }
   }
 
