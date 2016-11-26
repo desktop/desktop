@@ -18,6 +18,14 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
    * each successful focus operation.
    */
   private focusPane: number = - 1
+
+  /**
+   * A mapping between pane index (depth) and actual MenuPane instances.
+   * This is used in order to (indirectly) call the focus method on the
+   * underlying List instances.
+   *
+   * See focusPane and ensurePaneFocus
+   */
   private paneRefs: MenuPane[] = []
   private expandCollapseTimer: number | null = null
 
