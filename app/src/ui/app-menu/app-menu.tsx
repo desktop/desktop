@@ -12,6 +12,11 @@ interface IAppMenuProps {
 
 export class AppMenu extends React.Component<IAppMenuProps, void> {
 
+  /**
+   * The index of the menu pane that should receive focus after the
+   * next render. Default value is -1. This field is cleared after
+   * each successful focus operation.
+   */
   private focusPane: number = - 1
   private paneRefs: MenuPane[] = []
   private expandCollapseTimer: number | null = null
