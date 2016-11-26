@@ -179,19 +179,14 @@ export class List extends React.Component<IListProps, void> {
 
   private grid: React.Component<any, any> | null
 
-  private handleKeyDown = (e: React.KeyboardEvent<any>) => {
-    let direction: 'up' | 'down'
-    if (e.key === 'ArrowDown') {
-      direction = 'down'
-    } else if (e.key === 'ArrowUp') {
-      direction = 'up'
-    } else {
-      return
+  private handleKeyDown = (event: React.KeyboardEvent<any>) => {
+    if (event.key === 'ArrowDown') {
+      this.moveSelection('down', event)
+      event.preventDefault()
+    } else if (event.key === 'ArrowUp') {
+      this.moveSelection('up', event)
+      event.preventDefault()
     }
-
-    this.moveSelection(direction, e)
-
-    e.preventDefault()
   }
 
   private handleRowKeyDown(rowIndex: number, event: React.KeyboardEvent<any>) {
