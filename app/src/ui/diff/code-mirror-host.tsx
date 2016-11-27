@@ -43,13 +43,11 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   public componentDidMount() {
     this.codeMirror = CodeMirror(this.wrapper!, this.props.options)
 
-    const cm = this.codeMirror
+    this.codeMirror.on('renderLine', this.onRenderLine)
+    this.codeMirror.on('changes', this.onChanges)
+    this.codeMirror.on('beforeSelectionChange', this.beforeSelectionChanged)
 
-    cm.on('renderLine', this.onRenderLine)
-    cm.on('changes', this.onChanges)
-    cm.on('beforeSelectionChange', this.beforeSelectionChanged)
-
-    cm.setValue(this.props.value)
+    this.codeMirror.setValue(this.props.value)
   }
 
   public componentWillUnmount() {
