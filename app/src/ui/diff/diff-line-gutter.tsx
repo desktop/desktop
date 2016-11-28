@@ -15,19 +15,40 @@ interface IDiffGutterProps {
    */
   readonly isIncluded: boolean
 
+  /**
+   * The line number of the diff within the rendered diff
+   */
   readonly index: number
 
+  /**
+   * Indicate whether the diff needs to handle user interactions
+   */
   readonly readOnly: boolean
 
-  readonly onMouseUp: (index: number) => void
+  /**
+   * Callback to signal when the mouse enters the rendered area
+   */
+  readonly onMouseEnter: (index: number, isHunkSelection: boolean) => void
 
-  readonly onMouseDown: (index: number, isHunkSelection: boolean) => void
-
-  readonly onMouseMove: (index: number, isHunkSelection: boolean) => void
-
+  /**
+   * Callback to signal when the mouse leaves the rendered area
+   */
   readonly onMouseLeave: (index: number, isHunkSelection: boolean) => void
 
-  readonly onMouseEnter: (index: number, isHunkSelection: boolean) => void
+  /**
+   * Callback to signal when the mouse button is pressed on this element
+   */
+  readonly onMouseDown: (index: number, isHunkSelection: boolean) => void
+
+  /**
+   * Callback to signal when the mouse is hovering over this element
+   */
+  readonly onMouseMove: (index: number, isHunkSelection: boolean) => void
+
+  /**
+   * Callback to signal when the mouse button is released on this element
+   */
+  readonly onMouseUp: (index: number) => void
 }
 
 function isIncludeable(type: DiffLineType): boolean {
