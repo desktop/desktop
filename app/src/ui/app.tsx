@@ -97,6 +97,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
 
       setMenuVisible(visibleItem, true)
+
+      if (state === UpdateState.UpdateReady) {
+        this.props.dispatcher.showPopup({ type: PopupType.UpdateAvailable })
+      }
     })
 
     updateStore.onError(error => {
