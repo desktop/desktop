@@ -207,14 +207,14 @@ export class API {
     return allItems.filter((i: any) => !i.pullRequest)
   }
 
-  private authenticatedRequest(method: HTTPMethod, path: string, body: Object | null): Promise<IHTTPResponse> {
+  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object): Promise<IHTTPResponse> {
     return request(this.user.endpoint, `token ${this.user.token}`, method, path, body)
   }
 
   /** Get the allowed poll interval for fetching. */
   public async getFetchPollInterval(owner: string, name: string): Promise<number> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
-    const response = await this.authenticatedRequest('HEAD', path, null)
+    const response = await this.authenticatedRequest('HEAD', path)
     const interval = getHeader(response, 'x-poll-interval')
     if (interval) {
       return parseInt(interval, 10)
@@ -286,7 +286,7 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 
 /** Get metadata from the server. */
 export async function fetchMetadata(endpoint: string): Promise<IServerMetadata> {
-  const response = await request(endpoint, null, 'GET', 'meta', null)
+  const response = await request(endpoint, null, 'GET', 'meta')
   return toCamelCase(response.body)
 }
 

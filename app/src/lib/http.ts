@@ -21,7 +21,7 @@ export interface IHTTPRequest {
   /** The key-value collection of headers associated with the request */
   readonly headers?: { [key: string]: any; },
   /** The request object to serialize */
-  readonly body: Object | null
+  readonly body: Object | undefined
 }
 
 /** The HTTP methods available. */
@@ -49,7 +49,7 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
  * @param body          - The body to send.
  * @param customHeaders - Any optional additional headers to send.
  */
-export function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body: Object | null, customHeaders?: Object): Promise<IHTTPResponse> {
+export function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<IHTTPResponse> {
   const url = `${endpoint}/${path}`
   const headers: any = Object.assign({}, {
     'Accept': 'application/vnd.github.v3+json, application/json',
