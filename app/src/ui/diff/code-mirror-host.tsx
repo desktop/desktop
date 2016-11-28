@@ -43,21 +43,15 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   public componentDidMount() {
     this.codeMirror = CodeMirror(this.wrapper!, this.props.options)
 
-    // The definition for renderLine in DefinitelyTyped is wrong, it says that
-    // the line argument is a number when, in fact, it's a LineHandle so we'll
-    // opt out of type safety until we can update DefinitelyTyped :cry:
-    const cm = this.codeMirror! as any
+    this.codeMirror.on('renderLine', this.onRenderLine)
+    this.codeMirror.on('changes', this.onChanges)
+    this.codeMirror.on('beforeSelectionChange', this.beforeSelectionChanged)
 
-    cm.on('renderLine', this.onRenderLine)
-    cm.on('changes', this.onChanges)
-    cm.on('beforeSelectionChange', this.beforeSelectionChanged)
-
-    cm.setValue(this.props.value)
+    this.codeMirror.setValue(this.props.value)
   }
 
   public componentWillUnmount() {
-    // See componentDidMount
-    const cm = this.codeMirror as any
+    const cm = this.codeMirror
 
     if (cm) {
       cm.off('changes', this.onChanges)
