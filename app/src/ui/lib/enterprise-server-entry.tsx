@@ -113,6 +113,7 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
 
       this.props.onContinue(endpoint, methods)
     } catch (e) {
+      // We'll get an ENOTFOUND if the address couldn't be resolved.
       if (e.code === 'ENOTFOUND') {
         this.setState({
           serverAddress: userEnteredAddress,
