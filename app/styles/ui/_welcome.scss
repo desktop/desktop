@@ -139,6 +139,9 @@
   width: 320px;
 }
 
+// Setting the position to relative allows us to
+// absolutely position things based on `.field-group` box boundaries.
+// (See the `.forgot-password-link` styles as an example)
 .field-group {
   position: relative;
 }
