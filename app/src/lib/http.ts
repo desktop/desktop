@@ -29,7 +29,7 @@ export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
 /** Resolve a given header on the HTTP response */
 export function getHeader(response: IHTTPResponse, key: string): string | null {
-  const headers = <any>response.headers
+  const headers = response.headers as any
   const header = headers[key]
   if (header) {
     // TODO: for now, we just give the first value
