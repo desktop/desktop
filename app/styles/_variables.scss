@@ -242,6 +242,8 @@
    */
   --ahead-behind-background-color: #202020;
 
-  // Colors for errors
+  // Colors for form errors
   --error-color: $red;
+  --form-error-background: #fddede;
+  --form-error-border-color: #d3b2b2;
 }

@@ -44,8 +44,8 @@ textarea {
 }
 
 .form-errors {
-  background: #fddede;
-  border: 1px solid #d3b2b2;
+  background: var(--form-error-background);
+  border: 1px solid var(--form-error-border-color);
   border-radius: var(--border-radius);
   color: var(--error-color);
   font-size: var(--font-size-sm);
