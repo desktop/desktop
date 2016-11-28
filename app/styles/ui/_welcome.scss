@@ -117,6 +117,9 @@
   width: 320px;
 }
 
+// Styles for the commit list that's shown on the welcome screen.
+// The styles in the `&:before` block are for the graident overlay on top
+// of the example commit list.
 .commit-list-example {
   position: relative;
 
