@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { shell } from 'electron'
+import * as classNames from 'classnames'
 
 interface ILinkButtonProps {
   /** A URI to open on click. */
@@ -19,7 +20,7 @@ interface ILinkButtonProps {
 export class LinkButton extends React.Component<ILinkButtonProps, void> {
   public render() {
     const href = this.props.uri || ''
-    const className = this.props.className ? `link-button-component ${this.props.className}` : 'link-button-component'
+    const className = classNames('link-button-component', this.props.className)
 
     return (
       <a className={className} href={href} onClick={this.onClick}>
