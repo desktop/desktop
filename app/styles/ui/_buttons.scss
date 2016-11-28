@@ -36,10 +36,10 @@ a.link-button-component {
 }
 
 .secondary-button {
-  color: var(--text-color);
-  background-color: #F0F0F0;
+  color: var(--secondary-button-text-color);
+  background-color: var(--secondary-button-background);
 
   &:not(:disabled):hover {
-    background-color: darken(#F0F0F0, 5%);
+    background-color: var(--secondary-button-hover-background);
   }
 }

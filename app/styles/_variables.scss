@@ -34,6 +34,10 @@
 
   --link-button-color: $blue;
 
+  --secondary-button-background: #f0f0f0;
+  --secondary-button-hover-background: darken(#f0f0f0, 5%);
+  --secondary-button-text-color: var(--text-color);
+
   // Typography
   //
   // Font, line-height, and color for body text, headings, and more.
