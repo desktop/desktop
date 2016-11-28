@@ -13,7 +13,10 @@ const camelCase: (str: string) => string = require('to-camel-case')
 
 /** The response from `got` requests. */
 interface IHTTPResponse extends HTTP.IncomingMessage {
-  readonly body: any
+  /** The body of the response if the request was successful. */
+  readonly body?: any
+
+  /** An error if one occurred. */
   readonly error?: Error
 }
 
