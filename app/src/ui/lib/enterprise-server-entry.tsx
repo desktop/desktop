@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Button } from './button'
 import { getEnterpriseAPIURL, fetchMetadata } from '../../lib/api'
 import { Loading } from './loading'
-import { validateURL } from './enterprise-validate-url'
+import { validateURL, InvalidURLErrorName, InvalidProtocolErrorName } from './enterprise-validate-url'
 
 /** The authentication methods server allows. */
 export enum AuthenticationMethods {
@@ -87,10 +87,17 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
     try {
       address = validateURL(this.state.serverAddress)
     } catch (e) {
+      let humanFacingError = e
+      if (e.name === InvalidURLErrorName) {
+        humanFacingError = new Error(`The Enterprise server address doesn't appear to be a valid URL. We're expecting something like https://github.example.com.`)
+      } else if (e.name === InvalidProtocolErrorName) {
+        humanFacingError = new Error('Unsupported protocol. We can only sign in to GitHub Enterprise instances over http or https.')
+      }
+
       this.setState({
         serverAddress: userEnteredAddress,
         loading: false,
-        error: e,
+        error: humanFacingError,
       })
       return
     }

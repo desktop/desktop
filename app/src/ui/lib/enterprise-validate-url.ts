@@ -6,6 +6,12 @@ const AllowedProtocols = new Set([
   'http:',
 ])
 
+/** The name for errors thrown because of an invalid URL. */
+export const InvalidURLErrorName = 'invalid-url'
+
+/** The name for errors thrown because of an invalid protocol. */
+export const InvalidProtocolErrorName = 'invalid-protocol'
+
 /**
  * Validate the URL for a GitHub Enterprise instance.
  *
@@ -20,11 +26,15 @@ export function validateURL(address: string): string {
   }
 
   if (!url.protocol) {
-    throw new Error('Invalid URL')
+    const error = new Error('Invalid URL')
+    error.name = InvalidURLErrorName
+    throw error
   }
 
   if (!AllowedProtocols.has(url.protocol)) {
-    throw new Error('Invalid protocol')
+    const error = new Error('Invalid protocol')
+    error.name = InvalidProtocolErrorName
+    throw error
   }
 
   return address
