@@ -52,7 +52,7 @@ describe('git/diff', () => {
     it('retrieves valid image for modified file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, diffSelection)
-      const current = await getBlobImage(repository!, file)
+      const current = await getBlobImage(repository!, file.path, 'HEAD')
 
       expect(current.mediaType).to.equal('image/jpg')
       expect(current.contents).to.match(/zcabBFNf6G8U1y7QpBYtbOWQivIsDU8T4kYKKTQFg7v\/9k=/)
@@ -61,7 +61,7 @@ describe('git/diff', () => {
     it('retrieves valid images for deleted file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('new-animated-image.gif', FileStatus.Deleted, diffSelection)
-      const previous = await getBlobImage(repository!, file)
+      const previous = await getBlobImage(repository!, file.path, 'HEAD')
 
       expect(previous.mediaType).to.equal('image/gif')
       expect(previous.contents).to.match(/pSQ0J85QG55rqWbgLdEmOWQJ1MjFS3WWA2slfZxeEAtp3AykkAAA7$/)

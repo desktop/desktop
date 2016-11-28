@@ -1,27 +1,48 @@
 .toolbar-button {
-  -webkit-appearance: none;
 
-  // Reset styles from global buttons
-  border: none;
-  box-shadow: none;
-  background: transparent;
-  border-radius: 0;
-  text-align: left;
-  margin: 0;
-  padding: 0;
+  // Make sure the contents shrink beyond their intrinsic width
+  // See https://css-tricks.com/flexbox-truncated-text/
+  min-width: 0;
 
-  // Reset
-  &:active { box-shadow: none; }
+  // General button behavior, mostly resets.
+  // For the button content styling see second button style. Note that we
+  // explicitly use > here to only target the direct descendant button since
+  // there might be buttons in foldouts which would otherwise be affected
+  // as well.
+  &>button {
+    // Reset styles from global buttons
+    -webkit-appearance: none;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+    border-radius: 0;
+    text-align: left;
+    margin: 0;
+    padding: 0;
 
-  // NB This is important, without this the button
-  // element will add an extra 3px of invisible padding
-  // for some inexplicable reason. This forces the
-  // button to take up the entire available space.
-  &,&-content-wrapper {
+    &:active { box-shadow: none; }
+
+    // @TODO: Proper focus state
+    &:focus {
+      outline: none;
+      border-color: var(--toolbar-button-border-color);
+    }
+
+    &:not(:disabled):hover {
+      background-color: var(--toolbar-button-hover-background-color);
+      color: var(--toolbar-button-hover-color);
+      border-color: var(--toolbar-button-hover-border-color);
+
+      .description {
+        color: var(--toolbar-button-secondary-color);
+      }
+    }
+
     height: 100%;
+    width: 100%;
   }
 
-  &-content-wrapper {
+  &>button {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -36,6 +57,7 @@
     border-right: 1px solid var(--toolbar-button-border-color);
 
     .icon {
+      flex-shrink: 0;
       margin-right: var(--spacing);
     }
 
@@ -43,6 +65,7 @@
       width: 9px;
       height: 12px;
       margin-left: var(--spacing);
+      flex-shrink: 0;
     }
 
     .text {
@@ -64,20 +87,8 @@
     .title, .description { @include ellipsis }
   }
 
-  &:not(:disabled):hover {
-    .toolbar-button-content-wrapper {
-      background-color: var(--toolbar-button-hover-background-color);
-      color: var(--toolbar-button-hover-color);
-      border-color: var(--toolbar-button-hover-border-color);
-
-      .description {
-        color: var(--toolbar-button-secondary-color);
-      }
-    }
-  }
-
   &.dropdown.open {
-    .toolbar-button-content-wrapper {
+    &>button {
       color: var(--toolbar-button-active-color);
       background-color: var(--toolbar-button-active-background-color);
 
@@ -86,11 +97,5 @@
       // min-width of the foldout.
       border-color: var(--toolbar-button-active-border-color);
     }
-  }
-
-  // @TODO: Proper focus state
-  &:focus {
-    outline: none;
-    border-color: var(--toolbar-button-border-color);
   }
 }

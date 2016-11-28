@@ -46,9 +46,9 @@ export class TabBar extends React.Component<ITabBarProps, void> {
 }
 
 interface ITabBarItemProps {
-  index: number
-  selected: boolean
-  onClick: (index: number ) => void
+  readonly index: number
+  readonly selected: boolean
+  readonly onClick: (index: number ) => void
 }
 
 class TabBarItem extends React.Component<ITabBarItemProps, void> {

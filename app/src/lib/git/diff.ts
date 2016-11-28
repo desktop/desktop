@@ -1,8 +1,8 @@
 import * as Path from 'path'
-import { ChildProcess } from 'child_process'
 import * as Fs from 'fs'
 
 import { git, IGitExecutionOptions } from './core'
+import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
@@ -27,7 +27,7 @@ export function getCommitDiff(repository: Repository, file: FileChange, commitis
 
   return git(args, repository.path, 'getCommitDiff')
     .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => attachImageDiff(repository, file, diff))
+    .then(diff => attachImageDiff(repository, file, diff, commitish))
 }
 
 /**
@@ -68,10 +68,10 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
 
   return git(args, repository.path, 'getWorkingDirectoryDiff', opts)
     .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => attachImageDiff(repository, file, diff))
+    .then(diff => attachImageDiff(repository, file, diff, 'HEAD'))
 }
 
-async function attachImageDiff(repository: Repository, file: FileChange, diff: Diff): Promise<Diff> {
+async function attachImageDiff(repository: Repository, file: FileChange, diff: Diff, commitish: string): Promise<Diff> {
 
   // already have a text diff, no point trying out this
   if (!diff.isBinary) {
@@ -82,28 +82,52 @@ async function attachImageDiff(repository: Repository, file: FileChange, diff: D
   const extension = Path.extname(file.path)
 
   // some extension we don't know how to parse, never mind
-  if (imageFileExtensions.has(extension)) {
+  if (!imageFileExtensions.has(extension)) {
+    return diff
+  }
 
-    let current: Image | undefined = undefined
-    let previous: Image | undefined = undefined
+  let current: Image | undefined = undefined
+  let previous: Image | undefined = undefined
 
-    if (file.status === FileStatus.New || file.status === FileStatus.Modified) {
+  // Are we looking at a file in the working directory or a file in a commit?
+  if (file instanceof WorkingDirectoryFileChange) {
+    // No idea what to do about this, a conflicted binary (presumably) file.
+    // Ideally we'd show all three versions and let the user pick but that's
+    // a bit out of scope for now.
+    if (file.status === FileStatus.Conflicted) {
+      return diff
+    }
+
+    // Does it even exist in the working directory?
+    if (file.status !== FileStatus.Deleted) {
       current = await getWorkingDirectoryImage(repository, file)
     }
 
-    if (file.status === FileStatus.Modified
-        || file.status === FileStatus.Renamed
-        || file.status === FileStatus.Deleted) {
-      previous = await getBlobImage(repository, file)
+    if (file.status !== FileStatus.New) {
+      // If we have file.oldPath that means it's a rename so we'll
+      // look for that file.
+      previous = await getBlobImage(repository, file.oldPath || file.path, 'HEAD')
+    }
+  } else {
+    // File status can't be conflicted for a file in a commit
+    if (file.status !== FileStatus.Deleted) {
+      current = await getBlobImage(repository, file.path, commitish)
     }
 
-    diff.imageDiff = {
-      previous: previous,
-      current: current,
+    // File status can't be conflicted for a file in a commit
+    if (file.status !== FileStatus.New) {
+      // TODO: commitish^ won't work for the first commit
+      //
+      // If we have file.oldPath that means it's a rename so we'll
+      // look for that file.
+      previous = await getBlobImage(repository, file.oldPath || file.path, `${commitish}^`)
     }
   }
 
-  return diff
+  return diff.withImageDiff({
+    previous: previous,
+    current: current,
+  })
 }
 
 /**
@@ -135,46 +159,14 @@ function diffFromRawDiffOutput(result: string): Diff {
   return parser.parse(pieces[pieces.length - 1])
 }
 
-export async function getBlobImage(repository: Repository, file: FileChange): Promise<Image> {
-  const extension = Path.extname(file.path)
-  const contents = await getBlobContents(repository, file)
+export async function getBlobImage(repository: Repository, path: string, commitish: string): Promise<Image> {
+  const extension = Path.extname(path)
+  const contents = await getBlobContents(repository, commitish, path)
   const diff: Image =  {
-    contents: contents,
+    contents: contents.toString('base64'),
     mediaType: getMediaType(extension),
   }
   return diff
-}
-
-/**
- * Retrieve the binary contents of a blob from the repository
- *
- * Returns a promise containing the base64 encoded string,
- * as <img> tags support the data URI scheme instead of
- * needing to reference a file:// URI
- *
- * https://en.wikipedia.org/wiki/Data_URI_scheme
- *
- */
-async function getBlobContents(repository: Repository, file: FileChange): Promise<string> {
-
-  const successExitCodes = new Set([ 0, 1 ])
-
-  const lsTreeArgs = [ 'ls-tree', 'HEAD', '-z', '--', file.path ]
-  const blobRow = await git(lsTreeArgs, repository.path, 'getBlobContents', { successExitCodes })
-
-  // a mixture of whitespace and tab characters here
-  // so let's just split on everything interesting
-  const blobDetails = blobRow.stdout.split(/\s/)
-  const blob = blobDetails[2]
-
-  const catFileArgs = [ 'cat-file', '-p', blob ]
-
-  const setBinaryEncoding: (process: ChildProcess) => void = cb => cb.stdout.setEncoding('binary')
-
-  const blobContents = await git(catFileArgs, repository.path, 'getBlobContents', { successExitCodes, processCallback: setBinaryEncoding })
-  const base64Contents = Buffer.from(blobContents.stdout, 'binary').toString('base64')
-
-  return base64Contents
 }
 
 export async function getWorkingDirectoryImage(repository: Repository, file: FileChange): Promise<Image> {
@@ -201,12 +193,12 @@ async function getWorkingDirectoryContents(repository: Repository, file: FileCha
   return new Promise<string>((resolve, reject) => {
     const path = Path.join(repository.path, file.path)
 
-    Fs.readFile(path, { encoding: 'binary', flag: 'r' }, (error, data) => {
+    Fs.readFile(path, { flag: 'r' }, (error, buffer) => {
       if (error) {
         reject(error)
         return
       }
-      resolve(Buffer.from(data, 'binary').toString('base64'))
+      resolve(buffer.toString('base64'))
     })
   })
 }

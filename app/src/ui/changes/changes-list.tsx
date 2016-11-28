@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
-import { List } from '../list'
+import { List, ClickSource } from '../list'
 
 import { WorkingDirectoryStatus } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
@@ -29,10 +29,10 @@ interface IChangesListProps {
   readonly dispatcher: Dispatcher
 
   /**
-   * Keyboard handler passed directly to the onRowKeyDown prop of List, see
+   * Click event handler passed directly to the onRowClick prop of List, see
    * List Props for documentation.
    */
-  readonly onRowKeyDown?: (row: number, event: React.KeyboardEvent<any>) => void
+  readonly onRowClick?: (row: number, source: ClickSource) => void
 
   readonly commitMessage: ICommitMessage | null
   readonly contextualCommitMessage: ICommitMessage | null
@@ -102,7 +102,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
               selectedRow={selectedRow}
               onSelectionChanged={this.props.onFileSelectionChanged}
               invalidationProps={this.props.workingDirectory}
-              onRowKeyDown={this.props.onRowKeyDown} />
+              onRowClick={this.props.onRowClick} />
 
         <CommitMessage onCreateCommit={this.props.onCreateCommit}
                        branch={this.props.branch}
