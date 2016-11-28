@@ -149,7 +149,7 @@ app.on('ready', () => {
       let text: string = ''
 
       response.on('abort', () => {
-        event.sender.send(channel, { error: new Error('request aborted by the client'), response: undefined })
+        event.sender.send(channel, { error: new Error('request aborted by the client') })
       })
 
       response.on('data', (chunk: Buffer) => {
@@ -184,19 +184,19 @@ app.on('ready', () => {
           body,
         }
 
-        event.sender.send(channel, { error: undefined, response: payload })
+        event.sender.send(channel, { response: payload })
       })
     })
 
     request.on('abort', () => {
-      event.sender.send(channel, { error: new Error('request aborted by the client'), response: undefined })
+      event.sender.send(channel, { error: new Error('request aborted by the client') })
     })
 
     request.on('aborted', () => {
-      event.sender.send(channel, { error: new Error('request aborted by the server'), response: undefined })
+      event.sender.send(channel, { error: new Error('request aborted by the server') })
     })
 
-    const body: string | undefined = options.body
+    const body = options.body
       ? JSON.stringify(options.body)
       : undefined
 

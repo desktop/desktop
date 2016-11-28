@@ -42,7 +42,7 @@ export function proxyRequest(options: IHTTPRequest): Promise<IHTTPResponse> {
   return new Promise<IHTTPResponse>((resolve, reject) => {
     const id = guid()
 
-    ipcRenderer.once(`proxy/response/${id}`, (event: any, { error, response }: { error: Error | undefined, response: IHTTPResponse | undefined }) => {
+    ipcRenderer.once(`proxy/response/${id}`, (event: any, { error, response }: { error?: Error, response?: IHTTPResponse }) => {
       if (error) {
         reject(error)
         return
