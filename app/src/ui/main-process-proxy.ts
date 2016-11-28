@@ -21,6 +21,14 @@ export function sendReady(time: number) {
   ipcRenderer.send('renderer-ready', time)
 }
 
+/**
+ * Tell the main process to execute (i.e. simulate a click of)
+ * the menu item referred to by the id parameter.
+ */
+export function executeMenuItem(id: string) {
+  ipcRenderer.send('execute-menu-item', { id })
+}
+
 export interface IMenuItem {
   readonly label: string
   readonly action: () => void

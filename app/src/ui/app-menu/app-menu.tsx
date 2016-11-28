@@ -46,6 +46,11 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       this.expandSubmenu(depth, item)
     } else {
       // TODO: This is where the magic should happen
+      const id = (item as any).id
+      if (id) {
+        this.props.dispatcher.executeMenuItem(id)
+        this.props.onClose()
+      }
     }
   }
 

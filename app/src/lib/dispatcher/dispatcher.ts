@@ -13,6 +13,7 @@ import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
 import { v4 as guid } from 'node-uuid'
+import { executeMenuItem } from '../../ui/main-process-proxy'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -400,5 +401,10 @@ export class Dispatcher {
 
   public resetAppMenuState(): Promise<void> {
     return this.appStore._resetAppMenuState()
+  }
+
+  public executeMenuItem(id: string): Promise<void> {
+    executeMenuItem(id)
+    return Promise.resolve()
   }
 }

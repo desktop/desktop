@@ -86,6 +86,15 @@ app.on('ready', () => {
     }
   })
 
+  ipcMain.on('execute-menu-item', (event: Electron.IpcMainEvent, { id }: { id: string }) => {
+    const menuItem = findMenuItemByID(menu, id)
+    if (menuItem) {
+      const window = BrowserWindow.fromWebContents(event.sender)
+      const fakeEvent = { preventDefault: () => {}, sender: event.sender }
+      menuItem.click(menuItem, window, fakeEvent)
+    }
+  })
+
   ipcMain.on('set-menu-enabled', (event: Electron.IpcMainEvent, { id, enabled }: { id: string, enabled: boolean }) => {
     const menuItem = findMenuItemByID(menu, id)
     if (menuItem) {
