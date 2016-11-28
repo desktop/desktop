@@ -48,23 +48,23 @@
 
 .welcome-title,
 .welcome-text {
-  font-weight: 300;
+  font-weight: var(--font-weight-light);
   margin: 0;
   text-align: center;
 }
 
 .welcome-title {
-  font-size: 28px;
+  font-size: var(--font-size-lg);
 }
 
 .welcome-text {
-  font-size: 16px;
+  font-size: var(--font-size-md);
   width: 430px;
 }
 
 .welcome-button {
   font-size: var(--font-size);
-  font-weight: 500;
+  font-weight: var(--font-weight-semibold);
   padding: var(--spacing) 0;
   width: 200px;
 }
@@ -80,7 +80,7 @@
   position: relative;
 
   &:after {
-    border-bottom: 1px solid #ddd;
+    border-bottom: var(--base-border);
     content: '';
     position: absolute;
     left: 0;
@@ -90,7 +90,7 @@
 
   .horizontal-rule-content {
     display: inline-block;
-    background: white;
+    background: var(--background-color);
     padding: 0 0.5em;
     position: relative;
     z-index: 1;
@@ -121,7 +121,7 @@
   position: relative;
 
   &:before {
-    background: linear-gradient(to bottom, white, rgba(255,255,255,0), white);
+    background: linear-gradient(to bottom, var(--background-color), rgba(255,255,255,0), var(--background-color));
     content: '';
     position: absolute;
     top: 0;
