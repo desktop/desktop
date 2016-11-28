@@ -92,11 +92,7 @@ interface IAPIAccessToken {
 
 /** The partial server response when creating a new authorization on behalf of a user */
 interface IAPIAuthorization {
-  readonly id: number
-  readonly url: string
   readonly token: string
-  readonly token_last_eight: string
-  readonly hashed_token: string
 }
 
 /**
