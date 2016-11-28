@@ -418,7 +418,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       icon = this.iconForRepository(repository)
       title = repository.name
     } else {
-      icon = OcticonSymbol.threeBars
+      icon = OcticonSymbol.repo
       title = 'Select a repository'
     }
 
