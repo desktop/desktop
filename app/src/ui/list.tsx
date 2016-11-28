@@ -26,6 +26,45 @@ export interface IRowRendererParams {
   readonly style: React.CSSProperties
 }
 
+/**
+ * Interface describing a user initiated selection change event
+ * originating from a pointer device clicking or pressing on an item.
+ */
+export interface IMouseClickSource {
+  readonly kind: 'mouseclick',
+  readonly event: React.MouseEvent<any>
+}
+
+/**
+ * Interface describing a user initiated selection change event
+ * originating from a pointer device hovering over an item.
+ * Only applicable when selectedOnHover is set.
+ */
+export interface IHoverSource {
+  readonly kind: 'hover',
+  readonly event: React.MouseEvent<any>
+}
+
+/**
+ * Interface describing a user initiated selection change event
+ * originating from a keyboard
+ */
+export interface IKeyboardSource {
+  readonly kind: 'keyboard',
+  readonly event: React.KeyboardEvent<any>
+}
+
+/** A type union of possible sources of a selection changed event */
+export type SelectionSource =
+  IMouseClickSource |
+  IHoverSource |
+  IKeyboardSource
+
+
+export type ClickSource =
+  IMouseClickSource |
+  IKeyboardSource
+
 interface IListProps {
   /**
    * Mandatory callback for rendering the contents of a particular
@@ -57,17 +96,32 @@ interface IListProps {
   readonly selectedRow: number
 
   /**
-   * This function will be called when a row is selected, either by being
-   * clicked on or by keyboard navigation.
+   * This function will be called when a pointer device is pressed and then
+   * released on a selectable row. Note that this follows the conventions
+   * of button elements such that pressing Enter or Space on a keyboard
+   * while focused on a particular row will also trigger this event. Consumers
+   * can differentiate between the two using the source parameter.
+   *
+   * Note that this event handler will not be called for keyboard events
+   * if event.preventDefault was called in the onRowKeyDown event handler.
+   *
+   * Consumers of this event do _not_ have to call event.preventDefault,
+   * when this event is subscribed to the list will automatically call it.
    */
-  readonly onRowSelected?: (row: number) => void
+  readonly onRowClick?: (row: number, soure: ClickSource) => void
 
   /**
-   * This function will be called when the selection changes. Note that this
+   * This function will be called when the selection changes as a result of a
+   * user keyboard or mouse action (i.e. not when props change). Note that this
    * differs from `onRowSelected`. For example, it won't be called if an already
    * selected row is clicked on.
+   *
+   * @param row    - The index of the row that was just selected
+   * @param source - The kind of user action that provoced the change, either
+   *                 a pointer device press, hover (if selectOnHover is set) or
+   *                 a keyboard event (arrow up/down)
    */
-  readonly onSelectionChanged?: (row: number) => void
+  readonly onSelectionChanged?: (row: number, source: SelectionSource) => void
 
   /**
    * A handler called whenever a key down event is received on the
@@ -101,6 +155,9 @@ interface IListProps {
 
   /** The row that should be scrolled to when the list is rendered. */
   readonly scrollToRow?: number
+
+  /** Whether or not selection should follow pointer device */
+  readonly selectOnHover?: boolean
 }
 
 export class List extends React.Component<IListProps, void> {
@@ -122,24 +179,43 @@ export class List extends React.Component<IListProps, void> {
 
   private grid: React.Component<any, any> | null
 
-  private handleKeyDown = (e: React.KeyboardEvent<any>) => {
-    let direction: 'up' | 'down'
-    if (e.key === 'ArrowDown') {
-      direction = 'down'
-    } else if (e.key === 'ArrowUp') {
-      direction = 'up'
-    } else {
-      return
+  private handleKeyDown = (event: React.KeyboardEvent<any>) => {
+    if (event.key === 'ArrowDown') {
+      this.moveSelection('down', event)
+      event.preventDefault()
+    } else if (event.key === 'ArrowUp') {
+      this.moveSelection('up', event)
+      event.preventDefault()
     }
-
-    this.moveSelection(direction)
-
-    e.preventDefault()
   }
 
-  private handleRowKeyDown(rowIndex: number, e: React.KeyboardEvent<any>) {
+  private handleRowKeyDown(rowIndex: number, event: React.KeyboardEvent<any>) {
     if (this.props.onRowKeyDown) {
-      this.props.onRowKeyDown(rowIndex, e)
+      this.props.onRowKeyDown(rowIndex, event)
+    }
+
+    // We give consumers the power to prevent the onRowClick event by subscribing
+    // to the onRowKeyDown event and calling event.preventDefault. This lets
+    // consumers add their own semantics for keyboard presses.
+    if (!event.defaultPrevented && this.props.onRowClick) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        this.props.onRowClick(rowIndex, { kind: 'keyboard', event })
+        event.preventDefault()
+      }
+    }
+  }
+
+  private onRowMouseOver = (row: number, event: React.MouseEvent<any>) => {
+    if (this.props.selectOnHover && this.canSelectRow(row)) {
+      if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
+        this.props.onSelectionChanged(row, { kind: 'hover', event })
+        // By calling scrollRowToVisible we ensure that hovering over a partially
+        // visible item at the top or bottom of the list scrolls it into view but
+        // more importantly `scrollRowToVisible` automatically manages focus so
+        // using it here allows us to piggy-back on its focus-preserving magic
+        // even though we could theoretically live without scrolling
+        this.scrollRowToVisible(row)
+      }
     }
   }
 
@@ -175,15 +251,11 @@ export class List extends React.Component<IListProps, void> {
       : true
   }
 
-  private moveSelection(direction: 'up' | 'down') {
+  private moveSelection(direction: 'up' | 'down', event: React.KeyboardEvent<any>) {
     const newRow = this.nextSelectableRow(direction, this.props.selectedRow)
 
     if (this.props.onSelectionChanged) {
-      this.props.onSelectionChanged(newRow)
-    }
-
-    if (this.props.onRowSelected) {
-      this.props.onRowSelected(newRow)
+      this.props.onSelectionChanged(newRow, { kind: 'keyboard', event })
     }
 
     this.scrollRowToVisible(newRow)
@@ -236,7 +308,9 @@ export class List extends React.Component<IListProps, void> {
            className={className}
            tabIndex={tabIndex}
            ref={ref}
-           onMouseDown={() => this.handleMouseDown(rowIndex)}
+           onMouseOver={(e) => this.onRowMouseOver(rowIndex, e)}
+           onMouseDown={(e) => this.handleMouseDown(rowIndex, e)}
+           onClick={(e) => this.onRowClick(rowIndex, e)}
            onKeyDown={(e) => this.handleRowKeyDown(rowIndex, e)}
            style={params.style}>
         {element}
@@ -378,15 +452,17 @@ export class List extends React.Component<IListProps, void> {
     }
   }
 
-  private handleMouseDown = (row: number) => {
+  private handleMouseDown = (row: number, event: React.MouseEvent<any>) => {
     if (this.canSelectRow(row)) {
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
-        this.props.onSelectionChanged(row)
+        this.props.onSelectionChanged(row, { kind: 'mouseclick', event })
       }
+    }
+  }
 
-      if (this.props.onRowSelected) {
-        this.props.onRowSelected(row)
-      }
+  private onRowClick = (row: number, event: React.MouseEvent<any>) => {
+    if (this.canSelectRow(row) && this.props.onRowClick) {
+      this.props.onRowClick(row, { kind: 'mouseclick', event })
     }
   }
 

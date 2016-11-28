@@ -74,7 +74,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     }
   }
 
-  private onRowSelected = (row: number) => {
+  private onRowClick = (row: number) => {
     const item = this.state.branchItems[row]
     if (item.kind !== 'branch') { return }
 
@@ -105,7 +105,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       nextRow = list.nextSelectableRow('up', this.state.selectedRow)
       event.preventDefault()
     } else if (event.key === 'Enter') {
-      this.onRowSelected(this.state.selectedRow)
+      this.onRowClick(this.state.selectedRow)
       event.preventDefault()
     } else if (event.key === 'Escape') {
       if (this.state.filter.length === 0) {
@@ -143,7 +143,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
                 rowRenderer={this.renderRow}
                 rowHeight={RowHeight}
                 selectedRow={this.state.selectedRow}
-                onRowSelected={this.onRowSelected}
+                onRowClick={this.onRowClick}
                 canSelectRow={this.canSelectRow}
                 scrollToRow={scrollToRow}
                 ref={this.storeListRef}
