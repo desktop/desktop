@@ -19,7 +19,7 @@ export interface IHTTPRequest {
   /** The verb associated with the request */
   method: HTTPMethod,
   /** The key-value collection of headers associated with the request */
-  headers: { [key: string]: any; } | undefined,
+  headers?: { [key: string]: any; },
   /** The request object to serialize */
   body: Object | null
 }

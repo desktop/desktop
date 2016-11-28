@@ -22,7 +22,6 @@ export async function reportError(error: Error, version: string) {
   const options: IHTTPRequest = {
     method: 'POST',
     url: ErrorEndpoint,
-    headers: undefined,
     body,
   }
 
