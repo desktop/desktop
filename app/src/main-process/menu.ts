@@ -1,5 +1,6 @@
 import { shell, Menu, ipcMain } from 'electron'
 import { SharedProcess } from '../shared-process/shared-process'
+import { v4 as uuid } from 'node-uuid'
 
 export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
                         'add-local-repository' | 'create-branch' |
@@ -227,7 +228,22 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     )
   }
 
+  ensureItemIds(template)
+
   return Menu.buildFromTemplate(template)
+}
+
+function getItemId(template: Electron.MenuItemOptions) {
+  return template.id || template.label || template.role || uuid()
+}
+
+function ensureItemIds(template: ReadonlyArray<Electron.MenuItemOptions>, prefix: string = '@') {
+  for (const item of template) {
+    item.id = item.id || `${prefix}.${getItemId(item)}`
+    if (item.submenu) {
+      ensureItemIds(item.submenu as ReadonlyArray<Electron.MenuItemOptions>, item.id)
+    }
+  }
 }
 
 function emitMenuEvent(name: MenuEvent) {
