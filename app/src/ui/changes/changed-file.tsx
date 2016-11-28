@@ -7,12 +7,12 @@ import { showContextualMenu } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from './checkbox'
 
 interface IChangedFileProps {
-  path: string
-  status: FileStatus
-  oldPath?: string
-  include: boolean | null
-  onIncludeChanged: (path: string, include: boolean) => void
-  onDiscardChanges: (path: string) => void
+  readonly path: string
+  readonly status: FileStatus
+  readonly oldPath?: string
+  readonly include: boolean | null
+  readonly onIncludeChanged: (path: string, include: boolean) => void
+  readonly onDiscardChanges: (path: string) => void
 }
 
 /** a changed file in the working directory for a given repository */

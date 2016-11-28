@@ -147,14 +147,13 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
               selectedRow={selectedRow}
               rowRenderer={this.renderItem}
               scrollToRow={scrollToRow}
-              onRowSelected={this.insertCompletionOnClick}
+              onRowClick={this.insertCompletionOnClick}
               invalidationProps={searchText}/>
       </div>
     )
   }
 
   private insertCompletionOnClick = (row: number): void => {
-
     const state = this.state.autocompletionState
     if (!state) { return }
 
