@@ -1,6 +1,5 @@
 import { shell, Menu, ipcMain } from 'electron'
 import { SharedProcess } from '../shared-process/shared-process'
-import { v4 as uuid } from 'node-uuid'
 
 export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
                         'add-local-repository' | 'create-branch' |
@@ -234,14 +233,28 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
 }
 
 function getItemId(template: Electron.MenuItemOptions) {
-  return template.id || template.label || template.role || uuid()
+  return template.id || template.label || template.role || 'unknown'
 }
 
-function ensureItemIds(template: ReadonlyArray<Electron.MenuItemOptions>, prefix: string = '@') {
+function ensureItemIds(template: ReadonlyArray<Electron.MenuItemOptions>, prefix = '@', seenIds = new Set<string>()) {
   for (const item of template) {
-    item.id = item.id || `${prefix}.${getItemId(item)}`
+    let counter = 0
+    let id = item.id
+
+    // Automatically generate an id if one hasn't been explicitly provided
+    if (!id) {
+      // Ensure that multiple items with the same key gets suffixed with a number
+      // i.e. @.separator, @.separator1 @.separator2 etc
+      do {
+        id = `${prefix}.${getItemId(item)}${counter++ || ''}`
+      } while (seenIds.has(id))
+    }
+
+    seenIds.add(id)
+
     if (item.submenu) {
-      ensureItemIds(item.submenu as ReadonlyArray<Electron.MenuItemOptions>, item.id)
+      const subMenuTemplate = item.submenu as ReadonlyArray<Electron.MenuItemOptions>
+      ensureItemIds(subMenuTemplate, item.id, seenIds)
     }
   }
 }
