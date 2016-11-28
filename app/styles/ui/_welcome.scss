@@ -44,6 +44,27 @@
       flex: 1;
     }
   }
+
+  // Styles for the commit list that's shown on the welcome screen.
+  // The styles in the `&:before` block are for the graident overlay on top
+  // of the example commit list.
+  .commit-list-example {
+    position: relative;
+
+    &:before {
+      background: linear-gradient(to bottom, var(--background-color), rgba(255,255,255,0), var(--background-color));
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .commit {
+      padding: var(--spacing-half);
+    }
+  }
 }
 
 .welcome-title,
@@ -115,27 +136,6 @@
   flex-direction: column;
   margin: var(--spacing-double) auto;
   width: 320px;
-}
-
-// Styles for the commit list that's shown on the welcome screen.
-// The styles in the `&:before` block are for the graident overlay on top
-// of the example commit list.
-.commit-list-example {
-  position: relative;
-
-  &:before {
-    background: linear-gradient(to bottom, var(--background-color), rgba(255,255,255,0), var(--background-color));
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-  }
-
-  .commit {
-    padding: var(--spacing-half) !important;
-  }
 }
 
 .field-group {
