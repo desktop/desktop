@@ -1,4 +1,5 @@
 import { proxyRequest } from '../ui/main-process-proxy'
+import { IHTTPRequest } from './http'
 
 const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
 
@@ -18,7 +19,7 @@ export async function reportError(error: Error, version: string) {
     version,
   }
 
-  const options = {
+  const options: IHTTPRequest = {
     method: 'POST',
     url: ErrorEndpoint,
     headers: undefined,

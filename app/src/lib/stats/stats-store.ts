@@ -1,6 +1,7 @@
 import { StatsDatabase, ILaunchStats } from './stats-database'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { proxyRequest } from '../../ui/main-process-proxy'
+import { IHTTPRequest } from '../http'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -48,7 +49,7 @@ export class StatsStore {
 
     const now = Date.now()
     const stats = await this.getDailyStats()
-    const options = {
+    const options: IHTTPRequest = {
       url: StatsEndpoint,
       method: 'POST',
       headers: {
