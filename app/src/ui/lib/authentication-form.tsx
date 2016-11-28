@@ -64,13 +64,13 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     return (
       <div>
         <div className='field-group'>
-          <label>Username or email address</label>
-          <input className='text-field sign-in-field' autoFocus={true} onChange={this.onUsernameChange}/>
+          <label htmlFor='sign-in-name'>Username or email address</label>
+          <input id='sign-in-name' className='text-field sign-in-field' autoFocus={true} onChange={this.onUsernameChange}/>
         </div>
 
         <div className='field-group'>
-          <label>Password</label>
-          <input className='sign-in-field' type='password' onChange={this.onPasswordChange}/>
+          <label htmlFor='sign-in-password'>Password</label>
+          <input id='sign-in-password' className='sign-in-field' type='password' onChange={this.onPasswordChange}/>
           <LinkButton className='forgot-password-link' uri={this.getForgotPasswordURL()}>Forgot password?</LinkButton>
         </div>
 

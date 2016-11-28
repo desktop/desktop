@@ -37,8 +37,8 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
     return (
       <form className='sign-in-form' id='enterprise-server-entry' onSubmit={this.onSubmit}>
         <div className='field-group'>
-          <label>Enterprise server address</label>
-          <input className='text-field sign-in-field' autoFocus={true} disabled={disableEntry} onChange={this.onServerAddressChanged}/>
+          <label htmlFor='enterprise-address'>Enterprise server address</label>
+          <input id='enterprise-address' className='text-field sign-in-field' autoFocus={true} disabled={disableEntry} onChange={this.onServerAddressChanged}/>
         </div>
 
         <div className='actions'>

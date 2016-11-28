@@ -68,13 +68,13 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
 
         <form className='sign-in-form' onSubmit={this.continue}>
           <div className='field-group'>
-            <label>Name</label>
-            <input className='sign-in-field text-field' placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
+            <label htmlFor='git-name'>Name</label>
+            <input id='git-name' className='sign-in-field text-field' placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
           </div>
 
           <div className='field-group'>
-            <label>Email</label>
-            <input className='sign-in-field text-field' placeholder='hubot@github.com' value={this.state.email} onChange={this.onEmailChange}/>
+            <label htmlFor='git-email'>Email</label>
+            <input id='git-email' className='sign-in-field text-field' placeholder='hubot@github.com' value={this.state.email} onChange={this.onEmailChange}/>
           </div>
 
           <div className='actions'>

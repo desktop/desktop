@@ -42,8 +42,8 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
 
         <form id='2fa-form' className='sign-in-form' onSubmit={this.signIn}>
           <div className='field-group'>
-            <label>Authentication code</label>
-            <input className='text-field sign-in-field' autoFocus={true} onChange={this.onOTPChange}/>
+            <label htmlFor='two-factor-code'>Authentication code</label>
+            <input id='two-factor-code' className='text-field sign-in-field' autoFocus={true} onChange={this.onOTPChange}/>
           </div>
 
           {this.renderError()}
