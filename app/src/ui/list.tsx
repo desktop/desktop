@@ -209,6 +209,11 @@ export class List extends React.Component<IListProps, void> {
     if (this.props.selectOnHover && this.canSelectRow(row)) {
       if (row !== this.props.selectedRow && this.props.onSelectionChanged) {
         this.props.onSelectionChanged(row, { kind: 'hover', event })
+        // By calling scrollRowToVisible we ensure that hovering over a partially
+        // visible item at the top or bottom of the list scrolls it into view but
+        // more importantly `scrollRowToVisible` automatically manages focus so
+        // using it here allows us to piggy-back on its focus-preserving magic
+        // even though we could theoretically live without scrolling
         this.scrollRowToVisible(row)
       }
     }
