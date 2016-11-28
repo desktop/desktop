@@ -5,23 +5,23 @@ import { proxyRequest } from '../ui/main-process-proxy'
 /** The HTTP payload returned by Electron's net module */
 export interface IHTTPResponse {
   /** The HTTP status code */
-  statusCode: number | undefined,
+  readonly statusCode: number | undefined,
   /** The key-value collection of headers associated with the response */
-  headers: { [key: string]: any; } | undefined,
+  readonly headers: { [key: string]: any; } | undefined,
   /** The deserialized JSON response body */
-  body: Object | undefined
+  readonly body: Object | undefined
 }
 
 /** The HTTP request to map to Electron's net module */
 export interface IHTTPRequest {
   /** The resource to access */
-  url: string,
+  readonly url: string,
   /** The verb associated with the request */
-  method: HTTPMethod,
+  readonly method: HTTPMethod,
   /** The key-value collection of headers associated with the request */
-  headers?: { [key: string]: any; },
+  readonly headers?: { [key: string]: any; },
   /** The request object to serialize */
-  body: Object | null
+  readonly body: Object | null
 }
 
 /** The HTTP methods available. */
