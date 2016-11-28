@@ -160,7 +160,7 @@ app.on('ready', () => {
 
         const statusCode = response.statusCode
 
-        const headers = { } as any
+        const headers: any = { }
         for (const h in response.headers) {
           const values = response.headers[h]
           headers[h] = values
