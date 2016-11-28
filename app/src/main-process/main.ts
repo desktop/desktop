@@ -89,10 +89,14 @@ app.on('ready', () => {
   ipcMain.on('set-menu-enabled', (event: Electron.IpcMainEvent, { id, enabled }: { id: string, enabled: boolean }) => {
     const menuItem = findMenuItemByID(menu, id)
     if (menuItem) {
-      menuItem.enabled = enabled
-
-      if (mainWindow) {
-        mainWindow.sendAppMenu()
+      // Only send the updated app menu when the state actually changes
+      // or we might end up introducing a never ending loop between
+      // the renderer and the main process
+      if (menuItem.enabled !== enabled) {
+        menuItem.enabled = enabled
+        if (mainWindow) {
+          mainWindow.sendAppMenu()
+        }
       }
     } else {
       fatalError(`Unknown menu id: ${id}`)
@@ -102,10 +106,14 @@ app.on('ready', () => {
   ipcMain.on('set-menu-visible', (event: Electron.IpcMainEvent, { id, visible }: { id: string, visible: boolean }) => {
     const menuItem = findMenuItemByID(menu, id)
     if (menuItem) {
-      menuItem.visible = visible
-
-      if (mainWindow) {
-        mainWindow.sendAppMenu()
+      // Only send the updated app menu when the state actually changes
+      // or we might end up introducing a never ending loop between
+      // the renderer and the main process
+      if (menuItem.visible !== visible) {
+        menuItem.visible = visible
+        if (mainWindow) {
+          mainWindow.sendAppMenu()
+        }
       }
     } else {
       fatalError(`Unknown menu id: ${id}`)
