@@ -11,7 +11,7 @@ export type MenuIDs = 'rename-branch' | 'delete-branch' | 'check-for-updates' |
                       'checking-for-updates' | 'downloading-update' | 'quit-and-install-update'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
-  const template: Object[] = [
+  const template: Electron.MenuItemOptions[] = [
     {
       label: 'File',
       submenu: [
