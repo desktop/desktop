@@ -272,7 +272,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
     return { kind: AuthorizationResponseKind.Failed }
   }
 
-  const body = <IAPIAuthorization>response.body
+  const body = response.body as IAPIAuthorization
   const token = body.token
   if (token && token.length) {
     return { kind: AuthorizationResponseKind.Authorized, token }
@@ -377,6 +377,6 @@ export async function requestOAuthToken(endpoint: string, state: string, code: s
     'state': state,
   })
 
-  const body = <IAPIAccessToken>response.body
+  const body = response.body as IAPIAccessToken
   return body.access_token
 }
