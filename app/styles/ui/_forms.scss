@@ -36,6 +36,11 @@ textarea {
 
 .field-group {
   margin: var(--spacing-half) 0;
+
+  // Setting the position to relative allows us to
+  // absolutely position things based on `.field-group` box boundaries.
+  // (See the `.forgot-password-link` styles in _welcome.scss for an example)
+  position: relative;
 }
 
 .form-errors {
