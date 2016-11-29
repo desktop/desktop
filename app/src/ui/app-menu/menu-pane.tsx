@@ -21,6 +21,40 @@ interface IMenuPaneState {
 
 const RowHeight = 30
 
+export function createListItemProps(items: ReadonlyArray<MenuItem>): ReadonlyArray<IMenuListItemProps> {
+  const filteredItems = new Array<IMenuListItemProps>()
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i]
+    const previousIx = filteredItems.length ? filteredItems.length - 1 : -1
+    const previous = filteredItems.length
+      ? filteredItems[previousIx]
+      : undefined
+
+    if (!item.visible) {
+      continue
+    }
+
+    if (item.type === 'separator') {
+      if (previous && !previous.separatorBelow) {
+        filteredItems[previousIx] = Object.assign({}, previous, { separatorBelow: true })
+      }
+
+      continue
+    }
+
+    filteredItems.push({ item })
+  }
+
+  return filteredItems
+}
+
+function getSelectedIndex(selectedItem: MenuItem | undefined, items: ReadonlyArray<IMenuListItemProps>) {
+  return selectedItem
+    ? items.findIndex(i => i.item.id === selectedItem.id)
+    : -1
+}
+
 export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
 
   private list: List
@@ -31,19 +65,23 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
   }
 
   public componentWillReceiveProps(props: IMenuPaneProps) {
-    this.setState(this.createState(props))
+    // No need to recreate the filtered list if it hasn't changed,
+    // we only have to update the selected item
+    if (this.props.items === props.items) {
+      // Has the selection changed?
+      if (this.props.selectedItem !== props.selectedItem) {
+        const selectedIndex = getSelectedIndex(props.selectedItem, this.state.items)
+        this.setState(Object.assign({}, this.state, { selectedIndex }))
+      }
+    } else {
+      this.setState(this.createState(props))
+    }
   }
 
   private createState(props: IMenuPaneProps): IMenuPaneState {
 
-    const items = props.items
-      .filter(item => item.visible)
-      .map(item => { return { item } })
-
-    const selectedItem = this.props.selectedItem
-    const selectedIndex = selectedItem
-      ? items.findIndex(i => i.item.id === selectedItem.id)
-      : -1
+    const items = createListItemProps(props.items)
+    const selectedIndex = getSelectedIndex(props.selectedItem, items)
 
     return { items, selectedIndex }
   }
