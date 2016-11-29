@@ -18,8 +18,11 @@
     height: 100%;
     width: 240px;
 
+    &:not(:first-child) {
+      border-left: var(--base-border);
+    }
+
     &:not(:last-child) {
-      border-right: var(--base-border);
 
       // We want list items in previous menus to behave as if they have focus
       // even though they don't, ie we want the selected+focus state
