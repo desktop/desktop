@@ -333,7 +333,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     } else if (popup.type === PopupType.UpdateAvailable) {
       return <UpdateAvailable dispatcher={this.props.dispatcher}/>
     } else if (popup.type === PopupType.Preferences) {
-      return <Preferences/>
+      return <Preferences
+        dispatcher={this.props.dispatcher}
+        dotComUser={null}
+        enterpriseUser={null}/>
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)
