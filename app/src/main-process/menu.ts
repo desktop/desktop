@@ -5,10 +5,11 @@ export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
                         'add-local-repository' | 'create-branch' |
                         'show-branches' | 'remove-repository' | 'add-repository' |
                         'rename-branch' | 'delete-branch' | 'check-for-updates' |
-                        'quit-and-install-update'
+                        'quit-and-install-update' | 'show-preferences'
 
 export type MenuIDs = 'rename-branch' | 'delete-branch' | 'check-for-updates' |
-                      'checking-for-updates' | 'downloading-update' | 'quit-and-install-update'
+                      'checking-for-updates' | 'downloading-update' | 'quit-and-install-update' |
+                      'preferences'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Object[] = [
@@ -173,7 +174,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
 
   if (__DARWIN__) {
     template.unshift({
-      label: 'GitHub',
+      label: 'GitHub Desktop',
       submenu: [
         { role: 'about' },
         { type: 'separator' },
@@ -203,6 +204,15 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           visible: false,
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('quit-and-install-update')
+          },
+        },
+        { type: 'separator' },
+        {
+          label: 'Preferences…',
+          id: 'preferences',
+          accelerator: __DARWIN__ ? 'Command+,' : 'Ctrl+,',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('show-preferences')
           },
         },
         { type: 'separator' },

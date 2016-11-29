@@ -27,6 +27,7 @@ import { MenuIDs } from '../main-process/menu'
 import { StatsStore, ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
 import { UpdateAvailable } from './updates'
+import { Preferences } from './preferences'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -140,6 +141,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'delete-branch': return this.deleteBranch()
       case 'check-for-updates': return this.checkForUpdates()
       case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
+      case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -330,6 +332,8 @@ export class App extends React.Component<IAppProps, IAppState> {
                              files={popup.files}/>
     } else if (popup.type === PopupType.UpdateAvailable) {
       return <UpdateAvailable dispatcher={this.props.dispatcher}/>
+    } else if (popup.type === PopupType.Preferences) {
+      return <Preferences/>
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)
