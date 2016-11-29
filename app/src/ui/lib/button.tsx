@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 
 interface IButtonProps {
   /** A function to call on click. */
@@ -12,14 +13,19 @@ interface IButtonProps {
 
   /** Whether the button is a submit. */
   readonly type?: 'submit'
+
+  /** CSS class names */
+  readonly className?: string
 }
 
 /** A button component. */
 export class Button extends React.Component<IButtonProps, void> {
   public render() {
+    const className = classNames('button', this.props.className)
+
     return (
       <button
-        className='button-component'
+        className={className}
         disabled={this.props.disabled}
         onClick={this.onClick}
         type={this.props.type}>

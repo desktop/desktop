@@ -53,6 +53,9 @@ export interface IAppState {
    * repository.
    */
   readonly sidebarWidth: number
+
+  // Whether we should hide the toolbar (and show inverted window controls)
+  readonly titleBarStyle: 'light' | 'dark'
 }
 
 export interface IAppError {
@@ -70,6 +73,7 @@ export enum PopupType {
   PublishRepository,
   DeleteBranch,
   ConfirmDiscardChanges,
+  UpdateAvailable,
 }
 
 export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
@@ -77,7 +81,8 @@ export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.PublishRepository, repository: Repository } |
                     { type: PopupType.DeleteBranch, repository: Repository, branch: Branch } |
-                    { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> }
+                    { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> } |
+                    { type: PopupType.UpdateAvailable }
 
 export enum FoldoutType {
   Repository,

@@ -324,6 +324,7 @@ export class AppStore {
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [ ],
+      titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
     }
   }
 

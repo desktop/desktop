@@ -34,15 +34,25 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
   public render() {
     const disabled = !this.state.otp.length
     return (
-      <form id='2fa-form' onSubmit={this.signIn}>
-        <label>Authentication code
-          <input autoFocus={true} onChange={this.onOTPChange}/>
-        </label>
+      <div>
+        <p className='welcome-text'>
+          Open the two-factor authentication app on your device to view your
+          authentication code and verify your identity.
+        </p>
 
-        {this.renderError()}
+        <form id='2fa-form' className='sign-in-form' onSubmit={this.signIn}>
+          <div className='field-group'>
+            <label htmlFor='two-factor-code'>Authentication code</label>
+            <input id='two-factor-code' className='text-field sign-in-field' autoFocus={true} onChange={this.onOTPChange}/>
+          </div>
 
-        <Button type='submit' disabled={disabled}>Sign In</Button>
-      </form>
+          {this.renderError()}
+
+          <div className='actions'>
+            <Button type='submit' disabled={disabled}>Verify</Button>
+          </div>
+        </form>
+      </div>
     )
   }
 
@@ -53,9 +63,9 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
     const kind = response.kind
     switch (kind) {
       case AuthorizationResponseKind.Authorized: return null
-      case AuthorizationResponseKind.Failed: return <div>Failed</div>
-      case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return <div>2fa</div>
-      case AuthorizationResponseKind.Error: return <div>Error</div>
+      case AuthorizationResponseKind.Failed: return <div className='form-errors'>Failed</div>
+      case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return <div className='form-errors'>2fa</div>
+      case AuthorizationResponseKind.Error: return <div className='form-errors'>Error</div>
       default: return assertNever(kind, `Unknown response kind: ${kind}`)
     }
   }

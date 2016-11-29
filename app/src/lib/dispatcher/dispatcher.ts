@@ -3,7 +3,7 @@ import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
-import { RepositorySection, Popup, Foldout, IAppError } from '../app-state'
+import { RepositorySection, Popup, Foldout, IAppError, FoldoutType } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
@@ -147,6 +147,8 @@ export class Dispatcher {
 
     const repositoryIDs = localRepositories.map(r => r.id)
     await this.dispatchToSharedProcess<ReadonlyArray<number>>({ name: 'remove-repositories', repositoryIDs })
+
+    this.showFoldout({ type: FoldoutType.Repository })
   }
 
   /** Refresh the associated GitHub repository. */
