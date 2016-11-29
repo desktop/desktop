@@ -20,7 +20,6 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, void> {
 
         <SignIn
           endpoint={getDotComAPIEndpoint()}
-          supportsBasicAuth={true}
           onDidSignIn={this.onDidSignIn}>
           <Button className='secondary-button' key='cancel' onClick={this.cancel}>Cancel</Button>
         </SignIn>

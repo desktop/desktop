@@ -3,7 +3,6 @@ import { User } from '../../models/user'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Button } from '../lib/button'
 import { SignIn } from '../lib/sign-in'
-import { EnterpriseServerEntry } from '../lib/enterprise-server-entry'
 import { assertNever } from '../../lib/fatal-error'
 import { getDotComAPIEndpoint } from '../../lib/api'
 
@@ -46,10 +45,9 @@ export class Accounts extends React.Component<IAccountsProps, void> {
       case SignInType.DotCom: {
         return <SignIn
           endpoint={getDotComAPIEndpoint()}
-          supportsBasicAuth={true}
           onDidSignIn={this.onDidSignIn}/>
       }
-      case SignInType.Enterprise: return <EnterpriseServerEntry onContinue={this.onContinue}/>
+      case SignInType.Enterprise: return <SignIn onDidSignIn={this.onDidSignIn}/>
       default: return assertNever(type, `Unknown sign in type: ${type}`)
     }
   }
@@ -61,10 +59,6 @@ export class Accounts extends React.Component<IAccountsProps, void> {
   }
 
   private onDidSignIn = (user: User) => {
-
-  }
-
-  private onContinue = () => {
 
   }
 }
