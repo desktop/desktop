@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Button } from './button'
 import { getEnterpriseAPIURL, fetchMetadata } from '../../lib/api'
 import { Loading } from './loading'
+import { validateURL, InvalidURLErrorName, InvalidProtocolErrorName } from './enterprise-validate-url'
 
 /** The authentication methods server allows. */
 export enum AuthenticationMethods {
@@ -21,6 +22,8 @@ interface IEnterpriseServerEntryState {
   readonly serverAddress: string
 
   readonly loading: boolean
+
+  readonly error: Error | null
 }
 
 /** An entry form for an Enterprise server address. */
@@ -28,7 +31,7 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
   public constructor(props: IEnterpriseServerEntryProps) {
     super(props)
 
-    this.state = { serverAddress: '', loading: false }
+    this.state = { serverAddress: '', loading: false, error: null }
   }
 
   public render() {
@@ -46,40 +49,94 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
         </div>
 
         {this.state.loading ? <Loading/> : null}
+
+        <div>{this.state.error ? this.state.error.message : null }</div>
       </form>
     )
   }
 
   private onServerAddressChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({ serverAddress: event.currentTarget.value, loading: false })
+    this.setState({
+      serverAddress: event.currentTarget.value,
+      loading: false,
+      error: null,
+    })
+  }
+
+  private async fetchAllowedAuthenticationMethods(endpoint: string): Promise<Set<AuthenticationMethods>> {
+    const response = await fetchMetadata(endpoint)
+
+    if (response) {
+      const authMethods = new Set([
+        AuthenticationMethods.BasicAuth,
+        AuthenticationMethods.OAuth,
+      ])
+
+      if (response.verifiablePasswordAuthentication === false) {
+        authMethods.delete(AuthenticationMethods.BasicAuth)
+      }
+
+      return authMethods
+    } else {
+      throw new Error('Unsupported Enterprise server')
+    }
   }
 
   private onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    const authMethods = new Set([
-      AuthenticationMethods.BasicAuth,
-      AuthenticationMethods.OAuth,
-    ])
-
-    this.setState({ serverAddress: this.state.serverAddress, loading: true })
-
-    const address = this.state.serverAddress
-    const endpoint = getEnterpriseAPIURL(address)
-
+    const userEnteredAddress = this.state.serverAddress
+    let address: string
     try {
-      const response = await fetchMetadata(endpoint)
-      if (response.verifiablePasswordAuthentication === false) {
-        authMethods.delete(AuthenticationMethods.BasicAuth)
+      address = validateURL(this.state.serverAddress)
+    } catch (e) {
+      let humanFacingError = e
+      if (e.name === InvalidURLErrorName) {
+        humanFacingError = new Error(`The Enterprise server address doesn't appear to be a valid URL. We're expecting something like https://github.example.com.`)
+      } else if (e.name === InvalidProtocolErrorName) {
+        humanFacingError = new Error('Unsupported protocol. We can only sign in to GitHub Enterprise instances over http or https.')
       }
 
-      this.setState({ serverAddress: this.state.serverAddress, loading: false })
+      this.setState({
+        serverAddress: userEnteredAddress,
+        loading: false,
+        error: humanFacingError,
+      })
+      return
+    }
 
-      this.props.onContinue(endpoint, authMethods)
+    this.setState({
+      serverAddress: userEnteredAddress,
+      loading: true,
+      error: null,
+    })
+
+    const endpoint = getEnterpriseAPIURL(address)
+    try {
+      const methods = await this.fetchAllowedAuthenticationMethods(endpoint)
+
+      this.setState({
+        serverAddress: userEnteredAddress,
+        loading: false,
+        error: null,
+      })
+
+      this.props.onContinue(endpoint, methods)
     } catch (e) {
-      this.setState({ serverAddress: this.state.serverAddress, loading: false })
-
-      // TODO: probably means the server URL is bad or Enterprise is Real Old.
+      // We'll get an ENOTFOUND if the address couldn't be resolved.
+      if (e.code === 'ENOTFOUND') {
+        this.setState({
+          serverAddress: userEnteredAddress,
+          loading: false,
+          error: new Error('The server could not be found'),
+        })
+      } else {
+        this.setState({
+          serverAddress: userEnteredAddress,
+          loading: false,
+          error: e,
+        })
+      }
     }
   }
 }
