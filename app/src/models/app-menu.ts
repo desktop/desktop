@@ -146,7 +146,6 @@ export class AppMenu {
 
     const ourMenuIndex = this.openMenus.findIndex(m => m.id === menu.id)
 
-
     if (ourMenuIndex === -1) { return this }
 
     const newOpenMenus = this.openMenus.slice(0, ourMenuIndex)

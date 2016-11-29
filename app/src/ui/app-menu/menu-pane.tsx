@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { List, ClickSource, SelectionSource } from '../list'
 import { IMenu, MenuItem } from '../../models/app-menu'
-import { MenuListItem } from './menu-list-item'
+import { MenuListItem, IMenuListItemProps } from './menu-list-item'
 
 interface IMenuPaneProps {
   readonly depth: number
@@ -13,29 +13,50 @@ interface IMenuPaneProps {
   readonly onMouseEnter: (depth: number) => void
 }
 
+interface IMenuPaneState {
+  readonly items: ReadonlyArray<IMenuListItemProps>
+}
+
 const RowHeight = 30
 
-export class MenuPane extends React.Component<IMenuPaneProps, void> {
+export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
 
   private list: List
 
+  public constructor(props: IMenuPaneProps) {
+    super(props)
+    this.state = this.createState(props)
+  }
+
+  public componentWillReceiveProps(props: IMenuPaneProps) {
+    this.setState(this.createState(props))
+  }
+
+  private createState(props: IMenuPaneProps): IMenuPaneState {
+    return {
+      items: props.menu.items
+        .filter(item => item.visible)
+        .map(item => { return { item } }),
+    }
+  }
+
   private onRowClick = (row: number, source: ClickSource) => {
-    const item = this.props.menu.items[row]
+    const item = this.state.items[row].item
     this.props.onItemClicked(item)
   }
 
   private onSelectionChanged = (row: number, source: SelectionSource) => {
-    const item = this.props.menu.items[row]
+    const item = this.state.items[row].item
     this.props.onSelectionChanged(this.props.depth, item, source)
   }
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
-    const item = this.props.menu.items[row]
+    const item = this.state.items[row].item
     this.props.onItemKeyDown(this.props.depth, item, event)
   }
 
   private canSelectRow = (row: number) => {
-    const item = this.props.menu.items[row]
+    const item = this.state.items[row].item
 
     if (item.type === 'separator') { return false }
 
@@ -51,24 +72,25 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
   }
 
   private renderMenuItem = (row: number) => {
-    const item = this.props.menu.items[row]
+    const props = this.state.items[row]
 
-    return <MenuListItem item={item} />
+    return <MenuListItem key={props.item.id} {...props} />
   }
 
   public render(): JSX.Element {
 
     const selectedItem = this.props.menu.selectedItem
+    const items = this.state.items
 
     const selectedRow = selectedItem
-      ? this.props.menu.items.indexOf(selectedItem)
+      ? items.findIndex(i => i.item.id === selectedItem.id)
       : -1
 
     return (
       <div className='menu-pane' onMouseEnter={this.onMouseEnter}>
         <List
           ref={this.onListRef}
-          rowCount={this.props.menu.items.length}
+          rowCount={this.state.items.length}
           rowHeight={RowHeight}
           rowRenderer={this.renderMenuItem}
           selectedRow={selectedRow}
@@ -76,7 +98,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
           onSelectionChanged={this.onSelectionChanged}
           canSelectRow={this.canSelectRow}
           onRowKeyDown={this.onRowKeyDown}
-          invalidationProps={this.props.menu}
+          invalidationProps={this.state.items}
           selectOnHover={true}
         />
       </div>
