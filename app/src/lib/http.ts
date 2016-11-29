@@ -5,11 +5,11 @@ import { proxyRequest } from '../ui/main-process-proxy'
 /** The HTTP payload returned by Electron's net module */
 export interface IHTTPResponse {
   /** The HTTP status code */
-  readonly statusCode: number | undefined,
+  readonly statusCode?: number,
   /** The key-value collection of headers associated with the response */
-  readonly headers: { [key: string]: any; } | undefined,
+  readonly headers?: { [key: string]: any; },
   /** The deserialized JSON response body */
-  readonly body: Object | undefined
+  readonly body?: Object
 }
 
 /** The HTTP request to map to Electron's net module */
@@ -21,7 +21,7 @@ export interface IHTTPRequest {
   /** The key-value collection of headers associated with the request */
   readonly headers?: { [key: string]: any; },
   /** The request object to serialize */
-  readonly body: Object | undefined
+  readonly body?: Object
 }
 
 /** The HTTP methods available. */
