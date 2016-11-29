@@ -45,10 +45,10 @@
     height: 100%;
     width: 100%;
     min-width: 0;
-    margin-left: var(--spacing-double);
 
     .label {
       flex-grow: 1;
+      margin-left: var(--spacing-double);
       margin-right: var(--spacing);
       @include ellipsis;
     }
