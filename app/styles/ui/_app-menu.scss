@@ -40,6 +40,10 @@
     }
   }
 
+  .ReactVirtualized__Grid:focus {
+    outline: none;
+  }
+
   .menu-item {
 
     display: flex;
