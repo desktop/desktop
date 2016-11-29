@@ -37,17 +37,27 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
     const textEntryDisabled = this.state.loading
     const signInDisabled = !this.state.otp.length || this.state.loading
     return (
-      <form id='2fa-form' onSubmit={this.signIn}>
-        <label>Authentication code
-          <input disabled={textEntryDisabled} autoFocus={true} onChange={this.onOTPChange}/>
-        </label>
+      <div>
+        <p className='welcome-text'>
+          Open the two-factor authentication app on your device to view your
+          authentication code and verify your identity.
+        </p>
 
-        {this.renderError()}
+        <form id='2fa-form' className='sign-in-form' onSubmit={this.signIn}>
+          <div className='field-group'>
+            <label htmlFor='two-factor-code'>Authentication code</label>
+            <input id='two-factor-code' className='text-field sign-in-field' disabled={textEntryDisabled} autoFocus={true} onChange={this.onOTPChange}/>
+          </div>
 
-        <Button type='submit' disabled={signInDisabled}>Sign In</Button>
+          {this.renderError()}
 
-        {this.state.loading ? <Loading/> : null}
-      </form>
+          <div className='actions'>
+            <Button type='submit' disabled={signInDisabled}>Verify</Button>
+
+            {this.state.loading ? <Loading/> : null}
+          </div>
+        </form>
+      </div>
     )
   }
 
@@ -57,17 +67,17 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
 
     switch (response.kind) {
       case AuthorizationResponseKind.Authorized: return null
-      case AuthorizationResponseKind.Failed: return <div>Failed</div>
-      case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return <div>2fa</div>
+      case AuthorizationResponseKind.Failed: return <div className='form-errors'>Failed</div>
+      case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return <div className='form-errors'>2fa</div>
       case AuthorizationResponseKind.Error: {
         const error = response.response.error
         if (error) {
-          return <div>An error occurred: {error.message}</div>
+          return <div className='form-errors'>An error occurred: {error.message}</div>
         } else {
-          return <div>An unknown error occurred: {response.response.statusCode}: {response.response.body}</div>
+          return <div className='form-errors'>An unknown error occurred: {response.response.statusCode}: {response.response.body}</div>
         }
       }
-      default: return assertNever(response, `Unknown response kind: ${response}`)
+      default: return assertNever(response, `Unknown response: ${response}`)
     }
   }
 

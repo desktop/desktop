@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { Button } from '../lib/button'
+import { Octicon, OcticonSymbol } from '../octicons'
 import {
   createAuthorization,
   AuthorizationResponse,
@@ -48,7 +49,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
 
   public render() {
     return (
-      <form id='sign-in-form' onSubmit={this.signIn}>
+      <form className='sign-in-form' onSubmit={this.signIn}>
         {this.renderUsernamePassword()}
 
         {this.renderError()}
@@ -64,15 +65,16 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     const disabled = this.state.loading
     return (
       <div>
-        <label>Username or email address
-          <input disabled={disabled} autoFocus={true} onChange={this.onUsernameChange}/>
-        </label>
+        <div className='field-group'>
+          <label htmlFor='sign-in-name'>Username or email address</label>
+          <input id='sign-in-name' className='text-field sign-in-field' disabled={disabled} autoFocus={true} onChange={this.onUsernameChange}/>
+        </div>
 
-        <label>Password
-          <input disabled={disabled} type='password' onChange={this.onPasswordChange}/>
-        </label>
-
-        <LinkButton uri={this.getForgotPasswordURL()}>Forgot password?</LinkButton>
+        <div className='field-group'>
+          <label htmlFor='sign-in-password'>Password</label>
+          <input id='sign-in-password' className='sign-in-field' type='password' disabled={disabled} onChange={this.onPasswordChange}/>
+          <LinkButton className='forgot-password-link' uri={this.getForgotPasswordURL()}>Forgot password?</LinkButton>
+        </div>
 
         {this.renderActions()}
       </div>
@@ -94,9 +96,14 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     const basicAuth = this.props.supportsBasicAuth
     return (
       <div>
-        {basicAuth ? <div>or</div> : null}
+        {basicAuth ? <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div> : null}
 
-        <LinkButton onClick={this.signInWithBrowser}>Sign in using your browser</LinkButton>
+        <p className='sign-in-footer'>
+          <LinkButton className='welcome-link-button link-with-icon' onClick={this.signInWithBrowser}>
+            Sign in using your browser
+            <Octicon symbol={OcticonSymbol.linkExternal} />
+          </LinkButton>
+        </p>
 
         {basicAuth ? null : this.renderActions()}
       </div>
@@ -108,13 +115,13 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     if (!response) { return null }
 
     switch (response.kind) {
-      case AuthorizationResponseKind.Failed: return <div>The username or password are incorrect.</div>
+      case AuthorizationResponseKind.Failed: return <div className='form-errors'>The username or password are incorrect.</div>
       case AuthorizationResponseKind.Error: {
         const error = response.response.error
         if (error) {
-          return <div>An error occurred: {error.message}</div>
+          return <div className='form-errors'>An error occurred: {error.message}</div>
         } else {
-          return <div>An unknown error occurred: {response.response.statusCode}: {response.response.body}</div>
+          return <div className='form-errors'>An unknown error occurred: {response.response.statusCode}: {response.response.body}</div>
         }
       }
       case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return null

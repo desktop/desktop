@@ -12,7 +12,7 @@
   // used outside of this scope.
   $blue: #3d76c2;
   $yellow: #d0b44c;
-  $red: #d0b44c;
+  $red: #bf2b00;
   $green: #6cc644;
   $darkGray: #5f717f;
   $darkerGray: #3b3f46;
@@ -34,6 +34,10 @@
 
   --link-button-color: $blue;
 
+  --secondary-button-background: #f0f0f0;
+  --secondary-button-hover-background: darken(#f0f0f0, 5%);
+  --secondary-button-text-color: var(--text-color);
+
   // Typography
   //
   // Font, line-height, and color for body text, headings, and more.
@@ -54,6 +58,7 @@
   --font-size: 13px;
   --font-size-sm: 11px;
   --font-size-md: 16px;
+  --font-size-lg: 28px;
   --font-size-xl: 32px;
 
   /** Extra small font size, be very conservative with the use of this */
@@ -236,4 +241,9 @@
    * Ahead/behind view
    */
   --ahead-behind-background-color: #202020;
+
+  // Colors for form errors
+  --error-color: $red;
+  --form-error-background: #fddede;
+  --form-error-border-color: #d3b2b2;
 }
