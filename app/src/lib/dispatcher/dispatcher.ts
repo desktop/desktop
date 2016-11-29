@@ -3,7 +3,7 @@ import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
-import { RepositorySection, Popup, Foldout, IAppError, IMenuWithSelection } from '../app-state'
+import { RepositorySection, Popup, Foldout, IAppError } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
@@ -14,6 +14,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
 import { v4 as guid } from 'node-uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
+import { AppMenu } from '../../models/app-menu'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -395,8 +396,8 @@ export class Dispatcher {
     return this.appStore._setAppMenu(menu)
   }
 
-  public setAppMenuState(state: ReadonlyArray<IMenuWithSelection>): Promise<void> {
-    return this.appStore._setAppMenuState(state)
+  public setAppMenuState(update: (appMenu: AppMenu) => AppMenu): Promise<void> {
+    return this.appStore._setAppMenuState(update)
   }
 
   public resetAppMenuState(): Promise<void> {
