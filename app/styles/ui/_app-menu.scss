@@ -74,6 +74,12 @@
       margin-right: var(--spacing);
     }
 
+    .accelerator {
+      flex-shrink: 0;
+      margin-right: var(--spacing);
+      color: var(--text-secondary-color);
+    }
+
     &.separator {
       border-bottom: var(--base-border);
     }
