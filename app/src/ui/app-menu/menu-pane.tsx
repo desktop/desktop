@@ -42,7 +42,10 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
 
   private onRowClick = (row: number, source: ClickSource) => {
     const item = this.state.items[row].item
-    this.props.onItemClicked(item)
+
+    if (item.type !== 'separator' && item.enabled) {
+      this.props.onItemClicked(item)
+    }
   }
 
   private onSelectionChanged = (row: number, source: SelectionSource) => {
