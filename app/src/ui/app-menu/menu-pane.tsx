@@ -16,6 +16,7 @@ interface IMenuPaneProps {
 
 interface IMenuPaneState {
   readonly items: ReadonlyArray<IMenuListItemProps>
+  readonly selectedIndex: number
 }
 
 const RowHeight = 30
@@ -34,11 +35,17 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
   }
 
   private createState(props: IMenuPaneProps): IMenuPaneState {
-    return {
-      items: props.menu.items
-        .filter(item => item.visible)
-        .map(item => { return { item } }),
-    }
+
+    const items = props.items
+      .filter(item => item.visible)
+      .map(item => { return { item } })
+
+    const selectedItem = this.props.selectedItem
+    const selectedIndex = selectedItem
+      ? items.findIndex(i => i.item.id === selectedItem.id)
+      : -1
+
+    return { items, selectedIndex }
   }
 
   private onRowClick = (row: number, source: ClickSource) => {
@@ -83,13 +90,6 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
 
   public render(): JSX.Element {
 
-    const selectedItem = this.props.menu.selectedItem
-    const items = this.state.items
-
-    const selectedRow = selectedItem
-      ? items.findIndex(i => i.item.id === selectedItem.id)
-      : -1
-
     return (
       <div className='menu-pane' onMouseEnter={this.onMouseEnter}>
         <List
@@ -97,7 +97,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
           rowCount={this.state.items.length}
           rowHeight={RowHeight}
           rowRenderer={this.renderMenuItem}
-          selectedRow={selectedRow}
+          selectedRow={this.state.selectedIndex}
           onRowClick={this.onRowClick}
           onSelectionChanged={this.onSelectionChanged}
           canSelectRow={this.canSelectRow}
