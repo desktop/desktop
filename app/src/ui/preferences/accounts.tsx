@@ -15,11 +15,11 @@ export class Accounts extends React.Component<IAccountsProps, void> {
       <div>
         <h2>GitHub.com</h2>
         {this.props.dotComUser ? this.renderUser(this.props.dotComUser) : null}
-        <Button onClick={this.logOutDotCom}>Log Out</Button>
+        <Button disabled={!this.props.dotComUser} onClick={this.logOutDotCom}>Log Out</Button>
 
         <h2>Enterprise</h2>
         {this.props.enterpriseUser ? this.renderUser(this.props.enterpriseUser) : null}
-        <Button onClick={this.logOutEnterprise}>Log Out</Button>
+        <Button disabled={!this.props.dotComUser} onClick={this.logOutEnterprise}>Log Out</Button>
       </div>
     )
   }
@@ -34,10 +34,16 @@ export class Accounts extends React.Component<IAccountsProps, void> {
   }
 
   private logOutDotCom = () => {
+    const user = this.props.dotComUser
+    if (!user) { return }
 
+    this.props.dispatcher.removeUser(user)
   }
 
   private logOutEnterprise = () => {
+    const user = this.props.enterpriseUser
+    if (!user) { return }
 
+    this.props.dispatcher.removeUser(user)
   }
 }

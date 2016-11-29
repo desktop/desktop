@@ -391,4 +391,9 @@ export class Dispatcher {
   public async addUser(user: User): Promise<void> {
     return this.dispatchToSharedProcess<void>({ name: 'add-user', user })
   }
+
+  /** Remove the given user. */
+  public removeUser(user: User): Promise<void> {
+    return this.dispatchToSharedProcess<void>({ name: 'remove-user', user })
+  }
 }
