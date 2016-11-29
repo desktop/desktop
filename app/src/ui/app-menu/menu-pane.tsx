@@ -9,6 +9,7 @@ interface IMenuPaneProps {
   readonly onItemClicked: (item: MenuItem) => void
   readonly onItemKeyDown: (depth: number, item: MenuItem, event: React.KeyboardEvent<any>) => void
   readonly onSelectionChanged: (depth: number, item: MenuItem, source: SelectionSource) => void
+  readonly onMouseEnter: (depth: number) => void
 }
 
 const RowHeight = 30
@@ -55,6 +56,10 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
     this.list = list
   }
 
+  private onMouseEnter = (event: React.MouseEvent<any>) => {
+    this.props.onMouseEnter(this.props.depth)
+  }
+
   public render(): JSX.Element {
 
     const selectedItem = this.props.menu.selectedItem
@@ -64,7 +69,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
       : -1
 
     return (
-      <div className='menu-pane'>
+      <div className='menu-pane' onMouseEnter={this.onMouseEnter}>
         <List
           ref={this.onListRef}
           rowCount={this.props.menu.items.length}

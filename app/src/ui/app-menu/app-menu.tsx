@@ -129,6 +129,15 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     }
   }
 
+  private onPaneMouseEnter = (depth: number) => {
+    const paneMenu = this.props.state[depth]
+    const selectedItem = paneMenu.selectedItem
+
+    if (selectedItem) {
+      this.props.dispatcher.setAppMenuState(m => m.withSelectedItem(selectedItem))
+    }
+  }
+
   private renderMenuPane(depth: number, menu: IMenu): JSX.Element {
     return (
       <MenuPane
@@ -137,6 +146,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
         depth={depth}
         menu={menu}
         onItemClicked={this.onItemClicked}
+        onMouseEnter={this.onPaneMouseEnter}
         onItemKeyDown={this.onItemKeyDown}
         onSelectionChanged={this.onSelectionChanged}
       />
