@@ -42,6 +42,7 @@
     display: flex;
     align-items: center;
 
+    height: 100%;
     width: 100%;
     min-width: 0;
     margin-left: var(--spacing-double);
@@ -58,6 +59,10 @@
       // TODO: Draw a custom path here instead of resizing the existing arrow
       height: 12px;
       margin-right: var(--spacing);
+    }
+
+    &.separator {
+      border-bottom: var(--base-border);
     }
   }
 }

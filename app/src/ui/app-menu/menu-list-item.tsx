@@ -1,10 +1,12 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 
 import { Octicon, OcticonSymbol } from '../octicons'
 import { MenuItem } from '../../models/app-menu'
 
 export interface IMenuListItemProps {
   readonly item: MenuItem
+  readonly separatorBelow?: boolean
 }
 
 export class MenuListItem extends React.Component<IMenuListItemProps, void> {
@@ -20,8 +22,13 @@ export class MenuListItem extends React.Component<IMenuListItemProps, void> {
       ? <Octicon className='submenu-arrow' symbol={OcticonSymbol.triangleRight} />
       : null
 
+    const className = classNames(
+      'menu-item',
+      { 'separator' : this.props.separatorBelow }
+    )
+
     return (
-      <div className='menu-item'>
+      <div className={className}>
         <div className='label'>{item.label}</div>
         {arrow}
       </div>
