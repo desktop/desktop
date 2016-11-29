@@ -108,24 +108,6 @@ export class AppMenu {
     this.menuItemById = menuItemById
   }
 
-  private getMenuById(id: string): IMenu | null {
-    // Id of a Menu shares the Id of its submenu item parent
-    const menuItem = this.menuItemById.get(id)
-
-    // The submenu item which opened this menu is no longer around,
-    // not much we can do but we probably shouldn't consider it an
-    // error, we'll try to recover instead
-    if (!menuItem) {
-      return null
-    }
-
-    if (menuItem.type !== 'submenuItem') {
-      throw new Error(`Parent of ${id} is not a sub menu item`)
-    }
-
-    return menuItem.menu
-  }
-
   public withOpenMenu(submenuItem: ISubmenuItem, selectFirstItem = false): AppMenu {
     const ourMenuItem = this.menuItemById.get(submenuItem.id)
 
@@ -162,12 +144,22 @@ export class AppMenu {
       return this
     }
 
-    const parentMenu = this.getMenuById(menu.id)
+    const ourMenuIndex = this.openMenus.findIndex(m => m.id === menu.id)
 
-    if (!parentMenu) { return this }
 
-    const parentIndex = this.openMenus.indexOf(parentMenu)
-    const newOpenMenus = this.openMenus.slice(0, parentIndex + 1)
+    if (ourMenuIndex === -1) { return this }
+
+    const newOpenMenus = this.openMenus.slice(0, ourMenuIndex)
+
+    return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
+  }
+
+  public withLastMenu(menu: IMenu) {
+    const ourMenuIndex = this.openMenus.findIndex(m => m.id === menu.id)
+
+    if (ourMenuIndex === -1) { return this }
+
+    const newOpenMenus = this.openMenus.slice(0, ourMenuIndex + 1)
 
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
   }
