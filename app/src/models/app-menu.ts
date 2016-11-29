@@ -185,6 +185,11 @@ export class AppMenu {
 
     newOpenMenus[parentMenuIndex] = Object.assign({}, parentMenu, { selectedItem: ourMenuItem })
 
+    // All submenus below the active menu should have their selection cleared
+    for (let i = parentMenuIndex + 1; i < newOpenMenus.length; i++) {
+      newOpenMenus[i] =  Object.assign({}, newOpenMenus[i], { selectedItem: undefined })
+    }
+
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
   }
 
