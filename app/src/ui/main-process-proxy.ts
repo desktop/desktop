@@ -42,7 +42,18 @@ export function proxyRequest(options: IHTTPRequest): Promise<IHTTPResponse> {
   return new Promise<IHTTPResponse>((resolve, reject) => {
     const id = guid()
 
+    const startTime = (performance && performance.now) ? performance.now() : null
+
     ipcRenderer.once(`proxy/response/${id}`, (event: any, { error, response }: { error?: Error, response?: IHTTPResponse }) => {
+
+      if (console.debug && startTime) {
+        const rawTime = performance.now() - startTime
+        if (rawTime > 500) {
+        const timeInSeconds = (rawTime / 1000).toFixed(3)
+        console.debug(`executing: ${options.url} (took ${timeInSeconds}s)`)
+        }
+      }
+
       if (error) {
         reject(error)
         return
