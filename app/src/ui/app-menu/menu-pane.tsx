@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { List, ClickSource, SelectionSource } from '../list'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { IMenu, MenuItem } from '../../models/app-menu'
 
 interface IMenuPaneProps {
   readonly depth: number
