@@ -58,7 +58,7 @@ export class Accounts extends React.Component<IAccountsProps, void> {
     }
   }
 
-  private onDidSignIn = (user: User) => {
-
+  private onDidSignIn = async (user: User) => {
+    await this.props.dispatcher.addUser(user)
   }
 }
