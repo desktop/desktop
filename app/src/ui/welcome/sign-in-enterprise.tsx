@@ -48,13 +48,14 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, IS
     if (step.kind === SignInStep.ServerEntry) {
       return <EnterpriseServerEntry onContinue={this.onServerEntry}/>
     } else if (step.kind === SignInStep.Authentication) {
-      return <SignIn
-        endpoint={step.endpoint}
-        supportsBasicAuth={step.authMethods.has(AuthenticationMethods.BasicAuth)}
-        additionalButtons={[
+      return (
+        <SignIn
+          endpoint={step.endpoint}
+          supportsBasicAuth={step.authMethods.has(AuthenticationMethods.BasicAuth)}
+          onDidSignIn={this.onDidSignIn}>
           <Button className='secondary-button' key='cancel' onClick={this.cancel}>Cancel</Button>,
-        ]}
-        onDidSignIn={this.onDidSignIn}/>
+        </SignIn>
+      )
     } else {
       return assertNever(step, `Unknown sign-in step: ${step}`)
     }

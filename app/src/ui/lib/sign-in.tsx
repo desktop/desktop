@@ -15,7 +15,7 @@ interface ISignInProps {
   readonly onDidSignIn: (user: User) => void
 
   /** An array of additional buttons to render after the "Sign In" button. */
-  readonly additionalButtons?: ReadonlyArray<JSX.Element>
+  readonly children?: ReadonlyArray<JSX.Element>
 }
 
 enum SignInStep {
@@ -44,7 +44,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       return <AuthenticationForm
         endpoint={this.props.endpoint}
         supportsBasicAuth={this.props.supportsBasicAuth}
-        additionalButtons={this.props.additionalButtons}
+        additionalButtons={this.props.children}
         onDidSignIn={this.onDidSignIn}
         onNeeds2FA={this.onNeeds2FA}/>
     } else if (step.kind === SignInStep.TwoFactorAuthentication) {
