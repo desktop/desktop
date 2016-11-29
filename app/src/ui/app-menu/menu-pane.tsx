@@ -1,12 +1,13 @@
 import * as React from 'react'
 
 import { List, ClickSource, SelectionSource } from '../list'
-import { IMenu, MenuItem } from '../../models/app-menu'
+import { MenuItem } from '../../models/app-menu'
 import { MenuListItem, IMenuListItemProps } from './menu-list-item'
 
 interface IMenuPaneProps {
   readonly depth: number
-  readonly menu: IMenu
+  readonly items: ReadonlyArray<MenuItem>
+  readonly selectedItem?: MenuItem
   readonly onItemClicked: (item: MenuItem) => void
   readonly onItemKeyDown: (depth: number, item: MenuItem, event: React.KeyboardEvent<any>) => void
   readonly onSelectionChanged: (depth: number, item: MenuItem, source: SelectionSource) => void

@@ -146,7 +146,8 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
         key={depth}
         ref={this.onMenuPaneRef}
         depth={depth}
-        menu={menu}
+        items={menu.items}
+        selectedItem={menu.selectedItem}
         onItemClicked={this.onItemClicked}
         onMouseEnter={this.onPaneMouseEnter}
         onItemKeyDown={this.onItemKeyDown}
