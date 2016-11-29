@@ -126,7 +126,7 @@ export class AppMenu {
     return menuItem.menu
   }
 
-  public withOpenSubmenu(submenuItem: ISubmenuItem, selectFirstItem = false): AppMenu {
+  public withOpenMenu(submenuItem: ISubmenuItem, selectFirstItem = false): AppMenu {
     const ourMenuItem = this.menuItemById.get(submenuItem.id)
 
     if (!ourMenuItem) {
