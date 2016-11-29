@@ -49,8 +49,8 @@ export function proxyRequest(options: IHTTPRequest): Promise<IHTTPResponse> {
       if (console.debug && startTime) {
         const rawTime = performance.now() - startTime
         if (rawTime > 500) {
-        const timeInSeconds = (rawTime / 1000).toFixed(3)
-        console.debug(`executing: ${options.url} (took ${timeInSeconds}s)`)
+          const timeInSeconds = (rawTime / 1000).toFixed(3)
+          console.debug(`executing: ${options.url} (took ${timeInSeconds}s)`)
         }
       }
 
