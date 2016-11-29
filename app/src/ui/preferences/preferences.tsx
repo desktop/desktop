@@ -31,7 +31,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
 
   public render() {
     return (
-      <div>
+      <div id='preferences'>
         <h1>PREFERENCES!!!!!!!</h1>
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedIndex}>
           <span>Accounts</span>

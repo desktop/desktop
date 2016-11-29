@@ -28,6 +28,7 @@ import { StatsStore, ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
+import { User } from '../models/user'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -150,9 +151,23 @@ export class App extends React.Component<IAppProps, IAppState> {
   private checkForUpdates() {
     if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') { return }
 
-    const dotComUsers = this.props.appStore.getState().users.filter(u => u.endpoint === getDotComAPIEndpoint())
-    const login = dotComUsers.length ? dotComUsers[0].login : ''
+    const dotComUser = this.getDotComUser()
+    const login = dotComUser ? dotComUser.login : ''
     updateStore.checkForUpdates(login)
+  }
+
+  private getDotComUser(): User | null {
+    const state = this.props.appStore.getState()
+    const users = state.users
+    const dotComUser = users.find(u => u.endpoint === getDotComAPIEndpoint())
+    return dotComUser || null
+  }
+
+  private getEnterpriseUser(): User | null {
+    const state = this.props.appStore.getState()
+    const users = state.users
+    const enterpriseUser = users.find(u => u.endpoint !== getDotComAPIEndpoint())
+    return enterpriseUser || null
   }
 
   private renameBranch() {
@@ -335,8 +350,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     } else if (popup.type === PopupType.Preferences) {
       return <Preferences
         dispatcher={this.props.dispatcher}
-        dotComUser={null}
-        enterpriseUser={null}/>
+        dotComUser={this.getDotComUser()}
+        enterpriseUser={this.getEnterpriseUser()}/>
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)

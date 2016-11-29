@@ -14,12 +14,21 @@ export class Accounts extends React.Component<IAccountsProps, void> {
     return (
       <div>
         <h2>GitHub.com</h2>
-        <div>{this.props.dotComUser ? this.props.dotComUser.login : null}</div>
+        {this.props.dotComUser ? this.renderUser(this.props.dotComUser) : null}
         <Button onClick={this.logOutDotCom}>Log Out</Button>
 
         <h2>Enterprise</h2>
-        <div>{this.props.enterpriseUser ? this.props.enterpriseUser.login : null}</div>
+        {this.props.enterpriseUser ? this.renderUser(this.props.enterpriseUser) : null}
         <Button onClick={this.logOutEnterprise}>Log Out</Button>
+      </div>
+    )
+  }
+
+  private renderUser(user: User) {
+    return (
+      <div>
+        <img className='avatar' src={user.avatarURL}/>
+        <span>{user.login}</span>
       </div>
     )
   }
