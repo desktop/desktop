@@ -1,7 +1,8 @@
 import * as React from 'react'
+
 import { List, ClickSource, SelectionSource } from '../list'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { IMenu, MenuItem } from '../../models/app-menu'
+import { MenuListItem } from './menu-list-item'
 
 interface IMenuPaneProps {
   readonly depth: number
@@ -21,20 +22,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
   private renderMenuItem = (row: number) => {
     const item = this.props.menu.items[row]
 
-    if (item.type === 'separator') {
-      return null
-    }
-
-    const arrow = item.type === 'submenuItem'
-      ? <Octicon className='submenu-arrow' symbol={OcticonSymbol.triangleRight} />
-      : null
-
-    return (
-      <div className='menu-item'>
-        <div className='label'>{item.label}</div>
-        {arrow}
-      </div>
-    )
+    return <MenuListItem item={item} />
   }
 
   private onRowClick = (row: number, source: ClickSource) => {
@@ -50,6 +38,14 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
     const item = this.props.menu.items[row]
     this.props.onItemKeyDown(this.props.depth, item, event)
+  }
+
+  private canSelectRow = (row: number) => {
+    const item = this.props.menu.items[row]
+
+    if (item.type === 'separator') { return false }
+
+    return item.enabled && item.visible
   }
 
   private onListRef = (list: List) => {
@@ -78,6 +74,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
           selectedRow={selectedRow}
           onRowClick={this.onRowClick}
           onSelectionChanged={this.onSelectionChanged}
+          canSelectRow={this.canSelectRow}
           onRowKeyDown={this.onRowKeyDown}
           invalidationProps={this.props.menu}
           selectOnHover={true}
