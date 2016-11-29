@@ -24,4 +24,8 @@ export class InMemoryStore {
       return this.store[key]
     }
   }
+
+  public deleteItem(key: string, login: string) {
+    delete this.store[this.secureKey(key, login)]
+  }
 }

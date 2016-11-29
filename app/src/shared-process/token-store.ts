@@ -7,3 +7,7 @@ export function setItem(key: string, login: string, value: string) {
 export function getItem(key: string, login: string): string {
   return keytar.getPassword(key, login)
 }
+
+export function deleteItem(key: string, login: string) {
+  keytar.deletePassword(key, login)
+}
