@@ -136,6 +136,8 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     if (selectedItem) {
       this.props.dispatcher.setAppMenuState(m => m.withSelectedItem(selectedItem))
     }
+
+    this.focusPane = depth
   }
 
   private renderMenuPane(depth: number, menu: IMenu): JSX.Element {
