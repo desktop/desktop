@@ -190,6 +190,19 @@ export class AppMenu {
       newOpenMenus[i] =  Object.assign({}, newOpenMenus[i], { selectedItem: undefined })
     }
 
+    // Ensure that the path that lead us to the currently selected menu is
+    // selected. i.e. all menus above the currently active menu should have
+    // their selection reset to point to the currently active menu.
+    for (let i = parentMenuIndex - 1; i >= 0; i--) {
+      const menu = newOpenMenus[i]
+      const childMenu = newOpenMenus[i + 1]
+
+      const selectedItem = menu.items.find(item =>
+        item.type === 'submenuItem' && item.id === childMenu.id)
+
+      newOpenMenus[i] =  Object.assign({}, menu, { selectedItem })
+    }
+
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
   }
 
