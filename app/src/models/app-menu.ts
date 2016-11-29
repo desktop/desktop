@@ -146,7 +146,12 @@ export class AppMenu {
     }
 
     const newOpenMenus = this.openMenus.slice(0, parentMenuIndex + 1)
-    newOpenMenus.push(ourMenuItem.menu)
+
+    if (selectFirstItem) {
+      newOpenMenus.push(Object.assign({}, ourMenuItem.menu, { selectedItem: ourMenuItem.menu.items[0] }))
+    } else {
+      newOpenMenus.push(ourMenuItem.menu)
+    }
 
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
   }
