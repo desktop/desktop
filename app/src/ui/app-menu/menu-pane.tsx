@@ -19,12 +19,6 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
 
   private list: List
 
-  private renderMenuItem = (row: number) => {
-    const item = this.props.menu.items[row]
-
-    return <MenuListItem item={item} />
-  }
-
   private onRowClick = (row: number, source: ClickSource) => {
     const item = this.props.menu.items[row]
     this.props.onItemClicked(item)
@@ -54,6 +48,12 @@ export class MenuPane extends React.Component<IMenuPaneProps, void> {
 
   private onMouseEnter = (event: React.MouseEvent<any>) => {
     this.props.onMouseEnter(this.props.depth)
+  }
+
+  private renderMenuItem = (row: number) => {
+    const item = this.props.menu.items[row]
+
+    return <MenuListItem item={item} />
   }
 
   public render(): JSX.Element {
