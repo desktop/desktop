@@ -2,6 +2,10 @@ import * as React from 'react'
 import { User } from '../../models/user'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Button } from '../lib/button'
+import { SignIn } from '../lib/sign-in'
+import { EnterpriseServerEntry } from '../lib/enterprise-server-entry'
+import { assertNever } from '../../lib/fatal-error'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 interface IAccountsProps {
   readonly dispatcher: Dispatcher
@@ -9,17 +13,20 @@ interface IAccountsProps {
   readonly enterpriseUser: User | null
 }
 
+enum SignInType {
+  DotCom,
+  Enterprise,
+}
+
 export class Accounts extends React.Component<IAccountsProps, void> {
   public render() {
     return (
       <div>
         <h2>GitHub.com</h2>
-        {this.props.dotComUser ? this.renderUser(this.props.dotComUser) : null}
-        <Button disabled={!this.props.dotComUser} onClick={this.logOutDotCom}>Log Out</Button>
+        {this.props.dotComUser ? this.renderUser(this.props.dotComUser) : this.renderSignIn(SignInType.DotCom)}
 
         <h2>Enterprise</h2>
-        {this.props.enterpriseUser ? this.renderUser(this.props.enterpriseUser) : null}
-        <Button disabled={!this.props.dotComUser} onClick={this.logOutEnterprise}>Log Out</Button>
+        {this.props.enterpriseUser ? this.renderUser(this.props.enterpriseUser) : this.renderSignIn(SignInType.Enterprise)}
       </div>
     )
   }
@@ -29,21 +36,35 @@ export class Accounts extends React.Component<IAccountsProps, void> {
       <div>
         <img className='avatar' src={user.avatarURL}/>
         <span>{user.login}</span>
+        <Button onClick={this.logout(user)}>Log Out</Button>
       </div>
     )
   }
 
-  private logOutDotCom = () => {
-    const user = this.props.dotComUser
-    if (!user) { return }
-
-    this.props.dispatcher.removeUser(user)
+  private renderSignIn(type: SignInType) {
+    switch (type) {
+      case SignInType.DotCom: {
+        return <SignIn
+          endpoint={getDotComAPIEndpoint()}
+          supportsBasicAuth={true}
+          onDidSignIn={this.onDidSignIn}/>
+      }
+      case SignInType.Enterprise: return <EnterpriseServerEntry onContinue={this.onContinue}/>
+      default: return assertNever(type, `Unknown sign in type: ${type}`)
+    }
   }
 
-  private logOutEnterprise = () => {
-    const user = this.props.enterpriseUser
-    if (!user) { return }
+  private logout = (user: User) => {
+    return () => {
+      this.props.dispatcher.removeUser(user)
+    }
+  }
 
-    this.props.dispatcher.removeUser(user)
+  private onDidSignIn = (user: User) => {
+
+  }
+
+  private onContinue = () => {
+
   }
 }
