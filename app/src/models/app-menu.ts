@@ -164,7 +164,7 @@ export class AppMenu {
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
   }
 
-  public withSelectedItem(menuItem: MenuItem, closeSubmenusBelow = false) {
+  public withSelectedItem(menuItem: MenuItem) {
     const ourMenuItem = this.menuItemById.get(menuItem.id)
 
     // The item that someone is trying to select no longer
@@ -179,9 +179,7 @@ export class AppMenu {
     // not much we can do about that.
     if (parentMenuIndex === -1) { return this }
 
-    const newOpenMenus = closeSubmenusBelow
-      ? this.openMenus.slice(0, parentMenuIndex + 1)
-      : this.openMenus.slice()
+    const newOpenMenus = this.openMenus.slice()
 
     const parentMenu = newOpenMenus[parentMenuIndex]
 
