@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { MenuPane } from './menu-pane'
 import { Dispatcher } from '../../lib/dispatcher'
-import { IMenuWithSelection } from '../../lib/app-state'
+import { IMenu, MenuItem, ISubmenuItem } from '../../models/app-menu'
 import { SelectionSource } from '../list'
 
 interface IAppMenuProps {
-  readonly state: ReadonlyArray<IMenuWithSelection>
+  readonly state: ReadonlyArray<IMenu>
   readonly dispatcher: Dispatcher
   readonly onClose: () => void
 }
@@ -41,9 +41,9 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     this.focusPane = props.state.length - 1
   }
 
-  private onItemClicked = (depth: number, item: Electron.MenuItem) => {
-    if (item.type === 'submenu') {
-      this.expandSubmenu(depth, item)
+  private onItemClicked = (item: MenuItem) => {
+    if (item.type === 'submenuItem') {
+      this.props.dispatcher.setAppMenuState(menu => menu.withOpenMenu(item))
     } else {
       const id = (item as any).id
       if (id) {
@@ -53,7 +53,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     }
   }
 
-  private onItemKeyDown = (depth: number, item: Electron.MenuItem, event: React.KeyboardEvent<any>, parentItem?: Electron.MenuItem) => {
+  private onItemKeyDown = (depth: number, item: MenuItem, event: React.KeyboardEvent<any>) => {
     if (event.key === 'ArrowLeft' || event.key === 'Escape') {
 
       // Only actually close the foldout when hitting escape
@@ -61,12 +61,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       if (depth === 0 && event.key === 'Escape') {
         this.props.onClose()
       } else {
-        // Close any open submenus below and including the current depth
-        // but never close the root menu. Note that if we're on the root
-        // menu the parentItem will be undefined but that works our well
-        // since collapseSubmenu handles that case by keeping the current
-        // selection
-        this.collapseSubmenu(Math.max(0, depth - 1), parentItem)
+        this.props.dispatcher.setAppMenuState(menu => menu.withCloseMenu(this.props.state[depth]))
       }
 
       // Focus the previous menu, this might end up being -1 which is
@@ -76,37 +71,12 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       event.preventDefault()
     } else if (event.key === 'ArrowRight') {
       // Open the submenu and select the first item
-      if (item.type === 'submenu') {
-        const submenu = item.submenu as Electron.Menu
-        this.expandSubmenu(depth, item, submenu.items[0])
+      if (item.type === 'submenuItem') {
+        this.props.dispatcher.setAppMenuState(menu => menu.withOpenMenu(item, true))
         this.focusPane = depth + 1
         event.preventDefault()
       }
     }
-  }
-
-  private expandSubmenu = (depth: number, item: Electron.MenuItem, selectedItem?: Electron.MenuItem) => {
-    const currentState = this.props.state
-    const newState = currentState.slice(0, depth + 1)
-
-    newState.push({
-      menu: item.submenu as Electron.Menu,
-      parentItem: item,
-      selectedItem,
-    })
-
-    this.props.dispatcher.setAppMenuState(newState)
-  }
-
-  private collapseSubmenu = (depth: number, selectedItem?: Electron.MenuItem) => {
-    const currentState = this.props.state
-    const newState = currentState.slice(0, depth + 1)
-
-    if (selectedItem) {
-      newState[depth] = Object.assign({}, newState[depth], { selectedItem })
-    }
-
-    this.props.dispatcher.setAppMenuState(newState)
   }
 
   private clearExpandCollapseTimer() {
@@ -116,56 +86,41 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     }
   }
 
-  private scheduleExpand(depth: number, item: Electron.MenuItem) {
+  private scheduleExpand(item: ISubmenuItem) {
     this.clearExpandCollapseTimer()
     this.expandCollapseTimer = window.setTimeout(() => {
-      this.expandSubmenu(depth, item)
+      this.props.dispatcher.setAppMenuState(menu => menu.withOpenMenu(item))
     }, 500)
   }
 
-  private scheduleCollapse(depth: number) {
+  private scheduleCollapseTo(menu: IMenu) {
     this.clearExpandCollapseTimer()
     this.expandCollapseTimer = window.setTimeout(() => {
-      this.collapseSubmenu(depth)
+      this.props.dispatcher.setAppMenuState(am => am.withLastMenu(menu))
     }, 500)
   }
 
-  private onSelectionChanged = (depth: number, item: Electron.MenuItem, source: SelectionSource) => {
+  private onSelectionChanged = (depth: number, item: MenuItem, source: SelectionSource) => {
     this.clearExpandCollapseTimer()
-
-    // Create a copy of the current state
-    const newState = this.props.state.slice()
-
-    // Update the currently active menu with the newly selected item
-    newState[depth] = Object.assign({}, newState[depth], { selectedItem: item })
 
     if (source.kind === 'keyboard') {
       // Immediately close any open submenus if we're navigating by keyboard.
-      newState.splice(depth + 1)
+      this.props.dispatcher.setAppMenuState(appMenu => appMenu
+        .withSelectedItem(item)
+        .withLastMenu(this.props.state[depth])
+      )
     } else {
       // If the newly selected item is a submenu we'll wait a bit and then expand
       // it unless the user makes another selection in between. If it's not then
       // we'll make sure to collapse any open menu below this level.
-      if (item.type === 'submenu') {
-        this.scheduleExpand(depth, item)
+      if (item.type === 'submenuItem') {
+        this.scheduleExpand(item)
       } else {
-        this.scheduleCollapse(depth)
+        this.scheduleCollapseTo(this.props.state[depth])
       }
-    }
 
-    // All submenus below the active menu should have their selection cleared
-    for (let i = depth + 1; i < newState.length; i++) {
-      newState[i] =  Object.assign({}, newState[i], { selectedItem: undefined })
+      this.props.dispatcher.setAppMenuState(menu => menu.withSelectedItem(item))
     }
-
-    // Ensure that the path that lead us to the currently selected menu is
-    // selected. i.e. all menus above the currently active menu should have
-    // their selection reset to point to the currently active menu.
-    for (let i = depth - 1; i >= 0; i--) {
-      newState[i] =  Object.assign({}, newState[i], { selectedItem: newState[i + 1].parentItem })
-    }
-
-    this.props.dispatcher.setAppMenuState(newState)
   }
 
   private onMenuPaneRef = (pane: MenuPane) => {
@@ -174,18 +129,16 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     }
   }
 
-  private renderMenuPane(depth: number, menu: IMenuWithSelection): JSX.Element {
+  private renderMenuPane(depth: number, menu: IMenu): JSX.Element {
     return (
       <MenuPane
         key={depth}
         ref={this.onMenuPaneRef}
         depth={depth}
-        menu={menu.menu}
+        menu={menu}
         onItemClicked={this.onItemClicked}
         onItemKeyDown={this.onItemKeyDown}
         onSelectionChanged={this.onSelectionChanged}
-        selectedItem={menu.selectedItem}
-        parentItem={menu.parentItem}
       />
     )
   }
