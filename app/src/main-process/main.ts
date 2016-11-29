@@ -59,9 +59,6 @@ app.on('ready', () => {
   const now = Date.now()
   readyTime = now - launchTime
 
-  // the network module can only be resolved after the app is ready
-  network = require('electron').net
-
   app.setAsDefaultProtocolClient('x-github-client')
   // Also support Desktop Classic's protocols.
   if (__DARWIN__) {
@@ -130,8 +127,13 @@ app.on('ready', () => {
   ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options }: { id: string, options: IHTTPRequest }) => {
 
     if (network === null) {
-      sharedProcess!.console.error('Electron net module not resolved, should never be in this state')
-      return
+      // the network module can only be resolved after the app is ready
+      network = require('electron').net
+
+      if (network === null) {
+        sharedProcess!.console.error('Electron net module not resolved, should never be in this state')
+        return
+      }
     }
 
     const channel = `proxy/response/${id}`
