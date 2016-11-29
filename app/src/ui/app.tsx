@@ -26,6 +26,7 @@ import { getDotComAPIEndpoint } from '../lib/api'
 import { MenuIDs } from '../main-process/menu'
 import { StatsStore, ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
+import { UpdateAvailable } from './updates'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -96,6 +97,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
 
       setMenuVisible(visibleItem, true)
+
+      if (state === UpdateState.UpdateReady) {
+        this.props.dispatcher.showPopup({ type: PopupType.UpdateAvailable })
+      }
     })
 
     updateStore.onError(error => {
@@ -321,6 +326,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <DiscardChanges repository={popup.repository}
                              dispatcher={this.props.dispatcher}
                              files={popup.files}/>
+    } else if (popup.type === PopupType.UpdateAvailable) {
+      return <UpdateAvailable dispatcher={this.props.dispatcher}/>
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)
