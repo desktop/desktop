@@ -12,11 +12,6 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-
-    #sign-in-form {
-      display: flex;
-      flex-direction: column;
-    }
   }
 
   #configure-git {
@@ -42,9 +37,104 @@
   .actions {
     display: flex;
     flex-direction: row;
+    margin: var(--spacing-double) 0;
 
     button {
-      margin: var(--spacing-half);
+      margin: 0 var(--spacing-half);
+      flex: 1;
     }
   }
+
+  // Styles for the commit list that's shown on the welcome screen.
+  // The styles in the `&:before` block are for the graident overlay on top
+  // of the example commit list.
+  .commit-list-example {
+    position: relative;
+
+    &:before {
+      background: linear-gradient(to bottom, var(--background-color), rgba(255,255,255,0), var(--background-color));
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    .commit {
+      padding: var(--spacing-half);
+      width: 280px;
+    }
+  }
+}
+
+.welcome-title,
+.welcome-text {
+  font-weight: var(--font-weight-light);
+  margin: 0;
+  text-align: center;
+}
+
+.welcome-title {
+  font-size: var(--font-size-lg);
+}
+
+.welcome-text {
+  font-size: var(--font-size-md);
+  width: 430px;
+}
+
+.welcome-button {
+  font-size: var(--font-size);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--spacing) 0;
+  width: 200px;
+}
+
+.forgot-password-link {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.horizontal-rule {
+  text-align: center;
+  position: relative;
+
+  &:after {
+    border-bottom: var(--base-border);
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.6em;
+  }
+
+  .horizontal-rule-content {
+    display: inline-block;
+    background: var(--background-color);
+    padding: 0 0.5em;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.sign-in-field {
+  width: 100%;
+}
+
+.sign-in-footer {
+  text-align: center;
+}
+
+.link-with-icon svg {
+  margin-left: 0.25em;
+  vertical-align: middle;
+}
+
+.sign-in-form {
+  display: flex;
+  flex-direction: column;
+  margin: var(--spacing-double) auto;
+  width: 320px;
 }

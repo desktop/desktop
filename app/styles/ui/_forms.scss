@@ -3,7 +3,9 @@ input[type='date'],
 input[type='email'],
 input[type='range'],
 input[type='search'],
-textarea {
+input[type='password'],
+textarea,
+.text-field {
   border: 1px solid var(--box-border-color);
   border-radius: var(--border-radius);
   color: currentColor;
@@ -30,4 +32,22 @@ input[type='checkbox'] {
 
 textarea {
   min-height: 100px;
+}
+
+.field-group {
+  margin: var(--spacing-half) 0;
+
+  // Setting the position to relative allows us to
+  // absolutely position things based on `.field-group` box boundaries.
+  // (See the `.forgot-password-link` styles in _welcome.scss for an example)
+  position: relative;
+}
+
+.form-errors {
+  background: var(--form-error-background);
+  border: 1px solid var(--form-error-border-color);
+  border-radius: var(--border-radius);
+  color: var(--error-color);
+  font-size: var(--font-size-sm);
+  padding: var(--spacing-half);
 }

@@ -120,3 +120,41 @@
     }
   }
 }
+
+#desktop-app-title-bar.light-title-bar {
+  @include darwin {
+    height: var(--darwin-title-bar-height);
+    z-index: 1;
+
+    background: transparent;
+    border-bottom: none;
+  }
+
+  .window-controls {
+    svg {
+      fill: #000;
+    }
+
+    button {
+      &:hover {
+        background-color: #e5e5e5;
+
+        &:active {
+          background-color: #cccccc;
+        }
+      }
+
+      &.close:hover {
+        background-color: #e81123;
+
+        svg {
+          fill: #fff;
+        }
+
+        &:active {
+          background-color: #f1707a;
+        }
+      }
+    }
+  }
+}

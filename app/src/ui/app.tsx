@@ -281,8 +281,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? <WindowControls />
       : null
 
+    const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
+
     return (
-      <div id='desktop-app-title-bar'>
+      <div className={titleBarClass} id='desktop-app-title-bar'>
         <span className='app-title'>GitHub Desktop</span>
         {winControls}
       </div>

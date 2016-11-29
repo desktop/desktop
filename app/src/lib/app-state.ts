@@ -51,6 +51,9 @@ export interface IAppState {
    * repository.
    */
   readonly sidebarWidth: number
+
+  // Whether we should hide the toolbar (and show inverted window controls)
+  readonly titleBarStyle: 'light' | 'dark'
 }
 
 export interface IAppError {

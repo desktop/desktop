@@ -320,6 +320,7 @@ export class AppStore {
       showWelcomeFlow: this.showWelcomeFlow,
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
+      titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
     }
   }
 
