@@ -2,6 +2,9 @@ import * as React from 'react'
 import { User } from '../../models/user'
 import { Dispatcher } from '../../lib/dispatcher'
 import { TabBar } from '../tab-bar'
+import { Accounts } from './accounts'
+import { Git } from './git'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
@@ -9,15 +12,21 @@ interface IPreferencesProps {
   readonly enterpriseUser: User | null
 }
 
-interface IPreferencesState {
-  readonly selectedIndex: number
+enum PreferencesTab {
+  Accounts = 0,
+  Git
 }
 
+interface IPreferencesState {
+  readonly selectedIndex: PreferencesTab
+}
+
+/** The app-level preferences component. */
 export class Preferences extends React.Component<IPreferencesProps, IPreferencesState> {
   public constructor(props: IPreferencesProps) {
     super(props)
 
-    this.state = { selectedIndex: 0 }
+    this.state = { selectedIndex: PreferencesTab.Accounts }
   }
 
   public render() {
@@ -28,8 +37,19 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
           <span>Accounts</span>
           <span>Git</span>
         </TabBar>
+
+        {this.renderActiveTab()}
       </div>
     )
+  }
+
+  private renderActiveTab() {
+    const index = this.state.selectedIndex
+    switch (index) {
+      case PreferencesTab.Accounts: return <Accounts {...this.props}/>
+      case PreferencesTab.Git: return <Git/>
+      default: return assertNever(index, `Unknown tab index: ${index}`)
+    }
   }
 
   private onTabClicked = (index: number) => {
