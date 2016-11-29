@@ -231,7 +231,7 @@ export enum AuthorizationResponseKind {
 }
 
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
-                                    { kind: AuthorizationResponseKind.Failed } |
+                                    { kind: AuthorizationResponseKind.Failed, response: IHTTPResponse } |
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: string } |
                                     { kind: AuthorizationResponseKind.Error, response: IHTTPResponse }
 
@@ -265,7 +265,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
       }
     }
 
-    return { kind: AuthorizationResponseKind.Failed }
+    return { kind: AuthorizationResponseKind.Failed, response }
   }
 
   const body = response.body as IAPIAuthorization
@@ -274,7 +274,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
     return { kind: AuthorizationResponseKind.Authorized, token }
   }
 
-  return { kind: AuthorizationResponseKind.Failed, response }
+  return { kind: AuthorizationResponseKind.Error, response }
 }
 
 /** Fetch the user authenticated by the token. */
@@ -285,9 +285,18 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 }
 
 /** Get metadata from the server. */
-export async function fetchMetadata(endpoint: string): Promise<IServerMetadata> {
+export async function fetchMetadata(endpoint: string): Promise<IServerMetadata | null> {
   const response = await request(endpoint, null, 'GET', 'meta')
-  return toCamelCase(response.body)
+  if (response.statusCode === 200) {
+    const body: IServerMetadata = toCamelCase(response.body)
+    // If the response doesn't include the field we need, then it's not a valid
+    // response.
+    if (body.verifiablePasswordAuthentication === undefined) { return null }
+
+    return body
+  } else {
+    return null
+  }
 }
 
 /** The note used for created authorizations. */

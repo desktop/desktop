@@ -26,6 +26,7 @@ import { getDotComAPIEndpoint } from '../lib/api'
 import { MenuIDs } from '../main-process/menu'
 import { StatsStore, ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
+import { UpdateAvailable } from './updates'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -96,6 +97,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
 
       setMenuVisible(visibleItem, true)
+
+      if (state === UpdateState.UpdateReady) {
+        this.props.dispatcher.showPopup({ type: PopupType.UpdateAvailable })
+      }
     })
 
     updateStore.onError(error => {
@@ -276,8 +281,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? <WindowControls />
       : null
 
+    const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
+
     return (
-      <div id='desktop-app-title-bar'>
+      <div className={titleBarClass} id='desktop-app-title-bar'>
         <span className='app-title'>GitHub Desktop</span>
         {winControls}
       </div>
@@ -321,6 +328,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <DiscardChanges repository={popup.repository}
                              dispatcher={this.props.dispatcher}
                              files={popup.files}/>
+    } else if (popup.type === PopupType.UpdateAvailable) {
+      return <UpdateAvailable dispatcher={this.props.dispatcher}/>
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)
@@ -410,14 +419,17 @@ export class App extends React.Component<IAppProps, IAppState> {
   private renderRepositoryToolbarButton() {
     const selection = this.state.selectedState
 
-    if (!selection) {
-      return null
+    const repository = selection ? selection.repository : null
+
+    let icon: OcticonSymbol
+    let title: string
+    if (repository) {
+      icon = this.iconForRepository(repository)
+      title = repository.name
+    } else {
+      icon = OcticonSymbol.repo
+      title = 'Select a repository'
     }
-
-    const repository = selection.repository
-
-    const icon = this.iconForRepository(repository)
-    const title = repository.name
 
     const isOpen = this.state.currentFoldout
       && this.state.currentFoldout.type === FoldoutType.Repository

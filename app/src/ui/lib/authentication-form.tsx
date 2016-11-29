@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { Button } from '../lib/button'
+import { Octicon, OcticonSymbol } from '../octicons'
 import {
   createAuthorization,
   AuthorizationResponse,
@@ -11,6 +12,7 @@ import {
 import { User } from '../../models/user'
 import { assertNever } from '../../lib/fatal-error'
 import { askUserToOAuth } from '../../lib/oauth'
+import { Loading } from './loading'
 
 interface IAuthenticationFormProps {
   /** The endpoint against which the user is authenticating. */
@@ -33,7 +35,7 @@ interface IAuthenticationFormState {
   readonly username: string
   readonly password: string
 
-  readonly networkRequestInFlight: boolean
+  readonly loading: boolean
   readonly response: AuthorizationResponse | null
 }
 
@@ -42,12 +44,12 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   public constructor(props: IAuthenticationFormProps) {
     super(props)
 
-    this.state = { username: '', password: '', networkRequestInFlight: false, response: null }
+    this.state = { username: '', password: '', loading: false, response: null }
   }
 
   public render() {
     return (
-      <form id='sign-in-form' onSubmit={this.signIn}>
+      <form className='sign-in-form' onSubmit={this.signIn}>
         {this.renderUsernamePassword()}
 
         {this.renderError()}
@@ -60,17 +62,19 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   private renderUsernamePassword() {
     if (!this.props.supportsBasicAuth) { return null }
 
+    const disabled = this.state.loading
     return (
       <div>
-        <label>Username or email address
-          <input autoFocus={true} onChange={this.onUsernameChange}/>
-        </label>
+        <div className='field-group'>
+          <label htmlFor='sign-in-name'>Username or email address</label>
+          <input id='sign-in-name' className='text-field sign-in-field' disabled={disabled} autoFocus={true} onChange={this.onUsernameChange}/>
+        </div>
 
-        <label>Password
-          <input type='password' onChange={this.onPasswordChange}/>
-        </label>
-
-        <LinkButton uri={this.getForgotPasswordURL()}>Forgot password?</LinkButton>
+        <div className='field-group'>
+          <label htmlFor='sign-in-password'>Password</label>
+          <input id='sign-in-password' className='sign-in-field' type='password' disabled={disabled} onChange={this.onPasswordChange}/>
+          <LinkButton className='forgot-password-link' uri={this.getForgotPasswordURL()}>Forgot password?</LinkButton>
+        </div>
 
         {this.renderActions()}
       </div>
@@ -78,11 +82,12 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   }
 
   private renderActions() {
-    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length)
+    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length || this.state.loading)
     return (
       <div className='actions'>
         {this.props.supportsBasicAuth ? <Button type='submit' disabled={signInDisabled}>Sign in</Button> : null}
         {this.props.additionalButtons}
+        {this.state.loading ? <Loading/> : null}
       </div>
     )
   }
@@ -91,9 +96,14 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     const basicAuth = this.props.supportsBasicAuth
     return (
       <div>
-        {basicAuth ? <div>or</div> : null}
+        {basicAuth ? <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div> : null}
 
-        <LinkButton onClick={this.signInWithBrowser}>Sign in using your browser</LinkButton>
+        <p className='sign-in-footer'>
+          <LinkButton className='welcome-link-button link-with-icon' onClick={this.signInWithBrowser}>
+            Sign in using your browser
+            <Octicon symbol={OcticonSymbol.linkExternal} />
+          </LinkButton>
+        </p>
 
         {basicAuth ? null : this.renderActions()}
       </div>
@@ -104,13 +114,19 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     const response = this.state.response
     if (!response) { return null }
 
-    const kind = response.kind
-    switch (kind) {
-      case AuthorizationResponseKind.Failed: return <div>The username or password are incorrect.</div>
-      case AuthorizationResponseKind.Error: return <div>An error occurred.</div>
+    switch (response.kind) {
+      case AuthorizationResponseKind.Failed: return <div className='form-errors'>The username or password are incorrect.</div>
+      case AuthorizationResponseKind.Error: {
+        const error = response.response.error
+        if (error) {
+          return <div className='form-errors'>An error occurred: {error.message}</div>
+        } else {
+          return <div className='form-errors'>An unknown error occurred: {response.response.statusCode}: {response.response.body}</div>
+        }
+      }
       case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return null
       case AuthorizationResponseKind.Authorized: return null
-      default: return assertNever(kind, `Unknown response kind: ${kind}`)
+      default: return assertNever(response, `Unknown response: ${response}`)
     }
   }
 
@@ -122,7 +138,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     this.setState({
       username: event.currentTarget.value,
       password: this.state.password,
-      networkRequestInFlight: this.state.networkRequestInFlight,
+      loading: this.state.loading,
       response: null,
     })
   }
@@ -131,7 +147,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     this.setState({
       username: this.state.username,
       password: event.currentTarget.value,
-      networkRequestInFlight: this.state.networkRequestInFlight,
+      loading: this.state.loading,
       response: null,
     })
   }
@@ -149,7 +165,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     this.setState({
       username,
       password,
-      networkRequestInFlight: true,
+      loading: true,
       response: null,
     })
 
@@ -166,7 +182,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
       this.setState({
         username,
         password,
-        networkRequestInFlight: false,
+        loading: false,
         response,
       })
     }

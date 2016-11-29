@@ -1,4 +1,5 @@
 import { app, Menu, MenuItem, ipcMain, BrowserWindow } from 'electron'
+import * as http from 'http'
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
@@ -175,10 +176,19 @@ app.on('ready', () => {
           }
         }
 
+        // emulating the rules from got for propagating errors
+        // source: https://github.com/sindresorhus/got/blob/88a8ac8ac3d8ee2387983048368205c0bbe4abdf/index.js#L352-L357
+        let error: Error | undefined
+        if (statusCode < 200 || statusCode >= 400) {
+          const statusMessage = http.STATUS_CODES[statusCode]
+          error = new Error(`Response code ${statusCode} (${statusMessage})`)
+        }
+
         const payload: IHTTPResponse = {
           statusCode,
           headers,
           body,
+          error
         }
 
         event.sender.send(channel, { response: payload })

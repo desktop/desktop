@@ -35,8 +35,8 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, IS
   public render() {
     return (
       <div id='sign-in-enterprise'>
-        <h1>Sign in to your GitHub Enterprise server</h1>
-        <div>Get started by signing into GitHub Enterprise</div>
+        <h1 className='welcome-title'>Sign in to your GitHub Enterprise server</h1>
+        <p className='welcome-text'>Get started by signing into GitHub Enterprise</p>
 
         {this.renderStep()}
       </div>
@@ -52,7 +52,7 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, IS
         endpoint={step.endpoint}
         supportsBasicAuth={step.authMethods.has(AuthenticationMethods.BasicAuth)}
         additionalButtons={[
-          <Button key='cancel' onClick={this.cancel}>Cancel</Button>,
+          <Button className='secondary-button' key='cancel' onClick={this.cancel}>Cancel</Button>,
         ]}
         onDidSignIn={this.onDidSignIn}/>
     } else {

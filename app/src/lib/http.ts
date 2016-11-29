@@ -10,6 +10,8 @@ export interface IHTTPResponse {
   readonly headers?: { [key: string]: any; },
   /** The deserialized JSON response body */
   readonly body?: Object
+  /** An error if one occurred. */
+  readonly error?: Error
 }
 
 /** The HTTP request to map to Electron's net module */
@@ -69,4 +71,14 @@ export function request(endpoint: string, authorization: string | null, method: 
   }
 
   return proxyRequest(options)
+
+  //return got(url, options).catch((e: any) => {
+  //  const response = e.response
+  //  if (response) {
+  //    response.error = e
+  //    return response
+  //  } else {
+  //    throw e
+  //  }
+  //})
 }

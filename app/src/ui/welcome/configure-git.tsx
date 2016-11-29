@@ -61,27 +61,29 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     const emoji = new Map()
     return (
       <div id='configure-git'>
-        <h1>Configure Git</h1>
-        <div className='description'>This is used to identify the commits you create. Anyone will be able to see this information if you publish commits.</div>
+        <h1 className='welcome-title'>Configure Git</h1>
+        <p className='welcome-text'>
+          This is used to identify the commits you create. Anyone will be able to see this information if you publish commits.
+        </p>
 
-        <form onSubmit={this.continue}>
-          <label>
-            Name
-            <input placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
-          </label>
+        <form className='sign-in-form' onSubmit={this.continue}>
+          <div className='field-group'>
+            <label htmlFor='git-name'>Name</label>
+            <input id='git-name' className='sign-in-field text-field' placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
+          </div>
 
-          <label>
-            Email
-            <input placeholder='hubot@github.com' value={this.state.email} onChange={this.onEmailChange}/>
-          </label>
+          <div className='field-group'>
+            <label htmlFor='git-email'>Email</label>
+            <input id='git-email' className='sign-in-field text-field' placeholder='hubot@github.com' value={this.state.email} onChange={this.onEmailChange}/>
+          </div>
 
           <div className='actions'>
             <button type='submit'>Continue</button>
-            <button onClick={this.cancel}>Cancel</button>
+            <button className='secondary-button' onClick={this.cancel}>Cancel</button>
           </div>
         </form>
 
-        <div id='commit-list'>
+        <div id='commit-list' className='commit-list-example'>
           <CommitListItem commit={dummyCommit1} emoji={emoji} avatarURL={null}/>
           <CommitListItem commit={dummyCommit2} emoji={emoji} avatarURL={this.state.avatarURL}/>
           <CommitListItem commit={dummyCommit3} emoji={emoji} avatarURL={null}/>
