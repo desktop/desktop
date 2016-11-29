@@ -8,6 +8,7 @@ import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
+import { IMenu } from '../models/app-menu'
 
 export { ICloningRepositoryState }
 export { ICommitMessage }
@@ -32,7 +33,7 @@ export interface IAppState {
   readonly loading: boolean
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
-  readonly appMenuState: ReadonlyArray<IMenuWithSelection>
+  readonly appMenuState: ReadonlyArray<IMenu>
 
   readonly errors: ReadonlyArray<IAppError>
 
@@ -52,12 +53,6 @@ export interface IAppState {
    * repository.
    */
   readonly sidebarWidth: number
-}
-
-export interface IMenuWithSelection {
-  readonly menu: Electron.Menu
-  readonly parentItem?: Electron.MenuItem
-  readonly selectedItem?: Electron.MenuItem
 }
 
 export interface IAppError {

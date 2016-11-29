@@ -5,7 +5,6 @@ import {
   IRepositoryState,
   IHistoryState,
   IAppState,
-  IMenuWithSelection,
   RepositorySection,
   IChangesState,
   Popup,
@@ -35,6 +34,7 @@ import { assertNever } from '../fatal-error'
 import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
+import { AppMenu } from '../../models/app-menu'
 
 import {
   getGitDir,
@@ -120,8 +120,7 @@ export class AppStore {
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
 
-  private appMenu: Electron.Menu | null = null
-  private appMenuState: ReadonlyArray<IMenuWithSelection> = []
+  private appMenu: AppMenu | null = null
 
   private sidebarWidth: number = defaultSidebarWidth
 
@@ -324,7 +323,7 @@ export class AppStore {
       showWelcomeFlow: this.showWelcomeFlow,
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
-      appMenuState: this.appMenuState,
+      appMenuState: this.appMenu ? this.appMenu.openMenus : [ ],
     }
   }
 
@@ -1360,24 +1359,24 @@ export class AppStore {
   }
 
   public _setAppMenu(menu: Electron.Menu): Promise<void> {
-    this.appMenu = menu
+    this.appMenu = AppMenu.fromElectronMenu(menu)
     this.emitUpdate()
     return this._resetAppMenuState()
   }
 
-  public _setAppMenuState(state: ReadonlyArray<IMenuWithSelection>): Promise<void> {
-    this.appMenuState = state
-    this.emitUpdate()
+  public _setAppMenuState(update: (appMenu: AppMenu) => AppMenu): Promise<void> {
+    if (this.appMenu) {
+      this.appMenu = update(this.appMenu)
+      this.emitUpdate()
+    }
     return Promise.resolve()
   }
 
   public _resetAppMenuState(): Promise<void> {
     if (this.appMenu) {
-      this.appMenuState = [ { menu: this.appMenu } ]
-    } else {
-      this.appMenuState = [ ]
+      this.appMenu = this.appMenu.withReset()
+      this.emitUpdate()
     }
-    this.emitUpdate()
     return Promise.resolve()
   }
 }
