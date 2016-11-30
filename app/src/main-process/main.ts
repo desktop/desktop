@@ -146,7 +146,6 @@ app.on('ready', () => {
     }
 
     const request = network.request(requestOptions)
-
     request.on('response', (response: Electron.IncomingMessage) => {
 
       const responseBody: Array<number> = [ ]
@@ -157,16 +156,15 @@ app.on('ready', () => {
       })
 
       response.on('data', (chunk: Buffer) => {
+        // rather than decode the bytes immediately, push them onto an array
+        // and defer this until the entire response has been received
         chunk.forEach(v => responseBody.push(v))
       })
 
       response.on('end', () => {
-
         const statusCode = response.statusCode
         const headers = response.headers
         const contentType = getContentType(response)
-
-        let body: Object | undefined
 
         // central is currently serving a 204 with a string as JSON for usage stats
         // https://github.com/github/central/blob/master/app/controllers/api/usage.rb#L51
@@ -174,6 +172,7 @@ app.on('ready', () => {
         const validStatusCode = statusCode >= 200 && statusCode <= 299 && statusCode !== 204
         const isJsonResponse = contentType === 'application/json'
 
+        let body: Object | undefined
         if (responseBody.length > 0 && validStatusCode && isJsonResponse) {
           let text: string | undefined
           try {
