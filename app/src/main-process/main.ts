@@ -188,7 +188,7 @@ app.on('ready', () => {
           statusCode,
           headers,
           body,
-          error
+          error,
         }
 
         event.sender.send(channel, { response: payload })
