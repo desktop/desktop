@@ -127,6 +127,13 @@ export class AppStore {
    */
   private appMenu: AppMenu | null = null
 
+  /**
+   * Used to add a highligt class to the app menu toolbar icon
+   * when the Alt key is pressed. Only applicable on non-macOS
+   * platforms.
+   */
+  private highlightAppMenuToolbarButton: boolean = false
+
   private sidebarWidth: number = defaultSidebarWidth
 
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore) {
@@ -330,6 +337,7 @@ export class AppStore {
       sidebarWidth: this.sidebarWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [ ],
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
+      highlightAppMenuToolbarButton: this.highlightAppMenuToolbarButton,
     }
   }
 
@@ -1375,6 +1383,13 @@ export class AppStore {
       this.appMenu = update(this.appMenu)
       this.emitUpdate()
     }
+    return Promise.resolve()
+  }
+
+  public _setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
+    this.highlightAppMenuToolbarButton = highlight
+    this.emitUpdate()
+
     return Promise.resolve()
   }
 }

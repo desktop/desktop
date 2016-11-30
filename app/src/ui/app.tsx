@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 import { ipcRenderer, remote } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
@@ -42,6 +43,9 @@ interface IAppProps {
 }
 
 export class App extends React.Component<IAppProps, IAppState> {
+
+  private altKeyPressed = false
+
   public constructor(props: IAppProps) {
     super(props)
 
@@ -250,6 +254,56 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.handleDragAndDrop(files)
       e.preventDefault()
     }
+
+    if (renderApplicationMenu()) {
+      window.addEventListener('keydown', this.onWindowKeyDown)
+      window.addEventListener('keyup', this.onWindowKeyUp)
+    }
+  }
+
+  /**
+   * On Windows pressing the Alt key and holding it down should
+   * highlight the application menu.
+   *
+   * It really should show the menu
+   * and highlight the access keys for the menu items but we're not
+   * quite there yet so this will have to suffice in the meantime.
+   *
+   * This method in conjunction with the onWindowKeyUp sets the
+   * appMenuToolbarHighlight state when the Alt key (and only the
+   * Alt key) is pressed.
+   */
+  private onWindowKeyDown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented) { return }
+
+    if (event.key === 'Alt' && renderApplicationMenu()) {
+      this.altKeyPressed = true
+      this.props.dispatcher.setAppMenuToolbarButtonHighlightState(true)
+    } else if (this.altKeyPressed) {
+      this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
+      this.altKeyPressed = false
+    }
+  }
+
+  /**
+   * Open the application menu foldout when the Alt key is pressed.
+   *
+   * See onWindowKeyDown for more information.
+   */
+  private onWindowKeyUp = (event: KeyboardEvent) => {
+    if (event.defaultPrevented) { return }
+
+    if (event.key === 'Alt' && this.altKeyPressed && renderApplicationMenu()) {
+      this.altKeyPressed = false
+      this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
+
+      if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+        this.props.dispatcher.closeFoldout()
+      } else {
+        this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu })
+      }
+      event.preventDefault()
+    }
   }
 
   private handleDragAndDrop(fileList: FileList) {
@@ -434,11 +488,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       && this.state.currentFoldout.type === FoldoutType.AppMenu
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
+    const className = classNames(
+      'app-menu',
+      { 'highlight': this.state.highlightAppMenuToolbarButton },
+    )
 
     return <ToolbarDropdown
+      className={className}
       icon={OcticonSymbol.threeBars}
       title='Menu'
-      className='app-menu'
       onDropdownStateChanged={this.onAppMenuDropdownStateChanged}
       dropdownContentRenderer={this.renderAppMenu}
       dropdownState={currentState} />

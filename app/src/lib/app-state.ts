@@ -73,6 +73,13 @@ export interface IAppState {
 
   // Whether we should hide the toolbar (and show inverted window controls)
   readonly titleBarStyle: 'light' | 'dark'
+
+  /**
+   * Used to add a highligt class to the app menu toolbar icon
+   * when the Alt key is pressed. Only applicable on non-macOS
+   * platforms.
+   */
+  readonly highlightAppMenuToolbarButton: boolean
 }
 
 export interface IAppError {

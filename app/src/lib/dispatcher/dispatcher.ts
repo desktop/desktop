@@ -435,4 +435,14 @@ export class Dispatcher {
     executeMenuItem(item)
     return Promise.resolve()
   }
+
+  /**
+   * Set whether or not to to add a highligt class to the app menu toolbar icon.
+   * Used to highlight the button when the Alt key is pressed.
+   *
+   * Only applicable on non-macOS platforms.
+   */
+  public setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
+    return this.appStore._setAppMenuToolbarButtonHighlightState(highlight)
+  }
 }

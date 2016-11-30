@@ -8,6 +8,10 @@
   .icon {
     margin: 0 var(--spacing);
   }
+
+  &.highlight {
+    background: var(--toolbar-button-hover-background-color);
+  }
 }
 
 #app-menu-foldout {
