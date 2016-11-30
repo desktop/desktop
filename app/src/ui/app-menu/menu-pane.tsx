@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { List, ClickSource, SelectionSource } from '../list'
 import { MenuItem } from '../../models/app-menu'
-import { MenuListItem, IMenuListItemProps } from './menu-list-item'
+import { MenuListItem } from './menu-list-item'
 
 interface IMenuPaneProps {
   readonly depth: number
@@ -15,22 +15,16 @@ interface IMenuPaneProps {
 }
 
 interface IMenuPaneState {
-  readonly items: ReadonlyArray<IMenuListItemProps>
+  readonly items: ReadonlyArray<MenuItem>
   readonly selectedIndex: number
 }
 
 const RowHeight = 30
 const SeparatorRowHeight = 10
 
-function createListItemProps(items: ReadonlyArray<MenuItem>): ReadonlyArray<IMenuListItemProps> {
-  return items
-    .filter(i => i.visible)
-    .map(i => { return { item: i } })
-}
-
-function getSelectedIndex(selectedItem: MenuItem | undefined, items: ReadonlyArray<IMenuListItemProps>) {
+function getSelectedIndex(selectedItem: MenuItem | undefined, items: ReadonlyArray<MenuItem>) {
   return selectedItem
-    ? items.findIndex(i => i.item.id === selectedItem.id)
+    ? items.findIndex(i => i.id === selectedItem.id)
     : -1
 }
 
@@ -59,14 +53,29 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
 
   private createState(props: IMenuPaneProps): IMenuPaneState {
 
-    const items = createListItemProps(props.items)
-    const selectedIndex = getSelectedIndex(props.selectedItem, items)
+    const items = new Array<MenuItem>()
+    const selectedItem = this.props.selectedItem
+
+    let selectedIndex = -1
+
+    // Filter out all invisible items and maintain the correct
+    // selected index (if possible)
+    for (let i = 0; i < props.items.length; i++) {
+      const item = props.items[i]
+
+      if (item.visible) {
+        items.push(item)
+        if (item === selectedItem) {
+          selectedIndex = items.length - 1
+        }
+      }
+    }
 
     return { items, selectedIndex }
   }
 
   private onRowClick = (row: number, source: ClickSource) => {
-    const item = this.state.items[row].item
+    const item = this.state.items[row]
 
     if (item.type !== 'separator' && item.enabled) {
       this.props.onItemClicked(item)
@@ -74,17 +83,17 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
   }
 
   private onSelectionChanged = (row: number, source: SelectionSource) => {
-    const item = this.state.items[row].item
+    const item = this.state.items[row]
     this.props.onSelectionChanged(this.props.depth, item, source)
   }
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
-    const item = this.state.items[row].item
+    const item = this.state.items[row]
     this.props.onItemKeyDown(this.props.depth, item, event)
   }
 
   private canSelectRow = (row: number) => {
-    const item = this.state.items[row].item
+    const item = this.state.items[row]
 
     if (item.type === 'separator') { return false }
 
@@ -100,13 +109,13 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
   }
 
   private renderMenuItem = (row: number) => {
-    const props = this.state.items[row]
+    const item = this.state.items[row]
 
-    return <MenuListItem key={props.item.id} {...props} />
+    return <MenuListItem key={item.id} item={item} />
   }
 
   private rowHeight = (info: { index: number }) => {
-    const item = this.state.items[info.index].item
+    const item = this.state.items[info.index]
     return item.type === 'separator' ? SeparatorRowHeight : RowHeight
   }
 
