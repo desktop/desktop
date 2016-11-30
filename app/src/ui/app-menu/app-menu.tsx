@@ -141,6 +141,9 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
 
     if (selectedItem) {
       this.props.dispatcher.setAppMenuState(m => m.withSelectedItem(selectedItem))
+    } else {
+      // This ensures that the selection to this menu is reset.
+      this.props.dispatcher.setAppMenuState(m => m.withDeselectedMenu(paneMenu))
     }
 
     this.focusPane = depth
