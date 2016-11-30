@@ -49,7 +49,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     if (item.type === 'submenuItem') {
       this.props.dispatcher.setAppMenuState(menu => menu.withOpenMenu(item))
     } else {
-      this.props.dispatcher.executeMenuItem(item.id)
+      this.props.dispatcher.executeMenuItem(item)
       this.props.onClose()
     }
   }
