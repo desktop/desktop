@@ -8,14 +8,14 @@ interface IConfigureGitProps {
   /** The logged-in users. */
   readonly users: ReadonlyArray<User>
 
-  /** Called when the user cancels. */
-  readonly cancel: () => void
+  /** Called after the user has chosen to save their config. */
+  readonly onDidSave?: () => void
 
-  /** Called when the user has chosen to save their config. */
-  readonly done: () => void
+  /** The label for the button which saves config changes. */
+  readonly saveLabel?: string
 
-  /** The label for the done button. */
-  readonly doneLabel: string
+  /** Additional elements that are rendered below the form. */
+  readonly children?: ReadonlyArray<JSX.Element>
 }
 
 interface IConfigureGitState {
@@ -68,7 +68,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     const emoji = new Map()
     return (
       <div id='configure-git'>
-        <form className='sign-in-form' onSubmit={this.continue}>
+        <form className='sign-in-form' onSubmit={this.save}>
           <div className='field-group'>
             <label htmlFor='git-name'>Name</label>
             <input id='git-name' className='sign-in-field text-field' placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
@@ -80,8 +80,8 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
           </div>
 
           <div className='actions'>
-            <button type='submit'>{this.props.doneLabel}</button>
-            <button className='secondary-button' onClick={this.cancel}>Cancel</button>
+            <button type='submit'>{this.props.saveLabel || 'Save'}</button>
+            {this.props.children}
           </div>
         </form>
 
@@ -118,10 +118,12 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     return matchingUser ? matchingUser.avatarURL : null
   }
 
-  private continue = async (event: React.FormEvent<HTMLFormElement>) => {
+  private save = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    this.props.done()
+    if (this.props.onDidSave) {
+      this.props.onDidSave()
+    }
 
     const name = this.state.name
     if (name.length) {
@@ -132,11 +134,5 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     if (email.length) {
       await setGlobalConfigValue('user.email', email)
     }
-  }
-
-  private cancel = (event: React.FormEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-
-    this.props.cancel()
   }
 }

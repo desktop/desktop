@@ -10,16 +10,8 @@ export class Git extends React.Component<IGitProps, void> {
   public render() {
     return (
       <div>
-        <ConfigureGit users={this.props.users} cancel={this.cancel} done={this.done} doneLabel='Done'/>
+        <ConfigureGit users={this.props.users}/>
       </div>
     )
-  }
-
-  private cancel = () => {
-
-  }
-
-  private done = () => {
-
   }
 }
