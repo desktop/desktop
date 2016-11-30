@@ -149,7 +149,7 @@ app.on('ready', () => {
 
     request.on('response', (response: Electron.IncomingMessage) => {
 
-      let text: string = ''
+      let responseBody: Array<number> = [ ]
       const encoding = getEncoding(response)
 
       response.on('abort', () => {
@@ -157,26 +157,28 @@ app.on('ready', () => {
       })
 
       response.on('data', (chunk: Buffer) => {
-        text += chunk.toString(encoding)
+        chunk.forEach(v => responseBody.push(v))
       })
 
       response.on('end', () => {
 
         const statusCode = response.statusCode
         const headers = response.headers
+        const contentType = getContentType(response)
 
         let body: Object | undefined
-        // there's more to do here around parsing the body
-        // but for now this works around a joke that has been placed on me
 
         // central is currently serving a 204 with a string as JSON for usage stats
         // https://github.com/github/central/blob/master/app/controllers/api/usage.rb#L51
         // once this has been fixed, simplify this check
         const validStatusCode = statusCode >= 200 && statusCode <= 299 && statusCode !== 204
-        const isJsonResponse = getContentType(response) === 'application/json'
+        const isJsonResponse = contentType === 'application/json'
 
-        if (text.length > 0 && validStatusCode && isJsonResponse) {
+        if (responseBody.length > 0 && validStatusCode && isJsonResponse) {
+          let text: string | undefined
           try {
+            const buffer = Buffer.from(responseBody)
+            text = buffer.toString(encoding)
             body = JSON.parse(text)
           } catch (e) {
             sharedProcess!.console.log(`JSON.parse failed for: '${text}'`)

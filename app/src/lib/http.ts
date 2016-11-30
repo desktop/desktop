@@ -31,13 +31,26 @@ export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
 /** Resolve a given header on the HTTP response */
 export function getHeader(response: IHTTPResponse, key: string): string | null {
-  const headers = response.headers as any
-  const header = headers[key]
-  if (header) {
-    // TODO: for now, we just give the first value
-    const value: string = header[0]
-    return value
+  if (!response.headers) {
+    return null
   }
+
+  const keyLower = key.toUpperCase()
+
+  for(const k in response.headers) {
+    const key = k.toUpperCase()
+
+    if (key === keyLower) {
+      const header = response.headers[k]
+      if (header) {
+        // TODO: for now, we just give the first value
+        const value: string = header[0]
+        return value
+      }
+      return null
+    }
+  }
+
   return null
 }
 
