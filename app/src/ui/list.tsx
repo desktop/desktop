@@ -85,8 +85,12 @@ interface IListProps {
    * The height of each individual row in the list. This height
    * is enforced for each row container and attempting to render a row
    * which does not fit inside that height is forbidden.
+   *
+   * Can either be a number (most efficient) in which case all rows
+   * are of equal height, or, a function that, given a row index returns
+   * the height of that particular row.
    */
-  readonly rowHeight: number
+  readonly rowHeight: number | ((info: { index: number }) => number)
 
   /**
    * The currently selected row index. Used to attach a special
@@ -416,13 +420,24 @@ export class List extends React.Component<IListProps, void> {
    *
    */
   private renderFakeScroll(height: number) {
+
+    let totalHeight: number = 0
+
+    if (typeof this.props.rowHeight === 'number') {
+      totalHeight = this.props.rowHeight * this.props.rowCount
+    } else {
+      for (let i = 0; i < this.props.rowCount; i++) {
+        totalHeight += this.props.rowHeight({ index: i })
+      }
+    }
+
     return (
       <div
         className='fake-scroll'
         ref={this.onFakeScrollRef}
         style={{ height }}
         onScroll={this.onFakeScroll}>
-        <div style={{ height: this.props.rowHeight * this.props.rowCount, pointerEvents: 'none' }}></div>
+        <div style={{ height: totalHeight, pointerEvents: 'none' }}></div>
       </div>
     )
   }
