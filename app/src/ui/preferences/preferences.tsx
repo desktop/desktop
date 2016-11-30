@@ -47,7 +47,20 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     const index = this.state.selectedIndex
     switch (index) {
       case PreferencesTab.Accounts: return <Accounts {...this.props}/>
-      case PreferencesTab.Git: return <Git/>
+      case PreferencesTab.Git: {
+        const users: User[] = []
+        const dotComUser = this.props.dotComUser
+        if (dotComUser) {
+          users.push(dotComUser)
+        }
+
+        const enterpriseUser = this.props.enterpriseUser
+        if (enterpriseUser) {
+          users.push(enterpriseUser)
+        }
+
+        return <Git users={users}/>
+      }
       default: return assertNever(index, `Unknown tab index: ${index}`)
     }
   }

@@ -13,7 +13,14 @@ interface IConfigureGitProps {
 export class ConfigureGit extends React.Component<IConfigureGitProps, void> {
   public render() {
     return (
-      <ConfigureGitComponent users={this.props.users} done={this.done} cancel={this.cancel} doneLabel='Continue'/>
+      <div id='configure-git'>
+        <h1 className='welcome-title'>Configure Git</h1>
+        <p className='welcome-text'>
+          This is used to identify the commits you create. Anyone will be able to see this information if you publish commits.
+        </p>
+
+        <ConfigureGitComponent users={this.props.users} done={this.done} cancel={this.cancel} doneLabel='Continue'/>
+      </div>
     )
   }
 

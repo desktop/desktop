@@ -68,11 +68,6 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     const emoji = new Map()
     return (
       <div id='configure-git'>
-        <h1 className='welcome-title'>Configure Git</h1>
-        <p className='welcome-text'>
-          This is used to identify the commits you create. Anyone will be able to see this information if you publish commits.
-        </p>
-
         <form className='sign-in-form' onSubmit={this.continue}>
           <div className='field-group'>
             <label htmlFor='git-name'>Name</label>
