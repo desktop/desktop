@@ -61,24 +61,6 @@ If you're using [Atom](https://atom.io/) there's some plugins that you might wan
 * [atom-build-npm-apm](https://atom.io/packages/build-npm-apm) - Lets you invoke all npm scripts straight from the editor by pressing F7 (requires [atom-build](https://atom.io/packages/build))
 * [linter](https://atom.io/packages/linter) and [linter-tslint](https://atom.io/packages/linter-tslint) - Shows linter errors and warning in the editor
 
-### Using Atom with Typescript 2
-
-Atom-typescript doesn't support TS 2 out of the box right now so you have to [manually specify the path to typescriptServices.js](https://github.com/TypeStrong/atom-typescript/issues/1003#issuecomment-231793772).
-
-Start by installing Typescript 2 globally
-
-`npm install -g typescript@latest`
-
-Then switch to atom and follow these steps
-
-1. Open Settings
-2. Go to Packages
-3. Locate the atom-typescript package and select settings
-4. Under settings, locate the textbox with the label 'Full path to a custom 'typescriptServices.js'
-5. Provide the path
- * For Mac: `/usr/local/lib/node_modules/typescript/lib/typescriptServices.js`
- * For Windows: `C:\Users\[YOUR USERNAME]\AppData\Roaming\npm\node_modules\typescript\lib\typescriptServices.js`
-
 ## Troubleshooting
 
 ### Issues compiling node-keytar on Windows
