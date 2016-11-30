@@ -88,6 +88,11 @@ export interface IMenu {
   readonly selectedItem?: MenuItem
 }
 
+/**
+ * Creates an instance of one of the types in the MenuItem type union based
+ * on an Electron MenuItem instance. Will recurse through all sub menus and
+ * convert each item.
+ */
 function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
   const id = (menuItem as any).id
   if (!id) {
@@ -116,12 +121,20 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
       throw new Error(`Unknown menu item type ${menuItem.type}`)
   }
 }
-
+/**
+ * Creates a IMenu instance based on an Electron Menu instance.
+ * Will recurse through all sub menus and convert each item using
+ * menuItemFromElectronMenuItem.
+ */
 function menuFromElectronMenu(id: string | undefined, menu: Electron.Menu, selectedItem?: MenuItem): IMenu {
   const items = menu.items.map(menuItemFromElectronMenuItem)
   return { id, type: 'menu', items, selectedItem }
 }
 
+/**
+ * Creates a map between MenuItem ids and MenuItems by recursing
+ * through all items and all submenus.
+ */
 function buildIdMap(menu: IMenu, map = new Map<string, MenuItem>()): Map<string, MenuItem> {
   for (const item of menu.items) {
     map.set(item.id, item)
