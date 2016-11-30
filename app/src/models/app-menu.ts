@@ -94,7 +94,11 @@ export interface IMenu {
  * convert each item.
  */
 function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
-  const id = (menuItem as any).id
+
+  // Our menu items always have ids and Electron.MenuItem takes on whatever
+  // properties was defined on the MenuItemOptions template used to create it
+  // but doesn't surface those in the type declaration.
+  const id: string | undefined = (menuItem as any).id
   if (!id) {
     throw new Error(`menuItem must specify id: ${menuItem.label}`)
   }
@@ -125,10 +129,16 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
  * Creates a IMenu instance based on an Electron Menu instance.
  * Will recurse through all sub menus and convert each item using
  * menuItemFromElectronMenuItem.
+ *
+ * @param menu - The electron menu instance to convert into an
+ *               IMenu instance
+ *
+ * @param id   - The id of the menu. Menus share their id with
+ *               their parent item. The root menu id is undefined.
  */
-function menuFromElectronMenu(menu: Electron.Menu, selectedItem?: MenuItem, id?: string): IMenu {
+function menuFromElectronMenu(menu: Electron.Menu, id: string | undefined): IMenu {
   const items = menu.items.map(menuItemFromElectronMenuItem)
-  return { id, type: 'menu', items, selectedItem }
+  return { id, type: 'menu', items }
 }
 
 /**
@@ -190,7 +200,7 @@ export class AppMenu {
    * from an Electron Menu instance.
    */
   public static fromElectronMenu(electronMenu: Electron.Menu): AppMenu {
-    const menu = menuFromElectronMenu(electronMenu)
+    const menu = menuFromElectronMenu(electronMenu, undefined)
     const map = buildIdMap(menu)
     const openMenus = [ menu ]
 
@@ -209,7 +219,7 @@ export class AppMenu {
    * attempting to maintain selection state.
    */
   public withElectronMenu(electronMenu: Electron.Menu): AppMenu {
-    const newMenu = menuFromElectronMenu(electronMenu)
+    const newMenu = menuFromElectronMenu(electronMenu, undefined)
     const newMap = buildIdMap(newMenu)
     const newOpenMenus = new Array<IMenu>()
 
