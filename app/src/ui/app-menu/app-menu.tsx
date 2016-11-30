@@ -44,6 +44,8 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   }
 
   private onItemClicked = (item: MenuItem) => {
+    this.clearExpandCollapseTimer()
+
     if (item.type === 'submenuItem') {
       this.props.dispatcher.setAppMenuState(menu => menu.withOpenMenu(item))
     } else {
@@ -54,6 +56,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
 
   private onItemKeyDown = (depth: number, item: MenuItem, event: React.KeyboardEvent<any>) => {
     if (event.key === 'ArrowLeft' || event.key === 'Escape') {
+      this.clearExpandCollapseTimer()
 
       // Only actually close the foldout when hitting escape
       // on the root menu
@@ -69,6 +72,8 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       this.focusPane = depth - 1
       event.preventDefault()
     } else if (event.key === 'ArrowRight') {
+      this.clearExpandCollapseTimer()
+
       // Open the submenu and select the first item
       if (item.type === 'submenuItem') {
         this.props.dispatcher.setAppMenuState(menu => menu.withOpenMenu(item, true))
@@ -129,6 +134,8 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   }
 
   private onPaneMouseEnter = (depth: number) => {
+    this.clearExpandCollapseTimer()
+
     const paneMenu = this.props.state[depth]
     const selectedItem = paneMenu.selectedItem
 
