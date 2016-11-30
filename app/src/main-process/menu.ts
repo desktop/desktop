@@ -236,7 +236,7 @@ function getItemId(template: Electron.MenuItemOptions) {
   return template.id || template.label || template.role || 'unknown'
 }
 
-function ensureItemIds(template: ReadonlyArray<Electron.MenuItemOptions>, prefix = '@', seenIds = new Set<string>()) {
+export function ensureItemIds(template: ReadonlyArray<Electron.MenuItemOptions>, prefix = '@', seenIds = new Set<string>()) {
   for (const item of template) {
     let counter = 0
     let id = item.id
