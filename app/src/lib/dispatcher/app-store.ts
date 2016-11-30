@@ -120,6 +120,11 @@ export class AppStore {
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
 
+  /**
+   * The Application menu as an AppMenu instance or null if
+   * the main process has not yet provided the renderer with
+   * a copy of the application menu structure.
+   */
   private appMenu: AppMenu | null = null
 
   private sidebarWidth: number = defaultSidebarWidth
