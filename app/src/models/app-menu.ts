@@ -1,35 +1,73 @@
+/** A type union of all possible types of menu items */
 export type MenuItem = IMenuItem | ISubmenuItem | ISeparatorMenuItem | ICheckboxMenuItem | IRadioMenuItem
+
+/** A type union of all types of menu items which can be executed */
 export type ExecutableMenuItem = IMenuItem | ICheckboxMenuItem | IRadioMenuItem
 
-export interface IBaseMenuItem {
+/**
+ * Common properties for all item types except separator.
+ * Only useful for declaring the types, not for consumption
+ */
+interface IBaseMenuItem {
   readonly id: string
   readonly enabled: boolean
   readonly visible: boolean
   readonly label: string
 }
 
+/**
+ * An interface describing the properties of a 'normal'
+ * menu item, i.e. a clickable item with a label but no
+ * other special properties.
+ */
 export interface IMenuItem extends IBaseMenuItem {
   readonly type: 'menuItem'
   readonly accelerator: string
 }
 
+/**
+ * An interface describing the properties of a
+ * submenu menu item, i.e. an item which has an associated
+ * submenu which can be expanded to reveal more menu
+ * item. Not in itself executable, only a container.
+ */
 export interface ISubmenuItem extends IBaseMenuItem {
   readonly type: 'submenuItem'
   readonly menu: IMenu
 }
 
+/**
+ * An interface describing the properties of a checkbox
+ * menu item, i.e. an item which has an associated checked
+ * state that can be toggled by executing it.
+ */
 export interface ICheckboxMenuItem extends IBaseMenuItem {
   readonly type: 'checkbox'
   readonly accelerator: string
   readonly checked: boolean
 }
 
+/**
+ * An interface describing the properties of a checkbox
+ * menu item, i.e. an item which has an associated checked
+ * state that is checked or unchecked based on application logic.
+ *
+ * The radio menu item is probably going to be used in a collection
+ * of more radio menu items where the checked item is assigned
+ * based on the last executed item in that group.
+ */
 export interface IRadioMenuItem extends IBaseMenuItem {
   readonly type: 'radio'
   readonly accelerator: string
   readonly checked: boolean
 }
 
+/**
+ * An interface describing the properties of a separator menu
+ * item, i.e. an item which sole purpose is to create separation
+ * between menu items. It has no other semantics and is purely
+ * a visual hint.
+ */
 export interface ISeparatorMenuItem {
   readonly id: string
   readonly type: 'separator'
