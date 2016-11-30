@@ -348,7 +348,6 @@ export class Diff extends React.Component<IDiffProps, void> {
         const gutterCleanup = new Disposable(() => {
           const element = this.cachedGutterElements.get(index)
           if (element) {
-            // TODO: i'm concerned about this being undefined now. like, really worried.
             element.cleanup()
           }
 
