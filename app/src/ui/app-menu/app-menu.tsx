@@ -48,7 +48,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
 
     if (item.type === 'submenuItem') {
       this.props.dispatcher.setAppMenuState(menu => menu.withOpenMenu(item))
-    } else {
+    } else if (item.type !== 'separator') {
       this.props.dispatcher.executeMenuItem(item)
       this.props.onClose()
     }

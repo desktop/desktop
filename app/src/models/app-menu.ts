@@ -1,4 +1,5 @@
 export type MenuItem = IMenuItem | ISubmenuItem | ISeparatorMenuItem | ICheckboxMenuItem | IRadioMenuItem
+export type ExecutableMenuItem = IMenuItem | ICheckboxMenuItem | IRadioMenuItem
 
 export interface IBaseMenuItem {
   readonly id: string

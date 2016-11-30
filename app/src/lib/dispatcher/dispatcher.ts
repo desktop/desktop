@@ -14,7 +14,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
 import { v4 as guid } from 'node-uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
-import { AppMenu, MenuItem } from '../../models/app-menu'
+import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -429,8 +429,9 @@ export class Dispatcher {
   }
 
   /**
+   * Tell the main process to execute (i.e. simulate a click of) the given menu item.
    */
-  public executeMenuItem(item: MenuItem): Promise<void> {
+  public executeMenuItem(item: ExecutableMenuItem): Promise<void> {
     executeMenuItem(item)
     return Promise.resolve()
   }

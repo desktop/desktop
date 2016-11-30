@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron'
 import { MenuIDs } from '../main-process/menu'
-import { MenuItem } from '../models/app-menu'
+import { ExecutableMenuItem } from '../models/app-menu'
 
 /** Set the menu item's enabledness. */
 export function setMenuEnabled(id: MenuIDs, enabled: boolean) {
@@ -18,7 +18,7 @@ export function sendReady(time: number) {
 }
 
 /** Tell the main process to execute (i.e. simulate a click of) the menu item. */
-export function executeMenuItem(item: MenuItem) {
+export function executeMenuItem(item: ExecutableMenuItem) {
   ipcRenderer.send('execute-menu-item', { id: item.id })
 }
 
