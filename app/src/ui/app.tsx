@@ -418,7 +418,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onAppMenuDropdownStateChanged = (newState: DropdownState) => {
     if (newState === 'open') {
-      this.props.dispatcher.resetAppMenuState()
+      this.props.dispatcher.setAppMenuState(menu => menu.withReset())
       this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu })
     } else {
       this.props.dispatcher.closeFoldout()

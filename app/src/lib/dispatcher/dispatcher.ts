@@ -428,10 +428,6 @@ export class Dispatcher {
     return this.appStore._setAppMenuState(update)
   }
 
-  public resetAppMenuState(): Promise<void> {
-    return this.appStore._resetAppMenuState()
-  }
-
   public executeMenuItem(id: string): Promise<void> {
     executeMenuItem(id)
     return Promise.resolve()

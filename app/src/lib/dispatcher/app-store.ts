@@ -1362,20 +1362,12 @@ export class AppStore {
   public _setAppMenu(menu: Electron.Menu): Promise<void> {
     this.appMenu = AppMenu.fromElectronMenu(menu)
     this.emitUpdate()
-    return this._resetAppMenuState()
+    return Promise.resolve()
   }
 
   public _setAppMenuState(update: (appMenu: AppMenu) => AppMenu): Promise<void> {
     if (this.appMenu) {
       this.appMenu = update(this.appMenu)
-      this.emitUpdate()
-    }
-    return Promise.resolve()
-  }
-
-  public _resetAppMenuState(): Promise<void> {
-    if (this.appMenu) {
-      this.appMenu = this.appMenu.withReset()
       this.emitUpdate()
     }
     return Promise.resolve()
