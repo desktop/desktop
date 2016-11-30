@@ -204,6 +204,19 @@ export class AppMenu {
     this.menuItemById = menuItemById
   }
 
+  /**
+   * Creates a new copy of this AppMenu instance with the given submenu open.
+   *
+   * @param submenuItem     - The item which submenu should be appended
+   *                          to the list of open menus.
+   *
+   * @param selectFirstItem - A convenience item for automatically selecting
+   *                          the first item in the newly opened menu.
+   *
+   *                          If false the new menu is opened without a selection.
+   *
+   *                          Defaults to false.
+   */
   public withOpenMenu(submenuItem: ISubmenuItem, selectFirstItem = false): AppMenu {
     const ourMenuItem = this.menuItemById.get(submenuItem.id)
 
@@ -234,6 +247,13 @@ export class AppMenu {
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
   }
 
+  /**
+   * Creates a new copy of this AppMenu instance with the given menu removed from
+   * the list of open menus.
+   *
+   * @param menu - The menu which is to be closed, i.e. removed from the
+   *              list of open menus.
+   */
   public withCloseMenu(menu: IMenu) {
     // Root menu is always open and can't be closed
     if (!menu.id) {
@@ -249,6 +269,14 @@ export class AppMenu {
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
   }
 
+  /**
+   * Creates a new copy of this AppMenu instance with the list of open menus trimmed
+   * to not include any menus below the given menu.
+   *
+   * @param menu - The last menu which is to remain in the list of open
+   *               menus, all menus below this level will be pruned from
+   *               the list of open menus.
+   */
   public withLastMenu(menu: IMenu) {
     const ourMenuIndex = this.openMenus.findIndex(m => m.id === menu.id)
 
@@ -259,6 +287,21 @@ export class AppMenu {
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
   }
 
+  /**
+   * Creates a new copy of this AppMenu instance in which the given menu item
+   * is selected.
+   *
+   * Additional semantics:
+   *
+   *  All menus leading up to the given menu item will have their
+   *  selection reset in such a fashion that the selection path
+   *  points to the given menu item.
+   *
+   *  All menus after the menu in which the given item resides
+   *  will have their selections cleared.
+   *
+   * @param menuItem - The menu item which is to be selected.
+   */
   public withSelectedItem(menuItem: MenuItem) {
     const ourMenuItem = this.menuItemById.get(menuItem.id)
 
@@ -301,6 +344,19 @@ export class AppMenu {
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
   }
 
+  /**
+   * Creates a new copy of this AppMenu instance in which the given menu has had
+   * its selection state cleared.
+   *
+   * Additional semantics:
+   *
+   *  All menus leading up to the given menu item will have their
+   *  selection reset in such a fashion that the selection path
+   *  points to the given menu.
+   *
+   * @param menu - The menu which is to have its selection state
+   *               cleared.
+   */
   public withDeselectedMenu(menu: IMenu) {
     const ourMenuIndex = this.openMenus.findIndex(m => m.id === menu.id)
 
@@ -331,6 +387,11 @@ export class AppMenu {
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
   }
 
+  /**
+   * Creates a new copy of this AppMenu instance in which all state
+   * is reset. Resetting means that only the root menu is open and
+   * all selection state is cleared.
+   */
   public withReset() {
     return new AppMenu(this.menu, [ this.menu ], this.menuItemById)
   }
