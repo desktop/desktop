@@ -408,6 +408,22 @@ export class Dispatcher {
     return this.appStore._setAppMenu(menu)
   }
 
+  /**
+   * Ask the dispatcher to apply a transformation function to the current
+   * state of the application menu.
+   *
+   * Since the dispatcher is asynchronous it's possible for components
+   * utilizing the menu state to have an out-of-date view of the state
+   * of the app menu which is why they're not allowed to transform it
+   * directly.
+   *
+   * To work around potential race conditions consumers instead pass a
+   * delegate which receives the updated application menu and allows
+   * them to perform the necessary state transitions. The AppMenu instance
+   * is itself immutable but does offer transformation methods and in
+   * order for the state to be properly updated the delegate _must_ return
+   * the latest transformed instance of the AppMenu.
+   */
   public setAppMenuState(update: (appMenu: AppMenu) => AppMenu): Promise<void> {
     return this.appStore._setAppMenuState(update)
   }
