@@ -79,6 +79,21 @@
       margin-right: var(--spacing);
       color: var(--text-secondary-color);
     }
+
+    &.checked {
+      .label {
+        margin-left: 0;
+      }
+
+      // We currently don't use this so if we start using checkboxes
+      // or radio menu items in the future we're gonna have to tweak
+      // this I'm sure. But this gives us centered icons in whatever
+      // space we have left in the space before the label.
+      .icon {
+        flex-grow: 0;
+        margin: calc((var(--spacing-double) - 16) / 2) 0;
+      }
+    }
   }
 
   hr {

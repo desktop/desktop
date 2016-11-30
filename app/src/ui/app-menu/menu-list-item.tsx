@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 
 import { Octicon, OcticonSymbol } from '../octicons'
 import { MenuItem } from '../../models/app-menu'
@@ -52,6 +53,17 @@ export function friendlyAcceleratorText(accelerator: string): string {
 
 export class MenuListItem extends React.Component<IMenuListItemProps, void> {
 
+  private getIcon(item: MenuItem): JSX.Element | null {
+
+    if (item.type === 'checkbox' && item.checked) {
+      return <Octicon className='icon' symbol={OcticonSymbol.check} />
+    } else if (item.type === 'radio' && item.checked) {
+      return <Octicon className='icon' symbol={OcticonSymbol.primitiveDot} />
+    }
+
+    return null
+  }
+
   public render() {
     const item = this.props.item
 
@@ -67,8 +79,16 @@ export class MenuListItem extends React.Component<IMenuListItemProps, void> {
       ? <div className='accelerator'>{friendlyAcceleratorText(item.accelerator)}</div>
       : null
 
+    const className = classNames(
+      'menu-item',
+      { 'checkbox': item.type === 'checkbox' },
+      { 'radio': item.type === 'radio' },
+      { 'checked': (item.type === 'checkbox' || item.type === 'radio') && item.checked },
+    )
+
     return (
-      <div className='menu-item'>
+      <div className={className}>
+        {this.getIcon(item)}
         <div className='label'>{item.label}</div>
         {accelerator}
         {arrow}
