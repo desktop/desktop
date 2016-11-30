@@ -33,6 +33,23 @@ export interface IAppState {
   readonly loading: boolean
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
+
+  /**
+   * A list of currently open menus with their selected items
+   * in the application menu.
+   *
+   * The semantics around what constitues an open menu and how
+   * selection works is defined by the AppMenu class and the
+   * individual components transforming that state.
+   *
+   * Note that as long as the renderer has received an application
+   * menu from the main process there will always be one menu
+   * "open", that is the root menu which can't be closed. In other
+   * words, a non-zero length appMenuState does not imply that the
+   * application menu should be visible. On non-macOS operating systems
+   * that's currently defined by whether the app menu is open as
+   * a foldout (see currentFoldout).
+   */
   readonly appMenuState: ReadonlyArray<IMenu>
 
   readonly errors: ReadonlyArray<IAppError>
