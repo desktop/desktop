@@ -46,7 +46,7 @@ export interface IMenu {
 export function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
   const id = (menuItem as any).id
   if (!id) {
-    throw new Error('menuItem must specify id')
+    throw new Error(`menuItem must specify id: ${menuItem.label}`)
   }
   const enabled = menuItem.enabled
   const visible = menuItem.visible
