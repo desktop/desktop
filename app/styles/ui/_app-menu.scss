@@ -79,9 +79,12 @@
       margin-right: var(--spacing);
       color: var(--text-secondary-color);
     }
+  }
 
-    &.separator {
-      border-bottom: var(--base-border);
-    }
+  hr {
+    width: 100%;
+    border: none;
+    height: 1px;
+    border-bottom: var(--base-border);
   }
 }

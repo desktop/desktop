@@ -1,12 +1,10 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
 
 import { Octicon, OcticonSymbol } from '../octicons'
 import { MenuItem } from '../../models/app-menu'
 
 export interface IMenuListItemProps {
   readonly item: MenuItem
-  readonly separatorBelow?: boolean
 }
 
 /**
@@ -54,12 +52,11 @@ export function friendlyAcceleratorText(accelerator: string): string {
 
 export class MenuListItem extends React.Component<IMenuListItemProps, void> {
 
-
   public render() {
     const item = this.props.item
 
     if (item.type === 'separator') {
-      return null
+      return <hr />
     }
 
     const arrow = item.type === 'submenuItem'
@@ -70,13 +67,8 @@ export class MenuListItem extends React.Component<IMenuListItemProps, void> {
       ? <div className='accelerator'>{friendlyAcceleratorText(item.accelerator)}</div>
       : null
 
-    const className = classNames(
-      'menu-item',
-      { 'separator' : this.props.separatorBelow }
-    )
-
     return (
-      <div className={className}>
+      <div className='menu-item'>
         <div className='label'>{item.label}</div>
         {accelerator}
         {arrow}
