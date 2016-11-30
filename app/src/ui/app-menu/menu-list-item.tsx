@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { MenuItem } from '../../models/app-menu'
 
-export interface IMenuListItemProps {
+interface IMenuListItemProps {
   readonly item: MenuItem
 }
 
