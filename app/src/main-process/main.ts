@@ -86,6 +86,10 @@ app.on('ready', () => {
     }
   })
 
+  /**
+   * An event sent by the renderer asking that the menu item with the given id
+   * is executed (ie clicked).
+   */
   ipcMain.on('execute-menu-item', (event: Electron.IpcMainEvent, { id }: { id: string }) => {
     const menuItem = findMenuItemByID(menu, id)
     if (menuItem) {
@@ -146,6 +150,10 @@ app.on('ready', () => {
     menu.popup(window)
   })
 
+  /**
+   * An event sent by the renderer asking for a copy of the current
+   * application menu.
+   */
   ipcMain.on('get-app-menu', () => {
     if (mainWindow) {
       mainWindow.sendAppMenu()
