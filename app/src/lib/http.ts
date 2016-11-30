@@ -42,6 +42,56 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
 }
 
 /**
+ * Detect the encoding associated with the HTTP response.
+ *
+ * If not specified in the response headers, null is returned.
+ */
+export function getContentType(response: IHTTPResponse): string | null {
+  const contentType = getHeader(response, 'Content-Type')
+  if (!contentType) {
+    return null
+  }
+
+  // example `Content-Type: text/html; charset=utf-8`
+  const tokens = contentType.split(';')
+  if (tokens.length > 0) {
+    return tokens[0]
+  }
+
+  return null
+}
+
+/**
+ * Detect the encoding associated with the HTTP response.
+ *
+ * If not specified in the response headers, 'utf-8' is assumed.
+ */
+export function getEncoding(response: IHTTPResponse): string {
+  const defaultEncoding = 'utf-8'
+
+  const contentType = getHeader(response, 'Content-Type')
+  if (!contentType) {
+    return defaultEncoding
+  }
+
+  // example `Content-Type: text/html; charset=utf-8`
+  const tokens = contentType.split(';')
+  if (tokens.length <= 1) {
+    return defaultEncoding
+  }
+
+  // iterate over any optional parameters after the content-type
+  for (let i = 1; i < tokens.length; i++) {
+    const values = tokens[i].split('=')
+    if (values.length === 2 && values[0] === 'charset') {
+      return values[1]
+    }
+  }
+
+  return defaultEncoding
+}
+
+/**
  * Make an API request.
  *
  * @param endpoint      - The API endpoint.

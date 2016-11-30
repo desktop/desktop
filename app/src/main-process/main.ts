@@ -8,7 +8,7 @@ import { handleSquirrelEvent } from './updates'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
-import { IHTTPRequest, IHTTPResponse } from '../lib/http'
+import { IHTTPRequest, IHTTPResponse, getEncoding, getContentType } from '../lib/http'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -150,13 +150,14 @@ app.on('ready', () => {
     request.on('response', (response: Electron.IncomingMessage) => {
 
       let text: string = ''
+      const encoding = getEncoding(response)
 
       response.on('abort', () => {
         event.sender.send(channel, { error: new Error('request aborted by the client') })
       })
 
       response.on('data', (chunk: Buffer) => {
-        text += chunk
+        text += chunk.toString(encoding)
       })
 
       response.on('end', () => {
@@ -167,7 +168,14 @@ app.on('ready', () => {
         let body: Object | undefined
         // there's more to do here around parsing the body
         // but for now this works around a joke that has been placed on me
-        if (statusCode !== 204 && text.length > 0) {
+
+        // central is currently serving a 204 with a string as JSON for usage stats
+        // https://github.com/github/central/blob/master/app/controllers/api/usage.rb#L51
+        // once this has been fixed, simplify this check
+        const validStatusCode = statusCode >= 200 && statusCode <= 299 && statusCode !== 204
+        const isJsonResponse = getContentType(response) === 'application/json'
+
+        if (text.length > 0 && validStatusCode && isJsonResponse) {
           try {
             body = JSON.parse(text)
           } catch (e) {
