@@ -19,7 +19,7 @@ import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
 import { OcticonSymbol } from './octicons'
-import { showPopupAppMenu, setMenuEnabled, setMenuVisible } from './main-process-proxy'
+import { setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateState } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
@@ -74,6 +74,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: Electron.Menu }) => {
+      console.log(menu)
       this.props.dispatcher.setAppMenu(menu)
     })
 
@@ -298,14 +299,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  /** Put the main application menu into a context menu for now (win only) */
-  private onContextMenu = (e: React.MouseEvent<any>) => {
-    if (__WIN32__) {
-      e.preventDefault()
-      showPopupAppMenu()
-    }
-  }
-
   private currentPopupContent(): JSX.Element | null {
     const popup = this.state.currentPopup
     if (!popup) { return null }
@@ -382,7 +375,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderApp() {
     return (
-      <div id='desktop-app-contents' onContextMenu={this.onContextMenu}>
+      <div id='desktop-app-contents'>
         {this.renderToolbar()}
         {this.renderRepository()}
         {this.renderPopup()}

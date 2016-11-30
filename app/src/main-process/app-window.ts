@@ -3,7 +3,7 @@ import { Emitter, Disposable } from 'event-kit'
 
 import { SharedProcess } from '../shared-process/shared-process'
 import { WindowState, windowStateChannelName } from '../lib/window-state'
-import { buildDefaultMenu, MenuEvent } from './menu'
+import { MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-url'
 import { ILaunchStats } from '../lib/stats'
 
@@ -98,17 +98,6 @@ export class AppWindow {
     })
 
     this.registerWindowStateChangedEvents()
-
-    // We don't have a menu bar on windows so we'll cheat
-    // for now and make right-clicking in the app show the
-    // default menu as a context menu instead.
-    if (__WIN32__) {
-      const menu = buildDefaultMenu(this.sharedProcess)
-
-      ipcMain.on('show-popup-app-menu', (e, ...args) => {
-        menu.popup(this.window)
-      })
-    }
 
     this.window.loadURL(`file://${__dirname}/index.html`)
   }
