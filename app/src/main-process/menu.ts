@@ -250,6 +250,7 @@ function ensureItemIds(template: ReadonlyArray<Electron.MenuItemOptions>, prefix
       } while (seenIds.has(id))
     }
 
+    item.id = id
     seenIds.add(id)
 
     if (item.submenu) {
