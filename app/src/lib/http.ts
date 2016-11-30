@@ -35,12 +35,12 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
     return null
   }
 
-  const keyLower = key.toUpperCase()
+  const keyUpper = key.toUpperCase()
 
   for (const k in response.headers) {
     const key = k.toUpperCase()
 
-    if (key === keyLower) {
+    if (key === keyUpper) {
       const header = response.headers[k]
       if (header) {
         // TODO: for now, we just give the first value
