@@ -219,6 +219,19 @@ export class AppMenu {
 
     newOpenMenus[ourMenuIndex] = Object.assign({}, ourMenu, { selectedItem: undefined })
 
+    // Ensure that the path to the menu without an active selection is
+    // selected. i.e. all menus above should have their selection reset
+    // to point to the menu which no longer has an active selection.
+    for (let i = ourMenuIndex - 1; i >= 0; i--) {
+      const menu = newOpenMenus[i]
+      const childMenu = newOpenMenus[i + 1]
+
+      const selectedItem = menu.items.find(item =>
+        item.type === 'submenuItem' && item.id === childMenu.id)
+
+      newOpenMenus[i] =  Object.assign({}, menu, { selectedItem })
+    }
+
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
   }
 
