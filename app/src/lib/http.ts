@@ -134,14 +134,4 @@ export function request(endpoint: string, authorization: string | null, method: 
   }
 
   return proxyRequest(options)
-
-  //return got(url, options).catch((e: any) => {
-  //  const response = e.response
-  //  if (response) {
-  //    response.error = e
-  //    return response
-  //  } else {
-  //    throw e
-  //  }
-  //})
 }
