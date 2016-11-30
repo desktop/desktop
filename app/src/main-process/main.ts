@@ -149,7 +149,7 @@ app.on('ready', () => {
 
     request.on('response', (response: Electron.IncomingMessage) => {
 
-      let responseBody: Array<number> = [ ]
+      const responseBody: Array<number> = [ ]
       const encoding = getEncoding(response)
 
       response.on('abort', () => {

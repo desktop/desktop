@@ -7,7 +7,7 @@ describe('HTTP', () => {
   describe('getContentType', () => {
     it('returns null when not found', () => {
       const sampleResponse: IHTTPResponse = {
-        headers: { }
+        headers: { },
       }
 
       const result = getContentType(sampleResponse)
@@ -17,13 +17,13 @@ describe('HTTP', () => {
     it('performs case-insensitive match', () => {
       const sentenceCasing: IHTTPResponse = {
         headers: {
-          'Content-Type': [ 'text/html' ]
-        }
+          'Content-Type': [ 'text/html' ],
+        },
       }
       const lowerCasing: IHTTPResponse = {
         headers: {
-          'content-type': [ 'text/html' ]
-        }
+          'content-type': [ 'text/html' ],
+        },
       }
 
       const first = getContentType(sentenceCasing)
@@ -36,8 +36,8 @@ describe('HTTP', () => {
     it('ignores parameters provided after', () => {
       const sampleResponse: IHTTPResponse = {
         headers: {
-          'content-type': [ 'application/json; charset=utf-8' ]
-        }
+          'content-type': [ 'application/json; charset=utf-8' ],
+        },
       }
 
       const result = getContentType(sampleResponse)

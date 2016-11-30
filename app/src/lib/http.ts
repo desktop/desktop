@@ -37,7 +37,7 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
 
   const keyLower = key.toUpperCase()
 
-  for(const k in response.headers) {
+  for (const k in response.headers) {
     const key = k.toUpperCase()
 
     if (key === keyLower) {
