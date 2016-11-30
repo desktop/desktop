@@ -20,33 +20,12 @@ interface IMenuPaneState {
 }
 
 const RowHeight = 30
+const SeparatorRowHeight = 10
 
-export function createListItemProps(items: ReadonlyArray<MenuItem>): ReadonlyArray<IMenuListItemProps> {
-  const filteredItems = new Array<IMenuListItemProps>()
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i]
-    const previousIx = filteredItems.length ? filteredItems.length - 1 : -1
-    const previous = filteredItems.length
-      ? filteredItems[previousIx]
-      : undefined
-
-    if (!item.visible) {
-      continue
-    }
-
-    if (item.type === 'separator') {
-      if (previous && !previous.separatorBelow) {
-        filteredItems[previousIx] = Object.assign({}, previous, { separatorBelow: true })
-      }
-
-      continue
-    }
-
-    filteredItems.push({ item })
-  }
-
-  return filteredItems
+function createListItemProps(items: ReadonlyArray<MenuItem>): ReadonlyArray<IMenuListItemProps> {
+  return items
+    .filter(i => i.visible)
+    .map(i => { return { item: i } })
 }
 
 function getSelectedIndex(selectedItem: MenuItem | undefined, items: ReadonlyArray<IMenuListItemProps>) {
@@ -126,6 +105,11 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
     return <MenuListItem key={props.item.id} {...props} />
   }
 
+  private rowHeight = (info: { index: number }) => {
+    const item = this.state.items[info.index].item
+    return item.type === 'separator' ? SeparatorRowHeight : RowHeight
+  }
+
   public render(): JSX.Element {
 
     return (
@@ -133,7 +117,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
         <List
           ref={this.onListRef}
           rowCount={this.state.items.length}
-          rowHeight={RowHeight}
+          rowHeight={this.rowHeight}
           rowRenderer={this.renderMenuItem}
           selectedRow={this.state.selectedIndex}
           onRowClick={this.onRowClick}
