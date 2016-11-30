@@ -1373,7 +1373,12 @@ export class AppStore {
   }
 
   public _setAppMenu(menu: Electron.Menu): Promise<void> {
-    this.appMenu = AppMenu.fromElectronMenu(menu)
+    if (this.appMenu) {
+      this.appMenu = this.appMenu.withElectronMenu(menu)
+    } else {
+      this.appMenu = AppMenu.fromElectronMenu(menu)
+    }
+
     this.emitUpdate()
     return Promise.resolve()
   }

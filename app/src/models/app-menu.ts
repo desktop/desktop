@@ -111,7 +111,7 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
     case 'separator':
       return { id, type: 'separator', visible }
     case 'submenu':
-      const menu = menuFromElectronMenu(id, menuItem.submenu as Electron.Menu)
+      const menu = menuFromElectronMenu(menuItem.submenu as Electron.Menu, id)
       return { id, type: 'submenuItem', label, enabled, visible, menu }
     case 'checkbox':
       return { id, type: 'checkbox', label, enabled, visible, accelerator, checked }
@@ -126,7 +126,7 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
  * Will recurse through all sub menus and convert each item using
  * menuItemFromElectronMenuItem.
  */
-function menuFromElectronMenu(id: string | undefined, menu: Electron.Menu, selectedItem?: MenuItem): IMenu {
+function menuFromElectronMenu(menu: Electron.Menu, selectedItem?: MenuItem, id?: string): IMenu {
   const items = menu.items.map(menuItemFromElectronMenuItem)
   return { id, type: 'menu', items, selectedItem }
 }
@@ -190,7 +190,7 @@ export class AppMenu {
    * from an Electron Menu instance.
    */
   public static fromElectronMenu(electronMenu: Electron.Menu): AppMenu {
-    const menu = menuFromElectronMenu(undefined, electronMenu)
+    const menu = menuFromElectronMenu(electronMenu)
     const map = buildIdMap(menu)
     const openMenus = [ menu ]
 
@@ -202,6 +202,54 @@ export class AppMenu {
     this.menu = menu
     this.openMenus = openMenus
     this.menuItemById = menuItemById
+  }
+
+  /**
+   * Merges the current AppMenu state with a new electron menu while
+   * attempting to maintain selection state.
+   */
+  public withElectronMenu(electronMenu: Electron.Menu): AppMenu {
+    const newMenu = menuFromElectronMenu(electronMenu)
+    const newMap = buildIdMap(newMenu)
+    const newOpenMenus = new Array<IMenu>()
+
+    // Enumerate all currently open menus and attempt to recreate
+    // the openMenus array with the new menu instances
+    for (const openMenu of this.openMenus) {
+      let newOpenMenu: IMenu
+
+      // No id means it's the root menu, simple enough.
+      if (!openMenu.id) {
+        newOpenMenu = newMenu
+      } else {
+        // Menus share id with their parent item
+        const item = newMap.get(openMenu.id)
+
+        if (item && item.type === 'submenuItem') {
+          newOpenMenu = item.menu
+        } else {
+          // This particular menu can't be found in the new menu
+          // structure, we have no choice but to bail here and
+          // not open this particular menu.
+          break
+        }
+      }
+
+      let newSelectedItem: MenuItem | undefined = undefined
+
+      if (openMenu.selectedItem) {
+        newSelectedItem = newMap.get(openMenu.selectedItem.id)
+      }
+
+      newOpenMenus.push({
+        id: newOpenMenu.id,
+        type: 'menu',
+        items: newOpenMenu.items,
+        selectedItem: newSelectedItem,
+      })
+    }
+
+    return new AppMenu(newMenu, newOpenMenus, newMap)
   }
 
   /**
