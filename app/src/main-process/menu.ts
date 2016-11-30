@@ -236,6 +236,17 @@ function getItemId(template: Electron.MenuItemOptions) {
   return template.id || template.label || template.role || 'unknown'
 }
 
+/**
+ * Ensures that all menu items in the given template are assigned an id
+ * by recursively traversing the template and mutating items in place.
+ *
+ * Items which already have an id are left alone, the other get a unique,
+ * but consistent id based on their label or role and their position in
+ * the menu hierarchy.
+ *
+ * Note that this does not do anything to prevent the case where items have
+ * explicitly been given duplicate ids.
+ */
 export function ensureItemIds(template: ReadonlyArray<Electron.MenuItemOptions>, prefix = '@', seenIds = new Set<string>()) {
   for (const item of template) {
     let counter = 0
