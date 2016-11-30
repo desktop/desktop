@@ -71,7 +71,7 @@ export interface IAppState {
    */
   readonly sidebarWidth: number
 
-  // Whether we should hide the toolbar (and show inverted window controls)
+  /** Whether we should hide the toolbar (and show inverted window controls) */
   readonly titleBarStyle: 'light' | 'dark'
 
   /**
