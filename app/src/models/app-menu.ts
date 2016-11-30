@@ -146,12 +146,49 @@ function buildIdMap(menu: IMenu, map = new Map<string, MenuItem>()): Map<string,
   return map
 }
 
+/**
+ * An immutable, transformable object which represents an application menu
+ * and its current state (which menus are open, which items are selected).
+ *
+ * The primary use case for this is for rendering a custom application menu
+ * on non-macOS systems. As such some interactions are explicitly made to
+ * conform to Windows menu interactions. This includes things like selecting
+ * the entire path up until the last selected item. This is necessary since,
+ * on Windows, the parent menu item of a menu might not be selected even
+ * though the submenu is. This is in order to allow for some delay when
+ * moving the cursor from one menu pane to another.
+ *
+ * In general, however, this object is not platform specific and much of
+ * the interactions are defined by the component using it.
+ */
 export class AppMenu {
+
+  /**
+   * A list of currently open menus with their selected items
+   * in the application menu.
+   *
+   * The semantics around what constitues an open menu and how
+   * selection works is defined within this class class as well as
+   * in the individual components transforming that state.
+   */
   public readonly openMenus: ReadonlyArray<IMenu>
+
+  /**
+   * The menu that this instance operates on, taken from an
+   * electron Menu instance and converted into an IMenu model
+   * by menuFromElectronMenu.
+   */
   private readonly menu: IMenu
 
+  /**
+   * A map between menu item ids and their corresponding MenuItem
+   */
   private readonly menuItemById: Map<string, MenuItem>
 
+  /**
+   * Static constructor for the initial creation of an AppMenu instance
+   * from an Electron Menu instance.
+   */
   public static fromElectronMenu(electronMenu: Electron.Menu): AppMenu {
     const menu = menuFromElectronMenu(undefined, electronMenu)
     const map = buildIdMap(menu)
@@ -160,6 +197,7 @@ export class AppMenu {
     return new AppMenu(menu, openMenus, map)
   }
 
+  // Used by static constructors and transformers.
   private constructor(menu: IMenu, openMenus: ReadonlyArray<IMenu>, menuItemById: Map<string, MenuItem>) {
     this.menu = menu
     this.openMenus = openMenus
