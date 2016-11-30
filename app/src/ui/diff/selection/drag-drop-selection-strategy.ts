@@ -1,5 +1,6 @@
 import { DiffSelection } from '../../../models/diff'
 import { ISelectionStrategy } from './selection-strategy'
+import { DiffLineGutter } from '../diff-line-gutter'
 import { selectedLineClass } from './selection'
 import { compare } from '../../../lib/compare'
 import { range } from '../../../lib/range'
@@ -83,7 +84,7 @@ export class DragDropSelection implements ISelectionStrategy {
    * Compute the range of lines to repaint, based on how far the user
    * has moved their cursor
    */
-  private determineDirtyRange(elements: Map<number, HTMLSpanElement>): { start: number, end: number} {
+  private determineDirtyRange(elements: Map<number, DiffLineGutter>): { start: number, end: number} {
 
     // as user can go back and forth when doing drag-and-drop, we should
     // update rows outside the current selected range
@@ -123,7 +124,7 @@ export class DragDropSelection implements ISelectionStrategy {
   /**
    * repaint the current diff gutter to visualize the current state
    */
-  public paint(elements: Map<number, HTMLSpanElement>) {
+  public paint(elements: Map<number, DiffLineGutter>) {
 
     const { start, end } = this.determineDirtyRange(elements)
 
@@ -135,16 +136,11 @@ export class DragDropSelection implements ISelectionStrategy {
       }
 
       const selected = this.getIsSelected(row)
-      const childSpan = element.children[0] as HTMLSpanElement
-      if (!childSpan) {
-        console.error('expected DOM element for diff gutter not found')
-        return
-      }
 
       if (selected) {
-        childSpan.classList.add(selectedLineClass)
+        element.setClass(selectedLineClass)
       } else {
-        childSpan.classList.remove(selectedLineClass)
+        element.unsetClass(selectedLineClass)
       }
     })
   }

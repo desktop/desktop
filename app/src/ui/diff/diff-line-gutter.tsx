@@ -76,10 +76,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
   private elem_: HTMLSpanElement | undefined
 
-  private isIncluded(): boolean {
-    return isIncludeable(this.props.line.type) && this.props.isIncluded
-  }
-
   private getLineClassName(): string {
     const type = this.props.line.type
     switch (type) {
@@ -151,6 +147,22 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     elem.addEventListener('mousemove', this.mouseMoveHandler)
     elem.addEventListener('mousedown', this.mouseDownHandler)
     elem.addEventListener('mouseup', this.mouseUpHandler)
+  }
+
+  public isIncluded(): boolean {
+    return isIncludeable(this.props.line.type) && this.props.isIncluded
+  }
+
+  public setClass(cssClass: string) {
+    if (this.elem_) {
+      this.elem_.classList.add(cssClass)
+    }
+  }
+
+  public unsetClass(cssClass: string) {
+    if (this.elem_) {
+      this.elem_.classList.remove(cssClass)
+    }
   }
 
   public cleanup() {

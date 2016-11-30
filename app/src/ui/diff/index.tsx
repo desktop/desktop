@@ -80,7 +80,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   /**
    *  a local cache of gutter elements, keyed by the row in the diff
    */
-  private cachedGutterElements = new Map<number, HTMLSpanElement>()
+  private cachedGutterElements = new Map<number, DiffLineGutter>()
 
 
   public componentWillReceiveProps(nextProps: IDiffProps) {
@@ -114,8 +114,7 @@ export class Diff extends React.Component<IDiffProps, void> {
 
       const diff = nextProps.diff
       this.cachedGutterElements.forEach((element, index) => {
-        const childSpan = element.children[0] as HTMLSpanElement
-        if (!childSpan) {
+        if (element === undefined) {
           console.error('expected DOM element for diff gutter not found')
           return
         }
@@ -126,9 +125,9 @@ export class Diff extends React.Component<IDiffProps, void> {
           : false
 
         if (selection.isSelected(index) && isIncludable) {
-          childSpan.classList.add(selectedLineClass)
+          element.setClass(selectedLineClass)
         } else {
-          childSpan.classList.remove(selectedLineClass)
+          element.unsetClass(selectedLineClass)
         }
       })
     }
@@ -163,22 +162,15 @@ export class Diff extends React.Component<IDiffProps, void> {
   private highlightLine(row: number, include: boolean) {
     const element = this.cachedGutterElements.get(row)
 
-    if (!element) {
-      // no point trying to render this element, as it's not
-      // currently cached by the editor
-      return
-    }
-
-    const childSpan = element.children[0] as HTMLSpanElement
-    if (!childSpan) {
-      console.error('expected DOM element for diff gutter not found')
+    // no point trying to render this element, as it's not currently cached by the editor
+    if (element === undefined) {
       return
     }
 
     if (include) {
-      childSpan.classList.add(hoverCssClass)
+      element.setClass(hoverCssClass)
     } else {
-      childSpan.classList.remove(hoverCssClass)
+      element.unsetClass(hoverCssClass)
     }
   }
 
@@ -301,7 +293,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       this.lineCleanup.delete(line)
     }
 
-    const index = instance.getLineNumber(line)
+    const index = instance.getLineNumber(line) as number
     const hunk = this.props.diff.diffHunkForIndex(index)
     if (hunk) {
       const relativeIndex = index - hunk.unifiedDiffStart
@@ -311,14 +303,12 @@ export class Diff extends React.Component<IDiffProps, void> {
 
         const reactContainer = document.createElement('span')
 
-        this.cachedGutterElements.set(index, reactContainer)
-
         let isIncluded = false
         if (this.props.file instanceof WorkingDirectoryFileChange) {
           isIncluded = this.props.file.selection.isSelected(index)
         }
 
-        let element_: DiffLineGutter | undefined
+        const cache = this.cachedGutterElements
 
         ReactDOM.render(
           <DiffLineGutter
@@ -332,7 +322,11 @@ export class Diff extends React.Component<IDiffProps, void> {
             onMouseLeave={this.onMouseLeave}
             onMouseEnter={this.onMouseEnter} />,
           reactContainer,
-          (element: DiffLineGutter) => { element_ = element }
+          function (this: DiffLineGutter) {
+            if (this !== undefined) {
+              cache.set(index, this)
+            }
+          }
         )
 
         element.insertBefore(reactContainer, diffLineElement)
@@ -352,13 +346,13 @@ export class Diff extends React.Component<IDiffProps, void> {
         //
         // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
         const gutterCleanup = new Disposable(() => {
+          const element = this.cachedGutterElements.get(index)
+          if (element) {
+            // TODO: i'm concerned about this being undefined now. like, really worried.
+            element.cleanup()
+          }
 
           this.cachedGutterElements.delete(index)
-
-          if (element_) {
-            // TODO: i'm concerned about this being undefined now. like, really worried.
-            element_.cleanup()
-          }
 
           line.off('delete', deleteHandler)
         })

@@ -1,5 +1,6 @@
 import { DiffSelection } from '../../../models/diff'
 import { ISelectionStrategy } from './selection-strategy'
+import { DiffLineGutter } from '../diff-line-gutter'
 import { range } from '../../../lib/range'
 import { selectedLineClass } from './selection'
 
@@ -21,7 +22,7 @@ export class HunkSelection implements ISelectionStrategy {
     // no-op
   }
 
-  public paint(elements: Map<number, HTMLSpanElement>) {
+  public paint(elements: Map<number, DiffLineGutter>) {
     range(this._start, this._end).forEach(row => {
       const element = elements.get(row)
 
@@ -31,22 +32,16 @@ export class HunkSelection implements ISelectionStrategy {
       }
 
       // HACK: Don't update classes for non-selectable lines
-      const classList = element.children[0].classList
-      if (!classList.contains('diff-add') && !classList.contains('diff-delete')) {
+      if (!element.isIncluded()) {
         return
       }
 
       const selected = this._desiredSelection
-      const childSpan = element.children[0] as HTMLSpanElement
-      if (!childSpan) {
-        console.error('expected DOM element for diff gutter not found')
-        return
-      }
 
       if (selected) {
-        childSpan.classList.add(selectedLineClass)
+        element.setClass(selectedLineClass)
       } else {
-        childSpan.classList.remove(selectedLineClass)
+        element.unsetClass(selectedLineClass)
       }
     })
   }
