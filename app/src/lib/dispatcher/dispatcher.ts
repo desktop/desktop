@@ -394,6 +394,16 @@ export class Dispatcher {
     return this.dispatchToSharedProcess<void>({ name: 'add-user', user })
   }
 
+  /**
+   * Set the global application menu.
+   *
+   * This is called in response to the main process emitting an event signalling
+   * that the application menu has changed in some way like an item being
+   * added/removed or an item having its visibility toggled.
+   *
+   * This method should not be called by the renderer in any other circumstance
+   * than as a directly result of the main-process event.
+   */
   public setAppMenu(menu: Electron.Menu): Promise<void> {
     return this.appStore._setAppMenu(menu)
   }
