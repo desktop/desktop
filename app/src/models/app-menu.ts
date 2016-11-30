@@ -88,7 +88,7 @@ export interface IMenu {
   readonly selectedItem?: MenuItem
 }
 
-export function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
+function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
   const id = (menuItem as any).id
   if (!id) {
     throw new Error(`menuItem must specify id: ${menuItem.label}`)
@@ -117,7 +117,7 @@ export function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuI
   }
 }
 
-export function menuFromElectronMenu(id: string | undefined, menu: Electron.Menu, selectedItem?: MenuItem): IMenu {
+function menuFromElectronMenu(id: string | undefined, menu: Electron.Menu, selectedItem?: MenuItem): IMenu {
   const items = menu.items.map(menuItemFromElectronMenuItem)
   return { id, type: 'menu', items, selectedItem }
 }
