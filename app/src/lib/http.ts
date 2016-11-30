@@ -96,7 +96,7 @@ export function getEncoding(response: IHTTPResponse): string {
   // iterate over any optional parameters after the content-type
   for (let i = 1; i < tokens.length; i++) {
     const values = tokens[i].split('=')
-    if (values.length === 2 && values[0] === 'charset') {
+    if (values.length === 2 && values[0].trim() === 'charset') {
       return values[1]
     }
   }
