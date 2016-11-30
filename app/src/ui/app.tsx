@@ -28,6 +28,7 @@ import { StatsStore, ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
 import { AppMenu } from './app-menu'
 import { UpdateAvailable } from './updates'
+import { renderApplicationMenu } from './lib/features'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -403,7 +404,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderAppMenu = (): JSX.Element | null => {
-    if (!this.state.appMenuState) {
+    if (!this.state.appMenuState || !renderApplicationMenu()) {
       return null
     }
 
@@ -426,7 +427,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderAppMenuToolbarButton() {
-    if (!this.state.appMenuState) {
+    if (!this.state.appMenuState || !renderApplicationMenu()) {
       return null
     }
 
