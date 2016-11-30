@@ -74,6 +74,12 @@ export interface ISeparatorMenuItem {
   readonly visible: boolean
 }
 
+/**
+ * An interface describing a menu.
+ *
+ * Holds collection of menu items and an indication of which item (if any)
+ * in the menu is selected.
+ */
 export interface IMenu {
   // shared with parent submenu item
   readonly id?: string
