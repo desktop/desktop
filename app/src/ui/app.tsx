@@ -75,7 +75,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: Electron.Menu }) => {
-      console.log(menu)
       this.props.dispatcher.setAppMenu(menu)
     })
 
