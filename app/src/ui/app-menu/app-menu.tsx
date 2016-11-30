@@ -10,6 +10,8 @@ interface IAppMenuProps {
   readonly onClose: () => void
 }
 
+const expandCollapseTimeout = 300
+
 export class AppMenu extends React.Component<IAppMenuProps, void> {
 
   /**
@@ -90,14 +92,14 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     this.clearExpandCollapseTimer()
     this.expandCollapseTimer = window.setTimeout(() => {
       this.props.dispatcher.setAppMenuState(menu => menu.withOpenMenu(item))
-    }, 500)
+    }, expandCollapseTimeout)
   }
 
   private scheduleCollapseTo(menu: IMenu) {
     this.clearExpandCollapseTimer()
     this.expandCollapseTimer = window.setTimeout(() => {
       this.props.dispatcher.setAppMenuState(am => am.withLastMenu(menu))
-    }, 500)
+    }, expandCollapseTimeout)
   }
 
   private onSelectionChanged = (depth: number, item: MenuItem, source: SelectionSource) => {
