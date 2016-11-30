@@ -4,7 +4,7 @@ import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config
 import { CommitListItem } from '../history/commit-list-item'
 import { User } from '../../models/user'
 
-interface IConfigureGitProps {
+interface IConfigureGitUserProps {
   /** The logged-in users. */
   readonly users: ReadonlyArray<User>
 
@@ -18,15 +18,15 @@ interface IConfigureGitProps {
   readonly children?: ReadonlyArray<JSX.Element>
 }
 
-interface IConfigureGitState {
+interface IConfigureGitUserState {
   readonly name: string
   readonly email: string
   readonly avatarURL: string | null
 }
 
-/** The Welcome flow step to configure git. */
-export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigureGitState> {
-  public constructor(props: IConfigureGitProps) {
+/** A component which allows the user to configure their Git user. */
+export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IConfigureGitUserState> {
+  public constructor(props: IConfigureGitUserProps) {
     super(props)
 
     this.state = { name: '', email: '', avatarURL: null }
