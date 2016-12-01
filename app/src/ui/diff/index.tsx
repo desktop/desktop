@@ -234,9 +234,8 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onMouseDown = (index: number, isHunkSelection: boolean) => {
-    let selected = false
-    if (this.props.file instanceof WorkingDirectoryFileChange) {
-      selected = this.props.file.selection.isSelected(index)
+    if (this.props.readOnly) {
+      return
     }
 
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
@@ -245,6 +244,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     const snapshot = this.props.file.selection
+    const selected = snapshot.isSelected(index)
     const desiredSelection = !selected
 
     if (isHunkSelection) {
