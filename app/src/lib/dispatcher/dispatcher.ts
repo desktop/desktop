@@ -13,6 +13,8 @@ import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
 import { v4 as guid } from 'node-uuid'
+import { executeMenuItem } from '../../ui/main-process-proxy'
+import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -395,5 +397,43 @@ export class Dispatcher {
   /** Remove the given user. */
   public removeUser(user: User): Promise<void> {
     return this.dispatchToSharedProcess<void>({ name: 'remove-user', user })
+  }
+
+  /**
+   * Ask the dispatcher to apply a transformation function to the current
+   * state of the application menu.
+   *
+   * Since the dispatcher is asynchronous it's possible for components
+   * utilizing the menu state to have an out-of-date view of the state
+   * of the app menu which is why they're not allowed to transform it
+   * directly.
+   *
+   * To work around potential race conditions consumers instead pass a
+   * delegate which receives the updated application menu and allows
+   * them to perform the necessary state transitions. The AppMenu instance
+   * is itself immutable but does offer transformation methods and in
+   * order for the state to be properly updated the delegate _must_ return
+   * the latest transformed instance of the AppMenu.
+   */
+  public setAppMenuState(update: (appMenu: AppMenu) => AppMenu): Promise<void> {
+    return this.appStore._setAppMenuState(update)
+  }
+
+  /**
+   * Tell the main process to execute (i.e. simulate a click of) the given menu item.
+   */
+  public executeMenuItem(item: ExecutableMenuItem): Promise<void> {
+    executeMenuItem(item)
+    return Promise.resolve()
+  }
+
+  /**
+   * Set whether or not to to add a highlight class to the app menu toolbar icon.
+   * Used to highlight the button when the Alt key is pressed.
+   *
+   * Only applicable on non-macOS platforms.
+   */
+  public setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
+    return this.appStore._setAppMenuToolbarButtonHighlightState(highlight)
   }
 }

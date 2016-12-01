@@ -37,13 +37,11 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
-    if (!__WIN32__) {
-      const item = {
-        label: 'Remove',
-        action: () => this.removeRepository(),
-      }
-      showContextualMenu([ item ])
+    const item = {
+      label: 'Remove',
+      action: () => this.removeRepository(),
     }
+    showContextualMenu([ item ])
   }
 
   private removeRepository() {

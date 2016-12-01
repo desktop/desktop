@@ -64,7 +64,6 @@
     .dropdownArrow {
       width: 9px;
       height: 12px;
-      margin-left: var(--spacing);
       flex-shrink: 0;
     }
 
@@ -73,6 +72,7 @@
       flex-direction: column-reverse;
       flex-grow: 1;
       min-width: 0;
+      margin-right: var(--spacing);
     }
 
     .title {
