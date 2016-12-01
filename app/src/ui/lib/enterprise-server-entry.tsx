@@ -1,8 +1,10 @@
 import * as React from 'react'
-import { Button } from './button'
 import { getEnterpriseAPIURL, fetchMetadata } from '../../lib/api'
 import { Loading } from './loading'
 import { validateURL, InvalidURLErrorName, InvalidProtocolErrorName } from './enterprise-validate-url'
+import { Form } from './form'
+import { Input } from './input'
+import { Button } from './button'
 
 /** The authentication methods server allows. */
 export enum AuthenticationMethods {
@@ -38,20 +40,19 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
     const disableEntry = this.state.loading
     const disableSubmission = !this.state.serverAddress.length || this.state.loading
     return (
-      <form className='sign-in-form' id='enterprise-server-entry' onSubmit={this.onSubmit}>
-        <div className='field-group'>
-          <label htmlFor='enterprise-address'>Enterprise server address</label>
-          <input id='enterprise-address' className='text-field sign-in-field' autoFocus={true} disabled={disableEntry} onChange={this.onServerAddressChanged}/>
-        </div>
+      <Form onSubmit={this.onSubmit}>
+        <Input
+          label='Enterprise server address'
+          autoFocus={true}
+          disabled={disableEntry}
+          onChange={this.onServerAddressChanged}/>
 
-        <div className='actions'>
-          <Button type='submit' disabled={disableSubmission}>Continue</Button>
-        </div>
+        <Button type='submit' disabled={disableSubmission}>Continue</Button>
 
         {this.state.loading ? <Loading/> : null}
 
         <div>{this.state.error ? this.state.error.message : null }</div>
-      </form>
+      </Form>
     )
   }
 
@@ -82,9 +83,7 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
     }
   }
 
-  private onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
+  private onSubmit = async () => {
     const userEnteredAddress = this.state.serverAddress
     let address: string
     try {
