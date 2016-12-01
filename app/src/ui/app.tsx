@@ -29,7 +29,7 @@ import { StatsStore, ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
 import { AppMenu } from './app-menu'
 import { UpdateAvailable } from './updates'
-import { renderApplicationMenu } from './lib/features'
+import { shouldRenderApplicationMenu } from './lib/features'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -255,7 +255,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       e.preventDefault()
     }
 
-    if (renderApplicationMenu()) {
+    if (shouldRenderApplicationMenu()) {
       window.addEventListener('keydown', this.onWindowKeyDown)
       window.addEventListener('keyup', this.onWindowKeyUp)
     }
@@ -276,7 +276,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onWindowKeyDown = (event: KeyboardEvent) => {
     if (event.defaultPrevented) { return }
 
-    if (event.key === 'Alt' && renderApplicationMenu()) {
+    if (event.key === 'Alt' && shouldRenderApplicationMenu()) {
       this.altKeyPressed = true
       this.props.dispatcher.setAppMenuToolbarButtonHighlightState(true)
     } else if (this.altKeyPressed) {
@@ -293,7 +293,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onWindowKeyUp = (event: KeyboardEvent) => {
     if (event.defaultPrevented) { return }
 
-    if (event.key === 'Alt' && this.altKeyPressed && renderApplicationMenu()) {
+    if (event.key === 'Alt' && this.altKeyPressed && shouldRenderApplicationMenu()) {
       this.altKeyPressed = false
       this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
 
@@ -457,7 +457,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderAppMenu = (): JSX.Element | null => {
-    if (!this.state.appMenuState || !renderApplicationMenu()) {
+    if (!this.state.appMenuState || !shouldRenderApplicationMenu()) {
       return null
     }
 
@@ -480,7 +480,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderAppMenuToolbarButton() {
-    if (!this.state.appMenuState || !renderApplicationMenu()) {
+    if (!this.state.appMenuState || !shouldRenderApplicationMenu()) {
       return null
     }
 

@@ -13,15 +13,15 @@ function getFeatureOverride(featureName: string, defaultValue: boolean): boolean
 }
 
 /**
- * Gets a value indicating whether the renderer should
- * be responsible for rendering an application menu.
+ * Gets a value indicating whether the renderer should be responsible for
+ * rendering an application menu.
  *
  * Can be overriden with the localStorage variable
  *
- *  features/render-application-menu
+ *  features/should-render-application-menu
  *
  * Default: false on macOS, true on other platforms.
  */
-export function renderApplicationMenu(): boolean {
-  return getFeatureOverride('render-application-menu', __DARWIN__ ? false : true)
+export function shouldRenderApplicationMenu(): boolean {
+  return getFeatureOverride('should-render-application-menu', __DARWIN__ ? false : true)
 }
