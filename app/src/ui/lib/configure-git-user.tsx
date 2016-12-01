@@ -67,7 +67,7 @@ export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IC
     const dummyCommit2 = new Commit(this.state.name, 'Fix all the things', '', this.state.name, this.state.email, this.dateWithMinuteOffset(now, -30), [])
     const emoji = new Map()
     return (
-      <div id='configure-git'>
+      <div id='configure-git-user'>
         <form className='sign-in-form' onSubmit={this.save}>
           <div className='field-group'>
             <label htmlFor='git-name'>Name</label>
