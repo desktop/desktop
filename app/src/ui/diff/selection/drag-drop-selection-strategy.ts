@@ -1,7 +1,6 @@
 import { DiffSelection } from '../../../models/diff'
 import { ISelectionStrategy } from './selection-strategy'
 import { DiffLineGutter } from '../diff-line-gutter'
-import { selectedLineClass } from './selection'
 import { compare } from '../../../lib/compare'
 import { range } from '../../../lib/range'
 
@@ -136,12 +135,7 @@ export class DragDropSelection implements ISelectionStrategy {
       }
 
       const selected = this.getIsSelected(row)
-
-      if (selected) {
-        element.setClass(selectedLineClass)
-      } else {
-        element.unsetClass(selectedLineClass)
-      }
+      element.setSelected(selected)
     })
   }
 

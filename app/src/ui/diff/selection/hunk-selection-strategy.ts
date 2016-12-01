@@ -2,7 +2,6 @@ import { DiffSelection } from '../../../models/diff'
 import { ISelectionStrategy } from './selection-strategy'
 import { DiffLineGutter } from '../diff-line-gutter'
 import { range } from '../../../lib/range'
-import { selectedLineClass } from './selection'
 
 /** apply hunk selection to the current diff */
 export class HunkSelection implements ISelectionStrategy {
@@ -38,11 +37,7 @@ export class HunkSelection implements ISelectionStrategy {
 
       const selected = this._desiredSelection
 
-      if (selected) {
-        element.setClass(selectedLineClass)
-      } else {
-        element.unsetClass(selectedLineClass)
-      }
+      element.setSelected(selected)
     })
   }
 

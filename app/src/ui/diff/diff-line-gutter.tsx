@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { DiffLine, DiffLineType } from '../../models/diff'
-import { selectedLineClass } from './selection/selection'
+import { Diff, DiffHunk, DiffLine, DiffLineType } from '../../models/diff'
+import { hoverCssClass, selectedLineClass } from './selection/selection'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
 
@@ -25,15 +25,9 @@ interface IDiffGutterProps {
    */
   readonly readOnly: boolean
 
-  /**
-   * Callback to signal when the mouse enters the rendered area
-   */
-  readonly onMouseEnter: (index: number, isHunkSelection: boolean) => void
+  readonly diff: Diff
 
-  /**
-   * Callback to signal when the mouse leaves the rendered area
-   */
-  readonly onMouseLeave: (index: number, isHunkSelection: boolean) => void
+  readonly updateHunkHoverState: (hunk: DiffHunk, active: boolean) => void
 
   /**
    * Callback to signal when the mouse button is pressed on this element
@@ -43,7 +37,7 @@ interface IDiffGutterProps {
   /**
    * Callback to signal when the mouse is hovering over this element
    */
-  readonly onMouseMove: (index: number, isHunkSelection: boolean) => void
+  readonly onMouseMove: (index: number) => void
 
   /**
    * Callback to signal when the mouse button is released on this element
@@ -95,21 +89,50 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     ev.preventDefault()
 
     const isHunkSelection = isMouseInHunkSelectionZone(ev)
-    this.props.onMouseEnter(this.props.index, isHunkSelection)
+    this.updateHoverState(isHunkSelection, true)
   }
 
   private mouseLeaveHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
     const isHunkSelection = isMouseInHunkSelectionZone(ev)
-    this.props.onMouseLeave(this.props.index, isHunkSelection)
+    this.updateHoverState(isHunkSelection, false)
+  }
+
+  private updateHoverState(isHunkSelection: boolean, isActive: boolean) {
+    if (isHunkSelection) {
+      const hunk = this.props.diff.diffHunkForIndex(this.props.index)
+      if (!hunk) {
+        console.error('unable to find hunk for given line in diff')
+        return
+      }
+      this.props.updateHunkHoverState(hunk, isActive)
+    } else {
+      this.setHover(isActive)
+    }
   }
 
   private mouseMoveHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
+    const hunk = this.props.diff.diffHunkForIndex(this.props.index)
+    if (!hunk) {
+      console.error('unable to find hunk for given line in diff')
+      return
+    }
+
     const isHunkSelection = isMouseInHunkSelectionZone(ev)
-    this.props.onMouseMove(this.props.index, isHunkSelection)
+
+    // selection is not active, perform highlighting based on mouse position
+    if (isHunkSelection) {
+      this.props.updateHunkHoverState(hunk, true)
+    } else {
+      // clear hunk selection in case hunk was previously higlighted
+      this.props.updateHunkHoverState(hunk, false)
+      this.setHover(true)
+    }
+
+    this.props.onMouseMove(this.props.index)
   }
 
   private mouseUpHandler = (ev: UIEvent) => {
@@ -163,13 +186,29 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     return this.props.line.isIncludeableLine() && this.props.isIncluded
   }
 
-  public setClass(cssClass: string) {
+  public setHover(visible: boolean) {
+    if (visible) {
+      this.setClass(hoverCssClass)
+    } else {
+      this.unsetClass(hoverCssClass)
+    }
+  }
+
+  public setSelected(visible: boolean) {
+    if (visible) {
+      this.setClass(selectedLineClass)
+    } else {
+      this.unsetClass(selectedLineClass)
+    }
+  }
+
+  private setClass(cssClass: string) {
     if (this.elem_) {
       this.elem_.classList.add(cssClass)
     }
   }
 
-  public unsetClass(cssClass: string) {
+  private unsetClass(cssClass: string) {
     if (this.elem_) {
       this.elem_.classList.remove(cssClass)
     }

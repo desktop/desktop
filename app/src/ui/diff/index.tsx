@@ -21,7 +21,6 @@ import { getDiffMode } from './diff-mode'
 import { ISelectionStrategy } from './selection/selection-strategy'
 import { DragDropSelection } from './selection/drag-drop-selection-strategy'
 import { HunkSelection } from './selection/hunk-selection-strategy'
-import { hoverCssClass, selectedLineClass } from './selection/selection'
 
 import { fatalError } from '../../lib/fatal-error'
 
@@ -135,12 +134,8 @@ export class Diff extends React.Component<IDiffProps, void> {
 
         const line = diff.diffLineForIndex(index)
         const isIncludable = line ? line.isIncludeableLine() : false
-
-        if (selection.isSelected(index) && isIncludable) {
-          element.setClass(selectedLineClass)
-        } else {
-          element.unsetClass(selectedLineClass)
-        }
+        const isSelected = selection.isSelected(index) && isIncludable
+        element.setSelected(isSelected)
       })
     }
   }
@@ -156,7 +151,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.lineCleanup.clear()
   }
 
-  private highlightHunk(hunk: DiffHunk, show: boolean) {
+  private updateHunkHoverState = (hunk: DiffHunk, show: boolean) => {
     const start = hunk.unifiedDiffStart
 
     hunk.lines.forEach((line, index) => {
@@ -167,7 +162,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     })
   }
 
-  private highlightLine(row: number, include: boolean) {
+  private highlightLine = (row: number, include: boolean) => {
     const element = this.cachedGutterElements.get(row)
 
     if (!element) {
@@ -175,11 +170,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    if (include) {
-      element.setClass(hoverCssClass)
-    } else {
-      element.unsetClass(hoverCssClass)
-    }
+    element.setHover(include)
   }
 
   private onMouseUp = () => {
@@ -201,32 +192,6 @@ export class Diff extends React.Component<IDiffProps, void> {
 
     // operation is completed, clean this up
     this.selection = null
-  }
-
-  private onMouseEnter = (index: number, isHunkSelection: boolean) => {
-    if (isHunkSelection) {
-      const hunk = this.props.diff.diffHunkForIndex(index)
-      if (!hunk) {
-        console.error('unable to find hunk for given line in diff')
-        return
-      }
-      this.highlightHunk(hunk, true)
-    } else {
-      this.highlightLine(index, true)
-    }
-  }
-
-  private onMouseLeave = (index: number, isHunkSelection: boolean) => {
-    if (isHunkSelection) {
-      const hunk = this.props.diff.diffHunkForIndex(index)
-      if (!hunk) {
-        console.error('unable to find hunk for given line in diff')
-        return
-      }
-      this.highlightHunk(hunk, false)
-    } else {
-      this.highlightLine(index, false)
-    }
   }
 
   private onMouseDown = (index: number, isHunkSelection: boolean) => {
@@ -256,22 +221,8 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.selection.paint(this.cachedGutterElements)
   }
 
-  private onMouseMove = (index: number, isHunkSelection: boolean) => {
-    const hunk = this.props.diff.diffHunkForIndex(index)
-    if (!hunk) {
-      return
-    }
-
-    if (!this.selection) {
-      // selection is not active, perform highlighting based on mouse position
-      if (isHunkSelection) {
-        this.highlightHunk(hunk, true)
-      } else {
-        // clear hunk selection in case hunk was previously higlighted
-        this.highlightHunk(hunk, false)
-        this.highlightLine(index, true)
-      }
-    } else {
+  private onMouseMove = (index: number) => {
+    if (this.selection) {
       this.selection.update(index)
       this.selection.paint(this.cachedGutterElements)
     }
@@ -312,11 +263,11 @@ export class Diff extends React.Component<IDiffProps, void> {
             isIncluded={isIncluded}
             index={index}
             readOnly={this.props.readOnly}
+            diff={this.props.diff}
+            updateHunkHoverState={this.updateHunkHoverState}
             onMouseUp={this.onMouseUp}
             onMouseDown={this.onMouseDown}
-            onMouseMove={this.onMouseMove}
-            onMouseLeave={this.onMouseLeave}
-            onMouseEnter={this.onMouseEnter} />,
+            onMouseMove={this.onMouseMove} />,
           reactContainer,
           function (this: DiffLineGutter) {
             if (this !== undefined) {
