@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 import { ipcRenderer, remote } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
@@ -19,14 +20,16 @@ import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
 import { OcticonSymbol } from './octicons'
-import { showPopupAppMenu, setMenuEnabled, setMenuVisible } from './main-process-proxy'
+import { setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateState } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { MenuIDs } from '../main-process/menu'
 import { StatsStore, ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
+import { AppMenu } from './app-menu'
 import { UpdateAvailable } from './updates'
+import { shouldRenderApplicationMenu } from './lib/features'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -40,6 +43,9 @@ interface IAppProps {
 }
 
 export class App extends React.Component<IAppProps, IAppState> {
+
+  private altKeyPressed = false
+
   public constructor(props: IAppProps) {
     super(props)
 
@@ -242,6 +248,56 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.handleDragAndDrop(files)
       e.preventDefault()
     }
+
+    if (shouldRenderApplicationMenu()) {
+      window.addEventListener('keydown', this.onWindowKeyDown)
+      window.addEventListener('keyup', this.onWindowKeyUp)
+    }
+  }
+
+  /**
+   * On Windows pressing the Alt key and holding it down should
+   * highlight the application menu.
+   *
+   * It really should show the menu
+   * and highlight the access keys for the menu items but we're not
+   * quite there yet so this will have to suffice in the meantime.
+   *
+   * This method in conjunction with the onWindowKeyUp sets the
+   * appMenuToolbarHighlight state when the Alt key (and only the
+   * Alt key) is pressed.
+   */
+  private onWindowKeyDown = (event: KeyboardEvent) => {
+    if (event.defaultPrevented) { return }
+
+    if (event.key === 'Alt' && shouldRenderApplicationMenu()) {
+      this.altKeyPressed = true
+      this.props.dispatcher.setAppMenuToolbarButtonHighlightState(true)
+    } else if (this.altKeyPressed) {
+      this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
+      this.altKeyPressed = false
+    }
+  }
+
+  /**
+   * Open the application menu foldout when the Alt key is pressed.
+   *
+   * See onWindowKeyDown for more information.
+   */
+  private onWindowKeyUp = (event: KeyboardEvent) => {
+    if (event.defaultPrevented) { return }
+
+    if (event.key === 'Alt' && this.altKeyPressed && shouldRenderApplicationMenu()) {
+      this.altKeyPressed = false
+      this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
+
+      if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+        this.props.dispatcher.closeFoldout()
+      } else {
+        this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu })
+      }
+      event.preventDefault()
+    }
   }
 
   private handleDragAndDrop(fileList: FileList) {
@@ -289,14 +345,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         {winControls}
       </div>
     )
-  }
-
-  /** Put the main application menu into a context menu for now (win only) */
-  private onContextMenu = (e: React.MouseEvent<any>) => {
-    if (__WIN32__) {
-      e.preventDefault()
-      showPopupAppMenu()
-    }
   }
 
   private currentPopupContent(): JSX.Element | null {
@@ -375,7 +423,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderApp() {
     return (
-      <div id='desktop-app-contents' onContextMenu={this.onContextMenu}>
+      <div id='desktop-app-contents'>
         {this.renderToolbar()}
         {this.renderRepository()}
         {this.renderPopup()}
@@ -396,6 +444,56 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       return OcticonSymbol.repo
     }
+  }
+
+  private closeAppMenu = () => {
+    this.props.dispatcher.closeFoldout()
+  }
+
+  private renderAppMenu = (): JSX.Element | null => {
+    if (!this.state.appMenuState || !shouldRenderApplicationMenu()) {
+      return null
+    }
+
+    return (
+      <AppMenu
+        state={this.state.appMenuState}
+        dispatcher={this.props.dispatcher}
+        onClose={this.closeAppMenu}
+      />
+    )
+  }
+
+  private onAppMenuDropdownStateChanged = (newState: DropdownState) => {
+    if (newState === 'open') {
+      this.props.dispatcher.setAppMenuState(menu => menu.withReset())
+      this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu })
+    } else {
+      this.props.dispatcher.closeFoldout()
+    }
+  }
+
+  private renderAppMenuToolbarButton() {
+    if (!this.state.appMenuState || !shouldRenderApplicationMenu()) {
+      return null
+    }
+
+    const isOpen = this.state.currentFoldout
+      && this.state.currentFoldout.type === FoldoutType.AppMenu
+
+    const currentState: DropdownState = isOpen ? 'open' : 'closed'
+    const className = classNames(
+      'app-menu',
+      { 'highlight': this.state.highlightAppMenuToolbarButton },
+    )
+
+    return <ToolbarDropdown
+      className={className}
+      icon={OcticonSymbol.threeBars}
+      title='Menu'
+      onDropdownStateChanged={this.onAppMenuDropdownStateChanged}
+      dropdownContentRenderer={this.renderAppMenu}
+      dropdownState={currentState} />
   }
 
   private renderRepositoryList = (): JSX.Element => {
@@ -526,6 +624,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         <div
           className='sidebar-section'
           style={{ width: this.state.sidebarWidth }}>
+          {this.renderAppMenuToolbarButton()}
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}

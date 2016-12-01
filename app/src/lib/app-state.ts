@@ -8,6 +8,7 @@ import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
+import { IMenu } from '../models/app-menu'
 
 export { ICloningRepositoryState }
 export { ICommitMessage }
@@ -33,6 +34,26 @@ export interface IAppState {
   readonly currentPopup: Popup | null
   readonly currentFoldout: Foldout | null
 
+  /**
+   * A list of currently open menus with their selected items
+   * in the application menu.
+   *
+   * The semantics around what constitues an open menu and how
+   * selection works is defined by the AppMenu class and the
+   * individual components transforming that state.
+   *
+   * Note that as long as the renderer has received an application
+   * menu from the main process there will always be one menu
+   * "open", that is the root menu which can't be closed. In other
+   * words, a non-zero length appMenuState does not imply that the
+   * application menu should be visible. Currently thats defined by
+   * whether the app menu is open as a foldout (see currentFoldout).
+   *
+   * Not applicable on macOS unless the in-app application menu has
+   * been explicitly enabled for testing purposes.
+   */
+  readonly appMenuState: ReadonlyArray<IMenu>
+
   readonly errors: ReadonlyArray<IAppError>
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
@@ -52,8 +73,15 @@ export interface IAppState {
    */
   readonly sidebarWidth: number
 
-  // Whether we should hide the toolbar (and show inverted window controls)
+  /** Whether we should hide the toolbar (and show inverted window controls) */
   readonly titleBarStyle: 'light' | 'dark'
+
+  /**
+   * Used to add a highlight class to the app menu toolbar icon
+   * when the Alt key is pressed. Only applicable on non-macOS
+   * platforms.
+   */
+  readonly highlightAppMenuToolbarButton: boolean
 }
 
 export interface IAppError {
@@ -85,11 +113,13 @@ export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
 export enum FoldoutType {
   Repository,
   Branch,
+  AppMenu,
 }
 
 export type Foldout =
   { type: FoldoutType.Repository } |
-  { type: FoldoutType.Branch }
+  { type: FoldoutType.Branch } |
+  { type: FoldoutType.AppMenu }
 
 export enum RepositorySection {
   Changes,
