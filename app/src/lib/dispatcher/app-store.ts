@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { shell } from 'electron'
+import { shell, ipcRenderer } from 'electron'
 import * as Path from 'path'
 import {
   IRepositoryState,
@@ -34,6 +34,8 @@ import { assertNever } from '../fatal-error'
 import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
+import { AppMenu } from '../../models/app-menu'
+import { getAppMenu } from '../../ui/main-process-proxy'
 
 import {
   getGitDir,
@@ -119,6 +121,20 @@ export class AppStore {
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
 
+  /**
+   * The Application menu as an AppMenu instance or null if
+   * the main process has not yet provided the renderer with
+   * a copy of the application menu structure.
+   */
+  private appMenu: AppMenu | null = null
+
+  /**
+   * Used to add a highlight class to the app menu toolbar icon
+   * when the Alt key is pressed. Only applicable on non-macOS
+   * platforms.
+   */
+  private highlightAppMenuToolbarButton: boolean = false
+
   private sidebarWidth: number = defaultSidebarWidth
 
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore) {
@@ -129,6 +145,12 @@ export class AppStore {
 
     const hasShownWelcomeFlow = localStorage.getItem(HasShownWelcomeFlowKey)
     this.showWelcomeFlow = !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
+
+    ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: Electron.Menu }) => {
+      this.setAppMenu(menu)
+    })
+
+    getAppMenu()
 
     this.gitHubUserStore.onDidUpdate(() => {
       this.emitUpdate()
@@ -320,7 +342,9 @@ export class AppStore {
       showWelcomeFlow: this.showWelcomeFlow,
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
+      appMenuState: this.appMenu ? this.appMenu.openMenus : [ ],
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
+      highlightAppMenuToolbarButton: this.highlightAppMenuToolbarButton,
     }
   }
 
@@ -1343,5 +1367,42 @@ export class AppStore {
   public _setCommitMessage(repository: Repository, message: ICommitMessage | null): Promise<void> {
     const gitStore = this.getGitStore(repository)
     return gitStore.setCommitMessage(message)
+  }
+
+  /**
+   * Set the global application menu.
+   *
+   * This is called in response to the main process emitting an event signalling
+   * that the application menu has changed in some way like an item being
+   * added/removed or an item having its visibility toggled.
+   *
+   * This method should not be called by the renderer in any other circumstance
+   * than as a directly result of the main-process event.
+   *
+   */
+  private setAppMenu(menu: Electron.Menu): Promise<void> {
+    if (this.appMenu) {
+      this.appMenu = this.appMenu.withElectronMenu(menu)
+    } else {
+      this.appMenu = AppMenu.fromElectronMenu(menu)
+    }
+
+    this.emitUpdate()
+    return Promise.resolve()
+  }
+
+  public _setAppMenuState(update: (appMenu: AppMenu) => AppMenu): Promise<void> {
+    if (this.appMenu) {
+      this.appMenu = update(this.appMenu)
+      this.emitUpdate()
+    }
+    return Promise.resolve()
+  }
+
+  public _setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
+    this.highlightAppMenuToolbarButton = highlight
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 }

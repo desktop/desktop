@@ -1,9 +1,9 @@
-import { BrowserWindow, ipcMain } from 'electron'
+import { BrowserWindow, ipcMain, Menu } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 
 import { SharedProcess } from '../shared-process/shared-process'
 import { WindowState, windowStateChannelName } from '../lib/window-state'
-import { buildDefaultMenu, MenuEvent } from './menu'
+import { MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-url'
 import { ILaunchStats } from '../lib/stats'
 
@@ -99,17 +99,6 @@ export class AppWindow {
 
     this.registerWindowStateChangedEvents()
 
-    // We don't have a menu bar on windows so we'll cheat
-    // for now and make right-clicking in the app show the
-    // default menu as a context menu instead.
-    if (__WIN32__) {
-      const menu = buildDefaultMenu(this.sharedProcess)
-
-      ipcMain.on('show-popup-app-menu', (e, ...args) => {
-        menu.popup(this.window)
-      })
-    }
-
     this.window.loadURL(`file://${__dirname}/index.html`)
   }
 
@@ -200,6 +189,11 @@ export class AppWindow {
   /** Send the app launch timing stats to the renderer. */
   public sendLaunchTimingStats(stats: ILaunchStats) {
     this.window.webContents.send('launch-timing-stats', { stats })
+  }
+
+  /** Send the app menu to the renderer. */
+  public sendAppMenu() {
+    this.window.webContents.send('app-menu', { menu: Menu.getApplicationMenu() })
   }
 
   /**
