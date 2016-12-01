@@ -2,23 +2,41 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 
 interface IInputProps {
+  /** The label for the input field. */
   readonly label?: string
+
+  /** The class name for the label. */
   readonly labelClassName?: string
 
+  /** The class name for the input field. */
   readonly inputClassName?: string
 
+  /** The placeholder for the input field. */
   readonly placeholder?: string
+
+  /** The current value of the input field. */
   readonly value?: string
+
+  /** Whether the input field should be for secure entry. */
   readonly secure?: boolean
+
+  /** Whether the input field should auto focus when mounted. */
   readonly autoFocus?: boolean
+
+  /** Whether the input field is disabled. */
   readonly disabled?: boolean
 
+  /** Called when the user changes the value in the input field. */
   readonly onChange?: (event: React.FormEvent<HTMLInputElement>) => void
+
+  /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
 
+  /** The children to display after the input field. */
   readonly children?: ReadonlyArray<JSX.Element>
 }
 
+/** An input element with app-standard styles. */
 export class Input extends React.Component<IInputProps, void> {
   public render() {
     const className = classNames('input-component', this.props.labelClassName)

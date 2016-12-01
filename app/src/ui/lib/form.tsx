@@ -2,10 +2,14 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 
 interface IFormProps {
+  /** The class name for the form. */
   readonly className?: string
+
+  /** Called when the form is submitted. */
   readonly onSubmit?: () => void
 }
 
+/** A form element with app-standard styles. */
 export class Form extends React.Component<IFormProps, void> {
   public render() {
     const className = classNames('form-component', this.props.className)
