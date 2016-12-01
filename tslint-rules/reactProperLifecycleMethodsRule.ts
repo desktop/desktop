@@ -67,7 +67,9 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
         case 'componentDidUpdate':
           return this.verifyComponentDidUpdate(node)
         case 'shouldComponentUpdate':
-        return this.verifyShouldComponentUpdate(node)
+          return this.verifyShouldComponentUpdate(node)
+        default:
+          return this.reservedNameError(node)
       }
     }
   }
@@ -172,5 +174,15 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
       { name: 'nextProps', type: this.propsTypeName },
       { name: 'nextState', type: this.stateTypeName },
     ])
+  }
+
+  private reservedNameError(node: ts.MethodDeclaration) {
+    const start = node.name.getStart()
+    const width = node.name.getWidth()
+
+    const message = 'Method names starting with component or shouldComponent ' +
+      'are prohibited since they can be confused with React lifecycle methods.'
+
+    this.addFailure(this.createFailure(start, width, message))
   }
 }
