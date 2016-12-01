@@ -47,7 +47,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     this.clearExpandCollapseTimer()
 
     if (item.type === 'submenuItem') {
-      this.props.dispatcher.setAppMenuState(menu => menu.withOpenMenu(item))
+      this.props.dispatcher.setAppMenuState(menu => menu.withOpenedMenu(item))
     } else if (item.type !== 'separator') {
       this.props.dispatcher.executeMenuItem(item)
       this.props.onClose()
@@ -63,7 +63,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       if (depth === 0 && event.key === 'Escape') {
         this.props.onClose()
       } else {
-        this.props.dispatcher.setAppMenuState(menu => menu.withCloseMenu(this.props.state[depth]))
+        this.props.dispatcher.setAppMenuState(menu => menu.withClosedMenu(this.props.state[depth]))
       }
 
       // Focus the previous menu, this might end up being -1 which is
@@ -76,7 +76,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
 
       // Open the submenu and select the first item
       if (item.type === 'submenuItem') {
-        this.props.dispatcher.setAppMenuState(menu => menu.withOpenMenu(item, true))
+        this.props.dispatcher.setAppMenuState(menu => menu.withOpenedMenu(item, true))
         this.focusPane = depth + 1
         event.preventDefault()
       }
@@ -93,7 +93,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   private scheduleExpand(item: ISubmenuItem) {
     this.clearExpandCollapseTimer()
     this.expandCollapseTimer = window.setTimeout(() => {
-      this.props.dispatcher.setAppMenuState(menu => menu.withOpenMenu(item))
+      this.props.dispatcher.setAppMenuState(menu => menu.withOpenedMenu(item))
     }, expandCollapseTimeout)
   }
 

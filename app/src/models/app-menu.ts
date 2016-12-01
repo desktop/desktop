@@ -297,7 +297,7 @@ export class AppMenu {
    *
    *                          Defaults to false.
    */
-  public withOpenMenu(submenuItem: ISubmenuItem, selectFirstItem = false): AppMenu {
+  public withOpenedMenu(submenuItem: ISubmenuItem, selectFirstItem = false): AppMenu {
     const ourMenuItem = this.menuItemById.get(submenuItem.id)
 
     if (!ourMenuItem) {
@@ -334,7 +334,7 @@ export class AppMenu {
    * @param menu - The menu which is to be closed, i.e. removed from the
    *               list of open menus.
    */
-  public withCloseMenu(menu: IMenu) {
+  public withClosedMenu(menu: IMenu) {
     // Root menu is always open and can't be closed
     if (!menu.id) {
       return this
