@@ -12,7 +12,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffHunk, DiffLine, DiffLineType, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
+import { DiffHunk, DiffLineType, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { DiffLineGutter } from './diff-line-gutter'
@@ -144,15 +144,11 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.lineCleanup.clear()
   }
 
-  private isIncludableLine(line: DiffLine): boolean {
-    return line.type === DiffLineType.Add || line.type === DiffLineType.Delete
-  }
-
   private highlightHunk(hunk: DiffHunk, show: boolean) {
     const start = hunk.unifiedDiffStart
 
     hunk.lines.forEach((line, index) => {
-      if (this.isIncludableLine(line)) {
+      if (line.isIncludeableLine()) {
         const row = start + index
         this.highlightLine(row, show)
       }

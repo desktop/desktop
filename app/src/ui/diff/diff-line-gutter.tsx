@@ -132,7 +132,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     }
 
     // ignore anything from diff context rows
-    if (!this.isIncludeable()) {
+    if (!this.props.line.isIncludeableLine()) {
       return
     }
 
@@ -160,12 +160,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   }
 
   public isIncluded(): boolean {
-    return this.isIncludeable() && this.props.isIncluded
-  }
-
-  public isIncludeable(): boolean {
-    const type = this.props.line.type
-    return type === DiffLineType.Add || type === DiffLineType.Delete
+    return this.props.line.isIncludeableLine() && this.props.isIncluded
   }
 
   public setClass(cssClass: string) {
