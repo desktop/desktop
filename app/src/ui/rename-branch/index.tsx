@@ -40,6 +40,7 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
       <Form onSubmit={this.renameBranch}>
         <Input
           label='Name'
+          autoFocus={true}
           value={this.state.newName}
           onChange={this.onNameChange}
           onKeyDown={this.onKeyDown}/>
