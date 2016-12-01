@@ -982,18 +982,8 @@ export class AppStore {
 
     this.updateRepositoryState(repository, state => {
       return {
-        selectedSection: state.selectedSection,
-        changesState: state.changesState,
-        historyState: state.historyState,
+        ...state,
         commitAuthor: commitAuthor || null,
-        branchesState: state.branchesState,
-        gitHubUsers: state.gitHubUsers,
-        commits: state.commits,
-        localCommitSHAs: state.localCommitSHAs,
-        aheadBehind: state.aheadBehind,
-        remoteName: state.remoteName,
-        pushPullInProgress: state.pushPullInProgress,
-        lastFetched: state.lastFetched,
       }
     })
     this.emitUpdate()
