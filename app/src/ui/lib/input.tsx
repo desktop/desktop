@@ -9,8 +9,10 @@ interface IInputProps {
 
   readonly placeholder?: string
   readonly value?: string
-  readonly onChange?: (event: React.FormEvent<HTMLInputElement>) => void
   readonly secure?: boolean
+
+  readonly onChange?: (event: React.FormEvent<HTMLInputElement>) => void
+  readonly onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
 
   readonly children?: ReadonlyArray<JSX.Element>
 }
@@ -28,7 +30,8 @@ export class Input extends React.Component<IInputProps, void> {
             type={!this.props.secure ? 'text' : 'password'}
             placeholder={this.props.placeholder}
             value={this.props.value}
-            onChange={this.props.onChange}/>
+            onChange={this.props.onChange}
+            onKeyDown={this.props.onKeyDown}/>
 
           {this.props.children}
         </div>
