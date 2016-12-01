@@ -5,4 +5,11 @@
   & > *:not(:last-child) {
     margin-bottom: var(--spacing);
   }
+
+  hr {
+    width: 100%;
+    border: none;
+    height: 1px;
+    border-bottom: var(--base-border);
+  }
 }
