@@ -12,7 +12,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffHunk, DiffLineType, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
+import { DiffHunk, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { DiffLineGutter } from './diff-line-gutter'
@@ -271,23 +271,22 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    // if selection is not active, perform highlighting
     if (!this.selection) {
 
-      // clear hunk selection in case transitioning from hunk->line
-      this.highlightHunk(hunk, false)
+      // selection is not active, perform highlighting based on mouse position
 
       if (isHunkSelection) {
         this.highlightHunk(hunk, true)
       } else {
+        // clear hunk selection in case hunk was previously higlighted
+        this.highlightHunk(hunk, false)
         this.highlightLine(index, true)
       }
-      return
+    } else {
+      this.selection.update(index)
+      this.selection.paint(this.cachedGutterElements)
     }
-
-    this.selection.update(index)
-    this.selection.paint(this.cachedGutterElements)
-  }
+ }
 
   public renderLine = (instance: any, line: any, element: HTMLElement) => {
 
