@@ -1,3 +1,5 @@
+import { assertNever } from '../lib/fatal-error'
+
 /** A type union of all possible types of menu items */
 export type MenuItem = IMenuItem | ISubmenuItem | ISeparatorMenuItem | ICheckboxMenuItem | IRadioMenuItem
 
@@ -142,7 +144,7 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
     case 'radio':
       return { id, type: 'radio', label, enabled, visible, accelerator, checked }
     default:
-      throw new Error(`Unknown menu item type ${menuItem.type}`)
+      return assertNever(menuItem.type, `Unknown menu item type ${menuItem.type}`)
   }
 }
 /**
