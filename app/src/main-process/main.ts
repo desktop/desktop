@@ -177,7 +177,7 @@ app.on('ready', () => {
     const request = network.request(requestOptions)
     request.on('response', (response: Electron.IncomingMessage) => {
 
-      const responseBody: Array<number> = [ ]
+      const responseChunks: Array<Buffer> = [ ]
       const encoding = getEncoding(response)
 
       response.on('abort', () => {
@@ -187,7 +187,7 @@ app.on('ready', () => {
       response.on('data', (chunk: Buffer) => {
         // rather than decode the bytes immediately, push them onto an array
         // and defer this until the entire response has been received
-        chunk.forEach(v => responseBody.push(v))
+        responseChunks.push(chunk)
       })
 
       response.on('end', () => {
@@ -202,10 +202,10 @@ app.on('ready', () => {
         const isJsonResponse = contentType === 'application/json'
 
         let body: Object | undefined
-        if (responseBody.length > 0 && validStatusCode && isJsonResponse) {
+        if (responseChunks.length > 0 && validStatusCode && isJsonResponse) {
           let text: string | undefined
           try {
-            const buffer = Buffer.from(responseBody)
+            const buffer = Buffer.concat(responseChunks)
             text = buffer.toString(encoding)
             body = JSON.parse(text)
           } catch (e) {
