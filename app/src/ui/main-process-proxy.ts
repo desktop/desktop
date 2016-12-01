@@ -22,6 +22,15 @@ export function executeMenuItem(item: ExecutableMenuItem) {
   ipcRenderer.send('execute-menu-item', { id: item.id })
 }
 
+/**
+ * Ask the main-process to send over a copy of the application menu.
+ * The response will be send as a separate event with the name 'app-menu' and
+ * will be received by the dispatcher.
+ */
+export function getAppMenu() {
+  ipcRenderer.send('get-app-menu')
+}
+
 export interface IMenuItem {
   readonly label: string
   readonly action: () => void
