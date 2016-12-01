@@ -241,7 +241,7 @@ export class AppMenu {
    * attempting to maintain selection state.
    */
   public withElectronMenu(electronMenu: Electron.Menu): AppMenu {
-    const newMenu = menuFromElectronMenu(electronMenu, undefined)
+    const newMenu = menuFromElectronMenu(electronMenu)
     const newMap = buildIdMap(newMenu)
     const newOpenMenus = new Array<IMenu>()
 
