@@ -51,10 +51,6 @@ interface IDiffGutterProps {
   readonly onMouseUp: (index: number) => void
 }
 
-function isIncludeable(type: DiffLineType): boolean {
-  return type === DiffLineType.Add || type === DiffLineType.Delete
-}
-
 // TODO: this doesn't consider mouse events outside the right edge
 
 function isMouseInHunkSelectionZone(ev: MouseEvent): boolean {
@@ -136,7 +132,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     }
 
     // ignore anything from diff context rows
-    if (!isIncludeable(this.props.line.type)) {
+    if (!this.isIncludeable()) {
       return
     }
 
@@ -160,7 +156,12 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   }
 
   public isIncluded(): boolean {
-    return isIncludeable(this.props.line.type) && this.props.isIncluded
+    return this.isIncludeable() && this.props.isIncluded
+  }
+
+  public isIncludeable(): boolean {
+    const type = this.props.line.type
+    return type === DiffLineType.Add || type === DiffLineType.Delete
   }
 
   public setClass(cssClass: string) {
