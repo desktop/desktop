@@ -11,7 +11,7 @@ import * as ts from 'typescript'
 import * as Lint from 'tslint/lib/lint'
 
 interface IExpectedParameter {
-  readonly name: string,
+  readonly name: string
   readonly type: string
 }
 
