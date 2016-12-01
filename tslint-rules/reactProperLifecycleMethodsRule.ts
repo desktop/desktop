@@ -57,7 +57,8 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
           this.verifyEmptyParameters(node)
           break
         case 'componentWillReceiveProps':
-        case 'shouldComponentUpdate':
+          this.verifyComponentWillReceiveProps(node)
+          break
         case 'componentWillUpdate':
         case 'componentDidUpdate':
           return
@@ -74,6 +75,37 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
       const message = `${methodName} should not accept any parameters.`
 
       this.addFailure(this.createFailure(start, width, message))
+    }
+  }
+
+  private verifyComponentWillReceiveProps(node: ts.MethodDeclaration) {
+    if (node.parameters.length !== 1) {
+      const start = node.getStart()
+      const width = node.getWidth()
+      const message = `componentWillReceiveProps should take one parameter of type ${this.propsTypeName}.`
+
+      this.addFailure(this.createFailure(start, width, message))
+      return
+    }
+
+    const parameter = node.parameters[0]
+    const parameterName = parameter.name.getText()
+
+    const parameterStart = parameter.getStart()
+    const parameterwidth = parameter.getWidth()
+
+    if (parameterName !== 'nextProps') {
+      const message = `first parameter of componentWillReceiveProps should be named nextProps.`
+      this.addFailure(this.createFailure(parameterStart, parameterwidth, message))
+      return
+    }
+
+    const type = parameter.type
+
+    if (!type || type.getText() !== this.propsTypeName) {
+      const message = `first parameter componentWillReceiveProps must be of type ${this.propsTypeName}.`
+      this.addFailure(this.createFailure(parameterStart, parameterwidth, message))
+      return
     }
   }
 }
