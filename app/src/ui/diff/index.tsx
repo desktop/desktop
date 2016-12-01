@@ -263,7 +263,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    // if selection is active, perform highlighting
+    // if selection is not active, perform highlighting
     if (!this.selection) {
 
       // clear hunk selection in case transitioning from hunk->line
