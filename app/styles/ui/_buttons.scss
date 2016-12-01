@@ -1,6 +1,5 @@
 button,
-input[type='submit'],
-.button {
+input[type='submit'] {
   background-color: var(--button-background);
   color: var(--button-text-color);
 
@@ -24,15 +23,6 @@ input[type='submit'],
   }
 
   &:disabled { opacity: 0.3; }
-}
-
-a.link-button-component {
-  color: var(--link-button-color);
-  text-decoration: none;
-
-  &:hover {
-    text-decoration: underline;
-  }
 }
 
 .secondary-button {

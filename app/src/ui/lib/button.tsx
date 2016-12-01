@@ -21,7 +21,7 @@ interface IButtonProps {
 /** A button component. */
 export class Button extends React.Component<IButtonProps, void> {
   public render() {
-    const className = classNames('button', this.props.className)
+    const className = classNames('button-component', this.props.className)
 
     return (
       <button
