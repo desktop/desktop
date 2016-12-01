@@ -88,11 +88,11 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
     const parameterName = node.name.getText()
 
     const parameterStart = node.getStart()
-    const parameterwidth = node.getWidth()
+    const parameterWidth = node.getWidth()
 
     if (parameterName !== expectedParameter.name) {
       const message = `parameter should be named ${expectedParameter.name}.`
-      this.addFailure(this.createFailure(parameterStart, parameterwidth, message))
+      this.addFailure(this.createFailure(parameterStart, parameterWidth, message))
       return false
     }
 
@@ -100,13 +100,7 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
 
     if (parameterTypeName !== expectedParameter.type) {
       const message = `parameter should be of type ${expectedParameter.type}.`
-      this.addFailure(this.createFailure(parameterStart, parameterwidth, message))
-      return false
-    }
-
-    if (parameterTypeName === 'void') {
-      const message = `remove unused void parameter ${parameterName}.`
-      this.addFailure(this.createFailure(parameterStart, parameterwidth, message))
+      this.addFailure(this.createFailure(parameterStart, parameterWidth, message))
       return false
     }
 
@@ -122,15 +116,33 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
         console.log(i, expectedParameters.length)
         const parameterName = parameter.getText()
         const parameterStart = parameter.getStart()
-        const parameterwidth = parameter.getWidth()
+        const parameterWidth = parameter.getWidth()
         const message = `unknown parameter ${parameterName}`
 
-        this.addFailure(this.createFailure(parameterStart, parameterwidth, message))
+        this.addFailure(this.createFailure(parameterStart, parameterWidth, message))
         return false
       }
 
       if (this.verifyParameter(parameter, expectedParameters[i])) {
         return false
+      }
+    }
+
+    // Remove trailing unused void parameters
+    for (let i = node.parameters.length - 1; i >= 0; i--) {
+      const parameter = node.parameters[i]
+      const parameterTypeName = parameter.type ? parameter.type.getText() : undefined
+
+      if (parameterTypeName === 'void') {
+        const parameterName = parameter.getText()
+        const parameterStart = parameter.getStart()
+        const parameterWidth = parameter.getWidth()
+        const message = `remove unused void parameter ${parameterName}.`
+
+        this.addFailure(this.createFailure(parameterStart, parameterWidth, message))
+        return false
+      } else {
+        break
       }
     }
 
