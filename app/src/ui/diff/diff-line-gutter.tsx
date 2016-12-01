@@ -145,6 +145,10 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
       elem.addEventListener('mousedown', this.mouseDownHandler)
       elem.addEventListener('mouseup', this.mouseUpHandler)
     } else {
+
+      // this callback fires a second time when the DOM element
+      // is unmounted, so we can use this as a chance to cleanup
+
       if (this.elem_) {
         this.elem_.removeEventListener('mouseenter', this.mouseEnterHandler)
         this.elem_.removeEventListener('mouseleave', this.mouseLeaveHandler)
