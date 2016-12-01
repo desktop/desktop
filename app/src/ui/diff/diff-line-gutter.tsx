@@ -16,12 +16,12 @@ interface IDiffGutterProps {
   readonly isIncluded: boolean
 
   /**
-   * The line number of the diff within the rendered diff
+   * The line number relative to the unified diff output
    */
   readonly index: number
 
   /**
-   * Indicate whether the diff needs to handle user interactions
+   * Indicate whether the diff should handle user interactions
    */
   readonly readOnly: boolean
 
