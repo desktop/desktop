@@ -202,4 +202,8 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   public componentDidUpdate() {
     this.ensurePaneFocus()
   }
+
+  public componentWillUnmount() {
+    this.clearExpandCollapseTimer()
+  }
 }
