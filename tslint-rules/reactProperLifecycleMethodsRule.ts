@@ -54,7 +54,7 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
 
   protected visitMethodDeclaration(node: ts.MethodDeclaration): void {
     const methodName = node.name.getText()
-    if (/^component|^shouldComponent/.test(methodName)) {
+    if (methodName.startsWith('component') || methodName.startsWith('shouldComponent')) {
       switch (methodName) {
         case 'componentWillMount':
         case 'componentDidMount':
