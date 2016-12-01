@@ -7,6 +7,9 @@ import * as FS from 'fs'
 import { Dispatcher } from '../../lib/dispatcher'
 import { initGitRepository } from '../../lib/git'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
+import { Form } from '../lib/form'
+import { Input } from '../lib/input'
+import { Button } from '../lib/button'
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -73,33 +76,29 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   public render() {
     const disabled = this.state.path.length === 0 || this.state.name.length === 0
     return (
-      <div id='create-repository' className='panel'>
-        <div>
-          <label>Name
-            <input value={this.state.name}
-                   placeholder='repository name'
-                   onChange={this.onNameChanged}/>
-          </label>
-        </div>
+      <Form>
+        <Input
+          value={this.state.name}
+          label='Name'
+          placeholder='repository name'
+          onChange={this.onNameChanged}/>
 
         {this.renderError()}
 
-        <div className='file-picker'>
-          <label>Local Path
-            <input value={this.state.path}
-                   placeholder='repository path'
-                   onChange={this.onPathChanged}/>
-          </label>
-
-          <button onClick={this.showFilePicker}>Choose…</button>
-        </div>
+        <Input
+          value={this.state.path}
+          label='Local Path'
+          placeholder='repository path'
+          onChange={this.onPathChanged}>
+          <Button onClick={this.showFilePicker}>Choose…</Button>
+        </Input>
 
         <hr/>
 
-        <button disabled={disabled} onClick={this.createRepository}>
+        <Button type='submit' disabled={disabled} onClick={this.createRepository}>
           Create Repository
-        </button>
-      </div>
+        </Button>
+      </Form>
     )
   }
 }
