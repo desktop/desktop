@@ -78,12 +78,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.onMenuEvent(name)
     })
 
-    ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: Electron.Menu }) => {
-      this.props.dispatcher.setAppMenu(menu)
-    })
-
-    ipcRenderer.send('get-app-menu')
-
     updateStore.onDidChange(state => {
       const visibleItem = (function () {
         switch (state) {

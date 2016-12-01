@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { shell } from 'electron'
+import { shell, ipcRenderer } from 'electron'
 import * as Path from 'path'
 import {
   IRepositoryState,
@@ -35,6 +35,7 @@ import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu } from '../../models/app-menu'
+import { getAppMenu } from '../../ui/main-process-proxy'
 
 import {
   getGitDir,
@@ -144,6 +145,12 @@ export class AppStore {
 
     const hasShownWelcomeFlow = localStorage.getItem(HasShownWelcomeFlowKey)
     this.showWelcomeFlow = !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
+
+    ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: Electron.Menu }) => {
+      this.setAppMenu(menu)
+    })
+
+    getAppMenu()
 
     this.gitHubUserStore.onDidUpdate(() => {
       this.emitUpdate()
@@ -1372,7 +1379,18 @@ export class AppStore {
     return gitStore.setCommitMessage(message)
   }
 
-  public _setAppMenu(menu: Electron.Menu): Promise<void> {
+  /**
+   * Set the global application menu.
+   *
+   * This is called in response to the main process emitting an event signalling
+   * that the application menu has changed in some way like an item being
+   * added/removed or an item having its visibility toggled.
+   *
+   * This method should not be called by the renderer in any other circumstance
+   * than as a directly result of the main-process event.
+   *
+   */
+  private setAppMenu(menu: Electron.Menu): Promise<void> {
     if (this.appMenu) {
       this.appMenu = this.appMenu.withElectronMenu(menu)
     } else {
