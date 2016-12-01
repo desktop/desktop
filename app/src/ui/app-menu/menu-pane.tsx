@@ -37,17 +37,17 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
     this.state = this.createState(props)
   }
 
-  public componentWillReceiveProps(props: IMenuPaneProps) {
+  public componentWillReceiveProps(nextProps: IMenuPaneProps) {
     // No need to recreate the filtered list if it hasn't changed,
     // we only have to update the selected item
-    if (this.props.items === props.items) {
+    if (this.props.items === nextProps.items) {
       // Has the selection changed?
-      if (this.props.selectedItem !== props.selectedItem) {
-        const selectedIndex = getSelectedIndex(props.selectedItem, this.state.items)
+      if (this.props.selectedItem !== nextProps.selectedItem) {
+        const selectedIndex = getSelectedIndex(nextProps.selectedItem, this.state.items)
         this.setState({ items: this.state.items, selectedIndex })
       }
     } else {
-      this.setState(this.createState(props))
+      this.setState(this.createState(nextProps))
     }
   }
 
