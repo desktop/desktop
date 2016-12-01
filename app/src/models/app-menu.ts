@@ -158,7 +158,7 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
  * @param id   - The id of the menu. Menus share their id with
  *               their parent item. The root menu id is undefined.
  */
-function menuFromElectronMenu(menu: Electron.Menu, id: string | undefined): IMenu {
+function menuFromElectronMenu(menu: Electron.Menu, id?: string): IMenu {
   const items = menu.items.map(menuItemFromElectronMenuItem)
   return { id, type: 'menu', items }
 }
@@ -222,7 +222,7 @@ export class AppMenu {
    * from an Electron Menu instance.
    */
   public static fromElectronMenu(electronMenu: Electron.Menu): AppMenu {
-    const menu = menuFromElectronMenu(electronMenu, undefined)
+    const menu = menuFromElectronMenu(electronMenu)
     const map = buildIdMap(menu)
     const openMenus = [ menu ]
 
