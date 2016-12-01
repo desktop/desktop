@@ -30,6 +30,21 @@ if (__DARWIN__) {
   require('codemirror/addon/scroll/simplescrollbars')
 }
 
+
+/**
+ * normalize the line endings in the diff so that the CodeMirror editor
+ * will display the unified diff correctly
+ */
+function formatLineEnding(text: string): string {
+  if (text.endsWith('\n')) {
+    return text
+  } else if (text.endsWith('\r')) {
+    return text + '\n'
+  } else {
+    return text + '\r\n'
+  }
+}
+
 /** The props for the Diff component. */
 interface IDiffProps {
   readonly repository: Repository
@@ -81,7 +96,6 @@ export class Diff extends React.Component<IDiffProps, void> {
    *  a local cache of gutter elements, keyed by the row in the diff
    */
   private cachedGutterElements = new Map<number, DiffLineGutter>()
-
 
   public componentWillReceiveProps(nextProps: IDiffProps) {
     // If we're reloading the same file, we want to save the current scroll
@@ -140,7 +154,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   private dispose() {
     this.codeMirror = null
 
-    this.lineCleanup.forEach((disposable) => disposable.dispose())
+    this.lineCleanup.forEach(disposable => disposable.dispose())
     this.lineCleanup.clear()
   }
 
@@ -158,8 +172,8 @@ export class Diff extends React.Component<IDiffProps, void> {
   private highlightLine(row: number, include: boolean) {
     const element = this.cachedGutterElements.get(row)
 
-    // no point trying to render this element, as it's not currently cached by the editor
-    if (element === undefined) {
+    if (!element) {
+      // element not currently cached by the editor, don't try and update it
       return
     }
 
@@ -401,20 +415,6 @@ export class Diff extends React.Component<IDiffProps, void> {
     return null
   }
 
-  /**
-   * normalize the line endings in the diff so that the CodeMirror Editor
-   * will display the unified diff correctly
-   */
-  private formatLineEnding(text: string): string {
-    if (text.endsWith('\n')) {
-      return text
-    } else if (text.endsWith('\r')) {
-      return text + '\n'
-    } else {
-      return text + '\r\n'
-    }
-  }
-
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
     this.codeMirror = cmh === null ? null : cmh.getEditor()
   }
@@ -434,7 +434,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     let diffText = ''
 
     this.props.diff.hunks.forEach(hunk => {
-      hunk.lines.forEach(l => diffText += this.formatLineEnding(l.text))
+      hunk.lines.forEach(l => diffText += formatLineEnding(l.text))
     })
 
     const options: IEditorConfigurationExtra = {
