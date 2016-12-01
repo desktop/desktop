@@ -37,8 +37,6 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
                 this.propsTypeName = type.typeArguments[0].getText()
                 this.stateTypeName = type.typeArguments[1].getText()
 
-                console.log(this.propsTypeName, this.stateTypeName)
-
                 super.visitClassDeclaration(node)
                 return
               }
