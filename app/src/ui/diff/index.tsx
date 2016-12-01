@@ -205,13 +205,11 @@ export class Diff extends React.Component<IDiffProps, void> {
 
   private onMouseEnter = (index: number, isHunkSelection: boolean) => {
     if (isHunkSelection) {
-
       const hunk = this.props.diff.diffHunkForIndex(index)
       if (!hunk) {
         console.error('unable to find hunk for given line in diff')
         return
       }
-
       this.highlightHunk(hunk, true)
     } else {
       this.highlightLine(index, true)
@@ -220,13 +218,11 @@ export class Diff extends React.Component<IDiffProps, void> {
 
   private onMouseLeave = (index: number, isHunkSelection: boolean) => {
     if (isHunkSelection) {
-
       const hunk = this.props.diff.diffHunkForIndex(index)
       if (!hunk) {
         console.error('unable to find hunk for given line in diff')
         return
       }
-
       this.highlightHunk(hunk, false)
     } else {
       this.highlightLine(index, false)
@@ -234,10 +230,6 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onMouseDown = (index: number, isHunkSelection: boolean) => {
-    if (this.props.readOnly) {
-      return
-    }
-
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
       fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
       return
@@ -265,16 +257,13 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onMouseMove = (index: number, isHunkSelection: boolean) => {
-
     const hunk = this.props.diff.diffHunkForIndex(index)
     if (!hunk) {
       return
     }
 
     if (!this.selection) {
-
       // selection is not active, perform highlighting based on mouse position
-
       if (isHunkSelection) {
         this.highlightHunk(hunk, true)
       } else {
