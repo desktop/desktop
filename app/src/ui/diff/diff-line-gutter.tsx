@@ -29,6 +29,8 @@ interface IDiffGutterProps {
 
   readonly updateHunkHoverState: (hunk: DiffHunk, active: boolean) => void
 
+  readonly isSelectionEnabled: () => boolean
+
   /**
    * Callback to signal when the mouse button is pressed on this element
    */
@@ -122,9 +124,10 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     }
 
     const isHunkSelection = isMouseInHunkSelectionZone(ev)
+    const isSelectionActive = this.props.isSelectionEnabled()
 
     // selection is not active, perform highlighting based on mouse position
-    if (isHunkSelection) {
+    if (isHunkSelection && isSelectionActive) {
       this.props.updateHunkHoverState(hunk, true)
     } else {
       // clear hunk selection in case hunk was previously higlighted

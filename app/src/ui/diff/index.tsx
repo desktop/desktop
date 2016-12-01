@@ -259,6 +259,7 @@ export class Diff extends React.Component<IDiffProps, void> {
             readOnly={this.props.readOnly}
             diff={this.props.diff}
             updateHunkHoverState={this.updateHunkHoverState}
+            isSelectionEnabled={this.isSelectionEnabled}
             onMouseUp={this.onMouseUp}
             onMouseDown={this.onMouseDown}
             onMouseMove={this.onMouseMove} />,
