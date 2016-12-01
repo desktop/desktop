@@ -68,7 +68,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     }
   }
 
-  public shouldComponentUpdate(nextProps: ICodeMirrorHostProps, nextState: void) {
+  public shouldComponentUpdate(nextProps: ICodeMirrorHostProps) {
     // NB This is the only time we actually have to re-render.
     // Updating of values is done in componentWillReceiveProps,
     // all event handlers are marshalled through private non-changing

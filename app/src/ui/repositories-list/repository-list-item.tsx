@@ -27,7 +27,7 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
     )
   }
 
-  public shouldComponentUpdate(nextProps: IRepositoryListItemProps, nextState: void): boolean {
+  public shouldComponentUpdate(nextProps: IRepositoryListItemProps): boolean {
     if (nextProps.repository instanceof Repository && this.props.repository instanceof Repository) {
       return nextProps.repository.id !== this.props.repository.id
     } else {

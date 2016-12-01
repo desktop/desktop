@@ -29,7 +29,7 @@ export class CommitListItem extends React.Component<ICommitProps, void> {
     )
   }
 
-  public shouldComponentUpdate(nextProps: ICommitProps, nextState: void): boolean {
+  public shouldComponentUpdate(nextProps: ICommitProps): boolean {
     return (
       this.props.commit.sha !== nextProps.commit.sha ||
       this.props.avatarURL !== nextProps.avatarURL
