@@ -140,13 +140,24 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
       return
     }
 
-    this.elem_ = elem
+    if (elem) {
+      this.elem_ = elem
 
-    elem.addEventListener('mouseenter', this.mouseEnterHandler)
-    elem.addEventListener('mouseleave', this.mouseLeaveHandler)
-    elem.addEventListener('mousemove', this.mouseMoveHandler)
-    elem.addEventListener('mousedown', this.mouseDownHandler)
-    elem.addEventListener('mouseup', this.mouseUpHandler)
+      elem.addEventListener('mouseenter', this.mouseEnterHandler)
+      elem.addEventListener('mouseleave', this.mouseLeaveHandler)
+      elem.addEventListener('mousemove', this.mouseMoveHandler)
+      elem.addEventListener('mousedown', this.mouseDownHandler)
+      elem.addEventListener('mouseup', this.mouseUpHandler)
+    } else {
+
+      if (this.elem_) {
+        this.elem_.removeEventListener('mouseenter', this.mouseEnterHandler)
+        this.elem_.removeEventListener('mouseleave', this.mouseLeaveHandler)
+        this.elem_.removeEventListener('mousemove', this.mouseMoveHandler)
+        this.elem_.removeEventListener('mousedown', this.mouseDownHandler)
+        this.elem_.removeEventListener('mouseup', this.mouseUpHandler)
+      }
+    }
   }
 
   public isIncluded(): boolean {
@@ -166,23 +177,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   }
 
   public cleanup() {
-    // read-only diffs do not support any interactivity
-    if (this.props.readOnly) {
-      return
-    }
-
-    // ignore anything from diff context rows
-    if (!isIncludeable(this.props.line.type)) {
-      return
-    }
-
-    if (this.elem_) {
-      this.elem_.removeEventListener('mouseenter', this.mouseEnterHandler)
-      this.elem_.removeEventListener('mouseleave', this.mouseLeaveHandler)
-      this.elem_.removeEventListener('mousemove', this.mouseMoveHandler)
-      this.elem_.removeEventListener('mousedown', this.mouseDownHandler)
-      this.elem_.removeEventListener('mouseup', this.mouseUpHandler)
-    }
+    // TODO: we may not need this
   }
 
   public render() {
