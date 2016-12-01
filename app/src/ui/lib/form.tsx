@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 
 interface IFormProps {
   readonly className?: string
@@ -7,8 +8,9 @@ interface IFormProps {
 
 export class Form extends React.Component<IFormProps, void> {
   public render() {
+    const className = classNames('form-component', this.props.className)
     return (
-      <form className={`form-component ${this.props.className}`} onSubmit={this.onSubmit}>
+      <form className={className} onSubmit={this.onSubmit}>
         {this.props.children}
       </form>
     )

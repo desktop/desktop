@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 
 interface IInputProps {
   readonly label?: string
@@ -16,8 +17,9 @@ interface IInputProps {
 
 export class Input extends React.Component<IInputProps, void> {
   public render() {
+    const className = classNames('input-component', this.props.labelClassName)
     return (
-      <label className={`input-component ${this.props.labelClassName}`}>
+      <label className={className}>
         {this.props.label}
 
         <div className='input-content'>
