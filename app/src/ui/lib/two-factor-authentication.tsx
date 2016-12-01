@@ -1,9 +1,11 @@
 import * as React from 'react'
 import { createAuthorization, AuthorizationResponse, fetchUser, AuthorizationResponseKind } from '../../lib/api'
 import { User } from '../../models/user'
-import { Button } from './button'
 import { assertNever } from '../../lib/fatal-error'
 import { Loading } from './loading'
+import { Button } from './button'
+import { Input } from './input'
+import { Form } from './form'
 
 interface ITwoFactorAuthenticationProps {
   /** The endpoint to authenticate against. */
@@ -43,20 +45,19 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
           authentication code and verify your identity.
         </p>
 
-        <form id='2fa-form' className='sign-in-form' onSubmit={this.signIn}>
-          <div className='field-group'>
-            <label htmlFor='two-factor-code'>Authentication code</label>
-            <input id='two-factor-code' className='text-field sign-in-field' disabled={textEntryDisabled} autoFocus={true} onChange={this.onOTPChange}/>
-          </div>
+        <Form onSubmit={this.signIn}>
+          <Input
+            label='Authentication code'
+            disabled={textEntryDisabled}
+            autoFocus={true}
+            onChange={this.onOTPChange}/>
 
           {this.renderError()}
 
-          <div className='actions'>
-            <Button type='submit' disabled={signInDisabled}>Verify</Button>
+          <Button type='submit' disabled={signInDisabled}>Verify</Button>
 
-            {this.state.loading ? <Loading/> : null}
-          </div>
-        </form>
+          {this.state.loading ? <Loading/> : null}
+        </Form>
       </div>
     )
   }
@@ -89,7 +90,7 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
     })
   }
 
-  private signIn = async (event: React.FormEvent<HTMLFormElement>) => {
+  private signIn = async () => {
     event.preventDefault()
 
     this.setState({
