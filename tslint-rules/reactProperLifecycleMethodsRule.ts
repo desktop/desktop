@@ -59,17 +59,15 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
         case 'componentWillMount':
         case 'componentDidMount':
         case 'componentWillUnmount':
-          this.verifyEmptyParameters(node)
-          break
+          return this.verifyEmptyParameters(node)
         case 'componentWillReceiveProps':
-          this.verifyComponentWillReceiveProps(node)
-          break
+          return this.verifyComponentWillReceiveProps(node)
         case 'componentWillUpdate':
-          this.verifyComponentWillUpdate(node)
-          break
+          return this.verifyComponentWillUpdate(node)
         case 'componentDidUpdate':
+          return this.verifyComponentDidUpdate(node)
         case 'shouldComponentUpdate':
-          return
+        return this.verifyShouldComponentUpdate(node)
       }
     }
   }
@@ -106,29 +104,32 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
       return false
     }
 
+    if (parameterTypeName === 'void') {
+      const message = `remove unused void parameter ${parameterName}.`
+      this.addFailure(this.createFailure(parameterStart, parameterwidth, message))
+      return false
+    }
+
     return true
   }
 
   private verifyParameters(node: ts.MethodDeclaration, expectedParameters: ReadonlyArray<IExpectedParameter>): boolean {
-    if (node.parameters.length !== expectedParameters.length) {
-      const start = node.getStart()
-      const width = node.getWidth()
-      const methodName = node.name.getText()
-      const parameterText = expectedParameters
-        .map(p => `${p.name}: ${p.type}`)
-        .join(', ')
+    // It's okay to omit parameters
+    for (let i = 0; i < node.parameters.length; i++) {
+      const parameter = node.parameters[i]
 
-      const message = `${methodName} should take exactly ${expectedParameters.length} parameters: ${parameterText}`
+      if (i >= expectedParameters.length) {
+        console.log(i, expectedParameters.length)
+        const parameterName = parameter.getText()
+        const parameterStart = parameter.getStart()
+        const parameterwidth = parameter.getWidth()
+        const message = `unknown parameter ${parameterName}`
 
-      this.addFailure(this.createFailure(start, width, message))
-      return false
-    }
+        this.addFailure(this.createFailure(parameterStart, parameterwidth, message))
+        return false
+      }
 
-    for (let i = 0; i < expectedParameters.length; i++) {
-      const actual = node.parameters[i]
-      const expected = expectedParameters[i]
-
-      if (this.verifyParameter(actual, expected)) {
+      if (this.verifyParameter(parameter, expectedParameters[i])) {
         return false
       }
     }
@@ -141,6 +142,20 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
   }
 
   private verifyComponentWillUpdate(node: ts.MethodDeclaration) {
+    this.verifyParameters(node, [
+      { name: 'nextProps', type: this.propsTypeName },
+      { name: 'nextState', type: this.stateTypeName },
+    ])
+  }
+
+  private verifyComponentDidUpdate(node: ts.MethodDeclaration) {
+    this.verifyParameters(node, [
+      { name: 'prevProps', type: this.propsTypeName },
+      { name: 'prevState', type: this.stateTypeName },
+    ])
+  }
+
+  private verifyShouldComponentUpdate(node: ts.MethodDeclaration) {
     this.verifyParameters(node, [
       { name: 'nextProps', type: this.propsTypeName },
       { name: 'nextState', type: this.stateTypeName },
