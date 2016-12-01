@@ -1,7 +1,7 @@
 /**
  * react-proper-lifecycle-methods
  *
- * This custom tslint rule is attemptsto prevent erroneous usage of the React
+ * This custom tslint rule is attempts to prevent erroneous usage of the React
  * lifecycle methods by ensuring proper method naming, and parameter order,
  * types and names.
  *
