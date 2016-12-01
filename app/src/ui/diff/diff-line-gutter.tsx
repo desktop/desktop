@@ -38,8 +38,9 @@ interface IDiffGutterProps {
   /**
    * Callback to query whether a selection gesture is currently underway
    *
-   * If this returns true, the hover callback will fire. Otherwise,
-   * element will rely on selection gesture to style the gutter.
+   * If this returns true, the element will attempt to update the hover state.
+   * Otherwise, this will defer to the active selection gesture to update
+   * the visual state of the gutter.
    */
   readonly isSelectionEnabled: () => boolean
 
