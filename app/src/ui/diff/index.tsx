@@ -134,9 +134,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         const line = diff.diffLineForIndex(index)
-        const isIncludable = line
-          ? line.type === DiffLineType.Add || line.type === DiffLineType.Delete
-          : false
+        const isIncludable = line ? line.isIncludeableLine() : false
 
         if (selection.isSelected(index) && isIncludable) {
           element.setClass(selectedLineClass)
