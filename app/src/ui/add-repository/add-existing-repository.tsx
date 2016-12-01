@@ -3,6 +3,9 @@ import * as React from 'react'
 
 import { Dispatcher } from '../../lib/dispatcher'
 import { initGitRepository, isGitRepository } from '../../lib/git'
+import { Button } from '../lib/button'
+import { Form } from '../lib/form'
+import { Input } from '../lib/input'
 
 const untildify: (str: string) => string = require('untildify')
 
@@ -28,27 +31,20 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   public render() {
     const disabled = this.state.path.length === 0 || this.state.isGitRepository == null
     return (
-      <div id='add-existing-repository'>
-        <div className='add-repo-form'>
-          <label>Local Path</label>
+      <Form onSubmit={this.addRepository}>
+        <Input
+          value={this.state.path}
+          label='Local Path'
+          placeholder='repository path'
+          onChange={this.onPathChanged}
+          onKeyDown={this.onKeyDown}>
+          <Button onClick={this.showFilePicker}>Choose…</Button>
+        </Input>
 
-          <div className='file-picker'>
-            <input value={this.state.path}
-                   type='text'
-                   placeholder='repository path'
-                   onChange={this.onPathChanged}
-                   onKeyDown={this.onKeyDown}/>
-
-            <button onClick={this.showFilePicker}>Choose…</button>
-          </div>
-        </div>
-
-        <div className='popup-actions'>
-          <button disabled={disabled} onClick={this.addRepository}>
-            {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
-          </button>
-        </div>
-      </div>
+        <Button disabled={disabled} type='submit'>
+          {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
+        </Button>
+      </Form>
     )
   }
 
