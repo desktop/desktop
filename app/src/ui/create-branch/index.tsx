@@ -4,6 +4,10 @@ import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { sanitizedBranchName } from './sanitized-branch-name'
 import { Branch } from '../../models/branch'
+import { Form } from '../lib/form'
+import { Input } from '../lib/input'
+import { Button } from '../lib/button'
+import { Select } from '../lib/select'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -50,29 +54,30 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     const disabled = !proposedName.length || !!this.state.currentError
     const currentBranch = this.props.currentBranch
     return (
-      <form id='create-branch' className='panel' onSubmit={this.createBranch}>
+      <Form onSubmit={this.createBranch}>
         <div className='header'>Create New Branch</div>
         <hr/>
 
-        <label>Name
-          <input type='text'
-                 autoFocus={true}
-                 onChange={this.onBranchNameChange}
-                 onKeyDown={this.onKeyDown}/>
-        </label>
+        <Input
+          label='Name'
+          autoFocus={true}
+          onChange={this.onBranchNameChange}
+          onKeyDown={this.onKeyDown}/>
 
         {this.renderError()}
 
-        <label>From
-          <select onChange={this.onBaseBranchChange}
-                  defaultValue={currentBranch ? currentBranch.name : undefined}>
-            {this.props.branches.map(branch => <option key={branch.name} value={branch.name}>{branch.name}</option>)}
-          </select>
-        </label>
+        <Select
+          label='From'
+          onChange={this.onBaseBranchChange}
+          defaultValue={currentBranch ? currentBranch.name : undefined}>
+          {this.props.branches.map(branch =>
+            <option key={branch.name} value={branch.name}>{branch.name}</option>
+          )}
+        </Select>
 
         <hr/>
-        <button type='submit' disabled={disabled}>Create Branch</button>
-      </form>
+        <Button type='submit' disabled={disabled}>Create Branch</Button>
+      </Form>
     )
   }
 
@@ -110,9 +115,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     })
   }
 
-  private createBranch = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
+  private createBranch = () => {
     const name = this.state.sanitizedName
     const baseBranch = this.state.baseBranch
     if (name.length > 0 && baseBranch) {
