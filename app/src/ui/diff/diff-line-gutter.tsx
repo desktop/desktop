@@ -74,7 +74,7 @@ function isMouseInHunkSelectionZone(ev: MouseEvent): boolean {
 /** The gutter for a diff's line. */
 export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
-  private elem_: HTMLSpanElement | undefined
+  private elem_?: HTMLSpanElement
 
   private getLineClassName(): string {
     const type = this.props.line.type
