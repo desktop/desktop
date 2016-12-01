@@ -68,7 +68,7 @@ export class DragDropSelection implements ISelectionStrategy {
   /**
    * apply the selection strategy result to the current diff
    */
-  public apply(onIncludeChanged: (diffSelection: DiffSelection) => void) {
+  public done(): DiffSelection {
     const length = (this.upperIndex - this.lowerIndex) + 1
 
     const newSelection = this.snapshot.withRangeSelection(
@@ -76,7 +76,7 @@ export class DragDropSelection implements ISelectionStrategy {
       length,
       this.desiredSelection)
 
-    onIncludeChanged(newSelection)
+    return newSelection
   }
 
   /**

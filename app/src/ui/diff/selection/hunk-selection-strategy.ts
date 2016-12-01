@@ -41,7 +41,7 @@ export class HunkSelection implements ISelectionStrategy {
     })
   }
 
-  public apply(onIncludeChanged: (diffSelection: DiffSelection) => void) {
+  public done(): DiffSelection {
 
     const length = (this._end - this._start) + 1
 
@@ -50,6 +50,6 @@ export class HunkSelection implements ISelectionStrategy {
       length,
       this._desiredSelection)
 
-    onIncludeChanged(newSelection)
+    return newSelection
   }
 }

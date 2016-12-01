@@ -178,17 +178,11 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
-      fatalError('must not complete selection when selected file is not a WorkingDirectoryFileChange')
+    if (!this.selection) {
       return
     }
 
-    const selection = this.selection
-    if (!selection) {
-      return
-    }
-
-    selection.apply(this.props.onIncludeChanged)
+    this.props.onIncludeChanged(this.selection.done())
 
     // operation is completed, clean this up
     this.selection = null

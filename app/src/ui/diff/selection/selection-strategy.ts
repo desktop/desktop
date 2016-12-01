@@ -11,7 +11,7 @@ export interface ISelectionStrategy {
    */
   paint: (elements: Map<number, DiffLineGutter>) => void
   /**
-   * apply the selection strategy result to the current diff
+   * get the diff selection now that the gesture is complete
    */
-  apply: (onIncludeChanged: (diffSelection: DiffSelection) => void) => void
+  done: () => DiffSelection
 }
