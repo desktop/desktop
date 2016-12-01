@@ -332,7 +332,7 @@ export class AppMenu {
    * the list of open menus.
    *
    * @param menu - The menu which is to be closed, i.e. removed from the
-   *              list of open menus.
+   *               list of open menus.
    */
   public withCloseMenu(menu: IMenu) {
     // Root menu is always open and can't be closed
