@@ -85,8 +85,12 @@ interface IListProps {
    * The height of each individual row in the list. This height
    * is enforced for each row container and attempting to render a row
    * which does not fit inside that height is forbidden.
+   *
+   * Can either be a number (most efficient) in which case all rows
+   * are of equal height, or, a function that, given a row index returns
+   * the height of that particular row.
    */
-  readonly rowHeight: number
+  readonly rowHeight: number | ((info: { index: number }) => number)
 
   /**
    * The currently selected row index. Used to attach a special
@@ -416,13 +420,24 @@ export class List extends React.Component<IListProps, void> {
    *
    */
   private renderFakeScroll(height: number) {
+
+    let totalHeight: number = 0
+
+    if (typeof this.props.rowHeight === 'number') {
+      totalHeight = this.props.rowHeight * this.props.rowCount
+    } else {
+      for (let i = 0; i < this.props.rowCount; i++) {
+        totalHeight += this.props.rowHeight({ index: i })
+      }
+    }
+
     return (
       <div
         className='fake-scroll'
         ref={this.onFakeScrollRef}
         style={{ height }}
         onScroll={this.onFakeScroll}>
-        <div style={{ height: this.props.rowHeight * this.props.rowCount, pointerEvents: 'none' }}></div>
+        <div style={{ height: totalHeight, pointerEvents: 'none' }}></div>
       </div>
     )
   }
@@ -487,6 +502,29 @@ export class List extends React.Component<IListProps, void> {
       this.lastScroll = 'grid'
 
       this.fakeScroll.scrollTop = scrollTop
+    }
+  }
+
+  /**
+   * Explicitly put keyboard focus on the list or the selected item in the list.
+   *
+   * If the list a selected item it will be scrolled (if it's not already
+   * visible) and it will receive keyboard focus. If the list has no selected
+   * item the list itself will receive focus. From there keyboard navigation
+   * can be used to select the first or last items in the list.
+   *
+   * This method is a noop if the list has not yet been mounted.
+   */
+  public focus() {
+    if (this.props.selectedRow >= 0 && this.props.selectedRow < this.props.rowCount) {
+      this.scrollRowToVisible(this.props.selectedRow)
+    } else {
+      if (this.grid) {
+        const element = ReactDOM.findDOMNode(this.grid) as HTMLDivElement
+        if (element) {
+          element.focus()
+        }
+      }
     }
   }
 

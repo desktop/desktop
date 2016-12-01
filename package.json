@@ -6,7 +6,7 @@
   "description": "The People's Glorious GitHub Client's build dependencies",
   "scripts": {
     "test:integration": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 mocha -t 10000 --require ts-node/register app/test/integration/*.ts",
-    "test:unit": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 electron-mocha -t 10000 --renderer --require ts-node/register --require ./app/test/globals.ts app/test/unit/*.ts app/test/unit/git/*.ts app/test/unit/*.tsx",
+    "test:unit": "cross-env TEST_ENV=1 ELECTRON_NO_ATTACH_CONSOLE=1 electron-mocha -t 10000 --renderer --require ts-node/register --require ./app/test/globals.ts app/test/unit/*.ts app/test/unit/git/*.ts app/test/unit/main-process/* app/test/unit/*.tsx",
     "test": "npm run test:unit && npm run test:integration",
     "postinstall": "cd app && npm install && cd .. && git submodule update --recursive --init && npm run compile:tslint",
     "start": "cross-env NODE_ENV=development node script/start",

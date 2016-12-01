@@ -61,13 +61,10 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
-
-    if (!__WIN32__) {
-      const item = {
-        label: 'Discard Changes',
-        action: () => this.props.onDiscardChanges(this.props.path),
-      }
-      showContextualMenu([ item ])
+    const item = {
+      label: 'Discard Changes',
+      action: () => this.props.onDiscardChanges(this.props.path),
     }
+    showContextualMenu([ item ])
   }
 }

@@ -32,7 +32,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     this.state = { currentStep: WelcomeStep.Start }
   }
 
-  private componentForCurrentStep() {
+  private getComponentForCurrentStep() {
     const step = this.state.currentStep
     const advance = (step: WelcomeStep) => this.advanceToStep(step)
     const done = () => this.done()
@@ -58,7 +58,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   public render() {
     return (
       <UiView id='welcome'>
-        {this.componentForCurrentStep()}
+        {this.getComponentForCurrentStep()}
       </UiView>
     )
   }
