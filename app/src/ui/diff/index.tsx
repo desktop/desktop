@@ -127,7 +127,7 @@ export class Diff extends React.Component<IDiffProps, void> {
 
       const diff = nextProps.diff
       this.cachedGutterElements.forEach((element, index) => {
-        if (element === undefined) {
+        if (!element) {
           console.error('expected DOM element for diff gutter not found')
           return
         }

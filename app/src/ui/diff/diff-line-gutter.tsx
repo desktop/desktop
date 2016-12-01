@@ -25,10 +25,22 @@ interface IDiffGutterProps {
    */
   readonly readOnly: boolean
 
+  /**
+   * The diff currently displayed in the app
+   */
   readonly diff: Diff
 
+  /**
+   * Callback to apply hover effect to lines belonging to a given hunk
+   */
   readonly updateHunkHoverState: (hunk: DiffHunk, active: boolean) => void
 
+  /**
+   * Callback to query whether a selection gesture is currently underway
+   *
+   * If this returns true, the hover callback will fire. Otherwise,
+   * element will rely on selection gesture to style the gutter.
+   */
   readonly isSelectionEnabled: () => boolean
 
   /**
