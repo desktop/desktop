@@ -149,7 +149,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
       elem.addEventListener('mousedown', this.mouseDownHandler)
       elem.addEventListener('mouseup', this.mouseUpHandler)
     } else {
-
       if (this.elem_) {
         this.elem_.removeEventListener('mouseenter', this.mouseEnterHandler)
         this.elem_.removeEventListener('mouseleave', this.mouseLeaveHandler)
@@ -174,10 +173,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     if (this.elem_) {
       this.elem_.classList.remove(cssClass)
     }
-  }
-
-  public cleanup() {
-    // TODO: we may not need this
   }
 
   public render() {

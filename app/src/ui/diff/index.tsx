@@ -346,11 +346,6 @@ export class Diff extends React.Component<IDiffProps, void> {
         //
         // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
         const gutterCleanup = new Disposable(() => {
-          const element = this.cachedGutterElements.get(index)
-          if (element) {
-            element.cleanup()
-          }
-
           this.cachedGutterElements.delete(index)
 
           ReactDOM.unmountComponentAtNode(reactContainer)
