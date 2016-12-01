@@ -46,9 +46,11 @@ export interface IAppState {
    * menu from the main process there will always be one menu
    * "open", that is the root menu which can't be closed. In other
    * words, a non-zero length appMenuState does not imply that the
-   * application menu should be visible. On non-macOS operating systems
-   * that's currently defined by whether the app menu is open as
-   * a foldout (see currentFoldout).
+   * application menu should be visible. Currently thats defined by
+   * whether the app menu is open as a foldout (see currentFoldout).
+   *
+   * Not applicable on macOS unless the in-app application menu has
+   * been explicitly enabled for testing purposes.
    */
   readonly appMenuState: ReadonlyArray<IMenu>
 
