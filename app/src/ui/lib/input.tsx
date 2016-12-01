@@ -11,6 +11,7 @@ interface IInputProps {
   readonly value?: string
   readonly secure?: boolean
   readonly autoFocus?: boolean
+  readonly disabled?: boolean
 
   readonly onChange?: (event: React.FormEvent<HTMLInputElement>) => void
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
@@ -29,6 +30,7 @@ export class Input extends React.Component<IInputProps, void> {
           <input
             autoFocus={this.props.autoFocus}
             className={this.props.inputClassName}
+            disabled={this.props.disabled}
             type={!this.props.secure ? 'text' : 'password'}
             placeholder={this.props.placeholder}
             value={this.props.value}
