@@ -2,6 +2,8 @@
   display: flex;
   flex-direction: column;
 
+  margin: var(--spacing-half) 0;
+
   & > *:not(:last-child) {
     margin-bottom: var(--spacing);
   }
