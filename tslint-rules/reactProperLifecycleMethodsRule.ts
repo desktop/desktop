@@ -124,7 +124,7 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
         return false
       }
 
-      if (this.verifyParameter(parameter, expectedParameters[i])) {
+      if (!this.verifyParameter(parameter, expectedParameters[i])) {
         return false
       }
     }
