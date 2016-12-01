@@ -81,10 +81,30 @@ export interface ISeparatorMenuItem {
  * in the menu is selected.
  */
 export interface IMenu {
-  // shared with parent submenu item
+  /**
+   * The id of this menu. For the root menu this will be undefined. For all
+   * other menus it will be the same as the id of the submenu item which
+   * owns this menu.
+   *
+   * +---------------------------+
+   * | Root menu (id: undefined) |
+   * +---------------------------+  +--------------------------+
+   * |  File (id File)           +--> File menu (id: File)     |
+   * +---------------------------+  +--------------------------+
+   * |  Edit (id Edit)           |  |  Open (id File.Open)     |
+   * +---------------------------+  +--------------------------+
+   *                                |  Close (id File.Close)   |
+   *                                +--------------------------+
+   */
   readonly id?: string
+
+  /** Type identifier, used for type narrowing */
   readonly type: 'menu'
+
+  /** A collection of zero or more menu items */
   readonly items: ReadonlyArray<MenuItem>
+
+  /** The selected item in the menu or undefined if no item is selected */
   readonly selectedItem?: MenuItem
 }
 
