@@ -115,7 +115,6 @@ class ReactProperLifecycleMethodsWalker extends Lint.RuleWalker {
       const parameter = node.parameters[i]
 
       if (i >= expectedParameters.length) {
-        console.log(i, expectedParameters.length)
         const parameterName = parameter.getText()
         const parameterStart = parameter.getStart()
         const parameterWidth = parameter.getWidth()
