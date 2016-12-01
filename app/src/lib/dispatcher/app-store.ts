@@ -128,7 +128,7 @@ export class AppStore {
   private appMenu: AppMenu | null = null
 
   /**
-   * Used to add a highligt class to the app menu toolbar icon
+   * Used to add a highlight class to the app menu toolbar icon
    * when the Alt key is pressed. Only applicable on non-macOS
    * platforms.
    */
