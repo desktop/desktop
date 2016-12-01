@@ -14,7 +14,7 @@ export class CommitFacadeListItem extends React.Component<void, void> {
     )
   }
 
-  public shouldComponentUpdate(nextProps: void, nextState: void): boolean {
+  public shouldComponentUpdate(): boolean {
     return false
   }
 }
