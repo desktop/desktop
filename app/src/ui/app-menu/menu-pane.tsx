@@ -44,7 +44,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
       // Has the selection changed?
       if (this.props.selectedItem !== props.selectedItem) {
         const selectedIndex = getSelectedIndex(props.selectedItem, this.state.items)
-        this.setState(Object.assign({}, this.state, { selectedIndex }))
+        this.setState({ items: this.state.items, selectedIndex })
       }
     } else {
       this.setState(this.createState(props))
