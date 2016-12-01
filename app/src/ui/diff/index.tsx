@@ -353,6 +353,8 @@ export class Diff extends React.Component<IDiffProps, void> {
 
           this.cachedGutterElements.delete(index)
 
+          ReactDOM.unmountComponentAtNode(reactContainer)
+
           line.off('delete', deleteHandler)
         })
 
