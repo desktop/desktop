@@ -6,7 +6,7 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { RawDiff, IDiff, IImageDiff, Image } from '../../models/diff'
+import { IRawDiff, IDiff, IImageDiff, Image } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
@@ -132,7 +132,7 @@ function formatLineEnding(text: string): string {
   }
 }
 
-export async function convertDiff(repository: Repository, file: FileChange, diff: RawDiff, commitish: string): Promise<IDiff> {
+export async function convertDiff(repository: Repository, file: FileChange, diff: IRawDiff, commitish: string): Promise<IDiff> {
   if (diff.isBinary) {
     const extension = Path.extname(file.path)
 
@@ -165,7 +165,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
   return {
     kind: 'text',
     text: diffText,
-    hunks: diff.hunks
+    hunks: diff.hunks,
   }
 }
 
@@ -192,7 +192,7 @@ function getMediaType(extension: string) {
  *
  * Parses the output from a diff-like command that uses `--path-with-raw`
  */
-function diffFromRawDiffOutput(result: string): RawDiff {
+function diffFromRawDiffOutput(result: string): IRawDiff {
   const pieces = result.split('\0')
   const parser = new DiffParser()
   return parser.parse(pieces[pieces.length - 1])
