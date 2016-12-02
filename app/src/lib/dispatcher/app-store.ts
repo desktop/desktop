@@ -301,14 +301,14 @@ export class AppStore {
       { ...state, history: gitStore.history }
     ))
 
-    this.updateBranchesState(repository, state => {
-      return {
+    this.updateBranchesState(repository, state => (
+      {
         currentBranch: gitStore.currentBranch,
         defaultBranch: gitStore.defaultBranch,
         allBranches: gitStore.allBranches,
         recentBranches: gitStore.recentBranches,
       }
-    })
+    ))
 
     this.updateChangesState(repository, state => (
       {
