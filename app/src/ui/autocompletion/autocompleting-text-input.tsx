@@ -193,7 +193,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
 
   public render() {
     return (
-      <div className={`autocompletion-container ${this.props.className || ''}`}>
+      <div className={`autocompletion-container text-box-component ${this.props.className || ''}`}>
         {this.renderAutocompletions()}
 
         {this.renderTextInput()}
