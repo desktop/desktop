@@ -721,11 +721,8 @@ export class AppStore {
 
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => {
-      return createCommit(
-        repository,
-        formatCommitMessage(message),
-        files
-      )
+      const commitMessage = formatCommitMessage(message)
+      return createCommit(repository, commitMessage, files)
     })
 
     await this._refreshRepository(repository)
