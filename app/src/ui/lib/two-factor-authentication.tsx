@@ -4,7 +4,7 @@ import { User } from '../../models/user'
 import { assertNever } from '../../lib/fatal-error'
 import { Loading } from './loading'
 import { Button } from './button'
-import { Input } from './input'
+import { TextBox } from './text-box'
 import { Form } from './form'
 
 interface ITwoFactorAuthenticationProps {
@@ -46,7 +46,7 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
         </p>
 
         <Form onSubmit={this.signIn}>
-          <Input
+          <TextBox
             label='Authentication code'
             disabled={textEntryDisabled}
             autoFocus={true}

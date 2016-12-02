@@ -5,7 +5,7 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { sanitizedBranchName } from '../create-branch/sanitized-branch-name'
 import { Form } from '../lib/form'
-import { Input } from '../lib/input'
+import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 
 interface IRenameBranchProps {
@@ -38,7 +38,7 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
     const disabled = !this.state.newName.length
     return (
       <Form onSubmit={this.renameBranch}>
-        <Input
+        <TextBox
           label='Name'
           autoFocus={true}
           value={this.state.newName}

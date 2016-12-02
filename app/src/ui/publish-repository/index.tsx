@@ -4,7 +4,7 @@ import { Repository } from '../../models/repository'
 import { User } from '../../models/user'
 import { API,  IAPIUser, getDotComAPIEndpoint } from '../../lib/api'
 import { Form } from '../lib/form'
-import { Input } from '../lib/input'
+import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { Select } from '../lib/select'
 
@@ -159,9 +159,9 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
     const disabled = !this.state.name.length
     return (
       <Form onSubmit={this.publishRepository}>
-        <Input label='Name' value={this.state.name} autoFocus={true} onChange={this.onNameChange}/>
+        <TextBox label='Name' value={this.state.name} autoFocus={true} onChange={this.onNameChange}/>
 
-        <Input label='Description' value={this.state.description} onChange={this.onDescriptionChange}/>
+        <TextBox label='Description' value={this.state.description} onChange={this.onDescriptionChange}/>
 
         <hr/>
 

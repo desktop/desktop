@@ -8,7 +8,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { initGitRepository } from '../../lib/git'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
 import { Form } from '../lib/form'
-import { Input } from '../lib/input'
+import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 
 interface ICreateRepositoryProps {
@@ -77,7 +77,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     const disabled = this.state.path.length === 0 || this.state.name.length === 0
     return (
       <Form>
-        <Input
+        <TextBox
           value={this.state.name}
           label='Name'
           placeholder='repository name'
@@ -85,13 +85,13 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
         {this.renderError()}
 
-        <Input
+        <TextBox
           value={this.state.path}
           label='Local Path'
           placeholder='repository path'
           onChange={this.onPathChanged}>
           <Button onClick={this.showFilePicker}>Choose…</Button>
-        </Input>
+        </TextBox>
 
         <hr/>
 

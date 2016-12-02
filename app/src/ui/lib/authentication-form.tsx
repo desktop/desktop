@@ -14,7 +14,7 @@ import { askUserToOAuth } from '../../lib/oauth'
 import { Loading } from './loading'
 import { Form } from './form'
 import { Button } from './button'
-import { Input } from './input'
+import { TextBox } from './text-box'
 
 interface IAuthenticationFormProps {
   /** The endpoint against which the user is authenticating. */
@@ -67,14 +67,14 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     const disabled = this.state.loading
     return (
       <div>
-        <Input
+        <TextBox
           label='Username or email address'
           disabled={disabled}
           autoFocus={true}
           onChange={this.onUsernameChange}/>
 
         <div className='password-container'>
-          <Input
+          <TextBox
             label='Password'
             secure={true}
             disabled={disabled}

@@ -6,7 +6,7 @@ import { CommitListItem } from '../history/commit-list-item'
 import { User } from '../../models/user'
 import { Form } from '../lib/form'
 import { Button } from '../lib/button'
-import { Input } from '../lib/input'
+import { TextBox } from '../lib/text-box'
 
 interface IConfigureGitProps {
   readonly users: ReadonlyArray<User>
@@ -70,9 +70,9 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
         </p>
 
         <Form className='sign-in-form' onSubmit={this.continue}>
-          <Input label='Name' placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
+          <TextBox label='Name' placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
 
-          <Input label='Email' placeholder='hubot@github.com' value={this.state.email} onChange={this.onEmailChange}/>
+          <TextBox label='Email' placeholder='hubot@github.com' value={this.state.email} onChange={this.onEmailChange}/>
 
           <div className='actions'>
             <Button type='submit'>Continue</Button>

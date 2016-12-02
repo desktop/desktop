@@ -3,7 +3,7 @@ import { getEnterpriseAPIURL, fetchMetadata } from '../../lib/api'
 import { Loading } from './loading'
 import { validateURL, InvalidURLErrorName, InvalidProtocolErrorName } from './enterprise-validate-url'
 import { Form } from './form'
-import { Input } from './input'
+import { TextBox } from './text-box'
 import { Button } from './button'
 
 /** The authentication methods server allows. */
@@ -41,7 +41,7 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
     const disableSubmission = !this.state.serverAddress.length || this.state.loading
     return (
       <Form onSubmit={this.onSubmit}>
-        <Input
+        <TextBox
           label='Enterprise server address'
           autoFocus={true}
           disabled={disableEntry}

@@ -5,7 +5,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { sanitizedBranchName } from './sanitized-branch-name'
 import { Branch } from '../../models/branch'
 import { Form } from '../lib/form'
-import { Input } from '../lib/input'
+import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { Select } from '../lib/select'
 
@@ -58,7 +58,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
         <div className='header'>Create New Branch</div>
         <hr/>
 
-        <Input
+        <TextBox
           label='Name'
           autoFocus={true}
           onChange={this.onBranchNameChange}

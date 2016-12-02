@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
 
-interface IInputProps {
+interface ITextBoxProps {
   /** The label for the input field. */
   readonly label?: string
 
@@ -37,7 +37,7 @@ interface IInputProps {
 }
 
 /** An input element with app-standard styles. */
-export class Input extends React.Component<IInputProps, void> {
+export class TextBox extends React.Component<ITextBoxProps, void> {
   public render() {
     const className = classNames('input-component', this.props.labelClassName)
     return (
