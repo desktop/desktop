@@ -1001,10 +1001,7 @@ export class AppStore {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remoteName
       if (!remote) {
-        this._showPopup({
-          type: PopupType.PublishRepository,
-          repository,
-        })
+        this._showPopup({ type: PopupType.PublishRepository, repository })
         return
       }
 
