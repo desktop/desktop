@@ -955,13 +955,8 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _clearError(error: IAppError): Promise<void> {
-    const newErrors = Array.from(this.errors)
-    const index = newErrors.findIndex(e => e === error)
-    if (index > -1) {
-      newErrors.splice(index, 1)
-      this.errors = newErrors
-      this.emitUpdate()
-    }
+    this.errors = this.errors.filter(e => e !== error)
+    this.emitUpdate()
 
     return Promise.resolve()
   }
