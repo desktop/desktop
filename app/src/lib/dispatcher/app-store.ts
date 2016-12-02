@@ -934,12 +934,13 @@ export class AppStore {
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
     const gitStore = this.getGitStore(repository)
-    // TODO: This is all kinds of wrong. We shouldn't assume the remote is named
-    // `origin`.
-    const remote = await gitStore.performFailableOperation(() => getConfigValue(repository, 'remote.origin.url'))
-    if (!remote) { return null }
+    // TODO: This is all kinds of wrong.
+    // We shouldn't assume the remote is named `origin`.
+    const remote = await gitStore.performFailableOperation(() =>
+      getConfigValue(repository, 'remote.origin.url')
+    )
 
-    return matchGitHubRepository(this.users, remote)
+    return remote ? matchGitHubRepository(this.users, remote) : null
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
