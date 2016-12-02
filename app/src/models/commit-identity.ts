@@ -24,7 +24,7 @@ export class CommitIdentity {
     //  https://github.com/git/git/blob/3ef7618e616e023cf04180e30d77c9fa5310f964/ident.c#L396
     //
     // Note also that this expects a date formatted with the RAW option in git see:
-    //   https://github.com/git/git/blob/35f6318d44379452d8d33e880d8df0267b4a0cd0/date.c#L191
+    //  https://github.com/git/git/blob/35f6318d44379452d8d33e880d8df0267b4a0cd0/date.c#L191
     //
     const m = identity.match(/^(.*?) <(.*?)> (\d+) (\+|-)?(\d{2})(\d{2})/)
     if (!m) { return null }
