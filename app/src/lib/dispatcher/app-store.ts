@@ -19,7 +19,7 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffSelection, DiffSelectionType, DiffLineType } from '../../models/diff'
+import { DiffSelection, DiffSelectionType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
@@ -809,7 +809,7 @@ export class AppStore {
       // isn't still selected.
       diff.hunks.forEach(h => {
         h.lines.forEach((line, index) => {
-          if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
+          if (line.isIncludeableLine()) {
             selectableLines.add(h.unifiedDiffStart + index)
           }
         })
