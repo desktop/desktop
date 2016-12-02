@@ -12,7 +12,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffHunk, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
+import { DiffHunk, DiffSelection, DiffNexus, IImageDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { DiffLineGutter } from './diff-line-gutter'
@@ -62,7 +62,7 @@ interface IDiffProps {
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
 
   /** The diff that should be rendered */
-  readonly diff: DiffModel
+  readonly diff: DiffNexus
 
   /** propagate errors up to the main application */
   readonly dispatcher: Dispatcher
@@ -132,10 +132,12 @@ export class Diff extends React.Component<IDiffProps, void> {
           return
         }
 
-        const line = diff.diffLineForIndex(index)
-        const isIncludable = line ? line.isIncludeableLine() : false
-        const isSelected = selection.isSelected(index) && isIncludable
-        element.setSelected(isSelected)
+        if (diff.kind === 'text') {
+          const line = diff.diffLineForIndex(index)
+          const isIncludable = line ? line.isIncludeableLine() : false
+          const isSelected = selection.isSelected(index) && isIncludable
+          element.setSelected(isSelected)
+        }
       })
     }
   }
@@ -194,6 +196,11 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
+    if (this.props.diff.kind !== 'text') {
+      // text diffs are the only ones that can handle selection
+      return
+    }
+
     const snapshot = this.props.file.selection
     const selected = snapshot.isSelected(index)
     const desiredSelection = !selected
@@ -232,6 +239,10 @@ export class Diff extends React.Component<IDiffProps, void> {
     if (existingLineDisposable) {
       existingLineDisposable.dispose()
       this.lineCleanup.delete(line)
+    }
+
+    if (this.props.diff.kind !== 'text') {
+      return
     }
 
     const index = instance.getLineNumber(line) as number
@@ -329,7 +340,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.restoreScrollPosition(cm)
   }
 
-  private renderImage(imageDiff: ImageDiff) {
+  private renderImage(imageDiff: IImageDiff) {
     if (imageDiff.current && imageDiff.previous) {
       return <ModifiedImageDiff
                 current={imageDiff.current}
@@ -353,44 +364,51 @@ export class Diff extends React.Component<IDiffProps, void> {
 
   public render() {
 
-    if (this.props.diff.imageDiff) {
-      return this.renderImage(this.props.diff.imageDiff)
+    const diff = this.props.diff
+
+    if (diff.kind === 'image') {
+      return this.renderImage(diff)
     }
 
-    if (this.props.diff.isBinary) {
+    if (diff.kind === 'binary') {
       return <BinaryFile path={this.props.file.path}
                          repository={this.props.repository}
                          dispatcher={this.props.dispatcher} />
     }
 
-    let diffText = ''
+    if (diff.kind === 'text') {
+      let diffText = ''
 
-    this.props.diff.hunks.forEach(hunk => {
-      hunk.lines.forEach(l => diffText += formatLineEnding(l.text))
-    })
+      diff.hunks.forEach(hunk => {
+        hunk.lines.forEach(l => diffText += formatLineEnding(l.text))
+      })
 
-    const options: IEditorConfigurationExtra = {
-      lineNumbers: false,
-      readOnly: true,
-      showCursorWhenSelecting: false,
-      cursorBlinkRate: -1,
-      lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
-      // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
-      extraKeys: { Tab: false },
-      scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
-      mode: getDiffMode(),
+      const options: IEditorConfigurationExtra = {
+        lineNumbers: false,
+        readOnly: true,
+        showCursorWhenSelecting: false,
+        cursorBlinkRate: -1,
+        lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
+        // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
+        extraKeys: { Tab: false },
+        scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
+        mode: getDiffMode(),
+      }
+
+      return (
+        <CodeMirrorHost
+          className='diff-code-mirror'
+          value={diffText}
+          options={options}
+          isSelectionEnabled={this.isSelectionEnabled}
+          onChanges={this.onChanges}
+          onRenderLine={this.renderLine}
+          ref={this.getAndStoreCodeMirrorInstance}
+        />
+      )
     }
 
-    return (
-      <CodeMirrorHost
-        className='diff-code-mirror'
-        value={diffText}
-        options={options}
-        isSelectionEnabled={this.isSelectionEnabled}
-        onChanges={this.onChanges}
-        onRenderLine={this.renderLine}
-        ref={this.getAndStoreCodeMirrorInstance}
-      />
-    )
+    // TODO: submodule support
+    return null
   }
 }

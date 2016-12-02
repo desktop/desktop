@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Diff, DiffHunk, DiffLine, DiffLineType } from '../../models/diff'
+import { ITextDiff, DiffHunk, DiffLine, DiffLineType } from '../../models/diff'
 import { hoverCssClass, selectedLineClass } from './selection/selection'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
@@ -35,7 +35,7 @@ interface IDiffGutterProps {
   /**
    * The diff currently displayed in the app
    */
-  readonly diff: Diff
+  readonly diff: ITextDiff
 
   /**
    * Callback to apply hover effect to lines belonging to a given hunk
