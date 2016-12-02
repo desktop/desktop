@@ -593,8 +593,6 @@ export class AppStore {
     const status = await gitStore.performFailableOperation(() => getStatus(repository))
     if (!status) { return }
 
-    const workingDirectory = status.workingDirectory
-
     let selectedFile: WorkingDirectoryFileChange | null = null
     this.updateChangesState(repository, state => {
 
@@ -604,7 +602,7 @@ export class AppStore {
 
       // Attempt to preserve the selection state for each file in the new
       // working directory state by looking at the current files
-      const mergedFiles = workingDirectory.files.map(file => {
+      const mergedFiles = status.workingDirectory.files.map(file => {
         const existingFile = filesByID.get(file.id)
         if (existingFile) {
 
@@ -634,19 +632,17 @@ export class AppStore {
       const fileSelectionChanged = selectedFile == null
 
       if (!selectedFile && mergedFiles.length) {
-        selectedFile = mergedFiles[0]
+        selectedFile = mergedFiles[0] || null
       }
 
-      return {
-        workingDirectory: new WorkingDirectoryStatus(mergedFiles, includeAll),
-        selectedFile: selectedFile || null,
-        // The file selection could have changed if the previously selected
-        // file is no longer selectable (it was reverted or committed) but
-        // if it hasn't changed we can reuse the diff
-        diff: fileSelectionChanged ? null : state.diff,
-        contextualCommitMessage: state.contextualCommitMessage,
-        commitMessage: state.commitMessage,
-      }
+      const workingDirectory = new WorkingDirectoryStatus(mergedFiles, includeAll)
+
+      // The file selection could have changed if the previously selected
+      // file is no longer selectable (it was reverted or committed) but
+      // if it hasn't changed we can reuse the diff
+      const diff = fileSelectionChanged ? null : state.diff
+
+      return { ...state, workingDirectory, selectedFile, diff }
     })
     this.emitUpdate()
 
