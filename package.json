@@ -60,7 +60,7 @@
     "ts-loader": "^0.8.2",
     "ts-node": "^1.7.0",
     "tslint": "^3.14.0",
-    "typescript": "^2.2.0-dev.20161201",
+    "typescript": "^2.1.4-insiders.20161201",
     "vrsource-tslint-rules": "^0.12.0",
     "webpack": "^1.12.15",
     "webpack-dev-middleware": "^1.6.1",
