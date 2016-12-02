@@ -40,7 +40,7 @@ export class Octicon extends React.Component<IOcticonProps, void> {
     symbol: OcticonSymbol.markGithub,
   }
 
-  public shouldComponentUpdate(nextProps: IOcticonProps, nextState: void) {
+  public shouldComponentUpdate(nextProps: IOcticonProps) {
 
     if (nextProps.symbol.w !== this.props.symbol.w ||
        nextProps.symbol.h !== this.props.symbol.h ||

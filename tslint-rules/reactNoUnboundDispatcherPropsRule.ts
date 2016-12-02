@@ -79,13 +79,13 @@ class ReactNoUnboundDispatcherPropsWalker extends Lint.RuleWalker {
 
       if (/^this\.props\.dispatcher\./.test(propAccessText)) {
         const start = propAccess.getStart()
-        const widget = propAccess.getWidth()
+        const width = propAccess.getWidth()
         const error = `Use of unbound dispatcher method: ${propAccessText}.`
         const explanation = 'Consider extracting the method call to a bound instance method.'
 
         const message = `${error} ${explanation}`
 
-        this.addFailure(this.createFailure(start, widget, message))
+        this.addFailure(this.createFailure(start, width, message))
       }
     })
   }
