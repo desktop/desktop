@@ -108,7 +108,7 @@ export class GitHubUserStore {
 
   /** Store the user in the cache. */
   public async cacheUser(user: IGitHubUser): Promise<void> {
-    user = lowerCaseUser(user)
+    user = userWithLowerCaseEmail(user)
 
     let userMap = this.getUsersForEndpoint(user.endpoint)
     if (!userMap) {
@@ -133,6 +133,14 @@ export class GitHubUserStore {
   }
 }
 
-function lowerCaseUser(user: IGitHubUser): IGitHubUser {
-  return Object.assign({}, user, { email: user.email.toLowerCase() })
+/**
+ * Returns a copy of the user instance with the email property in
+ * lower case. Returns the same instance if the email address is
+ * already all lower case.
+ */
+function userWithLowerCaseEmail(user: IGitHubUser): IGitHubUser {
+  const email = user.email.toLowerCase()
+  return email === user.email
+    ? user
+    : { ...user, email }
 }
