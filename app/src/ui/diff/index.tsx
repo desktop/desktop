@@ -12,7 +12,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffHunk, DiffSelection, IDiff, IImageDiff } from '../../models/diff'
+import { DiffHunk, DiffSelection, IDiff, IImageDiff, ITextDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { diffLineForIndex, diffHunkForIndex } from './diff-explorer'
@@ -346,25 +346,18 @@ export class Diff extends React.Component<IDiffProps, void> {
     return null
   }
 
-  private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
-    this.codeMirror = cmh === null ? null : cmh.getEditor()
+  private renderBinaryFile() {
+    return <BinaryFile path={this.props.file.path}
+                    repository={this.props.repository}
+                    dispatcher={this.props.dispatcher} />
   }
 
-  public render() {
+  private renderSubmoduleDiff() {
+    // TODO: imlement this
+    return null
+  }
 
-    const diff = this.props.diff
-
-    if (diff.kind === 'image') {
-      return this.renderImage(diff)
-    }
-
-    if (diff.kind === 'binary') {
-      return <BinaryFile path={this.props.file.path}
-                         repository={this.props.repository}
-                         dispatcher={this.props.dispatcher} />
-    }
-
-    if (diff.kind === 'text') {
+  private renderTextDiff(diff: ITextDiff) {
       const options: IEditorConfigurationExtra = {
         lineNumbers: false,
         readOnly: true,
@@ -388,9 +381,31 @@ export class Diff extends React.Component<IDiffProps, void> {
           ref={this.getAndStoreCodeMirrorInstance}
         />
       )
+  }
+
+  private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
+    this.codeMirror = cmh === null ? null : cmh.getEditor()
+  }
+
+  public render() {
+    const diff = this.props.diff
+
+    if (diff.kind === 'image') {
+      return this.renderImage(diff)
     }
 
-    // TODO: submodule support
+    if (diff.kind === 'binary') {
+      return this.renderBinaryFile()
+    }
+
+    if (diff.kind === 'text') {
+      return this.renderTextDiff(diff)
+    }
+
+    if (diff.kind === 'submodule') {
+      return this.renderSubmoduleDiff()
+    }
+
     return null
   }
 }
