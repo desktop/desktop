@@ -30,5 +30,14 @@ describe('CommitIdentity', () => {
       expect(identity!.name).to.equal('Markus Olsson')
       expect(identity!.email).to.equal('Markus Olsson')
     })
+
+    it('parses even if the email address is broken', () => {
+      // https://github.com/git/git/blob/3ef7618e616e023cf04180e30d77c9fa5310f964/ident.c#L292-L296
+      const identity = CommitIdentity.parseIdentity('Markus Olsson <Markus >Olsson> 1475670580 +0200')
+      expect(identity).not.to.be.null
+
+      expect(identity!.name).to.equal('Markus Olsson')
+      expect(identity!.email).to.equal('Markus >Olsson')
+    })
   })
 })
