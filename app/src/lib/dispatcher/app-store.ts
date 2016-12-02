@@ -863,7 +863,9 @@ export class AppStore {
 
   private async refreshAuthor(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    const commitAuthor = await gitStore.performFailableOperation(() => getAuthorIdentity(repository))
+    const commitAuthor = await gitStore.performFailableOperation(() =>
+      getAuthorIdentity(repository)
+    ) || null
 
     this.updateRepositoryState(repository, state => ({ ...state, commitAuthor }))
     this.emitUpdate()
