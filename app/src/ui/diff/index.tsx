@@ -29,21 +29,6 @@ if (__DARWIN__) {
   require('codemirror/addon/scroll/simplescrollbars')
 }
 
-
-/**
- * normalize the line endings in the diff so that the CodeMirror editor
- * will display the unified diff correctly
- */
-function formatLineEnding(text: string): string {
-  if (text.endsWith('\n')) {
-    return text
-  } else if (text.endsWith('\r')) {
-    return text + '\n'
-  } else {
-    return text + '\r\n'
-  }
-}
-
 /** The props for the Diff component. */
 interface IDiffProps {
   readonly repository: Repository
@@ -377,12 +362,6 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     if (diff.kind === 'text') {
-      let diffText = ''
-
-      diff.hunks.forEach(hunk => {
-        hunk.lines.forEach(l => diffText += formatLineEnding(l.text))
-      })
-
       const options: IEditorConfigurationExtra = {
         lineNumbers: false,
         readOnly: true,
@@ -398,7 +377,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       return (
         <CodeMirrorHost
           className='diff-code-mirror'
-          value={diffText}
+          value={diff.text}
           options={options}
           isSelectionEnabled={this.isSelectionEnabled}
           onChanges={this.onChanges}

@@ -6,7 +6,7 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { RawDiff, IDiff, IImageDiff, ITextDiff, Image } from '../../models/diff'
+import { RawDiff, IDiff, IImageDiff, Image } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
@@ -117,6 +117,21 @@ async function getImageDiff(repository: Repository, file: FileChange, commitish:
   }
 }
 
+
+/**
+ * normalize the line endings in the diff so that the CodeMirror editor
+ * will display the unified diff correctly
+ */
+function formatLineEnding(text: string): string {
+  if (text.endsWith('\n')) {
+    return text
+  } else if (text.endsWith('\r')) {
+    return text + '\n'
+  } else {
+    return text + '\r\n'
+  }
+}
+
 export async function convertDiff(repository: Repository, file: FileChange, diff: RawDiff, commitish: string): Promise<IDiff> {
   if (diff.isBinary) {
     const extension = Path.extname(file.path)
@@ -142,12 +157,18 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
     }
   }
 
+  let diffText = ''
+  diff.hunks.forEach(hunk => {
+    hunk.lines.forEach(l => diffText += formatLineEnding(l.text))
+  })
+
   return {
     kind: 'text',
+    text: diffText,
     hunks: diff.hunks,
     diffLineForIndex: diff.diffLineForIndex,
     diffHunkForIndex: diff.diffHunkForIndex,
-  } as ITextDiff // OH COME ON, I SHOULDN'T NEED THIS?
+  }
 }
 
 /**

@@ -7,9 +7,10 @@ export enum DiffLineType {
 
 export interface ITextDiff {
   readonly kind: 'text'
+  readonly text: string
   readonly hunks: ReadonlyArray<DiffHunk>
-  readonly diffLineForIndex: (index: number) => DiffLine
-  readonly diffHunkForIndex: (index: number) => DiffHunk
+  readonly diffLineForIndex: (index: number) => DiffLine | null
+  readonly diffHunkForIndex: (index: number) => DiffHunk | null
 }
 
 export interface IImageDiff {
