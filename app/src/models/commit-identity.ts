@@ -3,6 +3,7 @@
  * info in a commit.
  */
 export class CommitIdentity {
+
   public readonly name: string
   public readonly email: string
   public readonly date: Date
