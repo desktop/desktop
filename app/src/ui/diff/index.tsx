@@ -12,7 +12,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffHunk, DiffSelection, DiffNexus, IImageDiff } from '../../models/diff'
+import { DiffHunk, DiffSelection, IDiff, IImageDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { DiffLineGutter } from './diff-line-gutter'
@@ -62,7 +62,7 @@ interface IDiffProps {
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
 
   /** The diff that should be rendered */
-  readonly diff: DiffNexus
+  readonly diff: IDiff
 
   /** propagate errors up to the main application */
   readonly dispatcher: Dispatcher

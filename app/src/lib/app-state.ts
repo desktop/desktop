@@ -1,6 +1,6 @@
 import { User } from '../models/user'
 import { CommitIdentity } from '../models/commit-identity'
-import { DiffNexus } from '../models/diff'
+import { IDiff } from '../models/diff'
 import { Repository } from '../models/repository'
 import { IAheadBehind } from './git'
 import { Branch } from '../models/branch'
@@ -190,13 +190,13 @@ export interface IHistoryState {
 
   readonly changedFiles: ReadonlyArray<FileChange>
 
-  readonly diff: DiffNexus | null
+  readonly diff: IDiff | null
 }
 
 export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedFile: WorkingDirectoryFileChange | null
-  readonly diff: DiffNexus | null
+  readonly diff: IDiff | null
 
   /**
    * The commit message to use based on the contex of the repository, e.g., the

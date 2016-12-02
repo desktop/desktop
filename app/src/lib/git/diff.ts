@@ -6,7 +6,7 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { RawDiff, DiffNexus, IImageDiff, ITextDiff, Image  } from '../../models/diff'
+import { RawDiff, IDiff, IImageDiff, ITextDiff, Image } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
@@ -21,7 +21,7 @@ const imageFileExtensions = new Set([ '.png', '.jpg', '.jpeg', '.gif' ])
  * @param commitish A commit SHA or some other identifier that ultimately dereferences
  *                  to a commit.
  */
-export function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<DiffNexus> {
+export function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<IDiff> {
 
   const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
 
@@ -35,7 +35,7 @@ export function getCommitDiff(repository: Repository, file: FileChange, commitis
  * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
  * that all content in the file will be treated as additions.
  */
-export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<DiffNexus> {
+export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<IDiff> {
 
   let opts: IGitExecutionOptions | undefined
   let args: Array<string>
@@ -117,7 +117,7 @@ async function getImageDiff(repository: Repository, file: FileChange, commitish:
   }
 }
 
-export async function convertDiff(repository: Repository, file: FileChange, diff: RawDiff, commitish: string): Promise<DiffNexus> {
+export async function convertDiff(repository: Repository, file: FileChange, diff: RawDiff, commitish: string): Promise<IDiff> {
   if (diff.isBinary) {
     const extension = Path.extname(file.path)
 

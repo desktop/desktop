@@ -26,7 +26,7 @@ export interface ISubmoduleDiff {
   readonly kind: 'submodule'
 }
 
-export type DiffNexus =
+export type IDiff =
   ITextDiff |
   IImageDiff |
   IBinaryDiff |
