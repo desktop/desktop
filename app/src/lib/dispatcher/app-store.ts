@@ -1012,12 +1012,10 @@ export class AppStore {
       }
 
       const user = this.getUserForRepository(repository)
-      const upstream = branch.upstream
-      if (upstream) {
-        await gitStore.performFailableOperation(() => pushRepo(repository, user, remote, branch.name, false))
-      } else {
-        await gitStore.performFailableOperation(() => pushRepo(repository, user, remote, branch.name, true))
-      }
+      await gitStore.performFailableOperation(() => {
+        const setUpstream = branch.upstream ? false : true
+        return pushRepo(repository, user, remote, branch.name, setUpstream)
+      })
     })
 
     this._refreshRepository(repository)
