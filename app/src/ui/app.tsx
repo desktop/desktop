@@ -30,6 +30,7 @@ import { Welcome } from './welcome'
 import { AppMenu } from './app-menu'
 import { UpdateAvailable } from './updates'
 import { shouldRenderApplicationMenu } from './lib/features'
+import { Button } from './lib/button'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -415,7 +416,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         {msgs.map((msg, i) => <pre className='popup-error-output' key={i}>{msg}</pre>)}
 
         <div className='popup-actions'>
-          <button onClick={this.clearErrors}>OK</button>
+          <Button onClick={this.clearErrors}>OK</Button>
         </div>
       </Popuppy>
     )
