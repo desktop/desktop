@@ -133,9 +133,12 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
 
   // if first line looks like the submodule format string
   // TODO: write this in a non-awful way
-  if (diff.hunks[0].lines[0].text.indexOf('Subproject') === -1) {
-    return {
-      kind: 'submodule',
+
+  if (diff.hunks.length > 0) {
+    if (diff.hunks[0].lines[0].text.indexOf('Subproject') > -1) {
+      return {
+        kind: 'submodule',
+      }
     }
   }
 
