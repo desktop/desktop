@@ -165,9 +165,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
   return {
     kind: 'text',
     text: diffText,
-    hunks: diff.hunks,
-    diffLineForIndex: diff.diffLineForIndex,
-    diffHunkForIndex: diff.diffHunkForIndex,
+    hunks: diff.hunks
   }
 }
 

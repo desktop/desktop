@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { ITextDiff, DiffHunk, DiffLine, DiffLineType } from '../../models/diff'
+import { diffHunkForIndex } from './diff-explorer'
 import { hoverCssClass, selectedLineClass } from './selection/selection'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
@@ -123,7 +124,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
   private updateHoverState(isHunkSelection: boolean, isActive: boolean) {
     if (isHunkSelection) {
-      const hunk = this.props.diff.diffHunkForIndex(this.props.index)
+      const hunk = diffHunkForIndex(this.props.diff, this.props.index)
       if (!hunk) {
         console.error('unable to find hunk for given line in diff')
         return
@@ -137,7 +138,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private mouseMoveHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    const hunk = this.props.diff.diffHunkForIndex(this.props.index)
+    const hunk = diffHunkForIndex(this.props.diff, this.props.index)
     if (!hunk) {
       console.error('unable to find hunk for given line in diff')
       return

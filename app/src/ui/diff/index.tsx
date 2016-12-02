@@ -15,6 +15,7 @@ import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models
 import { DiffHunk, DiffSelection, IDiff, IImageDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
+import { diffLineForIndex, diffHunkForIndex } from './diff-explorer'
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { getDiffMode } from './diff-mode'
@@ -118,7 +119,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
 
         if (diff.kind === 'text') {
-          const line = diff.diffLineForIndex(index)
+          const line = diffLineForIndex(diff, index)
           const isIncludable = line ? line.isIncludeableLine() : false
           const isSelected = selection.isSelected(index) && isIncludable
           element.setSelected(isSelected)
@@ -181,7 +182,8 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    if (this.props.diff.kind !== 'text') {
+    const diff = this.props.diff
+    if (diff.kind !== 'text') {
       // text diffs are the only ones that can handle selection
       return
     }
@@ -191,7 +193,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     const desiredSelection = !selected
 
     if (isHunkSelection) {
-      const hunk = this.props.diff.diffHunkForIndex(index)
+      const hunk = diffHunkForIndex(diff, index)
       if (!hunk) {
         console.error('unable to find hunk for given line in diff')
         return
@@ -226,12 +228,13 @@ export class Diff extends React.Component<IDiffProps, void> {
       this.lineCleanup.delete(line)
     }
 
-    if (this.props.diff.kind !== 'text') {
+    const diff = this.props.diff
+    if (diff.kind !== 'text') {
       return
     }
 
     const index = instance.getLineNumber(line) as number
-    const hunk = this.props.diff.diffHunkForIndex(index)
+    const hunk = diffHunkForIndex(diff, index)
     if (hunk) {
       const relativeIndex = index - hunk.unifiedDiffStart
       const diffLine = hunk.lines[relativeIndex]
@@ -253,7 +256,7 @@ export class Diff extends React.Component<IDiffProps, void> {
             isIncluded={isIncluded}
             index={index}
             readOnly={this.props.readOnly}
-            diff={this.props.diff}
+            diff={diff}
             updateHunkHoverState={this.updateHunkHoverState}
             isSelectionEnabled={this.isSelectionEnabled}
             onMouseUp={this.onMouseUp}

@@ -337,8 +337,19 @@ export class DiffParser {
       const headerInfo = this.parseDiffHeader()
 
       // empty diff
-      if (!headerInfo) { return new RawDiff([], false) }
-      if (headerInfo.isBinary) { return new RawDiff([], true) }
+      if (!headerInfo) {
+        return {
+          hunks: [],
+          isBinary: false
+        }
+      }
+
+      if (headerInfo.isBinary) {
+        return {
+          hunks: [],
+          isBinary: true
+        }
+      }
 
       const hunks = new Array<DiffHunk>()
       let linesConsumed = 0
@@ -349,7 +360,10 @@ export class DiffParser {
         linesConsumed += hunk.lines.length
       } while (this.peek())
 
-      return new RawDiff(hunks, headerInfo.isBinary)
+      return {
+        hunks,
+        isBinary: headerInfo.isBinary
+      }
     } finally {
       this.reset()
     }
