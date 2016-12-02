@@ -119,7 +119,7 @@ export class FileSummary {
   public readonly removed: number
   public readonly path: string
 
-  constructor(added: number, removed: number, path: string) {
+  public constructor(added: number, removed: number, path: string) {
     this.added = added
     this.removed = removed
     this.path = path

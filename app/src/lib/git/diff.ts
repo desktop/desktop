@@ -173,7 +173,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
 
       return {
         kind: 'submodule',
-        changes
+        changes,
       }
     }
 
@@ -189,7 +189,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
 
         return {
           kind: 'submodule',
-          changes
+          changes,
         }
       }
     }
@@ -267,7 +267,7 @@ export async function getSubmoduleDiff(repository: Repository, file: FileChange,
 
   const lines = output.split('\0')
 
-  for(let i = 0; i < lines.length; i++) {
+  for (let i = 0; i < lines.length; i++) {
     const line = lines[i]
     const entries = line.split('\t')
 
