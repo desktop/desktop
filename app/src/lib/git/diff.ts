@@ -6,7 +6,7 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { Diff, Image  } from '../../models/diff'
+import { Diff, DiffNexus, IImageDiff, ITextDiff, Image  } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
@@ -21,13 +21,13 @@ const imageFileExtensions = new Set([ '.png', '.jpg', '.jpeg', '.gif' ])
  * @param commitish A commit SHA or some other identifier that ultimately dereferences
  *                  to a commit.
  */
-export function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<Diff> {
+export function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<DiffNexus> {
 
   const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
 
   return git(args, repository.path, 'getCommitDiff')
     .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => attachImageDiff(repository, file, diff, commitish))
+    .then(diff => convertDiff(repository, file, diff, commitish))
 }
 
 /**
@@ -35,7 +35,7 @@ export function getCommitDiff(repository: Repository, file: FileChange, commitis
  * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
  * that all content in the file will be treated as additions.
  */
-export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<Diff> {
+export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<DiffNexus> {
 
   let opts: IGitExecutionOptions | undefined
   let args: Array<string>
@@ -68,24 +68,10 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
 
   return git(args, repository.path, 'getWorkingDirectoryDiff', opts)
     .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => attachImageDiff(repository, file, diff, 'HEAD'))
+    .then(diff => convertDiff(repository, file, diff, 'HEAD'))
 }
 
-async function attachImageDiff(repository: Repository, file: FileChange, diff: Diff, commitish: string): Promise<Diff> {
-
-  // already have a text diff, no point trying out this
-  if (!diff.isBinary) {
-    return diff
-  }
-
-  // if unable to find an extension, this will return an empty string
-  const extension = Path.extname(file.path)
-
-  // some extension we don't know how to parse, never mind
-  if (!imageFileExtensions.has(extension)) {
-    return diff
-  }
-
+async function getImageDiff(repository: Repository, file: FileChange, diff: Diff, commitish: string): Promise<IImageDiff> {
   let current: Image | undefined = undefined
   let previous: Image | undefined = undefined
 
@@ -95,7 +81,7 @@ async function attachImageDiff(repository: Repository, file: FileChange, diff: D
     // Ideally we'd show all three versions and let the user pick but that's
     // a bit out of scope for now.
     if (file.status === FileStatus.Conflicted) {
-      return diff
+      return { kind: 'image' }
     }
 
     // Does it even exist in the working directory?
@@ -124,10 +110,41 @@ async function attachImageDiff(repository: Repository, file: FileChange, diff: D
     }
   }
 
-  return diff.withImageDiff({
+  return {
+    kind: 'image',
     previous: previous,
     current: current,
-  })
+  }
+}
+
+export async function convertDiff(repository: Repository, file: FileChange, diff: Diff, commitish: string): Promise<DiffNexus> {
+  if (diff.isBinary) {
+    const extension = Path.extname(file.path)
+
+    // some extension we don't know how to parse, never mind
+    if (!imageFileExtensions.has(extension)) {
+      return {
+        kind: 'binary',
+      }
+    } else {
+      return getImageDiff(repository, file, diff, commitish)
+    }
+  }
+
+  // if first line looks like the submodule format string
+  // TODO: write this in a non-awful way
+  if (diff.hunks[0].lines[0].text.indexOf('Subproject') === -1) {
+    return {
+      kind: 'submodule',
+    }
+  }
+
+  return {
+    kind: 'text',
+    hunks: diff.hunks,
+    diffLineForIndex: diff.diffLineForIndex,
+    diffHunkForIndex: diff.diffHunkForIndex,
+  } as ITextDiff // OH COME ON, I SHOULDN'T NEED THIS?
 }
 
 /**

@@ -800,19 +800,21 @@ export class AppStore {
     const diff = await getWorkingDirectoryDiff(repository, currentSelectedFile)
     const selectableLines = new Set<number>()
 
-    // The diff might have changed dramatically since last we loaded it. Ideally we
-    // would be more clever about validating that any partial selection state is
-    // still valid by ensuring that selected lines still exist but for now we'll
-    // settle on just updating the selectable lines such that any previously selected
-    // line which now no longer exists or has been turned into a context line
-    // isn't still selected.
-    diff.hunks.forEach(h => {
-      h.lines.forEach((line, index) => {
-        if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
-          selectableLines.add(h.unifiedDiffStart + index)
-        }
+    if (diff.kind === 'text') {
+      // The diff might have changed dramatically since last we loaded it. Ideally we
+      // would be more clever about validating that any partial selection state is
+      // still valid by ensuring that selected lines still exist but for now we'll
+      // settle on just updating the selectable lines such that any previously selected
+      // line which now no longer exists or has been turned into a context line
+      // isn't still selected.
+      diff.hunks.forEach(h => {
+        h.lines.forEach((line, index) => {
+          if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
+            selectableLines.add(h.unifiedDiffStart + index)
+          }
+        })
       })
-    })
+    }
 
     const newSelection = currentSelectedFile.selection.withSelectableLines(selectableLines)
     const selectedFile = currentSelectedFile.withSelection(newSelection)
