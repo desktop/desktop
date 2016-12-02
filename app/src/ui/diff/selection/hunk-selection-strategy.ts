@@ -30,7 +30,6 @@ export class HunkSelection implements ISelectionStrategy {
         return
       }
 
-      // HACK: Don't update classes for non-selectable lines
       if (!element.isIncluded()) {
         return
       }

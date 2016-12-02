@@ -4,6 +4,13 @@ import { hoverCssClass, selectedLineClass } from './selection/selection'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
 
+/**
+ * The area in pixels either side of the right-edge of the diff gutter to
+ * use to detect when a group of lines should be highlighted, instead of
+ * a single line.
+ */
+const EdgeDetectionSize = 10
+
 /** The props for the diff gutter. */
 interface IDiffGutterProps {
   /** The line being represented by the gutter. */
@@ -71,7 +78,7 @@ function isMouseInHunkSelectionZone(ev: MouseEvent): boolean {
   const offset: ClientRect = element.getBoundingClientRect()
   const relativeLeft = ev.clientX - offset.left
 
-  const edge = offset.width - 10
+  const edge = offset.width - EdgeDetectionSize
 
   return relativeLeft >= edge
 }
@@ -151,7 +158,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     this.props.onMouseMove(this.props.index)
   }
 
-  private mouseUpHandler = (ev: UIEvent) => {
+  private mouseUpHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
     this.props.onMouseUp(this.props.index)
@@ -164,7 +171,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     this.props.onMouseDown(this.props.index, isHunkSelection)
   }
 
-  private renderEventHandlers = (elem: HTMLSpanElement) => {
+  private applyEventHandlers = (elem: HTMLSpanElement) => {
     // read-only diffs do not support any interactivity
     if (this.props.readOnly) {
       return
@@ -233,7 +240,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   public render() {
     return (
       <span className={this.getLineClass()}
-            ref={this.renderEventHandlers}>
+            ref={this.applyEventHandlers}>
         <span className='diff-line-number before'>{this.props.line.oldLineNumber || ' '}</span>
         <span className='diff-line-number after'>{this.props.line.newLineNumber || ' '}</span>
       </span>
