@@ -16,9 +16,11 @@ describe('CommitIdentity', () => {
     })
 
     it('parses timezone information', () => {
-      const identity = CommitIdentity.parseIdentity('Markus Olsson <markus@github.com> 1475670580 +0100')
+      const identity1 = CommitIdentity.parseIdentity('Markus Olsson <markus@github.com> 1475670580 +0130')
+      expect(identity1!.tzOffset).to.equal(90)
 
-      expect(identity!.tzOffset).to.equal(60)
+      const identity2 = CommitIdentity.parseIdentity('Markus Olsson <markus@github.com> 1475670580 -0245')
+      expect(identity2!.tzOffset).to.equal(-165)
     })
 
     it('parses even if the email address isn\'t a normal email', () => {
