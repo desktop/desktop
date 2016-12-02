@@ -6,7 +6,7 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { Diff, DiffNexus, IImageDiff, ITextDiff, Image  } from '../../models/diff'
+import { RawDiff, DiffNexus, IImageDiff, ITextDiff, Image  } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
@@ -71,7 +71,7 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
     .then(diff => convertDiff(repository, file, diff, 'HEAD'))
 }
 
-async function getImageDiff(repository: Repository, file: FileChange, diff: Diff, commitish: string): Promise<IImageDiff> {
+async function getImageDiff(repository: Repository, file: FileChange, commitish: string): Promise<IImageDiff> {
   let current: Image | undefined = undefined
   let previous: Image | undefined = undefined
 
@@ -117,7 +117,7 @@ async function getImageDiff(repository: Repository, file: FileChange, diff: Diff
   }
 }
 
-export async function convertDiff(repository: Repository, file: FileChange, diff: Diff, commitish: string): Promise<DiffNexus> {
+export async function convertDiff(repository: Repository, file: FileChange, diff: RawDiff, commitish: string): Promise<DiffNexus> {
   if (diff.isBinary) {
     const extension = Path.extname(file.path)
 
@@ -127,7 +127,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
         kind: 'binary',
       }
     } else {
-      return getImageDiff(repository, file, diff, commitish)
+      return getImageDiff(repository, file, commitish)
     }
   }
 
@@ -173,7 +173,7 @@ function getMediaType(extension: string) {
  *
  * Parses the output from a diff-like command that uses `--path-with-raw`
  */
-function diffFromRawDiffOutput(result: string): Diff {
+function diffFromRawDiffOutput(result: string): RawDiff {
   const pieces = result.split('\0')
   const parser = new DiffParser()
   return parser.parse(pieces[pieces.length - 1])
