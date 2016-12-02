@@ -125,7 +125,7 @@ export class GitHubUserStore {
         .limit(1)
         .first()
       if (existing) {
-        user = Object.assign({}, user, { id: existing.id })
+        user = { ...user, id: existing.id }
       }
 
       yield db.users.put(user)
