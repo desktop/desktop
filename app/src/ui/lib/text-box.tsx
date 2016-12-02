@@ -39,12 +39,12 @@ interface ITextBoxProps {
 /** An input element with app-standard styles. */
 export class TextBox extends React.Component<ITextBoxProps, void> {
   public render() {
-    const className = classNames('input-component', this.props.labelClassName)
+    const className = classNames('text-box-component', this.props.labelClassName)
     return (
       <label className={className}>
         {this.props.label}
 
-        <div className='input-content'>
+        <div className='text-box-content'>
           <input
             autoFocus={this.props.autoFocus}
             className={this.props.inputClassName}
