@@ -6,7 +6,7 @@ import * as fs from 'fs-extra'
 
 import { Repository } from '../../../src/models/repository'
 import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
-import { ITextDiff, IImageDiff, DiffSelectionType, DiffSelection } from '../../../src/models/diff'
+import { ITextDiff, IImageDiff, ISubmoduleDiff, DiffSelectionType, DiffSelection } from '../../../src/models/diff'
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 
 import {
@@ -22,6 +22,12 @@ async function getTextDiff(repo: Repository, file: WorkingDirectoryFileChange): 
   const diff = await getWorkingDirectoryDiff(repo, file)
   expect(diff.kind === 'text')
   return diff as ITextDiff
+}
+
+async function getSubmoduleDiff(repo: Repository, file: WorkingDirectoryFileChange): Promise<ISubmoduleDiff> {
+  const diff = await getWorkingDirectoryDiff(repo, file)
+  expect(diff.kind === 'submodule')
+  return diff as ISubmoduleDiff
 }
 
 describe('git/diff', () => {
@@ -213,4 +219,21 @@ describe('git/diff', () => {
     })
   })
 
+  describe('getSubmoduleDiff', () => {
+    it('renders working directory change', async () => {
+      const testRepoPath = setupFixtureRepository('repository-with-submodule-change')
+      repository = new Repository(testRepoPath, -1, null)
+
+      const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
+      const file = new WorkingDirectoryFileChange('friendly-bassoon', FileStatus.Modified, diffSelection)
+      const diff = await getSubmoduleDiff(repository!, file)
+
+      expect(diff.changes.length).to.equal(1)
+
+      const first = diff.changes[0]
+      expect(first.added).to.equal(3)
+      expect(first.removed).to.equal(1)
+      expect(first.path).to.equal('README.md')
+    })
+  })
 })

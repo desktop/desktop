@@ -6,7 +6,7 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { IRawDiff, IDiff, IImageDiff, Image } from '../../models/diff'
+import { IRawDiff, IDiff, IImageDiff, Image, FileSummary, DiffLine } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
@@ -149,10 +149,35 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
   // if first line looks like the submodule format string
   // TODO: write this in a non-awful way
 
-  if (diff.hunks.length > 0) {
-    if (diff.hunks[0].lines[0].text.indexOf('Subproject') > -1) {
+  if (diff.hunks.length === 1) {
+
+    const hunk = diff.hunks[0]
+
+    const match = (line: DiffLine) => {
+      const match = /Subproject commit ([a-z0-9]{40})/.exec(line.text)
+      if (match) {
+        return match[1]
+      }
+      return null
+    }
+
+    const firstLine = hunk.lines[1]
+    const secondLine = hunk.lines[2]
+    const firstHash = firstLine ? match(firstLine) : null
+    const secondHash = secondLine ? match(secondLine) : null
+    // TODO: we expect 1 or 2 lines here, guard against that
+    const isSubmoduleChange = firstHash || secondHash
+
+    if (isSubmoduleChange) {
+      const from = firstHash
+      const to = secondHash
+      const changes = await getSubmoduleDiff(repository, file, from, to)
+
       return {
         kind: 'submodule',
+        from,
+        to,
+        changes
       }
     }
   }
@@ -216,6 +241,36 @@ export async function getWorkingDirectoryImage(repository: Repository, file: Fil
     mediaType: getMediaType(extension),
   }
   return diff
+}
+
+export async function getSubmoduleDiff(repository: Repository, file: FileChange, from: string | null, to: string | null): Promise<ReadonlyArray<FileSummary>> {
+
+  // TODO: handle submodule add (only one hash)
+
+  const args = [ 'diff', '--numstat', '-z', `${from}..${to}` ]
+  const submodulePath = Path.join(repository.path, file.path)
+
+  const diffStats = await git(args, submodulePath, 'getSubmoduleDiff')
+  const output = diffStats.stdout
+
+  const results: Array<FileSummary> = [ ]
+
+  const lines = output.split('\n')
+
+  for(let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const entries = line.split('\t')
+
+    if (entries.length === 3) {
+      const added = parseInt(entries[0], 10)
+      const removed = parseInt(entries[1], 10)
+      const path = entries[2].trim().replace('\0', '')
+
+      results.push(new FileSummary(added, removed, path))
+    }
+  }
+
+  return results
 }
 
 /**
