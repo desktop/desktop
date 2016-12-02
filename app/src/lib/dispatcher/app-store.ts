@@ -765,10 +765,8 @@ export class AppStore {
 
     this.updateChangesState(repository, state => {
 
-      const newFiles = state.workingDirectory.files.map(
-        f => f.id === file.id
-              ? f.withSelection(selection)
-              : f
+      const newFiles = state.workingDirectory.files.map(f =>
+        f.id === file.id ? f.withSelection(selection) : f
       )
 
       const includeAll = this.getIncludeAllState(newFiles)
