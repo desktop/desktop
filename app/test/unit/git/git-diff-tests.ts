@@ -5,12 +5,13 @@ import * as path from 'path'
 import * as fs from 'fs-extra'
 
 import { Repository } from '../../../src/models/repository'
-import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
+import { FileStatus, WorkingDirectoryFileChange, FileChange } from '../../../src/models/status'
 import { ITextDiff, IImageDiff, ISubmoduleDiff, DiffSelectionType, DiffSelection } from '../../../src/models/diff'
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 
 import {
   getStatus,
+  getCommitDiff,
   getWorkingDirectoryDiff,
   getWorkingDirectoryImage,
   getBlobImage,
@@ -22,12 +23,6 @@ async function getTextDiff(repo: Repository, file: WorkingDirectoryFileChange): 
   const diff = await getWorkingDirectoryDiff(repo, file)
   expect(diff.kind === 'text')
   return diff as ITextDiff
-}
-
-async function getSubmoduleDiff(repo: Repository, file: WorkingDirectoryFileChange): Promise<ISubmoduleDiff> {
-  const diff = await getWorkingDirectoryDiff(repo, file)
-  expect(diff.kind === 'submodule')
-  return diff as ISubmoduleDiff
 }
 
 describe('git/diff', () => {
@@ -226,14 +221,45 @@ describe('git/diff', () => {
 
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('friendly-bassoon', FileStatus.Modified, diffSelection)
-      const diff = await getSubmoduleDiff(repository!, file)
 
-      expect(diff.changes.length).to.equal(1)
+      const diff = await getWorkingDirectoryDiff(repository, file)
+      expect(diff.kind === 'submodule')
+      const submodule = diff as ISubmoduleDiff
 
-      const first = diff.changes[0]
+      expect(submodule.changes.length).to.equal(1)
+
+      const first = submodule.changes[0]
       expect(first.added).to.equal(3)
       expect(first.removed).to.equal(1)
       expect(first.path).to.equal('README.md')
+    })
+
+    it('renders commit diff', async () => {
+      const testRepoPath = setupFixtureRepository('repository-with-submodule-change')
+      repository = new Repository(testRepoPath, -1, null)
+
+      const file = new FileChange('friendly-bassoon', FileStatus.New)
+      const diff = await getCommitDiff(repository!, file, 'HEAD')
+
+      expect(diff.kind === 'submodule')
+      const submodule = diff as ISubmoduleDiff
+
+      expect(submodule.changes.length).to.equal(3)
+
+      const first = submodule.changes[0]
+      expect(first.added).to.equal(33)
+      expect(first.removed).to.equal(0)
+      expect(first.path).to.equal('.gitignore')
+
+      const second = submodule.changes[1]
+      expect(second.added).to.equal(21)
+      expect(second.removed).to.equal(0)
+      expect(second.path).to.equal('LICENSE')
+
+      const third = submodule.changes[2]
+      expect(third.added).to.equal(1)
+      expect(third.removed).to.equal(0)
+      expect(third.path).to.equal('README.md')
     })
   })
 })

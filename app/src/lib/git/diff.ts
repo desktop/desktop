@@ -132,6 +132,8 @@ function formatLineEnding(text: string): string {
   }
 }
 
+const emptyTreeSha = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
+
 export async function convertDiff(repository: Repository, file: FileChange, diff: IRawDiff, commitish: string): Promise<IDiff> {
   if (diff.isBinary) {
     const extension = Path.extname(file.path)
@@ -146,15 +148,12 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
     }
   }
 
-  // if first line looks like the submodule format string
-  // TODO: write this in a non-awful way
-
   if (diff.hunks.length === 1) {
 
     const hunk = diff.hunks[0]
 
     const match = (line: DiffLine) => {
-      const match = /Subproject commit ([a-z0-9]{40})/.exec(line.text)
+      const match = /[\+\-]Subproject commit ([a-z0-9]{40})/.exec(line.text)
       if (match) {
         return match[1]
       }
@@ -162,22 +161,36 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
     }
 
     const firstLine = hunk.lines[1]
-    const secondLine = hunk.lines[2]
     const firstHash = firstLine ? match(firstLine) : null
-    const secondHash = secondLine ? match(secondLine) : null
-    // TODO: we expect 1 or 2 lines here, guard against that
-    const isSubmoduleChange = firstHash || secondHash
 
-    if (isSubmoduleChange) {
-      const from = firstHash
-      const to = secondHash
+    // single line diff, could be added or removed
+    if (firstHash && hunk.lines.length === 2) {
+      const submoduleAdded = firstLine.text[0] === '+'
+
+      const from = submoduleAdded ? emptyTreeSha : firstHash
+      const to = submoduleAdded ? firstHash : emptyTreeSha
       const changes = await getSubmoduleDiff(repository, file, from, to)
 
       return {
         kind: 'submodule',
-        from,
-        to,
         changes
+      }
+    }
+
+    // two line diff, submodule changed
+    if (firstHash && hunk.lines.length === 3) {
+      const secondLine = hunk.lines[2]
+      const secondHash = secondLine ? match(secondLine) : null
+
+      if (secondHash) {
+        const from = firstHash
+        const to = secondHash
+        const changes = await getSubmoduleDiff(repository, file, from, to)
+
+        return {
+          kind: 'submodule',
+          changes
+        }
       }
     }
   }
@@ -243,10 +256,7 @@ export async function getWorkingDirectoryImage(repository: Repository, file: Fil
   return diff
 }
 
-export async function getSubmoduleDiff(repository: Repository, file: FileChange, from: string | null, to: string | null): Promise<ReadonlyArray<FileSummary>> {
-
-  // TODO: handle submodule add (only one hash)
-
+export async function getSubmoduleDiff(repository: Repository, file: FileChange, from: string, to: string): Promise<ReadonlyArray<FileSummary>> {
   const args = [ 'diff', '--numstat', '-z', `${from}..${to}` ]
   const submodulePath = Path.join(repository.path, file.path)
 
@@ -255,7 +265,7 @@ export async function getSubmoduleDiff(repository: Repository, file: FileChange,
 
   const results: Array<FileSummary> = [ ]
 
-  const lines = output.split('\n')
+  const lines = output.split('\0')
 
   for(let i = 0; i < lines.length; i++) {
     const line = lines[i]
