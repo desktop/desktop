@@ -53,10 +53,17 @@
   line-height: normal;
   display: flex;
   height: 100%;
+
+  .before {
+     border-right: 1px solid var(--diff-border-color);
+  }
+
+  .after {
+    border-right: 4px solid var(--diff-border-color);
+  }
 }
 
 .diff-line-number {
-  border-right: 1px solid var(--diff-border-color);
   display: inline-block;
   color: var(--diff-line-number-color);
   width: var(--diff-line-number-column-width);
