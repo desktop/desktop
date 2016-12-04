@@ -77,10 +77,10 @@ export function getContentType(response: IHTTPResponse): string | null {
 /**
  * Detect the encoding associated with the HTTP response.
  *
- * If not specified in the response headers, 'utf-8' is assumed.
+ * If not specified in the response headers, 'ISO-8859-1' is assumed.
  */
 export function getEncoding(response: IHTTPResponse): string {
-  const defaultEncoding = 'utf-8'
+  const defaultEncoding = 'iso-8859-1'
 
   const contentType = getHeader(response, 'Content-Type')
   if (!contentType) {

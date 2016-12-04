@@ -46,13 +46,13 @@ describe('HTTP', () => {
   })
 
  describe('getEncoding', () => {
-    it('returns UTF-8 when not found', () => {
+    it('returns ISO-8859-1 when not found', () => {
       const sampleResponse: IHTTPResponse = {
         headers: { },
       }
 
       const result = getEncoding(sampleResponse)
-      expect(result).to.equal('utf-8')
+      expect(result).to.equal('iso-8859-1')
     })
 
     it('performs case-insensitive match', () => {
@@ -74,7 +74,7 @@ describe('HTTP', () => {
       expect(second).to.equal('utf-16')
     })
 
-    it('returns UTF-8 when omitted', () => {
+    it('returns ISO-8859-1 when omitted', () => {
       const sampleResponse: IHTTPResponse = {
         headers: {
           'content-type': [ 'text/html' ],
@@ -82,7 +82,7 @@ describe('HTTP', () => {
       }
 
       const result = getEncoding(sampleResponse)
-      expect(result).to.equal('utf-8')
+      expect(result).to.equal('iso-8859-1')
     })
   })
 })
