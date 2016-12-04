@@ -9,7 +9,7 @@ export interface IHTTPResponse {
   /** The key-value collection of headers associated with the response */
   readonly headers?: { [key: string]: any; },
   /** The deserialized JSON response body */
-  readonly body?: Object
+  readonly body?: string
   /** An error if one occurred. */
   readonly error?: Error
 }
@@ -52,6 +52,20 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
   }
 
   return null
+}
+
+export function deserialize<T>(body: string | undefined): T | null {
+  if (!body) {
+    return null
+  }
+
+  try {
+    return JSON.parse(body) as T
+  } catch (e) {
+    console.error(`Unable to deserialize JSOn string to object`)
+    console.error(e)
+    return null
+  }
 }
 
 /**

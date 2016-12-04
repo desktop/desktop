@@ -4,7 +4,7 @@ import * as Querystring from 'querystring'
 import { v4 as guid } from 'node-uuid'
 import { User } from '../models/user'
 
-import { IHTTPResponse, getHeader, HTTPMethod, request } from './http'
+import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -268,10 +268,12 @@ export async function createAuthorization(endpoint: string, login: string, passw
     return { kind: AuthorizationResponseKind.Failed, response }
   }
 
-  const body = response.body as IAPIAuthorization
-  const token = body.token
-  if (token && token.length) {
-    return { kind: AuthorizationResponseKind.Authorized, token }
+  const body = deserialize<IAPIAuthorization>(response.body)
+  if (body) {
+    const token = body.token
+    if (token && token.length) {
+      return { kind: AuthorizationResponseKind.Authorized, token }
+    }
   }
 
   return { kind: AuthorizationResponseKind.Error, response }
@@ -382,6 +384,10 @@ export async function requestOAuthToken(endpoint: string, state: string, code: s
     'state': state,
   })
 
-  const body = response.body as IAPIAccessToken
-  return body.access_token
+  const body = deserialize<IAPIAccessToken>(response.body)
+  if (body) {
+    return body.access_token
+  }
+
+  return null
 }

@@ -1,6 +1,7 @@
 import { app, Menu, MenuItem, ipcMain, BrowserWindow } from 'electron'
 import * as http from 'http'
 
+import { decode } from 'iconv-lite'
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { parseURL } from '../lib/parse-url'
@@ -198,19 +199,15 @@ app.on('ready', () => {
         // central is currently serving a 204 with a string as JSON for usage stats
         // https://github.com/github/central/blob/master/app/controllers/api/usage.rb#L51
         // once this has been fixed, simplify this check
-        const validStatusCode = statusCode >= 200 && statusCode <= 299 && statusCode !== 204
         const isJsonResponse = contentType === 'application/json'
 
-        let body: Object | undefined
-        if (responseChunks.length > 0 && validStatusCode && isJsonResponse) {
-          let text: string | undefined
+        let body: string | undefined
+        if (responseChunks.length > 0 && isJsonResponse) {
           try {
             const buffer = Buffer.concat(responseChunks)
-            text = buffer.toString(encoding)
-            body = JSON.parse(text)
+            body = decode(buffer, encoding)
           } catch (e) {
-            sharedProcess!.console.log(`JSON.parse failed for: '${text}'`)
-            sharedProcess!.console.log(`Headers: '${JSON.stringify(response.headers)}'`)
+            sharedProcess!.console.log(`Unable to convert buffer to encoding: '${encoding}'`)
           }
         }
 
