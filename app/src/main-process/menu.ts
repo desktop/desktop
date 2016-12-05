@@ -210,7 +210,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         {
           label: 'Preferences…',
           id: 'preferences',
-          accelerator: __DARWIN__ ? 'Command+,' : 'Ctrl+,',
+          accelerator: 'CommandOrCtrl+,',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('show-preferences')
           },
