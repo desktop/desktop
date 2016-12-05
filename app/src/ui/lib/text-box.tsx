@@ -41,17 +41,15 @@ export class TextBox extends React.Component<ITextBoxProps, void> {
       <label className={className}>
         {this.props.label}
 
-        <div className='text-box-content'>
-          <input
-            autoFocus={this.props.autoFocus}
-            className={this.props.inputClassName}
-            disabled={this.props.disabled}
-            type={!this.props.secure ? 'text' : 'password'}
-            placeholder={this.props.placeholder}
-            value={this.props.value}
-            onChange={this.props.onChange}
-            onKeyDown={this.props.onKeyDown}/>
-        </div>
+        <input
+          autoFocus={this.props.autoFocus}
+          className={this.props.inputClassName}
+          disabled={this.props.disabled}
+          type={!this.props.secure ? 'text' : 'password'}
+          placeholder={this.props.placeholder}
+          value={this.props.value}
+          onChange={this.props.onChange}
+          onKeyDown={this.props.onKeyDown}/>
       </label>
     )
   }

@@ -8,6 +8,7 @@ button.button-component {
   padding: var(--spacing-half) var(--spacing);
 
   border: none;
+  height: var(--button-height);
 
   color: var(--secondary-button-text-color);
   background-color: var(--secondary-button-background);
