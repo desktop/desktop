@@ -1,6 +1,6 @@
 import * as path from 'path'
 
-const fs = require('fs-extra')
+import * as fs from 'fs-extra'
 const temp = require('temp').track()
 
 import { Repository } from '../src/models/repository'
