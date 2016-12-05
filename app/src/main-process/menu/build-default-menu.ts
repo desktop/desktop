@@ -1,14 +1,7 @@
 import { shell, Menu, ipcMain } from 'electron'
-import { SharedProcess } from '../shared-process/shared-process'
-
-export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
-                        'add-local-repository' | 'create-branch' |
-                        'show-branches' | 'remove-repository' | 'add-repository' |
-                        'rename-branch' | 'delete-branch' | 'check-for-updates' |
-                        'quit-and-install-update'
-
-export type MenuIDs = 'rename-branch' | 'delete-branch' | 'check-for-updates' |
-                      'checking-for-updates' | 'downloading-update' | 'quit-and-install-update'
+import { SharedProcess } from '../../shared-process/shared-process'
+import { ensureItemIds } from './ensure-item-ids'
+import { MenuEvent } from './menu-event'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Electron.MenuItemOptions[] = [
@@ -232,65 +225,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   return Menu.buildFromTemplate(template)
 }
 
-function getItemId(template: Electron.MenuItemOptions) {
-  return template.id || template.label || template.role || 'unknown'
-}
-
-/**
- * Ensures that all menu items in the given template are assigned an id
- * by recursively traversing the template and mutating items in place.
- *
- * Items which already have an id are left alone, the other get a unique,
- * but consistent id based on their label or role and their position in
- * the menu hierarchy.
- *
- * Note that this does not do anything to prevent the case where items have
- * explicitly been given duplicate ids.
- */
-export function ensureItemIds(template: ReadonlyArray<Electron.MenuItemOptions>, prefix = '@', seenIds = new Set<string>()) {
-  for (const item of template) {
-    let counter = 0
-    let id = item.id
-
-    // Automatically generate an id if one hasn't been explicitly provided
-    if (!id) {
-      // Ensure that multiple items with the same key gets suffixed with a number
-      // i.e. @.separator, @.separator1 @.separator2 etc
-      do {
-        id = `${prefix}.${getItemId(item)}${counter++ || ''}`
-      } while (seenIds.has(id))
-    }
-
-    item.id = id
-    seenIds.add(id)
-
-    if (item.submenu) {
-      const subMenuTemplate = item.submenu as ReadonlyArray<Electron.MenuItemOptions>
-      ensureItemIds(subMenuTemplate, item.id, seenIds)
-    }
-  }
-}
-
 function emitMenuEvent(name: MenuEvent) {
   ipcMain.emit('menu-event', { name })
-}
-
-/** Find the menu item with the given ID. */
-export function findMenuItemByID(menu: Electron.Menu, id: string): Electron.MenuItem | null {
-  const items = menu.items
-  for (const item of items) {
-    // The electron type definition doesn't include the `id` field :(
-    if ((item as any).id === id) {
-      return item
-    }
-
-    // We're assuming we're working with an already created menu.
-    const submenu = item.submenu as Electron.Menu
-    if (submenu) {
-      const found = findMenuItemByID(submenu, id)
-      if (found) { return found }
-    }
-  }
-
-  return null
 }
