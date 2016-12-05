@@ -1,4 +1,4 @@
-button.button-component {
+.button-component {
   // Chrome on Windows ignores the body element
   // font-family and uses Arial so we redefine
   // it here
@@ -25,7 +25,7 @@ button.button-component {
   &:disabled { opacity: 0.3; }
 }
 
-button.button-component[type='submit'] {
+.button-component[type='submit'] {
   background-color: var(--button-background);
   color: var(--button-text-color);
 
@@ -34,7 +34,7 @@ button.button-component[type='submit'] {
   }
 }
 
-a.link-button-component {
+.link-button-component {
   color: var(--link-button-color);
   text-decoration: none;
 
