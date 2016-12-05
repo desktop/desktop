@@ -544,6 +544,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
+    const isPublishing = Boolean(this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Publish)
+
     const state = selection.state
     return <PushPullButton
       dispatcher={this.props.dispatcher}
@@ -551,7 +553,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       aheadBehind={state.aheadBehind}
       remoteName={state.remoteName}
       lastFetched={state.lastFetched}
-      networkActionInProgress={state.pushPullInProgress}/>
+      networkActionInProgress={state.pushPullInProgress}
+      isPublishing={isPublishing}
+      users={this.state.users}/>
   }
 
   private renderBranchFoldout = (): JSX.Element | null => {
