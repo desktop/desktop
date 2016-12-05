@@ -10,7 +10,7 @@ interface IConfigureGitUserProps {
   readonly users: ReadonlyArray<User>
 
   /** Called after the user has chosen to save their config. */
-  readonly onDidSave?: () => void
+  readonly onSave?: () => void
 
   /** The label for the button which saves config changes. */
   readonly saveLabel?: string
@@ -126,8 +126,8 @@ export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IC
   private save = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    if (this.props.onDidSave) {
-      this.props.onDidSave()
+    if (this.props.onSave) {
+      this.props.onSave()
     }
 
     const name = this.state.name

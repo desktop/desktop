@@ -19,7 +19,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, void> {
           This is used to identify the commits you create. Anyone will be able to see this information if you publish commits.
         </p>
 
-        <ConfigureGitUser users={this.props.users} onDidSave={this.done} saveLabel='Continue'>
+        <ConfigureGitUser users={this.props.users} onSave={this.done} saveLabel='Continue'>
           <button className='secondary-button' onClick={this.cancel}>Cancel</button>
         </ConfigureGitUser>
       </div>
