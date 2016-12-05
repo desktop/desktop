@@ -200,6 +200,8 @@ app.on('ready', () => {
         if (responseChunks.length > 0) {
           const buffer = Buffer.concat(responseChunks)
           try {
+            // we're using `iconv-lite` to decode these buffers into an encoding specified
+            // with user input - this will throw if it doesn't recognise the encoding
             body = decode(buffer, encoding)
           } catch (e) {
             sharedProcess!.console.log(`Unable to convert buffer to encoding: '${encoding}'`)

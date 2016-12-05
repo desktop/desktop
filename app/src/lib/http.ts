@@ -8,7 +8,7 @@ export interface IHTTPResponse {
   readonly statusCode?: number,
   /** The key-value collection of headers associated with the response */
   readonly headers?: { [key: string]: any; },
-  /** The deserialized JSON response body */
+  /** The response body */
   readonly body?: string
   /** An error if one occurred. */
   readonly error?: Error
@@ -57,6 +57,12 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
   return null
 }
 
+/**
+ * Deserialize the HTTP response body into an expected object shape
+ *
+ * Note: this doesn't validate the expected shape, and will only fail
+ *       if it encounters invalid JSON
+ */
 export function deserialize<T>(body: string | undefined): T | null {
   if (!body) {
     return null
@@ -65,8 +71,7 @@ export function deserialize<T>(body: string | undefined): T | null {
   try {
     return JSON.parse(body) as T
   } catch (e) {
-    console.error(`Unable to deserialize JSOn string to object`)
-    console.error(e)
+    console.error('Unable to deserialize JSON string to object', e)
     return null
   }
 }
@@ -103,12 +108,19 @@ export function getEncoding(response: IHTTPResponse): string | null {
     return null
   }
 
+  // example `Content-Type: text/html; charset=utf-8`
   const contentTypeRaw = getHeader(response, 'Content-Type')
 
-  // example `Content-Type: text/html; charset=utf-8`
+  // we've checked above for the existence of this header, but we
+  // can't reuse that value here because it strips the optional
+  // key-value parameters that we need here to find `charset`
   const tokens = contentTypeRaw!.split(';')
+
+  // in theory there could be multiple `;` values here, but
+  // we're really expecting one `;` here to separate the
+  // value of `Content-Type` from the optional list of key-value
+  // parameters that may be provided afterwards
   if (tokens.length >= 2) {
-    // iterate over any optional parameters after the content-type
     for (let i = 1; i < tokens.length; i++) {
       const values = tokens[i].split('=')
       if (values.length === 2 && values[0].trim() === 'charset') {
