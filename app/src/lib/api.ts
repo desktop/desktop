@@ -278,7 +278,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
   const body = deserialize<IAPIAuthorization>(response.body)
   if (body) {
     const token = body.token
-    if (token && token.length) {
+    if (token && typeof token === 'string' && token.length) {
       return { kind: AuthorizationResponseKind.Authorized, token }
     }
   }
