@@ -6,6 +6,7 @@ import { initGitRepository, isGitRepository } from '../../lib/git'
 import { Button } from '../lib/button'
 import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
+import { Row } from '../lib/row'
 
 const untildify: (str: string) => string = require('untildify')
 
@@ -32,14 +33,15 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     const disabled = this.state.path.length === 0 || this.state.isGitRepository == null
     return (
       <Form onSubmit={this.addRepository}>
-        <TextBox
-          value={this.state.path}
-          label='Local Path'
-          placeholder='repository path'
-          onChange={this.onPathChanged}
-          onKeyDown={this.onKeyDown}>
+        <Row>
+          <TextBox
+            value={this.state.path}
+            label='Local Path'
+            placeholder='repository path'
+            onChange={this.onPathChanged}
+            onKeyDown={this.onKeyDown}/>
           <Button onClick={this.showFilePicker}>Choose…</Button>
-        </TextBox>
+        </Row>
 
         <Button disabled={disabled} type='submit'>
           {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}

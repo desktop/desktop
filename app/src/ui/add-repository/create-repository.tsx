@@ -10,6 +10,7 @@ import { sanitizedRepositoryName } from './sanitized-repository-name'
 import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
+import { Row } from '../lib/row'
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -85,13 +86,14 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
         {this.renderError()}
 
-        <TextBox
-          value={this.state.path}
-          label='Local Path'
-          placeholder='repository path'
-          onChange={this.onPathChanged}>
+        <Row>
+          <TextBox
+            value={this.state.path}
+            label='Local Path'
+            placeholder='repository path'
+            onChange={this.onPathChanged}/>
           <Button onClick={this.showFilePicker}>Choose…</Button>
-        </TextBox>
+        </Row>
 
         <hr/>
 
