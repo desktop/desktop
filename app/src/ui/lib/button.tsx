@@ -16,6 +16,15 @@ interface IButtonProps {
 
   /** CSS class names */
   readonly className?: string
+
+  /**
+   * The `ref` for the underlying <button> element.
+   *
+   * Ideally this would be named `ref`, but TypeScript seems to special-case its
+   * handling of the `ref` type into some ungodly monstrosity. Hopefully someday
+   * this will be unnecessary.
+   */
+  readonly reference?: React.Ref<HTMLButtonElement>
 }
 
 /** A button component. */
@@ -28,7 +37,8 @@ export class Button extends React.Component<IButtonProps, void> {
         className={className}
         disabled={this.props.disabled}
         onClick={this.onClick}
-        type={this.props.type}>
+        type={this.props.type}
+        ref={this.props.reference}>
         {this.props.children}
       </button>
     )
