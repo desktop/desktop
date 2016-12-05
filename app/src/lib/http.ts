@@ -94,7 +94,7 @@ export function getContentType(response: IHTTPResponse): string | null {
 /**
  * Detect the character encoding associated with the HTTP response.
  *
- * If not found, for `text/*` Content-Type assumes `'ISO-8859-1'`.
+ * If not found, for `text/*` or `application/json` assumes `'ISO-8859-1'`.
  * Otherwise returns `null`
  */
 export function getEncoding(response: IHTTPResponse): string | null {
@@ -117,9 +117,12 @@ export function getEncoding(response: IHTTPResponse): string | null {
     }
   }
 
-  return contentType.startsWith('text/')
-    ? 'iso-8859-1'
-    : null
+  // as a fallback, look for specific text-based types
+  if (contentType === 'appplication/json' || contentType.startsWith('text/')) {
+    return 'iso-8859-1'
+  }
+
+  return null
 }
 
 /**

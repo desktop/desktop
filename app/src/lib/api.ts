@@ -128,8 +128,15 @@ export class API {
   }
 
   /** Fetch a repo by its owner and name. */
-  public fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
-    return this.client.repos(owner, name).fetch()
+  public async fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
+    const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}`)
+    const repository = deserialize<IAPIRepository>(response.body)
+
+    if (repository) {
+      return repository
+    }
+
+    throw new Error(`Unable to find repository: ${owner}/${name}`)
   }
 
   /** Fetch the logged in user. */
