@@ -399,7 +399,7 @@ export class AppStore {
 
   private onGitStoreLoadedCommits(repository: Repository, commits: ReadonlyArray<Commit>) {
     for (const commit of commits) {
-      this.gitHubUserStore._loadAndCacheUser(this.users, repository, commit.sha, commit.authorEmail)
+      this.gitHubUserStore._loadAndCacheUser(this.users, repository, commit.sha, commit.author.email)
     }
   }
 
