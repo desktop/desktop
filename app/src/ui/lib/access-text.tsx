@@ -38,7 +38,7 @@ export class AccessText extends React.Component<IAccessTextProps, void> {
     }
 
     const text = this.props.text
-      .replace(/&[^&]/, '')
+      .replace(/&([^&])/, '$1')
       .replace('&&', '')
 
     return <span>{text}</span>
