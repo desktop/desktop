@@ -8,13 +8,13 @@ export type DropdownState = 'open' | 'closed'
 
 export interface IToolbarDropdownProps {
   /** The primary button text, describing its function */
-  readonly title: string,
+  readonly title: string
 
   /** An optional description of the function of the button */
   readonly description?: string,
 
   /** An optional symbol to be displayed next to the button text */
-  readonly icon?: OcticonSymbol,
+  readonly icon?: OcticonSymbol
 
   /**
    * The state for of the drop down button.
@@ -38,7 +38,7 @@ export interface IToolbarDropdownProps {
    * An optional classname that will be appended to the default
    * class name 'toolbar-button dropdown open|closed'
    */
-  readonly className?: string,
+  readonly className?: string
 }
 
 interface IToolbarDropdownState {
