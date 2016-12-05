@@ -2,6 +2,7 @@ import * as React from 'react'
 import { List } from '../list'
 import { IAutocompletionProvider } from './index'
 import { fatalError } from '../../lib/fatal-error'
+import  * as classNames from 'classnames'
 
 interface IPosition {
   readonly top: number
@@ -192,8 +193,13 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
   }
 
   public render() {
+    const tagName = this.getElementTagName()
+    const className = classNames('autocompletion-container', this.props.className, {
+      'text-box-component': tagName === 'input',
+      'text-area-component': tagName === 'textarea',
+    })
     return (
-      <div className={`autocompletion-container text-box-component ${this.props.className || ''}`}>
+      <div className={className}>
         {this.renderAutocompletions()}
 
         {this.renderTextInput()}
