@@ -85,6 +85,17 @@ describe('HTTP', () => {
       expect(result).to.equal('iso-8859-1')
     })
 
+    it('returns ISO-8859-1 when omitted for application/json', () => {
+      const sampleResponse: IHTTPResponse = {
+        headers: {
+          'content-type': [ 'application/json' ],
+        },
+      }
+
+      const result = getEncoding(sampleResponse)
+      expect(result).to.equal('iso-8859-1')
+    })
+
     it('returns null when omitted for image/png', () => {
       const sampleResponse: IHTTPResponse = {
         headers: {

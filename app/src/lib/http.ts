@@ -118,7 +118,7 @@ export function getEncoding(response: IHTTPResponse): string | null {
   }
 
   // as a fallback, look for specific text-based types
-  if (contentType === 'appplication/json' || contentType.startsWith('text/')) {
+  if (contentType === 'application/json' || contentType.startsWith('text/')) {
     return 'iso-8859-1'
   }
 
