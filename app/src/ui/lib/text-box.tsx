@@ -31,9 +31,6 @@ interface ITextBoxProps {
 
   /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
-
-  /** The children to display after the input field. */
-  readonly children?: ReadonlyArray<JSX.Element>
 }
 
 /** An input element with app-standard styles. */
@@ -54,8 +51,6 @@ export class TextBox extends React.Component<ITextBoxProps, void> {
             value={this.props.value}
             onChange={this.props.onChange}
             onKeyDown={this.props.onKeyDown}/>
-
-          {this.props.children}
         </div>
       </label>
     )
