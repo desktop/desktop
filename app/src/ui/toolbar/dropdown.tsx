@@ -11,7 +11,7 @@ export interface IToolbarDropdownProps {
   readonly title: string
 
   /** An optional description of the function of the button */
-  readonly description?: string,
+  readonly description?: string | JSX.Element
 
   /** An optional symbol to be displayed next to the button text */
   readonly icon?: OcticonSymbol
