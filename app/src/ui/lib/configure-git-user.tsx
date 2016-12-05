@@ -4,6 +4,10 @@ import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config
 import { CommitListItem } from '../history/commit-list-item'
 import { User } from '../../models/user'
 import { CommitIdentity } from '../../models/commit-identity'
+import { Form } from '../lib/form'
+import { Button } from '../lib/button'
+import { TextBox } from '../lib/text-box'
+import { Row } from '../lib/row'
 
 interface IConfigureGitUserProps {
   /** The logged-in users. */
@@ -73,22 +77,16 @@ export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IC
     const emoji = new Map()
     return (
       <div id='configure-git-user'>
-        <form className='sign-in-form' onSubmit={this.save}>
-          <div className='field-group'>
-            <label htmlFor='git-name'>Name</label>
-            <input id='git-name' className='sign-in-field text-field' placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
-          </div>
+        <Form className='sign-in-form' onSubmit={this.save}>
+          <TextBox label='Name' placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
 
-          <div className='field-group'>
-            <label htmlFor='git-email'>Email</label>
-            <input id='git-email' className='sign-in-field text-field' placeholder='hubot@github.com' value={this.state.email} onChange={this.onEmailChange}/>
-          </div>
+          <TextBox label='Email' placeholder='hubot@github.com' value={this.state.email} onChange={this.onEmailChange}/>
 
-          <div className='actions'>
-            <button type='submit'>{this.props.saveLabel || 'Save'}</button>
+          <Row>
+            <Button type='submit'>{this.props.saveLabel || 'Save'}</Button>
             {this.props.children}
-          </div>
-        </form>
+          </Row>
+        </Form>
 
         <div id='commit-list' className='commit-list-example'>
           <CommitListItem commit={dummyCommit1} emoji={emoji} avatarURL={null}/>
@@ -123,9 +121,7 @@ export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IC
     return matchingUser ? matchingUser.avatarURL : null
   }
 
-  private save = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
+  private save = async () => {
     if (this.props.onSave) {
       this.props.onSave()
     }

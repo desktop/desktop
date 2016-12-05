@@ -21,7 +21,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, void> {
         <SignIn
           endpoint={getDotComAPIEndpoint()}
           onDidSignIn={this.onDidSignIn}>
-          <Button className='secondary-button' key='cancel' onClick={this.cancel}>Cancel</Button>
+          <Button onClick={this.cancel}>Cancel</Button>
         </SignIn>
       </div>
     )

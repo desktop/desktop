@@ -19,7 +19,7 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, vo
         <p className='welcome-text'>Get started by signing into GitHub Enterprise</p>
 
         <SignIn onDidSignIn={this.onDidSignIn}>
-          <Button className='secondary-button' key='cancel' onClick={this.cancel}>Cancel</Button>
+          <Button onClick={this.cancel}>Cancel</Button>
         </SignIn>
       </div>
     )

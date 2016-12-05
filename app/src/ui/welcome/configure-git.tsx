@@ -2,6 +2,7 @@ import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { User } from '../../models/user'
 import { ConfigureGitUser } from '../lib/configure-git-user'
+import { Button } from '../lib/button'
 
 interface IConfigureGitProps {
   readonly users: ReadonlyArray<User>
@@ -19,20 +20,14 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, void> {
           This is used to identify the commits you create. Anyone will be able to see this information if you publish commits.
         </p>
 
-        <ConfigureGitUser users={this.props.users} onSave={this.done} saveLabel='Continue'>
-          <button className='secondary-button' onClick={this.cancel}>Cancel</button>
+        <ConfigureGitUser users={this.props.users} onSave={this.props.done} saveLabel='Continue'>
+          <Button onClick={this.cancel}>Cancel</Button>
         </ConfigureGitUser>
       </div>
     )
   }
 
-  private done = () => {
-    this.props.done()
-  }
-
-  private cancel = (event: React.FormEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-
+  private cancel = () => {
     this.props.advance(WelcomeStep.Start)
   }
 }
