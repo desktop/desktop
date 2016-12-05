@@ -129,8 +129,13 @@ export function getEncoding(response: IHTTPResponse): string | null {
     }
   }
 
+
+  if (contentType === 'application/json') {
+    return 'utf-8'
+  }
+
   // as a fallback, look for specific text-based types
-  if (contentType === 'application/json' || contentType.startsWith('text/')) {
+  if (contentType.startsWith('text/')) {
     return 'iso-8859-1'
   }
 
