@@ -68,7 +68,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       return <BranchListItem
         name={branch.name}
         isCurrentBranch={branch.name === currentBranchName}
-        lastCommitDate={commit ? commit.authorDate : null}/>
+        lastCommitDate={commit ? commit.author.date : null}/>
     } else {
       return <div className='branches-list-content branches-list-label'>{item.label}</div>
     }
