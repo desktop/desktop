@@ -15,6 +15,7 @@ import { Loading } from './loading'
 import { Form } from './form'
 import { Button } from './button'
 import { TextBox } from './text-box'
+import { Errors } from './errors'
 
 interface IAuthenticationFormProps {
   /** The endpoint against which the user is authenticating. */
@@ -124,13 +125,13 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     if (!response) { return null }
 
     switch (response.kind) {
-      case AuthorizationResponseKind.Failed: return <div className='form-errors'>The username or password are incorrect.</div>
+      case AuthorizationResponseKind.Failed: return <Errors>The username or password are incorrect.</Errors>
       case AuthorizationResponseKind.Error: {
         const error = response.response.error
         if (error) {
-          return <div className='form-errors'>An error occurred: {error.message}</div>
+          return <Errors>An error occurred: {error.message}</Errors>
         } else {
-          return <div className='form-errors'>An unknown error occurred: {response.response.statusCode}: {response.response.body}</div>
+          return <Errors>An unknown error occurred: {response.response.statusCode}: {response.response.body}</Errors>
         }
       }
       case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return null

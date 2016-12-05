@@ -5,6 +5,7 @@ import { validateURL, InvalidURLErrorName, InvalidProtocolErrorName } from './en
 import { Form } from './form'
 import { TextBox } from './text-box'
 import { Button } from './button'
+import { Errors } from './errors'
 
 /** The authentication methods server allows. */
 export enum AuthenticationMethods {
@@ -51,7 +52,7 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
 
         {this.state.loading ? <Loading/> : null}
 
-        <div>{this.state.error ? this.state.error.message : null }</div>
+        {this.state.error ? <Errors>{this.state.error.message}</Errors> : null}
       </Form>
     )
   }
