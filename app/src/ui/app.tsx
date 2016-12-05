@@ -16,7 +16,6 @@ import { Branches } from './branches'
 import { AddRepository } from './add-repository'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
-import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
 import { OcticonSymbol } from './octicons'
@@ -368,10 +367,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <DeleteBranch dispatcher={this.props.dispatcher}
                            repository={popup.repository}
                            branch={popup.branch}/>
-    } else if (popup.type === PopupType.PublishRepository) {
-      return <PublishRepository repository={popup.repository}
-                                dispatcher={this.props.dispatcher}
-                                users={this.state.users}/>
     } else if (popup.type === PopupType.ConfirmDiscardChanges) {
       return <DiscardChanges repository={popup.repository}
                              dispatcher={this.props.dispatcher}

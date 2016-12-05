@@ -96,7 +96,6 @@ export enum PopupType {
   CreateBranch = 1,
   AddRepository,
   RenameBranch,
-  PublishRepository,
   DeleteBranch,
   ConfirmDiscardChanges,
   UpdateAvailable,
@@ -105,7 +104,6 @@ export enum PopupType {
 export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.AddRepository } |
                     { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
-                    { type: PopupType.PublishRepository, repository: Repository } |
                     { type: PopupType.DeleteBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> } |
                     { type: PopupType.UpdateAvailable }
@@ -114,12 +112,14 @@ export enum FoldoutType {
   Repository,
   Branch,
   AppMenu,
+  Publish,
 }
 
 export type Foldout =
   { type: FoldoutType.Repository } |
   { type: FoldoutType.Branch } |
-  { type: FoldoutType.AppMenu }
+  { type: FoldoutType.AppMenu } |
+  { type: FoldoutType.Publish }
 
 export enum RepositorySection {
   Changes,
