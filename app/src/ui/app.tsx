@@ -695,6 +695,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onSelectionChanged = (repository: Repository | CloningRepository) => {
     this.props.dispatcher.selectRepository(repository)
+    this.props.dispatcher.closeFoldout()
 
     if (repository instanceof Repository) {
       this.props.dispatcher.refreshGitHubRepositoryInfo(repository)

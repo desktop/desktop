@@ -2,6 +2,7 @@ import { git } from './core'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { Branch, BranchType } from '../../models/branch'
+import { CommitIdentity } from '../../models/commit-identity'
 
 /** Get all the branches. */
 export async function getBranches(repository: Repository, prefix: string, type: BranchType): Promise<ReadonlyArray<Branch>> {
@@ -13,9 +14,7 @@ export async function getBranches(repository: Repository, prefix: string, type: 
     '%(refname:short)',
     '%(upstream:short)',
     '%(objectname)', // SHA
-    '%(authorname)',
-    '%(authoremail)',
-    '%(authordate)',
+    '%(author)',
     '%(parent)', // parent SHAs
     '%(subject)',
     '%(body)',
@@ -35,21 +34,19 @@ export async function getBranches(repository: Repository, prefix: string, type: 
     const name = pieces[0].trim()
     const upstream = pieces[1]
     const sha = pieces[2]
-    const authorName = pieces[3]
 
-    // author email is wrapped in arrows e.g. <hubot@github.com>
-    const authorEmailRaw = pieces[4]
-    const authorEmail = authorEmailRaw.substring(1, authorEmailRaw.length - 1)
-    const authorDateText = pieces[5]
-    const authorDate = new Date(authorDateText)
+    const authorIdentity = pieces[3]
+    const author = CommitIdentity.parseIdentity(authorIdentity)
 
-    const parentSHAs = pieces[6].split(' ')
+    if (!author) {
+      throw new Error(`Couldn't parse author identity ${authorIdentity}`)
+    }
 
-    const summary = pieces[7]
+    const parentSHAs = pieces[4].split(' ')
+    const summary = pieces[5]
+    const body = pieces[6]
 
-    const body = pieces[8]
-
-    const tip = new Commit(sha, summary, body, authorName, authorEmail, authorDate, parentSHAs)
+    const tip = new Commit(sha, summary, body, author, parentSHAs)
 
     return new Branch(name, upstream.length > 0 ? upstream : null, tip, type)
   })

@@ -14,15 +14,15 @@ interface ICommitProps {
 /** A component which displays a single commit in a commit list. */
 export class CommitListItem extends React.Component<ICommitProps, void> {
   public render() {
-    const authorDate = this.props.commit.authorDate
+    const authorDate = this.props.commit.author.date
     const avatarURL = this.props.avatarURL || DefaultAvatarURL
     return (
       <div className='commit'>
         <img className='avatar' src={avatarURL}/>
         <div className='info'>
           <EmojiText className='summary' emoji={this.props.emoji}>{this.props.commit.summary}</EmojiText>
-          <div className='byline' title={this.props.commit.authorDate.toString()}>
-            <RelativeTime date={authorDate} /> by {this.props.commit.authorName}
+          <div className='byline'>
+            <RelativeTime date={authorDate} /> by {this.props.commit.author.name}
           </div>
         </div>
       </div>

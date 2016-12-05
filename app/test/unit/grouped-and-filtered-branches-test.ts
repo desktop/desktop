@@ -4,10 +4,12 @@ const expect = chai.expect
 import { groupedAndFilteredBranches } from '../../src/ui/branches/grouped-and-filtered-branches'
 import { Branch, BranchType } from '../../src/models/branch'
 import { Commit } from '../../src/models/commit'
+import { CommitIdentity } from '../../src/models/commit-identity'
 
 describe('Branches grouping', () => {
 
-  const commit = new Commit('300acef', 'summary', 'body', 'Hubot', 'hubot@github.com', new Date(), [])
+  const author = new CommitIdentity('Hubot', 'hubot@github.com', new Date())
+  const commit = new Commit('300acef', 'summary', 'body', author, [])
 
   const currentBranch = new Branch('master', null, commit, BranchType.Local)
   const defaultBranch = new Branch('master', null, commit, BranchType.Local)

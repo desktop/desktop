@@ -17,7 +17,7 @@ interface IUndoCommitProps {
 /** The Undo Commit component. */
 export class UndoCommit extends React.Component<IUndoCommitProps, void> {
   public render() {
-    const authorDate = this.props.commit.authorDate
+    const authorDate = this.props.commit.author.date
     return (
       <div id='undo-commit'>
         <div className='commit-info'>
