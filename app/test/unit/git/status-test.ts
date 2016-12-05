@@ -7,7 +7,7 @@ import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-help
 import { FileStatus } from '../../../src/models/status'
 import { GitProcess } from 'git-kitchen-sink'
 
-const fs = require('fs-extra')
+import * as fs from 'fs-extra'
 const temp = require('temp').track()
 
 describe('git/status', () => {
