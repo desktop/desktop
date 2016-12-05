@@ -3,6 +3,10 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { User } from '../../models/user'
 import { API,  IAPIUser, getDotComAPIEndpoint } from '../../lib/api'
+import { Form } from '../lib/form'
+import { TextBox } from '../lib/text-box'
+import { Button } from '../lib/button'
+import { Select } from '../lib/select'
 
 interface IPublishRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -107,9 +111,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
     return this.state.selectedUser
   }
 
-  private publishRepository = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
+  private publishRepository = () => {
     const owningAccount = this.findOwningUserForSelectedUser()!
     this.props.dispatcher.publishRepository(this.props.repository, this.state.name, this.state.description, this.state.private, owningAccount, this.selectedOrg)
     this.props.dispatcher.closePopup()
@@ -147,25 +149,19 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
     const value = JSON.stringify(this.state.selectedUser)
 
     return (
-      <select value={value} onChange={this.onAccountChange}>
+      <Select label='Account' value={value} onChange={this.onAccountChange}>
         {optionGroups}
-      </select>
+      </Select>
     )
   }
 
   public render() {
     const disabled = !this.state.name.length
     return (
-      <form id='publish-repository' className='panel' onSubmit={this.publishRepository}>
-        <label>
-          Name:
-          <input type='text' value={this.state.name} autoFocus={true} onChange={this.onNameChange}/>
-        </label>
+      <Form onSubmit={this.publishRepository}>
+        <TextBox label='Name' value={this.state.name} autoFocus={true} onChange={this.onNameChange}/>
 
-        <label>
-          Description:
-          <input type='text' value={this.state.description} onChange={this.onDescriptionChange}/>
-        </label>
+        <TextBox label='Description' value={this.state.description} onChange={this.onDescriptionChange}/>
 
         <hr/>
 
@@ -174,13 +170,10 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
           <input type='checkbox' checked={this.state.private} onChange={this.onPrivateChange}/>
         </label>
 
-        <label>
-          Account:
-          {this.renderAccounts()}
-        </label>
+        {this.renderAccounts()}
 
-        <button type='submit' disabled={disabled}>Publish Repository</button>
-      </form>
+        <Button type='submit' disabled={disabled}>Publish Repository</Button>
+      </Form>
     )
   }
 }

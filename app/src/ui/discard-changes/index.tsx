@@ -3,6 +3,8 @@ import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { WorkingDirectoryFileChange } from '../../models/status'
+import { Form } from '../lib/form'
+import { Button } from '../lib/button'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
@@ -15,19 +17,17 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
   public render() {
     const paths = this.props.files.map(f => f.path).join(', ')
     return (
-      <form className='panel' onSubmit={this.cancel}>
+      <Form onSubmit={this.cancel}>
         <div>Confirm Discard Changes</div>
         <div>Are you sure you want to discard all changes to {paths}?</div>
 
-        <button type='submit'>Cancel</button>
-        <button onClick={this.discard}>Discard Changes</button>
-      </form>
+        <Button type='submit'>Cancel</Button>
+        <Button onClick={this.discard}>Discard Changes</Button>
+      </Form>
     )
   }
 
-  private cancel = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
+  private cancel = () => {
     this.props.dispatcher.closePopup()
   }
 

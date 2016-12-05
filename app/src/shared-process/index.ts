@@ -64,6 +64,12 @@ register('add-user', async ({ user }: IAddUserAction) => {
   return Promise.resolve()
 })
 
+register('remove-user', async ({ user }: IAddUserAction) => {
+  usersStore.removeUser(User.fromJSON(user))
+  broadcastUpdate()
+  return Promise.resolve()
+})
+
 register('add-repositories', async ({ paths }: IAddRepositoriesAction) => {
   const addedRepos: Repository[] = []
   for (const path of paths) {

@@ -51,6 +51,7 @@ export class Checkbox extends React.Component<ICheckboxProps, void> {
   public render() {
     return (
       <input
+        className='checkbox-component'
         tabIndex={this.props.tabIndex}
         type='checkbox'
         onChange={this.onChange}

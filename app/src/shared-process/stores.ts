@@ -7,4 +7,5 @@ export interface IDataStore {
 export interface ISecureStore {
   setItem(key: string, login: string, value: string): void
   getItem(key: string, login: string): string | null
+  deleteItem(key: string, login: string): void
 }
