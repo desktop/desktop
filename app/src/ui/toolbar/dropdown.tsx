@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { assertNever } from '../../lib/fatal-error'
-import { ToolbarButton } from './button'
+import { ToolbarButton, ToolbarButtonStyle } from './button'
 import * as classNames from 'classnames'
 
 export type DropdownState = 'open' | 'closed'
@@ -39,6 +39,12 @@ export interface IToolbarDropdownProps {
    * class name 'toolbar-button dropdown open|closed'
    */
   readonly className?: string
+
+  /** The class name for the icon element. */
+  readonly iconClassName?: string
+
+  /** The button's style. Defaults to `ToolbarButtonStyle.Standard`. */
+  readonly style?: ToolbarButtonStyle
 }
 
 interface IToolbarDropdownState {
@@ -193,6 +199,8 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         onClick={this.onClick}
         className={className}
         preContentRenderer={this.renderDropdownContents}
+        style={this.props.style}
+        iconClassName={this.props.iconClassName}
       >
         {this.renderDropdownArrow()}
       </ToolbarButton>
