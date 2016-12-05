@@ -45,6 +45,11 @@ export interface IToolbarDropdownProps {
 
   /** The button's style. Defaults to `ToolbarButtonStyle.Standard`. */
   readonly style?: ToolbarButtonStyle
+
+  /**
+   * Whether the button should displays its disclosure arrow. Defaults to true.
+   */
+  readonly showDisclosureArrow?: boolean
 }
 
 interface IToolbarDropdownState {
@@ -76,10 +81,9 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
   }
 
   private renderDropdownArrow(): JSX.Element | null {
+    if (this.props.showDisclosureArrow === false) { return null }
+
     const state = this.props.dropdownState
-    if (!state) {
-      return null
-    }
 
     return <Octicon symbol={this.dropdownIcon(state)} className='dropdownArrow' />
   }
