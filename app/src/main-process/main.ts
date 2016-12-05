@@ -9,7 +9,7 @@ import { handleSquirrelEvent } from './updates'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
-import { IHTTPRequest, IHTTPResponse, getEncoding, getContentType } from '../lib/http'
+import { IHTTPRequest, IHTTPResponse, getEncoding } from '../lib/http'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -179,7 +179,6 @@ app.on('ready', () => {
     request.on('response', (response: Electron.IncomingMessage) => {
 
       const responseChunks: Array<Buffer> = [ ]
-      const encoding = getEncoding(response)
 
       response.on('abort', () => {
         event.sender.send(channel, { error: new Error('request aborted by the client') })
@@ -194,15 +193,16 @@ app.on('ready', () => {
       response.on('end', () => {
         const statusCode = response.statusCode
         const headers = response.headers
-        const contentType = getContentType(response)
+        const encoding = getEncoding(response)
+
 
         // central is currently serving a 204 with a string as JSON for usage stats
         // https://github.com/github/central/blob/master/app/controllers/api/usage.rb#L51
         // once this has been fixed, simplify this check
-        const isJsonResponse = contentType === 'application/json'
+
 
         let body: string | undefined
-        if (responseChunks.length > 0 && isJsonResponse) {
+        if (responseChunks.length > 0 && encoding) {
           try {
             const buffer = Buffer.concat(responseChunks)
             body = decode(buffer, encoding)

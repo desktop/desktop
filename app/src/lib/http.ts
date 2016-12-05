@@ -89,33 +89,34 @@ export function getContentType(response: IHTTPResponse): string | null {
 }
 
 /**
- * Detect the encoding associated with the HTTP response.
+ * Detect the character encoding associated with the HTTP response.
  *
- * If not specified in the response headers, 'ISO-8859-1' is assumed.
+ * If not found, for `text/*` Content-Type assumes `'ISO-8859-1'`.
+ * Otherwise returns `null`
  */
-export function getEncoding(response: IHTTPResponse): string {
-  const defaultEncoding = 'iso-8859-1'
-
-  const contentType = getHeader(response, 'Content-Type')
+export function getEncoding(response: IHTTPResponse): string | null {
+  const contentType = getContentType(response)
   if (!contentType) {
-    return defaultEncoding
+    return null
   }
+
+  const contentTypeRaw = getHeader(response, 'Content-Type')
 
   // example `Content-Type: text/html; charset=utf-8`
-  const tokens = contentType.split(';')
-  if (tokens.length <= 1) {
-    return defaultEncoding
-  }
-
-  // iterate over any optional parameters after the content-type
-  for (let i = 1; i < tokens.length; i++) {
-    const values = tokens[i].split('=')
-    if (values.length === 2 && values[0].trim() === 'charset') {
-      return values[1]
+  const tokens = contentTypeRaw!.split(';')
+  if (tokens.length >= 2) {
+    // iterate over any optional parameters after the content-type
+    for (let i = 1; i < tokens.length; i++) {
+      const values = tokens[i].split('=')
+      if (values.length === 2 && values[0].trim() === 'charset') {
+        return values[1]
+      }
     }
   }
 
-  return defaultEncoding
+  return contentType.startsWith('text/')
+    ? 'iso-8859-1'
+    : null
 }
 
 /**
