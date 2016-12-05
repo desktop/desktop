@@ -25,7 +25,7 @@ export function setupFixtureRepository(repositoryName: string): string {
 
   const paths: ReadonlyArray<string> = fs.walkSync(testRepoPath)
   const visiblePaths = paths.filter(ignoreHiddenFiles)
-  const submodules = visiblePaths.filter(path => path.endsWith('/_git'))
+  const submodules = visiblePaths.filter(path => Path.basename(path) === '_git')
 
   submodules.forEach(submodule => {
     const directory = Path.dirname(submodule)
