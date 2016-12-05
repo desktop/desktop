@@ -3,6 +3,7 @@ import * as classNames from 'classnames'
 
 import { Octicon, OcticonSymbol } from '../octicons'
 import { MenuItem } from '../../models/app-menu'
+import { AccessText } from '../lib/access-text'
 
 interface IMenuListItemProps {
   readonly item: MenuItem
@@ -89,7 +90,9 @@ export class MenuListItem extends React.Component<IMenuListItemProps, void> {
     return (
       <div className={className}>
         {this.getIcon(item)}
-        <div className='label'>{item.label}</div>
+        <div className='label'>
+          <AccessText text={item.label} />
+        </div>
         {accelerator}
         {arrow}
       </div>
