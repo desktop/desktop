@@ -1,12 +1,3 @@
-input[type='checkbox'] {
-  &:focus {
-    // Don't know why but on Windows this is necessary to
-    // not have a 1px gap around the checkbox on the right
-    // hand side. I'm guessing it's the same on mac?
-    outline-offset: -1px;
-  }
-}
-
 .form-errors {
   background: var(--form-error-background);
   border: 1px solid var(--form-error-border-color);
