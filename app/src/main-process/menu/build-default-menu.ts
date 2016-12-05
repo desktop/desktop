@@ -11,25 +11,19 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         {
           label: 'New Branch…',
           accelerator: 'CmdOrCtrl+Shift+N',
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            emitMenuEvent('create-branch')
-          },
+          click: emit('create-branch'),
         },
         {
           type: 'separator',
         },
         {
           label: 'Add Repository…',
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            emitMenuEvent('add-repository')
-          },
+          click: emit('add-repository'),
         },
         {
           label: 'Add Local Repository…',
           accelerator: 'CmdOrCtrl+O',
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            emitMenuEvent('add-local-repository')
-          },
+          click: emit('add-local-repository'),
         },
       ],
     },
@@ -51,16 +45,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         {
           label: 'Changes',
           accelerator: 'CmdOrCtrl+1',
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            emitMenuEvent('select-changes')
-          },
+          click: emit('select-changes'),
         },
         {
           label: 'History',
           accelerator: 'CmdOrCtrl+2',
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            emitMenuEvent('select-history')
-          },
+          click: emit('select-history'),
         },
         { type: 'separator' },
         {
@@ -98,30 +88,22 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         {
           label: 'Show Branches',
           accelerator: 'CmdOrCtrl+B',
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            emitMenuEvent('show-branches')
-          },
+          click: emit('show-branches'),
         },
         { type: 'separator' },
         {
           label: 'Push',
           accelerator: 'CmdOrCtrl+P',
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            emitMenuEvent('push')
-          },
+          click: emit('push'),
         },
         {
           label: 'Pull',
           accelerator: 'CmdOrCtrl+Shift+P',
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            emitMenuEvent('pull')
-          },
+          click: emit('pull'),
         },
         {
           label: 'Remove',
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            emitMenuEvent('remove-repository')
-          },
+          click: emit('remove-repository'),
         },
       ],
     },
@@ -131,16 +113,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         {
           label: 'Rename…',
           id: 'rename-branch',
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            emitMenuEvent('rename-branch')
-          },
+          click: emit('rename-branch'),
         },
         {
           label: 'Delete…',
           id: 'delete-branch',
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            emitMenuEvent('delete-branch')
-          },
+          click: emit('delete-branch'),
         },
       ],
     },
@@ -174,9 +152,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           label: 'Check for Updates…',
           id: 'check-for-updates',
           visible: true,
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            emitMenuEvent('check-for-updates')
-          },
+          click: emit('check-for-updates'),
         },
         {
           label: 'Checking for updates…',
@@ -194,9 +170,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           label: 'Quit and Install Update',
           id: 'quit-and-install-update',
           visible: false,
-          click (item: any, focusedWindow: Electron.BrowserWindow) {
-            emitMenuEvent('quit-and-install-update')
-          },
+          click: emit('quit-and-install-update'),
         },
         { type: 'separator' },
         {
@@ -225,6 +199,10 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   return Menu.buildFromTemplate(template)
 }
 
-function emitMenuEvent(name: MenuEvent) {
-  ipcMain.emit('menu-event', { name })
+/**
+ * Utility function returning a Click event handler which, when invoked, emits
+ * the provided menu event over IPC.
+ */
+function emit(name: MenuEvent): () => void {
+  return () => ipcMain.emit('menu-event', { name })
 }
