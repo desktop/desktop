@@ -43,7 +43,10 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
     if (key === keyUpper) {
       const header = response.headers[k]
       if (header) {
-        // TODO: for now, we just give the first value
+        // `net` module returns an array for each header, so to keep things
+        // simple we are currently just returning the first value.
+        // Discussion about changing this behaviour to match the Node HTTP API:
+        // https://github.com/electron/electron/issues/8117
         const value: string = header[0]
         return value
       }
