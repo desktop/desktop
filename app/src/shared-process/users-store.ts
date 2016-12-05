@@ -30,10 +30,7 @@ export class UsersStore {
   public removeUser(user: User) {
     this.secureStore.deleteItem(getKeyForUser(user), user.login)
 
-    const index = this.users.findIndex(u => u.id === user.id)
-    if (index > -1) {
-      this.users.splice(index, 1)
-    }
+    this.users = this.users.filter(u => u.id !== user.id)
 
     this.save()
   }
