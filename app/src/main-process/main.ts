@@ -193,18 +193,13 @@ app.on('ready', () => {
       response.on('end', () => {
         const statusCode = response.statusCode
         const headers = response.headers
-        const encoding = getEncoding(response)
-
-
-        // central is currently serving a 204 with a string as JSON for usage stats
-        // https://github.com/github/central/blob/master/app/controllers/api/usage.rb#L51
-        // once this has been fixed, simplify this check
-
+        const encoding = getEncoding(response) || 'binary'
 
         let body: string | undefined
-        if (responseChunks.length > 0 && encoding) {
+
+        if (responseChunks.length > 0) {
+          const buffer = Buffer.concat(responseChunks)
           try {
-            const buffer = Buffer.concat(responseChunks)
             body = decode(buffer, encoding)
           } catch (e) {
             sharedProcess!.console.log(`Unable to convert buffer to encoding: '${encoding}'`)
