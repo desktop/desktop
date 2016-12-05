@@ -1,0 +1,8 @@
+.row-component {
+  display: flex;
+  flex-direction: row;
+
+  & > *:not(:last-child) {
+    margin-right: var(--spacing);
+  }
+}
