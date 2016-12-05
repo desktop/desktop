@@ -13,9 +13,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           accelerator: 'CmdOrCtrl+Shift+N',
           click: emit('create-branch'),
         },
-        {
-          type: 'separator',
-        },
+        { type: 'separator' },
         {
           label: 'Add Repository…',
           click: emit('add-repository'),
