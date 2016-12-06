@@ -26,13 +26,13 @@ export class AccessText extends React.Component<IAccessTextProps, void> {
       if (m) {
 
         if (m[1]) {
-          elements.push(<span key={1}>{m[1]}</span>)
+          elements.push(<span key={1}>{m[1].replace('&&', '&')}</span>)
         }
 
         elements.push(<span key={2} className='access-key highlight'>{m[2]}</span>)
 
         if (m[3]) {
-          elements.push(<span key={3}>{m[3]}</span>)
+          elements.push(<span key={3}>{m[3].replace('&&', '&')}</span>)
         }
 
         return <span>{elements}</span>
