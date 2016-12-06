@@ -12,6 +12,7 @@ interface IMenuPaneProps {
   readonly onItemKeyDown: (depth: number, item: MenuItem, event: React.KeyboardEvent<any>) => void
   readonly onSelectionChanged: (depth: number, item: MenuItem, source: SelectionSource) => void
   readonly onMouseEnter: (depth: number) => void
+  readonly enableAccessKeyNavigation: boolean
 }
 
 interface IMenuPaneState {
@@ -111,7 +112,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
   private renderMenuItem = (row: number) => {
     const item = this.state.items[row]
 
-    return <MenuListItem key={item.id} item={item} />
+    return <MenuListItem key={item.id} item={item} highlightAccessKey={this.props.enableAccessKeyNavigation} />
   }
 
   private rowHeight = (info: { index: number }) => {

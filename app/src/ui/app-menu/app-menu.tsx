@@ -8,6 +8,7 @@ interface IAppMenuProps {
   readonly state: ReadonlyArray<IMenu>
   readonly dispatcher: Dispatcher
   readonly onClose: () => void
+  readonly enableAccessKeyNavigation: boolean
 }
 
 const expandCollapseTimeout = 300
@@ -161,6 +162,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
         onMouseEnter={this.onPaneMouseEnter}
         onItemKeyDown={this.onItemKeyDown}
         onSelectionChanged={this.onSelectionChanged}
+        enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
       />
     )
   }

@@ -312,7 +312,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
         this.props.dispatcher.closeFoldout()
       } else {
-        this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu })
+        this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation: true })
       }
       event.preventDefault()
     }
@@ -478,11 +478,18 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
+    const foldoutState = this.state.currentFoldout
+
+    if (!foldoutState || foldoutState.type !== FoldoutType.AppMenu) {
+      return null
+    }
+
     return (
       <AppMenu
         state={this.state.appMenuState}
         dispatcher={this.props.dispatcher}
         onClose={this.closeAppMenu}
+        enableAccessKeyNavigation={foldoutState.enableAccessKeyNavigation}
       />
     )
   }
@@ -490,7 +497,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onAppMenuDropdownStateChanged = (newState: DropdownState) => {
     if (newState === 'open') {
       this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-      this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu })
+      this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation: false })
     } else {
       this.props.dispatcher.closeFoldout()
     }

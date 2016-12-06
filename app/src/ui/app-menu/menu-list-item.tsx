@@ -7,6 +7,7 @@ import { AccessText } from '../lib/access-text'
 
 interface IMenuListItemProps {
   readonly item: MenuItem
+  readonly highlightAccessKey: boolean
 }
 
 /**
@@ -92,7 +93,7 @@ export class MenuListItem extends React.Component<IMenuListItemProps, void> {
       <div className={className}>
         {this.getIcon(item)}
         <div className='label'>
-          <AccessText text={item.label} />
+          <AccessText text={item.label} highlight={this.props.highlightAccessKey} />
         </div>
         {accelerator}
         {arrow}
