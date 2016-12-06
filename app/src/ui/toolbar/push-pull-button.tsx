@@ -10,6 +10,7 @@ import { PublishRepository } from '../publish-repository'
 import { User } from '../../models/user'
 import { FoldoutType } from '../../lib/app-state'
 import { assertNever } from '../../lib/fatal-error'
+import { LogIn } from './log-in'
 
 interface IPushPullButtonProps {
   /**
@@ -65,14 +66,19 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
     if (!foldout) { return null }
 
     switch (foldout.type) {
-      case FoldoutType.Publish:
       case FoldoutType.LogIn:
+        return <LogIn dispatcher={this.props.dispatcher} onSignIn={this.onSignIn}/>
+      case FoldoutType.Publish:
         return <PublishRepository
           repository={this.props.repository}
           dispatcher={this.props.dispatcher}
           users={this.props.users}/>
       default: return assertNever(foldout, `Unknown foldout: ${foldout}`)
     }
+  }
+
+  private onSignIn = () => {
+    this.performAction()
   }
 
   private renderAheadBehind() {
