@@ -10,8 +10,8 @@
 
 .branches-list {
   &-container {
-    height: 100%;
     display: flex;
+    flex: 1;
   }
 
   &-content {
@@ -49,8 +49,4 @@
       font-size: var(--font-size-sm);
     }
   }
-}
-
-.branch-filter-input {
-  margin: 0;
 }

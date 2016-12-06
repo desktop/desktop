@@ -92,14 +92,16 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
     }
 
     return (
-      <List id='repository-list'
-            rowCount={this.state.listItems.length}
-            rowHeight={RowHeight}
-            rowRenderer={this.renderRow}
-            selectedRow={this.state.selectedRowIndex}
-            onSelectionChanged={this.onSelectionChanged}
-            canSelectRow={this.canSelectRow}
-            invalidationProps={this.props.repositories}/>
+      <div id='repository-list'>
+        <List
+          rowCount={this.state.listItems.length}
+          rowHeight={RowHeight}
+          rowRenderer={this.renderRow}
+          selectedRow={this.state.selectedRowIndex}
+          onSelectionChanged={this.onSelectionChanged}
+          canSelectRow={this.canSelectRow}
+          invalidationProps={this.props.repositories}/>
+      </div>
     )
   }
 }
