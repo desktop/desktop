@@ -44,7 +44,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     this.focusPane = props.state.length - 1
   }
 
-  private onItemClicked = (item: MenuItem) => {
+  private onItemClicked = (depth: number, item: MenuItem, source: ClickSource) => {
     this.clearExpandCollapseTimer()
 
     if (item.type === 'submenuItem') {

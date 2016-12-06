@@ -8,7 +8,7 @@ interface IMenuPaneProps {
   readonly depth: number
   readonly items: ReadonlyArray<MenuItem>
   readonly selectedItem?: MenuItem
-  readonly onItemClicked: (item: MenuItem) => void
+  readonly onItemClicked: (depth: number, item: MenuItem, source: ClickSource) => void
   readonly onItemKeyDown: (depth: number, item: MenuItem, event: React.KeyboardEvent<any>) => void
   readonly onSelectionChanged: (depth: number, item: MenuItem, source: SelectionSource) => void
   readonly onMouseEnter: (depth: number) => void
@@ -79,7 +79,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
     const item = this.state.items[row]
 
     if (item.type !== 'separator' && item.enabled) {
-      this.props.onItemClicked(item)
+      this.props.onItemClicked(this.props.depth, item, source)
     }
   }
 
