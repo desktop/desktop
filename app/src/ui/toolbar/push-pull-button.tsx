@@ -8,9 +8,6 @@ import { Repository } from '../../models/repository'
 import { RelativeTime } from '../relative-time'
 import { PublishRepository } from '../publish-repository'
 import { User } from '../../models/user'
-import { FoldoutType } from '../../lib/app-state'
-import { assertNever } from '../../lib/fatal-error'
-import { LogIn } from './log-in'
 
 interface IPushPullButtonProps {
   /**
@@ -28,8 +25,8 @@ interface IPushPullButtonProps {
   /** The date of the last fetch. */
   readonly lastFetched: Date | null
 
-  /** The foldout we're currently showing. */
-  readonly foldout: { type: FoldoutType.Publish } | { type: FoldoutType.LogIn } | null
+  /** Is the user currently publishing? */
+  readonly isPublishing: boolean
 
   /** The logged in users. */
   readonly users: ReadonlyArray<User>
@@ -52,7 +49,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
         icon={this.getIcon()}
         iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
         style={ToolbarButtonStyle.Subtitle}
-        dropdownState={this.props.foldout ? 'open' : 'closed'}
+        dropdownState={this.props.isPublishing ? 'open' : 'closed'}
         dropdownContentRenderer={this.renderFoldout}
         onDropdownStateChanged={this.performAction}
         showDisclosureArrow={false}>
@@ -62,23 +59,10 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private renderFoldout = () => {
-    const foldout = this.props.foldout
-    if (!foldout) { return null }
-
-    switch (foldout.type) {
-      case FoldoutType.LogIn:
-        return <LogIn dispatcher={this.props.dispatcher} onSignIn={this.onSignIn}/>
-      case FoldoutType.Publish:
-        return <PublishRepository
-          repository={this.props.repository}
-          dispatcher={this.props.dispatcher}
-          users={this.props.users}/>
-      default: return assertNever(foldout, `Unknown foldout: ${foldout}`)
-    }
-  }
-
-  private onSignIn = () => {
-    this.performAction()
+    return <PublishRepository
+      repository={this.props.repository}
+      dispatcher={this.props.dispatcher}
+      users={this.props.users}/>
   }
 
   private renderAheadBehind() {
@@ -147,7 +131,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private performAction = () => {
-    if (this.props.foldout) {
+    if (this.props.isPublishing) {
       this.props.dispatcher.closeFoldout()
       return
     }
