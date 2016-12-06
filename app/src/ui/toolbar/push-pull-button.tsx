@@ -6,7 +6,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { RelativeTime } from '../relative-time'
-import { PublishRepository } from '../publish-repository'
+import { Publish } from '../publish-repository'
 import { User } from '../../models/user'
 
 interface IPushPullButtonProps {
@@ -59,7 +59,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private renderFoldout = () => {
-    return <PublishRepository
+    return <Publish
       repository={this.props.repository}
       dispatcher={this.props.dispatcher}
       users={this.props.users}/>

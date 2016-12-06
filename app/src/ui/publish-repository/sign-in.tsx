@@ -1,31 +1,29 @@
 import * as React from 'react'
 import { TabBar } from '../tab-bar'
-import { SignIn } from '../lib/sign-in'
+import { SignIn as SignInCore } from '../lib/sign-in'
 import { assertNever } from '../../lib/fatal-error'
 import { Dispatcher } from '../../lib/dispatcher'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { User } from '../../models/user'
 
-interface ILogInProps {
+interface ISignInProps {
   readonly dispatcher: Dispatcher
-
-  readonly onSignIn: () => void
 }
 
-enum LogInTab {
+enum SignInTab {
   DotCom = 0,
   Enterprise,
 }
 
-interface ILogInState {
-  readonly selectedIndex: LogInTab
+interface ISignInState {
+  readonly selectedIndex: SignInTab
 }
 
-export class LogIn extends React.Component<ILogInProps, ILogInState> {
-  public constructor(props: ILogInProps) {
+export class SignIn extends React.Component<ISignInProps, ISignInState> {
+  public constructor(props: ISignInProps) {
     super(props)
 
-    this.state = { selectedIndex: LogInTab.DotCom }
+    this.state = { selectedIndex: SignInTab.DotCom }
   }
 
   public render() {
@@ -46,13 +44,13 @@ export class LogIn extends React.Component<ILogInProps, ILogInState> {
   private renderActiveTab() {
     const index = this.state.selectedIndex
     switch (index) {
-      case LogInTab.DotCom: {
-        return <SignIn
+      case SignInTab.DotCom: {
+        return <SignInCore
           endpoint={getDotComAPIEndpoint()}
           onDidSignIn={this.onDidSignIn}/>
       }
-      case LogInTab.Enterprise: {
-        return <SignIn onDidSignIn={this.onDidSignIn}/>
+      case SignInTab.Enterprise: {
+        return <SignInCore onDidSignIn={this.onDidSignIn}/>
       }
       default: return assertNever(index, `Unknown tab index: ${index}`)
     }
@@ -64,7 +62,5 @@ export class LogIn extends React.Component<ILogInProps, ILogInState> {
 
   private onDidSignIn = async (user: User) => {
     await this.props.dispatcher.addUser(user)
-
-    this.props.onSignIn()
   }
 }
