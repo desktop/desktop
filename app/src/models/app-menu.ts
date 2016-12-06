@@ -111,6 +111,37 @@ export interface IMenu {
 }
 
 /**
+ * Gets the accelerator for a given menu item. If the menu item doesn't
+ * have an explicitly defined accelerator but does have a defined role
+ * the default accelerator (if any) for that particular role will be
+ * returned.
+ */
+function getAccelerator(menuItem: Electron.MenuItem): string | null {
+  if (menuItem.accelerator) {
+    return menuItem.accelerator
+  }
+
+  if (menuItem.role) {
+    const unsafeItem = menuItem as any
+    // https://github.com/electron/electron/blob/d4a8a64ba/lib/browser/api/menu-item.js#L62
+    const getDefaultRoleAccelerator = unsafeItem.getDefaultRoleAccelerator
+
+    if (typeof getDefaultRoleAccelerator === 'function') {
+      try {
+        const defaultRoleAccelerator = getDefaultRoleAccelerator.call(menuItem)
+        if (typeof defaultRoleAccelerator === 'string') {
+          return defaultRoleAccelerator
+        }
+      } catch (err) {
+        console.error('Could not retrieve default accelerator', err)
+      }
+    }
+  }
+
+  return null
+}
+
+/**
  * Creates an instance of one of the types in the MenuItem type union based
  * on an Electron MenuItem instance. Will recurse through all sub menus and
  * convert each item.
@@ -128,7 +159,7 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
   const visible = menuItem.visible
   const label = menuItem.label
   const checked = menuItem.checked
-  const accelerator = menuItem.accelerator
+  const accelerator = getAccelerator(menuItem)
 
   // normal, separator, submenu, checkbox or radio.
   switch (menuItem.type) {
