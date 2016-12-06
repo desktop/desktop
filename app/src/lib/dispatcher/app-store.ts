@@ -34,7 +34,7 @@ import { assertNever } from '../fatal-error'
 import { IssuesStore } from './issues-store'
 import { BackgroundFetcher } from './background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
-import { AppMenu } from '../../models/app-menu'
+import { AppMenu, IMenu } from '../../models/app-menu'
 import { getAppMenu } from '../../ui/main-process-proxy'
 
 import {
@@ -146,7 +146,7 @@ export class AppStore {
     const hasShownWelcomeFlow = localStorage.getItem(HasShownWelcomeFlowKey)
     this.showWelcomeFlow = !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
 
-    ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: Electron.Menu }) => {
+    ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
       this.setAppMenu(menu)
     })
 
@@ -1389,11 +1389,11 @@ export class AppStore {
    * than as a directly result of the main-process event.
    *
    */
-  private setAppMenu(menu: Electron.Menu): Promise<void> {
+  private setAppMenu(menu: IMenu): Promise<void> {
     if (this.appMenu) {
-      this.appMenu = this.appMenu.withElectronMenu(menu)
+      this.appMenu = this.appMenu.withMenu(menu)
     } else {
-      this.appMenu = AppMenu.fromElectronMenu(menu)
+      this.appMenu = AppMenu.fromMenu(menu)
     }
 
     this.emitUpdate()
