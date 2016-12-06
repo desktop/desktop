@@ -25,6 +25,7 @@ interface IBaseMenuItem {
 export interface IMenuItem extends IBaseMenuItem {
   readonly type: 'menuItem'
   readonly accelerator: string | null
+  readonly accessKey: string | null
 }
 
 /**
@@ -36,6 +37,7 @@ export interface IMenuItem extends IBaseMenuItem {
 export interface ISubmenuItem extends IBaseMenuItem {
   readonly type: 'submenuItem'
   readonly menu: IMenu
+  readonly accessKey: string | null
 }
 
 /**
@@ -46,6 +48,7 @@ export interface ISubmenuItem extends IBaseMenuItem {
 export interface ICheckboxMenuItem extends IBaseMenuItem {
   readonly type: 'checkbox'
   readonly accelerator: string | null
+  readonly accessKey: string | null
   readonly checked: boolean
 }
 
@@ -61,6 +64,7 @@ export interface ICheckboxMenuItem extends IBaseMenuItem {
 export interface IRadioMenuItem extends IBaseMenuItem {
   readonly type: 'radio'
   readonly accelerator: string | null
+  readonly accessKey: string | null
   readonly checked: boolean
 }
 
@@ -142,6 +146,18 @@ function getAccelerator(menuItem: Electron.MenuItem): string | null {
 }
 
 /**
+ * Return the access key (applicable on Windows) from a menu item label.
+ *
+ * An access key is a letter or symbol preceeded by an ampersand, i.e. in
+ * the string "Check for &updates" the access key is 'u'. Access keys are
+ * case insenitive and are unique per menu.
+ */
+function getAccessKey(text: string): string | null {
+  const m = text.match(/&([^&])/)
+  return m ? m[1] : null
+}
+
+/**
  * Creates an instance of one of the types in the MenuItem type union based
  * on an Electron MenuItem instance. Will recurse through all sub menus and
  * convert each item.
@@ -160,20 +176,21 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
   const label = menuItem.label
   const checked = menuItem.checked
   const accelerator = getAccelerator(menuItem)
+  const accessKey = getAccessKey(menuItem.label)
 
   // normal, separator, submenu, checkbox or radio.
   switch (menuItem.type) {
     case 'normal':
-      return { id, type: 'menuItem', label, enabled, visible, accelerator }
+      return { id, type: 'menuItem', label, enabled, visible, accelerator, accessKey }
     case 'separator':
       return { id, type: 'separator', visible }
     case 'submenu':
       const menu = menuFromElectronMenu(menuItem.submenu as Electron.Menu, id)
-      return { id, type: 'submenuItem', label, enabled, visible, menu }
+      return { id, type: 'submenuItem', label, enabled, visible, menu, accessKey }
     case 'checkbox':
-      return { id, type: 'checkbox', label, enabled, visible, accelerator, checked }
+      return { id, type: 'checkbox', label, enabled, visible, accelerator, checked, accessKey }
     case 'radio':
-      return { id, type: 'radio', label, enabled, visible, accelerator, checked }
+      return { id, type: 'radio', label, enabled, visible, accelerator, checked, accessKey }
     default:
       return assertNever(menuItem.type, `Unknown menu item type ${menuItem.type}`)
   }
