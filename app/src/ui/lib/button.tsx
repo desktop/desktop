@@ -24,7 +24,7 @@ interface IButtonProps {
    * handling of the `ref` type into some ungodly monstrosity. Hopefully someday
    * this will be unnecessary.
    */
-  readonly reference?: React.Ref<HTMLButtonElement>
+  readonly reference?: (instance: HTMLButtonElement) => void
 }
 
 /** A button component. */
