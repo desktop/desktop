@@ -124,7 +124,7 @@ export class Diff {
     * Locate the diff hunk for the given (absolute) line number in the
     * diff.
     */
-   public diffHunkForIndex(index: number): DiffHunk | null {
+   private diffHunkForIndex(index: number): DiffHunk | null {
      const hunk = this.hunks.find(h => {
        return index >= h.unifiedDiffStart && index <= h.unifiedDiffEnd
      })
@@ -170,11 +170,8 @@ export class Diff {
        ? contextLineAfterIndex
        : hunk.unifiedDiffEnd
 
-    console.log(`proposed range: [${start}, ${end}]`)
-
      return { start, end }
    }
-
 
    /**
     * Locate the diff line for the given (absolute) line number in the
