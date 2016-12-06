@@ -90,7 +90,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   template.push(fileMenu)
 
   template.push({
-    label: 'Edit',
+    label: __DARWIN__ ? 'Edit' : '&Edit',
     submenu: [
       { role: 'undo' },
       { role: 'redo' },
