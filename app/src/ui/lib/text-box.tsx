@@ -31,12 +31,16 @@ interface ITextBoxProps {
 
   /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
+
+  /** The type of the input. Defaults to `text`. */
+  readonly type?: 'text' | 'search'
 }
 
 /** An input element with app-standard styles. */
 export class TextBox extends React.Component<ITextBoxProps, void> {
   public render() {
     const className = classNames('text-box-component', this.props.labelClassName)
+    const type = this.props.secure === true ? 'password' : (this.props.type || 'text')
     return (
       <label className={className}>
         {this.props.label}
@@ -45,7 +49,7 @@ export class TextBox extends React.Component<ITextBoxProps, void> {
           autoFocus={this.props.autoFocus}
           className={this.props.inputClassName}
           disabled={this.props.disabled}
-          type={!this.props.secure ? 'text' : 'password'}
+          type={type}
           placeholder={this.props.placeholder}
           value={this.props.value}
           onChange={this.props.onChange}
