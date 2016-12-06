@@ -18,6 +18,8 @@ export class AccessText extends React.Component<IAccessTextProps, void> {
 
   public render() {
     if (this.props.highlight) {
+      // Match everything (if anything) before an ampersand followed by anything that's
+      // not an ampersand and then capture the remainder.
       const m = this.props.text.match(/^(.*?)?(?:&([^&]))(.*)?$/)
       const elements = new Array<JSX.Element>()
 
