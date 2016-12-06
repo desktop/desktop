@@ -1,6 +1,6 @@
 import * as React from 'react'
 
-import { List } from '../list'
+import { List, SelectionSource } from '../list'
 import { RepositoryListItem } from './repository-list-item'
 import { Repository } from '../../models/repository'
 import { groupRepositories, RepositoryListItemModel, Repositoryish } from './group-repositories'
@@ -82,11 +82,28 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
     }
   }
 
-  private onSelectionChanged = (row: number) => {
+  private onRowClick = (row: number, source: SelectionSource) => {
     const item = this.state.listItems[row]
     if (item.kind === 'repository') {
       this.props.onSelectionChanged(item.repository)
     }
+  }
+
+  private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
+    debugger
+    if (event.key === 'ArrowUp' && row === 1) {
+      event.preventDefault()
+    } else if (event.key === 'ArrowDown' && row === this.state.listItems.length - 1) {
+      event.preventDefault()
+    }
+  }
+
+  private onSelectionChanged = (row: number, source: SelectionSource) => {
+    this.setState({
+      listItems: this.state.listItems,
+      selectedRowIndex: row,
+      filter: this.state.filter,
+    })
   }
 
   private canSelectRow = (row: number) => {
@@ -121,6 +138,8 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
           rowRenderer={this.renderRow}
           selectedRow={this.state.selectedRowIndex}
           onSelectionChanged={this.onSelectionChanged}
+          onRowClick={this.onRowClick}
+          onRowKeyDown={this.onRowKeyDown}
           canSelectRow={this.canSelectRow}
           invalidationProps={this.props.repositories}
           ref={this.onListRef}/>
