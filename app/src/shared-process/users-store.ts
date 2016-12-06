@@ -26,6 +26,15 @@ export class UsersStore {
     this.save()
   }
 
+  /** Remove the user from the store. */
+  public removeUser(user: User) {
+    this.secureStore.deleteItem(getKeyForUser(user), user.login)
+
+    this.users = this.users.filter(u => u.id !== user.id)
+
+    this.save()
+  }
+
   /** Change the users in the store by mapping over them. */
   public async map(fn: (user: User) => Promise<User>) {
     const users = new Array<User>()

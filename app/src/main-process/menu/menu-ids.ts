@@ -4,4 +4,5 @@ export type MenuIDs =
   'check-for-updates' |
   'checking-for-updates' |
   'downloading-update' |
-  'quit-and-install-update'
+  'quit-and-install-update' |
+  'preferences'

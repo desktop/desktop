@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
-import { Button } from '../lib/button'
 import { Octicon, OcticonSymbol } from '../octicons'
 import {
   createAuthorization,
@@ -13,6 +12,10 @@ import { User } from '../../models/user'
 import { assertNever } from '../../lib/fatal-error'
 import { askUserToOAuth } from '../../lib/oauth'
 import { Loading } from './loading'
+import { Form } from './form'
+import { Button } from './button'
+import { TextBox } from './text-box'
+import { Errors } from './errors'
 
 interface IAuthenticationFormProps {
   /** The endpoint against which the user is authenticating. */
@@ -49,13 +52,13 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
 
   public render() {
     return (
-      <form className='sign-in-form' onSubmit={this.signIn}>
+      <Form className='sign-in-form' onSubmit={this.signIn}>
         {this.renderUsernamePassword()}
 
         {this.renderError()}
 
         {this.renderSignInWithBrowser()}
-      </form>
+      </Form>
     )
   }
 
@@ -65,15 +68,22 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     const disabled = this.state.loading
     return (
       <div>
-        <div className='field-group'>
-          <label htmlFor='sign-in-name'>Username or email address</label>
-          <input id='sign-in-name' className='text-field sign-in-field' disabled={disabled} autoFocus={true} onChange={this.onUsernameChange}/>
-        </div>
+        <TextBox
+          label='Username or email address'
+          disabled={disabled}
+          autoFocus={true}
+          onChange={this.onUsernameChange}/>
 
-        <div className='field-group'>
-          <label htmlFor='sign-in-password'>Password</label>
-          <input id='sign-in-password' className='sign-in-field' type='password' disabled={disabled} onChange={this.onPasswordChange}/>
-          <LinkButton className='forgot-password-link' uri={this.getForgotPasswordURL()}>Forgot password?</LinkButton>
+        <div className='password-container'>
+          <TextBox
+            label='Password'
+            secure={true}
+            disabled={disabled}
+            onChange={this.onPasswordChange}/>
+
+          <LinkButton className='forgot-password-link' uri={this.getForgotPasswordURL()}>
+            Forgot password?
+          </LinkButton>
         </div>
 
         {this.renderActions()}
@@ -115,13 +125,13 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     if (!response) { return null }
 
     switch (response.kind) {
-      case AuthorizationResponseKind.Failed: return <div className='form-errors'>The username or password are incorrect.</div>
+      case AuthorizationResponseKind.Failed: return <Errors>The username or password are incorrect.</Errors>
       case AuthorizationResponseKind.Error: {
         const error = response.response.error
         if (error) {
-          return <div className='form-errors'>An error occurred: {error.message}</div>
+          return <Errors>An error occurred: {error.message}</Errors>
         } else {
-          return <div className='form-errors'>An unknown error occurred: {response.response.statusCode}: {response.response.body}</div>
+          return <Errors>An unknown error occurred: {response.response.statusCode}: {response.response.body}</Errors>
         }
       }
       case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return null
@@ -157,9 +167,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     this.props.onDidSignIn(user)
   }
 
-  private signIn = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
+  private signIn = async () => {
     const username = this.state.username
     const password = this.state.password
     this.setState({

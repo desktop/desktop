@@ -35,11 +35,18 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
 
   if (__DARWIN__) {
     template.push({
-      label: 'GitHub',
+      label: 'GitHub Desktop',
       submenu: [
         { role: 'about' },
         { type: 'separator' },
         ...updateMenuItems,
+        { type: 'separator' },
+        {
+          label: 'Preferences…',
+          id: 'preferences',
+          accelerator: 'CommandOrCtrl+,',
+          click: emit('show-preferences'),
+        },
         { type: 'separator' },
         {
           role: 'services',

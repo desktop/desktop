@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { LinkButton } from '../lib/link-button'
+import { Button } from '../lib/button'
 
 const CreateAccountURL = 'https://github.com/join?source=github-desktop'
 
@@ -21,8 +22,8 @@ export class Start extends React.Component<IStartProps, void> {
         <h1 className='welcome-title'>Welcome to GitHub Desktop</h1>
         <h2 className='welcome-text'>Get started by signing into GitHub.com or your GitHub Enterprise server.</h2>
         <div className='actions'>
-          <button className='button welcome-button' onClick={this.signInToDotCom}>GitHub.com</button>
-          <button className='button welcome-button' onClick={this.signInToEnterprise}>GitHub Enterprise</button>
+          <Button type='submit' className='welcome-button' onClick={this.signInToDotCom}>GitHub.com</Button>
+          <Button type='submit' className='welcome-button' onClick={this.signInToEnterprise}>GitHub Enterprise</Button>
         </div>
 
         <div>

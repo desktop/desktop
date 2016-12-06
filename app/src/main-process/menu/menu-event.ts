@@ -11,4 +11,5 @@ export type MenuEvent =
   'rename-branch' |
   'delete-branch' |
   'check-for-updates' |
-  'quit-and-install-update'
+  'quit-and-install-update' |
+  'show-preferences'

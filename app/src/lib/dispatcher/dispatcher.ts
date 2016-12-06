@@ -394,6 +394,11 @@ export class Dispatcher {
     return this.dispatchToSharedProcess<void>({ name: 'add-user', user })
   }
 
+  /** Remove the given user. */
+  public removeUser(user: User): Promise<void> {
+    return this.dispatchToSharedProcess<void>({ name: 'remove-user', user })
+  }
+
   /**
    * Ask the dispatcher to apply a transformation function to the current
    * state of the application menu.
