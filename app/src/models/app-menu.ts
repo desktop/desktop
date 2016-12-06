@@ -24,7 +24,7 @@ interface IBaseMenuItem {
  */
 export interface IMenuItem extends IBaseMenuItem {
   readonly type: 'menuItem'
-  readonly accelerator: string
+  readonly accelerator: string | null
 }
 
 /**
@@ -45,7 +45,7 @@ export interface ISubmenuItem extends IBaseMenuItem {
  */
 export interface ICheckboxMenuItem extends IBaseMenuItem {
   readonly type: 'checkbox'
-  readonly accelerator: string
+  readonly accelerator: string | null
   readonly checked: boolean
 }
 
@@ -60,7 +60,7 @@ export interface ICheckboxMenuItem extends IBaseMenuItem {
  */
 export interface IRadioMenuItem extends IBaseMenuItem {
   readonly type: 'radio'
-  readonly accelerator: string
+  readonly accelerator: string | null
   readonly checked: boolean
 }
 
