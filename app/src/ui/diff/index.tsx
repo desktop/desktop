@@ -20,7 +20,7 @@ import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { getDiffMode } from './diff-mode'
 import { ISelectionStrategy } from './selection/selection-strategy'
 import { DragDropSelection } from './selection/drag-drop-selection-strategy'
-import { HunkSelection } from './selection/hunk-selection-strategy'
+import { RangeSelection } from './selection/range-selection-strategy'
 
 import { fatalError } from '../../lib/fatal-error'
 
@@ -28,7 +28,6 @@ if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
   require('codemirror/addon/scroll/simplescrollbars')
 }
-
 
 /**
  * normalize the line endings in the diff so that the CodeMirror editor
@@ -194,15 +193,13 @@ export class Diff extends React.Component<IDiffProps, void> {
     const desiredSelection = !selected
 
     if (isHunkSelection) {
-      const hunk = this.props.diff.diffHunkForIndex(index)
-      if (!hunk) {
-        console.error('unable to find hunk for given line in diff')
+      const range = this.props.diff.findInteractiveDiffRange(index)
+      if (!range) {
+        console.error('unable to find range for given line in diff')
         return
       }
 
-      const start = hunk.unifiedDiffStart
-      const end = hunk.unifiedDiffEnd
-      this.selection = new HunkSelection(start, end, desiredSelection, snapshot)
+      this.selection = new RangeSelection(range.start, range.end, desiredSelection, snapshot)
     } else {
       this.selection = new DragDropSelection(index, desiredSelection, snapshot)
     }
