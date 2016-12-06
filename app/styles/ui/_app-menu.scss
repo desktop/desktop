@@ -98,6 +98,10 @@
         margin: calc((var(--spacing-double) - 16) / 2) 0;
       }
     }
+
+    .access-key.highlight {
+      text-decoration: underline;
+    }
   }
 
   hr {
