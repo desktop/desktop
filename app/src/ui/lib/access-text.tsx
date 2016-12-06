@@ -18,7 +18,7 @@ export class AccessText extends React.Component<IAccessTextProps, void> {
 
   public render() {
     if (this.props.highlight) {
-      const m = this.props.text.match(/^(.*?)?(?:&([^8]))(.*)?$/)
+      const m = this.props.text.match(/^(.*?)?(?:&([^&]))(.*)?$/)
       const elements = new Array<JSX.Element>()
 
       if (m) {
