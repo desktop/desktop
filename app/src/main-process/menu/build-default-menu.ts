@@ -201,6 +201,17 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         { role: 'front' },
       ],
     })
+  } else {
+    template.push(
+      { type: 'separator' },
+      {
+        label: '&Options…',
+        id: 'preferences',
+        accelerator: 'CmdOrCtrl+,',
+        click: emit('show-preferences'),
+      },
+      { type: 'separator' },
+    )
   }
 
   const contactSupportItem: Electron.MenuItemOptions = {
