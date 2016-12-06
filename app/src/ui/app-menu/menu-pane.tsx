@@ -88,6 +88,29 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
     this.props.onSelectionChanged(this.props.depth, item, source)
   }
 
+  private onKeyDown = (event: React.KeyboardEvent<any>) => {
+    if (event.defaultPrevented) { return }
+
+    // Modifier keys are handled elsewhere, we only care about letters and symbols
+    if (event.altKey || event.ctrlKey || event.metaKey) { return }
+
+    // If we weren't opened with the Alt key we ignore key presses other than
+    // arrow keys and Enter/Space etc.
+    if (!this.props.enableAccessKeyNavigation) { return }
+
+    // At this point the list will already have intercepted any arrow keys
+    // and the list items themselves will have caught Enter/Space
+    for (const item of this.state.items) {
+      if (itemIsSelectable(item) && itemMayHaveAccessKey(item)) {
+        if (item.accessKey && item.accessKey.toLowerCase() === event.key.toLowerCase()) {
+          event.preventDefault()
+          this.props.onSelectionChanged(this.props.depth, item, { kind: 'keyboard', event: event })
+          this.props.onItemClicked(this.props.depth, item, { kind: 'keyboard', event: event })
+        }
+      }
+    }
+  }
+
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
     const item = this.state.items[row]
     this.props.onItemKeyDown(this.props.depth, item, event)
@@ -120,7 +143,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
   public render(): JSX.Element {
 
     return (
-      <div className='menu-pane' onMouseEnter={this.onMouseEnter}>
+      <div className='menu-pane' onMouseEnter={this.onMouseEnter} onKeyDown={this.onKeyDown}>
         <List
           ref={this.onListRef}
           rowCount={this.state.items.length}

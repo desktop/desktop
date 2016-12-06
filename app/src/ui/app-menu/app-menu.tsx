@@ -49,6 +49,9 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
 
     if (item.type === 'submenuItem') {
       this.props.dispatcher.setAppMenuState(menu => menu.withOpenedMenu(item))
+      if (source.kind === 'keyboard') {
+        this.focusPane = depth + 1
+      }
     } else if (item.type !== 'separator') {
       this.props.dispatcher.executeMenuItem(item)
       this.props.onClose()
