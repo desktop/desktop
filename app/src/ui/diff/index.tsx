@@ -69,7 +69,7 @@ interface IDiffProps {
 
 /** A component which renders a diff for a file. */
 export class Diff extends React.Component<IDiffProps, void> {
-  private codeMirror: any | null
+  private codeMirror: Editor | null
 
   /**
    * We store the scroll position before reloading the same diff so that we can
