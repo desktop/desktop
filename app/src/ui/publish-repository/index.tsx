@@ -158,7 +158,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   public render() {
     const disabled = !this.state.name.length
     return (
-      <Form onSubmit={this.publishRepository}>
+      <Form className='publish-repository' onSubmit={this.publishRepository}>
         <TextBox label='Name' value={this.state.name} autoFocus={true} onChange={this.onNameChange}/>
 
         <TextBox label='Description' value={this.state.description} onChange={this.onDescriptionChange}/>
