@@ -150,6 +150,13 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     this.focusPane = depth
   }
 
+  private onKeyDown = (event: React.KeyboardEvent<any>) => {
+    if (!event.defaultPrevented && event.key === 'Escape') {
+      event.preventDefault()
+      this.props.onClose()
+    }
+  }
+
   private renderMenuPane(depth: number, menu: IMenu): JSX.Element {
     return (
       <MenuPane
@@ -177,7 +184,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     this.paneRefs = this.paneRefs.slice(0, panes.length)
 
     return (
-      <div id='app-menu-foldout'>
+      <div id='app-menu-foldout' onKeyDown={this.onKeyDown}>
         {panes}
       </div>
     )
