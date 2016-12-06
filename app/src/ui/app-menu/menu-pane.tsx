@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { List, ClickSource, SelectionSource } from '../list'
-import { MenuItem } from '../../models/app-menu'
+import { MenuItem, itemMayHaveAccessKey, itemIsSelectable } from '../../models/app-menu'
 import { MenuListItem } from './menu-list-item'
 
 interface IMenuPaneProps {
@@ -95,10 +95,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
 
   private canSelectRow = (row: number) => {
     const item = this.state.items[row]
-
-    if (item.type === 'separator') { return false }
-
-    return item.enabled && item.visible
+    return itemIsSelectable(item)
   }
 
   private onListRef = (list: List) => {

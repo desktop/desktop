@@ -226,6 +226,23 @@ function buildIdMap(menu: IMenu, map = new Map<string, MenuItem>()): Map<string,
   return map
 }
 
+/** Type guard which narrows a MenuItem to one which supports access keys */
+export function itemMayHaveAccessKey(item: MenuItem): item is IMenuItem | ISubmenuItem | ICheckboxMenuItem | IRadioMenuItem {
+  return item.type === 'menuItem' ||
+    item.type === 'submenuItem' ||
+    item.type === 'checkbox' ||
+    item.type === 'radio'
+}
+
+/**
+ * Returns a value indicating whether or not the given menu item can be
+ * selected. Selectable items are non-separator items which are enabled
+ * and visible.
+ */
+export function itemIsSelectable(item: MenuItem) {
+  return item.type !== 'separator' && item.enabled && item.visible
+}
+
 /**
  * An immutable, transformable object which represents an application menu
  * and its current state (which menus are open, which items are selected).
