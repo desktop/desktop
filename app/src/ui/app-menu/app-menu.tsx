@@ -2,7 +2,7 @@ import * as React from 'react'
 import { MenuPane } from './menu-pane'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IMenu, MenuItem, ISubmenuItem } from '../../models/app-menu'
-import { SelectionSource } from '../list'
+import { SelectionSource, ClickSource } from '../list'
 
 interface IAppMenuProps {
   readonly state: ReadonlyArray<IMenu>
