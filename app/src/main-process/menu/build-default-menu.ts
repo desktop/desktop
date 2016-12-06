@@ -114,7 +114,10 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           }
         },
       },
-      { role: 'togglefullscreen' },
+      {
+        label: __DARWIN__ ? 'Toggle Full Screen' : 'Toggle &full screen',
+        role: 'togglefullscreen',
+      },
       {
         label: __DARWIN__ ? 'Toggle Developer Tools' : '&Toggle developer tools',
         accelerator: (() => {
