@@ -19,6 +19,9 @@ interface IRepositoriesListProps {
 interface IRepositoriesListState {
   readonly listItems: ReadonlyArray<RepositoryListItemModel>
   readonly selectedRowIndex: number
+
+  /** The currently entered filter text. */
+  readonly filter: string
 }
 
 const RowHeight = 30
@@ -42,23 +45,30 @@ function getSelectedRowIndex(repositories: ReadonlyArray<RepositoryListItemModel
 
 /** The list of user-added repositories. */
 export class RepositoriesList extends React.Component<IRepositoriesListProps, IRepositoriesListState> {
+  private list: List | null = null
 
   public constructor(props: IRepositoriesListProps) {
     super(props)
 
-    this.state = this.createState(props)
+    this.state = this.createState(props, '')
   }
 
-  private createState(props: IRepositoriesListProps): IRepositoriesListState {
+  private createState(props: IRepositoriesListProps, filter: string): IRepositoriesListState {
+    let repositories: ReadonlyArray<Repository | CloningRepository>
+    if (filter.length) {
+      repositories = props.repositories.filter(repository => repository.name.includes(filter))
+    } else {
+      repositories = props.repositories
+    }
 
-    const listItems = groupRepositories(props.repositories)
+    const listItems = groupRepositories(repositories)
     const selectedRowIndex = getSelectedRowIndex(listItems, props.selectedRepository)
 
-    return { listItems, selectedRowIndex }
+    return { listItems, selectedRowIndex, filter }
   }
 
   public componentWillReceiveProps(nextProps: IRepositoriesListProps) {
-    this.setState(this.createState(nextProps))
+    this.setState(this.createState(nextProps, this.state.filter))
   }
 
   private renderRow = (row: number) => {
@@ -96,7 +106,13 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
     return (
       <div id='repository-list'>
         <Row>
-          <TextBox placeholder='Filter'/>
+          <TextBox
+            type='search'
+            labelClassName='filter-field'
+            placeholder='Filter'
+            autoFocus={true}
+            onChange={this.onFilterChanged}
+            onKeyDown={this.onKeyDown}/>
         </Row>
 
         <List
@@ -106,9 +122,41 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
           selectedRow={this.state.selectedRowIndex}
           onSelectionChanged={this.onSelectionChanged}
           canSelectRow={this.canSelectRow}
-          invalidationProps={this.props.repositories}/>
+          invalidationProps={this.props.repositories}
+          ref={this.onListRef}/>
       </div>
     )
+  }
+
+  private onListRef = (instance: List | null) => {
+    this.list = instance
+  }
+
+  private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
+    const text = event.currentTarget.value
+    this.setState(this.createState(this.props, text))
+  }
+
+  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const list = this.list
+    if (!list) { return }
+
+    if (event.key === 'ArrowDown') {
+      list.focus()
+      event.preventDefault()
+    } else if (event.key === 'ArrowUp') {
+      list.focus()
+      event.preventDefault()
+    } else if (event.key === 'Enter') {
+
+      event.preventDefault()
+    } else if (event.key === 'Escape') {
+      if (this.state.filter.length === 0) {
+        this.props.dispatcher.closeFoldout()
+        event.preventDefault()
+        return
+      }
+    }
   }
 }
 
