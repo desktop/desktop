@@ -219,10 +219,9 @@ export class AppMenu {
 
   /**
    * Static constructor for the initial creation of an AppMenu instance
-   * from an Electron Menu instance.
+   * from an IMenu instance.
    */
-  public static fromElectronMenu(electronMenu: Electron.Menu): AppMenu {
-    const menu = menuFromElectronMenu(electronMenu)
+  public static fromMenu(menu: IMenu): AppMenu {
     const map = buildIdMap(menu)
     const openMenus = [ menu ]
 
@@ -237,11 +236,10 @@ export class AppMenu {
   }
 
   /**
-   * Merges the current AppMenu state with a new electron menu while
+   * Merges the current AppMenu state with a new menu while
    * attempting to maintain selection state.
    */
-  public withElectronMenu(electronMenu: Electron.Menu): AppMenu {
-    const newMenu = menuFromElectronMenu(electronMenu)
+  public withMenu(newMenu: IMenu): AppMenu {
     const newMap = buildIdMap(newMenu)
     const newOpenMenus = new Array<IMenu>()
 
