@@ -115,13 +115,15 @@ export enum FoldoutType {
   Branch,
   AppMenu,
   Publish,
+  LogIn,
 }
 
 export type Foldout =
   { type: FoldoutType.Repository } |
   { type: FoldoutType.Branch } |
   { type: FoldoutType.AppMenu } |
-  { type: FoldoutType.Publish }
+  { type: FoldoutType.Publish } |
+  { type: FoldoutType.LogIn }
 
 export enum RepositorySection {
   Changes,

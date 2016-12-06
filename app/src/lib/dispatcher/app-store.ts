@@ -1157,11 +1157,19 @@ export class AppStore {
   public async _push(repository: Repository): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
+      const user = this.getUserForRepository(repository)
       const remote = gitStore.remoteName
       if (!remote) {
-        this._showFoldout({
-          type: FoldoutType.Publish,
-        })
+        if (user) {
+          this._showFoldout({
+            type: FoldoutType.Publish,
+          })
+        } else {
+          this._showFoldout({
+            type: FoldoutType.LogIn,
+          })
+        }
+
         return
       }
 
@@ -1171,7 +1179,6 @@ export class AppStore {
         return Promise.reject(new Error('The current branch is unborn.'))
       }
 
-      const user = this.getUserForRepository(repository)
       const upstream = branch.upstream
       if (upstream) {
         await gitStore.performFailableOperation(() => pushRepo(repository, user, remote, branch.name, false))

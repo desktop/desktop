@@ -567,7 +567,21 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const isPublishing = Boolean(this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Publish)
+    // NB: This explicit return type annotation should be unnecessary in TS 2.1+
+    const getPushPullFoldout: () => { type: FoldoutType.Publish } | { type: FoldoutType.LogIn } | null = () => {
+      const currentFoldout = this.state.currentFoldout
+      if (!currentFoldout) { return null }
+
+      if (currentFoldout.type === FoldoutType.Publish) {
+        return currentFoldout
+      } else if (currentFoldout.type === FoldoutType.LogIn) {
+        return currentFoldout
+      } else {
+        return null
+      }
+    }
+
+    const foldout = getPushPullFoldout()
 
     const state = selection.state
     return <PushPullButton
@@ -577,7 +591,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       remoteName={state.remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
-      isPublishing={isPublishing}
+      foldout={foldout}
       users={this.state.users}/>
   }
 
