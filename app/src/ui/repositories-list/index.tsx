@@ -5,6 +5,8 @@ import { RepositoryListItem } from './repository-list-item'
 import { Repository } from '../../models/repository'
 import { groupRepositories, RepositoryListItemModel, Repositoryish } from './group-repositories'
 import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
+import { TextBox } from '../lib/text-box'
+import { Row } from '../lib/row'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
@@ -93,6 +95,10 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
 
     return (
       <div id='repository-list'>
+        <Row>
+          <TextBox placeholder='Filter'/>
+        </Row>
+
         <List
           rowCount={this.state.listItems.length}
           rowHeight={RowHeight}
