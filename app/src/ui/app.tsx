@@ -29,6 +29,8 @@ import { StatsStore, ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
 import { AppMenu } from './app-menu'
 import { UpdateAvailable } from './updates'
+import { Preferences } from './preferences'
+import { User } from '../models/user'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Button } from './lib/button'
 
@@ -147,6 +149,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'delete-branch': return this.deleteBranch()
       case 'check-for-updates': return this.checkForUpdates()
       case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
+      case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -155,9 +158,23 @@ export class App extends React.Component<IAppProps, IAppState> {
   private checkForUpdates() {
     if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') { return }
 
-    const dotComUsers = this.props.appStore.getState().users.filter(u => u.endpoint === getDotComAPIEndpoint())
-    const login = dotComUsers.length ? dotComUsers[0].login : ''
+    const dotComUser = this.getDotComUser()
+    const login = dotComUser ? dotComUser.login : ''
     updateStore.checkForUpdates(login)
+  }
+
+  private getDotComUser(): User | null {
+    const state = this.props.appStore.getState()
+    const users = state.users
+    const dotComUser = users.find(u => u.endpoint === getDotComAPIEndpoint())
+    return dotComUser || null
+  }
+
+  private getEnterpriseUser(): User | null {
+    const state = this.props.appStore.getState()
+    const users = state.users
+    const enterpriseUser = users.find(u => u.endpoint !== getDotComAPIEndpoint())
+    return enterpriseUser || null
   }
 
   private renameBranch() {
@@ -379,6 +396,11 @@ export class App extends React.Component<IAppProps, IAppState> {
                              files={popup.files}/>
     } else if (popup.type === PopupType.UpdateAvailable) {
       return <UpdateAvailable dispatcher={this.props.dispatcher}/>
+    } else if (popup.type === PopupType.Preferences) {
+      return <Preferences
+        dispatcher={this.props.dispatcher}
+        dotComUser={this.getDotComUser()}
+        enterpriseUser={this.getEnterpriseUser()}/>
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)
