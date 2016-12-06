@@ -10,7 +10,11 @@ import { Select } from '../lib/select'
 
 interface IPublishRepositoryProps {
   readonly dispatcher: Dispatcher
+
+  /** The repository to publish. */
   readonly repository: Repository
+
+  /** The signed in users. */
   readonly users: ReadonlyArray<User>
 }
 
@@ -22,6 +26,7 @@ interface IPublishRepositoryState {
   readonly selectedUser: IAPIUser
 }
 
+/** The Publish Repository component. */
 export class PublishRepository extends React.Component<IPublishRepositoryProps, IPublishRepositoryState> {
   public constructor(props: IPublishRepositoryProps) {
     super(props)

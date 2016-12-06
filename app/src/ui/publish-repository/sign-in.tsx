@@ -19,6 +19,10 @@ interface ISignInState {
   readonly selectedIndex: SignInTab
 }
 
+/**
+ * The tabbed Sign In component used to ask the user to sign in before
+ * publishing.
+ */
 export class SignIn extends React.Component<ISignInProps, ISignInState> {
   public constructor(props: ISignInProps) {
     super(props)
@@ -60,7 +64,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     this.setState({ selectedIndex: index })
   }
 
-  private onDidSignIn = async (user: User) => {
-    await this.props.dispatcher.addUser(user)
+  private onDidSignIn = (user: User) => {
+    this.props.dispatcher.addUser(user)
   }
 }

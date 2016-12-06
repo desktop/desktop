@@ -7,10 +7,18 @@ import { Repository } from '../../models/repository'
 
 interface IPublishProps {
   readonly dispatcher: Dispatcher
+
+  /** The repository being published. */
   readonly repository: Repository
+
+  /** The signed in users. */
   readonly users: ReadonlyArray<User>
 }
 
+/**
+ * The Publish component. If no users are logged in, this will display the sign
+ * in component.
+ */
 export class Publish extends React.Component<IPublishProps, void> {
   public render() {
     if (this.props.users.length > 0) {
