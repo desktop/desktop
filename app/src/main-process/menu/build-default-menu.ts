@@ -44,7 +44,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         {
           label: 'Preferences…',
           id: 'preferences',
-          accelerator: 'CommandOrCtrl+,',
+          accelerator: 'CmdOrCtrl+,',
           click: emit('show-preferences'),
         },
         { type: 'separator' },
