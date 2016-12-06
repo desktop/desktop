@@ -12,7 +12,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffHunk, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
+import { Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { DiffLineGutter } from './diff-line-gutter'
@@ -151,15 +151,10 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.lineCleanup.clear()
   }
 
-  private updateHunkHoverState = (hunk: DiffHunk, show: boolean) => {
-    const start = hunk.unifiedDiffStart
-
-    hunk.lines.forEach((line, index) => {
-      if (line.isIncludeableLine()) {
-        const row = start + index
-        this.highlightLine(row, show)
-      }
-    })
+  private updateRangeHoverState = (start: number, end: number, show: boolean) => {
+    for (let i = start; i <= end; i++) {
+      this.highlightLine(i, show)
+    }
   }
 
   private highlightLine = (row: number, include: boolean) => {
@@ -258,7 +253,7 @@ export class Diff extends React.Component<IDiffProps, void> {
             index={index}
             readOnly={this.props.readOnly}
             diff={this.props.diff}
-            updateHunkHoverState={this.updateHunkHoverState}
+            updateRangeHoverState={this.updateRangeHoverState}
             isSelectionEnabled={this.isSelectionEnabled}
             onMouseUp={this.onMouseUp}
             onMouseDown={this.onMouseDown}

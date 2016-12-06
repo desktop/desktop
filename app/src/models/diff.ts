@@ -132,6 +132,51 @@ export class Diff {
    }
 
    /**
+    * For the given row in the diff, determine the range of elements that
+    * should be displayed as interactive, as a hunk is not granular enough
+    */
+   public findInteractiveDiffRange(index: number): { start: number, end: number } | null {
+
+     const hunk = this.diffHunkForIndex(index)
+     if (!hunk) {
+       return null
+     }
+
+     let contextLineBeforeIndex: number | null = null
+
+     for (let i = index - 1; i >= 0; i--) {
+       const line = hunk.lines[i]
+       if (!line.isIncludeableLine()) {
+         contextLineBeforeIndex = i + 1
+         break
+       }
+     }
+
+     const start = contextLineBeforeIndex
+       ? contextLineBeforeIndex
+       : hunk.unifiedDiffStart + 1
+
+     let contextLineAfterIndex: number | null = null
+
+     for (let i = index + 1; i < hunk.lines.length; i++) {
+       const line = hunk.lines[i]
+       if (!line.isIncludeableLine()) {
+         contextLineAfterIndex = i - 1
+         break
+       }
+     }
+
+     const end = contextLineAfterIndex
+       ? contextLineAfterIndex
+       : hunk.unifiedDiffEnd
+
+    console.log(`proposed range: [${start}, ${end}]`)
+
+     return { start, end }
+   }
+
+
+   /**
     * Locate the diff line for the given (absolute) line number in the
     * diff.
     */

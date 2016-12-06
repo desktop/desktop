@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Diff, DiffHunk, DiffLine, DiffLineType } from '../../models/diff'
+import { Diff, DiffLine, DiffLineType } from '../../models/diff'
 import { hoverCssClass, selectedLineClass } from './selection/selection'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
@@ -38,9 +38,9 @@ interface IDiffGutterProps {
   readonly diff: Diff
 
   /**
-   * Callback to apply hover effect to lines belonging to a given hunk
+   * Callback to apply hover effect to specific lines in the diff
    */
-  readonly updateHunkHoverState: (hunk: DiffHunk, active: boolean) => void
+  readonly updateRangeHoverState: (start: number, end: number, active: boolean) => void
 
   /**
    * Callback to query whether a selection gesture is currently underway
@@ -111,6 +111,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     ev.preventDefault()
 
     const isHunkSelection = isMouseInHunkSelectionZone(ev)
+
     this.updateHoverState(isHunkSelection, true)
   }
 
@@ -123,12 +124,12 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
   private updateHoverState(isHunkSelection: boolean, isActive: boolean) {
     if (isHunkSelection) {
-      const hunk = this.props.diff.diffHunkForIndex(this.props.index)
-      if (!hunk) {
-        console.error('unable to find hunk for given line in diff')
+      const range = this.props.diff.findInteractiveDiffRange(this.props.index)
+      if (!range) {
+        console.error('unable to find range for given index in diff')
         return
       }
-      this.props.updateHunkHoverState(hunk, isActive)
+      this.props.updateRangeHoverState(range.start, range.end, isActive)
     } else {
       this.setHover(isActive)
     }
@@ -137,21 +138,21 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private mouseMoveHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    const hunk = this.props.diff.diffHunkForIndex(this.props.index)
-    if (!hunk) {
-      console.error('unable to find hunk for given line in diff')
-      return
-    }
-
     const isHunkSelection = isMouseInHunkSelectionZone(ev)
     const isSelectionActive = this.props.isSelectionEnabled()
 
+    const range = this.props.diff.findInteractiveDiffRange(this.props.index)
+    if (!range) {
+      console.error('unable to find range for given index in diff')
+      return
+    }
+
     // selection is not active, perform highlighting based on mouse position
-    if (isHunkSelection && isSelectionActive) {
-      this.props.updateHunkHoverState(hunk, true)
+    if (isHunkSelection && range && isSelectionActive) {
+      this.props.updateRangeHoverState(range.start, range.end, true)
     } else {
       // clear hunk selection in case hunk was previously higlighted
-      this.props.updateHunkHoverState(hunk, false)
+      this.props.updateRangeHoverState(range.start, range.end, false)
       this.setHover(true)
     }
 
