@@ -55,7 +55,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     })
   }
 
-  template.push({
+  const fileMenu: Electron.MenuItemOptions = {
     label: __DARWIN__ ? 'File' : '&File',
     submenu: [
       {
@@ -74,7 +74,13 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click: emit('add-local-repository'),
       },
     ],
-  })
+  }
+
+  if (!__DARWIN__) {
+    (fileMenu.submenu as Electron.MenuItemOptions[]).push({ type: 'separator' }, { role: 'quit' })
+  }
+
+  template.push(fileMenu)
 
   if (__DARWIN__) {
     template.push({
