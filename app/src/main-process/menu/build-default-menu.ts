@@ -89,20 +89,18 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
 
   template.push(fileMenu)
 
-  if (__DARWIN__) {
-    template.push({
-      label: 'Edit',
-      submenu: [
-        { role: 'undo' },
-        { role: 'redo' },
-        { type: 'separator' },
-        { role: 'cut' },
-        { role: 'copy' },
-        { role: 'paste' },
-        { role: 'selectall' },
-      ],
-    })
-  }
+  template.push({
+    label: 'Edit',
+    submenu: [
+      { role: 'undo' },
+      { role: 'redo' },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'selectall' },
+    ],
+  })
 
   template.push({
     label: __DARWIN__ ? 'View' : '&View',
