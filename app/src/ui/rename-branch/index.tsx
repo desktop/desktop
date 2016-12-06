@@ -4,6 +4,9 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { sanitizedBranchName } from '../create-branch/sanitized-branch-name'
+import { Form } from '../lib/form'
+import { TextBox } from '../lib/text-box'
+import { Button } from '../lib/button'
 
 interface IRenameBranchProps {
   readonly dispatcher: Dispatcher
@@ -34,19 +37,19 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
   public render() {
     const disabled = !this.state.newName.length
     return (
-      <form className='panel' onSubmit={this.renameBranch}>
-        <label>
-          Name <input value={this.state.newName}
-                      autoFocus={true}
-                      onChange={this.onNameChange}
-                      onKeyDown={this.onKeyDown}/>
-        </label>
+      <Form onSubmit={this.renameBranch}>
+        <TextBox
+          label='Name'
+          autoFocus={true}
+          value={this.state.newName}
+          onChange={this.onNameChange}
+          onKeyDown={this.onKeyDown}/>
 
         {this.renderError()}
 
-        <button onClick={this.cancel}>Cancel</button>
-        <button type='submit' disabled={disabled}>Rename {this.props.branch.name}</button>
-      </form>
+        <Button onClick={this.cancel}>Cancel</Button>
+        <Button type='submit' disabled={disabled}>Rename {this.props.branch.name}</Button>
+      </Form>
     )
   }
 
@@ -64,9 +67,7 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
     this.props.dispatcher.closePopup()
   }
 
-  private renameBranch = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
+  private renameBranch = () => {
     const name = sanitizedBranchName(this.state.newName)
     this.props.dispatcher.renameBranch(this.props.repository, this.props.branch, name)
     this.props.dispatcher.closePopup()

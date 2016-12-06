@@ -4,6 +4,9 @@ import { Commit } from '../../models/commit'
 import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
 import { CommitListItem } from '../history/commit-list-item'
 import { User } from '../../models/user'
+import { Form } from '../lib/form'
+import { Button } from '../lib/button'
+import { TextBox } from '../lib/text-box'
 import { CommitIdentity } from '../../models/commit-identity'
 
 interface IConfigureGitProps {
@@ -71,22 +74,16 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
           This is used to identify the commits you create. Anyone will be able to see this information if you publish commits.
         </p>
 
-        <form className='sign-in-form' onSubmit={this.continue}>
-          <div className='field-group'>
-            <label htmlFor='git-name'>Name</label>
-            <input id='git-name' className='sign-in-field text-field' placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
-          </div>
+        <Form className='sign-in-form' onSubmit={this.continue}>
+          <TextBox label='Name' placeholder='Hubot' value={this.state.name} onChange={this.onNameChange}/>
 
-          <div className='field-group'>
-            <label htmlFor='git-email'>Email</label>
-            <input id='git-email' className='sign-in-field text-field' placeholder='hubot@github.com' value={this.state.email} onChange={this.onEmailChange}/>
-          </div>
+          <TextBox label='Email' placeholder='hubot@github.com' value={this.state.email} onChange={this.onEmailChange}/>
 
           <div className='actions'>
-            <button type='submit'>Continue</button>
-            <button className='secondary-button' onClick={this.cancel}>Cancel</button>
+            <Button type='submit'>Continue</Button>
+            <Button onClick={this.cancel}>Cancel</Button>
           </div>
-        </form>
+        </Form>
 
         <div id='commit-list' className='commit-list-example'>
           <CommitListItem commit={dummyCommit1} emoji={emoji} avatarURL={null}/>
@@ -121,9 +118,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     return matchingUser ? matchingUser.avatarURL : null
   }
 
-  private continue = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
+  private continue = async () => {
     this.props.done()
 
     const name = this.state.name
@@ -137,9 +132,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
     }
   }
 
-  private cancel = (event: React.FormEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-
+  private cancel = () => {
     this.props.advance(WelcomeStep.Start)
   }
 }
