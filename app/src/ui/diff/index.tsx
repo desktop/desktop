@@ -227,82 +227,79 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     const index = instance.getLineNumber(line) as number
-    const hunk = this.props.diff.diffHunkForIndex(index)
-    if (hunk) {
-      const relativeIndex = index - hunk.unifiedDiffStart
-      const diffLine = hunk.lines[relativeIndex]
-      if (diffLine) {
-        const diffLineElement = element.children[0] as HTMLSpanElement
 
-        const reactContainer = document.createElement('span')
+    const diffLine = this.props.diff.diffLineForIndex(index)
+    if (diffLine) {
+      const diffLineElement = element.children[0] as HTMLSpanElement
 
-        let isIncluded = false
-        if (this.props.file instanceof WorkingDirectoryFileChange) {
-          isIncluded = this.props.file.selection.isSelected(index)
-        }
+      const reactContainer = document.createElement('span')
 
-        const cache = this.cachedGutterElements
-
-        ReactDOM.render(
-          <DiffLineGutter
-            line={diffLine}
-            isIncluded={isIncluded}
-            index={index}
-            readOnly={this.props.readOnly}
-            diff={this.props.diff}
-            updateRangeHoverState={this.updateRangeHoverState}
-            isSelectionEnabled={this.isSelectionEnabled}
-            onMouseUp={this.onMouseUp}
-            onMouseDown={this.onMouseDown}
-            onMouseMove={this.onMouseMove} />,
-          reactContainer,
-          function (this: DiffLineGutter) {
-            if (this !== undefined) {
-              cache.set(index, this)
-            }
-          }
-        )
-
-        element.insertBefore(reactContainer, diffLineElement)
-
-        // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
-        // the line delete event once we've been called once or the component has been
-        // unmounted. In the latter case it's _probably_ not strictly necessary since
-        // the only thing gc rooted by the event should be isolated and eligble for
-        // collection. But let's be extra cautious I guess.
-        //
-        // The only way to unsubscribe is to pass the exact same function given to the
-        // 'on' function to the 'off' so we need a reference to ourselves, basically.
-        let deleteHandler: () => void
-
-        // Since we manually render a react component we have to take care of unmounting
-        // it or else we'll leak memory. This disposable will unmount the component.
-        //
-        // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
-        const gutterCleanup = new Disposable(() => {
-          this.cachedGutterElements.delete(index)
-
-          ReactDOM.unmountComponentAtNode(reactContainer)
-
-          line.off('delete', deleteHandler)
-        })
-
-        // Add the cleanup disposable to our list of disposables so that we clean up when
-        // this component is unmounted or when the line is re-rendered. When either of that
-        // happens the line 'delete' event doesn't  fire.
-        this.lineCleanup.set(line, gutterCleanup)
-
-        // If the line delete event fires we dispose of the disposable (disposing is
-        // idempotent)
-        deleteHandler = () => {
-          const disp = this.lineCleanup.get(line)
-          if (disp) {
-            this.lineCleanup.delete(line)
-            disp.dispose()
-          }
-        }
-        line.on('delete', deleteHandler)
+      let isIncluded = false
+      if (this.props.file instanceof WorkingDirectoryFileChange) {
+        isIncluded = this.props.file.selection.isSelected(index)
       }
+
+      const cache = this.cachedGutterElements
+
+      ReactDOM.render(
+        <DiffLineGutter
+          line={diffLine}
+          isIncluded={isIncluded}
+          index={index}
+          readOnly={this.props.readOnly}
+          diff={this.props.diff}
+          updateRangeHoverState={this.updateRangeHoverState}
+          isSelectionEnabled={this.isSelectionEnabled}
+          onMouseUp={this.onMouseUp}
+          onMouseDown={this.onMouseDown}
+          onMouseMove={this.onMouseMove} />,
+        reactContainer,
+        function (this: DiffLineGutter) {
+          if (this !== undefined) {
+            cache.set(index, this)
+          }
+        }
+      )
+
+      element.insertBefore(reactContainer, diffLineElement)
+
+      // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
+      // the line delete event once we've been called once or the component has been
+      // unmounted. In the latter case it's _probably_ not strictly necessary since
+      // the only thing gc rooted by the event should be isolated and eligble for
+      // collection. But let's be extra cautious I guess.
+      //
+      // The only way to unsubscribe is to pass the exact same function given to the
+      // 'on' function to the 'off' so we need a reference to ourselves, basically.
+      let deleteHandler: () => void
+
+      // Since we manually render a react component we have to take care of unmounting
+      // it or else we'll leak memory. This disposable will unmount the component.
+      //
+      // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
+      const gutterCleanup = new Disposable(() => {
+        this.cachedGutterElements.delete(index)
+
+        ReactDOM.unmountComponentAtNode(reactContainer)
+
+        line.off('delete', deleteHandler)
+      })
+
+      // Add the cleanup disposable to our list of disposables so that we clean up when
+      // this component is unmounted or when the line is re-rendered. When either of that
+      // happens the line 'delete' event doesn't  fire.
+      this.lineCleanup.set(line, gutterCleanup)
+
+      // If the line delete event fires we dispose of the disposable (disposing is
+      // idempotent)
+      deleteHandler = () => {
+        const disp = this.lineCleanup.get(line)
+        if (disp) {
+          this.lineCleanup.delete(line)
+          disp.dispose()
+        }
+      }
+      line.on('delete', deleteHandler)
     }
   }
 
