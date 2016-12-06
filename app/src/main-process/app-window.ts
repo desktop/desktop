@@ -6,6 +6,7 @@ import { WindowState, windowStateChannelName } from '../lib/window-state'
 import { MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-url'
 import { ILaunchStats } from '../lib/stats'
+import { menuFromElectronMenu } from '../models/app-menu'
 
 let windowStateKeeper: any | null = null
 
@@ -193,7 +194,8 @@ export class AppWindow {
 
   /** Send the app menu to the renderer. */
   public sendAppMenu() {
-    this.window.webContents.send('app-menu', { menu: Menu.getApplicationMenu() })
+    const menu = menuFromElectronMenu(Menu.getApplicationMenu())
+    this.window.webContents.send('app-menu', { menu })
   }
 
   /**

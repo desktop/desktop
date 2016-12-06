@@ -4,6 +4,7 @@ import { Commit } from '../../models/commit'
 import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
 import { CommitListItem } from '../history/commit-list-item'
 import { User } from '../../models/user'
+import { CommitIdentity } from '../../models/commit-identity'
 
 interface IConfigureGitProps {
   readonly users: ReadonlyArray<User>
@@ -50,14 +51,18 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, IConfigure
 
   public render() {
     const now = new Date()
-    const dummyCommit1 = new Commit('', 'Do more things', '', 'Hubot', this.state.email, this.dateWithMinuteOffset(now, -2), [])
-    const dummyCommit3 = new Commit('', 'Add some things', '', 'Hubot', this.state.email, this.dateWithMinuteOffset(now, -60), [])
+    const dummyAuthor1 = new CommitIdentity('Hubot', this.state.email, this.dateWithMinuteOffset(now, -2))
+    const dummyCommit1 = new Commit('', 'Do more things', '', dummyAuthor1, [])
+
+    const dummyAuthor3 = new CommitIdentity('Hubot', this.state.email, this.dateWithMinuteOffset(now, -60))
+    const dummyCommit3 = new Commit('', 'Add some things', '', dummyAuthor3, [])
 
     // NB: We're using the name as the commit SHA:
     //  1. `Commit` is referentially transparent wrt the SHA. So in order to get
     //     it to update when we name changes, we need to change the SHA.
     //  2. We don't display the SHA so the user won't ever know our secret.
-    const dummyCommit2 = new Commit(this.state.name, 'Fix all the things', '', this.state.name, this.state.email, this.dateWithMinuteOffset(now, -30), [])
+    const dummyAuthor2 = new CommitIdentity(this.state.name, this.state.email, this.dateWithMinuteOffset(now, -30))
+    const dummyCommit2 = new Commit(this.state.name, 'Fix all the things', '', dummyAuthor2, [])
     const emoji = new Map()
     return (
       <div id='configure-git'>
