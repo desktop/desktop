@@ -54,7 +54,7 @@ interface IDiffGutterProps {
   /**
    * Callback to signal when the mouse button is pressed on this element
    */
-  readonly onMouseDown: (index: number, isHunkSelection: boolean) => void
+  readonly onMouseDown: (index: number, isRangeSelection: boolean) => void
 
   /**
    * Callback to signal when the mouse is hovering over this element
@@ -67,9 +67,12 @@ interface IDiffGutterProps {
   readonly onMouseUp: (index: number) => void
 }
 
-// TODO: this doesn't consider mouse events outside the right edge
 
-function isMouseInHunkSelectionZone(ev: MouseEvent): boolean {
+
+/**
+ * Detect if mouse cursor is within the range
+ */
+function isMouseCursorNearEdge(ev: MouseEvent): boolean {
   // MouseEvent is not generic, but getBoundingClientRect should be
   // available for all HTML elements
   // docs: https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
@@ -110,20 +113,20 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private mouseEnterHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    const isHunkSelection = isMouseInHunkSelectionZone(ev)
+    const isRangeSelection = isMouseCursorNearEdge(ev)
 
-    this.updateHoverState(isHunkSelection, true)
+    this.updateHoverState(isRangeSelection, true)
   }
 
   private mouseLeaveHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    const isHunkSelection = isMouseInHunkSelectionZone(ev)
-    this.updateHoverState(isHunkSelection, false)
+    const isRangeSelection = isMouseCursorNearEdge(ev)
+    this.updateHoverState(isRangeSelection, false)
   }
 
-  private updateHoverState(isHunkSelection: boolean, isActive: boolean) {
-    if (isHunkSelection) {
+  private updateHoverState(isRangeSelection: boolean, isActive: boolean) {
+    if (isRangeSelection) {
       const range = this.props.diff.findInteractiveDiffRange(this.props.index)
       if (!range) {
         console.error('unable to find range for given index in diff')
@@ -138,7 +141,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private mouseMoveHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    const isHunkSelection = isMouseInHunkSelectionZone(ev)
+    const isRangeSelection = isMouseCursorNearEdge(ev)
     const isSelectionActive = this.props.isSelectionEnabled()
 
     const range = this.props.diff.findInteractiveDiffRange(this.props.index)
@@ -148,10 +151,10 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     }
 
     // selection is not active, perform highlighting based on mouse position
-    if (isHunkSelection && range && isSelectionActive) {
+    if (isRangeSelection && range && isSelectionActive) {
       this.props.updateRangeHoverState(range.start, range.end, true)
     } else {
-      // clear hunk selection in case hunk was previously higlighted
+      // clear range selection in case range was previously higlighted
       this.props.updateRangeHoverState(range.start, range.end, false)
       this.setHover(true)
     }
@@ -168,8 +171,8 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private mouseDownHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
-    const isHunkSelection = isMouseInHunkSelectionZone(ev)
-    this.props.onMouseDown(this.props.index, isHunkSelection)
+    const isRangeSelection = isMouseCursorNearEdge(ev)
+    this.props.onMouseDown(this.props.index, isRangeSelection)
   }
 
   private applyEventHandlers = (elem: HTMLSpanElement) => {
