@@ -24,7 +24,7 @@ interface IButtonProps {
    * handling of the `ref` type into some ungodly monstrosity. Hopefully someday
    * this will be unnecessary.
    */
-  readonly reference?: (instance: HTMLButtonElement) => void
+  readonly onButtonRef?: (instance: HTMLButtonElement) => void
 }
 
 /** A button component. */
@@ -38,7 +38,7 @@ export class Button extends React.Component<IButtonProps, void> {
         disabled={this.props.disabled}
         onClick={this.onClick}
         type={this.props.type}
-        ref={this.props.reference}>
+        ref={this.props.onButtonRef}>
         {this.props.children}
       </button>
     )
