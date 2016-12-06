@@ -8,7 +8,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
 
   const updateMenuItems: Electron.MenuItemOptions[] = [
     {
-      label: __DARWIN__ ? 'Check for Updates…' : '&Check for Updates…',
+      label: __DARWIN__ ? 'Check for Updates…' : '&Check for updates…',
       id: 'check-for-updates',
       visible: true,
       click: emit('check-for-updates'),
