@@ -91,10 +91,15 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
   }
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
+    const list = this.list
+    if (!list) { return }
+
     let focusInput = false
-    if (event.key === 'ArrowUp' && row === 1) {
+    const firstSelectableRow = list.nextSelectableRow('down', 0)
+    const lastSelectableRow = list.nextSelectableRow('up', 0)
+    if (event.key === 'ArrowUp' && row === firstSelectableRow) {
       focusInput = true
-    } else if (event.key === 'ArrowDown' && row === this.state.listItems.length - 1) {
+    } else if (event.key === 'ArrowDown' && row === lastSelectableRow) {
       focusInput = true
     }
 
