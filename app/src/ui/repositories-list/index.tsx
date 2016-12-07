@@ -46,6 +46,7 @@ function getSelectedRowIndex(repositories: ReadonlyArray<RepositoryListItemModel
 /** The list of user-added repositories. */
 export class RepositoriesList extends React.Component<IRepositoriesListProps, IRepositoriesListState> {
   private list: List | null = null
+  private filterInput: HTMLInputElement | null = null
 
   public constructor(props: IRepositoriesListProps) {
     super(props)
@@ -90,10 +91,20 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
   }
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
+    let focusInput = false
     if (event.key === 'ArrowUp' && row === 1) {
       event.preventDefault()
+      focusInput = true
     } else if (event.key === 'ArrowDown' && row === this.state.listItems.length - 1) {
       event.preventDefault()
+      focusInput = true
+    }
+
+    if (focusInput) {
+      const input = this.filterInput
+      if (input) {
+        input.focus()
+      }
     }
   }
 
@@ -128,7 +139,8 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
             placeholder='Filter'
             autoFocus={true}
             onChange={this.onFilterChanged}
-            onKeyDown={this.onKeyDown}/>
+            onKeyDown={this.onKeyDown}
+            onInputRef={this.onInputRef}/>
         </Row>
 
         <List
@@ -150,6 +162,10 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
     this.list = instance
   }
 
+  private onInputRef = (instance: HTMLInputElement | null) => {
+    this.filterInput = instance
+  }
+
   private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const text = event.currentTarget.value
     this.setState(this.createState(this.props, text))
@@ -160,10 +176,28 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
     if (!list) { return }
 
     if (event.key === 'ArrowDown') {
-      list.focus()
+      if (this.state.listItems.length > 0) {
+        this.setState({
+          listItems: this.state.listItems,
+          selectedRowIndex: 1,
+          filter: this.state.filter,
+        }, () => {
+          list.focus()
+        })
+      }
+
       event.preventDefault()
     } else if (event.key === 'ArrowUp') {
-      list.focus()
+      if (this.state.listItems.length > 0) {
+        this.setState({
+          listItems: this.state.listItems,
+          selectedRowIndex: this.state.listItems.length - 1,
+          filter: this.state.filter,
+        }, () => {
+          list.focus()
+        })
+      }
+
       event.preventDefault()
     } else if (event.key === 'Enter') {
 
