@@ -195,7 +195,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
       this.wrapper = ref
       this.wrapper.addEventListener('mousemove', this.onMouseMove)
     } else {
-      if(this.wrapper) {
+      if (this.wrapper) {
         this.wrapper.removeEventListener('mousemove', this.onMouseMove)
       }
     }
