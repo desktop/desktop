@@ -183,7 +183,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
       if (this.state.listItems.length > 0) {
         this.setState({
           listItems: this.state.listItems,
-          selectedRowIndex: 1,
+          selectedRowIndex: list.nextSelectableRow('down', 0),
           filter: this.state.filter,
         }, () => {
           list.focus()
@@ -195,7 +195,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
       if (this.state.listItems.length > 0) {
         this.setState({
           listItems: this.state.listItems,
-          selectedRowIndex: this.state.listItems.length - 1,
+          selectedRowIndex: list.nextSelectableRow('up', 0),
           filter: this.state.filter,
         }, () => {
           list.focus()
