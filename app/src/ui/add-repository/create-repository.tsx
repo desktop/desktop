@@ -100,7 +100,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     })
   }
 
-  private onCreateWithREADMEChange = (event: React.FormEvent<HTMLInputElement>) => {
+  private onCreateWithReadmeChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({
       path: this.state.path,
       name: this.state.name,
@@ -141,7 +141,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         <Checkbox
           label='Initialize this repository with a README'
           value={this.state.createWithReadme ? CheckboxValue.On : CheckboxValue.Off}
-          onChange={this.onCreateWithREADMEChange}/>
+          onChange={this.onCreateWithReadmeChange}/>
 
         <hr/>
 
