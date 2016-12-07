@@ -227,7 +227,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     const pageX = ev.pageX
 
     const distanceFromGutter =  pageX - (offset + gutterWidth)
-    return distanceFromGutter <= RangeSelectionEdgeSize
+    return distanceFromGutter >= 0 && distanceFromGutter <= RangeSelectionEdgeSize
   }
 
   private onMouseDown = (ev: MouseEvent) => {
