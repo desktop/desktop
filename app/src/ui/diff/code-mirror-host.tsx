@@ -192,6 +192,10 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     }
 
     const isActive = this.isMouseCursorNearGutter(ev)
+    if (isActive === null) {
+      return
+    }
+
     this.props.onShowHoverStatus(lineNumber, isActive)
   }
 
@@ -213,21 +217,26 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     return viewPort.from + Math.floor(relativeTop / lineHeight)
   }
 
-  private isMouseCursorNearGutter = (ev: MouseEvent): boolean =>  {
+  private isMouseCursorNearGutter = (ev: MouseEvent): boolean | null =>  {
     if (!this.wrapper) {
-      return false
+      return null
     }
 
     const gutterWidth = this.resolveGutterWidth()
     if (!gutterWidth) {
-      return false
+      return null
     }
 
     const offset = this.wrapper.offsetLeft
     const pageX = ev.pageX
 
     const distanceFromGutter =  pageX - (offset + gutterWidth)
-    return distanceFromGutter >= 0 && distanceFromGutter <= RangeSelectionEdgeSize
+
+    if (distanceFromGutter < 0) {
+      return null
+    }
+
+    return distanceFromGutter <= RangeSelectionEdgeSize
   }
 
   private onMouseDown = (ev: MouseEvent) => {
