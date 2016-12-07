@@ -93,16 +93,15 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
     let focusInput = false
     if (event.key === 'ArrowUp' && row === 1) {
-      event.preventDefault()
       focusInput = true
     } else if (event.key === 'ArrowDown' && row === this.state.listItems.length - 1) {
-      event.preventDefault()
       focusInput = true
     }
 
     if (focusInput) {
       const input = this.filterInput
       if (input) {
+        event.preventDefault()
         input.focus()
       }
     }
