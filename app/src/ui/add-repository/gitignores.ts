@@ -20,7 +20,7 @@ function getCachedGitIgnores(): Promise<Map<string, string>> {
 
           cachedGitIgnores = new Map()
           for (const file of ignoreFiles) {
-            cachedGitIgnores.set(Path.basename(file, GitIgnoreExtension), file)
+            cachedGitIgnores.set(Path.basename(file, GitIgnoreExtension), Path.join(root, file))
           }
 
           resolve(cachedGitIgnores)
