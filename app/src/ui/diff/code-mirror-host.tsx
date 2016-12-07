@@ -33,7 +33,7 @@ interface ICodeMirrorHostProps {
 }
 
 /** use a range of pixels near the edge to indicate whether a range selection should fire */
-const RangeSelectionEdgeSize = 15
+const RangeSelectionEdgeSize = 10
 
 /**
  * A component hosting a CodeMirror instance
