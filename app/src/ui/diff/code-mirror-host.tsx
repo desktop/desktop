@@ -22,6 +22,9 @@ interface ICodeMirrorHostProps {
 
   /** Callback for when CodeMirror has completed a batch of changes to the editor */
   readonly onChanges?: (cm: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void
+
+  /** Callback when user is hovering over diff text */
+  readonly onShowHoverStatus?: (line: number, active: boolean) => void
 }
 
 /**
@@ -31,6 +34,9 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
 
   private wrapper: HTMLDivElement | null
   private codeMirror: CodeMirror.Editor | null
+
+  private gutterWidth_: number | null
+  private lineHeight_: number | null
 
   /**
    * Gets the internal CodeMirror instance or null if CodeMirror hasn't
@@ -90,6 +96,10 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   }
 
   private onChanges = (cm: CodeMirror.Editor, changes: CodeMirror.EditorChangeLinkedList[]) => {
+
+    // when the text changes, clear the cached value for the gutter width
+    this.gutterWidth_ = null
+
     if (this.props.onChanges) {
       this.props.onChanges(cm, changes)
     }
@@ -101,8 +111,94 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     }
   }
 
+  /**
+   * compute the gutter width using the rendered elements in the current diff
+   */
+  private resolveGutterWidth = (): number | null => {
+
+    if (this.gutterWidth_) {
+      return this.gutterWidth_
+    }
+
+    if (!this.wrapper) {
+      return null
+    }
+
+    const gutterElements = this.wrapper.getElementsByClassName('diff-line-number')
+
+    // if we don't have at least two elements rendered (i.e. one row), give up
+    if (gutterElements.length < 2) {
+      return null
+    }
+
+    const left = gutterElements[0]
+    const right = gutterElements[1]
+
+    // if these elements haven't been rendered, they won't have these values set
+    if (left.clientWidth === 0 || right.clientWidth === 0) {
+      return null
+    }
+
+    this.gutterWidth_ = left.clientWidth + right.clientWidth
+
+    return this.gutterWidth_
+  }
+
+  private resolveLineHeight = (): number | null => {
+    if (this.lineHeight_) {
+      return this.lineHeight_
+    }
+
+    if (!this.codeMirror) {
+      return null
+    }
+
+    // HACK: coming back to this, FML codemirror
+    this.lineHeight_ = 19.625 //this.codeMirror.defaultTextHeight()
+
+    return this.lineHeight_
+  }
+
+  private onMouseMove = (ev: MouseEvent) => {
+    if (!this.props.onShowHoverStatus) {
+      return
+    }
+
+    const gutterWidth = this.resolveGutterWidth()
+    if (!gutterWidth) {
+      console.debug('unable to compute the diff gutter width')
+      return
+    }
+
+    const lineHeight = this.resolveLineHeight()
+    if (!lineHeight) {
+      console.debug('unable to compute the line height')
+      return
+    }
+
+    if (this.wrapper) {
+      const relativeTop = ev.clientY - this.wrapper.offsetTop
+      const lineNumber = Math.floor(relativeTop / lineHeight)
+
+      const offset = this.wrapper.offsetLeft
+      const pageX = ev.pageX
+
+      const distanceFromEdge = pageX - (offset + gutterWidth)
+      const isActive = distanceFromEdge <= 15
+
+      this.props.onShowHoverStatus(lineNumber, isActive)
+    }
+  }
+
   private onRef = (ref: HTMLDivElement) => {
-    this.wrapper = ref
+    if (ref) {
+      this.wrapper = ref
+      this.wrapper.addEventListener('mousemove', this.onMouseMove)
+    } else {
+      if(this.wrapper) {
+        this.wrapper.removeEventListener('mousemove', this.onMouseMove)
+      }
+    }
   }
 
   public render() {

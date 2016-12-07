@@ -214,6 +214,22 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
  }
 
+ private showHoverStatus = (index: number, active: boolean) => {
+   const diff = this.props.diff.diffLineForIndex(index)
+   if (!diff || !diff.isIncludeableLine()) {
+     // ignore events around non-includeable lines
+     return
+   }
+
+   const range = this.props.diff.findInteractiveDiffRange(index)
+   if (!range) {
+     console.error('unable to find range for given index in diff')
+     return
+   }
+
+    this.updateRangeHoverState(range.start, range.end, active)
+ }
+
   public renderLine = (instance: any, line: any, element: HTMLElement) => {
 
     const existingLineDisposable = this.lineCleanup.get(line)
@@ -378,6 +394,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         isSelectionEnabled={this.isSelectionEnabled}
         onChanges={this.onChanges}
         onRenderLine={this.renderLine}
+        onShowHoverStatus={this.showHoverStatus}
         ref={this.getAndStoreCodeMirrorInstance}
       />
     )
