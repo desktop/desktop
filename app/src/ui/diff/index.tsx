@@ -230,7 +230,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.updateRangeHoverState(range.start, range.end, active)
  }
 
-  public renderLine = (instance: any, line: any, element: HTMLElement) => {
+  private renderLine = (instance: any, line: any, element: HTMLElement) => {
 
     const existingLineDisposable = this.lineCleanup.get(line)
 
@@ -330,7 +330,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
   }
 
-  public onChanges = (cm: Editor) => {
+  private onChanges = (cm: Editor) => {
     this.restoreScrollPosition(cm)
   }
 
