@@ -163,8 +163,14 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
       return null
     }
 
-    // HACK: coming back to this, FML codemirror
-    this.lineHeight_ = 19.625 //this.codeMirror.defaultTextHeight()
+    // HACK: method doesn't exist on type declarations
+    const mirror: any = this.codeMirror
+    const heightOfHeader: number = mirror.heightAtLine(0)
+    const heightOfFirstLine: number = mirror.heightAtLine(1)
+
+    if (heightOfHeader && heightOfFirstLine) {
+      this.lineHeight_ = heightOfFirstLine - heightOfHeader
+    }
 
     return this.lineHeight_
   }
@@ -196,7 +202,17 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
       return null
     }
 
+    if (!this.codeMirror) {
+      console.debug('unable to get to the current codemirror instance')
+      return null
+    }
+
+    const viewPort = this.codeMirror.getViewport()
+
+    console.debug(`viewport: ${viewPort.from}, ${viewPort.to}`)
+
     const relativeTop = ev.clientY - wrapper.offsetTop
+
     return Math.floor(relativeTop / lineHeight)
   }
 
