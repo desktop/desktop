@@ -207,13 +207,10 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
       return null
     }
 
-    const viewPort = this.codeMirror.getViewport()
-
-    console.debug(`viewport: ${viewPort.from}, ${viewPort.to}`)
-
     const relativeTop = ev.clientY - wrapper.offsetTop
 
-    return Math.floor(relativeTop / lineHeight)
+    const viewPort = this.codeMirror.getViewport()
+    return viewPort.from + Math.floor(relativeTop / lineHeight)
   }
 
   private isMouseCursorNearGutter = (ev: MouseEvent): boolean =>  {
