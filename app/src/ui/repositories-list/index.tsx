@@ -199,9 +199,6 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
       }
 
       event.preventDefault()
-    } else if (event.key === 'Enter') {
-
-      event.preventDefault()
     } else if (event.key === 'Escape') {
       if (this.state.filter.length === 0) {
         this.props.dispatcher.closeFoldout()
