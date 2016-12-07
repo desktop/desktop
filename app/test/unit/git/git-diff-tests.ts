@@ -2,7 +2,7 @@ import * as chai from 'chai'
 const expect = chai.expect
 
 import * as path from 'path'
-const fs = require('fs-extra')
+import * as fs from 'fs-extra'
 
 import { Repository } from '../../../src/models/repository'
 import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'

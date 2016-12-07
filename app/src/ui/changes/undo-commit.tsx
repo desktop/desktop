@@ -3,6 +3,7 @@ import * as React from 'react'
 import { Commit } from '../../models/commit'
 import { EmojiText } from '../lib/emoji-text'
 import { RelativeTime } from '../relative-time'
+import { Button } from '../lib/button'
 
 interface IUndoCommitProps {
   /** The function to call when the Undo button is clicked. */
@@ -17,7 +18,7 @@ interface IUndoCommitProps {
 /** The Undo Commit component. */
 export class UndoCommit extends React.Component<IUndoCommitProps, void> {
   public render() {
-    const authorDate = this.props.commit.authorDate
+    const authorDate = this.props.commit.author.date
     return (
       <div id='undo-commit'>
         <div className='commit-info'>
@@ -25,7 +26,7 @@ export class UndoCommit extends React.Component<IUndoCommitProps, void> {
           <EmojiText emoji={this.props.emoji} className='summary'>{this.props.commit.summary}</EmojiText>
         </div>
         <div className='actions'>
-          <button className='button' onClick={this.props.onUndo}>Undo</button>
+          <Button type='submit' onClick={this.props.onUndo}>Undo</Button>
         </div>
       </div>
     )

@@ -12,7 +12,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffHunk, DiffLine, DiffLineType, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
+import { DiffHunk, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { DiffLineGutter } from './diff-line-gutter'
@@ -21,13 +21,27 @@ import { getDiffMode } from './diff-mode'
 import { ISelectionStrategy } from './selection/selection-strategy'
 import { DragDropSelection } from './selection/drag-drop-selection-strategy'
 import { HunkSelection } from './selection/hunk-selection-strategy'
-import { hoverCssClass, selectedLineClass } from './selection/selection'
 
 import { fatalError } from '../../lib/fatal-error'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
   require('codemirror/addon/scroll/simplescrollbars')
+}
+
+
+/**
+ * normalize the line endings in the diff so that the CodeMirror editor
+ * will display the unified diff correctly
+ */
+function formatLineEnding(text: string): string {
+  if (text.endsWith('\n')) {
+    return text
+  } else if (text.endsWith('\r')) {
+    return text + '\n'
+  } else {
+    return text + '\r\n'
+  }
 }
 
 /** The props for the Diff component. */
@@ -80,8 +94,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   /**
    *  a local cache of gutter elements, keyed by the row in the diff
    */
-  private cachedGutterElements = new Map<number, HTMLSpanElement>()
-
+  private cachedGutterElements = new Map<number, DiffLineGutter>()
 
   public componentWillReceiveProps(nextProps: IDiffProps) {
     // If we're reloading the same file, we want to save the current scroll
@@ -114,22 +127,15 @@ export class Diff extends React.Component<IDiffProps, void> {
 
       const diff = nextProps.diff
       this.cachedGutterElements.forEach((element, index) => {
-        const childSpan = element.children[0] as HTMLSpanElement
-        if (!childSpan) {
+        if (!element) {
           console.error('expected DOM element for diff gutter not found')
           return
         }
 
         const line = diff.diffLineForIndex(index)
-        const isIncludable = line
-          ? line.type === DiffLineType.Add || line.type === DiffLineType.Delete
-          : false
-
-        if (selection.isSelected(index) && isIncludable) {
-          childSpan.classList.add(selectedLineClass)
-        } else {
-          childSpan.classList.remove(selectedLineClass)
-        }
+        const isIncludable = line ? line.isIncludeableLine() : false
+        const isSelected = selection.isSelected(index) && isIncludable
+        element.setSelected(isSelected)
       })
     }
   }
@@ -141,20 +147,55 @@ export class Diff extends React.Component<IDiffProps, void> {
   private dispose() {
     this.codeMirror = null
 
-    this.lineCleanup.forEach((disposable) => disposable.dispose())
+    this.lineCleanup.forEach(disposable => disposable.dispose())
     this.lineCleanup.clear()
   }
 
-  private onMouseDown(index: number, selected: boolean, isHunkSelection: boolean) {
-    if (this.props.readOnly) {
+  private updateHunkHoverState = (hunk: DiffHunk, show: boolean) => {
+    const start = hunk.unifiedDiffStart
+
+    hunk.lines.forEach((line, index) => {
+      if (line.isIncludeableLine()) {
+        const row = start + index
+        this.highlightLine(row, show)
+      }
+    })
+  }
+
+  private highlightLine = (row: number, include: boolean) => {
+    const element = this.cachedGutterElements.get(row)
+
+    if (!element) {
+      // element not currently cached by the editor, don't try and update it
       return
     }
 
+    element.setHover(include)
+  }
+
+  private onMouseUp = () => {
+    if (!this.props.onIncludeChanged) {
+      return
+    }
+
+    if (!this.selection) {
+      return
+    }
+
+    this.props.onIncludeChanged(this.selection.done())
+
+    // operation is completed, clean this up
+    this.selection = null
+  }
+
+  private onMouseDown = (index: number, isHunkSelection: boolean) => {
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
       fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
       return
     }
+
     const snapshot = this.props.file.selection
+    const selected = snapshot.isSelected(index)
     const desiredSelection = !selected
 
     if (isHunkSelection) {
@@ -174,77 +215,12 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.selection.paint(this.cachedGutterElements)
   }
 
-  private onMouseUp(index: number) {
-    if (this.props.readOnly || !this.props.onIncludeChanged) {
-      return
+  private onMouseMove = (index: number) => {
+    if (this.selection) {
+      this.selection.update(index)
+      this.selection.paint(this.cachedGutterElements)
     }
-
-    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
-      fatalError('must not complete selection when selected file is not a WorkingDirectoryFileChange')
-      return
-    }
-
-    const selection = this.selection
-    if (!selection) {
-      return
-    }
-
-    selection.apply(this.props.onIncludeChanged)
-
-    // operation is completed, clean this up
-    this.selection = null
-  }
-
-  private isIncludableLine(line: DiffLine): boolean {
-    return line.type === DiffLineType.Add || line.type === DiffLineType.Delete
-  }
-
-  private isMouseInHunkSelectionZone(ev: MouseEvent): boolean {
-    // MouseEvent is not generic, but getBoundingClientRect should be
-    // available for all HTML elements
-    // docs: https://developer.mozilla.org/en-US/docs/Web/API/Element/getBoundingClientRect
-
-    const element: any = ev.currentTarget
-    const offset: ClientRect = element.getBoundingClientRect()
-    const relativeLeft = ev.clientX - offset.left
-
-    const edge = offset.width - 10
-
-    return relativeLeft >= edge
-  }
-
-  private highlightHunk(hunk: DiffHunk, show: boolean) {
-    const start = hunk.unifiedDiffStart
-
-    hunk.lines.forEach((line, index) => {
-      if (this.isIncludableLine(line)) {
-        const row = start + index
-        this.highlightLine(row, show)
-      }
-    })
-  }
-
-  private highlightLine(row: number, include: boolean) {
-    const element = this.cachedGutterElements.get(row)
-
-    if (!element) {
-      // no point trying to render this element, as it's not
-      // currently cached by the editor
-      return
-    }
-
-    const childSpan = element.children[0] as HTMLSpanElement
-    if (!childSpan) {
-      console.error('expected DOM element for diff gutter not found')
-      return
-    }
-
-    if (include) {
-      childSpan.classList.add(hoverCssClass)
-    } else {
-      childSpan.classList.remove(hoverCssClass)
-    }
-  }
+ }
 
   public renderLine = (instance: any, line: any, element: HTMLElement) => {
 
@@ -258,7 +234,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       this.lineCleanup.delete(line)
     }
 
-    const index = instance.getLineNumber(line)
+    const index = instance.getLineNumber(line) as number
     const hunk = this.props.diff.diffHunkForIndex(index)
     if (hunk) {
       const relativeIndex = index - hunk.unifiedDiffStart
@@ -268,99 +244,33 @@ export class Diff extends React.Component<IDiffProps, void> {
 
         const reactContainer = document.createElement('span')
 
-        const mouseEnterHandler = (ev: MouseEvent) => {
-          ev.preventDefault()
-
-          if (!this.isIncludableLine(diffLine)) {
-            return
-          }
-
-          if (this.isMouseInHunkSelectionZone(ev)) {
-            this.highlightHunk(hunk, true)
-          } else {
-            this.highlightLine(index, true)
-          }
-        }
-
-        const mouseLeaveHandler = (ev: MouseEvent) => {
-          ev.preventDefault()
-
-          if (!this.isIncludableLine(diffLine)) {
-            return
-          }
-
-          if (this.isMouseInHunkSelectionZone(ev)) {
-            this.highlightHunk(hunk, false)
-          } else {
-            this.highlightLine(index, false)
-          }
-        }
-
-        const mouseDownHandler = (ev: MouseEvent) => {
-          ev.preventDefault()
-
-          const isHunkSelection = this.isMouseInHunkSelectionZone(ev)
-
-          let isIncluded = false
-          if (this.props.file instanceof WorkingDirectoryFileChange) {
-            isIncluded = this.props.file.selection.isSelected(index)
-          }
-          this.onMouseDown(index, isIncluded, isHunkSelection)
-        }
-
-        const mouseMoveHandler = (ev: MouseEvent) => {
-
-          ev.preventDefault()
-
-          // ignoring anything from diff context rows
-          if (!this.isIncludableLine(diffLine)) {
-            return
-          }
-
-          // if selection is active, perform highlighting
-          if (!this.selection) {
-
-            // clear hunk selection in case transitioning from hunk->line
-            this.highlightHunk(hunk, false)
-
-            if (this.isMouseInHunkSelectionZone(ev)) {
-              this.highlightHunk(hunk, true)
-            } else {
-              this.highlightLine(index, true)
-            }
-            return
-          }
-
-          this.selection.update(index)
-          this.selection.paint(this.cachedGutterElements)
-        }
-
-        const mouseUpHandler = (ev: UIEvent) => {
-          ev.preventDefault()
-
-          this.onMouseUp(index)
-        }
-
-        if (!this.props.readOnly) {
-          reactContainer.addEventListener('mouseenter', mouseEnterHandler)
-          reactContainer.addEventListener('mouseleave', mouseLeaveHandler)
-          reactContainer.addEventListener('mousemove', mouseMoveHandler)
-          reactContainer.addEventListener('mousedown', mouseDownHandler)
-          reactContainer.addEventListener('mouseup', mouseUpHandler)
-        }
-
-        this.cachedGutterElements.set(index, reactContainer)
-
         let isIncluded = false
         if (this.props.file instanceof WorkingDirectoryFileChange) {
           isIncluded = this.props.file.selection.isSelected(index)
         }
 
+        const cache = this.cachedGutterElements
+
         ReactDOM.render(
           <DiffLineGutter
             line={diffLine}
             isIncluded={isIncluded}
-          />, reactContainer)
+            index={index}
+            readOnly={this.props.readOnly}
+            diff={this.props.diff}
+            updateHunkHoverState={this.updateHunkHoverState}
+            isSelectionEnabled={this.isSelectionEnabled}
+            onMouseUp={this.onMouseUp}
+            onMouseDown={this.onMouseDown}
+            onMouseMove={this.onMouseMove} />,
+          reactContainer,
+          function (this: DiffLineGutter) {
+            if (this !== undefined) {
+              cache.set(index, this)
+            }
+          }
+        )
+
         element.insertBefore(reactContainer, diffLineElement)
 
         // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
@@ -378,16 +288,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         //
         // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
         const gutterCleanup = new Disposable(() => {
-
           this.cachedGutterElements.delete(index)
-
-          if (!this.props.readOnly) {
-            reactContainer.removeEventListener('mouseenter', mouseEnterHandler)
-            reactContainer.removeEventListener('mouseleave', mouseLeaveHandler)
-            reactContainer.removeEventListener('mousedown', mouseDownHandler)
-            reactContainer.removeEventListener('mousemove', mouseMoveHandler)
-            reactContainer.removeEventListener('mouseup', mouseUpHandler)
-          }
 
           ReactDOM.unmountComponentAtNode(reactContainer)
 
@@ -446,20 +347,6 @@ export class Diff extends React.Component<IDiffProps, void> {
     return null
   }
 
-  /**
-   * normalize the line endings in the diff so that the CodeMirror Editor
-   * will display the unified diff correctly
-   */
-  private formatLineEnding(text: string): string {
-    if (text.endsWith('\n')) {
-      return text
-    } else if (text.endsWith('\r')) {
-      return text + '\n'
-    } else {
-      return text + '\r\n'
-    }
-  }
-
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
     this.codeMirror = cmh === null ? null : cmh.getEditor()
   }
@@ -479,7 +366,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     let diffText = ''
 
     this.props.diff.hunks.forEach(hunk => {
-      hunk.lines.forEach(l => diffText += this.formatLineEnding(l.text))
+      hunk.lines.forEach(l => diffText += formatLineEnding(l.text))
     })
 
     const options: IEditorConfigurationExtra = {

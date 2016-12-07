@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import * as classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
+import { Button } from '../lib/button'
 
 /** The button style. */
 export enum ToolbarButtonStyle {
@@ -77,11 +78,11 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     return (
       <div className={className}>
         {preContent}
-        <button onClick={this.onClick} ref={this.onButtonRef}>
+        <Button onClick={this.onClick} onButtonRef={this.onButtonRef}>
           {icon}
           {this.renderText()}
           {this.props.children}
-        </button>
+        </Button>
       </div>
     )
   }

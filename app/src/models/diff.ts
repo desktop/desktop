@@ -24,6 +24,10 @@ export class DiffLine {
   public withNoTrailingNewLine(noTrailingNewLine: boolean): DiffLine {
     return new DiffLine(this.text, this.type, this.oldLineNumber, this.newLineNumber, noTrailingNewLine)
   }
+
+  public isIncludeableLine() {
+    return this.type === DiffLineType.Add || this.type === DiffLineType.Delete
+  }
 }
 
 /** details about the start and end of a diff hunk */

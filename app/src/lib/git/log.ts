@@ -2,6 +2,7 @@ import { git } from './core'
 import { FileStatus, FileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
+import { CommitIdentity } from '../../models/commit-identity'
 import { mapStatus } from './status'
 
 /**
@@ -14,13 +15,22 @@ export async function getCommits(repository: Repository, revisionRange: string, 
     '%H', // SHA
     '%s', // summary
     '%b', // body
-    '%an', // author name
-    '%ae', // author email
-    '%aI', // author date, ISO-8601
+    // author identity string, matching format of GIT_AUTHOR_IDENT.
+    //   author name <author email> <author date>
+    // author date format dependent on --date arg, should be raw
+    '%an <%ae> %ad',
     '%P', // parent SHAs
   ].join(`%x${delimiter}`)
 
-  const result = await git([ 'log', revisionRange, `--max-count=${limit}`, `--pretty=${prettyFormat}`, '-z', '--no-color', ...additionalArgs ], repository.path, 'getCommits', { successExitCodes: new Set([ 0, 128 ]) })
+  const result = await git([
+    'log',
+    revisionRange,
+    `--date=raw`,
+    `--max-count=${limit}`,
+    `--pretty=${prettyFormat}`,
+    '-z',
+    '--no-color', ...additionalArgs,
+  ], repository.path, 'getCommits', { successExitCodes: new Set([ 0, 128 ]) })
 
   // if the repository has an unborn HEAD, return an empty history of commits
   if (result.exitCode === 128) {
@@ -37,12 +47,16 @@ export async function getCommits(repository: Repository, revisionRange: string, 
     const sha = pieces[0]
     const summary = pieces[1]
     const body = pieces[2]
-    const authorName = pieces[3]
-    const authorEmail = pieces[4]
-    const parsedDate = Date.parse(pieces[5])
-    const authorDate = new Date(parsedDate)
-    const parentSHAs = pieces[6].split(' ')
-    return new Commit(sha, summary, body, authorName, authorEmail, authorDate, parentSHAs)
+    const authorIdentity = pieces[3]
+    const parentSHAs = pieces[4].split(' ')
+
+    const author = CommitIdentity.parseIdentity(authorIdentity)
+
+    if (!author) {
+      throw new Error(`Couldn't parse author identity ${authorIdentity}`)
+    }
+
+    return new Commit(sha, summary, body, author, parentSHAs)
   })
 
   return commits

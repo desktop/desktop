@@ -15,7 +15,7 @@ import { GitProcess } from 'git-kitchen-sink'
 import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
 import { DiffSelectionType, DiffSelection } from '../../../src/models/diff'
 
-const fs = require('fs-extra')
+import * as fs from 'fs-extra'
 const temp = require('temp').track()
 
 describe('git/commit', () => {
