@@ -13,6 +13,8 @@ import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { writeDefaultReadme } from './write-default-readme'
+import { Select } from '../lib/select'
+import { getGitIgnoreNames } from './gitignores'
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -24,6 +26,12 @@ interface ICreateRepositoryState {
 
   /** Should the repository be created with a default README? */
   readonly createWithReadme: boolean
+
+  /** The names for the available gitignores. */
+  readonly gitIgnoreNames: ReadonlyArray<string> | null
+
+  /** The gitignore to include in the repository. */
+  readonly gitIgnore: string | null
 }
 
 /** The Create New Repository component. */
@@ -35,7 +43,20 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       path: defaultPath(),
       name: '',
       createWithReadme: false,
+      gitIgnoreNames: null,
+      gitIgnore: null,
     }
+  }
+
+  public async componentDidMount() {
+    const gitIgnoreNames = await getGitIgnoreNames()
+    this.setState({
+      path: this.state.path,
+      name: this.state.name,
+      createWithReadme: this.state.createWithReadme,
+      gitIgnoreNames,
+      gitIgnore: this.state.gitIgnore,
+    })
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
@@ -44,6 +65,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       path,
       name: this.state.name,
       createWithReadme: this.state.createWithReadme,
+      gitIgnoreNames: this.state.gitIgnoreNames,
+      gitIgnore: this.state.gitIgnore,
     })
   }
 
@@ -53,6 +76,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       path: this.state.path,
       name,
       createWithReadme: this.state.createWithReadme,
+      gitIgnoreNames: this.state.gitIgnoreNames,
+      gitIgnore: this.state.gitIgnore,
     })
   }
 
@@ -65,6 +90,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       path,
       name: this.state.name,
       createWithReadme: this.state.createWithReadme,
+      gitIgnoreNames: this.state.gitIgnoreNames,
+      gitIgnore: this.state.gitIgnore,
     })
   }
 
@@ -105,6 +132,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       path: this.state.path,
       name: this.state.name,
       createWithReadme: event.currentTarget.checked,
+      gitIgnoreNames: this.state.gitIgnoreNames,
+      gitIgnore: this.state.gitIgnore,
     })
   }
 
@@ -114,6 +143,33 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
     return (
       <div>Will be created as {sanitizedName}</div>
+    )
+  }
+
+  private onGitIgnoreChange = (event: React.FormEvent<HTMLSelectElement>) => {
+    const gitIgnore = event.currentTarget.value
+    this.setState({
+      path: this.state.path,
+      name: this.state.name,
+      createWithReadme: this.state.createWithReadme,
+      gitIgnoreNames: this.state.gitIgnoreNames,
+      gitIgnore,
+    })
+  }
+
+  private renderGitIgnores() {
+    const gitIgnores = this.state.gitIgnoreNames || []
+    const options = [ 'None', ...gitIgnores ]
+
+    return (
+      <Select
+        label='Git Ignore'
+        defaultValue='None'
+        value={this.state.gitIgnore || undefined}
+        onChange={this.onGitIgnoreChange}
+      >
+        {options.map(n => <option key={n} value={n}>{n}</option>)}
+      </Select>
     )
   }
 
@@ -142,6 +198,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           label='Initialize this repository with a README'
           value={this.state.createWithReadme ? CheckboxValue.On : CheckboxValue.Off}
           onChange={this.onCreateWithREADMEChange}/>
+
+        {this.renderGitIgnores()}
 
         <hr/>
 
