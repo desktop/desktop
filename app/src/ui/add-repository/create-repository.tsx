@@ -184,7 +184,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private renderGitIgnores() {
     const gitIgnores = this.state.gitIgnoreNames || []
-    const options = [ 'None', ...gitIgnores ]
+    const options = [ NoGitIgnoreValue, ...gitIgnores ]
 
     return (
       <Select
