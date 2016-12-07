@@ -174,7 +174,11 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
       return
     }
 
-    const lineNumber = this.getLineNumber(ev)
+    if (!this.wrapper) {
+      return
+    }
+
+    const lineNumber = this.getLineNumber(ev, this.wrapper)
 
     if (lineNumber === null) {
       console.error('unable to resolve co-ordinates for diff text hover gesture')
@@ -185,18 +189,14 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     this.props.onShowHoverStatus(lineNumber, isActive)
   }
 
-  private getLineNumber = (ev: MouseEvent): number | null => {
-    if (!this.wrapper) {
-      return null
-    }
-
+  private getLineNumber = (ev: MouseEvent, wrapper: HTMLDivElement): number | null => {
     const lineHeight = this.resolveLineHeight()
     if (!lineHeight) {
       console.debug('unable to compute the line height')
       return null
     }
 
-    const relativeTop = ev.clientY - this.wrapper.offsetTop
+    const relativeTop = ev.clientY - wrapper.offsetTop
     return Math.floor(relativeTop / lineHeight)
   }
 
@@ -218,8 +218,12 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   }
 
   private onMouseDown = (ev: MouseEvent) => {
+    if (!this.wrapper) {
+      return
+    }
+
     const isActive = this.isMouseCursorNearGutter(ev)
-    const lineNumber = this.getLineNumber(ev)
+    const lineNumber = this.getLineNumber(ev, this.wrapper)
 
     if (isActive && lineNumber) {
       this.rangeSelectionActive = true
@@ -231,10 +235,16 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
       return
     }
 
-    const lineNumber = this.getLineNumber(ev)
+    if (!this.wrapper) {
+      return
+    }
+
+    const lineNumber = this.getLineNumber(ev, this.wrapper)
     if (this.props.onCompleteRangeSelection && lineNumber) {
       this.props.onCompleteRangeSelection(lineNumber)
     }
+
+    this.rangeSelectionActive = false
   }
 
   private onRef = (ref: HTMLDivElement) => {
