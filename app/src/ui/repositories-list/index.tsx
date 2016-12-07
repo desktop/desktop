@@ -90,7 +90,6 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
   }
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
-    debugger
     if (event.key === 'ArrowUp' && row === 1) {
       event.preventDefault()
     } else if (event.key === 'ArrowDown' && row === this.state.listItems.length - 1) {
