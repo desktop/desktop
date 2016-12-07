@@ -34,6 +34,9 @@ interface ITextBoxProps {
 
   /** The type of the input. Defaults to `text`. */
   readonly type?: 'text' | 'search'
+
+  /** A callback to receive the underlying `input` instance. */
+  readonly onInputRef?: (instance: HTMLInputElement) => void
 }
 
 /** An input element with app-standard styles. */
@@ -53,7 +56,8 @@ export class TextBox extends React.Component<ITextBoxProps, void> {
           placeholder={this.props.placeholder}
           value={this.props.value}
           onChange={this.props.onChange}
-          onKeyDown={this.props.onKeyDown}/>
+          onKeyDown={this.props.onKeyDown}
+          ref={this.props.onInputRef}/>
       </label>
     )
   }
