@@ -32,6 +32,9 @@ interface ICodeMirrorHostProps {
   readonly onCompleteRangeSelection?: (line: number) => void
 }
 
+/** use a range of pixels near the edge to indicate whether a range selection should fire */
+const RangeSelectionEdgeSize = 15
+
 /**
  * A component hosting a CodeMirror instance
  */
@@ -105,6 +108,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
 
     // when the text changes, clear the cached value for the gutter width
     this.gutterWidth_ = null
+    this.lineHeight_ = null
 
     if (this.props.onChanges) {
       this.props.onChanges(cm, changes)
@@ -171,20 +175,17 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     }
 
     const lineNumber = this.getLineNumber(ev)
-    const distanceFromGutter = this.distanceFromGutter(ev)
 
-    if (lineNumber === null || distanceFromGutter === null) {
+    if (lineNumber === null) {
       console.error('unable to resolve co-ordinates for diff text hover gesture')
       return
     }
 
-    const isActive = distanceFromGutter <= 15
-
+    const isActive = this.isMouseCursorNearGutter(ev)
     this.props.onShowHoverStatus(lineNumber, isActive)
   }
 
-  private getLineNumber = (ev:MouseEvent): number | null => {
-
+  private getLineNumber = (ev: MouseEvent): number | null => {
     if (!this.wrapper) {
       return null
     }
@@ -199,26 +200,25 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     return Math.floor(relativeTop / lineHeight)
   }
 
-  private distanceFromGutter = (ev: MouseEvent): number | null => {
+  private isMouseCursorNearGutter = (ev: MouseEvent): boolean =>  {
     if (!this.wrapper) {
-      return null
+      return false
     }
 
     const gutterWidth = this.resolveGutterWidth()
     if (!gutterWidth) {
-      return null
+      return false
     }
 
     const offset = this.wrapper.offsetLeft
     const pageX = ev.pageX
 
-    return pageX - (offset + gutterWidth)
+    const distanceFromGutter =  pageX - (offset + gutterWidth)
+    return distanceFromGutter <= RangeSelectionEdgeSize
   }
 
   private onMouseDown = (ev: MouseEvent) => {
-    const distanceFromGutter = this.distanceFromGutter(ev)
-    const isActive = distanceFromGutter <= 15
-
+    const isActive = this.isMouseCursorNearGutter(ev)
     const lineNumber = this.getLineNumber(ev)
 
     if (isActive && lineNumber) {
