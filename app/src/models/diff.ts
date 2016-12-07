@@ -142,12 +142,14 @@ export class Diff {
        return null
      }
 
-     let contextLineBeforeIndex: number | null = null
+     const relativeIndex = index - hunk.unifiedDiffStart
 
-     for (let i = index - 1; i >= 0; i--) {
+     let contextLineBeforeIndex: number | null = null
+     for (let i = relativeIndex - 1; i >= 0; i--) {
        const line = hunk.lines[i]
        if (!line.isIncludeableLine()) {
-         contextLineBeforeIndex = i + 1
+         const startIndex = i + 1
+         contextLineBeforeIndex = hunk.unifiedDiffStart + startIndex
          break
        }
      }
@@ -158,10 +160,11 @@ export class Diff {
 
      let contextLineAfterIndex: number | null = null
 
-     for (let i = index + 1; i < hunk.lines.length; i++) {
+     for (let i = relativeIndex + 1; i < hunk.lines.length; i++) {
        const line = hunk.lines[i]
        if (!line.isIncludeableLine()) {
-         contextLineAfterIndex = i - 1
+         const endIndex = i - 1
+         contextLineAfterIndex = hunk.unifiedDiffStart + endIndex
          break
        }
      }
