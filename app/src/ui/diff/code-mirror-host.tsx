@@ -23,6 +23,9 @@ interface ICodeMirrorHostProps {
   /** Callback for when CodeMirror has completed a batch of changes to the editor */
   readonly onChanges?: (cm: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void
 
+  /** Whether the diff should setup interactivity such as hover effects */
+  readonly readOnly: boolean
+
   /** Callback when user is hovering over diff text */
   readonly onShowHoverStatus?: (line: number, active: boolean) => void
 
@@ -237,11 +240,14 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   private onRef = (ref: HTMLDivElement) => {
     if (ref) {
       this.wrapper = ref
-      this.wrapper.addEventListener('mousemove', this.onMouseMove)
-      this.wrapper.addEventListener('mousedown', this.onMouseDown)
-      this.wrapper.addEventListener('mouseup', this.onMouseUp)
+
+      if (!this.props.readOnly) {
+        this.wrapper.addEventListener('mousemove', this.onMouseMove)
+        this.wrapper.addEventListener('mousedown', this.onMouseDown)
+        this.wrapper.addEventListener('mouseup', this.onMouseUp)
+      }
     } else {
-      if (this.wrapper) {
+      if (this.wrapper && !this.props.readOnly) {
         this.wrapper.removeEventListener('mousemove', this.onMouseMove)
         this.wrapper.removeEventListener('mousedown', this.onMouseDown)
         this.wrapper.removeEventListener('mousedown', this.onMouseUp)

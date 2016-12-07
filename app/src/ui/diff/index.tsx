@@ -429,6 +429,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         className='diff-code-mirror'
         value={diffText}
         options={options}
+        readOnly={this.props.readOnly}
         isSelectionEnabled={this.isSelectionEnabled}
         onChanges={this.onChanges}
         onRenderLine={this.renderLine}
