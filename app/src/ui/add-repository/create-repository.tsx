@@ -15,9 +15,17 @@ import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { writeDefaultReadme } from './write-default-readme'
 import { Select } from '../lib/select'
 import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
+import { ILicense, getLicenses } from './licenses'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
+
+/** The sentinel value used to indicate no license should be used. */
+const NoLicenseValue: ILicense = {
+  title: 'None',
+  featured: false,
+  body: '',
+}
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -35,6 +43,12 @@ interface ICreateRepositoryState {
 
   /** The gitignore to include in the repository. */
   readonly gitIgnore: string
+
+  /** The available licenses. */
+  readonly licenses: ReadonlyArray<ILicense> | null
+
+  /** The license to include in the repository. */
+  readonly license: string
 }
 
 /** The Create New Repository component. */
@@ -48,6 +62,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       createWithReadme: false,
       gitIgnoreNames: null,
       gitIgnore: NoGitIgnoreValue,
+      licenses: null,
+      license: NoLicenseValue.title,
     }
   }
 
@@ -59,6 +75,19 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       createWithReadme: this.state.createWithReadme,
       gitIgnoreNames,
       gitIgnore: this.state.gitIgnore,
+      licenses: this.state.licenses,
+      license: this.state.license,
+    })
+
+    const licenses = await getLicenses()
+    this.setState({
+      path: this.state.path,
+      name: this.state.name,
+      createWithReadme: this.state.createWithReadme,
+      gitIgnoreNames: this.state.gitIgnoreNames,
+      gitIgnore: this.state.gitIgnore,
+      licenses,
+      license: this.state.license,
     })
   }
 
@@ -70,6 +99,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       createWithReadme: this.state.createWithReadme,
       gitIgnoreNames: this.state.gitIgnoreNames,
       gitIgnore: this.state.gitIgnore,
+      licenses: this.state.licenses,
+      license: this.state.license,
     })
   }
 
@@ -81,6 +112,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       createWithReadme: this.state.createWithReadme,
       gitIgnoreNames: this.state.gitIgnoreNames,
       gitIgnore: this.state.gitIgnore,
+      licenses: this.state.licenses,
+      license: this.state.license,
     })
   }
 
@@ -95,6 +128,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       createWithReadme: this.state.createWithReadme,
       gitIgnoreNames: this.state.gitIgnoreNames,
       gitIgnore: this.state.gitIgnore,
+      licenses: this.state.licenses,
+      license: this.state.license,
     })
   }
 
@@ -159,6 +194,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       createWithReadme: event.currentTarget.checked,
       gitIgnoreNames: this.state.gitIgnoreNames,
       gitIgnore: this.state.gitIgnore,
+      licenses: this.state.licenses,
+      license: this.state.license,
     })
   }
 
@@ -179,12 +216,27 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       createWithReadme: this.state.createWithReadme,
       gitIgnoreNames: this.state.gitIgnoreNames,
       gitIgnore,
+      licenses: this.state.licenses,
+      license: this.state.license,
+    })
+  }
+
+  private onLicenseChange = (event: React.FormEvent<HTMLSelectElement>) => {
+    const license = event.currentTarget.value
+    this.setState({
+      path: this.state.path,
+      name: this.state.name,
+      createWithReadme: this.state.createWithReadme,
+      gitIgnoreNames: this.state.gitIgnoreNames,
+      gitIgnore: this.state.gitIgnore,
+      licenses: this.state.licenses,
+      license,
     })
   }
 
   private renderGitIgnores() {
     const gitIgnores = this.state.gitIgnoreNames || []
-    const options = [ 'None', ...gitIgnores ]
+    const options = [ NoGitIgnoreValue, ...gitIgnores ]
 
     return (
       <Select
@@ -193,6 +245,27 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         onChange={this.onGitIgnoreChange}
       >
         {options.map(n => <option key={n} value={n}>{n}</option>)}
+      </Select>
+    )
+  }
+
+  private renderLicenses() {
+    let licenses: Array<ILicense> = Array.from(this.state.licenses || [])
+    licenses = licenses.sort((a, b) => {
+      if (a.featured) { return -1 }
+      if (b.featured) { return 1 }
+      return a.title.localeCompare(b.title)
+    })
+
+    const options = [ NoLicenseValue, ...licenses ]
+
+    return (
+      <Select
+        label='License'
+        value={this.state.license}
+        onChange={this.onLicenseChange}
+      >
+        {options.map(l => <option key={l.title} value={l.title}>{l.title}</option>)}
       </Select>
     )
   }
@@ -224,6 +297,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           onChange={this.onCreateWithREADMEChange}/>
 
         {this.renderGitIgnores()}
+
+        {this.renderLicenses()}
 
         <hr/>
 
