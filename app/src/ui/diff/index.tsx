@@ -215,17 +215,22 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private showHoverStatus = (index: number, active: boolean) => {
-   const diff = this.props.diff.diffLineForIndex(index)
-   if (!diff || !diff.isIncludeableLine()) {
-     // ignore events around non-includeable lines
-     return
-   }
+    const diffLine = this.props.diff.diffLineForIndex(index)
+    if (!diffLine) {
+      return
+    }
 
-   const range = this.props.diff.findInteractiveDiffRange(index)
-   if (!range) {
-     console.error('unable to find range for given index in diff')
-     return
-   }
+    const range = this.props.diff.findInteractiveDiffRange(index)
+    if (!range) {
+      console.error('unable to find range for given index in diff')
+      return
+    }
+
+    if (!diffLine.isIncludeableLine()) {
+      // TODO: clear hover selection for current hunk
+      // TODO: oh no how to do this?
+      return
+    }
 
     this.updateRangeHoverState(range.start, range.end, active)
   }
