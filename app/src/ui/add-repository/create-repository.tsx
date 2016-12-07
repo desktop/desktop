@@ -11,6 +11,7 @@ import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -19,6 +20,7 @@ interface ICreateRepositoryProps {
 interface ICreateRepositoryState {
   readonly path: string
   readonly name: string
+  readonly createWithREADME: boolean
 }
 
 /** The Create New Repository component. */
@@ -26,17 +28,29 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   public constructor(props: ICreateRepositoryProps) {
     super(props)
 
-    this.state = { path: defaultPath(), name: '' }
+    this.state = {
+      path: defaultPath(),
+      name: '',
+      createWithREADME: false,
+    }
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
-    this.setState({ path, name: this.state.name })
+    this.setState({
+      path,
+      name: this.state.name,
+      createWithREADME: this.state.createWithREADME,
+    })
   }
 
   private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const name = event.currentTarget.value
-    this.setState({ path: this.state.path, name })
+    this.setState({
+      path: this.state.path,
+      name,
+      createWithREADME: this.state.createWithREADME,
+    })
   }
 
   private showFilePicker = () => {
@@ -44,7 +58,11 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     if (!directory) { return }
 
     const path = directory[0]
-    this.setState({ path, name: this.state.name })
+    this.setState({
+      path,
+      name: this.state.name,
+      createWithREADME: this.state.createWithREADME,
+    })
   }
 
   private createRepository = async () => {
@@ -62,6 +80,14 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           this.props.dispatcher.closePopup()
         }
       })
+    })
+  }
+
+  private onCreateWithREADMEChange = (event: React.FormEvent<HTMLInputElement>) => {
+    this.setState({
+      path: this.state.path,
+      name: this.state.name,
+      createWithREADME: event.currentTarget.checked,
     })
   }
 
@@ -94,6 +120,11 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
             onChange={this.onPathChanged}/>
           <Button onClick={this.showFilePicker}>Choose…</Button>
         </Row>
+
+        <Checkbox
+          label='Initialize this repository with a README'
+          value={this.state.createWithREADME ? CheckboxValue.On : CheckboxValue.Off}
+          onChange={this.onCreateWithREADMEChange}/>
 
         <hr/>
 
