@@ -20,7 +20,7 @@ interface ICreateRepositoryProps {
 interface ICreateRepositoryState {
   readonly path: string
   readonly name: string
-  readonly createWithREADME: boolean
+  readonly createWithReadme: boolean
 }
 
 /** The Create New Repository component. */
@@ -31,7 +31,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     this.state = {
       path: defaultPath(),
       name: '',
-      createWithREADME: false,
+      createWithReadme: false,
     }
   }
 
@@ -40,7 +40,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     this.setState({
       path,
       name: this.state.name,
-      createWithREADME: this.state.createWithREADME,
+      createWithReadme: this.state.createWithReadme,
     })
   }
 
@@ -49,7 +49,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     this.setState({
       path: this.state.path,
       name,
-      createWithREADME: this.state.createWithREADME,
+      createWithReadme: this.state.createWithReadme,
     })
   }
 
@@ -61,7 +61,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     this.setState({
       path,
       name: this.state.name,
-      createWithREADME: this.state.createWithREADME,
+      createWithReadme: this.state.createWithReadme,
     })
   }
 
@@ -87,7 +87,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     this.setState({
       path: this.state.path,
       name: this.state.name,
-      createWithREADME: event.currentTarget.checked,
+      createWithReadme: event.currentTarget.checked,
     })
   }
 
@@ -123,7 +123,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
         <Checkbox
           label='Initialize this repository with a README'
-          value={this.state.createWithREADME ? CheckboxValue.On : CheckboxValue.Off}
+          value={this.state.createWithReadme ? CheckboxValue.On : CheckboxValue.Off}
           onChange={this.onCreateWithREADMEChange}/>
 
         <hr/>
