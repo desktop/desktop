@@ -61,7 +61,7 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
  * Deserialize the HTTP response body into an expected object shape
  *
  * Note: this doesn't validate the expected shape, and will only fail
- *       if it encounters invalid JSON
+ * if it encounters invalid JSON
  */
 export function deserialize<T>(body: string | undefined): T | null {
   if (!body) {
@@ -130,11 +130,16 @@ export function getEncoding(response: IHTTPResponse): string | null {
   }
 
 
+  // while we expect JSON endpoints to return a charset, we might
+  // have some scenarios where this is not the case
+  // see http://www.iana.org/assignments/media-types/application/json
+  // for more information
   if (contentType === 'application/json') {
     return 'utf-8'
   }
 
-  // as a fallback, look for specific text-based types
+  // RFC2616 states that text-based media subtypes without an
+  // explicit charset should be considered ISO-8859-1
   if (contentType.startsWith('text/')) {
     return 'iso-8859-1'
   }
