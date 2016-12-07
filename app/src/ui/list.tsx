@@ -183,7 +183,16 @@ export class List extends React.Component<IListProps, void> {
 
   private grid: React.Component<any, any> | null
 
-  private handleKeyDown = (event: React.KeyboardEvent<any>) => {
+  private handleRowKeyDown(rowIndex: number, event: React.KeyboardEvent<any>) {
+    if (this.props.onRowKeyDown) {
+      this.props.onRowKeyDown(rowIndex, event)
+    }
+
+    // We give consumers the power to prevent the default selection behavior by
+    // subscribing to the `onRowKeyDown` event and calling event.preventDefault.
+    // This lets consumers add their own semantics for keyboard navigation.
+    if (event.defaultPrevented) { return }
+
     if (event.key === 'ArrowDown') {
       this.moveSelection('down', event)
       event.preventDefault()
@@ -191,17 +200,8 @@ export class List extends React.Component<IListProps, void> {
       this.moveSelection('up', event)
       event.preventDefault()
     }
-  }
 
-  private handleRowKeyDown(rowIndex: number, event: React.KeyboardEvent<any>) {
-    if (this.props.onRowKeyDown) {
-      this.props.onRowKeyDown(rowIndex, event)
-    }
-
-    // We give consumers the power to prevent the onRowClick event by subscribing
-    // to the onRowKeyDown event and calling event.preventDefault. This lets
-    // consumers add their own semantics for keyboard presses.
-    if (!event.defaultPrevented && this.props.onRowClick) {
+    if (this.props.onRowClick) {
       if (event.key === 'Enter' || event.key === ' ') {
         this.props.onRowClick(rowIndex, { kind: 'keyboard', event })
         event.preventDefault()
@@ -325,8 +325,7 @@ export class List extends React.Component<IListProps, void> {
   public render() {
     return (
       <div id={this.props.id}
-           className='list'
-           onKeyDown={this.handleKeyDown}>
+           className='list'>
         <AutoSizer disableWidth disableHeight>
           {({ width, height }: { width: number, height: number }) => this.renderContents(width, height)}
         </AutoSizer>
