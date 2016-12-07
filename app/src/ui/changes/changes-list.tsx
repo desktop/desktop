@@ -90,7 +90,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         <div id='select-all' className='header'>
           <Checkbox value={this.includeAllValue} onChange={this.onIncludeAllChanged}/>
 
-          <label>
+          <label className='changed-files-count'>
             {filesDescription}
           </label>
         </div>
