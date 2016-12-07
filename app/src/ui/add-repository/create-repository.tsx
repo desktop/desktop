@@ -14,7 +14,7 @@ import { Row } from '../lib/row'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { writeDefaultReadme } from './write-default-readme'
 import { Select } from '../lib/select'
-import { getGitIgnoreNames } from './gitignores'
+import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -111,10 +111,32 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
         const repository = repositories[0]
 
+        let createInitialCommit = false
         if (this.state.createWithReadme) {
+          createInitialCommit = true
+
           try {
             await writeDefaultReadme(fullPath, this.state.name)
+          } catch (e) {
+            console.error('Error writing the default README:')
+            console.error(e)
+          }
+        }
 
+        const gitIgnore = this.state.gitIgnore
+        if (gitIgnore !== NoGitIgnoreValue) {
+          createInitialCommit = true
+
+          try {
+            await writeGitIgnore(fullPath, gitIgnore)
+          } catch (e) {
+            console.error(`Error writing the gitignore ${gitIgnore}:`)
+            console.error(e)
+          }
+        }
+
+        if (createInitialCommit) {
+          try {
             const status = await getStatus(repository)
             const wd = status.workingDirectory
             await createCommit(repository, 'Initial commit', wd.files)
