@@ -16,6 +16,9 @@ import { writeDefaultReadme } from './write-default-readme'
 import { Select } from '../lib/select'
 import { getGitIgnoreNames } from './gitignores'
 
+/** The sentinel value used to indicate no gitignore should be used. */
+const NoGitIgnoreValue = 'None'
+
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
 }
@@ -31,7 +34,7 @@ interface ICreateRepositoryState {
   readonly gitIgnoreNames: ReadonlyArray<string> | null
 
   /** The gitignore to include in the repository. */
-  readonly gitIgnore: string | null
+  readonly gitIgnore: string
 }
 
 /** The Create New Repository component. */
@@ -44,7 +47,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       name: '',
       createWithReadme: false,
       gitIgnoreNames: null,
-      gitIgnore: null,
+      gitIgnore: NoGitIgnoreValue,
     }
   }
 
@@ -116,7 +119,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
             const wd = status.workingDirectory
             await createCommit(repository, 'Initial commit', wd.files)
           } catch (e) {
-            console.error('Error writing & committing the default README:')
+            console.error('Error creating initial commit:')
             console.error(e)
           }
         }
@@ -164,8 +167,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     return (
       <Select
         label='Git Ignore'
-        defaultValue='None'
-        value={this.state.gitIgnore || undefined}
+        value={this.state.gitIgnore}
         onChange={this.onGitIgnoreChange}
       >
         {options.map(n => <option key={n} value={n}>{n}</option>)}
