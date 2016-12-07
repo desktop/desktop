@@ -25,6 +25,8 @@ interface ICodeMirrorHostProps {
 
   /** Callback when user is hovering over diff text */
   readonly onShowHoverStatus?: (line: number, active: boolean) => void
+
+  readonly onCompleteRangeSelection?: (line: number) => void
 }
 
 /**
@@ -35,6 +37,7 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   private wrapper: HTMLDivElement | null
   private codeMirror: CodeMirror.Editor | null
 
+  private rangeSelectionActive: boolean | null
   private gutterWidth_: number | null
   private lineHeight_: number | null
 
@@ -164,29 +167,70 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
       return
     }
 
-    const gutterWidth = this.resolveGutterWidth()
-    if (!gutterWidth) {
-      console.debug('unable to compute the diff gutter width')
+    const lineNumber = this.getLineNumber(ev)
+    const distanceFromGutter = this.distanceFromGutter(ev)
+
+    if (lineNumber === null || distanceFromGutter === null) {
+      console.error('unable to resolve co-ordinates for diff text hover gesture')
       return
+    }
+
+    const isActive = distanceFromGutter <= 15
+
+    this.props.onShowHoverStatus(lineNumber, isActive)
+  }
+
+  private getLineNumber = (ev:MouseEvent): number | null => {
+
+    if (!this.wrapper) {
+      return null
     }
 
     const lineHeight = this.resolveLineHeight()
     if (!lineHeight) {
       console.debug('unable to compute the line height')
+      return null
+    }
+
+    const relativeTop = ev.clientY - this.wrapper.offsetTop
+    return Math.floor(relativeTop / lineHeight)
+  }
+
+  private distanceFromGutter = (ev: MouseEvent): number | null => {
+    if (!this.wrapper) {
+      return null
+    }
+
+    const gutterWidth = this.resolveGutterWidth()
+    if (!gutterWidth) {
+      return null
+    }
+
+    const offset = this.wrapper.offsetLeft
+    const pageX = ev.pageX
+
+    return pageX - (offset + gutterWidth)
+  }
+
+  private onMouseDown = (ev: MouseEvent) => {
+    const distanceFromGutter = this.distanceFromGutter(ev)
+    const isActive = distanceFromGutter <= 15
+
+    const lineNumber = this.getLineNumber(ev)
+
+    if (isActive && lineNumber) {
+      this.rangeSelectionActive = true
+    }
+  }
+
+  private onMouseUp = (ev: MouseEvent) => {
+    if (!this.rangeSelectionActive) {
       return
     }
 
-    if (this.wrapper) {
-      const relativeTop = ev.clientY - this.wrapper.offsetTop
-      const lineNumber = Math.floor(relativeTop / lineHeight)
-
-      const offset = this.wrapper.offsetLeft
-      const pageX = ev.pageX
-
-      const distanceFromEdge = pageX - (offset + gutterWidth)
-      const isActive = distanceFromEdge <= 15
-
-      this.props.onShowHoverStatus(lineNumber, isActive)
+    const lineNumber = this.getLineNumber(ev)
+    if (this.props.onCompleteRangeSelection && lineNumber) {
+      this.props.onCompleteRangeSelection(lineNumber)
     }
   }
 
@@ -194,9 +238,13 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     if (ref) {
       this.wrapper = ref
       this.wrapper.addEventListener('mousemove', this.onMouseMove)
+      this.wrapper.addEventListener('mousedown', this.onMouseDown)
+      this.wrapper.addEventListener('mouseup', this.onMouseUp)
     } else {
       if (this.wrapper) {
         this.wrapper.removeEventListener('mousemove', this.onMouseMove)
+        this.wrapper.removeEventListener('mousedown', this.onMouseDown)
+        this.wrapper.removeEventListener('mousedown', this.onMouseUp)
       }
     }
   }

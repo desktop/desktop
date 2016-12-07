@@ -212,9 +212,9 @@ export class Diff extends React.Component<IDiffProps, void> {
       this.selection.update(index)
       this.selection.paint(this.cachedGutterElements)
     }
- }
+  }
 
- private showHoverStatus = (index: number, active: boolean) => {
+  private showHoverStatus = (index: number, active: boolean) => {
    const diff = this.props.diff.diffLineForIndex(index)
    if (!diff || !diff.isIncludeableLine()) {
      // ignore events around non-includeable lines
@@ -228,7 +228,41 @@ export class Diff extends React.Component<IDiffProps, void> {
    }
 
     this.updateRangeHoverState(range.start, range.end, active)
- }
+  }
+
+  private onCompleteRangeSelection = (index: number) => {
+    if (!this.props.onIncludeChanged) {
+      return
+    }
+
+    const line = this.props.diff.diffLineForIndex(index)
+    if (line === null || !line.isIncludeableLine()) {
+      // this line is not an add or remove, ignore event
+      return
+    }
+
+    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
+      console.error('someone wired up the event handlers to a readonly diff - don\'t do that')
+      return
+    }
+
+    const snapshot = this.props.file.selection
+    const isSelected = this.props.file.selection.isSelected(index)
+    const desiredSelection = !isSelected
+
+    const range = this.props.diff.findInteractiveDiffRange(index)
+    if (!range) {
+      console.error('unable to find range for given line in diff')
+      return
+    }
+
+    const selection = new RangeSelection(range.start, range.end, desiredSelection, snapshot)
+
+    this.props.onIncludeChanged(selection.done())
+
+    // operation is completed, clean this up
+    this.selection = null
+  }
 
   private renderLine = (instance: any, line: any, element: HTMLElement) => {
 
@@ -386,6 +420,10 @@ export class Diff extends React.Component<IDiffProps, void> {
       mode: getDiffMode(),
     }
 
+    const completeRangeSelection = this.props.readOnly
+      ? undefined
+      : this.onCompleteRangeSelection
+
     return (
       <CodeMirrorHost
         className='diff-code-mirror'
@@ -395,6 +433,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         onChanges={this.onChanges}
         onRenderLine={this.renderLine}
         onShowHoverStatus={this.showHoverStatus}
+        onCompleteRangeSelection={completeRangeSelection}
         ref={this.getAndStoreCodeMirrorInstance}
       />
     )
