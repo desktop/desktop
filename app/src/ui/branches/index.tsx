@@ -123,7 +123,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
     if (event.key === 'ArrowDown') {
       if (this.state.branchItems.length > 0) {
-        this.setState(this.createState(this.props, this.state.filter, 1), () => {
+        this.setState(this.createState(this.props, this.state.filter, list.nextSelectableRow('down', 0)), () => {
           list.focus()
         })
       }
@@ -131,7 +131,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       event.preventDefault()
     } else if (event.key === 'ArrowUp') {
       if (this.state.branchItems.length > 0) {
-        this.setState(this.createState(this.props, this.state.filter, this.state.branchItems.length - 1), () => {
+        this.setState(this.createState(this.props, this.state.filter, list.nextSelectableRow('up', 0)), () => {
           list.focus()
         })
       }
