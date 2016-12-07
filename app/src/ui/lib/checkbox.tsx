@@ -17,6 +17,7 @@ interface ICheckboxProps {
   /** The tab index of the input element. */
   readonly tabIndex?: number
 
+  /** The label for the checkbox. */
   readonly label?: string
 }
 
