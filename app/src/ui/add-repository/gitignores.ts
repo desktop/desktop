@@ -37,7 +37,7 @@ export async function getGitIgnoreNames(): Promise<ReadonlyArray<string>> {
 }
 
 /** Get the gitignore based on a name from `getGitIgnoreNames()`. */
-export async function getGitIgnore(name: string): Promise<string> {
+async function getGitIgnoreText(name: string): Promise<string> {
   const gitIgnores = await getCachedGitIgnores()
 
   return new Promise<string>((resolve, reject) => {
@@ -52,6 +52,23 @@ export async function getGitIgnore(name: string): Promise<string> {
         reject(err)
       } else {
         resolve(data)
+      }
+    })
+  })
+}
+
+/** Write the named gitignore to the repository. */
+export async function writeGitIgnore(repositoryPath: string, name: string): Promise<void> {
+  const fullPath = Path.join(repositoryPath, '.gitignore')
+
+  const text = await getGitIgnoreText(name)
+
+  return new Promise<void>((resolve, reject) => {
+    Fs.writeFile(fullPath, text, err => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve()
       }
     })
   })
