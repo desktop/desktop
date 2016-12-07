@@ -202,7 +202,6 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
       if (this.state.filter.length === 0) {
         this.props.dispatcher.closeFoldout()
         event.preventDefault()
-        return
       }
     }
   }
