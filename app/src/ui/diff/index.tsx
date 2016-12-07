@@ -152,11 +152,11 @@ export class Diff extends React.Component<IDiffProps, void> {
 
   private updateRangeHoverState = (start: number, end: number, show: boolean) => {
     for (let i = start; i <= end; i++) {
-      this.highlightLine(i, show)
+      this.hoverLine(i, show)
     }
   }
 
-  private highlightLine = (row: number, include: boolean) => {
+  private hoverLine = (row: number, include: boolean) => {
     const element = this.cachedGutterElements.get(row)
 
     if (!element) {
