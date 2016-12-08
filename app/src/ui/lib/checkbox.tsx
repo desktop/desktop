@@ -9,7 +9,7 @@ export enum CheckboxValue {
 
 interface ICheckboxProps {
   /** The current value of the component. */
-  readonly value?: CheckboxValue
+  readonly value: CheckboxValue
 
   /** The function to call on value change. */
   readonly onChange?: (event: React.FormEvent<HTMLInputElement>) => void
