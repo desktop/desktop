@@ -139,7 +139,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           }
         }
 
-        const licenseName = this.state.license
+        const licenseName = (this.state.license === NoLicenseValue.name ? null : this.state.license)
         const license = (this.state.licenses || []).find(l => l.name === licenseName)
 
         if (license) {
