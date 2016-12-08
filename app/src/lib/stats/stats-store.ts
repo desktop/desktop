@@ -82,7 +82,7 @@ export class StatsStore {
 
   private async getDailyStats(): Promise<DailyStats> {
     const launchStats = await this.getAverageLaunchStats()
-    return Object.assign({}, { version: getVersion() }, launchStats)
+    return { version: getVersion(), ...launchStats }
   }
 
   /** Calculate the average launch stats. */
