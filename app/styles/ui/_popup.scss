@@ -10,6 +10,11 @@
   border-radius: var(--border-radius);
   box-shadow: 0 0 7px rgba(0,0,0,0.15);
   z-index: var(--popup-z-index);
+
+  top: 50%;
+  left: 50%;
+  margin-right: -50%;
+  transform: translate(-50%, -100%);
 }
 
 .popup-content {
