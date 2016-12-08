@@ -59,7 +59,7 @@ export function getLicenses(): Promise<ReadonlyArray<ILicense>> {
             const license: ILicense = {
               name: result.attributes.nickname || result.attributes.title,
               featured: result.attributes.featured || false,
-              body: result.body,
+              body: result.body.trim(),
             }
 
             licenses.push(license)
