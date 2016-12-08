@@ -73,3 +73,18 @@ export function getLicenses(): Promise<ReadonlyArray<ILicense>> {
     })
   }
 }
+
+/** Write the license to the the repository at the given path. */
+export function writeLicense(repositoryPath: string, license: ILicense): Promise<void> {
+  const fullPath = Path.join(repositoryPath, 'LICENSE')
+
+  return new Promise<void>((resolve, reject) => {
+    Fs.writeFile(fullPath, license.body, err => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve()
+      }
+    })
+  })
+}
