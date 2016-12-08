@@ -14,7 +14,11 @@ interface ICheckboxProps {
   /** The function to call on value change. */
   readonly onChange?: (event: React.FormEvent<HTMLInputElement>) => void
 
+  /** The tab index of the input element. */
   readonly tabIndex?: number
+
+  /** The label for the checkbox. */
+  readonly label?: string
 }
 
 /** A checkbox component which supports the mixed value. */
@@ -50,13 +54,16 @@ export class Checkbox extends React.Component<ICheckboxProps, void> {
 
   public render() {
     return (
-      <input
-        className='checkbox-component'
-        tabIndex={this.props.tabIndex}
-        type='checkbox'
-        onChange={this.onChange}
-        ref={this.onInputRef}
-      />
+      <label className='checkbox-component'>
+        <input
+          tabIndex={this.props.tabIndex}
+          type='checkbox'
+          onChange={this.onChange}
+          ref={this.onInputRef}
+        />
+
+        {this.props.label}
+      </label>
     )
   }
 }
