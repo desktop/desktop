@@ -16,7 +16,7 @@ import { writeDefaultReadme } from './write-default-readme'
 import { Select } from '../lib/select'
 import { Loading } from '../lib/loading'
 import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
-import { ILicense, getLicenses } from './licenses'
+import { ILicense, getLicenses, writeLicense } from './licenses'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -132,6 +132,21 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
           try {
             await writeGitIgnore(fullPath, gitIgnore)
+          } catch (e) {
+            console.error(e)
+
+            this.props.dispatcher.postError(e)
+          }
+        }
+
+        const licenseName = this.state.license
+        const license = (this.state.licenses || []).find(l => l.name === licenseName)
+
+        if (license) {
+          createInitialCommit = true
+
+          try {
+            await writeLicense(fullPath, license)
           } catch (e) {
             console.error(e)
 
