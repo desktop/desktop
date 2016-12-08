@@ -51,19 +51,25 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   public constructor(props: ISignInProps) {
     super(props)
 
+    this.state = { step: this.stepForProps(props) }
+  }
+
+  public componentWillReceiveProps(nextProps: ISignInProps) {
+    if (nextProps.endpoint !== this.props.endpoint) {
+      this.setState({ step: this.stepForProps(nextProps) })
+    }
+  }
+
+  private stepForProps(props: ISignInProps): Step {
     if (props.endpoint) {
-      this.state = {
-        step: {
-          kind: SignInStep.Authentication,
-          endpoint: props.endpoint,
-          authMethods: props.authenticationMethods || DefaultAuthMethods,
-        },
+      return {
+        kind: SignInStep.Authentication,
+        endpoint: props.endpoint,
+        authMethods: props.authenticationMethods || DefaultAuthMethods,
       }
     } else {
-      this.state = {
-        step: {
-          kind: SignInStep.EndpointEntry,
-        },
+      return {
+        kind: SignInStep.EndpointEntry,
       }
     }
   }

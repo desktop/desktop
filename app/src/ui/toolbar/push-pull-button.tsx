@@ -1,10 +1,13 @@
 import * as React from 'react'
-import { ToolbarButton, ToolbarButtonStyle } from './button'
+import { ToolbarDropdown } from './dropdown'
+import { ToolbarButtonStyle } from './button'
 import { IAheadBehind } from '../../lib/app-state'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { RelativeTime } from '../relative-time'
+import { Publish } from '../publish-repository'
+import { User } from '../../models/user'
 
 interface IPushPullButtonProps {
   /**
@@ -22,6 +25,12 @@ interface IPushPullButtonProps {
   /** The date of the last fetch. */
   readonly lastFetched: Date | null
 
+  /** Is the user currently publishing? */
+  readonly isPublishing: boolean
+
+  /** The logged in users. */
+  readonly users: ReadonlyArray<User>
+
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 }
@@ -33,17 +42,27 @@ interface IPushPullButtonProps {
 export class PushPullButton extends React.Component<IPushPullButtonProps, void> {
   public render() {
     return (
-      <ToolbarButton
+      <ToolbarDropdown
         title={this.getTitle()}
         description={this.getDescription()}
         className='push-pull-button'
         icon={this.getIcon()}
         iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
-        onClick={this.performAction}
-        style={ToolbarButtonStyle.Subtitle}>
+        style={ToolbarButtonStyle.Subtitle}
+        dropdownState={this.props.isPublishing ? 'open' : 'closed'}
+        dropdownContentRenderer={this.renderFoldout}
+        onDropdownStateChanged={this.performAction}
+        showDisclosureArrow={false}>
         {this.renderAheadBehind()}
-      </ToolbarButton>
+      </ToolbarDropdown>
     )
+  }
+
+  private renderFoldout = () => {
+    return <Publish
+      repository={this.props.repository}
+      dispatcher={this.props.dispatcher}
+      users={this.props.users}/>
   }
 
   private renderAheadBehind() {
@@ -112,8 +131,8 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private performAction = () => {
-    if (!this.props.remoteName) {
-      // TODO: Publish the repository.
+    if (this.props.isPublishing) {
+      this.props.dispatcher.closeFoldout()
       return
     }
 
