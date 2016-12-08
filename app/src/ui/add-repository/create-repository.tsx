@@ -13,6 +13,7 @@ import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { writeDefaultReadme } from './write-default-readme'
+import { Loading } from '../lib/loading'
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -24,6 +25,9 @@ interface ICreateRepositoryState {
 
   /** Should the repository be created with a default README? */
   readonly createWithReadme: boolean
+
+  /** Is the repository currently in the process of being created? */
+  readonly creating: boolean
 }
 
 /** The Create New Repository component. */
@@ -35,6 +39,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       path: defaultPath(),
       name: '',
       createWithReadme: false,
+      creating: false,
     }
   }
 
@@ -57,6 +62,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   }
 
   private createRepository = async () => {
+    this.setState({ ...this.state, creating: true })
+
     const fullPath = Path.join(this.state.path, sanitizedRepositoryName(this.state.name))
 
     // NB: This exists & create check is race-y :(
@@ -82,6 +89,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           }
         }
 
+        this.setState({ ...this.state, creating: false })
+
         this.props.dispatcher.selectRepository(repository)
         this.props.dispatcher.closePopup()
       })
@@ -102,7 +111,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   }
 
   public render() {
-    const disabled = this.state.path.length === 0 || this.state.name.length === 0
+    const disabled = this.state.path.length === 0 || this.state.name.length === 0 || this.state.creating
     return (
       <Form>
         <TextBox
@@ -132,6 +141,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         <Button type='submit' disabled={disabled} onClick={this.createRepository}>
           Create Repository
         </Button>
+
+        {this.state.creating ? <Loading/> : null}
       </Form>
     )
   }
