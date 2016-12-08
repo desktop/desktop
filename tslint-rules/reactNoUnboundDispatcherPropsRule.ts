@@ -36,16 +36,21 @@ export class Rule extends Lint.Rules.AbstractRule {
 class ReactNoUnboundDispatcherPropsWalker extends Lint.RuleWalker {
 
   protected visitJsxElement(node: ts.JsxElement): void {
-    this.visitJsxOpeningElement(node.openingElement) // a normal JSX element has-a OpeningElement
+    this.visitJsxOpeningLikeElement(node.openingElement)
     super.visitJsxElement(node)
   }
 
   protected visitJsxSelfClosingElement(node: ts.JsxSelfClosingElement): void {
-    this.visitJsxOpeningElement(node)  // a self closing JSX element is-a OpeningElement
+    this.visitJsxOpeningLikeElement(node)
     super.visitJsxSelfClosingElement(node)
   }
 
-  private visitJsxOpeningElement(node: ts.JsxOpeningElement | ts.JsxSelfClosingElement): void {
+  /**
+   * Visit the node and apply the rule about ensuring the dispatcher is bound.
+   *
+   *  JsxOpeningLikeElement encompasses both self-closing and regular elements
+   */
+  private visitJsxOpeningLikeElement(node: ts.JsxOpeningLikeElement): void {
     // create violations if the listener is a reference to a class method that was not bound to 'this' in the constructor
     node.attributes.forEach(attributeLikeElement => {
 
