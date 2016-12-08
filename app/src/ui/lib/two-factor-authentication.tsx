@@ -92,8 +92,6 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
   }
 
   private signIn = async () => {
-    event.preventDefault()
-
     this.setState({
       otp: this.state.otp,
       response: null,
