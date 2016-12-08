@@ -84,8 +84,9 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
             const wd = status.workingDirectory
             await createCommit(repository, 'Initial commit', wd.files)
           } catch (e) {
-            console.error('Error writing & committing the default README:')
             console.error(e)
+
+            this.props.dispatcher.postError(e)
           }
         }
 
