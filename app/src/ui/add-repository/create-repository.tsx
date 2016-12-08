@@ -14,6 +14,7 @@ import { Row } from '../lib/row'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { writeDefaultReadme } from './write-default-readme'
 import { Select } from '../lib/select'
+import { Loading } from '../lib/loading'
 import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { ILicense, getLicenses } from './licenses'
 
@@ -38,6 +39,9 @@ interface ICreateRepositoryState {
   /** Should the repository be created with a default README? */
   readonly createWithReadme: boolean
 
+  /** Is the repository currently in the process of being created? */
+  readonly creating: boolean
+
   /** The names for the available gitignores. */
   readonly gitIgnoreNames: ReadonlyArray<string> | null
 
@@ -60,6 +64,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       path: defaultPath(),
       name: '',
       createWithReadme: false,
+      creating: false,
       gitIgnoreNames: null,
       gitIgnore: NoGitIgnoreValue,
       licenses: null,
@@ -69,52 +74,20 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   public async componentDidMount() {
     const gitIgnoreNames = await getGitIgnoreNames()
-    this.setState({
-      path: this.state.path,
-      name: this.state.name,
-      createWithReadme: this.state.createWithReadme,
-      gitIgnoreNames,
-      gitIgnore: this.state.gitIgnore,
-      licenses: this.state.licenses,
-      license: this.state.license,
-    })
+    this.setState({ ...this.state, gitIgnoreNames })
 
     const licenses = await getLicenses()
-    this.setState({
-      path: this.state.path,
-      name: this.state.name,
-      createWithReadme: this.state.createWithReadme,
-      gitIgnoreNames: this.state.gitIgnoreNames,
-      gitIgnore: this.state.gitIgnore,
-      licenses,
-      license: this.state.license,
-    })
+    this.setState({ ...this.state, licenses })
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
-    this.setState({
-      path,
-      name: this.state.name,
-      createWithReadme: this.state.createWithReadme,
-      gitIgnoreNames: this.state.gitIgnoreNames,
-      gitIgnore: this.state.gitIgnore,
-      licenses: this.state.licenses,
-      license: this.state.license,
-    })
+    this.setState({ ...this.state, path })
   }
 
   private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const name = event.currentTarget.value
-    this.setState({
-      path: this.state.path,
-      name,
-      createWithReadme: this.state.createWithReadme,
-      gitIgnoreNames: this.state.gitIgnoreNames,
-      gitIgnore: this.state.gitIgnore,
-      licenses: this.state.licenses,
-      license: this.state.license,
-    })
+    this.setState({ ...this.state, name })
   }
 
   private showFilePicker = () => {
@@ -122,18 +95,12 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     if (!directory) { return }
 
     const path = directory[0]
-    this.setState({
-      path,
-      name: this.state.name,
-      createWithReadme: this.state.createWithReadme,
-      gitIgnoreNames: this.state.gitIgnoreNames,
-      gitIgnore: this.state.gitIgnore,
-      licenses: this.state.licenses,
-      license: this.state.license,
-    })
+    this.setState({ ...this.state, path })
   }
 
   private createRepository = async () => {
+    this.setState({ ...this.state, creating: true })
+
     const fullPath = Path.join(this.state.path, sanitizedRepositoryName(this.state.name))
 
     // NB: This exists & create check is race-y :(
@@ -153,8 +120,9 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           try {
             await writeDefaultReadme(fullPath, this.state.name)
           } catch (e) {
-            console.error('Error writing the default README:')
             console.error(e)
+
+            this.props.dispatcher.postError(e)
           }
         }
 
@@ -165,8 +133,9 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           try {
             await writeGitIgnore(fullPath, gitIgnore)
           } catch (e) {
-            console.error(`Error writing the gitignore ${gitIgnore}:`)
             console.error(e)
+
+            this.props.dispatcher.postError(e)
           }
         }
 
@@ -176,10 +145,13 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
             const wd = status.workingDirectory
             await createCommit(repository, 'Initial commit', wd.files)
           } catch (e) {
-            console.error('Error creating initial commit:')
             console.error(e)
+
+            this.props.dispatcher.postError(e)
           }
         }
+
+        this.setState({ ...this.state, creating: false })
 
         this.props.dispatcher.selectRepository(repository)
         this.props.dispatcher.closePopup()
@@ -187,16 +159,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     })
   }
 
-  private onCreateWithREADMEChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      path: this.state.path,
-      name: this.state.name,
-      createWithReadme: event.currentTarget.checked,
-      gitIgnoreNames: this.state.gitIgnoreNames,
-      gitIgnore: this.state.gitIgnore,
-      licenses: this.state.licenses,
-      license: this.state.license,
-    })
+  private onCreateWithReadmeChange = (event: React.FormEvent<HTMLInputElement>) => {
+    this.setState({ ...this.state, createWithReadme: event.currentTarget.checked })
   }
 
   private renderError() {
@@ -210,28 +174,12 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private onGitIgnoreChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const gitIgnore = event.currentTarget.value
-    this.setState({
-      path: this.state.path,
-      name: this.state.name,
-      createWithReadme: this.state.createWithReadme,
-      gitIgnoreNames: this.state.gitIgnoreNames,
-      gitIgnore,
-      licenses: this.state.licenses,
-      license: this.state.license,
-    })
+    this.setState({ ...this.state, gitIgnore })
   }
 
   private onLicenseChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const license = event.currentTarget.value
-    this.setState({
-      path: this.state.path,
-      name: this.state.name,
-      createWithReadme: this.state.createWithReadme,
-      gitIgnoreNames: this.state.gitIgnoreNames,
-      gitIgnore: this.state.gitIgnore,
-      licenses: this.state.licenses,
-      license,
-    })
+    this.setState({ ...this.state, license })
   }
 
   private renderGitIgnores() {
@@ -271,7 +219,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   }
 
   public render() {
-    const disabled = this.state.path.length === 0 || this.state.name.length === 0
+    const disabled = this.state.path.length === 0 || this.state.name.length === 0 || this.state.creating
     return (
       <Form>
         <TextBox
@@ -294,7 +242,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         <Checkbox
           label='Initialize this repository with a README'
           value={this.state.createWithReadme ? CheckboxValue.On : CheckboxValue.Off}
-          onChange={this.onCreateWithREADMEChange}/>
+          onChange={this.onCreateWithReadmeChange}/>
 
         {this.renderGitIgnores()}
 
@@ -305,6 +253,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         <Button type='submit' disabled={disabled} onClick={this.createRepository}>
           Create Repository
         </Button>
+
+        {this.state.creating ? <Loading/> : null}
       </Form>
     )
   }

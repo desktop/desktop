@@ -14,7 +14,7 @@ export interface IIssueHit {
   readonly title: string
 
   /** The issue's number. */
-  readonly number: string
+  readonly number: number
 }
 
 /** The autocompletion provider for issues in a GitHub repository. */
