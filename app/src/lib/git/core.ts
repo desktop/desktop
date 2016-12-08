@@ -100,7 +100,7 @@ export async function git(args: string[], path: string, name: string, options?: 
     expectedErrors: new Set(),
   }
 
-  const opts = Object.assign({ }, defaultOptions, options)
+  const opts = { ...defaultOptions, ...options }
 
   const startTime = (performance && performance.now) ? performance.now() : null
 
@@ -128,7 +128,7 @@ export async function git(args: string[], path: string, name: string, options?: 
   }
 
   const gitErrorDescription = gitError ? getDescriptionForError(gitError) : null
-  const gitResult = Object.assign({}, result, { gitError, gitErrorDescription })
+  const gitResult = { ...result, gitError, gitErrorDescription }
 
   const acceptableError = !gitError || (gitError && opts.expectedErrors && opts.expectedErrors.has(gitError))
   if (!acceptableExitCode && !acceptableError) {
