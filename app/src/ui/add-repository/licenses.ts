@@ -10,12 +10,13 @@ const frontMatter: <T>(path: string) => IFrontMatterResult<T> = require('front-m
 
 interface IChooseALicense {
   readonly title: string
+  readonly nickname?: string
   readonly featured?: boolean
 }
 
 export interface ILicense {
-  /** The human-readable title. */
-  readonly title: string
+  /** The human-readable name. */
+  readonly name: string
 
   /** Is the license featured? */
   readonly featured: boolean
@@ -56,7 +57,7 @@ export function getLicenses(): Promise<ReadonlyArray<ILicense>> {
             const contents = await readFileAsync(fullPath)
             const result = frontMatter<IChooseALicense>(contents)
             const license: ILicense = {
-              title: result.attributes.title,
+              name: result.attributes.nickname || result.attributes.title,
               featured: result.attributes.featured || false,
               body: result.body,
             }

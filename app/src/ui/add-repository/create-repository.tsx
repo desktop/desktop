@@ -23,7 +23,7 @@ const NoGitIgnoreValue = 'None'
 
 /** The sentinel value used to indicate no license should be used. */
 const NoLicenseValue: ILicense = {
-  title: 'None',
+  name: 'None',
   featured: false,
   body: '',
 }
@@ -68,7 +68,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       gitIgnoreNames: null,
       gitIgnore: NoGitIgnoreValue,
       licenses: null,
-      license: NoLicenseValue.title,
+      license: NoLicenseValue.name,
     }
   }
 
@@ -202,7 +202,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     licenses = licenses.sort((a, b) => {
       if (a.featured) { return -1 }
       if (b.featured) { return 1 }
-      return a.title.localeCompare(b.title)
+      return a.name.localeCompare(b.name)
     })
 
     const options = [ NoLicenseValue, ...licenses ]
@@ -213,7 +213,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         value={this.state.license}
         onChange={this.onLicenseChange}
       >
-        {options.map(l => <option key={l.title} value={l.title}>{l.title}</option>)}
+        {options.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
       </Select>
     )
   }
