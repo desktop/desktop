@@ -119,7 +119,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   private publishRepository = () => {
     const owningAccount = this.findOwningUserForSelectedUser()!
     this.props.dispatcher.publishRepository(this.props.repository, this.state.name, this.state.description, this.state.private, owningAccount, this.selectedOrg)
-    this.props.dispatcher.closePopup()
+    this.props.dispatcher.closeFoldout()
   }
 
   private onAccountChange = (event: React.FormEvent<HTMLSelectElement>) => {
