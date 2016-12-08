@@ -651,7 +651,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeRepositorySection(repository: Repository, section: RepositorySection): Promise<void> {
-    this.updateRepositoryState(repository, state => ({ ...state, section }))
+    this.updateRepositoryState(repository, state => ({ ...state, selectedSection: section }))
     this.emitUpdate()
 
     if (section === RepositorySection.History) {
