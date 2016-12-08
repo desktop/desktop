@@ -40,20 +40,12 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
-    this.setState({
-      path,
-      name: this.state.name,
-      createWithReadme: this.state.createWithReadme,
-    })
+    this.setState({ ...this.state, path })
   }
 
   private onNameChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const name = event.currentTarget.value
-    this.setState({
-      path: this.state.path,
-      name,
-      createWithReadme: this.state.createWithReadme,
-    })
+    this.setState({ ...this.state, name })
   }
 
   private showFilePicker = () => {
@@ -61,11 +53,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     if (!directory) { return }
 
     const path = directory[0]
-    this.setState({
-      path,
-      name: this.state.name,
-      createWithReadme: this.state.createWithReadme,
-    })
+    this.setState({ ...this.state, path })
   }
 
   private createRepository = async () => {
@@ -101,11 +89,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   }
 
   private onCreateWithReadmeChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      path: this.state.path,
-      name: this.state.name,
-      createWithReadme: event.currentTarget.checked,
-    })
+    this.setState({ ...this.state, createWithReadme: event.currentTarget.checked })
   }
 
   private renderError() {
