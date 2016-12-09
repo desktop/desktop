@@ -480,7 +480,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _selectRepository(repository: Repository | CloningRepository | null): Promise<void> {
+  public async _selectRepository(repository: Repository | CloningRepository | null): Promise<void> {
     this.selectedRepository = repository
     this.emitUpdate()
 
@@ -489,8 +489,6 @@ export class AppStore {
     if (!repository) { return Promise.resolve() }
 
     if (repository instanceof Repository) {
-      this.startBackgroundFetching(repository)
-
       localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
 
       const gitHubRepository = repository.gitHubRepository
@@ -498,7 +496,9 @@ export class AppStore {
         this._updateIssues(gitHubRepository)
       }
 
-      return this._refreshRepository(repository)
+      await this._refreshRepository(repository)
+
+      this.startBackgroundFetching(repository)
     } else {
       return Promise.resolve()
     }
