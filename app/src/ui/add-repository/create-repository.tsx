@@ -130,7 +130,6 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
             }
           } catch (e) {
             console.error(e)
-
             this.props.dispatcher.postError(e)
           }
         }

@@ -713,21 +713,25 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<void> {
+  public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => {
+    const result = await gitStore.performFailableOperation(() => {
       const commitMessage = formatCommitMessage(message)
       return createCommit(repository, commitMessage, files)
     })
 
-    await this._refreshRepository(repository)
+    const success = result !== undefined
+    if (success) {
+      await this._refreshRepository(repository)
+      await this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
+    }
 
-    return this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
+    return success
   }
 
   private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {

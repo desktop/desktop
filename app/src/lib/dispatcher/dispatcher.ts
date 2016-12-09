@@ -224,7 +224,7 @@ export class Dispatcher {
    * Commit the changes which were marked for inclusion, using the given commit
    * summary and description.
    */
-  public commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<void> {
+  public commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
     return this.appStore._commitIncludedChanges(repository, message)
   }
 

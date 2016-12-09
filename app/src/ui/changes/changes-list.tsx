@@ -21,7 +21,7 @@ interface IChangesListProps {
   readonly onFileSelectionChanged: (row: number) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
-  readonly onCreateCommit: (message: ICommitMessage) => void
+  readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
   readonly onDiscardChanges: (path: string) => void
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
