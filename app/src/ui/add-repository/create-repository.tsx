@@ -5,7 +5,7 @@ import * as OS from 'os'
 import * as FS from 'fs'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { initGitRepository, createCommit, getStatus } from '../../lib/git'
+import { initGitRepository, createCommit, getStatus, getAuthorIdentity } from '../../lib/git'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
 import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
@@ -146,7 +146,15 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           createInitialCommit = true
 
           try {
-            await writeLicense(fullPath, license)
+            const author = await getAuthorIdentity(repository)
+
+            await writeLicense(fullPath, license, {
+              fullname: author ? author.name : '',
+              email: author ? author.email : '',
+              year: (new Date()).getFullYear().toString(),
+              description: '',
+              project: this.state.name,
+            })
           } catch (e) {
             console.error(e)
 
