@@ -734,10 +734,15 @@ export class AppStore {
 
     if (result && result.exitCode !== 0) {
       const output = result.stderr.trim()
+
+      let standardError = ''
+      if (output.length > 0) {
+        standardError = ` with output: '${output}'`
+      }
       const exitCode = result.exitCode
       const appError: IAppError = {
         name: 'commit-failed',
-        message: `Unable to commit - exit code ${exitCode} received with output: '${output}'`
+        message: `Commit failed - exit code ${exitCode} received${standardError}`
       }
 
       this._postError(appError)
