@@ -86,10 +86,10 @@ function replaceToken(body: string, token: string, value: string): string {
   // The license templates are inconsitent :( Sometimes they use [token] and
   // sometimes {token}. So we'll standardize first to {token} and then do
   // replacements.
-  const oldPattern = new RegExp(`[${token}]`, 'g')
+  const oldPattern = new RegExp(`\\[${token}\\]`, 'g')
   const newBody = body.replace(oldPattern, `{${token}}`)
 
-  const newPattern = new RegExp(`{${token}}`, 'g')
+  const newPattern = new RegExp(`\\{${token}\\}`, 'g')
   return newBody.replace(newPattern, value)
 }
 
