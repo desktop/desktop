@@ -16,7 +16,6 @@ import { Branches } from './branches'
 import { AddRepository } from './add-repository'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
-import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
 import { OcticonSymbol } from './octicons'
@@ -387,10 +386,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <DeleteBranch dispatcher={this.props.dispatcher}
                            repository={popup.repository}
                            branch={popup.branch}/>
-    } else if (popup.type === PopupType.PublishRepository) {
-      return <PublishRepository repository={popup.repository}
-                                dispatcher={this.props.dispatcher}
-                                users={this.state.users}/>
     } else if (popup.type === PopupType.ConfirmDiscardChanges) {
       return <DiscardChanges repository={popup.repository}
                              dispatcher={this.props.dispatcher}
@@ -573,6 +568,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
+    const isPublishing = Boolean(this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Publish)
+
     const state = selection.state
     return <PushPullButton
       dispatcher={this.props.dispatcher}
@@ -580,7 +577,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       aheadBehind={state.aheadBehind}
       remoteName={state.remoteName}
       lastFetched={state.lastFetched}
-      networkActionInProgress={state.pushPullInProgress}/>
+      networkActionInProgress={state.pushPullInProgress}
+      isPublishing={isPublishing}
+      users={this.state.users}/>
   }
 
   private renderBranchFoldout = (): JSX.Element | null => {

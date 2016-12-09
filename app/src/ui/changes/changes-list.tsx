@@ -6,7 +6,7 @@ import { List, ClickSource } from '../list'
 import { WorkingDirectoryStatus } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
-import { Checkbox, CheckboxValue } from './checkbox'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { ICommitMessage } from '../../lib/app-state'
 import { IAutocompletionProvider } from '../autocompletion'
 import { Dispatcher } from '../../lib/dispatcher'
@@ -90,7 +90,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         <div id='select-all' className='header'>
           <Checkbox value={this.includeAllValue} onChange={this.onIncludeAllChanged}/>
 
-          <label>
+          <label className='changed-files-count'>
             {filesDescription}
           </label>
         </div>
