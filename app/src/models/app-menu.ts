@@ -382,7 +382,8 @@ export class AppMenu {
     const newOpenMenus = this.openMenus.slice(0, parentMenuIndex + 1)
 
     if (selectFirstItem) {
-      newOpenMenus.push(Object.assign({}, ourMenuItem.menu, { selectedItem: ourMenuItem.menu.items[0] }))
+      const selectedItem = ourMenuItem.menu.items[0]
+      newOpenMenus.push({ ...ourMenuItem.menu, selectedItem })
     } else {
       newOpenMenus.push(ourMenuItem.menu)
     }
@@ -464,11 +465,11 @@ export class AppMenu {
 
     const parentMenu = newOpenMenus[parentMenuIndex]
 
-    newOpenMenus[parentMenuIndex] = Object.assign({}, parentMenu, { selectedItem: ourMenuItem })
+    newOpenMenus[parentMenuIndex] = { ...parentMenu, selectedItem: ourMenuItem }
 
     // All submenus below the active menu should have their selection cleared
     for (let i = parentMenuIndex + 1; i < newOpenMenus.length; i++) {
-      newOpenMenus[i] =  Object.assign({}, newOpenMenus[i], { selectedItem: undefined })
+      newOpenMenus[i] = { ...newOpenMenus[i], selectedItem: undefined }
     }
 
     // Ensure that the path that lead us to the currently selected menu is
@@ -481,7 +482,7 @@ export class AppMenu {
       const selectedItem = menu.items.find(item =>
         item.type === 'submenuItem' && item.id === childMenu.id)
 
-      newOpenMenus[i] =  Object.assign({}, menu, { selectedItem })
+      newOpenMenus[i] =  { ...menu, selectedItem }
     }
 
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
@@ -512,7 +513,7 @@ export class AppMenu {
     const ourMenu = this.openMenus[ourMenuIndex]
     const newOpenMenus = this.openMenus.slice()
 
-    newOpenMenus[ourMenuIndex] = Object.assign({}, ourMenu, { selectedItem: undefined })
+    newOpenMenus[ourMenuIndex] = { ...ourMenu, selectedItem: undefined }
 
     // Ensure that the path to the menu without an active selection is
     // selected. i.e. all menus above should have their selection reset
@@ -524,7 +525,7 @@ export class AppMenu {
       const selectedItem = menu.items.find(item =>
         item.type === 'submenuItem' && item.id === childMenu.id)
 
-      newOpenMenus[i] =  Object.assign({}, menu, { selectedItem })
+      newOpenMenus[i] =  { ...menu, selectedItem }
     }
 
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
