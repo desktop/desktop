@@ -73,7 +73,11 @@ export function getLicenses(): Promise<ReadonlyArray<ILicense>> {
             licenses.push(license)
           }
 
-          cachedLicenses = licenses
+          cachedLicenses = licenses.sort((a, b) => {
+            if (a.featured) { return -1 }
+            if (b.featured) { return 1 }
+            return a.name.localeCompare(b.name)
+          })
 
           resolve(cachedLicenses)
         }

@@ -224,13 +224,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   }
 
   private renderLicenses() {
-    let licenses: Array<ILicense> = Array.from(this.state.licenses || [])
-    licenses = licenses.sort((a, b) => {
-      if (a.featured) { return -1 }
-      if (b.featured) { return 1 }
-      return a.name.localeCompare(b.name)
-    })
-
+    const licenses = this.state.licenses || []
     const options = [ NoLicenseValue, ...licenses ]
 
     return (
