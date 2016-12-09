@@ -13,7 +13,12 @@ import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { writeDefaultReadme } from './write-default-readme'
+import { Select } from '../lib/select'
+import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { Loading } from '../lib/loading'
+
+/** The sentinel value used to indicate no gitignore should be used. */
+const NoGitIgnoreValue = 'None'
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -28,6 +33,12 @@ interface ICreateRepositoryState {
 
   /** Is the repository currently in the process of being created? */
   readonly creating: boolean
+
+  /** The names for the available gitignores. */
+  readonly gitIgnoreNames: ReadonlyArray<string> | null
+
+  /** The gitignore to include in the repository. */
+  readonly gitIgnore: string
 }
 
 /** The Create New Repository component. */
@@ -40,7 +51,14 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       name: '',
       createWithReadme: false,
       creating: false,
+      gitIgnoreNames: null,
+      gitIgnore: NoGitIgnoreValue,
     }
+  }
+
+  public async componentDidMount() {
+    const gitIgnoreNames = await getGitIgnoreNames()
+    this.setState({ ...this.state, gitIgnoreNames })
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
@@ -76,13 +94,40 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
         const repository = repositories[0]
 
+        let createInitialCommit = false
         if (this.state.createWithReadme) {
+          createInitialCommit = true
+
           try {
             await writeDefaultReadme(fullPath, this.state.name)
+          } catch (e) {
+            console.error(e)
 
+            this.props.dispatcher.postError(e)
+          }
+        }
+
+        const gitIgnore = this.state.gitIgnore
+        if (gitIgnore !== NoGitIgnoreValue) {
+          createInitialCommit = true
+
+          try {
+            await writeGitIgnore(fullPath, gitIgnore)
+          } catch (e) {
+            console.error(e)
+
+            this.props.dispatcher.postError(e)
+          }
+        }
+
+        if (createInitialCommit) {
+          try {
             const status = await getStatus(repository)
             const wd = status.workingDirectory
-            await createCommit(repository, 'Initial commit', wd.files)
+            const files = wd.files
+            if (files.length > 0) {
+              await createCommit(repository, 'Initial commit', files)
+            }
           } catch (e) {
             console.error(e)
 
@@ -111,6 +156,26 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     )
   }
 
+  private onGitIgnoreChange = (event: React.FormEvent<HTMLSelectElement>) => {
+    const gitIgnore = event.currentTarget.value
+    this.setState({ ...this.state, gitIgnore })
+  }
+
+  private renderGitIgnores() {
+    const gitIgnores = this.state.gitIgnoreNames || []
+    const options = [ NoGitIgnoreValue, ...gitIgnores ]
+
+    return (
+      <Select
+        label='Git Ignore'
+        value={this.state.gitIgnore}
+        onChange={this.onGitIgnoreChange}
+      >
+        {options.map(n => <option key={n} value={n}>{n}</option>)}
+      </Select>
+    )
+  }
+
   public render() {
     const disabled = this.state.path.length === 0 || this.state.name.length === 0 || this.state.creating
     return (
@@ -136,6 +201,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           label='Initialize this repository with a README'
           value={this.state.createWithReadme ? CheckboxValue.On : CheckboxValue.Off}
           onChange={this.onCreateWithReadmeChange}/>
+
+        {this.renderGitIgnores()}
 
         <hr/>
 
