@@ -725,10 +725,22 @@ export class AppStore {
       return createCommit(repository, commitMessage, files)
     })
 
-    const success = result !== undefined
-    if (success) {
+    let success: boolean = false
+    if (result && result.exitCode === 0) {
+      success = true
       await this._refreshRepository(repository)
       await this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
+    }
+
+    if (result && result.exitCode !== 0) {
+      const output = result.stderr.trim()
+      const exitCode = result.exitCode
+      const appError: IAppError = {
+        name: 'commit-failed',
+        message: `Unable to commit - exit code ${exitCode} received with output: '${output}'`
+      }
+
+      this._postError(appError)
     }
 
     return success
