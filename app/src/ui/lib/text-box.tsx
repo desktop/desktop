@@ -17,9 +17,6 @@ interface ITextBoxProps {
   /** The current value of the input field. */
   readonly value?: string
 
-  /** Whether the input field should be for secure entry. */
-  readonly secure?: boolean
-
   /** Whether the input field should auto focus when mounted. */
   readonly autoFocus?: boolean
 
@@ -33,7 +30,7 @@ interface ITextBoxProps {
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
 
   /** The type of the input. Defaults to `text`. */
-  readonly type?: 'text' | 'search'
+  readonly type?: 'text' | 'search' | 'password'
 
   /** A callback to receive the underlying `input` instance. */
   readonly onInputRef?: (instance: HTMLInputElement) => void
@@ -43,7 +40,6 @@ interface ITextBoxProps {
 export class TextBox extends React.Component<ITextBoxProps, void> {
   public render() {
     const className = classNames('text-box-component', this.props.labelClassName)
-    const type = this.props.secure === true ? 'password' : (this.props.type || 'text')
     return (
       <label className={className}>
         {this.props.label}
@@ -52,7 +48,7 @@ export class TextBox extends React.Component<ITextBoxProps, void> {
           autoFocus={this.props.autoFocus}
           className={this.props.inputClassName}
           disabled={this.props.disabled}
-          type={type}
+          type={this.props.type}
           placeholder={this.props.placeholder}
           value={this.props.value}
           onChange={this.props.onChange}
