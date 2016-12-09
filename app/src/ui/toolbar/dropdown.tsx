@@ -1,20 +1,20 @@
 import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { assertNever } from '../../lib/fatal-error'
-import { ToolbarButton } from './button'
+import { ToolbarButton, ToolbarButtonStyle } from './button'
 import * as classNames from 'classnames'
 
 export type DropdownState = 'open' | 'closed'
 
 export interface IToolbarDropdownProps {
   /** The primary button text, describing its function */
-  readonly title: string,
+  readonly title: string
 
   /** An optional description of the function of the button */
-  readonly description?: string,
+  readonly description?: string | JSX.Element
 
   /** An optional symbol to be displayed next to the button text */
-  readonly icon?: OcticonSymbol,
+  readonly icon?: OcticonSymbol
 
   /**
    * The state for of the drop down button.
@@ -38,7 +38,18 @@ export interface IToolbarDropdownProps {
    * An optional classname that will be appended to the default
    * class name 'toolbar-button dropdown open|closed'
    */
-  readonly className?: string,
+  readonly className?: string
+
+  /** The class name for the icon element. */
+  readonly iconClassName?: string
+
+  /** The button's style. Defaults to `ToolbarButtonStyle.Standard`. */
+  readonly style?: ToolbarButtonStyle
+
+  /**
+   * Whether the button should displays its disclosure arrow. Defaults to true.
+   */
+  readonly showDisclosureArrow?: boolean
 }
 
 interface IToolbarDropdownState {
@@ -70,10 +81,9 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
   }
 
   private renderDropdownArrow(): JSX.Element | null {
+    if (this.props.showDisclosureArrow === false) { return null }
+
     const state = this.props.dropdownState
-    if (!state) {
-      return null
-    }
 
     return <Octicon symbol={this.dropdownIcon(state)} className='dropdownArrow' />
   }
@@ -193,6 +203,8 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         onClick={this.onClick}
         className={className}
         preContentRenderer={this.renderDropdownContents}
+        style={this.props.style}
+        iconClassName={this.props.iconClassName}
       >
         {this.renderDropdownArrow()}
       </ToolbarButton>

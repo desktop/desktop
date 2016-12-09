@@ -8,7 +8,7 @@ import {
   RepositorySection,
   IChangesState,
   Popup,
-  PopupType,
+  FoldoutType,
   Foldout,
   IBranchesState,
   IAppError,
@@ -650,13 +650,13 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _changeRepositorySection(repository: Repository, section: RepositorySection): Promise<void> {
-    this.updateRepositoryState(repository, state => ({ ...state, section }))
+  public async _changeRepositorySection(repository: Repository, selectedSection: RepositorySection): Promise<void> {
+    this.updateRepositoryState(repository, state => ({ ...state, selectedSection }))
     this.emitUpdate()
 
-    if (section === RepositorySection.History) {
+    if (selectedSection === RepositorySection.History) {
       return this.refreshHistorySection(repository)
-    } else if (section === RepositorySection.Changes) {
+    } else if (selectedSection === RepositorySection.Changes) {
       return this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: false })
     }
   }
@@ -1001,7 +1001,9 @@ export class AppStore {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remoteName
       if (!remote) {
-        this._showPopup({ type: PopupType.PublishRepository, repository })
+        this._showFoldout({
+          type: FoldoutType.Publish,
+        })
         return
       }
 

@@ -6,10 +6,12 @@
   margin: var(--spacing-triple) var(--spacing);
   background-color: var(--box-alt-background-color);
   position: absolute;
-  border: var(--base-border);
-  border-radius: var(--border-radius);
-  box-shadow: 0 0 7px rgba(0,0,0,0.15);
   z-index: var(--popup-z-index);
+
+  top: 50%;
+  left: 50%;
+  margin-right: -50%;
+  transform: translate(-50%, -100%);
 }
 
 .popup-content {
@@ -47,4 +49,8 @@
 
 .popup-overlay {
   z-index: var(--popup-overlay-z-index);
+
+  background: black;
+  opacity: 0.4;
+  height: 100%;
 }

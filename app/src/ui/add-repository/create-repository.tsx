@@ -158,7 +158,10 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           try {
             const status = await getStatus(repository)
             const wd = status.workingDirectory
-            await createCommit(repository, 'Initial commit', wd.files)
+            const files = wd.files
+            if (files.length > 0) {
+              await createCommit(repository, 'Initial commit', files)
+            }
           } catch (e) {
             console.error(e)
 
