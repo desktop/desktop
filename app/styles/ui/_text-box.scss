@@ -1,0 +1,26 @@
+.text-box-component {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  input {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+
+    border: 1px solid var(--box-border-color);
+    border-radius: var(--border-radius);
+    color: currentColor;
+    font-size: var(--font-size);
+    font-family: var(--font-family-sans-serif);
+    padding: var(--spacing-half);
+    margin-right: var(--spacing);
+
+    resize: none;
+
+    &:focus {
+      outline: none;
+      border-color: var(--focus-color);
+    }
+  }
+}

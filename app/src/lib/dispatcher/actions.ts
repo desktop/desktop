@@ -30,6 +30,12 @@ export interface IAddUserAction {
   readonly user: IUser
 }
 
+/** Remove a user from the app. */
+export interface IRemoveUserAction {
+  readonly name: 'remove-user'
+  readonly user: IUser
+}
+
 export type Action = IGetUsersAction | IGetRepositoriesAction |
                      IAddRepositoriesAction | IUpdateGitHubRepositoryAction |
-                     IRemoveRepositoriesAction | IAddUserAction
+                     IRemoveRepositoriesAction | IAddUserAction | IRemoveUserAction

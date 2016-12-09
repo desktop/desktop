@@ -16,7 +16,6 @@ import { Branches } from './branches'
 import { AddRepository } from './add-repository'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
-import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
 import { OcticonSymbol } from './octicons'
@@ -29,7 +28,10 @@ import { StatsStore, ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
 import { AppMenu } from './app-menu'
 import { UpdateAvailable } from './updates'
+import { Preferences } from './preferences'
+import { User } from '../models/user'
 import { shouldRenderApplicationMenu } from './lib/features'
+import { Button } from './lib/button'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -146,6 +148,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'delete-branch': return this.deleteBranch()
       case 'check-for-updates': return this.checkForUpdates()
       case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
+      case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -154,9 +157,23 @@ export class App extends React.Component<IAppProps, IAppState> {
   private checkForUpdates() {
     if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') { return }
 
-    const dotComUsers = this.props.appStore.getState().users.filter(u => u.endpoint === getDotComAPIEndpoint())
-    const login = dotComUsers.length ? dotComUsers[0].login : ''
+    const dotComUser = this.getDotComUser()
+    const login = dotComUser ? dotComUser.login : ''
     updateStore.checkForUpdates(login)
+  }
+
+  private getDotComUser(): User | null {
+    const state = this.props.appStore.getState()
+    const users = state.users
+    const dotComUser = users.find(u => u.endpoint === getDotComAPIEndpoint())
+    return dotComUser || null
+  }
+
+  private getEnterpriseUser(): User | null {
+    const state = this.props.appStore.getState()
+    const users = state.users
+    const enterpriseUser = users.find(u => u.endpoint !== getDotComAPIEndpoint())
+    return enterpriseUser || null
   }
 
   private renameBranch() {
@@ -368,16 +385,17 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <DeleteBranch dispatcher={this.props.dispatcher}
                            repository={popup.repository}
                            branch={popup.branch}/>
-    } else if (popup.type === PopupType.PublishRepository) {
-      return <PublishRepository repository={popup.repository}
-                                dispatcher={this.props.dispatcher}
-                                users={this.state.users}/>
     } else if (popup.type === PopupType.ConfirmDiscardChanges) {
       return <DiscardChanges repository={popup.repository}
                              dispatcher={this.props.dispatcher}
                              files={popup.files}/>
     } else if (popup.type === PopupType.UpdateAvailable) {
       return <UpdateAvailable dispatcher={this.props.dispatcher}/>
+    } else if (popup.type === PopupType.Preferences) {
+      return <Preferences
+        dispatcher={this.props.dispatcher}
+        dotComUser={this.getDotComUser()}
+        enterpriseUser={this.getEnterpriseUser()}/>
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)
@@ -415,7 +433,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         {msgs.map((msg, i) => <pre className='popup-error-output' key={i}>{msg}</pre>)}
 
         <div className='popup-actions'>
-          <button onClick={this.clearErrors}>OK</button>
+          <Button onClick={this.clearErrors}>OK</Button>
         </div>
       </Popuppy>
     )
@@ -549,6 +567,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
+    const isPublishing = Boolean(this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Publish)
+
     const state = selection.state
     return <PushPullButton
       dispatcher={this.props.dispatcher}
@@ -556,7 +576,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       aheadBehind={state.aheadBehind}
       remoteName={state.remoteName}
       lastFetched={state.lastFetched}
-      networkActionInProgress={state.pushPullInProgress}/>
+      networkActionInProgress={state.pushPullInProgress}
+      isPublishing={isPublishing}
+      users={this.state.users}/>
   }
 
   private renderBranchFoldout = (): JSX.Element | null => {

@@ -1,0 +1,8 @@
+.select-component {
+  display: flex;
+  flex-direction: column;
+
+  select {
+    flex: 1;
+  }
+}
