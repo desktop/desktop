@@ -25,6 +25,14 @@ export interface ILicense {
   readonly body: string
 }
 
+interface ILicenseFields {
+  readonly fullname: string
+  readonly email: string
+  readonly project: string
+  readonly description: string
+  readonly year: string
+}
+
 const root = Path.join(__dirname, 'static', 'choosealicense.com', '_licenses')
 
 let cachedLicenses: ReadonlyArray<ILicense> | null = null
@@ -74,12 +82,36 @@ export function getLicenses(): Promise<ReadonlyArray<ILicense>> {
   }
 }
 
+function replaceToken(body: string, token: string, value: string): string {
+  // The license templates are inconsitent :( Sometimes they use [token] and
+  // sometimes {token}. So we'll standardize first to {token} and then do
+  // replacements.
+  const oldPattern = new RegExp(`[${token}]`, 'g')
+  const newBody = body.replace(oldPattern, `{${token}}`)
+
+  const newPattern = new RegExp(`{${token}}`, 'g')
+  return newBody.replace(newPattern, value)
+}
+
+function replaceTokens(body: string, tokens: ReadonlyArray<keyof ILicenseFields>, fields: ILicenseFields): string {
+  let newBody = body
+  for (const token of tokens) {
+    const value = fields[token]
+    newBody = replaceToken(newBody, token, value)
+  }
+
+  return newBody
+}
+
 /** Write the license to the the repository at the given path. */
-export function writeLicense(repositoryPath: string, license: ILicense): Promise<void> {
+export function writeLicense(repositoryPath: string, license: ILicense, fields: ILicenseFields): Promise<void> {
   const fullPath = Path.join(repositoryPath, 'LICENSE')
 
   return new Promise<void>((resolve, reject) => {
-    Fs.writeFile(fullPath, license.body, err => {
+    const tokens: ReadonlyArray<keyof ILicenseFields> = [ 'fullname', 'email', 'project', 'description', 'year' ]
+    const body = replaceTokens(license.body, tokens, fields)
+
+    Fs.writeFile(fullPath, body, err => {
       if (err) {
         reject(err)
       } else {
