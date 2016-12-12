@@ -24,6 +24,8 @@ import { RangeSelection } from './selection/range-selection-strategy'
 
 import { fatalError } from '../../lib/fatal-error'
 
+import { RangeSelectionSizePixels } from './edge-detection'
+
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
   require('codemirror/addon/scroll/simplescrollbars')
@@ -42,9 +44,6 @@ function formatLineEnding(text: string): string {
     return text + '\r\n'
   }
 }
-
-/** use a range of pixels near the edge to indicate whether a range selection should fire */
-const RangeSelectionEdgeSize = 10
 
 /** The props for the Diff component. */
 interface IDiffProps {
@@ -304,7 +303,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     const deltaX = ev.layerX - width
-    return deltaX >= 0 && deltaX <= RangeSelectionEdgeSize
+    return deltaX >= 0 && deltaX <= RangeSelectionSizePixels
   }
 
   private renderLine = (instance: any, line: any, element: HTMLElement) => {

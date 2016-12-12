@@ -3,13 +3,7 @@ import { Diff, DiffLine, DiffLineType } from '../../models/diff'
 import { hoverCssClass, selectedLineClass } from './selection/selection'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
-
-/**
- * The area in pixels either side of the right-edge of the diff gutter to
- * use to detect when a group of lines should be highlighted, instead of
- * a single line.
- */
-const EdgeDetectionSize = 10
+import { RangeSelectionSizePixels } from './edge-detection'
 
 /** The props for the diff gutter. */
 interface IDiffGutterProps {
@@ -79,7 +73,7 @@ function isMouseCursorNearEdge(ev: MouseEvent): boolean {
   const offset: ClientRect = element.getBoundingClientRect()
   const relativeLeft = ev.clientX - offset.left
 
-  const edge = offset.width - EdgeDetectionSize
+  const edge = offset.width - RangeSelectionSizePixels
 
   return relativeLeft >= edge
 }
