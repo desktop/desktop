@@ -170,6 +170,27 @@ export class Diff extends React.Component<IDiffProps, void> {
     element.setHover(include)
   }
 
+  private startSelection = (file: WorkingDirectoryFileChange, index: number, isHunkSelection: boolean) => {
+
+    const snapshot = file.selection
+    const selected = snapshot.isSelected(index)
+    const desiredSelection = !selected
+
+    if (isHunkSelection) {
+      const range = this.props.diff.findInteractiveDiffRange(index)
+      if (!range) {
+        console.error('unable to find range for given line in diff')
+        return
+      }
+
+      this.selection = new RangeSelection(range.start, range.end, desiredSelection, snapshot)
+    } else {
+      this.selection = new DragDropSelection(index, desiredSelection, snapshot)
+    }
+
+    this.selection.paint(this.cachedGutterElements)
+  }
+
   private onMouseUp = () => {
     if (!this.props.onIncludeChanged) {
       return
@@ -191,23 +212,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    const snapshot = this.props.file.selection
-    const selected = snapshot.isSelected(index)
-    const desiredSelection = !selected
-
-    if (isHunkSelection) {
-      const range = this.props.diff.findInteractiveDiffRange(index)
-      if (!range) {
-        console.error('unable to find range for given line in diff')
-        return
-      }
-
-      this.selection = new RangeSelection(range.start, range.end, desiredSelection, snapshot)
-    } else {
-      this.selection = new DragDropSelection(index, desiredSelection, snapshot)
-    }
-
-    this.selection.paint(this.cachedGutterElements)
+    this.startSelection(this.props.file, index, isHunkSelection)
   }
 
   private onMouseMove = (index: number) => {
@@ -254,9 +259,13 @@ export class Diff extends React.Component<IDiffProps, void> {
 
     const isActive = this.isMouseCursorNearGutter(ev)
 
-    // TODO: ???
     if (isActive) {
+      if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
+        fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
+        return
+      }
 
+      this.startSelection(this.props.file, index, true)
     }
   }
 
