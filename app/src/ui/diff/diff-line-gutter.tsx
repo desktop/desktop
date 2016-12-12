@@ -176,7 +176,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     ev.preventDefault()
 
     const isRangeSelection = isMouseCursorNearEdge(ev)
-
     this.updateHoverState(isRangeSelection, true)
   }
 
