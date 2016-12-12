@@ -296,10 +296,6 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.updateRangeHoverState(range.start, range.end, false)
   }
 
-  private onDiffTextMouseUp = (ev: MouseEvent, index: number) => {
-    this.endSelection()
-  }
-
   private isMouseCursorNearGutter = (ev: MouseEvent): boolean | null =>  {
     const width = this.getAndCacheGutterWidth()
 
@@ -368,7 +364,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       }
 
       const onMouseUpLine: (ev: MouseEvent) => void = (ev) => {
-        this.onDiffTextMouseUp(ev, index)
+        this.endSelection()
       }
 
       const onMouseLeaveLine: (ev: MouseEvent) => void = (ev) => {
