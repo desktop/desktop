@@ -56,26 +56,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     props.appStore.onDidUpdate(state => {
       this.setState(state)
 
-      const selectedState = state.selectedState
-      let onNonDefaultBranch = false
-      if (selectedState && selectedState.type === SelectionType.Repository) {
-        const currentBranch = selectedState.state.branchesState.currentBranch
-        const defaultBranch = selectedState.state.branchesState.defaultBranch
-        // If we are:
-        //  1. on the default branch, or
-        //  2. on an unborn branch, or
-        //  3. on a detached HEAD
-        // there's not much we can do.
-        if (!currentBranch || !defaultBranch || currentBranch.name === defaultBranch.name) {
-          onNonDefaultBranch = false
-        } else {
-          onNonDefaultBranch = true
-        }
-      }
-
-      setMenuEnabled('rename-branch', onNonDefaultBranch)
-      setMenuEnabled('delete-branch', onNonDefaultBranch)
-      setMenuEnabled('update-branch', onNonDefaultBranch)
+      this.updateMenu(state)
     })
 
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
@@ -133,6 +114,29 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       setInterval(() => this.props.statsStore.reportStats(), SendStatsInterval)
     })
+  }
+
+  private updateMenu(state: IAppState) {
+    const selectedState = state.selectedState
+    let onNonDefaultBranch = false
+    if (selectedState && selectedState.type === SelectionType.Repository) {
+      const currentBranch = selectedState.state.branchesState.currentBranch
+      const defaultBranch = selectedState.state.branchesState.defaultBranch
+      // If we are:
+      //  1. on the default branch, or
+      //  2. on an unborn branch, or
+      //  3. on a detached HEAD
+      // there's not much we can do.
+      if (!currentBranch || !defaultBranch || currentBranch.name === defaultBranch.name) {
+        onNonDefaultBranch = false
+      } else {
+        onNonDefaultBranch = true
+      }
+    }
+
+    setMenuEnabled('rename-branch', onNonDefaultBranch)
+    setMenuEnabled('delete-branch', onNonDefaultBranch)
+    setMenuEnabled('update-branch', onNonDefaultBranch)
   }
 
   private onMenuEvent(name: MenuEvent): any {
