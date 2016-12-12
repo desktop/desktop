@@ -119,9 +119,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   private updateMenu(state: IAppState) {
     const selectedState = state.selectedState
     let onNonDefaultBranch = false
+    let onBranch = false
     if (selectedState && selectedState.type === SelectionType.Repository) {
       const currentBranch = selectedState.state.branchesState.currentBranch
       const defaultBranch = selectedState.state.branchesState.defaultBranch
+
+      onBranch = Boolean(currentBranch)
+
       // If we are:
       //  1. on the default branch, or
       //  2. on an unborn branch, or
@@ -137,6 +141,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     setMenuEnabled('rename-branch', onNonDefaultBranch)
     setMenuEnabled('delete-branch', onNonDefaultBranch)
     setMenuEnabled('update-branch', onNonDefaultBranch)
+    setMenuEnabled('merge-branch', onBranch)
   }
 
   private onMenuEvent(name: MenuEvent): any {
