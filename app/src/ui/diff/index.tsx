@@ -244,8 +244,6 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onDiffTextMouseMove = (ev: MouseEvent, index: number) => {
-    console.log(`--- mouse move at [${ev.offsetX}, ${ev.offsetY}]`)
-
     const isActive = this.isMouseCursorNearGutter(ev)
     if (isActive === null) {
       return
@@ -255,8 +253,6 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onDiffTextMouseDown = (ev: MouseEvent, index: number) => {
-    console.log(`--- mouse down at [${ev.offsetX}, ${ev.offsetY}]`)
-
     const isActive = this.isMouseCursorNearGutter(ev)
 
     if (isActive) {
@@ -270,8 +266,6 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onDiffTextMouseUp = (ev: MouseEvent, index: number) => {
-    console.log(`--- mouse up at [${ev.offsetX}, ${ev.offsetY}]`)
-
     //if (this.props.onCompleteRangeSelection && lineNumber) {
     //  this.props.onCompleteRangeSelection(lineNumber)
     //}
@@ -280,7 +274,17 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private isMouseCursorNearGutter = (ev: MouseEvent): boolean | null =>  {
-    return ev.offsetX >= 0 && ev.offsetX < RangeSelectionEdgeSize
+    const elements = Array.from(this.cachedGutterElements.values())
+    const first = elements[0]
+
+    if (first) {
+      // HACK: come back to this, `this` is trolling me
+      const width = 130
+      const deltaX = ev.layerX - width
+      return deltaX >= 0 && deltaX <= RangeSelectionEdgeSize
+    }
+
+    return false
   }
 
   private renderLine = (instance: any, line: any, element: HTMLElement) => {

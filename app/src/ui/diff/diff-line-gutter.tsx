@@ -67,8 +67,6 @@ interface IDiffGutterProps {
   readonly onMouseUp: (index: number) => void
 }
 
-
-
 /**
  * Detect if mouse cursor is within the range
  */
