@@ -181,6 +181,13 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   }
 
   private applyEventHandlers = (elem: HTMLSpanElement) => {
+
+    // set this so we can compute the width of the diff gutter
+    // whether it is an editable line or not
+    if (elem) {
+      this.elem_ = elem
+    }
+
     // read-only diffs do not support any interactivity
     if (this.props.readOnly) {
       return
@@ -192,8 +199,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     }
 
     if (elem) {
-      this.elem_ = elem
-
       elem.addEventListener('mouseenter', this.mouseEnterHandler)
       elem.addEventListener('mouseleave', this.mouseLeaveHandler)
       elem.addEventListener('mousemove', this.mouseMoveHandler)

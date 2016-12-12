@@ -73,6 +73,7 @@ interface IDiffProps {
 /** A component which renders a diff for a file. */
 export class Diff extends React.Component<IDiffProps, void> {
   private codeMirror: Editor | null
+  private gutterWidth: number | null
 
   /**
    * We store the scroll position before reloading the same diff so that we can
@@ -127,6 +128,8 @@ export class Diff extends React.Component<IDiffProps, void> {
       // Nothing has changed
       if (oldSelection === selection) { return }
 
+      this.gutterWidth = null
+
       const diff = nextProps.diff
       this.cachedGutterElements.forEach((element, index) => {
         if (!element) {
@@ -151,6 +154,29 @@ export class Diff extends React.Component<IDiffProps, void> {
 
     this.lineCleanup.forEach(disposable => disposable.dispose())
     this.lineCleanup.clear()
+  }
+
+  private getAndCacheGutterWidth = (): number | null => {
+
+    if (this.gutterWidth) {
+      return this.gutterWidth
+    }
+
+    const elements = Array.from(this.cachedGutterElements.values())
+    const first = elements[1]
+
+    if (!first) {
+      console.debug(`--- unable to get element`)
+      return null
+    }
+
+    this.gutterWidth = first.getWidth()
+    if (!this.gutterWidth) {
+      console.debug(`--- unable to compute width`)
+      return null
+    }
+
+    return this.gutterWidth
   }
 
   private updateRangeHoverState = (start: number, end: number, show: boolean) => {
@@ -265,20 +291,10 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private isMouseCursorNearGutter = (ev: MouseEvent): boolean | null =>  {
+    const width = this.getAndCacheGutterWidth()
 
-    // TODO: cache the `width` value as we don't expect this to change per-file
-
-    const elements = Array.from(this.cachedGutterElements.values())
-    const first = elements[1]
-
-    if (!first) {
-      console.debug(`--- unable to get element`)
-      return null
-    }
-
-    const width = first.getWidth()
     if (!width) {
-      console.debug(`--- unable to compute width`)
+      // TODO: should fail earlier than this with a helpful error message
       return null
     }
 
