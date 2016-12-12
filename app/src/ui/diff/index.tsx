@@ -60,7 +60,7 @@ interface IDiffProps {
   /** The file whose diff should be displayed. */
   readonly file: FileChange
 
-  /** Called when the includedness of lines or hunks has changed. */
+  /** Called when the includedness of lines or a range of lines has changed. */
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
 
   /** The diff that should be rendered */
@@ -195,12 +195,12 @@ export class Diff extends React.Component<IDiffProps, void> {
     element.setHover(include)
   }
 
-  private startSelection = (file: WorkingDirectoryFileChange, index: number, isHunkSelection: boolean) => {
+  private startSelection = (file: WorkingDirectoryFileChange, index: number, isRangeSelection: boolean) => {
     const snapshot = file.selection
     const selected = snapshot.isSelected(index)
     const desiredSelection = !selected
 
-    if (isHunkSelection) {
+    if (isRangeSelection) {
       const range = this.props.diff.findInteractiveDiffRange(index)
       if (!range) {
         console.error('unable to find range for given line in diff')
@@ -230,13 +230,13 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.endSelection()
   }
 
-  private onGutterMouseDown = (index: number, isHunkSelection: boolean) => {
+  private onGutterMouseDown = (index: number, isRangeSelection: boolean) => {
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
       fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
       return
     }
 
-    this.startSelection(this.props.file, index, isHunkSelection)
+    this.startSelection(this.props.file, index, isRangeSelection)
   }
 
   private onGutterMouseMove = (index: number) => {
