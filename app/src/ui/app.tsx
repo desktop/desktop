@@ -33,6 +33,7 @@ import { User } from '../models/user'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Button } from './lib/button'
 import { Form } from './lib/form'
+import { Merge } from './merge-branch'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -202,7 +203,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private mergeBranch() {
+    const state = this.state.selectedState
+    if (!state || state.type !== SelectionType.Repository) { return }
 
+    this.props.dispatcher.showPopup({
+      type: PopupType.MergeBranch,
+      repository: state.repository,
+    })
   }
 
   private renameBranch() {
@@ -425,6 +432,14 @@ export class App extends React.Component<IAppProps, IAppState> {
         dispatcher={this.props.dispatcher}
         dotComUser={this.getDotComUser()}
         enterpriseUser={this.getEnterpriseUser()}/>
+    } else if (popup.type === PopupType.MergeBranch) {
+      const repository = popup.repository
+      const state = this.props.appStore.getRepositoryState(repository)
+      return <Merge
+        dispatcher={this.props.dispatcher}
+        repository={repository}
+        branches={state.branchesState.allBranches}
+      />
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)
