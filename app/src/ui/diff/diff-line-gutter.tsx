@@ -115,6 +115,51 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     return classNames('diff-line-gutter', lineClass, selectedClass)
   }
 
+  private updateHoverState(isRangeSelection: boolean, isActive: boolean) {
+    if (isRangeSelection) {
+      const range = this.props.diff.findInteractiveDiffRange(this.props.index)
+      if (!range) {
+        console.error('unable to find range for given index in diff')
+        return
+      }
+      this.props.updateRangeHoverState(range.start, range.end, isActive)
+    } else {
+      this.setHover(isActive)
+    }
+  }
+
+  public isIncluded(): boolean {
+    return this.props.line.isIncludeableLine() && this.props.isIncluded
+  }
+
+  public setHover(visible: boolean) {
+    if (visible) {
+      this.setClass(hoverCssClass)
+    } else {
+      this.unsetClass(hoverCssClass)
+    }
+  }
+
+  public setSelected(visible: boolean) {
+    if (visible) {
+      this.setClass(selectedLineClass)
+    } else {
+      this.unsetClass(selectedLineClass)
+    }
+  }
+
+  private setClass(cssClass: string) {
+    if (this.elem_) {
+      this.elem_.classList.add(cssClass)
+    }
+  }
+
+  private unsetClass(cssClass: string) {
+    if (this.elem_) {
+      this.elem_.classList.remove(cssClass)
+    }
+  }
+
   private mouseEnterHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
@@ -128,19 +173,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
     const isRangeSelection = isMouseCursorNearEdge(ev)
     this.updateHoverState(isRangeSelection, false)
-  }
-
-  private updateHoverState(isRangeSelection: boolean, isActive: boolean) {
-    if (isRangeSelection) {
-      const range = this.props.diff.findInteractiveDiffRange(this.props.index)
-      if (!range) {
-        console.error('unable to find range for given index in diff')
-        return
-      }
-      this.props.updateRangeHoverState(range.start, range.end, isActive)
-    } else {
-      this.setHover(isActive)
-    }
   }
 
   private mouseMoveHandler = (ev: MouseEvent) => {
@@ -218,38 +250,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
       }
 
       this.elem_ = undefined
-    }
-  }
-
-  public isIncluded(): boolean {
-    return this.props.line.isIncludeableLine() && this.props.isIncluded
-  }
-
-  public setHover(visible: boolean) {
-    if (visible) {
-      this.setClass(hoverCssClass)
-    } else {
-      this.unsetClass(hoverCssClass)
-    }
-  }
-
-  public setSelected(visible: boolean) {
-    if (visible) {
-      this.setClass(selectedLineClass)
-    } else {
-      this.unsetClass(selectedLineClass)
-    }
-  }
-
-  private setClass(cssClass: string) {
-    if (this.elem_) {
-      this.elem_.classList.add(cssClass)
-    }
-  }
-
-  private unsetClass(cssClass: string) {
-    if (this.elem_) {
-      this.elem_.classList.remove(cssClass)
     }
   }
 
