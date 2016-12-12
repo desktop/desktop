@@ -436,4 +436,9 @@ export class Dispatcher {
   public setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
     return this.appStore._setAppMenuToolbarButtonHighlightState(highlight)
   }
+
+  /** Merge the named branch into the current branch. */
+  public mergeBranch(repository: Repository, branch: string): Promise<void> {
+    return this.appStore._mergeBranch(repository, branch)
+  }
 }
