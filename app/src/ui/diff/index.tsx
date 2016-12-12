@@ -269,7 +269,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     // TODO: cache the `width` value as we don't expect this to change per-file
 
     const elements = Array.from(this.cachedGutterElements.values())
-    const first = elements[0]
+    const first = elements[1]
 
     if (!first) {
       console.debug(`--- unable to get element`)
