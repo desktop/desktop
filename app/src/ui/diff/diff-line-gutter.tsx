@@ -89,11 +89,43 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
   private elem_?: HTMLSpanElement
 
+  /**
+   * Compute the width for the current element
+   */
   public getWidth(): number | null {
     if (this.elem_) {
       return this.elem_.clientWidth
     }
     return null
+  }
+
+  /**
+   * Indicate whether the current gutter element is selected
+   */
+  public isIncluded(): boolean {
+    return this.props.line.isIncludeableLine() && this.props.isIncluded
+  }
+
+  /**
+   * Set (or unset) the hover styling of the diff gutter
+   */
+  public setHover(visible: boolean) {
+    if (visible) {
+      this.setClass(hoverCssClass)
+    } else {
+      this.unsetClass(hoverCssClass)
+    }
+  }
+
+  /**
+   * Set (or unset) the selected styling of the diff gutter
+   */
+  public setSelected(visible: boolean) {
+    if (visible) {
+      this.setClass(selectedLineClass)
+    } else {
+      this.unsetClass(selectedLineClass)
+    }
   }
 
   private getLineClassName(): string {
@@ -125,26 +157,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
       this.props.updateRangeHoverState(range.start, range.end, isActive)
     } else {
       this.setHover(isActive)
-    }
-  }
-
-  public isIncluded(): boolean {
-    return this.props.line.isIncludeableLine() && this.props.isIncluded
-  }
-
-  public setHover(visible: boolean) {
-    if (visible) {
-      this.setClass(hoverCssClass)
-    } else {
-      this.unsetClass(hoverCssClass)
-    }
-  }
-
-  public setSelected(visible: boolean) {
-    if (visible) {
-      this.setClass(selectedLineClass)
-    } else {
-      this.unsetClass(selectedLineClass)
     }
   }
 
@@ -201,19 +213,16 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
   private mouseUpHandler = (ev: MouseEvent) => {
     ev.preventDefault()
-
     this.props.onMouseUp(this.props.index)
   }
 
   private mouseDownHandler = (ev: MouseEvent) => {
     ev.preventDefault()
-
     const isRangeSelection = isMouseCursorNearEdge(ev)
     this.props.onMouseDown(this.props.index, isRangeSelection)
   }
 
   private applyEventHandlers = (elem: HTMLSpanElement) => {
-
     // set this so we can compute the width of the diff gutter
     // whether it is an editable line or not
     if (elem) {
