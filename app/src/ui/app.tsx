@@ -120,11 +120,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     const selectedState = state.selectedState
     let onNonDefaultBranch = false
     let onBranch = false
+    let hasDefaultBranch = false
     if (selectedState && selectedState.type === SelectionType.Repository) {
       const currentBranch = selectedState.state.branchesState.currentBranch
       const defaultBranch = selectedState.state.branchesState.defaultBranch
 
       onBranch = Boolean(currentBranch)
+      hasDefaultBranch = Boolean(defaultBranch)
 
       // If we are:
       //  1. on the default branch, or
@@ -140,7 +142,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     setMenuEnabled('rename-branch', onNonDefaultBranch)
     setMenuEnabled('delete-branch', onNonDefaultBranch)
-    setMenuEnabled('update-branch', onNonDefaultBranch)
+    setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
     setMenuEnabled('merge-branch', onBranch)
   }
 
