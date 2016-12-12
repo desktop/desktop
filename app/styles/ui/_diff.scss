@@ -27,7 +27,8 @@
 // The last immediate `span` is the actual content class.
 .CodeMirror-line > span:last-child {
   // Add a little bit of space to the left of code diff
-  margin-left: var(--spacing-half);
+  // `margin-left` here means mouse move events are not raised
+  padding-left: var(--spacing-half);
 }
 
 .CodeMirror {
