@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { Form } from '../lib/form'
 import { Select } from '../lib/select'
-import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Branch } from '../../models/branch'
@@ -36,10 +35,8 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
 
         <hr/>
 
-        <Row>
-          <Button onClick={this.cancel}>Cancel</Button>
-          <Button type='submit' disabled={disabled}>Merge</Button>
-        </Row>
+        <Button onClick={this.cancel}>Cancel</Button>
+        <Button type='submit' disabled={disabled}>Merge</Button>
       </Form>
     )
   }
