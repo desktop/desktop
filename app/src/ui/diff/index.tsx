@@ -163,16 +163,16 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     const elements = Array.from(this.cachedGutterElements.values())
-    const first = elements[1]
+    const first = elements[0]
 
     if (!first) {
-      console.debug(`--- unable to get element`)
+      console.error(`unable to resolve the first interactive DiffLineGutter, should look into this`)
       return null
     }
 
     this.gutterWidth = first.getWidth()
     if (!this.gutterWidth) {
-      console.debug(`--- unable to compute width`)
+      console.error(`unable to compute width inside DiffLineGutter, should look into this`)
       return null
     }
 
@@ -241,10 +241,12 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onGutterMouseMove = (index: number) => {
-    if (this.selection) {
-      this.selection.update(index)
-      this.selection.paint(this.cachedGutterElements)
+    if (!this.selection) {
+      return
     }
+
+    this.selection.update(index)
+    this.selection.paint(this.cachedGutterElements)
   }
 
   private onDiffTextMouseMove = (ev: MouseEvent, index: number) => {
