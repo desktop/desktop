@@ -32,9 +32,6 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   private wrapper: HTMLDivElement | null
   private codeMirror: CodeMirror.Editor | null
 
-  private gutterWidth_: number | null
-  private lineHeight_: number | null
-
   /**
    * Gets the internal CodeMirror instance or null if CodeMirror hasn't
    * been initialized yet (happens when component mounts)
@@ -93,11 +90,6 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   }
 
   private onChanges = (cm: CodeMirror.Editor, changes: CodeMirror.EditorChangeLinkedList[]) => {
-
-    // when the text changes, clear the cached value for the gutter width
-    this.gutterWidth_ = null
-    this.lineHeight_ = null
-
     if (this.props.onChanges) {
       this.props.onChanges(cm, changes)
     }
