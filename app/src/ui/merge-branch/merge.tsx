@@ -78,6 +78,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     if (!branch) { return }
 
     this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
+    this.props.dispatcher.closePopup()
   }
 
   private cancel = () => {
