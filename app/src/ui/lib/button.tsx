@@ -37,7 +37,7 @@ export class Button extends React.Component<IButtonProps, void> {
         className={className}
         disabled={this.props.disabled}
         onClick={this.onClick}
-        type={this.props.type}
+        type={this.props.type || 'button'}
         ref={this.props.onButtonRef}>
         {this.props.children}
       </button>
