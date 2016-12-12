@@ -24,7 +24,6 @@ interface ICodeMirrorHostProps {
   readonly onChanges?: (cm: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void
 }
 
-
 /**
  * A component hosting a CodeMirror instance
  */

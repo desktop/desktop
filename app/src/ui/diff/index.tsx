@@ -43,9 +43,8 @@ function formatLineEnding(text: string): string {
   }
 }
 
-// TODO: this is still useful
 /** use a range of pixels near the edge to indicate whether a range selection should fire */
-//const RangeSelectionEdgeSize = 10
+const RangeSelectionEdgeSize = 10
 
 /** The props for the Diff component. */
 interface IDiffProps {
@@ -240,7 +239,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onDiffTextMouseMove = (ev: MouseEvent, index: number) => {
-    console.log(`--- mouse move at [${ev.clientX}, ${ev.clientY}]`)
+    console.log(`--- mouse move at [${ev.offsetX}, ${ev.offsetY}]`)
 
     const isActive = this.isMouseCursorNearGutter(ev)
     if (isActive === null) {
@@ -251,7 +250,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onDiffTextMouseDown = (ev: MouseEvent, index: number) => {
-    console.log(`--- mouse down at [${ev.clientX}, ${ev.clientY}]`)
+    console.log(`--- mouse down at [${ev.offsetX}, ${ev.offsetY}]`)
 
     const isActive = this.isMouseCursorNearGutter(ev)
 
@@ -262,7 +261,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onDiffTextMouseUp = (ev: MouseEvent, index: number) => {
-    console.log(`--- mouse up at [${ev.clientX}, ${ev.clientY}]`)
+    console.log(`--- mouse up at [${ev.offsetX}, ${ev.offsetY}]`)
 
     //if (this.props.onCompleteRangeSelection && lineNumber) {
     //  this.props.onCompleteRangeSelection(lineNumber)
@@ -272,7 +271,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private isMouseCursorNearGutter = (ev: MouseEvent): boolean | null =>  {
-    return true
+    return ev.offsetX >= 0 && ev.offsetX < RangeSelectionEdgeSize
   }
 
   private renderLine = (instance: any, line: any, element: HTMLElement) => {
@@ -334,10 +333,11 @@ export class Diff extends React.Component<IDiffProps, void> {
         this.onDiffTextMouseUp(ev, index)
       }
 
-
-      diffLineElement.addEventListener('mousemove', onMouseMoveLine)
-      diffLineElement.addEventListener('mousedown', onMouseDownLine)
-      diffLineElement.addEventListener('mouseup', onMouseUpLine)
+      if (!this.props.readOnly) {
+        diffLineElement.addEventListener('mousemove', onMouseMoveLine)
+        diffLineElement.addEventListener('mousedown', onMouseDownLine)
+        diffLineElement.addEventListener('mouseup', onMouseUpLine)
+      }
 
       element.insertBefore(reactContainer, diffLineElement)
 
@@ -360,9 +360,11 @@ export class Diff extends React.Component<IDiffProps, void> {
 
         ReactDOM.unmountComponentAtNode(reactContainer)
 
-        diffLineElement.removeEventListener('mousemove', onMouseMoveLine)
-        diffLineElement.removeEventListener('mousedown', onMouseDownLine)
-        diffLineElement.removeEventListener('mouseup', onMouseUpLine)
+        if (!this.props.readOnly) {
+          diffLineElement.removeEventListener('mousemove', onMouseMoveLine)
+          diffLineElement.removeEventListener('mousedown', onMouseDownLine)
+          diffLineElement.removeEventListener('mouseup', onMouseUpLine)
+        }
 
         line.off('delete', deleteHandler)
       })
