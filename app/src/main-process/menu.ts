@@ -5,7 +5,7 @@ export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
                         'add-local-repository' | 'create-branch' |
                         'show-branches' | 'remove-repository' | 'add-repository' |
                         'rename-branch' | 'delete-branch' | 'check-for-updates' |
-                        'quit-and-install-update' | 'show-preferences'
+                        'quit-and-install-update' | 'show-preferences' | 'open-working-directory'
 
 export type MenuIDs = 'rename-branch' | 'delete-branch' | 'check-for-updates' |
                       'checking-for-updates' | 'downloading-update' | 'quit-and-install-update' |
@@ -108,6 +108,14 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           accelerator: 'CmdOrCtrl+B',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('show-branches')
+          },
+        },
+        { type: 'separator' },
+        {
+          label: 'Open Working Directory',
+          accelerator: 'CmdOrCtrl+Shift+F',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('open-working-directory')
           },
         },
         { type: 'separator' },
