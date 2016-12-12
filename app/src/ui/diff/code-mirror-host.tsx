@@ -22,18 +22,8 @@ interface ICodeMirrorHostProps {
 
   /** Callback for when CodeMirror has completed a batch of changes to the editor */
   readonly onChanges?: (cm: CodeMirror.Editor, change: CodeMirror.EditorChangeLinkedList[]) => void
-
-  /** Whether the diff should setup interactivity such as hover effects */
-  readonly readOnly: boolean
-
-  /** Callback when user is hovering over diff text */
-  readonly onShowHoverStatus?: (line: number, active: boolean) => void
-
-  readonly onCompleteRangeSelection?: (line: number) => void
 }
 
-/** use a range of pixels near the edge to indicate whether a range selection should fire */
-const RangeSelectionEdgeSize = 10
 
 /**
  * A component hosting a CodeMirror instance
@@ -43,7 +33,6 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
   private wrapper: HTMLDivElement | null
   private codeMirror: CodeMirror.Editor | null
 
-  private rangeSelectionActive: boolean | null
   private gutterWidth_: number | null
   private lineHeight_: number | null
 
@@ -121,170 +110,8 @@ export class CodeMirrorHost extends React.Component<ICodeMirrorHostProps, void> 
     }
   }
 
-  /**
-   * compute the gutter width using the rendered elements in the current diff
-   */
-  private resolveGutterWidth = (): number | null => {
-
-    if (this.gutterWidth_) {
-      return this.gutterWidth_
-    }
-
-    if (!this.wrapper) {
-      return null
-    }
-
-    const gutterElements = this.wrapper.getElementsByClassName('diff-line-number')
-
-    // if we don't have at least two elements rendered (i.e. one row), give up
-    if (gutterElements.length < 2) {
-      return null
-    }
-
-    const left = gutterElements[0]
-    const right = gutterElements[1]
-
-    // if these elements haven't been rendered, they won't have these values set
-    if (left.clientWidth === 0 || right.clientWidth === 0) {
-      return null
-    }
-
-    this.gutterWidth_ = left.clientWidth + right.clientWidth
-
-    return this.gutterWidth_
-  }
-
-  private resolveLineHeight = (): number | null => {
-    if (this.lineHeight_) {
-      return this.lineHeight_
-    }
-
-    if (!this.codeMirror) {
-      return null
-    }
-
-    // HACK: method doesn't exist on type declarations
-    const mirror: any = this.codeMirror
-    const heightOfHeader: number = mirror.heightAtLine(0)
-    const heightOfFirstLine: number = mirror.heightAtLine(1)
-
-    if (heightOfHeader && heightOfFirstLine) {
-      this.lineHeight_ = heightOfFirstLine - heightOfHeader
-    }
-
-    return this.lineHeight_
-  }
-
-  private onMouseMove = (ev: MouseEvent) => {
-    if (!this.props.onShowHoverStatus) {
-      return
-    }
-
-    if (!this.wrapper) {
-      return
-    }
-
-    const lineNumber = this.getLineNumber(ev, this.wrapper)
-
-    if (lineNumber === null) {
-      console.error('unable to resolve co-ordinates for diff text hover gesture')
-      return
-    }
-
-    const isActive = this.isMouseCursorNearGutter(ev)
-    if (isActive === null) {
-      return
-    }
-
-    this.props.onShowHoverStatus(lineNumber, isActive)
-  }
-
-  private getLineNumber = (ev: MouseEvent, wrapper: HTMLDivElement): number | null => {
-    const lineHeight = this.resolveLineHeight()
-    if (!lineHeight) {
-      console.debug('unable to compute the line height')
-      return null
-    }
-
-    if (!this.codeMirror) {
-      console.debug('unable to get to the current codemirror instance')
-      return null
-    }
-
-    const relativeTop = ev.clientY - wrapper.offsetTop
-
-    const viewPort = this.codeMirror.getViewport()
-    return viewPort.from + Math.floor(relativeTop / lineHeight)
-  }
-
-  private isMouseCursorNearGutter = (ev: MouseEvent): boolean | null =>  {
-    if (!this.wrapper) {
-      return null
-    }
-
-    const gutterWidth = this.resolveGutterWidth()
-    if (!gutterWidth) {
-      return null
-    }
-
-    const offset = this.wrapper.offsetLeft
-    const pageX = ev.pageX
-
-    const distanceFromGutter =  pageX - (offset + gutterWidth)
-
-    if (distanceFromGutter < 0) {
-      return null
-    }
-
-    return distanceFromGutter <= RangeSelectionEdgeSize
-  }
-
-  private onMouseDown = (ev: MouseEvent) => {
-    if (!this.wrapper) {
-      return
-    }
-
-    const isActive = this.isMouseCursorNearGutter(ev)
-    const lineNumber = this.getLineNumber(ev, this.wrapper)
-
-    if (isActive && lineNumber) {
-      this.rangeSelectionActive = true
-    }
-  }
-
-  private onMouseUp = (ev: MouseEvent) => {
-    if (!this.rangeSelectionActive) {
-      return
-    }
-
-    if (!this.wrapper) {
-      return
-    }
-
-    const lineNumber = this.getLineNumber(ev, this.wrapper)
-    if (this.props.onCompleteRangeSelection && lineNumber) {
-      this.props.onCompleteRangeSelection(lineNumber)
-    }
-
-    this.rangeSelectionActive = false
-  }
-
   private onRef = (ref: HTMLDivElement) => {
-    if (ref) {
-      this.wrapper = ref
-
-      if (!this.props.readOnly) {
-        this.wrapper.addEventListener('mousemove', this.onMouseMove)
-        this.wrapper.addEventListener('mousedown', this.onMouseDown)
-        this.wrapper.addEventListener('mouseup', this.onMouseUp)
-      }
-    } else {
-      if (this.wrapper && !this.props.readOnly) {
-        this.wrapper.removeEventListener('mousemove', this.onMouseMove)
-        this.wrapper.removeEventListener('mousedown', this.onMouseDown)
-        this.wrapper.removeEventListener('mousedown', this.onMouseUp)
-      }
-    }
+    this.wrapper = ref
   }
 
   public render() {

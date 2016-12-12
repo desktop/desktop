@@ -43,6 +43,10 @@ function formatLineEnding(text: string): string {
   }
 }
 
+// TODO: this is still useful
+/** use a range of pixels near the edge to indicate whether a range selection should fire */
+//const RangeSelectionEdgeSize = 10
+
 /** The props for the Diff component. */
 interface IDiffProps {
   readonly repository: Repository
@@ -235,38 +239,40 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.updateRangeHoverState(range.start, range.end, active)
   }
 
-  private onCompleteRangeSelection = (index: number) => {
-    if (!this.props.onIncludeChanged) {
+  private onDiffTextMouseMove = (ev: MouseEvent, index: number) => {
+    console.log(`--- mouse move at [${ev.clientX}, ${ev.clientY}]`)
+
+    const isActive = this.isMouseCursorNearGutter(ev)
+    if (isActive === null) {
       return
     }
 
-    const line = this.props.diff.diffLineForIndex(index)
-    if (line === null || !line.isIncludeableLine()) {
-      // this line is not an add or remove, ignore event
-      return
+    this.showHoverStatus(index, isActive)
+  }
+
+  private onDiffTextMouseDown = (ev: MouseEvent, index: number) => {
+    console.log(`--- mouse down at [${ev.clientX}, ${ev.clientY}]`)
+
+    const isActive = this.isMouseCursorNearGutter(ev)
+
+    // TODO: ???
+    if (isActive) {
+
     }
+  }
 
-    if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
-      console.error('someone wired up the event handlers to a readonly diff - don\'t do that')
-      return
-    }
+  private onDiffTextMouseUp = (ev: MouseEvent, index: number) => {
+    console.log(`--- mouse up at [${ev.clientX}, ${ev.clientY}]`)
 
-    const snapshot = this.props.file.selection
-    const isSelected = this.props.file.selection.isSelected(index)
-    const desiredSelection = !isSelected
+    //if (this.props.onCompleteRangeSelection && lineNumber) {
+    //  this.props.onCompleteRangeSelection(lineNumber)
+    //}
 
-    const range = this.props.diff.findInteractiveDiffRange(index)
-    if (!range) {
-      console.error('unable to find range for given line in diff')
-      return
-    }
+    //this.rangeSelectionActive = false
+  }
 
-    const selection = new RangeSelection(range.start, range.end, desiredSelection, snapshot)
-
-    this.props.onIncludeChanged(selection.done())
-
-    // operation is completed, clean this up
-    this.selection = null
+  private isMouseCursorNearGutter = (ev: MouseEvent): boolean | null =>  {
+    return true
   }
 
   private renderLine = (instance: any, line: any, element: HTMLElement) => {
@@ -316,6 +322,23 @@ export class Diff extends React.Component<IDiffProps, void> {
         }
       )
 
+      const onMouseMoveLine: (ev: MouseEvent) => void = (ev) => {
+        this.onDiffTextMouseMove(ev, index)
+      }
+
+      const onMouseDownLine: (ev: MouseEvent) => void = (ev) => {
+        this.onDiffTextMouseDown(ev, index)
+      }
+
+      const onMouseUpLine: (ev: MouseEvent) => void = (ev) => {
+        this.onDiffTextMouseUp(ev, index)
+      }
+
+
+      diffLineElement.addEventListener('mousemove', onMouseMoveLine)
+      diffLineElement.addEventListener('mousedown', onMouseDownLine)
+      diffLineElement.addEventListener('mouseup', onMouseUpLine)
+
       element.insertBefore(reactContainer, diffLineElement)
 
       // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
@@ -336,6 +359,10 @@ export class Diff extends React.Component<IDiffProps, void> {
         this.cachedGutterElements.delete(index)
 
         ReactDOM.unmountComponentAtNode(reactContainer)
+
+        diffLineElement.removeEventListener('mousemove', onMouseMoveLine)
+        diffLineElement.removeEventListener('mousedown', onMouseDownLine)
+        diffLineElement.removeEventListener('mouseup', onMouseUpLine)
 
         line.off('delete', deleteHandler)
       })
@@ -425,21 +452,14 @@ export class Diff extends React.Component<IDiffProps, void> {
       mode: getDiffMode(),
     }
 
-    const completeRangeSelection = this.props.readOnly
-      ? undefined
-      : this.onCompleteRangeSelection
-
     return (
       <CodeMirrorHost
         className='diff-code-mirror'
         value={diffText}
         options={options}
-        readOnly={this.props.readOnly}
         isSelectionEnabled={this.isSelectionEnabled}
         onChanges={this.onChanges}
         onRenderLine={this.renderLine}
-        onShowHoverStatus={this.showHoverStatus}
-        onCompleteRangeSelection={completeRangeSelection}
         ref={this.getAndStoreCodeMirrorInstance}
       />
     )
