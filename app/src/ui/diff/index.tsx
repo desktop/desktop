@@ -260,15 +260,13 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    const range = this.props.diff.findInteractiveDiffRange(index)
-    if (!range) {
-      console.error('unable to find range for given index in diff')
+    if (!diffLine.isIncludeableLine()) {
       return
     }
 
-    if (!diffLine.isIncludeableLine()) {
-      // TODO: clear hover selection for current hunk
-      // TODO: oh no how to do this?
+    const range = this.props.diff.findInteractiveDiffRange(index)
+    if (!range) {
+      console.error('unable to find range for given index in diff')
       return
     }
 
@@ -288,6 +286,16 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
   }
 
+  private onDiffTextMouseLeave = (ev: MouseEvent, index: number) => {
+    const range = this.props.diff.findInteractiveDiffRange(index)
+    if (!range) {
+      console.error('unable to find range for given index in diff')
+      return
+    }
+
+    this.updateRangeHoverState(range.start, range.end, false)
+  }
+
   private onDiffTextMouseUp = (ev: MouseEvent, index: number) => {
     this.endSelection()
   }
@@ -296,7 +304,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     const width = this.getAndCacheGutterWidth()
 
     if (!width) {
-      // TODO: should fail earlier than this with a helpful error message
+      // should fail earlier than this with a helpful error message
       return null
     }
 
@@ -363,10 +371,15 @@ export class Diff extends React.Component<IDiffProps, void> {
         this.onDiffTextMouseUp(ev, index)
       }
 
+      const onMouseLeaveLine: (ev: MouseEvent) => void = (ev) => {
+        this.onDiffTextMouseLeave(ev, index)
+      }
+
       if (!this.props.readOnly) {
         diffLineElement.addEventListener('mousemove', onMouseMoveLine)
         diffLineElement.addEventListener('mousedown', onMouseDownLine)
         diffLineElement.addEventListener('mouseup', onMouseUpLine)
+        diffLineElement.addEventListener('mouseleave', onMouseLeaveLine)
       }
 
       element.insertBefore(reactContainer, diffLineElement)
@@ -394,6 +407,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           diffLineElement.removeEventListener('mousemove', onMouseMoveLine)
           diffLineElement.removeEventListener('mousedown', onMouseDownLine)
           diffLineElement.removeEventListener('mouseup', onMouseUpLine)
+          diffLineElement.removeEventListener('mouseleave', onMouseLeaveLine)
         }
 
         line.off('delete', deleteHandler)
