@@ -441,6 +441,6 @@ export class GitStore {
 
   /** Merge the named branch into the current branch. */
   public merge(branch: string): Promise<void> {
-    return merge(this.repository, branch)
+    return this.performFailableOperation(() => merge(this.repository, branch))
   }
 }
