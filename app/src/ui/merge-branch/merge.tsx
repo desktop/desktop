@@ -31,10 +31,13 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
       selectedBranch: firstBranch || null,
       commitCount: 0,
     }
+  }
 
-    if (firstBranch) {
-      this.updateCommitCount(firstBranch)
-    }
+  public componentDidMount() {
+    const branch = this.state.selectedBranch
+    if (!branch) { return }
+
+    this.updateCommitCount(branch)
   }
 
   public render() {
@@ -63,10 +66,11 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     const aheadBehind = await getAheadBehind(this.props.repository, range)
     const commitCount = aheadBehind ? aheadBehind.behind : 0
 
-    if (this.state.selectedBranch === branch) {
-      this.setState({ ...this.state, commitCount })
-      console.log(aheadBehind)
-    }
+    // The branch changed while we were waiting on the result of
+    // `getAheadBehind`.
+    if (this.state.selectedBranch !== branch) { return }
+
+    this.setState({ ...this.state, commitCount })
   }
 
   private merge = () => {
