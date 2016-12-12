@@ -89,7 +89,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
   private elem_?: HTMLSpanElement
 
-  public getWidth = (): number | null => {
+  public getWidth(): number | null {
     if (this.elem_) {
       return this.elem_.clientWidth
     }

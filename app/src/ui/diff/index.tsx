@@ -201,11 +201,11 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.selection = null
   }
 
-  private onMouseUp = () => {
+  private onGutterMouseUp = () => {
     this.endSelection()
   }
 
-  private onMouseDown = (index: number, isHunkSelection: boolean) => {
+  private onGutterMouseDown = (index: number, isHunkSelection: boolean) => {
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
       fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
       return
@@ -214,14 +214,19 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.startSelection(this.props.file, index, isHunkSelection)
   }
 
-  private onMouseMove = (index: number) => {
+  private onGutterMouseMove = (index: number) => {
     if (this.selection) {
       this.selection.update(index)
       this.selection.paint(this.cachedGutterElements)
     }
   }
 
-  private showHoverStatus = (index: number, active: boolean) => {
+  private onDiffTextMouseMove = (ev: MouseEvent, index: number) => {
+    const isActive = this.isMouseCursorNearGutter(ev)
+    if (isActive === null) {
+      return
+    }
+
     const diffLine = this.props.diff.diffLineForIndex(index)
     if (!diffLine) {
       return
@@ -239,16 +244,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    this.updateRangeHoverState(range.start, range.end, active)
-  }
-
-  private onDiffTextMouseMove = (ev: MouseEvent, index: number) => {
-    const isActive = this.isMouseCursorNearGutter(ev)
-    if (isActive === null) {
-      return
-    }
-
-    this.showHoverStatus(index, isActive)
+    this.updateRangeHoverState(range.start, range.end, isActive)
   }
 
   private onDiffTextMouseDown = (ev: MouseEvent, index: number) => {
@@ -275,15 +271,19 @@ export class Diff extends React.Component<IDiffProps, void> {
     const elements = Array.from(this.cachedGutterElements.values())
     const first = elements[0]
 
-    if (first) {
-      const width = first.getWidth()
-      if (width) {
-        const deltaX = ev.layerX - width
-        return deltaX >= 0 && deltaX <= RangeSelectionEdgeSize
-      }
+    if (!first) {
+      console.debug(`--- unable to get element`)
+      return null
     }
 
-    return false
+    const width = first.getWidth()
+    if (!width) {
+      console.debug(`--- unable to compute width`)
+      return null
+    }
+
+    const deltaX = ev.layerX - width
+    return deltaX >= 0 && deltaX <= RangeSelectionEdgeSize
   }
 
   private renderLine = (instance: any, line: any, element: HTMLElement) => {
@@ -322,9 +322,9 @@ export class Diff extends React.Component<IDiffProps, void> {
           diff={this.props.diff}
           updateRangeHoverState={this.updateRangeHoverState}
           isSelectionEnabled={this.isSelectionEnabled}
-          onMouseUp={this.onMouseUp}
-          onMouseDown={this.onMouseDown}
-          onMouseMove={this.onMouseMove} />,
+          onMouseUp={this.onGutterMouseUp}
+          onMouseDown={this.onGutterMouseDown}
+          onMouseMove={this.onGutterMouseMove} />,
         reactContainer,
         function (this: DiffLineGutter) {
           if (this !== undefined) {
