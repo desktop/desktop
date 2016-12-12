@@ -57,7 +57,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.setState(state)
 
       const selectedState = state.selectedState
-      let haveBranch = false
+      let onNonDefaultBranch = false
       if (selectedState && selectedState.type === SelectionType.Repository) {
         const currentBranch = selectedState.state.branchesState.currentBranch
         const defaultBranch = selectedState.state.branchesState.defaultBranch
@@ -67,14 +67,15 @@ export class App extends React.Component<IAppProps, IAppState> {
         //  3. on a detached HEAD
         // there's not much we can do.
         if (!currentBranch || !defaultBranch || currentBranch.name === defaultBranch.name) {
-          haveBranch = false
+          onNonDefaultBranch = false
         } else {
-          haveBranch = true
+          onNonDefaultBranch = true
         }
       }
 
-      setMenuEnabled('rename-branch', haveBranch)
-      setMenuEnabled('delete-branch', haveBranch)
+      setMenuEnabled('rename-branch', onNonDefaultBranch)
+      setMenuEnabled('delete-branch', onNonDefaultBranch)
+      setMenuEnabled('update-branch', onNonDefaultBranch)
     })
 
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
