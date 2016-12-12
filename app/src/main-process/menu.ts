@@ -5,11 +5,12 @@ export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
                         'add-local-repository' | 'create-branch' |
                         'show-branches' | 'remove-repository' | 'add-repository' |
                         'rename-branch' | 'delete-branch' | 'check-for-updates' |
-                        'quit-and-install-update' | 'show-preferences'
+                        'quit-and-install-update' | 'show-preferences' | 'update-branch' |
+                        'merge-branch'
 
 export type MenuIDs = 'rename-branch' | 'delete-branch' | 'check-for-updates' |
                       'checking-for-updates' | 'downloading-update' | 'quit-and-install-update' |
-                      'preferences'
+                      'preferences' | 'update-branch' | 'merge-branch'
 
 export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   const template: Electron.MenuItemOptions[] = [
@@ -148,6 +149,21 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
           id: 'delete-branch',
           click (item: any, focusedWindow: Electron.BrowserWindow) {
             emitMenuEvent('delete-branch')
+          },
+        },
+        { type: 'separator' },
+        {
+          label: 'Update from default branch',
+          id: 'update-branch',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('update-branch')
+          },
+        },
+        {
+          label: 'Merge into current branch…',
+          id: 'merge-branch',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('merge-branch')
           },
         },
       ],
