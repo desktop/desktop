@@ -32,6 +32,7 @@ import { Preferences } from './preferences'
 import { User } from '../models/user'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Button } from './lib/button'
+import { Form } from './lib/form'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -404,7 +405,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onPopupOverlayClick = () => { this.props.dispatcher.closePopup() }
 
   private renderPopup(): JSX.Element | null {
-    const content = this.currentPopupContent()
+    let content = this.renderErrors()
+    if (!content) {
+      content = this.currentPopupContent()
+    }
+
     if (!content) { return null }
 
     return (
@@ -429,13 +434,11 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const msgs = errors.map(e => e.message)
     return (
-      <Popuppy>
+      <Form>
         {msgs.map((msg, i) => <pre className='popup-error-output' key={i}>{msg}</pre>)}
 
-        <div className='popup-actions'>
-          <Button onClick={this.clearErrors}>OK</Button>
-        </div>
-      </Popuppy>
+        <Button onClick={this.clearErrors}>OK</Button>
+      </Form>
     )
   }
 
@@ -445,7 +448,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderToolbar()}
         {this.renderRepository()}
         {this.renderPopup()}
-        {this.renderErrors()}
       </div>
     )
   }
