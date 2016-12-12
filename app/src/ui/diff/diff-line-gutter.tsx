@@ -89,6 +89,13 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
   private elem_?: HTMLSpanElement
 
+  public getWidth = (): number | null => {
+    if (this.elem_) {
+      return this.elem_.clientWidth
+    }
+    return null
+  }
+
   private getLineClassName(): string {
     const type = this.props.line.type
     switch (type) {
@@ -204,6 +211,8 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
         this.elem_.removeEventListener('mousedown', this.mouseDownHandler)
         this.elem_.removeEventListener('mouseup', this.mouseUpHandler)
       }
+
+      this.elem_ = undefined
     }
   }
 

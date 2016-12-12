@@ -171,7 +171,6 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private startSelection = (file: WorkingDirectoryFileChange, index: number, isHunkSelection: boolean) => {
-
     const snapshot = file.selection
     const selected = snapshot.isSelected(index)
     const desiredSelection = !selected
@@ -192,11 +191,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private endSelection = () => {
-    if (!this.props.onIncludeChanged) {
-      return
-    }
-
-    if (!this.selection) {
+    if (!this.props.onIncludeChanged || !this.selection) {
       return
     }
 
@@ -274,14 +269,18 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private isMouseCursorNearGutter = (ev: MouseEvent): boolean | null =>  {
+
+    // TODO: cache the `width` value as we don't expect this to change per-file
+
     const elements = Array.from(this.cachedGutterElements.values())
     const first = elements[0]
 
     if (first) {
-      // HACK: come back to this, `this` is trolling me
-      const width = 130
-      const deltaX = ev.layerX - width
-      return deltaX >= 0 && deltaX <= RangeSelectionEdgeSize
+      const width = first.getWidth()
+      if (width) {
+        const deltaX = ev.layerX - width
+        return deltaX >= 0 && deltaX <= RangeSelectionEdgeSize
+      }
     }
 
     return false
