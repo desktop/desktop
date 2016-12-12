@@ -173,7 +173,6 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.gutterWidth = first.getWidth()
     if (!this.gutterWidth) {
       console.error(`unable to compute width inside DiffLineGutter, should look into this`)
-      return null
     }
 
     return this.gutterWidth
