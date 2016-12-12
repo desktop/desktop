@@ -150,6 +150,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'check-for-updates': return this.checkForUpdates()
       case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
       case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
+      case 'update-branch': return this.updateBranch()
+      case 'merge-branch': return this.mergeBranch()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -175,6 +177,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     const users = state.users
     const enterpriseUser = users.find(u => u.endpoint !== getDotComAPIEndpoint())
     return enterpriseUser || null
+  }
+
+  private updateBranch() {
+
+  }
+
+  private mergeBranch() {
+
   }
 
   private renameBranch() {
