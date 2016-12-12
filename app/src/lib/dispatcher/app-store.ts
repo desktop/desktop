@@ -1229,8 +1229,10 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public _mergeBranch(repository: Repository, branch: string): Promise<void> {
+  public async _mergeBranch(repository: Repository, branch: string): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    return gitStore.merge(branch)
+    await gitStore.merge(branch)
+
+    return this._refreshRepository(repository)
   }
 }
