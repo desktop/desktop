@@ -191,7 +191,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.selection.paint(this.cachedGutterElements)
   }
 
-  private onMouseUp = () => {
+  private endSelection = () => {
     if (!this.props.onIncludeChanged) {
       return
     }
@@ -204,6 +204,10 @@ export class Diff extends React.Component<IDiffProps, void> {
 
     // operation is completed, clean this up
     this.selection = null
+  }
+
+  private onMouseUp = () => {
+    this.endSelection()
   }
 
   private onMouseDown = (index: number, isHunkSelection: boolean) => {
@@ -266,11 +270,7 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private onDiffTextMouseUp = (ev: MouseEvent, index: number) => {
-    //if (this.props.onCompleteRangeSelection && lineNumber) {
-    //  this.props.onCompleteRangeSelection(lineNumber)
-    //}
-
-    //this.rangeSelectionActive = false
+    this.endSelection()
   }
 
   private isMouseCursorNearGutter = (ev: MouseEvent): boolean | null =>  {
