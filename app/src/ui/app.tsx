@@ -192,7 +192,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private updateBranch() {
+    const state = this.state.selectedState
+    if (!state || state.type !== SelectionType.Repository) { return }
 
+    const defaultBranch = state.state.branchesState.defaultBranch
+    if (!defaultBranch) { return }
+
+    this.props.dispatcher.mergeBranch(state.repository, defaultBranch.name)
   }
 
   private mergeBranch() {
