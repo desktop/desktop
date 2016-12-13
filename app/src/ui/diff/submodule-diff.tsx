@@ -4,7 +4,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { FileSummary, SubmoduleChangeType } from '../../models/diff'
 
 interface ISubmoduleDiffProps {
-  readonly changes: ReadonlyArray<FileSummary>
+  readonly changes?: ReadonlyArray<FileSummary>
   readonly name: string
   readonly type: SubmoduleChangeType
   readonly sha?: string
@@ -29,16 +29,22 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps, void> {
       </div>
     }
 
-    const fileCountLabel = this.props.changes.length > 1 ? 'files' : 'file'
+    if (!this.props.changes) {
+      console.error('the submodule diff should have specified changes when it was modified, but it didn\'t, look into this')
+    }
+
+    const changes = this.props.changes || [ ]
+
+    const fileCountLabel = changes.length > 1 ? 'files' : 'file'
 
     return <div className='panel' id='diff'>
       <div className='submodule-header'>
-        <Octicon symbol={OcticonSymbol.fileSubmodule} /> Submodule {this.props.name} updated {this.props.changes.length} {fileCountLabel}
+        <Octicon symbol={OcticonSymbol.fileSubmodule} /> Submodule {this.props.name} updated {changes.length} {fileCountLabel}
       </div>
 
       <table className='submodule-changes'>
         <tbody>
-      {this.props.changes.map(f =>
+      {changes.map(f =>
         <tr className='entry' key={f.id}>
           <td className='stats'>
             <span className='added'>+{f.added}</span>

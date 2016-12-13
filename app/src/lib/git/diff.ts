@@ -132,8 +132,6 @@ function formatLineEnding(text: string): string {
   }
 }
 
-const emptyTreeSha = '4b825dc642cb6eb9a060e54bf8d69288fbee4904'
-
 export async function convertDiff(repository: Repository, file: FileChange, diff: IRawDiff, commitish: string): Promise<IDiff> {
   if (diff.isBinary) {
     const extension = Path.extname(file.path)
@@ -168,14 +166,8 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
     // single line diff, could be added or removed
     if (firstHash && hunk.lines.length === 2) {
       const submoduleAdded = firstLine.text[0] === '+'
-
-      const from = submoduleAdded ? emptyTreeSha : firstHash
-      const to = submoduleAdded ? firstHash : emptyTreeSha
-      const changes = await getSubmoduleDiff(repository, file, from, to)
-
       return {
         kind: 'submodule',
-        changes,
         type: submoduleAdded ? SubmoduleChangeType.Add : SubmoduleChangeType.Delete,
         sha: firstHash.substr(0, 7),
         name: folder,

@@ -6,7 +6,7 @@ import * as fs from 'fs-extra'
 
 import { Repository } from '../../../src/models/repository'
 import { FileStatus, WorkingDirectoryFileChange, FileChange } from '../../../src/models/status'
-import { ITextDiff, IImageDiff, ISubmoduleDiff, DiffSelectionType, DiffSelection } from '../../../src/models/diff'
+import { ITextDiff, IImageDiff, ISubmoduleDiff, DiffSelectionType, DiffSelection, SubmoduleChangeType } from '../../../src/models/diff'
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 
 import {
@@ -226,15 +226,19 @@ describe('git/diff', () => {
       expect(diff.kind === 'submodule')
       const submodule = diff as ISubmoduleDiff
 
-      expect(submodule.changes.length).to.equal(1)
+      const changes = submodule.changes!
+      expect(changes.length).to.equal(1)
 
-      const first = submodule.changes[0]
+      expect(submodule.type).to.equal(SubmoduleChangeType.Modified)
+      expect(submodule.sha).to.be.undefined
+
+      const first = changes[0]
       expect(first.added).to.equal(3)
       expect(first.removed).to.equal(1)
       expect(first.path).to.equal('README.md')
     })
 
-    it('renders commit diff', async () => {
+    it('renders submodule add', async () => {
       const testRepoPath = setupFixtureRepository('repository-with-submodule-change')
       repository = new Repository(testRepoPath, -1, null)
 
@@ -244,22 +248,9 @@ describe('git/diff', () => {
       expect(diff.kind === 'submodule')
       const submodule = diff as ISubmoduleDiff
 
-      expect(submodule.changes.length).to.equal(3)
-
-      const first = submodule.changes[0]
-      expect(first.added).to.equal(33)
-      expect(first.removed).to.equal(0)
-      expect(first.path).to.equal('.gitignore')
-
-      const second = submodule.changes[1]
-      expect(second.added).to.equal(21)
-      expect(second.removed).to.equal(0)
-      expect(second.path).to.equal('LICENSE')
-
-      const third = submodule.changes[2]
-      expect(third.added).to.equal(1)
-      expect(third.removed).to.equal(0)
-      expect(third.path).to.equal('README.md')
+      expect(submodule.changes).to.be.undefined
+      expect(submodule.type).to.equal(SubmoduleChangeType.Add)
+      expect(submodule.sha).to.equal('ba7ba0b')
     })
   })
 })
