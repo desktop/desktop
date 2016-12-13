@@ -1,0 +1,1 @@
+export { TextDiff } from './text-diff'
