@@ -188,10 +188,13 @@
 
 #diff .submodule-header {
   margin: var(--spacing-half) var(--spacing);
+
+  .octicon {
+    vertical-align: text-top;
+  }
 }
 
 #diff .submodule-changes {
-
   margin: 0px var(--spacing-triple);
 
   .stats {
