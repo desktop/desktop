@@ -155,6 +155,9 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.lineCleanup.clear()
   }
 
+  /**
+   * compute the diff gutter width based on what's been rendered in the browser
+   */
   private getAndCacheGutterWidth = (): number | null => {
 
     if (this.gutterWidth) {
@@ -186,14 +189,15 @@ export class Diff extends React.Component<IDiffProps, void> {
   private hoverLine = (row: number, include: boolean) => {
     const element = this.cachedGutterElements.get(row)
 
-    if (!element) {
-      // element not currently cached by the editor, don't try and update it
-      return
+    // element may not be drawn by the editor, so updating it isn't necessary
+    if (element) {
+      element.setHover(include)
     }
-
-    element.setHover(include)
   }
 
+  /**
+   * start a selection gesture based on the current interation
+   */
   private startSelection = (file: WorkingDirectoryFileChange, index: number, isRangeSelection: boolean) => {
     const snapshot = file.selection
     const selected = snapshot.isSelected(index)
@@ -214,6 +218,9 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.selection.paint(this.cachedGutterElements)
   }
 
+  /**
+   * complete the selection gesture and apply the change to the diff
+   */
   private endSelection = () => {
     if (!this.props.onIncludeChanged || !this.selection) {
       return
@@ -307,7 +314,6 @@ export class Diff extends React.Component<IDiffProps, void> {
   }
 
   private renderLine = (instance: any, line: any, element: HTMLElement) => {
-
     const existingLineDisposable = this.lineCleanup.get(line)
 
     // If we can find the line in our cleanup list that means the line is
