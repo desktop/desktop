@@ -186,6 +186,10 @@
 }
 // ***************************************************************************************************************************
 
+#diff .submodule-header {
+  margin: var(--spacing-half) var(--spacing)
+}
+
 #diff .submodule-changes {
 
   margin-left: 24px;
