@@ -182,7 +182,13 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
       if (secondHash) {
         const from = firstHash
         const to = secondHash
-        const changes = await getSubmoduleDiff(repository, file, from, to)
+
+        const submodulePath = Path.join(repository.path, file.path)
+        const submoduleExists = Fs.existsSync(submodulePath)
+
+        const changes = submoduleExists
+          ? await getSubmoduleDiff(repository, file, from, to)
+          : [ ]
 
         return {
           kind: 'submodule',
