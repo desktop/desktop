@@ -26,7 +26,7 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps, void> {
         <tr className='entry' key={f.id}>
           <td className='stats'>
             <span className='added'>+{f.added}</span>
-            <span className='removed'> +{f.removed}</span>
+            <span className='removed'> -{f.removed}</span>
           </td>
           <td className='icon'><Octicon symbol={OcticonSymbol.diffModified} /></td>
           <td className='path'>{f.path}</td>
