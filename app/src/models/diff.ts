@@ -59,6 +59,7 @@ export interface ISubmoduleDiff {
   readonly changes?: ReadonlyArray<FileSummary>
 }
 
+/** The union of diff types that can be rendered in Desktop */
 export type IDiff =
   ITextDiff |
   IImageDiff |
