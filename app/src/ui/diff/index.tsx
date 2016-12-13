@@ -282,6 +282,12 @@ export class Diff extends React.Component<IDiffProps, void> {
     const isActive = this.isMouseCursorNearGutter(ev)
 
     if (isActive) {
+      // this line is important because it prevents the codemirror editor
+      // from handling the event and resetting the scroll position.
+      // it doesn't do this when you click on elements in the gutter,
+      // which is an amazing joke to have placed upon me right now
+      ev.preventDefault()
+
       if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
         fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
         return
