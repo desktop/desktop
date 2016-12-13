@@ -2,27 +2,21 @@ import * as React from 'react'
 import * as ReactDOM from 'react-dom'
 import { Disposable } from 'event-kit'
 
-import { NewImageDiff } from './new-image-diff'
-import { ModifiedImageDiff } from './modified-image-diff'
-import { DeletedImageDiff } from './deleted-image-diff'
-import { BinaryFile } from './binary-file'
-import { SubmoduleDiff } from './submodule-diff'
-import { TextDiff } from './text/index'
-
 import { Editor } from 'codemirror'
-import { Repository } from '../../models/repository'
+import { CodeMirrorHost } from './code-mirror-host'
 
-import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffHunk, DiffSelection, IDiff, IImageDiff, ITextDiff, ISubmoduleDiff } from '../../models/diff'
-import { Dispatcher } from '../../lib/dispatcher/dispatcher'
+import { FileChange, WorkingDirectoryFileChange } from '../../../models/status'
+import { DiffHunk, DiffSelection, ITextDiff } from '../../../models/diff'
 
-import { diffLineForIndex, diffHunkForIndex } from './text/diff-explorer'
-import { DiffLineGutter } from './text/diff-line-gutter'
-import { ISelectionStrategy } from './selection/selection-strategy'
-import { DragDropSelection } from './selection/drag-drop-selection-strategy'
-import { HunkSelection } from './selection/hunk-selection-strategy'
+import { diffLineForIndex, diffHunkForIndex } from './diff-explorer'
+import { DiffLineGutter } from './diff-line-gutter'
+import { IEditorConfigurationExtra } from './editor-configuration-extra'
+import { getDiffMode } from './diff-mode'
+import { ISelectionStrategy } from '../selection/selection-strategy'
+import { DragDropSelection } from '../selection/drag-drop-selection-strategy'
+import { HunkSelection } from '../selection/hunk-selection-strategy'
 
-import { fatalError } from '../../lib/fatal-error'
+import { fatalError } from '../../../lib/fatal-error'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
@@ -30,9 +24,7 @@ if (__DARWIN__) {
 }
 
 /** The props for the Diff component. */
-interface IDiffProps {
-  readonly repository: Repository
-
+interface ITextDiffProps {
   /**
    * Whether the diff is readonly, e.g., displaying a historical diff, or the
    * diff's lines can be selected, e.g., displaying a change in the working
@@ -47,14 +39,11 @@ interface IDiffProps {
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
 
   /** The diff that should be rendered */
-  readonly diff: IDiff
-
-  /** propagate errors up to the main application */
-  readonly dispatcher: Dispatcher
+  readonly diff: ITextDiff
 }
 
 /** A component which renders a diff for a file. */
-export class Diff extends React.Component<IDiffProps, void> {
+export class TextDiff extends React.Component<ITextDiffProps, void> {
   private codeMirror: any | null
 
   /**
@@ -81,7 +70,7 @@ export class Diff extends React.Component<IDiffProps, void> {
    */
   private cachedGutterElements = new Map<number, DiffLineGutter>()
 
-  public componentWillReceiveProps(nextProps: IDiffProps) {
+  public componentWillReceiveProps(nextProps: ITextDiffProps) {
     // If we're reloading the same file, we want to save the current scroll
     // position and restore it after the diff's been updated.
     const sameFile = nextProps.file && this.props.file && nextProps.file.id === this.props.file.id
@@ -327,64 +316,33 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.restoreScrollPosition(cm)
   }
 
-  private renderImage(imageDiff: IImageDiff) {
-    if (imageDiff.current && imageDiff.previous) {
-      return <ModifiedImageDiff
-                current={imageDiff.current}
-                previous={imageDiff.previous} />
-    }
-
-    if (imageDiff.current && this.props.file.status === FileStatus.New) {
-      return <NewImageDiff current={imageDiff.current} />
-    }
-
-    if (imageDiff.previous && this.props.file.status === FileStatus.Deleted) {
-      return <DeletedImageDiff previous={imageDiff.previous} />
-    }
-
-    return null
-  }
-
-  private renderBinaryFile() {
-    return <BinaryFile path={this.props.file.path}
-                    repository={this.props.repository}
-                    dispatcher={this.props.dispatcher} />
-  }
-
-  private renderSubmoduleDiff(diff: ISubmoduleDiff) {
-    return <SubmoduleDiff name={diff.name}
-                          type={diff.type}
-                          from={diff.from}
-                          to={diff.to}
-                          changes={diff.changes}  />
-  }
-
-  private renderTextDiff(diff: ITextDiff) {
-    return <TextDiff diff={diff}
-                     file={this.props.file}
-                     readOnly={this.props.readOnly}
-                     onIncludeChanged={this.props.onIncludeChanged} />
+  private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
+    this.codeMirror = cmh === null ? null : cmh.getEditor()
   }
 
   public render() {
-    const diff = this.props.diff
+    const options: IEditorConfigurationExtra = {
+        lineNumbers: false,
+        readOnly: true,
+        showCursorWhenSelecting: false,
+        cursorBlinkRate: -1,
+        lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
+        // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
+        extraKeys: { Tab: false },
+        scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
+        mode: getDiffMode(),
+      }
 
-    if (diff.kind === 'image') {
-      return this.renderImage(diff)
-    }
-
-    if (diff.kind === 'binary') {
-      return this.renderBinaryFile()
-    }
-
-    if (diff.kind === 'text') {
-      return this.renderTextDiff(diff)
-    }
-
-    if (diff.kind === 'submodule') {
-      return this.renderSubmoduleDiff(diff)
-    }
-
-    return null
+      return (
+        <CodeMirrorHost
+          className='diff-code-mirror'
+          value={this.props.diff.text}
+          options={options}
+          isSelectionEnabled={this.isSelectionEnabled}
+          onChanges={this.onChanges}
+          onRenderLine={this.renderLine}
+          ref={this.getAndStoreCodeMirrorInstance}
+        />
+      )
   }
 }
