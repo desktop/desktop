@@ -6,6 +6,7 @@ import { NewImageDiff } from './new-image-diff'
 import { ModifiedImageDiff } from './modified-image-diff'
 import { DeletedImageDiff } from './deleted-image-diff'
 import { BinaryFile } from './binary-file'
+import { SubmoduleDiff } from './submodule-diff'
 
 import { Editor } from 'codemirror'
 import { CodeMirrorHost } from './code-mirror-host'
@@ -354,7 +355,7 @@ export class Diff extends React.Component<IDiffProps, void> {
 
   private renderSubmoduleDiff() {
     // TODO: imlement this
-    return null
+    return <SubmoduleDiff />
   }
 
   private renderTextDiff(diff: ITextDiff) {
