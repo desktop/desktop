@@ -5,15 +5,32 @@ export enum DiffLineType {
   Context, Add, Delete, Hunk
 }
 
+/** indicate what the submodule change represents */
+export enum SubmoduleChangeType {
+   Add, Modified, Delete
+}
+
 export interface ITextDiff {
   readonly kind: 'text'
+  /** The unified text diff - including headers and context */
   readonly text: string
+  /** The diff contents organized by hunk - how the git CLI outputs to the caller */
   readonly hunks: ReadonlyArray<DiffHunk>
 }
 
 export interface IImageDiff {
   readonly kind: 'image'
+  /**
+   * The previous image, if the file was modified or deleted
+   *
+   * Will be undefined for an added image
+   */
   readonly previous?: Image
+  /**
+   * The current image, if the file was added or modified
+   *
+   * Will be undefined for a deleted image
+   */
   readonly current?: Image
 }
 
@@ -21,16 +38,24 @@ export interface IBinaryDiff {
   readonly kind: 'binary'
 }
 
-export enum SubmoduleChangeType {
-   Add, Modified, Delete
-}
-
 export interface ISubmoduleDiff {
   readonly kind: 'submodule'
+  /** The folder name associated with the submodule */
   readonly name: string
+  /** The change represented by the diff */
   readonly type: SubmoduleChangeType
+  /** The previous commit associated with this submodule change */
   readonly from?: string
+  /** The current commit associated with this submodule change */
   readonly to?: string
+  /**
+   * The changes to the submodule between two commits.
+   *
+   * This is only populated for when the submodule is updated. When adding or removing
+   * a submodule, this is undefined to match the behaviour of GitHub the Website.
+   *
+   * If the submodule no longer exists at the expected path, this will be undefined.
+   */
   readonly changes?: ReadonlyArray<FileSummary>
 }
 
