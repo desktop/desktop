@@ -169,14 +169,21 @@ export class Diff extends React.Component<IDiffProps, void> {
       // will look for the first row of the current viewport, which should be
       // onscreen
       const viewport = this.codeMirror.getScrollInfo()
-      const height = viewport.top;
+      const top = viewport.top
       const cm = this.codeMirror as any
-      const row: number = cm.lineAtHeight(height)
 
+      let row: number = cm.lineAtHeight(top, 'local')
       const element = this.cachedGutterElements.get(row)
 
-      if (element) {
-        this.gutterWidth = element.getWidth()
+      if (!element) {
+        console.error(`unable to find element at ${row}, should probably look into that`)
+        return null
+      }
+
+      this.gutterWidth = element.getWidth()
+
+      if (this.gutterWidth === 0) {
+        console.error(`element at row ${row} does not have a width, should probably look into that`)
       }
     }
 
