@@ -5,7 +5,7 @@ import { ModifiedImageDiff } from './modified-image-diff'
 import { DeletedImageDiff } from './deleted-image-diff'
 import { BinaryFile } from './binary-file'
 import { SubmoduleDiff } from './submodule-diff'
-import { TextDiff } from './text/index'
+import { TextDiff } from './text'
 
 import { Repository } from '../../models/repository'
 

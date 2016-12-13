@@ -12,9 +12,7 @@ import { diffLineForIndex, diffHunkForIndex } from './diff-explorer'
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { getDiffMode } from './diff-mode'
-import { ISelectionStrategy } from '../selection/selection-strategy'
-import { DragDropSelection } from '../selection/drag-drop-selection-strategy'
-import { HunkSelection } from '../selection/hunk-selection-strategy'
+import { ISelectionStrategy, DragDropSelection, HunkSelection } from '../selection'
 
 import { fatalError } from '../../../lib/fatal-error'
 
