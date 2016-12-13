@@ -183,14 +183,14 @@ export class List extends React.Component<IListProps, void> {
 
   private grid: React.Component<any, any> | null
 
-  private handleRowKeyDown(rowIndex: number, event: React.KeyboardEvent<any>) {
-    if (this.props.onRowKeyDown) {
-      this.props.onRowKeyDown(rowIndex, event)
+  private handleKeyDown = (event: React.KeyboardEvent<any>) => {
+    const row = this.props.selectedRow
+    if (row >= 0 && this.props.onRowKeyDown) {
+      this.props.onRowKeyDown(row, event)
     }
 
-    // We give consumers the power to prevent the default selection behavior by
-    // subscribing to the `onRowKeyDown` event and calling event.preventDefault.
-    // This lets consumers add their own semantics for keyboard navigation.
+    // The consumer is given a change to prevent the default behavior for
+    // keyboard navigation so that they can customize its behavior as needed.
     if (event.defaultPrevented) { return }
 
     if (event.key === 'ArrowDown') {
@@ -200,8 +200,17 @@ export class List extends React.Component<IListProps, void> {
       this.moveSelection('up', event)
       event.preventDefault()
     }
+  }
 
-    if (this.props.onRowClick) {
+  private handleRowKeyDown(rowIndex: number, event: React.KeyboardEvent<any>) {
+    if (this.props.onRowKeyDown) {
+      this.props.onRowKeyDown(rowIndex, event)
+    }
+
+    // We give consumers the power to prevent the onRowClick event by subscribing
+    // to the onRowKeyDown event and calling event.preventDefault. This lets
+    // consumers add their own semantics for keyboard presses.
+    if (!event.defaultPrevented && this.props.onRowClick) {
       if (event.key === 'Enter' || event.key === ' ') {
         this.props.onRowClick(rowIndex, { kind: 'keyboard', event })
         event.preventDefault()
@@ -325,7 +334,8 @@ export class List extends React.Component<IListProps, void> {
   public render() {
     return (
       <div id={this.props.id}
-           className='list'>
+           className='list'
+           onKeyDown={this.handleKeyDown}>
         <AutoSizer disableWidth disableHeight>
           {({ width, height }: { width: number, height: number }) => this.renderContents(width, height)}
         </AutoSizer>

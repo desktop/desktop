@@ -113,11 +113,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
   }
 
   private onSelectionChanged = (row: number, source: SelectionSource) => {
-    this.setState({
-      listItems: this.state.listItems,
-      selectedRowIndex: row,
-      filter: this.state.filter,
-    })
+    this.setState({ ...this.state, selectedRowIndex: row })
   }
 
   private canSelectRow = (row: number) => {
@@ -181,11 +177,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
 
     if (event.key === 'ArrowDown') {
       if (this.state.listItems.length > 0) {
-        this.setState({
-          listItems: this.state.listItems,
-          selectedRowIndex: list.nextSelectableRow('down', 0),
-          filter: this.state.filter,
-        }, () => {
+        this.setState({ ...this.state, selectedRowIndex: list.nextSelectableRow('down', 0) }, () => {
           list.focus()
         })
       }
@@ -193,11 +185,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
       event.preventDefault()
     } else if (event.key === 'ArrowUp') {
       if (this.state.listItems.length > 0) {
-        this.setState({
-          listItems: this.state.listItems,
-          selectedRowIndex: list.nextSelectableRow('up', 0),
-          filter: this.state.filter,
-        }, () => {
+        this.setState({ ...this.state, selectedRowIndex: list.nextSelectableRow('up', 0) }, () => {
           list.focus()
         })
       }
