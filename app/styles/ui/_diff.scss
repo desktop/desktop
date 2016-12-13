@@ -184,3 +184,32 @@
 #diff a:link {
   color: (orange);
 }
+// ***************************************************************************************************************************
+
+#diff .submodule-changes {
+
+  margin-left: 24px;
+  margin-right: 24px;
+
+  .stats {
+    text-align: right;
+    padding-right: 8px;
+    box-sizing: border-box
+  }
+
+  .added {
+    color: (#55a532);
+  }
+
+  .removed {
+    color: (#bd2c00);
+  }
+
+  .icon {
+    color: var(--color-modified);
+
+    .octicon {
+      vertical-align: text-top;
+    }
+  }
+}
