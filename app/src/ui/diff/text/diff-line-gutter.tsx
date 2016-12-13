@@ -1,8 +1,8 @@
 import * as React from 'react'
-import { ITextDiff, DiffHunk, DiffLine, DiffLineType } from '../../models/diff'
+import { ITextDiff, DiffHunk, DiffLine, DiffLineType } from '../../../models/diff'
 import { diffHunkForIndex } from './diff-explorer'
-import { hoverCssClass, selectedLineClass } from './selection/selection'
-import { assertNever } from '../../lib/fatal-error'
+import { hoverCssClass, selectedLineClass } from '../selection/selection'
+import { assertNever } from '../../../lib/fatal-error'
 import * as classNames from 'classnames'
 
 /**

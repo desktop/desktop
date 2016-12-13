@@ -1,4 +1,4 @@
-import { DiffLine, DiffHunk, ITextDiff } from '../../models/diff'
+import { DiffLine, DiffHunk, ITextDiff } from '../../../models/diff'
 
 /**
  * Locate the diff hunk for the given (absolute) line number in the diff.
