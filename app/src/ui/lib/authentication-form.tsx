@@ -77,7 +77,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
         <div className='password-container'>
           <TextBox
             label='Password'
-            secure={true}
+            type='password'
             disabled={disabled}
             onChange={this.onPasswordChange}/>
 

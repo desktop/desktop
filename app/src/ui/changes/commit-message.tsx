@@ -11,7 +11,7 @@ import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 
 interface ICommitMessageProps {
-  readonly onCreateCommit: (message: ICommitMessage) => void
+  readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly avatarURL: string
@@ -116,17 +116,18 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     this.createCommit()
   }
 
-  private createCommit() {
+  private async createCommit() {
     if (!this.canCommit) { return }
 
-    this.props.onCreateCommit({
+    const success = await this.props.onCreateCommit({
       // We know that summary is non-null thanks to canCommit
       summary: this.state.summary!,
       description: this.state.description,
     })
 
-    // TODO: We should really only do this if the commit succeeds
-    this.clearCommitMessage()
+    if (success) {
+      this.clearCommitMessage()
+    }
   }
 
   private canCommit(): boolean {

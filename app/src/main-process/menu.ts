@@ -5,8 +5,8 @@ export type MenuEvent = 'push' | 'pull' | 'select-changes' | 'select-history' |
                         'add-local-repository' | 'create-branch' |
                         'show-branches' | 'remove-repository' | 'add-repository' |
                         'rename-branch' | 'delete-branch' | 'check-for-updates' |
-                        'quit-and-install-update' | 'show-preferences' | 'update-branch' |
-                        'merge-branch'
+                        'quit-and-install-update' | 'show-preferences' | 'choose-repository' |
+                        'update-branch' | 'merge-branch'
 
 export type MenuIDs = 'rename-branch' | 'delete-branch' | 'check-for-updates' |
                       'checking-for-updates' | 'downloading-update' | 'quit-and-install-update' |
@@ -17,6 +17,13 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     {
       label: 'File',
       submenu: [
+        {
+          label: 'Choose Repository…',
+          accelerator: 'CmdOrCtrl+L',
+          click (item: any, focusedWindow: Electron.BrowserWindow) {
+            emitMenuEvent('choose-repository')
+          },
+        },
         {
           label: 'New Branch…',
           accelerator: 'CmdOrCtrl+Shift+N',
