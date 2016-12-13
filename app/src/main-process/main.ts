@@ -1,5 +1,7 @@
 import { app, Menu, MenuItem, ipcMain, BrowserWindow } from 'electron'
+import * as http from 'http'
 
+import { decode } from 'iconv-lite'
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { parseURL } from '../lib/parse-url'
@@ -7,9 +9,12 @@ import { handleSquirrelEvent } from './updates'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
+import { IHTTPRequest, IHTTPResponse, getEncoding } from '../lib/http'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
+
+let network: Electron.Net | null = null
 
 const launchTime = Date.now()
 
@@ -148,6 +153,93 @@ app.on('ready', () => {
 
     const window = BrowserWindow.fromWebContents(event.sender)
     menu.popup(window)
+  })
+
+  ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options }: { id: string, options: IHTTPRequest }) => {
+
+    if (network === null) {
+      // the network module can only be resolved after the app is ready
+      network = require('electron').net
+
+      if (network === null) {
+        sharedProcess!.console.error('Electron net module not resolved, should never be in this state')
+        return
+      }
+    }
+
+    const channel = `proxy/response/${id}`
+
+    const requestOptions = {
+      url: options.url,
+      headers: options.headers,
+      method: options.method,
+    }
+
+    const request = network.request(requestOptions)
+    request.on('response', (response: Electron.IncomingMessage) => {
+
+      const responseChunks: Array<Buffer> = [ ]
+
+      response.on('abort', () => {
+        event.sender.send(channel, { error: new Error('request aborted by the client') })
+      })
+
+      response.on('data', (chunk: Buffer) => {
+        // rather than decode the bytes immediately, push them onto an array
+        // and defer this until the entire response has been received
+        responseChunks.push(chunk)
+      })
+
+      response.on('end', () => {
+        const statusCode = response.statusCode
+        const headers = response.headers
+        const encoding = getEncoding(response) || 'binary'
+
+        let body: string | undefined
+
+        if (responseChunks.length > 0) {
+          const buffer = Buffer.concat(responseChunks)
+          try {
+            // we're using `iconv-lite` to decode these buffers into an encoding specified
+            // with user input - this will throw if it doesn't recognise the encoding
+            body = decode(buffer, encoding)
+          } catch (e) {
+            sharedProcess!.console.log(`Unable to convert buffer to encoding: '${encoding}'`)
+          }
+        }
+
+        // emulating the rules from got for propagating errors
+        // source: https://github.com/sindresorhus/got/blob/88a8ac8ac3d8ee2387983048368205c0bbe4abdf/index.js#L352-L357
+        let error: Error | undefined
+        if (statusCode >= 400) {
+          const statusMessage = http.STATUS_CODES[statusCode]
+          error = new Error(`Response code ${statusCode} (${statusMessage})`)
+        }
+
+        const payload: IHTTPResponse = {
+          statusCode,
+          headers,
+          body,
+          error,
+        }
+
+        event.sender.send(channel, { response: payload })
+      })
+    })
+
+    request.on('abort', () => {
+      event.sender.send(channel, { error: new Error('request aborted by the client') })
+    })
+
+    request.on('aborted', () => {
+      event.sender.send(channel, { error: new Error('request aborted by the server') })
+    })
+
+    const body = options.body
+      ? JSON.stringify(options.body)
+      : undefined
+
+    request.end(body)
   })
 
   /**
