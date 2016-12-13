@@ -5,6 +5,8 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { groupedAndFilteredBranches, BranchListItemModel } from './grouped-and-filtered-branches'
 import { BranchListItem } from './branch'
+import { TextBox } from '../lib/text-box'
+import { Row } from '../lib/row'
 
 const RowHeight = 30
 
@@ -131,12 +133,14 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
     return (
       <div id='branches'>
-        <input className='branch-filter-input'
-               type='search'
-               autoFocus={true}
-               placeholder='Filter'
-               onChange={this.onFilterChanged}
-               onKeyDown={this.onKeyDown}/>
+        <Row>
+          <TextBox
+            type='search'
+            autoFocus={true}
+            placeholder='Filter'
+            onChange={this.onFilterChanged}
+            onKeyDown={this.onKeyDown}/>
+        </Row>
 
         <div className='branches-list-container'>
           <List rowCount={this.state.branchItems.length}

@@ -1,10 +1,12 @@
 import * as React from 'react'
 
-import { List } from '../list'
+import { List, SelectionSource } from '../list'
 import { RepositoryListItem } from './repository-list-item'
 import { Repository } from '../../models/repository'
 import { groupRepositories, RepositoryListItemModel, Repositoryish } from './group-repositories'
 import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
+import { TextBox } from '../lib/text-box'
+import { Row } from '../lib/row'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
@@ -17,6 +19,9 @@ interface IRepositoriesListProps {
 interface IRepositoriesListState {
   readonly listItems: ReadonlyArray<RepositoryListItemModel>
   readonly selectedRowIndex: number
+
+  /** The currently entered filter text. */
+  readonly filter: string
 }
 
 const RowHeight = 30
@@ -40,23 +45,31 @@ function getSelectedRowIndex(repositories: ReadonlyArray<RepositoryListItemModel
 
 /** The list of user-added repositories. */
 export class RepositoriesList extends React.Component<IRepositoriesListProps, IRepositoriesListState> {
+  private list: List | null = null
+  private filterInput: HTMLInputElement | null = null
 
   public constructor(props: IRepositoriesListProps) {
     super(props)
 
-    this.state = this.createState(props)
+    this.state = this.createState(props, '')
   }
 
-  private createState(props: IRepositoriesListProps): IRepositoriesListState {
+  private createState(props: IRepositoriesListProps, filter: string): IRepositoriesListState {
+    let repositories: ReadonlyArray<Repository | CloningRepository>
+    if (filter.length) {
+      repositories = props.repositories.filter(repository => repository.name.includes(filter))
+    } else {
+      repositories = props.repositories
+    }
 
-    const listItems = groupRepositories(props.repositories)
+    const listItems = groupRepositories(repositories)
     const selectedRowIndex = getSelectedRowIndex(listItems, props.selectedRepository)
 
-    return { listItems, selectedRowIndex }
+    return { listItems, selectedRowIndex, filter }
   }
 
   public componentWillReceiveProps(nextProps: IRepositoriesListProps) {
-    this.setState(this.createState(nextProps))
+    this.setState(this.createState(nextProps, this.state.filter))
   }
 
   private renderRow = (row: number) => {
@@ -70,11 +83,37 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
     }
   }
 
-  private onSelectionChanged = (row: number) => {
+  private onRowClick = (row: number, source: SelectionSource) => {
     const item = this.state.listItems[row]
     if (item.kind === 'repository') {
       this.props.onSelectionChanged(item.repository)
     }
+  }
+
+  private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
+    const list = this.list
+    if (!list) { return }
+
+    let focusInput = false
+    const firstSelectableRow = list.nextSelectableRow('down', 0)
+    const lastSelectableRow = list.nextSelectableRow('up', 0)
+    if (event.key === 'ArrowUp' && row === firstSelectableRow) {
+      focusInput = true
+    } else if (event.key === 'ArrowDown' && row === lastSelectableRow) {
+      focusInput = true
+    }
+
+    if (focusInput) {
+      const input = this.filterInput
+      if (input) {
+        event.preventDefault()
+        input.focus()
+      }
+    }
+  }
+
+  private onSelectionChanged = (row: number, source: SelectionSource) => {
+    this.setState({ ...this.state, selectedRowIndex: row })
   }
 
   private canSelectRow = (row: number) => {
@@ -92,15 +131,72 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
     }
 
     return (
-      <List id='repository-list'
-            rowCount={this.state.listItems.length}
-            rowHeight={RowHeight}
-            rowRenderer={this.renderRow}
-            selectedRow={this.state.selectedRowIndex}
-            onSelectionChanged={this.onSelectionChanged}
-            canSelectRow={this.canSelectRow}
-            invalidationProps={this.props.repositories}/>
+      <div id='repository-list'>
+        <Row>
+          <TextBox
+            type='search'
+            labelClassName='filter-field'
+            placeholder='Filter'
+            autoFocus={true}
+            onChange={this.onFilterChanged}
+            onKeyDown={this.onKeyDown}
+            onInputRef={this.onInputRef}/>
+        </Row>
+
+        <List
+          rowCount={this.state.listItems.length}
+          rowHeight={RowHeight}
+          rowRenderer={this.renderRow}
+          selectedRow={this.state.selectedRowIndex}
+          onSelectionChanged={this.onSelectionChanged}
+          onRowClick={this.onRowClick}
+          onRowKeyDown={this.onRowKeyDown}
+          canSelectRow={this.canSelectRow}
+          invalidationProps={this.props.repositories}
+          ref={this.onListRef}/>
+      </div>
     )
+  }
+
+  private onListRef = (instance: List | null) => {
+    this.list = instance
+  }
+
+  private onInputRef = (instance: HTMLInputElement | null) => {
+    this.filterInput = instance
+  }
+
+  private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
+    const text = event.currentTarget.value
+    this.setState(this.createState(this.props, text))
+  }
+
+  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    const list = this.list
+    if (!list) { return }
+
+    if (event.key === 'ArrowDown') {
+      if (this.state.listItems.length > 0) {
+        this.setState({ ...this.state, selectedRowIndex: list.nextSelectableRow('down', 0) }, () => {
+          list.focus()
+        })
+      }
+
+      event.preventDefault()
+    } else if (event.key === 'ArrowUp') {
+      if (this.state.listItems.length > 0) {
+        this.setState({ ...this.state, selectedRowIndex: list.nextSelectableRow('up', 0) }, () => {
+          list.focus()
+        })
+      }
+
+      event.preventDefault()
+    } else if (event.key === 'Escape') {
+      if (this.state.filter.length === 0) {
+        this.props.dispatcher.closeFoldout()
+        event.preventDefault()
+      }
+    }
   }
 }
 

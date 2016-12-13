@@ -1,4 +1,5 @@
-const got = require('got')
+import { proxyRequest } from '../ui/main-process-proxy'
+import { IHTTPRequest } from './http'
 
 const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
 
@@ -18,13 +19,14 @@ export async function reportError(error: Error, version: string) {
     version,
   }
 
-  const options = {
+  const options: IHTTPRequest = {
+    method: 'POST',
+    url: ErrorEndpoint,
     body,
-    json: true,
   }
 
   try {
-    await got.post(ErrorEndpoint, options)
+    await proxyRequest(options)
     console.log('Exception reported.')
   } catch (e) {
     console.error('Error submitting exception report:')
