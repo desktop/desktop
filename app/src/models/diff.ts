@@ -23,6 +23,7 @@ export interface IBinaryDiff {
 
 export interface ISubmoduleDiff {
   readonly kind: 'submodule'
+  readonly path: string
   readonly changes: ReadonlyArray<FileSummary>
 }
 
@@ -115,14 +116,21 @@ export class Image {
 }
 
 export class FileSummary {
-  public readonly added: number
-  public readonly removed: number
+  // TODO: going to be undefined for binary files
+  public readonly added?: number
+  // TODO: going to be undefined for binary files
+  public readonly removed?: number
   public readonly path: string
 
   public constructor(added: number, removed: number, path: string) {
     this.added = added
     this.removed = removed
     this.path = path
+  }
+
+  /** An ID for the file change. */
+  public get id(): string {
+    return `${this.added}+${this.removed}+${this.path}`
   }
 }
 

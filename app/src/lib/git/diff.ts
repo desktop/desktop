@@ -174,6 +174,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
       return {
         kind: 'submodule',
         changes,
+        path: file.path,
       }
     }
 
@@ -190,6 +191,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
         return {
           kind: 'submodule',
           changes,
+          path: file.path,
         }
       }
     }

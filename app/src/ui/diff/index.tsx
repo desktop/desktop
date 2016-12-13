@@ -13,7 +13,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffHunk, DiffSelection, IDiff, IImageDiff, ITextDiff } from '../../models/diff'
+import { DiffHunk, DiffSelection, IDiff, IImageDiff, ITextDiff, ISubmoduleDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { diffLineForIndex, diffHunkForIndex } from './diff-explorer'
@@ -353,9 +353,8 @@ export class Diff extends React.Component<IDiffProps, void> {
                     dispatcher={this.props.dispatcher} />
   }
 
-  private renderSubmoduleDiff() {
-    // TODO: imlement this
-    return <SubmoduleDiff />
+  private renderSubmoduleDiff(diff: ISubmoduleDiff) {
+    return <SubmoduleDiff path={diff.path} changes={diff.changes}  />
   }
 
   private renderTextDiff(diff: ITextDiff) {
@@ -404,7 +403,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     if (diff.kind === 'submodule') {
-      return this.renderSubmoduleDiff()
+      return this.renderSubmoduleDiff(diff)
     }
 
     return null
