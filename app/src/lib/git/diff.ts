@@ -117,7 +117,6 @@ async function getImageDiff(repository: Repository, file: FileChange, commitish:
   }
 }
 
-
 /**
  * normalize the line endings in the diff so that the CodeMirror editor
  * will display the unified diff correctly
@@ -154,59 +153,65 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
 
     const hunk = diff.hunks[0]
 
-    const match = (line: DiffLine) => {
+    const getSubmoduleSha = (line: DiffLine) => {
       const match = /[\+\-]Subproject commit ([a-z0-9]{40})/.exec(line.text)
       if (match) {
+        // first element is the entire line, we want the hash on the line
         return match[1]
       }
       return null
     }
 
-    const folder = Path.basename(file.path)
-
+    // dotcom will render the folder name for the submodule, not the full path
+    // or the remote repository name here. let's do the same.
+    const name = Path.basename(file.path)
     const firstLine = hunk.lines[1]
-    const firstHash = firstLine ? match(firstLine) : null
+    const firstHash = firstLine ? getSubmoduleSha(firstLine) : null
 
-    // single line diff, could be added or removed
     if (firstHash && hunk.lines.length === 2) {
+      // this is a single submodule diff
+      // it could be an added or removed submodule
+      // fill out the relevant fields
       const submoduleAdded = firstLine.text[0] === '+'
       const hash = formatSha(firstHash)
 
+      const type =  submoduleAdded ? SubmoduleChangeType.Add : SubmoduleChangeType.Delete
       const from = submoduleAdded ? undefined : hash
       const to = submoduleAdded ? hash : undefined
 
       return {
         kind: 'submodule',
-        type: submoduleAdded ? SubmoduleChangeType.Add : SubmoduleChangeType.Delete,
+        type,
         from,
         to,
-        name: folder,
+        name,
       }
     }
 
-    // two line diff, submodule changed
     if (firstHash && hunk.lines.length === 3) {
+      // we have a two line submodule diff
+      // extract the second hash and maybe compute the changes
       const secondLine = hunk.lines[2]
-      const secondHash = secondLine ? match(secondLine) : null
+      const secondHash = secondLine ? getSubmoduleSha(secondLine) : null
 
       if (secondHash) {
-        const from = firstHash
-        const to = secondHash
-
         const submodulePath = Path.join(repository.path, file.path)
         const submoduleExists = Fs.existsSync(submodulePath)
 
         const changes = submoduleExists
-          ? await getSubmoduleDiff(repository, file, from, to)
+          ? await getSubmoduleDiff(repository, file, firstHash, secondHash)
           : undefined
+
+        const from = formatSha(firstHash)
+        const to = formatSha(secondHash)
 
         return {
           kind: 'submodule',
           changes,
-          from: formatSha(from),
-          to: formatSha(to),
+          from,
+          to,
           type: SubmoduleChangeType.Update,
-          name: folder,
+          name,
         }
       }
     }
