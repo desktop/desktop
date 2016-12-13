@@ -724,33 +724,20 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
     const result = await gitStore.performFailableOperation(() => {
       const commitMessage = formatCommitMessage(message)
-      return createCommit(repository, commitMessage, files)
+      try {
+        return createCommit(repository, commitMessage, files)
+      } catch (e) {
+        this._postError(e)
+        return Promise.resolve(false)
+      }
     })
 
-    let success: boolean = false
-    if (result && result.exitCode === 0) {
-      success = true
+    if (result) {
       await this._refreshRepository(repository)
       await this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
     }
 
-    if (result && result.exitCode !== 0) {
-      const output = result.stderr.trim()
-
-      let standardError = ''
-      if (output.length > 0) {
-        standardError = ` with output: '${output}'`
-      }
-      const exitCode = result.exitCode
-      const appError: IAppError = {
-        name: 'commit-failed',
-        message: `Commit failed - exit code ${exitCode} received${standardError}`,
-      }
-
-      this._postError(appError)
-    }
-
-    return success
+    return result || false
   }
 
   private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {
