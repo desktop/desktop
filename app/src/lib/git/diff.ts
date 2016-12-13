@@ -6,7 +6,7 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { IRawDiff, IDiff, IImageDiff, Image, FileSummary, DiffLine } from '../../models/diff'
+import { IRawDiff, IDiff, IImageDiff, Image, FileSummary, DiffLine, SubmoduleChangeType } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
@@ -160,6 +160,8 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
       return null
     }
 
+    const folder = Path.basename(file.path)
+
     const firstLine = hunk.lines[1]
     const firstHash = firstLine ? match(firstLine) : null
 
@@ -174,7 +176,8 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
       return {
         kind: 'submodule',
         changes,
-        path: file.path,
+        type: submoduleAdded ? SubmoduleChangeType.Add : SubmoduleChangeType.Delete,
+        name: folder,
       }
     }
 
@@ -191,7 +194,8 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
         return {
           kind: 'submodule',
           changes,
-          path: file.path,
+          type: SubmoduleChangeType.Modified,
+          name: folder,
         }
       }
     }

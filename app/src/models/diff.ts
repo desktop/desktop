@@ -21,9 +21,14 @@ export interface IBinaryDiff {
   readonly kind: 'binary'
 }
 
+export enum SubmoduleChangeType {
+   Add, Modified, Delete
+}
+
 export interface ISubmoduleDiff {
   readonly kind: 'submodule'
-  readonly path: string
+  readonly name: string
+  readonly type: SubmoduleChangeType
   readonly changes: ReadonlyArray<FileSummary>
 }
 
