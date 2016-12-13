@@ -7,7 +7,7 @@ export enum DiffLineType {
 
 /** indicate what the submodule change represents */
 export enum SubmoduleChangeType {
-   Add, Modified, Delete
+   Add, Update, Delete
 }
 
 export interface ITextDiff {

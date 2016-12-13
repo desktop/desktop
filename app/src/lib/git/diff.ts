@@ -205,7 +205,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
           changes,
           from: formatSha(from),
           to: formatSha(to),
-          type: SubmoduleChangeType.Modified,
+          type: SubmoduleChangeType.Update,
           name: folder,
         }
       }

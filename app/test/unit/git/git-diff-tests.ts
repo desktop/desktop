@@ -229,7 +229,7 @@ describe('git/diff', () => {
       const changes = submodule.changes!
       expect(changes.length).to.equal(1)
 
-      expect(submodule.type).to.equal(SubmoduleChangeType.Modified)
+      expect(submodule.type).to.equal(SubmoduleChangeType.Update)
       expect(submodule.from).to.equal('ba7ba0b')
       expect(submodule.to).to.equal('f1a74d2')
 
