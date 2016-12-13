@@ -278,7 +278,7 @@ export async function getWorkingDirectoryImage(repository: Repository, file: Fil
   return diff
 }
 
-function parseWithFallback(text: string): number | undefined {
+function tryParseInt(text: string): number | undefined {
   const value = parseInt(text, 10)
   return isNaN(value) ? undefined : value
 }
@@ -286,8 +286,6 @@ function parseWithFallback(text: string): number | undefined {
 export async function getSubmoduleDiff(repository: Repository, file: FileChange, from: string, to: string): Promise<ReadonlyArray<FileSummary>> {
   const args = [ 'diff', '--numstat', '-z', `${from}..${to}` ]
   const submodulePath = Path.join(repository.path, file.path)
-
-  // TODO: what if the user hasn't initialized the submodule?
 
   const diffStats = await git(args, submodulePath, 'getSubmoduleDiff')
   const output = diffStats.stdout
@@ -301,8 +299,8 @@ export async function getSubmoduleDiff(repository: Repository, file: FileChange,
     const entries = line.split('\t')
 
     if (entries.length === 3) {
-      const added = parseWithFallback(entries[0])
-      const removed = parseWithFallback(entries[1])
+      const added = tryParseInt(entries[0])
+      const removed = tryParseInt(entries[1])
       const path = entries[2].trim().replace('\0', '')
 
       results.push(new FileSummary(path, added, removed))
