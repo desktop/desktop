@@ -24,7 +24,7 @@ interface IBaseMenuItem {
  */
 export interface IMenuItem extends IBaseMenuItem {
   readonly type: 'menuItem'
-  readonly accelerator: string
+  readonly accelerator: string | null
 }
 
 /**
@@ -45,7 +45,7 @@ export interface ISubmenuItem extends IBaseMenuItem {
  */
 export interface ICheckboxMenuItem extends IBaseMenuItem {
   readonly type: 'checkbox'
-  readonly accelerator: string
+  readonly accelerator: string | null
   readonly checked: boolean
 }
 
@@ -60,7 +60,7 @@ export interface ICheckboxMenuItem extends IBaseMenuItem {
  */
 export interface IRadioMenuItem extends IBaseMenuItem {
   readonly type: 'radio'
-  readonly accelerator: string
+  readonly accelerator: string | null
   readonly checked: boolean
 }
 
@@ -111,6 +111,37 @@ export interface IMenu {
 }
 
 /**
+ * Gets the accelerator for a given menu item. If the menu item doesn't
+ * have an explicitly defined accelerator but does have a defined role
+ * the default accelerator (if any) for that particular role will be
+ * returned.
+ */
+function getAccelerator(menuItem: Electron.MenuItem): string | null {
+  if (menuItem.accelerator) {
+    return menuItem.accelerator
+  }
+
+  if (menuItem.role) {
+    const unsafeItem = menuItem as any
+    // https://github.com/electron/electron/blob/d4a8a64ba/lib/browser/api/menu-item.js#L62
+    const getDefaultRoleAccelerator = unsafeItem.getDefaultRoleAccelerator
+
+    if (typeof getDefaultRoleAccelerator === 'function') {
+      try {
+        const defaultRoleAccelerator = getDefaultRoleAccelerator.call(menuItem)
+        if (typeof defaultRoleAccelerator === 'string') {
+          return defaultRoleAccelerator
+        }
+      } catch (err) {
+        console.error('Could not retrieve default accelerator', err)
+      }
+    }
+  }
+
+  return null
+}
+
+/**
  * Creates an instance of one of the types in the MenuItem type union based
  * on an Electron MenuItem instance. Will recurse through all sub menus and
  * convert each item.
@@ -128,7 +159,7 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
   const visible = menuItem.visible
   const label = menuItem.label
   const checked = menuItem.checked
-  const accelerator = menuItem.accelerator
+  const accelerator = getAccelerator(menuItem)
 
   // normal, separator, submenu, checkbox or radio.
   switch (menuItem.type) {
@@ -158,7 +189,7 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
  * @param id   - The id of the menu. Menus share their id with
  *               their parent item. The root menu id is undefined.
  */
-function menuFromElectronMenu(menu: Electron.Menu, id?: string): IMenu {
+export function menuFromElectronMenu(menu: Electron.Menu, id?: string): IMenu {
   const items = menu.items.map(menuItemFromElectronMenuItem)
   return { id, type: 'menu', items }
 }
@@ -219,10 +250,9 @@ export class AppMenu {
 
   /**
    * Static constructor for the initial creation of an AppMenu instance
-   * from an Electron Menu instance.
+   * from an IMenu instance.
    */
-  public static fromElectronMenu(electronMenu: Electron.Menu): AppMenu {
-    const menu = menuFromElectronMenu(electronMenu)
+  public static fromMenu(menu: IMenu): AppMenu {
     const map = buildIdMap(menu)
     const openMenus = [ menu ]
 
@@ -237,11 +267,10 @@ export class AppMenu {
   }
 
   /**
-   * Merges the current AppMenu state with a new electron menu while
+   * Merges the current AppMenu state with a new menu while
    * attempting to maintain selection state.
    */
-  public withElectronMenu(electronMenu: Electron.Menu): AppMenu {
-    const newMenu = menuFromElectronMenu(electronMenu)
+  public withMenu(newMenu: IMenu): AppMenu {
     const newMap = buildIdMap(newMenu)
     const newOpenMenus = new Array<IMenu>()
 
@@ -319,7 +348,8 @@ export class AppMenu {
     const newOpenMenus = this.openMenus.slice(0, parentMenuIndex + 1)
 
     if (selectFirstItem) {
-      newOpenMenus.push(Object.assign({}, ourMenuItem.menu, { selectedItem: ourMenuItem.menu.items[0] }))
+      const selectedItem = ourMenuItem.menu.items[0]
+      newOpenMenus.push({ ...ourMenuItem.menu, selectedItem })
     } else {
       newOpenMenus.push(ourMenuItem.menu)
     }
@@ -401,11 +431,11 @@ export class AppMenu {
 
     const parentMenu = newOpenMenus[parentMenuIndex]
 
-    newOpenMenus[parentMenuIndex] = Object.assign({}, parentMenu, { selectedItem: ourMenuItem })
+    newOpenMenus[parentMenuIndex] = { ...parentMenu, selectedItem: ourMenuItem }
 
     // All submenus below the active menu should have their selection cleared
     for (let i = parentMenuIndex + 1; i < newOpenMenus.length; i++) {
-      newOpenMenus[i] =  Object.assign({}, newOpenMenus[i], { selectedItem: undefined })
+      newOpenMenus[i] = { ...newOpenMenus[i], selectedItem: undefined }
     }
 
     // Ensure that the path that lead us to the currently selected menu is
@@ -418,7 +448,7 @@ export class AppMenu {
       const selectedItem = menu.items.find(item =>
         item.type === 'submenuItem' && item.id === childMenu.id)
 
-      newOpenMenus[i] =  Object.assign({}, menu, { selectedItem })
+      newOpenMenus[i] =  { ...menu, selectedItem }
     }
 
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)
@@ -449,7 +479,7 @@ export class AppMenu {
     const ourMenu = this.openMenus[ourMenuIndex]
     const newOpenMenus = this.openMenus.slice()
 
-    newOpenMenus[ourMenuIndex] = Object.assign({}, ourMenu, { selectedItem: undefined })
+    newOpenMenus[ourMenuIndex] = { ...ourMenu, selectedItem: undefined }
 
     // Ensure that the path to the menu without an active selection is
     // selected. i.e. all menus above should have their selection reset
@@ -461,7 +491,7 @@ export class AppMenu {
       const selectedItem = menu.items.find(item =>
         item.type === 'submenuItem' && item.id === childMenu.id)
 
-      newOpenMenus[i] =  Object.assign({}, menu, { selectedItem })
+      newOpenMenus[i] =  { ...menu, selectedItem }
     }
 
     return new AppMenu(this.menu, newOpenMenus, this.menuItemById)

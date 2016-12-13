@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import * as classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
+import { Button } from '../lib/button'
 
 /** The button style. */
 export enum ToolbarButtonStyle {
@@ -14,15 +15,16 @@ export enum ToolbarButtonStyle {
 
 export interface IToolbarButtonProps {
   /** The primary button text, describing its function */
-  readonly title: string,
+  readonly title: string
 
   /** An optional description of the function of the button */
-  readonly description?: JSX.Element | string,
+  readonly description?: JSX.Element | string
 
   /** An optional symbol to be displayed next to the button text */
-  readonly icon?: OcticonSymbol,
+  readonly icon?: OcticonSymbol
 
-  readonly iconClassName?: string,
+  /** The class name for the icon element. */
+  readonly iconClassName?: string
 
   /**
    * An optional event handler for when the button is activated
@@ -34,7 +36,7 @@ export interface IToolbarButtonProps {
    * An optional classname that will be appended to the default
    * class name 'toolbar-button'
    */
-  readonly className?: string,
+  readonly className?: string
 
   /**
    * An optional callback for rendering content inside the
@@ -77,11 +79,11 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     return (
       <div className={className}>
         {preContent}
-        <button onClick={this.onClick} ref={this.onButtonRef}>
+        <Button onClick={this.onClick} onButtonRef={this.onButtonRef}>
           {icon}
           {this.renderText()}
           {this.props.children}
-        </button>
+        </Button>
       </div>
     )
   }

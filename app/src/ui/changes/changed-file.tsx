@@ -4,7 +4,7 @@ import { FileStatus, mapStatus, iconForStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
 import { showContextualMenu } from '../main-process-proxy'
-import { Checkbox, CheckboxValue } from './checkbox'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface IChangedFileProps {
   readonly path: string

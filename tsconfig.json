@@ -12,7 +12,8 @@
     "sourceMap": true,
     "jsx": "react",
     "outDir": "./out",
-    "types": ["mocha", "whatwg-fetch", "electron-window-state", "chai-datetime"]
+    "types": ["mocha", "whatwg-fetch", "electron-window-state", "chai-datetime"],
+    "typeRoots": [ "./node_modules/@types", "./app/node_modules/@types" ]
   },
   "exclude": [
     "node_modules",

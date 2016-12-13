@@ -60,10 +60,9 @@ describe('git/for-each-ref', () => {
       expect(currentBranch!.tip.sha).to.equal('dfa96676b65e1c0ed43ca25492252a5e384c8efd')
       expect(currentBranch!.tip.summary).to.equal('this is a commit title')
       expect(currentBranch!.tip.body).to.contain('lucky last')
-      expect(currentBranch!.tip.authorName).to.equal('Brendan Forster')
-      expect(currentBranch!.tip.authorEmail).to.equal('brendan@github.com')
-      const date = currentBranch!.tip.authorDate
-      expect(date).to.equalDate(new Date('Tue Oct 18 16:23:42 2016 +1100'))
+      expect(currentBranch!.tip.author.name).to.equal('Brendan Forster')
+      expect(currentBranch!.tip.author.email).to.equal('brendan@github.com')
+      expect(currentBranch!.tip.author.date).to.equalDate(new Date('Tue Oct 18 16:23:42 2016 +1100'))
 
       expect(currentBranch!.tip.parentSHAs.length).to.equal(1)
     })

@@ -8,6 +8,7 @@ import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../lib/app-state'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
+import { Button } from '../lib/button'
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (message: ICommitMessage) => void
@@ -111,9 +112,8 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     })
   }
 
-  private handleSubmit = (event: React.MouseEvent<HTMLButtonElement>) => {
+  private handleSubmit = () => {
     this.createCommit()
-    event.preventDefault()
   }
 
   private createCommit() {
@@ -159,16 +159,12 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     )
   }
 
-  private onFormSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.stopPropagation()
-  }
-
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
     const buttonEnabled = this.canCommit()
 
     return (
-      <form id='commit-message' onSubmit={this.onFormSubmit}>
+      <div id='commit-message'>
         <div className='summary'>
           {this.renderAvatar()}
 
@@ -187,10 +183,10 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
           onKeyDown={this.onKeyDown}
           autocompletionProviders={this.props.autocompletionProviders}/>
 
-        <button className='button commit-button' onClick={this.handleSubmit} disabled={!buttonEnabled}>
+        <Button type='submit' className='commit-button' onClick={this.handleSubmit} disabled={!buttonEnabled}>
           <div>Commit to <strong>{branchName}</strong></div>
-        </button>
-      </form>
+        </Button>
+      </div>
     )
   }
 }
