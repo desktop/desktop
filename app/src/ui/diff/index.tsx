@@ -164,17 +164,20 @@ export class Diff extends React.Component<IDiffProps, void> {
       return this.gutterWidth
     }
 
-    const elements = Array.from(this.cachedGutterElements.values())
-    const first = elements[0]
+    if (this.codeMirror) {
+      // as getWidth will return 0 for elements that are offscreen, this code
+      // will look for the first row of the current viewport, which should be
+      // onscreen
+      const viewport = this.codeMirror.getScrollInfo()
+      const height = viewport.top;
+      const cm = this.codeMirror as any
+      const row: number = cm.lineAtHeight(height)
 
-    if (!first) {
-      console.error(`unable to resolve the first interactive DiffLineGutter, should look into this`)
-      return null
-    }
+      const element = this.cachedGutterElements.get(row)
 
-    this.gutterWidth = first.getWidth()
-    if (!this.gutterWidth) {
-      console.error(`unable to compute width inside DiffLineGutter, should look into this`)
+      if (element) {
+        this.gutterWidth = element.getWidth()
+      }
     }
 
     return this.gutterWidth
