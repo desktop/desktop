@@ -16,7 +16,6 @@ import { Branches } from './branches'
 import { AddRepository } from './add-repository'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
-import { PublishRepository } from './publish-repository'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
 import { OcticonSymbol } from './octicons'
@@ -33,6 +32,7 @@ import { Preferences } from './preferences'
 import { User } from '../models/user'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Button } from './lib/button'
+import { Form } from './lib/form'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -387,10 +387,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <DeleteBranch dispatcher={this.props.dispatcher}
                            repository={popup.repository}
                            branch={popup.branch}/>
-    } else if (popup.type === PopupType.PublishRepository) {
-      return <PublishRepository repository={popup.repository}
-                                dispatcher={this.props.dispatcher}
-                                users={this.state.users}/>
     } else if (popup.type === PopupType.ConfirmDiscardChanges) {
       return <DiscardChanges repository={popup.repository}
                              dispatcher={this.props.dispatcher}
@@ -410,7 +406,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onPopupOverlayClick = () => { this.props.dispatcher.closePopup() }
 
   private renderPopup(): JSX.Element | null {
-    const content = this.currentPopupContent()
+    let content = this.renderErrors()
+    if (!content) {
+      content = this.currentPopupContent()
+    }
+
     if (!content) { return null }
 
     return (
@@ -435,13 +435,11 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const msgs = errors.map(e => e.message)
     return (
-      <Popuppy>
+      <Form>
         {msgs.map((msg, i) => <pre className='popup-error-output' key={i}>{msg}</pre>)}
 
-        <div className='popup-actions'>
-          <Button onClick={this.clearErrors}>OK</Button>
-        </div>
-      </Popuppy>
+        <Button onClick={this.clearErrors}>OK</Button>
+      </Form>
     )
   }
 
@@ -451,7 +449,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderToolbar()}
         {this.renderRepository()}
         {this.renderPopup()}
-        {this.renderErrors()}
       </div>
     )
   }
@@ -573,6 +570,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
+    const isPublishing = Boolean(this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Publish)
+
     const state = selection.state
     return <PushPullButton
       dispatcher={this.props.dispatcher}
@@ -580,7 +579,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       aheadBehind={state.aheadBehind}
       remoteName={state.remoteName}
       lastFetched={state.lastFetched}
-      networkActionInProgress={state.pushPullInProgress}/>
+      networkActionInProgress={state.pushPullInProgress}
+      isPublishing={isPublishing}
+      users={this.state.users}/>
   }
 
   private renderBranchFoldout = (): JSX.Element | null => {

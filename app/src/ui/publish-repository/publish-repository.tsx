@@ -10,7 +10,11 @@ import { Select } from '../lib/select'
 
 interface IPublishRepositoryProps {
   readonly dispatcher: Dispatcher
+
+  /** The repository to publish. */
   readonly repository: Repository
+
+  /** The signed in users. */
   readonly users: ReadonlyArray<User>
 }
 
@@ -22,6 +26,7 @@ interface IPublishRepositoryState {
   readonly selectedUser: IAPIUser
 }
 
+/** The Publish Repository component. */
 export class PublishRepository extends React.Component<IPublishRepositoryProps, IPublishRepositoryState> {
   public constructor(props: IPublishRepositoryProps) {
     super(props)
@@ -114,7 +119,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   private publishRepository = () => {
     const owningAccount = this.findOwningUserForSelectedUser()!
     this.props.dispatcher.publishRepository(this.props.repository, this.state.name, this.state.description, this.state.private, owningAccount, this.selectedOrg)
-    this.props.dispatcher.closePopup()
+    this.props.dispatcher.closeFoldout()
   }
 
   private onAccountChange = (event: React.FormEvent<HTMLSelectElement>) => {
@@ -158,7 +163,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   public render() {
     const disabled = !this.state.name.length
     return (
-      <Form onSubmit={this.publishRepository}>
+      <Form className='publish-repository' onSubmit={this.publishRepository}>
         <TextBox label='Name' value={this.state.name} autoFocus={true} onChange={this.onNameChange}/>
 
         <TextBox label='Description' value={this.state.description} onChange={this.onDescriptionChange}/>
