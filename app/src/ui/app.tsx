@@ -150,6 +150,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'check-for-updates': return this.checkForUpdates()
       case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
       case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
+      case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)

@@ -2,6 +2,14 @@
 
 /** A <List> React component holding all tracked repositories in the sidebar */
 #repository-list {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  .filter-field {
+    padding-left: var(--spacing);
+    padding-right: var(--spacing);
+  }
 
   /**
    * Container for repository list items in the sidebar

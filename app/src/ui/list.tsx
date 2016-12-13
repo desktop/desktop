@@ -184,6 +184,15 @@ export class List extends React.Component<IListProps, void> {
   private grid: React.Component<any, any> | null
 
   private handleKeyDown = (event: React.KeyboardEvent<any>) => {
+    const row = this.props.selectedRow
+    if (row >= 0 && this.props.onRowKeyDown) {
+      this.props.onRowKeyDown(row, event)
+    }
+
+    // The consumer is given a change to prevent the default behavior for
+    // keyboard navigation so that they can customize its behavior as needed.
+    if (event.defaultPrevented) { return }
+
     if (event.key === 'ArrowDown') {
       this.moveSelection('down', event)
       event.preventDefault()
