@@ -132,6 +132,10 @@ function formatLineEnding(text: string): string {
   }
 }
 
+function formatSha(text: string): string {
+  return text.slice(0, 7)
+}
+
 export async function convertDiff(repository: Repository, file: FileChange, diff: IRawDiff, commitish: string): Promise<IDiff> {
   if (diff.isBinary) {
     const extension = Path.extname(file.path)
@@ -166,10 +170,16 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
     // single line diff, could be added or removed
     if (firstHash && hunk.lines.length === 2) {
       const submoduleAdded = firstLine.text[0] === '+'
+      const hash = formatSha(firstHash)
+
+      const from = submoduleAdded ? undefined : hash
+      const to = submoduleAdded ? hash : undefined
+
       return {
         kind: 'submodule',
         type: submoduleAdded ? SubmoduleChangeType.Add : SubmoduleChangeType.Delete,
-        sha: firstHash.substr(0, 7),
+        from,
+        to,
         name: folder,
       }
     }
@@ -188,11 +198,13 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
 
         const changes = submoduleExists
           ? await getSubmoduleDiff(repository, file, from, to)
-          : [ ]
+          : undefined
 
         return {
           kind: 'submodule',
           changes,
+          from: formatSha(from),
+          to: formatSha(to),
           type: SubmoduleChangeType.Modified,
           name: folder,
         }

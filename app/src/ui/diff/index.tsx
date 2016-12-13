@@ -356,7 +356,8 @@ export class Diff extends React.Component<IDiffProps, void> {
   private renderSubmoduleDiff(diff: ISubmoduleDiff) {
     return <SubmoduleDiff name={diff.name}
                           type={diff.type}
-                          sha={diff.sha}
+                          from={diff.from}
+                          to={diff.to}
                           changes={diff.changes}  />
   }
 

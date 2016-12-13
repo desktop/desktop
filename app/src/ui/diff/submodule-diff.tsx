@@ -7,7 +7,8 @@ interface ISubmoduleDiffProps {
   readonly changes?: ReadonlyArray<FileSummary>
   readonly name: string
   readonly type: SubmoduleChangeType
-  readonly sha?: string
+  readonly from?: string
+  readonly to?: string
 }
 
 /** A component to render when a new image has been added to the repository */
@@ -16,30 +17,35 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps, void> {
   public render() {
 
     if (this.props.type === SubmoduleChangeType.Add || this.props.type === SubmoduleChangeType.Delete) {
-      const action = this.props.type === SubmoduleChangeType.Add ? 'added at' : 'removed from'
+      const action = this.props.type === SubmoduleChangeType.Add
+        ? 'added at'
+        : 'removed from'
 
-      if (!this.props.sha) {
+      // when removing or adding a submodule, only one SHA is available
+      const sha = this.props.type === SubmoduleChangeType.Add
+        ? this.props.to
+        : this.props.from
+
+      if (!sha) {
         console.error('the submodule diff should have specified a SHA but it didn\'t, look into this')
       }
 
       return <div className='panel' id='diff'>
         <div className='submodule-header'>
-          <Octicon symbol={OcticonSymbol.fileSubmodule} /> Submodule {this.props.name} {action} {this.props.sha}
+          <Octicon symbol={OcticonSymbol.fileSubmodule} /> Submodule {this.props.name} {action} {sha}
         </div>
       </div>
     }
 
-    if (!this.props.changes) {
-      console.error('the submodule diff should have specified changes when it was modified, but it didn\'t, look into this')
-    }
+    const message = this.props.changes
+      ? `${this.props.changes.length} ${this.props.changes.length > 1 ? 'files' : 'file'}`
+      : `from ${this.props.from} to ${this.props.to}`
 
     const changes = this.props.changes || [ ]
 
-    const fileCountLabel = changes.length > 1 ? 'files' : 'file'
-
     return <div className='panel' id='diff'>
       <div className='submodule-header'>
-        <Octicon symbol={OcticonSymbol.fileSubmodule} /> Submodule {this.props.name} updated {changes.length} {fileCountLabel}
+        <Octicon symbol={OcticonSymbol.fileSubmodule} /> Submodule {this.props.name} updated {message}
       </div>
 
       <table className='submodule-changes'>

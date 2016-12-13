@@ -230,7 +230,8 @@ describe('git/diff', () => {
       expect(changes.length).to.equal(1)
 
       expect(submodule.type).to.equal(SubmoduleChangeType.Modified)
-      expect(submodule.sha).to.be.undefined
+      expect(submodule.from).to.equal('ba7ba0b')
+      expect(submodule.to).to.equal('f1a74d2')
 
       const first = changes[0]
       expect(first.added).to.equal(3)
@@ -250,7 +251,7 @@ describe('git/diff', () => {
 
       expect(submodule.changes).to.be.undefined
       expect(submodule.type).to.equal(SubmoduleChangeType.Add)
-      expect(submodule.sha).to.equal('ba7ba0b')
+      expect(submodule.to).to.equal('ba7ba0b')
     })
   })
 })
