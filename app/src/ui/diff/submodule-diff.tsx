@@ -7,6 +7,7 @@ interface ISubmoduleDiffProps {
   readonly changes: ReadonlyArray<FileSummary>
   readonly name: string
   readonly type: SubmoduleChangeType
+  readonly sha?: string
 }
 
 /** A component to render when a new image has been added to the repository */
@@ -16,9 +17,14 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps, void> {
 
     if (this.props.type === SubmoduleChangeType.Add || this.props.type === SubmoduleChangeType.Delete) {
       const action = this.props.type === SubmoduleChangeType.Add ? 'added' : 'removed'
+
+      if (!this.props.sha) {
+        console.error('the submodule diff should have specified a SHA but it didn\'t, look into this')
+      }
+
       return <div className='panel' id='diff'>
         <div className='submodule-header'>
-          <Octicon symbol={OcticonSymbol.fileSubmodule} /> Submodule {this.props.name} {action} at SHA GOES HERE
+          <Octicon symbol={OcticonSymbol.fileSubmodule} /> Submodule {this.props.name} {action} at {this.props.sha}
         </div>
       </div>
     }

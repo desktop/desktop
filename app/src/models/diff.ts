@@ -29,6 +29,7 @@ export interface ISubmoduleDiff {
   readonly kind: 'submodule'
   readonly name: string
   readonly type: SubmoduleChangeType
+  readonly sha?: string
   readonly changes: ReadonlyArray<FileSummary>
 }
 

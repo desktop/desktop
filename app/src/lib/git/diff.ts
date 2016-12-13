@@ -177,6 +177,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
         kind: 'submodule',
         changes,
         type: submoduleAdded ? SubmoduleChangeType.Add : SubmoduleChangeType.Delete,
+        sha: firstHash.substr(0, 7),
         name: folder,
       }
     }
