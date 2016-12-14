@@ -15,6 +15,7 @@ import { ICommitMessage } from './git-store'
 import { v4 as guid } from 'node-uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
+import { StatsStore } from '../stats'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -51,8 +52,11 @@ type IPCResponse<T> = IResult<T> | IError
 export class Dispatcher {
   private appStore: AppStore
 
-  public constructor(appStore: AppStore) {
+  private statsStore: StatsStore
+
+  public constructor(appStore: AppStore, statsStore: StatsStore) {
     this.appStore = appStore
+    this.statsStore = statsStore
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
@@ -229,8 +233,11 @@ export class Dispatcher {
   }
 
   /** Change the file's includedness. */
-  public changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
-    return this.appStore._changeFileIncluded(repository, file, include)
+  public async changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
+    const success = await this.appStore._changeFileIncluded(repository, file, include)
+    if (success) {
+      this.statsStore.recordCommit()
+    }
   }
 
   /** Change the file's line selection state. */

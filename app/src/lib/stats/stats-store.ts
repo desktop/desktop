@@ -1,5 +1,5 @@
-import { StatsDatabase, ILaunchStats } from './stats-database'
 import * as OS from 'os'
+import { StatsDatabase, ILaunchStats, IDailyDimensions } from './stats-database'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { proxyRequest } from '../../ui/main-process-proxy'
 import { IHTTPRequest } from '../http'
@@ -11,7 +11,7 @@ const LastDailyStatsReportKey = 'last-daily-stats-report'
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
 
-type DailyStats = { version: string } & ILaunchStats
+type DailyStats = { version: string } & ILaunchStats & IDailyDimensions
 
 /** The store for the app's stats. */
 export class StatsStore {
@@ -83,10 +83,12 @@ export class StatsStore {
 
   private async getDailyStats(): Promise<DailyStats> {
     const launchStats = await this.getAverageLaunchStats()
+    const dailyDimensions = await this.getDailyDimensions()
     return {
       version: getVersion(),
       osVersion: OS.release(),
       ...launchStats,
+      ...dailyDimensions,
     }
   }
 
@@ -111,5 +113,20 @@ export class StatsStore {
       loadTime: totals.loadTime / launches.length,
       rendererReadyTime: totals.rendererReadyTime / launches.length,
     }
+  }
+
+  private async getDailyDimensions(): Promise<IDailyDimensions> {
+    const dimensions: IDailyDimensions = await this.db.dailyDimensions.limit(1).first()
+    return dimensions
+  }
+
+  /** Record that a commit was accomplished. */
+  public async recordCommit() {
+    const db = this.db
+    await this.db.transaction('rw', this.db.dailyDimensions, function*() {
+      const dimensions: IDailyDimensions | null = yield db.dailyDimensions.limit(1).first()
+      const newDimensions = { commits: dimensions ? dimensions.commits + 1 : 1 }
+      return db.dailyDimensions.put(newDimensions, dimensions ? dimensions.id : undefined)
+    })
   }
 }

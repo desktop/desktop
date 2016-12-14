@@ -1,7 +1,7 @@
 import Dexie from 'dexie'
 
 // NB: This _must_ be incremented whenever the DB key scheme changes.
-const DatabaseVersion = 1
+const DatabaseVersion = 2
 
 /** The timing stats for app launch. */
 export interface ILaunchStats {
@@ -24,14 +24,28 @@ export interface ILaunchStats {
   readonly rendererReadyTime: number
 }
 
+/** The daily dimensions captured for stats. */
+export interface IDailyDimensions {
+  /** The ID in the database. */
+  readonly id?: number
+
+  /** The number of commits. */
+  readonly commits: number
+}
+
 export class StatsDatabase extends Dexie {
   public launches: Dexie.Table<ILaunchStats, number>
+  public dailyDimensions: Dexie.Table<IDailyDimensions, number>
 
   public constructor(name: string) {
     super(name)
 
-    this.version(DatabaseVersion).stores({
+    this.version(1).stores({
       launches: '++',
+    })
+
+    this.version(DatabaseVersion).stores({
+      dailyDimensions: '++id',
     })
   }
 }
