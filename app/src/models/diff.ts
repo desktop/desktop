@@ -1,12 +1,13 @@
 import { assertNever } from '../lib/fatal-error'
 
 export enum DiffType {
+  /** changes to a text file, which may be partially selected for commit */
   Text,
-
+  /** changes to files of a known format, which can be viewed in the app */
   Image,
-
+  /** changes to an unknown file format, which Git is unable to present in a human-friendly format */
   Binary,
-
+  /** change to a repository which is included as a submodule of this repository */
   Submodule
 }
 
