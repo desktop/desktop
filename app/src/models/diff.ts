@@ -1,9 +1,21 @@
 import { assertNever } from '../lib/fatal-error'
 
+export enum DiffType {
+  Text,
+
+  Image,
+
+  Binary,
+
+  Submodule
+}
+
+
 /** indicate what a line in the diff represents */
 export enum DiffLineType {
   Context, Add, Delete, Hunk
 }
+
 
 /** indicate what the submodule change represents */
 export enum SubmoduleChangeType {
@@ -11,7 +23,7 @@ export enum SubmoduleChangeType {
 }
 
 export interface ITextDiff {
-  readonly kind: 'text'
+  readonly kind: DiffType.Text
   /** The unified text diff - including headers and context */
   readonly text: string
   /** The diff contents organized by hunk - how the git CLI outputs to the caller */
@@ -19,7 +31,7 @@ export interface ITextDiff {
 }
 
 export interface IImageDiff {
-  readonly kind: 'image'
+  readonly kind: DiffType.Image
   /**
    * The previous image, if the file was modified or deleted
    *
@@ -35,11 +47,11 @@ export interface IImageDiff {
 }
 
 export interface IBinaryDiff {
-  readonly kind: 'binary'
+  readonly kind: DiffType.Binary
 }
 
 export interface ISubmoduleDiff {
-  readonly kind: 'submodule'
+  readonly kind: DiffType.Submodule
   /** The folder name associated with the submodule */
   readonly name: string
   /** The change represented by the diff */

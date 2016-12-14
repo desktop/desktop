@@ -6,7 +6,7 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { IRawDiff, IDiff, IImageDiff, Image, FileSummary, DiffLine, SubmoduleChangeType } from '../../models/diff'
+import { DiffType, IRawDiff, IDiff, IImageDiff, Image, FileSummary, DiffLine, SubmoduleChangeType } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
@@ -81,7 +81,7 @@ async function getImageDiff(repository: Repository, file: FileChange, commitish:
     // Ideally we'd show all three versions and let the user pick but that's
     // a bit out of scope for now.
     if (file.status === FileStatus.Conflicted) {
-      return { kind: 'image' }
+      return { kind: DiffType.Image }
     }
 
     // Does it even exist in the working directory?
@@ -111,7 +111,7 @@ async function getImageDiff(repository: Repository, file: FileChange, commitish:
   }
 
   return {
-    kind: 'image',
+    kind: DiffType.Image,
     previous: previous,
     current: current,
   }
@@ -142,7 +142,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
     // some extension we don't know how to parse, never mind
     if (!imageFileExtensions.has(extension)) {
       return {
-        kind: 'binary',
+        kind: DiffType.Binary,
       }
     } else {
       return getImageDiff(repository, file, commitish)
@@ -180,7 +180,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
       const to = submoduleAdded ? hash : undefined
 
       return {
-        kind: 'submodule',
+        kind: DiffType.Submodule,
         type,
         from,
         to,
@@ -206,7 +206,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
         const to = formatSha(secondHash)
 
         return {
-          kind: 'submodule',
+          kind: DiffType.Submodule,
           changes,
           from,
           to,
@@ -223,7 +223,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
   })
 
   return {
-    kind: 'text',
+    kind: DiffType.Text,
     text: diffText,
     hunks: diff.hunks,
   }

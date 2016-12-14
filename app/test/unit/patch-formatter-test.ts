@@ -6,7 +6,7 @@ import * as FS from 'fs'
 
 import { Repository } from '../../src/models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../src/models/status'
-import { DiffSelection, DiffSelectionType, ITextDiff } from '../../src/models/diff'
+import { DiffSelection, DiffSelectionType, ITextDiff, DiffType } from '../../src/models/diff'
 import { DiffParser } from '../../src/lib/diff-parser'
 import { formatPatch } from '../../src/lib/patch-formatter'
 import { getWorkingDirectoryDiff, convertDiff } from '../../src/lib/git'
@@ -18,7 +18,7 @@ async function parseDiff(diff: string): Promise<ITextDiff> {
   const repository = new Repository('', -1)
   const fileChange = new FileChange('file.txt', FileStatus.Modified)
   const output = await convertDiff(repository, fileChange, rawDiff, 'HEAD')
-  expect(output.kind === 'text')
+  expect(output.kind === DiffType.Text)
   return output as ITextDiff
 }
 
@@ -41,7 +41,7 @@ describe('patch formatting', () => {
 
       const diff = await getWorkingDirectoryDiff(repository!, file)
 
-      expect(diff.kind === 'text')
+      expect(diff.kind === DiffType.Text)
 
       const textDiff = diff as ITextDiff
       const second = textDiff.hunks[1]
@@ -67,7 +67,7 @@ describe('patch formatting', () => {
 
       const diff = await getWorkingDirectoryDiff(repository!, file)
 
-      expect(diff.kind === 'text')
+      expect(diff.kind === DiffType.Text)
 
       const textDiff = diff as ITextDiff
       const first = textDiff.hunks[0]
@@ -94,7 +94,7 @@ describe('patch formatting', () => {
 
       const diff = await getWorkingDirectoryDiff(repository!, file)
 
-      expect(diff.kind === 'text')
+      expect(diff.kind === DiffType.Text)
 
       const textDiff = diff as ITextDiff
       const second = textDiff.hunks[1]
@@ -120,7 +120,7 @@ describe('patch formatting', () => {
 
       const diff = await getWorkingDirectoryDiff(repository!, file)
 
-      expect(diff.kind === 'text')
+      expect(diff.kind === DiffType.Text)
 
       const textDiff = diff as ITextDiff
 

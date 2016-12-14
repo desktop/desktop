@@ -13,14 +13,14 @@ import {
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 import { GitProcess } from 'git-kitchen-sink'
 import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
-import { DiffSelectionType, DiffSelection, ITextDiff } from '../../../src/models/diff'
+import { DiffSelectionType, DiffSelection, ITextDiff, DiffType } from '../../../src/models/diff'
 
 import * as fs from 'fs-extra'
 const temp = require('temp').track()
 
 async function getTextDiff(repo: Repository, file: WorkingDirectoryFileChange): Promise<ITextDiff> {
   const diff = await getWorkingDirectoryDiff(repo, file)
-  expect(diff.kind === 'text')
+  expect(diff.kind === DiffType.Text)
   return diff as ITextDiff
 }
 

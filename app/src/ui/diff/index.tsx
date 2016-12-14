@@ -13,7 +13,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffHunk, DiffSelection, IDiff, IImageDiff, ITextDiff, ISubmoduleDiff } from '../../models/diff'
+import { DiffHunk, DiffSelection, DiffType, IDiff, IImageDiff, ITextDiff, ISubmoduleDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { diffLineForIndex, diffHunkForIndex } from './diff-explorer'
@@ -119,7 +119,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           return
         }
 
-        if (diff.kind === 'text') {
+        if (diff.kind === DiffType.Text) {
           const line = diffLineForIndex(diff, index)
           const isIncludable = line ? line.isIncludeableLine() : false
           const isSelected = selection.isSelected(index) && isIncludable
@@ -184,7 +184,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     const diff = this.props.diff
-    if (diff.kind !== 'text') {
+    if (diff.kind !== DiffType.Text) {
       // text diffs are the only ones that can handle selection
       return
     }
@@ -230,7 +230,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     const diff = this.props.diff
-    if (diff.kind !== 'text') {
+    if (diff.kind !== DiffType.Text) {
       return
     }
 
@@ -394,19 +394,19 @@ export class Diff extends React.Component<IDiffProps, void> {
   public render() {
     const diff = this.props.diff
 
-    if (diff.kind === 'image') {
+    if (diff.kind === DiffType.Image) {
       return this.renderImage(diff)
     }
 
-    if (diff.kind === 'binary') {
+    if (diff.kind === DiffType.Binary) {
       return this.renderBinaryFile()
     }
 
-    if (diff.kind === 'text') {
+    if (diff.kind === DiffType.Text) {
       return this.renderTextDiff(diff)
     }
 
-    if (diff.kind === 'submodule') {
+    if (diff.kind === DiffType.Submodule) {
       return this.renderSubmoduleDiff(diff)
     }
 

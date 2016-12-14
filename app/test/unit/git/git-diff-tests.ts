@@ -6,7 +6,7 @@ import * as fs from 'fs-extra'
 
 import { Repository } from '../../../src/models/repository'
 import { FileStatus, WorkingDirectoryFileChange, FileChange } from '../../../src/models/status'
-import { ITextDiff, IImageDiff, ISubmoduleDiff, DiffSelectionType, DiffSelection, SubmoduleChangeType } from '../../../src/models/diff'
+import { ITextDiff, IImageDiff, ISubmoduleDiff, DiffSelectionType, DiffSelection, SubmoduleChangeType, DiffType } from '../../../src/models/diff'
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 
 import {
@@ -21,7 +21,7 @@ import { GitProcess } from 'git-kitchen-sink'
 
 async function getTextDiff(repo: Repository, file: WorkingDirectoryFileChange): Promise<ITextDiff> {
   const diff = await getWorkingDirectoryDiff(repo, file)
-  expect(diff.kind === 'text')
+  expect(diff.kind === DiffType.Text)
   return diff as ITextDiff
 }
 
@@ -80,7 +80,7 @@ describe('git/diff', () => {
       const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, diffSelection)
       const diff = await getWorkingDirectoryDiff(repository!, file)
 
-      expect(diff.kind === 'image')
+      expect(diff.kind === DiffType.Image)
 
       const imageDiff = diff as IImageDiff
       expect(imageDiff.previous).is.not.undefined
@@ -223,7 +223,7 @@ describe('git/diff', () => {
       const file = new WorkingDirectoryFileChange('friendly-bassoon', FileStatus.Modified, diffSelection)
 
       const diff = await getWorkingDirectoryDiff(repository, file)
-      expect(diff.kind === 'submodule')
+      expect(diff.kind === DiffType.Submodule)
       const submodule = diff as ISubmoduleDiff
 
       const changes = submodule.changes!
@@ -246,7 +246,7 @@ describe('git/diff', () => {
       const file = new FileChange('friendly-bassoon', FileStatus.New)
       const diff = await getCommitDiff(repository!, file, 'HEAD')
 
-      expect(diff.kind === 'submodule')
+      expect(diff.kind === DiffType.Submodule)
       const submodule = diff as ISubmoduleDiff
 
       expect(submodule.changes).to.be.undefined

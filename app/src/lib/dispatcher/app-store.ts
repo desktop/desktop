@@ -19,7 +19,7 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffSelection, DiffSelectionType } from '../../models/diff'
+import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
@@ -687,7 +687,7 @@ export class AppStore {
     const diff = await getWorkingDirectoryDiff(repository, currentSelectedFile)
     const selectableLines = new Set<number>()
 
-    if (diff.kind === 'text') {
+    if (diff.kind === DiffType.Text) {
       // The diff might have changed dramatically since last we loaded it. Ideally we
       // would be more clever about validating that any partial selection state is
       // still valid by ensuring that selected lines still exist but for now we'll
