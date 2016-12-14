@@ -1,4 +1,5 @@
 import { StatsDatabase, ILaunchStats } from './stats-database'
+import * as OS from 'os'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { proxyRequest } from '../../ui/main-process-proxy'
 import { IHTTPRequest } from '../http'
@@ -82,7 +83,11 @@ export class StatsStore {
 
   private async getDailyStats(): Promise<DailyStats> {
     const launchStats = await this.getAverageLaunchStats()
-    return { version: getVersion(), ...launchStats }
+    return {
+      version: getVersion(),
+      osVersion: OS.release(),
+      ...launchStats,
+    }
   }
 
   /** Calculate the average launch stats. */
