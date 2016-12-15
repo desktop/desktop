@@ -5,18 +5,62 @@ import { MenuItem, itemMayHaveAccessKey, itemIsSelectable } from '../../models/a
 import { MenuListItem } from './menu-list-item'
 
 interface IMenuPaneProps {
+  /**
+   * The current Menu pane depth, starts at zero and increments by one for each
+   * open submenu.
+   */
   readonly depth: number
+
+  /**
+   * All items available in the current menu. Note that this includes disabled
+   * menu items as well as invisible ones. This list is filtered before
+   * rendering.
+   */
   readonly items: ReadonlyArray<MenuItem>
+
+  /**
+   * The currently selected item in the menu or undefined if no item is
+   * selected.
+   */
   readonly selectedItem?: MenuItem
+
+  /**
+   * A callback for when a selectable menu item was clicked by a pointer device
+   * or when the Enter or Space key is pressed on a selected item. The source
+   * parameter can be used to determine whether the click is a result of a
+   * pointer device or keyboard.
+   */
   readonly onItemClicked: (depth: number, item: MenuItem, source: ClickSource) => void
+
+  /**
+   * A callback for when a keyboard key is pressed on a menu item.
+   */
   readonly onItemKeyDown: (depth: number, item: MenuItem, event: React.KeyboardEvent<any>) => void
+
+  /**
+   *
+   */
   readonly onSelectionChanged: (depth: number, item: MenuItem, source: SelectionSource) => void
+
+  /** Callback for when the mouse enters the menu pane component */
   readonly onMouseEnter: (depth: number) => void
+
+  /**
+   * Whether or not the application menu was opened with the Alt key, this
+   * enables access key highlighting for applicable menu items as well as
+   * keyboard navigation by pressing access keys.
+   */
   readonly enableAccessKeyNavigation: boolean
 }
 
 interface IMenuPaneState {
+  /**
+   * A list of visible menu items that is to be rendered. This is a derivative
+   * of the props items with invisible items filtered out.
+   */
   readonly items: ReadonlyArray<MenuItem>
+
+  /** The selected row index or -1 if no selection exists. */
   readonly selectedIndex: number
 }
 
