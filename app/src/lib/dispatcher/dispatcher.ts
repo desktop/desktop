@@ -228,16 +228,18 @@ export class Dispatcher {
    * Commit the changes which were marked for inclusion, using the given commit
    * summary and description.
    */
-  public commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
-    return this.appStore._commitIncludedChanges(repository, message)
-  }
-
-  /** Change the file's includedness. */
-  public async changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
-    const success = await this.appStore._changeFileIncluded(repository, file, include)
+  public async commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
+    const success = await this.appStore._commitIncludedChanges(repository, message)
     if (success) {
       this.statsStore.recordCommit()
     }
+
+    return success
+  }
+
+  /** Change the file's includedness. */
+  public changeFileIncluded(repository: Repository, file: WorkingDirectoryFileChange, include: boolean): Promise<void> {
+    return this.appStore._changeFileIncluded(repository, file, include)
   }
 
   /** Change the file's line selection state. */
