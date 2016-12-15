@@ -89,6 +89,7 @@ export class StatsStore {
     return {
       version: getVersion(),
       osVersion: OS.release(),
+      platform: process.platform,
       ...launchStats,
       ...dailyMeasures,
     }
