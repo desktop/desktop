@@ -1,5 +1,5 @@
 import * as OS from 'os'
-import { StatsDatabase, ILaunchStats, IDailyDimensions } from './stats-database'
+import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { proxyRequest } from '../../ui/main-process-proxy'
 import { IHTTPRequest } from '../http'
@@ -11,7 +11,7 @@ const LastDailyStatsReportKey = 'last-daily-stats-report'
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
 
-type DailyStats = { version: string } & ILaunchStats & IDailyDimensions
+type DailyStats = { version: string } & ILaunchStats & IDailyMeasures
 
 /** The store for the app's stats. */
 export class StatsStore {
@@ -79,18 +79,18 @@ export class StatsStore {
   /** Clear the stored daily stats. */
   private async clearDailyStats() {
     await this.db.launches.clear()
-    await this.db.dailyDimensions.clear()
+    await this.db.dailyMeasures.clear()
   }
 
   /** Get the daily stats. */
   private async getDailyStats(): Promise<DailyStats> {
     const launchStats = await this.getAverageLaunchStats()
-    const dailyDimensions = await this.getDailyDimensions()
+    const dailyMeasures = await this.getDailyMeasures()
     return {
       version: getVersion(),
       osVersion: OS.release(),
       ...launchStats,
-      ...dailyDimensions,
+      ...dailyMeasures,
     }
   }
 
@@ -117,28 +117,28 @@ export class StatsStore {
     }
   }
 
-  /** Get the daily dimensions. */
-  private async getDailyDimensions(): Promise<IDailyDimensions> {
-    const dimensions: IDailyDimensions = await this.db.dailyDimensions.limit(1).first()
-    return dimensions
+  /** Get the daily measures. */
+  private async getDailyMeasures(): Promise<IDailyMeasures> {
+    const measures: IDailyMeasures = await this.db.dailyMeasures.limit(1).first()
+    return measures
   }
 
   /** Record that a commit was accomplished. */
   public async recordCommit() {
     const db = this.db
-    await this.db.transaction('rw', this.db.dailyDimensions, function*() {
-      let dimensions: IDailyDimensions | null = yield db.dailyDimensions.limit(1).first()
-      if (!dimensions) {
-        dimensions = {
+    await this.db.transaction('rw', this.db.dailyMeasures, function*() {
+      let measures: IDailyMeasures | null = yield db.dailyMeasures.limit(1).first()
+      if (!measures) {
+        measures = {
           commits: 0,
         }
       }
 
-      const newDimensions: IDailyDimensions = {
-        id: dimensions.id,
-        commits: dimensions.commits + 1,
+      const newMeasures: IDailyMeasures = {
+        id: measures.id,
+        commits: measures.commits + 1,
       }
-      return db.dailyDimensions.put(newDimensions)
+      return db.dailyMeasures.put(newMeasures)
     })
   }
 }

@@ -24,8 +24,8 @@ export interface ILaunchStats {
   readonly rendererReadyTime: number
 }
 
-/** The daily dimensions captured for stats. */
-export interface IDailyDimensions {
+/** The daily measures captured for stats. */
+export interface IDailyMeasures {
   /** The ID in the database. */
   readonly id?: number
 
@@ -35,7 +35,7 @@ export interface IDailyDimensions {
 
 export class StatsDatabase extends Dexie {
   public launches: Dexie.Table<ILaunchStats, number>
-  public dailyDimensions: Dexie.Table<IDailyDimensions, number>
+  public dailyMeasures: Dexie.Table<IDailyMeasures, number>
 
   public constructor(name: string) {
     super(name)
@@ -45,7 +45,7 @@ export class StatsDatabase extends Dexie {
     })
 
     this.version(DatabaseVersion).stores({
-      dailyDimensions: '++id',
+      dailyMeasures: '++id',
     })
   }
 }
