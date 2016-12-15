@@ -161,9 +161,17 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   }
 
   private renderMenuPane(depth: number, menu: IMenu): JSX.Element {
+    // NB: We use the menu id instead of depth as the key here to force
+    // a new MenuPane instance and List. This is because we used dynamic
+    // row heights and the react-virtualized Grid component isn't able to
+    // recompute row heights accurately. Without this row indices which
+    // previously held a separator item will retain that height and vice-
+    // versa.
+    const key = menu.id
+
     return (
       <MenuPane
-        key={depth}
+        key={key}
         ref={this.onMenuPaneRef}
         depth={depth}
         items={menu.items}
