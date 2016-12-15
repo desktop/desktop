@@ -40,7 +40,12 @@ async function updateUsers() {
     const updatedUser = await api.fetchUser()
     const emails = await api.fetchEmails()
     const justTheEmails = emails.map(e => e.email)
-    return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl, updatedUser.id)
+    // TODO: hack this because we might deserialize null
+    if (updatedUser) {
+      return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl, updatedUser.id)
+    } else {
+      return new User(user.login, user.endpoint, user.token, justTheEmails, user.avatarURL, user.id)
+    }
   })
   broadcastUpdate()
 }

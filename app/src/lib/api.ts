@@ -132,8 +132,10 @@ export class API {
   }
 
   /** Fetch the logged in user. */
-  public fetchUser(): Promise<IAPIUser> {
-    return this.client.user.fetch()
+  public async fetchUser(): Promise<IAPIUser | null> {
+    const response = await this.authenticatedRequest('GET', `user`)
+    const user = deserialize<IAPIUser>(response.body)
+    return user
   }
 
   /** Fetch the user's emails. */
