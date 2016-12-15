@@ -450,7 +450,7 @@ export class Dispatcher {
   }
 
   /** Report any stats if needed. */
-  public reportStats() {
-    this.statsStore.reportStats()
+  public reportStats(): Promise<void> {
+    return this.statsStore.reportStats()
   }
 }
