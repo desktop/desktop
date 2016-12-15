@@ -12,4 +12,5 @@ export type MenuEvent =
   'delete-branch' |
   'check-for-updates' |
   'quit-and-install-update' |
-  'show-preferences'
+  'show-preferences' |
+  'choose-repository'

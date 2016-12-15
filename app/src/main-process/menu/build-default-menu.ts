@@ -66,6 +66,11 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     label: __DARWIN__ ? 'File' : '&File',
     submenu: [
       {
+        label: 'Choose Repository…',
+        accelerator: 'CmdOrCtrl+L',
+        click: emit('choose-repository'),
+      },
+      {
         label: __DARWIN__ ? 'New Branch…' : 'New &branch…',
         accelerator: 'CmdOrCtrl+Shift+N',
         click: emit('create-branch'),
