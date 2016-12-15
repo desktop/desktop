@@ -15,7 +15,7 @@ import { ICommitMessage } from './git-store'
 import { v4 as guid } from 'node-uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
-import { StatsStore } from '../stats'
+import { StatsStore, ILaunchStats } from '../stats'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -442,5 +442,15 @@ export class Dispatcher {
    */
   public setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
     return this.appStore._setAppMenuToolbarButtonHighlightState(highlight)
+  }
+
+  /** Record the given launch stats. */
+  public recordLaunchStats(stats: ILaunchStats): Promise<void> {
+    return this.statsStore.recordLaunchStats(stats)
+  }
+
+  /** Report any stats if needed. */
+  public reportStats() {
+    this.statsStore.reportStats()
   }
 }

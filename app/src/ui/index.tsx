@@ -125,6 +125,6 @@ function openRepository(url: string) {
 }
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore} statsStore={statsStore}/>,
+  <App dispatcher={dispatcher} appStore={appStore}/>,
   document.getElementById('desktop-app-container')!
 )
