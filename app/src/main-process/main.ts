@@ -198,10 +198,11 @@ app.on('ready', () => {
         event.sender.send(channel, { error: new Error('request aborted by the client') })
       })
 
-      response.on('error', (error: Error) => {
+      response.on('error', () => {
+        const error = new Error('request failed, probably due to not providing proxy credentials')
         // TODO: if we have a proxy error, reset credentials for host associated with request
         sharedProcess!.console.error(error)
-        event.sender.send(channel, { error: new Error('request failed, probably due to a proxy server error') })
+        event.sender.send(channel, { error })
       })
 
       response.on('data', (chunk: Buffer) => {
