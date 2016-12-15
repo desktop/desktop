@@ -1,4 +1,4 @@
-import { git } from './core'
+import { git, GitError } from './core'
 import { isHeadUnborn } from './rev-parse'
 import { stageFiles } from './add'
 import { Repository } from '../../models/repository'
@@ -17,23 +17,28 @@ export async function createCommit(repository: Repository, message: string, file
 
   await stageFiles(repository, files)
 
-  const result = await git([ 'commit', '-F',  '-' ] , repository.path, 'createCommit', { stdin: message })
-
-  if (result.exitCode === 0) {
+  try {
+    await git([ 'commit', '-F',  '-' ] , repository.path, 'createCommit', { stdin: message })
     return true
-  }
+  } catch (e) {
+    // Commit failures could come from a pre-commit hook rejection. So display
+    // a bit more context than we otherwise would.
+    if (e instanceof GitError) {
+      const output = e.result.stderr.trim()
 
-  const output = result.stderr.trim()
+      let standardError = ''
+      if (output.length > 0) {
+        standardError = `, with output: '${output}'`
+      }
+      const exitCode = e.result.exitCode
+      const appError: IAppError = {
+        name: 'commit-failed',
+        message: `Commit failed - exit code ${exitCode} received${standardError}`,
+      }
 
-  let standardError = ''
-  if (output.length > 0) {
-    standardError = `, with output: '${output}'`
+      throw appError
+    } else {
+      throw e
+    }
   }
-  const exitCode = result.exitCode
-  const appError: IAppError = {
-    name: 'commit-failed',
-    message: `Commit failed - exit code ${exitCode} received${standardError}`,
-  }
-
-  throw appError
 }
