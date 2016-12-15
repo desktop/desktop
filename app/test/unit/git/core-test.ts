@@ -41,7 +41,9 @@ describe.only('git/core', () => {
 
       let threw = false
       try {
-        await git(args, repository!.path, 'test')
+        await git(args, repository!.path, 'test', {
+          expectedErrors: new Set([ GitError.GitNotFound ]),
+        })
       } catch (e) {
         threw = true
       }
@@ -72,7 +74,9 @@ describe.only('git/core', () => {
 
       let threw = false
       try {
-        await git(args, repository!.path, 'test')
+        await git(args, repository!.path, 'test', {
+          successExitCodes: new Set([ 2 ]),
+        })
       } catch (e) {
         threw = true
       }
