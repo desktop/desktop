@@ -134,8 +134,11 @@ export class StatsStore {
         }
       }
 
-      const newDimensions = { commits: dimensions.commits + 1 }
-      return db.dailyDimensions.put(newDimensions, dimensions.id)
+      const newDimensions: IDailyDimensions = {
+        id: dimensions.id,
+        commits: dimensions.commits + 1,
+      }
+      return db.dailyDimensions.put(newDimensions)
     })
   }
 }
