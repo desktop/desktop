@@ -5,7 +5,7 @@ import * as OS from 'os'
 import * as FS from 'fs'
 
 import { Dispatcher } from '../../lib/dispatcher'
-import { initGitRepository, createCommit, getStatus } from '../../lib/git'
+import { initGitRepository, createCommit, getStatus, getAuthorIdentity } from '../../lib/git'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
 import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
@@ -14,11 +14,19 @@ import { Row } from '../lib/row'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { writeDefaultReadme } from './write-default-readme'
 import { Select } from '../lib/select'
-import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { Loading } from '../lib/loading'
+import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
+import { ILicense, getLicenses, writeLicense } from './licenses'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
+
+/** The sentinel value used to indicate no license should be used. */
+const NoLicenseValue: ILicense = {
+  name: 'None',
+  featured: false,
+  body: '',
+}
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -39,6 +47,12 @@ interface ICreateRepositoryState {
 
   /** The gitignore to include in the repository. */
   readonly gitIgnore: string
+
+  /** The available licenses. */
+  readonly licenses: ReadonlyArray<ILicense> | null
+
+  /** The license to include in the repository. */
+  readonly license: string
 }
 
 /** The Create New Repository component. */
@@ -53,12 +67,17 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       creating: false,
       gitIgnoreNames: null,
       gitIgnore: NoGitIgnoreValue,
+      licenses: null,
+      license: NoLicenseValue.name,
     }
   }
 
   public async componentDidMount() {
     const gitIgnoreNames = await getGitIgnoreNames()
     this.setState({ ...this.state, gitIgnoreNames })
+
+    const licenses = await getLicenses()
+    this.setState({ ...this.state, licenses })
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
@@ -120,6 +139,29 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           }
         }
 
+        const licenseName = (this.state.license === NoLicenseValue.name ? null : this.state.license)
+        const license = (this.state.licenses || []).find(l => l.name === licenseName)
+
+        if (license) {
+          createInitialCommit = true
+
+          try {
+            const author = await getAuthorIdentity(repository)
+
+            await writeLicense(fullPath, license, {
+              fullname: author ? author.name : '',
+              email: author ? author.email : '',
+              year: (new Date()).getFullYear().toString(),
+              description: '',
+              project: this.state.name,
+            })
+          } catch (e) {
+            console.error(e)
+
+            this.props.dispatcher.postError(e)
+          }
+        }
+
         if (createInitialCommit) {
           try {
             const status = await getStatus(repository)
@@ -161,6 +203,11 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     this.setState({ ...this.state, gitIgnore })
   }
 
+  private onLicenseChange = (event: React.FormEvent<HTMLSelectElement>) => {
+    const license = event.currentTarget.value
+    this.setState({ ...this.state, license })
+  }
+
   private renderGitIgnores() {
     const gitIgnores = this.state.gitIgnoreNames || []
     const options = [ NoGitIgnoreValue, ...gitIgnores ]
@@ -172,6 +219,21 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         onChange={this.onGitIgnoreChange}
       >
         {options.map(n => <option key={n} value={n}>{n}</option>)}
+      </Select>
+    )
+  }
+
+  private renderLicenses() {
+    const licenses = this.state.licenses || []
+    const options = [ NoLicenseValue, ...licenses ]
+
+    return (
+      <Select
+        label='License'
+        value={this.state.license}
+        onChange={this.onLicenseChange}
+      >
+        {options.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
       </Select>
     )
   }
@@ -203,6 +265,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           onChange={this.onCreateWithReadmeChange}/>
 
         {this.renderGitIgnores()}
+
+        {this.renderLicenses()}
 
         <hr/>
 
