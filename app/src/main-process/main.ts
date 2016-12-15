@@ -186,7 +186,7 @@ app.on('ready', () => {
 
     request.on('login', (authInfo: AuthInfo, callback: (username?: string, password?: string) => void) => {
       sharedProcess!.console.log(`login encountered: ${JSON.stringify(authInfo)}`)
-      const { username, password } = getProxyInfo(authInfo) 
+      const { username, password } = getProxyInfo(authInfo)
       callback(username, password)
     })
 

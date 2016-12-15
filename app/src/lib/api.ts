@@ -4,7 +4,7 @@ import * as Querystring from 'querystring'
 import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 
-import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
+import { IHTTPResponse, getHeader, resolveNextPath, toQueryString, HTTPMethod, request, deserialize } from './http'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -187,22 +187,35 @@ export class API {
    * since the given date.
    */
   public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
-    const params: any = { state }
+    const params: any = {
+      state,
+      per_page: '100',
+    }
+
     if (since) {
       params.since = since.toISOString()
     }
 
     const allItems: Array<IAPIIssue> = []
-    // Note that we only include `params` on the first fetch. Octokat.js will
-    // preserve them as we fetch subsequent pages and would fail to advance
-    // pages if we included the params on each call.
-    let result = await this.client.repos(owner, name).issues.fetch(params)
-    allItems.push(...result.items)
 
-    while (result.nextPage) {
-      result = await result.nextPage.fetch()
-      allItems.push(...result.items)
-    }
+    let path: string | null = `repos/${owner}/${name}/issues${toQueryString(params)}`
+
+    do {
+      const response = await this.authenticatedRequest('GET', path)
+
+      if (response.statusCode !== 200) {
+        path = null
+        break
+      }
+
+      const issues = deserialize<IAPIIssue[]>(response.body)
+
+      if (issues) {
+        allItems.push(...issues)
+      }
+
+      path = resolveNextPath(response)
+    } while (path !== null)
 
     // PRs are issues! But we only want Really Seriously Issues.
     return allItems.filter((i: any) => !i.pullRequest)

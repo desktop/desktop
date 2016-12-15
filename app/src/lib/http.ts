@@ -59,14 +59,14 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
 }
 
 export function getLinkHeaders(response: IHTTPResponse): { next?: URL.Url } {
-  const linkHeader = getHeader(response, "link")
+  const linkHeader = getHeader(response, 'link')
   if (linkHeader) {
     const matches = /\<([a-z0-9\=\_\&\?\/\.\:]*)\>; rel="([a-z]*)"/.exec(linkHeader)
     if (matches) {
       const pairs = matches.slice(1)
       for (let i = 0; i < pairs.length; i += 2) {
         const url = pairs[i]
-        const type = pairs[i+1]
+        const type = pairs[i + 1]
         if (type === 'next') {
           const result = URL.parse(url)
           return { next: result }
@@ -87,8 +87,8 @@ export function toQueryString(json: any): string {
   return '?' +
       Object.keys(json).map(function(key) {
           return encodeURIComponent(key) + '=' +
-              encodeURIComponent(json[key]);
-      }).join('&');
+              encodeURIComponent(json[key])
+      }).join('&')
 }
 
 /**
