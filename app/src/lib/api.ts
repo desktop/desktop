@@ -8,7 +8,6 @@ import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './ht
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
-const camelCase: (str: string) => string = require('to-camel-case')
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
@@ -80,7 +79,7 @@ export interface IServerMetadata {
    * Does the server support password-based authentication? If not, the user
    * must go through the OAuth flow to authenticate.
    */
-  readonly verifiablePasswordAuthentication: boolean
+  readonly verifiable_password_authentication: boolean
 }
 
 /** The server response when handling the OAuth callback (with code) to obtain an access token */
@@ -300,7 +299,7 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
     const body = deserialize<IServerMetadata>(response.body)
     // If the response doesn't include the field we need, then it's not a valid
     // response.
-    if (body.verifiablePasswordAuthentication === undefined) { return null }
+    if (!body || body.verifiable_password_authentication === undefined) { return null }
 
     return body
   } else {
@@ -320,17 +319,6 @@ async function getNote(): Promise<string> {
   }
 
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`
-}
-
-/** Turn keys into camel case. */
-export function toCamelCase(body: any): any {
-  const result: any = {}
-  for (const key in body) {
-    const value = body[key]
-    result[camelCase(key)] = value
-  }
-
-  return result
 }
 
 /**

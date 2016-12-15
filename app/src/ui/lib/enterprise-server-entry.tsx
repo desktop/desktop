@@ -74,7 +74,7 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
         AuthenticationMethods.OAuth,
       ])
 
-      if (response.verifiablePasswordAuthentication === false) {
+      if (response.verifiable_password_authentication === false) {
         authMethods.delete(AuthenticationMethods.BasicAuth)
       }
 
