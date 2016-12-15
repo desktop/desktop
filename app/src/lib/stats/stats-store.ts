@@ -135,10 +135,14 @@ export class StatsStore {
         }
       }
 
-      const newMeasures: IDailyMeasures = {
-        id: measures.id,
+      let newMeasures: IDailyMeasures = {
         commits: measures.commits + 1,
       }
+
+      if (measures.id) {
+        newMeasures = { ...newMeasures, id: measures.id }
+      }
+
       return db.dailyMeasures.put(newMeasures)
     })
   }
