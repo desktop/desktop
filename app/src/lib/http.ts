@@ -78,6 +78,41 @@ export function getLinkHeaders(response: IHTTPResponse): { next?: URL.Url } {
 }
 
 /**
+ * Convert a JSON object to a URI-encoded querystring
+ *
+ * Note: does not handle arrays or nested objects
+ */
+export function toQueryString(json: any): string {
+  // citation: http://stackoverflow.com/a/30707423/1363815
+  return '?' +
+      Object.keys(json).map(function(key) {
+          return encodeURIComponent(key) + '=' +
+              encodeURIComponent(json[key]);
+      }).join('&');
+}
+
+/**
+ * Lookup the link headers on the HTTP response to see whether there are
+ * further resources to retrieve.
+ *
+ * Removes the host information, as the API client tracks this information.
+ */
+export function resolveNextPath(response: IHTTPResponse): string | null {
+  const linkHeader = getLinkHeaders(response)
+  if (!linkHeader.next) {
+    return null
+  }
+
+  const nextPath = linkHeader.next.path
+  if (nextPath) {
+    return nextPath
+  }
+
+  return null
+}
+
+
+/**
  * Deserialize the HTTP response body into an expected object shape
  *
  * Note: this doesn't validate the expected shape, and will only fail
