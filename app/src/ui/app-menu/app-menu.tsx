@@ -5,9 +5,25 @@ import { IMenu, MenuItem, ISubmenuItem } from '../../models/app-menu'
 import { SelectionSource, ClickSource } from '../list'
 
 interface IAppMenuProps {
+  /**
+   * A list of open menus to be rendered, each menu may have
+   * a selected item.
+   */
   readonly state: ReadonlyArray<IMenu>
   readonly dispatcher: Dispatcher
+
+  /**
+   * A required callback for when the app menu is closed. The menu is explicitly
+   * closed when a menu item has been clicked (executed) or when the user
+   * presses Escape on the top level menu pane.
+   */
   readonly onClose: () => void
+
+  /**
+   * Whether or not the application menu was opened with the Alt key, this
+   * enables access key highlighting for applicable menu items as well as
+   * keyboard navigation by pressing access keys.
+   */
   readonly enableAccessKeyNavigation: boolean
 }
 
