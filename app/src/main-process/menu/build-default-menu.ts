@@ -66,7 +66,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     label: __DARWIN__ ? 'File' : '&File',
     submenu: [
       {
-        label: 'Choose Repository…',
+        label: __DARWIN__ ? 'Choose Repository…' : '&Choose repository…',
         accelerator: 'CmdOrCtrl+L',
         click: emit('choose-repository'),
       },
