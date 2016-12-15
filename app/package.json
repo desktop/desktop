@@ -30,7 +30,7 @@
     "react-addons-css-transition-group": "^15.3.2",
     "react-addons-shallow-compare": "^15.3.0",
     "react-dom": "^15.3.2",
-    "react-virtualized": "^8.0.11",
+    "react-virtualized": "^8.8.1",
     "textarea-caret": "^3.0.1",
     "untildify": "^3.0.2",
     "username": "^2.2.2"
