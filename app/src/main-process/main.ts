@@ -12,14 +12,7 @@ import { reportError } from '../lib/exception-reporting'
 import { IHTTPRequest, IHTTPResponse, getEncoding } from '../lib/http'
 
 import { getLogger } from '../lib/logging/main'
-
-type AuthInfo = {
- isProxy: boolean,
- scheme: string,
- host: string,
- port: number,
- realm: string,
-}
+import { getProxyInfo, AuthInfo } from '../lib/proxy'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -193,8 +186,8 @@ app.on('ready', () => {
 
     request.on('login', (authInfo: AuthInfo, callback: (username?: string, password?: string) => void) => {
       sharedProcess!.console.log(`login encountered: ${JSON.stringify(authInfo)}`)
-      // TODO: this should prompt the user or store credentials
-      callback()
+      const { username, password } = getProxyInfo(authInfo) 
+      callback(username, password)
     })
 
     request.on('response', (response: Electron.IncomingMessage) => {
@@ -206,6 +199,7 @@ app.on('ready', () => {
       })
 
       response.on('error', (error: Error) => {
+        // TODO: if we have a proxy error, reset credentials for host associated with request
         sharedProcess!.console.error(error)
         event.sender.send(channel, { error: new Error('request failed, probably due to a proxy server error') })
       })
