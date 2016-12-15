@@ -64,7 +64,17 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     this.clearExpandCollapseTimer()
 
     if (item.type === 'submenuItem') {
-      this.props.dispatcher.setAppMenuState(menu => menu.withOpenedMenu(item))
+
+      // Warning: This is a bit of a hack. When using access keys to navigate
+      // to a submenu item we want it not only to expand but to have its first
+      // child item selected by default. We do that by looking to see if the
+      // selection source was a keyboard press and if it wasn't one of the keys
+      // that we'd expect for a 'normal' click event.
+      const sourceIsAccessKey = this.props.enableAccessKeyNavigation
+        && source.kind === 'keyboard'
+        && (source.event.key !== 'Enter' && source.event.key !== ' ')
+
+      this.props.dispatcher.setAppMenuState(menu => menu.withOpenedMenu(item, sourceIsAccessKey))
       if (source.kind === 'keyboard') {
         this.focusPane = depth + 1
       }
