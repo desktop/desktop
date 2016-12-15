@@ -297,7 +297,7 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 export async function fetchMetadata(endpoint: string): Promise<IServerMetadata | null> {
   const response = await request(endpoint, null, 'GET', 'meta')
   if (response.statusCode === 200) {
-    const body: IServerMetadata = toCamelCase(response.body)
+    const body = deserialize<IServerMetadata>(response.body)
     // If the response doesn't include the field we need, then it's not a valid
     // response.
     if (body.verifiablePasswordAuthentication === undefined) { return null }
