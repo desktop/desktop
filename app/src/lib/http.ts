@@ -86,8 +86,12 @@ export function toQueryString(json: any): string {
   // citation: http://stackoverflow.com/a/30707423/1363815
   return '?' +
       Object.keys(json).map(function(key) {
-          return encodeURIComponent(key) + '=' +
-              encodeURIComponent(json[key])
+        // timestamps in the GitHub API should not be URI-encoded
+        if (key === 'since') {
+          return `${key}=${json[key]}`
+        }
+        return encodeURIComponent(key) + '=' +
+            encodeURIComponent(json[key])
       }).join('&')
 }
 
@@ -105,6 +109,10 @@ export function resolveNextPath(response: IHTTPResponse): string | null {
 
   const nextPath = linkHeader.next.path
   if (nextPath) {
+    if (nextPath.startsWith('/')) {
+      // URL builder will specify this, let's drop it here
+      return nextPath.substr(1)
+    }
     return nextPath
   }
 
