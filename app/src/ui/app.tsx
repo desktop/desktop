@@ -213,7 +213,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       repository: state.repository,
     })
   }
-    
+
   private openWorkingDirectory() {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
