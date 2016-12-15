@@ -1,7 +1,19 @@
 import * as React from 'react'
 
 interface IAccessTextProps {
+  /**
+   * A string which optionally contains an access key modifier (ampersand).
+   * The access key modifier directly preceedes the character which is
+   * highlighted when the highlight property is set. Literal ampersand
+   * characters need to be escaped by using two ampersand characters (&&).
+   *
+   * At most one character is allowed to have a preceeding ampersand character.
+   */
   readonly text: string,
+
+  /**
+   * Whether or not to highlight the access key (if one exists).
+   */
   readonly highlight?: boolean,
 }
 
