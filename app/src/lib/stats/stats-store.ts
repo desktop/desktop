@@ -127,9 +127,15 @@ export class StatsStore {
   public async recordCommit() {
     const db = this.db
     await this.db.transaction('rw', this.db.dailyDimensions, function*() {
-      const dimensions: IDailyDimensions | null = yield db.dailyDimensions.limit(1).first()
-      const newDimensions = { commits: dimensions ? dimensions.commits + 1 : 1 }
-      return db.dailyDimensions.put(newDimensions, dimensions ? dimensions.id : undefined)
+      let dimensions: IDailyDimensions | null = yield db.dailyDimensions.limit(1).first()
+      if (!dimensions) {
+        dimensions = {
+          commits: 0,
+        }
+      }
+
+      const newDimensions = { commits: dimensions.commits + 1 }
+      return db.dailyDimensions.put(newDimensions, dimensions.id)
     })
   }
 }
