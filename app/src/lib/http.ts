@@ -1,3 +1,4 @@
+import * as URL from 'url'
 import * as appProxy from '../ui/lib/app-proxy'
 
 import { proxyRequest } from '../ui/main-process-proxy'
@@ -55,6 +56,25 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
   }
 
   return null
+}
+
+export function getLinkHeaders(response: IHTTPResponse): { next?: URL.Url } {
+  const linkHeader = getHeader(response, "link")
+  if (linkHeader) {
+    const matches = /\<([a-z0-9\=\_\&\?\/\.\:]*)\>; rel="([a-z]*)"/.exec(linkHeader)
+    if (matches) {
+      const pairs = matches.slice(1)
+      for (let i = 0; i < pairs.length; i += 2) {
+        const url = pairs[i]
+        const type = pairs[i+1]
+        if (type === 'next') {
+          const result = URL.parse(url)
+          return { next: result }
+        }
+      }
+    }
+  }
+  return { }
 }
 
 /**
