@@ -13,4 +13,5 @@ export type MenuEvent =
   'check-for-updates' |
   'quit-and-install-update' |
   'show-preferences' |
-  'choose-repository'
+  'choose-repository' |
+  'open-working-directory'

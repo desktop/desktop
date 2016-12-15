@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
-import { ipcRenderer, remote } from 'electron'
+import { ipcRenderer, remote, shell } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
@@ -150,6 +150,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
       case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+      case 'open-working-directory': return this.openWorkingDirectory()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -175,6 +176,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     const users = state.users
     const enterpriseUser = users.find(u => u.endpoint !== getDotComAPIEndpoint())
     return enterpriseUser || null
+  }
+
+  private openWorkingDirectory() {
+    const state = this.state.selectedState
+    if (!state || state.type !== SelectionType.Repository) { return }
+
+    shell.showItemInFolder(state.repository.path)
   }
 
   private renameBranch() {

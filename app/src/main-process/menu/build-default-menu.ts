@@ -164,6 +164,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       { type: 'separator' },
       {
+        label: __DARWIN__ ? 'Open Working Directory' : '&Open working directory',
+        accelerator: 'CmdOrCtrl+Shift+F',
+        click: emit('open-working-directory'),
+      },
+      { type: 'separator' },
+      {
         label: __DARWIN__ ? 'Push' : 'Pu&sh',
         accelerator: 'CmdOrCtrl+P',
         click: emit('push'),
