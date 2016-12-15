@@ -27,7 +27,7 @@ interface IBranchesState {
 
 export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   private list: List | null = null
-  private scrollToRow = -1
+  private filterInput: HTMLInputElement | null = null
 
   public constructor(props: IBranchesProps) {
     super(props)
@@ -85,6 +85,28 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     this.props.dispatcher.checkoutBranch(this.props.repository, branch.nameWithoutRemote)
   }
 
+  private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
+    const list = this.list
+    if (!list) { return }
+
+    let focusInput = false
+    const firstSelectableRow = list.nextSelectableRow('down', 0)
+    const lastSelectableRow = list.nextSelectableRow('up', 0)
+    if (event.key === 'ArrowUp' && row === firstSelectableRow) {
+      focusInput = true
+    } else if (event.key === 'ArrowDown' && row === lastSelectableRow) {
+      focusInput = true
+    }
+
+    if (focusInput) {
+      const input = this.filterInput
+      if (input) {
+        event.preventDefault()
+        input.focus()
+      }
+    }
+  }
+
   private canSelectRow = (row: number) => {
     const item = this.state.branchItems[row]
     return item.kind === 'branch'
@@ -99,38 +121,43 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     const list = this.list
     if (!list) { return }
 
-    let nextRow = this.state.selectedRow
     if (event.key === 'ArrowDown') {
-      nextRow = list.nextSelectableRow('down', this.state.selectedRow)
+      if (this.state.branchItems.length > 0) {
+        this.setState(this.createState(this.props, this.state.filter, list.nextSelectableRow('down', 0)), () => {
+          list.focus()
+        })
+      }
+
       event.preventDefault()
     } else if (event.key === 'ArrowUp') {
-      nextRow = list.nextSelectableRow('up', this.state.selectedRow)
-      event.preventDefault()
-    } else if (event.key === 'Enter') {
-      this.onRowClick(this.state.selectedRow)
+      if (this.state.branchItems.length > 0) {
+        this.setState(this.createState(this.props, this.state.filter, list.nextSelectableRow('up', 0)), () => {
+          list.focus()
+        })
+      }
+
       event.preventDefault()
     } else if (event.key === 'Escape') {
       if (this.state.filter.length === 0) {
         this.props.dispatcher.closeFoldout()
         event.preventDefault()
-        return
       }
-    } else {
-      return
     }
-
-    this.scrollToRow = nextRow
-    this.setState(this.createState(this.props, this.state.filter, nextRow))
   }
 
   private storeListRef = (ref: List) => {
     this.list = ref
   }
 
-  public render() {
-    const scrollToRow = this.scrollToRow
-    this.scrollToRow = -1
+  private onInputRef = (instance: HTMLInputElement | null) => {
+    this.filterInput = instance
+  }
 
+  private onSelectionChanged = (row: number) => {
+    this.setState(this.createState(this.props, this.state.filter, row))
+  }
+
+  public render() {
     return (
       <div id='branches'>
         <Row>
@@ -139,19 +166,22 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
             autoFocus={true}
             placeholder='Filter'
             onChange={this.onFilterChanged}
-            onKeyDown={this.onKeyDown}/>
+            onKeyDown={this.onKeyDown}
+            onInputRef={this.onInputRef}/>
         </Row>
 
         <div className='branches-list-container'>
-          <List rowCount={this.state.branchItems.length}
-                rowRenderer={this.renderRow}
-                rowHeight={RowHeight}
-                selectedRow={this.state.selectedRow}
-                onRowClick={this.onRowClick}
-                canSelectRow={this.canSelectRow}
-                scrollToRow={scrollToRow}
-                ref={this.storeListRef}
-                invalidationProps={this.props}/>
+          <List
+            rowCount={this.state.branchItems.length}
+            rowRenderer={this.renderRow}
+            rowHeight={RowHeight}
+            selectedRow={this.state.selectedRow}
+            onSelectionChanged={this.onSelectionChanged}
+            onRowClick={this.onRowClick}
+            onRowKeyDown={this.onRowKeyDown}
+            canSelectRow={this.canSelectRow}
+            ref={this.storeListRef}
+            invalidationProps={this.props}/>
         </div>
       </div>
     )
