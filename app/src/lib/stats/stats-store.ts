@@ -63,7 +63,7 @@ export class StatsStore {
       await proxyRequest(options)
       console.log('Stats reported.')
 
-      await this.clearLaunchStats()
+      await this.clearDailyStats()
       localStorage.setItem(LastDailyStatsReportKey, now.toString())
     } catch (e) {
       console.error('Error reporting stats:')
@@ -76,11 +76,13 @@ export class StatsStore {
     await this.db.launches.add(stats)
   }
 
-  /** Clear the stored launch stats. */
-  private async clearLaunchStats() {
+  /** Clear the stored daily stats. */
+  private async clearDailyStats() {
     await this.db.launches.clear()
+    await this.db.dailyDimensions.clear()
   }
 
+  /** Get the daily stats. */
   private async getDailyStats(): Promise<DailyStats> {
     const launchStats = await this.getAverageLaunchStats()
     const dailyDimensions = await this.getDailyDimensions()
@@ -115,6 +117,7 @@ export class StatsStore {
     }
   }
 
+  /** Get the daily dimensions. */
   private async getDailyDimensions(): Promise<IDailyDimensions> {
     const dimensions: IDailyDimensions = await this.db.dailyDimensions.limit(1).first()
     return dimensions
