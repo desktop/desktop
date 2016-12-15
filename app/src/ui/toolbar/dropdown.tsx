@@ -206,6 +206,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         style={this.props.style}
         iconClassName={this.props.iconClassName}
       >
+        {this.props.children}
         {this.renderDropdownArrow()}
       </ToolbarButton>
     )
