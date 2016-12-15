@@ -724,12 +724,7 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
     const result = await gitStore.performFailableOperation(() => {
       const commitMessage = formatCommitMessage(message)
-      try {
-        return createCommit(repository, commitMessage, files)
-      } catch (e) {
-        this._postError(e)
-        return Promise.resolve(false)
-      }
+      return createCommit(repository, commitMessage, files)
     })
 
     if (result) {
