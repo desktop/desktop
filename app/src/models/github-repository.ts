@@ -46,7 +46,7 @@ export class GitHubRepository implements IGitHubRepository {
 
   /** Create a new copy of the repository with the API information copied over. */
   public withAPI(apiRepository: IAPIRepository): GitHubRepository {
-    return new GitHubRepository(this.name, this.owner, this.dbID, apiRepository.private, apiRepository.fork, apiRepository.htmlUrl, apiRepository.defaultBranch)
+    return new GitHubRepository(this.name, this.owner, this.dbID, apiRepository.private, apiRepository.fork, apiRepository.html_url, apiRepository.default_branch)
   }
 
   public get endpoint(): string {
