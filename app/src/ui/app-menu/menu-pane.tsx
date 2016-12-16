@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { List, ClickSource, SelectionSource } from '../list'
-import { MenuItem, itemMayHaveAccessKey, itemIsSelectable } from '../../models/app-menu'
+import { MenuItem, itemIsSelectable, findItemByAccessKey } from '../../models/app-menu'
 import { MenuListItem } from './menu-list-item'
 
 interface IMenuPaneProps {
@@ -144,14 +144,11 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
 
     // At this point the list will already have intercepted any arrow keys
     // and the list items themselves will have caught Enter/Space
-    for (const item of this.state.items) {
-      if (itemIsSelectable(item) && itemMayHaveAccessKey(item)) {
-        if (item.accessKey && item.accessKey.toLowerCase() === event.key.toLowerCase()) {
-          event.preventDefault()
-          this.props.onSelectionChanged(this.props.depth, item, { kind: 'keyboard', event: event })
-          this.props.onItemClicked(this.props.depth, item, { kind: 'keyboard', event: event })
-        }
-      }
+    const item  = findItemByAccessKey(event.key, this.state.items)
+    if (item && itemIsSelectable(item)) {
+      event.preventDefault()
+      this.props.onSelectionChanged(this.props.depth, item, { kind: 'keyboard', event: event })
+      this.props.onItemClicked(this.props.depth, item, { kind: 'keyboard', event: event })
     }
   }
 
