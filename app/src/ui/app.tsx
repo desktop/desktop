@@ -308,7 +308,7 @@ export class App extends React.Component<IAppProps, IAppState> {
                 .withSelectedItem(menuItemForAccessKey)
                 .withOpenedMenu(menuItemForAccessKey, true))
 
-              this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation: true })
+              this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation: true, openedWithAccessKey: true })
               event.preventDefault()
             } else {
               this.props.dispatcher.executeMenuItem(menuItemForAccessKey)
@@ -517,6 +517,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         dispatcher={this.props.dispatcher}
         onClose={this.closeAppMenu}
         enableAccessKeyNavigation={foldoutState.enableAccessKeyNavigation}
+        openedWithAccessKey={foldoutState.openedWithAccessKey || false}
       />
     )
   }

@@ -2,6 +2,7 @@ import * as React from 'react'
 import { MenuPane } from './menu-pane'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IMenu, MenuItem, ISubmenuItem } from '../../models/app-menu'
+import { FoldoutType } from '../../lib/app-state'
 import { SelectionSource, ClickSource } from '../list'
 
 interface IAppMenuProps {
@@ -24,7 +25,9 @@ interface IAppMenuProps {
    * enables access key highlighting for applicable menu items as well as
    * keyboard navigation by pressing access keys.
    */
-  readonly enableAccessKeyNavigation: boolean
+  readonly enableAccessKeyNavigation: boolean,
+
+  readonly openedWithAccessKey: boolean
 }
 
 const expandCollapseTimeout = 300
@@ -36,7 +39,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
    * next render. Default value is -1. This field is cleared after
    * each successful focus operation.
    */
-  private focusPane: number = - 1
+  private focusPane: number = -1
 
   /**
    * A mapping between pane index (depth) and actual MenuPane instances.
@@ -58,6 +61,21 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   public constructor(props: IAppMenuProps) {
     super(props)
     this.focusPane = props.state.length - 1
+    this.receiveProps(props)
+  }
+
+  private receiveProps(nextProps: IAppMenuProps) {
+    if (nextProps.openedWithAccessKey) {
+      // Clear the openedWithAccessKey prop now that we've received it.
+      nextProps.dispatcher.showFoldout({
+        type: FoldoutType.AppMenu,
+        enableAccessKeyNavigation: nextProps.enableAccessKeyNavigation,
+      })
+
+      // Since we were opened with an access key we auto set focus to the
+      // last pane opened.
+      this.focusPane = nextProps.state.length - 1
+    }
   }
 
   private onItemClicked = (depth: number, item: MenuItem, source: ClickSource) => {
@@ -234,12 +252,17 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
    */
   private ensurePaneFocus() {
     if (this.focusPane >= 0) {
+      console.log('setting focus to ', this.focusPane)
       const pane = this.paneRefs[this.focusPane]
       if (pane) {
         pane.focus()
         this.focusPane = -1
       }
     }
+  }
+
+  public componentWillReceiveProps(nextProps: IAppMenuProps) {
+    this.receiveProps(nextProps)
   }
 
   public componentDidMount() {
