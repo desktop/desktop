@@ -1018,10 +1018,10 @@ export class AppStore {
         return Promise.reject(new Error('The current branch is unborn.'))
       }
 
-      // const user = this.getUserForRepository(repository)
+      const user = this.getUserForRepository(repository)
       await gitStore.performFailableOperation(() => {
         const setUpstream = branch.upstream ? false : true
-        return pushRepo(repository, null, remote, branch.name, setUpstream)
+        return pushRepo(repository, user, remote, branch.name, setUpstream)
       })
     })
 
