@@ -71,6 +71,13 @@ ipcRenderer.on('focus', () => {
   dispatcher.refreshRepository(state.repository)
 })
 
+ipcRenderer.on('blur', () => {
+  // Make sure we stop highlighting the menu button (on non-macOS)
+  // when someone uses Alt+Tab to switch application since we won't
+  // get the onKeyUp event for the Alt key in that case.
+  dispatcher.setAppMenuToolbarButtonHighlightState(false)
+})
+
 ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
   if (action.name === 'oauth') {
     try {
