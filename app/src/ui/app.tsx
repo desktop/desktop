@@ -24,7 +24,7 @@ import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateState } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { MenuIDs } from '../main-process/menu'
-import { StatsStore, ILaunchStats } from '../lib/stats'
+import { ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
 import { AppMenu } from './app-menu'
 import { UpdateAvailable } from './updates'
@@ -43,7 +43,6 @@ const SendStatsInterval = 1000 * 60 * 60 * 4
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
-  readonly statsStore: StatsStore
 }
 
 export class App extends React.Component<IAppProps, IAppState> {
@@ -110,10 +109,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       console.info(`Load time: ${stats.loadTime}ms`)
       console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
 
-      this.props.statsStore.recordLaunchStats(stats)
-      this.props.statsStore.reportStats()
+      this.props.dispatcher.recordLaunchStats(stats)
+      this.props.dispatcher.reportStats()
 
-      setInterval(() => this.props.statsStore.reportStats(), SendStatsInterval)
+      setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
     })
   }
 

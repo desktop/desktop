@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "dependencies": {
     "ansi-html": {
       "version": "0.0.6",
@@ -877,21 +877,6 @@
       "version": "2.3.8",
       "from": "through@>=2.3.6 <3.0.0",
       "resolved": "https://registry.npmjs.org/through/-/through-2.3.8.tgz"
-    },
-    "to-camel-case": {
-      "version": "1.0.0",
-      "from": "to-camel-case@latest",
-      "resolved": "https://registry.npmjs.org/to-camel-case/-/to-camel-case-1.0.0.tgz"
-    },
-    "to-no-case": {
-      "version": "1.0.2",
-      "from": "to-no-case@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/to-no-case/-/to-no-case-1.0.2.tgz"
-    },
-    "to-space-case": {
-      "version": "1.0.0",
-      "from": "to-space-case@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/to-space-case/-/to-space-case-1.0.0.tgz"
     },
     "tough-cookie": {
       "version": "2.3.2",
