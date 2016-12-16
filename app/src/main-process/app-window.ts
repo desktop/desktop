@@ -94,9 +94,8 @@ export class AppWindow {
       this.maybeEmitDidLoad()
     })
 
-    this.window.on('focus', () => {
-      this.window.webContents.send('focus')
-    })
+    this.window.on('focus', () => this.window.webContents.send('focus'))
+    this.window.on('blur', () => this.window.webContents.send('blur'))
 
     this.registerWindowStateChangedEvents()
 
