@@ -309,8 +309,10 @@ export class App extends React.Component<IAppProps, IAppState> {
                 .withOpenedMenu(menuItemForAccessKey, true))
 
               this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation: true })
+              event.preventDefault()
             } else {
               this.props.dispatcher.executeMenuItem(menuItemForAccessKey)
+              event.preventDefault()
             }
           }
         }
