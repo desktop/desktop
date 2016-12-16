@@ -26,6 +26,7 @@ import { getDotComAPIEndpoint } from '../lib/api'
 import { StatsStore, ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
 import { AppMenu } from './app-menu'
+import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
 import { User } from '../models/user'
@@ -46,7 +47,7 @@ interface IAppProps {
 
 export class App extends React.Component<IAppProps, IAppState> {
 
-  private altKeyPressed = false
+  private lastKeyPressed: string | null = null
 
   public constructor(props: IAppProps) {
     super(props)
@@ -292,13 +293,33 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onWindowKeyDown = (event: KeyboardEvent) => {
     if (event.defaultPrevented) { return }
 
-    if (event.key === 'Alt' && shouldRenderApplicationMenu()) {
-      this.altKeyPressed = true
-      this.props.dispatcher.setAppMenuToolbarButtonHighlightState(true)
-    } else if (this.altKeyPressed) {
-      this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
-      this.altKeyPressed = false
+    if (shouldRenderApplicationMenu()) {
+      if (event.key === 'Alt') {
+        this.props.dispatcher.setAppMenuToolbarButtonHighlightState(true)
+      } else if (event.altKey && !event.ctrlKey && !event.metaKey) {
+        if (this.state.appMenuState.length) {
+          const candidates = this.state.appMenuState[0].items
+          const menuItemForAccessKey = findItemByAccessKey(event.key, candidates)
+
+          if (menuItemForAccessKey && itemIsSelectable(menuItemForAccessKey)) {
+            if (menuItemForAccessKey.type === 'submenuItem') {
+              this.props.dispatcher.setAppMenuState(menu => menu
+                .withReset()
+                .withSelectedItem(menuItemForAccessKey)
+                .withOpenedMenu(menuItemForAccessKey, true))
+
+              this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation: true })
+            } else {
+              this.props.dispatcher.executeMenuItem(menuItemForAccessKey)
+            }
+          }
+        }
+      } else if (!event.altKey) {
+        this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
+      }
     }
+
+    this.lastKeyPressed = event.key
   }
 
   /**
@@ -309,17 +330,19 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onWindowKeyUp = (event: KeyboardEvent) => {
     if (event.defaultPrevented) { return }
 
-    if (event.key === 'Alt' && this.altKeyPressed && shouldRenderApplicationMenu()) {
-      this.altKeyPressed = false
-      this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
+    if (shouldRenderApplicationMenu()) {
+      if (event.key === 'Alt') {
+        this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
 
-      if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
-        this.props.dispatcher.closeFoldout()
-      } else {
-        this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-        this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation: true })
+        if (this.lastKeyPressed === 'Alt') {
+          if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+            this.props.dispatcher.closeFoldout()
+          } else {
+            this.props.dispatcher.setAppMenuState(menu => menu.withReset())
+            this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation: true })
+          }
+        }
       }
-      event.preventDefault()
     }
   }
 
