@@ -20,6 +20,7 @@ interface IHistoryProps {
   readonly history: IHistoryState
   readonly emoji: Map<string, string>
   readonly commits: Map<string, Commit>
+  readonly localCommitSHAs: ReadonlyArray<string>
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
@@ -57,6 +58,7 @@ export class History extends React.Component<IHistoryProps, void> {
   }
 
   private renderCommitSummary(commit: Commit) {
+    const isLocal = this.props.localCommitSHAs.indexOf(commit.sha) > -1
 
     return <CommitSummary
       summary={commit.summary}
@@ -66,6 +68,7 @@ export class History extends React.Component<IHistoryProps, void> {
       files={this.props.history.changedFiles}
       emoji={this.props.emoji}
       repository={this.props.repository}
+      isLocal={isLocal}
     />
   }
 

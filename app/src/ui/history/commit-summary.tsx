@@ -13,6 +13,7 @@ interface ICommitSummaryProps {
   readonly authorName: string
   readonly files: ReadonlyArray<FileChange>
   readonly emoji: Map<string, string>
+  readonly isLocal: boolean
 }
 
 export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
@@ -23,9 +24,11 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
     const shortSHA = this.props.sha.slice(0, 7)
 
     let url: string | null = null
-    const gitHubRepository = this.props.repository.gitHubRepository
-    if (gitHubRepository) {
-      url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
+    if (!this.props.isLocal) {
+      const gitHubRepository = this.props.repository.gitHubRepository
+      if (gitHubRepository) {
+        url = `${gitHubRepository.htmlURL}/commit/${this.props.sha}`
+      }
     }
 
     return (

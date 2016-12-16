@@ -116,10 +116,12 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
                       changes={this.props.state.changesState} />
     } else if (selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
-                      dispatcher={this.props.dispatcher}
-                      history={this.props.state.historyState}
-                      emoji={this.props.emoji}
-                      commits={this.props.state.commits}/>
+        dispatcher={this.props.dispatcher}
+        history={this.props.state.historyState}
+        emoji={this.props.emoji}
+        commits={this.props.state.commits}
+        localCommitSHAs={this.props.state.localCommitSHAs}
+      />
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
     }
