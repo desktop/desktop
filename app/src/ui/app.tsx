@@ -285,10 +285,6 @@ export class App extends React.Component<IAppProps, IAppState> {
    * On Windows pressing the Alt key and holding it down should
    * highlight the application menu.
    *
-   * It really should show the menu
-   * and highlight the access keys for the menu items but we're not
-   * quite there yet so this will have to suffice in the meantime.
-   *
    * This method in conjunction with the onWindowKeyUp sets the
    * appMenuToolbarHighlight state when the Alt key (and only the
    * Alt key) is pressed.
