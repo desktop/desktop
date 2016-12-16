@@ -15,6 +15,7 @@ import { ICommitMessage } from './git-store'
 import { v4 as guid } from 'node-uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
+import { StatsStore, ILaunchStats } from '../stats'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -51,8 +52,11 @@ type IPCResponse<T> = IResult<T> | IError
 export class Dispatcher {
   private appStore: AppStore
 
-  public constructor(appStore: AppStore) {
+  private statsStore: StatsStore
+
+  public constructor(appStore: AppStore, statsStore: StatsStore) {
     this.appStore = appStore
+    this.statsStore = statsStore
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
@@ -224,8 +228,13 @@ export class Dispatcher {
    * Commit the changes which were marked for inclusion, using the given commit
    * summary and description.
    */
-  public commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
-    return this.appStore._commitIncludedChanges(repository, message)
+  public async commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
+    const success = await this.appStore._commitIncludedChanges(repository, message)
+    if (success) {
+      this.statsStore.recordCommit()
+    }
+
+    return success
   }
 
   /** Change the file's includedness. */
@@ -435,5 +444,15 @@ export class Dispatcher {
    */
   public setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
     return this.appStore._setAppMenuToolbarButtonHighlightState(highlight)
+  }
+
+  /** Record the given launch stats. */
+  public recordLaunchStats(stats: ILaunchStats): Promise<void> {
+    return this.statsStore.recordLaunchStats(stats)
+  }
+
+  /** Report any stats if needed. */
+  public reportStats(): Promise<void> {
+    return this.statsStore.reportStats()
   }
 }

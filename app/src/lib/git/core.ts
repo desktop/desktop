@@ -119,7 +119,7 @@ export async function git(args: string[], path: string, name: string, options?: 
   const exitCode = result.exitCode
 
   let gitError: GitKitchenSinkError | null = null
-  const acceptableExitCode = opts.successExitCodes && opts.successExitCodes.has(exitCode)
+  const acceptableExitCode = opts.successExitCodes ? opts.successExitCodes.has(exitCode) : false
   if (!acceptableExitCode) {
     gitError = GitProcess.parseError(result.stderr)
     if (!gitError) {
@@ -130,25 +130,29 @@ export async function git(args: string[], path: string, name: string, options?: 
   const gitErrorDescription = gitError ? getDescriptionForError(gitError) : null
   const gitResult = { ...result, gitError, gitErrorDescription }
 
-  const acceptableError = !gitError || (gitError && opts.expectedErrors && opts.expectedErrors.has(gitError))
-  if (!acceptableExitCode && !acceptableError) {
-    console.error(`The command \`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
-    if (result.stdout.length) {
-      console.error(result.stdout)
-    }
-
-    if (result.stderr.length) {
-      console.error(result.stderr)
-    }
-
-    if (gitError) {
-      console.error(`(The error was parsed as ${gitError}: ${gitErrorDescription})`)
-    }
-
-    throw new GitError(gitResult, args)
+  let acceptableError = true
+  if (gitError && opts.expectedErrors) {
+    acceptableError = opts.expectedErrors.has(gitError)
   }
 
-  return gitResult
+  if ((gitError && acceptableError) || acceptableExitCode) {
+    return gitResult
+  }
+
+  console.error(`The command \`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
+  if (result.stdout.length) {
+    console.error(result.stdout)
+  }
+
+  if (result.stderr.length) {
+    console.error(result.stderr)
+  }
+
+  if (gitError) {
+    console.error(`(The error was parsed as ${gitError}: ${gitErrorDescription})`)
+  }
+
+  throw new GitError(gitResult, args)
 }
 
 function getDescriptionForError(error: GitKitchenSinkError): string {

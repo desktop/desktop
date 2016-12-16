@@ -41,10 +41,9 @@ const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDa
 const cloningRepositoriesStore = new CloningRepositoriesStore()
 const emojiStore = new EmojiStore()
 const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
-const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore, emojiStore, issuesStore)
-const dispatcher = new Dispatcher(appStore)
-
 const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
+const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore, emojiStore, issuesStore)
+const dispatcher = new Dispatcher(appStore, statsStore)
 
 dispatcher.loadInitialState().then(() => {
   const now = Date.now()
@@ -133,6 +132,6 @@ function openRepository(url: string) {
 }
 
 ReactDOM.render(
-  <App dispatcher={dispatcher} appStore={appStore} statsStore={statsStore}/>,
+  <App dispatcher={dispatcher} appStore={appStore}/>,
   document.getElementById('desktop-app-container')!
 )
