@@ -244,6 +244,24 @@ export function itemIsSelectable(item: MenuItem) {
 }
 
 /**
+ * Attempts to locate a menu item matching the provided access key in a
+ * given list of items. The access key comparison is case-insensitive.
+ */
+export function findItemByAccessKey(accessKey: string, items: ReadonlyArray<MenuItem>): IMenuItem | ISubmenuItem | ICheckboxMenuItem | IRadioMenuItem | null {
+  const lowerCaseAccessKey = accessKey.toLowerCase()
+
+  for (const item of items) {
+    if (itemMayHaveAccessKey(item)) {
+      if (item.accessKey && item.accessKey.toLowerCase() === lowerCaseAccessKey) {
+        return item
+      }
+    }
+  }
+
+  return null
+}
+
+/**
  * An immutable, transformable object which represents an application menu
  * and its current state (which menus are open, which items are selected).
  *
