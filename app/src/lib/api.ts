@@ -28,14 +28,14 @@ const NoteURL = 'https://desktop.github.com/'
  * Information about a repository as returned by the GitHub API.
  */
 export interface IAPIRepository {
-  readonly clone_url: string
-  readonly html_url: string
+  readonly cloneUrl: string
+  readonly htmlUrl: string
   readonly name: string
   readonly owner: IAPIUser
   readonly private: boolean
   readonly fork: boolean
-  readonly stargazers_count: number
-  readonly default_branch: string
+  readonly stargazersCount: number
+  readonly defaultBranch: string
 }
 
 /**

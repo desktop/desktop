@@ -1107,7 +1107,7 @@ export class AppStore {
     const apiRepository = await api.createRepository(org, name, description, private_)
 
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => addRemote(repository.path, 'origin', apiRepository.clone_url))
+    await gitStore.performFailableOperation(() => addRemote(repository.path, 'origin', apiRepository.cloneUrl))
     await gitStore.loadDefaultRemote()
     return this._push(repository)
   }
