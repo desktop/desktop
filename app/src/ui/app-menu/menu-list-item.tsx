@@ -84,6 +84,7 @@ export class MenuListItem extends React.Component<IMenuListItemProps, void> {
 
     const className = classNames(
       'menu-item',
+      { 'disabled': !item.enabled },
       { 'checkbox': item.type === 'checkbox' },
       { 'radio': item.type === 'radio' },
       { 'checked': (item.type === 'checkbox' || item.type === 'radio') && item.checked },

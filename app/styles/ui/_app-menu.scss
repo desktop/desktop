@@ -63,6 +63,8 @@
     width: 100%;
     min-width: 0;
 
+    &.disabled { opacity: 0.3; }
+
     .label {
       flex-grow: 1;
       margin-left: var(--spacing-double);
