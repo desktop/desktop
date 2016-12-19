@@ -46,6 +46,11 @@ interface IAppProps {
 
 export class App extends React.Component<IAppProps, IAppState> {
 
+  /**
+   * Used on non-macOS platforms to support the Alt key behavior for
+   * the custom application menu. See the event handlers for window
+   * keyup and keydown.
+   */
   private lastKeyPressed: string | null = null
 
   public constructor(props: IAppProps) {
