@@ -31,13 +31,7 @@
 
     input, .status { flex-shrink: 0; }
 
-    .path {
-      flex-grow: 1;
-      @include ellipsis;
-    }
-
-    .octicon {
-      vertical-align: text-bottom;
-    }
+    .path { flex-grow: 1; }
+    .octicon { vertical-align: text-bottom; }
   }
 }

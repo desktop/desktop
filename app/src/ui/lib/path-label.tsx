@@ -2,6 +2,7 @@ import * as React from 'react'
 
 import { FileStatus } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { PathText } from './path-text'
 
 interface IPathLabelProps {
   /** the current path of the file */
@@ -34,7 +35,7 @@ export class PathLabel extends React.Component<IPathLabelProps, void> {
         </label>
       )
     } else {
-      return <label {...props}>{this.props.path}</label>
+      return <label {...props}><PathText path={this.props.path} /></label>
     }
   }
 }
