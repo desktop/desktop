@@ -47,14 +47,17 @@
     }
 
     .name {
-      flex-grow: 1;
+      flex-grow: 2;
       @include ellipsis;
+      max-width: 65%;
     }
 
     .description {
       margin-right: var(--spacing-half);
       color: var(--text-secondary-color);
       font-size: var(--font-size-sm);
+      flex-grow: 1;
+      text-align: right;
     }
   }
 }
