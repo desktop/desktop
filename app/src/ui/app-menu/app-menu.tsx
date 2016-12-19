@@ -27,6 +27,17 @@ interface IAppMenuProps {
    */
   readonly enableAccessKeyNavigation: boolean,
 
+  /**
+   * Whether the menu was opened by pressing Alt (or Alt+X where X is an
+   * access key for one of the top level menu items). This is used as a
+   * one-time signal to the AppMenu to use some special semantics for
+   * selection and focus. Specifically it will ensure that the last opened
+   * menu will receieve focus.
+   * 
+   * If, true, the semantics outlined above will be applied after which
+   * the dispatcher will be called to clear the prop such that it's not
+   * applied for consecutive renders.
+   */
   readonly openedWithAccessKey: boolean
 }
 
