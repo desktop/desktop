@@ -404,7 +404,8 @@ export class AppMenu {
     const newOpenMenus = this.openMenus.slice(0, parentMenuIndex + 1)
 
     if (selectFirstItem) {
-      const selectedItem = ourMenuItem.menu.items[0]
+      // First selectable item.
+      const selectedItem = ourMenuItem.menu.items.find(itemIsSelectable)
       newOpenMenus.push({ ...ourMenuItem.menu, selectedItem })
     } else {
       newOpenMenus.push(ourMenuItem.menu)
