@@ -15,3 +15,4 @@ export type MenuEvent =
   'show-preferences' |
   'choose-repository' |
   'open-working-directory'
+  
