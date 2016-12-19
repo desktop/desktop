@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.16",
+  "version": "0.0.15",
   "dependencies": {
     "ansi-html": {
       "version": "0.0.6",
@@ -53,9 +53,9 @@
       "resolved": "https://registry.npmjs.org/aws4/-/aws4-1.5.0.tgz"
     },
     "babel-runtime": {
-      "version": "6.20.0",
+      "version": "6.11.6",
       "from": "babel-runtime@>=6.11.6 <7.0.0",
-      "resolved": "https://registry.npmjs.org/babel-runtime/-/babel-runtime-6.20.0.tgz"
+      "resolved": "https://registry.npmjs.org/babel-runtime/-/babel-runtime-6.11.6.tgz"
     },
     "balanced-match": {
       "version": "0.4.2",
@@ -758,9 +758,9 @@
       "resolved": "https://registry.npmjs.org/react-dom/-/react-dom-15.3.2.tgz"
     },
     "react-virtualized": {
-      "version": "8.8.1",
+      "version": "8.0.11",
       "from": "react-virtualized@latest",
-      "resolved": "https://registry.npmjs.org/react-virtualized/-/react-virtualized-8.8.1.tgz"
+      "resolved": "https://registry.npmjs.org/react-virtualized/-/react-virtualized-8.0.11.tgz"
     },
     "readable-stream": {
       "version": "2.1.5",
@@ -768,9 +768,9 @@
       "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-2.1.5.tgz"
     },
     "regenerator-runtime": {
-      "version": "0.10.1",
-      "from": "regenerator-runtime@>=0.10.0 <0.11.0",
-      "resolved": "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.10.1.tgz"
+      "version": "0.9.5",
+      "from": "regenerator-runtime@>=0.9.5 <0.10.0",
+      "resolved": "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.9.5.tgz"
     },
     "request": {
       "version": "2.76.0",
