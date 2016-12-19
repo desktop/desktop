@@ -38,7 +38,7 @@ interface IMenuPaneProps {
   readonly onItemKeyDown: (depth: number, item: MenuItem, event: React.KeyboardEvent<any>) => void
 
   /**
-   *
+   * A callback for when the MenuPane selection changes (i.e. a new menu item is selected).
    */
   readonly onSelectionChanged: (depth: number, item: MenuItem, source: SelectionSource) => void
 
