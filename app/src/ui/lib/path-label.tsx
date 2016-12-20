@@ -25,7 +25,6 @@ export class PathLabel extends React.Component<IPathLabelProps, void> {
 
     const props: React.HTMLProps<HTMLLabelElement> = {
       className: 'path',
-      title: this.props.path,
     }
 
     if (this.props.status === FileStatus.Renamed && this.props.oldPath) {

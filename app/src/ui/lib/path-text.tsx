@@ -86,8 +86,11 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
       ? <span className='dirname'>{directory}</span>
       : null
 
+    const truncated = this.state.length < this.state.normalizedPath.length
+    const title = truncated ? this.state.normalizedPath : undefined
+
     return (
-      <div className='path-text-component' ref={this.onPathElementRef}>
+      <div className='path-text-component' ref={this.onPathElementRef} title={title}>
         <span ref={this.onPathInnerElementRef}>
           {directoryElement}
           <span className='filename'>{file}</span>
