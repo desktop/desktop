@@ -129,7 +129,7 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
     const ratio = availableWidth / actualWidth
     //const ratio = 0.5
 
-    console.log(actualWidth, availableWidth, ratio)
+    console.log(this.state.normalizedPath, actualWidth, availableWidth, ratio)
 
     // It fits!
     if (actualWidth <= availableWidth) {
