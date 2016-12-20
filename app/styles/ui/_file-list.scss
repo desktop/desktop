@@ -34,6 +34,7 @@
     .path {
       flex-grow: 1;
       min-width: 0;
+      margin-right: var(--spacing-half);
     }
 
     .octicon { vertical-align: text-bottom; }
