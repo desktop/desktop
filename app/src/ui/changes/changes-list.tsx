@@ -56,13 +56,15 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
       : (selection === DiffSelectionType.None ? false : null)
 
     return (
-      <ChangedFile path={file.path}
-                   status={file.status}
-                   oldPath={file.oldPath}
-                   include={includeAll}
-                   key={file.id}
-                   onIncludeChanged={this.props.onIncludeChanged}
-                   onDiscardChanges={this.props.onDiscardChanges}/>
+      <ChangedFile
+        path={file.path}
+        status={file.status}
+        oldPath={file.oldPath}
+        include={includeAll}
+        key={file.id}
+        onIncludeChanged={this.props.onIncludeChanged}
+        onDiscardChanges={this.props.onDiscardChanges}
+      />
     )
   }
 
