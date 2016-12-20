@@ -23,13 +23,17 @@ export class FileList extends React.Component<IFileListProps, void> {
 
     return <div className='file'>
 
-      <PathLabel path={file.path}
-                 oldPath={file.oldPath}
-                 status={file.status} />
+      <PathLabel
+        path={file.path}
+        oldPath={file.oldPath}
+        status={file.status}
+      />
 
-      <Octicon symbol={iconForStatus(status)}
-               className={'status status-' + fileStatus.toLowerCase()}
-               title={fileStatus} />
+      <Octicon
+        symbol={iconForStatus(status)}
+        className={'status status-' + fileStatus.toLowerCase()}
+        title={fileStatus}
+      />
 
     </div>
   }
