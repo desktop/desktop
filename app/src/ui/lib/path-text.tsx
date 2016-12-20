@@ -14,9 +14,37 @@ interface IPathTextState {
   readonly length: number,
 }
 
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max)
+}
+
+export function truncatePath(path: string, length: number) {
+
+  if (path.length <= length) {
+    return path
+  }
+
+  // const lastSeparator = path.lastIndexOf(Path.sep)
+  // const ellipsis = '…'
+
+  // if (lastSeparator === -1) {
+    const mid = (length - 1) / 2
+    const pre = path.substr(0, Math.floor(mid))
+    const post = path.substr(path.length - Math.ceil(mid))
+
+    return `${pre}…${post}`
+  // }
+
+  // const basenameLength = lastSeparator + 1
+
+
+  // return path.substr(0, length)
+}
+
 export class PathText extends React.Component<IPathTextProps, IPathTextState> {
 
-  private pathElement: HTMLSpanElement | null = null
+  private pathElement: HTMLDivElement | null = null
+  private pathInnerElement: HTMLSpanElement | null = null
 
   public constructor(props: IPathTextProps) {
     super(props)
@@ -40,8 +68,12 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
     }
   }
 
-  private onPathElementRef = (element: HTMLSpanElement | undefined) => {
+  private onPathElementRef = (element: HTMLDivElement | undefined) => {
     this.pathElement = element || null
+  }
+
+  private onPathInnerElementRef = (element: HTMLSpanElement | undefined) => {
+    this.pathInnerElement = element || null
   }
 
   private renderPathComponent(directory: string | null, file: string): JSX.Element {
@@ -52,40 +84,29 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
 
     return (
       <div className='path-text-component' ref={this.onPathElementRef}>
-        {directoryElement}
-        <span className='filename'>{file}</span>
+        <span ref={this.onPathInnerElementRef}>
+          {directoryElement}
+          <span className='filename'>{file}</span>
+        </span>
       </div>
     )
   }
 
   public render() {
-    const file = Path.basename(this.state.normalizedPath)
-    const dirname = Path.dirname(this.state.normalizedPath)
+    const path = truncatePath(this.state.normalizedPath, this.state.length)
+    const file = Path.basename(path)
+    const dirname = Path.dirname(path)
     const directory = dirname === '.' ? '' : `${dirname}${Path.sep}`
 
-    const normalizedPath = directory + file
-
-    if (normalizedPath.length <= this.state.length) {
-      return this.renderPathComponent(directory, file)
-    }
-
-    // hello
-    // 5
-    // …ello
-
-    // if (file.length <= this.state.maxLength) {
-    //   return this.renderPathComponent(null, file.substr(0, this.state.maxLength))
-    // }
-
-    return this.renderPathComponent(null, normalizedPath.substr(0, this.state.length))
+    return this.renderPathComponent(directory, file)
   }
 
   private resizeIfNeccessary() {
-    if (!this.pathElement) {
+    if (!this.pathElement || !this.pathInnerElement) {
       return
     }
 
-    const actualWidth = this.pathElement.scrollWidth
+    const actualWidth = this.pathInnerElement.getBoundingClientRect().width
     const availableWidth = this.pathElement.offsetWidth
 
     // The available width has changed from underneath us
@@ -105,8 +126,8 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
       return
     }
 
-    // const ratio = availableWidth / actualWidth
-    const ratio = 0.5
+    const ratio = availableWidth / actualWidth
+    //const ratio = 0.5
 
     console.log(actualWidth, availableWidth, ratio)
 
@@ -120,16 +141,21 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
       } else {
         // There might be more space to fill
         // TODO!
-        const longestFit = this.state.length // 21
-        const maxChars = this.state.shortestNonFit || this.state.length // 29
-        const minChars = longestFit + 1 // 22
+        const longestFit = this.state.length
+        const maxChars = this.state.shortestNonFit || this.state.length
+        const minChars = longestFit + 1
 
         if (minChars === maxChars) {
           console.log(`${this.state.normalizedPath} fits at ${this.state.length} (${this.state.normalizedPath.length - this.state.length} cut) ${this.state.iterations} iterations`)
           return
         }
 
-        const length = Math.floor((maxChars - minChars) * ratio) + minChars
+        if (availableWidth - actualWidth < 3) {
+          console.log(`${this.state.normalizedPath} fits at ${this.state.length}, doubtful that we could fit more (${this.state.normalizedPath.length - this.state.length} cut) ${this.state.iterations} iterations`)
+          return
+        }
+
+        const length = clamp(Math.floor(this.state.length * ratio), minChars, maxChars)
 
         console.log(`${this.state.normalizedPath} could potentially fit more, ratio: ${ratio}, currentLength: ${this.state.length}, newLength: ${length}, maxChars: ${maxChars}, minChars: ${minChars}`)
 
@@ -141,12 +167,10 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
       // Okay, so it didn't quite fit, let's trim it down a little
       const shortestNonFit = this.state.length // 44
 
-      // ratio = 0.46
+      const maxChars = shortestNonFit - 1
+      const minChars = this.state.longestFit || 0
 
-      const maxChars = shortestNonFit - 1 // 43
-      const minChars = this.state.longestFit || 0 // 46
-
-      const length = Math.floor((maxChars - minChars) * ratio) + minChars
+      const length = clamp(Math.floor(this.state.length * ratio), minChars, maxChars)
       console.log(`${this.state.normalizedPath} overflows at ${shortestNonFit}, ratio: ${ratio}, currentLength: ${this.state.length}, newLength: ${length}, maxChars: ${maxChars}, minChars: ${minChars}`)
 
       setTimeout(() => {
