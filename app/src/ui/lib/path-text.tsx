@@ -2,6 +2,10 @@ import * as React from 'react'
 import * as Path from 'path'
 
 interface IPathTextProps {
+  /**
+   * The file system path which is to be displayed and, if
+   * necessary, truncated.
+   */
   readonly path: string
 }
 
