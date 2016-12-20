@@ -159,9 +159,7 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
 
         console.log(`${this.state.normalizedPath} could potentially fit more, ratio: ${ratio}, currentLength: ${this.state.length}, newLength: ${length}, maxChars: ${maxChars}, minChars: ${minChars}`)
 
-        setTimeout(() => {
-          this.setState({ ...this.state, iterations: this.state.iterations + 1, length, longestFit, availableWidth })
-        }, 1000)
+        this.setState({ ...this.state, iterations: this.state.iterations + 1, length, longestFit, availableWidth })
       }
     } else {
       // Okay, so it didn't quite fit, let's trim it down a little
@@ -173,9 +171,7 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
       const length = clamp(Math.floor(this.state.length * ratio), minChars, maxChars)
       console.log(`${this.state.normalizedPath} overflows at ${shortestNonFit}, ratio: ${ratio}, currentLength: ${this.state.length}, newLength: ${length}, maxChars: ${maxChars}, minChars: ${minChars}`)
 
-      setTimeout(() => {
-        this.setState({ ...this.state, iterations: this.state.iterations + 1, length, shortestNonFit, availableWidth })
-      }, 1000)
+      this.setState({ ...this.state, iterations: this.state.iterations + 1, length, shortestNonFit, availableWidth })
     }
   }
 
