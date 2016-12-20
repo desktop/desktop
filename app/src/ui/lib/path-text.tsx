@@ -104,7 +104,6 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
       return
     }
 
-    const actualWidth = this.pathInnerElement.getBoundingClientRect().width
     const availableWidth = this.pathElement.offsetWidth
 
     // The available width has changed from underneath us
@@ -126,6 +125,7 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
       return
     }
 
+    const actualWidth = this.pathInnerElement.getBoundingClientRect().width
     const ratio = availableWidth / actualWidth
     //const ratio = 0.5
 
