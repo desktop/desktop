@@ -112,10 +112,12 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
       const resetState = this.createState(this.props.path)
 
       if (availableWidth < this.state.availableWidth) {
+        console.log(`${this.state.normalizedPath}: resetting state due to shrinking container`)
         // We've gotten less space to work with so we can keep our shortest non-fit since
         // that's still valid
         this.setState({ ...resetState, shortestNonFit: this.state.shortestNonFit })
       } else if (availableWidth > this.state.availableWidth) {
+        console.log(`${this.state.normalizedPath}: resetting state due to growing container`)
         // We've gotten more space to work with so we can keep our longest fit since
         // that's still valid.
         this.setState({ ...resetState, longestFit: this.state.longestFit })
