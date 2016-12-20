@@ -76,7 +76,11 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
     this.pathInnerElement = element || null
   }
 
-  private renderPathComponent(directory: string | null, file: string): JSX.Element {
+  public render() {
+    const path = truncatePath(this.state.normalizedPath, this.state.length)
+    const file = Path.basename(path)
+    const dirname = Path.dirname(path)
+    const directory = dirname === '.' ? '' : `${dirname}${Path.sep}`
 
     const directoryElement = directory && directory.length
       ? <span className='dirname'>{directory}</span>
@@ -90,15 +94,6 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
         </span>
       </div>
     )
-  }
-
-  public render() {
-    const path = truncatePath(this.state.normalizedPath, this.state.length)
-    const file = Path.basename(path)
-    const dirname = Path.dirname(path)
-    const directory = dirname === '.' ? '' : `${dirname}${Path.sep}`
-
-    return this.renderPathComponent(directory, file)
   }
 
   private resizeIfNeccessary() {
@@ -165,7 +160,7 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
       }
     } else {
       // Okay, so it didn't quite fit, let's trim it down a little
-      const shortestNonFit = this.state.length // 44
+      const shortestNonFit = this.state.length
 
       const maxChars = shortestNonFit - 1
       const minChars = this.state.longestFit || 0
