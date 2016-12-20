@@ -48,9 +48,11 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
           value={this.checkboxValue}
           onChange={this.handleCheckboxChange}/>
 
-        <PathLabel path={this.props.path}
-                   oldPath={this.props.oldPath}
-                   status={this.props.status} />
+        <PathLabel
+          path={this.props.path}
+          oldPath={this.props.oldPath}
+          status={this.props.status}
+        />
 
         <Octicon symbol={iconForStatus(status)}
                  className={'status status-' + fileStatus.toLowerCase()}
