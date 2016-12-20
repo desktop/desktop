@@ -31,7 +31,11 @@
 
     input, .status { flex-shrink: 0; }
 
-    .path { flex-grow: 1; }
+    .path {
+      flex-grow: 1;
+      min-width: 0;
+    }
+
     .octicon { vertical-align: text-bottom; }
   }
 }
