@@ -2,16 +2,16 @@ import * as React from 'react'
 import * as Path from 'path'
 
 interface IPathTextProps {
-  readonly path: string,
+  readonly path: string
 }
 
 interface IPathTextState {
-  readonly iterations: number,
-  readonly availableWidth?: number,
-  readonly normalizedPath: string,
+  readonly iterations: number
+  readonly availableWidth?: number
+  readonly normalizedPath: string
   readonly shortestNonFit?: number
   readonly longestFit: number
-  readonly length: number,
+  readonly length: number
 }
 
 function clamp(value: number, min: number, max: number): number {
