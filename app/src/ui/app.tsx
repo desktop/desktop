@@ -678,6 +678,7 @@ export class App extends React.Component<IAppProps, IAppState> {
                         dispatcher={this.props.dispatcher}
                         emoji={this.state.emoji}
                         sidebarWidth={this.state.sidebarWidth}
+                        commitSummaryWidth={this.state.commitSummaryWidth}
                         issuesStore={this.props.appStore.issuesStore}/>
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {

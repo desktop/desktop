@@ -8,7 +8,7 @@ import { Commit } from '../../models/commit'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
-import { PersistingResizable } from '../resizable'
+import { Resizable } from '../resizable'
 
 // At some point we'll make index.tsx only be exports
 // see https://github.com/desktop/desktop/issues/383
@@ -21,6 +21,7 @@ interface IHistoryProps {
   readonly emoji: Map<string, string>
   readonly commits: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
+  readonly commitSummaryWidth: number
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
@@ -72,6 +73,15 @@ export class History extends React.Component<IHistoryProps, void> {
     />
   }
 
+  private onCommitSummaryReset = () => {
+    this.props.dispatcher.resetCommitSummaryWidth()
+  }
+
+  private onCommitSummaryResize = (width: number) => {
+    this.props.dispatcher.setCommitSummaryWidth(width)
+  }
+
+
   public render() {
     const sha = this.props.history.selection.sha
     const commit = sha ? (this.props.commits.get(sha) || null) : null
@@ -84,13 +94,17 @@ export class History extends React.Component<IHistoryProps, void> {
       <div id='history'>
         {this.renderCommitSummary(commit)}
         <div id='commit-details'>
-          <PersistingResizable configKey='commit-summary-width'>
+          <Resizable
+            width={this.props.commitSummaryWidth}
+            onResize={this.onCommitSummaryResize}
+            onReset={this.onCommitSummaryReset}
+          >
             <FileList
               files={this.props.history.changedFiles}
               onSelectedFileChanged={this.onFileSelected}
               selectedFile={this.props.history.selection.file}
             />
-          </PersistingResizable>
+          </Resizable>
           { this.renderDiff(commit) }
         </div>
       </div>
