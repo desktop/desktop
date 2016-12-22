@@ -126,7 +126,7 @@ export function truncatePath(path: string, length: number) {
  * If the path needs to be truncated this component will set its title element
  * to the full path such that it can be seen by hovering the path text.
  */
-export class PathText extends React.Component<IPathTextProps, IPathTextState> {
+export class PathText extends React.PureComponent<IPathTextProps, IPathTextState> {
 
   private pathElement: HTMLDivElement | null = null
   private pathInnerElement: HTMLSpanElement | null = null
@@ -272,34 +272,8 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
 
       this.setState({ ...this.state, iterations: this.state.iterations + 1, length, shortestNonFit, availableWidth })
     }
-  }
 
-  public shouldComponentUpdate(nextProps: IPathTextProps, nextState: IPathTextState) {
-    if (nextProps.path !== this.props.path) {
-      return true
     }
-
-    if (nextProps.availableWidth !== this.props.availableWidth) {
-      return true
-    }
-
-    if (nextState.length !== this.state.length) {
-      return true
-    }
-
-    if (nextState.longestFit !== this.state.longestFit) {
-      return true
-    }
-
-    if (nextState.shortestNonFit !== this.state.shortestNonFit) {
-      return true
-    }
-
-    if (nextState.availableWidth !== this.state.availableWidth) {
-      return true
-    }
-
-    return false
   }
 
   public componentDidMount() {
