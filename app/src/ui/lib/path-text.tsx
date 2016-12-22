@@ -103,6 +103,7 @@ export function truncatePath(path: string, length: number) {
   // No directory prefix, fall back to middle ellipsis
   if (lastSeparator === -1) {
     return truncateMid(path, length)
+  }
 
   const filenameLength = path.length - lastSeparator - 1
   console.log(filenameLength)
