@@ -13,5 +13,6 @@
         "**/node_modules": true,
         "**/dist": true,
         "**/out": true
-    }
+    },
+    "editor.tabSize": 2
 }
