@@ -62,6 +62,14 @@ export function truncateMid(value: string, length: number) {
     return value
   }
 
+  if (length <= 0) {
+    return ''
+  }
+
+  if (length === 1) {
+    return '…'
+  }
+
   const mid = (length - 1) / 2
   const pre = value.substr(0, Math.floor(mid))
   const post = value.substr(value.length - Math.ceil(mid))
