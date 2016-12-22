@@ -90,18 +90,33 @@ export function truncatePath(path: string, length: number) {
     return path
   }
 
-  // const lastSeparator = path.lastIndexOf(Path.sep)
-  // const ellipsis = '…'
+  if (length <= 0) {
+    return ''
+  }
 
-  // if (lastSeparator === -1) {
+  if (length === 1) {
+    return '…'
+  }
+
+  const lastSeparator = path.lastIndexOf(Path.sep)
+
+  // No directory prefix, fall back to middle ellipsis
+  if (lastSeparator === -1) {
     return truncateMid(path, length)
 
-  // }
+  const filenameLength = path.length - lastSeparator - 1
+  console.log(filenameLength)
 
-  // const basenameLength = lastSeparator + 1
+  // File name prefixed with …/ would be too long, fall back
+  // to middle ellipsis.
+  if (filenameLength + 2 > length) {
+    return truncateMid(path, length)
+  }
 
+  const pre = path.substr(0, length - filenameLength - 2)
+  const post = path.substr(lastSeparator)
 
-  // return path.substr(0, length)
+  return `${pre}…${post}`
 }
 
 /**
