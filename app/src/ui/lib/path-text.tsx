@@ -57,6 +57,18 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
 
+export function truncateMid(value: string, length: number) {
+  if (value.length <= length) {
+    return value
+  }
+
+  const mid = (length - 1) / 2
+  const pre = value.substr(0, Math.floor(mid))
+  const post = value.substr(value.length - Math.ceil(mid))
+
+  return `${pre}…${post}`
+}
+
 /**
  * String truncation for paths.
  * 
@@ -74,11 +86,8 @@ export function truncatePath(path: string, length: number) {
   // const ellipsis = '…'
 
   // if (lastSeparator === -1) {
-    const mid = (length - 1) / 2
-    const pre = path.substr(0, Math.floor(mid))
-    const post = path.substr(path.length - Math.ceil(mid))
+    return truncateMid(path, length)
 
-    return `${pre}…${post}`
   // }
 
   // const basenameLength = lastSeparator + 1
