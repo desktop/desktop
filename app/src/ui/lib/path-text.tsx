@@ -137,7 +137,7 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
   }
 
   public componentWillReceiveProps(nextProps: IPathTextProps) {
-    if (nextProps.path !== this.props.path || nextProps.availableWidth !== this.props.availableWidth) {
+    if (nextProps.path !== this.props.path) {
       this.setState(this.createState(nextProps.path))
     }
   }
