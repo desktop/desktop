@@ -7,6 +7,7 @@ interface IPathTextProps {
    * necessary, truncated.
    */
   readonly path: string
+  readonly availableWidth?: number
 }
 
 interface IPathTextState {
@@ -108,7 +109,9 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
       return
     }
 
-    const availableWidth = this.pathElement.offsetWidth
+    const availableWidth = this.props.availableWidth !== undefined
+      ? this.props.availableWidth
+      : this.pathElement.getBoundingClientRect().width
 
     // The available width has changed from underneath us
     if (this.state.availableWidth && this.state.availableWidth !== availableWidth) {
@@ -181,6 +184,10 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
 
   public shouldComponentUpdate(nextProps: IPathTextProps, nextState: IPathTextState) {
     if (nextProps.path !== this.props.path) {
+      return true
+    }
+
+    if (nextProps.availableWidth !== this.props.availableWidth) {
       return true
     }
 
