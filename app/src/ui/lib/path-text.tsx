@@ -224,7 +224,6 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
         console.log('happy path! We show the full path and it still fits')
 
         if (availableWidth !== this.state.availableWidth) {
-          console.log('setting state!')
           this.setState({ ...this.state, availableWidth })
         }
 
@@ -299,8 +298,6 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
       ? 0.5
       : availableWidth / actualWidth
 
-    console.log(this.state.normalizedPath, actualWidth, availableWidth, ratio)
-
     // It fits!
     if (actualWidth <= availableWidth) {
 
@@ -315,7 +312,6 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
         return
       } else {
         // There might be more space to fill
-        // TODO!
         const longestFit = this.state.length
         const maxChars = this.state.shortestNonFit || this.state.length
         const minChars = longestFit + 1
