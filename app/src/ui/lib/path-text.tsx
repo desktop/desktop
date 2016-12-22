@@ -106,7 +106,6 @@ export function truncatePath(path: string, length: number) {
   }
 
   const filenameLength = path.length - lastSeparator - 1
-  console.log(filenameLength)
 
   // File name prefixed with …/ would be too long, fall back
   // to middle ellipsis.
