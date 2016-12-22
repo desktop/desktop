@@ -191,12 +191,15 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
       return
     }
 
-    const availableWidth = this.props.availableWidth !== undefined
-      ? this.props.availableWidth
-      : this.pathElement.getBoundingClientRect().width
+    const availableWidth = Math.max(
+      this.props.availableWidth !== undefined
+        ? this.props.availableWidth
+        : this.pathElement.getBoundingClientRect().width
+      , 0
+    )
 
     // The available width has changed from underneath us
-    if (this.state.availableWidth && this.state.availableWidth !== availableWidth) {
+    if (this.state.availableWidth !== undefined && this.state.availableWidth !== availableWidth) {
       const resetState = this.createState(this.props.path)
 
       if (availableWidth < this.state.availableWidth) {
@@ -214,9 +217,17 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
       return
     }
 
+    if (this.state.availableWidth === 0) {
+      return
+    }
+
     const actualWidth = this.pathInnerElement.getBoundingClientRect().width
-    const ratio = availableWidth / actualWidth
-    //const ratio = 0.5
+
+    // We shouldn't get into this state but if we do, guard against division by zero
+    // and use a normal binary search ratio.
+    const ratio = actualWidth === 0
+      ? 0.5
+      : availableWidth / actualWidth
 
     console.log(this.state.normalizedPath, actualWidth, availableWidth, ratio)
 
