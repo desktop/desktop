@@ -149,6 +149,14 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
     }
   }
 
+  public componentDidMount() {
+    this.resizeIfNeccessary()
+  }
+
+  public componentDidUpdate() {
+    this.resizeIfNeccessary()
+  }
+
   private createState(path: string): IPathTextState {
     const normalizedPath = Path.normalize(path)
     return {
@@ -364,13 +372,5 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
         fullTextWidth,
       })
     }
-  }
-
-  public componentDidMount() {
-    this.resizeIfNeccessary()
-  }
-
-  public componentDidUpdate() {
-    this.resizeIfNeccessary()
   }
 }
