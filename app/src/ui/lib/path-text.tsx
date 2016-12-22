@@ -272,8 +272,6 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
       this.setState({ ...this.state, iterations: this.state.iterations + 1, length, shortestNonFit, availableWidth })
     }
-
-    }
   }
 
   public componentDidMount() {
