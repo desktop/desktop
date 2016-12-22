@@ -11,6 +11,8 @@ interface IPathLabelProps {
   readonly oldPath?: string,
   /** the type of change applied to the file */
   readonly status: FileStatus
+
+  readonly availableWidth: number
 }
 
 /**
@@ -34,7 +36,7 @@ export class PathLabel extends React.Component<IPathLabelProps, void> {
         </label>
       )
     } else {
-      return <label {...props}><PathText path={this.props.path} /></label>
+      return <label {...props}><PathText path={this.props.path} availableWidth={this.props.availableWidth} /></label>
     }
   }
 }

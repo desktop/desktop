@@ -30,6 +30,7 @@ interface IChangesSidebarProps {
   readonly emoji: Map<string, string>
   readonly mostRecentLocalCommit: Commit | null
   readonly issuesStore: IssuesStore
+  readonly availableWidth: number
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> {
@@ -199,6 +200,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           commitMessage={this.props.changes.commitMessage}
           contextualCommitMessage={this.props.changes.contextualCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}
+          availableWidth={this.props.availableWidth}
         />
           {this.renderMostRecentLocalCommit()}
       </div>

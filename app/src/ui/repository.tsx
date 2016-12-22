@@ -15,6 +15,7 @@ interface IRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
   readonly sidebarWidth: number
+  readonly commitSummaryWidth: number
   readonly issuesStore: IssuesStore
 }
 
@@ -48,6 +49,9 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     const mostRecentLocalCommitSHA = localCommitSHAs.length > 0 ? localCommitSHAs[0] : null
     const mostRecentLocalCommit = (mostRecentLocalCommitSHA ? this.props.state.commits.get(mostRecentLocalCommitSHA) : null) || null
 
+    // -1 Because of right hand side border
+    const availableWidth = this.props.sidebarWidth - 1
+
     return (
       <ChangesSidebar
         repository={this.props.repository}
@@ -58,7 +62,8 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
         mostRecentLocalCommit={mostRecentLocalCommit}
-        issuesStore={this.props.issuesStore}/>
+        issuesStore={this.props.issuesStore}
+        availableWidth={availableWidth} />
     )
   }
 

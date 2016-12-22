@@ -90,6 +90,9 @@ export class History extends React.Component<IHistoryProps, void> {
       return <NoCommitSelected/>
     }
 
+    // -1 for right hand side border
+    const availableWidth = this.props.commitSummaryWidth - 1
+
     return (
       <div id='history'>
         {this.renderCommitSummary(commit)}
@@ -103,6 +106,7 @@ export class History extends React.Component<IHistoryProps, void> {
               files={this.props.history.changedFiles}
               onSelectedFileChanged={this.onFileSelected}
               selectedFile={this.props.history.selection.file}
+              availableWidth={availableWidth}
             />
           </Resizable>
           { this.renderDiff(commit) }

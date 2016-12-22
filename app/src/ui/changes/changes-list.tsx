@@ -27,6 +27,7 @@ interface IChangesListProps {
   readonly commitAuthor: CommitIdentity | null
   readonly avatarURL: string
   readonly dispatcher: Dispatcher
+  readonly availableWidth: number
 
   /**
    * Click event handler passed directly to the onRowClick prop of List, see
@@ -64,6 +65,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         key={file.id}
         onIncludeChanged={this.props.onIncludeChanged}
         onDiscardChanges={this.props.onDiscardChanges}
+        availableWidth={this.props.availableWidth}
       />
     )
   }
