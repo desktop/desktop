@@ -57,7 +57,7 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
   }
 
   public componentWillReceiveProps(nextProps: IPathTextProps) {
-    if (nextProps.path !== this.props.path) {
+    if (nextProps.path !== this.props.path || nextProps.availableWidth !== this.props.availableWidth) {
       this.setState(this.createState(nextProps.path))
     }
   }
@@ -70,6 +70,7 @@ export class PathText extends React.Component<IPathTextProps, IPathTextState> {
       length: normalizedPath.length,
       longestFit: 0,
       shortestNonFit: undefined,
+      availableWidth: undefined,
     }
   }
 
