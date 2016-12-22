@@ -91,7 +91,8 @@ export function truncatePath(path: string, length: number) {
  * A component for displaying a path (rooted or relative) with truncation
  * if necessary.
  * 
- * If the path needs to be truncated this component will 
+ * If the path needs to be truncated this component will set its title element
+ * to the full path such that it can be seen by hovering the path text.
  */
 export class PathText extends React.Component<IPathTextProps, IPathTextState> {
 
