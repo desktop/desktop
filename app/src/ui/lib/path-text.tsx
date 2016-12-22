@@ -7,22 +7,63 @@ interface IPathTextProps {
    * necessary, truncated.
    */
   readonly path: string
+
+  /**
+   * An optional maximum width that the path should fit.
+   * If omitted the available width is calculated at render
+   * though never updated after the initial measurement.
+   */
   readonly availableWidth?: number
 }
 
 interface IPathTextState {
   readonly iterations: number
+
+  /** 
+   * The maximum available width for the path. This corresponds
+   * to the availableWidth prop if one was specified, if not it's
+   * calculated at render time.
+   */
   readonly availableWidth?: number
+
+  /**
+   * The normalized version of the path prop. Normalization in this
+   * instance refers to formatting of the path in a platform specific
+   * way, see Path.normalize for more information.
+   */
   readonly normalizedPath: string
+
+  /**
+   * The smallest number of characters that we've tried and found
+   * to be too wide to fit.
+   */
   readonly shortestNonFit?: number
+
+  /**
+   * The highest number of characters that we've tried and found
+   * to fit inside the available space.
+   */
   readonly longestFit: number
+
+  /**
+   * The current number of characters that the normalizedPath is to
+   * be truncated to.
+   */
   readonly length: number
 }
 
+/** Helper function to coerce a number into a valid range */
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
 
+/**
+ * String truncation for paths.
+ * 
+ * This method takes a path and returns it truncated (if necessary)
+ * to the exact number of characters specified by the length
+ * parameter.
+ */
 export function truncatePath(path: string, length: number) {
 
   if (path.length <= length) {
@@ -46,6 +87,12 @@ export function truncatePath(path: string, length: number) {
   // return path.substr(0, length)
 }
 
+/**
+ * A component for displaying a path (rooted or relative) with truncation
+ * if necessary.
+ * 
+ * If the path needs to be truncated this component will 
+ */
 export class PathText extends React.Component<IPathTextProps, IPathTextState> {
 
   private pathElement: HTMLDivElement | null = null
