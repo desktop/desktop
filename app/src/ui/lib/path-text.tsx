@@ -351,7 +351,6 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
         this.setState({
           ...this.state,
-          iterations: this.state.iterations + 1,
           ...createPathDisplayState(this.state.normalizedPath, length),
           longestFit,
           availableWidth,
@@ -370,7 +369,6 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
       this.setState({
         ...this.state,
-        iterations: this.state.iterations + 1,
         ...createPathDisplayState(this.state.normalizedPath, length),
         shortestNonFit,
         availableWidth,
