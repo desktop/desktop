@@ -16,9 +16,25 @@ interface IPathTextProps {
   readonly availableWidth?: number
 }
 
-interface IPathTextState {
-  readonly iterations: number
+interface IPathDisplayState {
+  /**
+   * The normalized version of the path prop. Normalization in this
+   * instance refers to formatting of the path in a platform specific
+   * way, see Path.normalize for more information.
+   */
+  readonly normalizedPath: string
 
+  readonly directoryText: string,
+  readonly fileText: string
+
+  /**
+   * The current number of characters that the normalizedPath is to
+   * be truncated to.
+   */
+  readonly length: number
+}
+
+interface IPathTextState extends IPathDisplayState {
   /** 
    * The maximum available width for the path. This corresponds
    * to the availableWidth prop if one was specified, if not it's
@@ -34,13 +50,6 @@ interface IPathTextState {
   readonly fullTextWidth?: number
 
   /**
-   * The normalized version of the path prop. Normalization in this
-   * instance refers to formatting of the path in a platform specific
-   * way, see Path.normalize for more information.
-   */
-  readonly normalizedPath: string
-
-  /**
    * The smallest number of characters that we've tried and found
    * to be too wide to fit.
    */
@@ -51,12 +60,6 @@ interface IPathTextState {
    * to fit inside the available space.
    */
   readonly longestFit: number
-
-  /**
-   * The current number of characters that the normalizedPath is to
-   * be truncated to.
-   */
-  readonly length: number
 }
 
 /** Helper function to coerce a number into a valid range */
@@ -126,6 +129,33 @@ export function truncatePath(path: string, length: number) {
   return `${pre}…${post}`
 }
 
+function createPathDisplayState(normalizedPath: string, length?: number): IPathDisplayState {
+  length = length === undefined ? normalizedPath.length : length
+
+  if (length <= 0) {
+    return { normalizedPath, directoryText: '', fileText: '', length }
+  }
+
+  const path = truncatePath(normalizedPath, length)
+  const fileText = Path.basename(path)
+  const dirname = Path.dirname(path)
+  const directoryText = dirname === '.' ? '' : `${dirname}${Path.sep}`
+
+  return { normalizedPath, directoryText, fileText, length }
+}
+
+function createState(path: string, length?: number): IPathTextState {
+  const normalizedPath = Path.normalize(path)
+  return {
+    normalizedPath,
+    longestFit: 0,
+    shortestNonFit: undefined,
+    availableWidth: undefined,
+    fullTextWidth: undefined,
+    ...createPathDisplayState(normalizedPath, length),
+  }
+}
+
 /**
  * A component for displaying a path (rooted or relative) with truncation
  * if necessary.
@@ -140,12 +170,12 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
   public constructor(props: IPathTextProps) {
     super(props)
-    this.state = this.createState(props.path)
+    this.state = createState(props.path)
   }
 
   public componentWillReceiveProps(nextProps: IPathTextProps) {
     if (nextProps.path !== this.props.path) {
-      this.setState(this.createState(nextProps.path))
+      this.setState(createState(nextProps.path))
     }
   }
 
@@ -157,19 +187,6 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
     this.resizeIfNeccessary()
   }
 
-  private createState(path: string): IPathTextState {
-    const normalizedPath = Path.normalize(path)
-    return {
-      iterations: 0,
-      normalizedPath,
-      length: normalizedPath.length,
-      longestFit: 0,
-      shortestNonFit: undefined,
-      availableWidth: undefined,
-      fullTextWidth: undefined,
-    }
-  }
-
   private onPathElementRef = (element: HTMLDivElement | undefined) => {
     this.pathElement = element || null
   }
@@ -179,13 +196,9 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
   }
 
   public render() {
-    const path = truncatePath(this.state.normalizedPath, this.state.length)
-    const file = Path.basename(path)
-    const dirname = Path.dirname(path)
-    const directory = dirname === '.' ? '' : `${dirname}${Path.sep}`
 
-    const directoryElement = directory && directory.length
-      ? <span className='dirname'>{directory}</span>
+    const directoryElement = this.state.directoryText && this.state.directoryText.length
+      ? <span className='dirname'>{this.state.directoryText}</span>
       : null
 
     const truncated = this.state.length < this.state.normalizedPath.length
@@ -195,7 +208,7 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
       <div className='path-text-component' ref={this.onPathElementRef} title={title}>
         <span ref={this.onPathInnerElementRef}>
           {directoryElement}
-          <span className='filename'>{file}</span>
+          <span className='filename'>{this.state.fileText}</span>
         </span>
       </div>
     )
@@ -236,8 +249,8 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
         console.log('happy path! We can show the full path, let\'s!')
         this.setState({
           ...this.state,
+          ...createPathDisplayState(this.state.normalizedPath),
           availableWidth,
-          length: this.state.normalizedPath.length,
         })
 
         return
@@ -246,7 +259,8 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
     // The available width has changed from underneath us
     if (this.state.availableWidth !== undefined && this.state.availableWidth !== availableWidth) {
-      const resetState = this.createState(this.props.path)
+      // Keep the current length as that's likely a good starting point
+      const resetState = createState(this.props.path, this.state.length)
 
       if (availableWidth < this.state.availableWidth) {
         console.log(`${this.state.normalizedPath}: resetting state due to shrinking container`)
@@ -275,10 +289,13 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
     if (availableWidth === 0) {
       if (this.state.length !== 0) {
+        console.log(`${this.state.normalizedPath}: no available width`)
         this.setState({
-          ...this.createState(this.props.path),
-          length: 0,
+          ...this.state,
+          ...createPathDisplayState(this.state.normalizedPath, 0),
           availableWidth,
+          longestFit: 0,
+          shortestNonFit: 1,
         })
       }
       return
@@ -317,12 +334,8 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
         const minChars = longestFit + 1
 
         if (minChars === maxChars) {
-          console.log(`${this.state.normalizedPath} fits at ${this.state.length} (${this.state.normalizedPath.length - this.state.length} cut) ${this.state.iterations} iterations`)
-          this.setState({
-            ...this.state,
-            availableWidth,
-            fullTextWidth,
-          })
+          console.log(`${this.state.normalizedPath} fits at ${this.state.length} (${this.state.normalizedPath.length - this.state.length} cut)`)
+          this.setState({ ...this.state, longestFit, availableWidth, fullTextWidth })
           return
         }
 
@@ -343,7 +356,7 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
         this.setState({
           ...this.state,
           iterations: this.state.iterations + 1,
-          length,
+          ...createPathDisplayState(this.state.normalizedPath, length),
           longestFit,
           availableWidth,
           fullTextWidth,
@@ -362,7 +375,7 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
       this.setState({
         ...this.state,
         iterations: this.state.iterations + 1,
-        length,
+        ...createPathDisplayState(this.state.normalizedPath, length),
         shortestNonFit,
         availableWidth,
         fullTextWidth,
