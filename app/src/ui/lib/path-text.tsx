@@ -366,7 +366,7 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
       const minChars = this.state.longestFit || 0
 
       const length = clamp(Math.floor(this.state.length * ratio), minChars, maxChars)
-      console.log(`${this.state.normalizedPath} overflows at ${shortestNonFit}, ratio: ${ratio}, currentLength: ${this.state.length}, newLength: ${length}, maxChars: ${maxChars}, minChars: ${minChars}`)
+      console.log(`${this.state.normalizedPath} overflows at ${availableWidth}, shortestNonFit: ${shortestNonFit}, ratio: ${ratio}, currentLength: ${this.state.length}, newLength: ${length}, maxChars: ${maxChars}, minChars: ${minChars}`)
 
       this.setState({
         ...this.state,
