@@ -340,12 +340,8 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
         }
 
         if (availableWidth - actualWidth < 3) {
-          console.log(`${this.state.normalizedPath} fits at ${this.state.length}, doubtful that we could fit more (${this.state.normalizedPath.length - this.state.length} cut) ${this.state.iterations} iterations`)
-          this.setState({
-            ...this.state,
-            availableWidth,
-            fullTextWidth,
-          })
+          console.log(`${this.state.normalizedPath} fits at ${this.state.length}, doubtful that we could fit more (${this.state.normalizedPath.length - this.state.length} cut)`)
+          this.setState({ ...this.state, longestFit, availableWidth, fullTextWidth })
           return
         }
 
