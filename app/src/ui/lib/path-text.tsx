@@ -136,10 +136,34 @@ function createPathDisplayState(normalizedPath: string, length?: number): IPathD
     return { normalizedPath, directoryText: '', fileText: '', length }
   }
 
-  const path = truncatePath(normalizedPath, length)
-  const fileText = Path.basename(path)
-  const dirname = Path.dirname(path)
-  const directoryText = dirname === '.' ? '' : `${dirname}${Path.sep}`
+  const lastSeparator = normalizedPath.lastIndexOf(Path.sep)
+
+  const truncatedPath = truncatePath(normalizedPath, length)
+  let directoryLength = 0
+
+  // Figure out the longest shared substring between the normalized
+  // path and the truncated path up until the last separator. In other
+  // words, try to figure out how much of the directory prefix was
+  // kept before the ellipsis. This allows us to color the directory
+  // part more accurately than if we did a Path.dirname on the truncated
+  // path.
+  for (let i = 0; i < lastSeparator && i < truncatedPath.length; i++) {
+    if (normalizedPath[i] === truncatedPath[i]) {
+      directoryLength++
+    } else {
+      // We've run out of matching characters but if the truncated path
+      // has an ellipsis right where our comparison ended we'll include
+      // that as well. This is simply an aesthetic choice between coloring
+      // the ellipsis as a path prefix or as a file name.
+      if (truncatedPath[i] === '…') {
+        directoryLength++
+      }
+      break
+    }
+  }
+
+  const fileText = truncatedPath.substr(directoryLength)
+  const directoryText = truncatedPath.substr(0, directoryLength)
 
   return { normalizedPath, directoryText, fileText, length }
 }
@@ -350,7 +374,7 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
         const length = clamp(Math.floor(this.state.length * ratio), minChars, maxChars)
 
-        console.log(`${this.state.normalizedPath} could potentially fit more, ratio: ${ratio}, currentLength: ${this.state.length}, newLength: ${length}, maxChars: ${maxChars}, minChars: ${minChars}`)
+        console.log(`${this.state.normalizedPath} could potentially fit more, shortestNonFit: ${this.state.shortestNonFit}, ratio: ${ratio}, currentLength: ${this.state.length}, newLength: ${length}, maxChars: ${maxChars}, minChars: ${minChars}`)
 
         this.setState({
           ...this.state,
