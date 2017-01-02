@@ -45,14 +45,25 @@ describe('PathText', () => {
       expect(truncatePath('foo bar', 5)).to.equal('fo…ar')
       expect(truncatePath('foo bar', 3)).to.equal('f…r')
 
-      expect(truncatePath('foo\\foo bar', 6)).to.equal('fo…bar')
-      expect(truncatePath('foo\\foo bar', 9)).to.equal('…\\foo bar')
+      if (__WIN32__) {
+        expect(truncatePath('foo\\foo bar', 6)).to.equal('fo…bar')
+        expect(truncatePath('foo\\foo bar', 9)).to.equal('…\\foo bar')
+      } else {
+        expect(truncatePath('foo/foo bar', 6)).to.equal('fo…bar')
+        expect(truncatePath('foo/foo bar', 9)).to.equal('…/foo bar')
+      }
     })
 
     it('favors truncation of directory components over file names', () => {
-      expect(truncatePath('alfa\\bravo\\charlie\\delta.txt', 25)).to.equal('alfa\\bravo\\cha…\\delta.txt')
-      expect(truncatePath('alfa\\bravo\\charlie\\delta.txt', 22)).to.equal('alfa\\bravo\\…\\delta.txt')
-      expect(truncatePath('alfa\\bravo\\charlie\\delta.txt', 17)).to.equal('alfa\\b…\\delta.txt')
+      if (__WIN32__) {
+        expect(truncatePath('alfa\\bravo\\charlie\\delta.txt', 25)).to.equal('alfa\\bravo\\cha…\\delta.txt')
+        expect(truncatePath('alfa\\bravo\\charlie\\delta.txt', 22)).to.equal('alfa\\bravo\\…\\delta.txt')
+        expect(truncatePath('alfa\\bravo\\charlie\\delta.txt', 17)).to.equal('alfa\\b…\\delta.txt')
+      } else {
+        expect(truncatePath('alfa/bravo/charlie/delta.txt', 25)).to.equal('alfa/bravo/cha…/delta.txt')
+        expect(truncatePath('alfa/bravo/charlie/delta.txt', 22)).to.equal('alfa/bravo/…/delta.txt')
+        expect(truncatePath('alfa/bravo/charlie/delta.txt', 17)).to.equal('alfa/b…/delta.txt')
+      }
     })
   })
 })
