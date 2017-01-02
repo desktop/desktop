@@ -330,10 +330,13 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
       } else {
         // There might be more space to fill
         const longestFit = this.state.length
-        const maxChars = this.state.shortestNonFit || this.state.normalizedPath.length
+        const maxChars = this.state.shortestNonFit !== undefined
+          ? this.state.shortestNonFit - 1
+          : this.state.normalizedPath.length
+
         const minChars = longestFit + 1
 
-        if (minChars === maxChars) {
+        if (minChars >= maxChars) {
           console.log(`${this.state.normalizedPath} fits at ${this.state.length} (${this.state.normalizedPath.length - this.state.length} cut)`)
           this.setState({ ...this.state, longestFit, availableWidth, fullTextWidth })
           return
