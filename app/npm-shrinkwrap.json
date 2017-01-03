@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "dependencies": {
     "ansi-html": {
       "version": "0.0.6",
@@ -632,11 +632,6 @@
       "from": "node-fetch@>=1.0.1 <2.0.0",
       "resolved": "https://registry.npmjs.org/node-fetch/-/node-fetch-1.6.3.tgz"
     },
-    "node-uuid": {
-      "version": "1.4.7",
-      "from": "node-uuid@>=1.4.7 <1.5.0",
-      "resolved": "https://registry.npmjs.org/node-uuid/-/node-uuid-1.4.7.tgz"
-    },
     "npm-run-path": {
       "version": "1.0.0",
       "from": "npm-run-path@>=1.0.0 <2.0.0",
@@ -775,7 +770,14 @@
     "request": {
       "version": "2.76.0",
       "from": "request@>=2.74.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/request/-/request-2.76.0.tgz"
+      "resolved": "https://registry.npmjs.org/request/-/request-2.76.0.tgz",
+      "dependencies": {
+        "node-uuid": {
+          "version": "1.4.7",
+          "from": "node-uuid@>=1.4.7 <1.5.0",
+          "resolved": "https://registry.npmjs.org/node-uuid/-/node-uuid-1.4.7.tgz"
+        }
+      }
     },
     "rimraf": {
       "version": "2.5.4",
@@ -917,6 +919,11 @@
       "version": "1.0.2",
       "from": "util-deprecate@>=1.0.1 <1.1.0",
       "resolved": "https://registry.npmjs.org/util-deprecate/-/util-deprecate-1.0.2.tgz"
+    },
+    "uuid": {
+      "version": "3.0.1",
+      "from": "uuid@latest",
+      "resolved": "https://registry.npmjs.org/uuid/-/uuid-3.0.1.tgz"
     },
     "verror": {
       "version": "1.3.6",
