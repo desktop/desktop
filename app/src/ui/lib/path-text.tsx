@@ -287,9 +287,9 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
       if (this.state.length === this.state.normalizedPath.length) {
         // Yeay, happy path, we're already displaying the full path and it
         // fits in our new available width. Nothing left to do.
-
-        console.log('happy path! We show the full path and it still fits')
-
+        //
+        // This conditional update isn't strictly necessary but it'll save
+        // us one round of comparisons in the PureComponent shallowCompare
         if (availableWidth !== this.state.availableWidth) {
           this.setState({ ...this.state, availableWidth })
         }
@@ -300,7 +300,6 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
         // width but we're not doing so right now. Let's make sure we do
         // by keeping all the state properties and updating the availableWidth
         // and setting length to the maximum number of characters available.
-        console.log('happy path! We can show the full path, let\'s!')
         this.setState({
           ...this.state,
           ...createPathDisplayState(this.state.normalizedPath),
@@ -317,7 +316,6 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
       const resetState = createState(this.props.path, this.state.length)
 
       if (availableWidth < this.state.availableWidth) {
-        console.log(`${this.state.normalizedPath}: resetting state due to shrinking container`)
         // We've gotten less space to work with so we can keep our shortest non-fit since
         // that's still valid
         this.setState({
@@ -327,7 +325,6 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
           availableWidth,
         })
       } else if (availableWidth > this.state.availableWidth) {
-        console.log(`${this.state.normalizedPath}: resetting state due to growing container`)
         // We've gotten more space to work with so we can keep our longest fit since
         // that's still valid.
         this.setState({
@@ -341,9 +338,10 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
       return
     }
 
+    // Optimization, if we know that we can't fit anything we can avoid a reflow
+    // by not measuring the actual width.
     if (availableWidth === 0) {
       if (this.state.length !== 0) {
-        console.log(`${this.state.normalizedPath}: no available width`)
         this.setState({
           ...this.state,
           ...createPathDisplayState(this.state.normalizedPath, 0),
@@ -374,12 +372,7 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
       // We're done, the entire path fits
       if (this.state.length === this.state.normalizedPath.length) {
-        console.log(`${this.state.normalizedPath} fits at ${this.state.length} (all chars)`)
-        this.setState({
-          ...this.state,
-          availableWidth,
-          fullTextWidth,
-        })
+        this.setState({ ...this.state, availableWidth, fullTextWidth })
         return
       } else {
         // There might be more space to fill
@@ -390,22 +383,28 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
         const minChars = longestFit + 1
 
+        // We've run out of options, it fits here but we can't grow any further, i.e
+        // we're done.
         if (minChars >= maxChars) {
-          console.log(`${this.state.normalizedPath} fits at ${this.state.length} (${this.state.normalizedPath.length - this.state.length} cut)`)
           this.setState({ ...this.state, longestFit, availableWidth, fullTextWidth })
           return
         }
 
+        // Optimization, if our available space for growth is less than 3px it's unlikely
+        // that we'll be able to fit any more characters in here. Note that this is very
+        // much an optimization for our specific styles and it also assumes that the
+        // directory and file name spans are styled similarly. Another approach could be
+        // to calculated the average width of a character when we're measuring the full
+        // width and use that instead but this works pretty well for now and lets us
+        // avoid one more measure phase.
         if (availableWidth - actualWidth < 3) {
-          console.log(`${this.state.normalizedPath} fits at ${this.state.length}, doubtful that we could fit more (${this.state.normalizedPath.length - this.state.length} cut)`)
           this.setState({ ...this.state, longestFit, availableWidth, fullTextWidth })
           return
         }
 
         const length = clamp(Math.floor(this.state.length * ratio), minChars, maxChars)
 
-        console.log(`${this.state.normalizedPath} could potentially fit more, shortestNonFit: ${this.state.shortestNonFit}, ratio: ${ratio}, currentLength: ${this.state.length}, newLength: ${length}, maxChars: ${maxChars}, minChars: ${minChars}`)
-
+        // We could potentially fit more characters, there's room to try so we'll go for it
         this.setState({
           ...this.state,
           ...createPathDisplayState(this.state.normalizedPath, length),
@@ -422,7 +421,6 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
       const minChars = this.state.longestFit || 0
 
       const length = clamp(Math.floor(this.state.length * ratio), minChars, maxChars)
-      console.log(`${this.state.normalizedPath} overflows at ${availableWidth}, shortestNonFit: ${shortestNonFit}, ratio: ${ratio}, currentLength: ${this.state.length}, newLength: ${length}, maxChars: ${maxChars}, minChars: ${minChars}`)
 
       this.setState({
         ...this.state,
