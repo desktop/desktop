@@ -287,7 +287,7 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
       , 0
     )
 
-    // Can we fit the entire, untruncated, path in the available width?
+    // Can we fit the entire, path in the available width?
     if (this.state.fullTextWidth !== undefined && this.state.fullTextWidth <= availableWidth) {
 
       // Are we already doing so?
@@ -303,10 +303,10 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
         return
       } else {
-        // We _can_ fit the entire untruncated path inside the available
-        // width but we're not doing so right now. Let's make sure we do
-        // by keeping all the state properties and updating the availableWidth
-        // and setting length to the maximum number of characters available.
+        // We _can_ fit the entire path inside the available width but we're
+        // not doing so right now. Let's make sure we do by keeping all the
+        // state properties and updating the availableWidth and setting length
+        // to the maximum number of characters available.
         this.setState({
           ...this.state,
           ...createPathDisplayState(this.state.normalizedPath),
