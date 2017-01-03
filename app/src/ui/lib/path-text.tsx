@@ -287,7 +287,7 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
       , 0
     )
 
-    // Can we fit the entire, path in the available width?
+    // Can we fit the entire path in the available width?
     if (this.state.fullTextWidth !== undefined && this.state.fullTextWidth <= availableWidth) {
 
       // Are we already doing so?
