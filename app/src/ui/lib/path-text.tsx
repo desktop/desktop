@@ -78,6 +78,13 @@ function clamp(value: number, min: number, max: number): number {
   }
 }
 
+/**
+ * Truncates the given string to the number of characters given by
+ * the length parameter. The value is truncated (if necessary) by
+ * removing characters from the middle of the string and inserting
+ * an ellipsis in their place until the value fits within the alloted
+ * number of characters.
+ */
 export function truncateMid(value: string, length: number) {
   if (value.length <= length) {
     return value
