@@ -215,11 +215,11 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
   }
 
   public componentDidMount() {
-    this.resizeIfNeccessary()
+    this.resizeIfNecessary()
   }
 
   public componentDidUpdate() {
-    this.resizeIfNeccessary()
+    this.resizeIfNecessary()
   }
 
   private onPathElementRef = (element: HTMLDivElement | undefined) => {
@@ -249,7 +249,7 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
     )
   }
 
-  private resizeIfNeccessary() {
+  private resizeIfNecessary() {
     if (!this.pathElement || !this.pathInnerElement) {
       return
     }
