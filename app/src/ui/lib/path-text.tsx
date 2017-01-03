@@ -147,27 +147,46 @@ function createPathDisplayState(normalizedPath: string, length?: number): IPathD
     return { normalizedPath, directoryText: '', fileText: '', length }
   }
 
-  const lastSeparator = normalizedPath.lastIndexOf(Path.sep)
+  const normalizedFileName = Path.basename(normalizedPath)
+  const normalizedDirectory = normalizedPath.substr(0, normalizedPath.length - normalizedFileName.length)
+
+  // Happy path when it already fits, we already know the length of the directory
+  if (length >= normalizedPath.length) {
+    return {
+      normalizedPath,
+      directoryText: normalizedDirectory,
+      fileText: normalizedFileName,
+      length,
+    }
+  }
 
   const truncatedPath = truncatePath(normalizedPath, length)
   let directoryLength = 0
 
-  // Figure out the longest shared substring between the normalized
-  // path and the truncated path up until the last separator. In other
-  // words, try to figure out how much of the directory prefix was
-  // kept before the ellipsis. This allows us to color the directory
-  // part more accurately than if we did a Path.dirname on the truncated
-  // path.
-  for (let i = 0; i < lastSeparator && i < truncatedPath.length; i++) {
-    if (normalizedPath[i] === truncatedPath[i]) {
+  // Attempt to determine how much of the truncated path is the directory prefix
+  // vs the filename (basename). It does so by comparing each character in the
+  // normalized directory prefix to the truncated path, as long as it's a match
+  // we know that it's a directory name.
+  for (let i = 0; i < truncatedPath.length && i < normalizedDirectory.length; i++) {
+    const normalizedChar = normalizedDirectory[i]
+    const truncatedChar = truncatedPath[i]
+
+    if (normalizedChar === truncatedChar) {
       directoryLength++
     } else {
-      // We've run out of matching characters but if the truncated path
-      // has an ellipsis right where our comparison ended we'll include
-      // that as well. This is simply an aesthetic choice between coloring
-      // the ellipsis as a path prefix or as a file name.
-      if (truncatedPath[i] === '…') {
+      // We're no longer matching the directory prefix but if the following
+      // characters is '…' or '…/' we'll count those towards the directory
+      // as well, this is purely an aesthetic choice.
+      if (truncatedChar === '…') {
         directoryLength++
+        const nextTruncatedIx = i + 1
+
+        // Do we have one more character to read? Is is a path separator?
+        if (truncatedPath.length > nextTruncatedIx) {
+          if (truncatedPath[nextTruncatedIx] === Path.sep) {
+            directoryLength++
+          }
+        }
       }
       break
     }
