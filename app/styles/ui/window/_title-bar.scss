@@ -67,6 +67,8 @@
       background-color: transparent;
       transition: background-color 0.25s ease;
 
+      &:focus { outline: none; }
+
       &:hover {
         background-color: #888;
         color: #fff;
