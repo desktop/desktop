@@ -23,22 +23,14 @@
 
   @include darwin {
     height: var(--darwin-title-bar-height);
-    z-index: 1;
-
     background: linear-gradient(to bottom, #3b3f46 0%,#2b2e33 100%);
     border-bottom: 1px solid #000;
   }
 
-  // If you put a -webkit-app-region: drag element close to a window
-  // frame edge it prevents resizing so we move the title bar down
-  // 5px on windows to create a resize area equal to that of the sides
-  // and bottom of the app. We don't want to push the window controls
-  // down though so we'll compensate by giving them an equal but negative
-  // margin.
   @include win32 {
-    margin-top: 5px;
-    height: calc(var(--win32-title-bar-height) - 5px);
-    .window-controls { margin-top: -5px }
+    height: var(--win32-title-bar-height);
+    background: darken(#3b3f46, 10%);
+    border-bottom: 1px solid #000;
   }
 
   // Don't ever show the title bar when we're in full screen mode.
@@ -61,7 +53,7 @@
       display: inline-block;
       position: relative;
       width: 45px;
-      height: 29px;
+      height: calc(var(--win32-title-bar-height) - 1px);
       padding: 0;
       margin: 0;
       overflow: hidden;
