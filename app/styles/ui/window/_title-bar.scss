@@ -63,12 +63,13 @@
       box-shadow: none;
       border-radius: 0;
 
-      color: #fff;
+      color: #a0a0a0;
       background-color: transparent;
       transition: background-color 0.25s ease;
 
       &:hover {
         background-color: #888;
+        color: #fff;
 
         // Doing :hover:active as oposed to just :active is
         // a conscious choice to match how the real Windows
@@ -86,6 +87,7 @@
       // on hover and slightly lighter red on active.
       &.close:hover {
         background-color: #e81123;
+        color: #fff;
 
         &:active {
           background-color: #bf0f1d;
