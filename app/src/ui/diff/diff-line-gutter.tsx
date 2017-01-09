@@ -104,6 +104,11 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
    * Set (or unset) the hover styling of the diff gutter
    */
   public setHover(visible: boolean) {
+    // only show the hover effect if the line isn't context
+    if (!this.props.line.isIncludeableLine()) {
+      return
+    }
+
     if (visible) {
       this.setClass(hoverCssClass)
     } else {
@@ -200,10 +205,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
       // clear range selection in case range was previously higlighted
       this.props.updateRangeHoverState(range.start, range.end, false)
 
-      // only show the hover effect if the line isn't context
-      if (this.props.line.isIncludeableLine()) {
-        this.setHover(true)
-      }
+      this.setHover(true)
     }
 
     this.props.onMouseMove(this.props.index)
