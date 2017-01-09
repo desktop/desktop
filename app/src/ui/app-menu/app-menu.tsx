@@ -263,7 +263,6 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
    */
   private ensurePaneFocus() {
     if (this.focusPane >= 0) {
-      console.log('setting focus to ', this.focusPane)
       const pane = this.paneRefs[this.focusPane]
       if (pane) {
         pane.focus()
