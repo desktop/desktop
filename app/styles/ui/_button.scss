@@ -37,6 +37,7 @@
 .link-button-component {
   color: var(--link-button-color);
   text-decoration: none;
+  cursor: pointer;
 
   &:hover {
     text-decoration: underline;
