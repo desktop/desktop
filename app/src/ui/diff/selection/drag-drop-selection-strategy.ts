@@ -134,6 +134,11 @@ export class DragDropSelection implements ISelectionStrategy {
         return
       }
 
+      // don't select the line if it's part of the context
+      if (!element.props.line.isIncludeableLine()) {
+        return
+      }
+
       const selected = this.getIsSelected(row)
       element.setSelected(selected)
     })

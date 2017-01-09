@@ -227,17 +227,16 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
       return
     }
 
-    // ignore anything from diff context rows
-    if (!this.props.line.isIncludeableLine()) {
-      return
-    }
-
     if (elem) {
       elem.addEventListener('mouseenter', this.mouseEnterHandler)
       elem.addEventListener('mouseleave', this.mouseLeaveHandler)
       elem.addEventListener('mousemove', this.mouseMoveHandler)
-      elem.addEventListener('mousedown', this.mouseDownHandler)
       elem.addEventListener('mouseup', this.mouseUpHandler)
+
+      // no point handling mousedown events on context lines
+      if (this.props.line.isIncludeableLine()) {
+        elem.addEventListener('mousedown', this.mouseDownHandler)
+      }
     } else {
 
       // this callback fires a second time when the DOM element
