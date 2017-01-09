@@ -1,7 +1,7 @@
 import * as OS from 'os'
 import * as URL from 'url'
 import * as Querystring from 'querystring'
-import { v4 as guid } from 'node-uuid'
+import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 
 import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'

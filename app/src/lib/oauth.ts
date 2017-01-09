@@ -1,5 +1,5 @@
 import { shell } from 'electron'
-import { v4 as guid } from 'node-uuid'
+import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 import { fatalError } from './fatal-error'
 import {
