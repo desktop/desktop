@@ -172,7 +172,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       const top = viewport.top
       const cm = this.codeMirror as any
 
-      const row: number = cm.lineAtHeight(top, 'local')
+      const row = cm.lineAtHeight(top, 'local')
       const element = this.cachedGutterElements.get(row)
 
       if (!element) {
