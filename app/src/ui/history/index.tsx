@@ -64,7 +64,7 @@ export class History extends React.Component<IHistoryProps, void> {
       summary={commit.summary}
       body={commit.body}
       sha={commit.sha}
-      authorName={commit.author.name}
+      author={commit.author}
       files={this.props.history.changedFiles}
       emoji={this.props.emoji}
       repository={this.props.repository}
