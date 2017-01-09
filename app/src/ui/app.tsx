@@ -33,6 +33,7 @@ import { User } from '../models/user'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Button } from './lib/button'
 import { Form } from './lib/form'
+import { Merge } from './merge-branch'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -60,25 +61,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     props.appStore.onDidUpdate(state => {
       this.setState(state)
 
-      const selectedState = state.selectedState
-      let haveBranch = false
-      if (selectedState && selectedState.type === SelectionType.Repository) {
-        const currentBranch = selectedState.state.branchesState.currentBranch
-        const defaultBranch = selectedState.state.branchesState.defaultBranch
-        // If we are:
-        //  1. on the default branch, or
-        //  2. on an unborn branch, or
-        //  3. on a detached HEAD
-        // there's not much we can do.
-        if (!currentBranch || !defaultBranch || currentBranch.name === defaultBranch.name) {
-          haveBranch = false
-        } else {
-          haveBranch = true
-        }
-      }
-
-      setMenuEnabled('rename-branch', haveBranch)
-      setMenuEnabled('delete-branch', haveBranch)
+      this.updateMenu(state)
     })
 
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
@@ -138,6 +121,36 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
+  private updateMenu(state: IAppState) {
+    const selectedState = state.selectedState
+    let onNonDefaultBranch = false
+    let onBranch = false
+    let hasDefaultBranch = false
+    if (selectedState && selectedState.type === SelectionType.Repository) {
+      const currentBranch = selectedState.state.branchesState.currentBranch
+      const defaultBranch = selectedState.state.branchesState.defaultBranch
+
+      onBranch = Boolean(currentBranch)
+      hasDefaultBranch = Boolean(defaultBranch)
+
+      // If we are:
+      //  1. on the default branch, or
+      //  2. on an unborn branch, or
+      //  3. on a detached HEAD
+      // there's not much we can do.
+      if (!currentBranch || !defaultBranch || currentBranch.name === defaultBranch.name) {
+        onNonDefaultBranch = false
+      } else {
+        onNonDefaultBranch = true
+      }
+    }
+
+    setMenuEnabled('rename-branch', onNonDefaultBranch)
+    setMenuEnabled('delete-branch', onNonDefaultBranch)
+    setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
+    setMenuEnabled('merge-branch', onBranch)
+  }
+
   private onMenuEvent(name: MenuEvent): any {
     switch (name) {
       case 'push': return this.push()
@@ -156,6 +169,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
       case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
       case 'open-working-directory': return this.openWorkingDirectory()
+      case 'update-branch': return this.updateBranch()
+      case 'merge-branch': return this.mergeBranch()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -181,6 +196,26 @@ export class App extends React.Component<IAppProps, IAppState> {
     const users = state.users
     const enterpriseUser = users.find(u => u.endpoint !== getDotComAPIEndpoint())
     return enterpriseUser || null
+  }
+
+  private updateBranch() {
+    const state = this.state.selectedState
+    if (!state || state.type !== SelectionType.Repository) { return }
+
+    const defaultBranch = state.state.branchesState.defaultBranch
+    if (!defaultBranch) { return }
+
+    this.props.dispatcher.mergeBranch(state.repository, defaultBranch.name)
+  }
+
+  private mergeBranch() {
+    const state = this.state.selectedState
+    if (!state || state.type !== SelectionType.Repository) { return }
+
+    this.props.dispatcher.showPopup({
+      type: PopupType.MergeBranch,
+      repository: state.repository,
+    })
   }
 
   private openWorkingDirectory() {
@@ -431,6 +466,14 @@ export class App extends React.Component<IAppProps, IAppState> {
         dispatcher={this.props.dispatcher}
         dotComUser={this.getDotComUser()}
         enterpriseUser={this.getEnterpriseUser()}/>
+    } else if (popup.type === PopupType.MergeBranch) {
+      const repository = popup.repository
+      const state = this.props.appStore.getRepositoryState(repository)
+      return <Merge
+        dispatcher={this.props.dispatcher}
+        repository={repository}
+        branches={state.branchesState.allBranches}
+      />
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)

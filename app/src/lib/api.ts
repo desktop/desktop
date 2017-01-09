@@ -1,7 +1,7 @@
 import * as OS from 'os'
 import * as URL from 'url'
 import * as Querystring from 'querystring'
-import { v4 as guid } from 'node-uuid'
+import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 
 import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
@@ -128,14 +128,7 @@ export class API {
 
   /** Fetch a repo by its owner and name. */
   public async fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
-    const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}`)
-    const repository = deserialize<IAPIRepository>(response.body)
-
-    if (repository) {
-      return repository
-    }
-
-    throw new Error(`Unable to find repository: ${owner}/${name}`)
+    return this.client.repos(owner, name).fetch()
   }
 
   /** Fetch the logged in user. */

@@ -12,7 +12,7 @@ import { Commit } from '../../models/commit'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
-import { v4 as guid } from 'node-uuid'
+import { v4 as guid } from 'uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { StatsStore, ILaunchStats } from '../stats'
@@ -444,6 +444,11 @@ export class Dispatcher {
    */
   public setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
     return this.appStore._setAppMenuToolbarButtonHighlightState(highlight)
+  }
+
+  /** Merge the named branch into the current branch. */
+  public mergeBranch(repository: Repository, branch: string): Promise<void> {
+    return this.appStore._mergeBranch(repository, branch)
   }
 
   /** Record the given launch stats. */
