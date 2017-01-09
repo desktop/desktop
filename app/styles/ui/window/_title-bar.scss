@@ -119,9 +119,11 @@
 
 #desktop-app-title-bar.light-title-bar {
   @include darwin {
-    height: var(--darwin-title-bar-height);
-    z-index: 1;
+    background: transparent;
+    border-bottom: none;
+  }
 
+  @include win32 {
     background: transparent;
     border-bottom: none;
   }
