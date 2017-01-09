@@ -99,20 +99,8 @@
         }
       }
 
-      svg {
-        position: absolute;
-
-        /* https://css-tricks.com/cascading-svg-fill-color/ */
-        fill: currentColor;
-
-        // These may seem arbitrary but in an uneven 45x29 box
-        // this positions the 10x10 icons centered but rounded
-        // down as opposed to rounded up which they'd be if we
-        // made the button a flexbox and told it to center the
-        // svg horizontally and vertically.
-        top: 9px;
-        left: 17px;
-      }
+      /* https://css-tricks.com/cascading-svg-fill-color/ */
+      svg { fill: currentColor; }
     }
   }
 }
