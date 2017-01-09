@@ -196,9 +196,14 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     if (isRangeSelection && range && isSelectionActive) {
       this.props.updateRangeHoverState(range.start, range.end, true)
     } else {
+
       // clear range selection in case range was previously higlighted
       this.props.updateRangeHoverState(range.start, range.end, false)
-      this.setHover(true)
+
+      // only show the hover effect if the line isn't context
+      if (this.props.line.isIncludeableLine()) {
+        this.setHover(true)
+      }
     }
 
     this.props.onMouseMove(this.props.index)
