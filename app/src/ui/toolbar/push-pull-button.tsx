@@ -124,7 +124,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
 
     const lastFetched = this.props.lastFetched
     if (lastFetched) {
-      return <div>Last fetched <RelativeTime date={lastFetched} /></div>
+      return <span>Last fetched <RelativeTime date={lastFetched} /></span>
     } else {
       return 'Never fetched'
     }
