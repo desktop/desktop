@@ -38,12 +38,12 @@ describe('App', () => {
     await statsDb.reset()
     statsStore = new StatsStore(statsDb)
 
-    dispatcher = new InMemoryDispatcher(appStore)
+    dispatcher = new InMemoryDispatcher(appStore, statsStore)
   })
 
   it('renders', () => {
     const app = TestUtils.renderIntoDocument(
-      <App dispatcher={dispatcher!} appStore={appStore!} statsStore={statsStore!}/>
+      <App dispatcher={dispatcher!} appStore={appStore!}/>
     ) as React.Component<any, any>
     const node = ReactDOM.findDOMNode(app)
     expect(node).not.to.equal(null)

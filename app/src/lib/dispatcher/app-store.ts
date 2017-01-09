@@ -36,6 +36,7 @@ import { BackgroundFetcher } from './background-fetcher'
 import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { getAppMenu } from '../../ui/main-process-proxy'
+import { merge } from '../merge'
 
 import {
   getGitDir,
@@ -219,7 +220,7 @@ export class AppStore {
     let state = this.repositoryState.get(repository.id)
     if (state) {
       const gitHubUsers = this.gitHubUserStore.getUsersForRepository(repository) || new Map<string, IGitHubUser>()
-      return { ...state, gitHubUsers }
+      return merge(state, { gitHubUsers })
     }
 
     state = this.getInitialRepositoryState()
@@ -227,29 +228,32 @@ export class AppStore {
     return state
   }
 
-  private updateRepositoryState(repository: Repository, fn: (state: IRepositoryState) => IRepositoryState) {
+  private updateRepositoryState<K extends keyof IRepositoryState>(repository: Repository, fn: (state: IRepositoryState) => Pick<IRepositoryState, K>) {
     const currentState = this.getRepositoryState(repository)
-    this.repositoryState.set(repository.id, fn(currentState))
+    const newValues = fn(currentState)
+    this.repositoryState.set(repository.id, merge(currentState, newValues))
   }
 
-  private updateHistoryState(repository: Repository, fn: (historyState: IHistoryState) => IHistoryState) {
+  private updateHistoryState<K extends keyof IHistoryState>(repository: Repository, fn: (historyState: IHistoryState) => Pick<IHistoryState, K>) {
     this.updateRepositoryState(repository, state => {
-      const historyState = fn(state.historyState)
-      return { ...state, historyState }
+      const historyState = state.historyState
+      const newValues = fn(historyState)
+      return { historyState: merge(historyState, newValues) }
     })
   }
 
-  private updateChangesState(repository: Repository, fn: (changesState: IChangesState) => IChangesState) {
+  private updateChangesState<K extends keyof IChangesState>(repository: Repository, fn: (changesState: IChangesState) => Pick<IChangesState, K>) {
     this.updateRepositoryState(repository, state => {
-      const changesState = fn(state.changesState)
-      return { ...state, changesState }
+      const changesState = state.changesState
+      const newValues = fn(changesState)
+      return { changesState: merge(changesState, newValues) }
     })
   }
 
   private updateBranchesState(repository: Repository, fn: (branchesState: IBranchesState) => IBranchesState) {
     this.updateRepositoryState(repository, state => {
       const branchesState = fn(state.branchesState)
-      return { ...state, branchesState }
+      return { branchesState }
     })
   }
 
@@ -298,7 +302,7 @@ export class AppStore {
 
   private onGitStoreUpdated(repository: Repository, gitStore: GitStore) {
     this.updateHistoryState(repository, state => (
-      { ...state, history: gitStore.history }
+      { history: gitStore.history }
     ))
 
     this.updateBranchesState(repository, state => (
@@ -312,7 +316,6 @@ export class AppStore {
 
     this.updateChangesState(repository, state => (
       {
-        ...state,
         commitMessage: gitStore.commitMessage,
         contextualCommitMessage: gitStore.contextualCommitMessage,
       }
@@ -320,7 +323,6 @@ export class AppStore {
 
     this.updateRepositoryState(repository, state => (
       {
-        ...state,
         commits: gitStore.commits,
         localCommitSHAs: gitStore.localCommitSHAs,
         aheadBehind: gitStore.aheadBehind,
@@ -418,7 +420,7 @@ export class AppStore {
       sha: selection.sha,
     }
 
-    this.updateHistoryState(repository, state => ({ ...state, changedFiles }))
+    this.updateHistoryState(repository, state => ({ changedFiles }))
 
     this.emitUpdate()
 
@@ -436,7 +438,7 @@ export class AppStore {
       const selection = { sha, file }
       const diff = null
 
-      return { ...state, selection, changedFiles, diff }
+      return { selection, changedFiles, diff }
     })
     this.emitUpdate()
   }
@@ -447,7 +449,7 @@ export class AppStore {
     this.updateHistoryState(repository, state => {
       const selection = { sha: state.selection.sha, file }
       const diff = null
-      return { ...state, selection, diff }
+      return { selection, diff }
     })
     this.emitUpdate()
 
@@ -473,14 +475,14 @@ export class AppStore {
 
     this.updateHistoryState(repository, state => {
       const selection = { sha: state.selection.sha, file }
-      return { ...state, selection, diff }
+      return { selection, diff }
     })
 
     this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _selectRepository(repository: Repository | CloningRepository | null): Promise<void> {
+  public async _selectRepository(repository: Repository | CloningRepository | null): Promise<void> {
     this.selectedRepository = repository
     this.emitUpdate()
 
@@ -489,8 +491,6 @@ export class AppStore {
     if (!repository) { return Promise.resolve() }
 
     if (repository instanceof Repository) {
-      this.startBackgroundFetching(repository)
-
       localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
 
       const gitHubRepository = repository.gitHubRepository
@@ -498,7 +498,9 @@ export class AppStore {
         this._updateIssues(gitHubRepository)
       }
 
-      return this._refreshRepository(repository)
+      await this._refreshRepository(repository)
+
+      this.startBackgroundFetching(repository)
     } else {
       return Promise.resolve()
     }
@@ -642,7 +644,7 @@ export class AppStore {
       // if it hasn't changed we can reuse the diff
       const diff = fileSelectionChanged ? null : state.diff
 
-      return { ...state, workingDirectory, selectedFile, diff }
+      return { workingDirectory, selectedFile, diff }
     })
     this.emitUpdate()
 
@@ -651,7 +653,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeRepositorySection(repository: Repository, selectedSection: RepositorySection): Promise<void> {
-    this.updateRepositoryState(repository, state => ({ ...state, selectedSection }))
+    this.updateRepositoryState(repository, state => ({ selectedSection }))
     this.emitUpdate()
 
     if (selectedSection === RepositorySection.History) {
@@ -664,7 +666,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
     this.updateChangesState(repository, state => (
-      { ...state, selectedFile, diff: null }
+      { selectedFile, diff: null }
     ))
     this.emitUpdate()
 
@@ -708,26 +710,29 @@ export class AppStore {
     if (!stateAfterLoad.changesState.selectedFile) { return }
     if (stateAfterLoad.changesState.selectedFile.id !== selectedFile.id) { return }
 
-    this.updateChangesState(repository, state => ({ ...state, selectedFile, diff }))
+    this.updateChangesState(repository, state => ({ selectedFile, diff }))
     this.emitUpdate()
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<void> {
+  public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => {
+    const result = await gitStore.performFailableOperation(() => {
       const commitMessage = formatCommitMessage(message)
       return createCommit(repository, commitMessage, files)
     })
 
-    await this._refreshRepository(repository)
+    if (result) {
+      await this._refreshRepository(repository)
+      await this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
+    }
 
-    return this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
+    return result || false
   }
 
   private getIncludeAllState(files: ReadonlyArray<WorkingDirectoryFileChange>): boolean | null {
@@ -780,7 +785,7 @@ export class AppStore {
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
       const diff = selectedFile ? state.diff : null
 
-      return { ...state, workingDirectory, selectedFile, diff }
+      return { workingDirectory, selectedFile, diff }
     })
 
     this.emitUpdate()
@@ -796,7 +801,7 @@ export class AppStore {
 
       const workingDirectory = state.workingDirectory.withIncludeAllFiles(includeAll)
 
-      return { ...state, workingDirectory, selectedFile }
+      return { workingDirectory, selectedFile }
     })
     this.emitUpdate()
 
@@ -867,7 +872,7 @@ export class AppStore {
       getAuthorIdentity(repository)
     ) || null
 
-    this.updateRepositoryState(repository, state => ({ ...state, commitAuthor }))
+    this.updateRepositoryState(repository, state => ({ commitAuthor }))
     this.emitUpdate()
   }
 
@@ -1026,16 +1031,12 @@ export class AppStore {
   }
 
   private async withPushPull(repository: Repository, fn: () => Promise<void>): Promise<void> {
-    this.updateRepositoryState(repository, state => (
-      { ...state, pushPullInProgress: true }
-    ))
+    this.updateRepositoryState(repository, state => ({ pushPullInProgress: true }))
     this.emitUpdate()
 
     await fn()
 
-    this.updateRepositoryState(repository, state => (
-      { ...state, pushPullInProgress: false }
-    ))
+    this.updateRepositoryState(repository, state => ({ pushPullInProgress: false }))
     this.emitUpdate()
   }
 

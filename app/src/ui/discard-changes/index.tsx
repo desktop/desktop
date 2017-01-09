@@ -33,5 +33,6 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
 
   private discard = () => {
     this.props.dispatcher.discardChanges(this.props.repository, this.props.files)
+    this.props.dispatcher.closePopup()
   }
 }

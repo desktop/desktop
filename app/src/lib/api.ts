@@ -1,27 +1,13 @@
 import * as OS from 'os'
 import * as URL from 'url'
 import * as Querystring from 'querystring'
-import * as HTTP from 'http'
 import { v4 as guid } from 'node-uuid'
 import { User } from '../models/user'
-import * as appProxy from '../ui/lib/app-proxy'
+
+import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
 
 const Octokat = require('octokat')
-const got = require('got')
 const username: () => Promise<string> = require('username')
-const camelCase: (str: string) => string = require('to-camel-case')
-
-/** The response from `got` requests. */
-interface IHTTPResponse extends HTTP.IncomingMessage {
-  /** The body of the response if the request was successful. */
-  readonly body?: any
-
-  /** An error if one occurred. */
-  readonly error?: Error
-}
-
-/** The HTTP methods available. */
-type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
@@ -93,7 +79,19 @@ export interface IServerMetadata {
    * Does the server support password-based authentication? If not, the user
    * must go through the OAuth flow to authenticate.
    */
-  readonly verifiablePasswordAuthentication: boolean
+  readonly verifiable_password_authentication: boolean
+}
+
+/** The server response when handling the OAuth callback (with code) to obtain an access token */
+interface IAPIAccessToken {
+  readonly access_token: string
+  readonly scope: string
+  readonly token_type: string
+}
+
+/** The partial server response when creating a new authorization on behalf of a user */
+interface IAPIAuthorization {
+  readonly token: string
 }
 
 /**
@@ -129,7 +127,7 @@ export class API {
   }
 
   /** Fetch a repo by its owner and name. */
-  public fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
+  public async fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
     return this.client.repos(owner, name).fetch()
   }
 
@@ -208,15 +206,19 @@ export class API {
     return allItems.filter((i: any) => !i.pullRequest)
   }
 
-  private authenticatedRequest(method: HTTPMethod, path: string, body: Object | null): Promise<IHTTPResponse> {
+  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object): Promise<IHTTPResponse> {
     return request(this.user.endpoint, `token ${this.user.token}`, method, path, body)
   }
 
   /** Get the allowed poll interval for fetching. */
   public async getFetchPollInterval(owner: string, name: string): Promise<number> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
-    const response = await this.authenticatedRequest('HEAD', path, null)
-    return response.headers['x-poll-interval'] || 0
+    const response = await this.authenticatedRequest('HEAD', path)
+    const interval = getHeader(response, 'x-poll-interval')
+    if (interval) {
+      return parseInt(interval, 10)
+    }
+    return 0
   }
 }
 
@@ -253,7 +255,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
   }, headers)
 
   if (response.statusCode === 401) {
-    const otpResponse: string | null = response.headers['x-github-otp']
+    const otpResponse = getHeader(response, 'x-github-otp')
     if (otpResponse) {
       const pieces = otpResponse.split(';')
       if (pieces.length === 2) {
@@ -265,10 +267,12 @@ export async function createAuthorization(endpoint: string, login: string, passw
     return { kind: AuthorizationResponseKind.Failed, response }
   }
 
-  const body = response.body
-  const token = body.token
-  if (token && token.length) {
-    return { kind: AuthorizationResponseKind.Authorized, token }
+  const body = deserialize<IAPIAuthorization>(response.body)
+  if (body) {
+    const token = body.token
+    if (token && typeof token === 'string' && token.length) {
+      return { kind: AuthorizationResponseKind.Authorized, token }
+    }
   }
 
   return { kind: AuthorizationResponseKind.Error, response }
@@ -283,59 +287,17 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 
 /** Get metadata from the server. */
 export async function fetchMetadata(endpoint: string): Promise<IServerMetadata | null> {
-  const response = await request(endpoint, null, 'GET', 'meta', null)
+  const response = await request(endpoint, null, 'GET', 'meta')
   if (response.statusCode === 200) {
-    const body: IServerMetadata = toCamelCase(response.body)
+    const body = deserialize<IServerMetadata>(response.body)
     // If the response doesn't include the field we need, then it's not a valid
     // response.
-    if (body.verifiablePasswordAuthentication === undefined) { return null }
+    if (!body || body.verifiable_password_authentication === undefined) { return null }
 
     return body
   } else {
     return null
   }
-}
-
-/**
- * Make an API request.
- *
- * @param endpoint      - The API endpoint.
- * @param authorization - The value to pass in the `Authorization` header.
- * @param method        - The HTTP method.
- * @param path          - The path without a leading /.
- * @param body          - The body to send.
- * @param customHeaders - Any optional additional headers to send.
- */
-function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body: Object | null, customHeaders?: Object): Promise<IHTTPResponse> {
-  const url = `${endpoint}/${path}`
-  const headers: any = Object.assign({}, {
-    'Accept': 'application/vnd.github.v3+json, application/json',
-    'Content-Type': 'application/json',
-    'User-Agent': `${appProxy.getName()}/${appProxy.getVersion()}`,
-  }, customHeaders)
-  if (authorization) {
-    headers['Authorization'] = authorization
-  }
-
-  const options: any = {
-    headers,
-    method,
-    json: true,
-  }
-
-  if (body) {
-    options.body = JSON.stringify(body)
-  }
-
-  return got(url, options).catch((e: any) => {
-    const response = e.response
-    if (response) {
-      response.error = e
-      return response
-    } else {
-      throw e
-    }
-  })
 }
 
 /** The note used for created authorizations. */
@@ -350,17 +312,6 @@ async function getNote(): Promise<string> {
   }
 
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`
-}
-
-/** Turn keys into camel case. */
-export function toCamelCase(body: any): any {
-  const result: any = {}
-  for (const key in body) {
-    const value = body[key]
-    result[camelCase(key)] = value
-  }
-
-  return result
 }
 
 /**
@@ -421,5 +372,10 @@ export async function requestOAuthToken(endpoint: string, state: string, code: s
     'state': state,
   })
 
-  return response.body.access_token
+  const body = deserialize<IAPIAccessToken>(response.body)
+  if (body) {
+    return body.access_token
+  }
+
+  return null
 }

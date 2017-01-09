@@ -62,8 +62,8 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     }
   }
 
-  private onCreateCommit = (message: ICommitMessage) => {
-    this.props.dispatcher.commitIncludedChanges(this.props.repository, message)
+  private onCreateCommit = (message: ICommitMessage): Promise<boolean> => {
+    return this.props.dispatcher.commitIncludedChanges(this.props.repository, message)
   }
 
   private onFileSelectionChanged = (row: number) => {

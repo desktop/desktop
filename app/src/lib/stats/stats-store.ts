@@ -1,7 +1,8 @@
-const got = require('got')
-
-import { StatsDatabase, ILaunchStats } from './stats-database'
+import * as OS from 'os'
+import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
 import { getVersion } from '../../ui/lib/app-proxy'
+import { proxyRequest } from '../../ui/main-process-proxy'
+import { IHTTPRequest } from '../http'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -10,7 +11,7 @@ const LastDailyStatsReportKey = 'last-daily-stats-report'
 /** How often daily stats should be submitted (i.e., 24 hours). */
 const DailyStatsReportInterval = 1000 * 60 * 60 * 24
 
-type DailyStats = { version: string } & ILaunchStats
+type DailyStats = { version: string } & ILaunchStats & IDailyMeasures
 
 /** The store for the app's stats. */
 export class StatsStore {
@@ -49,20 +50,20 @@ export class StatsStore {
 
     const now = Date.now()
     const stats = await this.getDailyStats()
-    const body = JSON.stringify(stats)
-    const options = {
-      body,
+    const options: IHTTPRequest = {
+      url: StatsEndpoint,
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(body),
       },
+      body: stats,
     }
 
     try {
-      await got.post(StatsEndpoint, options)
+      await proxyRequest(options)
       console.log('Stats reported.')
 
-      await this.clearLaunchStats()
+      await this.clearDailyStats()
       localStorage.setItem(LastDailyStatsReportKey, now.toString())
     } catch (e) {
       console.error('Error reporting stats:')
@@ -75,14 +76,23 @@ export class StatsStore {
     await this.db.launches.add(stats)
   }
 
-  /** Clear the stored launch stats. */
-  private async clearLaunchStats() {
+  /** Clear the stored daily stats. */
+  private async clearDailyStats() {
     await this.db.launches.clear()
+    await this.db.dailyMeasures.clear()
   }
 
+  /** Get the daily stats. */
   private async getDailyStats(): Promise<DailyStats> {
     const launchStats = await this.getAverageLaunchStats()
-    return { version: getVersion(), ...launchStats }
+    const dailyMeasures = await this.getDailyMeasures()
+    return {
+      version: getVersion(),
+      osVersion: OS.release(),
+      platform: process.platform,
+      ...launchStats,
+      ...dailyMeasures,
+    }
   }
 
   /** Calculate the average launch stats. */
@@ -106,5 +116,34 @@ export class StatsStore {
       loadTime: totals.loadTime / launches.length,
       rendererReadyTime: totals.rendererReadyTime / launches.length,
     }
+  }
+
+  /** Get the daily measures. */
+  private async getDailyMeasures(): Promise<IDailyMeasures> {
+    const measures: IDailyMeasures = await this.db.dailyMeasures.limit(1).first()
+    return measures
+  }
+
+  /** Record that a commit was accomplished. */
+  public async recordCommit() {
+    const db = this.db
+    await this.db.transaction('rw', this.db.dailyMeasures, function*() {
+      let measures: IDailyMeasures | null = yield db.dailyMeasures.limit(1).first()
+      if (!measures) {
+        measures = {
+          commits: 0,
+        }
+      }
+
+      let newMeasures: IDailyMeasures = {
+        commits: measures.commits + 1,
+      }
+
+      if (measures.id) {
+        newMeasures = { ...newMeasures, id: measures.id }
+      }
+
+      return db.dailyMeasures.put(newMeasures)
+    })
   }
 }
