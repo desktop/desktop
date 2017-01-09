@@ -446,6 +446,11 @@ export class Dispatcher {
     return this.appStore._setAppMenuToolbarButtonHighlightState(highlight)
   }
 
+  /** Merge the named branch into the current branch. */
+  public mergeBranch(repository: Repository, branch: string): Promise<void> {
+    return this.appStore._mergeBranch(repository, branch)
+  }
+
   /** Record the given launch stats. */
   public recordLaunchStats(stats: ILaunchStats): Promise<void> {
     return this.statsStore.recordLaunchStats(stats)
