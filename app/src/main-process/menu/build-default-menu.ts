@@ -199,6 +199,17 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         id: 'delete-branch',
         click: emit('delete-branch'),
       },
+      { type: 'separator' },
+      {
+        label: __DARWIN__ ? 'Update from default branch' : '&Update from default branch',
+        id: 'update-branch',
+        click: emit('update-branch'),
+      },
+      {
+        label: __DARWIN__ ? 'Merge into current branch…' : '&Merge into current branch…',
+        id: 'merge-branch',
+        click: emit('merge-branch'),
+      },
     ],
   })
 

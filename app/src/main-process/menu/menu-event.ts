@@ -14,4 +14,6 @@ export type MenuEvent =
   'quit-and-install-update' |
   'show-preferences' |
   'choose-repository' |
-  'open-working-directory'
+  'open-working-directory' |
+  'update-branch' |
+  'merge-branch'

@@ -5,4 +5,6 @@ export type MenuIDs =
   'checking-for-updates' |
   'downloading-update' |
   'quit-and-install-update' |
-  'preferences'
+  'preferences' |
+  'update-branch' |
+  'merge-branch'
