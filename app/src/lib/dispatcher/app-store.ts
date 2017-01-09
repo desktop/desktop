@@ -1034,10 +1034,12 @@ export class AppStore {
     this.updateRepositoryState(repository, state => ({ pushPullInProgress: true }))
     this.emitUpdate()
 
-    await fn()
-
-    this.updateRepositoryState(repository, state => ({ pushPullInProgress: false }))
-    this.emitUpdate()
+    try {
+      await fn()
+    } finally {
+      this.updateRepositoryState(repository, state => ({ pushPullInProgress: false }))
+      this.emitUpdate()
+    }
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
