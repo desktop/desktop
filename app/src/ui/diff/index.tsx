@@ -235,15 +235,9 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.endSelection()
   }
 
-  private onGutterMouseDown = (index: number, isRangeSelection: boolean) => {
+  private onGutterMouseDown = (index: number, diff: ITextDiff, isRangeSelection: boolean) => {
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
       fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
-      return
-    }
-
-    const diff = this.props.diff
-    if (diff.kind !== DiffType.Text) {
-      // text diffs are the only ones that can handle selection
       return
     }
 
@@ -265,15 +259,9 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.selection.paint(this.cachedGutterElements)
   }
 
-  private onDiffTextMouseMove = (ev: MouseEvent, index: number) => {
+  private onDiffTextMouseMove = (ev: MouseEvent, diff: ITextDiff, index: number) => {
     const isActive = this.isMouseCursorNearGutter(ev)
     if (isActive === null) {
-      return
-    }
-
-    const diff = this.props.diff
-    if (diff.kind !== DiffType.Text) {
-      // text diffs are the only ones that can handle selection
       return
     }
 
@@ -295,14 +283,8 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.updateRangeHoverState(range.start, range.end, isActive)
   }
 
-  private onDiffTextMouseDown = (ev: MouseEvent, index: number) => {
+  private onDiffTextMouseDown = (ev: MouseEvent, diff: ITextDiff, index: number) => {
     const isActive = this.isMouseCursorNearGutter(ev)
-
-    const diff = this.props.diff
-    if (diff.kind !== DiffType.Text) {
-      // text diffs are the only ones that can handle selection
-      return
-    }
 
     if (isActive) {
       // this line is important because it prevents the codemirror editor
@@ -320,13 +302,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
   }
 
-  private onDiffTextMouseLeave = (ev: MouseEvent, index: number) => {
-    const diff = this.props.diff
-    if (diff.kind !== DiffType.Text) {
-      // text diffs are the only ones that can handle selection
-      return
-    }
-
+  private onDiffTextMouseLeave = (ev: MouseEvent, diff: ITextDiff, index: number) => {
     const range = findInteractiveDiffRange(diff, index)
     if (!range) {
       console.error('unable to find range for given index in diff')
@@ -400,11 +376,11 @@ export class Diff extends React.Component<IDiffProps, void> {
       )
 
       const onMouseMoveLine: (ev: MouseEvent) => void = (ev) => {
-        this.onDiffTextMouseMove(ev, index)
+        this.onDiffTextMouseMove(ev, diff, index)
       }
 
       const onMouseDownLine: (ev: MouseEvent) => void = (ev) => {
-        this.onDiffTextMouseDown(ev, index)
+        this.onDiffTextMouseDown(ev, diff, index)
       }
 
       const onMouseUpLine: (ev: MouseEvent) => void = (ev) => {
@@ -412,7 +388,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       }
 
       const onMouseLeaveLine: (ev: MouseEvent) => void = (ev) => {
-        this.onDiffTextMouseLeave(ev, index)
+        this.onDiffTextMouseLeave(ev, diff, index)
       }
 
       if (!this.props.readOnly) {

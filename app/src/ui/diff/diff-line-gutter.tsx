@@ -49,7 +49,7 @@ interface IDiffGutterProps {
   /**
    * Callback to signal when the mouse button is pressed on this element
    */
-  readonly onMouseDown: (index: number, isRangeSelection: boolean) => void
+  readonly onMouseDown: (index: number, diff: ITextDiff, isRangeSelection: boolean) => void
 
   /**
    * Callback to signal when the mouse is hovering over this element
@@ -225,7 +225,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private mouseDownHandler = (ev: MouseEvent) => {
     ev.preventDefault()
     const isRangeSelection = isMouseCursorNearEdge(ev)
-    this.props.onMouseDown(this.props.index, isRangeSelection)
+    this.props.onMouseDown(this.props.index, this.props.diff, isRangeSelection)
   }
 
   private applyEventHandlers = (elem: HTMLSpanElement) => {
