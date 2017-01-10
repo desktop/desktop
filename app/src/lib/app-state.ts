@@ -73,6 +73,9 @@ export interface IAppState {
    */
   readonly sidebarWidth: number
 
+  /** The width of the commit summary column in the history view */
+  readonly commitSummaryWidth: number
+
   /** Whether we should hide the toolbar (and show inverted window controls) */
   readonly titleBarStyle: 'light' | 'dark'
 

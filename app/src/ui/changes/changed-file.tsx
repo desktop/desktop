@@ -13,6 +13,7 @@ interface IChangedFileProps {
   readonly include: boolean | null
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onDiscardChanges: (path: string) => void
+  readonly availableWidth: number
 }
 
 /** a changed file in the working directory for a given repository */
@@ -37,6 +38,13 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     const status = this.props.status
     const fileStatus = mapStatus(status)
 
+    const listItemPadding = 5 + 5
+    const checkboxWidth = 20 + 5
+    const statusWidth = 16
+    const filePadding = 5
+
+    const availablePathWidth = this.props.availableWidth - listItemPadding - checkboxWidth - filePadding - statusWidth
+
     return (
       <div className='file' onContextMenu={this.onContextMenu}>
 
@@ -48,9 +56,12 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
           value={this.checkboxValue}
           onChange={this.handleCheckboxChange}/>
 
-        <PathLabel path={this.props.path}
-                   oldPath={this.props.oldPath}
-                   status={this.props.status} />
+        <PathLabel
+          path={this.props.path}
+          oldPath={this.props.oldPath}
+          status={this.props.status}
+          availableWidth={availablePathWidth}
+        />
 
         <Octicon symbol={iconForStatus(status)}
                  className={'status status-' + fileStatus.toLowerCase()}

@@ -8,6 +8,7 @@ interface IFileListProps {
   readonly files: ReadonlyArray<FileChange>
   readonly selectedFile: FileChange | null
   readonly onSelectedFileChanged: (file: FileChange) => void
+  readonly availableWidth: number
 }
 
 export class FileList extends React.Component<IFileListProps, void> {
@@ -21,15 +22,25 @@ export class FileList extends React.Component<IFileListProps, void> {
     const status = file.status
     const fileStatus = mapStatus(status)
 
+    const listItemPadding = 5 + 5
+    const statusWidth = 16
+    const filePathPadding = 5
+    const availablePathWidth = this.props.availableWidth - listItemPadding - filePathPadding - statusWidth
+
     return <div className='file'>
 
-      <PathLabel path={file.path}
-                 oldPath={file.oldPath}
-                 status={file.status} />
+      <PathLabel
+        path={file.path}
+        oldPath={file.oldPath}
+        status={file.status}
+        availableWidth={availablePathWidth}
+      />
 
-      <Octicon symbol={iconForStatus(status)}
-               className={'status status-' + fileStatus.toLowerCase()}
-               title={fileStatus} />
+      <Octicon
+        symbol={iconForStatus(status)}
+        className={'status status-' + fileStatus.toLowerCase()}
+        title={fileStatus}
+      />
 
     </div>
   }

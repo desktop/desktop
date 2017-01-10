@@ -375,6 +375,22 @@ export class Dispatcher {
     return this.appStore._resetSidebarWidth()
   }
 
+  /**
+   * Set the width of the commit summary column in the
+   * history view to the given value.
+   */
+  public setCommitSummaryWidth(width: number): Promise<void> {
+    return this.appStore._setCommitSummaryWidth(width)
+  }
+
+  /**
+   * Reset the width of the commit summary column in the
+   * history view to its default value.
+   */
+  public resetCommitSummaryWidth(): Promise<void> {
+    return this.appStore._resetCommitSummaryWidth()
+  }
+
   /** Update the repository's issues from GitHub. */
   public updateIssues(repository: GitHubRepository): Promise<void> {
     return this.appStore._updateIssues(repository)
