@@ -77,7 +77,10 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   public render() {
     const step = this.state.step
     if (step.kind === SignInStep.EndpointEntry) {
-      return <EnterpriseServerEntry onContinue={this.onContinue}/>
+      return <EnterpriseServerEntry
+        onContinue={this.onContinue}
+        additionalButtons={this.props.children}
+      />
     } else if (step.kind === SignInStep.Authentication) {
       const supportsBasicAuth = step.authMethods.has(AuthenticationMethods.BasicAuth)
       return <AuthenticationForm
