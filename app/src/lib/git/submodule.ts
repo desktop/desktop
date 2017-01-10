@@ -18,7 +18,7 @@ export class SubmoduleChange {
   public readonly type: FileStatus
 }
 
-const zeroSha = '0000000000000000000000000000000000000000'
+const zeroSha = /0{7,40}/
 const submoduleMode = '160000'
 
 // NOTE:
@@ -37,7 +37,7 @@ function formatSha(text: string): string {
  * represents a non-existent object.
  */
 function getIdentifier(input: string): string | undefined {
-  if (input === zeroSha) {
+  if (zeroSha.test(input)) {
     return undefined
   }
   return formatSha(input)
@@ -71,8 +71,8 @@ async function getSubmoduleDetailsWorkingDirectory(repository: Repository, file:
     if (match) {
       const path = file.path
       const type = file.status
-      const from = match[1]
-      const to = match[2]
+      const from = getIdentifier(match[1])
+      const to = getIdentifier(match[2])
       return { path, from, to, type }
     }
 
