@@ -1,3 +1,5 @@
+import * as Path from 'path'
+
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { FileStatus, FileChange, WorkingDirectoryFileChange } from '../../models/status'
@@ -43,27 +45,46 @@ function getIdentifier(input: string): string | undefined {
 
 const submoduleEntryRegex = /Submodule .* ([a-z0-9]{7,40})..([a-z0-9]{7,40})\:/
 
-async function getSubmoduleDetailsWorkingDirectory(repository: Repository, file: FileChange): Promise<SubmoduleChange | null> {
+async function getSubmoduleDetailsWorkingDirectory(repository: Repository, file: WorkingDirectoryFileChange): Promise<SubmoduleChange | null> {
 
-  const result = await git([ 'diff', '--submodule', '-z', '--', file.path ], repository.path, 'getDiffTree')
+  if (file.status === FileStatus.New) {
+    // if the submodule has not been staged elsewhere, it's not going to appear
+    // in any of the `git submodule summary` calls - so let's poke at it here
+    const submodulePath = Path.join(repository.path, file.path)
 
-  const match = submoduleEntryRegex.exec(result.stdout)
-  if (match) {
+    const result = await git([ 'show-ref', 'HEAD' ], submodulePath, 'submodule-workdir-untracked')
+
+    const output = result.stdout
+    const tokens = output.split(' ')
+
+    const tip = tokens[0]
+
     const path = file.path
     const type = file.status
-    const from = match[1]
-    const to = match[2]
+    const from = undefined
+    const to = tip
     return { path, from, to, type }
-  }
+  } else {
+    const result = await git([ 'diff', '--submodule', '-z', '--', file.path ], repository.path, 'submodule-workdir-tracked')
 
-  return null
+    const match = submoduleEntryRegex.exec(result.stdout)
+    if (match) {
+      const path = file.path
+      const type = file.status
+      const from = match[1]
+      const to = match[2]
+      return { path, from, to, type }
+    }
+
+    return null
+  }
 }
 
 async function getSubmoduleDetailsHistory(repository: Repository, file: FileChange, committish: string): Promise<SubmoduleChange | null> {
 
   const range =`${committish}~1..${committish}`
   // TODO: control formatting betterer here?
-  const result = await git([ 'diff-tree', '--raw', '-z', range, '--', file.path ], repository.path, 'getDiffTree')
+  const result = await git([ 'diff-tree', '--raw', '-z', range, '--', file.path ], repository.path, 'submodule-history')
 
   // the expected format here is a row like this:
   // :000000 160000 0000000000000000000000000000000000000000 f1a74d299b28b4278d6127fbb3e9cc7aeedc153f A	friendly-bassoon
