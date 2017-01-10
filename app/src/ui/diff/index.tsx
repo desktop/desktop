@@ -12,7 +12,7 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffHunk, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
+import { Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
 import { DiffLineGutter } from './diff-line-gutter'
@@ -20,15 +20,16 @@ import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { getDiffMode } from './diff-mode'
 import { ISelectionStrategy } from './selection/selection-strategy'
 import { DragDropSelection } from './selection/drag-drop-selection-strategy'
-import { HunkSelection } from './selection/hunk-selection-strategy'
+import { RangeSelection } from './selection/range-selection-strategy'
 
 import { fatalError } from '../../lib/fatal-error'
+
+import { RangeSelectionSizePixels } from './edge-detection'
 
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
   require('codemirror/addon/scroll/simplescrollbars')
 }
-
 
 /**
  * normalize the line endings in the diff so that the CodeMirror editor
@@ -58,7 +59,7 @@ interface IDiffProps {
   /** The file whose diff should be displayed. */
   readonly file: FileChange
 
-  /** Called when the includedness of lines or hunks has changed. */
+  /** Called when the includedness of lines or a range of lines has changed. */
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
 
   /** The diff that should be rendered */
@@ -70,7 +71,8 @@ interface IDiffProps {
 
 /** A component which renders a diff for a file. */
 export class Diff extends React.Component<IDiffProps, void> {
-  private codeMirror: any | null
+  private codeMirror: Editor | null
+  private gutterWidth: number | null
 
   /**
    * We store the scroll position before reloading the same diff so that we can
@@ -125,6 +127,8 @@ export class Diff extends React.Component<IDiffProps, void> {
       // Nothing has changed
       if (oldSelection === selection) { return }
 
+      this.gutterWidth = null
+
       const diff = nextProps.diff
       this.cachedGutterElements.forEach((element, index) => {
         if (!element) {
@@ -151,34 +155,84 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.lineCleanup.clear()
   }
 
-  private updateHunkHoverState = (hunk: DiffHunk, show: boolean) => {
-    const start = hunk.unifiedDiffStart
+  /**
+   * compute the diff gutter width based on what's been rendered in the browser
+   */
+  private getAndCacheGutterWidth = (): number | null => {
 
-    hunk.lines.forEach((line, index) => {
-      if (line.isIncludeableLine()) {
-        const row = start + index
-        this.highlightLine(row, show)
+    if (this.gutterWidth) {
+      return this.gutterWidth
+    }
+
+    if (this.codeMirror) {
+      // as getWidth will return 0 for elements that are offscreen, this code
+      // will look for the first row of the current viewport, which should be
+      // onscreen
+      const viewport = this.codeMirror.getScrollInfo()
+      const top = viewport.top
+      const cm = this.codeMirror as any
+
+      const row = cm.lineAtHeight(top, 'local')
+      const element = this.cachedGutterElements.get(row)
+
+      if (!element) {
+        console.error(`unable to find element at ${row}, should probably look into that`)
+        return null
       }
-    })
+
+      this.gutterWidth = element.getWidth()
+
+      if (this.gutterWidth === 0) {
+        console.error(`element at row ${row} does not have a width, should probably look into that`)
+      }
+    }
+
+    return this.gutterWidth
   }
 
-  private highlightLine = (row: number, include: boolean) => {
+  private updateRangeHoverState = (start: number, end: number, show: boolean) => {
+    for (let i = start; i <= end; i++) {
+      this.hoverLine(i, show)
+    }
+  }
+
+  private hoverLine = (row: number, include: boolean) => {
     const element = this.cachedGutterElements.get(row)
 
-    if (!element) {
-      // element not currently cached by the editor, don't try and update it
-      return
+    // element may not be drawn by the editor, so updating it isn't necessary
+    if (element) {
+      element.setHover(include)
     }
-
-    element.setHover(include)
   }
 
-  private onMouseUp = () => {
-    if (!this.props.onIncludeChanged) {
-      return
+  /**
+   * start a selection gesture based on the current interation
+   */
+  private startSelection = (file: WorkingDirectoryFileChange, index: number, isRangeSelection: boolean) => {
+    const snapshot = file.selection
+    const selected = snapshot.isSelected(index)
+    const desiredSelection = !selected
+
+    if (isRangeSelection) {
+      const range = this.props.diff.findInteractiveDiffRange(index)
+      if (!range) {
+        console.error('unable to find range for given line in diff')
+        return
+      }
+
+      this.selection = new RangeSelection(range.start, range.end, desiredSelection, snapshot)
+    } else {
+      this.selection = new DragDropSelection(index, desiredSelection, snapshot)
     }
 
-    if (!this.selection) {
+    this.selection.paint(this.cachedGutterElements)
+  }
+
+  /**
+   * complete the selection gesture and apply the change to the diff
+   */
+  private endSelection = () => {
+    if (!this.props.onIncludeChanged || !this.selection) {
       return
     }
 
@@ -188,42 +242,94 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.selection = null
   }
 
-  private onMouseDown = (index: number, isHunkSelection: boolean) => {
+  private onGutterMouseUp = () => {
+    this.endSelection()
+  }
+
+  private onGutterMouseDown = (index: number, isRangeSelection: boolean) => {
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
       fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
       return
     }
 
-    const snapshot = this.props.file.selection
-    const selected = snapshot.isSelected(index)
-    const desiredSelection = !selected
+    this.startSelection(this.props.file, index, isRangeSelection)
+  }
 
-    if (isHunkSelection) {
-      const hunk = this.props.diff.diffHunkForIndex(index)
-      if (!hunk) {
-        console.error('unable to find hunk for given line in diff')
-        return
-      }
-
-      const start = hunk.unifiedDiffStart
-      const end = hunk.unifiedDiffEnd
-      this.selection = new HunkSelection(start, end, desiredSelection, snapshot)
-    } else {
-      this.selection = new DragDropSelection(index, desiredSelection, snapshot)
+  private onGutterMouseMove = (index: number) => {
+    if (!this.selection) {
+      return
     }
 
+    this.selection.update(index)
     this.selection.paint(this.cachedGutterElements)
   }
 
-  private onMouseMove = (index: number) => {
-    if (this.selection) {
-      this.selection.update(index)
-      this.selection.paint(this.cachedGutterElements)
+  private onDiffTextMouseMove = (ev: MouseEvent, index: number) => {
+    const isActive = this.isMouseCursorNearGutter(ev)
+    if (isActive === null) {
+      return
     }
- }
 
-  public renderLine = (instance: any, line: any, element: HTMLElement) => {
+    const diffLine = this.props.diff.diffLineForIndex(index)
+    if (!diffLine) {
+      return
+    }
 
+    if (!diffLine.isIncludeableLine()) {
+      return
+    }
+
+    const range = this.props.diff.findInteractiveDiffRange(index)
+    if (!range) {
+      console.error('unable to find range for given index in diff')
+      return
+    }
+
+    this.updateRangeHoverState(range.start, range.end, isActive)
+  }
+
+  private onDiffTextMouseDown = (ev: MouseEvent, index: number) => {
+    const isActive = this.isMouseCursorNearGutter(ev)
+
+    if (isActive) {
+      // this line is important because it prevents the codemirror editor
+      // from handling the event and resetting the scroll position.
+      // it doesn't do this when you click on elements in the gutter,
+      // which is an amazing joke to have placed upon me right now
+      ev.preventDefault()
+
+      if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
+        fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
+        return
+      }
+
+      this.startSelection(this.props.file, index, true)
+    }
+  }
+
+  private onDiffTextMouseLeave = (ev: MouseEvent, index: number) => {
+    const range = this.props.diff.findInteractiveDiffRange(index)
+    if (!range) {
+      console.error('unable to find range for given index in diff')
+      return
+    }
+
+    this.updateRangeHoverState(range.start, range.end, false)
+  }
+
+  private isMouseCursorNearGutter = (ev: MouseEvent): boolean | null =>  {
+    const width = this.getAndCacheGutterWidth()
+
+    if (!width) {
+      // should fail earlier than this with a helpful error message
+      return null
+    }
+
+    const deltaX = ev.layerX - width
+    return deltaX >= 0 && deltaX <= RangeSelectionSizePixels
+  }
+
+  private renderLine = (instance: any, line: any, element: HTMLElement) => {
     const existingLineDisposable = this.lineCleanup.get(line)
 
     // If we can find the line in our cleanup list that means the line is
@@ -235,82 +341,109 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     const index = instance.getLineNumber(line) as number
-    const hunk = this.props.diff.diffHunkForIndex(index)
-    if (hunk) {
-      const relativeIndex = index - hunk.unifiedDiffStart
-      const diffLine = hunk.lines[relativeIndex]
-      if (diffLine) {
-        const diffLineElement = element.children[0] as HTMLSpanElement
 
-        const reactContainer = document.createElement('span')
+    const diffLine = this.props.diff.diffLineForIndex(index)
+    if (diffLine) {
+      const diffLineElement = element.children[0] as HTMLSpanElement
 
-        let isIncluded = false
-        if (this.props.file instanceof WorkingDirectoryFileChange) {
-          isIncluded = this.props.file.selection.isSelected(index)
-        }
+      const reactContainer = document.createElement('span')
 
-        const cache = this.cachedGutterElements
-
-        ReactDOM.render(
-          <DiffLineGutter
-            line={diffLine}
-            isIncluded={isIncluded}
-            index={index}
-            readOnly={this.props.readOnly}
-            diff={this.props.diff}
-            updateHunkHoverState={this.updateHunkHoverState}
-            isSelectionEnabled={this.isSelectionEnabled}
-            onMouseUp={this.onMouseUp}
-            onMouseDown={this.onMouseDown}
-            onMouseMove={this.onMouseMove} />,
-          reactContainer,
-          function (this: DiffLineGutter) {
-            if (this !== undefined) {
-              cache.set(index, this)
-            }
-          }
-        )
-
-        element.insertBefore(reactContainer, diffLineElement)
-
-        // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
-        // the line delete event once we've been called once or the component has been
-        // unmounted. In the latter case it's _probably_ not strictly necessary since
-        // the only thing gc rooted by the event should be isolated and eligble for
-        // collection. But let's be extra cautious I guess.
-        //
-        // The only way to unsubscribe is to pass the exact same function given to the
-        // 'on' function to the 'off' so we need a reference to ourselves, basically.
-        let deleteHandler: () => void
-
-        // Since we manually render a react component we have to take care of unmounting
-        // it or else we'll leak memory. This disposable will unmount the component.
-        //
-        // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
-        const gutterCleanup = new Disposable(() => {
-          this.cachedGutterElements.delete(index)
-
-          ReactDOM.unmountComponentAtNode(reactContainer)
-
-          line.off('delete', deleteHandler)
-        })
-
-        // Add the cleanup disposable to our list of disposables so that we clean up when
-        // this component is unmounted or when the line is re-rendered. When either of that
-        // happens the line 'delete' event doesn't  fire.
-        this.lineCleanup.set(line, gutterCleanup)
-
-        // If the line delete event fires we dispose of the disposable (disposing is
-        // idempotent)
-        deleteHandler = () => {
-          const disp = this.lineCleanup.get(line)
-          if (disp) {
-            this.lineCleanup.delete(line)
-            disp.dispose()
-          }
-        }
-        line.on('delete', deleteHandler)
+      let isIncluded = false
+      if (this.props.file instanceof WorkingDirectoryFileChange) {
+        isIncluded = this.props.file.selection.isSelected(index)
       }
+
+      const cache = this.cachedGutterElements
+
+      ReactDOM.render(
+        <DiffLineGutter
+          line={diffLine}
+          isIncluded={isIncluded}
+          index={index}
+          readOnly={this.props.readOnly}
+          diff={this.props.diff}
+          updateRangeHoverState={this.updateRangeHoverState}
+          isSelectionEnabled={this.isSelectionEnabled}
+          onMouseUp={this.onGutterMouseUp}
+          onMouseDown={this.onGutterMouseDown}
+          onMouseMove={this.onGutterMouseMove} />,
+        reactContainer,
+        function (this: DiffLineGutter) {
+          if (this !== undefined) {
+            cache.set(index, this)
+          }
+        }
+      )
+
+      const onMouseMoveLine: (ev: MouseEvent) => void = (ev) => {
+        this.onDiffTextMouseMove(ev, index)
+      }
+
+      const onMouseDownLine: (ev: MouseEvent) => void = (ev) => {
+        this.onDiffTextMouseDown(ev, index)
+      }
+
+      const onMouseUpLine: (ev: MouseEvent) => void = (ev) => {
+        this.endSelection()
+      }
+
+      const onMouseLeaveLine: (ev: MouseEvent) => void = (ev) => {
+        this.onDiffTextMouseLeave(ev, index)
+      }
+
+      if (!this.props.readOnly) {
+        diffLineElement.addEventListener('mousemove', onMouseMoveLine)
+        diffLineElement.addEventListener('mousedown', onMouseDownLine)
+        diffLineElement.addEventListener('mouseup', onMouseUpLine)
+        diffLineElement.addEventListener('mouseleave', onMouseLeaveLine)
+      }
+
+      element.insertBefore(reactContainer, diffLineElement)
+
+      // Hack(ish?). In order to be a real good citizen we need to unsubscribe from
+      // the line delete event once we've been called once or the component has been
+      // unmounted. In the latter case it's _probably_ not strictly necessary since
+      // the only thing gc rooted by the event should be isolated and eligble for
+      // collection. But let's be extra cautious I guess.
+      //
+      // The only way to unsubscribe is to pass the exact same function given to the
+      // 'on' function to the 'off' so we need a reference to ourselves, basically.
+      let deleteHandler: () => void
+
+      // Since we manually render a react component we have to take care of unmounting
+      // it or else we'll leak memory. This disposable will unmount the component.
+      //
+      // See https://facebook.github.io/react/blog/2015/10/01/react-render-and-top-level-api.html
+      const gutterCleanup = new Disposable(() => {
+        this.cachedGutterElements.delete(index)
+
+        ReactDOM.unmountComponentAtNode(reactContainer)
+
+        if (!this.props.readOnly) {
+          diffLineElement.removeEventListener('mousemove', onMouseMoveLine)
+          diffLineElement.removeEventListener('mousedown', onMouseDownLine)
+          diffLineElement.removeEventListener('mouseup', onMouseUpLine)
+          diffLineElement.removeEventListener('mouseleave', onMouseLeaveLine)
+        }
+
+        line.off('delete', deleteHandler)
+      })
+
+      // Add the cleanup disposable to our list of disposables so that we clean up when
+      // this component is unmounted or when the line is re-rendered. When either of that
+      // happens the line 'delete' event doesn't  fire.
+      this.lineCleanup.set(line, gutterCleanup)
+
+      // If the line delete event fires we dispose of the disposable (disposing is
+      // idempotent)
+      deleteHandler = () => {
+        const disp = this.lineCleanup.get(line)
+        if (disp) {
+          this.lineCleanup.delete(line)
+          disp.dispose()
+        }
+      }
+      line.on('delete', deleteHandler)
     }
   }
 
@@ -325,7 +458,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
   }
 
-  public onChanges = (cm: Editor) => {
+  private onChanges = (cm: Editor) => {
     this.restoreScrollPosition(cm)
   }
 
