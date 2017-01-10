@@ -6,7 +6,7 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { Diff, Image  } from '../../models/diff'
+import { IRawDiff, IDiff, IImageDiff, Image, FileSummary, DiffLine, SubmoduleChangeType } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
@@ -21,13 +21,13 @@ const imageFileExtensions = new Set([ '.png', '.jpg', '.jpeg', '.gif' ])
  * @param commitish A commit SHA or some other identifier that ultimately dereferences
  *                  to a commit.
  */
-export function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<Diff> {
+export function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<IDiff> {
 
   const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
 
   return git(args, repository.path, 'getCommitDiff')
     .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => attachImageDiff(repository, file, diff, commitish))
+    .then(diff => convertDiff(repository, file, diff, commitish))
 }
 
 /**
@@ -35,7 +35,7 @@ export function getCommitDiff(repository: Repository, file: FileChange, commitis
  * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
  * that all content in the file will be treated as additions.
  */
-export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<Diff> {
+export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<IDiff> {
 
   let opts: IGitExecutionOptions | undefined
   let args: Array<string>
@@ -68,24 +68,10 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
 
   return git(args, repository.path, 'getWorkingDirectoryDiff', opts)
     .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => attachImageDiff(repository, file, diff, 'HEAD'))
+    .then(diff => convertDiff(repository, file, diff, 'HEAD'))
 }
 
-async function attachImageDiff(repository: Repository, file: FileChange, diff: Diff, commitish: string): Promise<Diff> {
-
-  // already have a text diff, no point trying out this
-  if (!diff.isBinary) {
-    return diff
-  }
-
-  // if unable to find an extension, this will return an empty string
-  const extension = Path.extname(file.path)
-
-  // some extension we don't know how to parse, never mind
-  if (!imageFileExtensions.has(extension)) {
-    return diff
-  }
-
+async function getImageDiff(repository: Repository, file: FileChange, commitish: string): Promise<IImageDiff> {
   let current: Image | undefined = undefined
   let previous: Image | undefined = undefined
 
@@ -95,7 +81,7 @@ async function attachImageDiff(repository: Repository, file: FileChange, diff: D
     // Ideally we'd show all three versions and let the user pick but that's
     // a bit out of scope for now.
     if (file.status === FileStatus.Conflicted) {
-      return diff
+      return { kind: 'image' }
     }
 
     // Does it even exist in the working directory?
@@ -124,10 +110,123 @@ async function attachImageDiff(repository: Repository, file: FileChange, diff: D
     }
   }
 
-  return diff.withImageDiff({
+  return {
+    kind: 'image',
     previous: previous,
     current: current,
+  }
+}
+
+/**
+ * normalize the line endings in the diff so that the CodeMirror editor
+ * will display the unified diff correctly
+ */
+function formatLineEnding(text: string): string {
+  if (text.endsWith('\n')) {
+    return text
+  } else if (text.endsWith('\r')) {
+    return text + '\n'
+  } else {
+    return text + '\r\n'
+  }
+}
+
+function formatSha(text: string): string {
+  return text.slice(0, 7)
+}
+
+export async function convertDiff(repository: Repository, file: FileChange, diff: IRawDiff, commitish: string): Promise<IDiff> {
+  if (diff.isBinary) {
+    const extension = Path.extname(file.path)
+
+    // some extension we don't know how to parse, never mind
+    if (!imageFileExtensions.has(extension)) {
+      return {
+        kind: 'binary',
+      }
+    } else {
+      return getImageDiff(repository, file, commitish)
+    }
+  }
+
+  if (diff.hunks.length === 1) {
+
+    const hunk = diff.hunks[0]
+
+    const getSubmoduleSha = (line: DiffLine) => {
+      const match = /[\+\-]Subproject commit ([a-z0-9]{40})/.exec(line.text)
+      if (match) {
+        // first element is the entire line, we want the hash on the line
+        return match[1]
+      }
+      return null
+    }
+
+    // dotcom will render the folder name for the submodule, not the full path
+    // or the remote repository name here. let's do the same.
+    const name = Path.basename(file.path)
+    const firstLine = hunk.lines[1]
+    const firstHash = firstLine ? getSubmoduleSha(firstLine) : null
+
+    if (firstHash && hunk.lines.length === 2) {
+      // this is a single submodule diff
+      // it could be an added or removed submodule
+      // fill out the relevant fields
+      const submoduleAdded = firstLine.text[0] === '+'
+      const hash = formatSha(firstHash)
+
+      const type =  submoduleAdded ? SubmoduleChangeType.Add : SubmoduleChangeType.Delete
+      const from = submoduleAdded ? undefined : hash
+      const to = submoduleAdded ? hash : undefined
+
+      return {
+        kind: 'submodule',
+        type,
+        from,
+        to,
+        name,
+      }
+    }
+
+    if (firstHash && hunk.lines.length === 3) {
+      // we have a two line submodule diff
+      // extract the second hash and maybe compute the changes
+      const secondLine = hunk.lines[2]
+      const secondHash = secondLine ? getSubmoduleSha(secondLine) : null
+
+      if (secondHash) {
+        const submodulePath = Path.join(repository.path, file.path)
+        const submoduleExists = Fs.existsSync(submodulePath)
+
+        const changes = submoduleExists
+          ? await getSubmoduleDiff(repository, file, firstHash, secondHash)
+          : undefined
+
+        const from = formatSha(firstHash)
+        const to = formatSha(secondHash)
+
+        return {
+          kind: 'submodule',
+          changes,
+          from,
+          to,
+          type: SubmoduleChangeType.Update,
+          name,
+        }
+      }
+    }
+  }
+
+  let diffText = ''
+  diff.hunks.forEach(hunk => {
+    hunk.lines.forEach(l => diffText += formatLineEnding(l.text))
   })
+
+  return {
+    kind: 'text',
+    text: diffText,
+    hunks: diff.hunks,
+  }
 }
 
 /**
@@ -153,7 +252,7 @@ function getMediaType(extension: string) {
  *
  * Parses the output from a diff-like command that uses `--path-with-raw`
  */
-function diffFromRawDiffOutput(result: string): Diff {
+function diffFromRawDiffOutput(result: string): IRawDiff {
   const pieces = result.split('\0')
   const parser = new DiffParser()
   return parser.parse(pieces[pieces.length - 1])
@@ -177,6 +276,38 @@ export async function getWorkingDirectoryImage(repository: Repository, file: Fil
     mediaType: getMediaType(extension),
   }
   return diff
+}
+
+function tryParseInt(text: string): number | undefined {
+  const value = parseInt(text, 10)
+  return isNaN(value) ? undefined : value
+}
+
+export async function getSubmoduleDiff(repository: Repository, file: FileChange, from: string, to: string): Promise<ReadonlyArray<FileSummary>> {
+  const args = [ 'diff', '--numstat', '-z', `${from}..${to}` ]
+  const submodulePath = Path.join(repository.path, file.path)
+
+  const diffStats = await git(args, submodulePath, 'getSubmoduleDiff')
+  const output = diffStats.stdout
+
+  const results: Array<FileSummary> = [ ]
+
+  const lines = output.split('\0')
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]
+    const entries = line.split('\t')
+
+    if (entries.length === 3) {
+      const added = tryParseInt(entries[0])
+      const removed = tryParseInt(entries[1])
+      const path = entries[2].trim().replace('\0', '')
+
+      results.push(new FileSummary(path, added, removed))
+    }
+  }
+
+  return results
 }
 
 /**

@@ -1,5 +1,5 @@
 import { DiffSelection } from '../../../models/diff'
-import { DiffLineGutter } from '../diff-line-gutter'
+import { DiffLineGutter } from '../text/diff-line-gutter'
 
 export interface ISelectionStrategy {
   /**

@@ -1,6 +1,6 @@
 import { DiffSelection } from '../../../models/diff'
 import { ISelectionStrategy } from './selection-strategy'
-import { DiffLineGutter } from '../diff-line-gutter'
+import { DiffLineGutter } from '../text/diff-line-gutter'
 import { compare } from '../../../lib/compare'
 import { range } from '../../../lib/range'
 

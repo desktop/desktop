@@ -1,6 +1,6 @@
 import { assertNever } from '../lib/fatal-error'
 import { WorkingDirectoryFileChange, FileStatus } from '../models/status'
-import { DiffLineType, Diff } from '../models/diff'
+import { DiffLineType, ITextDiff } from '../models/diff'
 
 /**
  * Generates a string matching the format of a GNU unified diff header excluding
@@ -116,7 +116,7 @@ function formatHunkHeader(
  *
  * @param diff  The source diff
  */
-export function formatPatch(file: WorkingDirectoryFileChange, diff: Diff): string {
+export function formatPatch(file: WorkingDirectoryFileChange, diff: ITextDiff): string {
   let patch = ''
 
   diff.hunks.forEach((hunk, hunkIndex) => {

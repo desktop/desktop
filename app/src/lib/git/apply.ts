@@ -34,6 +34,10 @@ export async function applyPatchToIndex(repository: Repository, file: WorkingDir
 
   const diff = await getWorkingDirectoryDiff(repository, file)
 
+  if (diff.kind !== 'text') {
+    throw new Error(`Unexpected diff result returned: '${diff.kind}'`)
+  }
+
   const patch = await formatPatch(file, diff)
   await git(applyArgs, repository.path, 'applyPatchToIndex', { stdin: patch })
 

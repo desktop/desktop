@@ -1,0 +1,3 @@
+[submodule "friendly-bassoon"]
+	path = friendly-bassoon
+	url = https://github.com/shiftkey/friendly-bassoon.git
