@@ -8,7 +8,7 @@ import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
 import { DiffType, IRawDiff, IDiff, IImageDiff, Image, FileSummary, DiffHunk } from '../../models/diff'
 
-import { getSubmoduleList } from '../../lib/git/submodule'
+import { getSubmoduleDetails } from '../../lib/git/submodule'
 
 import { DiffParser } from '../diff-parser'
 
@@ -167,17 +167,15 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
       const maybeSubmodule = diffMatchesSubmoduleChange(hunk)
 
       if (maybeSubmodule) {
-        const list = await getSubmoduleList(repository, file, commitish)
 
-        debugger
         // TODO: what about renaming a submodule? Would that be handled here?
-        const entry = list.find(v => v.path === file.path)
+        const result = await getSubmoduleDetails(repository, file, commitish)
 
-        if (entry) {
+        if (result) {
           const name = Path.basename(file.path)
-          const type = entry.type
-          const from = entry.from
-          const to = entry.to
+          const type = result.type
+          const from = result.from
+          const to = result.to
 
           debugger
 

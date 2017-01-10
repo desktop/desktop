@@ -43,11 +43,9 @@ function getIdentifier(input: string): string | undefined {
 
 const submoduleEntryRegex = /Submodule .* ([a-z0-9]{7,40})..([a-z0-9]{7,40})\:/
 
-async function getSubmoduleChangeWorkingDirectory(repository: Repository, file: FileChange): Promise<Array<SubmoduleChange>> {
+async function getSubmoduleChangeWorkingDirectory(repository: Repository, file: FileChange): Promise<SubmoduleChange | null> {
 
   const result = await git([ 'diff', '--submodule', '-z', '--', file.path ], repository.path, 'getDiffTree')
-
-  const array: Array<SubmoduleChange> = [ ]
 
   const match = submoduleEntryRegex.exec(result.stdout)
   if (match) {
@@ -55,13 +53,13 @@ async function getSubmoduleChangeWorkingDirectory(repository: Repository, file: 
     const type = file.status
     const from = match[1]
     const to = match[2]
-    array.push({ path, from, to, type })
+    return { path, from, to, type }
   }
 
-  return array
+  return null
 }
 
-async function getSubmoduleListHistory(repository: Repository, file: FileChange, committish: string): Promise<Array<SubmoduleChange>> {
+async function getSubmoduleChangeHistory(repository: Repository, file: FileChange, committish: string): Promise<SubmoduleChange | null> {
 
   const range =`${committish}~1..${committish}`
   // TODO: control formatting betterer here?
@@ -70,30 +68,23 @@ async function getSubmoduleListHistory(repository: Repository, file: FileChange,
   // the expected format here is a row like this:
   // :000000 160000 0000000000000000000000000000000000000000 f1a74d299b28b4278d6127fbb3e9cc7aeedc153f A	friendly-bassoon
   //
-  // split on the found colon character
-  // TODO: maybe this can be more robust, for situations where : is in the file path
-  const lines = result.stdout.split(':')
-
-  const array: Array<SubmoduleChange> = [ ]
-
   // index 0 is the empty string before the first semi-colon, skip it
-  for (let i = 1; i < lines.length; i++) {
+  const line = result.stdout.substr(1)
+  // \0 separates path from diff stats
+  const tokens = line.split('\0')
+  const inputs = tokens[0].split(' ')
+  const path = tokens[1]
 
-    const tokens = lines[i].split('\0')
-    const inputs = tokens[0].split(' ')
-    const path = tokens[1]
-
-    // the first two values are the mode for the change
-    // if either of these values is 160000, we have a submodule change
-    if (inputs[0] === submoduleMode || inputs[1] === submoduleMode) {
-      const from = getIdentifier(inputs[2])
-      const to = getIdentifier(inputs[3])
-      const type = mapStatus(inputs[4])
-      array.push({ path, from, to, type })
-    }
+  // the first two values are the mode for the change
+  // if either of these values is 160000, we have a submodule change
+  if (inputs[0] === submoduleMode || inputs[1] === submoduleMode) {
+    const from = getIdentifier(inputs[2])
+    const to = getIdentifier(inputs[3])
+    const type = mapStatus(inputs[4])
+    return { path, from, to, type }
   }
 
-  return array
+  return null
 }
 
 /**
@@ -105,10 +96,10 @@ async function getSubmoduleListHistory(repository: Repository, file: FileChange,
  * For working directory changes, use `git submodule summary` as the .gitmodules
  * state can be relied on for tracking changes.
  */
-export async function getSubmoduleList(repository: Repository, file: FileChange, committish: string): Promise<Array<SubmoduleChange>> {
+export async function getSubmoduleDetails(repository: Repository, file: FileChange, committish: string): Promise<SubmoduleChange | null> {
   if (file instanceof WorkingDirectoryFileChange) {
     return getSubmoduleChangeWorkingDirectory(repository, file)
   } else {
-    return getSubmoduleListHistory(repository, file, committish)
+    return getSubmoduleChangeHistory(repository, file, committish)
   }
 }
