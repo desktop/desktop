@@ -45,7 +45,7 @@ export class AddRepository extends React.Component<IAddRepositoryProps, IAddRepo
         return <CreateRepository dispatcher={this.props.dispatcher}/>
 
       case AddRepositoryTab.Clone:
-        return <CloneRepository />
+        return <CloneRepository dispatcher={this.props.dispatcher}/>
 
       default:
         return assertNever(this.state.selectedTab, `Unknown tab: ${this.state.selectedTab}`)
