@@ -187,7 +187,7 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
             from,
             to,
             name,
-            changes
+            changes,
           }
         }
       }

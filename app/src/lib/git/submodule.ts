@@ -82,7 +82,7 @@ async function getSubmoduleDetailsWorkingDirectory(repository: Repository, file:
 
 async function getSubmoduleDetailsHistory(repository: Repository, file: FileChange, committish: string): Promise<SubmoduleChange | null> {
 
-  const range =`${committish}~1..${committish}`
+  const range = `${committish}~1..${committish}`
   // TODO: control formatting betterer here?
   const result = await git([ 'diff-tree', '--raw', '-z', range, '--', file.path ], repository.path, 'submodule-history')
 
