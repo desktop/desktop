@@ -131,6 +131,10 @@ function formatLineEnding(text: string): string {
   }
 }
 
+// NOTE:
+// as of Git 2.11, abbreviated SHAs may be more than 7 characters
+// we probably need to revisit some places where we do this trimming
+// ourselves - e.g. `commit-summary.tsx`
 function formatSha(text: string): string {
   return text.slice(0, 7)
 }
