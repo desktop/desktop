@@ -6,7 +6,9 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { DiffType, IRawDiff, IDiff, IImageDiff, Image, FileSummary, DiffLine, SubmoduleChangeType } from '../../models/diff'
+import { DiffType, IRawDiff, IDiff, IImageDiff, Image, FileSummary, DiffHunk } from '../../models/diff'
+
+import { getSubmoduleList } from '../../lib/git/submodule'
 
 import { DiffParser } from '../diff-parser'
 
@@ -131,21 +133,15 @@ function formatLineEnding(text: string): string {
   }
 }
 
-// NOTE:
-// as of Git 2.11, abbreviated SHAs may be more than 7 characters
-// we probably need to revisit some places where we do this trimming
-// ourselves - e.g. `commit-summary.tsx`
-function formatSha(text: string): string {
-  return text.slice(0, 7)
-}
-
-function getSubmoduleSha(line: DiffLine) {
+function diffMatchesSubmoduleChange(hunk: DiffHunk): boolean {
+  // for any sort of submodule change, the first line should match this format
+  const line = hunk.lines[1]
   const match = /[\+\-]Subproject commit ([a-z0-9]{40})/.exec(line.text)
+  // no need to look at the found hash, just looking for the equivalent format
   if (match) {
-    // first element is the entire line, we want the hash on the line
-    return match[1]
+    return true
   }
-  return null
+  return false
 }
 
 export async function convertDiff(repository: Repository, file: FileChange, diff: IRawDiff, commitish: string): Promise<IDiff> {
@@ -166,56 +162,37 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
 
     const hunk = diff.hunks[0]
 
-    // dotcom will render the folder name for the submodule, not the full path
-    // or the remote repository name here. let's do the same.
-    const name = Path.basename(file.path)
-    const firstLine = hunk.lines[1]
-    const firstHash = firstLine ? getSubmoduleSha(firstLine) : null
+    if (hunk.lines.length <= 3) {
 
-    if (firstHash && hunk.lines.length === 2) {
-      // this is a single submodule diff
-      // it could be an added or removed submodule
-      // fill out the relevant fields
-      const submoduleAdded = firstLine.text[0] === '+'
-      const hash = formatSha(firstHash)
+      const maybeSubmodule = diffMatchesSubmoduleChange(hunk)
 
-      const type =  submoduleAdded ? SubmoduleChangeType.Add : SubmoduleChangeType.Delete
-      const from = submoduleAdded ? undefined : hash
-      const to = submoduleAdded ? hash : undefined
+      if (maybeSubmodule) {
+        const list = await getSubmoduleList(repository, file, commitish)
 
-      return {
-        kind: DiffType.Submodule,
-        type,
-        from,
-        to,
-        name,
-      }
-    }
+        debugger
+        // TODO: what about renaming a submodule? Would that be handled here?
+        const entry = list.find(v => v.path === file.path)
 
-    if (firstHash && hunk.lines.length === 3) {
-      // we have a two line submodule diff
-      // extract the second hash and maybe compute the changes
-      const secondLine = hunk.lines[2]
-      const secondHash = secondLine ? getSubmoduleSha(secondLine) : null
+        if (entry) {
+          const name = Path.basename(file.path)
+          const type = entry.type
+          const from = entry.from
+          const to = entry.to
 
-      if (secondHash) {
-        const submodulePath = Path.join(repository.path, file.path)
-        const submoduleExists = Fs.existsSync(submodulePath)
+          debugger
 
-        const changes = submoduleExists
-          ? await getSubmoduleDiff(repository, file, firstHash, secondHash)
-          : undefined
+          const changes = from && to
+            ? await getSubmoduleDiff(repository, file, from, to)
+            : undefined
 
-        const from = formatSha(firstHash)
-        const to = formatSha(secondHash)
-
-        return {
-          kind: DiffType.Submodule,
-          changes,
-          from,
-          to,
-          type: SubmoduleChangeType.Update,
-          name,
+          return {
+            kind: DiffType.Submodule,
+            type,
+            from,
+            to,
+            name,
+            changes
+          }
         }
       }
     }

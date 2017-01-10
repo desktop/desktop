@@ -6,7 +6,7 @@ import * as fs from 'fs-extra'
 
 import { Repository } from '../../../src/models/repository'
 import { FileStatus, WorkingDirectoryFileChange, FileChange } from '../../../src/models/status'
-import { ITextDiff, IImageDiff, ISubmoduleDiff, DiffSelectionType, DiffSelection, SubmoduleChangeType, DiffType } from '../../../src/models/diff'
+import { ITextDiff, IImageDiff, ISubmoduleDiff, DiffSelectionType, DiffSelection, DiffType } from '../../../src/models/diff'
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 
 import {
@@ -222,16 +222,17 @@ describe('git/diff', () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('friendly-bassoon', FileStatus.Modified, diffSelection)
 
+      debugger
       const diff = await getWorkingDirectoryDiff(repository, file)
       expect(diff.kind === DiffType.Submodule)
       const submodule = diff as ISubmoduleDiff
 
-      const changes = submodule.changes!
-      expect(changes.length).to.equal(1)
-
-      expect(submodule.type).to.equal(SubmoduleChangeType.Update)
+      expect(submodule.type).to.equal(FileStatus.Modified)
       expect(submodule.from).to.equal('ba7ba0b')
       expect(submodule.to).to.equal('f1a74d2')
+
+      const changes = submodule.changes!
+      expect(changes.length).to.equal(1)
 
       const first = changes[0]
       expect(first.added).to.equal(3)
@@ -250,7 +251,8 @@ describe('git/diff', () => {
       const submodule = diff as ISubmoduleDiff
 
       expect(submodule.changes).to.be.undefined
-      expect(submodule.type).to.equal(SubmoduleChangeType.Add)
+      expect(submodule.type).to.equal(FileStatus.New)
+      expect(submodule.from).to.be.undefined
       expect(submodule.to).to.equal('ba7ba0b')
     })
   })

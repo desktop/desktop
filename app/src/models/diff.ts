@@ -1,4 +1,5 @@
 import { assertNever } from '../lib/fatal-error'
+import { FileStatus } from './status'
 
 export enum DiffType {
   /** changes to a text file, which may be partially selected for commit */
@@ -11,17 +12,11 @@ export enum DiffType {
   Submodule
 }
 
-
 /** indicate what a line in the diff represents */
 export enum DiffLineType {
   Context, Add, Delete, Hunk
 }
 
-
-/** indicate what the submodule change represents */
-export enum SubmoduleChangeType {
-   Add, Update, Delete
-}
 
 export interface ITextDiff {
   readonly kind: DiffType.Text
@@ -56,7 +51,7 @@ export interface ISubmoduleDiff {
   /** The folder name associated with the submodule */
   readonly name: string
   /** The change represented by the diff */
-  readonly type: SubmoduleChangeType
+  readonly type: FileStatus
   /** The previous commit associated with this submodule change */
   readonly from?: string
   /** The current commit associated with this submodule change */

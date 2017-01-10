@@ -1,12 +1,13 @@
 import * as React from 'react'
 
 import { Octicon, OcticonSymbol } from '../octicons'
-import { FileSummary, SubmoduleChangeType } from '../../models/diff'
+import { FileSummary } from '../../models/diff'
+import { FileStatus } from '../../models/status'
 
 interface ISubmoduleDiffProps {
   readonly changes?: ReadonlyArray<FileSummary>
   readonly name: string
-  readonly type: SubmoduleChangeType
+  readonly type: FileStatus
   readonly from?: string
   readonly to?: string
 }
@@ -16,13 +17,13 @@ export class SubmoduleDiff extends React.Component<ISubmoduleDiffProps, void> {
 
   public render() {
 
-    if (this.props.type === SubmoduleChangeType.Add || this.props.type === SubmoduleChangeType.Delete) {
-      const action = this.props.type === SubmoduleChangeType.Add
+    if (this.props.type === FileStatus.New || this.props.type === FileStatus.Deleted) {
+      const action = this.props.type === FileStatus.New
         ? 'added at'
         : 'removed from'
 
       // when removing or adding a submodule, only one SHA is available
-      const sha = this.props.type === SubmoduleChangeType.Add
+      const sha = this.props.type === FileStatus.New
         ? this.props.to
         : this.props.from
 
