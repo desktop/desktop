@@ -348,8 +348,8 @@ export class Diff extends React.Component<IDiffProps, void> {
 
   private renderBinaryFile() {
     return <BinaryFile path={this.props.file.path}
-                    repository={this.props.repository}
-                    dispatcher={this.props.dispatcher} />
+      repository={this.props.repository}
+      dispatcher={this.props.dispatcher} />
   }
 
   private renderTextDiff(diff: ITextDiff) {

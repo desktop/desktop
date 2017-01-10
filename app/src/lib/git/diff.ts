@@ -6,7 +6,7 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { DiffType, IRawDiff, IDiff, IImageDiff, Image, FileSummary } from '../../models/diff'
+import { DiffType, IRawDiff, IDiff, IImageDiff, Image } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
@@ -204,38 +204,6 @@ export async function getWorkingDirectoryImage(repository: Repository, file: Fil
     mediaType: getMediaType(extension),
   }
   return diff
-}
-
-function tryParseInt(text: string): number | undefined {
-  const value = parseInt(text, 10)
-  return isNaN(value) ? undefined : value
-}
-
-export async function getSubmoduleDiff(repository: Repository, file: FileChange, from: string, to: string): Promise<ReadonlyArray<FileSummary>> {
-  const args = [ 'diff', '--numstat', '-z', `${from}..${to}` ]
-  const submodulePath = Path.join(repository.path, file.path)
-
-  const diffStats = await git(args, submodulePath, 'getSubmoduleDiff')
-  const output = diffStats.stdout
-
-  const results: Array<FileSummary> = [ ]
-
-  const lines = output.split('\0')
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i]
-    const entries = line.split('\t')
-
-    if (entries.length === 3) {
-      const added = tryParseInt(entries[0])
-      const removed = tryParseInt(entries[1])
-      const path = entries[2].trim().replace('\0', '')
-
-      results.push(new FileSummary(path, added, removed))
-    }
-  }
-
-  return results
 }
 
 /**
