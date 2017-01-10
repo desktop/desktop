@@ -184,3 +184,38 @@
 #diff a:link {
   color: (orange);
 }
+// ***************************************************************************************************************************
+
+#diff .submodule-header {
+  margin: var(--spacing-half) var(--spacing);
+
+  .octicon {
+    vertical-align: text-top;
+  }
+}
+
+#diff .submodule-changes {
+  margin: 0px var(--spacing-triple);
+
+  .stats {
+    text-align: right;
+    padding-right: var(--spacing);
+    box-sizing: border-box
+  }
+
+  .added {
+    color: var(--diff-submodule-add-text-color);
+  }
+
+  .removed {
+    color: var(--diff-submodule-remove-text-color);
+  }
+
+  .icon {
+    color: var(--color-modified);
+
+    .octicon {
+      vertical-align: text-top;
+    }
+  }
+}

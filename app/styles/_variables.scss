@@ -235,6 +235,9 @@
   --diff-hover-border-color: #89a9dc;
   --diff-hover-text-color: var(--background-color);
 
+  --diff-submodule-add-text-color: #55a532;
+  --diff-submodule-remove-text-color: #bd2c00;
+
   // Note that this duration *must* match the `UndoCommitAnimationTimeout`
   // specified in `changes/index.tsx`.
   --undo-animation-duration: 500ms;
