@@ -25,6 +25,7 @@ interface IBaseMenuItem {
 export interface IMenuItem extends IBaseMenuItem {
   readonly type: 'menuItem'
   readonly accelerator: string | null
+  readonly accessKey: string | null
 }
 
 /**
@@ -36,6 +37,7 @@ export interface IMenuItem extends IBaseMenuItem {
 export interface ISubmenuItem extends IBaseMenuItem {
   readonly type: 'submenuItem'
   readonly menu: IMenu
+  readonly accessKey: string | null
 }
 
 /**
@@ -46,6 +48,7 @@ export interface ISubmenuItem extends IBaseMenuItem {
 export interface ICheckboxMenuItem extends IBaseMenuItem {
   readonly type: 'checkbox'
   readonly accelerator: string | null
+  readonly accessKey: string | null
   readonly checked: boolean
 }
 
@@ -61,6 +64,7 @@ export interface ICheckboxMenuItem extends IBaseMenuItem {
 export interface IRadioMenuItem extends IBaseMenuItem {
   readonly type: 'radio'
   readonly accelerator: string | null
+  readonly accessKey: string | null
   readonly checked: boolean
 }
 
@@ -142,6 +146,18 @@ function getAccelerator(menuItem: Electron.MenuItem): string | null {
 }
 
 /**
+ * Return the access key (applicable on Windows) from a menu item label.
+ *
+ * An access key is a letter or symbol preceeded by an ampersand, i.e. in
+ * the string "Check for &updates" the access key is 'u'. Access keys are
+ * case insenitive and are unique per menu.
+ */
+function getAccessKey(text: string): string | null {
+  const m = text.match(/&([^&])/)
+  return m ? m[1] : null
+}
+
+/**
  * Creates an instance of one of the types in the MenuItem type union based
  * on an Electron MenuItem instance. Will recurse through all sub menus and
  * convert each item.
@@ -160,20 +176,21 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
   const label = menuItem.label
   const checked = menuItem.checked
   const accelerator = getAccelerator(menuItem)
+  const accessKey = getAccessKey(menuItem.label)
 
   // normal, separator, submenu, checkbox or radio.
   switch (menuItem.type) {
     case 'normal':
-      return { id, type: 'menuItem', label, enabled, visible, accelerator }
+      return { id, type: 'menuItem', label, enabled, visible, accelerator, accessKey }
     case 'separator':
       return { id, type: 'separator', visible }
     case 'submenu':
       const menu = menuFromElectronMenu(menuItem.submenu as Electron.Menu, id)
-      return { id, type: 'submenuItem', label, enabled, visible, menu }
+      return { id, type: 'submenuItem', label, enabled, visible, menu, accessKey }
     case 'checkbox':
-      return { id, type: 'checkbox', label, enabled, visible, accelerator, checked }
+      return { id, type: 'checkbox', label, enabled, visible, accelerator, checked, accessKey }
     case 'radio':
-      return { id, type: 'radio', label, enabled, visible, accelerator, checked }
+      return { id, type: 'radio', label, enabled, visible, accelerator, checked, accessKey }
     default:
       return assertNever(menuItem.type, `Unknown menu item type ${menuItem.type}`)
   }
@@ -207,6 +224,45 @@ function buildIdMap(menu: IMenu, map = new Map<string, MenuItem>()): Map<string,
   }
 
   return map
+}
+
+/** Type guard which narrows a MenuItem to one which supports access keys */
+export function itemMayHaveAccessKey(item: MenuItem): item is IMenuItem | ISubmenuItem | ICheckboxMenuItem | IRadioMenuItem {
+  return item.type === 'menuItem' ||
+    item.type === 'submenuItem' ||
+    item.type === 'checkbox' ||
+    item.type === 'radio'
+}
+
+/**
+ * Returns a value indicating whether or not the given menu item can be
+ * selected. Selectable items are non-separator items which are enabled
+ * and visible.
+ */
+export function itemIsSelectable(item: MenuItem) {
+  return item.type !== 'separator' && item.enabled && item.visible
+}
+
+/**
+ * Attempts to locate a menu item matching the provided access key in a
+ * given list of items. The access key comparison is case-insensitive.
+ * 
+ * Note that this function does not take into account whether or not the
+ * item is selectable, consumers of this function need to perform that
+ * check themselves when applicable.
+ */
+export function findItemByAccessKey(accessKey: string, items: ReadonlyArray<MenuItem>): IMenuItem | ISubmenuItem | ICheckboxMenuItem | IRadioMenuItem | null {
+  const lowerCaseAccessKey = accessKey.toLowerCase()
+
+  for (const item of items) {
+    if (itemMayHaveAccessKey(item)) {
+      if (item.accessKey && item.accessKey.toLowerCase() === lowerCaseAccessKey) {
+        return item
+      }
+    }
+  }
+
+  return null
 }
 
 /**
@@ -348,7 +404,8 @@ export class AppMenu {
     const newOpenMenus = this.openMenus.slice(0, parentMenuIndex + 1)
 
     if (selectFirstItem) {
-      const selectedItem = ourMenuItem.menu.items[0]
+      // First selectable item.
+      const selectedItem = ourMenuItem.menu.items.find(itemIsSelectable)
       newOpenMenus.push({ ...ourMenuItem.menu, selectedItem })
     } else {
       newOpenMenus.push(ourMenuItem.menu)
