@@ -139,6 +139,15 @@ function formatSha(text: string): string {
   return text.slice(0, 7)
 }
 
+function getSubmoduleSha(line: DiffLine) {
+  const match = /[\+\-]Subproject commit ([a-z0-9]{40})/.exec(line.text)
+  if (match) {
+    // first element is the entire line, we want the hash on the line
+    return match[1]
+  }
+  return null
+}
+
 export async function convertDiff(repository: Repository, file: FileChange, diff: IRawDiff, commitish: string): Promise<IDiff> {
   if (diff.isBinary) {
     const extension = Path.extname(file.path)
@@ -156,15 +165,6 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
   if (diff.hunks.length === 1) {
 
     const hunk = diff.hunks[0]
-
-    const getSubmoduleSha = (line: DiffLine) => {
-      const match = /[\+\-]Subproject commit ([a-z0-9]{40})/.exec(line.text)
-      if (match) {
-        // first element is the entire line, we want the hash on the line
-        return match[1]
-      }
-      return null
-    }
 
     // dotcom will render the folder name for the submodule, not the full path
     // or the remote repository name here. let's do the same.
