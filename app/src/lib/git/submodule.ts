@@ -43,7 +43,7 @@ function getIdentifier(input: string): string | undefined {
 
 const submoduleEntryRegex = /Submodule .* ([a-z0-9]{7,40})..([a-z0-9]{7,40})\:/
 
-async function getSubmoduleChangeWorkingDirectory(repository: Repository, file: FileChange): Promise<SubmoduleChange | null> {
+async function getSubmoduleDetailsWorkingDirectory(repository: Repository, file: FileChange): Promise<SubmoduleChange | null> {
 
   const result = await git([ 'diff', '--submodule', '-z', '--', file.path ], repository.path, 'getDiffTree')
 
@@ -59,7 +59,7 @@ async function getSubmoduleChangeWorkingDirectory(repository: Repository, file: 
   return null
 }
 
-async function getSubmoduleChangeHistory(repository: Repository, file: FileChange, committish: string): Promise<SubmoduleChange | null> {
+async function getSubmoduleDetailsHistory(repository: Repository, file: FileChange, committish: string): Promise<SubmoduleChange | null> {
 
   const range =`${committish}~1..${committish}`
   // TODO: control formatting betterer here?
@@ -98,8 +98,8 @@ async function getSubmoduleChangeHistory(repository: Repository, file: FileChang
  */
 export async function getSubmoduleDetails(repository: Repository, file: FileChange, committish: string): Promise<SubmoduleChange | null> {
   if (file instanceof WorkingDirectoryFileChange) {
-    return getSubmoduleChangeWorkingDirectory(repository, file)
+    return getSubmoduleDetailsWorkingDirectory(repository, file)
   } else {
-    return getSubmoduleChangeHistory(repository, file, committish)
+    return getSubmoduleDetailsHistory(repository, file, committish)
   }
 }
