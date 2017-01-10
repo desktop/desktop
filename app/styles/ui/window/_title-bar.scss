@@ -29,7 +29,7 @@
 
   @include win32 {
     height: var(--win32-title-bar-height);
-    background: darken(#3b3f46, 10%);
+    background: var(--win32-title-bar-background-color);
     border-bottom: 1px solid #000;
   }
 
