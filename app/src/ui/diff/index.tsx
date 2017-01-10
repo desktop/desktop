@@ -12,9 +12,10 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffHunk, Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
+import { DiffHunk, DiffSelection, DiffType, IDiff, IImageDiff, ITextDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
+import { diffLineForIndex, diffHunkForIndex } from './diff-explorer'
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { getDiffMode } from './diff-mode'
@@ -27,21 +28,6 @@ import { fatalError } from '../../lib/fatal-error'
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
   require('codemirror/addon/scroll/simplescrollbars')
-}
-
-
-/**
- * normalize the line endings in the diff so that the CodeMirror editor
- * will display the unified diff correctly
- */
-function formatLineEnding(text: string): string {
-  if (text.endsWith('\n')) {
-    return text
-  } else if (text.endsWith('\r')) {
-    return text + '\n'
-  } else {
-    return text + '\r\n'
-  }
 }
 
 /** The props for the Diff component. */
@@ -62,7 +48,7 @@ interface IDiffProps {
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
 
   /** The diff that should be rendered */
-  readonly diff: DiffModel
+  readonly diff: IDiff
 
   /** propagate errors up to the main application */
   readonly dispatcher: Dispatcher
@@ -132,10 +118,12 @@ export class Diff extends React.Component<IDiffProps, void> {
           return
         }
 
-        const line = diff.diffLineForIndex(index)
-        const isIncludable = line ? line.isIncludeableLine() : false
-        const isSelected = selection.isSelected(index) && isIncludable
-        element.setSelected(isSelected)
+        if (diff.kind === DiffType.Text) {
+          const line = diffLineForIndex(diff, index)
+          const isIncludable = line ? line.isIncludeableLine() : false
+          const isSelected = selection.isSelected(index) && isIncludable
+          element.setSelected(isSelected)
+        }
       })
     }
   }
@@ -194,12 +182,18 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
+    const diff = this.props.diff
+    if (diff.kind !== DiffType.Text) {
+      // text diffs are the only ones that can handle selection
+      return
+    }
+
     const snapshot = this.props.file.selection
     const selected = snapshot.isSelected(index)
     const desiredSelection = !selected
 
     if (isHunkSelection) {
-      const hunk = this.props.diff.diffHunkForIndex(index)
+      const hunk = diffHunkForIndex(diff, index)
       if (!hunk) {
         console.error('unable to find hunk for given line in diff')
         return
@@ -234,8 +228,13 @@ export class Diff extends React.Component<IDiffProps, void> {
       this.lineCleanup.delete(line)
     }
 
+    const diff = this.props.diff
+    if (diff.kind !== DiffType.Text) {
+      return
+    }
+
     const index = instance.getLineNumber(line) as number
-    const hunk = this.props.diff.diffHunkForIndex(index)
+    const hunk = diffHunkForIndex(diff, index)
     if (hunk) {
       const relativeIndex = index - hunk.unifiedDiffStart
       const diffLine = hunk.lines[relativeIndex]
@@ -257,7 +256,7 @@ export class Diff extends React.Component<IDiffProps, void> {
             isIncluded={isIncluded}
             index={index}
             readOnly={this.props.readOnly}
-            diff={this.props.diff}
+            diff={diff}
             updateHunkHoverState={this.updateHunkHoverState}
             isSelectionEnabled={this.isSelectionEnabled}
             onMouseUp={this.onMouseUp}
@@ -329,7 +328,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.restoreScrollPosition(cm)
   }
 
-  private renderImage(imageDiff: ImageDiff) {
+  private renderImage(imageDiff: IImageDiff) {
     if (imageDiff.current && imageDiff.previous) {
       return <ModifiedImageDiff
                 current={imageDiff.current}
@@ -347,50 +346,57 @@ export class Diff extends React.Component<IDiffProps, void> {
     return null
   }
 
+  private renderBinaryFile() {
+    return <BinaryFile path={this.props.file.path}
+                    repository={this.props.repository}
+                    dispatcher={this.props.dispatcher} />
+  }
+
+  private renderTextDiff(diff: ITextDiff) {
+      const options: IEditorConfigurationExtra = {
+        lineNumbers: false,
+        readOnly: true,
+        showCursorWhenSelecting: false,
+        cursorBlinkRate: -1,
+        lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
+        // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
+        extraKeys: { Tab: false },
+        scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
+        mode: getDiffMode(),
+      }
+
+      return (
+        <CodeMirrorHost
+          className='diff-code-mirror'
+          value={diff.text}
+          options={options}
+          isSelectionEnabled={this.isSelectionEnabled}
+          onChanges={this.onChanges}
+          onRenderLine={this.renderLine}
+          ref={this.getAndStoreCodeMirrorInstance}
+        />
+      )
+  }
+
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
     this.codeMirror = cmh === null ? null : cmh.getEditor()
   }
 
   public render() {
+    const diff = this.props.diff
 
-    if (this.props.diff.imageDiff) {
-      return this.renderImage(this.props.diff.imageDiff)
+    if (diff.kind === DiffType.Image) {
+      return this.renderImage(diff)
     }
 
-    if (this.props.diff.isBinary) {
-      return <BinaryFile path={this.props.file.path}
-                         repository={this.props.repository}
-                         dispatcher={this.props.dispatcher} />
+    if (diff.kind === DiffType.Binary) {
+      return this.renderBinaryFile()
     }
 
-    let diffText = ''
-
-    this.props.diff.hunks.forEach(hunk => {
-      hunk.lines.forEach(l => diffText += formatLineEnding(l.text))
-    })
-
-    const options: IEditorConfigurationExtra = {
-      lineNumbers: false,
-      readOnly: true,
-      showCursorWhenSelecting: false,
-      cursorBlinkRate: -1,
-      lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
-      // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
-      extraKeys: { Tab: false },
-      scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
-      mode: getDiffMode(),
+    if (diff.kind === DiffType.Text) {
+      return this.renderTextDiff(diff)
     }
 
-    return (
-      <CodeMirrorHost
-        className='diff-code-mirror'
-        value={diffText}
-        options={options}
-        isSelectionEnabled={this.isSelectionEnabled}
-        onChanges={this.onChanges}
-        onRenderLine={this.renderLine}
-        ref={this.getAndStoreCodeMirrorInstance}
-      />
-    )
+    return null
   }
 }
