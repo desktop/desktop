@@ -18,6 +18,7 @@ import {
   IAheadBehind,
   getBranchAheadBehind,
   getCommits,
+  merge,
 } from '../git'
 
 /** The number of commits to load from history per batch. */
@@ -436,5 +437,10 @@ export class GitStore {
         this.emitUpdate()
       })
     })
+  }
+
+  /** Merge the named branch into the current branch. */
+  public merge(branch: string): Promise<void> {
+    return this.performFailableOperation(() => merge(this.repository, branch))
   }
 }

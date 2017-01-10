@@ -22,7 +22,7 @@ export async function getCommitCount(repository: Repository): Promise<number> {
 }
 
 /** Calculate the number of commits the range is ahead and behind. */
-async function getAheadBehind(repository: Repository, range: string): Promise<IAheadBehind | null> {
+export async function getAheadBehind(repository: Repository, range: string): Promise<IAheadBehind | null> {
   // `--left-right` annotates the list of commits in the range with which side
   // they're coming from. When used with `--count`, it tells us how many
   // commits we have from the two different sides of the range.

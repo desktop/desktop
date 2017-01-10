@@ -103,6 +103,7 @@ export enum PopupType {
   ConfirmDiscardChanges,
   UpdateAvailable,
   Preferences,
+  MergeBranch,
 }
 
 export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
@@ -111,7 +112,8 @@ export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.DeleteBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> } |
                     { type: PopupType.UpdateAvailable } |
-                    { type: PopupType.Preferences }
+                    { type: PopupType.Preferences } |
+                    { type: PopupType.MergeBranch, repository: Repository }
 
 export enum FoldoutType {
   Repository,
