@@ -28,33 +28,40 @@ export class AccessText extends React.Component<IAccessTextProps, void> {
       this.props.highlight !== nextProps.highlight
   }
 
-  public render() {
-    if (this.props.highlight) {
-      // Match everything (if anything) before an ampersand followed by anything that's
-      // not an ampersand and then capture the remainder.
-      const m = this.props.text.match(/^(.*?)?(?:&([^&]))(.*)?$/)
-      const elements = new Array<JSX.Element>()
-
-      if (m) {
-
-        if (m[1]) {
-          elements.push(<span key={1}>{m[1].replace('&&', '&')}</span>)
-        }
-
-        elements.push(<span key={2} className='access-key highlight'>{m[2]}</span>)
-
-        if (m[3]) {
-          elements.push(<span key={3}>{m[3].replace('&&', '&')}</span>)
-        }
-
-        return <span>{elements}</span>
-      }
-    }
-
+  private renderWithoutAccessKeys(): JSX.Element {
     const text = this.props.text
       .replace(/&([^&])/, '$1')
       .replace('&&', '')
 
     return <span>{text}</span>
+  }
+
+  public render() {
+
+    if (!this.props.highlight) {
+      return this.renderWithoutAccessKeys()
+    }
+
+    // Match everything (if anything) before an ampersand followed by anything that's
+    // not an ampersand and then capture the remainder.
+    const m = this.props.text.match(/^(.*?)?(?:&([^&]))(.*)?$/)
+
+    if (!m) {
+      return this.renderWithoutAccessKeys()
+    }
+
+    const elements = new Array<JSX.Element>()
+
+    if (m[1]) {
+      elements.push(<span key={1}>{m[1].replace('&&', '&')}</span>)
+    }
+
+    elements.push(<span key={2} className='access-key highlight'>{m[2]}</span>)
+
+    if (m[3]) {
+      elements.push(<span key={3}>{m[3].replace('&&', '&')}</span>)
+    }
+
+    return <span>{elements}</span>
   }
 }
