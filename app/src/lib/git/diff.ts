@@ -177,8 +177,6 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
           const from = result.from
           const to = result.to
 
-          debugger
-
           const changes = from && to
             ? await getSubmoduleDiff(repository, file, from, to)
             : undefined

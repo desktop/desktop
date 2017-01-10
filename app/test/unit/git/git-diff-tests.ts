@@ -222,7 +222,6 @@ describe('git/diff', () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('friendly-bassoon', FileStatus.Modified, diffSelection)
 
-      debugger
       const diff = await getWorkingDirectoryDiff(repository, file)
       expect(diff.kind === DiffType.Submodule)
       const submodule = diff as ISubmoduleDiff
