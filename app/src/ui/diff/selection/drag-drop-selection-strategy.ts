@@ -113,8 +113,8 @@ export class DragDropSelection implements ISelectionStrategy {
     }
 
     // ensure that we stay within the range of rows painted
-    if (end >= maximum) {
-      end = maximum - 1
+    if (end > maximum) {
+      end = maximum
     }
 
     return { start, end }
@@ -127,10 +127,17 @@ export class DragDropSelection implements ISelectionStrategy {
 
     const { start, end } = this.determineDirtyRange(elements)
 
-    range(start, end).forEach(row => {
+    // range is not inclusive of the last number, which means the edge of
+    // the diff may not be updated - that's why we're adding one here
+    range(start, end + 1).forEach(row => {
       const element = elements.get(row)
       if (!element) {
         console.error('expected gutter element not found')
+        return
+      }
+
+      // don't select the line if it's part of the context
+      if (!element.props.line.isIncludeableLine()) {
         return
       }
 

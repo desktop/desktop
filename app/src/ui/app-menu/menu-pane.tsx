@@ -1,21 +1,66 @@
 import * as React from 'react'
 
 import { List, ClickSource, SelectionSource } from '../list'
-import { MenuItem } from '../../models/app-menu'
+import { MenuItem, itemIsSelectable, findItemByAccessKey } from '../../models/app-menu'
 import { MenuListItem } from './menu-list-item'
 
 interface IMenuPaneProps {
+  /**
+   * The current Menu pane depth, starts at zero and increments by one for each
+   * open submenu.
+   */
   readonly depth: number
+
+  /**
+   * All items available in the current menu. Note that this includes disabled
+   * menu items as well as invisible ones. This list is filtered before
+   * rendering.
+   */
   readonly items: ReadonlyArray<MenuItem>
+
+  /**
+   * The currently selected item in the menu or undefined if no item is
+   * selected.
+   */
   readonly selectedItem?: MenuItem
-  readonly onItemClicked: (item: MenuItem) => void
+
+  /**
+   * A callback for when a selectable menu item was clicked by a pointer device
+   * or when the Enter or Space key is pressed on a selected item. The source
+   * parameter can be used to determine whether the click is a result of a
+   * pointer device or keyboard.
+   */
+  readonly onItemClicked: (depth: number, item: MenuItem, source: ClickSource) => void
+
+  /**
+   * A callback for when a keyboard key is pressed on a menu item.
+   */
   readonly onItemKeyDown: (depth: number, item: MenuItem, event: React.KeyboardEvent<any>) => void
+
+  /**
+   * A callback for when the MenuPane selection changes (i.e. a new menu item is selected).
+   */
   readonly onSelectionChanged: (depth: number, item: MenuItem, source: SelectionSource) => void
+
+  /** Callback for when the mouse enters the menu pane component */
   readonly onMouseEnter: (depth: number) => void
+
+  /**
+   * Whether or not the application menu was opened with the Alt key, this
+   * enables access key highlighting for applicable menu items as well as
+   * keyboard navigation by pressing access keys.
+   */
+  readonly enableAccessKeyNavigation: boolean
 }
 
 interface IMenuPaneState {
+  /**
+   * A list of visible menu items that is to be rendered. This is a derivative
+   * of the props items with invisible items filtered out.
+   */
   readonly items: ReadonlyArray<MenuItem>
+
+  /** The selected row index or -1 if no selection exists. */
   readonly selectedIndex: number
 }
 
@@ -78,13 +123,33 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
     const item = this.state.items[row]
 
     if (item.type !== 'separator' && item.enabled) {
-      this.props.onItemClicked(item)
+      this.props.onItemClicked(this.props.depth, item, source)
     }
   }
 
   private onSelectionChanged = (row: number, source: SelectionSource) => {
     const item = this.state.items[row]
     this.props.onSelectionChanged(this.props.depth, item, source)
+  }
+
+  private onKeyDown = (event: React.KeyboardEvent<any>) => {
+    if (event.defaultPrevented) { return }
+
+    // Modifier keys are handled elsewhere, we only care about letters and symbols
+    if (event.altKey || event.ctrlKey || event.metaKey) { return }
+
+    // If we weren't opened with the Alt key we ignore key presses other than
+    // arrow keys and Enter/Space etc.
+    if (!this.props.enableAccessKeyNavigation) { return }
+
+    // At this point the list will already have intercepted any arrow keys
+    // and the list items themselves will have caught Enter/Space
+    const item  = findItemByAccessKey(event.key, this.state.items)
+    if (item && itemIsSelectable(item)) {
+      event.preventDefault()
+      this.props.onSelectionChanged(this.props.depth, item, { kind: 'keyboard', event: event })
+      this.props.onItemClicked(this.props.depth, item, { kind: 'keyboard', event: event })
+    }
   }
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
@@ -94,10 +159,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
 
   private canSelectRow = (row: number) => {
     const item = this.state.items[row]
-
-    if (item.type === 'separator') { return false }
-
-    return item.enabled && item.visible
+    return itemIsSelectable(item)
   }
 
   private onListRef = (list: List) => {
@@ -111,7 +173,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
   private renderMenuItem = (row: number) => {
     const item = this.state.items[row]
 
-    return <MenuListItem key={item.id} item={item} />
+    return <MenuListItem key={item.id} item={item} highlightAccessKey={this.props.enableAccessKeyNavigation} />
   }
 
   private rowHeight = (info: { index: number }) => {
@@ -122,7 +184,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
   public render(): JSX.Element {
 
     return (
-      <div className='menu-pane' onMouseEnter={this.onMouseEnter}>
+      <div className='menu-pane' onMouseEnter={this.onMouseEnter} onKeyDown={this.onKeyDown}>
         <List
           ref={this.onListRef}
           rowCount={this.state.items.length}

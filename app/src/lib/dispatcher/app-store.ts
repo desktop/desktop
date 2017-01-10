@@ -86,6 +86,9 @@ const CommittedStatuses = new Set([
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
 
+const defaultCommitSummaryWidth: number = 250
+const commitSummaryWidthConfigKey: string = 'commit-summary-width'
+
 export class AppStore {
   private emitter = new Emitter()
 
@@ -137,6 +140,7 @@ export class AppStore {
   private highlightAppMenuToolbarButton: boolean = false
 
   private sidebarWidth: number = defaultSidebarWidth
+  private commitSummaryWidth: number = defaultCommitSummaryWidth
 
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore) {
     this.gitHubUserStore = gitHubUserStore
@@ -294,6 +298,7 @@ export class AppStore {
       showWelcomeFlow: this.showWelcomeFlow,
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
+      commitSummaryWidth: this.commitSummaryWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [ ],
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAppMenuToolbarButton: this.highlightAppMenuToolbarButton,
@@ -585,6 +590,7 @@ export class AppStore {
     }
 
     this.sidebarWidth = parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) || defaultSidebarWidth
+    this.commitSummaryWidth = parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) || defaultCommitSummaryWidth
 
     this.emitUpdate()
   }
@@ -1187,6 +1193,22 @@ export class AppStore {
   public _resetSidebarWidth(): Promise<void> {
     this.sidebarWidth = defaultSidebarWidth
     localStorage.removeItem(sidebarWidthConfigKey)
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _setCommitSummaryWidth(width: number): Promise<void> {
+    this.commitSummaryWidth = width
+    localStorage.setItem(commitSummaryWidthConfigKey, width.toString())
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _resetCommitSummaryWidth(): Promise<void> {
+    this.commitSummaryWidth = defaultCommitSummaryWidth
+    localStorage.removeItem(commitSummaryWidthConfigKey)
     this.emitUpdate()
 
     return Promise.resolve()

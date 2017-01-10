@@ -29,15 +29,26 @@
     // See https://css-tricks.com/flexbox-truncated-text/
     min-width: 0;
 
+    .checkbox-component {
+      flex-shrink: 0;
+      align-items: center;
+      width: 20px;
+      margin: 0;
+      margin-left: var(--spacing-half);
+
+      input {
+        margin: 0;
+      }
+    }
+
     input, .status { flex-shrink: 0; }
 
     .path {
       flex-grow: 1;
-      @include ellipsis;
+      min-width: 0;
+      margin-right: var(--spacing-half);
     }
 
-    .octicon {
-      vertical-align: text-bottom;
-    }
+    .octicon { vertical-align: text-bottom; }
   }
 }

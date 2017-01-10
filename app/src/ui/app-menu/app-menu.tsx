@@ -2,12 +2,43 @@ import * as React from 'react'
 import { MenuPane } from './menu-pane'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IMenu, MenuItem, ISubmenuItem } from '../../models/app-menu'
-import { SelectionSource } from '../list'
+import { FoldoutType } from '../../lib/app-state'
+import { SelectionSource, ClickSource } from '../list'
 
 interface IAppMenuProps {
+  /**
+   * A list of open menus to be rendered, each menu may have
+   * a selected item.
+   */
   readonly state: ReadonlyArray<IMenu>
   readonly dispatcher: Dispatcher
+
+  /**
+   * A required callback for when the app menu is closed. The menu is explicitly
+   * closed when a menu item has been clicked (executed) or when the user
+   * presses Escape on the top level menu pane.
+   */
   readonly onClose: () => void
+
+  /**
+   * Whether or not the application menu was opened with the Alt key, this
+   * enables access key highlighting for applicable menu items as well as
+   * keyboard navigation by pressing access keys.
+   */
+  readonly enableAccessKeyNavigation: boolean,
+
+  /**
+   * Whether the menu was opened by pressing Alt (or Alt+X where X is an
+   * access key for one of the top level menu items). This is used as a
+   * one-time signal to the AppMenu to use some special semantics for
+   * selection and focus. Specifically it will ensure that the last opened
+   * menu will receieve focus.
+   * 
+   * If, true, the semantics outlined above will be applied after which
+   * the dispatcher will be called to clear the prop such that it's not
+   * applied for consecutive renders.
+   */
+  readonly openedWithAccessKey: boolean
 }
 
 const expandCollapseTimeout = 300
@@ -19,7 +50,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
    * next render. Default value is -1. This field is cleared after
    * each successful focus operation.
    */
-  private focusPane: number = - 1
+  private focusPane: number = -1
 
   /**
    * A mapping between pane index (depth) and actual MenuPane instances.
@@ -41,13 +72,41 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   public constructor(props: IAppMenuProps) {
     super(props)
     this.focusPane = props.state.length - 1
+    this.receiveProps(props)
   }
 
-  private onItemClicked = (item: MenuItem) => {
+  private receiveProps(nextProps: IAppMenuProps) {
+    if (nextProps.openedWithAccessKey) {
+      // Clear the openedWithAccessKey prop now that we've received it.
+      nextProps.dispatcher.showFoldout({
+        type: FoldoutType.AppMenu,
+        enableAccessKeyNavigation: nextProps.enableAccessKeyNavigation,
+      })
+
+      // Since we were opened with an access key we auto set focus to the
+      // last pane opened.
+      this.focusPane = nextProps.state.length - 1
+    }
+  }
+
+  private onItemClicked = (depth: number, item: MenuItem, source: ClickSource) => {
     this.clearExpandCollapseTimer()
 
     if (item.type === 'submenuItem') {
-      this.props.dispatcher.setAppMenuState(menu => menu.withOpenedMenu(item))
+
+      // Warning: This is a bit of a hack. When using access keys to navigate
+      // to a submenu item we want it not only to expand but to have its first
+      // child item selected by default. We do that by looking to see if the
+      // selection source was a keyboard press and if it wasn't one of the keys
+      // that we'd expect for a 'normal' click event.
+      const sourceIsAccessKey = this.props.enableAccessKeyNavigation
+        && source.kind === 'keyboard'
+        && (source.event.key !== 'Enter' && source.event.key !== ' ')
+
+      this.props.dispatcher.setAppMenuState(menu => menu.withOpenedMenu(item, sourceIsAccessKey))
+      if (source.kind === 'keyboard') {
+        this.focusPane = depth + 1
+      }
     } else if (item.type !== 'separator') {
       this.props.dispatcher.executeMenuItem(item)
       this.props.onClose()
@@ -149,10 +208,26 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     this.focusPane = depth
   }
 
+  private onKeyDown = (event: React.KeyboardEvent<any>) => {
+    if (!event.defaultPrevented && event.key === 'Escape') {
+      event.preventDefault()
+      this.props.onClose()
+    }
+  }
+
   private renderMenuPane(depth: number, menu: IMenu): JSX.Element {
+    // NB: We use the menu id instead of depth as the key here to force
+    // a new MenuPane instance and List. This is because we used dynamic
+    // row heights and the react-virtualized Grid component isn't able to
+    // recompute row heights accurately. Without this row indices which
+    // previously held a separator item will retain that height and vice-
+    // versa.
+    // If the menu doesn't have an id it's the root menu
+    const key = menu.id || '@'
+
     return (
       <MenuPane
-        key={depth}
+        key={key}
         ref={this.onMenuPaneRef}
         depth={depth}
         items={menu.items}
@@ -161,6 +236,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
         onMouseEnter={this.onPaneMouseEnter}
         onItemKeyDown={this.onItemKeyDown}
         onSelectionChanged={this.onSelectionChanged}
+        enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
       />
     )
   }
@@ -175,7 +251,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     this.paneRefs = this.paneRefs.slice(0, panes.length)
 
     return (
-      <div id='app-menu-foldout'>
+      <div id='app-menu-foldout' onKeyDown={this.onKeyDown}>
         {panes}
       </div>
     )
@@ -193,6 +269,10 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
         this.focusPane = -1
       }
     }
+  }
+
+  public componentWillReceiveProps(nextProps: IAppMenuProps) {
+    this.receiveProps(nextProps)
   }
 
   public componentDidMount() {

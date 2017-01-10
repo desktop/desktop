@@ -63,6 +63,8 @@
     width: 100%;
     min-width: 0;
 
+    &.disabled { opacity: 0.3; }
+
     .label {
       flex-grow: 1;
       margin-left: var(--spacing-double);
@@ -97,6 +99,10 @@
         flex-grow: 0;
         margin: calc((var(--spacing-double) - 16) / 2) 0;
       }
+    }
+
+    .access-key.highlight {
+      text-decoration: underline;
     }
   }
 

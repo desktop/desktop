@@ -3,9 +3,11 @@ import * as classNames from 'classnames'
 
 import { Octicon, OcticonSymbol } from '../octicons'
 import { MenuItem } from '../../models/app-menu'
+import { AccessText } from '../lib/access-text'
 
 interface IMenuListItemProps {
   readonly item: MenuItem
+  readonly highlightAccessKey: boolean
 }
 
 /**
@@ -34,6 +36,7 @@ function getPlatformSpecificNameOrSymbolForModifier(modifier: string): string {
 
     // Special case space because no one would be able to see it
     case ' ': return 'Space'
+    case ',': return 'Comma'
   }
 
   // Not a known modifier, likely a normal key
@@ -81,6 +84,7 @@ export class MenuListItem extends React.Component<IMenuListItemProps, void> {
 
     const className = classNames(
       'menu-item',
+      { 'disabled': !item.enabled },
       { 'checkbox': item.type === 'checkbox' },
       { 'radio': item.type === 'radio' },
       { 'checked': (item.type === 'checkbox' || item.type === 'radio') && item.checked },
@@ -89,7 +93,9 @@ export class MenuListItem extends React.Component<IMenuListItemProps, void> {
     return (
       <div className={className}>
         {this.getIcon(item)}
-        <div className='label'>{item.label}</div>
+        <div className='label'>
+          <AccessText text={item.label} highlight={this.props.highlightAccessKey} />
+        </div>
         {accelerator}
         {arrow}
       </div>
