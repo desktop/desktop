@@ -3,7 +3,7 @@ import * as React from 'react'
 interface IAccessTextProps {
   /**
    * A string which optionally contains an access key modifier (ampersand).
-   * The access key modifier directly preceedes the character which is
+   * The access key modifier directly precedes the character which is
    * highlighted when the highlight property is set. Literal ampersand
    * characters need to be escaped by using two ampersand characters (&&).
    *
