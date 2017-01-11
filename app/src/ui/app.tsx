@@ -717,28 +717,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const isOpen = this.state.currentFoldout
-      && this.state.currentFoldout.type === FoldoutType.Branch
-
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-
     const tip = selection.state.branchesState.tip
 
     if (tip.kind === BranchState.Unknown) {
       // TODO: this is bad and I feel bad
       return null
-    }
-
-    if (tip.kind === BranchState.Detached) {
-      const title = `On ${tip.currentSha.substr(0,7)}`
-      return <ToolbarDropdown
-        className='branch-button'
-        icon={OcticonSymbol.alert}
-        title={title}
-        description='Detached HEAD'
-        onDropdownStateChanged={this.onBranchDropdownStateChanged}
-        dropdownContentRenderer={this.renderBranchFoldout}
-        dropdownState={currentState} />
     }
 
     if (tip.kind === BranchState.Unborn) {
@@ -747,6 +730,23 @@ export class App extends React.Component<IAppProps, IAppState> {
         icon={OcticonSymbol.gitBranch}
         title='master'
         description='Current branch'
+        onDropdownStateChanged={this.onBranchDropdownStateChanged}
+        dropdownContentRenderer={this.renderBranchFoldout}
+        dropdownState='closed' />
+    }
+
+    const isOpen = this.state.currentFoldout
+      && this.state.currentFoldout.type === FoldoutType.Branch
+
+    const currentState: DropdownState = isOpen ? 'open' : 'closed'
+
+    if (tip.kind === BranchState.Detached) {
+      const title = `On ${tip.currentSha.substr(0,7)}`
+      return <ToolbarDropdown
+        className='branch-button'
+        icon={OcticonSymbol.alert}
+        title={title}
+        description='Detached HEAD'
         onDropdownStateChanged={this.onBranchDropdownStateChanged}
         dropdownContentRenderer={this.renderBranchFoldout}
         dropdownState={currentState} />
