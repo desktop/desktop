@@ -730,9 +730,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (tip.kind === BranchState.Unborn) {
       return <ToolbarDropdown
         className='branch-button'
-        icon={OcticonSymbol.alert}
-        title='No commits made yet, yo!'
-        description='Unborn HEAD'
+        icon={OcticonSymbol.gitBranch}
+        title='master'
+        description='Current branch'
         onDropdownStateChanged={this.onBranchDropdownStateChanged}
         dropdownContentRenderer={this.renderBranchFoldout}
         dropdownState={currentState} />
