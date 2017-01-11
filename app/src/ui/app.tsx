@@ -717,10 +717,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (tip.kind === BranchState.Detached) {
+      const title = `HEAD detached at ${tip.currentSha.substr(0,7)}`
       return <ToolbarDropdown
         className='branch-button'
         icon={OcticonSymbol.alert}
-        title='Detached HEAD'
+        title={title}
         description='Current branch'
         onDropdownStateChanged={this.onBranchDropdownStateChanged}
         dropdownContentRenderer={this.renderBranchFoldout}
