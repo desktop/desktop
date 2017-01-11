@@ -6,9 +6,14 @@ export enum BranchType {
 }
 
 export enum BranchState {
+  Unknown,
   Unborn,
   Detached,
   Valid
+}
+
+export interface IUnknownRepository {
+   readonly kind: BranchState.Unknown
 }
 
 export interface IUnbornRepository {
@@ -26,6 +31,7 @@ export interface IValidBranch {
 }
 
 export type Tip =
+  IUnknownRepository |
   IUnbornRepository |
   IDetachedHead |
   IValidBranch

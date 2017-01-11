@@ -3,7 +3,7 @@ import { CommitIdentity } from '../models/commit-identity'
 import { Diff } from '../models/diff'
 import { Repository } from '../models/repository'
 import { IAheadBehind } from './git'
-import { Branch } from '../models/branch'
+import { Branch, Tip } from '../models/branch'
 import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
@@ -178,6 +178,8 @@ export interface IRepositoryState {
 }
 
 export interface IBranchesState {
+  readonly tip: Tip
+  // TODO: obsolete this
   readonly currentBranch: Branch | null
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>

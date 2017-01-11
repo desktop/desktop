@@ -2,7 +2,7 @@ import * as Fs from 'fs'
 import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch, BranchType, Tip, BranchState } from '../../models/branch'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
 
@@ -14,6 +14,7 @@ import {
   getRecentBranches,
   getBranches,
   getCurrentBranch,
+  getTip,
   deleteBranch,
   IAheadBehind,
   getBranchAheadBehind,
@@ -47,6 +48,8 @@ export class GitStore {
   private readonly requestsInFight = new Set<string>()
 
   private readonly repository: Repository
+
+  private _tip: Tip = { kind: BranchState.Unknown }
 
   private _currentBranch: Branch | null = null
 
@@ -162,6 +165,12 @@ export class GitStore {
 
   /** Load the current and default branches. */
   public async loadCurrentAndDefaultBranch() {
+
+    const currentTip = await this.performFailableOperation(() => getTip(this.repository))
+    if (!currentTip) { return }
+
+    this._tip = currentTip
+
     const currentBranch = await this.performFailableOperation(() => getCurrentBranch(this.repository))
     if (!currentBranch) { return }
 
@@ -246,6 +255,9 @@ export class GitStore {
 
     return null
   }
+
+  /** The current branch. */
+  public get tip(): Tip { return this._tip }
 
   /** The current branch. */
   public get currentBranch(): Branch | null { return this._currentBranch }

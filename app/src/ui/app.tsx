@@ -30,6 +30,7 @@ import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
 import { User } from '../models/user'
+import { BranchState } from '../models/branch'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Button } from './lib/button'
 import { Form } from './lib/form'
@@ -708,10 +709,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
-    const branch = selection.state.branchesState.currentBranch
+    const tip = selection.state.branchesState.tip
 
-    if (!branch) {
-      // detached or unborn HEAD state
+    if (tip.kind === BranchState.Unknown) {
+      // TODO: this is bad and I feel bad
+      return null
+    }
+
+    if (tip.kind === BranchState.Detached) {
       return <ToolbarDropdown
         className='branch-button'
         icon={OcticonSymbol.alert}
@@ -722,10 +727,21 @@ export class App extends React.Component<IAppProps, IAppState> {
         dropdownState={currentState} />
     }
 
+    if (tip.kind === BranchState.Unborn) {
+      return <ToolbarDropdown
+        className='branch-button'
+        icon={OcticonSymbol.alert}
+        title='No commits made yet, yo!'
+        description='Unborn HEAD'
+        onDropdownStateChanged={this.onBranchDropdownStateChanged}
+        dropdownContentRenderer={this.renderBranchFoldout}
+        dropdownState={currentState} />
+    }
+
     return <ToolbarDropdown
       className='branch-button'
       icon={OcticonSymbol.gitBranch}
-      title={branch.name}
+      title={tip.branch.name}
       description='Current branch'
       onDropdownStateChanged={this.onBranchDropdownStateChanged}
       dropdownContentRenderer={this.renderBranchFoldout}

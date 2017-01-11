@@ -23,7 +23,7 @@ import { DiffSelection, DiffSelectionType, DiffLineType } from '../../models/dif
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
-import { Branch, BranchType } from '../../models/branch'
+import { Branch, BranchType, BranchState } from '../../models/branch'
 import { Commit } from '../../models/commit'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
@@ -203,6 +203,7 @@ export class AppStore {
       },
       selectedSection: RepositorySection.Changes,
       branchesState: {
+        tip: { kind: BranchState.Unknown },
         currentBranch: null,
         defaultBranch: null,
         allBranches: new Array<Branch>(),
@@ -312,6 +313,7 @@ export class AppStore {
 
     this.updateBranchesState(repository, state => (
       {
+        tip: gitStore.tip,
         currentBranch: gitStore.currentBranch,
         defaultBranch: gitStore.defaultBranch,
         allBranches: gitStore.allBranches,

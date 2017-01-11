@@ -36,10 +36,8 @@ export async function deleteBranch(repository: Repository, branch: Branch, user:
   return true
 }
 
-
-
 /** Get the name of the current branch. */
-export async function getTip(repository: Repository): Promise<Tip | null> {
+export async function getTip(repository: Repository): Promise<Tip> {
 
   const revParse = await git([ 'rev-parse', 'HEAD' ], repository.path, 'getTip', { successExitCodes: new Set([ 0, 128 ]) })
   if (revParse.exitCode === 128) {
@@ -64,7 +62,7 @@ export async function getTip(repository: Repository): Promise<Tip | null> {
   const currentBranch = await getCurrentBranch(repository)
   if (!currentBranch) {
     fatalError(`getTip failed despite all the previous guard checks`)
-    return null
+    return { kind: BranchState.Unknown }
   }
 
   return {
