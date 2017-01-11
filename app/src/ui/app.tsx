@@ -744,7 +744,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       const title = `On ${tip.currentSha.substr(0,7)}`
       return <ToolbarDropdown
         className='branch-button'
-        icon={OcticonSymbol.alert}
+        icon={OcticonSymbol.gitCommit}
         title={title}
         description='Detached HEAD'
         onDropdownStateChanged={this.onBranchDropdownStateChanged}
