@@ -5,6 +5,13 @@ export enum BranchType {
   Remote,
 }
 
+export class Tip {
+  public readonly isUnborn: boolean
+  public readonly isDetachedHead: boolean
+  public readonly currentSha: string | null
+  public readonly branch: Branch | null
+}
+
 /** A branch as loaded from Git. */
 export class Branch {
   /** The short name of the branch. E.g., `master`. */
