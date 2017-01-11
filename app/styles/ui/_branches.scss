@@ -1,5 +1,30 @@
 @import '../mixins';
 
+#branch-popover {
+  height: 100%;
+}
+
+.create-branch {
+  // TODO: this makes me feel bad
+  height: 40px !important;
+  width: 100%;
+  margin-bottom: var(--spacing);
+
+  // TODO: align text with plus icon
+  .label {
+    float: left;
+
+    .plus {
+      margin-right: var(--spacing);
+    }
+  }
+
+  .arrow {
+    float: right;
+  }
+}
+
+
 #branches {
   height: 100%;
   width: 350px;

@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { List } from '../list'
+import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
@@ -7,6 +8,7 @@ import { groupedAndFilteredBranches, BranchListItemModel } from './grouped-and-f
 import { BranchListItem } from './branch'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 const RowHeight = 30
 
@@ -161,29 +163,39 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
   public render() {
     return (
-      <div id='branches'>
-        <Row>
-          <TextBox
-            type='search'
-            autoFocus={true}
-            placeholder='Filter'
-            onChange={this.onFilterChanged}
-            onKeyDown={this.onKeyDown}
-            onInputRef={this.onInputRef}/>
-        </Row>
+      <div id='branch-popover'>
+        <Button className='create-branch'>
+          <div className='label'>
+            <Octicon className='icon plus' symbol={OcticonSymbol.plus} />
+            Create new branch
+          </div>
+          <Octicon className='icon arrow' symbol={OcticonSymbol.triangleRight} />
+        </Button>
 
-        <div className='branches-list-container'>
-          <List
-            rowCount={this.state.branchItems.length}
-            rowRenderer={this.renderRow}
-            rowHeight={RowHeight}
-            selectedRow={this.state.selectedRow}
-            onSelectionChanged={this.onSelectionChanged}
-            onRowClick={this.onRowClick}
-            onRowKeyDown={this.onRowKeyDown}
-            canSelectRow={this.canSelectRow}
-            ref={this.storeListRef}
-            invalidationProps={this.props}/>
+        <div id='branches'>
+          <Row>
+            <TextBox
+              type='search'
+              autoFocus={true}
+              placeholder='Filter'
+              onChange={this.onFilterChanged}
+              onKeyDown={this.onKeyDown}
+              onInputRef={this.onInputRef}/>
+          </Row>
+
+          <div className='branches-list-container'>
+            <List
+              rowCount={this.state.branchItems.length}
+              rowRenderer={this.renderRow}
+              rowHeight={RowHeight}
+              selectedRow={this.state.selectedRow}
+              onSelectionChanged={this.onSelectionChanged}
+              onRowClick={this.onRowClick}
+              onRowKeyDown={this.onRowKeyDown}
+              canSelectRow={this.canSelectRow}
+              ref={this.storeListRef}
+              invalidationProps={this.props}/>
+          </div>
         </div>
       </div>
     )
