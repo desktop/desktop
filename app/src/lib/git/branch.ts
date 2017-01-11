@@ -47,7 +47,6 @@ export async function getTip(repository: Repository): Promise<Tip> {
     }
   }
 
-  // TODO: verify this is correct
   const currentSha = revParse.stdout.trim()
 
   const symbolicRef = await git([ 'symbolic-ref', 'HEAD' ], repository.path, 'getTip', { successExitCodes: new Set([ 0, 128 ]) })
