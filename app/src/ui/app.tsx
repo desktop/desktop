@@ -702,25 +702,30 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!selection || selection.type !== SelectionType.Repository) {
       return null
     }
-    const branch = selection.state.branchesState.currentBranch
-
-    // TODO: This is in all likelihood wrong, need to look into
-    // what null means here
-    if (!branch) {
-      return null
-    }
-
-    const title = branch.name
 
     const isOpen = this.state.currentFoldout
       && this.state.currentFoldout.type === FoldoutType.Branch
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
+    const branch = selection.state.branchesState.currentBranch
+
+    if (!branch) {
+      // detached or unborn HEAD state
+      return <ToolbarDropdown
+        className='branch-button'
+        icon={OcticonSymbol.alert}
+        title='Detached HEAD'
+        description='Current branch'
+        onDropdownStateChanged={this.onBranchDropdownStateChanged}
+        dropdownContentRenderer={this.renderBranchFoldout}
+        dropdownState={currentState} />
+    }
+
     return <ToolbarDropdown
       className='branch-button'
       icon={OcticonSymbol.gitBranch}
-      title={title}
+      title={branch.name}
       description='Current branch'
       onDropdownStateChanged={this.onBranchDropdownStateChanged}
       dropdownContentRenderer={this.renderBranchFoldout}
