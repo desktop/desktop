@@ -204,7 +204,6 @@ export class AppStore {
       selectedSection: RepositorySection.Changes,
       branchesState: {
         tip: { kind: BranchState.Unknown },
-        currentBranch: null,
         defaultBranch: null,
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
@@ -859,8 +858,9 @@ export class AppStore {
 
     const gitStore = this.getGitStore(repository)
     const state = this.getRepositoryState(repository)
-    const currentBranch = state.branchesState.currentBranch
-    if (currentBranch) {
+
+    if (state.branchesState.tip.kind === BranchState.Valid) {
+      const currentBranch = state.branchesState.tip.branch
       await gitStore.loadLocalCommits(currentBranch)
     }
   }
@@ -1021,16 +1021,22 @@ export class AppStore {
       }
 
       const state = this.getRepositoryState(repository)
-      const branch = state.branchesState.currentBranch
-      if (!branch) {
+      if (state.branchesState.tip.kind === BranchState.Unborn) {
         return Promise.reject(new Error('The current branch is unborn.'))
       }
 
-      const user = this.getUserForRepository(repository)
-      await gitStore.performFailableOperation(() => {
-        const setUpstream = branch.upstream ? false : true
-        return pushRepo(repository, user, remote, branch.name, setUpstream)
-      })
+      if (state.branchesState.tip.kind === BranchState.Detached) {
+        return Promise.reject(new Error('The current repository is in a detached HEAD state.'))
+      }
+
+      if (state.branchesState.tip.kind === BranchState.Valid) {
+        const branch = state.branchesState.tip.branch
+        const user = this.getUserForRepository(repository)
+        await gitStore.performFailableOperation(() => {
+          const setUpstream = branch.upstream ? false : true
+          return pushRepo(repository, user, remote, branch.name, setUpstream)
+        })
+      }
     })
 
     this._refreshRepository(repository)
@@ -1060,13 +1066,20 @@ export class AppStore {
       }
 
       const state = this.getRepositoryState(repository)
-      const branch = state.branchesState.currentBranch
-      if (!branch) {
+
+      if (state.branchesState.tip.kind === BranchState.Unborn) {
         return Promise.reject(new Error('The current branch is unborn.'))
       }
 
-      const user = this.getUserForRepository(repository)
-      await gitStore.performFailableOperation(() => pullRepo(repository, user, remote, branch.name))
+      if (state.branchesState.tip.kind === BranchState.Detached) {
+        return Promise.reject(new Error('The current repository is in a detached HEAD state.'))
+      }
+
+      if (state.branchesState.tip.kind === BranchState.Valid) {
+        const branch = state.branchesState.tip.branch
+        const user = this.getUserForRepository(repository)
+        await gitStore.performFailableOperation(() => pullRepo(repository, user, remote, branch.name))
+      }
     })
 
     this._refreshRepository(repository)
@@ -1077,8 +1090,11 @@ export class AppStore {
   private async fastForwardBranches(repository: Repository) {
     const state = this.getRepositoryState(repository)
     const branches = state.branchesState.allBranches
-    const currentBranch = state.branchesState.currentBranch
-    const currentBranchName = currentBranch ? currentBranch.name : null
+
+    const tip = state.branchesState.tip
+    const currentBranchName = tip.kind === BranchState.Valid
+      ? tip.branch.name
+      : null
 
     // A branch is only eligible for being fast forwarded if:
     //  1. It's local.

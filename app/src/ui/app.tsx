@@ -128,19 +128,20 @@ export class App extends React.Component<IAppProps, IAppState> {
     let onBranch = false
     let hasDefaultBranch = false
     if (selectedState && selectedState.type === SelectionType.Repository) {
-      const currentBranch = selectedState.state.branchesState.currentBranch
+      const tip = selectedState.state.branchesState.tip
       const defaultBranch = selectedState.state.branchesState.defaultBranch
 
-      onBranch = Boolean(currentBranch)
       hasDefaultBranch = Boolean(defaultBranch)
+
+      onBranch = tip.kind === BranchState.Valid
 
       // If we are:
       //  1. on the default branch, or
       //  2. on an unborn branch, or
       //  3. on a detached HEAD
       // there's not much we can do.
-      if (!currentBranch || !defaultBranch || currentBranch.name === defaultBranch.name) {
-        onNonDefaultBranch = false
+      if (tip.kind === BranchState.Valid && defaultBranch !== null) {
+        onNonDefaultBranch = tip.branch.name !== defaultBranch.name
       } else {
         onNonDefaultBranch = true
       }
@@ -230,28 +231,29 @@ export class App extends React.Component<IAppProps, IAppState> {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    const branch = state.state.branchesState.currentBranch
-    if (!branch) { return }
-
-    this.props.dispatcher.showPopup({
-      type: PopupType.RenameBranch,
-      repository: state.repository,
-      branch,
-    })
+    const tip = state.state.branchesState.tip
+    if (tip.kind === BranchState.Valid) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.RenameBranch,
+        repository: state.repository,
+        branch: tip.branch,
+      })
+    }
   }
 
   private deleteBranch() {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    const branch = state.state.branchesState.currentBranch
-    if (!branch) { return }
+    const tip = state.state.branchesState.tip
 
-    this.props.dispatcher.showPopup({
-      type: PopupType.DeleteBranch,
-      repository: state.repository,
-      branch,
-    })
+    if (tip.kind === BranchState.Valid) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.DeleteBranch,
+        repository: state.repository,
+        branch: tip.branch,
+      })
+    }
   }
 
   private addRepository() {
@@ -442,10 +444,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (popup.type === PopupType.CreateBranch) {
       const repository = popup.repository
       const state = this.props.appStore.getRepositoryState(repository)
+
+      const tip = state.branchesState.tip
+      const currentBranch = tip.kind === BranchState.Valid
+        ? tip.branch
+        : null
+
       return <CreateBranch repository={repository}
                            dispatcher={this.props.dispatcher}
                            branches={state.branchesState.allBranches}
-                           currentBranch={state.branchesState.currentBranch}/>
+                           currentBranch={currentBranch}/>
     } else if (popup.type === PopupType.AddRepository) {
       return <AddRepository dispatcher={this.props.dispatcher}/>
     } else if (popup.type === PopupType.RenameBranch) {
@@ -681,10 +689,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     const repository = selection.repository
 
     const state = this.props.appStore.getRepositoryState(repository)
+
+    const tip = state.branchesState.tip
+    const currentBranch = tip.kind === BranchState.Valid
+      ? tip.branch
+      : null
     return <Branches
       allBranches={state.branchesState.allBranches}
       recentBranches={state.branchesState.recentBranches}
-      currentBranch={state.branchesState.currentBranch}
+      currentBranch={currentBranch}
       defaultBranch={state.branchesState.defaultBranch}
       dispatcher={this.props.dispatcher}
       repository={repository}

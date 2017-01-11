@@ -179,8 +179,6 @@ export interface IRepositoryState {
 
 export interface IBranchesState {
   readonly tip: Tip
-  // TODO: obsolete this
-  readonly currentBranch: Branch | null
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly recentBranches: ReadonlyArray<Branch>
