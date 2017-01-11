@@ -1,6 +1,6 @@
 import { ipcRenderer } from 'electron'
 import { MenuIDs } from '../main-process/menu'
-import { v4 as guid } from 'node-uuid'
+import { v4 as guid } from 'uuid'
 import { IHTTPRequest, IHTTPResponse } from '../lib/http'
 import { ExecutableMenuItem } from '../models/app-menu'
 

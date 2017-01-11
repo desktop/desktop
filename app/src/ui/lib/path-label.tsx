@@ -2,6 +2,7 @@ import * as React from 'react'
 
 import { FileStatus } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { PathText } from './path-text'
 
 interface IPathLabelProps {
   /** the current path of the file */
@@ -10,6 +11,8 @@ interface IPathLabelProps {
   readonly oldPath?: string,
   /** the type of change applied to the file */
   readonly status: FileStatus
+
+  readonly availableWidth: number
 }
 
 /**
@@ -24,7 +27,6 @@ export class PathLabel extends React.Component<IPathLabelProps, void> {
 
     const props: React.HTMLProps<HTMLLabelElement> = {
       className: 'path',
-      title: this.props.path,
     }
 
     if (this.props.status === FileStatus.Renamed && this.props.oldPath) {
@@ -34,7 +36,7 @@ export class PathLabel extends React.Component<IPathLabelProps, void> {
         </label>
       )
     } else {
-      return <label {...props}>{this.props.path}</label>
+      return <label {...props}><PathText path={this.props.path} availableWidth={this.props.availableWidth} /></label>
     }
   }
 }

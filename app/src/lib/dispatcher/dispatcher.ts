@@ -12,7 +12,7 @@ import { Commit } from '../../models/commit'
 import { IAPIUser } from '../../lib/api'
 import { GitHubRepository } from '../../models/github-repository'
 import { ICommitMessage } from './git-store'
-import { v4 as guid } from 'node-uuid'
+import { v4 as guid } from 'uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { StatsStore, ILaunchStats } from '../stats'
@@ -373,6 +373,22 @@ export class Dispatcher {
    */
   public resetSidebarWidth(): Promise<void> {
     return this.appStore._resetSidebarWidth()
+  }
+
+  /**
+   * Set the width of the commit summary column in the
+   * history view to the given value.
+   */
+  public setCommitSummaryWidth(width: number): Promise<void> {
+    return this.appStore._setCommitSummaryWidth(width)
+  }
+
+  /**
+   * Reset the width of the commit summary column in the
+   * history view to its default value.
+   */
+  public resetCommitSummaryWidth(): Promise<void> {
+    return this.appStore._resetCommitSummaryWidth()
   }
 
   /** Update the repository's issues from GitHub. */

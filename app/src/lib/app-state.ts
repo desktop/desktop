@@ -73,6 +73,9 @@ export interface IAppState {
    */
   readonly sidebarWidth: number
 
+  /** The width of the commit summary column in the history view */
+  readonly commitSummaryWidth: number
+
   /** Whether we should hide the toolbar (and show inverted window controls) */
   readonly titleBarStyle: 'light' | 'dark'
 
@@ -122,7 +125,7 @@ export enum FoldoutType {
 export type Foldout =
   { type: FoldoutType.Repository } |
   { type: FoldoutType.Branch } |
-  { type: FoldoutType.AppMenu } |
+  { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } |
   { type: FoldoutType.Publish }
 
 export enum RepositorySection {

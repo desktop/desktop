@@ -19,6 +19,9 @@ export enum AuthenticationMethods {
 interface IEnterpriseServerEntryProps {
   /** Called after the user has entered their Enterprise server address. */
   readonly onContinue: (endpoint: string, authMethods: Set<AuthenticationMethods>) => void
+
+  /** An array of additional buttons to render after the "Continue" button. */
+  readonly additionalButtons?: ReadonlyArray<JSX.Element>
 }
 
 interface IEnterpriseServerEntryState {
@@ -49,6 +52,8 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
           onChange={this.onServerAddressChanged}/>
 
         <Button type='submit' disabled={disableSubmission}>Continue</Button>
+
+        {this.props.additionalButtons}
 
         {this.state.loading ? <Loading/> : null}
 

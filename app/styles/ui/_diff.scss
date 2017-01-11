@@ -35,7 +35,8 @@
     // The last immediate `span` is the actual content class.
     > span:last-child {
       // Add a little bit of space to the left of code diff
-      margin-left: var(--spacing-half);
+      // `padding-left` here means mouse move events are not raised
+      padding-left: var(--spacing-half);
     }
   }
 

@@ -4,7 +4,7 @@ import { DiffLineGutter } from '../diff-line-gutter'
 import { range } from '../../../lib/range'
 
 /** apply hunk selection to the current diff */
-export class HunkSelection implements ISelectionStrategy {
+export class RangeSelection implements ISelectionStrategy {
   private readonly _start: number
   private readonly _end: number
   private readonly _desiredSelection: boolean
