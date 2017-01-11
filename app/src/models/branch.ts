@@ -5,12 +5,30 @@ export enum BranchType {
   Remote,
 }
 
-export class Tip {
-  public readonly isUnborn: boolean
-  public readonly isDetachedHead: boolean
-  public readonly currentSha: string | null
-  public readonly branch: Branch | null
+export enum BranchState {
+  Unborn,
+  Detached,
+  Valid
 }
+
+export interface IUnbornRepository {
+   readonly kind: BranchState.Unborn
+}
+
+export interface IDetachedHead {
+   readonly kind: BranchState.Detached
+   readonly currentSha: string
+}
+
+export interface IValidBranch {
+   readonly kind: BranchState.Valid
+   readonly branch: Branch
+}
+
+export type Tip =
+  IUnbornRepository |
+  IDetachedHead |
+  IValidBranch
 
 /** A branch as loaded from Git. */
 export class Branch {
