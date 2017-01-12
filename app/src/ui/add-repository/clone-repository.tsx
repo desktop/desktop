@@ -101,6 +101,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
         return hostname === getHTMLURL(u.endpoint)
       }) || null
       this.props.dispatcher.clone(url, this.state.path, dotComUser)
+      this.props.dispatcher.closePopup()
       return
     }
 
@@ -110,6 +111,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       if (user) {
         const cloneURL = `${getHTMLURL(user.endpoint)}/${url}`
         this.props.dispatcher.clone(cloneURL, this.state.path, user)
+        this.props.dispatcher.closePopup()
       } else {
         this.setState({
           ...this.state,
