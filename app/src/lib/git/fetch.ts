@@ -4,7 +4,6 @@ import { User } from '../../models/user'
 
 import { GitError } from 'git-kitchen-sink'
 
-
 /** Fetch from the given remote. */
 export async function fetch(repository: Repository, user: User | null, remote: string): Promise<void> {
   const options = {
