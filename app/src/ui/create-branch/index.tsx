@@ -55,9 +55,6 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     const currentBranch = this.props.currentBranch
     return (
       <Form onSubmit={this.createBranch}>
-        <div className='header'>{__DARWIN__ ? 'Create New Branch' : 'Create new branch'}</div>
-        <hr/>
-
         <TextBox
           label='Name'
           autoFocus={true}

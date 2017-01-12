@@ -7,9 +7,9 @@ import { Branch } from '../../models/branch'
 import { groupedAndFilteredBranches, BranchListItemModel } from './grouped-and-filtered-branches'
 import { BranchListItem } from './branch'
 import { TextBox } from '../lib/text-box'
-import { Select } from '../lib/select'
 import { Row } from '../lib/row'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { CreateBranch } from '../create-branch'
 
 const RowHeight = 30
 
@@ -168,37 +168,18 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private renderCreateBranch() {
-    if (this.state.showCreateDialog) {
-
-      const branches = this.state.branchItems.map(b => {
-        if (b.kind === 'branch') {
-          return b.branch.name
-        } else {
-          // we have some labels here, what to do?
-          return ''
-        }
-      }).filter(v => v.length > 0)
-
-      return (
-        <div id='new-branch'>
-          <Row>
-            <TextBox label='Name' />
-          </Row>
-          <Row>
-            <Select
-              label='From'>
-              {branches.map(n => <option key={n} value={n}>{n}</option>)}
-            </Select>
-          </Row>
-          <Row>
-            <Button type='submit'>
-              Create branch
-            </Button>
-          </Row>
-        </div>)
-    } else {
+    if (!this.state.showCreateDialog) {
       return null
     }
+
+    return (
+      <div id='new-branch'>
+        <CreateBranch
+          branches={this.props.allBranches}
+          currentBranch={this.props.currentBranch}
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository} />
+      </div>)
   }
 
   public render() {
