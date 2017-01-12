@@ -10,6 +10,7 @@ import {
   reset,
   GitResetMode,
   getDefaultRemote,
+  getUrl,
   fetch as fetchRepo,
   getRecentBranches,
   getBranches,
@@ -408,6 +409,10 @@ export class GitStore {
 
   /** Get the name of the remote we're working with. */
   public get remoteName(): string | null { return this._remoteName }
+
+  public async getRemoteUrl(name: string): Promise<string | null> {
+    return getUrl(this.repository, name)
+  }
 
   public setCommitMessage(message: ICommitMessage | null): Promise<void> {
     this._commitMessage = message
