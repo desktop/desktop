@@ -2,6 +2,9 @@
 
 #branch-popover {
   height: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
 }
 
 .create-branch {
@@ -85,4 +88,9 @@
       text-align: right;
     }
   }
+}
+
+#new-branch {
+  width: 350px;
+  padding: var(--spacing);
 }

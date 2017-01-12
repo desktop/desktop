@@ -7,6 +7,7 @@ import { Branch } from '../../models/branch'
 import { groupedAndFilteredBranches, BranchListItemModel } from './grouped-and-filtered-branches'
 import { BranchListItem } from './branch'
 import { TextBox } from '../lib/text-box'
+import { Select } from '../lib/select'
 import { Row } from '../lib/row'
 import { Octicon, OcticonSymbol } from '../octicons'
 
@@ -25,6 +26,7 @@ interface IBranchesState {
   readonly filter: string
   readonly branchItems: ReadonlyArray<BranchListItemModel>
   readonly selectedRow: number
+  readonly showCreateDialog: boolean
 }
 
 export class Branches extends React.Component<IBranchesProps, IBranchesState> {
@@ -34,10 +36,10 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   public constructor(props: IBranchesProps) {
     super(props)
 
-    this.state = this.createState(props, '', -1)
+    this.state = this.createState(props, '', -1, false)
   }
 
-  private createState(props: IBranchesProps, newFilter: string, newSelectedRow: number): IBranchesState {
+  private createState(props: IBranchesProps, newFilter: string, newSelectedRow: number, showCreateDialog: boolean): IBranchesState {
     const branchItems = groupedAndFilteredBranches(
       this.props.defaultBranch,
       this.props.currentBranch,
@@ -52,11 +54,11 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
     const filter = newFilter
 
-    return { filter, selectedRow, branchItems }
+    return { filter, selectedRow, branchItems, showCreateDialog }
   }
 
   private receiveProps(nextProps: IBranchesProps) {
-    this.setState(this.createState(nextProps, this.state.filter, this.state.selectedRow))
+    this.setState(this.createState(nextProps, this.state.filter, this.state.selectedRow, this.state.showCreateDialog))
   }
 
   public componentWillReceiveProps(nextProps: IBranchesProps) {
@@ -116,7 +118,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
   private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const text = event.currentTarget.value
-    this.setState(this.createState(this.props, text, this.state.selectedRow))
+    this.setState(this.createState(this.props, text, this.state.selectedRow, this.state.showCreateDialog))
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -125,7 +127,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
     if (event.key === 'ArrowDown') {
       if (this.state.branchItems.length > 0) {
-        this.setState(this.createState(this.props, this.state.filter, list.nextSelectableRow('down', 0)), () => {
+        this.setState(this.createState(this.props, this.state.filter, list.nextSelectableRow('down', 0), this.state.showCreateDialog), () => {
           list.focus()
         })
       }
@@ -133,7 +135,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       event.preventDefault()
     } else if (event.key === 'ArrowUp') {
       if (this.state.branchItems.length > 0) {
-        this.setState(this.createState(this.props, this.state.filter, list.nextSelectableRow('up', 0)), () => {
+        this.setState(this.createState(this.props, this.state.filter, list.nextSelectableRow('up', 0), this.state.showCreateDialog), () => {
           list.focus()
         })
       }
@@ -158,45 +160,88 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private onSelectionChanged = (row: number) => {
-    this.setState(this.createState(this.props, this.state.filter, row))
+    this.setState(this.createState(this.props, this.state.filter, row, this.state.showCreateDialog))
+  }
+
+  private onShowCreateBranch = () => {
+    this.setState(this.createState(this.props, this.state.filter, this.state.selectedRow, true))
+  }
+
+  private renderCreateBranch() {
+    if (this.state.showCreateDialog) {
+
+      const branches = this.state.branchItems.map(b => {
+        if (b.kind === 'branch') {
+          return b.branch.name
+        } else {
+          // we have some labels here, what to do?
+          return ''
+        }
+      }).filter(v => v.length > 0)
+
+      return (
+        <div id='new-branch'>
+          <Row>
+            <TextBox label='Name' />
+          </Row>
+          <Row>
+            <Select
+              label='From'>
+              {branches.map(n => <option key={n} value={n}>{n}</option>)}
+            </Select>
+          </Row>
+          <Row>
+            <Button type='submit'>
+              Create branch
+            </Button>
+          </Row>
+        </div>)
+    } else {
+      return null
+    }
   }
 
   public render() {
     return (
       <div id='branch-popover'>
-        <Button className='create-branch'>
-          <div className='label'>
-            <Octicon className='icon plus' symbol={OcticonSymbol.plus} />
-            Create new branch
-          </div>
-          <Octicon className='icon arrow' symbol={OcticonSymbol.triangleRight} />
-        </Button>
+        <div>
+          <Button className='create-branch' onClick={this.onShowCreateBranch}>
+            <div className='label'>
+              <Octicon className='icon plus' symbol={OcticonSymbol.plus} />
+              Create new branch
+            </div>
+            <Octicon className='icon arrow' symbol={OcticonSymbol.triangleRight} />
+          </Button>
 
-        <div id='branches'>
-          <Row>
-            <TextBox
-              type='search'
-              autoFocus={true}
-              placeholder='Filter'
-              onChange={this.onFilterChanged}
-              onKeyDown={this.onKeyDown}
-              onInputRef={this.onInputRef}/>
-          </Row>
+          <div id='branches'>
+            <Row>
+              <TextBox
+                type='search'
+                autoFocus={true}
+                placeholder='Filter'
+                onChange={this.onFilterChanged}
+                onKeyDown={this.onKeyDown}
+                onInputRef={this.onInputRef}/>
+            </Row>
 
-          <div className='branches-list-container'>
-            <List
-              rowCount={this.state.branchItems.length}
-              rowRenderer={this.renderRow}
-              rowHeight={RowHeight}
-              selectedRow={this.state.selectedRow}
-              onSelectionChanged={this.onSelectionChanged}
-              onRowClick={this.onRowClick}
-              onRowKeyDown={this.onRowKeyDown}
-              canSelectRow={this.canSelectRow}
-              ref={this.storeListRef}
-              invalidationProps={this.props}/>
+            <div className='branches-list-container'>
+              <List
+                rowCount={this.state.branchItems.length}
+                rowRenderer={this.renderRow}
+                rowHeight={RowHeight}
+                selectedRow={this.state.selectedRow}
+                onSelectionChanged={this.onSelectionChanged}
+                onRowClick={this.onRowClick}
+                onRowKeyDown={this.onRowKeyDown}
+                canSelectRow={this.canSelectRow}
+                ref={this.storeListRef}
+                invalidationProps={this.props}/>
+            </div>
           </div>
         </div>
+
+        {this.renderCreateBranch()}
+
       </div>
     )
   }
