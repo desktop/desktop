@@ -8,17 +8,19 @@
 }
 
 .create-branch {
-  // TODO: this makes me feel bad
+  // .button-component overrides this rule to make it smaller,
+  // not sure how to be more specific without using an id
+  // (which isn't exposed on Button currently)
   height: 40px !important;
   width: 100%;
   margin-bottom: var(--spacing);
 
-  // TODO: align text with plus icon
   .label {
+    display: flex;
     float: left;
 
     .plus {
-      margin-right: var(--spacing);
+      margin-right: var(--spacing-half);
     }
   }
 

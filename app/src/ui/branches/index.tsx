@@ -188,10 +188,10 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
         <div>
           <Button className='create-branch' onClick={this.onShowCreateBranch}>
             <div className='label'>
-              <Octicon className='icon plus' symbol={OcticonSymbol.plus} />
-              Create new branch
+              <Octicon className='plus' symbol={OcticonSymbol.plus} />
+              <div>Create new branch</div>
             </div>
-            <Octicon className='icon arrow' symbol={OcticonSymbol.triangleRight} />
+            <Octicon className='arrow' symbol={OcticonSymbol.triangleRight} />
           </Button>
 
           <div id='branches'>
