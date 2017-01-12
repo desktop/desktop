@@ -9,6 +9,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { Resizable } from '../resizable'
+import { IGitHubUser } from '../../lib/dispatcher'
 
 // At some point we'll make index.tsx only be exports
 // see https://github.com/desktop/desktop/issues/383
@@ -22,6 +23,7 @@ interface IHistoryProps {
   readonly commits: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly commitSummaryWidth: number
+  readonly gitHubUsers: Map<string, IGitHubUser>
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
@@ -60,6 +62,8 @@ export class History extends React.Component<IHistoryProps, void> {
 
   private renderCommitSummary(commit: Commit) {
     const isLocal = this.props.localCommitSHAs.indexOf(commit.sha) > -1
+    const gitHubUser = this.props.gitHubUsers.get(commit.author.email.toLowerCase()) || null
+    const avatarURL = gitHubUser ? gitHubUser.avatarURL : null
 
     return <CommitSummary
       summary={commit.summary}
@@ -70,6 +74,7 @@ export class History extends React.Component<IHistoryProps, void> {
       emoji={this.props.emoji}
       repository={this.props.repository}
       isLocal={isLocal}
+      avatarURL={avatarURL}
     />
   }
 
