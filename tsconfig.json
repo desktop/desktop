@@ -11,7 +11,8 @@
     "strictNullChecks": true,
     "sourceMap": true,
     "jsx": "react",
-    "outDir": "./out"
+    "outDir": "./out",
+    "types": [ "node" ]
   },
   "exclude": [
     "node_modules",
