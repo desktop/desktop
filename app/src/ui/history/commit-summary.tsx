@@ -15,6 +15,7 @@ interface ICommitSummaryProps {
   readonly files: ReadonlyArray<FileChange>
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
+  readonly avatarURL: string | null
 }
 
 export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
