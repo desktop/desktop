@@ -31,6 +31,9 @@ if (__DARWIN__) {
   require('codemirror/addon/scroll/simplescrollbars')
 }
 
+// Required for us to be able to customize the foreground color of selected text
+require('codemirror/addon/selection/mark-selection')
+
 /**
  * normalize the line endings in the diff so that the CodeMirror editor
  * will display the unified diff correctly
@@ -521,6 +524,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       extraKeys: { Tab: false },
       scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
       mode: getDiffMode(),
+      styleSelectedText: true,
     }
 
     return (
