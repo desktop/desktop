@@ -9,7 +9,7 @@ import { GitError } from 'git-kitchen-sink'
 export async function fetch(repository: Repository, user: User | null, remote: string): Promise<void> {
   const options = {
     env: envForAuthentication(user),
-    expectedErrors: new Set([ GitError.HTTPSAuthenticationFailed, GitError.SSHAuthenticationFailed ])
+    expectedErrors: new Set([ GitError.HTTPSAuthenticationFailed, GitError.SSHAuthenticationFailed ]),
   }
 
   const result = await git([ 'fetch', '--prune', remote ], repository.path, 'fetch', options)
