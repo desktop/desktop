@@ -1047,8 +1047,7 @@ export class AppStore {
 
   private async handleNetworkError(repository: Repository, e: Error) {
     if (this.users.length === 0) {
-      // TODO: navigate user to Preferences
-      const notFoundError = new Error(`Unable to access repository as no account found. Ensure you have signed into your account.`)
+      const notFoundError = new Error(`Unable to access repository as no account found. Open Preferences to sign into your GitHub account.`)
       this._postError(notFoundError)
       return
     }
@@ -1069,8 +1068,8 @@ export class AppStore {
     })
 
     if (!matchingUser) {
-      const userDoesNotMatch = new Error(`Unable to access remote repository as no matching account found for host: ${repositoryServerName}.`)
-      this._postError(userDoesNotMatch)
+      const userNotFound = new Error(`Unable to access remote repository as no matching account found for host: ${repositoryServerName}.`)
+      this._postError(userNotFound)
       return
     }
 
