@@ -112,13 +112,13 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     })
   }
 
-  private createBranch = () => {
+  private createBranch = async () => {
     const name = this.state.sanitizedName
     const baseBranch = this.state.baseBranch
     if (name.length > 0 && baseBranch) {
-      this.props.dispatcher.createBranch(this.props.repository, name, baseBranch.name)
+      await this.props.dispatcher.createBranch(this.props.repository, name, baseBranch.name)
     }
 
-    this.props.dispatcher.closePopup()
+    this.props.dispatcher.closeFoldout()
   }
 }
