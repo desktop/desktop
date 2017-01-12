@@ -1,5 +1,6 @@
 import { remote } from 'electron'
 import * as URL from 'url'
+import * as Path from 'path'
 import * as React from 'react'
 import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
@@ -35,7 +36,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
     this.state = {
       url: '',
-      path: getDefaultDir(),
+      path: Path.join(getDefaultDir(), 'new-repo'),
       loading: false,
       error: null,
     }
