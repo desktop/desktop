@@ -7,8 +7,10 @@ import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { getDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
+import { Loading } from '../lib/loading'
 import { User } from '../../models/user'
-import { getDotComAPIEndpoint } from '../../lib/api'
+import { Errors } from '../lib/errors'
+import { API, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -20,6 +22,10 @@ interface ICloneRepositoryState {
   readonly url: string
 
   readonly path: string
+
+  readonly loading: boolean
+
+  readonly error: Error | null
 }
 
 /** The component for cloning a repository. */
@@ -30,11 +36,13 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     this.state = {
       url: '',
       path: getDefaultDir(),
+      loading: false,
+      error: null,
     }
   }
 
   public render() {
-    const disabled = this.state.url.length === 0 || this.state.path.length === 0
+    const disabled = this.state.url.length === 0 || this.state.path.length === 0 || this.state.loading
     return (
       <Form className='clone-repository' onSubmit={this.clone}>
         <div>Enter a repository URL or GitHub username and repository (e.g., <pre>hubot/cool-repo</pre>)</div>
@@ -51,6 +59,10 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
         </Row>
 
         <Button disabled={disabled} type='submit'>Clone</Button>
+
+        {this.state.error ? <Errors>{this.state.error.message}</Errors> : null}
+
+        {this.state.loading ? <Loading/> : null}
       </Form>
     )
   }
@@ -76,6 +88,8 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
   }
 
   private clone = async () => {
+    this.setState({ ...this.state, loading: true })
+
     const url = this.state.url
     const parsed = URL.parse(url)
     // If we can parse a hostname, we'll assume they gave us a proper URL. If
