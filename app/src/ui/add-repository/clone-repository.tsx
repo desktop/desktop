@@ -118,7 +118,14 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
           error: new Error(`Couldn't find a repository with that owner and name.`),
         })
       }
+      return
     }
+
+    this.setState({
+      ...this.state,
+      loading: false,
+      error: new Error(`Enter a URL or username/repository.`),
+    })
   }
 
   /**
