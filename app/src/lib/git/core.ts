@@ -220,5 +220,5 @@ export function envForAuthentication(user: User | null): Object {
   return Object.assign(env, {
     'DESKTOP_USERNAME': user.login,
     'DESKTOP_ENDPOINT': user.endpoint,
-  });
+  })
 }
