@@ -31,6 +31,9 @@ if (__DARWIN__) {
   require('codemirror/addon/scroll/simplescrollbars')
 }
 
+// Required for us to be able to customize the foreground color of selected text
+require('codemirror/addon/selection/mark-selection')
+
 /**
  * normalize the line endings in the diff so that the CodeMirror editor
  * will display the unified diff correctly
@@ -153,6 +156,8 @@ export class Diff extends React.Component<IDiffProps, void> {
 
     this.lineCleanup.forEach(disposable => disposable.dispose())
     this.lineCleanup.clear()
+
+    document.removeEventListener('mouseup', this.onDocumentMouseUp)
   }
 
   /**
@@ -226,12 +231,30 @@ export class Diff extends React.Component<IDiffProps, void> {
     }
 
     this.selection.paint(this.cachedGutterElements)
+    document.addEventListener('mouseup', this.onDocumentMouseUp)
+  }
+
+  /**
+   * Helper event listener, registered when starting a selection by
+   * clicking anywhere on or near the gutter. Immediately removes itself
+   * from the mouseup event on the document element and ends any current
+   * selection.
+   * 
+   * TODO: Once Electron upgrades to Chrome 55 we can drop this in favor
+   * of the 'once' option in addEventListener, see
+   * https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
+   */
+  private onDocumentMouseUp = (ev: MouseEvent) => {
+    ev.preventDefault()
+    document.removeEventListener('mouseup', this.onDocumentMouseUp)
+    this.endSelection()
   }
 
   /**
    * complete the selection gesture and apply the change to the diff
    */
   private endSelection = () => {
+
     if (!this.props.onIncludeChanged || !this.selection) {
       return
     }
@@ -240,10 +263,6 @@ export class Diff extends React.Component<IDiffProps, void> {
 
     // operation is completed, clean this up
     this.selection = null
-  }
-
-  private onGutterMouseUp = () => {
-    this.endSelection()
   }
 
   private onGutterMouseDown = (index: number, isRangeSelection: boolean) => {
@@ -364,7 +383,6 @@ export class Diff extends React.Component<IDiffProps, void> {
           diff={this.props.diff}
           updateRangeHoverState={this.updateRangeHoverState}
           isSelectionEnabled={this.isSelectionEnabled}
-          onMouseUp={this.onGutterMouseUp}
           onMouseDown={this.onGutterMouseDown}
           onMouseMove={this.onGutterMouseMove} />,
         reactContainer,
@@ -383,10 +401,6 @@ export class Diff extends React.Component<IDiffProps, void> {
         this.onDiffTextMouseDown(ev, index)
       }
 
-      const onMouseUpLine: (ev: MouseEvent) => void = (ev) => {
-        this.endSelection()
-      }
-
       const onMouseLeaveLine: (ev: MouseEvent) => void = (ev) => {
         this.onDiffTextMouseLeave(ev, index)
       }
@@ -394,7 +408,6 @@ export class Diff extends React.Component<IDiffProps, void> {
       if (!this.props.readOnly) {
         diffLineElement.addEventListener('mousemove', onMouseMoveLine)
         diffLineElement.addEventListener('mousedown', onMouseDownLine)
-        diffLineElement.addEventListener('mouseup', onMouseUpLine)
         diffLineElement.addEventListener('mouseleave', onMouseLeaveLine)
       }
 
@@ -422,7 +435,6 @@ export class Diff extends React.Component<IDiffProps, void> {
         if (!this.props.readOnly) {
           diffLineElement.removeEventListener('mousemove', onMouseMoveLine)
           diffLineElement.removeEventListener('mousedown', onMouseDownLine)
-          diffLineElement.removeEventListener('mouseup', onMouseUpLine)
           diffLineElement.removeEventListener('mouseleave', onMouseLeaveLine)
         }
 
@@ -512,6 +524,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       extraKeys: { Tab: false },
       scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
       mode: getDiffMode(),
+      styleSelectedText: true,
     }
 
     return (

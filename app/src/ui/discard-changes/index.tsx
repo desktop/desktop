@@ -18,11 +18,11 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
     const paths = this.props.files.map(f => f.path).join(', ')
     return (
       <Form onSubmit={this.cancel}>
-        <div>Confirm Discard Changes</div>
+        <div>{ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'}</div>
         <div>Are you sure you want to discard all changes to {paths}?</div>
 
         <Button type='submit'>Cancel</Button>
-        <Button onClick={this.discard}>Discard Changes</Button>
+        <Button onClick={this.discard}>{__DARWIN__ ? 'Discard Changes' : 'Discard changes'}</Button>
       </Form>
     )
   }
