@@ -6,7 +6,7 @@ import { getBlobContents } from './show'
 
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange, FileStatus } from '../../models/status'
-import { Diff, Image  } from '../../models/diff'
+import { DiffType, IRawDiff, IDiff, IImageDiff, Image } from '../../models/diff'
 
 import { DiffParser } from '../diff-parser'
 
@@ -21,13 +21,13 @@ const imageFileExtensions = new Set([ '.png', '.jpg', '.jpeg', '.gif' ])
  * @param commitish A commit SHA or some other identifier that ultimately dereferences
  *                  to a commit.
  */
-export function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<Diff> {
+export function getCommitDiff(repository: Repository, file: FileChange, commitish: string): Promise<IDiff> {
 
   const args = [ 'log', commitish, '-m', '-1', '--first-parent', '--patch-with-raw', '-z', '--', file.path ]
 
   return git(args, repository.path, 'getCommitDiff')
     .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => attachImageDiff(repository, file, diff, commitish))
+    .then(diff => convertDiff(repository, file, diff, commitish))
 }
 
 /**
@@ -35,7 +35,7 @@ export function getCommitDiff(repository: Repository, file: FileChange, commitis
  * compared against HEAD if it's tracked, if not it'll be compared to an empty file meaning
  * that all content in the file will be treated as additions.
  */
-export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<Diff> {
+export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDirectoryFileChange): Promise<IDiff> {
 
   let opts: IGitExecutionOptions | undefined
   let args: Array<string>
@@ -68,24 +68,10 @@ export function getWorkingDirectoryDiff(repository: Repository, file: WorkingDir
 
   return git(args, repository.path, 'getWorkingDirectoryDiff', opts)
     .then(value => diffFromRawDiffOutput(value.stdout))
-    .then(diff => attachImageDiff(repository, file, diff, 'HEAD'))
+    .then(diff => convertDiff(repository, file, diff, 'HEAD'))
 }
 
-async function attachImageDiff(repository: Repository, file: FileChange, diff: Diff, commitish: string): Promise<Diff> {
-
-  // already have a text diff, no point trying out this
-  if (!diff.isBinary) {
-    return diff
-  }
-
-  // if unable to find an extension, this will return an empty string
-  const extension = Path.extname(file.path)
-
-  // some extension we don't know how to parse, never mind
-  if (!imageFileExtensions.has(extension)) {
-    return diff
-  }
-
+async function getImageDiff(repository: Repository, file: FileChange, commitish: string): Promise<IImageDiff> {
   let current: Image | undefined = undefined
   let previous: Image | undefined = undefined
 
@@ -95,7 +81,7 @@ async function attachImageDiff(repository: Repository, file: FileChange, diff: D
     // Ideally we'd show all three versions and let the user pick but that's
     // a bit out of scope for now.
     if (file.status === FileStatus.Conflicted) {
-      return diff
+      return { kind: DiffType.Image }
     }
 
     // Does it even exist in the working directory?
@@ -124,10 +110,51 @@ async function attachImageDiff(repository: Repository, file: FileChange, diff: D
     }
   }
 
-  return diff.withImageDiff({
+  return {
+    kind: DiffType.Image,
     previous: previous,
     current: current,
+  }
+}
+
+/**
+ * normalize the line endings in the diff so that the CodeMirror editor
+ * will display the unified diff correctly
+ */
+function formatLineEnding(text: string): string {
+  if (text.endsWith('\n')) {
+    return text
+  } else if (text.endsWith('\r')) {
+    return text + '\n'
+  } else {
+    return text + '\r\n'
+  }
+}
+
+export async function convertDiff(repository: Repository, file: FileChange, diff: IRawDiff, commitish: string): Promise<IDiff> {
+  if (diff.isBinary) {
+    const extension = Path.extname(file.path)
+
+    // some extension we don't know how to parse, never mind
+    if (!imageFileExtensions.has(extension)) {
+      return {
+        kind: DiffType.Binary,
+      }
+    } else {
+      return getImageDiff(repository, file, commitish)
+    }
+  }
+
+  let diffText = ''
+  diff.hunks.forEach(hunk => {
+    hunk.lines.forEach(l => diffText += formatLineEnding(l.text))
   })
+
+  return {
+    kind: DiffType.Text,
+    text: diffText,
+    hunks: diff.hunks,
+  }
 }
 
 /**
@@ -153,7 +180,7 @@ function getMediaType(extension: string) {
  *
  * Parses the output from a diff-like command that uses `--path-with-raw`
  */
-function diffFromRawDiffOutput(result: string): Diff {
+function diffFromRawDiffOutput(result: string): IRawDiff {
   const pieces = result.split('\0')
   const parser = new DiffParser()
   return parser.parse(pieces[pieces.length - 1])

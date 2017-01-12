@@ -1,5 +1,6 @@
 import * as React from 'react'
-import { Diff, DiffLine, DiffLineType } from '../../models/diff'
+import { ITextDiff, DiffLine, DiffLineType } from '../../models/diff'
+import { diffHunkForIndex, findInteractiveDiffRange } from './diff-explorer'
 import { hoverCssClass, selectedLineClass } from './selection/selection'
 import { assertNever } from '../../lib/fatal-error'
 import * as classNames from 'classnames'
@@ -29,7 +30,7 @@ interface IDiffGutterProps {
   /**
    * The diff currently displayed in the app
    */
-  readonly diff: Diff
+  readonly diff: ITextDiff
 
   /**
    * Callback to apply hover effect to specific lines in the diff
@@ -48,7 +49,7 @@ interface IDiffGutterProps {
   /**
    * Callback to signal when the mouse button is pressed on this element
    */
-  readonly onMouseDown: (index: number, isRangeSelection: boolean) => void
+  readonly onMouseDown: (index: number, diff: ITextDiff, isRangeSelection: boolean) => void
 
   /**
    * Callback to signal when the mouse is hovering over this element
@@ -143,7 +144,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
   private updateHoverState(isRangeSelection: boolean, isActive: boolean) {
     if (isRangeSelection) {
-      const range = this.props.diff.findInteractiveDiffRange(this.props.index)
+      const range = findInteractiveDiffRange(this.props.diff, this.props.index)
       if (!range) {
         console.error('unable to find range for given index in diff')
         return
@@ -175,7 +176,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
 
   private mouseLeaveHandler = (ev: MouseEvent) => {
     ev.preventDefault()
-
     const isRangeSelection = isMouseCursorNearEdge(ev)
     this.updateHoverState(isRangeSelection, false)
   }
@@ -183,10 +183,16 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private mouseMoveHandler = (ev: MouseEvent) => {
     ev.preventDefault()
 
+    const hunk = diffHunkForIndex(this.props.diff, this.props.index)
+    if (!hunk) {
+      console.error('unable to find hunk for given line in diff')
+      return
+    }
+
     const isRangeSelection = isMouseCursorNearEdge(ev)
     const isSelectionActive = this.props.isSelectionEnabled()
 
-    const range = this.props.diff.findInteractiveDiffRange(this.props.index)
+    const range = findInteractiveDiffRange(this.props.diff, this.props.index)
     if (!range) {
       console.error('unable to find range for given index in diff')
       return
@@ -209,7 +215,7 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
   private mouseDownHandler = (ev: MouseEvent) => {
     ev.preventDefault()
     const isRangeSelection = isMouseCursorNearEdge(ev)
-    this.props.onMouseDown(this.props.index, isRangeSelection)
+    this.props.onMouseDown(this.props.index, this.props.diff, isRangeSelection)
   }
 
   private applyEventHandlers = (elem: HTMLSpanElement) => {

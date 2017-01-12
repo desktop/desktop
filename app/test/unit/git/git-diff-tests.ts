@@ -6,7 +6,7 @@ import * as fs from 'fs-extra'
 
 import { Repository } from '../../../src/models/repository'
 import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
-import { DiffSelectionType, DiffSelection } from '../../../src/models/diff'
+import { ITextDiff, IImageDiff, DiffSelectionType, DiffSelection, DiffType } from '../../../src/models/diff'
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 
 import {
@@ -16,8 +16,13 @@ import {
   getBlobImage,
 } from '../../../src/lib/git'
 
-
 import { GitProcess } from 'git-kitchen-sink'
+
+async function getTextDiff(repo: Repository, file: WorkingDirectoryFileChange): Promise<ITextDiff> {
+  const diff = await getWorkingDirectoryDiff(repo, file)
+  expect(diff.kind === DiffType.Text)
+  return diff as ITextDiff
+}
 
 describe('git/diff', () => {
   let repository: Repository | null = null
@@ -74,9 +79,11 @@ describe('git/diff', () => {
       const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, diffSelection)
       const diff = await getWorkingDirectoryDiff(repository!, file)
 
-      expect(diff.isBinary).is.true
-      expect(diff.imageDiff!.previous).is.not.undefined
-      expect(diff.imageDiff!.current).is.not.undefined
+      expect(diff.kind === DiffType.Image)
+
+      const imageDiff = diff as IImageDiff
+      expect(imageDiff.previous).is.not.undefined
+      expect(imageDiff.current).is.not.undefined
     })
 
     it('changes for text are not set', async () => {
@@ -85,10 +92,9 @@ describe('git/diff', () => {
 
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getTextDiff(repository!, file)
 
-      expect(diff.isBinary).is.false
-      expect(diff.imageDiff).is.undefined
+      expect(diff.hunks.length).is.greaterThan(0)
     })
   })
 
@@ -101,7 +107,7 @@ describe('git/diff', () => {
     it('counts lines for new file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getTextDiff(repository!, file)
 
       const hunk = diff.hunks[0]
 
@@ -116,7 +122,7 @@ describe('git/diff', () => {
     it('counts lines for modified file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('modified-file.md', FileStatus.Modified, diffSelection)
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getTextDiff(repository!, file)
 
       const first = diff.hunks[0]
       expect(first.lines[0].text).to.have.string('@@ -4,10 +4,6 @@')
@@ -138,7 +144,7 @@ describe('git/diff', () => {
     it('counts lines for staged file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('staged-file.md', FileStatus.Modified, diffSelection)
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getTextDiff(repository!, file)
 
       const first = diff.hunks[0]
       expect(first.lines[0].text).to.have.string('@@ -2,7 +2,7 @@ ')
@@ -170,7 +176,7 @@ describe('git/diff', () => {
 
       expect(files.length).to.equal(1)
 
-      const diff = await getWorkingDirectoryDiff(repo, files[0])
+      const diff = await getTextDiff(repo, files[0])
 
       expect(diff.hunks.length).to.equal(0)
     })
@@ -196,13 +202,14 @@ describe('git/diff', () => {
 
       expect(files.length).to.equal(1)
 
-      const diff = await getWorkingDirectoryDiff(repo, files[0])
+      const diff = await getTextDiff(repo, files[0])
 
       expect(diff.hunks.length).to.equal(1)
-      expect(diff.hunks[0].lines.length).to.equal(3)
-      expect(diff.hunks[0].lines[1].text).to.equal('-foo')
-      expect(diff.hunks[0].lines[2].text).to.equal('+bar')
+
+      const first = diff.hunks[0]
+      expect(first.lines.length).to.equal(3)
+      expect(first.lines[1].text).to.equal('-foo')
+      expect(first.lines[2].text).to.equal('+bar')
     })
   })
-
 })

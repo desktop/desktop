@@ -12,9 +12,10 @@ import { CodeMirrorHost } from './code-mirror-host'
 import { Repository } from '../../models/repository'
 
 import { FileChange, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { Diff as DiffModel, DiffSelection, ImageDiff } from '../../models/diff'
+import { DiffSelection, DiffType, IDiff, IImageDiff, ITextDiff } from '../../models/diff'
 import { Dispatcher } from '../../lib/dispatcher/dispatcher'
 
+import { diffLineForIndex, diffHunkForIndex, findInteractiveDiffRange } from './diff-explorer'
 import { DiffLineGutter } from './diff-line-gutter'
 import { IEditorConfigurationExtra } from './editor-configuration-extra'
 import { getDiffMode } from './diff-mode'
@@ -29,23 +30,6 @@ import { RangeSelectionSizePixels } from './edge-detection'
 if (__DARWIN__) {
   // This has to be required to support the `simple` scrollbar style.
   require('codemirror/addon/scroll/simplescrollbars')
-}
-
-// Required for us to be able to customize the foreground color of selected text
-require('codemirror/addon/selection/mark-selection')
-
-/**
- * normalize the line endings in the diff so that the CodeMirror editor
- * will display the unified diff correctly
- */
-function formatLineEnding(text: string): string {
-  if (text.endsWith('\n')) {
-    return text
-  } else if (text.endsWith('\r')) {
-    return text + '\n'
-  } else {
-    return text + '\r\n'
-  }
 }
 
 /** The props for the Diff component. */
@@ -66,7 +50,7 @@ interface IDiffProps {
   readonly onIncludeChanged?: (diffSelection: DiffSelection) => void
 
   /** The diff that should be rendered */
-  readonly diff: DiffModel
+  readonly diff: IDiff
 
   /** propagate errors up to the main application */
   readonly dispatcher: Dispatcher
@@ -139,10 +123,12 @@ export class Diff extends React.Component<IDiffProps, void> {
           return
         }
 
-        const line = diff.diffLineForIndex(index)
-        const isIncludable = line ? line.isIncludeableLine() : false
-        const isSelected = selection.isSelected(index) && isIncludable
-        element.setSelected(isSelected)
+        if (diff.kind === DiffType.Text) {
+          const line = diffLineForIndex(diff, index)
+          const isIncludable = line ? line.isIncludeableLine() : false
+          const isSelected = selection.isSelected(index) && isIncludable
+          element.setSelected(isSelected)
+        }
       })
     }
   }
@@ -213,13 +199,13 @@ export class Diff extends React.Component<IDiffProps, void> {
   /**
    * start a selection gesture based on the current interation
    */
-  private startSelection = (file: WorkingDirectoryFileChange, index: number, isRangeSelection: boolean) => {
+  private startSelection = (file: WorkingDirectoryFileChange, diff: ITextDiff, index: number, isRangeSelection: boolean) => {
     const snapshot = file.selection
     const selected = snapshot.isSelected(index)
     const desiredSelection = !selected
 
     if (isRangeSelection) {
-      const range = this.props.diff.findInteractiveDiffRange(index)
+      const range = findInteractiveDiffRange(diff, index)
       if (!range) {
         console.error('unable to find range for given line in diff')
         return
@@ -239,7 +225,7 @@ export class Diff extends React.Component<IDiffProps, void> {
    * clicking anywhere on or near the gutter. Immediately removes itself
    * from the mouseup event on the document element and ends any current
    * selection.
-   * 
+   *
    * TODO: Once Electron upgrades to Chrome 55 we can drop this in favor
    * of the 'once' option in addEventListener, see
    * https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener
@@ -265,13 +251,19 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.selection = null
   }
 
-  private onGutterMouseDown = (index: number, isRangeSelection: boolean) => {
+  private onGutterMouseDown = (index: number, diff: ITextDiff, isRangeSelection: boolean) => {
     if (!(this.props.file instanceof WorkingDirectoryFileChange)) {
       fatalError('must not start selection when selected file is not a WorkingDirectoryFileChange')
       return
     }
 
-    this.startSelection(this.props.file, index, isRangeSelection)
+    if (isRangeSelection) {
+      const hunk = diffHunkForIndex(diff, index)
+      if (!hunk) {
+        console.error('unable to find hunk for given line in diff')
+      }
+    }
+    this.startSelection(this.props.file, diff, index, isRangeSelection)
   }
 
   private onGutterMouseMove = (index: number) => {
@@ -283,13 +275,13 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.selection.paint(this.cachedGutterElements)
   }
 
-  private onDiffTextMouseMove = (ev: MouseEvent, index: number) => {
+  private onDiffTextMouseMove = (ev: MouseEvent, diff: ITextDiff, index: number) => {
     const isActive = this.isMouseCursorNearGutter(ev)
     if (isActive === null) {
       return
     }
 
-    const diffLine = this.props.diff.diffLineForIndex(index)
+    const diffLine = diffLineForIndex(diff, index)
     if (!diffLine) {
       return
     }
@@ -298,7 +290,7 @@ export class Diff extends React.Component<IDiffProps, void> {
       return
     }
 
-    const range = this.props.diff.findInteractiveDiffRange(index)
+    const range = findInteractiveDiffRange(diff, index)
     if (!range) {
       console.error('unable to find range for given index in diff')
       return
@@ -307,7 +299,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.updateRangeHoverState(range.start, range.end, isActive)
   }
 
-  private onDiffTextMouseDown = (ev: MouseEvent, index: number) => {
+  private onDiffTextMouseDown = (ev: MouseEvent, diff: ITextDiff, index: number) => {
     const isActive = this.isMouseCursorNearGutter(ev)
 
     if (isActive) {
@@ -322,12 +314,12 @@ export class Diff extends React.Component<IDiffProps, void> {
         return
       }
 
-      this.startSelection(this.props.file, index, true)
+      this.startSelection(this.props.file, diff, index, true)
     }
   }
 
-  private onDiffTextMouseLeave = (ev: MouseEvent, index: number) => {
-    const range = this.props.diff.findInteractiveDiffRange(index)
+  private onDiffTextMouseLeave = (ev: MouseEvent, diff: ITextDiff, index: number) => {
+    const range = findInteractiveDiffRange(diff, index)
     if (!range) {
       console.error('unable to find range for given index in diff')
       return
@@ -359,9 +351,14 @@ export class Diff extends React.Component<IDiffProps, void> {
       this.lineCleanup.delete(line)
     }
 
+    const diff = this.props.diff
+    if (diff.kind !== DiffType.Text) {
+      return
+    }
+
     const index = instance.getLineNumber(line) as number
 
-    const diffLine = this.props.diff.diffLineForIndex(index)
+    const diffLine = diffLineForIndex(diff, index)
     if (diffLine) {
       const diffLineElement = element.children[0] as HTMLSpanElement
 
@@ -380,7 +377,7 @@ export class Diff extends React.Component<IDiffProps, void> {
           isIncluded={isIncluded}
           index={index}
           readOnly={this.props.readOnly}
-          diff={this.props.diff}
+          diff={diff}
           updateRangeHoverState={this.updateRangeHoverState}
           isSelectionEnabled={this.isSelectionEnabled}
           onMouseDown={this.onGutterMouseDown}
@@ -394,15 +391,15 @@ export class Diff extends React.Component<IDiffProps, void> {
       )
 
       const onMouseMoveLine: (ev: MouseEvent) => void = (ev) => {
-        this.onDiffTextMouseMove(ev, index)
+        this.onDiffTextMouseMove(ev, diff, index)
       }
 
       const onMouseDownLine: (ev: MouseEvent) => void = (ev) => {
-        this.onDiffTextMouseDown(ev, index)
+        this.onDiffTextMouseDown(ev, diff, index)
       }
 
       const onMouseLeaveLine: (ev: MouseEvent) => void = (ev) => {
-        this.onDiffTextMouseLeave(ev, index)
+        this.onDiffTextMouseLeave(ev, diff, index)
       }
 
       if (!this.props.readOnly) {
@@ -474,7 +471,7 @@ export class Diff extends React.Component<IDiffProps, void> {
     this.restoreScrollPosition(cm)
   }
 
-  private renderImage(imageDiff: ImageDiff) {
+  private renderImage(imageDiff: IImageDiff) {
     if (imageDiff.current && imageDiff.previous) {
       return <ModifiedImageDiff
                 current={imageDiff.current}
@@ -492,51 +489,58 @@ export class Diff extends React.Component<IDiffProps, void> {
     return null
   }
 
+  private renderBinaryFile() {
+    return <BinaryFile path={this.props.file.path}
+      repository={this.props.repository}
+      dispatcher={this.props.dispatcher} />
+  }
+
+  private renderTextDiff(diff: ITextDiff) {
+      const options: IEditorConfigurationExtra = {
+        lineNumbers: false,
+        readOnly: true,
+        showCursorWhenSelecting: false,
+        cursorBlinkRate: -1,
+        lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
+        // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
+        extraKeys: { Tab: false },
+        scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
+        mode: getDiffMode(),
+        styleSelectedText: true,
+      }
+
+      return (
+        <CodeMirrorHost
+          className='diff-code-mirror'
+          value={diff.text}
+          options={options}
+          isSelectionEnabled={this.isSelectionEnabled}
+          onChanges={this.onChanges}
+          onRenderLine={this.renderLine}
+          ref={this.getAndStoreCodeMirrorInstance}
+        />
+      )
+  }
+
   private getAndStoreCodeMirrorInstance = (cmh: CodeMirrorHost) => {
     this.codeMirror = cmh === null ? null : cmh.getEditor()
   }
 
   public render() {
+    const diff = this.props.diff
 
-    if (this.props.diff.imageDiff) {
-      return this.renderImage(this.props.diff.imageDiff)
+    if (diff.kind === DiffType.Image) {
+      return this.renderImage(diff)
     }
 
-    if (this.props.diff.isBinary) {
-      return <BinaryFile path={this.props.file.path}
-                         repository={this.props.repository}
-                         dispatcher={this.props.dispatcher} />
+    if (diff.kind === DiffType.Binary) {
+      return this.renderBinaryFile()
     }
 
-    let diffText = ''
-
-    this.props.diff.hunks.forEach(hunk => {
-      hunk.lines.forEach(l => diffText += formatLineEnding(l.text))
-    })
-
-    const options: IEditorConfigurationExtra = {
-      lineNumbers: false,
-      readOnly: true,
-      showCursorWhenSelecting: false,
-      cursorBlinkRate: -1,
-      lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
-      // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
-      extraKeys: { Tab: false },
-      scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
-      mode: getDiffMode(),
-      styleSelectedText: true,
+    if (diff.kind === DiffType.Text) {
+      return this.renderTextDiff(diff)
     }
 
-    return (
-      <CodeMirrorHost
-        className='diff-code-mirror'
-        value={diffText}
-        options={options}
-        isSelectionEnabled={this.isSelectionEnabled}
-        onChanges={this.onChanges}
-        onRenderLine={this.renderLine}
-        ref={this.getAndStoreCodeMirrorInstance}
-      />
-    )
+    return null
   }
 }
