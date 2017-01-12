@@ -1042,6 +1042,8 @@ export class AppStore {
 
     try {
       await fn()
+    } catch (e) {
+      this._postError(e)
     } finally {
       this.updateRepositoryState(repository, state => ({ pushPullInProgress: false }))
       this.emitUpdate()
