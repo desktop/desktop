@@ -75,7 +75,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     this.setState({ ...this.state, path })
   }
 
-  private clone = () => {
+  private clone = async () => {
     const url = this.state.url
     const parsed = URL.parse(url)
     // If we can parse a hostname, we'll assume they gave us a proper URL. If
@@ -83,19 +83,67 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     const hostname = parsed.hostname
     if (hostname) {
       const users = this.props.users
-      const dotComUser = users.find(u => u.endpoint === hostname) || null
+      const dotComUser = users.find(u => {
+        return hostname === getHTMLURL(u.endpoint)
+      }) || null
       this.props.dispatcher.clone(url, this.state.path, dotComUser)
-    } else {
-      const user = this.getDotComUser() || this.props.users[0]
-      const c = `https://${user.endpoint}/${url}`
+      return
+    }
 
-      this.props.dispatcher.clone(c, this.state.path, user)
+    const pieces = url.split('/')
+    if (pieces.length === 2) {
+      const user = await this.findRepositoryUser(pieces[0], pieces[1])
+      if (user) {
+        const cloneURL = `${getHTMLURL(user.endpoint)}/${url}`
+        console.log(cloneURL)
+        // this.props.dispatcher.clone(cloneURL, this.state.path, user)
+      } else {
+        this.setState({
+          ...this.state,
+          loading: false,
+          error: new Error(`Couldn't find a repository with that owner and name.`),
+        })
+      }
     }
   }
 
-  private getDotComUser(): User | null {
-    const users = this.props.users
-    const dotComUser = users.find(u => u.endpoint === getDotComAPIEndpoint())
-    return dotComUser || null
+  /**
+   * Find the user whose endpoint has a repository with the given owner and
+   * name. This will prefer dot com over other endpoints.
+   */
+  private async findRepositoryUser(owner: string, name: string): Promise<User | null> {
+    const hasRepository = async (user: User) => {
+      const api = new API(user)
+      try {
+        const repository = await api.fetchRepository(owner, name)
+        if (repository) {
+          return true
+        } else {
+          return false
+        }
+      } catch (e) {
+        return false
+      }
+    }
+
+    // Prefer .com, then try all the others.
+    const sortedUsers = Array.from(this.props.users).sort((u1, u2) => {
+      if (u1.endpoint === getDotComAPIEndpoint()) {
+        return -1
+      } else if (u2.endpoint === getDotComAPIEndpoint()) {
+        return 1
+      } else {
+        return 0
+      }
+    })
+
+    for (const user of sortedUsers) {
+      const has = await hasRepository(user)
+      if (has) {
+        return user
+      }
+    }
+
+    return null
   }
 }
