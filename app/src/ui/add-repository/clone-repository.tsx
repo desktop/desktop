@@ -7,9 +7,13 @@ import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { getDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
+import { User } from '../../models/user'
+import { getDotComAPIEndpoint } from '../../lib/api'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
+
+  readonly users: ReadonlyArray<User>
 }
 
 interface ICloneRepositoryState {
@@ -76,10 +80,22 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     const parsed = URL.parse(url)
     // If we can parse a hostname, we'll assume they gave us a proper URL. If
     // not, we'll treat it as a GitHub repository owner/repository shortcut.
-    if (parsed.hostname) {
-      this.props.dispatcher.clone(url, this.state.path, null)
+    const hostname = parsed.hostname
+    if (hostname) {
+      const users = this.props.users
+      const dotComUser = users.find(u => u.endpoint === hostname) || null
+      this.props.dispatcher.clone(url, this.state.path, dotComUser)
     } else {
-      this.props.dispatcher.clone(url, this.state.path, null)
+      const user = this.getDotComUser() || this.props.users[0]
+      const c = `https://${user.endpoint}/${url}`
+
+      this.props.dispatcher.clone(c, this.state.path, user)
     }
+  }
+
+  private getDotComUser(): User | null {
+    const users = this.props.users
+    const dotComUser = users.find(u => u.endpoint === getDotComAPIEndpoint())
+    return dotComUser || null
   }
 }

@@ -6,9 +6,12 @@ import { AddExistingRepository } from './add-existing-repository'
 import { CreateRepository } from './create-repository'
 import { CloneRepository } from './clone-repository'
 import { assertNever } from '../../lib/fatal-error'
+import { User } from '../../models/user'
 
 interface IAddRepositoryProps {
   readonly dispatcher: Dispatcher
+
+  readonly users: ReadonlyArray<User>
 }
 
 interface IAddRepositoryState {
@@ -45,7 +48,7 @@ export class AddRepository extends React.Component<IAddRepositoryProps, IAddRepo
         return <CreateRepository dispatcher={this.props.dispatcher}/>
 
       case AddRepositoryTab.Clone:
-        return <CloneRepository dispatcher={this.props.dispatcher}/>
+        return <CloneRepository users={this.props.users} dispatcher={this.props.dispatcher}/>
 
       default:
         return assertNever(this.state.selectedTab, `Unknown tab: ${this.state.selectedTab}`)
