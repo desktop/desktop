@@ -55,7 +55,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     const currentBranch = this.props.currentBranch
     return (
       <Form onSubmit={this.createBranch}>
-        <div className='header'>Create New Branch</div>
+        <div className='header'>{__DARWIN__ ? 'Create New Branch' : 'Create new branch'}</div>
         <hr/>
 
         <TextBox
@@ -76,7 +76,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
         </Select>
 
         <hr/>
-        <Button type='submit' disabled={disabled}>Create Branch</Button>
+        <Button type='submit' disabled={disabled}>{__DARWIN__ ? 'Create Branch' : 'Create branch'}</Button>
       </Form>
     )
   }

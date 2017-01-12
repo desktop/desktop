@@ -13,10 +13,16 @@ import {
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 import { GitProcess } from 'git-kitchen-sink'
 import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
-import { DiffSelectionType, DiffSelection } from '../../../src/models/diff'
+import { DiffSelectionType, DiffSelection, ITextDiff, DiffType } from '../../../src/models/diff'
 
 import * as fs from 'fs-extra'
 const temp = require('temp').track()
+
+async function getTextDiff(repo: Repository, file: WorkingDirectoryFileChange): Promise<ITextDiff> {
+  const diff = await getWorkingDirectoryDiff(repo, file)
+  expect(diff.kind === DiffType.Text)
+  return diff as ITextDiff
+}
 
 describe('git/commit', () => {
 
@@ -151,7 +157,7 @@ describe('git/commit', () => {
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getTextDiff(repository!, file)
 
       const selection = DiffSelection
         .fromInitialSelection(DiffSelectionType.All)
@@ -190,7 +196,7 @@ describe('git/commit', () => {
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const modifiedFile = new WorkingDirectoryFileChange(fileName, FileStatus.Modified, unselectedFile)
 
-      const diff = await getWorkingDirectoryDiff(repository!, modifiedFile)
+      const diff = await getTextDiff(repository!, modifiedFile)
 
       const secondRemovedLine = diff.hunks[0].unifiedDiffStart + 5
 
@@ -223,7 +229,7 @@ describe('git/commit', () => {
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
       const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
-      const diff = await getWorkingDirectoryDiff(repository!, file)
+      const diff = await getTextDiff(repository!, file)
 
       const selection = DiffSelection
         .fromInitialSelection(DiffSelectionType.All)
@@ -346,7 +352,7 @@ describe('git/commit', () => {
 
       expect(statusAfter.workingDirectory.files.length).to.equal(1)
 
-      const diff = await getWorkingDirectoryDiff(repo, statusAfter.workingDirectory.files[0])
+      const diff = await getTextDiff(repo, statusAfter.workingDirectory.files[0])
 
       expect(diff.hunks.length).to.equal(1)
       expect(diff.hunks[0].lines.length).to.equal(4)
