@@ -127,6 +127,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         commits={this.props.state.commits}
         localCommitSHAs={this.props.state.localCommitSHAs}
         commitSummaryWidth={this.props.commitSummaryWidth}
+        gitHubUsers={this.props.state.gitHubUsers}
       />
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
