@@ -93,4 +93,13 @@
 #new-branch {
   width: 350px;
   padding: var(--spacing);
+  background: var(--box-alt-background-color);
+
+  .row-component {
+    margin-bottom: var(--spacing);
+  }
+
+  button[type=submit] {
+    width: 100%;
+  }
 }
