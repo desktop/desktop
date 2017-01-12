@@ -12,26 +12,7 @@
   color: var(--diff-font-color);
   font-size: var(--font-size-sm);
   font-family: var(--font-family-monospace);
-}
 
-// Remove blank space at the top of the diff
-.CodeMirror-lines {
-  padding: 0;
-}
-
-.CodeMirror-line {
-  display: flex;
-  padding: 0;
-}
-
-// The last immediate `span` is the actual content class.
-.CodeMirror-line > span:last-child {
-  // Add a little bit of space to the left of code diff
-  // `padding-left` here means mouse move events are not raised
-  padding-left: var(--spacing-half);
-}
-
-.CodeMirror {
   span {
     // Force word breaks. This only matters when soft wrapping is on.
     word-break: break-all;
@@ -41,11 +22,36 @@
     border: none;
     padding: 0;
   }
-}
 
-.CodeMirror-code > pre:last-child {
-  // Add a border to the end of the diff
-  border-top: var(--base-border);
+  // Remove blank space at the top of the diff
+  &-lines {
+    padding: 0;
+  }
+
+  &-line {
+    display: flex;
+    padding: 0;
+
+    // The last immediate `span` is the actual content class.
+    > span:last-child {
+      // Add a little bit of space to the left of code diff
+      // `padding-left` here means mouse move events are not raised
+      padding-left: var(--spacing-half);
+    }
+  }
+
+  &-code > pre:last-child {
+    // Add a border to the end of the diff
+    border-top: var(--base-border);
+  }
+
+  &-focused &-selected, &-selected {
+    background: var(--diff-selected-background-color)
+  }
+
+  &-selectedtext {
+    color: var(--diff-selected-text-color) !important;
+  }
 }
 
 // The container element which holds the before and after
@@ -139,8 +145,8 @@
     // and only show them while hovering over the scroll container.
     // We can't use display here since that's set as an inline style
     // by CodeMirror so we'll resort to the old opacity hack.
-    .CodeMirror-vscrollbar,
-    .CodeMirror-hscrollbar {
+    &-vscrollbar,
+    &-hscrollbar {
       opacity: 0;
     }
 
@@ -153,7 +159,7 @@
 
     // This is a div that sits in the corner between the horizontal
     // and vertical scroll bar and has an opaque background by default.
-    .CodeMirror-scrollbar-filler { background: transparent; }
+    &-scrollbar-filler { background: transparent; }
   }
 }
 
@@ -167,7 +173,6 @@
   margin-right: auto;
 
 }
-
 
 #diff img {
   margin-left: auto;

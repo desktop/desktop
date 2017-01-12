@@ -55,11 +55,6 @@ interface IDiffGutterProps {
    * Callback to signal when the mouse is hovering over this element
    */
   readonly onMouseMove: (index: number) => void
-
-  /**
-   * Callback to signal when the mouse button is released on this element
-   */
-  readonly onMouseUp: (index: number) => void
 }
 
 /**
@@ -217,11 +212,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
     this.props.onMouseMove(this.props.index)
   }
 
-  private mouseUpHandler = (ev: MouseEvent) => {
-    ev.preventDefault()
-    this.props.onMouseUp(this.props.index)
-  }
-
   private mouseDownHandler = (ev: MouseEvent) => {
     ev.preventDefault()
     const isRangeSelection = isMouseCursorNearEdge(ev)
@@ -244,7 +234,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
       elem.addEventListener('mouseenter', this.mouseEnterHandler)
       elem.addEventListener('mouseleave', this.mouseLeaveHandler)
       elem.addEventListener('mousemove', this.mouseMoveHandler)
-      elem.addEventListener('mouseup', this.mouseUpHandler)
 
       // no point handling mousedown events on context lines
       if (this.props.line.isIncludeableLine()) {
@@ -260,7 +249,6 @@ export class DiffLineGutter extends React.Component<IDiffGutterProps, void> {
         this.elem_.removeEventListener('mouseleave', this.mouseLeaveHandler)
         this.elem_.removeEventListener('mousemove', this.mouseMoveHandler)
         this.elem_.removeEventListener('mousedown', this.mouseDownHandler)
-        this.elem_.removeEventListener('mouseup', this.mouseUpHandler)
       }
 
       this.elem_ = undefined
