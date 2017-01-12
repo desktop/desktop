@@ -106,8 +106,10 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     }
 
     const pieces = url.split('/')
-    if (pieces.length === 2) {
-      const user = await this.findRepositoryUser(pieces[0], pieces[1])
+    if (pieces.length === 2 && pieces[0].length > 0 && pieces[1].length > 0) {
+      const owner = pieces[0]
+      const name = pieces[1]
+      const user = await this.findRepositoryUser(owner, name)
       if (user) {
         const cloneURL = `${getHTMLURL(user.endpoint)}/${url}`
         this.props.dispatcher.clone(cloneURL, this.state.path, user)
