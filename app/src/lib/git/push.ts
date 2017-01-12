@@ -2,6 +2,8 @@ import { git, envForAuthentication } from './core'
 import { Repository } from '../../models/repository'
 import { User } from '../../models/user'
 
+import { GitError } from 'git-kitchen-sink'
+
 /** Push from the remote to the branch, optionally setting the upstream. */
 export async function push(repository: Repository, user: User | null, remote: string, branch: string, setUpstream: boolean): Promise<void> {
   const args = [ 'push', remote, branch ]
@@ -9,5 +11,16 @@ export async function push(repository: Repository, user: User | null, remote: st
     args.push('--set-upstream')
   }
 
-  await git(args, repository.path, 'push', { env: envForAuthentication(user) })
+  const options = {
+    env: envForAuthentication(user),
+    expectedErrors: new Set([ GitError.HTTPSAuthenticationFailed, GitError.SSHAuthenticationFailed ]),
+  }
+
+  const result = await git(args, repository.path, 'push', options)
+
+  if (result.gitErrorDescription) {
+    return Promise.reject(new Error(result.gitErrorDescription))
+  }
+
+  return Promise.resolve()
 }
