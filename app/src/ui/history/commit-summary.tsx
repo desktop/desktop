@@ -36,6 +36,9 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
     const author = this.props.author
     const authorTitle = `${author.name} <${author.email}>`
 
+    const DefaultAvatarURL = 'https://github.com/hubot.png'
+    const avatarURL = this.props.avatarURL || DefaultAvatarURL
+
     return (
       <div id='commit-summary'>
         <div className='commit-summary-header'>
@@ -47,7 +50,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
             <li className='commit-summary-meta-item'
               title={authorTitle} aria-label='Author'>
               <span aria-hidden='true'>
-                <Octicon symbol={OcticonSymbol.person} />
+                <img className='avatar' src={avatarURL}/>
               </span>
 
               {author.name}
