@@ -1074,7 +1074,7 @@ export class AppStore {
       return
     }
 
-    const userDoesNotMatch = new Error(`Unable to access remote repository with the current account: '${matchingUser.login}'. You should check with your organization owner to confirm you have access to this repository: ${remoteUrl}`)
+    const userDoesNotMatch = new Error(`Unable to access remote repository with this account: '${matchingUser.login}'.\n\n Check with your organization owner to confirm you have access to this repository: ${remoteUrl}`)
     this._postError(userDoesNotMatch)
   }
 
