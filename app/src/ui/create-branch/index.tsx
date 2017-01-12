@@ -72,7 +72,6 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
           )}
         </Select>
 
-        <hr/>
         <Button type='submit' disabled={disabled}>{__DARWIN__ ? 'Create Branch' : 'Create branch'}</Button>
       </Form>
     )
