@@ -5,7 +5,6 @@
   .avatar {
     width: 16px;
     height: 16px;
-    flex-shrink: 0;
 
     border-radius: var(--border-radius);
   }
@@ -63,7 +62,6 @@
 
   &-meta-item {
     @include ellipsis;
-    flex: 1 0 max-content;
     margin-right: var(--spacing);
     font-size: var(--font-size-sm);
 
