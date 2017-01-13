@@ -111,6 +111,10 @@ button {
 // Stretches an element to fill the entire window (such as an overlay)
 .fill-window {
   position: absolute;
+  display: flex;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
   top: 0;
   right: 0;
   bottom: 0;
