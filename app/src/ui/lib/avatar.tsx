@@ -3,6 +3,7 @@ import { IGitHubUser } from '../../lib/dispatcher'
 
 interface IAvatarProps {
   readonly gitHubUser: IGitHubUser | null
+  readonly title: string | null
 }
 
 export class Avatar extends React.Component<IAvatarProps, void> {
@@ -10,9 +11,11 @@ export class Avatar extends React.Component<IAvatarProps, void> {
     const DefaultAvatarURL = 'https://github.com/hubot.png'
     const gitHubUser = this.props.gitHubUser
     const avatarURL = (gitHubUser ? gitHubUser.avatarURL : null) || DefaultAvatarURL
-
+    const avatarTitle = this.props.title || undefined 
     return (
-      <img className='avatar' src={avatarURL}/>
+      <div className='avatar' title={avatarTitle}>
+        <img src={avatarURL} alt={avatarTitle}/>
+      </div>
     )
   }
 }
