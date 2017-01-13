@@ -173,6 +173,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'open-working-directory': return this.openWorkingDirectory()
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
+      case 'show-repository-settings' : return this.showRepositorySettings()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
