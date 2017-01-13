@@ -314,7 +314,6 @@ export class AppStore {
     this.updateBranchesState(repository, state => (
       {
         tip: gitStore.tip,
-        currentBranch: gitStore.currentBranch,
         defaultBranch: gitStore.defaultBranch,
         allBranches: gitStore.allBranches,
         recentBranches: gitStore.recentBranches,
