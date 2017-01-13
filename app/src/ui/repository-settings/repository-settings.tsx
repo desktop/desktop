@@ -1,5 +1,9 @@
 import * as React from 'react'
 import { TabBar } from '../tab-bar'
+import { Remote } from './remote'
+import { GitIgnore } from './git-ignore'
+import { GitLFS } from './git-lfs'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IRepositorySettingsProps {
 
@@ -37,7 +41,20 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
   }
 
   private renderActiveTab() {
+    const tab = this.state.selectedTab
+    switch (tab) {
+      case RepositorySettingsTab.Remote: {
+        return <Remote/>
+      }
+      case RepositorySettingsTab.IgnoredFiles: {
+        return <GitIgnore/>
+      }
+      case RepositorySettingsTab.GitLFS: {
+        return <GitLFS/>
+      }
+    }
 
+    return assertNever(tab, `Unknown tab type: ${tab}`)
   }
 
   private onTabClicked = (index: number) => {
