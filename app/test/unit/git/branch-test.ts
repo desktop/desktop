@@ -1,6 +1,6 @@
 import { expect, use as chaiUse } from 'chai'
 import { setupEmptyRepository, setupFixtureRepository } from '../../fixture-helper'
-import { getTip } from '../../../src/lib/git/branch'
+import { getTip } from '../../../src/lib/git'
 import { Repository } from '../../../src/models/repository'
 import { TipState, IDetachedHead, IValidBranch } from '../../../src/models/tip'
 
