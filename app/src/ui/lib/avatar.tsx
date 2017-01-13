@@ -23,9 +23,7 @@ export class Avatar extends React.Component<IAvatarProps, void> {
     const avatarTitle = this.getTitle(gitHubUser)
 
     return (
-      <div className='avatar' title={avatarTitle}>
-        <img src={avatarURL} alt={avatarTitle}/>
-      </div>
+      <img className='avatar' title={avatarTitle} src={avatarURL} alt={avatarTitle}/>
     )
   }
 }
