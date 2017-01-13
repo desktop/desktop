@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Commit } from '../../models/commit'
 import { EmojiText } from '../lib/emoji-text'
 import { IGitHubUser } from '../../lib/dispatcher'
-import { Avatar } from '../../lib/avatar'
+import { Avatar } from '../lib/avatar'
 import { RelativeTime } from '../relative-time'
 
 interface ICommitProps {
