@@ -11,7 +11,7 @@ const DefaultAvatarURL = 'https://github.com/hubot.png'
 export class Avatar extends React.Component<IAvatarProps, void> {
    private getTitle(user: IGitHubUser | null): string {
     if (user === null) {
-      return this.props.title || 'Unkown User'
+      return this.props.title || 'Unknown User'
     }
 
     return this.props.title || user.email
