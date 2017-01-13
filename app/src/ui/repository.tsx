@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Repository as Repo } from '../models/repository'
-import { BranchState } from '../models/branch'
+import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
 import { History, HistorySidebar } from './history'
@@ -46,7 +46,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
 
   private renderChangesSidebar(): JSX.Element {
     const tip = this.props.state.branchesState.tip
-    const branch = tip.kind === BranchState.Valid
+    const branch = tip.kind === TipState.Valid
       ? tip.branch
       : null
 

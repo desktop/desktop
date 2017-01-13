@@ -30,7 +30,7 @@ import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
 import { User } from '../models/user'
-import { BranchState } from '../models/branch'
+import { TipState } from '../models/tip'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Button } from './lib/button'
 import { Form } from './lib/form'
@@ -133,14 +133,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       hasDefaultBranch = Boolean(defaultBranch)
 
-      onBranch = tip.kind === BranchState.Valid
+      onBranch = tip.kind === TipState.Valid
 
       // If we are:
       //  1. on the default branch, or
       //  2. on an unborn branch, or
       //  3. on a detached HEAD
       // there's not much we can do.
-      if (tip.kind === BranchState.Valid && defaultBranch !== null) {
+      if (tip.kind === TipState.Valid && defaultBranch !== null) {
         onNonDefaultBranch = tip.branch.name !== defaultBranch.name
       } else {
         onNonDefaultBranch = true
@@ -232,7 +232,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!state || state.type !== SelectionType.Repository) { return }
 
     const tip = state.state.branchesState.tip
-    if (tip.kind === BranchState.Valid) {
+    if (tip.kind === TipState.Valid) {
       this.props.dispatcher.showPopup({
         type: PopupType.RenameBranch,
         repository: state.repository,
@@ -247,7 +247,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const tip = state.state.branchesState.tip
 
-    if (tip.kind === BranchState.Valid) {
+    if (tip.kind === TipState.Valid) {
       this.props.dispatcher.showPopup({
         type: PopupType.DeleteBranch,
         repository: state.repository,
@@ -446,7 +446,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       const state = this.props.appStore.getRepositoryState(repository)
 
       const tip = state.branchesState.tip
-      const currentBranch = tip.kind === BranchState.Valid
+      const currentBranch = tip.kind === TipState.Valid
         ? tip.branch
         : null
 
@@ -691,7 +691,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const state = this.props.appStore.getRepositoryState(repository)
 
     const tip = state.branchesState.tip
-    const currentBranch = tip.kind === BranchState.Valid
+    const currentBranch = tip.kind === TipState.Valid
       ? tip.branch
       : null
     return <Branches
@@ -719,12 +719,12 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const tip = selection.state.branchesState.tip
 
-    if (tip.kind === BranchState.Unknown) {
+    if (tip.kind === TipState.Unknown) {
       // TODO: this is bad and I feel bad
       return null
     }
 
-    if (tip.kind === BranchState.Unborn) {
+    if (tip.kind === TipState.Unborn) {
       return <ToolbarDropdown
         className='branch-button'
         icon={OcticonSymbol.gitBranch}
@@ -740,7 +740,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
-    if (tip.kind === BranchState.Detached) {
+    if (tip.kind === TipState.Detached) {
       const title = `On ${tip.currentSha.substr(0,7)}`
       return <ToolbarDropdown
         className='branch-button'

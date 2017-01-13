@@ -1,6 +1,7 @@
 import { git, envForAuthentication } from './core'
 import { Repository } from '../../models/repository'
-import { Branch, BranchType, Tip, BranchState } from '../../models/branch'
+import { Branch, BranchType } from '../../models/branch'
+import { Tip, TipState } from '../../models/tip'
 import { User } from '../../models/user'
 import { getCurrentBranch } from './for-each-ref'
 
@@ -43,7 +44,7 @@ export async function getTip(repository: Repository): Promise<Tip> {
   if (revParse.exitCode === 128) {
     // fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.
     return {
-      kind: BranchState.Unborn,
+      kind: TipState.Unborn,
     }
   }
 
@@ -53,7 +54,7 @@ export async function getTip(repository: Repository): Promise<Tip> {
   if (symbolicRef.exitCode === 128) {
     // fatal: ref HEAD is not a symbolic ref
     return {
-      kind: BranchState.Detached,
+      kind: TipState.Detached,
       currentSha,
     }
   }
@@ -61,11 +62,11 @@ export async function getTip(repository: Repository): Promise<Tip> {
   const currentBranch = await getCurrentBranch(repository)
   if (!currentBranch) {
     fatalError(`getTip failed despite all the previous guard checks`)
-    return { kind: BranchState.Unknown }
+    return { kind: TipState.Unknown }
   }
 
   return {
-    kind: BranchState.Valid,
+    kind: TipState.Valid,
     branch: currentBranch,
   }
 }

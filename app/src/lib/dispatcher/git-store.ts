@@ -2,7 +2,8 @@ import * as Fs from 'fs'
 import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
-import { Branch, BranchType, Tip, BranchState } from '../../models/branch'
+import { Branch, BranchType } from '../../models/branch'
+import { Tip, TipState } from '../../models/tip'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
 
@@ -49,7 +50,7 @@ export class GitStore {
 
   private readonly repository: Repository
 
-  private _tip: Tip = { kind: BranchState.Unknown }
+  private _tip: Tip = { kind: TipState.Unknown }
 
   private _currentBranch: Branch | null = null
 

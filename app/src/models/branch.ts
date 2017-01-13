@@ -5,37 +5,6 @@ export enum BranchType {
   Remote,
 }
 
-export enum BranchState {
-  Unknown,
-  Unborn,
-  Detached,
-  Valid
-}
-
-export interface IUnknownRepository {
-   readonly kind: BranchState.Unknown
-}
-
-export interface IUnbornRepository {
-   readonly kind: BranchState.Unborn
-}
-
-export interface IDetachedHead {
-   readonly kind: BranchState.Detached
-   readonly currentSha: string
-}
-
-export interface IValidBranch {
-   readonly kind: BranchState.Valid
-   readonly branch: Branch
-}
-
-export type Tip =
-  IUnknownRepository |
-  IUnbornRepository |
-  IDetachedHead |
-  IValidBranch
-
 /** A branch as loaded from Git. */
 export class Branch {
   /** The short name of the branch. E.g., `master`. */

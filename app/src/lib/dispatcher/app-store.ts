@@ -23,7 +23,8 @@ import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
-import { Branch, BranchType, BranchState } from '../../models/branch'
+import { Branch, BranchType } from '../../models/branch'
+import { TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
@@ -203,7 +204,7 @@ export class AppStore {
       },
       selectedSection: RepositorySection.Changes,
       branchesState: {
-        tip: { kind: BranchState.Unknown },
+        tip: { kind: TipState.Unknown },
         defaultBranch: null,
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
@@ -861,7 +862,7 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
     const state = this.getRepositoryState(repository)
 
-    if (state.branchesState.tip.kind === BranchState.Valid) {
+    if (state.branchesState.tip.kind === TipState.Valid) {
       const currentBranch = state.branchesState.tip.branch
       await gitStore.loadLocalCommits(currentBranch)
     }
@@ -1023,15 +1024,15 @@ export class AppStore {
       }
 
       const state = this.getRepositoryState(repository)
-      if (state.branchesState.tip.kind === BranchState.Unborn) {
+      if (state.branchesState.tip.kind === TipState.Unborn) {
         return Promise.reject(new Error('The current branch is unborn.'))
       }
 
-      if (state.branchesState.tip.kind === BranchState.Detached) {
+      if (state.branchesState.tip.kind === TipState.Detached) {
         return Promise.reject(new Error('The current repository is in a detached HEAD state.'))
       }
 
-      if (state.branchesState.tip.kind === BranchState.Valid) {
+      if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
         const user = this.getUserForRepository(repository)
         await gitStore.performFailableOperation(() => {
@@ -1069,15 +1070,15 @@ export class AppStore {
 
       const state = this.getRepositoryState(repository)
 
-      if (state.branchesState.tip.kind === BranchState.Unborn) {
+      if (state.branchesState.tip.kind === TipState.Unborn) {
         return Promise.reject(new Error('The current branch is unborn.'))
       }
 
-      if (state.branchesState.tip.kind === BranchState.Detached) {
+      if (state.branchesState.tip.kind === TipState.Detached) {
         return Promise.reject(new Error('The current repository is in a detached HEAD state.'))
       }
 
-      if (state.branchesState.tip.kind === BranchState.Valid) {
+      if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
         const user = this.getUserForRepository(repository)
         await gitStore.performFailableOperation(() => pullRepo(repository, user, remote, branch.name))
@@ -1094,7 +1095,7 @@ export class AppStore {
     const branches = state.branchesState.allBranches
 
     const tip = state.branchesState.tip
-    const currentBranchName = tip.kind === BranchState.Valid
+    const currentBranchName = tip.kind === TipState.Valid
       ? tip.branch.name
       : null
 
