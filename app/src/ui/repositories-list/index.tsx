@@ -83,7 +83,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
     }
   }
 
-  private onRowClick = (row: number, source: SelectionSource) => {
+  private onRowClick = (row: number) => {
     const item = this.state.listItems[row]
     if (item.kind === 'repository') {
       this.props.onSelectionChanged(item.repository)
@@ -196,6 +196,8 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
         this.props.dispatcher.closeFoldout()
         event.preventDefault()
       }
+    } else if (event.key === 'Enter') {
+      this.onRowClick(list.nextSelectableRow('down', 0))
     }
   }
 }
