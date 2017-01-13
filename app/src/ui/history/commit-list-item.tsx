@@ -18,7 +18,7 @@ export class CommitListItem extends React.Component<ICommitProps, void> {
 
     return (
       <div className='commit'>
-        <Avatar gitHubUser={this.props.gitHubUser}/>
+        <Avatar gitHubUser={this.props.gitHubUser} title={null}/>
         <div className='info'>
           <EmojiText className='summary' emoji={this.props.emoji}>{this.props.commit.summary}</EmojiText>
           <div className='byline'>
