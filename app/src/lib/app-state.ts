@@ -10,6 +10,7 @@ import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
+import { IRemote } from '../models/remote'
 
 export { ICloningRepositoryState }
 export { ICommitMessage }
@@ -167,8 +168,8 @@ export interface IRepositoryState {
    */
   readonly localCommitSHAs: ReadonlyArray<string>
 
-  /** The name of the remote. */
-  readonly remoteName: string | null
+  /** The remote. */
+  readonly remote: IRemote | null
 
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null

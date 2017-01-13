@@ -214,7 +214,7 @@ export class AppStore {
       commits: new Map<string, Commit>(),
       localCommitSHAs: [],
       aheadBehind: null,
-      remoteName: null,
+      remote: null,
       pushPullInProgress: false,
       lastFetched: null,
     }
@@ -332,7 +332,7 @@ export class AppStore {
         commits: gitStore.commits,
         localCommitSHAs: gitStore.localCommitSHAs,
         aheadBehind: gitStore.aheadBehind,
-        remoteName: gitStore.remoteName,
+        remote: gitStore.remote,
         lastFetched: gitStore.lastFetched,
       }
     ))
@@ -1014,7 +1014,7 @@ export class AppStore {
   public async _push(repository: Repository): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
-      const remote = gitStore.remoteName
+      const remote = gitStore.remote
       if (!remote) {
         this._showFoldout({
           type: FoldoutType.Publish,
@@ -1036,7 +1036,7 @@ export class AppStore {
         const user = this.getUserForRepository(repository)
         await gitStore.performFailableOperation(() => {
           const setUpstream = branch.upstream ? false : true
-          return pushRepo(repository, user, remote, branch.name, setUpstream)
+          return pushRepo(repository, user, remote.name, branch.name, setUpstream)
         })
       }
     })
@@ -1062,7 +1062,7 @@ export class AppStore {
   public async _pull(repository: Repository): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
-      const remote = gitStore.remoteName
+      const remote = gitStore.remote
       if (!remote) {
         return Promise.reject(new Error('The repository has no remotes.'))
       }
@@ -1080,7 +1080,7 @@ export class AppStore {
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
         const user = this.getUserForRepository(repository)
-        await gitStore.performFailableOperation(() => pullRepo(repository, user, remote, branch.name))
+        await gitStore.performFailableOperation(() => pullRepo(repository, user, remote.name, branch.name))
       }
     })
 

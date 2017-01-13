@@ -6,6 +6,7 @@ import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
+import { IRemote } from '../../models/remote'
 
 import {
   reset,
@@ -64,7 +65,7 @@ export class GitStore {
 
   private _aheadBehind: IAheadBehind | null = null
 
-  private _remoteName: string | null = null
+  private _remote: IRemote | null = null
 
   private _lastFetched: Date | null = null
 
@@ -380,10 +381,10 @@ export class GitStore {
    * @param user - The user to use for authentication if needed.
    */
   public async fetch(user: User | null): Promise<void> {
-    const remote = this._remoteName
+    const remote = this._remote
     if (!remote) { return }
 
-    return fetchRepo(this.repository, user, remote)
+    return fetchRepo(this.repository, user, remote.name)
   }
 
   /** Calculate the ahead/behind for the current branch. */
@@ -399,7 +400,7 @@ export class GitStore {
 
   /** Load the default remote. */
   public async loadDefaultRemote(): Promise<void> {
-    this._remoteName = await getDefaultRemote(this.repository)
+    this._remote = await getDefaultRemote(this.repository)
 
     this.emitUpdate()
   }
@@ -413,8 +414,8 @@ export class GitStore {
    */
   public get aheadBehind(): IAheadBehind | null { return this._aheadBehind }
 
-  /** Get the name of the remote we're working with. */
-  public get remoteName(): string | null { return this._remoteName }
+  /** Get the remote we're working with. */
+  public get remote(): IRemote | null { return this._remote }
 
   public setCommitMessage(message: ICommitMessage | null): Promise<void> {
     this._commitMessage = message

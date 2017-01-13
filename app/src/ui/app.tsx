@@ -693,11 +693,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     const isPublishing = Boolean(this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Publish)
 
     const state = selection.state
+    const remoteName = state.remote ? state.remote.name : null
     return <PushPullButton
       dispatcher={this.props.dispatcher}
       repository={selection.repository}
       aheadBehind={state.aheadBehind}
-      remoteName={state.remoteName}
+      remoteName={remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
       isPublishing={isPublishing}
