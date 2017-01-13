@@ -7,7 +7,7 @@ import { RelativeTime } from '../relative-time'
 
 interface ICommitProps {
   readonly commit: Commit
-  readonly user: IGitHubUser | null
+  readonly gitHubUser: IGitHubUser | null
   readonly emoji: Map<string, string>
 }
 
@@ -18,7 +18,7 @@ export class CommitListItem extends React.Component<ICommitProps, void> {
 
     return (
       <div className='commit'>
-        <Avatar user={this.props.user}/>
+        <Avatar gitHubUser={this.props.gitHubUser}/>
         <div className='info'>
           <EmojiText className='summary' emoji={this.props.emoji}>{this.props.commit.summary}</EmojiText>
           <div className='byline'>
@@ -32,7 +32,7 @@ export class CommitListItem extends React.Component<ICommitProps, void> {
   public shouldComponentUpdate(nextProps: ICommitProps): boolean {
     return (
       this.props.commit.sha !== nextProps.commit.sha ||
-      this.props.user !== nextProps.user
+      this.props.gitHubUser !== nextProps.gitHubUser
     )
   }
 }
