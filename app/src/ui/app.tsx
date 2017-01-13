@@ -35,6 +35,7 @@ import { shouldRenderApplicationMenu } from './lib/features'
 import { Button } from './lib/button'
 import { Form } from './lib/form'
 import { Merge } from './merge-branch'
+import { RepositorySettings } from './repository-settings'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -508,7 +509,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       // const repository = popup.repository
       // const state = this.props.appStore.getRepositoryState(repository)
 
-      return (<div>William</div>)
+      return <RepositorySettings/>
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)
