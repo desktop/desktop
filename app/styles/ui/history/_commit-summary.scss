@@ -67,7 +67,9 @@
     margin-right: var(--spacing);
     font-size: var(--font-size-sm);
 
+    .avatar,
     .octicon {
+      display: inline-block;
       margin-right: var(--spacing-third);
       vertical-align: bottom;
     }
