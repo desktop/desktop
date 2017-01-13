@@ -63,7 +63,6 @@ export class History extends React.Component<IHistoryProps, void> {
   private renderCommitSummary(commit: Commit) {
     const isLocal = this.props.localCommitSHAs.indexOf(commit.sha) > -1
     const gitHubUser = this.props.gitHubUsers.get(commit.author.email.toLowerCase()) || null
-    const avatarURL = gitHubUser ? gitHubUser.avatarURL : null
 
     return <CommitSummary
       summary={commit.summary}
@@ -74,7 +73,7 @@ export class History extends React.Component<IHistoryProps, void> {
       emoji={this.props.emoji}
       repository={this.props.repository}
       isLocal={isLocal}
-      avatarURL={avatarURL}
+      gitHubUser={gitHubUser}
     />
   }
 

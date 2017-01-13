@@ -3,8 +3,10 @@ import { FileChange } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { EmojiText } from '../lib/emoji-text'
 import { LinkButton } from '../lib/link-button'
+import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { CommitIdentity } from '../../models/commit-identity'
+import { Avatar } from '../lib/avatar'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -15,7 +17,7 @@ interface ICommitSummaryProps {
   readonly files: ReadonlyArray<FileChange>
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
-  readonly avatarURL: string | null
+  readonly gitHubUser: IGitHubUser | null
 }
 
 export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
@@ -36,9 +38,6 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
     const author = this.props.author
     const authorTitle = `${author.name} <${author.email}>`
 
-    const DefaultAvatarURL = 'https://github.com/hubot.png'
-    const avatarURL = this.props.avatarURL || DefaultAvatarURL
-
     return (
       <div id='commit-summary'>
         <div className='commit-summary-header'>
@@ -50,7 +49,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
             <li className='commit-summary-meta-item'
               title={authorTitle} aria-label='Author'>
               <span aria-hidden='true'>
-                <img className='avatar' src={avatarURL}/>
+                <Avatar gitHubUser={this.props.gitHubUser}/>
               </span>
 
               {author.name}
