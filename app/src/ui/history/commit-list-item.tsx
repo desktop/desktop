@@ -1,13 +1,13 @@
 import * as React from 'react'
 import { Commit } from '../../models/commit'
 import { EmojiText } from '../lib/emoji-text'
+import { IGitHubUser } from '../../lib/dispatcher'
+import { Avatar } from '../lib/avatar'
 import { RelativeTime } from '../relative-time'
-
-const DefaultAvatarURL = 'https://github.com/hubot.png'
 
 interface ICommitProps {
   readonly commit: Commit
-  readonly avatarURL: string | null
+  readonly gitHubUser: IGitHubUser | null
   readonly emoji: Map<string, string>
 }
 
@@ -15,10 +15,10 @@ interface ICommitProps {
 export class CommitListItem extends React.Component<ICommitProps, void> {
   public render() {
     const authorDate = this.props.commit.author.date
-    const avatarURL = this.props.avatarURL || DefaultAvatarURL
+
     return (
       <div className='commit'>
-        <img className='avatar' src={avatarURL}/>
+        <Avatar gitHubUser={this.props.gitHubUser} title={null}/>
         <div className='info'>
           <EmojiText className='summary' emoji={this.props.emoji}>{this.props.commit.summary}</EmojiText>
           <div className='byline'>
@@ -32,7 +32,7 @@ export class CommitListItem extends React.Component<ICommitProps, void> {
   public shouldComponentUpdate(nextProps: ICommitProps): boolean {
     return (
       this.props.commit.sha !== nextProps.commit.sha ||
-      this.props.avatarURL !== nextProps.avatarURL
+      this.props.gitHubUser !== nextProps.gitHubUser
     )
   }
 }
