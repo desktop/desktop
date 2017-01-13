@@ -8,6 +8,7 @@ import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { ICommitMessage } from '../../lib/app-state'
+import { IGitHubUser } from '../../lib/dispatcher'
 import { IAutocompletionProvider } from '../autocompletion'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
@@ -25,7 +26,7 @@ interface IChangesListProps {
   readonly onDiscardChanges: (path: string) => void
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
-  readonly avatarURL: string
+  readonly gitHubUser: IGitHubUser | null
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
 
@@ -110,7 +111,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
 
         <CommitMessage onCreateCommit={this.props.onCreateCommit}
                        branch={this.props.branch}
-                       avatarURL={this.props.avatarURL}
+                       gitHubUser={this.props.gitHubUser}
                        commitAuthor={this.props.commitAuthor}
                        anyFilesSelected={anyFilesSelected}
                        repository={this.props.repository}

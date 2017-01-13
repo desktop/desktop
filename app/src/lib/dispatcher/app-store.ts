@@ -19,11 +19,12 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
-import { DiffSelection, DiffSelectionType, DiffLineType } from '../../models/diff'
+import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
+import { TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
@@ -203,7 +204,7 @@ export class AppStore {
       },
       selectedSection: RepositorySection.Changes,
       branchesState: {
-        currentBranch: null,
+        tip: { kind: TipState.Unknown },
         defaultBranch: null,
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
@@ -312,7 +313,7 @@ export class AppStore {
 
     this.updateBranchesState(repository, state => (
       {
-        currentBranch: gitStore.currentBranch,
+        tip: gitStore.tip,
         defaultBranch: gitStore.defaultBranch,
         allBranches: gitStore.allBranches,
         recentBranches: gitStore.recentBranches,
@@ -693,19 +694,21 @@ export class AppStore {
     const diff = await getWorkingDirectoryDiff(repository, currentSelectedFile)
     const selectableLines = new Set<number>()
 
-    // The diff might have changed dramatically since last we loaded it. Ideally we
-    // would be more clever about validating that any partial selection state is
-    // still valid by ensuring that selected lines still exist but for now we'll
-    // settle on just updating the selectable lines such that any previously selected
-    // line which now no longer exists or has been turned into a context line
-    // isn't still selected.
-    diff.hunks.forEach(h => {
-      h.lines.forEach((line, index) => {
-        if (line.type === DiffLineType.Add || line.type === DiffLineType.Delete) {
-          selectableLines.add(h.unifiedDiffStart + index)
-        }
+    if (diff.kind === DiffType.Text) {
+      // The diff might have changed dramatically since last we loaded it. Ideally we
+      // would be more clever about validating that any partial selection state is
+      // still valid by ensuring that selected lines still exist but for now we'll
+      // settle on just updating the selectable lines such that any previously selected
+      // line which now no longer exists or has been turned into a context line
+      // isn't still selected.
+      diff.hunks.forEach(h => {
+        h.lines.forEach((line, index) => {
+          if (line.isIncludeableLine()) {
+            selectableLines.add(h.unifiedDiffStart + index)
+          }
+        })
       })
-    })
+    }
 
     const newSelection = currentSelectedFile.selection.withSelectableLines(selectableLines)
     const selectedFile = currentSelectedFile.withSelection(newSelection)
@@ -857,8 +860,9 @@ export class AppStore {
 
     const gitStore = this.getGitStore(repository)
     const state = this.getRepositoryState(repository)
-    const currentBranch = state.branchesState.currentBranch
-    if (currentBranch) {
+
+    if (state.branchesState.tip.kind === TipState.Valid) {
+      const currentBranch = state.branchesState.tip.branch
       await gitStore.loadLocalCommits(currentBranch)
     }
   }
@@ -1019,16 +1023,22 @@ export class AppStore {
       }
 
       const state = this.getRepositoryState(repository)
-      const branch = state.branchesState.currentBranch
-      if (!branch) {
+      if (state.branchesState.tip.kind === TipState.Unborn) {
         return Promise.reject(new Error('The current branch is unborn.'))
       }
 
-      const user = this.getUserForRepository(repository)
-      await gitStore.performFailableOperation(() => {
-        const setUpstream = branch.upstream ? false : true
-        return pushRepo(repository, user, remote, branch.name, setUpstream)
-      })
+      if (state.branchesState.tip.kind === TipState.Detached) {
+        return Promise.reject(new Error('The current repository is in a detached HEAD state.'))
+      }
+
+      if (state.branchesState.tip.kind === TipState.Valid) {
+        const branch = state.branchesState.tip.branch
+        const user = this.getUserForRepository(repository)
+        await gitStore.performFailableOperation(() => {
+          const setUpstream = branch.upstream ? false : true
+          return pushRepo(repository, user, remote, branch.name, setUpstream)
+        })
+      }
     })
 
     this._refreshRepository(repository)
@@ -1058,13 +1068,20 @@ export class AppStore {
       }
 
       const state = this.getRepositoryState(repository)
-      const branch = state.branchesState.currentBranch
-      if (!branch) {
+
+      if (state.branchesState.tip.kind === TipState.Unborn) {
         return Promise.reject(new Error('The current branch is unborn.'))
       }
 
-      const user = this.getUserForRepository(repository)
-      await gitStore.performFailableOperation(() => pullRepo(repository, user, remote, branch.name))
+      if (state.branchesState.tip.kind === TipState.Detached) {
+        return Promise.reject(new Error('The current repository is in a detached HEAD state.'))
+      }
+
+      if (state.branchesState.tip.kind === TipState.Valid) {
+        const branch = state.branchesState.tip.branch
+        const user = this.getUserForRepository(repository)
+        await gitStore.performFailableOperation(() => pullRepo(repository, user, remote, branch.name))
+      }
     })
 
     this._refreshRepository(repository)
@@ -1075,8 +1092,11 @@ export class AppStore {
   private async fastForwardBranches(repository: Repository) {
     const state = this.getRepositoryState(repository)
     const branches = state.branchesState.allBranches
-    const currentBranch = state.branchesState.currentBranch
-    const currentBranchName = currentBranch ? currentBranch.name : null
+
+    const tip = state.branchesState.tip
+    const currentBranchName = tip.kind === TipState.Valid
+      ? tip.branch.name
+      : null
 
     // A branch is only eligible for being fast forwarded if:
     //  1. It's local.

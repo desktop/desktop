@@ -89,9 +89,9 @@ export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IC
         </Form>
 
         <div id='commit-list' className='commit-list-example'>
-          <CommitListItem commit={dummyCommit1} emoji={emoji} avatarURL={null}/>
-          <CommitListItem commit={dummyCommit2} emoji={emoji} avatarURL={this.state.avatarURL}/>
-          <CommitListItem commit={dummyCommit3} emoji={emoji} avatarURL={null}/>
+          <CommitListItem commit={dummyCommit1} emoji={emoji} gitHubUser={null}/>
+          <CommitListItem commit={dummyCommit2} emoji={emoji} gitHubUser={null}/>
+          <CommitListItem commit={dummyCommit3} emoji={emoji} gitHubUser={null}/>
         </div>
       </div>
     )

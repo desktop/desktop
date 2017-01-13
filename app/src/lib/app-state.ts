@@ -1,9 +1,10 @@
 import { User } from '../models/user'
 import { CommitIdentity } from '../models/commit-identity'
-import { Diff } from '../models/diff'
+import { IDiff } from '../models/diff'
 import { Repository } from '../models/repository'
 import { IAheadBehind } from './git'
 import { Branch } from '../models/branch'
+import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
@@ -178,7 +179,7 @@ export interface IRepositoryState {
 }
 
 export interface IBranchesState {
-  readonly currentBranch: Branch | null
+  readonly tip: Tip
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly recentBranches: ReadonlyArray<Branch>
@@ -197,13 +198,13 @@ export interface IHistoryState {
 
   readonly changedFiles: ReadonlyArray<FileChange>
 
-  readonly diff: Diff | null
+  readonly diff: IDiff | null
 }
 
 export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
   readonly selectedFile: WorkingDirectoryFileChange | null
-  readonly diff: Diff | null
+  readonly diff: IDiff | null
 
   /**
    * The commit message to use based on the contex of the repository, e.g., the

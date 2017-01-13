@@ -7,14 +7,17 @@ import {
 import { CommitIdentity } from '../../models/commit-identity'
 import { ICommitMessage } from '../../lib/app-state'
 import { Dispatcher } from '../../lib/dispatcher'
+import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
+import { Avatar } from '../lib/avatar'
+
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
-  readonly avatarURL: string
+  readonly gitHubUser: IGitHubUser | null
   readonly anyFilesSelected: boolean
   readonly commitMessage: ICommitMessage | null
   readonly contextualCommitMessage: ICommitMessage | null
@@ -148,15 +151,13 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     const commitAuthor = this.props.commitAuthor
     const avatarTitle = commitAuthor
       ? `Committing as ${commitAuthor.name} <${commitAuthor.email}>`
-      : undefined
+      : null
 
     // We're wrapping the avatar in a div because electron won't
     // show a tooltip for img elements for some reason. If we can
     // remove it in the future I'd be delighted.
     return (
-      <div className='avatar' title={avatarTitle}>
-        <img src={this.props.avatarURL} alt={avatarTitle} />
-      </div>
+      <Avatar gitHubUser={this.props.gitHubUser} title={avatarTitle}/>
     )
   }
 

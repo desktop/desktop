@@ -180,7 +180,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
       user = this.props.gitHubUsers.get(email.toLowerCase()) || null
     }
 
-    const avatarURL = user ? user.avatarURL : 'https://github.com/hubot.png'
     return (
       <div id='changes-sidebar-contents'>
         <ChangesList
@@ -196,7 +195,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
-          avatarURL={avatarURL}
+          gitHubUser={user}
           commitMessage={this.props.changes.commitMessage}
           contextualCommitMessage={this.props.changes.contextualCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}

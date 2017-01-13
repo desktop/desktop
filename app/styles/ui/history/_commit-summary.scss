@@ -2,6 +2,13 @@
 
 /** A React component holding the selected commit's detailed information */
 #commit-summary {
+  .avatar {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+
+    border-radius: var(--border-radius);
+  }
 }
 
 .commit-summary {

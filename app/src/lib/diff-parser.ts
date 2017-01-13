@@ -1,4 +1,4 @@
-import { Diff, DiffHunk, DiffHunkHeader, DiffLine, DiffLineType } from '../models/diff'
+import { IRawDiff, DiffHunk, DiffHunkHeader, DiffLine, DiffLineType } from '../models/diff'
 import { assertNever } from '../lib/fatal-error'
 
 // https://en.wikipedia.org/wiki/Diff_utility
@@ -329,7 +329,7 @@ export class DiffParser {
    *             or any other git plumbing command that produces unified
    *             diffs.
    */
-  public parse(text: string): Diff {
+  public parse(text: string): IRawDiff {
 
     this.text = text
 
@@ -337,8 +337,19 @@ export class DiffParser {
       const headerInfo = this.parseDiffHeader()
 
       // empty diff
-      if (!headerInfo) { return new Diff([], false) }
-      if (headerInfo.isBinary) { return new Diff([], true) }
+      if (!headerInfo) {
+        return {
+          hunks: [],
+          isBinary: false,
+        }
+      }
+
+      if (headerInfo.isBinary) {
+        return {
+          hunks: [],
+          isBinary: true,
+        }
+      }
 
       const hunks = new Array<DiffHunk>()
       let linesConsumed = 0
@@ -349,7 +360,10 @@ export class DiffParser {
         linesConsumed += hunk.lines.length
       } while (this.peek())
 
-      return new Diff(hunks, headerInfo.isBinary)
+      return {
+        hunks,
+        isBinary: headerInfo.isBinary,
+      }
     } finally {
       this.reset()
     }
