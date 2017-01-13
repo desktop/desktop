@@ -179,7 +179,7 @@ export class GitStore {
       const currentBranch = this._tip.branch
 
       // If the current branch is the default branch, we can skip looking it up.
-      if (currentBranch && currentBranch.name === defaultBranchName) {
+      if (currentBranch.name === defaultBranchName) {
         this._defaultBranch = currentBranch
       } else {
         this._defaultBranch = await this.loadBranch(defaultBranchName)
