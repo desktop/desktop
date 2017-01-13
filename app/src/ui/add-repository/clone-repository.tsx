@@ -106,7 +106,9 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     if (hostname) {
       const users = this.props.users
       const dotComUser = users.find(u => {
-        return hostname === getHTMLURL(u.endpoint)
+        const htmlURL = getHTMLURL(u.endpoint)
+        const parsedEndpoint = URL.parse(htmlURL)
+        return hostname === parsedEndpoint.hostname
       }) || null
       this.props.dispatcher.clone(url, this.state.path, dotComUser)
       this.props.dispatcher.closePopup()
