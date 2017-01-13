@@ -3,6 +3,7 @@ import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
+import { Tip, TipState } from '../../models/tip'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
 
@@ -13,7 +14,7 @@ import {
   fetch as fetchRepo,
   getRecentBranches,
   getBranches,
-  getCurrentBranch,
+  getTip,
   deleteBranch,
   IAheadBehind,
   getBranchAheadBehind,
@@ -48,7 +49,7 @@ export class GitStore {
 
   private readonly repository: Repository
 
-  private _currentBranch: Branch | null = null
+  private _tip: Tip = { kind: TipState.Unknown }
 
   private _defaultBranch: Branch | null = null
 
@@ -162,10 +163,11 @@ export class GitStore {
 
   /** Load the current and default branches. */
   public async loadCurrentAndDefaultBranch() {
-    const currentBranch = await this.performFailableOperation(() => getCurrentBranch(this.repository))
-    if (!currentBranch) { return }
 
-    this._currentBranch = currentBranch
+    const currentTip = await this.performFailableOperation(() => getTip(this.repository))
+    if (!currentTip) { return }
+
+    this._tip = currentTip
 
     let defaultBranchName: string | null = 'master'
     const gitHubRepository = this.repository.gitHubRepository
@@ -173,13 +175,16 @@ export class GitStore {
       defaultBranchName = gitHubRepository.defaultBranch
     }
 
-    // If the current branch is the default branch, we can skip looking it up.
-    if (this._currentBranch && this._currentBranch.name === defaultBranchName) {
-      this._defaultBranch = this._currentBranch
-    } else {
-      this._defaultBranch = await this.loadBranch(defaultBranchName)
-    }
+    if (this._tip.kind === TipState.Valid) {
+      const currentBranch = this._tip.branch
 
+      // If the current branch is the default branch, we can skip looking it up.
+      if (currentBranch.name === defaultBranchName) {
+        this._defaultBranch = currentBranch
+      } else {
+        this._defaultBranch = await this.loadBranch(defaultBranchName)
+      }
+    }
     this.emitUpdate()
   }
 
@@ -248,7 +253,7 @@ export class GitStore {
   }
 
   /** The current branch. */
-  public get currentBranch(): Branch | null { return this._currentBranch }
+  public get tip(): Tip { return this._tip }
 
   /** The default branch, or `master` if there is no default. */
   public get defaultBranch(): Branch | null { return this._defaultBranch }
@@ -313,8 +318,9 @@ export class GitStore {
     // will make the branch unborn again.
     let success: true | undefined = undefined
     if (!commit.parentSHAs.length) {
-      const branch = this._currentBranch
-      if (branch) {
+
+      if (this.tip.kind === TipState.Valid) {
+        const branch = this.tip.branch
         success = await this.performFailableOperation(() => deleteBranch(this.repository, branch, null))
       } else {
         console.error(`Can't undo ${commit.sha} because it doesn't have any parents and there's no current branch. How on earth did we get here?!`)
@@ -382,10 +388,11 @@ export class GitStore {
 
   /** Calculate the ahead/behind for the current branch. */
   public async calculateAheadBehindForCurrentBranch(): Promise<void> {
-    const branch = this._currentBranch
-    if (!branch) { return }
 
-    this._aheadBehind = await getBranchAheadBehind(this.repository, branch)
+    if (this.tip.kind === TipState.Valid) {
+      const branch = this.tip.branch
+      this._aheadBehind = await getBranchAheadBehind(this.repository, branch)
+    }
 
     this.emitUpdate()
   }

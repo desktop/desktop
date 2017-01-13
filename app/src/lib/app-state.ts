@@ -4,6 +4,7 @@ import { IDiff } from '../models/diff'
 import { Repository } from '../models/repository'
 import { IAheadBehind } from './git'
 import { Branch } from '../models/branch'
+import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
@@ -178,7 +179,7 @@ export interface IRepositoryState {
 }
 
 export interface IBranchesState {
-  readonly currentBranch: Branch | null
+  readonly tip: Tip
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly recentBranches: ReadonlyArray<Branch>
