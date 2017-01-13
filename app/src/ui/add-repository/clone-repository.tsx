@@ -58,7 +58,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
         <Row>
           <TextBox
             value={this.state.path}
-            label='Local Path'
+            label={__DARWIN__ ? 'Local Path' : 'Local path'}
             placeholder='repository path'
             onChange={this.onPathChanged}/>
           <Button onClick={this.showFilePicker}>Choose…</Button>
