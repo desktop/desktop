@@ -11,6 +11,7 @@ import { User } from '../../models/user'
 interface IAddRepositoryProps {
   readonly dispatcher: Dispatcher
 
+  /** The logged in users. */
   readonly users: ReadonlyArray<User>
 }
 
