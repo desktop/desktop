@@ -8,8 +8,8 @@ import { Commit } from '../../models/commit'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
-import { Resizable } from '../resizable'
 import { IGitHubUser } from '../../lib/dispatcher'
+import { Resizable } from '../resizable'
 
 // At some point we'll make index.tsx only be exports
 // see https://github.com/desktop/desktop/issues/383
