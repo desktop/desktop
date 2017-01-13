@@ -16,16 +16,21 @@ import { API, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
 
+  /** The logged in users. */
   readonly users: ReadonlyArray<User>
 }
 
 interface ICloneRepositoryState {
+  /** The user-entered URL or `owner/name` shortcut. */
   readonly url: string
 
+  /** The local path to clone to. */
   readonly path: string
 
+  /** Are we currently trying to load the entered repository? */
   readonly loading: boolean
 
+  /** The current error if one occurred. */
   readonly error: Error | null
 }
 
