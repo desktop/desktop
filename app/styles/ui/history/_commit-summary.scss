@@ -71,7 +71,7 @@
     .octicon {
       display: inline-block;
       margin-right: var(--spacing-third);
-      vertical-align: bottom;
+      vertical-align: bottom; // For some reason, `bottom` places the text in the middle
     }
   }
 
