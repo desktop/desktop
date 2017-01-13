@@ -41,6 +41,8 @@ function getSelectedRowIndex(repositories: ReadonlyArray<RepositoryListItemModel
       return false
     }
   })
+  // If the selected repository isn't in the list (e.g., filtered out), then
+  // selected the first visible repository item.
   return index < 0 ? repositories.findIndex(item => item.kind === 'repository') : index
 }
 
