@@ -51,7 +51,9 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     const disabled = this.state.url.length === 0 || this.state.path.length === 0 || this.state.loading
     return (
       <Form className='clone-repository' onSubmit={this.clone}>
-        <div>Enter a repository URL or GitHub username and repository (e.g., <pre>hubot/cool-repo</pre>)</div>
+        <div>
+          Enter a repository URL or GitHub username and repository (e.g., <span className='repository-pattern'>hubot/cool-repo</span>)
+        </div>
 
         <TextBox placeholder='URL or username/repository' value={this.state.url} onChange={this.onURLChanged}/>
 
