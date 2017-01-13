@@ -33,7 +33,7 @@ const RowHeight = 30
 function getSelectedRowIndex(repositories: ReadonlyArray<RepositoryListItemModel>, selectedRepository: Repositoryish | null): number {
   if (!selectedRepository) { return -1 }
 
-  return repositories.findIndex(item => {
+  const index = repositories.findIndex(item => {
     if (item.kind === 'repository') {
       const repository = item.repository
       return repository.constructor === selectedRepository.constructor && repository.id === selectedRepository.id
@@ -41,6 +41,7 @@ function getSelectedRowIndex(repositories: ReadonlyArray<RepositoryListItemModel
       return false
     }
   })
+  return index < 0 ? repositories.findIndex(item => item.kind === 'repository') : index
 }
 
 /** The list of user-added repositories. */
