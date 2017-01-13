@@ -1,11 +1,14 @@
 @import '../mixins';
 
 #branches {
-  padding: var(--spacing);
   height: 100%;
   width: 350px;
   display: flex;
   flex-direction: column;
+
+  .row-component {
+    padding: var(--spacing);
+  }
 }
 
 .branches-list {
@@ -17,6 +20,11 @@
   &-content {
     display: flex;
     flex: 1;
+  }
+
+  &-label,
+  &-item {
+    padding: 0 var(--spacing);
   }
 
   &-label {
@@ -39,14 +47,17 @@
     }
 
     .name {
-      flex-grow: 1;
+      flex-grow: 2;
       @include ellipsis;
+      max-width: 65%;
     }
 
     .description {
       margin-right: var(--spacing-half);
       color: var(--text-secondary-color);
       font-size: var(--font-size-sm);
+      flex-grow: 1;
+      text-align: right;
     }
   }
 }
