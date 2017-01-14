@@ -6,11 +6,14 @@ import { GitLFS } from './git-lfs'
 import { assertNever } from '../../lib/fatal-error'
 import { IRemote } from '../../models/remote'
 import { Dispatcher } from '../../lib/dispatcher'
+import { Repository } from '../../models/repository'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
 
   readonly remote: IRemote | null
+
+  readonly repository: Repository
 }
 
 enum RepositorySettingsTab {
@@ -48,7 +51,11 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     const tab = this.state.selectedTab
     switch (tab) {
       case RepositorySettingsTab.Remote: {
-        return <Remote remote={this.props.remote} dispatcher={this.props.dispatcher}/>
+        return <Remote
+          remote={this.props.remote}
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
+        />
       }
       case RepositorySettingsTab.IgnoredFiles: {
         return <GitIgnore/>

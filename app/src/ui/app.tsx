@@ -509,7 +509,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       const repository = popup.repository
       const state = this.props.appStore.getRepositoryState(repository)
 
-      return <RepositorySettings remote={state.remote} dispatcher={this.props.dispatcher}/>
+      return <RepositorySettings
+        remote={state.remote}
+        dispatcher={this.props.dispatcher}
+        repository={repository}
+      />
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)
