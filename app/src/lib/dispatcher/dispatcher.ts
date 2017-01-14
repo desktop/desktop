@@ -476,4 +476,8 @@ export class Dispatcher {
   public reportStats(): Promise<void> {
     return this.statsStore.reportStats()
   }
+
+  public setRemoteURL(repository: Repository, name: string, url: string): Promise<void> {
+    return this.appStore._setRemoteURL(repository, name, url)
+  }
 }

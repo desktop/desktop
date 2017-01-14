@@ -1280,4 +1280,9 @@ export class AppStore {
 
     return this._refreshRepository(repository)
   }
+
+  public _setRemoteURL(repository: Repository, name: string, url: string): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.setRemoteURL(name, url)
+  }
 }

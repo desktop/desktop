@@ -21,6 +21,7 @@ import {
   getBranchAheadBehind,
   getCommits,
   merge,
+  setRemoteURL,
 } from '../git'
 
 /** The number of commits to load from history per batch. */
@@ -450,5 +451,12 @@ export class GitStore {
   /** Merge the named branch into the current branch. */
   public merge(branch: string): Promise<void> {
     return this.performFailableOperation(() => merge(this.repository, branch))
+  }
+
+  public async setRemoteURL(name: string, url: string): Promise<void> {
+    await this.performFailableOperation(() => setRemoteURL(this.repository, name, url))
+    await this.loadDefaultRemote()
+
+    this.emitUpdate()
   }
 }
