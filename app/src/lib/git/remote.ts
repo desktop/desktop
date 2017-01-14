@@ -9,8 +9,8 @@ export async function getRemotes(repository: Repository): Promise<ReadonlyArray<
   const lines = output.split('\n')
   const remotes = lines
     .map(x  => x.split(/\s+/))
-    .map(x => ({name: x[0], url: x[1]}))
-    .filter((x, i) => i%2 !== 0)
+    .map(x => ({ name: x[0], url: x[1] }))
+    .filter((x, i) => i % 2 !== 0)
 
   return remotes
 }
