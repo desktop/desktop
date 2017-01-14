@@ -3,10 +3,16 @@ import { Repository } from '../../models/repository'
 import { IRemote } from '../../models/remote'
 
 /** Get the remote names. */
-export async function getRemotes(repository: Repository): Promise<ReadonlyArray<string>> {
-  const result = await git([ 'remote' ], repository.path, 'getRemotes')
-  const lines = result.stdout
-  return lines.split('\n')
+export async function getRemotes(repository: Repository): Promise<ReadonlyArray<IRemote>> {
+  const result = await git([ 'remote', '-v' ], repository.path, 'getRemotes')
+  const output = result.stdout
+  const lines = output.split('\n')
+  const remotes = lines
+    .map(x  => x.split(/\s+/))
+    .map(x => ({name: x[0], url: x[1]}))
+    .filter((x, i) => i%2 !== 0)
+
+  return remotes
 }
 
 /** Get the name of the default remote. */
@@ -16,15 +22,13 @@ export async function getDefaultRemote(repository: Repository): Promise<IRemote 
     return null
   }
 
-  const index = remotes.indexOf('origin')
-  let name: string | null = null
-  if (index > -1) {
-    name = remotes[index]
-  } else {
-    name = remotes[0]
+  const remote = remotes.find(x => x.name === 'origin')
+
+  if (remote) {
+    return remote
   }
 
-  return name ? { name, url: '' } : null
+  return remotes[0]
 }
 
 /** Add a new remote with the given URL. */
