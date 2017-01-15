@@ -142,6 +142,8 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
         this.props.dispatcher.closeFoldout()
         event.preventDefault()
       }
+    } else if (event.key === 'Enter') {
+      this.onRowClick(list.nextSelectableRow('down', 0))
     }
   }
 
