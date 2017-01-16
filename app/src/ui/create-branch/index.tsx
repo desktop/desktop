@@ -14,6 +14,7 @@ interface ICreateBranchProps {
   readonly dispatcher: Dispatcher
   readonly branches: ReadonlyArray<Branch>
   readonly currentBranch: Branch | null
+  readonly hideBranchPanel?: () => void
 }
 
 interface ICreateBranchState {
@@ -49,6 +50,12 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     }
   }
 
+  private cancel = () => {
+    if (this.props.hideBranchPanel) {
+      this.props.hideBranchPanel()
+    }
+  }
+
   public render() {
     const proposedName = this.state.proposedName
     const disabled = !proposedName.length || !!this.state.currentError
@@ -73,13 +80,14 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
         </Select>
 
         <Button type='submit' disabled={disabled}>{__DARWIN__ ? 'Create Branch' : 'Create branch'}</Button>
+        <Button onClick={this.cancel}>Cancel</Button>
       </Form>
     )
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
-      this.props.dispatcher.closePopup()
+      this.cancel()
     }
   }
 

@@ -163,6 +163,10 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     this.setState(this.createState(this.props, this.state.filter, row, this.state.showCreateDialog))
   }
 
+  private onHideCreateBranch = () => {
+    this.setState(this.createState(this.props, this.state.filter, this.state.selectedRow, false))
+  }
+
   private onShowCreateBranch = () => {
     this.setState(this.createState(this.props, this.state.filter, this.state.selectedRow, true))
   }
@@ -178,7 +182,8 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
           branches={this.props.allBranches}
           currentBranch={this.props.currentBranch}
           dispatcher={this.props.dispatcher}
-          repository={this.props.repository} />
+          repository={this.props.repository}
+          hideBranchPanel={this.onHideCreateBranch} />
       </div>)
   }
 
