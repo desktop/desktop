@@ -29,7 +29,11 @@ export async function addRemote(repository: Repository, name: string, url: strin
   await git([ 'remote', 'add', name, url ], repository.path, 'addRemote')
 }
 
-/** Add a new remote with the given URL. */
+/** Removes an existing remote, or silently errors if it doesn't exist */
 export async function removeRemote(repository: Repository, name: string): Promise<void> {
-  await git([ 'remote', 'remove', name ], repository.path, 'removeRemote')
+  const options = {
+   successExitCodes: new Set([ 0, 128 ]),
+  }
+
+  await git([ 'remote', 'remove', name ], repository.path, 'removeRemote', options)
 }
