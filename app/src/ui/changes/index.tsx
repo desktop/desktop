@@ -33,10 +33,10 @@ export class Changes extends React.Component<IChangesProps, void> {
   public render() {
     const diff = this.props.changes.diff
     const file = this.props.changes.selectedFile
-    let fileName: string | null = null
+    let filePath: string | null = null
 
     if (file) {
-      fileName = file.path
+      filePath = file.path
     }
 
     if (!diff || !file) {
@@ -49,7 +49,7 @@ export class Changes extends React.Component<IChangesProps, void> {
 
     return (
       <div>
-        <ChangedFileDetails fileName={fileName} />
+        <ChangedFileDetails filePath={filePath} />
         <Diff repository={this.props.repository}
           file={file}
           readOnly={false}
