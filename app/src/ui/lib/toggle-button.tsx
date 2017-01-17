@@ -3,10 +3,14 @@ import * as classNames from 'classnames'
 
 interface IToggleButtonProps {
 
-  /** set the state of the toggle button */
+  /**
+   * indicate whether the toggle button should be rendered in a defined state
+   *
+   * If not specified, defaults to false.
+   * */
   readonly checked?: boolean
 
-  /** A function to call on click. */
+  /** A function to call when the checked state of the component changes */
   readonly onClick?: (checked: boolean) => void
 
   /** The title of the button. */
@@ -29,10 +33,11 @@ interface IToggleButtonProps {
 }
 
 interface IToggleButtonState {
+  /** track the internal state of the toggle button */
   readonly isChecked: boolean
 }
 
-/** A button component. */
+/** A button component that can be unchecked or checked by the user. */
 export class ToggleButton extends React.Component<IToggleButtonProps, IToggleButtonState> {
 
   public constructor(props: IToggleButtonProps) {
@@ -41,15 +46,15 @@ export class ToggleButton extends React.Component<IToggleButtonProps, IToggleBut
     this.state = { isChecked: props.checked || false }
   }
 
+  /** check the current state of the toggle button */
   private isChecked(): boolean {
     return this.props.checked !== undefined
-    ? this.props.checked
-    : this.state.isChecked
+      ? this.props.checked
+      : this.state.isChecked
   }
 
   public render() {
-    const isChecked = this.isChecked()
-    const classNameState = isChecked ? 'checked' : 'unchecked'
+    const classNameState = this.isChecked() ? 'checked' : 'unchecked'
     const className = classNames('button-component', this.props.className, classNameState)
 
     return (
