@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Diff } from '../diff'
+import { ChangedFileDetails } from './changed-file-details'
 import { DiffSelection } from '../../models/diff'
 import { IChangesState } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
@@ -32,6 +33,11 @@ export class Changes extends React.Component<IChangesProps, void> {
   public render() {
     const diff = this.props.changes.diff
     const file = this.props.changes.selectedFile
+    let fileName: string | null = null
+
+    if (file) {
+      fileName = file.path
+    }
 
     if (!diff || !file) {
       return (
@@ -42,12 +48,15 @@ export class Changes extends React.Component<IChangesProps, void> {
     }
 
     return (
-      <Diff repository={this.props.repository}
-        file={file}
-        readOnly={false}
-        onIncludeChanged={this.onDiffLineIncludeChanged}
-        diff={diff}
-        dispatcher={this.props.dispatcher} />
+      <div>
+        <ChangedFileDetails fileName={fileName} />
+        <Diff repository={this.props.repository}
+          file={file}
+          readOnly={false}
+          onIncludeChanged={this.onDiffLineIncludeChanged}
+          diff={diff}
+          dispatcher={this.props.dispatcher} />
+      </div>
     )
   }
 }
