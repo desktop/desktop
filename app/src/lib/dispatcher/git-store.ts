@@ -11,6 +11,7 @@ import {
   reset,
   GitResetMode,
   getDefaultRemote,
+  getRemotes,
   fetch as fetchRepo,
   getRecentBranches,
   getBranches,
@@ -380,10 +381,11 @@ export class GitStore {
    * @param user - The user to use for authentication if needed.
    */
   public async fetch(user: User | null): Promise<void> {
-    const remote = this._remoteName
-    if (!remote) { return }
+    const remotes = await getRemotes(this.repository)
 
-    return fetchRepo(this.repository, user, remote)
+    remotes.forEach(async remote => {
+      await fetchRepo(this.repository, user, remote)
+    })
   }
 
   /** Calculate the ahead/behind for the current branch. */
