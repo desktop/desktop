@@ -73,9 +73,7 @@ export class ToggleButton extends React.Component<IToggleButtonProps, IToggleBut
     event.preventDefault()
 
     const isChecked = !this.isChecked()
-    this.setState(prevState => ({
-      isChecked,
-    }))
+    this.setState({ isChecked })
 
     const onClick = this.props.onClick
     if (onClick) {
