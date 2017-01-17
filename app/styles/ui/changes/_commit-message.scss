@@ -24,14 +24,11 @@
 
     .avatar {
       flex: 0;
-
-      img {
-        width: 28px;
-        height: 28px;
-        border: var(--base-border);
-        border-radius: var(--border-radius);
-        margin-right: var(--spacing-half);
-      }
+      width: 28px;
+      height: 28px;
+      border: var(--base-border);
+      border-radius: var(--border-radius);
+      margin-right: var(--spacing-half);
     }
   }
 
