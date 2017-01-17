@@ -477,6 +477,7 @@ export class Dispatcher {
     return this.statsStore.reportStats()
   }
 
+  /** Changes the URl for the remote that matches the given name  */
   public setRemoteURL(repository: Repository, name: string, url: string): Promise<void> {
     return this.appStore._setRemoteURL(repository, name, url)
   }
