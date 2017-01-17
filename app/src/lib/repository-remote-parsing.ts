@@ -4,6 +4,7 @@ interface IGitRemoteURL {
   readonly repositoryName: string | null
 }
 
+/** Parse the remote information from URL. */
 export function parseRemote(url: string): IGitRemoteURL | null {
   // Examples:
   // https://github.com/octocat/Hello-World.git
