@@ -4,10 +4,10 @@ import * as classNames from 'classnames'
 interface IToggleButtonProps {
 
   /**
-   * indicate whether the toggle button should be rendered in a defined state
+   * Indicate whether the toggle button should be rendered in a defined state.
    *
-   * If not specified, defaults to false.
-   * */
+   * If not specified, button state defaults to false (unchecked).
+   */
   readonly checked?: boolean
 
   /** A function to call when the checked state of the component changes */
@@ -74,7 +74,7 @@ export class ToggleButton extends React.Component<IToggleButtonProps, IToggleBut
 
     const isChecked = !this.isChecked()
     this.setState(prevState => ({
-      isChecked
+      isChecked,
     }))
 
     const onClick = this.props.onClick
