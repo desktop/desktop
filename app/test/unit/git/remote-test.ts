@@ -1,7 +1,7 @@
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
-import { getRemotes, getDefaultRemote, addRemote } from '../../../src/lib/git/remote'
+import { getRemotes, getDefaultRemote, addRemote, removeRemote } from '../../../src/lib/git/remote'
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 
 const temp = require('temp').track()
@@ -32,6 +32,16 @@ describe('git/remote', () => {
       const result = await getDefaultRemote(repository)
 
       expect(result).to.equal('origin')
+    })
+
+    it('returns something when origin removed', async () => {
+      const testRepoPath = setupFixtureRepository('repo-with-multiple-remotes')
+      const repository = new Repository(testRepoPath, -1, null)
+      await removeRemote(repository, 'origin')
+
+      const result = await getDefaultRemote(repository)
+
+      expect(result).to.equal('bassoon')
     })
 
     it('returns null for new repository', async () => {
