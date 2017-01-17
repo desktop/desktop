@@ -41,5 +41,17 @@ describe('git/branch', () => {
       expect(onBranch.branch.name).to.equal('commit-with-long-description')
       expect(onBranch.branch.tip.sha).to.equal('dfa96676b65e1c0ed43ca25492252a5e384c8efd')
     })
+
+    it('returns non-origin remote', async () => {
+      const path = await setupFixtureRepository('repo-with-multiple-remotes')
+      const repository = new Repository(path, -1, null)
+
+      const result = await getTip(repository)
+      const tip = result!
+
+      expect(tip.kind).to.equal(TipState.Valid)
+      const valid = tip as IValidBranch
+      expect(valid.branch.remote).to.equal('bassoon')
+    })
   })
 })
