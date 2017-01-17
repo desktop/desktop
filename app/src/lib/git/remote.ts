@@ -25,6 +25,6 @@ export async function getDefaultRemote(repository: Repository): Promise<string |
 }
 
 /** Add a new remote with the given URL. */
-export async function addRemote(path: string, name: string, url: string): Promise<void> {
-  await git([ 'remote', 'add', name, url ], path, 'addRemote')
+export async function addRemote(repository: Repository, name: string, url: string): Promise<void> {
+  await git([ 'remote', 'add', name, url ], repository.path, 'addRemote')
 }

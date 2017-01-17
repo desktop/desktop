@@ -44,11 +44,9 @@ describe('git/remote', () => {
   })
 
   describe('addRemote', () => {
-    it('can set origin and return it', async () => {
+    it('can set origin and return it as default', async () => {
       const repository = await setupEmptyRepository()
-
-      // TODO: this one should take in a repository, like the others
-      await addRemote(repository.path, 'origin', 'https://github.com/desktop/desktop')
+      await addRemote(repository, 'origin', 'https://github.com/desktop/desktop')
 
       const result = await getDefaultRemote(repository)
 
