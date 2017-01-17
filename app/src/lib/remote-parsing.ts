@@ -1,7 +1,7 @@
 interface IGitRemoteURL {
   readonly hostname: string
   readonly owner: string | null
-  readonly repositoryName: string | null
+  readonly name: string | null
 }
 
 /** Parse the remote information from URL. */
@@ -23,9 +23,9 @@ export function parseRemote(url: string): IGitRemoteURL | null {
 
     const hostname = result[1]
     const owner = result[2]
-    const repositoryName = result[3]
+    const name = result[3]
     if (hostname) {
-      return { hostname, owner, repositoryName }
+      return { hostname, owner, name }
     }
   }
 
