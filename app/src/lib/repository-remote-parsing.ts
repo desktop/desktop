@@ -4,7 +4,7 @@ interface IGitRemoteURL {
   readonly repositoryName: string | null
 }
 
-export function parseRemote(remote: string): IGitRemoteURL | null {
+export function parseRemote(url: string): IGitRemoteURL | null {
   // Examples:
   // https://github.com/octocat/Hello-World.git
   // git@github.com:octocat/Hello-World.git
@@ -17,7 +17,7 @@ export function parseRemote(remote: string): IGitRemoteURL | null {
   ]
 
   for (const regex of regexes) {
-    const result = remote.match(regex)
+    const result = url.match(regex)
     if (!result) { continue }
 
     const hostname = result[1]
