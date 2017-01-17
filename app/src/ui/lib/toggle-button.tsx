@@ -2,6 +2,10 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 
 interface IToggleButtonProps {
+
+  /** set the state of the toggle button */
+  readonly checked?: boolean
+
   /** A function to call on click. */
   readonly onClick?: (checked: boolean) => void
 
@@ -34,11 +38,18 @@ export class ToggleButton extends React.Component<IToggleButtonProps, IToggleBut
   public constructor(props: IToggleButtonProps) {
     super(props)
 
-    this.state = { isChecked: false }
+    this.state = { isChecked: props.checked || false }
+  }
+
+  private isChecked(): boolean {
+    return this.props.checked !== undefined
+    ? this.props.checked
+    : this.state.isChecked
   }
 
   public render() {
-    const classNameState = this.state.isChecked ? 'checked' : 'unchecked'
+    const isChecked = this.isChecked()
+    const classNameState = isChecked ? 'checked' : 'unchecked'
     const className = classNames('button-component', this.props.className, classNameState)
 
     return (
@@ -56,7 +67,7 @@ export class ToggleButton extends React.Component<IToggleButtonProps, IToggleBut
   private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
 
-    const isChecked = !this.state.isChecked
+    const isChecked = !this.isChecked()
     this.setState(prevState => ({
       isChecked
     }))
