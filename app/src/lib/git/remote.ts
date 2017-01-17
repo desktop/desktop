@@ -5,7 +5,8 @@ import { Repository } from '../../models/repository'
 export async function getRemotes(repository: Repository): Promise<ReadonlyArray<string>> {
   const result = await git([ 'remote' ], repository.path, 'getRemotes')
   const lines = result.stdout
-  return lines.split('\n')
+  const rows = lines.split('\n')
+  return rows.filter(r => r.trim().length > 0)
 }
 
 /** Get the name of the default remote. */
