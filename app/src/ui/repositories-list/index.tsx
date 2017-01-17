@@ -33,7 +33,7 @@ const RowHeight = 30
 function getSelectedRowIndex(repositories: ReadonlyArray<RepositoryListItemModel>, selectedRepository: Repositoryish | null): number {
   if (!selectedRepository) { return -1 }
 
-  return repositories.findIndex(item => {
+  const index = repositories.findIndex(item => {
     if (item.kind === 'repository') {
       const repository = item.repository
       return repository.constructor === selectedRepository.constructor && repository.id === selectedRepository.id
@@ -41,6 +41,9 @@ function getSelectedRowIndex(repositories: ReadonlyArray<RepositoryListItemModel
       return false
     }
   })
+  // If the selected repository isn't in the list (e.g., filtered out), then
+  // selected the first visible repository item.
+  return index < 0 ? repositories.findIndex(item => item.kind === 'repository') : index
 }
 
 /** The list of user-added repositories. */
@@ -83,7 +86,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
     }
   }
 
-  private onRowClick = (row: number, source: SelectionSource) => {
+  private onRowClick = (row: number) => {
     const item = this.state.listItems[row]
     if (item.kind === 'repository') {
       this.props.onSelectionChanged(item.repository)
@@ -196,6 +199,8 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
         this.props.dispatcher.closeFoldout()
         event.preventDefault()
       }
+    } else if (event.key === 'Enter') {
+      this.onRowClick(list.nextSelectableRow('down', 0))
     }
   }
 }
