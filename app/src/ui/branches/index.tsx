@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { List } from '../list'
-import { Button } from '../lib/button'
+import { ToggleButton } from '../lib/toggle-button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
@@ -167,8 +167,8 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     this.setState(this.createState(this.props, this.state.filter, this.state.selectedRow, false))
   }
 
-  private onShowCreateBranch = () => {
-    this.setState(this.createState(this.props, this.state.filter, this.state.selectedRow, true))
+  private onCreateBranchToggle = (isChecked: boolean) => {
+    this.setState(this.createState(this.props, this.state.filter, this.state.selectedRow, isChecked))
   }
 
   private renderCreateBranch() {
@@ -191,13 +191,16 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     return (
       <div id='branch-popover'>
         <div>
-          <Button className='create-branch' onClick={this.onShowCreateBranch}>
+          <ToggleButton
+            className='create-branch'
+            onClick={this.onCreateBranchToggle}
+            checked={this.state.showCreateDialog}>
             <div className='label'>
               <Octicon className='plus' symbol={OcticonSymbol.plus} />
               <div>Create new branch</div>
             </div>
             <Octicon className='arrow' symbol={OcticonSymbol.triangleRight} />
-          </Button>
+          </ToggleButton>
 
           <div id='branches'>
             <Row>
