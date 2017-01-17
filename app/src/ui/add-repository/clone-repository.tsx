@@ -12,6 +12,7 @@ import { Loading } from '../lib/loading'
 import { User } from '../../models/user'
 import { Errors } from '../lib/errors'
 import { API, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
+import { parseRemote } from '../../lib/remote-parsing'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -99,16 +100,16 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     this.setState({ ...this.state, loading: true })
 
     const url = this.state.url
-    const parsed = URL.parse(url)
-    // If we can parse a hostname, we'll assume they gave us a proper URL. If
-    // not, we'll treat it as a GitHub repository owner/repository shortcut.
-    const hostname = parsed.hostname
-    if (hostname) {
+    const parsed = parseRemote(url)
+    // If we can parse it as a remote, we'll assume they gave us a proper URL.
+    // If not, we'll try treating it as a GitHub repository owner/repository
+    // shortcut.
+    if (parsed) {
       const users = this.props.users
       const dotComUser = users.find(u => {
         const htmlURL = getHTMLURL(u.endpoint)
         const parsedEndpoint = URL.parse(htmlURL)
-        return hostname === parsedEndpoint.hostname
+        return parsed.hostname === parsedEndpoint.hostname
       }) || null
       this.props.dispatcher.clone(url, this.state.path, dotComUser)
       this.props.dispatcher.closePopup()
@@ -121,7 +122,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       const name = pieces[1]
       const user = await this.findRepositoryUser(owner, name)
       if (user) {
-        const cloneURL = `${getHTMLURL(user.endpoint)}/${url}`
+        const cloneURL = `${getHTMLURL(user.endpoint)}/${url}.git`
         this.props.dispatcher.clone(cloneURL, this.state.path, user)
         this.props.dispatcher.closePopup()
       } else {
