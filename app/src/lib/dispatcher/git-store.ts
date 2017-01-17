@@ -397,9 +397,18 @@ export class GitStore {
     this.emitUpdate()
   }
 
-  /** Load the default remote. */
-  public async loadDefaultRemote(): Promise<void> {
-    this._remoteName = await getDefaultRemote(this.repository)
+  /**
+   * Load the remote for the current branch, or the default remote if no
+   * tracking information found.
+   */
+  public async loadCurrentRemote(): Promise<void> {
+    const tip = this.tip
+    if (tip.kind === TipState.Valid) {
+      const branch = tip.branch
+      this._remoteName = branch.remote || await getDefaultRemote(this.repository)
+    } else {
+      this._remoteName = await getDefaultRemote(this.repository)
+    }
 
     this.emitUpdate()
   }
