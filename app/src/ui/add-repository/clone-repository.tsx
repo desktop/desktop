@@ -14,6 +14,9 @@ import { Errors } from '../lib/errors'
 import { API, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 import { parseRemote } from '../../lib/remote-parsing'
 
+/** The default repository name to use if one cannot be parsed. */
+const DefaultRepositoryName = 'new-project'
+
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
 
@@ -57,7 +60,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   public render() {
     const disabled = this.state.url.length === 0 || this.state.path.length === 0 || this.state.loading
-    const path = Path.join(this.state.path, this.state.name || 'new-repository')
+    const path = this.getFullPath()
     return (
       <Form className='clone-repository' onSubmit={this.clone}>
         <div>
@@ -82,6 +85,10 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
         {this.state.loading ? <Loading/> : null}
       </Form>
     )
+  }
+
+  private getFullPath() {
+    return Path.join(this.state.path, this.state.name || DefaultRepositoryName)
   }
 
   private showFilePicker = () => {
@@ -110,6 +117,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
     const url = this.state.url
     const parsed = parseRemote(url)
+    const path = this.getFullPath()
     // If we can parse it as a remote URL, we'll assume they gave us a proper
     // URL. If not, we'll try treating it as a GitHub repository owner/name
     // shortcut.
@@ -120,7 +128,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
         const parsedEndpoint = URL.parse(htmlURL)
         return parsed.hostname === parsedEndpoint.hostname
       }) || null
-      this.props.dispatcher.clone(url, this.state.path, dotComUser)
+      this.props.dispatcher.clone(url, path, dotComUser)
       this.props.dispatcher.closePopup()
       return
     }
@@ -132,7 +140,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       const user = await this.findRepositoryUser(owner, name)
       if (user) {
         const cloneURL = `${getHTMLURL(user.endpoint)}/${url}.git`
-        this.props.dispatcher.clone(cloneURL, this.state.path, user)
+        this.props.dispatcher.clone(cloneURL, path, user)
         this.props.dispatcher.closePopup()
       } else {
         this.setState({
