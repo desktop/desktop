@@ -47,6 +47,14 @@ export class RepositoriesStore {
 
   /** Add a new local repository. */
   public async addRepository(path: string): Promise<Repository> {
+    const query = this.db.repositories.filter(o => o.path === path)
+    const count = await query.count()
+    if (count > 0) {
+      const existing = await query.first()
+      const id = existing.id
+      return new Repository(path, id!)
+    }
+
     const id = await this.db.repositories.add({
       path,
       gitHubRepositoryID: null,
