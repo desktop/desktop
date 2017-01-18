@@ -51,17 +51,18 @@ export class RepositoriesStore {
     const count = await query.count()
     if (count > 0) {
       const existing = await query.first()
+      const id = existing.id!
 
-      let gitHubRepository: GitHubRepository | null = null
       if (existing.gitHubRepositoryID) {
         const dbRepo = await this.db.gitHubRepositories.get(existing.gitHubRepositoryID)
         const dbOwner = await this.db.owners.get(dbRepo.ownerID)
 
         const owner = new Owner(dbOwner.login, dbOwner.endpoint)
-        gitHubRepository = new GitHubRepository(dbRepo.name, owner, existing.gitHubRepositoryID, dbRepo.private, dbRepo.fork, dbRepo.htmlURL, dbRepo.defaultBranch)
+        const gitHubRepo = new GitHubRepository(dbRepo.name, owner, existing.gitHubRepositoryID, dbRepo.private, dbRepo.fork, dbRepo.htmlURL, dbRepo.defaultBranch)
+        return new Repository(path, id, gitHubRepo)
       }
 
-      return new Repository(path, existing.id!, gitHubRepository)
+      return new Repository(path, id)
     }
 
     const id = await this.db.repositories.add({
