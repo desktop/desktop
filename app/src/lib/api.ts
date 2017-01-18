@@ -349,6 +349,11 @@ export function getEnterpriseAPIURL(endpoint: string): string {
 
 /** Get github.com's API endpoint. */
 export function getDotComAPIEndpoint(): string {
+  const envEndpoint = process.env['API_ENDPOINT']
+  if (envEndpoint && envEndpoint.length > 0) {
+    return envEndpoint
+  }
+
   return 'https://api.github.com'
 }
 

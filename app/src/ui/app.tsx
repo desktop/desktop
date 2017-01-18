@@ -35,6 +35,7 @@ import { shouldRenderApplicationMenu } from './lib/features'
 import { Button } from './lib/button'
 import { Form } from './lib/form'
 import { Merge } from './merge-branch'
+import { RepositorySettings } from './repository-settings'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -173,6 +174,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'open-working-directory': return this.openWorkingDirectory()
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
+      case 'show-repository-settings' : return this.showRepositorySettings()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -409,10 +411,20 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private removeRepository() {
-    const state = this.state.selectedState
-    if (!state) { return }
+    const repository = this.getRepository()
 
-    this.props.dispatcher.removeRepositories([ state.repository ])
+    if (!repository) {
+      return
+    }
+
+    this.props.dispatcher.removeRepositories([ repository ])
+  }
+
+  private getRepository(): Repository | CloningRepository | null {
+    const state = this.state.selectedState
+    if (!state) { return null}
+
+    return state.repository
   }
 
   private async addRepositories(paths: ReadonlyArray<string>) {
@@ -420,6 +432,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (repositories.length) {
       this.props.dispatcher.selectRepository(repositories[0])
     }
+  }
+
+  private showRepositorySettings() {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository) {
+      return
+    }
+    this.props.dispatcher.showPopup({ type: PopupType.RepositorySettings, repository })
   }
 
   private renderTitlebar() {
@@ -482,6 +503,16 @@ export class App extends React.Component<IAppProps, IAppState> {
         dispatcher={this.props.dispatcher}
         repository={repository}
         branches={state.branchesState.allBranches}
+      />
+    }
+    else if (popup.type === PopupType.RepositorySettings) {
+      const repository = popup.repository
+      const state = this.props.appStore.getRepositoryState(repository)
+
+      return <RepositorySettings
+        remote={state.remote}
+        dispatcher={this.props.dispatcher}
+        repository={repository}
       />
     }
 
@@ -666,11 +697,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     const isPublishing = Boolean(this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Publish)
 
     const state = selection.state
+    const remoteName = state.remote ? state.remote.name : null
     return <PushPullButton
       dispatcher={this.props.dispatcher}
       repository={selection.repository}
       aheadBehind={state.aheadBehind}
-      remoteName={state.remoteName}
+      remoteName={remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
       isPublishing={isPublishing}
