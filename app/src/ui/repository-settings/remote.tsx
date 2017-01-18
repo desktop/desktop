@@ -8,9 +8,7 @@ import { Repository } from '../../models/repository'
 
 interface IRemoteProps {
   readonly dispatcher: Dispatcher
-
   readonly remote: IRemote | null
-
   readonly repository: Repository
 }
 

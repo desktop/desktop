@@ -10,9 +10,7 @@ import { Repository } from '../../models/repository'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
-
   readonly remote: IRemote | null
-
   readonly repository: Repository
 }
 

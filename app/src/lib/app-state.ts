@@ -168,7 +168,7 @@ export interface IRepositoryState {
    */
   readonly localCommitSHAs: ReadonlyArray<string>
 
-  /** The remote. */
+  /** The remote currently associated with the repository, if defined in the configuration */
   readonly remote: IRemote | null
 
   /** The state of the current branch in relation to its upstream. */

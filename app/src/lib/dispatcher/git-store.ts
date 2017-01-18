@@ -453,7 +453,7 @@ export class GitStore {
     return this.performFailableOperation(() => merge(this.repository, branch))
   }
 
-  /** Changes the URl for the remote that matches the given name  */
+  /** Changes the URL for the remote that matches the given name  */
   public async setRemoteURL(name: string, url: string): Promise<void> {
     await this.performFailableOperation(() => setRemoteURL(this.repository, name, url))
     await this.loadDefaultRemote()

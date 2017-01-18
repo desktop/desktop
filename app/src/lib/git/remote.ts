@@ -36,7 +36,7 @@ export async function addRemote(path: string, name: string, url: string): Promis
   await git([ 'remote', 'add', name, url ], path, 'addRemote')
 }
 
-/** Changes the URl for the remote that matches the given name  */
+/** Changes the URL for the remote that matches the given name  */
 export async function setRemoteURL(repository: Repository, name: string, url: string): Promise<void> {
   await git([ 'remote', 'set-url', name, url ], repository.path, 'setRemoteURL')
 }
