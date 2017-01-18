@@ -2,6 +2,7 @@ import { remote } from 'electron'
 import * as URL from 'url'
 import * as Path from 'path'
 import * as React from 'react'
+import * as FS from 'fs'
 import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
@@ -13,6 +14,9 @@ import { User } from '../../models/user'
 import { Errors } from '../lib/errors'
 import { API, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 import { parseRemote } from '../../lib/remote-parsing'
+
+/** The name for the error when the destination already exists. */
+const DestinationExistsErrorName = 'DestinationExistsError'
 
 interface IRepositoryIdentifier {
   readonly owner: string
@@ -60,7 +64,13 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
   }
 
   public render() {
-    const disabled = this.state.url.length === 0 || this.state.path.length === 0 || this.state.loading
+    const error = this.state.error
+    const disabled = Boolean(
+      this.state.url.length === 0 ||
+      this.state.path.length === 0 ||
+      this.state.loading ||
+      (error && error.name === DestinationExistsError)
+    )
     return (
       <Form className='clone-repository' onSubmit={this.clone}>
         <div>
@@ -80,7 +90,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
         <Button disabled={disabled} type='submit'>Clone</Button>
 
-        {this.state.error ? <Errors>{this.state.error.message}</Errors> : null}
+        {error ? <Errors>{error.message}</Errors> : null}
 
         {this.state.loading ? <Loading/> : null}
       </Form>
@@ -118,8 +128,17 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       ...this.state,
       url,
       path: newPath,
-      error: null,
       lastParsedIdentifier: parsed,
+    })
+
+    FS.exists(newPath, exists => {
+      let error: Error | null = null
+      if (exists) {
+        error = new Error('The destination already exists.')
+        error.name = DestinationExistsErrorName
+      }
+
+      this.setState({ ...this.state, error })
     })
   }
 
