@@ -103,7 +103,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   private onURLChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const url = event.currentTarget.value
-    const parsed = this.parseURL(url)
+    const parsed = this.parseOwnerAndName(url)
     this.setState({ ...this.state, url, name: parsed ? parsed.name : null })
   }
 
@@ -116,27 +116,28 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     this.setState({ ...this.state, loading: true })
 
     const url = this.state.url
-    const parsed = parseRemote(url)
     const path = this.getFullPath()
-    // If we can parse it as a remote URL, we'll assume they gave us a proper
-    // URL. If not, we'll try treating it as a GitHub repository owner/name
-    // shortcut.
-    if (parsed) {
+
+    // First try parsing it as a full URL. If that doesn't work, try parsing it
+    // as an owner/name shortcut. And if that fails then throw our hands in the
+    // air because we truly don't care.
+    const parsedURL = parseRemote(url)
+    if (parsedURL) {
       const users = this.props.users
       const dotComUser = users.find(u => {
         const htmlURL = getHTMLURL(u.endpoint)
         const parsedEndpoint = URL.parse(htmlURL)
-        return parsed.hostname === parsedEndpoint.hostname
+        return parsedURL.hostname === parsedEndpoint.hostname
       }) || null
       this.props.dispatcher.clone(url, path, dotComUser)
       this.props.dispatcher.closePopup()
       return
     }
 
-    const pieces = url.split('/')
-    if (pieces.length === 2 && pieces[0].length > 0 && pieces[1].length > 0) {
-      const owner = pieces[0]
-      const name = pieces[1]
+    const parsedOwnerAndName = this.parseOwnerAndName(url)
+    if (parsedOwnerAndName) {
+      const owner = parsedOwnerAndName.owner
+      const name = parsedOwnerAndName.name
       const user = await this.findRepositoryUser(owner, name)
       if (user) {
         const cloneURL = `${getHTMLURL(user.endpoint)}/${url}.git`
@@ -159,7 +160,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     })
   }
 
-  private parseURL(url: string): { owner: string, name: string } | null {
+  private parseOwnerAndName(url: string): { owner: string, name: string } | null {
     const parsed = parseRemote(url)
     // If we can parse it as a remote URL, we'll assume they gave us a proper
     // URL. If not, we'll try treating it as a GitHub repository owner/name
