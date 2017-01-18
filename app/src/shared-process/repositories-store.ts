@@ -47,22 +47,36 @@ export class RepositoriesStore {
 
   /** Add a new local repository. */
   public async addRepository(path: string): Promise<Repository> {
-    const query = this.db.repositories.filter(o => o.path === path)
-    const count = await query.count()
-    if (count > 0) {
-      const existing = await query.first()
-      const id = existing.id!
+    let repository: Repository | null = null
 
-      if (existing.gitHubRepositoryID) {
-        const dbRepo = await this.db.gitHubRepositories.get(existing.gitHubRepositoryID)
-        const dbOwner = await this.db.owners.get(dbRepo.ownerID)
-
-        const owner = new Owner(dbOwner.login, dbOwner.endpoint)
-        const gitHubRepo = new GitHubRepository(dbRepo.name, owner, existing.gitHubRepositoryID, dbRepo.private, dbRepo.fork, dbRepo.htmlURL, dbRepo.defaultBranch)
-        return new Repository(path, id, gitHubRepo)
+    const db = this.db
+    const transaction = this.db.transaction('r', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*(){
+      const query = db.repositories.filter(o => o.path === path)
+      const count = yield query.count()
+      if (count === 0) {
+        return
       }
 
-      return new Repository(path, id)
+      const existing = yield query.first()
+      const id = existing.id!
+
+      if (existing.gitHubRepositoryID === 0) {
+        repository = new Repository(path, id)
+        return
+      }
+
+      const dbRepo = yield db.gitHubRepositories.get(existing.gitHubRepositoryID)
+      const dbOwner = yield db.owners.get(dbRepo.ownerID)
+
+      const owner = new Owner(dbOwner.login, dbOwner.endpoint)
+      const gitHubRepo = new GitHubRepository(dbRepo.name, owner, existing.gitHubRepositoryID, dbRepo.private, dbRepo.fork, dbRepo.htmlURL, dbRepo.defaultBranch)
+      repository = new Repository(path, id, gitHubRepo)
+    })
+
+    await transaction
+
+    if (repository) {
+      return repository
     }
 
     const id = await this.db.repositories.add({
