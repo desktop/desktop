@@ -17,10 +17,12 @@ describe('git/remote', () => {
       const testRepoPath = setupFixtureRepository('repo-with-multiple-remotes')
       const repository = new Repository(testRepoPath, -1, null)
 
+      const url = 'https://github.com/shiftkey/friendly-bassoon.git'
+
       const result = await getRemotes(repository)
 
-      expect(result).to.contain({ name: 'origin', url: 'https://github.com/shiftkey/friendly-bassoon.git' })
-      expect(result).to.contain({ name: 'bassoon', url: 'https://github.com/shiftkey/friendly-bassoon.git' })
+      expect(result).to.contain({ name: 'origin', url })
+      expect(result).to.contain({ name: 'bassoon', url })
     })
   })
 
