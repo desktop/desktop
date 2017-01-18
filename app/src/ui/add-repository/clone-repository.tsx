@@ -103,7 +103,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   private onURLChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const url = event.currentTarget.value
-    const parsed = this.parseOwnerAndName(url)
+    const parsed = parseOwnerAndName(url)
     this.setState({ ...this.state, url, name: parsed ? parsed.name : null })
   }
 
@@ -134,11 +134,11 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       return
     }
 
-    const parsedOwnerAndName = this.parseOwnerAndName(url)
+    const parsedOwnerAndName = parseOwnerAndName(url)
     if (parsedOwnerAndName) {
       const owner = parsedOwnerAndName.owner
       const name = parsedOwnerAndName.name
-      const user = await this.findRepositoryUser(owner, name)
+      const user = await findRepositoryUser(this.props.users, owner, name)
       if (user) {
         const cloneURL = `${getHTMLURL(user.endpoint)}/${url}.git`
         this.props.dispatcher.clone(cloneURL, path, user)
@@ -159,67 +159,68 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       error: new Error(`Enter a URL or username/repository.`),
     })
   }
+}
 
-  private parseOwnerAndName(url: string): { owner: string, name: string } | null {
-    const parsed = parseRemote(url)
-    // If we can parse it as a remote URL, we'll assume they gave us a proper
-    // URL. If not, we'll try treating it as a GitHub repository owner/name
-    // shortcut.
-    if (parsed) {
-      const owner = parsed.owner
-      const name = parsed.name
-      if (owner && name) {
-        return { owner, name }
-      }
-    }
-
-    const pieces = url.split('/')
-    if (pieces.length === 2 && pieces[0].length > 0 && pieces[1].length > 0) {
-      const owner = pieces[0]
-      const name = pieces[1]
-      return { owner, name }
-    }
-
-    return null
-  }
-
-  /**
-   * Find the user whose endpoint has a repository with the given owner and
-   * name. This will prefer dot com over other endpoints.
-   */
-  private async findRepositoryUser(owner: string, name: string): Promise<User | null> {
-    const hasRepository = async (user: User) => {
-      const api = new API(user)
-      try {
-        const repository = await api.fetchRepository(owner, name)
-        if (repository) {
-          return true
-        } else {
-          return false
-        }
-      } catch (e) {
+/**
+ * Find the user whose endpoint has a repository with the given owner and
+ * name. This will prefer dot com over other endpoints.
+ */
+async function findRepositoryUser(users: ReadonlyArray<User>, owner: string, name: string): Promise<User | null> {
+  const hasRepository = async (user: User) => {
+    const api = new API(user)
+    try {
+      const repository = await api.fetchRepository(owner, name)
+      if (repository) {
+        return true
+      } else {
         return false
       }
+    } catch (e) {
+      return false
     }
-
-    // Prefer .com, then try all the others.
-    const sortedUsers = Array.from(this.props.users).sort((u1, u2) => {
-      if (u1.endpoint === getDotComAPIEndpoint()) {
-        return -1
-      } else if (u2.endpoint === getDotComAPIEndpoint()) {
-        return 1
-      } else {
-        return 0
-      }
-    })
-
-    for (const user of sortedUsers) {
-      const has = await hasRepository(user)
-      if (has) {
-        return user
-      }
-    }
-
-    return null
   }
+
+  // Prefer .com, then try all the others.
+  const sortedUsers = Array.from(users).sort((u1, u2) => {
+    if (u1.endpoint === getDotComAPIEndpoint()) {
+      return -1
+    } else if (u2.endpoint === getDotComAPIEndpoint()) {
+      return 1
+    } else {
+      return 0
+    }
+  })
+
+  for (const user of sortedUsers) {
+    const has = await hasRepository(user)
+    if (has) {
+      return user
+    }
+  }
+
+  return null
+}
+
+/** Try to parse an owner and name from a URL or owner/name shortcut. */
+function parseOwnerAndName(url: string): { owner: string, name: string } | null {
+  const parsed = parseRemote(url)
+  // If we can parse it as a remote URL, we'll assume they gave us a proper
+  // URL. If not, we'll try treating it as a GitHub repository owner/name
+  // shortcut.
+  if (parsed) {
+    const owner = parsed.owner
+    const name = parsed.name
+    if (owner && name) {
+      return { owner, name }
+    }
+  }
+
+  const pieces = url.split('/')
+  if (pieces.length === 2 && pieces[0].length > 0 && pieces[1].length > 0) {
+    const owner = pieces[0]
+    const name = pieces[1]
+    return { owner, name }
+  }
+
+  return null
 }
