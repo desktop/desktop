@@ -173,6 +173,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'open-working-directory': return this.openWorkingDirectory()
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
+      case 'show-repository-settings' : return this.showRepositorySettings()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -409,10 +410,20 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private removeRepository() {
-    const state = this.state.selectedState
-    if (!state) { return }
+    const repository = this.getRepository()
 
-    this.props.dispatcher.removeRepositories([ state.repository ])
+    if (!repository) {
+      return
+    }
+
+    this.props.dispatcher.removeRepositories([ repository ])
+  }
+
+  private getRepository(): Repository | CloningRepository | null {
+    const state = this.state.selectedState
+    if (!state) { return null}
+
+    return state.repository
   }
 
   private async addRepositories(paths: ReadonlyArray<string>) {
@@ -420,6 +431,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (repositories.length) {
       this.props.dispatcher.selectRepository(repositories[0])
     }
+  }
+
+  private showRepositorySettings() {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository) {
+      return
+    }
+    this.props.dispatcher.showPopup({ type: PopupType.RepositorySettings, repository })
   }
 
   private renderTitlebar() {
@@ -483,6 +503,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         repository={repository}
         branches={state.branchesState.allBranches}
       />
+    }
+    else if (popup.type === PopupType.RepositorySettings) {
+      // const repository = popup.repository
+      // const state = this.props.appStore.getRepositoryState(repository)
+
+      return (<div>William</div>)
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)
