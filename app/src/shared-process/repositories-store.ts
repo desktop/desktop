@@ -1,4 +1,4 @@
-import { Database, IDatabaseGitHubRepository } from './database'
+import { Database, IDatabaseGitHubRepository, IDatabaseRepository } from './database'
 import { Owner } from '../models/owner'
 import { GitHubRepository } from '../models/github-repository'
 import { Repository } from '../models/repository'
@@ -51,16 +51,15 @@ export class RepositoriesStore {
 
     const db = this.db
     const transaction = this.db.transaction('r', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*(){
-      const query = db.repositories.filter(o => o.path === path)
-      const count = yield query.count()
-      if (count === 0) {
+      const repos = yield db.repositories.toArray()
+      const existing = repos.find((r: IDatabaseRepository) => r.path === path)
+      if (existing === null) {
         return
       }
 
-      const existing = yield query.first()
       const id = existing.id!
 
-      if (existing.gitHubRepositoryID === 0) {
+      if (!existing.gitHubRepositoryID) {
         repository = new Repository(path, id)
         return
       }
