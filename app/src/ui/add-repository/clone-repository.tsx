@@ -104,7 +104,12 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
   private onURLChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const url = event.currentTarget.value
     const parsed = parseOwnerAndName(url)
-    this.setState({ ...this.state, url, name: parsed ? parsed.name : null })
+    this.setState({
+      ...this.state,
+      url,
+      name: parsed ? parsed.name : null,
+      error: null,
+    })
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
