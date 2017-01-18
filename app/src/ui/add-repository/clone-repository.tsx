@@ -14,8 +14,10 @@ import { Errors } from '../lib/errors'
 import { API, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 import { parseRemote } from '../../lib/remote-parsing'
 
-/** The default repository name to use if one cannot be parsed. */
-const DefaultRepositoryName = 'new-project'
+interface IRepositoryIdentifier {
+  readonly owner: string
+  readonly name: string
+}
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -38,10 +40,9 @@ interface ICloneRepositoryState {
   readonly error: Error | null
 
   /**
-   * The name of the repository to clone as parsed from the URL or owner/name
-   * shortcut.
+   * The repository identifier that was last parsed from the user-entered URL.
    */
-  readonly name: string | null
+  readonly lastParsedIdentifier: IRepositoryIdentifier | null
 }
 
 /** The component for cloning a repository. */
@@ -54,13 +55,12 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       path: getDefaultDir(),
       loading: false,
       error: null,
-      name: null,
+      lastParsedIdentifier: null,
     }
   }
 
   public render() {
     const disabled = this.state.url.length === 0 || this.state.path.length === 0 || this.state.loading
-    const path = this.getFullPath()
     return (
       <Form className='clone-repository' onSubmit={this.clone}>
         <div>
@@ -71,7 +71,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
         <Row>
           <TextBox
-            value={path}
+            value={this.state.path}
             label={__DARWIN__ ? 'Local Path' : 'Local path'}
             placeholder='repository path'
             onChange={this.onPathChanged}/>
@@ -87,10 +87,6 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     )
   }
 
-  private getFullPath() {
-    return Path.join(this.state.path, this.state.name || DefaultRepositoryName)
-  }
-
   private showFilePicker = () => {
     const directory: string[] | null = remote.dialog.showOpenDialog({
       properties: [ 'createDirectory', 'openDirectory' ],
@@ -104,11 +100,26 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
   private onURLChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const url = event.currentTarget.value
     const parsed = parseOwnerAndName(url)
+    const lastParsedIdentifier = this.state.lastParsedIdentifier
+    let newPath: string
+    if (lastParsedIdentifier) {
+      if (parsed) {
+        newPath = Path.join(Path.dirname(this.state.path), parsed.name)
+      } else {
+        newPath = Path.dirname(this.state.path)
+      }
+    } else if (parsed) {
+      newPath = Path.join(this.state.path, parsed.name)
+    } else {
+      newPath = this.state.path
+    }
+
     this.setState({
       ...this.state,
       url,
-      name: parsed ? parsed.name : null,
+      path: newPath,
       error: null,
+      lastParsedIdentifier: parsed,
     })
   }
 
@@ -121,7 +132,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     this.setState({ ...this.state, loading: true })
 
     const url = this.state.url
-    const path = this.getFullPath()
+    const path = this.state.path
 
     // First try parsing it as a full URL. If that doesn't work, try parsing it
     // as an owner/name shortcut. And if that fails then throw our hands in the
@@ -207,7 +218,7 @@ async function findRepositoryUser(users: ReadonlyArray<User>, owner: string, nam
 }
 
 /** Try to parse an owner and name from a URL or owner/name shortcut. */
-function parseOwnerAndName(url: string): { owner: string, name: string } | null {
+function parseOwnerAndName(url: string): IRepositoryIdentifier | null {
   const parsed = parseRemote(url)
   // If we can parse it as a remote URL, we'll assume they gave us a proper
   // URL. If not, we'll try treating it as a GitHub repository owner/name
