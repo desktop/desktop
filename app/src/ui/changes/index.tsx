@@ -45,7 +45,7 @@ export class Changes extends React.Component<IChangesProps, void> {
     const filePath = file.path
 
     return (
-      <div>
+      <div className='changed-file'>
         <ChangedFileDetails filePath={filePath} />
         <Diff repository={this.props.repository}
           file={file}
