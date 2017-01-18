@@ -19,8 +19,8 @@ describe('git/remote', () => {
 
       const result = await getRemotes(repository)
 
-      expect(result).to.contain('origin')
-      expect(result).to.contain('bassoon')
+      expect(result).to.contain({ name: 'origin', url: 'https://github.com/shiftkey/friendly-bassoon.git' })
+      expect(result).to.contain({ name: 'bassoon', url: 'https://github.com/shiftkey/friendly-bassoon.git' })
     })
   })
 
@@ -31,7 +31,7 @@ describe('git/remote', () => {
 
       const result = await getDefaultRemote(repository)
 
-      expect(result).to.equal('origin')
+      expect(result!.name).to.equal('origin')
     })
 
     it('returns something when origin removed', async () => {
@@ -41,7 +41,7 @@ describe('git/remote', () => {
 
       const result = await getDefaultRemote(repository)
 
-      expect(result).to.equal('bassoon')
+      expect(result!.name).to.equal('bassoon')
     })
 
     it('returns null for new repository', async () => {
@@ -60,7 +60,7 @@ describe('git/remote', () => {
 
       const result = await getDefaultRemote(repository)
 
-      expect(result).to.equal('origin')
+      expect(result!.name).to.equal('origin')
     })
   })
 
