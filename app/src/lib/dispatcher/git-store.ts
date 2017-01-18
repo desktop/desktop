@@ -410,7 +410,6 @@ export class GitStore {
     if (tip.kind === TipState.Valid) {
       const branch = tip.branch
       if (branch.remote) {
-        // TODO: clean this up
         const allRemotes = await getRemotes(this.repository)
         const foundRemote = allRemotes.find(r => r.name === branch.remote)
         if (foundRemote) {
