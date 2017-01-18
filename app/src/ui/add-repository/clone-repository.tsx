@@ -33,6 +33,12 @@ interface ICloneRepositoryState {
 
   /** The current error if one occurred. */
   readonly error: Error | null
+
+  /**
+   * The name of the repository to clone as parsed from the URL or owner/name
+   * shortcut.
+   */
+  readonly name: string | null
 }
 
 /** The component for cloning a repository. */
@@ -42,14 +48,16 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
     this.state = {
       url: '',
-      path: Path.join(getDefaultDir(), 'new-repo'),
+      path: getDefaultDir(),
       loading: false,
       error: null,
+      name: null,
     }
   }
 
   public render() {
     const disabled = this.state.url.length === 0 || this.state.path.length === 0 || this.state.loading
+    const path = Path.join(this.state.path, this.state.name || 'new-repository')
     return (
       <Form className='clone-repository' onSubmit={this.clone}>
         <div>
@@ -60,7 +68,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
         <Row>
           <TextBox
-            value={this.state.path}
+            value={path}
             label={__DARWIN__ ? 'Local Path' : 'Local path'}
             placeholder='repository path'
             onChange={this.onPathChanged}/>
@@ -88,7 +96,8 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   private onURLChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const url = event.currentTarget.value
-    this.setState({ ...this.state, url })
+    const parsed = this.parseURL(url)
+    this.setState({ ...this.state, url, name: parsed ? parsed.name : null })
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
@@ -101,8 +110,8 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
     const url = this.state.url
     const parsed = parseRemote(url)
-    // If we can parse it as a remote, we'll assume they gave us a proper URL.
-    // If not, we'll try treating it as a GitHub repository owner/repository
+    // If we can parse it as a remote URL, we'll assume they gave us a proper
+    // URL. If not, we'll try treating it as a GitHub repository owner/name
     // shortcut.
     if (parsed) {
       const users = this.props.users
@@ -140,6 +149,29 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       loading: false,
       error: new Error(`Enter a URL or username/repository.`),
     })
+  }
+
+  private parseURL(url: string): { owner: string, name: string } | null {
+    const parsed = parseRemote(url)
+    // If we can parse it as a remote URL, we'll assume they gave us a proper
+    // URL. If not, we'll try treating it as a GitHub repository owner/name
+    // shortcut.
+    if (parsed) {
+      const owner = parsed.owner
+      const name = parsed.name
+      if (owner && name) {
+        return { owner, name }
+      }
+    }
+
+    const pieces = url.split('/')
+    if (pieces.length === 2 && pieces[0].length > 0 && pieces[1].length > 0) {
+      const owner = pieces[0]
+      const name = pieces[1]
+      return { owner, name }
+    }
+
+    return null
   }
 
   /**
