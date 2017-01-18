@@ -1,0 +1,16 @@
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+[remote "origin"]
+	url = https://github.com/shiftkey/friendly-bassoon.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "bassoon"]
+	url = https://github.com/shiftkey/friendly-bassoon.git
+	fetch = +refs/heads/*:refs/remotes/bassoon/*
+[branch "master"]
+	remote = bassoon
+	merge = refs/heads/master

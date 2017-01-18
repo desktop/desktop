@@ -827,7 +827,7 @@ export class AppStore {
     // We don't need to await this. The GitStore will notify when something
     // changes.
     gitStore.loadBranches()
-    gitStore.loadDefaultRemote()
+    gitStore.loadCurrentRemote()
     gitStore.calculateAheadBehindForCurrentBranch()
     gitStore.updateLastFetched()
 
@@ -1135,8 +1135,8 @@ export class AppStore {
     const apiRepository = await api.createRepository(org, name, description, private_)
 
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => addRemote(repository.path, 'origin', apiRepository.cloneUrl))
-    await gitStore.loadDefaultRemote()
+    await gitStore.performFailableOperation(() => addRemote(repository, 'origin', apiRepository.cloneUrl))
+    await gitStore.loadCurrentRemote()
     return this._push(repository)
   }
 

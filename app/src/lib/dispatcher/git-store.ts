@@ -12,6 +12,7 @@ import {
   reset,
   GitResetMode,
   getDefaultRemote,
+  getRemotes,
   fetch as fetchRepo,
   getRecentBranches,
   getBranches,
@@ -382,10 +383,11 @@ export class GitStore {
    * @param user - The user to use for authentication if needed.
    */
   public async fetch(user: User | null): Promise<void> {
-    const remote = this._remote
-    if (!remote) { return }
+    const remotes = await getRemotes(this.repository)
 
-    return fetchRepo(this.repository, user, remote.name)
+    remotes.forEach(async remote => {
+      await fetchRepo(this.repository, user, remote.name)
+    })
   }
 
   /** Calculate the ahead/behind for the current branch. */
@@ -399,9 +401,27 @@ export class GitStore {
     this.emitUpdate()
   }
 
-  /** Load the default remote. */
-  public async loadDefaultRemote(): Promise<void> {
-    this._remote = await getDefaultRemote(this.repository)
+  /**
+   * Load the remote for the current branch, or the default remote if no
+   * tracking information found.
+   */
+  public async loadCurrentRemote(): Promise<void> {
+    const tip = this.tip
+    if (tip.kind === TipState.Valid) {
+      const branch = tip.branch
+      if (branch.remote) {
+        // TODO: clean this up
+        const allRemotes = await getRemotes(this.repository)
+        const foundRemote = allRemotes.find(r => r.name === branch.remote)
+        if (foundRemote) {
+          this._remote = foundRemote
+        }
+      }
+    }
+
+    if (!this._remote) {
+      this._remote = await getDefaultRemote(this.repository)
+    }
 
     this.emitUpdate()
   }
@@ -456,7 +476,7 @@ export class GitStore {
   /** Changes the URL for the remote that matches the given name  */
   public async setRemoteURL(name: string, url: string): Promise<void> {
     await this.performFailableOperation(() => setRemoteURL(this.repository, name, url))
-    await this.loadDefaultRemote()
+    await this.loadCurrentRemote()
 
     this.emitUpdate()
   }
