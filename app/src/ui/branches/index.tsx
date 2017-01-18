@@ -184,7 +184,8 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           hideBranchPanel={this.onHideCreateBranch} />
-      </div>)
+      </div>
+    )
   }
 
   public render() {
