@@ -10,6 +10,7 @@ import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
+import { IRemote } from '../models/remote'
 
 export { ICloningRepositoryState }
 export { ICommitMessage }
@@ -105,6 +106,7 @@ export enum PopupType {
   UpdateAvailable,
   Preferences,
   MergeBranch,
+  RepositorySettings,
 }
 
 export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
@@ -114,7 +116,8 @@ export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> } |
                     { type: PopupType.UpdateAvailable } |
                     { type: PopupType.Preferences } |
-                    { type: PopupType.MergeBranch, repository: Repository }
+                    { type: PopupType.MergeBranch, repository: Repository } |
+                    { type: PopupType.RepositorySettings, repository: Repository }
 
 export enum FoldoutType {
   Repository,
@@ -165,8 +168,8 @@ export interface IRepositoryState {
    */
   readonly localCommitSHAs: ReadonlyArray<string>
 
-  /** The name of the remote. */
-  readonly remoteName: string | null
+  /** The remote currently associated with the repository, if defined in the configuration */
+  readonly remote: IRemote | null
 
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
