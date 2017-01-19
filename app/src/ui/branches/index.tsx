@@ -20,6 +20,7 @@ interface IBranchesProps {
   readonly recentBranches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
+  readonly expandCreateForm: boolean
 }
 
 interface IBranchesState {
@@ -36,7 +37,8 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   public constructor(props: IBranchesProps) {
     super(props)
 
-    this.state = this.createState(props, '', -1, false)
+    const expandCreateForm = props.expandCreateForm || false
+    this.state = this.createState(props, '', -1, expandCreateForm)
   }
 
   private createState(props: IBranchesProps, newFilter: string, newSelectedRow: number, showCreateDialog: boolean): IBranchesState {
