@@ -60,7 +60,8 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private receiveProps(nextProps: IBranchesProps) {
-    this.setState(this.createState(nextProps, this.state.filter, this.state.selectedRow, this.state.showCreateDialog))
+    const expandCreateForm = nextProps.expandCreateForm || false
+    this.setState(this.createState(nextProps, this.state.filter, this.state.selectedRow, expandCreateForm))
   }
 
   public componentWillReceiveProps(nextProps: IBranchesProps) {
