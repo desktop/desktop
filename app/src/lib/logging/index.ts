@@ -1,0 +1,62 @@
+import * as Path from 'path'
+import * as Fs from 'fs'
+import * as Os from 'os'
+
+import * as winston from 'winston'
+require('winston-daily-rotate-file')
+
+function getLogFilePath(): string {
+  if (__WIN32__) {
+    return `${process.env.LOCALAPPDATA}\\desktop\\desktop.production.log`
+  } else {
+    const home = Os.homedir()
+    return `${home}/Library/Logs/GitHub/desktop.production.log`
+  }
+}
+
+function createDirectoryIfNotFound(path: string) {
+  const dirname = Path.dirname(path)
+  if (!Fs.existsSync(dirname)) {
+    Fs.mkdirSync(dirname)
+  }
+}
+
+if (__DEV__) {
+  // log everything to the console
+  winston.configure({
+    transports: [
+      new winston.transports.Console({
+        level: 'debug',
+      }),
+    ],
+  })
+} else {
+  const filename = getLogFilePath()
+  createDirectoryIfNotFound(filename)
+
+  winston.configure({
+    transports: [
+      // only display errors in the console
+      new (winston.transports.Console)({
+        level: 'warn',
+      }),
+      new winston.transports.DailyRotateFile({
+        filename,
+        datePattern: 'yyyy-MM-dd.',
+        level: 'info',
+      }),
+    ],
+  })
+}
+
+export const logger = {
+  debug: function(message: string) {
+    winston.debug(message)
+  },
+  info: function(message: string) {
+    winston.info(message)
+  },
+  error: function(message: string) {
+    winston.error(message)
+  },
+}
