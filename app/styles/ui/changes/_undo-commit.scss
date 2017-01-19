@@ -18,6 +18,7 @@
 
     .ago {
       color: var(--text-secondary-color);
+      @include ellipsis;
     }
 
     .summary {

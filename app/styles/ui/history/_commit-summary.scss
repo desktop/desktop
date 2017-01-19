@@ -2,6 +2,12 @@
 
 /** A React component holding the selected commit's detailed information */
 #commit-summary {
+  .avatar {
+    width: 16px;
+    height: 16px;
+
+    border-radius: var(--border-radius);
+  }
 }
 
 .commit-summary {
@@ -15,6 +21,17 @@
     font-weight: var(--font-weight-light);
     padding: var(--spacing);
     word-wrap: break-word;
+  }
+
+  // Enable text selection inside the title and description elements.
+  // The span descendant selector is necessary since both title and
+  // description is EmojiText components which renders all text inside
+  // of a <span>.
+  &-title span,
+  &-description span {
+    -webkit-user-select: auto;
+    user-select: auto;
+    cursor: text;
   }
 
   &-description {
@@ -45,13 +62,14 @@
 
   &-meta-item {
     @include ellipsis;
-    flex: 1 0 max-content;
     margin-right: var(--spacing);
     font-size: var(--font-size-sm);
 
+    .avatar,
     .octicon {
+      display: inline-block;
       margin-right: var(--spacing-third);
-      vertical-align: bottom;
+      vertical-align: bottom; // For some reason, `bottom` places the text in the middle
     }
   }
 

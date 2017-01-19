@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { Repository as Repo } from '../models/repository'
+import { TipState } from '../models/tip'
 import { UiView } from './ui-view'
 import { Changes, ChangesSidebar } from './changes'
 import { History, HistorySidebar } from './history'
@@ -44,7 +45,11 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
   }
 
   private renderChangesSidebar(): JSX.Element {
-    const branch = this.props.state.branchesState.currentBranch
+    const tip = this.props.state.branchesState.tip
+    const branch = tip.kind === TipState.Valid
+      ? tip.branch
+      : null
+
     const localCommitSHAs = this.props.state.localCommitSHAs
     const mostRecentLocalCommitSHA = localCommitSHAs.length > 0 ? localCommitSHAs[0] : null
     const mostRecentLocalCommit = (mostRecentLocalCommitSHA ? this.props.state.commits.get(mostRecentLocalCommitSHA) : null) || null
@@ -127,6 +132,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         commits={this.props.state.commits}
         localCommitSHAs={this.props.state.localCommitSHAs}
         commitSummaryWidth={this.props.commitSummaryWidth}
+        gitHubUsers={this.props.state.gitHubUsers}
       />
     } else {
       return assertNever(selectedSection, 'Unknown repository section')
