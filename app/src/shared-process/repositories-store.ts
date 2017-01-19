@@ -51,9 +51,9 @@ export class RepositoriesStore {
 
     const db = this.db
     const transaction = this.db.transaction('r', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*(){
-      const repos = yield db.repositories.toArray()
-      const existing = repos.find((r: IDatabaseRepository) => r.path === path)
-      if (existing === null) {
+      const repos: Array<IDatabaseRepository> = yield db.repositories.toArray()
+      const existing = repos.find(r => r.path === path)
+      if (existing === undefined) {
         return
       }
 
@@ -74,7 +74,7 @@ export class RepositoriesStore {
 
     await transaction
 
-    if (repository) {
+    if (repository !== null) {
       return repository
     }
 
