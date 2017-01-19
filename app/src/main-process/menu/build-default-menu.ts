@@ -183,6 +183,11 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         label: __DARWIN__ ? 'Remove' : '&Remove',
         click: emit('remove-repository'),
       },
+      { type: 'separator' },
+      {
+        label: __DARWIN__ ? 'Repository Settings' : '&Repository settings',
+        click: emit('show-repository-settings'),
+      },
     ],
   })
 

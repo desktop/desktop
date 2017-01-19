@@ -4,11 +4,13 @@ import { IDiff } from '../models/diff'
 import { Repository } from '../models/repository'
 import { IAheadBehind } from './git'
 import { Branch } from '../models/branch'
+import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
 import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
+import { IRemote } from '../models/remote'
 
 export { ICloningRepositoryState }
 export { ICommitMessage }
@@ -104,6 +106,7 @@ export enum PopupType {
   UpdateAvailable,
   Preferences,
   MergeBranch,
+  RepositorySettings,
 }
 
 export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
@@ -113,7 +116,8 @@ export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> } |
                     { type: PopupType.UpdateAvailable } |
                     { type: PopupType.Preferences } |
-                    { type: PopupType.MergeBranch, repository: Repository }
+                    { type: PopupType.MergeBranch, repository: Repository } |
+                    { type: PopupType.RepositorySettings, repository: Repository }
 
 export enum FoldoutType {
   Repository,
@@ -124,7 +128,7 @@ export enum FoldoutType {
 
 export type Foldout =
   { type: FoldoutType.Repository } |
-  { type: FoldoutType.Branch } |
+  { type: FoldoutType.Branch, expandCreateForm?: boolean } |
   { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } |
   { type: FoldoutType.Publish }
 
@@ -164,8 +168,8 @@ export interface IRepositoryState {
    */
   readonly localCommitSHAs: ReadonlyArray<string>
 
-  /** The name of the remote. */
-  readonly remoteName: string | null
+  /** The remote currently associated with the repository, if defined in the configuration */
+  readonly remote: IRemote | null
 
   /** The state of the current branch in relation to its upstream. */
   readonly aheadBehind: IAheadBehind | null
@@ -178,7 +182,7 @@ export interface IRepositoryState {
 }
 
 export interface IBranchesState {
-  readonly currentBranch: Branch | null
+  readonly tip: Tip
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly recentBranches: ReadonlyArray<Branch>

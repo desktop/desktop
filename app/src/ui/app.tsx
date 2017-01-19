@@ -30,10 +30,12 @@ import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
 import { User } from '../models/user'
+import { TipState } from '../models/tip'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Button } from './lib/button'
 import { Form } from './lib/form'
 import { Merge } from './merge-branch'
+import { RepositorySettings } from './repository-settings'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -127,19 +129,20 @@ export class App extends React.Component<IAppProps, IAppState> {
     let onBranch = false
     let hasDefaultBranch = false
     if (selectedState && selectedState.type === SelectionType.Repository) {
-      const currentBranch = selectedState.state.branchesState.currentBranch
+      const tip = selectedState.state.branchesState.tip
       const defaultBranch = selectedState.state.branchesState.defaultBranch
 
-      onBranch = Boolean(currentBranch)
       hasDefaultBranch = Boolean(defaultBranch)
+
+      onBranch = tip.kind === TipState.Valid
 
       // If we are:
       //  1. on the default branch, or
       //  2. on an unborn branch, or
       //  3. on a detached HEAD
       // there's not much we can do.
-      if (!currentBranch || !defaultBranch || currentBranch.name === defaultBranch.name) {
-        onNonDefaultBranch = false
+      if (tip.kind === TipState.Valid && defaultBranch !== null) {
+        onNonDefaultBranch = tip.branch.name !== defaultBranch.name
       } else {
         onNonDefaultBranch = true
       }
@@ -158,7 +161,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'select-changes': return this.selectChanges()
       case 'select-history': return this.selectHistory()
       case 'add-local-repository': return this.showFileBrowser()
-      case 'create-branch': return this.createBranch()
+      case 'create-branch': return this.showBranches(true)
       case 'show-branches': return this.showBranches()
       case 'remove-repository': return this.removeRepository()
       case 'add-repository': return this.addRepository()
@@ -171,6 +174,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'open-working-directory': return this.openWorkingDirectory()
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
+      case 'show-repository-settings' : return this.showRepositorySettings()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -229,28 +233,29 @@ export class App extends React.Component<IAppProps, IAppState> {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    const branch = state.state.branchesState.currentBranch
-    if (!branch) { return }
-
-    this.props.dispatcher.showPopup({
-      type: PopupType.RenameBranch,
-      repository: state.repository,
-      branch,
-    })
+    const tip = state.state.branchesState.tip
+    if (tip.kind === TipState.Valid) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.RenameBranch,
+        repository: state.repository,
+        branch: tip.branch,
+      })
+    }
   }
 
   private deleteBranch() {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    const branch = state.state.branchesState.currentBranch
-    if (!branch) { return }
+    const tip = state.state.branchesState.tip
 
-    this.props.dispatcher.showPopup({
-      type: PopupType.DeleteBranch,
-      repository: state.repository,
-      branch,
-    })
+    if (tip.kind === TipState.Valid) {
+      this.props.dispatcher.showPopup({
+        type: PopupType.DeleteBranch,
+        repository: state.repository,
+        branch: tip.branch,
+      })
+    }
   }
 
   private addRepository() {
@@ -259,21 +264,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private createBranch() {
+  private showBranches(expandCreateForm?: boolean) {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    this.props.dispatcher.showPopup({
-      type: PopupType.CreateBranch,
-      repository: state.repository,
-    })
-  }
-
-  private showBranches() {
-    const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) { return }
-
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateForm })
   }
 
   private selectChanges() {
@@ -406,10 +401,20 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private removeRepository() {
-    const state = this.state.selectedState
-    if (!state) { return }
+    const repository = this.getRepository()
 
-    this.props.dispatcher.removeRepositories([ state.repository ])
+    if (!repository) {
+      return
+    }
+
+    this.props.dispatcher.removeRepositories([ repository ])
+  }
+
+  private getRepository(): Repository | CloningRepository | null {
+    const state = this.state.selectedState
+    if (!state) { return null}
+
+    return state.repository
   }
 
   private async addRepositories(paths: ReadonlyArray<string>) {
@@ -417,6 +422,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (repositories.length) {
       this.props.dispatcher.selectRepository(repositories[0])
     }
+  }
+
+  private showRepositorySettings() {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository) {
+      return
+    }
+    this.props.dispatcher.showPopup({ type: PopupType.RepositorySettings, repository })
   }
 
   private renderTitlebar() {
@@ -441,10 +455,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (popup.type === PopupType.CreateBranch) {
       const repository = popup.repository
       const state = this.props.appStore.getRepositoryState(repository)
+
+      const tip = state.branchesState.tip
+      const currentBranch = tip.kind === TipState.Valid
+        ? tip.branch
+        : null
+
       return <CreateBranch repository={repository}
                            dispatcher={this.props.dispatcher}
                            branches={state.branchesState.allBranches}
-                           currentBranch={state.branchesState.currentBranch}/>
+                           currentBranch={currentBranch}/>
     } else if (popup.type === PopupType.AddRepository) {
       return <AddRepository dispatcher={this.props.dispatcher}/>
     } else if (popup.type === PopupType.RenameBranch) {
@@ -473,6 +493,16 @@ export class App extends React.Component<IAppProps, IAppState> {
         dispatcher={this.props.dispatcher}
         repository={repository}
         branches={state.branchesState.allBranches}
+      />
+    }
+    else if (popup.type === PopupType.RepositorySettings) {
+      const repository = popup.repository
+      const state = this.props.appStore.getRepositoryState(repository)
+
+      return <RepositorySettings
+        remote={state.remote}
+        dispatcher={this.props.dispatcher}
+        repository={repository}
       />
     }
 
@@ -657,11 +687,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     const isPublishing = Boolean(this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Publish)
 
     const state = selection.state
+    const remoteName = state.remote ? state.remote.name : null
     return <PushPullButton
       dispatcher={this.props.dispatcher}
       repository={selection.repository}
       aheadBehind={state.aheadBehind}
-      remoteName={state.remoteName}
+      remoteName={remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
       isPublishing={isPublishing}
@@ -680,11 +711,27 @@ export class App extends React.Component<IAppProps, IAppState> {
     const repository = selection.repository
 
     const state = this.props.appStore.getRepositoryState(repository)
+
+    let expandCreateForm = false
+
+    const foldout = this.state.currentFoldout
+    if (foldout) {
+      if (foldout.type === FoldoutType.Branch) {
+        expandCreateForm = foldout.expandCreateForm || false
+      }
+    }
+
+    const tip = state.branchesState.tip
+    const currentBranch = tip.kind === TipState.Valid
+      ? tip.branch
+      : null
+
     return <Branches
       allBranches={state.branchesState.allBranches}
       recentBranches={state.branchesState.recentBranches}
-      currentBranch={state.branchesState.currentBranch}
+      currentBranch={currentBranch}
       defaultBranch={state.branchesState.defaultBranch}
+      expandCreateForm={expandCreateForm}
       dispatcher={this.props.dispatcher}
       repository={repository}
     />
@@ -702,25 +749,46 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!selection || selection.type !== SelectionType.Repository) {
       return null
     }
-    const branch = selection.state.branchesState.currentBranch
 
-    // TODO: This is in all likelihood wrong, need to look into
-    // what null means here
-    if (!branch) {
+    const tip = selection.state.branchesState.tip
+
+    if (tip.kind === TipState.Unknown) {
+      // TODO: this is bad and I feel bad
       return null
     }
 
-    const title = branch.name
+    if (tip.kind === TipState.Unborn) {
+      return <ToolbarDropdown
+        className='branch-button'
+        icon={OcticonSymbol.gitBranch}
+        title='master'
+        description='Current branch'
+        onDropdownStateChanged={this.onBranchDropdownStateChanged}
+        dropdownContentRenderer={this.renderBranchFoldout}
+        dropdownState='closed' />
+    }
 
     const isOpen = this.state.currentFoldout
       && this.state.currentFoldout.type === FoldoutType.Branch
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
+    if (tip.kind === TipState.Detached) {
+      const title = `On ${tip.currentSha.substr(0,7)}`
+      return <ToolbarDropdown
+        className='branch-button'
+        icon={OcticonSymbol.gitCommit}
+        title={title}
+        description='Detached HEAD'
+        onDropdownStateChanged={this.onBranchDropdownStateChanged}
+        dropdownContentRenderer={this.renderBranchFoldout}
+        dropdownState={currentState} />
+    }
+
     return <ToolbarDropdown
       className='branch-button'
       icon={OcticonSymbol.gitBranch}
-      title={title}
+      title={tip.branch.name}
       description='Current branch'
       onDropdownStateChanged={this.onBranchDropdownStateChanged}
       dropdownContentRenderer={this.renderBranchFoldout}

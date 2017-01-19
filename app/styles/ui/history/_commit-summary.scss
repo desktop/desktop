@@ -2,6 +2,12 @@
 
 /** A React component holding the selected commit's detailed information */
 #commit-summary {
+  .avatar {
+    width: 16px;
+    height: 16px;
+
+    border-radius: var(--border-radius);
+  }
 }
 
 .commit-summary {
@@ -56,13 +62,14 @@
 
   &-meta-item {
     @include ellipsis;
-    flex: 1 0 max-content;
     margin-right: var(--spacing);
     font-size: var(--font-size-sm);
 
+    .avatar,
     .octicon {
+      display: inline-block;
       margin-right: var(--spacing-third);
-      vertical-align: bottom;
+      vertical-align: bottom; // For some reason, `bottom` places the text in the middle
     }
   }
 
