@@ -175,6 +175,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
       case 'show-repository-settings' : return this.showRepositorySettings()
+      case 'view-repository-on-github' : return this.viewRepositoryOnGitHub()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -431,6 +432,22 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
     this.props.dispatcher.showPopup({ type: PopupType.RepositorySettings, repository })
+  }
+
+  private viewRepositoryOnGitHub() {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
+      return
+    }
+
+    const url = repository.gitHubRepository.htmlURL
+
+    if (!url) {
+      return
+    }
+
+    this.props.dispatcher.openInBrowser(url)
   }
 
   private renderTitlebar() {
