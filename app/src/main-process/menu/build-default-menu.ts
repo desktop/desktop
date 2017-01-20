@@ -185,6 +185,11 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       { type: 'separator' },
       {
+        label: __DARWIN__ ? 'Open in terminal' : '&Open in terminal',
+        click: emit('open-in-terminal'),
+      },
+      { type: 'separator' },
+      {
         label: __DARWIN__ ? 'Repository Settings' : '&Repository settings',
         click: emit('show-repository-settings'),
       },
