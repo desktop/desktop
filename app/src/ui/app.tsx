@@ -161,7 +161,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'select-changes': return this.selectChanges()
       case 'select-history': return this.selectHistory()
       case 'add-local-repository': return this.showFileBrowser()
-      case 'create-branch': return this.createBranch()
+      case 'create-branch': return this.showBranches(true)
       case 'show-branches': return this.showBranches()
       case 'remove-repository': return this.removeRepository()
       case 'add-repository': return this.addRepository()
@@ -264,21 +264,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private createBranch() {
+  private showBranches(expandCreateForm?: boolean) {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    this.props.dispatcher.showPopup({
-      type: PopupType.CreateBranch,
-      repository: state.repository,
-    })
-  }
-
-  private showBranches() {
-    const state = this.state.selectedState
-    if (!state || state.type !== SelectionType.Repository) { return }
-
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateForm })
   }
 
   private selectChanges() {
@@ -722,15 +712,26 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const state = this.props.appStore.getRepositoryState(repository)
 
+    let expandCreateForm = false
+
+    const foldout = this.state.currentFoldout
+    if (foldout) {
+      if (foldout.type === FoldoutType.Branch) {
+        expandCreateForm = foldout.expandCreateForm || false
+      }
+    }
+
     const tip = state.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid
       ? tip.branch
       : null
+
     return <Branches
       allBranches={state.branchesState.allBranches}
       recentBranches={state.branchesState.recentBranches}
       currentBranch={currentBranch}
       defaultBranch={state.branchesState.defaultBranch}
+      expandCreateForm={expandCreateForm}
       dispatcher={this.props.dispatcher}
       repository={repository}
     />

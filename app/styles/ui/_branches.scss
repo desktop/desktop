@@ -1,5 +1,44 @@
 @import '../mixins';
 
+#branch-popover {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+}
+
+.create-branch {
+  // .button-component overrides this rule to make it smaller,
+  // not sure how to be more specific without using an id
+  // (which isn't exposed on Button currently)
+  height: 40px !important;
+  width: 100%;
+  margin-bottom: var(--spacing);
+
+  .label {
+    display: flex;
+    float: left;
+
+    .plus {
+      margin-right: var(--spacing-half);
+    }
+  }
+
+  .arrow {
+    float: right;
+  }
+}
+
+.create-branch.checked {
+  background-color: var(--button-background);
+  color: var(--button-text-color);
+
+  &:not(:disabled):hover {
+    background-color: var(--button-hover-background);
+  }
+}
+
+
 #branches {
   height: 100%;
   width: 350px;
@@ -59,5 +98,16 @@
       flex-grow: 1;
       text-align: right;
     }
+  }
+}
+
+#new-branch {
+  width: 350px;
+  padding: var(--spacing);
+  background: var(--box-alt-background-color);
+
+  button[type=submit] {
+    width: 100%;
+    margin-top: var(--spacing-double);
   }
 }

@@ -1,4 +1,4 @@
-import { Database, IDatabaseGitHubRepository } from './database'
+import { Database, IDatabaseGitHubRepository, IDatabaseRepository } from './database'
 import { Owner } from '../models/owner'
 import { GitHubRepository } from '../models/github-repository'
 import { Repository } from '../models/repository'
@@ -47,6 +47,37 @@ export class RepositoriesStore {
 
   /** Add a new local repository. */
   public async addRepository(path: string): Promise<Repository> {
+    let repository: Repository | null = null
+
+    const db = this.db
+    const transaction = this.db.transaction('r', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*(){
+      const repos: Array<IDatabaseRepository> = yield db.repositories.toArray()
+      const existing = repos.find(r => r.path === path)
+      if (existing === undefined) {
+        return
+      }
+
+      const id = existing.id!
+
+      if (!existing.gitHubRepositoryID) {
+        repository = new Repository(path, id)
+        return
+      }
+
+      const dbRepo = yield db.gitHubRepositories.get(existing.gitHubRepositoryID)
+      const dbOwner = yield db.owners.get(dbRepo.ownerID)
+
+      const owner = new Owner(dbOwner.login, dbOwner.endpoint)
+      const gitHubRepo = new GitHubRepository(dbRepo.name, owner, existing.gitHubRepositoryID, dbRepo.private, dbRepo.fork, dbRepo.htmlURL, dbRepo.defaultBranch)
+      repository = new Repository(path, id, gitHubRepo)
+    })
+
+    await transaction
+
+    if (repository !== null) {
+      return repository
+    }
+
     const id = await this.db.repositories.add({
       path,
       gitHubRepositoryID: null,

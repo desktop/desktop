@@ -14,6 +14,7 @@ interface ICreateBranchProps {
   readonly dispatcher: Dispatcher
   readonly branches: ReadonlyArray<Branch>
   readonly currentBranch: Branch | null
+  readonly hideBranchPanel?: () => void
 }
 
 interface ICreateBranchState {
@@ -49,15 +50,18 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     }
   }
 
+  private cancel = () => {
+    if (this.props.hideBranchPanel) {
+      this.props.hideBranchPanel()
+    }
+  }
+
   public render() {
     const proposedName = this.state.proposedName
     const disabled = !proposedName.length || !!this.state.currentError
     const currentBranch = this.props.currentBranch
     return (
       <Form onSubmit={this.createBranch}>
-        <div className='header'>{__DARWIN__ ? 'Create New Branch' : 'Create new branch'}</div>
-        <hr/>
-
         <TextBox
           label='Name'
           autoFocus={true}
@@ -75,15 +79,15 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
           )}
         </Select>
 
-        <hr/>
         <Button type='submit' disabled={disabled}>{__DARWIN__ ? 'Create Branch' : 'Create branch'}</Button>
+        <Button onClick={this.cancel}>Cancel</Button>
       </Form>
     )
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
-      this.props.dispatcher.closePopup()
+      this.cancel()
     }
   }
 
@@ -115,13 +119,13 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     })
   }
 
-  private createBranch = () => {
+  private createBranch = async () => {
     const name = this.state.sanitizedName
     const baseBranch = this.state.baseBranch
     if (name.length > 0 && baseBranch) {
-      this.props.dispatcher.createBranch(this.props.repository, name, baseBranch.name)
+      await this.props.dispatcher.createBranch(this.props.repository, name, baseBranch.name)
     }
 
-    this.props.dispatcher.closePopup()
+    this.props.dispatcher.closeFoldout()
   }
 }
