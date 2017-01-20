@@ -56,7 +56,11 @@ export const logger = {
   info: function(message: string) {
     winston.info(message)
   },
-  error: function(message: string) {
-    winston.error(message)
+  error: function(message: string, error?: Error) {
+    if (error) {
+      winston.error(message, { error: error })
+    } else {
+      winston.error(message)
+    }
   },
 }
