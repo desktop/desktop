@@ -175,6 +175,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
       case 'show-repository-settings' : return this.showRepositorySettings()
+      case 'open-in-terminal' : return this.openInTerminal()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -431,6 +432,18 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
     this.props.dispatcher.showPopup({ type: PopupType.RepositorySettings, repository })
+  }
+
+  private openInTerminal() {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository) {
+      return
+    }
+
+    const repoFilePath = repository.path
+
+    this.props.dispatcher.openInTerminal(repoFilePath)
   }
 
   private renderTitlebar() {
