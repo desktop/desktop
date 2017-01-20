@@ -4,6 +4,8 @@ import * as Querystring from 'querystring'
 import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 
+import { logger } from './logging'
+
 import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
 
 const Octokat = require('octokat')
@@ -306,9 +308,7 @@ async function getNote(): Promise<string> {
   try {
     localUsername = await username()
   } catch (e) {
-    console.log(`Error getting username:`)
-    console.error(e)
-    console.log(`We'll just use 'unknown'.`)
+    logger.error('[getNote] error getting username, falling back to \'unknown\'', e)
   }
 
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`

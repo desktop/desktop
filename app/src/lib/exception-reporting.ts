@@ -1,14 +1,14 @@
 import { proxyRequest } from '../ui/main-process-proxy'
 import { IHTTPRequest } from './http'
 
+import { logger } from './logging'
+
 const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
 
 /** Report the error to Central. */
 export async function reportError(error: Error, version: string) {
-  console.error(error)
-
   if (__DEV__ || process.env.TEST_ENV) {
-    console.error(`An uncaught exception was thrown. If this were a production build it would be reported to Central. Instead, maybe give it a lil lookyloo.`)
+    logger.error(`An uncaught exception was thrown. If this were a production build it would be reported to Central. Instead, maybe give it a lil lookyloo.`, error)
     return
   }
 
@@ -27,9 +27,8 @@ export async function reportError(error: Error, version: string) {
 
   try {
     await proxyRequest(options)
-    console.log('Exception reported.')
+    logger.error('[reportError] exception reported to Central', error)
   } catch (e) {
-    console.error('Error submitting exception report:')
-    console.error(e)
+    logger.error('[reportError] unable to submit report', e)
   }
 }

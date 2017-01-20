@@ -42,6 +42,9 @@ if (__DEV__) {
       }),
       new winston.transports.DailyRotateFile({
         filename,
+        humanReadableUnhandledException: true,
+        handleExceptions: true,
+        json: false,
         datePattern: 'yyyy-MM-dd.',
         level: 'info',
       }),

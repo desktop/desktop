@@ -38,6 +38,7 @@ import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { getAppMenu } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
+import { logger } from '../logging'
 
 import {
   getGitDir,
@@ -519,8 +520,7 @@ export class AppStore {
     try {
       await this._issuesStore.fetchIssues(repository, user)
     } catch (e) {
-      console.log(`Error fetching issues for ${repository.name}:`)
-      console.error(e)
+      logger.error(`[_updateIssues] error fetching issues for ${repository.name}:`, e)
     }
   }
 

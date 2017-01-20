@@ -2,6 +2,7 @@ import { Repository } from '../../models/repository'
 import { User } from '../../models/user'
 import { GitHubRepository } from '../../models/github-repository'
 import { API } from '../api'
+import { logger } from '../logging'
 import { fatalError } from '../fatal-error'
 
 /**
@@ -72,8 +73,7 @@ export class BackgroundFetcher {
     try {
       await this.fetch(this.repository)
     } catch (e) {
-      console.error('Error performing periodic fetch:')
-      console.error(e)
+      logger.error('[performAndScheduleFetch] error performing periodic fetch', e)
     }
 
     if (this.stopped) { return }
@@ -95,8 +95,7 @@ export class BackgroundFetcher {
       const pollInterval = await api.getFetchPollInterval(repository.owner.login, repository.name)
       interval = Math.max(pollInterval, MinimumInterval)
     } catch (e) {
-      console.error('Error fetching poll interval:')
-      console.error(e)
+      logger.error('[getFetchInterval] unable to fetch poll interval', e)
     }
 
     return interval + skewInterval()
