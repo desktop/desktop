@@ -1286,4 +1286,7 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
     return gitStore.setRemoteURL(name, url)
   }
+
+  public _openInTerminal(path: string) {
+  }
 }
