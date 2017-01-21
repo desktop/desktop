@@ -4,6 +4,8 @@ import { v4 as guid } from 'uuid'
 import { IHTTPRequest, IHTTPResponse } from '../lib/http'
 import { ExecutableMenuItem } from '../models/app-menu'
 
+import { logger } from '../lib/logging'
+
 /** Set the menu item's enabledness. */
 export function setMenuEnabled(id: MenuIDs, enabled: boolean) {
   ipcRenderer.send('set-menu-enabled', { id, enabled })
@@ -56,11 +58,11 @@ export function proxyRequest(options: IHTTPRequest): Promise<IHTTPResponse> {
 
     ipcRenderer.once(`proxy/response/${id}`, (event: any, { error, response }: { error?: Error, response?: IHTTPResponse }) => {
 
-      if (console.debug && startTime) {
+      if (logger.debug && startTime) {
         const rawTime = performance.now() - startTime
         if (rawTime > 500) {
           const timeInSeconds = (rawTime / 1000).toFixed(3)
-          console.debug(`executing: ${options.url} (took ${timeInSeconds}s)`)
+          logger.debug(`executing: ${options.url} (took ${timeInSeconds}s)`)
         }
       }
 

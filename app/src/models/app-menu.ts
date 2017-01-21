@@ -1,4 +1,5 @@
 import { assertNever } from '../lib/fatal-error'
+import { logger } from '../lib/logging'
 
 /** A type union of all possible types of menu items */
 export type MenuItem = IMenuItem | ISubmenuItem | ISeparatorMenuItem | ICheckboxMenuItem | IRadioMenuItem
@@ -137,7 +138,7 @@ function getAccelerator(menuItem: Electron.MenuItem): string | null {
           return defaultRoleAccelerator
         }
       } catch (err) {
-        console.error('Could not retrieve default accelerator', err)
+        logger.error('Could not retrieve default accelerator', err)
       }
     }
   }
@@ -246,7 +247,7 @@ export function itemIsSelectable(item: MenuItem) {
 /**
  * Attempts to locate a menu item matching the provided access key in a
  * given list of items. The access key comparison is case-insensitive.
- * 
+ *
  * Note that this function does not take into account whether or not the
  * item is selectable, consumers of this function need to perform that
  * check themselves when applicable.
