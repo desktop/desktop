@@ -65,12 +65,12 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   public render() {
     const error = this.state.error
-    const disabled = Boolean(
+    const disabled =
       this.state.url.length === 0 ||
       this.state.path.length === 0 ||
       this.state.loading ||
-      (error && error.name === DestinationExistsErrorName)
-    )
+      !!error && error.name === DestinationExistsErrorName
+
     return (
       <Form className='clone-repository' onSubmit={this.clone}>
         <div>
