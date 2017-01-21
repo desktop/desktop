@@ -21,6 +21,9 @@ function createDirectoryIfNotFound(path: string) {
   }
 }
 
+const filename = getLogFilePath()
+createDirectoryIfNotFound(filename)
+
 if (__DEV__) {
   // log everything to the console
   winston.configure({
@@ -28,17 +31,24 @@ if (__DEV__) {
       new winston.transports.Console({
         level: 'debug',
       }),
+      // TODO: remove this after testing
+      new winston.transports.DailyRotateFile({
+        filename,
+        humanReadableUnhandledException: true,
+        handleExceptions: true,
+        json: false,
+        datePattern: 'yyyy-MM-dd.',
+        prepend: true,
+        level: 'debug',
+      }),
     ],
   })
 } else {
-  const filename = getLogFilePath()
-  createDirectoryIfNotFound(filename)
-
   winston.configure({
     transports: [
       // only display errors in the console
-      new (winston.transports.Console)({
-        level: 'warn',
+      new winston.transports.Console({
+        level: 'error',
       }),
       new winston.transports.DailyRotateFile({
         filename,
@@ -46,6 +56,7 @@ if (__DEV__) {
         handleExceptions: true,
         json: false,
         datePattern: 'yyyy-MM-dd.',
+        prepend: true,
         level: 'info',
       }),
     ],
