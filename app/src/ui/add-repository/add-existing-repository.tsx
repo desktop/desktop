@@ -93,7 +93,13 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
       await initGitRepository(resolvedPath)
     }
 
-    this.props.dispatcher.addRepositories([ resolvedPath ])
+    const repositories = await this.props.dispatcher.addRepositories([ resolvedPath ])
+
+    if (repositories && repositories.length) {
+      const repository = repositories[0]
+      this.props.dispatcher.selectRepository(repository)
+    }
+
     this.props.dispatcher.closePopup()
   }
 }
