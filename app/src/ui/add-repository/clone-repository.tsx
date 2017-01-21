@@ -132,6 +132,9 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     })
 
     FS.exists(newPath, exists => {
+      // If the path changed while we were checking, we don't care anymore.
+      if (this.state.path !== newPath) { return }
+
       let error: Error | null = null
       if (exists) {
         error = new Error('The destination already exists.')
