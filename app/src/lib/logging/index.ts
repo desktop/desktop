@@ -27,10 +27,10 @@ const filename = getLogFilePath()
 createDirectoryIfNotFound(filename)
 
 if (__DEV__) {
-  // log everything to the console
   winston.configure({
     transports: [
-      new (ElectronConsole)(),
+      // log everything to the console
+      new ElectronConsole(),
       // TODO: remove this after testing
       new winston.transports.DailyRotateFile({
         filename,
@@ -46,10 +46,11 @@ if (__DEV__) {
 } else {
   winston.configure({
     transports: [
-      // only display errors in the console
+      // only log errors to the console
       new ElectronConsole({
         level: 'error',
       }),
+      // log everything interesting (info and up) to the file
       new winston.transports.DailyRotateFile({
         filename,
         humanReadableUnhandledException: true,
