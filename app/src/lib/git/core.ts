@@ -113,7 +113,7 @@ export async function git(args: string[], path: string, name: string, options?: 
     const rawTime = performance.now() - startTime
     if (rawTime > 100) {
      const timeInSeconds = (rawTime / 1000).toFixed(3)
-     logger.debug(`[git] executing: ${commandName} (took ${timeInSeconds}s)`)
+     logger.debug(`[git] executing ${commandName} (took ${timeInSeconds}s)`)
     }
   }
 
@@ -141,6 +141,8 @@ export async function git(args: string[], path: string, name: string, options?: 
   }
 
   logger.error(`[git] the command \`git ${args.join(' ')}\` exited with an unexpected code: ${exitCode}. The caller should either handle this error, or expect that exit code.`)
+  logger.error(`[git] repository at ${path}`)
+
   if (result.stdout.length) {
     logger.info(`[git] stdout: '${result.stdout}'`)
   }
