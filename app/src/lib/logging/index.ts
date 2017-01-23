@@ -5,6 +5,8 @@ import * as Os from 'os'
 import * as winston from 'winston'
 require('winston-daily-rotate-file')
 
+import { ElectronConsole } from './electron-console'
+
 function getLogFilePath(): string {
   if (__WIN32__) {
     return `${process.env.LOCALAPPDATA}\\desktop\\desktop.production.log`
@@ -28,9 +30,7 @@ if (__DEV__) {
   // log everything to the console
   winston.configure({
     transports: [
-      new winston.transports.Console({
-        level: 'debug',
-      }),
+      new (ElectronConsole)(),
       // TODO: remove this after testing
       new winston.transports.DailyRotateFile({
         filename,
@@ -47,7 +47,7 @@ if (__DEV__) {
   winston.configure({
     transports: [
       // only display errors in the console
-      new winston.transports.Console({
+      new ElectronConsole({
         level: 'error',
       }),
       new winston.transports.DailyRotateFile({
