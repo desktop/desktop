@@ -46,13 +46,15 @@ export class Changes extends React.Component<IChangesProps, void> {
 
     return (
       <div className='changed-file'>
-       <ChangedFileDetails filePath={filePath} />
-        <Diff repository={this.props.repository}
-          file={file}
-          readOnly={false}
-          onIncludeChanged={this.onDiffLineIncludeChanged}
-          diff={diff}
-          dispatcher={this.props.dispatcher} />
+        <ChangedFileDetails filePath={filePath} />
+        <div className='diff-wrapper'>
+          <Diff repository={this.props.repository}
+            file={file}
+            readOnly={false}
+            onIncludeChanged={this.onDiffLineIncludeChanged}
+            diff={diff}
+            dispatcher={this.props.dispatcher} />
+         </div>
        </div>
     )
   }
