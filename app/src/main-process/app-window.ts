@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, Menu } from 'electron'
+import { BrowserWindow, ipcMain, Menu, app } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 
 import { SharedProcess } from '../shared-process/shared-process'
@@ -8,7 +8,49 @@ import { URLActionType } from '../lib/parse-url'
 import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
 
+import * as Path from 'path'
+import * as Fs from 'fs'
+
 let windowStateKeeper: any | null = null
+
+// NOTE:
+// This is a workaround for an upstream issue with electron-window-state
+// where a null x/y will crash screen.getDisplayMatching() before our app
+// can launch correctly.
+//
+// This can be removed after we've updated our beta users to electron-window-state@4.0.1
+// which will serialize 0 correctly again. See the upstream PR:
+// https://github.com/mawie81/electron-window-state/pull/16/
+function sanitizeBeforeReadingSync() {
+  const userData = app.getPath('userData')
+  const file = 'window-state.json'
+  const filePath = Path.join(userData, file)
+
+  if (!Fs.existsSync(filePath)) {
+    return
+  }
+
+  let text: string | null = null
+  const result = Fs.readFileSync(filePath)
+  if (result instanceof Buffer) {
+    text = result.toString()
+  } else if (result instanceof String) {
+    text = result
+  }
+
+  if (text) {
+    const json = JSON.parse(text)
+    if (json.x === null) {
+      json.x = 0
+    }
+    if (json.y === null) {
+      json.y = 0
+    }
+
+    const newContents = JSON.stringify(json)
+    Fs.writeFileSync(filePath, newContents)
+  }
+}
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -25,6 +67,8 @@ export class AppWindow {
       // lazily.
       windowStateKeeper = require('electron-window-state')
     }
+
+    sanitizeBeforeReadingSync()
 
     const savedWindowState = windowStateKeeper({
       defaultWidth: 800,
