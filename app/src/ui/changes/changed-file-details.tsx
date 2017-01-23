@@ -10,7 +10,7 @@ export class ChangedFileDetails extends React.Component<IChangedFileDetailsProps
     const filePath = this.props.filePath
 
     return (
-      <div className='changed-file-details'>
+      <div>
         {filePath}
       </div>
     )
