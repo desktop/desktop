@@ -35,7 +35,7 @@
     "username": "^2.2.2",
     "uuid": "^3.0.1",
     "winston": "^2.3.1",
-    "winston-daily-rotate-file": "https://registry.npmjs.org/winston-daily-rotate-file/-/winston-daily-rotate-file-1.4.3.tgz"
+    "winston-daily-rotate-file": "^1.4.3"
   },
   "devDependencies": {
     "fs-extra": "^1.0.0",
