@@ -1,11 +1,11 @@
 import * as winston from 'winston'
-const Transport = winston.Transport;
+const Transport = winston.Transport
 
 type LogLevel = 'emerg' | 'alert' | 'crit' | 'error' | 'warning' | 'notice' | 'info' | 'debug';
 
 export class ElectronConsole extends Transport {
 
-  constructor(options?: winston.ConsoleTransportOptions) {
+  public constructor(options?: winston.ConsoleTransportOptions) {
     super(options)
   }
 
@@ -43,8 +43,3 @@ export class ElectronConsole extends Transport {
     }
   }
 }
-
-//
-// Expose the name of this Transport on the prototype
-//
-ElectronConsole.prototype.name = 'electron-console';
