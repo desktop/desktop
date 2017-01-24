@@ -458,10 +458,10 @@ export class App extends React.Component<IAppProps, IAppState> {
         return null
       }
 
-    const url = repository.gitHubRepository.htmlURL
+      const url = repository.gitHubRepository.htmlURL
 
-    return url
-}
+      return url
+  }
 
   private renderTitlebar() {
     const winControls = __WIN32__
