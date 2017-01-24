@@ -452,11 +452,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private GetGitHubRepositoryUrl() {
-  const repository = this.getRepository()
+    const repository = this.getRepository()
 
-    if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
-      return null
-    }
+      if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
+        return null
+      }
 
     const url = repository.gitHubRepository.htmlURL
 
