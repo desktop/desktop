@@ -27,7 +27,7 @@ function sanitizeBeforeReadingSync() {
   const filePath = Path.join(userData, file)
 
   try {
-    let text = Fs.readFileSync(filePath, 'utf-8')
+    const text = Fs.readFileSync(filePath, 'utf-8')
     if (text.length) {
       const json = JSON.parse(text)
       json.x = json.x || 0
