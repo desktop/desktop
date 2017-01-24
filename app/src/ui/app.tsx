@@ -443,11 +443,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const url = repository.gitHubRepository.htmlURL
 
-    if (!url) {
+    if (url) {
+      this.props.dispatcher.openInBrowser(url)
       return
     }
-
-    this.props.dispatcher.openInBrowser(url)
   }
 
   private renderTitlebar() {
