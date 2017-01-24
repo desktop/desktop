@@ -30,10 +30,13 @@ function sanitizeBeforeReadingSync() {
     const text = Fs.readFileSync(filePath, 'utf-8')
     if (text.length) {
       const json = JSON.parse(text)
-      json.x = json.x || 0
-      json.y = json.y || 0
-      const newContents = JSON.stringify(json)
-      Fs.writeFileSync(filePath, newContents)
+
+      if (json.x === null || json.x === null) {
+        json.x = json.x || 0
+        json.y = json.y || 0
+        const newContents = JSON.stringify(json)
+        Fs.writeFileSync(filePath, newContents)
+      }
     }
   } catch (e) {
     // swallow this error, live a happy life
