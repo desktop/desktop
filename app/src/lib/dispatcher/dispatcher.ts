@@ -353,6 +353,11 @@ export class Dispatcher {
     return this.appStore._clearContextualCommitMessage(repository)
   }
 
+  /** Create a new branch from the given starting point and check it out. */
+  public setBranchesPopoverState(repository: Repository, showCreateForm: boolean) {
+    return this.appStore._setBranchesPopoverState(repository, showCreateForm)
+  }
+
   /**
    * Set the width of the repository sidebar to the given
    * value. This affects the changes and history sidebar

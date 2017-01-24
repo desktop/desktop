@@ -268,7 +268,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateForm })
+    if (expandCreateForm) {
+      const repository = state.repository
+      this.props.dispatcher.setBranchesPopoverState(repository, expandCreateForm)
+    }
+
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
   }
 
   private selectChanges() {
@@ -712,18 +717,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!selection || selection.type !== SelectionType.Repository) {
       return null
     }
+
     const repository = selection.repository
 
     const state = this.props.appStore.getRepositoryState(repository)
-
-    let expandCreateForm = false
-
-    const foldout = this.state.currentFoldout
-    if (foldout) {
-      if (foldout.type === FoldoutType.Branch) {
-        expandCreateForm = foldout.expandCreateForm || false
-      }
-    }
 
     const tip = state.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid
@@ -735,7 +732,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       recentBranches={state.branchesState.recentBranches}
       currentBranch={currentBranch}
       defaultBranch={state.branchesState.defaultBranch}
-      expandCreateForm={expandCreateForm}
+      showCreateBranchForm={state.branchesState.showCreateBranchForm}
       dispatcher={this.props.dispatcher}
       repository={repository}
     />

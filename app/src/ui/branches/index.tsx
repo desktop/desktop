@@ -20,14 +20,13 @@ interface IBranchesProps {
   readonly recentBranches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly expandCreateForm: boolean
+  readonly showCreateBranchForm: boolean
 }
 
 interface IBranchesState {
   readonly filter: string
   readonly branchItems: ReadonlyArray<BranchListItemModel>
   readonly selectedRow: number
-  readonly showCreateDialog: boolean
 }
 
 export class Branches extends React.Component<IBranchesProps, IBranchesState> {
@@ -37,11 +36,10 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   public constructor(props: IBranchesProps) {
     super(props)
 
-    const expandCreateForm = props.expandCreateForm || false
-    this.state = this.createState(props, '', -1, expandCreateForm)
+    this.state = this.createState(props, '', -1)
   }
 
-  private createState(props: IBranchesProps, newFilter: string, newSelectedRow: number, showCreateDialog: boolean): IBranchesState {
+  private createState(props: IBranchesProps, newFilter: string, newSelectedRow: number): IBranchesState {
     const branchItems = groupedAndFilteredBranches(
       this.props.defaultBranch,
       this.props.currentBranch,
@@ -56,12 +54,11 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
     const filter = newFilter
 
-    return { filter, selectedRow, branchItems, showCreateDialog }
+    return { filter, selectedRow, branchItems }
   }
 
   private receiveProps(nextProps: IBranchesProps) {
-    const showCreateDialog = nextProps.expandCreateForm || this.state.showCreateDialog
-    this.setState(this.createState(nextProps, this.state.filter, this.state.selectedRow, showCreateDialog))
+    this.setState(this.createState(nextProps, this.state.filter, this.state.selectedRow))
   }
 
   public componentWillReceiveProps(nextProps: IBranchesProps) {
@@ -121,7 +118,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
   private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const text = event.currentTarget.value
-    this.setState(this.createState(this.props, text, this.state.selectedRow, this.state.showCreateDialog))
+    this.setState(this.createState(this.props, text, this.state.selectedRow))
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -130,7 +127,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
     if (event.key === 'ArrowDown') {
       if (this.state.branchItems.length > 0) {
-        this.setState(this.createState(this.props, this.state.filter, list.nextSelectableRow('down', 0), this.state.showCreateDialog), () => {
+        this.setState(this.createState(this.props, this.state.filter, list.nextSelectableRow('down', 0)), () => {
           list.focus()
         })
       }
@@ -138,7 +135,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       event.preventDefault()
     } else if (event.key === 'ArrowUp') {
       if (this.state.branchItems.length > 0) {
-        this.setState(this.createState(this.props, this.state.filter, list.nextSelectableRow('up', 0), this.state.showCreateDialog), () => {
+        this.setState(this.createState(this.props, this.state.filter, list.nextSelectableRow('up', 0)), () => {
           list.focus()
         })
       }
@@ -163,19 +160,21 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private onSelectionChanged = (row: number) => {
-    this.setState(this.createState(this.props, this.state.filter, row, this.state.showCreateDialog))
+    this.setState(this.createState(this.props, this.state.filter, row))
   }
 
   private onHideCreateBranch = () => {
-    this.setState(this.createState(this.props, this.state.filter, this.state.selectedRow, false))
+    this.props.dispatcher.setBranchesPopoverState(this.props.repository, false)
+    this.setState(this.createState(this.props, this.state.filter, this.state.selectedRow))
   }
 
   private onCreateBranchToggle = (isChecked: boolean) => {
-    this.setState(this.createState(this.props, this.state.filter, this.state.selectedRow, isChecked))
+    this.props.dispatcher.setBranchesPopoverState(this.props.repository, isChecked)
+    this.setState(this.createState(this.props, this.state.filter, this.state.selectedRow))
   }
 
   private renderCreateBranch() {
-    if (!this.state.showCreateDialog) {
+    if (!this.props.showCreateBranchForm) {
       return null
     }
 
@@ -198,7 +197,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
           <ToggleButton
             className='create-branch'
             onClick={this.onCreateBranchToggle}
-            checked={this.state.showCreateDialog}>
+            checked={this.props.showCreateBranchForm}>
             <div className='label'>
               <Octicon className='plus' symbol={OcticonSymbol.plus} />
               <div>Create new branch</div>

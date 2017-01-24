@@ -208,6 +208,7 @@ export class AppStore {
         defaultBranch: null,
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
+        showCreateBranchForm: false,
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -317,6 +318,7 @@ export class AppStore {
         defaultBranch: gitStore.defaultBranch,
         allBranches: gitStore.allBranches,
         recentBranches: gitStore.recentBranches,
+        showCreateBranchForm: state.showCreateBranchForm,
       }
     ))
 
@@ -1198,6 +1200,20 @@ export class AppStore {
     localStorage.setItem(HasShownWelcomeFlowKey, '1')
 
     return Promise.resolve()
+  }
+
+  public _setBranchesPopoverState(repository: Repository, showCreateBranchForm: boolean) {
+    this.updateBranchesState(repository, state => (
+      {
+        tip: state.tip,
+        defaultBranch: state.defaultBranch,
+        allBranches: state.allBranches,
+        recentBranches: state.recentBranches,
+        showCreateBranchForm,
+      }
+    ))
+
+    this.emitUpdate()
   }
 
   public _setSidebarWidth(width: number): Promise<void> {

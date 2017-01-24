@@ -128,7 +128,7 @@ export enum FoldoutType {
 
 export type Foldout =
   { type: FoldoutType.Repository } |
-  { type: FoldoutType.Branch, expandCreateForm?: boolean } |
+  { type: FoldoutType.Branch } |
   { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } |
   { type: FoldoutType.Publish }
 
@@ -186,6 +186,7 @@ export interface IBranchesState {
   readonly defaultBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly recentBranches: ReadonlyArray<Branch>
+  readonly showCreateBranchForm: boolean
 }
 
 export interface IHistorySelection {
