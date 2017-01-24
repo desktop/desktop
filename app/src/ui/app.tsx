@@ -128,6 +128,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     let onNonDefaultBranch = false
     let onBranch = false
     let hasDefaultBranch = false
+
     if (selectedState && selectedState.type === SelectionType.Repository) {
       const tip = selectedState.state.branchesState.tip
       const defaultBranch = selectedState.state.branchesState.defaultBranch
