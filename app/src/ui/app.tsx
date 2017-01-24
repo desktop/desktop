@@ -148,10 +148,18 @@ export class App extends React.Component<IAppProps, IAppState> {
       }
     }
 
+    let isHostedOnGitHub = false
+    const url = this.GetGitHubRepositoryUrl()
+
+    if (url && url.indexOf('https://github.com/') !== undefined) {
+      isHostedOnGitHub = true
+    }
+
     setMenuEnabled('rename-branch', onNonDefaultBranch)
     setMenuEnabled('delete-branch', onNonDefaultBranch)
     setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
     setMenuEnabled('merge-branch', onBranch)
+    setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -435,19 +443,25 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private viewRepositoryOnGitHub() {
-    const repository = this.getRepository()
-
-    if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
-      return
-    }
-
-    const url = repository.gitHubRepository.htmlURL
+    const url = this.GetGitHubRepositoryUrl()
 
     if (url) {
       this.props.dispatcher.openInBrowser(url)
       return
     }
   }
+
+  private GetGitHubRepositoryUrl() {
+  const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
+      return null
+    }
+
+    const url = repository.gitHubRepository.htmlURL
+
+    return url
+}
 
   private renderTitlebar() {
     const winControls = __WIN32__
