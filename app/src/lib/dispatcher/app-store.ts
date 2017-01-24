@@ -60,6 +60,8 @@ import {
   checkoutBranch,
 } from '../git'
 
+import { openTerminal } from '../open-terminal'
+
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
 /** The `localStorage` key for whether we've shown the Welcome flow yet. */
@@ -1288,5 +1290,6 @@ export class AppStore {
   }
 
   public _openInTerminal(path: string) {
+    return openTerminal(path)
   }
 }

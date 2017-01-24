@@ -484,6 +484,6 @@ export class Dispatcher {
 
   /** Opens a terminal window with path as the working directory */
   public openInTerminal(path: string) {
-    return this .appStore._openInTerminal(path)
+    return this.appStore._openInTerminal(path)
   }
 }
