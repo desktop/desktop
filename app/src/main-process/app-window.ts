@@ -30,25 +30,17 @@ function sanitizeBeforeReadingSync() {
     return
   }
 
-  let text: string | null = null
-  const result = Fs.readFileSync(filePath)
-  if (result instanceof Buffer) {
-    text = result.toString()
-  } else if (result instanceof String) {
-    text = result
-  }
-
-  if (text) {
-    const json = JSON.parse(text)
-    if (json.x === null) {
-      json.x = 0
+  try {
+    let text = Fs.readFileSync(filePath, 'utf-8')
+    if (text.length) {
+      const json = JSON.parse(text)
+      json.x = json.x || 0
+      json.y = json.y || 0
+      const newContents = JSON.stringify(json)
+      Fs.writeFileSync(filePath, newContents)
     }
-    if (json.y === null) {
-      json.y = 0
-    }
-
-    const newContents = JSON.stringify(json)
-    Fs.writeFileSync(filePath, newContents)
+  } catch (e) {
+    // swallow this error, live a happy life
   }
 }
 
