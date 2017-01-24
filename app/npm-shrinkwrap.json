@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "dependencies": {
     "ansi-html": {
       "version": "0.0.6",
@@ -244,9 +244,9 @@
       "optional": true
     },
     "electron-window-state": {
-      "version": "3.1.0",
-      "from": "electron-window-state@latest",
-      "resolved": "https://registry.npmjs.org/electron-window-state/-/electron-window-state-3.1.0.tgz"
+      "version": "4.0.1",
+      "from": "electron-window-state@4.0.1",
+      "resolved": "https://registry.npmjs.org/electron-window-state/-/electron-window-state-4.0.1.tgz"
     },
     "emojis-list": {
       "version": "2.0.1",
