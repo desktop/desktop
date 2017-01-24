@@ -248,10 +248,22 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     },
   }
 
+  const helpItems = [ contactSupportItem ]
+
+  if (__DEV__) {
+    const throwUnhandledError: Electron.MenuItemOptions = {
+      label: 'Boomtown…',
+      click () {
+        throw new Error('Boomtown!')
+      },
+    }
+    helpItems.push(throwUnhandledError)
+  }
+
   if (__DARWIN__) {
     template.push({
       role: 'help',
-      submenu: [ contactSupportItem ],
+      submenu: helpItems,
     })
   } else {
     // TODO: This needs a Window about item
