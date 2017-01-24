@@ -26,10 +26,6 @@ function sanitizeBeforeReadingSync() {
   const file = 'window-state.json'
   const filePath = Path.join(userData, file)
 
-  if (!Fs.existsSync(filePath)) {
-    return
-  }
-
   try {
     let text = Fs.readFileSync(filePath, 'utf-8')
     if (text.length) {
