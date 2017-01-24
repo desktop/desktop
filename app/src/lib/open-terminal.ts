@@ -1,21 +1,20 @@
 import { spawn } from 'child_process'
 import { platform } from 'os'
-import { Dispatcher } from './dispatcher/dispatcher'
 
-export function openTerminal(fullPath: string, dispatcher: Dispatcher) {
+export function openTerminal(fullPath: string) {
   const currentPlatform = platform()
   let command = ''
 
   switch (currentPlatform) {
     case 'darwin': {
-      command = ''
+      command = 'open -a Terminal'
       break
     }
     case 'win32': {
-      command = ''
+      command = 'start /D "%cd%" cmd'
       break
     }
   }
 
-  return spawn(command)
+  return spawn('open', [ '-a', 'Terminal', fullPath ])
 }
