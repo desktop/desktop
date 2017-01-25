@@ -20,6 +20,10 @@ function getLogDirectory() {
 
 function reviewLogs() {
   const directory = getLogDirectory()
+  if (!fs.existsSync(directory)) {
+    return
+  }
+
   const files = fs.readdirSync(directory)
   files.forEach(file => {
     console.log(`opening ${file}`)

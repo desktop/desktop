@@ -20,6 +20,10 @@ function getLogDirectory() {
 
 // clear out existing log files
 const directory = getLogDirectory()
+if (!fs.existsSync(directory)) {
+  return
+}
+
 const files = fs.readdirSync(directory)
 files.forEach(file => {
   console.log(`deleting ${file}`)
