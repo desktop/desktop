@@ -21,7 +21,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
-import { API,  getUserForEndpoint, IAPIUser, getHTMLURL } from '../../lib/api'
+import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
@@ -59,8 +59,6 @@ import {
   checkoutPaths,
   checkoutBranch,
 } from '../git'
-
-import * as URL from 'url'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1046,53 +1044,12 @@ export class AppStore {
     })
   }
 
-  private async getRemoteUrl(repository: Repository): Promise<string | null> {
-    const gitStore = this.getGitStore(repository)
-    const remote = gitStore.remote
-    if (!remote) { return null }
-    return remote.url
-  }
-
-  private async handleNetworkError(repository: Repository, e: Error) {
-    if (this.users.length === 0) {
-      const notFoundError = new Error(`Unable to access repository as no account found. Open Preferences to sign into your GitHub account.`)
-      this._postError(notFoundError)
-      return
-    }
-
-    const remoteUrl = await this.getRemoteUrl(repository)
-    if (!remoteUrl) {
-      // no remote found, unclear what else to check here - rethrow original error
-      this._postError(e)
-      return
-    }
-
-    const parsed = URL.parse(remoteUrl, true)
-    const repositoryServerName = `${parsed.protocol}//${parsed.hostname}`
-
-    const matchingUser = this.users.find(u => {
-      const htmlUrl = getHTMLURL(u.endpoint)
-      return repositoryServerName === htmlUrl
-    })
-
-    if (!matchingUser) {
-      const userNotFound = new Error(`Unable to access remote repository as no matching account found for host: ${repositoryServerName}.`)
-      this._postError(userNotFound)
-      return
-    }
-
-    const userDoesNotMatch = new Error(`Unable to access remote repository with this account: '${matchingUser.login}'.\n\n Check with your organization owner to confirm you have access to this repository: ${remoteUrl}`)
-    this._postError(userDoesNotMatch)
-  }
-
   private async withPushPull(repository: Repository, fn: () => Promise<void>): Promise<void> {
     this.updateRepositoryState(repository, state => ({ pushPullInProgress: true }))
     this.emitUpdate()
 
     try {
       await fn()
-    } catch (e) {
-      this.handleNetworkError(repository, e)
     } finally {
       this.updateRepositoryState(repository, state => ({ pushPullInProgress: false }))
       this.emitUpdate()
