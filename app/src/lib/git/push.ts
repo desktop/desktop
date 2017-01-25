@@ -13,7 +13,12 @@ export async function push(repository: Repository, user: User | null, remote: st
 
   const options = {
     env: envForAuthentication(user),
-    expectedErrors: new Set([ GitError.HTTPSAuthenticationFailed, GitError.SSHAuthenticationFailed ]),
+    expectedErrors: new Set([
+      GitError.HTTPSAuthenticationFailed,
+      GitError.SSHAuthenticationFailed,
+      GitError.HTTPSRepositoryNotFound,
+      GitError.SSHRepositoryNotFound
+    ]),
   }
 
   const result = await git(args, repository.path, 'push', options)
