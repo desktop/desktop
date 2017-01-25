@@ -150,9 +150,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     let isHostedOnGitHub = false
-    const url = this.GetGitHubRepositoryUrl()
+    const url = this.getCurrentRepositoryUrl()
 
-    if (url && url.indexOf('https://github.com/') !== undefined) {
+    if (url) {
       isHostedOnGitHub = true
     }
 
@@ -444,7 +444,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private viewRepositoryOnGitHub() {
-    const url = this.GetGitHubRepositoryUrl()
+    const url = this.getCurrentRepositoryUrl()
 
     if (url) {
       this.props.dispatcher.openInBrowser(url)
@@ -452,16 +452,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private GetGitHubRepositoryUrl() {
+  private getCurrentRepositoryUrl() {
     const repository = this.getRepository()
 
-      if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
-        return null
-      }
+    if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
+      return null
+    }
 
-      const url = repository.gitHubRepository.htmlURL
-
-      return url
+    return repository.gitHubRepository.htmlURL
   }
 
   private renderTitlebar() {
