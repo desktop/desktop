@@ -1014,7 +1014,7 @@ export class AppStore {
   }
 
   public async _push(repository: Repository): Promise<void> {
-    await this.withPushPull(repository, async () => {
+    return this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remote
       if (!remote) {
@@ -1036,16 +1036,14 @@ export class AppStore {
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
         const user = this.getUserForRepository(repository)
-        await gitStore.performFailableOperation(() => {
+        return gitStore.performFailableOperation(() => {
           const setUpstream = branch.upstream ? false : true
           return pushRepo(repository, user, remote.name, branch.name, setUpstream)
+            .then(() => this._refreshRepository(repository))
+            .then(() => this.fetch(repository))
         })
       }
     })
-
-    this._refreshRepository(repository)
-
-    return this.fetch(repository)
   }
 
   private async getRemoteUrl(repository: Repository): Promise<string | null> {
@@ -1103,7 +1101,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _pull(repository: Repository): Promise<void> {
-    await this.withPushPull(repository, async () => {
+    return this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remote
       if (!remote) {
@@ -1123,13 +1121,11 @@ export class AppStore {
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
         const user = this.getUserForRepository(repository)
-        await gitStore.performFailableOperation(() => pullRepo(repository, user, remote.name, branch.name))
+        return gitStore.performFailableOperation(() => pullRepo(repository, user, remote.name, branch.name))
+          .then(() => this._refreshRepository(repository))
+          .then(() => this.fetch(repository))
       }
     })
-
-    this._refreshRepository(repository)
-
-    return this.fetch(repository)
   }
 
   private async fastForwardBranches(repository: Repository) {
