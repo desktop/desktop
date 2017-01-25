@@ -34,7 +34,11 @@ build_script:
   - npm run build:prod
 
 test_script:
+  - npm run test:setup
   - npm test
+
+after_test:
+  - npm run test:review
 
 on_success:
   - npm run publish
