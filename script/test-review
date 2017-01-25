@@ -36,6 +36,7 @@ if (process.platform === 'darwin') {
 }
 
 if (process.platform === 'win32') {
-  // TODO: how to detect Appveyor test failures?
   console.log(`current environment variables: ${JSON.stringify(process.env)}`)
+  // TODO: how to detect Appveyor test failures?
+  reviewLogs()
 }
