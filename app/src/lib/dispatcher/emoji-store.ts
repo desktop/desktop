@@ -87,6 +87,10 @@ export class EmojiStore {
       const basePath = process.env.TEST_ENV ? Path.join(__dirname, '..', '..', '..', '..', 'gemoji', 'db') : __dirname
       Fs.readFile(Path.join(basePath, 'emoji.json'), 'utf8', (err, data) => {
 
+        if (err) {
+          reject(err)
+        }
+
         const db: IGemojiDb = JSON.parse(data)
         const tmp = new Map<string, string>()
 
