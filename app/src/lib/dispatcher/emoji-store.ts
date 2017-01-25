@@ -93,26 +93,30 @@ export class EmojiStore {
           reject(err)
         }
 
-        const db: IGemojiDb = JSON.parse(data)
         const tmp = new Map<string, string>()
 
-        db.forEach(emoji => {
+        try {
+          const db: IGemojiDb = JSON.parse(data)
+          db.forEach(emoji => {
 
-          // Custom emoji don't have a unicode string and are instead stored
-          // on disk as their first alias.
-          const url = emoji.emoji
-            ? this.getUrlFromUnicodeEmoji(emoji.emoji)
-            : this.getEmojiImageUrlFromRelativePath(`${emoji.aliases[0]}.png`)
+            // Custom emoji don't have a unicode string and are instead stored
+            // on disk as their first alias.
+            const url = emoji.emoji
+              ? this.getUrlFromUnicodeEmoji(emoji.emoji)
+              : this.getEmojiImageUrlFromRelativePath(`${emoji.aliases[0]}.png`)
 
-          if (!url) {
-            logger.error(`Could not calculate location of emoji: ${emoji}`)
-            return
-          }
+            if (!url) {
+              logger.error(`Could not calculate location of emoji: ${emoji}`)
+              return
+            }
 
-          emoji.aliases.forEach(alias => {
-            tmp.set(`:${alias}:`, url)
+            emoji.aliases.forEach(alias => {
+              tmp.set(`:${alias}:`, url)
+            })
           })
-        })
+        } catch (e) {
+          reject(e)
+        }
 
         // Sort and insert into actual map
         const keys = Array.from(tmp.keys()).sort()
