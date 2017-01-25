@@ -17,7 +17,7 @@ export async function push(repository: Repository, user: User | null, remote: st
       GitError.HTTPSAuthenticationFailed,
       GitError.SSHAuthenticationFailed,
       GitError.HTTPSRepositoryNotFound,
-      GitError.SSHRepositoryNotFound
+      GitError.SSHRepositoryNotFound,
     ]),
   }
 

@@ -13,7 +13,7 @@ export async function fetch(repository: Repository, user: User | null, remote: s
       GitError.HTTPSAuthenticationFailed,
       GitError.SSHAuthenticationFailed,
       GitError.HTTPSRepositoryNotFound,
-      GitError.SSHRepositoryNotFound
+      GitError.SSHRepositoryNotFound,
     ]),
   }
 

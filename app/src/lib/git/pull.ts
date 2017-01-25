@@ -13,7 +13,7 @@ export async function pull(repository: Repository, user: User | null, remote: st
       GitError.HTTPSAuthenticationFailed,
       GitError.SSHAuthenticationFailed,
       GitError.HTTPSRepositoryNotFound,
-      GitError.SSHRepositoryNotFound
+      GitError.SSHRepositoryNotFound,
     ]),
   }
 
