@@ -447,6 +447,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  /** Returns the URL to the current repository if hosted on GitHub */
   private getCurrentRepositoryGitHubUrl() {
     const repository = this.getRepository()
 
