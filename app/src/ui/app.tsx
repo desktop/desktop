@@ -443,7 +443,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const repoFilePath = repository.path
 
-    this.props.dispatcher.openInTerminal(repoFilePath)
+    this.props.dispatcher.openShell(repoFilePath)
   }
 
   private renderTitlebar() {

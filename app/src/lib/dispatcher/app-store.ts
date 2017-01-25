@@ -60,7 +60,7 @@ import {
   checkoutBranch,
 } from '../git'
 
-import { openTerminal } from '../open-terminal'
+import { openShell } from '../open-shell'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -1289,7 +1289,8 @@ export class AppStore {
     return gitStore.setRemoteURL(name, url)
   }
 
-  public _openInTerminal(path: string) {
-    return openTerminal(path)
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _openShell(path: string) {
+    return openShell(path)
   }
 }

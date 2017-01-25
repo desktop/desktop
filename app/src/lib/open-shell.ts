@@ -6,7 +6,8 @@ class Command {
   public args: string[]
 }
 
-export function openTerminal(fullPath: string, shell?: string) {
+/** Opens a shell setting the working directory to fullpath. If a shell is not specified, OS defaults are used. */
+export function openShell(fullPath: string, shell?: string) {
   const currentPlatform = platform()
   const command = new Command
 
