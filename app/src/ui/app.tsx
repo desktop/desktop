@@ -125,6 +125,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private updateMenu(state: IAppState) {
     const selectedState = state.selectedState
+    const isHostedOnGitHub = this.getCurrentRepositoryGitHubUrl() !== null
+
     let onNonDefaultBranch = false
     let onBranch = false
     let hasDefaultBranch = false
@@ -147,13 +149,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       } else {
         onNonDefaultBranch = true
       }
-    }
-
-    let isHostedOnGitHub = false
-    const url = this.getCurrentRepositoryUrl()
-
-    if (url) {
-      isHostedOnGitHub = true
     }
 
     setMenuEnabled('rename-branch', onNonDefaultBranch)
@@ -444,7 +439,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private viewRepositoryOnGitHub() {
-    const url = this.getCurrentRepositoryUrl()
+    const url = this.getCurrentRepositoryGitHubUrl()
 
     if (url) {
       this.props.dispatcher.openInBrowser(url)
@@ -452,7 +447,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private getCurrentRepositoryUrl() {
+  private getCurrentRepositoryGitHubUrl() {
     const repository = this.getRepository()
 
     if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
