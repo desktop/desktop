@@ -1,0 +1,46 @@
+#!/usr/bin/env node
+
+'use strict'
+
+const os = require('os')
+const fs = require('fs')
+const path = require('path')
+
+function getLogDirectory() {
+  if (process.platform === 'win32') {
+    return `${process.env.LOCALAPPDATA}\\desktop\\`
+  } else if (process.platform === 'darwin') {
+    const home = os.homedir()
+    return `${home}/Library/Logs/GitHub/`
+  } else {
+    console.error(`I dunno how to review for ${process.platform} :(`)
+    process.exit(1)
+  }
+}
+
+function reviewLogs() {
+  const directory = getLogDirectory()
+  if (!fs.existsSync(directory)) {
+    return
+  }
+
+  const files = fs.readdirSync(directory)
+  files.forEach(file => {
+    console.log(`opening ${file}`)
+    const fullPath = path.join(directory, file)
+    const text = fs.readFileSync(fullPath, 'utf-8')
+    console.log(text)
+  })
+}
+
+if (process.platform === 'darwin') {
+  if (process.env.TRAVIS_TEST_RESULT === '1') {
+    reviewLogs()
+  }
+}
+
+if (process.platform === 'win32') {
+  console.log(`current environment variables: ${JSON.stringify(process.env)}`)
+  // TODO: how to detect Appveyor test failures?
+  reviewLogs()
+}

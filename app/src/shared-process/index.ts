@@ -15,7 +15,10 @@ import { API } from '../lib/api'
 import { reportError } from '../lib/exception-reporting'
 import * as appProxy from '../ui/lib/app-proxy'
 
+import { logger } from '../lib/logging'
+
 process.on('uncaughtException', (error: Error) => {
+  logger.error('Unhandled exception on renderer', error)
   reportError(error, appProxy.getVersion())
 })
 
@@ -41,11 +44,15 @@ async function updateUsers() {
 }
 
 register('console.log', ({ args }: {args: any[]}) => {
+  // TODO: what about the other arguments here?
+  logger.info(args[0])
   console.log(args[0], ...args.slice(1))
   return Promise.resolve()
 })
 
 register('console.error', ({ args }: {args: any[]}) => {
+  // TODO: what about the other arguments here?
+  logger.error(args[0])
   console.error(args[0], ...args.slice(1))
   return Promise.resolve()
 })

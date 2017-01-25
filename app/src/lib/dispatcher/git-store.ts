@@ -7,6 +7,7 @@ import { Tip, TipState } from '../../models/tip'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
+import { logger } from '../logging'
 
 import {
   reset,
@@ -326,7 +327,7 @@ export class GitStore {
         const branch = this.tip.branch
         success = await this.performFailableOperation(() => deleteBranch(this.repository, branch, null))
       } else {
-        console.error(`Can't undo ${commit.sha} because it doesn't have any parents and there's no current branch. How on earth did we get here?!`)
+        logger.error(`Can't undo ${commit.sha} because it doesn't have any parents and there's no current branch. How on earth did we get here?!`)
         return Promise.resolve()
       }
     } else {

@@ -4,6 +4,8 @@ import { getVersion } from '../../ui/lib/app-proxy'
 import { proxyRequest } from '../../ui/main-process-proxy'
 import { IHTTPRequest } from '../http'
 
+import { logger } from '../logging'
+
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
 const LastDailyStatsReportKey = 'last-daily-stats-report'
@@ -66,8 +68,8 @@ export class StatsStore {
       await this.clearDailyStats()
       localStorage.setItem(LastDailyStatsReportKey, now.toString())
     } catch (e) {
-      console.error('Error reporting stats:')
-      console.error(e)
+      logger.error(e)
+      logger.error('[reportStats] error reporting stats. giving up...')
     }
   }
 

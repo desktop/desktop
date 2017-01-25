@@ -1,0 +1,32 @@
+#!/usr/bin/env node
+
+'use strict'
+
+const os = require('os')
+const fs = require('fs')
+const path = require('path')
+
+function getLogDirectory() {
+  if (process.platform === 'win32') {
+    return `${process.env.LOCALAPPDATA}\\desktop\\`
+  } else if (process.platform === 'darwin') {
+    const home = os.homedir()
+    return `${home}/Library/Logs/GitHub/`
+  } else {
+    console.error(`I dunno how to setup for ${process.platform} :(`)
+    process.exit(1)
+  }
+}
+
+// clear out existing log files
+const directory = getLogDirectory()
+if (!fs.existsSync(directory)) {
+  return
+}
+
+const files = fs.readdirSync(directory)
+files.forEach(file => {
+  console.log(`deleting ${file}`)
+  const fullPath = path.join(directory, file)
+  fs.unlinkSync(fullPath)
+})

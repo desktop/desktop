@@ -37,6 +37,8 @@ import { Form } from './lib/form'
 import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
 
+import { logger } from '../lib/logging'
+
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
@@ -112,9 +114,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.checkForUpdates()
 
     ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
-      console.info(`App ready time: ${stats.mainReadyTime}ms`)
-      console.info(`Load time: ${stats.loadTime}ms`)
-      console.info(`Renderer ready time: ${stats.rendererReadyTime}ms`)
+      logger.info(`[startup] app ready time: ${stats.mainReadyTime}ms`)
+      logger.info(`[startup] load time: ${stats.loadTime}ms`)
+      logger.info(`[startup] renderer ready time: ${stats.rendererReadyTime}ms`)
 
       this.props.dispatcher.recordLaunchStats(stats)
       this.props.dispatcher.reportStats()

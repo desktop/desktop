@@ -1,5 +1,5 @@
 import * as appProxy from '../ui/lib/app-proxy'
-
+import { logger } from './logging'
 import { proxyRequest } from '../ui/main-process-proxy'
 
 /** The HTTP payload returned by Electron's net module */
@@ -71,7 +71,8 @@ export function deserialize<T>(body: string | undefined): T | null {
   try {
     return JSON.parse(body) as T
   } catch (e) {
-    console.error('Unable to deserialize JSON string to object', e)
+    logger.error('Unable to deserialize JSON string to object')
+    logger.error(e)
     return null
   }
 }

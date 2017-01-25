@@ -16,6 +16,7 @@ import { v4 as guid } from 'uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { StatsStore, ILaunchStats } from '../stats'
+import { logger } from '../logging'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -83,8 +84,7 @@ export class Dispatcher {
           const errorInfo = response.error
           const error = new IPCError(errorInfo.name, errorInfo.message, errorInfo.stack || '')
           if (__DEV__) {
-            console.error(`Error from IPC in response to ${name}:`)
-            console.error(error)
+            logger.error(`Error from IPC in response to ${name}:`, error)
           }
 
           reject(error)
