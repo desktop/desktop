@@ -11,6 +11,8 @@ import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
 import { IHTTPRequest, IHTTPResponse, getEncoding } from '../lib/http'
 
+import { logger } from '../lib/logging'
+
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
 
@@ -25,6 +27,8 @@ process.on('uncaughtException', (error: Error) => {
     sharedProcess.console.error('Uncaught exception:')
     sharedProcess.console.error(error.name)
     sharedProcess.console.error(error.message)
+
+    logger.error('Uncaught exception on main process', error)
   }
 
   reportError(error, app.getVersion())

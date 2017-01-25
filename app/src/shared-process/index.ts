@@ -15,7 +15,12 @@ import { API } from '../lib/api'
 import { reportError } from '../lib/exception-reporting'
 import * as appProxy from '../ui/lib/app-proxy'
 
+import { logger } from '../lib/logging'
+
 process.on('uncaughtException', (error: Error) => {
+
+  logger.error('Uncaught exception on shared process', error)
+
   reportError(error, appProxy.getVersion())
 })
 

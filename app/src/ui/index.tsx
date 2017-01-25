@@ -19,6 +19,8 @@ import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
 
+import { logger } from '../lib/logging'
+
 if (__DEV__) {
   const g: any = global
   // Expose GitPerf as a global so it can be started.
@@ -34,6 +36,9 @@ if (!process.env.TEST_ENV) {
 }
 
 process.on('uncaughtException', (error: Error) => {
+
+  logger.error('Uncaught exception on UI', error)
+
   reportError(error, appProxy.getVersion())
 })
 
