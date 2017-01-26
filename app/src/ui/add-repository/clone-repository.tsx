@@ -196,7 +196,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     })
   }
 
-  private cloneImpl(url: string, path: string, user: User | null): void {
+  private cloneImpl(url: string, path: string, user: User | null) {
     this.props.dispatcher.clone(url, path, user)
     this.props.dispatcher.closePopup()
 
