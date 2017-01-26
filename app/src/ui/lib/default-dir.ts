@@ -1,7 +1,12 @@
 import * as OS from 'os'
 
+const localStorageKey = 'last-clone-location'
+
 /** The path to the default directory. */
 export function getDefaultDir(): string {
-  // TODO: This should be saved and loaded from local storage.
-  return OS.homedir()
+  return localStorage.getItem(localStorageKey) || OS.homedir()
+}
+
+export function setDefaultDir(path: string) {
+  localStorage.setItem(localStorageKey, path)
 }
