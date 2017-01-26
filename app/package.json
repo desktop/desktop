@@ -26,8 +26,8 @@
     "moment": "^2.14.1",
     "octokat": "^0.5.0-beta.0",
     "react": "^15.4.2",
-    "react-addons-css-transition-group": "^15.3.2",
-    "react-addons-shallow-compare": "^15.3.0",
+    "react-addons-css-transition-group": "^15.4.2",
+    "react-addons-shallow-compare": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-virtualized": "^8.8.1",
     "textarea-caret": "^3.0.1",
@@ -37,8 +37,8 @@
   },
   "devDependencies": {
     "fs-extra": "^1.0.0",
-    "react-addons-perf": "15.3.2",
-    "react-addons-test-utils": "15.3.2",
+    "react-addons-perf": "^15.4.2",
+    "react-addons-test-utils": "^15.4.2",
     "style-loader": "^0.13.1",
     "temp": "^0.8.3",
     "webpack-hot-middleware": "^2.10.0"

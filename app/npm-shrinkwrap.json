@@ -746,24 +746,24 @@
       "resolved": "https://registry.npmjs.org/react/-/react-15.4.2.tgz"
     },
     "react-addons-css-transition-group": {
-      "version": "15.3.2",
+      "version": "15.4.2",
       "from": "react-addons-css-transition-group@latest",
-      "resolved": "https://registry.npmjs.org/react-addons-css-transition-group/-/react-addons-css-transition-group-15.3.2.tgz"
+      "resolved": "https://registry.npmjs.org/react-addons-css-transition-group/-/react-addons-css-transition-group-15.4.2.tgz"
     },
     "react-addons-perf": {
-      "version": "15.3.2",
-      "from": "react-addons-perf@15.3.2",
-      "resolved": "https://registry.npmjs.org/react-addons-perf/-/react-addons-perf-15.3.2.tgz"
+      "version": "15.4.2",
+      "from": "react-addons-perf@latest",
+      "resolved": "https://registry.npmjs.org/react-addons-perf/-/react-addons-perf-15.4.2.tgz"
     },
     "react-addons-shallow-compare": {
-      "version": "15.3.0",
+      "version": "15.4.2",
       "from": "react-addons-shallow-compare@latest",
-      "resolved": "https://registry.npmjs.org/react-addons-shallow-compare/-/react-addons-shallow-compare-15.3.0.tgz"
+      "resolved": "https://registry.npmjs.org/react-addons-shallow-compare/-/react-addons-shallow-compare-15.4.2.tgz"
     },
     "react-addons-test-utils": {
-      "version": "15.3.2",
-      "from": "react-addons-test-utils@15.3.2",
-      "resolved": "https://registry.npmjs.org/react-addons-test-utils/-/react-addons-test-utils-15.3.2.tgz"
+      "version": "15.4.2",
+      "from": "react-addons-test-utils@latest",
+      "resolved": "https://registry.npmjs.org/react-addons-test-utils/-/react-addons-test-utils-15.4.2.tgz"
     },
     "react-dom": {
       "version": "15.4.2",
