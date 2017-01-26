@@ -15,7 +15,7 @@ interface IDiscardChangesProps {
 /** A component to confirm and then discard changes. */
 export class DiscardChanges extends React.Component<IDiscardChangesProps, void> {
   public render() {
-    const paths = this.props.files.map(f => f.path).join(', ')
+    const paths = this.props.files.map(f => `"${f.path}"`).join(', ')
     const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
     return (
       <Form onSubmit={this.cancel}>
