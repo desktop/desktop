@@ -5,11 +5,13 @@ import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
 import { Git } from './git'
 import { assertNever } from '../../lib/fatal-error'
+import { Dialog, DialogContent } from '../dialog'
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
   readonly dotComUser: User | null
   readonly enterpriseUser: User | null
+  readonly onDismissed: () => void
 }
 
 enum PreferencesTab {
@@ -31,14 +33,16 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
 
   public render() {
     return (
-      <div id='preferences'>
+      <Dialog id='preferences' title={__DARWIN__ ? 'Preferences' : 'Options'} onDismissed={this.props.onDismissed}>
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedIndex}>
           <span>Accounts</span>
           <span>Git</span>
         </TabBar>
 
-        {this.renderActiveTab()}
-      </div>
+        <DialogContent>
+          {this.renderActiveTab()}
+        </DialogContent>
+      </Dialog>
     )
   }
 

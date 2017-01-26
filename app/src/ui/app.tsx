@@ -448,6 +448,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  private onPopupDismissed = () => {
+    this.props.dispatcher.closePopup()
+  }
+
   private currentPopupContent(): JSX.Element | null {
     const popup = this.state.currentPopup
     if (!popup) { return null }
@@ -489,7 +493,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <Preferences
         dispatcher={this.props.dispatcher}
         dotComUser={this.getDotComUser()}
-        enterpriseUser={this.getEnterpriseUser()}/>
+        enterpriseUser={this.getEnterpriseUser()}
+        onDismissed={this.onPopupDismissed}/>
     } else if (popup.type === PopupType.MergeBranch) {
       const repository = popup.repository
       const state = this.props.appStore.getRepositoryState(repository)
@@ -522,6 +527,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (!content) { return null }
+
+    const popup = this.state.currentPopup
+    if (!popup) { return null }
+
+    if (popup.type === PopupType.Preferences) {
+      return content
+    }
 
     return (
       <div className='fill-window'>
