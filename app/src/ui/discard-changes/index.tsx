@@ -12,17 +12,43 @@ interface IDiscardChangesProps {
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
 }
 
+/**
+ * If we're discarding any more than this number, we won't bother listing them
+ * all.
+ */
+const MaxFilesToList = 10
+
 /** A component to confirm and then discard changes. */
 export class DiscardChanges extends React.Component<IDiscardChangesProps, void> {
   public render() {
-    const paths = this.props.files.map(f => `"${f.path}"`).join(', ')
     const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
+    const message = (() => {
+      if (this.props.files.length > MaxFilesToList) {
+        return (
+          <div>
+            Are you sure you want to discard all changes?
+            <div>&nbsp;</div>
+          </div>
+        )
+      } else {
+        return (
+          <div>Are you sure you want to discard all changes to:
+            <ul>
+              {this.props.files.map(p => <li key={p.id}>{p.path}</li>)}
+            </ul>
+          </div>
+        )
+      }
+    })()
+
     return (
       <Form onSubmit={this.cancel}>
         <div>{ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'}</div>
-        <div>Are you sure you want to discard all changes to {paths}?</div>
+        <div>
+          {message}
 
-        <div>Changes can be restored by retrieving them from the {trashName}.</div>
+          <div>Changes can be restored by retrieving them from the {trashName}.</div>
+        </div>
 
         <Button type='submit'>Cancel</Button>
         <Button onClick={this.discard}>{__DARWIN__ ? 'Discard Changes' : 'Discard changes'}</Button>
