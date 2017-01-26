@@ -185,6 +185,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       { type: 'separator' },
       {
+        id: 'view-repository-on-github',
+        label: __DARWIN__ ? 'View on GitHub' : '&View on GitHub',
+        click: emit('view-repository-on-github'),
+      },
+      { type: 'separator' },
+      {
         label: __DARWIN__ ? 'Repository Settings' : '&Repository settings',
         click: emit('show-repository-settings'),
       },
