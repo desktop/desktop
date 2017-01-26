@@ -13,6 +13,7 @@ interface IChangedFileProps {
   readonly include: boolean | null
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onDiscardChanges: (path: string) => void
+  readonly onDiscardAllChanges: () => void
   readonly availableWidth: number
 }
 
@@ -72,10 +73,16 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
-    const item = {
-      label: __DARWIN__ ? 'Discard Changes' : 'Discard changes',
-      action: () => this.props.onDiscardChanges(this.props.path),
-    }
-    showContextualMenu([ item ])
+    const items = [
+      {
+        label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
+        action: () => this.props.onDiscardChanges(this.props.path),
+      },
+      {
+        label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
+        action: () => this.props.onDiscardAllChanges(),
+      },
+    ]
+    showContextualMenu(items)
   }
 }

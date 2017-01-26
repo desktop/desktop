@@ -11,6 +11,7 @@ import { UndoCommit } from './undo-commit'
 import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocompletionProvider } from '../autocompletion'
 import { ICommitMessage } from '../../lib/app-state'
 import { ClickSource } from '../list'
+import { WorkingDirectoryFileChange } from '../../models/status'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -103,6 +104,14 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     })
   }
 
+  private onDiscardAllChanges = (files: ReadonlyArray<WorkingDirectoryFileChange>) => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.ConfirmDiscardChanges,
+      repository: this.props.repository,
+      files,
+    })
+  }
+
   /**
    * Toggles the selection of a given working directory file.
    * If the file is partially selected it the selection is cleared
@@ -192,6 +201,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           onIncludeChanged={this.onIncludeChanged}
           onSelectAll={this.onSelectAll}
           onDiscardChanges={this.onDiscardChanges}
+          onDiscardAllChanges={this.onDiscardAllChanges}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
