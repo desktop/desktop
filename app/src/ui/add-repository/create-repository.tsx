@@ -246,7 +246,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           value={this.state.name}
           label='Name'
           placeholder='repository name'
-          onChange={this.onNameChanged}/>
+          onChange={this.onNameChanged}
+          autoFocus/>
 
         {this.renderError()}
 

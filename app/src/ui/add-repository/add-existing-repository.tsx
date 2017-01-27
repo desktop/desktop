@@ -39,7 +39,8 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
             label='Local Path'
             placeholder='repository path'
             onChange={this.onPathChanged}
-            onKeyDown={this.onKeyDown}/>
+            onKeyDown={this.onKeyDown}
+            autoFocus/>
           <Button onClick={this.showFilePicker}>Choose…</Button>
         </Row>
 

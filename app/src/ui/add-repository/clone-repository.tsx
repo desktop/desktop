@@ -77,7 +77,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
           Enter a repository URL or GitHub username and repository (e.g., <span className='repository-pattern'>hubot/cool-repo</span>)
         </div>
 
-        <TextBox placeholder='URL or username/repository' value={this.state.url} onChange={this.onURLChanged}/>
+        <TextBox placeholder='URL or username/repository' value={this.state.url} onChange={this.onURLChanged} autoFocus/>
 
         <Row>
           <TextBox
