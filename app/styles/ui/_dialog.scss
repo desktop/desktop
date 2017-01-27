@@ -25,8 +25,8 @@ dialog {
 
     button.close {
       position: absolute;
-      right: 10px;
-      top: 10px;
+      right: var(--spacing);
+      top: var(--spacing);
 
       border: 0;
       height: 16px;
