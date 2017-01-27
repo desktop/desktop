@@ -82,9 +82,9 @@ export class Dialog extends React.Component<IDialogProps, void> {
 
   public render() {
     return (
-    <dialog ref={this.onDialogRef} id={this.props.id} onClick={this.onDialogClick}>
-        {this.renderHeader()}
-        {this.props.children}
+      <dialog ref={this.onDialogRef} id={this.props.id} onClick={this.onDialogClick}>
+          {this.renderHeader()}
+          {this.props.children}
       </dialog>
     )
   }
