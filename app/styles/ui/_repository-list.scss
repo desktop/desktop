@@ -9,6 +9,29 @@
   #repositories {
     display: flex;
     flex-direction: column;
+    flex: 1;
+
+    .add-repository-button {
+      // .button-component overrides this rule to make it smaller,
+      // not sure how to be more specific without using an id
+      // (which isn't exposed on Button currently)
+      height: 40px !important;
+      width: 100%;
+      margin-bottom: var(--spacing);
+
+      .label {
+        display: flex;
+        float: left;
+
+        .plus {
+          margin-right: var(--spacing-half);
+        }
+      }
+
+      .arrow {
+        float: right;
+      }
+    }
 
     .filter-field {
       padding-left: var(--spacing);
