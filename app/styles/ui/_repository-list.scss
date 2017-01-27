@@ -1,11 +1,11 @@
 @import "../mixins";
 
-/** A <List> React component holding all tracked repositories in the sidebar */
 #repository-list {
   height: 100%;
   display: flex;
   flex-direction: row;
 
+  /** A <List> React component holding all tracked repositories in the sidebar */
   #repositories {
     display: flex;
     flex-direction: column;
