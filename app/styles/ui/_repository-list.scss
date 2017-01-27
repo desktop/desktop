@@ -5,17 +5,24 @@
   display: flex;
   flex-direction: row;
 
+  /**
+   * Inherit the min-width from the ToolbarDropdown so that the repositories
+   * list will always be the width of the button. Otherwise, if the Add
+   * Repository foldout was open, it'd be taken into account as part of the
+   * width and the list wouldn't be the same width as the button.
+   */
+  min-width: inherit;
+
   /** A <List> React component holding all tracked repositories in the sidebar */
   #repositories {
     display: flex;
     flex-direction: column;
     flex: 1;
 
+    min-width: inherit;
+
     .add-repository-button {
-      // .button-component overrides this rule to make it smaller,
-      // not sure how to be more specific without using an id
-      // (which isn't exposed on Button currently)
-      height: 40px !important;
+      height: 40px;
       width: 100%;
       margin-bottom: var(--spacing);
 
