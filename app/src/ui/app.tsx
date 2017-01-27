@@ -239,7 +239,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     const htmlURL = this.getCurrentRepositoryGitHubURL()
     if (!htmlURL) { return }
 
-    this.props.dispatcher.openInBrowser(htmlURL)
+    const state = this.state.selectedState
+    if (!state || state.type !== SelectionType.Repository) { return }
+
+    const branchTip = state.state.branchesState.tip
+    if (branchTip.kind !== TipState.Valid) { return }
+
+    const compareURL = `${htmlURL}/compare/${branchTip.branch.nameWithoutRemote}`
+    this.props.dispatcher.openInBrowser(compareURL)
   }
 
   private openWorkingDirectory() {
