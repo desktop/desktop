@@ -4,15 +4,15 @@ import { ToggleButton } from './toggle-button'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IExpandFoldoutButtonProps {
-  /** The function to call when the open state of the component changes */
-  readonly onClick?: (open: boolean) => void
+  /** The function to call when the expanded state of the component changes */
+  readonly onClick?: (expanded: boolean) => void
 
   /**
-   * Indicates whether the button is in the open state.
+   * Indicates whether the button is in the expanded state.
    *
    * If not specified, button state defaults to false (closed).
    */
-  readonly open?: boolean
+  readonly expanded?: boolean
 
   /** The title of the button. */
   readonly children?: string
@@ -25,7 +25,7 @@ export class ExpandFoldoutButton extends React.Component<IExpandFoldoutButtonPro
       <ToggleButton
         className='expand-foldout-button'
         onClick={this.props.onClick}
-        checked={this.props.open}>
+        checked={this.props.expanded}>
         <div className='label'>
           <Octicon className='plus' symbol={OcticonSymbol.plus} />
           <div>{this.props.children}</div>

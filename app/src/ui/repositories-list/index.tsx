@@ -162,7 +162,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
         <div id='repositories'>
           <ExpandFoldoutButton
             onClick={this.onAddRepositoryBranchToggle}
-            open={this.props.showAddRepository}>
+            expanded={this.props.showAddRepository}>
             {__DARWIN__ ? 'Add Repository' : 'Add repository'}
           </ExpandFoldoutButton>
 
