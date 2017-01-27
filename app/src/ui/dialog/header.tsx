@@ -29,10 +29,10 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, any> {
       : null
 
     return (
-      <div className='dialog-title'>
+      <header>
         <h1>{this.props.title}</h1>
         {closeButton}
-      </div>
+      </header>
     )
   }
 }
