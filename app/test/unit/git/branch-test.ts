@@ -54,4 +54,21 @@ describe('git/branch', () => {
       expect(valid.branch.remote).to.equal('bassoon')
     })
   })
+
+  describe('upstreamWithoutRemote', () => {
+    it('returns the upstream name without the remote prefix', async () => {
+      const path = await setupFixtureRepository('repo-with-multiple-remotes')
+      const repository = new Repository(path, -1, null)
+
+      const result = await getTip(repository)
+      const tip = result!
+
+      expect(tip.kind).to.equal(TipState.Valid)
+
+      const valid = tip as IValidBranch
+      expect(valid.branch.remote).to.equal('bassoon')
+      expect(valid.branch.upstream).to.equal('bassoon/master')
+      expect(valid.branch.upstreamWithoutRemote).to.equal('master')
+    })
+  })
 })
