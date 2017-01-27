@@ -9,6 +9,9 @@ import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { AddRepository } from '../add-repository'
 import { User } from '../../models/user'
+import { ToggleButton } from '../lib/toggle-button'
+import { Octicon, OcticonSymbol } from '../octicons'
+import { FoldoutType } from '../../lib/app-state'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
@@ -19,6 +22,9 @@ interface IRepositoriesListProps {
 
   /** The logged in users. */
   readonly users: ReadonlyArray<User>
+
+  /** Should the Add Repository foldout be shown? */
+  readonly showAddRepository: boolean
 }
 
 interface IRepositoriesListState {
@@ -130,7 +136,17 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
   }
 
   private renderAddRepository() {
+    if (!this.props.showAddRepository) { return null }
+
     return <AddRepository dispatcher={this.props.dispatcher} users={this.props.users}/>
+  }
+
+  private onAddRepositoryBranchToggle = () => {
+    if (this.props.showAddRepository) {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+    } else {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.AddRepository })
+    }
   }
 
   public render() {
@@ -145,6 +161,17 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
     return (
       <div id='repository-list'>
         <div id='repositories'>
+          <ToggleButton
+            className='add-repository-button'
+            onClick={this.onAddRepositoryBranchToggle}
+            checked={this.props.showAddRepository}>
+            <div className='label'>
+              <Octicon className='plus' symbol={OcticonSymbol.plus} />
+              <div>{__DARWIN__ ? 'Add Repository' : 'Add repository'}</div>
+            </div>
+            <Octicon className='arrow' symbol={OcticonSymbol.triangleRight} />
+          </ToggleButton>
+
           <Row>
             <TextBox
               type='search'

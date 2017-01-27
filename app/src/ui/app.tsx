@@ -662,7 +662,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepositoryList = (): JSX.Element => {
     const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
-
+    const showAddRepository = !!this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AddRepository
     return <RepositoriesList
       selectedRepository={selectedRepository}
       onSelectionChanged={this.onSelectionChanged}
@@ -670,6 +670,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       repositories={this.state.repositories}
       loading={this.state.loading}
       users={this.state.users}
+      showAddRepository={showAddRepository}
     />
   }
 
@@ -694,8 +695,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       title = 'Select a repository'
     }
 
-    const isOpen = this.state.currentFoldout
-      && this.state.currentFoldout.type === FoldoutType.Repository
+    const isOpen = this.state.currentFoldout &&
+      (this.state.currentFoldout.type === FoldoutType.Repository ||
+       this.state.currentFoldout.type === FoldoutType.AddRepository)
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
