@@ -88,15 +88,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     this.props.dispatcher.changeIncludeAllFiles(this.props.repository, selectAll)
   }
 
-  private onDiscardChanges = (path: string) => {
-    const workingDirectory = this.props.changes.workingDirectory
-    const file = workingDirectory.files.find(f => f.path === path)
-
-    if (!file) {
-      console.error('unable to find working directory file to discard ' + path)
-      return
-    }
-
+  private onDiscardChanges = (file: WorkingDirectoryFileChange) => {
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
       repository: this.props.repository,
