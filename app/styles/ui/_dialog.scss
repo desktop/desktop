@@ -2,4 +2,36 @@ dialog {
   border: var(--base-border);
   box-shadow: var(--base-box-shadow);
   padding: 0;
+
+  &>header {
+    height: 53px;
+    border-bottom: var(--base-border);
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    h1 {
+      font-weight: var(--font-weight-light);
+      font-size: var(--font-size-md);
+      margin: 0;
+      padding: 0;
+    }
+
+    button.close {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+
+      border: 0;
+      height: 16px;
+      width: 16px;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+
+    }
+  }
 }
