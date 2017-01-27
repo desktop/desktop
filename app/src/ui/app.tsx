@@ -180,6 +180,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'merge-branch': return this.mergeBranch()
       case 'show-repository-settings' : return this.showRepositorySettings()
       case 'view-repository-on-github' : return this.viewRepositoryOnGitHub()
+      case 'compare-branch': return this.compareBranch()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -225,6 +226,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       type: PopupType.MergeBranch,
       repository: state.repository,
     })
+  }
+
+  private compareBranch() {
+    const htmlURL = this.getCurrentRepositoryGitHubUrl()
+    if (!htmlURL) { return }
+
+    this.props.dispatcher.openInBrowser(htmlURL)
   }
 
   private openWorkingDirectory() {

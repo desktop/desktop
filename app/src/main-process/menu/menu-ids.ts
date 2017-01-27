@@ -8,4 +8,5 @@ export type MenuIDs =
   'preferences' |
   'update-branch' |
   'merge-branch' |
-  'view-repository-on-github'
+  'view-repository-on-github' |
+  'compare-branch'
