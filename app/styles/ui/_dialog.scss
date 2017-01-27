@@ -3,6 +3,9 @@ dialog {
   box-shadow: var(--base-box-shadow);
   padding: 0;
 
+  color: var(--text-color);
+  background: var(--background-color);
+
   &>header {
     height: 53px;
     border-bottom: var(--base-border);
