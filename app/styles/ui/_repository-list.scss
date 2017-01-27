@@ -21,34 +21,6 @@
 
     min-width: inherit;
 
-    .add-repository-button {
-      height: 40px;
-      width: 100%;
-      margin-bottom: var(--spacing);
-
-      .label {
-        display: flex;
-        float: left;
-
-        .plus {
-          margin-right: var(--spacing-half);
-        }
-      }
-
-      .arrow {
-        float: right;
-      }
-    }
-
-    .add-repository-button.checked {
-      background-color: var(--button-background);
-      color: var(--button-text-color);
-
-      &:not(:disabled):hover {
-        background-color: var(--button-hover-background);
-      }
-    }
-
     .filter-field {
       padding-left: var(--spacing);
       padding-right: var(--spacing);
