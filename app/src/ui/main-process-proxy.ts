@@ -40,8 +40,8 @@ export interface IMenuItem {
 
 /**
  * Delay the contextual menu slightly so that we have time to render any changes
- * in reaction to the click. Otherwise the contextual menu on the main thread
- * blocks the renderer before it can redraw. See https://github.com/electron/electron/issues/1854.
+ * in reaction to the click. Otherwise the modal menu loop on the main thread
+ * blocks the renderer's run loop before it can redraw. See https://github.com/electron/electron/issues/1854.
  */
 const ShowContextualMenuDelay = 30
 
