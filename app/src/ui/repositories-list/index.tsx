@@ -7,6 +7,8 @@ import { groupRepositories, RepositoryListItemModel, Repositoryish } from './gro
 import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
+import { AddRepository } from '../add-repository'
+import { User } from '../../models/user'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
@@ -14,6 +16,9 @@ interface IRepositoriesListProps {
   readonly dispatcher: Dispatcher
   readonly loading: boolean
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
+
+  /** The logged in users. */
+  readonly users: ReadonlyArray<User>
 }
 
 interface IRepositoriesListState {
@@ -124,6 +129,10 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
     return item.kind === 'repository'
   }
 
+  private renderAddRepository() {
+    return <AddRepository dispatcher={this.props.dispatcher} users={this.props.users}/>
+  }
+
   public render() {
     if (this.props.loading) {
       return <Loading/>
@@ -135,28 +144,32 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
 
     return (
       <div id='repository-list'>
-        <Row>
-          <TextBox
-            type='search'
-            labelClassName='filter-field'
-            placeholder='Filter'
-            autoFocus={true}
-            onChange={this.onFilterChanged}
-            onKeyDown={this.onKeyDown}
-            onInputRef={this.onInputRef}/>
-        </Row>
+        <div id='repositories'>
+          <Row>
+            <TextBox
+              type='search'
+              labelClassName='filter-field'
+              placeholder='Filter'
+              autoFocus={true}
+              onChange={this.onFilterChanged}
+              onKeyDown={this.onKeyDown}
+              onInputRef={this.onInputRef}/>
+          </Row>
 
-        <List
-          rowCount={this.state.listItems.length}
-          rowHeight={RowHeight}
-          rowRenderer={this.renderRow}
-          selectedRow={this.state.selectedRowIndex}
-          onSelectionChanged={this.onSelectionChanged}
-          onRowClick={this.onRowClick}
-          onRowKeyDown={this.onRowKeyDown}
-          canSelectRow={this.canSelectRow}
-          invalidationProps={this.props.repositories}
-          ref={this.onListRef}/>
+          <List
+            rowCount={this.state.listItems.length}
+            rowHeight={RowHeight}
+            rowRenderer={this.renderRow}
+            selectedRow={this.state.selectedRowIndex}
+            onSelectionChanged={this.onSelectionChanged}
+            onRowClick={this.onRowClick}
+            onRowKeyDown={this.onRowKeyDown}
+            canSelectRow={this.canSelectRow}
+            invalidationProps={this.props.repositories}
+            ref={this.onListRef}/>
+        </div>
+
+        {this.renderAddRepository()}
       </div>
     )
   }

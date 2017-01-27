@@ -4,53 +4,58 @@
 #repository-list {
   height: 100%;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
 
-  .filter-field {
-    padding-left: var(--spacing);
-    padding-right: var(--spacing);
-  }
-
-  /**
-   * Container for repository list items in the sidebar
-   *
-   * Contains two elements, one 16x16 <svg class='octicon'> holding an octicon
-   * representing the repository type (local, private, public, fork)
-   * and one <div class='name'> holding the repository name.
-   */
-  .repository-list-item {
-
-    // 20px offset from the window edge
-    padding: 0 5px 0 20px;
-
-    // Layout the icon and repository name horizontally
+  #repositories {
     display: flex;
-    flex-direction: row;
-    // This makes it so that both the icon and the repo name
-    // is vertically centered.
-    align-items: center;
+    flex-direction: column;
 
-    // Necessary to limit the width of the repository
-    // name and truncate accordingly
-    width: 100%;
-
-    .octicon {
-      // Some room between the icon and repository name
-      margin-right: 5px;
-
-      // Always let the octicon dictate the amount of space it needs
-      flex-shrink: 0;
+    .filter-field {
+      padding-left: var(--spacing);
+      padding-right: var(--spacing);
     }
 
-    .name {
-      // Long repository names truncate and ellipse
-      @include ellipsis
-    }
-  }
+    /**
+     * Container for repository list items in the sidebar
+     *
+     * Contains two elements, one 16x16 <svg class='octicon'> holding an octicon
+     * representing the repository type (local, private, public, fork)
+     * and one <div class='name'> holding the repository name.
+     */
+    .repository-list-item {
 
-  .repository-group-label {
-    opacity: 0.6;
-    padding: 0 5px 0 20px;
-    margin-top: var(--spacing);
+      // 20px offset from the window edge
+      padding: 0 5px 0 20px;
+
+      // Layout the icon and repository name horizontally
+      display: flex;
+      flex-direction: row;
+      // This makes it so that both the icon and the repo name
+      // is vertically centered.
+      align-items: center;
+
+      // Necessary to limit the width of the repository
+      // name and truncate accordingly
+      width: 100%;
+
+      .octicon {
+        // Some room between the icon and repository name
+        margin-right: 5px;
+
+        // Always let the octicon dictate the amount of space it needs
+        flex-shrink: 0;
+      }
+
+      .name {
+        // Long repository names truncate and ellipse
+        @include ellipsis
+      }
+    }
+
+    .repository-group-label {
+      opacity: 0.6;
+      padding: 0 5px 0 20px;
+      margin-top: var(--spacing);
+    }
   }
 }
