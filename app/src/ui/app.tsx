@@ -130,10 +130,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     let onNonDefaultBranch = false
     let onBranch = false
     let hasDefaultBranch = false
+    let hasPublishedBranch = false
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
-      const tip = selectedState.state.branchesState.tip
-      const defaultBranch = selectedState.state.branchesState.defaultBranch
+      const branchesState = selectedState.state.branchesState
+      const tip = branchesState.tip
+      const defaultBranch = branchesState.defaultBranch
 
       hasDefaultBranch = Boolean(defaultBranch)
 
@@ -144,8 +146,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       //  2. on an unborn branch, or
       //  3. on a detached HEAD
       // there's not much we can do.
-      if (tip.kind === TipState.Valid && defaultBranch !== null) {
-        onNonDefaultBranch = tip.branch.name !== defaultBranch.name
+      if (tip.kind === TipState.Valid) {
+        if (defaultBranch !== null) {
+          onNonDefaultBranch = tip.branch.name !== defaultBranch.name
+        }
+
+        hasPublishedBranch = !!tip.branch.upstream
       } else {
         onNonDefaultBranch = true
       }
@@ -156,6 +162,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
     setMenuEnabled('merge-branch', onBranch)
     setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
+    setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
   }
 
   private onMenuEvent(name: MenuEvent): any {
