@@ -33,6 +33,15 @@
       }
     }
 
+    .add-repository-button.checked {
+      background-color: var(--button-background);
+      color: var(--button-text-color);
+
+      &:not(:disabled):hover {
+        background-color: var(--button-hover-background);
+      }
+    }
+
     .filter-field {
       padding-left: var(--spacing);
       padding-right: var(--spacing);
