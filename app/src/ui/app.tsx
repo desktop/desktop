@@ -42,7 +42,7 @@ const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
-const dialogPopupTypes = new Set<PopupType>([ PopupType.Preferences ])
+const dialogPopupTypes = new Set<PopupType>([ PopupType.Preferences, PopupType.RenameBranch ])
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
