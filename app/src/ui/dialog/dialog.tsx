@@ -8,18 +8,9 @@ interface IDialogProps {
   readonly id?: string
 }
 
-interface IDialogState {
-  readonly isOpen: boolean
-}
-
-export class Dialog extends React.Component<IDialogProps, IDialogState> {
+export class Dialog extends React.Component<IDialogProps, void> {
 
   private dialogElement?: HTMLElement
-
-  public constructor(props: IDialogProps) {
-    super(props)
-    this.state = { isOpen: false }
-  }
 
   private isDismissable() {
     return this.props.dismissable === undefined || this.props.dismissable
@@ -27,11 +18,6 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   public componentDidMount() {
     (this.dialogElement as any).showModal()
-    this.setState({ isOpen: true })
-  }
-
-  public componentWillUnmount() {
-    this.close()
   }
 
   private onDialogCancel = (e: Event) => {
@@ -72,19 +58,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     this.dialogElement = e
   }
 
-  private close() {
-    if (this.state.isOpen) {
-      if (this.dialogElement) {
-        (this.dialogElement as any).close()
-      }
-
-      this.setState({ isOpen: false })
-    }
-  }
-
   private onDismiss = () => {
     if (this.isDismissable()) {
-      this.close()
       if (this.props.onDismissed) {
         this.props.onDismissed()
       }
