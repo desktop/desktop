@@ -17,7 +17,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, any> {
 
   private renderCloseButton() {
     return (
-      <button onClick={this.onCloseButtonClick}>
+      <button className='close' tabIndex={-1} onClick={this.onCloseButtonClick}>
         <Octicon symbol={OcticonSymbol.x} />
       </button>
     )
