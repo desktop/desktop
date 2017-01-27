@@ -46,4 +46,8 @@ dialog {
       }
     }
   }
+
+  .dialog-content {
+    padding: var(--spacing-double);
+  }
 }
