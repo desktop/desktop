@@ -35,6 +35,12 @@
   &:not(:disabled):hover {
     background-color: var(--button-hover-background);
   }
+
+  &:focus {
+    // TODO: This is a pretty terrible way to indicate
+    // focus. We should figure out something better.
+    border-color: rgba(0, 0, 0, 0.8);
+  }
 }
 
 .link-button-component {
