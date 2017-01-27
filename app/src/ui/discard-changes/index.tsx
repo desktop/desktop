@@ -34,7 +34,7 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
         return (
           <div>Are you sure you want to discard all changes to:
             <ul>
-              {this.props.files.map(p => <li key={p.id}>{p.path}</li>)}
+              {this.props.files.map(p => <li className='file-name' key={p.id}>{p.path}</li>)}
             </ul>
           </div>
         )
@@ -42,7 +42,7 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
     })()
 
     return (
-      <Form onSubmit={this.cancel}>
+      <Form className='discard-changes' onSubmit={this.cancel}>
         <div>{ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'}</div>
         <div>
           {message}
