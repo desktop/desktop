@@ -38,6 +38,20 @@ export class Branch {
   }
 
   /**
+   * The name of the branch's upstream without the remote prefix.
+   */
+  public get upstreamWithoutRemote(): string | null {
+    if (!this.upstream) { return null }
+
+    const pieces = this.upstream.match(/.*?\/(.*)/)
+    if (!pieces || pieces.length < 2) {
+       return null
+    }
+
+    return pieces[1]
+  }
+
+  /**
    * The name of the branch without the remote prefix. If the branch is a local
    * branch, this is the same as its `name`.
    */
