@@ -125,7 +125,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private updateMenu(state: IAppState) {
     const selectedState = state.selectedState
-    const isHostedOnGitHub = this.getCurrentRepositoryGitHubUrl() !== null
+    const isHostedOnGitHub = this.getCurrentRepositoryGitHubURL() !== null
 
     let onNonDefaultBranch = false
     let onBranch = false
@@ -229,7 +229,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private compareBranch() {
-    const htmlURL = this.getCurrentRepositoryGitHubUrl()
+    const htmlURL = this.getCurrentRepositoryGitHubURL()
     if (!htmlURL) { return }
 
     this.props.dispatcher.openInBrowser(htmlURL)
@@ -447,7 +447,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private viewRepositoryOnGitHub() {
-    const url = this.getCurrentRepositoryGitHubUrl()
+    const url = this.getCurrentRepositoryGitHubURL()
 
     if (url) {
       this.props.dispatcher.openInBrowser(url)
@@ -456,7 +456,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   /** Returns the URL to the current repository if hosted on GitHub */
-  private getCurrentRepositoryGitHubUrl() {
+  private getCurrentRepositoryGitHubURL() {
     const repository = this.getRepository()
 
     if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
