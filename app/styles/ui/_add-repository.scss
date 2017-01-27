@@ -1,4 +1,7 @@
 #add-repository {
-  padding: var(--spacing);
-  width: 300px;
+  width: 350px;
+
+  .content {
+    padding: var(--spacing);
+  }
 }

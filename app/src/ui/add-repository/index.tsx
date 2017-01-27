@@ -67,7 +67,9 @@ export class AddRepository extends React.Component<IAddRepositoryProps, IAddRepo
           </TabBar>
         </nav>
 
-        {this.renderSelectedTab()}
+        <div className='content'>
+          {this.renderSelectedTab()}
+        </div>
       </div>
     )
   }
