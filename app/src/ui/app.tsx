@@ -42,6 +42,8 @@ const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
+const dialogPopupTypes = new Set<PopupType>([ PopupType.Preferences ])
+
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
@@ -520,27 +522,27 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onPopupOverlayClick = () => { this.props.dispatcher.closePopup() }
 
-  private renderPopup(): JSX.Element | null {
-    let content = this.renderErrors()
-    if (!content) {
-      content = this.currentPopupContent()
-    }
+  private renderPopupOrDialog() {
 
-    if (!content) { return null }
+    const errorContent = this.renderErrors()
+    const popupContent = errorContent ? null : this.currentPopupContent()
 
     const popup = this.state.currentPopup
-    if (!popup) { return null }
 
-    if (popup.type === PopupType.Preferences) {
-      return content
+    if (errorContent || (popup && !dialogPopupTypes.has(popup.type))) {
+      return (
+        <div className='fill-window'>
+          <div className='fill-window popup-overlay' onClick={this.onPopupOverlayClick}></div>
+          <Popuppy>{errorContent || popupContent}</Popuppy>
+        </div>
+      )
+    } else {
+      return popupContent
     }
+  }
 
-    return (
-      <div className='fill-window'>
-        <div className='fill-window popup-overlay' onClick={this.onPopupOverlayClick}></div>
-        <Popuppy>{content}</Popuppy>
-      </div>
-    )
+  private renderPopup(): JSX.Element | null {
+    return this.renderPopupOrDialog()
   }
 
   private clearErrors = () => {
