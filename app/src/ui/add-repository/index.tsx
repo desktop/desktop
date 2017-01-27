@@ -58,7 +58,7 @@ export class AddRepository extends React.Component<IAddRepositoryProps, IAddRepo
 
   public render() {
     return (
-      <div>
+      <div id='add-repository'>
         <nav className='popup-navigation'>
           <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedTab}>
             <span role='button'>Add</span>
