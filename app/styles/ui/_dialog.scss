@@ -96,4 +96,22 @@ dialog {
   .dialog-content {
     padding: var(--spacing-double);
   }
+
+  .dialog-footer {
+    
+    border-top: var(--base-border);
+    padding: var(--spacing-double);
+    
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+
+    button {
+      margin-right: var(--spacing);
+
+      &:last-child {
+        margin-right: 0;
+      }
+    }
+  }
 }
