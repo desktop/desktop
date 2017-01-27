@@ -13,6 +13,8 @@
   color: var(--secondary-button-text-color);
   background-color: var(--secondary-button-background);
 
+  border-radius: var(--button-border-radius);
+
   &:not(:disabled):hover {
     background-color: var(--secondary-button-hover-background);
   }
