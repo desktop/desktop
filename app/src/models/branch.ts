@@ -43,12 +43,7 @@ export class Branch {
   public get upstreamWithoutRemote(): string | null {
     if (!this.upstream) { return null }
 
-    const pieces = this.upstream.match(/.*?\/(.*)/)
-    if (!pieces || pieces.length < 2) {
-       return null
-    }
-
-    return pieces[1]
+    return withoutRemotePrefix(this.upstream)
   }
 
   /**
@@ -59,12 +54,17 @@ export class Branch {
     if (this.type === BranchType.Local) {
       return this.name
     } else {
-      const pieces = this.name.match(/.*?\/(.*)/)
-      if (!pieces || pieces.length < 2) {
-         return this.name
-      }
-
-      return pieces[1]
+      const withoutRemote = withoutRemotePrefix(this.name)
+      return withoutRemote || this.name
     }
   }
+}
+
+function withoutRemotePrefix(name: string): string | null {
+  const pieces = name.match(/.*?\/(.*)/)
+  if (!pieces || pieces.length < 2) {
+     return null
+  }
+
+  return pieces[1]
 }
