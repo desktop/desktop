@@ -245,7 +245,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const branchTip = state.state.branchesState.tip
     if (branchTip.kind !== TipState.Valid) { return }
 
-    const compareURL = `${htmlURL}/compare/${branchTip.branch.nameWithoutRemote}`
+    const compareURL = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
     this.props.dispatcher.openInBrowser(compareURL)
   }
 
