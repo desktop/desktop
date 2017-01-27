@@ -32,6 +32,15 @@ dialog {
       padding: 0;
       background: transparent;
 
+      color: var(--text-secondary-color);
+
+      &:hover {
+        color: var(--text-color);
+      }
+
+      &:focus {
+        outline: 0;
+      }
     }
   }
 }
