@@ -187,6 +187,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       {
         id: 'view-repository-on-github',
         label: __DARWIN__ ? 'View on GitHub' : '&View on GitHub',
+        accelerator: 'CmdOrCtrl+Option+G',
         click: emit('view-repository-on-github'),
       },
       { type: 'separator' },
