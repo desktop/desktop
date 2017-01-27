@@ -35,7 +35,6 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
   }
 
   private onDialogCancel = (e: Event) => {
-    console.log('o hai cancel')
     e.preventDefault()
     this.onDismiss()
   }
