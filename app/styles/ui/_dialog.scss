@@ -6,6 +6,10 @@ dialog {
   color: var(--text-color);
   background: var(--background-color);
 
+  &::backdrop {
+    background: rgba(0, 0, 0, 0.4);
+  }
+
   &>header {
     height: 53px;
     border-bottom: var(--base-border);
