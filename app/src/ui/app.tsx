@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
+import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { ipcRenderer, remote, shell } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
@@ -542,7 +543,15 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderPopup(): JSX.Element | null {
-    return this.renderPopupOrDialog()
+    return (
+      <ReactCSSTransitionGroup
+        transitionName='modal'
+        component='div'
+        transitionEnterTimeout={250}
+        transitionLeaveTimeout={100}>
+        {this.renderPopupOrDialog()}
+      </ReactCSSTransitionGroup>
+    )
   }
 
   private clearErrors = () => {

@@ -6,8 +6,44 @@ dialog {
   color: var(--text-color);
   background: var(--background-color);
 
+  &.modal {
+    
+    &-enter {
+      opacity: 1;
+      transform: scale(0.75);
+    }
+
+    &-enter-active {
+      opacity: 1;
+      transform: scale(1);
+      transition: transform 250ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    &-leave {
+      opacity: 1;
+      transform: scale(1);
+
+      &::backdrop {
+        opacity: 0.4;
+      }
+    }
+
+    &-leave-active {
+      opacity: 0.01;
+      transform: scale(0.25);
+      transition: opacity 100ms ease-in,
+                  transform 100ms cubic-bezier(0.6, -0.28, 0.735, 0.045);
+
+      &::backdrop {
+        opacity: 0.01;
+        transition: opacity 100ms ease-in;
+      }
+    }
+  }
+
   &::backdrop {
-    background: rgba(0, 0, 0, 0.4);
+    background: black;
+    opacity: 0.4;
   }
 
   &>header {
