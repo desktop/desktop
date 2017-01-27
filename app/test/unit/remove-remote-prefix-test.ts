@@ -2,7 +2,7 @@ import { expect } from 'chai'
 
 import { removeRemotePrefix } from '../../src/lib/remove-remote-prefix'
 
-describe.only('removeRemotePrefix', () => {
+describe('removeRemotePrefix', () => {
   it('removes the remote prefix', () => {
     const name = removeRemotePrefix('origin/test')
     expect(name).to.equal('test')
