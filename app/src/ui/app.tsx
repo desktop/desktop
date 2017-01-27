@@ -13,7 +13,6 @@ import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType } f
 import { Popuppy } from './popuppy'
 import { CreateBranch } from './create-branch'
 import { Branches } from './branches'
-import { AddRepository } from './add-repository'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
@@ -264,8 +263,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private addRepository() {
-    this.props.dispatcher.showPopup({
-      type: PopupType.AddRepository,
+    this.props.dispatcher.showFoldout({
+      type: FoldoutType.AddRepository,
     })
   }
 
@@ -490,12 +489,6 @@ export class App extends React.Component<IAppProps, IAppState> {
                            dispatcher={this.props.dispatcher}
                            branches={state.branchesState.allBranches}
                            currentBranch={currentBranch}/>
-    } else if (popup.type === PopupType.AddRepository) {
-      const state = this.props.appStore.getState()
-      return <AddRepository
-        dispatcher={this.props.dispatcher}
-        users={state.users}
-      />
     } else if (popup.type === PopupType.RenameBranch) {
       return <RenameBranch dispatcher={this.props.dispatcher}
                            repository={popup.repository}
