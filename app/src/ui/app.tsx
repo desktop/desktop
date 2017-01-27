@@ -11,7 +11,6 @@ import { MenuEvent, MenuIDs } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
 import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
 import { Popuppy } from './popuppy'
-import { CreateBranch } from './create-branch'
 import { Branches } from './branches'
 import { AddRepository } from './add-repository'
 import { RenameBranch } from './rename-branch'
@@ -477,20 +476,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const popup = this.state.currentPopup
     if (!popup) { return null }
 
-    if (popup.type === PopupType.CreateBranch) {
-      const repository = popup.repository
-      const state = this.props.appStore.getRepositoryState(repository)
-
-      const tip = state.branchesState.tip
-      const currentBranch = tip.kind === TipState.Valid
-        ? tip.branch
-        : null
-
-      return <CreateBranch repository={repository}
-                           dispatcher={this.props.dispatcher}
-                           branches={state.branchesState.allBranches}
-                           currentBranch={currentBranch}/>
-    } else if (popup.type === PopupType.AddRepository) {
+    if (popup.type === PopupType.AddRepository) {
       const state = this.props.appStore.getState()
       return <AddRepository
         dispatcher={this.props.dispatcher}
