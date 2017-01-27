@@ -39,6 +39,27 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     this.onDismiss()
   }
 
+  private onDialogClick = (e: React.MouseEvent<HTMLElement>) => {
+
+    if (!this.isDismissable) {
+      return
+    }
+
+    const rect = e.currentTarget.getBoundingClientRect()
+
+    // http://stackoverflow.com/a/26984690/2114
+    const isInDialog =
+      rect.top <= e.clientY &&
+      e.clientY <= rect.top + rect.height &&
+      rect.left <= e.clientX &&
+      e.clientX <= rect.left + rect.width
+
+    if (!isInDialog) {
+      e.preventDefault()
+      this.onDismiss()
+    }
+  }
+
   private onDialogRef = (e: HTMLElement | undefined) => {
     if (!e) {
       if (this.dialogElement) {
@@ -86,7 +107,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   public render() {
     return (
-      <dialog ref={this.onDialogRef} id={this.props.id}>
+    <dialog ref={this.onDialogRef} id={this.props.id} onClick={this.onDialogClick}>
         {this.renderHeader()}
         {this.props.children}
       </dialog>
