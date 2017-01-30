@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 import { DialogHeader } from './header'
 
 interface IDialogProps {
@@ -6,6 +7,7 @@ interface IDialogProps {
   readonly dismissable?: boolean
   readonly onDismissed?: () => void
   readonly id?: string
+  readonly type?: 'normal' | 'warning' | 'error'
 }
 
 export class Dialog extends React.Component<IDialogProps, void> {
@@ -81,8 +83,18 @@ export class Dialog extends React.Component<IDialogProps, void> {
   }
 
   public render() {
+
+    const className = classNames({
+      error: this.props.type === 'error',
+      warning: this.props.type === 'warning',
+    })
+
     return (
-      <dialog ref={this.onDialogRef} id={this.props.id} onClick={this.onDialogClick}>
+      <dialog
+        ref={this.onDialogRef}
+        id={this.props.id}
+        onClick={this.onDialogClick}
+        className={className}>
           {this.renderHeader()}
           {this.props.children}
       </dialog>
