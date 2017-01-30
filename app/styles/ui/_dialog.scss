@@ -101,6 +101,8 @@ dialog {
       padding: 0;
       background: transparent;
 
+
+
       color: var(--text-secondary-color);
       cursor: pointer;
 
@@ -167,4 +169,5 @@ dialog {
 
   &#rename-branch { min-width: 400px; }
   &#delete-branch { min-width: 400px; }
+  &#repository-settings { min-width: 400px; }
 }
