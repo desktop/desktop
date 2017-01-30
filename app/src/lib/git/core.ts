@@ -200,7 +200,7 @@ function getAskPassScriptPath(): string {
 
 /** Get the environment for authenticating remote operations. */
 export function envForAuthentication(user: User | null): Object {
-  const env: any = {
+  const env = {
     'DESKTOP_PATH': process.execPath,
     'DESKTOP_ASKPASS_SCRIPT': getAskPassScriptPath(),
     'GIT_ASKPASS': getAskPassTrampolinePath(),
