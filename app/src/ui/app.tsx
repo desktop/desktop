@@ -242,7 +242,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!state || state.type !== SelectionType.Repository) { return }
 
     const branchTip = state.state.branchesState.tip
-    if (branchTip.kind !== TipState.Valid) { return }
+    if (branchTip.kind !== TipState.Valid || !branchTip.branch.upstreamWithoutRemote) { return }
 
     const compareURL = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
     this.props.dispatcher.openInBrowser(compareURL)
