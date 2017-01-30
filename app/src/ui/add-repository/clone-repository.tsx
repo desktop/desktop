@@ -7,7 +7,7 @@ import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
-import { getDefaultDir } from '../lib/default-dir'
+import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
 import { Loading } from '../lib/loading'
 import { User } from '../../models/user'
@@ -167,8 +167,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
         const parsedEndpoint = URL.parse(htmlURL)
         return parsedURL.hostname === parsedEndpoint.hostname
       }) || null
-      this.props.dispatcher.clone(url, path, dotComUser)
-      this.props.dispatcher.closePopup()
+      this.cloneImpl(url, path, dotComUser)
       return
     }
 
@@ -179,8 +178,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       const user = await findRepositoryUser(this.props.users, owner, name)
       if (user) {
         const cloneURL = `${getHTMLURL(user.endpoint)}/${url}.git`
-        this.props.dispatcher.clone(cloneURL, path, user)
-        this.props.dispatcher.closePopup()
+        this.cloneImpl(cloneURL, path, user)
       } else {
         this.setState({
           ...this.state,
@@ -196,6 +194,13 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       loading: false,
       error: new Error(`Enter a URL or username/repository.`),
     })
+  }
+
+  private cloneImpl(url: string, path: string, user: User | null) {
+    this.props.dispatcher.clone(url, path, user)
+    this.props.dispatcher.closePopup()
+
+    setDefaultDir(Path.resolve(path, '..'))
   }
 }
 

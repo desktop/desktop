@@ -127,9 +127,12 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private updateMenu(state: IAppState) {
     const selectedState = state.selectedState
+    const isHostedOnGitHub = this.getCurrentRepositoryGitHubUrl() !== null
+
     let onNonDefaultBranch = false
     let onBranch = false
     let hasDefaultBranch = false
+
     if (selectedState && selectedState.type === SelectionType.Repository) {
       const tip = selectedState.state.branchesState.tip
       const defaultBranch = selectedState.state.branchesState.defaultBranch
@@ -154,6 +157,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     setMenuEnabled('delete-branch', onNonDefaultBranch)
     setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
     setMenuEnabled('merge-branch', onBranch)
+    setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -177,6 +181,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
       case 'show-repository-settings' : return this.showRepositorySettings()
+      case 'view-repository-on-github' : return this.viewRepositoryOnGitHub()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -433,6 +438,26 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
     this.props.dispatcher.showPopup({ type: PopupType.RepositorySettings, repository })
+  }
+
+  private viewRepositoryOnGitHub() {
+    const url = this.getCurrentRepositoryGitHubUrl()
+
+    if (url) {
+      this.props.dispatcher.openInBrowser(url)
+      return
+    }
+  }
+
+  /** Returns the URL to the current repository if hosted on GitHub */
+  private getCurrentRepositoryGitHubUrl() {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
+      return null
+    }
+
+    return repository.gitHubRepository.htmlURL
   }
 
   private renderTitlebar() {

@@ -1286,4 +1286,9 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
     return gitStore.setRemoteURL(name, url)
   }
+
+  /** Takes a URL and opens it using the system default application */
+  public _openInBrowser(url: string) {
+    return shell.openExternal(url)
+  }
 }

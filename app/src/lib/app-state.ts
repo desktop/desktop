@@ -98,8 +98,7 @@ export interface IAppError {
 }
 
 export enum PopupType {
-  CreateBranch = 1,
-  AddRepository,
+  AddRepository = 1,
   RenameBranch,
   DeleteBranch,
   ConfirmDiscardChanges,
