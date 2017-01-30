@@ -7,11 +7,13 @@ import { assertNever } from '../../lib/fatal-error'
 import { IRemote } from '../../models/remote'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
+import { Dialog, DialogContent } from '../dialog'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
   readonly remote: IRemote | null
   readonly repository: Repository
+  readonly onDismissed: () => void
 }
 
 enum RepositorySettingsTab {
@@ -33,15 +35,20 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
 
   public render() {
     return (
-      <div id='preferences'>
+      <Dialog
+        id='repository-settings'
+        title={__DARWIN__ ? 'Repository Settings' : 'Repository settings'}
+        onDismissed={this.props.onDismissed}
+      >
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedTab}>
           <span>Remote</span>
           <span>Ignored Files</span>
           <span>Git LFS</span>
         </TabBar>
-
-        {this.renderActiveTab()}
-      </div>
+        <DialogContent>
+          {this.renderActiveTab()}
+        </DialogContent>
+      </Dialog>
     )
   }
 

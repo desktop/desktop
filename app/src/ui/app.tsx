@@ -48,6 +48,7 @@ const dialogPopupTypes = new Set<PopupType>([
   PopupType.ConfirmDiscardChanges,
   PopupType.DeleteBranch,
   PopupType.MergeBranch,
+  PopupType.RepositorySettings,
 ])
 
 interface IAppProps {
@@ -535,6 +536,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         remote={state.remote}
         dispatcher={this.props.dispatcher}
         repository={repository}
+        onDismissed={this.onPopupDismissed}
       />
     }
 
