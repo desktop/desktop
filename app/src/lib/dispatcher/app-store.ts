@@ -1268,8 +1268,10 @@ export class AppStore {
   }
 
   public _setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
-    this.highlightAppMenuToolbarButton = highlight
-    this.emitUpdate()
+    if (this.highlightAppMenuToolbarButton !== highlight) {
+      this.highlightAppMenuToolbarButton = highlight
+      this.emitUpdate()
+    }
 
     return Promise.resolve()
   }
