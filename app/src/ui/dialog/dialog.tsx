@@ -78,6 +78,7 @@ export class Dialog extends React.Component<IDialogProps, void> {
         title={this.props.title}
         dismissable={this.isDismissable()}
         onDismissed={this.onDismiss}
+        type={this.props.type}
       />
     )
   }
