@@ -107,7 +107,7 @@ dialog {
     justify-content: flex-end;
 
     button {
-      margin-right: var(--spacing);
+      margin-right: var(--spacing-half);
 
       &:last-child {
         margin-right: 0;
