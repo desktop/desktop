@@ -11,6 +11,7 @@ import { UndoCommit } from './undo-commit'
 import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocompletionProvider } from '../autocompletion'
 import { ICommitMessage } from '../../lib/app-state'
 import { ClickSource } from '../list'
+import { WorkingDirectoryFileChange } from '../../models/status'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -87,19 +88,19 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     this.props.dispatcher.changeIncludeAllFiles(this.props.repository, selectAll)
   }
 
-  private onDiscardChanges = (path: string) => {
-    const workingDirectory = this.props.changes.workingDirectory
-    const file = workingDirectory.files.find(f => f.path === path)
-
-    if (!file) {
-      console.error('unable to find working directory file to discard ' + path)
-      return
-    }
-
+  private onDiscardChanges = (file: WorkingDirectoryFileChange) => {
     this.props.dispatcher.showPopup({
       type: PopupType.ConfirmDiscardChanges,
       repository: this.props.repository,
       files: [ file ],
+    })
+  }
+
+  private onDiscardAllChanges = (files: ReadonlyArray<WorkingDirectoryFileChange>) => {
+    this.props.dispatcher.showPopup({
+      type: PopupType.ConfirmDiscardChanges,
+      repository: this.props.repository,
+      files,
     })
   }
 
@@ -192,6 +193,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           onIncludeChanged={this.onIncludeChanged}
           onSelectAll={this.onSelectAll}
           onDiscardChanges={this.onDiscardChanges}
+          onDiscardAllChanges={this.onDiscardAllChanges}
           onRowClick={this.onChangedItemClick}
           commitAuthor={this.props.commitAuthor}
           branch={this.props.branch}
