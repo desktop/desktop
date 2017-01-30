@@ -222,3 +222,12 @@ export function envForAuthentication(user: User | null): Object {
     'DESKTOP_ENDPOINT': user.endpoint,
   })
 }
+
+export function expectedAuthenticationErrors(): Set<GitKitchenSinkError> {
+  return new Set([
+      GitKitchenSinkError.HTTPSAuthenticationFailed,
+      GitKitchenSinkError.SSHAuthenticationFailed,
+      GitKitchenSinkError.HTTPSRepositoryNotFound,
+      GitKitchenSinkError.SSHRepositoryNotFound,
+  ])
+}
