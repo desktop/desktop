@@ -187,6 +187,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       {
         id: 'view-repository-on-github',
         label: __DARWIN__ ? 'View on GitHub' : '&View on GitHub',
+        accelerator: 'CmdOrCtrl+Alt+G',
         click: emit('view-repository-on-github'),
       },
       { type: 'separator' },
@@ -220,6 +221,13 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         label: __DARWIN__ ? 'Merge into current branch…' : '&Merge into current branch…',
         id: 'merge-branch',
         click: emit('merge-branch'),
+      },
+      { type: 'separator' },
+      {
+        label: __DARWIN__ ? 'Compare Branch on GitHub' : '&Compare branch on GitHub',
+        id: 'compare-branch',
+        accelerator: 'CmdOrCtrl+Shift+C',
+        click: emit('compare-branch'),
       },
     ],
   })
