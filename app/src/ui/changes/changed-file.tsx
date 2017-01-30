@@ -96,7 +96,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     if (extension.length) {
       items.push({
         label: __DARWIN__ ? `Ignore All ${extension} Files` : `Ignore all ${extension} files`,
-        action: () => this.props.onIgnore(extension),
+        action: () => this.props.onIgnore(`*${extension}`),
       })
     }
 
