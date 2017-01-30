@@ -17,8 +17,18 @@ type DailyStats = { version: string } & ILaunchStats & IDailyMeasures
 export class StatsStore {
   private db: StatsDatabase
 
+  /** Has the user opted out of stats reporting? */
+  private optOut: boolean
+
   public constructor(db: StatsDatabase) {
     this.db = db
+
+    const optOutValue = localStorage.getItem('stats-opt-out')
+    if (optOutValue) {
+      this.optOut = !!parseInt(optOutValue, 10)
+    } else {
+      this.optOut = false
+    }
   }
 
   /** Should the app report its daily stats? */
@@ -39,6 +49,8 @@ export class StatsStore {
 
   /** Report any stats which are eligible for reporting. */
   public async reportStats() {
+    if (this.optOut) { return }
+
     // Never report stats while in dev or test. They could be pretty crazy.
     if (__DEV__ || process.env.TEST_ENV) {
       return
@@ -145,5 +157,12 @@ export class StatsStore {
 
       return db.dailyMeasures.put(newMeasures)
     })
+  }
+
+  /** Set whether the user has opted out of stats reporting. */
+  public setOptOut(optOut: boolean) {
+    this.optOut = optOut
+
+    localStorage.setItem('stats-opt-out', optOut ? '1' : '0')
   }
 }
