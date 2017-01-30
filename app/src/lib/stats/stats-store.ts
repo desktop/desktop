@@ -165,4 +165,9 @@ export class StatsStore {
 
     localStorage.setItem('stats-opt-out', optOut ? '1' : '0')
   }
+
+  /** Has the user opted out of stats reporting? */
+  public getOptOut(): boolean {
+    return this.optOut
+  }
 }
