@@ -119,5 +119,13 @@ dialog {
     }
   }
 
+  // NB: The form component should _probably_ not have a margin
+  // to begin with but without doing a full inventory of where it's
+  // used I feel like it's too risky to remove outright so we'll start
+  // by clearing it in dialogs where we can verify the design holds.
+  .form-component {
+    margin: 0;
+  }
+
   &#rename-branch { min-width: 400px; }
 }
