@@ -1,4 +1,5 @@
 import { Commit } from './commit'
+import { removeRemotePrefix } from '../lib/remove-remote-prefix'
 
 export enum BranchType {
   Local,
@@ -38,6 +39,15 @@ export class Branch {
   }
 
   /**
+   * The name of the branch's upstream without the remote prefix.
+   */
+  public get upstreamWithoutRemote(): string | null {
+    if (!this.upstream) { return null }
+
+    return removeRemotePrefix(this.upstream)
+  }
+
+  /**
    * The name of the branch without the remote prefix. If the branch is a local
    * branch, this is the same as its `name`.
    */
@@ -45,12 +55,8 @@ export class Branch {
     if (this.type === BranchType.Local) {
       return this.name
     } else {
-      const pieces = this.name.match(/.*?\/(.*)/)
-      if (!pieces || pieces.length < 2) {
-         return this.name
-      }
-
-      return pieces[1]
+      const withoutRemote = removeRemotePrefix(this.name)
+      return withoutRemote || this.name
     }
   }
 }
