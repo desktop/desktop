@@ -208,6 +208,21 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
  */
 export function menuFromElectronMenu(menu: Electron.Menu, id?: string): IMenu {
   const items = menu.items.map(menuItemFromElectronMenuItem)
+
+  if(__DEV__) {
+    const seenAccessKeys = new Set<string>()
+
+    for (const item of items) {
+      if (itemMayHaveAccessKey(item) && item.accessKey) {
+        if (seenAccessKeys.has(item.accessKey.toLowerCase())) {
+          throw new Error(`Duplicate access key '${item.accessKey}' for item ${item.label}`)
+        } else {
+          seenAccessKeys.add(item.accessKey.toLowerCase())
+        }
+      }
+    }
+  }
+
   return { id, type: 'menu', items }
 }
 
