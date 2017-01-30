@@ -209,7 +209,7 @@ function menuItemFromElectronMenuItem(menuItem: Electron.MenuItem): MenuItem {
 export function menuFromElectronMenu(menu: Electron.Menu, id?: string): IMenu {
   const items = menu.items.map(menuItemFromElectronMenuItem)
 
-  if(__DEV__) {
+  if (__DEV__) {
     const seenAccessKeys = new Set<string>()
 
     for (const item of items) {
