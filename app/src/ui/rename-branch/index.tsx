@@ -39,7 +39,11 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
   public render() {
     const disabled = !this.state.newName.length
     return (
-      <Dialog id='rename-branch' title='Rename branch' onDismissed={this.cancel}>
+      <Dialog
+        id='rename-branch'
+        title='Rename branch'
+        onDismissed={this.cancel}
+      >
         <Form onSubmit={this.renameBranch}>
           <DialogContent>
             <TextBox
