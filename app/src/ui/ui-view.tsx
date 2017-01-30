@@ -25,9 +25,7 @@ export class UiView extends React.Component<IUiViewProps, void> {
   }
 
   public render() {
-    const needDefaultClass = this.props.className !== uiViewClassName
-    const className = classNames(this.props.className, { [`${uiViewClassName}`]: needDefaultClass })
-
+    const className = classNames(this.props.className, uiViewClassName)
     return <div {...this.props} className={className}>
       {this.props.children}
     </div>
