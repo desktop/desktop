@@ -7,4 +7,5 @@ export type MenuIDs =
   'quit-and-install-update' |
   'preferences' |
   'update-branch' |
-  'merge-branch'
+  'merge-branch' |
+  'open-in-shell'
