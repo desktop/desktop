@@ -41,7 +41,7 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
     return (
       <Dialog
         id='rename-branch'
-        title='Rename branch'
+        title={ __DARWIN__ ? 'Rename Branch' : 'Rename branch'}
         onDismissed={this.cancel}
       >
         <Form onSubmit={this.renameBranch}>
