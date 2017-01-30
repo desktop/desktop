@@ -50,10 +50,13 @@ class ButtonGroupOrderWalker extends Lint.RuleWalker {
 
     const buttons = new Array<ts.JsxOpeningLikeElement>()
 
+    // Assert that only <Button> elements and whitespace are allowed inside
+    // the ButtonGroup.
     for (let i = 0; i < node.children.length; i++) {
       const child = node.children[i]
 
       if (child.kind === ts.SyntaxKind.JsxText) {
+        // Whitespace is okay.
         if (/^\s*$/.test(child.getText())) {
           continue
         }
@@ -79,6 +82,8 @@ class ButtonGroupOrderWalker extends Lint.RuleWalker {
       this.addFailure(this.createFailure(start, width, message))
     }
 
+    // If we've emitted any errors we'll bail here rather than try to emit
+    // any errors with button order.
     if (this.getFailures().length) {
       return
     }
