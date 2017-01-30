@@ -26,7 +26,11 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
   public render() {
     const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
     return (
-      <Dialog title={ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'} onDismissed={this.props.onDismissed}>
+      <Dialog
+        title={ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'}
+        onDismissed={this.props.onDismissed}
+        type='warning'
+      >
         <Form className='discard-changes' onSubmit={this.props.onDismissed}>
           <DialogContent>
             <div>
