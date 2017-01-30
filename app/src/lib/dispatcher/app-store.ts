@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { shell, ipcRenderer } from 'electron'
+import { shell, ipcRenderer, remote } from 'electron'
 import * as Path from 'path'
 import {
   IRepositoryState,
@@ -154,11 +154,6 @@ export class AppStore {
 
     ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
       this.setAppMenu(menu)
-
-      const app = require('electron').remote.app
-
-      const rootDir = app.getAppPath()
-      this.emojiStore.read(rootDir).then(() => this.emitUpdate())
     })
 
     getAppMenu()
@@ -171,6 +166,8 @@ export class AppStore {
       this.emitUpdate()
     })
 
+    const rootDir = remote.app.getAppPath()
+    this.emojiStore.read(rootDir).then(() => this.emitUpdate())
   }
 
   private emitUpdate() {
