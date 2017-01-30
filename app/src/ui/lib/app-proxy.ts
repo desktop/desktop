@@ -3,6 +3,7 @@ import { remote } from 'electron'
 let app: Electron.App | null = null
 let version: string | null = null
 let name: string | null = null
+let path: string | null = null
 
 function getApp(): Electron.App {
   if (!app) {
@@ -36,4 +37,17 @@ export function getName(): string {
   }
 
   return name
+}
+
+/**
+ * Get the name of the app.
+ *
+ * This is preferrable to using `remote` directly because we cache the result.
+ */
+export function getAppPath(): string {
+  if (!path) {
+    path = getApp().getAppPath()
+  }
+
+  return path
 }

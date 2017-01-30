@@ -386,7 +386,7 @@ export class GitStore {
     const remotes = await getRemotes(this.repository)
 
     remotes.forEach(async remote => {
-      await fetchRepo(this.repository, user, remote.name)
+      this.performFailableOperation(() => fetchRepo(this.repository, user, remote.name))
     })
   }
 

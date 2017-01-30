@@ -10,7 +10,7 @@ import { WindowState, getWindowState } from '../lib/window-state'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import { Repository } from '../models/repository'
-import { getDefaultDir } from './lib/default-dir'
+import { getDefaultDir, setDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
 import { sendReady } from './main-process-proxy'
 import { reportError } from '../lib/exception-reporting'
@@ -117,8 +117,7 @@ function openRepository(url: string) {
   if (existingRepository) {
     return dispatcher.selectRepository(existingRepository)
   } else {
-    const lastCloneLocationConfigKey = 'last-clone-location'
-    const cloneLocation = localStorage.getItem(lastCloneLocationConfigKey) || getDefaultDir()
+    const cloneLocation = getDefaultDir()
 
     const defaultName = Path.basename(Url.parse(url)!.path!, '.git')
     const path: string | null = remote.dialog.showSaveDialog({
@@ -127,7 +126,7 @@ function openRepository(url: string) {
     })
     if (!path) { return }
 
-    localStorage.setItem(lastCloneLocationConfigKey, Path.resolve(path, '..'))
+    setDefaultDir(Path.resolve(path, '..'))
 
     // TODO: This isn't quite right. We should probably get the user from the
     // context or URL or something.

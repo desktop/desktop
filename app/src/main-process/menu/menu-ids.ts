@@ -7,4 +7,6 @@ export type MenuIDs =
   'quit-and-install-update' |
   'preferences' |
   'update-branch' |
-  'merge-branch'
+  'merge-branch' |
+  'view-repository-on-github' |
+  'compare-branch'

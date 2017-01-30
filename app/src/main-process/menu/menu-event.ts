@@ -17,4 +17,6 @@ export type MenuEvent =
   'open-working-directory' |
   'update-branch' |
   'merge-branch' |
-  'show-repository-settings'
+  'show-repository-settings' |
+  'view-repository-on-github' |
+  'compare-branch'
