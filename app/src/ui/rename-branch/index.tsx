@@ -54,8 +54,8 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
 
           <DialogFooter>
             <ButtonGroup>
-              <Button onClick={this.cancel}>Cancel</Button>
               <Button type='submit' disabled={disabled}>Rename {this.props.branch.name}</Button>
+              <Button onClick={this.cancel}>Cancel</Button>
             </ButtonGroup>
           </DialogFooter>
         </Form>
