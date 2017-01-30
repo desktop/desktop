@@ -18,4 +18,4 @@ export type MenuEvent =
   'update-branch' |
   'merge-branch' |
   'show-repository-settings' |
-  'open-in-terminal'
+  'open-in-shell'

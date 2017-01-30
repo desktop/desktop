@@ -152,6 +152,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     setMenuEnabled('delete-branch', onNonDefaultBranch)
     setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
     setMenuEnabled('merge-branch', onBranch)
+    setMenuEnabled('open-in-shell', onBranch)
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -175,7 +176,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
       case 'show-repository-settings' : return this.showRepositorySettings()
-      case 'open-in-terminal' : return this.openInTerminal()
+      case 'open-in-shell' : return this.openShell()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -434,7 +435,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.RepositorySettings, repository })
   }
 
-  private openInTerminal() {
+  private openShell() {
     const repository = this.getRepository()
 
     if (!repository || repository instanceof CloningRepository) {
