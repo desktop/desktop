@@ -213,11 +213,13 @@ export function menuFromElectronMenu(menu: Electron.Menu, id?: string): IMenu {
     const seenAccessKeys = new Set<string>()
 
     for (const item of items) {
-      if (itemMayHaveAccessKey(item) && item.accessKey) {
-        if (seenAccessKeys.has(item.accessKey.toLowerCase())) {
-          throw new Error(`Duplicate access key '${item.accessKey}' for item ${item.label}`)
-        } else {
-          seenAccessKeys.add(item.accessKey.toLowerCase())
+      if (item.visible) {
+        if (itemMayHaveAccessKey(item) && item.accessKey) {
+          if (seenAccessKeys.has(item.accessKey.toLowerCase())) {
+            throw new Error(`Duplicate access key '${item.accessKey}' for item ${item.label}`)
+          } else {
+            seenAccessKeys.add(item.accessKey.toLowerCase())
+          }
         }
       }
     }
