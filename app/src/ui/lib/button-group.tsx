@@ -1,11 +1,29 @@
 import * as React from 'react'
 import { Button, IButtonProps } from './button'
 
+/**
+ * A component for rendering primary and secondary buttons in
+ * a dialog, form or foldout in the platform specific order.
+ * 
+ * Ie, on Windows we expect the button order to be Ok, Cancel
+ * whereas on Mac we expect it to be Cancel, Ok. This component,
+ * coupled with the button-group-order tslint rule ensures that
+ * we adhere to platform conventions.
+ * 
+ * See https://www.nngroup.com/articles/ok-cancel-or-cancel-ok/
+ * 
+ * Non-button content in this component is prohibited and will
+ * not render.
+ */
 export class ButtonGroup extends React.Component<void, void> {
   public render() {
 
     const buttons = new Array<React.ReactElement<IButtonProps>>()
 
+    // The 'as any' hack here saddens me but I don't see a way around
+    // it. VSCode insists that `children` is of type {} | undefined whereas
+    // my casual reading of the type declarations says it should be 
+    // React.Node | undefined.
     React.Children.forEach(this.props.children as any, c => {
       if (typeof(c) !== 'string' && typeof(c) !== 'number') {
         if (c.type === Button) {
@@ -14,6 +32,10 @@ export class ButtonGroup extends React.Component<void, void> {
       }
     })
 
+    // Flip the order of the buttons if they don't appear to be
+    // in the correct order. The tslint rule button-group-order
+    // _should_ ensure that it's always Ok, Cancel in markup but
+    // we're a little bit more lax here.
     if (buttons.length > 1) {
       if (__DARWIN__ && buttons[0].props.type === 'submit') {
         buttons.reverse()
