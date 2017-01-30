@@ -200,13 +200,34 @@ function getAskPassScriptPath(): string {
 
 /** Get the environment for authenticating remote operations. */
 export function envForAuthentication(user: User | null): Object {
-  if (!user) { return {} }
-
-  return {
+  const env = {
     'DESKTOP_PATH': process.execPath,
     'DESKTOP_ASKPASS_SCRIPT': getAskPassScriptPath(),
+    'GIT_ASKPASS': getAskPassTrampolinePath(),
+    // supported since Git 2.3, this is used to ensure we never interactively prompt
+    // for credentials - even as a fallback
+    'GIT_TERMINAL_PROMPT': '0',
+    // by setting HOME to an empty value Git won't look at ~ for any global
+    // configuration values. This means we won't accidentally use a
+    // credential.helper value if it's been set by the current user
+    'HOME': '',
+  }
+
+  if (!user) {
+    return env
+  }
+
+  return Object.assign(env, {
     'DESKTOP_USERNAME': user.login,
     'DESKTOP_ENDPOINT': user.endpoint,
-    'GIT_ASKPASS': getAskPassTrampolinePath(),
-  }
+  })
+}
+
+export function expectedAuthenticationErrors(): Set<GitKitchenSinkError> {
+  return new Set([
+      GitKitchenSinkError.HTTPSAuthenticationFailed,
+      GitKitchenSinkError.SSHAuthenticationFailed,
+      GitKitchenSinkError.HTTPSRepositoryNotFound,
+      GitKitchenSinkError.SSHRepositoryNotFound,
+  ])
 }
