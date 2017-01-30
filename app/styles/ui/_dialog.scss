@@ -51,16 +51,38 @@ dialog {
     border-bottom: var(--base-border);
     position: relative;
 
+    // There's at most three elements in the header,
+    //   1. The icon (optional, only for errors, warnings, etc)
+    //   2. The title, a h1 element which is always present if the
+    //      header element is visible
+    //   3. The close button (optional, hidden when dialog isn't dismissable).
+    //
+    // In order to correctly center the title in all scenarios we lay out the
+    // children in a flexbox but we position the icon and close button
+    // absolutely to the left and right side leaving the h1 all available
+    // width. We then add a 40px margin on each side of the h1 ensuring that
+    // even in the scenario where only one of the two optional elements is
+    // visible the h1 stays centered horizontally.
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: center;
     align-items: center;
+
+    svg.icon {
+      position: absolute;
+      left: var(--spacing);
+    }
 
     h1 {
       font-weight: var(--font-weight-light);
       font-size: var(--font-size-md);
-      margin: 0;
+
+      // See comment above. 40px is enough space to clear both the icon
+      // and the close button with their respective margins.
+      margin: 0 40px;
+      text-align: center;
       padding: 0;
+      flex-grow: 1;
     }
 
     button.close {
