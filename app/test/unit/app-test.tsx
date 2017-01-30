@@ -32,13 +32,13 @@ describe('App', () => {
     const issuesDb = new TestIssuesDatabase()
     await issuesDb.reset()
 
-    appStore = new AppStore(new GitHubUserStore(db), new CloningRepositoriesStore(), new EmojiStore(), new IssuesStore(issuesDb))
-
     const statsDb = new TestStatsDatabase()
     await statsDb.reset()
     statsStore = new StatsStore(statsDb)
 
-    dispatcher = new InMemoryDispatcher(appStore, statsStore)
+    appStore = new AppStore(new GitHubUserStore(db), new CloningRepositoriesStore(), new EmojiStore(), new IssuesStore(issuesDb), statsStore)
+
+    dispatcher = new InMemoryDispatcher(appStore)
   })
 
   it('renders', () => {
