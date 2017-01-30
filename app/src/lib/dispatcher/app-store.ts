@@ -170,7 +170,6 @@ export class AppStore {
   }
 
   private emitUpdate() {
-    console.log('emitUpdate')
     if (this.emitQueued) { return }
 
     this.emitQueued = true
