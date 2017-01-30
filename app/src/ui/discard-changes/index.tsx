@@ -5,11 +5,14 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { WorkingDirectoryFileChange } from '../../models/status'
 import { Form } from '../lib/form'
 import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
+  readonly onDismissed: () => void
 }
 
 /**
@@ -23,17 +26,24 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
   public render() {
     const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
     return (
-      <Form className='discard-changes' onSubmit={this.cancel}>
-        <div>{ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'}</div>
-        <div>
-          {this.renderFileList()}
+      <Dialog title={ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'} onDismissed={this.props.onDismissed}>
+        <Form className='discard-changes' onSubmit={this.props.onDismissed}>
+          <DialogContent>
+            <div>
+              {this.renderFileList()}
 
-          <div>Changes can be restored by retrieving them from the {trashName}.</div>
-        </div>
+              <div>Changes can be restored by retrieving them from the {trashName}.</div>
+            </div>
+          </DialogContent>
 
-        <Button type='submit'>Cancel</Button>
-        <Button onClick={this.discard}>{__DARWIN__ ? 'Discard Changes' : 'Discard changes'}</Button>
-      </Form>
+          <DialogFooter>
+            <ButtonGroup>
+              <Button type='submit'>Cancel</Button>
+              <Button onClick={this.discard}>{__DARWIN__ ? 'Discard Changes' : 'Discard changes'}</Button>
+            </ButtonGroup>
+          </DialogFooter>
+        </Form>
+      </Dialog>
     )
   }
 
@@ -56,10 +66,6 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
         </div>
       )
     }
-  }
-
-  private cancel = () => {
-    this.props.dispatcher.closePopup()
   }
 
   private discard = () => {

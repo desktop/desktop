@@ -42,7 +42,11 @@ const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
-const dialogPopupTypes = new Set<PopupType>([ PopupType.Preferences, PopupType.RenameBranch ])
+const dialogPopupTypes = new Set<PopupType>([
+  PopupType.Preferences,
+  PopupType.RenameBranch,
+  PopupType.ConfirmDiscardChanges,
+])
 
 interface IAppProps {
   readonly dispatcher: Dispatcher
@@ -500,7 +504,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     } else if (popup.type === PopupType.ConfirmDiscardChanges) {
       return <DiscardChanges repository={popup.repository}
                              dispatcher={this.props.dispatcher}
-                             files={popup.files}/>
+                             files={popup.files}
+                             onDismissed={this.onPopupDismissed}/>
     } else if (popup.type === PopupType.UpdateAvailable) {
       return <UpdateAvailable dispatcher={this.props.dispatcher}/>
     } else if (popup.type === PopupType.Preferences) {
