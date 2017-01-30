@@ -12,7 +12,9 @@
   // used outside of this scope.
   $blue: #3d76c2;
   $yellow: #d0b44c;
+  $lightYellow: #f6a623;
   $red: #bf2b00;
+  $lightRed: #f04747;
   $green: #6cc644;
   $darkGray: #5f717f;
   $darkerGray: #3b3f46;
@@ -250,4 +252,8 @@
   --error-color: $red;
   --form-error-background: #fddede;
   --form-error-border-color: #d3b2b2;
+
+  /** Dialog */
+  --dialog-warning-color: $lightYellow;
+  --dialog-error-color: $lightRed;
 }
