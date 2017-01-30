@@ -3,7 +3,7 @@ import { CommitMessage } from './commit-message'
 import { ChangedFile } from './changed-file'
 import { List, ClickSource } from '../list'
 
-import { WorkingDirectoryStatus } from '../../models/status'
+import { WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelectionType } from '../../models/diff'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
@@ -23,7 +23,8 @@ interface IChangesListProps {
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
   readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
-  readonly onDiscardChanges: (path: string) => void
+  readonly onDiscardChanges: (file: WorkingDirectoryFileChange) => void
+  readonly onDiscardAllChanges: (files: ReadonlyArray<WorkingDirectoryFileChange>) => void
   readonly branch: string | null
   readonly commitAuthor: CommitIdentity | null
   readonly gitHubUser: IGitHubUser | null
@@ -65,7 +66,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         include={includeAll}
         key={file.id}
         onIncludeChanged={this.props.onIncludeChanged}
-        onDiscardChanges={this.props.onDiscardChanges}
+        onDiscardChanges={this.onDiscardChanges}
+        onDiscardAllChanges={this.onDiscardAllChanges}
         availableWidth={this.props.availableWidth}
       />
     )
@@ -80,6 +82,18 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
     } else {
       return CheckboxValue.Mixed
     }
+  }
+
+  private onDiscardAllChanges = () => {
+    this.props.onDiscardAllChanges(this.props.workingDirectory.files)
+  }
+
+  private onDiscardChanges = (path: string) => {
+    const workingDirectory = this.props.workingDirectory
+    const file = workingDirectory.files.find(f => f.path === path)
+    if (!file) { return }
+
+    this.props.onDiscardChanges(file)
   }
 
   public render() {
