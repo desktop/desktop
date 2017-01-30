@@ -154,6 +154,11 @@ export class AppStore {
 
     ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
       this.setAppMenu(menu)
+
+      const app = require('electron').remote.app
+
+      const rootDir = app.getAppPath()
+      this.emojiStore.read(rootDir).then(() => this.emitUpdate())
     })
 
     getAppMenu()
@@ -166,7 +171,6 @@ export class AppStore {
       this.emitUpdate()
     })
 
-    this.emojiStore.read().then(() => this.emitUpdate())
   }
 
   private emitUpdate() {

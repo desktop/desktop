@@ -82,11 +82,11 @@ export class EmojiStore {
     return this.getEmojiImageUrlFromRelativePath(`unicode/${filename}.png`)
   }
 
-  public read(): Promise<void> {
+  public read(rootDir: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
 
-      const basePath = Path.join(process.cwd(), 'gemoji', 'db')
-      Fs.readFile(Path.join(basePath, 'emoji.json'), 'utf8', (err, data) => {
+      const path = Path.join(rootDir, 'emoji.json')
+      Fs.readFile(path, 'utf8', (err, data) => {
 
         if (err) {
           reject(err)
