@@ -1291,4 +1291,11 @@ export class AppStore {
   public _openInBrowser(url: string) {
     return shell.openExternal(url)
   }
+
+  public async _ignore(repository: Repository, pattern: string): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    await gitStore.ignore(pattern)
+
+    return this._refreshRepository(repository)
+  }
 }

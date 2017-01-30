@@ -479,4 +479,26 @@ export class GitStore {
 
     this.emitUpdate()
   }
+
+  /** Ignore the given path or pattern. */
+  public ignore(pattern: string): Promise<void> {
+    const gitIgnorePath = Path.join(this.repository.path, '.gitignore')
+    return new Promise<void>((resolve, reject) => {
+      Fs.readFile(gitIgnorePath, 'utf8', (err, data) => {
+        if (err) {
+          reject(err)
+          return
+        }
+
+        const newIgnore = `${data}\n${pattern}\n`
+        Fs.writeFile(gitIgnorePath, newIgnore, err => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve()
+          }
+        })
+      })
+    })
+  }
 }

@@ -486,4 +486,9 @@ export class Dispatcher {
   public openInBrowser(url: string) {
     return this.appStore._openInBrowser(url)
   }
+
+  /** Add the pattern to the repository's gitignore. */
+  public ignore(repository: Repository, pattern: string): Promise<void> {
+    return this.appStore._ignore(repository, pattern)
+  }
 }
