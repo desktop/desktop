@@ -90,6 +90,7 @@ export class EmojiStore {
 
         if (err) {
           reject(err)
+          return
         }
 
         const tmp = new Map<string, string>()
