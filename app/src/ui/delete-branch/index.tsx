@@ -20,7 +20,7 @@ export class DeleteBranch extends React.Component<IDeleteBranchProps, void> {
     return (
       <Dialog
         id='delete-branch'
-        title='Delete branch'
+        title={__DARWIN__ ? 'Delete Branch' : 'Delete branch'}
         type='warning'
         onDismissed={this.props.onDismissed}
       >
