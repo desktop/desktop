@@ -82,31 +82,45 @@ export class EmojiStore {
     return this.getEmojiImageUrlFromRelativePath(`unicode/${filename}.png`)
   }
 
-  public read(): Promise<void> {
+  /** Read the stored emoji list from JSON into an in-memory representation.
+   *
+   * @param rootDir - The folder containing the entry point (index.html or main.js) of the application.
+   */
+  public read(rootDir: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      const basePath = process.env.TEST_ENV ? Path.join(__dirname, '..', '..', '..', '..', 'gemoji', 'db') : __dirname
-      Fs.readFile(Path.join(basePath, 'emoji.json'), 'utf8', (err, data) => {
 
-        const db: IGemojiDb = JSON.parse(data)
+      const path = Path.join(rootDir, 'emoji.json')
+      Fs.readFile(path, 'utf8', (err, data) => {
+
+        if (err) {
+          reject(err)
+          return
+        }
+
         const tmp = new Map<string, string>()
 
-        db.forEach(emoji => {
+        try {
+          const db: IGemojiDb = JSON.parse(data)
+          db.forEach(emoji => {
 
-          // Custom emoji don't have a unicode string and are instead stored
-          // on disk as their first alias.
-          const url = emoji.emoji
-            ? this.getUrlFromUnicodeEmoji(emoji.emoji)
-            : this.getEmojiImageUrlFromRelativePath(`${emoji.aliases[0]}.png`)
+            // Custom emoji don't have a unicode string and are instead stored
+            // on disk as their first alias.
+            const url = emoji.emoji
+              ? this.getUrlFromUnicodeEmoji(emoji.emoji)
+              : this.getEmojiImageUrlFromRelativePath(`${emoji.aliases[0]}.png`)
 
-          if (!url) {
-            console.error('Could not calculate location of emoji', emoji)
-            return
-          }
+            if (!url) {
+              console.error('Could not calculate location of emoji', emoji)
+              return
+            }
 
-          emoji.aliases.forEach(alias => {
-            tmp.set(`:${alias}:`, url)
+            emoji.aliases.forEach(alias => {
+              tmp.set(`:${alias}:`, url)
+            })
           })
-        })
+        } catch (e) {
+          reject(e)
+        }
 
         // Sort and insert into actual map
         const keys = Array.from(tmp.keys()).sort()

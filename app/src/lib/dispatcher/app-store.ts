@@ -38,6 +38,7 @@ import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { getAppMenu } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
+import { getAppPath } from '../../ui/lib/app-proxy'
 
 import {
   getGitDir,
@@ -166,7 +167,8 @@ export class AppStore {
       this.emitUpdate()
     })
 
-    this.emojiStore.read().then(() => this.emitUpdate())
+    const rootDir = getAppPath()
+    this.emojiStore.read(rootDir).then(() => this.emitUpdate())
   }
 
   private emitUpdate() {
