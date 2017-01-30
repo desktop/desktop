@@ -84,7 +84,8 @@ export class EmojiStore {
 
   public read(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      const basePath = process.env.TEST_ENV ? Path.join(__dirname, '..', '..', '..', '..', 'gemoji', 'db') : __dirname
+
+      const basePath = Path.join(process.cwd(), 'gemoji', 'db')
       Fs.readFile(Path.join(basePath, 'emoji.json'), 'utf8', (err, data) => {
 
         if (err) {
