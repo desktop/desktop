@@ -144,6 +144,7 @@ app.on('ready', () => {
       return new MenuItem({
         label: item.label,
         click: () => event.sender.send('contextual-menu-action', i),
+        type: item.type,
       })
     })
 
