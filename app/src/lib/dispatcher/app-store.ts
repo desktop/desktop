@@ -39,6 +39,7 @@ import { AppMenu, IMenu } from '../../models/app-menu'
 import { getAppMenu } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
+import { StatsStore, ILaunchStats } from '../stats'
 
 import {
   getGitDir,
@@ -144,11 +145,14 @@ export class AppStore {
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
 
-  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore) {
+  private statsStore: StatsStore
+
+  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
     this.emojiStore = emojiStore
     this._issuesStore = issuesStore
+    this.statsStore = statsStore
 
     const hasShownWelcomeFlow = localStorage.getItem(HasShownWelcomeFlowKey)
     this.showWelcomeFlow = !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
@@ -739,6 +743,8 @@ export class AppStore {
     })
 
     if (result) {
+      this.statsStore.recordCommit()
+
       await this._refreshRepository(repository)
       await this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
     }
@@ -1290,5 +1296,23 @@ export class AppStore {
   /** Takes a URL and opens it using the system default application */
   public _openInBrowser(url: string) {
     return shell.openExternal(url)
+  }
+
+  /** Has the user opted out of stats reporting? */
+  public getStatsOptOut(): boolean {
+    return this.statsStore.getOptOut()
+  }
+
+  /** Set whether the user has opted out of stats reporting. */
+  public _setStatsOptOut(optOut: boolean) {
+    this.statsStore.setOptOut(optOut)
+  }
+
+  public _reportStats() {
+    return this.statsStore.reportStats()
+  }
+
+  public _recordLaunchStats(stats: ILaunchStats): Promise<void> {
+    return this.statsStore.recordLaunchStats(stats)
   }
 }
