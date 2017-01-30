@@ -145,5 +145,21 @@ dialog {
     margin: 0;
   }
 
+  &.warning {
+    &>header {
+      color: var(--dialog-warning-color);
+    }
+
+    border-top: 3px solid var(--dialog-warning-color);
+  }
+
+  &.error {
+    &>header {
+      color: var(--dialog-error-color);
+    }
+
+    border-top: 3px solid var(--dialog-error-color);
+  }
+
   &#rename-branch { min-width: 400px; }
 }
