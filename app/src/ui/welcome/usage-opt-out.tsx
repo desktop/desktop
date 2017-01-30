@@ -5,6 +5,8 @@ import { LinkButton } from '../lib/link-button'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { Form } from '../lib/form'
 import { Button } from '../lib/button'
+import { Row } from '../lib/row'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 const SamplesURL = 'https://desktop.github.com/samples/'
 
@@ -19,7 +21,13 @@ interface IUsageOptOutProps {
 export class UsageOptOut extends React.Component<IUsageOptOutProps, void> {
   public render() {
     return (
-      <Form onSubmit={this.finish}>
+      <Form className='usage-opt-out' onSubmit={this.finish}>
+        <div className='header'>
+          <Octicon className='header-icon' symbol={OcticonSymbol.graph}/>
+          <Octicon className='header-icon' symbol={OcticonSymbol.pulse}/>
+          <Octicon className='header-icon' symbol={OcticonSymbol.radioTower}/>
+        </div>
+
         <div>
           Would you like to help us improve GitHub Desktop by periodically submitting <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>?
         </div>
@@ -30,8 +38,10 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, void> {
           onChange={this.onChange}
         />
 
-        <Button type='submit'>Finish</Button>
-        <Button onClick={this.cancel}>Cancel</Button>
+        <Row>
+          <Button type='submit'>Finish</Button>
+          <Button onClick={this.cancel}>Cancel</Button>
+        </Row>
       </Form>
     )
   }
