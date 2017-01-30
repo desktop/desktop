@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { shell, ipcRenderer, remote } from 'electron'
+import { shell, ipcRenderer } from 'electron'
 import * as Path from 'path'
 import {
   IRepositoryState,
@@ -38,6 +38,7 @@ import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { getAppMenu } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
+import { getAppPath } from '../../ui/lib/app-proxy'
 
 import {
   getGitDir,
@@ -166,7 +167,7 @@ export class AppStore {
       this.emitUpdate()
     })
 
-    const rootDir = remote.app.getAppPath()
+    const rootDir = getAppPath()
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
   }
 
