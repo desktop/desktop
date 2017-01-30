@@ -46,6 +46,7 @@ const dialogPopupTypes = new Set<PopupType>([
   PopupType.Preferences,
   PopupType.RenameBranch,
   PopupType.ConfirmDiscardChanges,
+  PopupType.DeleteBranch,
 ])
 
 interface IAppProps {
@@ -500,7 +501,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     } else if (popup.type === PopupType.DeleteBranch) {
       return <DeleteBranch dispatcher={this.props.dispatcher}
                            repository={popup.repository}
-                           branch={popup.branch}/>
+                           branch={popup.branch}
+                           onDismissed={this.onPopupDismissed}/>
     } else if (popup.type === PopupType.ConfirmDiscardChanges) {
       return <DiscardChanges repository={popup.repository}
                              dispatcher={this.props.dispatcher}
