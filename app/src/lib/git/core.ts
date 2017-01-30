@@ -207,15 +207,10 @@ export function envForAuthentication(user: User | null): Object {
     // supported since Git 2.3, this is used to ensure we never interactively prompt
     // for credentials - even as a fallback
     'GIT_TERMINAL_PROMPT': '0',
-  }
-
-  if (!__DARWIN__) {
     // by setting HOME to an empty value Git won't look at ~ for any global
     // configuration values. This means we won't accidentally use a
     // credential.helper value if it's been set by the current user
-    // Note that we can't do this on macOS since it means AskPass wouldn't be
-    // able to find the user's keychain.
-    env['HOME'] = ''
+    'HOME': '',
   }
 
   if (!user) {
