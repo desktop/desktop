@@ -501,7 +501,7 @@ export class Diff extends React.Component<IDiffProps, void> {
         readOnly: true,
         showCursorWhenSelecting: false,
         cursorBlinkRate: -1,
-        lineWrapping: localStorage.getItem('soft-wrap-is-best-wrap') ? true : false,
+        lineWrapping: true,
         // Make sure CodeMirror doesn't capture Tab and thus destroy tab navigation
         extraKeys: { Tab: false },
         scrollbarStyle: __DARWIN__ ? 'simple' : 'native',
