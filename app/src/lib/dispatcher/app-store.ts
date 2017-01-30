@@ -170,6 +170,7 @@ export class AppStore {
   }
 
   private emitUpdate() {
+    console.log('emitUpdate')
     if (this.emitQueued) { return }
 
     this.emitQueued = true
@@ -1268,8 +1269,10 @@ export class AppStore {
   }
 
   public _setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
-    this.highlightAppMenuToolbarButton = highlight
-    this.emitUpdate()
+    if (this.highlightAppMenuToolbarButton !== highlight) {
+      this.highlightAppMenuToolbarButton = highlight
+      this.emitUpdate()
+    }
 
     return Promise.resolve()
   }
