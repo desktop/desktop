@@ -6,11 +6,14 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
 import { getAheadBehind } from '../../lib/git'
+import { ButtonGroup } from '../lib/button-group'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branches: ReadonlyArray<Branch>
+  readonly onDismissed: () => void
 }
 
 interface IMergeState {
@@ -46,18 +49,26 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     const disabled = !selectedBranch
     const countPlural = this.state.commitCount === 1 ? 'commit' : 'commits'
     return (
-      <Form onSubmit={this.merge}>
-        <Select label='From' onChange={this.onBranchChange} value={selectedValue || undefined}>
-          {this.props.branches.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
-        </Select>
+      <Dialog
+        title={__DARWIN__ ? 'Merge Branch' : 'Merge branch'}
+        onDismissed={this.props.onDismissed}
+      >
+        <Form onSubmit={this.merge}>
+        <DialogContent>
+          <Select label='From' onChange={this.onBranchChange} value={selectedValue || undefined}>
+            {this.props.branches.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
+          </Select>
 
-        <div>This will bring in {this.state.commitCount} {countPlural}.</div>
-
-        <hr/>
-
-        <Button onClick={this.cancel}>Cancel</Button>
-        <Button type='submit' disabled={disabled}>Merge</Button>
-      </Form>
+          <div>This will bring in {this.state.commitCount} {countPlural}.</div>
+        </DialogContent>
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type='submit' disabled={disabled}>Merge</Button>
+            <Button onClick={this.cancel}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
+        </Form>
+      </Dialog>
     )
   }
 

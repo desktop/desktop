@@ -523,6 +523,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         dispatcher={this.props.dispatcher}
         repository={repository}
         branches={state.branchesState.allBranches}
+        onDismissed={this.onPopupDismissed}
       />
     }
     else if (popup.type === PopupType.RepositorySettings) {
