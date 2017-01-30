@@ -7,6 +7,7 @@ import { sanitizedBranchName } from '../create-branch/sanitized-branch-name'
 import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 interface IRenameBranchProps {
@@ -52,8 +53,10 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
           </DialogContent>
 
           <DialogFooter>
-            <Button onClick={this.cancel}>Cancel</Button>
-            <Button type='submit' disabled={disabled}>Rename {this.props.branch.name}</Button>
+            <ButtonGroup>
+              <Button onClick={this.cancel}>Cancel</Button>
+              <Button type='submit' disabled={disabled}>Rename {this.props.branch.name}</Button>
+            </ButtonGroup>
           </DialogFooter>
         </Form>
       </Dialog>
