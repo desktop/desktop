@@ -35,10 +35,10 @@ build_script:
 
 test_script:
   - npm run test:setup
-  - npm test
-
-after_test:
-  - npm run test:review
+  - ./script/test-appveyor.bat
 
 on_success:
   - npm run publish
+
+on_finish:
+  - npm run test:review
