@@ -1304,8 +1304,12 @@ export class AppStore {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public _setStatsOptOut(optOut: boolean) {
+  public _setStatsOptOut(optOut: boolean): Promise<void> {
     this.statsStore.setOptOut(optOut)
+
+    this.emitUpdate()
+
+    return Promise.resolve()
   }
 
   public _reportStats() {
