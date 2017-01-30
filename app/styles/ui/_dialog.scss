@@ -3,10 +3,6 @@ dialog {
   box-shadow: var(--base-box-shadow);
   padding: 0;
 
-  // Ensure a double spacer in between edges of the screen
-  // and the dialog rectangle.
-  margin: var(--spacing-double);
-
   color: var(--text-color);
   background: var(--background-color);
 
