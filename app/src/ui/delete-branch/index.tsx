@@ -18,7 +18,12 @@ interface IDeleteBranchProps {
 export class DeleteBranch extends React.Component<IDeleteBranchProps, void> {
   public render() {
     return (
-      <Dialog id='delete-branch' title='Delete branch' type='warning' onDismissed={this.props.onDismissed}>
+      <Dialog
+        id='delete-branch'
+        title='Delete branch'
+        type='warning'
+        onDismissed={this.props.onDismissed}
+      >
         <Form onSubmit={this.props.onDismissed}>
           <DialogContent>
             <div>Delete branch "{this.props.branch.name}"?</div>
