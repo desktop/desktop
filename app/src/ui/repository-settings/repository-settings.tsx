@@ -110,10 +110,10 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     }
 
     const newRemote = { ...remote, url }
-    this.setState({ ...this.state, remote: newRemote })
+    this.setState({ remote: newRemote })
   }
 
   private onTabClicked = (index: number) => {
-    this.setState({ ...this.state, selectedTab: index })
+    this.setState({ selectedTab: index })
   }
 }
