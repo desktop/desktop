@@ -194,7 +194,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   public render() {
     return (
       <div id='branch-popover'>
-        <div>
+        <div id='branches'>
           <ToggleButton
             className='create-branch'
             onClick={this.onCreateBranchToggle}
@@ -206,30 +206,28 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
             <Octicon className='arrow' symbol={OcticonSymbol.triangleRight} />
           </ToggleButton>
 
-          <div id='branches'>
-            <Row>
-              <TextBox
-                type='search'
-                autoFocus={true}
-                placeholder='Filter'
-                onChange={this.onFilterChanged}
-                onKeyDown={this.onKeyDown}
-                onInputRef={this.onInputRef}/>
-            </Row>
+          <Row>
+            <TextBox
+              type='search'
+              autoFocus={true}
+              placeholder='Filter'
+              onChange={this.onFilterChanged}
+              onKeyDown={this.onKeyDown}
+              onInputRef={this.onInputRef}/>
+          </Row>
 
-            <div className='branches-list-container'>
-              <List
-                rowCount={this.state.branchItems.length}
-                rowRenderer={this.renderRow}
-                rowHeight={RowHeight}
-                selectedRow={this.state.selectedRow}
-                onSelectionChanged={this.onSelectionChanged}
-                onRowClick={this.onRowClick}
-                onRowKeyDown={this.onRowKeyDown}
-                canSelectRow={this.canSelectRow}
-                ref={this.storeListRef}
-                invalidationProps={this.props}/>
-            </div>
+          <div className='branches-list-container'>
+            <List
+              rowCount={this.state.branchItems.length}
+              rowRenderer={this.renderRow}
+              rowHeight={RowHeight}
+              selectedRow={this.state.selectedRow}
+              onSelectionChanged={this.onSelectionChanged}
+              onRowClick={this.onRowClick}
+              onRowKeyDown={this.onRowKeyDown}
+              canSelectRow={this.canSelectRow}
+              ref={this.storeListRef}
+              invalidationProps={this.props}/>
           </div>
         </div>
 
