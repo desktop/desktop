@@ -23,6 +23,7 @@ import {
   getCommits,
   merge,
   setRemoteURL,
+  removeFromIndex,
 } from '../git'
 
 /** The number of commits to load from history per batch. */
@@ -481,7 +482,13 @@ export class GitStore {
   }
 
   /** Ignore the given path or pattern. */
-  public ignore(pattern: string): Promise<void> {
+  public async ignore(pattern: string): Promise<void> {
+    await this.appendToGitIgnore(pattern)
+
+    return removeFromIndex(this.repository, pattern)
+  }
+
+  private appendToGitIgnore(pattern: string): Promise<void> {
     const gitIgnorePath = Path.join(this.repository.path, '.gitignore')
     return new Promise<void>((resolve, reject) => {
       Fs.readFile(gitIgnorePath, 'utf8', (err, data) => {
