@@ -134,6 +134,7 @@ dialog {
 
     button {
       margin-right: var(--spacing-half);
+      min-width: 120px;
 
       &:last-child {
         margin-right: 0;
