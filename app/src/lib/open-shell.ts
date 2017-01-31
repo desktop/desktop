@@ -24,7 +24,7 @@ export function openShell(fullPath: string, shell?: string) {
     }
   }
 
-  const process = spawn(command.name, command.args)
+  const process = spawn(command.name, command.args, { 'shell' : true })
 
   process.stdout.on('data', (data) => {
     console.log(`stdout: ${data}`)
