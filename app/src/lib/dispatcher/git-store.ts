@@ -506,11 +506,25 @@ export class GitStore {
     this.emitUpdate()
   }
 
+  private ensureTrailingNewline(text: string): string {
+    // mixed line endings might be an issue here
+    if (!text.endsWith('\n')) {
+      const linesEndInCRLF = text.indexOf('\r\n')
+      return linesEndInCRLF === -1
+        ? `${text}\n`
+        : `${text}\r\n`
+    } else {
+      return text
+    }
+  }
+
   /** Overwrite the current .gitignore contents (if exists) */
   public async setGitIgnoreText(text: string): Promise<void> {
     const gitIgnorePath = Path.join(this.repository.path, '.gitignore')
+    const fileContents = this.ensureTrailingNewline(text)
+
     return new Promise<void>((resolve, reject) => {
-        Fs.writeFile(gitIgnorePath, text, err => {
+        Fs.writeFile(gitIgnorePath, fileContents, err => {
           if (err) {
             reject(err)
           } else {
