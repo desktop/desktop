@@ -13,9 +13,6 @@ interface IExpandFoldoutButtonProps {
    * If not specified, button state defaults to false (closed).
    */
   readonly expanded?: boolean
-
-  /** The title of the button. */
-  readonly children?: string
 }
 
 /** A button for expanding a section of a foldout. */
