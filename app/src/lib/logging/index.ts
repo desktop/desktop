@@ -8,7 +8,7 @@ require('winston-daily-rotate-file')
 import { ElectronConsole } from './electron-console'
 
 function getFileName(): string {
-  if (process.env.TEST_ENV) {
+  if (process.env.NODE_ENV === 'development') {
     return 'desktop.development.log'
   } else {
     return 'desktop.production.log'
@@ -34,7 +34,7 @@ function createDirectoryIfNotFound(path: string) {
 const filename = getLogFilePath()
 createDirectoryIfNotFound(filename)
 
-if (process.env.TEST_ENV) {
+if (process.env.NODE_ENV === 'development') {
   winston.configure({
     transports: [
       // log everything to the console
