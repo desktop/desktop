@@ -1291,9 +1291,11 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _setGitIgnoreText(repository: Repository, text: string): Promise<void> {
+  public async _setGitIgnoreText(repository: Repository, text: string): Promise<void> {
     const gitStore = this.getGitStore(repository)
-    return gitStore.setGitIgnoreText(text)
+    await gitStore.setGitIgnoreText(text)
+
+    return this._refreshRepository(repository)
   }
 
   /** Takes a URL and opens it using the system default application */
