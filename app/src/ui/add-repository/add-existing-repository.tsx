@@ -59,7 +59,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
     }
   }
 

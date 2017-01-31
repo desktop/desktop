@@ -152,7 +152,7 @@ export class Dispatcher {
     const repositoryIDs = localRepositories.map(r => r.id)
     await this.dispatchToSharedProcess<ReadonlyArray<number>>({ name: 'remove-repositories', repositoryIDs })
 
-    this.showFoldout({ type: FoldoutType.Repository })
+    this.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
   }
 
   /** Refresh the associated GitHub repository. */

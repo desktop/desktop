@@ -120,15 +120,13 @@ export enum FoldoutType {
   Branch,
   AppMenu,
   Publish,
-  AddRepository,
 }
 
 export type Foldout =
-  { type: FoldoutType.Repository } |
+  { type: FoldoutType.Repository, expandAddRepository: boolean } |
   { type: FoldoutType.Branch, expandCreateForm?: boolean } |
   { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } |
-  { type: FoldoutType.Publish } |
-  { type: FoldoutType.AddRepository }
+  { type: FoldoutType.Publish }
 
 export enum RepositorySection {
   Changes,

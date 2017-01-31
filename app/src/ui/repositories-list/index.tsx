@@ -22,8 +22,8 @@ interface IRepositoriesListProps {
   /** The logged in users. */
   readonly users: ReadonlyArray<User>
 
-  /** Should the Add Repository foldout be shown? */
-  readonly showAddRepository: boolean
+  /** Should the Add Repository foldout be expanded? */
+  readonly expandAddRepository: boolean
 }
 
 interface IRepositoriesListState {
@@ -135,17 +135,13 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
   }
 
   private renderAddRepository() {
-    if (!this.props.showAddRepository) { return null }
+    if (!this.props.expandAddRepository) { return null }
 
     return <AddRepository dispatcher={this.props.dispatcher} users={this.props.users}/>
   }
 
   private onAddRepositoryBranchToggle = () => {
-    if (this.props.showAddRepository) {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
-    } else {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.AddRepository })
-    }
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: !this.props.expandAddRepository })
   }
 
   public render() {
@@ -162,7 +158,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
         <div id='repositories'>
           <ExpandFoldoutButton
             onClick={this.onAddRepositoryBranchToggle}
-            expanded={this.props.showAddRepository}>
+            expanded={this.props.expandAddRepository}>
             {__DARWIN__ ? 'Add Repository' : 'Add repository'}
           </ExpandFoldoutButton>
 

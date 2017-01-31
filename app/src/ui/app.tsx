@@ -179,7 +179,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'check-for-updates': return this.checkForUpdates()
       case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
       case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
-      case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+      case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
       case 'open-working-directory': return this.openWorkingDirectory()
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
@@ -285,7 +285,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private addRepository() {
     this.props.dispatcher.showFoldout({
-      type: FoldoutType.AddRepository,
+      type: FoldoutType.Repository,
+      expandAddRepository: true,
     })
   }
 
@@ -663,7 +664,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepositoryList = (): JSX.Element => {
     const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
-    const showAddRepository = !!this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AddRepository
+    const foldout = this.state.currentFoldout
+    const expandAddRepository = !!foldout && foldout.type === FoldoutType.Repository && foldout.expandAddRepository
     return <RepositoriesList
       selectedRepository={selectedRepository}
       onSelectionChanged={this.onSelectionChanged}
@@ -671,13 +673,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       repositories={this.state.repositories}
       loading={this.state.loading}
       users={this.state.users}
-      showAddRepository={showAddRepository}
+      expandAddRepository={expandAddRepository}
     />
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
     newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
       : this.props.dispatcher.closeFoldout()
   }
 
@@ -696,9 +698,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       title = 'Select a repository'
     }
 
-    const isOpen = this.state.currentFoldout &&
-      (this.state.currentFoldout.type === FoldoutType.Repository ||
-       this.state.currentFoldout.type === FoldoutType.AddRepository)
+    const isOpen = this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Repository
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
