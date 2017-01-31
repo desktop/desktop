@@ -21,6 +21,10 @@
 
     min-width: inherit;
 
+    border-right: var(--box-border-color);
+    border-right-width: 1px;
+    border-right-style: solid;
+
     .filter-field {
       padding-left: var(--spacing);
       padding-right: var(--spacing);
@@ -34,9 +38,7 @@
      * and one <div class='name'> holding the repository name.
      */
     .repository-list-item {
-
-      // 20px offset from the window edge
-      padding: 0 5px 0 20px;
+      padding: 0 var(--spacing-half) 0 var(--spacing-double);
 
       // Layout the icon and repository name horizontally
       display: flex;
@@ -51,7 +53,7 @@
 
       .octicon {
         // Some room between the icon and repository name
-        margin-right: 5px;
+        margin-right: var(--spacing-half);
 
         // Always let the octicon dictate the amount of space it needs
         flex-shrink: 0;
@@ -65,7 +67,7 @@
 
     .repository-group-label {
       opacity: 0.6;
-      padding: 0 5px 0 20px;
+      padding: 0 var(--spacing-half) 0 var(--spacing-double);
       margin-top: var(--spacing);
     }
   }
