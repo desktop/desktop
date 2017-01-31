@@ -1202,7 +1202,7 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public _setBranchesPopoverState(repository: Repository, showCreateBranchForm: boolean) {
+  public _setBranchesFlyoutState(repository: Repository, showCreateBranchForm: boolean) {
     this.updateBranchesState(repository, state => (
       {
         tip: state.tip,

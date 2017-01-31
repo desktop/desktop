@@ -270,7 +270,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (expandCreateForm) {
       const repository = state.repository
-      this.props.dispatcher.setBranchesPopoverState(repository, expandCreateForm)
+      this.props.dispatcher.setBranchesFoldoutState(repository, expandCreateForm)
     }
 
     this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
