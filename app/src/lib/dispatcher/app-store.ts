@@ -38,6 +38,7 @@ import { formatCommitMessage } from '../format-commit-message'
 import { AppMenu, IMenu } from '../../models/app-menu'
 import { getAppMenu } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
+import { getAppPath } from '../../ui/lib/app-proxy'
 
 import {
   getGitDir,
@@ -166,7 +167,8 @@ export class AppStore {
       this.emitUpdate()
     })
 
-    this.emojiStore.read().then(() => this.emitUpdate())
+    const rootDir = getAppPath()
+    this.emojiStore.read(rootDir).then(() => this.emitUpdate())
   }
 
   private emitUpdate() {
@@ -1014,7 +1016,7 @@ export class AppStore {
   }
 
   public async _push(repository: Repository): Promise<void> {
-    await this.withPushPull(repository, async () => {
+    return this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remote
       if (!remote) {
@@ -1036,16 +1038,14 @@ export class AppStore {
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
         const user = this.getUserForRepository(repository)
-        await gitStore.performFailableOperation(() => {
+        return gitStore.performFailableOperation(() => {
           const setUpstream = branch.upstream ? false : true
           return pushRepo(repository, user, remote.name, branch.name, setUpstream)
+            .then(() => this._refreshRepository(repository))
+            .then(() => this.fetch(repository))
         })
       }
     })
-
-    this._refreshRepository(repository)
-
-    return this.fetch(repository)
   }
 
   private async withPushPull(repository: Repository, fn: () => Promise<void>): Promise<void> {
@@ -1062,7 +1062,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _pull(repository: Repository): Promise<void> {
-    await this.withPushPull(repository, async () => {
+    return this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remote
       if (!remote) {
@@ -1082,13 +1082,11 @@ export class AppStore {
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
         const user = this.getUserForRepository(repository)
-        await gitStore.performFailableOperation(() => pullRepo(repository, user, remote.name, branch.name))
+        return gitStore.performFailableOperation(() => pullRepo(repository, user, remote.name, branch.name))
+          .then(() => this._refreshRepository(repository))
+          .then(() => this.fetch(repository))
       }
     })
-
-    this._refreshRepository(repository)
-
-    return this.fetch(repository)
   }
 
   private async fastForwardBranches(repository: Repository) {
@@ -1284,8 +1282,10 @@ export class AppStore {
   }
 
   public _setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
-    this.highlightAppMenuToolbarButton = highlight
-    this.emitUpdate()
+    if (this.highlightAppMenuToolbarButton !== highlight) {
+      this.highlightAppMenuToolbarButton = highlight
+      this.emitUpdate()
+    }
 
     return Promise.resolve()
   }
@@ -1301,5 +1301,10 @@ export class AppStore {
   public _setRemoteURL(repository: Repository, name: string, url: string): Promise<void> {
     const gitStore = this.getGitStore(repository)
     return gitStore.setRemoteURL(name, url)
+  }
+
+  /** Takes a URL and opens it using the system default application */
+  public _openInBrowser(url: string) {
+    return shell.openExternal(url)
   }
 }

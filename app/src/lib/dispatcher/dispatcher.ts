@@ -486,4 +486,9 @@ export class Dispatcher {
   public setRemoteURL(repository: Repository, name: string, url: string): Promise<void> {
     return this.appStore._setRemoteURL(repository, name, url)
   }
+
+  /** Open the URL in a browser */
+  public openInBrowser(url: string) {
+    return this.appStore._openInBrowser(url)
+  }
 }

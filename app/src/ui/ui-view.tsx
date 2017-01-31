@@ -1,4 +1,5 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
 
 const uiViewClassName = 'ui-view'
 
@@ -24,14 +25,8 @@ export class UiView extends React.Component<IUiViewProps, void> {
   }
 
   public render() {
-
-    // TODO: If this gets more complex, consider using something like
-    // https://github.com/JedWatson/classnames
-    if (this.props.className !== 'ui-view') {
-      this.props.className += ` ${uiViewClassName}`
-    }
-
-    return <div {...this.props}>
+    const className = classNames(this.props.className, uiViewClassName)
+    return <div {...this.props} className={className}>
       {this.props.children}
     </div>
   }

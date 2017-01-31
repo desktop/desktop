@@ -11,7 +11,6 @@ import { MenuEvent, MenuIDs } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
 import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
 import { Popuppy } from './popuppy'
-import { CreateBranch } from './create-branch'
 import { Branches } from './branches'
 import { AddRepository } from './add-repository'
 import { RenameBranch } from './rename-branch'
@@ -125,12 +124,17 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private updateMenu(state: IAppState) {
     const selectedState = state.selectedState
+    const isHostedOnGitHub = this.getCurrentRepositoryGitHubURL() !== null
+
     let onNonDefaultBranch = false
     let onBranch = false
     let hasDefaultBranch = false
+    let hasPublishedBranch = false
+
     if (selectedState && selectedState.type === SelectionType.Repository) {
-      const tip = selectedState.state.branchesState.tip
-      const defaultBranch = selectedState.state.branchesState.defaultBranch
+      const branchesState = selectedState.state.branchesState
+      const tip = branchesState.tip
+      const defaultBranch = branchesState.defaultBranch
 
       hasDefaultBranch = Boolean(defaultBranch)
 
@@ -141,8 +145,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       //  2. on an unborn branch, or
       //  3. on a detached HEAD
       // there's not much we can do.
-      if (tip.kind === TipState.Valid && defaultBranch !== null) {
-        onNonDefaultBranch = tip.branch.name !== defaultBranch.name
+      if (tip.kind === TipState.Valid) {
+        if (defaultBranch !== null) {
+          onNonDefaultBranch = tip.branch.name !== defaultBranch.name
+        }
+
+        hasPublishedBranch = !!tip.branch.upstream
       } else {
         onNonDefaultBranch = true
       }
@@ -152,6 +160,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     setMenuEnabled('delete-branch', onNonDefaultBranch)
     setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
     setMenuEnabled('merge-branch', onBranch)
+    setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
+    setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -175,6 +185,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
       case 'show-repository-settings' : return this.showRepositorySettings()
+      case 'view-repository-on-github' : return this.viewRepositoryOnGitHub()
+      case 'compare-branch': return this.compareBranch()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -220,6 +232,20 @@ export class App extends React.Component<IAppProps, IAppState> {
       type: PopupType.MergeBranch,
       repository: state.repository,
     })
+  }
+
+  private compareBranch() {
+    const htmlURL = this.getCurrentRepositoryGitHubURL()
+    if (!htmlURL) { return }
+
+    const state = this.state.selectedState
+    if (!state || state.type !== SelectionType.Repository) { return }
+
+    const branchTip = state.state.branchesState.tip
+    if (branchTip.kind !== TipState.Valid || !branchTip.branch.upstreamWithoutRemote) { return }
+
+    const compareURL = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
+    this.props.dispatcher.openInBrowser(compareURL)
   }
 
   private openWorkingDirectory() {
@@ -438,6 +464,26 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({ type: PopupType.RepositorySettings, repository })
   }
 
+  private viewRepositoryOnGitHub() {
+    const url = this.getCurrentRepositoryGitHubURL()
+
+    if (url) {
+      this.props.dispatcher.openInBrowser(url)
+      return
+    }
+  }
+
+  /** Returns the URL to the current repository if hosted on GitHub */
+  private getCurrentRepositoryGitHubURL() {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
+      return null
+    }
+
+    return repository.gitHubRepository.htmlURL
+  }
+
   private renderTitlebar() {
     const winControls = __WIN32__
       ? <WindowControls />
@@ -457,20 +503,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const popup = this.state.currentPopup
     if (!popup) { return null }
 
-    if (popup.type === PopupType.CreateBranch) {
-      const repository = popup.repository
-      const state = this.props.appStore.getRepositoryState(repository)
-
-      const tip = state.branchesState.tip
-      const currentBranch = tip.kind === TipState.Valid
-        ? tip.branch
-        : null
-
-      return <CreateBranch repository={repository}
-                           dispatcher={this.props.dispatcher}
-                           branches={state.branchesState.allBranches}
-                           currentBranch={currentBranch}/>
-    } else if (popup.type === PopupType.AddRepository) {
+    if (popup.type === PopupType.AddRepository) {
       const state = this.props.appStore.getState()
       return <AddRepository
         dispatcher={this.props.dispatcher}

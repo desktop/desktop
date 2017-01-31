@@ -1,4 +1,4 @@
-import { git, envForAuthentication } from './core'
+import { git, envForAuthentication, expectedAuthenticationErrors } from './core'
 import { Repository } from '../../models/repository'
 import { User } from '../../models/user'
 
@@ -9,5 +9,16 @@ export async function push(repository: Repository, user: User | null, remote: st
     args.push('--set-upstream')
   }
 
-  await git(args, repository.path, 'push', { env: envForAuthentication(user) })
+  const options = {
+    env: envForAuthentication(user),
+    expectedErrors: expectedAuthenticationErrors(),
+  }
+
+  const result = await git(args, repository.path, 'push', options)
+
+  if (result.gitErrorDescription) {
+    return Promise.reject(new Error(result.gitErrorDescription))
+  }
+
+  return Promise.resolve()
 }

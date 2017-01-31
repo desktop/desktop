@@ -98,8 +98,7 @@ export interface IAppError {
 }
 
 export enum PopupType {
-  CreateBranch = 1,
-  AddRepository,
+  AddRepository = 1,
   RenameBranch,
   DeleteBranch,
   ConfirmDiscardChanges,
@@ -109,8 +108,7 @@ export enum PopupType {
   RepositorySettings,
 }
 
-export type Popup = { type: PopupType.CreateBranch, repository: Repository } |
-                    { type: PopupType.AddRepository } |
+export type Popup = { type: PopupType.AddRepository } |
                     { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.DeleteBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> } |
