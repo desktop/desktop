@@ -219,6 +219,7 @@ export class AppStore {
       remote: null,
       pushPullInProgress: false,
       lastFetched: null,
+      gitIgnoreText: null,
     }
   }
 
@@ -336,6 +337,7 @@ export class AppStore {
         aheadBehind: gitStore.aheadBehind,
         remote: gitStore.remote,
         lastFetched: gitStore.lastFetched,
+        gitIgnoreText: gitStore.gitIgnoreText,
       }
     ))
 
@@ -832,6 +834,7 @@ export class AppStore {
     gitStore.loadCurrentRemote()
     gitStore.calculateAheadBehindForCurrentBranch()
     gitStore.updateLastFetched()
+    gitStore.updateGitIgnoreText()
 
     // When refreshing we *always* load Changes so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
@@ -1285,6 +1288,12 @@ export class AppStore {
   public _setRemoteURL(repository: Repository, name: string, url: string): Promise<void> {
     const gitStore = this.getGitStore(repository)
     return gitStore.setRemoteURL(name, url)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _setGitIgnoreText(repository: Repository, text: string): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.setGitIgnoreText(text)
   }
 
   /** Takes a URL and opens it using the system default application */

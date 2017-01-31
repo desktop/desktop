@@ -71,6 +71,8 @@ export class GitStore {
 
   private _lastFetched: Date | null = null
 
+  private _gitIgnoreText: string | null = null
+
   public constructor(repository: Repository) {
     this.repository = repository
   }
@@ -467,6 +469,30 @@ export class GitStore {
     })
   }
 
+  /** The current contents of the .gitignore file at the root of the repository */
+  public get gitIgnoreText(): string | null { return this._gitIgnoreText }
+
+  /** Update the currently stored gitignore text. */
+  public updateGitIgnoreText(): Promise<void> {
+    const path = Path.join(this.repository.path, '.gitignore')
+    return new Promise<void>((resolve, reject) => {
+      Fs.readFile(path, 'utf8', (err, data) => {
+        if (err) {
+          // An error most likely means the repository's never been published.
+          this._gitIgnoreText = null
+        } else if (data.length > 0) {
+          // If the file's empty then it _probably_ means the fetch failed and we
+          // shouldn't update the last fetched date.
+          this._gitIgnoreText = data
+        }
+
+        resolve()
+
+        this.emitUpdate()
+      })
+    })
+  }
+
   /** Merge the named branch into the current branch. */
   public merge(branch: string): Promise<void> {
     return this.performFailableOperation(() => merge(this.repository, branch))
@@ -478,5 +504,19 @@ export class GitStore {
     await this.loadCurrentRemote()
 
     this.emitUpdate()
+  }
+
+  /** Overwrite the current .gitignore contents (if exists) */
+  public async setGitIgnoreText(text: string): Promise<void> {
+    const gitIgnorePath = Path.join(this.repository.path, '.gitignore')
+    return new Promise<void>((resolve, reject) => {
+        Fs.writeFile(gitIgnorePath, text, err => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve()
+          }
+        })
+     })
   }
 }

@@ -540,6 +540,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         remote={state.remote}
         dispatcher={this.props.dispatcher}
         repository={repository}
+        gitIgnoreText={state.gitIgnoreText}
       />
     }
 

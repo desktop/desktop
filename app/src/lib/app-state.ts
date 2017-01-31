@@ -177,6 +177,9 @@ export interface IRepositoryState {
 
   /** The date the repository was last fetched. */
   readonly lastFetched: Date | null
+
+  /** The current text of the gitignore file at the root of the repository */
+  readonly gitIgnoreText: string | null
 }
 
 export interface IBranchesState {
