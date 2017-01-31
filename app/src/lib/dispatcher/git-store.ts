@@ -485,9 +485,14 @@ export class GitStore {
     const gitIgnorePath = Path.join(this.repository.path, '.gitignore')
     return new Promise<void>((resolve, reject) => {
       Fs.readFile(gitIgnorePath, 'utf8', (err, data) => {
-        if (err) {
+        const doesNotExist = !!err && err.code === 'ENOENT'
+        if (err && !doesNotExist) {
           reject(err)
           return
+        }
+
+        if (!data) {
+          data = ''
         }
 
         const newIgnore = `${data}\n${pattern}\n`
