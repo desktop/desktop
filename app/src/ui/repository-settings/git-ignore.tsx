@@ -27,6 +27,12 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, IGitIgnoreState>
   }
 
   public render() {
+
+    const existing = this.props.text
+    const current = this.state.text
+    // disable the submit button if the gitignore text isn't changed
+    const disabled = existing !== null && current === existing
+
     return (
       <Form>
         <div>Ignored files (.gitignore)</div>
@@ -38,7 +44,7 @@ export class GitIgnore extends React.Component<IGitIgnoreProps, IGitIgnoreState>
 
         <hr/>
 
-        <Button type='submit' onClick={this.save}>Save</Button>
+        <Button type='submit' onClick={this.save} disabled={disabled}>Save</Button>
         <Button onClick={this.close}>Cancel</Button>
       </Form>
     )
