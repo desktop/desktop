@@ -20,11 +20,7 @@ export class ButtonGroup extends React.Component<void, void> {
 
     const buttons = new Array<React.ReactElement<IButtonProps>>()
 
-    // The 'as any' hack here saddens me but I don't see a way around
-    // it. VSCode insists that `children` is of type {} | undefined whereas
-    // my casual reading of the type declarations says it should be 
-    // React.Node | undefined.
-    React.Children.forEach(this.props.children as any, c => {
+    React.Children.forEach(this.props.children, c => {
       if (typeof(c) !== 'string' && typeof(c) !== 'number') {
         if (c.type === Button) {
           buttons.push(c as React.ReactElement<IButtonProps>)
