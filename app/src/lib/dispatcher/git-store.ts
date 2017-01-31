@@ -385,9 +385,9 @@ export class GitStore {
   public async fetch(user: User | null): Promise<void> {
     const remotes = await getRemotes(this.repository)
 
-    remotes.forEach(async remote => {
-      await fetchRepo(this.repository, user, remote.name)
-    })
+    for (const remote of remotes) {
+      await this.performFailableOperation(() => fetchRepo(this.repository, user, remote.name))
+    }
   }
 
   /** Calculate the ahead/behind for the current branch. */

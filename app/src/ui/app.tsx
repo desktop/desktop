@@ -123,15 +123,17 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private updateMenu(state: IAppState) {
     const selectedState = state.selectedState
-    const isHostedOnGitHub = this.getCurrentRepositoryGitHubUrl() !== null
+    const isHostedOnGitHub = this.getCurrentRepositoryGitHubURL() !== null
 
     let onNonDefaultBranch = false
     let onBranch = false
     let hasDefaultBranch = false
+    let hasPublishedBranch = false
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
-      const tip = selectedState.state.branchesState.tip
-      const defaultBranch = selectedState.state.branchesState.defaultBranch
+      const branchesState = selectedState.state.branchesState
+      const tip = branchesState.tip
+      const defaultBranch = branchesState.defaultBranch
 
       hasDefaultBranch = Boolean(defaultBranch)
 
@@ -142,8 +144,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       //  2. on an unborn branch, or
       //  3. on a detached HEAD
       // there's not much we can do.
-      if (tip.kind === TipState.Valid && defaultBranch !== null) {
-        onNonDefaultBranch = tip.branch.name !== defaultBranch.name
+      if (tip.kind === TipState.Valid) {
+        if (defaultBranch !== null) {
+          onNonDefaultBranch = tip.branch.name !== defaultBranch.name
+        }
+
+        hasPublishedBranch = !!tip.branch.upstream
       } else {
         onNonDefaultBranch = true
       }
@@ -154,6 +160,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
     setMenuEnabled('merge-branch', onBranch)
     setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
+    setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -178,6 +185,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'merge-branch': return this.mergeBranch()
       case 'show-repository-settings' : return this.showRepositorySettings()
       case 'view-repository-on-github' : return this.viewRepositoryOnGitHub()
+      case 'compare-branch': return this.compareBranch()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -223,6 +231,20 @@ export class App extends React.Component<IAppProps, IAppState> {
       type: PopupType.MergeBranch,
       repository: state.repository,
     })
+  }
+
+  private compareBranch() {
+    const htmlURL = this.getCurrentRepositoryGitHubURL()
+    if (!htmlURL) { return }
+
+    const state = this.state.selectedState
+    if (!state || state.type !== SelectionType.Repository) { return }
+
+    const branchTip = state.state.branchesState.tip
+    if (branchTip.kind !== TipState.Valid || !branchTip.branch.upstreamWithoutRemote) { return }
+
+    const compareURL = `${htmlURL}/compare/${branchTip.branch.upstreamWithoutRemote}`
+    this.props.dispatcher.openInBrowser(compareURL)
   }
 
   private openWorkingDirectory() {
@@ -437,7 +459,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private viewRepositoryOnGitHub() {
-    const url = this.getCurrentRepositoryGitHubUrl()
+    const url = this.getCurrentRepositoryGitHubURL()
 
     if (url) {
       this.props.dispatcher.openInBrowser(url)
@@ -446,7 +468,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   /** Returns the URL to the current repository if hosted on GitHub */
-  private getCurrentRepositoryGitHubUrl() {
+  private getCurrentRepositoryGitHubURL() {
     const repository = this.getRepository()
 
     if (!repository || repository instanceof CloningRepository || !repository.gitHubRepository) {
