@@ -37,18 +37,7 @@ createDirectoryIfNotFound(filename)
 if (process.env.NODE_ENV === 'development') {
   winston.configure({
     transports: [
-      // log everything to the console
       new ElectronConsole(),
-      // TODO: remove this after testing
-      new winston.transports.DailyRotateFile({
-        filename,
-        humanReadableUnhandledException: true,
-        handleExceptions: true,
-        json: false,
-        datePattern: 'yyyy-MM-dd.',
-        prepend: true,
-        level: 'debug',
-      }),
     ],
   })
 } else {
