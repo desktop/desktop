@@ -170,7 +170,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       { type: 'separator' },
       {
-        label: __DARWIN__ ? 'Push' : 'Pu&sh',
+        label: __DARWIN__ ? 'Push' : 'P&ush',
         accelerator: 'CmdOrCtrl+P',
         click: emit('push'),
       },
@@ -187,12 +187,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       {
         id: 'view-repository-on-github',
         label: __DARWIN__ ? 'View on GitHub' : '&View on GitHub',
-        accelerator: 'CmdOrCtrl+Option+G',
+        accelerator: 'CmdOrCtrl+Alt+G',
         click: emit('view-repository-on-github'),
       },
       { type: 'separator' },
       {
-        label: __DARWIN__ ? 'Repository Settings' : '&Repository settings',
+        label: __DARWIN__ ? 'Repository Settings…' : 'Repository &settings…',
         click: emit('show-repository-settings'),
       },
     ],
