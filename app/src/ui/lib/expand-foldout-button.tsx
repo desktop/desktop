@@ -26,12 +26,13 @@ export class ExpandFoldoutButton extends React.Component<IExpandFoldoutButtonPro
         className='expand-foldout-button'
         onClick={this.props.onClick}
         checked={this.props.expanded}>
-        <div className='label'>
-          <Octicon className='plus' symbol={OcticonSymbol.plus} />
-          <div>{this.props.children}</div>
-        </div>
+        <Octicon className='plus' symbol={OcticonSymbol.plus} />
 
-        <Octicon className='arrow' symbol={OcticonSymbol.triangleRight} />
+        <div>{this.props.children}</div>
+
+        <div className='right-edge'>
+          <Octicon className='arrow' symbol={OcticonSymbol.triangleRight} />
+        </div>
       </ToggleButton>
     )
   }

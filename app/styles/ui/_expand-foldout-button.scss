@@ -1,20 +1,25 @@
 .expand-foldout-button {
+  display: flex;
+
   height: 40px;
   width: 100%;
   margin-bottom: var(--spacing);
+
   border-radius: 0px;
+  border-width: 0px;
 
-  .label {
+  .plus {
+    margin-right: var(--spacing-half);
+  }
+
+  .right-edge {
     display: flex;
-    float: left;
-
-    .plus {
-      margin-right: var(--spacing-half);
-    }
+    flex-direction: column;
+    flex-grow: 1;
   }
 
   .arrow {
-    float: right;
+    align-self: flex-end;
   }
 
   &.checked {
