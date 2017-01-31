@@ -18,11 +18,23 @@ export function openShell(fullPath: string, shell?: string) {
       break
     }
     case 'win32': {
-      command.name = 'start'
-      command.args = [ '/D', '"%cd%"', shell || 'cmd', fullPath ]
+      command.name = 'cmd.exe'
+      command.args = [ '/D', `"${fullPath}"` , 'title', 'GitHub Desktop' ]
       break
     }
   }
 
-  return spawn(command.name, command.args)
+  const process = spawn(command.name, command.args)
+
+  process.stdout.on('data', (data) => {
+    console.log(`stdout: ${data}`)
+  })
+
+  process.stderr.on('data', (data) => {
+    console.log(`stderr: ${data}`)
+  })
+
+  process.on('close', (code) => {
+    console.log(`process exited with code ${code}`)
+  })
 }
