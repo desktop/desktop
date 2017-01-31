@@ -355,7 +355,7 @@ export class Dispatcher {
 
   /** Update the branches foldout to indicate whether the create branch form should be displayed. */
   public setBranchesFoldoutState(repository: Repository, showCreateForm: boolean) {
-    return this.appStore._setBranchesFlyoutState(repository, showCreateForm)
+    return this.appStore._setBranchesFoldoutState(repository, showCreateForm)
   }
 
   /**
