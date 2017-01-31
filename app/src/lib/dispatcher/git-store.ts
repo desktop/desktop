@@ -516,6 +516,8 @@ export class GitStore {
           } else {
             resolve()
           }
+
+          this.emitUpdate()
         })
      })
   }
