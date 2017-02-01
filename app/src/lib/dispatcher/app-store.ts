@@ -1298,7 +1298,7 @@ export class AppStore {
   public _openShell(path: string) {
     return openShell(path)
   }
-  
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _setGitIgnoreText(repository: Repository, text: string): Promise<void> {
     const gitStore = this.getGitStore(repository)
