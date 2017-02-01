@@ -161,7 +161,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     setMenuEnabled('merge-branch', onBranch)
     setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
     setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
-    setMenuEnabled('open-in-shell', onBranch) 
+    setMenuEnabled('open-in-shell', onBranch)
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -492,7 +492,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.props.dispatcher.openShell(repoFilePath)
   }
-  
+
   private renderTitlebar() {
     const winControls = __WIN32__
       ? <WindowControls />
