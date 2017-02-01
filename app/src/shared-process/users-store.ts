@@ -1,6 +1,6 @@
 import { IDataStore, ISecureStore } from './stores'
 import { getKeyForUser } from '../lib/auth'
-import { User } from '../models/user'
+import { User, IUser } from '../models/user'
 
 export class UsersStore {
   private dataStore: IDataStore
@@ -53,7 +53,7 @@ export class UsersStore {
       return
     }
 
-    const rawUsers: any[] = JSON.parse(raw)
+    const rawUsers: ReadonlyArray<IUser> = JSON.parse(raw)
     const usersWithTokens = rawUsers.map(user => {
       const userWithoutToken = new User(user.login, user.endpoint, '', user.email, user.avatarURL, user.id)
       const token = this.secureStore.getItem(getKeyForUser(userWithoutToken), user.login)
