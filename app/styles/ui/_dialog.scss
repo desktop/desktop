@@ -148,6 +148,16 @@ dialog {
   // by clearing it in dialogs where we can verify the design holds.
   .form-component {
     margin: 0;
+
+    // Form component has a general rule that applies a bottom margin: 
+    // to all but the last child inside. This works really poorly for
+    // us since the last child is normally the DialogFooter element which
+    // ends up meaning that our DialogContent is robbed of its double bottom
+    // margin. So we'll add an explicit (and more specific) rule here to
+    // override that 
+    & > .dialog-content {
+      margin-bottom: var(--spacing-double);
+    }
   }
 
   &.warning {
