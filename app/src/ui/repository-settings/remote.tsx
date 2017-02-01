@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { IRemote } from '../../models/remote'
 import { TextBox } from '../lib/text-box'
+import { DialogContent } from '../dialog'
 
 interface IRemoteProps {
   readonly remote: IRemote | null
@@ -15,10 +16,10 @@ export class Remote extends React.Component<IRemoteProps, void> {
     }
 
     return (
-      <div>
+      <DialogContent>
         <div>Primary remote repository ({remote.name})</div>
         <TextBox placeholder='Remote URL' value={remote.url} onChange={this.onChange}/>
-      </div>
+      </DialogContent>
     )
   }
 

@@ -9,7 +9,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Dialog, DialogFooter } from '../dialog'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
@@ -52,9 +52,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
           <span>Ignored Files</span>
           <span>Git LFS</span>
         </TabBar>
-        <DialogContent>
-          {this.renderActiveTab()}
-        </DialogContent>
+        {this.renderActiveTab()}
         <DialogFooter>
           <ButtonGroup>
             <Button type='submit'>Save</Button>
