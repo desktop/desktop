@@ -7,6 +7,7 @@ import { Button } from '../lib/button'
 import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
+import { FoldoutType } from '../../lib/app-state'
 
 const untildify: (str: string) => string = require('untildify')
 
@@ -39,7 +40,8 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
             label='Local Path'
             placeholder='repository path'
             onChange={this.onPathChanged}
-            onKeyDown={this.onKeyDown}/>
+            onKeyDown={this.onKeyDown}
+            autoFocus/>
           <Button onClick={this.showFilePicker}>Choose…</Button>
         </Row>
 
@@ -57,7 +59,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
-      this.props.dispatcher.closePopup()
+      this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
     }
   }
 
@@ -100,6 +102,6 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
       this.props.dispatcher.selectRepository(repository)
     }
 
-    this.props.dispatcher.closePopup()
+    this.props.dispatcher.closeFoldout()
   }
 }
