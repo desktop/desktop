@@ -4,7 +4,7 @@ import { fatalError } from './fatal-error'
 /** Opens a shell setting the working directory to fullpath. If a shell is not specified, OS defaults are used. */
 export function openShell(fullPath: string, shell?: string) {
   let commandName: string = ''
-  let commandArgs: string[] = []
+  let commandArgs: ReadonlyArray<string>
 
   if ( __DARWIN__) {
     commandName = 'open'
@@ -18,5 +18,5 @@ export function openShell(fullPath: string, shell?: string) {
     return fatalError
   }
 
-  spawn(commandName, commandArgs, { 'shell' : true })
+  return spawn(commandName, commandArgs.map(x => x), { 'shell' : true })
 }
