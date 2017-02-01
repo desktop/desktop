@@ -43,7 +43,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, any> {
 
   public render() {
     return (
-      <header>
+      <header className='dialog-header'>
         {this.renderIcon()}
         <h1>{this.props.title}</h1>
         {this.renderCloseButton()}

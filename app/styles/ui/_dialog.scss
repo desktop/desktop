@@ -50,7 +50,7 @@ dialog {
     opacity: 0.4;
   }
 
-  &>header {
+  .dialog-header {
     height: 53px;
     border-bottom: var(--base-border);
     position: relative;
