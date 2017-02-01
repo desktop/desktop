@@ -487,6 +487,11 @@ export class Dispatcher {
     return this.appStore._setGitIgnoreText(repository, text)
   }
 
+  /** Populate the current root gitignore text into the application state */
+  public refreshGitIgnore(repository: Repository): Promise<void> {
+    return this.appStore._refreshGitIgnore(repository)
+  }
+
   /** Open the URL in a browser */
   public openInBrowser(url: string) {
     return this.appStore._openInBrowser(url)

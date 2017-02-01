@@ -834,7 +834,6 @@ export class AppStore {
     gitStore.loadCurrentRemote()
     gitStore.calculateAheadBehindForCurrentBranch()
     gitStore.updateLastFetched()
-    gitStore.updateGitIgnoreText()
 
     // When refreshing we *always* load Changes so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
@@ -1299,6 +1298,12 @@ export class AppStore {
     await gitStore.setGitIgnoreText(text)
 
     return this._refreshRepository(repository)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _refreshGitIgnore(repository: Repository): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.refreshGitIgnoreText()
   }
 
   /** Takes a URL and opens it using the system default application */

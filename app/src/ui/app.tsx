@@ -536,6 +536,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       const repository = popup.repository
       const state = this.props.appStore.getRepositoryState(repository)
 
+      this.props.dispatcher.refreshGitIgnore(repository)
+
       return <RepositorySettings
         remote={state.remote}
         dispatcher={this.props.dispatcher}

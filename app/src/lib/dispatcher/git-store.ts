@@ -469,11 +469,11 @@ export class GitStore {
     })
   }
 
-  /** The current contents of the .gitignore file at the root of the repository */
+  /** The current contents of the gitignore file at the root of the repository */
   public get gitIgnoreText(): string | null { return this._gitIgnoreText }
 
-  /** Update the currently stored gitignore text. */
-  public updateGitIgnoreText(): Promise<void> {
+  /** Populate the current root gitignore text into the application state */
+  public refreshGitIgnoreText(): Promise<void> {
     const path = Path.join(this.repository.path, '.gitignore')
     return new Promise<void>((resolve, reject) => {
       Fs.readFile(path, 'utf8', (err, data) => {
@@ -530,7 +530,7 @@ export class GitStore {
             resolve()
           }
 
-          this.emitUpdate()
+          this.refreshGitIgnoreText()
         })
      })
   }
