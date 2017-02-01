@@ -478,12 +478,11 @@ export class GitStore {
     return new Promise<void>((resolve, reject) => {
       Fs.readFile(path, 'utf8', (err, data) => {
         if (err) {
-          // An error most likely means the repository's never been published.
+          // TODO: what if this is a real error and we can't read the file?
           this._gitIgnoreText = null
-        } else if (data.length > 0) {
-          // If the file's empty then it _probably_ means the fetch failed and we
-          // shouldn't update the last fetched date.
-          this._gitIgnoreText = data
+        } else {
+          // ensure we assign something to the current text
+          this._gitIgnoreText = data || null
         }
 
         resolve()

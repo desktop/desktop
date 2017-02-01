@@ -17,6 +17,7 @@ interface IGitIgnoreState {
   readonly text: string
 }
 
+/** A view for creating or modifying the repository's gitignore file */
 export class GitIgnore extends React.Component<IGitIgnoreProps, IGitIgnoreState> {
 
   public constructor(props: IGitIgnoreProps) {
