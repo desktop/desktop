@@ -5,6 +5,7 @@ import { Button } from '../lib/button'
 import { SignIn } from '../lib/sign-in'
 import { assertNever } from '../../lib/fatal-error'
 import { getDotComAPIEndpoint } from '../../lib/api'
+import { DialogContent } from '../dialog'
 
 interface IAccountsProps {
   readonly dispatcher: Dispatcher
@@ -20,13 +21,13 @@ enum SignInType {
 export class Accounts extends React.Component<IAccountsProps, void> {
   public render() {
     return (
-      <div>
+      <DialogContent>
         <h2>GitHub.com</h2>
         {this.props.dotComUser ? this.renderUser(this.props.dotComUser) : this.renderSignIn(SignInType.DotCom)}
 
         <h2>Enterprise</h2>
         {this.props.enterpriseUser ? this.renderUser(this.props.enterpriseUser) : this.renderSignIn(SignInType.Enterprise)}
-      </div>
+      </DialogContent>
     )
   }
 

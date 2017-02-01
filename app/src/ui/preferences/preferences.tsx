@@ -7,7 +7,7 @@ import { Git } from './git'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Dialog, DialogFooter } from '../dialog'
 import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
 
 interface IPreferencesProps {
@@ -78,9 +78,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
           <span>Git</span>
         </TabBar>
 
-        <DialogContent>
-          {this.renderActiveTab()}
-        </DialogContent>
+        {this.renderActiveTab()}
         {this.renderFooter()}
       </Dialog>
     )

@@ -1,6 +1,7 @@
 import * as React from 'react'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
+import { DialogContent } from '../dialog'
 
 interface IGitProps {
   readonly name: string
@@ -22,7 +23,7 @@ export class Git extends React.Component<IGitProps, void> {
 
   public render() {
     return (
-      <div>
+      <DialogContent>
         <Row>
           <TextBox
             label='Name'
@@ -38,7 +39,7 @@ export class Git extends React.Component<IGitProps, void> {
             onChange={this.onEmailChanged}
           />
         </Row>
-      </div>
+      </DialogContent>
     )
   }
 }
