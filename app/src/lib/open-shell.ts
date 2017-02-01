@@ -15,7 +15,7 @@ export function openShell(fullPath: string, shell?: string) {
     commandArgs = [ shell || 'cmd', '/D', `"${fullPath}"` , 'title', 'GitHub Desktop' ]
   }
   else {
-    return fatalError
+    return fatalError('Unsupported OS')
   }
 
   return spawn(commandName, commandArgs.map(x => x), { 'shell' : true })
