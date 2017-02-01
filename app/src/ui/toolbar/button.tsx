@@ -47,6 +47,9 @@ export interface IToolbarButtonProps {
 
   /** The button's style. Defaults to `ToolbarButtonStyle.Standard`. */
   readonly style?: ToolbarButtonStyle
+
+  /** Whether the button's disabled. Defaults to false. */
+  readonly disabled?: boolean
 }
 
 /**
@@ -79,7 +82,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     return (
       <div className={className}>
         {preContent}
-        <Button onClick={this.onClick} onButtonRef={this.onButtonRef}>
+        <Button onClick={this.onClick} onButtonRef={this.onButtonRef} disabled={this.props.disabled}>
           {icon}
           {this.renderText()}
           {this.props.children}
