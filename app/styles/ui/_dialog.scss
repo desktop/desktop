@@ -150,7 +150,7 @@ dialog {
   }
 
   &.warning {
-    &>header {
+    .dialog-header {
       color: var(--dialog-warning-color);
     }
 
@@ -158,7 +158,7 @@ dialog {
   }
 
   &.error {
-    &>header {
+    .dialog-header {
       color: var(--dialog-error-color);
     }
 
