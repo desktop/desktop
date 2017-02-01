@@ -71,6 +71,8 @@ export class GitStore {
 
   private _lastFetched: Date | null = null
 
+  private _gitIgnoreText: string | null = null
+
   public constructor(repository: Repository) {
     this.repository = repository
   }
@@ -385,9 +387,9 @@ export class GitStore {
   public async fetch(user: User | null): Promise<void> {
     const remotes = await getRemotes(this.repository)
 
-    remotes.forEach(async remote => {
-      await fetchRepo(this.repository, user, remote.name)
-    })
+    for (const remote of remotes) {
+      await this.performFailableOperation(() => fetchRepo(this.repository, user, remote.name))
+    }
   }
 
   /** Calculate the ahead/behind for the current branch. */
@@ -467,6 +469,29 @@ export class GitStore {
     })
   }
 
+  /** The current contents of the gitignore file at the root of the repository */
+  public get gitIgnoreText(): string | null { return this._gitIgnoreText }
+
+  /** Populate the current root gitignore text into the application state */
+  public refreshGitIgnoreText(): Promise<void> {
+    const path = Path.join(this.repository.path, '.gitignore')
+    return new Promise<void>((resolve, reject) => {
+      Fs.readFile(path, 'utf8', (err, data) => {
+        if (err) {
+          // TODO: what if this is a real error and we can't read the file?
+          this._gitIgnoreText = null
+        } else {
+          // ensure we assign something to the current text
+          this._gitIgnoreText = data || null
+        }
+
+        resolve()
+
+        this.emitUpdate()
+      })
+    })
+  }
+
   /** Merge the named branch into the current branch. */
   public merge(branch: string): Promise<void> {
     return this.performFailableOperation(() => merge(this.repository, branch))
@@ -478,5 +503,35 @@ export class GitStore {
     await this.loadCurrentRemote()
 
     this.emitUpdate()
+  }
+
+  private ensureTrailingNewline(text: string): string {
+    // mixed line endings might be an issue here
+    if (!text.endsWith('\n')) {
+      const linesEndInCRLF = text.indexOf('\r\n')
+      return linesEndInCRLF === -1
+        ? `${text}\n`
+        : `${text}\r\n`
+    } else {
+      return text
+    }
+  }
+
+  /** Overwrite the current .gitignore contents (if exists) */
+  public async setGitIgnoreText(text: string): Promise<void> {
+    const gitIgnorePath = Path.join(this.repository.path, '.gitignore')
+    const fileContents = this.ensureTrailingNewline(text)
+
+    return new Promise<void>((resolve, reject) => {
+        Fs.writeFile(gitIgnorePath, fileContents, err => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve()
+          }
+
+          this.refreshGitIgnoreText()
+        })
+     })
   }
 }

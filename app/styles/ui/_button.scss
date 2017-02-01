@@ -7,11 +7,13 @@
 
   padding: var(--spacing-half) var(--spacing);
 
-  border: none;
+  border: var(--base-border);
   height: var(--button-height);
 
   color: var(--secondary-button-text-color);
   background-color: var(--secondary-button-background);
+
+  border-radius: var(--button-border-radius);
 
   &:not(:disabled):hover {
     background-color: var(--secondary-button-hover-background);
@@ -28,9 +30,16 @@
 .button-component[type='submit'] {
   background-color: var(--button-background);
   color: var(--button-text-color);
+  border: 1px solid var(--button-background);
 
   &:not(:disabled):hover {
     background-color: var(--button-hover-background);
+  }
+
+  &:focus {
+    // TODO: This is a pretty terrible way to indicate
+    // focus. We should figure out something better.
+    border-color: rgba(0, 0, 0, 0.8);
   }
 }
 

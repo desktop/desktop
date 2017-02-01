@@ -6,9 +6,13 @@ import { AddExistingRepository } from './add-existing-repository'
 import { CreateRepository } from './create-repository'
 import { CloneRepository } from './clone-repository'
 import { assertNever } from '../../lib/fatal-error'
+import { User } from '../../models/user'
 
 interface IAddRepositoryProps {
   readonly dispatcher: Dispatcher
+
+  /** The logged in users. */
+  readonly users: ReadonlyArray<User>
 }
 
 interface IAddRepositoryState {
@@ -45,7 +49,7 @@ export class AddRepository extends React.Component<IAddRepositoryProps, IAddRepo
         return <CreateRepository dispatcher={this.props.dispatcher}/>
 
       case AddRepositoryTab.Clone:
-        return <CloneRepository />
+        return <CloneRepository users={this.props.users} dispatcher={this.props.dispatcher}/>
 
       default:
         return assertNever(this.state.selectedTab, `Unknown tab: ${this.state.selectedTab}`)
@@ -54,16 +58,16 @@ export class AddRepository extends React.Component<IAddRepositoryProps, IAddRepo
 
   public render() {
     return (
-      <div>
-        <nav className='popup-navigation'>
-          <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedTab}>
-            <span role='button'>Add</span>
-            <span role='button'>Create</span>
-            <span role='button'>Clone</span>
-          </TabBar>
-        </nav>
+      <div id='add-repository'>
+        <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedTab}>
+          <span role='button'>Add</span>
+          <span role='button'>Create</span>
+          <span role='button'>Clone</span>
+        </TabBar>
 
-        {this.renderSelectedTab()}
+        <div className='content'>
+          {this.renderSelectedTab()}
+        </div>
       </div>
     )
   }

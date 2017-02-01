@@ -23,7 +23,7 @@
     }
 
     .avatar {
-      flex: 0;
+      flex-shrink: 0;
       width: 28px;
       height: 28px;
       border: var(--base-border);

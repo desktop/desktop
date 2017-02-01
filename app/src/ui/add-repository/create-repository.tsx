@@ -1,7 +1,6 @@
 import { remote } from 'electron'
 import * as React from 'react'
 import * as Path from 'path'
-import * as OS from 'os'
 import * as FS from 'fs'
 
 import { Dispatcher } from '../../lib/dispatcher'
@@ -17,6 +16,7 @@ import { Select } from '../lib/select'
 import { Loading } from '../lib/loading'
 import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { ILicense, getLicenses, writeLicense } from './licenses'
+import { getDefaultDir } from '../lib/default-dir'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -61,7 +61,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     super(props)
 
     this.state = {
-      path: defaultPath(),
+      path: getDefaultDir(),
       name: '',
       createWithReadme: false,
       creating: false,
@@ -180,7 +180,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         this.setState({ ...this.state, creating: false })
 
         this.props.dispatcher.selectRepository(repository)
-        this.props.dispatcher.closePopup()
+        this.props.dispatcher.closeFoldout()
       })
     })
   }
@@ -246,7 +246,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           value={this.state.name}
           label='Name'
           placeholder='repository name'
-          onChange={this.onNameChanged}/>
+          onChange={this.onNameChanged}
+          autoFocus/>
 
         {this.renderError()}
 
@@ -278,8 +279,4 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       </Form>
     )
   }
-}
-
-function defaultPath() {
-  return OS.homedir() + Path.sep
 }
