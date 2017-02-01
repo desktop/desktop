@@ -496,4 +496,9 @@ export class Dispatcher {
   public openInBrowser(url: string) {
     return this.appStore._openInBrowser(url)
   }
+
+  /** Opens a terminal window with path as the working directory */
+  public openShell(path: string) {
+    return this.appStore._openShell(path)
+  }
 }
