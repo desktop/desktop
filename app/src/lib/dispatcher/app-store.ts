@@ -61,6 +61,8 @@ import {
   checkoutBranch,
 } from '../git'
 
+import { openShell } from '../open-shell'
+
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
 /** The `localStorage` key for whether we've shown the Welcome flow yet. */
@@ -1294,6 +1296,11 @@ export class AppStore {
   public _setRemoteURL(repository: Repository, name: string, url: string): Promise<void> {
     const gitStore = this.getGitStore(repository)
     return gitStore.setRemoteURL(name, url)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public _openShell(path: string) {
+    return openShell(path)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
