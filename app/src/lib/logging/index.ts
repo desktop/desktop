@@ -9,7 +9,13 @@ function getLogFilePath(): string {
   return `${getUserDataPath()}\\desktop.${process.env.NODE_ENV || 'production'}.log`
 }
 
-let logger: any | null = null
+interface ILogger {
+  debug: (message: string) => void,
+  info: (message: string) => void,
+  error: (message: string, error?: Error) => void
+}
+
+let logger: ILogger | null = null
 
 function create() {
   if (process.env.NODE_ENV === 'development') {
@@ -56,7 +62,7 @@ function create() {
   }
 }
 
-export function getLogger() {
+export function getLogger(): ILogger {
   if (!logger) {
     logger = create()
   }
