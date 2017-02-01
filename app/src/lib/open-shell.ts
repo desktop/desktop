@@ -18,7 +18,7 @@ export function openShell(fullPath: string, shell?: string) {
       break
     }
     case 'win32': {
-      command.name = 'cmd.exe'
+      command.name = 'START'
       command.args = [ '/D', `"${fullPath}"` , 'title', 'GitHub Desktop' ]
       break
     }
