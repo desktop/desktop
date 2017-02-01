@@ -95,7 +95,8 @@ export class Dialog extends React.Component<IDialogProps, void> {
         ref={this.onDialogRef}
         id={this.props.id}
         onClick={this.onDialogClick}
-        className={className}>
+        className={className}
+        autoFocus>
           {this.renderHeader()}
           {this.props.children}
       </dialog>
