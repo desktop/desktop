@@ -161,6 +161,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     setMenuEnabled('merge-branch', onBranch)
     setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
     setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
+    setMenuEnabled('open-in-shell', onBranch)
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -186,6 +187,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'show-repository-settings' : return this.showRepositorySettings()
       case 'view-repository-on-github' : return this.viewRepositoryOnGitHub()
       case 'compare-branch': return this.compareBranch()
+      case 'open-in-shell' : return this.openShell()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -479,6 +481,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     return repository.gitHubRepository.htmlURL
   }
 
+  private openShell() {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository) {
+      return
+    }
+
+    const repoFilePath = repository.path
+
+    this.props.dispatcher.openShell(repoFilePath)
+  }
+
   private renderTitlebar() {
     const winControls = __WIN32__
       ? <WindowControls />
@@ -530,10 +544,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       const repository = popup.repository
       const state = this.props.appStore.getRepositoryState(repository)
 
+      // ensure the latest version of the gitignore is retrieved
+      // before we switch to this view
+      this.props.dispatcher.refreshGitIgnore(repository)
+
       return <RepositorySettings
         remote={state.remote}
         dispatcher={this.props.dispatcher}
         repository={repository}
+        gitIgnoreText={state.gitIgnoreText}
       />
     }
 
