@@ -7,38 +7,6 @@
   flex-wrap: nowrap;
 }
 
-.create-branch {
-  // .button-component overrides this rule to make it smaller,
-  // not sure how to be more specific without using an id
-  // (which isn't exposed on Button currently)
-  height: 40px !important;
-  width: 100%;
-  margin-bottom: var(--spacing);
-
-  .label {
-    display: flex;
-    float: left;
-
-    .plus {
-      margin-right: var(--spacing-half);
-    }
-  }
-
-  .arrow {
-    float: right;
-  }
-}
-
-.create-branch.checked {
-  background-color: var(--button-background);
-  color: var(--button-text-color);
-
-  &:not(:disabled):hover {
-    background-color: var(--button-hover-background);
-  }
-}
-
-
 #branches {
   width: 350px;
   display: flex;

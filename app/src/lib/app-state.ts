@@ -98,8 +98,7 @@ export interface IAppError {
 }
 
 export enum PopupType {
-  AddRepository = 1,
-  RenameBranch,
+  RenameBranch = 1,
   DeleteBranch,
   ConfirmDiscardChanges,
   UpdateAvailable,
@@ -108,8 +107,7 @@ export enum PopupType {
   RepositorySettings,
 }
 
-export type Popup = { type: PopupType.AddRepository } |
-                    { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
+export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.DeleteBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> } |
                     { type: PopupType.UpdateAvailable } |
@@ -125,7 +123,7 @@ export enum FoldoutType {
 }
 
 export type Foldout =
-  { type: FoldoutType.Repository } |
+  { type: FoldoutType.Repository, expandAddRepository: boolean } |
   { type: FoldoutType.Branch, expandCreateForm?: boolean } |
   { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } |
   { type: FoldoutType.Publish }

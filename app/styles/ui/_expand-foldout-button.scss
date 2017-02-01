@@ -1,0 +1,33 @@
+.expand-foldout-button {
+  display: flex;
+
+  height: 40px;
+  width: 100%;
+  margin-bottom: var(--spacing);
+
+  border-radius: 0px;
+  border-width: 0px;
+
+  .plus {
+    margin-right: var(--spacing-half);
+  }
+
+  .right-edge {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+
+  .arrow {
+    align-self: flex-end;
+  }
+
+  &.checked {
+    background-color: var(--button-background);
+    color: var(--button-text-color);
+
+    &:not(:disabled):hover {
+      background-color: var(--button-hover-background);
+    }
+  }
+}

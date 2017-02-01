@@ -180,7 +180,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         this.setState({ ...this.state, creating: false })
 
         this.props.dispatcher.selectRepository(repository)
-        this.props.dispatcher.closePopup()
+        this.props.dispatcher.closeFoldout()
       })
     })
   }
@@ -246,7 +246,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           value={this.state.name}
           label='Name'
           placeholder='repository name'
-          onChange={this.onNameChanged}/>
+          onChange={this.onNameChanged}
+          autoFocus/>
 
         {this.renderError()}
 

@@ -1,6 +1,5 @@
 import * as React from 'react'
 import { List } from '../list'
-import { ToggleButton } from '../lib/toggle-button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
@@ -8,8 +7,8 @@ import { groupedAndFilteredBranches, BranchListItemModel } from './grouped-and-f
 import { BranchListItem } from './branch'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
-import { Octicon, OcticonSymbol } from '../octicons'
 import { CreateBranch } from '../create-branch'
+import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
 
 const RowHeight = 30
 
@@ -195,16 +194,11 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     return (
       <div id='branch-popover'>
         <div id='branches'>
-          <ToggleButton
-            className='create-branch'
+          <ExpandFoldoutButton
             onClick={this.onCreateBranchToggle}
-            checked={this.state.showCreateDialog}>
-            <div className='label'>
-              <Octicon className='plus' symbol={OcticonSymbol.plus} />
-              <div>Create new branch</div>
-            </div>
-            <Octicon className='arrow' symbol={OcticonSymbol.triangleRight} />
-          </ToggleButton>
+            expanded={this.state.showCreateDialog}>
+            {__DARWIN__ ? 'Create New Branch' : 'Create new branch'}
+          </ExpandFoldoutButton>
 
           <Row>
             <TextBox

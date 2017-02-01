@@ -7,6 +7,10 @@ import { groupRepositories, RepositoryListItemModel, Repositoryish } from './gro
 import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
+import { AddRepository } from '../add-repository'
+import { User } from '../../models/user'
+import { FoldoutType } from '../../lib/app-state'
+import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
@@ -14,6 +18,12 @@ interface IRepositoriesListProps {
   readonly dispatcher: Dispatcher
   readonly loading: boolean
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
+
+  /** The logged in users. */
+  readonly users: ReadonlyArray<User>
+
+  /** Should the Add Repository foldout be expanded? */
+  readonly expandAddRepository: boolean
 }
 
 interface IRepositoriesListState {
@@ -124,6 +134,16 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
     return item.kind === 'repository'
   }
 
+  private renderAddRepository() {
+    if (!this.props.expandAddRepository) { return null }
+
+    return <AddRepository dispatcher={this.props.dispatcher} users={this.props.users}/>
+  }
+
+  private onAddRepositoryBranchToggle = () => {
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: !this.props.expandAddRepository })
+  }
+
   public render() {
     if (this.props.loading) {
       return <Loading/>
@@ -135,28 +155,38 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
 
     return (
       <div id='repository-list'>
-        <Row>
-          <TextBox
-            type='search'
-            labelClassName='filter-field'
-            placeholder='Filter'
-            autoFocus={true}
-            onChange={this.onFilterChanged}
-            onKeyDown={this.onKeyDown}
-            onInputRef={this.onInputRef}/>
-        </Row>
+        <div id='repositories'>
+          <ExpandFoldoutButton
+            onClick={this.onAddRepositoryBranchToggle}
+            expanded={this.props.expandAddRepository}>
+            {__DARWIN__ ? 'Add Repository' : 'Add repository'}
+          </ExpandFoldoutButton>
 
-        <List
-          rowCount={this.state.listItems.length}
-          rowHeight={RowHeight}
-          rowRenderer={this.renderRow}
-          selectedRow={this.state.selectedRowIndex}
-          onSelectionChanged={this.onSelectionChanged}
-          onRowClick={this.onRowClick}
-          onRowKeyDown={this.onRowKeyDown}
-          canSelectRow={this.canSelectRow}
-          invalidationProps={this.props.repositories}
-          ref={this.onListRef}/>
+          <Row>
+            <TextBox
+              type='search'
+              labelClassName='filter-field'
+              placeholder='Filter'
+              autoFocus={true}
+              onChange={this.onFilterChanged}
+              onKeyDown={this.onKeyDown}
+              onInputRef={this.onInputRef}/>
+          </Row>
+
+          <List
+            rowCount={this.state.listItems.length}
+            rowHeight={RowHeight}
+            rowRenderer={this.renderRow}
+            selectedRow={this.state.selectedRowIndex}
+            onSelectionChanged={this.onSelectionChanged}
+            onRowClick={this.onRowClick}
+            onRowKeyDown={this.onRowKeyDown}
+            canSelectRow={this.canSelectRow}
+            invalidationProps={this.props.repositories}
+            ref={this.onListRef}/>
+        </div>
+
+        {this.renderAddRepository()}
       </div>
     )
   }
