@@ -482,6 +482,16 @@ export class Dispatcher {
     return this.appStore._setRemoteURL(repository, name, url)
   }
 
+  /** Write the given rules to the gitignore file at the root of the repository. */
+  public setGitIgnoreText(repository: Repository, text: string): Promise<void> {
+    return this.appStore._setGitIgnoreText(repository, text)
+  }
+
+  /** Populate the current root gitignore text into the application state */
+  public refreshGitIgnore(repository: Repository): Promise<void> {
+    return this.appStore._refreshGitIgnore(repository)
+  }
+
   /** Open the URL in a browser */
   public openInBrowser(url: string) {
     return this.appStore._openInBrowser(url)
