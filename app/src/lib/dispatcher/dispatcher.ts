@@ -501,4 +501,9 @@ export class Dispatcher {
   public ignore(repository: Repository, pattern: string): Promise<void> {
     return this.appStore._ignore(repository, pattern)
   }
+
+  /** Opens a terminal window with path as the working directory */
+  public openShell(path: string) {
+    return this.appStore._openShell(path)
+  }
 }

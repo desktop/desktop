@@ -18,5 +18,6 @@ export type MenuEvent =
   'update-branch' |
   'merge-branch' |
   'show-repository-settings' |
-  'view-repository-on-github' |
-  'compare-branch'
+  'open-in-shell' |
+  'compare-branch' |
+  'view-repository-on-github'
