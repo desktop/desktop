@@ -5,17 +5,15 @@
 ```html
 <Dialog title='Title'>
   <TabBar>...</TabBar>
-  <Form>
-    <DialogContent>
-      ...
-    </DialogContent>
-    <DialogFooter>
-      <ButtonGroup>
-        <Button type='submit'>Ok</Button>
-        <Button>Cancel</Button>
-      </ButtonGroup>
-    </DialogFooter>
-  </Form>
+  <DialogContent>
+    ...
+  </DialogContent>
+  <DialogFooter>
+    <ButtonGroup>
+      <Button type='submit'>Ok</Button>
+      <Button>Cancel</Button>
+    </ButtonGroup>
+  </DialogFooter>
 </Dialog>
 ```
 
@@ -37,15 +35,13 @@ dialog/form/row styles in a more straightforward way.
 <!-- SomeComponent.tsx -->
 <Dialog title='Title'>
   <TabBar>...</TabBar>
-  <Form>
-    {this.renderActiveTab()}
-    <DialogFooter>
-      <ButtonGroup>
-        <Button type='submit'>Ok</Button>
-        <Button>Cancel</Button>
-      </ButtonGroup>
-    </DialogFooter>
-  </Form>
+  {this.renderActiveTab()}
+  <DialogFooter>
+    <ButtonGroup>
+      <Button type='submit'>Ok</Button>
+      <Button>Cancel</Button>
+    </ButtonGroup>
+  </DialogFooter>
 </Dialog>
 <!-- ChildComponent.tsx -->
 <DialogContent>
@@ -60,17 +56,15 @@ dialog/form/row styles in a more straightforward way.
 <!-- SomeComponent.tsx -->
 <Dialog title='Title'>
   <TabBar>...</TabBar>
-  <Form>
-    <DialogContent>
-      {this.renderActiveTab()}
-    </DialogContent>
-    <DialogFooter>
-      <ButtonGroup>
-        <Button type='submit'>Ok</Button>
-        <Button>Cancel</Button>
-      </ButtonGroup>
-    </DialogFooter>
-  </Form>
+  <DialogContent>
+    {this.renderActiveTab()}
+  </DialogContent>
+  <DialogFooter>
+    <ButtonGroup>
+      <Button type='submit'>Ok</Button>
+      <Button>Cancel</Button>
+    </ButtonGroup>
+  </DialogFooter>
 </Dialog>
 <!-- ChildComponent.tsx -->
 <div>
