@@ -1,78 +1,64 @@
-import * as Path from 'path'
-import * as Fs from 'fs'
-import * as Os from 'os'
-
 import * as winston from 'winston'
 require('winston-daily-rotate-file')
 
 import { ElectronConsole } from './electron-console'
 
-function getFileName(): string {
-  if (process.env.NODE_ENV === 'development') {
-    return 'desktop.development.log'
-  } else {
-    return 'desktop.production.log'
-  }
-}
+import { getUserDataPath } from '../../ui/lib/app-proxy'
 
 function getLogFilePath(): string {
-  if (__WIN32__) {
-    return `${process.env.LOCALAPPDATA}\\desktop\\${getFileName()}`
+  return `${getUserDataPath()}\\desktop.${process.env.NODE_ENV || 'production'}.log`
+}
+
+let logger: any | null = null
+
+function create() {
+  if (process.env.NODE_ENV === 'development') {
+    winston.configure({
+      transports: [
+        new ElectronConsole(),
+      ],
+    })
   } else {
-    const home = Os.homedir()
-    return `${home}/Library/Logs/GitHub/${getFileName()}`
+    winston.configure({
+      transports: [
+        // only log errors to the console
+        new ElectronConsole({
+          level: 'error',
+        }),
+        new winston.transports.DailyRotateFile({
+          filename: getLogFilePath(),
+          humanReadableUnhandledException: true,
+          handleExceptions: true,
+          json: false,
+          datePattern: 'yyyy-MM-dd.',
+          prepend: true,
+          // log everything interesting (info and up)
+          level: 'info',
+        }),
+      ],
+    })
+  }
+
+  return {
+    debug: function(message: string) {
+      winston.debug(message)
+    },
+    info: function(message: string) {
+      winston.info(message)
+    },
+    error: function(message: string, error?: Error) {
+      if (error) {
+        winston.error(message, { error: error })
+      } else {
+        winston.error(message)
+      }
+    },
   }
 }
 
-function createDirectoryIfNotFound(path: string) {
-  const dirname = Path.dirname(path)
-  if (!Fs.existsSync(dirname)) {
-    Fs.mkdirSync(dirname)
+export function getLogger() {
+  if (!logger) {
+    logger = create()
   }
-}
-
-const filename = getLogFilePath()
-createDirectoryIfNotFound(filename)
-
-if (process.env.NODE_ENV === 'development') {
-  winston.configure({
-    transports: [
-      new ElectronConsole(),
-    ],
-  })
-} else {
-  winston.configure({
-    transports: [
-      // only log errors to the console
-      new ElectronConsole({
-        level: 'error',
-      }),
-      new winston.transports.DailyRotateFile({
-        filename,
-        humanReadableUnhandledException: true,
-        handleExceptions: true,
-        json: false,
-        datePattern: 'yyyy-MM-dd.',
-        prepend: true,
-        // log everything interesting (info and up)
-        level: 'info',
-      }),
-    ],
-  })
-}
-
-export const logger = {
-  debug: function(message: string) {
-    winston.debug(message)
-  },
-  info: function(message: string) {
-    winston.info(message)
-  },
-  error: function(message: string, error?: Error) {
-    if (error) {
-      winston.error(message, { error: error })
-    } else {
-      winston.error(message)
-    }
-  },
+  return logger
 }

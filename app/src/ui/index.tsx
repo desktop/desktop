@@ -19,7 +19,7 @@ import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
 
-import { logger } from '../lib/logging'
+import { getLogger } from '../lib/logging'
 
 if (__DEV__) {
   const g: any = global
@@ -36,9 +36,7 @@ if (!process.env.TEST_ENV) {
 }
 
 process.on('uncaughtException', (error: Error) => {
-
-  logger.error('Uncaught exception on UI', error)
-
+  getLogger().error('Uncaught exception on UI', error)
   reportError(error, appProxy.getVersion())
 })
 
