@@ -121,6 +121,13 @@ dialog {
 
   .dialog-content {
     margin: var(--spacing-double);
+
+    // This allows for using <Rows> to structure content within dialog content.
+    // All Rows that are direct descendants of dialog content except for the
+    // last one receive a bottom margin.
+    & > .row-component:not(:last-child) {
+      margin-bottom: var(--spacing);
+    }
   }
 
   .dialog-footer {
