@@ -5,7 +5,6 @@ import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
 import { Git } from './git'
 import { assertNever } from '../../lib/fatal-error'
-import { Form } from '../lib/form'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
@@ -68,18 +67,21 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
 
   public render() {
     return (
-      <Dialog id='preferences' title={__DARWIN__ ? 'Preferences' : 'Options'} onDismissed={this.props.onDismissed}>
+      <Dialog
+        id='preferences'
+        title={__DARWIN__ ? 'Preferences' : 'Options'}
+        onDismissed={this.props.onDismissed}
+        onSubmit={this.onSave}
+      >
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedIndex}>
           <span>Accounts</span>
           <span>Git</span>
         </TabBar>
 
-        <Form onSubmit={this.onSave}>
-          <DialogContent>
-            {this.renderActiveTab()}
-          </DialogContent>
-          {this.renderFooter()}
-        </Form>
+        <DialogContent>
+          {this.renderActiveTab()}
+        </DialogContent>
+        {this.renderFooter()}
       </Dialog>
     )
   }

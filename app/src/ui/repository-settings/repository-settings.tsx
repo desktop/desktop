@@ -10,7 +10,6 @@ import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Form } from '../lib/form'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
@@ -46,23 +45,22 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
         id='repository-settings'
         title={__DARWIN__ ? 'Repository Settings' : 'Repository settings'}
         onDismissed={this.props.onDismissed}
+        onSubmit={this.onSubmit}
       >
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedTab}>
           <span>Remote</span>
           <span>Ignored Files</span>
           <span>Git LFS</span>
         </TabBar>
-        <Form onSubmit={this.onSubmit}>
-          <DialogContent>
-            {this.renderActiveTab()}
-          </DialogContent>
-          <DialogFooter>
-            <ButtonGroup>
-              <Button type='submit'>Save</Button>
-              <Button onClick={this.props.onDismissed}>Cancel</Button>
-            </ButtonGroup>
-          </DialogFooter>
-        </Form>
+        <DialogContent>
+          {this.renderActiveTab()}
+        </DialogContent>
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type='submit'>Save</Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
       </Dialog>
     )
   }

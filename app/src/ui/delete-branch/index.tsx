@@ -3,7 +3,6 @@ import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-import { Form } from '../lib/form'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
@@ -24,18 +23,16 @@ export class DeleteBranch extends React.Component<IDeleteBranchProps, void> {
         type='warning'
         onDismissed={this.props.onDismissed}
       >
-        <Form onSubmit={this.props.onDismissed}>
-          <DialogContent>
-            <div>Delete branch "{this.props.branch.name}"?</div>
-            <div>This cannot be undone.</div>
-          </DialogContent>
-          <DialogFooter>
-            <ButtonGroup>
-              <Button type='submit'>Cancel</Button>
-              <Button onClick={this.deleteBranch}>Delete</Button>
-            </ButtonGroup>
-          </DialogFooter>
-        </Form>
+        <DialogContent>
+          <div>Delete branch "{this.props.branch.name}"?</div>
+          <div>This cannot be undone.</div>
+        </DialogContent>
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type='submit'>Cancel</Button>
+            <Button onClick={this.deleteBranch}>Delete</Button>
+          </ButtonGroup>
+        </DialogFooter>
       </Dialog>
     )
   }

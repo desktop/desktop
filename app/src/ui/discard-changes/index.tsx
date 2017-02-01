@@ -3,7 +3,6 @@ import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { Form } from '../lib/form'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
@@ -30,23 +29,22 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
         title={ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'}
         onDismissed={this.props.onDismissed}
         type='warning'
+        className='discard-changes'
       >
-        <Form className='discard-changes' onSubmit={this.props.onDismissed}>
-          <DialogContent>
-            <div>
-              {this.renderFileList()}
+        <DialogContent>
+          <div>
+            {this.renderFileList()}
 
-              <div>Changes can be restored by retrieving them from the {trashName}.</div>
-            </div>
-          </DialogContent>
+            <div>Changes can be restored by retrieving them from the {trashName}.</div>
+          </div>
+        </DialogContent>
 
-          <DialogFooter>
-            <ButtonGroup>
-              <Button type='submit'>Cancel</Button>
-              <Button onClick={this.discard}>{__DARWIN__ ? 'Discard Changes' : 'Discard changes'}</Button>
-            </ButtonGroup>
-          </DialogFooter>
-        </Form>
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type='submit'>Cancel</Button>
+            <Button onClick={this.discard}>{__DARWIN__ ? 'Discard Changes' : 'Discard changes'}</Button>
+          </ButtonGroup>
+        </DialogFooter>
       </Dialog>
     )
   }

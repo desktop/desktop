@@ -8,6 +8,8 @@ interface IDialogProps {
   readonly onDismissed?: () => void
   readonly id?: string
   readonly type?: 'normal' | 'warning' | 'error'
+  readonly onSubmit?: () => void
+  readonly className?: string
 }
 
 export class Dialog extends React.Component<IDialogProps, void> {
@@ -68,6 +70,14 @@ export class Dialog extends React.Component<IDialogProps, void> {
     }
   }
 
+  private onSubmit = () => {
+    if (this.props.onSubmit) {
+      this.props.onSubmit()
+    } else {
+      this.onDismiss()
+    }
+  }
+
   private renderHeader() {
     if (!this.props.title) {
       return null
@@ -88,7 +98,7 @@ export class Dialog extends React.Component<IDialogProps, void> {
     const className = classNames({
       error: this.props.type === 'error',
       warning: this.props.type === 'warning',
-    })
+    }, this.props.className)
 
     return (
       <dialog
@@ -97,8 +107,10 @@ export class Dialog extends React.Component<IDialogProps, void> {
         onClick={this.onDialogClick}
         className={className}
         autoFocus>
-          {this.renderHeader()}
-          {this.props.children}
+          <form onSubmit={this.onSubmit}>
+            {this.renderHeader()}
+            {this.props.children}
+          </form>
       </dialog>
     )
   }

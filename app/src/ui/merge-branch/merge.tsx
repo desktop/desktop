@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { Form } from '../lib/form'
 import { Select } from '../lib/select'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
@@ -52,8 +51,8 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
       <Dialog
         title={__DARWIN__ ? 'Merge Branch' : 'Merge branch'}
         onDismissed={this.props.onDismissed}
+        onSubmit={this.merge}
       >
-        <Form onSubmit={this.merge}>
         <DialogContent>
           <Select label='From' onChange={this.onBranchChange} value={selectedValue || undefined}>
             {this.props.branches.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
@@ -67,7 +66,6 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
             <Button onClick={this.cancel}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
-        </Form>
       </Dialog>
     )
   }
