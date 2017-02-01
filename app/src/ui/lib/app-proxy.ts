@@ -40,7 +40,7 @@ export function getName(): string {
 }
 
 /**
- * Get the name of the app.
+ * Get the path to the application.
  *
  * This is preferrable to using `remote` directly because we cache the result.
  */
