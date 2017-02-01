@@ -1160,8 +1160,11 @@ export class AppStore {
     }
 
     const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
-    const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => checkoutPaths(repository, modifiedFiles.map(f => f.path)))
+
+    if (modifiedFiles.length) {
+      const gitStore = this.getGitStore(repository)
+      await gitStore.performFailableOperation(() => checkoutPaths(repository, modifiedFiles.map(f => f.path)))
+    }
 
     return this._refreshRepository(repository)
   }
