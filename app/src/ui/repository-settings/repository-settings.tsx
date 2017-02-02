@@ -13,7 +13,6 @@ import { Dialog, DialogFooter } from '../dialog'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
-  readonly repository: Repository
   readonly remote: IRemote | null
   readonly repository: Repository
   readonly onDismissed: () => void
@@ -29,6 +28,7 @@ enum RepositorySettingsTab {
 interface IRepositorySettingsState {
   readonly selectedTab: RepositorySettingsTab
   readonly remote: IRemote | null
+  readonly ignoreText: string | null
 }
 
 export class RepositorySettings extends React.Component<IRepositorySettingsProps, IRepositorySettingsState> {
@@ -38,6 +38,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     this.state = {
       selectedTab: RepositorySettingsTab.Remote,
       remote: props.remote,
+      ignoreText: this.props.gitIgnoreText,
     }
   }
 
@@ -78,9 +79,8 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
       }
       case RepositorySettingsTab.IgnoredFiles: {
         return <GitIgnore
-          dispatcher={this.props.dispatcher}
-          repository={this.props.repository}
-          text={this.props.gitIgnoreText}
+          text={this.state.ignoreText}
+          onIgnoreTextChanged={this.onIgnoreTextChanged}
         />
       }
       case RepositorySettingsTab.GitLFS: {
@@ -101,6 +101,12 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
         )
       }
     }
+
+    if (this.state.ignoreText && this.state.ignoreText !== this.props.gitIgnoreText) {
+      this.props.dispatcher.setGitIgnoreText(this.props.repository, this.state.ignoreText)
+    }
+
+    this.props.onDismissed()
   }
 
   private onRemoteUrlChanged = (url: string) => {
@@ -113,6 +119,10 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
 
     const newRemote = { ...remote, url }
     this.setState({ remote: newRemote })
+  }
+
+  private onIgnoreTextChanged = (text: string) => {
+    this.setState({ ignoreText: text })
   }
 
   private onTabClicked = (index: number) => {
