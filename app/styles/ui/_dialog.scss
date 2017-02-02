@@ -10,6 +10,8 @@ dialog {
   transform: scale(1);
   opacity: 1;
 
+  min-width: 400px;
+
   &.modal {
     
     &-enter {
@@ -164,9 +166,4 @@ dialog {
 
     border-top: 3px solid var(--dialog-error-color);
   }
-
-  &#rename-branch { min-width: 400px; }
-  &#delete-branch { min-width: 400px; }
-  &#repository-settings { min-width: 400px; }
-  &#preferences { min-width: 400px; }
 }
