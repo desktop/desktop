@@ -1,3 +1,7 @@
+// The styles herein attempt to follow a flow where margins are only applied
+// to the bottom of elements (with the exception of the last child). This to
+// allow easy layout using generalized components and elements such as <Row>
+// and <p>.
 dialog {
   border: var(--base-border);
   box-shadow: var(--base-box-shadow);
@@ -7,12 +11,18 @@ dialog {
   color: var(--text-color);
   background: var(--background-color);
 
+  // This resets the properties we animate in the transition group
+  // such that if there's ever a race condition between the JS timing
+  // and the CSS transition we'll always revert back to a known good
+  // state.
   transform: scale(1);
   opacity: 1;
 
   min-width: 400px;
   max-width: 800px;
 
+  // The modal class here is the transition name for the react css transition
+  // group which allows us to apply an animation when the popup appears.
   &.modal {
     
     &-enter {
@@ -53,6 +63,9 @@ dialog {
     opacity: 0.4;
   }
 
+  // The dialog embeds a fieldset as the first child of the form element
+  // in order to be able to disable all form elements and buttons in one
+  // swoop. This resets all styles for that fieldset.
   & > form > fieldset {
     border: 0;
     margin: 0;
@@ -168,6 +181,7 @@ dialog {
     }
   }
 
+  // Custom branding of a warning dialog. Used for dangerous actions
   &.warning {
     .dialog-header {
       color: var(--dialog-warning-color);
@@ -176,6 +190,7 @@ dialog {
     border-top: 3px solid var(--dialog-warning-color);
   }
 
+  // Custom branding of an error dialog. Used for displaying errors
   &.error {
     .dialog-header {
       color: var(--dialog-error-color);
@@ -184,6 +199,8 @@ dialog {
     border-top: 3px solid var(--dialog-error-color);
   }
 
+  // Inline error component rendered at the top of the dialog just below
+  // the header (if the dialog has one).
   .dialog-error {
     display: flex;
     padding: var(--spacing);
