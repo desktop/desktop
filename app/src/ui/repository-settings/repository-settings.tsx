@@ -101,6 +101,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
         return <GitIgnore
           text={this.state.ignoreText}
           onIgnoreTextChanged={this.onIgnoreTextChanged}
+          onShowExamples={this.onShowGitIgnoreExamples}
         />
       }
       case RepositorySettingsTab.GitLFS: {
@@ -109,6 +110,10 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     }
 
     return assertNever(tab, `Unknown tab type: ${tab}`)
+  }
+
+  private onShowGitIgnoreExamples = () => {
+    this.props.dispatcher.openInBrowser('https://git-scm.com/docs/gitignore')
   }
 
   private onSubmit = async () => {
