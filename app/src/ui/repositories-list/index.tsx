@@ -6,7 +6,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { AddRepository } from '../add-repository'
 import { User } from '../../models/user'
 import { FoldoutType } from '../../lib/app-state'
-import { FoldoutList, IFoldoutListRow } from '../lib/foldout-list'
+import { FoldoutList } from '../lib/foldout-list'
 
 const RepositoryFoldoutList: new() => FoldoutList<IRepositoryListItem> = FoldoutList as any
 
@@ -28,17 +28,17 @@ const RowHeight = 30
 
 /** The list of user-added repositories. */
 export class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
-  private renderRow = (row: IFoldoutListRow<IRepositoryListItem>) => {
-    if (row.kind === 'item') {
-      const repository = row.item.repository
-      return <RepositoryListItem
-        key={repository.id}
-        repository={repository}
-        dispatcher={this.props.dispatcher}
-      />
-    } else {
-      return <div key={row.label} className='repository-group-label'>{row.label}</div>
-    }
+  private renderItem = (item: IRepositoryListItem) => {
+    const repository = item.repository
+    return <RepositoryListItem
+      key={repository.id}
+      repository={repository}
+      dispatcher={this.props.dispatcher}
+    />
+  }
+
+  private renderGroupLabel = (label: string) => {
+    return <div key={label} className='repository-group-label'>{label}</div>
   }
 
   private onItemClick = (item: IRepositoryListItem) => {
@@ -91,7 +91,8 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
         renderExpansion={this.renderAddRepository}
         rowHeight={RowHeight}
         selectedItem={selectedItem}
-        renderRow={this.renderRow}
+        renderItem={this.renderItem}
+        renderGroupLabel={this.renderGroupLabel}
         onItemClick={this.onItemClick}
         groups={groups}
         onClose={this.onClose}

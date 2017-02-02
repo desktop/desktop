@@ -6,7 +6,7 @@ import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
-interface IFoldoutListItem {
+export interface IFoldoutListItem {
   readonly text: string
   readonly id: string
 }
@@ -26,7 +26,7 @@ interface IItem<T> {
   readonly item: T
 }
 
-export type IFoldoutListRow<T> = IGroup | IItem<T>
+type IFoldoutListRow<T> = IGroup | IItem<T>
 
 interface IFoldoutListProps<T> {
   readonly className?: string
@@ -43,7 +43,9 @@ interface IFoldoutListProps<T> {
 
   readonly renderExpansion: () => JSX.Element | null
 
-  readonly renderRow: (item: IFoldoutListRow<T>) => JSX.Element | null
+  readonly renderItem: (item: T) => JSX.Element | null
+
+  readonly renderGroupLabel: (label: string) => JSX.Element | null
 
   readonly onItemClick: (item: T) => void
 
@@ -144,13 +146,17 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
     return { filter, rows: flattenedRows, selectedRow }
   }
 
-  private onSelectionChanged = (row: number) => {
-    this.setState({ selectedRow: row })
+  private onSelectionChanged = (index: number) => {
+    this.setState({ selectedRow: index })
   }
 
-  private renderRow = (row: number) => {
-    const item = this.state.rows[row]
-    return this.props.renderRow(item)
+  private renderRow = (index: number) => {
+    const row = this.state.rows[index]
+    if (row.kind === 'item') {
+      return this.props.renderItem(row.item)
+    } else {
+      return this.props.renderGroupLabel(row.label)
+    }
   }
 
   private onListRef = (instance: List | null) => {
