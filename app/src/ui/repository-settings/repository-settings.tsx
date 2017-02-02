@@ -1,4 +1,6 @@
 import * as React from 'react'
+import * as Path from 'path'
+import * as Fs from 'fs'
 import { TabBar } from '../tab-bar'
 import { Remote } from './remote'
 import { GitIgnore } from './git-ignore'
@@ -16,7 +18,6 @@ interface IRepositorySettingsProps {
   readonly remote: IRemote | null
   readonly repository: Repository
   readonly onDismissed: () => void
-  readonly gitIgnoreText: string | null
 }
 
 enum RepositorySettingsTab {
@@ -29,6 +30,8 @@ interface IRepositorySettingsState {
   readonly selectedTab: RepositorySettingsTab
   readonly remote: IRemote | null
   readonly ignoreText: string | null
+  readonly ignoreTextHasChanged: boolean
+  readonly disabled: boolean
 }
 
 export class RepositorySettings extends React.Component<IRepositorySettingsProps, IRepositorySettingsState> {
@@ -38,8 +41,23 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     this.state = {
       selectedTab: RepositorySettingsTab.Remote,
       remote: props.remote,
-      ignoreText: this.props.gitIgnoreText,
+      ignoreText: null,
+      ignoreTextHasChanged: false,
     }
+  }
+
+  public componentWillMount() {
+    const repository = this.props.repository
+    const ignorePath = Path.join(repository.path, '.gitignore')
+
+    Fs.readFile(ignorePath, 'utf8', (err, data) => {
+      if (err) {
+        // TODO: what if this is a real error and we can't read the file?
+      } else {
+        // ensure we assign something to the current text
+        this.setState({ ignoreText: data })
+      }
+    })
   }
 
   public render() {
@@ -91,22 +109,53 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     return assertNever(tab, `Unknown tab type: ${tab}`)
   }
 
-  private onSubmit = () => {
+  private onSubmit = async () => {
+
+    let success = true
+
     if (this.state.remote && this.props.remote) {
       if (this.state.remote.url !== this.props.remote.url) {
-        this.props.dispatcher.setRemoteURL(
-          this.props.repository,
-          this.props.remote.name,
-          this.state.remote.url
-        )
+        try {
+          await this.props.dispatcher.setRemoteURL(
+            this.props.repository,
+            this.props.remote.name,
+            this.state.remote.url
+          )
+        } catch (e) {
+          success = false
+          // TODO display error
+        }
       }
     }
 
-    if (this.state.ignoreText && this.state.ignoreText !== this.props.gitIgnoreText) {
-      this.props.dispatcher.setGitIgnoreText(this.props.repository, this.state.ignoreText)
+    if (this.state.ignoreTextHasChanged && this.state.ignoreText !== null) {
+      try {
+        await this.saveGitIgnore()
+      } catch (e) {
+        // TODO: Display error
+        success = false
+      }
     }
 
-    this.props.onDismissed()
+    if (success) {
+      this.props.onDismissed()
+    }
+  }
+
+  private async saveGitIgnore(): Promise<void> {
+    const repository = this.props.repository
+    const ignorePath = Path.join(repository.path, '.gitignore')
+    const fileContents = ensureTrailingNewline(this.state.ignoreText || '')
+
+    return new Promise<void>((resolve, reject) => {
+      Fs.writeFile(ignorePath, fileContents, err => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve()
+        }
+      })
+    })
   }
 
   private onRemoteUrlChanged = (url: string) => {
@@ -122,10 +171,22 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
   }
 
   private onIgnoreTextChanged = (text: string) => {
-    this.setState({ ignoreText: text })
+    this.setState({ ignoreText: text, ignoreTextHasChanged: true })
   }
 
   private onTabClicked = (index: number) => {
     this.setState({ selectedTab: index })
+  }
+}
+
+function ensureTrailingNewline(text: string): string {
+  // mixed line endings might be an issue here
+  if (!text.endsWith('\n')) {
+    const linesEndInCRLF = text.indexOf('\r\n')
+    return linesEndInCRLF === -1
+      ? `${text}\n`
+      : `${text}\r\n`
+  } else {
+    return text
   }
 }

@@ -563,16 +563,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       const repository = popup.repository
       const state = this.props.appStore.getRepositoryState(repository)
 
-      // ensure the latest version of the gitignore is retrieved
-      // before we switch to this view
-      this.props.dispatcher.refreshGitIgnore(repository)
-
       return <RepositorySettings
         remote={state.remote}
         dispatcher={this.props.dispatcher}
         repository={repository}
         onDismissed={this.onPopupDismissed}
-        gitIgnoreText={state.gitIgnoreText}
       />
     }
 
