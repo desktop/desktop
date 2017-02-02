@@ -1,4 +1,8 @@
 .text-area-component {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
   textarea {
     border: 1px solid var(--box-border-color);
     border-radius: var(--border-radius);
@@ -11,9 +15,14 @@
 
     min-height: 100px;
 
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+
     &:focus {
       outline: none;
       border-color: var(--focus-color);
     }
   }
 }
+

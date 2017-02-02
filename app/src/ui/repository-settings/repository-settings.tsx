@@ -13,9 +13,11 @@ import { Dialog, DialogFooter } from '../dialog'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
+  readonly repository: Repository
   readonly remote: IRemote | null
   readonly repository: Repository
   readonly onDismissed: () => void
+  readonly gitIgnoreText: string | null
 }
 
 enum RepositorySettingsTab {
@@ -75,7 +77,11 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
         )
       }
       case RepositorySettingsTab.IgnoredFiles: {
-        return <GitIgnore/>
+        return <GitIgnore
+          dispatcher={this.props.dispatcher}
+          repository={this.props.repository}
+          text={this.props.gitIgnoreText}
+        />
       }
       case RepositorySettingsTab.GitLFS: {
         return <GitLFS/>
