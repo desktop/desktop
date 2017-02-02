@@ -191,7 +191,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click: emit('view-repository-on-github'),
       },
       {
-        label: __DARWIN__ ? 'Open in Shell' : '&Open in shell',
+        label: __DARWIN__ ? 'Open in Shell' : 'Op&en in shell',
         id: 'open-in-shell',
         click: emit('open-in-shell'),
       },
