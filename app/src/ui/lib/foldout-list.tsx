@@ -7,12 +7,26 @@ import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
 interface IFoldoutListItem {
-  readonly text?: string
-
-  readonly id?: string
-
-  readonly selectable: boolean
+  readonly text: string
+  readonly id: string
 }
+
+export interface IFoldoutListGroup<T> {
+  readonly label: string
+  readonly items: ReadonlyArray<T>
+}
+
+interface IGroup {
+  readonly kind: 'group'
+  readonly label: string
+}
+
+interface IItem<T> {
+  readonly kind: 'item'
+  readonly item: T
+}
+
+export type IFoldoutListRow<T> = IGroup | IItem<T>
 
 interface IFoldoutListProps<T> {
   readonly className?: string
@@ -21,7 +35,7 @@ interface IFoldoutListProps<T> {
 
   readonly expandButtonTitle: string
 
-  readonly items: ReadonlyArray<T>
+  readonly groups: ReadonlyArray<IFoldoutListGroup<T>>
 
   readonly selectedItem: T | null
 
@@ -29,7 +43,7 @@ interface IFoldoutListProps<T> {
 
   readonly renderExpansion: () => JSX.Element | null
 
-  readonly renderItem: (item: T) => JSX.Element | null
+  readonly renderRow: (item: IFoldoutListRow<T>) => JSX.Element | null
 
   readonly onItemClick: (item: T) => void
 
@@ -43,7 +57,7 @@ interface IFoldoutListProps<T> {
 interface IFoldoutListState<T> {
   readonly filter: string
 
-  readonly items: ReadonlyArray<T>
+  readonly rows: ReadonlyArray<IFoldoutListRow<T>>
 
   readonly selectedRow: number
 }
@@ -59,7 +73,6 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
   }
 
   public render() {
-    console.log('render', this.state.items.length)
     return (
       <div className={classnames('foldout-list', this.props.className)}>
         <div className='foldout-list-contents'>
@@ -81,7 +94,7 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
           </Row>
 
           <List
-            rowCount={this.state.items.length}
+            rowCount={this.state.rows.length}
             rowRenderer={this.renderRow}
             rowHeight={this.props.rowHeight}
             selectedRow={this.state.selectedRow}
@@ -104,25 +117,31 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
   }
 
   private createStateUpdate(filter: string, props: IFoldoutListProps<T>) {
-    const filteredItems = props.items.filter(i => {
-      const text = i.text
-      if (text) {
-        return text.toLowerCase().includes(filter.toLowerCase())
-      } else {
-        return true
+    const flattenedRows = new Array<IFoldoutListRow<T>>()
+    for (const group of props.groups) {
+      const items = group.items.filter(i => {
+        return i.text.toLowerCase().includes(filter.toLowerCase())
+      })
+
+      if (!items.length) { continue }
+
+      flattenedRows.push({ kind: 'group', label: group.label })
+      for (const item of items) {
+        flattenedRows.push({ kind: 'item', item })
       }
-    })
+    }
+
 
     let selectedRow = -1
     const selectedItem = props.selectedItem
     if (selectedItem) {
-      const index = filteredItems.findIndex(i => i.id === selectedItem.id)
+      const index = flattenedRows.findIndex(i => i.kind === 'item' && i.item.id === selectedItem.id)
       // If the selected item isn't in the list (e.g., filtered out), then
       // select the first visible item.
-      selectedRow = index < 0 ? filteredItems.findIndex(i => i.selectable) : index
+      selectedRow = index < 0 ? flattenedRows.findIndex(i => i.kind === 'item') : index
     }
 
-    return { filter, items: filteredItems, selectedRow }
+    return { filter, rows: flattenedRows, selectedRow }
   }
 
   private onSelectionChanged = (row: number) => {
@@ -130,8 +149,8 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
   }
 
   private renderRow = (row: number) => {
-    const item = this.state.items[row]
-    return this.props.renderItem(item)
+    const item = this.state.rows[row]
+    return this.props.renderRow(item)
   }
 
   private onListRef = (instance: List | null) => {
@@ -147,16 +166,16 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
     this.setState(this.createStateUpdate(text, this.props))
   }
 
-  private canSelectRow = (row: number) => {
-    const item = this.state.items[row]
-    return item.selectable
+  private canSelectRow = (index: number) => {
+    const row = this.state.rows[index]
+    return row.kind === 'item'
   }
 
-  private onRowClick = (row: number) => {
-    const item = this.state.items[row]
-    if (!item.selectable) { return }
+  private onRowClick = (index: number) => {
+    const row = this.state.rows[index]
+    if (row.kind !== 'item') { return }
 
-    this.props.onItemClick(item)
+    this.props.onItemClick(row.item)
   }
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
@@ -186,7 +205,7 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
     if (!list) { return }
 
     if (event.key === 'ArrowDown') {
-      if (this.state.items.length > 0) {
+      if (this.state.rows.length > 0) {
         this.setState({ selectedRow: list.nextSelectableRow('down', 0) }, () => {
           list.focus()
         })
@@ -194,7 +213,7 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
 
       event.preventDefault()
     } else if (event.key === 'ArrowUp') {
-      if (this.state.items.length > 0) {
+      if (this.state.rows.length > 0) {
         this.setState({ selectedRow: list.nextSelectableRow('up', 0) }, () => {
           list.focus()
         })

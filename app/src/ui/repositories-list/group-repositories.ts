@@ -2,18 +2,21 @@ import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { CloningRepository } from '../../lib/dispatcher'
 import { caseInsenstiveCompare } from '../../lib/compare'
+import { IFoldoutListGroup } from '../lib/foldout-list'
 
 export type RepositoryGroup = 'github' | 'enterprise' | 'other'
 
 export type Repositoryish = Repository | CloningRepository
 
-export type RepositoryListItemModel =
-  | { kind: 'repository', repository: Repositoryish }
-  | { kind: 'label', label: string }
+export interface IRepositoryListItem {
+  readonly text: string
+  readonly id: string
+  readonly repository: Repositoryish
+}
 
-export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): ReadonlyArray<RepositoryListItemModel> {
+export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): ReadonlyArray<IFoldoutListGroup<IRepositoryListItem>> {
   const grouped = new Map<RepositoryGroup, Repositoryish[]>()
-  repositories.forEach(repository => {
+  for (const repository of repositories) {
     const gitHubRepository = repository instanceof Repository ? repository.gitHubRepository : null
     let group: RepositoryGroup = 'other'
     if (gitHubRepository) {
@@ -33,9 +36,9 @@ export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): R
     }
 
     repositories.push(repository)
-  })
+  }
 
-  const flattened = new Array<RepositoryListItemModel>()
+  const groups = new Array<IFoldoutListGroup<IRepositoryListItem>>()
 
   const addGroup = (group: RepositoryGroup) => {
     const repositories = grouped.get(group)
@@ -47,18 +50,20 @@ export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): R
     } else if (group === 'enterprise') {
       label = 'Enterprise'
     }
-    flattened.push({ kind: 'label', label })
 
     repositories.sort((x, y) => caseInsenstiveCompare(x.name, y.name))
+    const items = repositories.map(r => ({
+      text: r.name,
+      id: r.id.toString(),
+      repository: r,
+    }))
 
-    for (const repository of repositories) {
-      flattened.push({ kind: 'repository', repository })
-    }
+    groups.push({ label, items })
   }
 
   addGroup('github')
   addGroup('enterprise')
   addGroup('other')
 
-  return flattened
+  return groups
 }
