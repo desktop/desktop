@@ -27,7 +27,7 @@ export class CommitList extends React.Component<ICommitListProps, void> {
     if (commit) {
       const gitHubUser = this.props.gitHubUsers.get(commit.author.email.toLowerCase()) || null
 
-      return <CommitListItem key={commit.sha} commit={commit} gitHubUser={gitHubUser} emoji={this.props.emoji}/>
+      return <CommitListItem key={commit.sha} commit={commit} user={gitHubUser} emoji={this.props.emoji}/>
     } else {
       return <CommitFacadeListItem key={row}/>
     }

@@ -89,12 +89,22 @@ export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IC
         </Form>
 
         <div id='commit-list' className='commit-list-example'>
-          <CommitListItem commit={dummyCommit1} emoji={emoji} gitHubUser={null}/>
-          <CommitListItem commit={dummyCommit2} emoji={emoji} gitHubUser={null}/>
-          <CommitListItem commit={dummyCommit3} emoji={emoji} gitHubUser={null}/>
+          <CommitListItem commit={dummyCommit1} emoji={emoji} user={null}/>
+          <CommitListItem commit={dummyCommit2} emoji={emoji} user={this.getAvatarUser()}/>
+          <CommitListItem commit={dummyCommit3} emoji={emoji} user={null}/>
         </div>
       </div>
     )
+  }
+
+  private getAvatarUser() {
+    const email = this.state.email
+    const avatarURL = this.state.avatarURL
+    if (email && avatarURL) {
+      return { email, avatarURL }
+    } else {
+      return null
+    }
   }
 
   private onNameChange = (event: React.FormEvent<HTMLInputElement>) => {
