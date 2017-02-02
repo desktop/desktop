@@ -173,4 +173,20 @@ dialog {
 
     border-top: 3px solid var(--dialog-error-color);
   }
+
+  .dialog-error {
+    display: flex;
+    padding: var(--spacing);
+    align-items: center;
+
+    background: var(--form-error-background);
+    border-bottom: 1px solid var(--form-error-border-color);
+    color: var(--error-color);
+
+    > .octicon {
+      flex-grow: 0;
+      flex-shrink: 0;
+      margin-right: var(--spacing);
+    }
+  }
 }
