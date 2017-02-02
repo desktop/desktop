@@ -43,6 +43,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
       remote: props.remote,
       ignoreText: null,
       ignoreTextHasChanged: false,
+      disabled: false,
     }
   }
 
@@ -67,6 +68,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
         title={__DARWIN__ ? 'Repository Settings' : 'Repository settings'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onSubmit}
+        disabled={this.state.disabled}
       >
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedTab}>
           <span>Remote</span>
@@ -111,6 +113,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
 
   private onSubmit = async () => {
 
+    this.setState({ disabled: true })
     let success = true
 
     if (this.state.remote && this.props.remote) {
@@ -139,6 +142,8 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
 
     if (success) {
       this.props.onDismissed()
+    } else {
+      this.setState({ disabled: false })
     }
   }
 
