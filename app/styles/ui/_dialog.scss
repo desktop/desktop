@@ -137,6 +137,15 @@ dialog {
     & > .row-component:not(:last-child) {
       margin-bottom: var(--spacing);
     }
+
+    & > p {
+      margin-top: 0;
+      margin-bottom: var(--spacing);
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
   }
 
   .dialog-footer {
