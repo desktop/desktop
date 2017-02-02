@@ -9,7 +9,7 @@ interface IDialogHeaderProps {
   readonly type?: 'normal' | 'warning' | 'error'
 }
 
-export class DialogHeader extends React.Component<IDialogHeaderProps, any> {
+export class DialogHeader extends React.Component<IDialogHeaderProps, void> {
 
   private onCloseButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (this.props.onDismissed) {
