@@ -199,4 +199,8 @@ dialog {
       margin-right: var(--spacing);
     }
   }
+
+  // Repository settings has long phrasing content in the gitignore
+  // tab so we'll constrain it to 400px.
+  &#repository-settings { width: 400px; }
 }
