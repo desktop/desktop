@@ -7,7 +7,9 @@ export type RepositoryGroup = 'github' | 'enterprise' | 'other'
 
 export type Repositoryish = Repository | CloningRepository
 
-export type RepositoryListItemModel = { kind: 'repository', repository: Repositoryish } | { kind: 'label', label: string }
+export type RepositoryListItemModel =
+  | { kind: 'repository', repository: Repositoryish }
+  | { kind: 'label', label: string }
 
 export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): ReadonlyArray<RepositoryListItemModel> {
   const grouped = new Map<RepositoryGroup, Repositoryish[]>()

@@ -1,0 +1,24 @@
+@import '../mixins';
+
+.foldout-list {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+
+  .foldout-list-contents {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+
+    min-width: inherit;
+
+    border-right: var(--box-border-color);
+    border-right-width: 1px;
+    border-right-style: solid;
+
+    .filter-field {
+      padding-left: var(--spacing);
+      padding-right: var(--spacing);
+    }
+  }
+}

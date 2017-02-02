@@ -1,23 +1,19 @@
 import * as React from 'react'
 
-import { List, SelectionSource } from '../list'
 import { RepositoryListItem } from './repository-list-item'
-import { Repository } from '../../models/repository'
 import { groupRepositories, RepositoryListItemModel, Repositoryish } from './group-repositories'
-import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
-import { TextBox } from '../lib/text-box'
-import { Row } from '../lib/row'
+import { Dispatcher } from '../../lib/dispatcher'
 import { AddRepository } from '../add-repository'
 import { User } from '../../models/user'
 import { FoldoutType } from '../../lib/app-state'
-import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
+import { FoldoutList } from '../lib/foldout-list'
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
   readonly onSelectionChanged: (repository: Repositoryish) => void
   readonly dispatcher: Dispatcher
   readonly loading: boolean
-  readonly repositories: ReadonlyArray<Repository | CloningRepository>
+  readonly repositories: ReadonlyArray<Repositoryish>
 
   /** The logged in users. */
   readonly users: ReadonlyArray<User>
@@ -26,122 +22,49 @@ interface IRepositoriesListProps {
   readonly expandAddRepository: boolean
 }
 
-interface IRepositoriesListState {
-  readonly listItems: ReadonlyArray<RepositoryListItemModel>
-  readonly selectedRowIndex: number
-
-  /** The currently entered filter text. */
-  readonly filter: string
-}
-
 const RowHeight = 30
 
-/**
- * Utility function for finding the index of a selected repository
- * among a list of repository list item models.
- */
-function getSelectedRowIndex(repositories: ReadonlyArray<RepositoryListItemModel>, selectedRepository: Repositoryish | null): number {
-  if (!selectedRepository) { return -1 }
-
-  const index = repositories.findIndex(item => {
-    if (item.kind === 'repository') {
-      const repository = item.repository
-      return repository.constructor === selectedRepository.constructor && repository.id === selectedRepository.id
-    } else {
-      return false
-    }
-  })
-  // If the selected repository isn't in the list (e.g., filtered out), then
-  // selected the first visible repository item.
-  return index < 0 ? repositories.findIndex(item => item.kind === 'repository') : index
+interface IRepositoryItem {
+  readonly selectable: boolean
+  readonly text?: string
+  readonly id?: string
+  readonly model: RepositoryListItemModel
 }
 
+const MyFoldoutList: new() => FoldoutList<IRepositoryItem> = FoldoutList as any
+
 /** The list of user-added repositories. */
-export class RepositoriesList extends React.Component<IRepositoriesListProps, IRepositoriesListState> {
-  private list: List | null = null
-  private filterInput: HTMLInputElement | null = null
-
-  public constructor(props: IRepositoriesListProps) {
-    super(props)
-
-    this.state = this.createState(props, '')
-  }
-
-  private createState(props: IRepositoriesListProps, filter: string): IRepositoriesListState {
-    let repositories: ReadonlyArray<Repository | CloningRepository>
-    if (filter.length) {
-      repositories = props.repositories.filter(repository => repository.name.includes(filter))
+export class RepositoriesList extends React.Component<IRepositoriesListProps, void> {
+  private renderItem = (item: IRepositoryItem) => {
+    const model = item.model
+    if (model.kind === 'repository') {
+      return <RepositoryListItem
+        key={item.id}
+        repository={model.repository}
+        dispatcher={this.props.dispatcher}
+      />
     } else {
-      repositories = props.repositories
-    }
-
-    const listItems = groupRepositories(repositories)
-    const selectedRowIndex = getSelectedRowIndex(listItems, props.selectedRepository)
-
-    return { listItems, selectedRowIndex, filter }
-  }
-
-  public componentWillReceiveProps(nextProps: IRepositoriesListProps) {
-    this.setState(this.createState(nextProps, this.state.filter))
-  }
-
-  private renderRow = (row: number) => {
-    const item = this.state.listItems[row]
-    if (item.kind === 'repository') {
-      return <RepositoryListItem key={row}
-                                 repository={item.repository}
-                                 dispatcher={this.props.dispatcher} />
-    } else {
-      return <div key={row} className='repository-group-label'>{item.label}</div>
+      return <div key={item.id} className='repository-group-label'>{model.label}</div>
     }
   }
 
-  private onRowClick = (row: number) => {
-    const item = this.state.listItems[row]
-    if (item.kind === 'repository') {
-      this.props.onSelectionChanged(item.repository)
+  private onItemClick = (item: IRepositoryItem) => {
+    if (item.model.kind === 'repository') {
+      this.props.onSelectionChanged(item.model.repository)
     }
   }
 
-  private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
-    const list = this.list
-    if (!list) { return }
-
-    let focusInput = false
-    const firstSelectableRow = list.nextSelectableRow('down', 0)
-    const lastSelectableRow = list.nextSelectableRow('up', 0)
-    if (event.key === 'ArrowUp' && row === firstSelectableRow) {
-      focusInput = true
-    } else if (event.key === 'ArrowDown' && row === lastSelectableRow) {
-      focusInput = true
-    }
-
-    if (focusInput) {
-      const input = this.filterInput
-      if (input) {
-        event.preventDefault()
-        input.focus()
-      }
-    }
-  }
-
-  private onSelectionChanged = (row: number, source: SelectionSource) => {
-    this.setState({ ...this.state, selectedRowIndex: row })
-  }
-
-  private canSelectRow = (row: number) => {
-    const item = this.state.listItems[row]
-    return item.kind === 'repository'
-  }
-
-  private renderAddRepository() {
+  private renderAddRepository = () => {
     if (!this.props.expandAddRepository) { return null }
 
     return <AddRepository dispatcher={this.props.dispatcher} users={this.props.users}/>
   }
 
   private onAddRepositoryBranchToggle = () => {
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: !this.props.expandAddRepository })
+    this.props.dispatcher.showFoldout({
+      type: FoldoutType.Repository,
+      expandAddRepository: !this.props.expandAddRepository,
+    })
   }
 
   public render() {
@@ -153,85 +76,56 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, IR
       return <NoRepositories/>
     }
 
+    const grouped = groupRepositories(this.props.repositories)
+    const items: ReadonlyArray<IRepositoryItem> = grouped.map(item => {
+      if (item.kind === 'repository') {
+        const repository = item.repository
+        return {
+          model: item,
+          text: repository.name,
+          id: repository.id.toString(),
+          selectable: true,
+        }
+      } else {
+        return {
+          model: item,
+          selectable: false,
+        }
+      }
+    })
+
+    let selectedItem: IRepositoryItem | null = null
+    const selectedRepository = this.props.selectedRepository
+    if (selectedRepository) {
+      selectedItem = items.find(i => {
+        const model = i.model
+        if (model.kind === 'repository') {
+          return model.repository.id === selectedRepository.id
+        } else {
+          return false
+        }
+      }) || null
+    }
+
     return (
-      <div id='repository-list'>
-        <div id='repositories'>
-          <ExpandFoldoutButton
-            onClick={this.onAddRepositoryBranchToggle}
-            expanded={this.props.expandAddRepository}>
-            {__DARWIN__ ? 'Add Repository' : 'Add repository'}
-          </ExpandFoldoutButton>
-
-          <Row>
-            <TextBox
-              type='search'
-              labelClassName='filter-field'
-              placeholder='Filter'
-              autoFocus={true}
-              onChange={this.onFilterChanged}
-              onKeyDown={this.onKeyDown}
-              onInputRef={this.onInputRef}/>
-          </Row>
-
-          <List
-            rowCount={this.state.listItems.length}
-            rowHeight={RowHeight}
-            rowRenderer={this.renderRow}
-            selectedRow={this.state.selectedRowIndex}
-            onSelectionChanged={this.onSelectionChanged}
-            onRowClick={this.onRowClick}
-            onRowKeyDown={this.onRowKeyDown}
-            canSelectRow={this.canSelectRow}
-            invalidationProps={this.props.repositories}
-            ref={this.onListRef}/>
-        </div>
-
-        {this.renderAddRepository()}
-      </div>
+      <MyFoldoutList
+        className='repository-list'
+        expandButtonTitle={__DARWIN__ ? 'Add Repository' : 'Add repository'}
+        showExpansion={this.props.expandAddRepository}
+        onExpandClick={this.onAddRepositoryBranchToggle}
+        renderExpansion={this.renderAddRepository}
+        rowHeight={RowHeight}
+        selectedItem={selectedItem}
+        renderItem={this.renderItem}
+        onItemClick={this.onItemClick}
+        items={items}
+        onClose={this.onClose}
+        invalidationProps={this.props.repositories}/>
     )
   }
 
-  private onListRef = (instance: List | null) => {
-    this.list = instance
-  }
-
-  private onInputRef = (instance: HTMLInputElement | null) => {
-    this.filterInput = instance
-  }
-
-  private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const text = event.currentTarget.value
-    this.setState(this.createState(this.props, text))
-  }
-
-  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    const list = this.list
-    if (!list) { return }
-
-    if (event.key === 'ArrowDown') {
-      if (this.state.listItems.length > 0) {
-        this.setState({ ...this.state, selectedRowIndex: list.nextSelectableRow('down', 0) }, () => {
-          list.focus()
-        })
-      }
-
-      event.preventDefault()
-    } else if (event.key === 'ArrowUp') {
-      if (this.state.listItems.length > 0) {
-        this.setState({ ...this.state, selectedRowIndex: list.nextSelectableRow('up', 0) }, () => {
-          list.focus()
-        })
-      }
-
-      event.preventDefault()
-    } else if (event.key === 'Escape') {
-      if (this.state.filter.length === 0) {
-        this.props.dispatcher.closeFoldout()
-        event.preventDefault()
-      }
-    } else if (event.key === 'Enter') {
-      this.onRowClick(list.nextSelectableRow('down', 0))
-    }
+  private onClose = () => {
+    this.props.dispatcher.closeFoldout()
   }
 }
 
