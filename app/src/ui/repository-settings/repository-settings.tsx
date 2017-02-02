@@ -11,7 +11,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogFooter } from '../dialog'
+import { Dialog, DialogError, DialogFooter } from '../dialog'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
@@ -32,6 +32,7 @@ interface IRepositorySettingsState {
   readonly ignoreText: string | null
   readonly ignoreTextHasChanged: boolean
   readonly disabled: boolean
+  readonly errors?: ReadonlyArray<JSX.Element | string>
 }
 
 export class RepositorySettings extends React.Component<IRepositorySettingsProps, IRepositorySettingsState> {
@@ -61,6 +62,19 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     })
   }
 
+  private renderErrors(): JSX.Element[] | null {
+    const errors = this.state.errors
+
+    if (!errors || !errors.length) {
+      return null
+    }
+
+    return errors.map((err, ix) => {
+      const key = `err-${ix}`
+      return <DialogError key={key}>{err}</DialogError>
+    })
+  }
+
   public render() {
     return (
       <Dialog
@@ -70,11 +84,14 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
         onSubmit={this.onSubmit}
         disabled={this.state.disabled}
       >
+        {this.renderErrors()}
+
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedTab}>
           <span>Remote</span>
           <span>Ignored Files</span>
           <span>Git LFS</span>
         </TabBar>
+
         {this.renderActiveTab()}
         <DialogFooter>
           <ButtonGroup>
@@ -118,8 +135,8 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
 
   private onSubmit = async () => {
 
-    this.setState({ disabled: true })
-    let success = true
+    this.setState({ disabled: true, errors: undefined })
+    const errors = new Array<JSX.Element | string>()
 
     if (this.state.remote && this.props.remote) {
       if (this.state.remote.url !== this.props.remote.url) {
@@ -130,8 +147,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
             this.state.remote.url
           )
         } catch (e) {
-          success = false
-          // TODO display error
+          errors.push(`Failed saving the remote URL: ${e}`)
         }
       }
     }
@@ -140,15 +156,14 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
       try {
         await this.saveGitIgnore()
       } catch (e) {
-        // TODO: Display error
-        success = false
+        errors.push(`Failed saving the .gitignore file: ${e}`)
       }
     }
 
-    if (success) {
+    if (!errors.length) {
       this.props.onDismissed()
     } else {
-      this.setState({ disabled: false })
+      this.setState({ disabled: false, errors })
     }
   }
 
