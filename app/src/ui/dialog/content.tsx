@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 /**
- * A container element for content (ie non-header, non-footer) in a Dialog.
+ * A container component for content (ie non-header, non-footer) in a Dialog.
  * This component should only be used once in any given dialog.
  * 
  * If a dialog implements a tabbed interface where each tab is a child component
