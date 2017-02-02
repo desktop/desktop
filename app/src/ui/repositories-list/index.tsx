@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { RepositoryListItem } from './repository-list-item'
-import { groupRepositories, IRepositoryListItem, Repositoryish } from './group-repositories'
+import { groupRepositories, IRepositoryListItem, Repositoryish, RepositoryGroupIdentifier } from './group-repositories'
 import { Dispatcher } from '../../lib/dispatcher'
 import { AddRepository } from '../add-repository'
 import { User } from '../../models/user'
@@ -37,8 +37,17 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
     />
   }
 
-  private renderGroupLabel = (label: string) => {
-    return <div key={label} className='repository-group-label'>{label}</div>
+  private renderGroupHeader = (identifier: RepositoryGroupIdentifier) => {
+    const label = (() => {
+      if (identifier === 'github') {
+        return 'GitHub'
+      } else if (identifier === 'enterprise') {
+        return 'Enterprise'
+      } else {
+        return 'Other'
+      }
+    })()
+    return <div key={identifier} className='repository-group-label'>{label}</div>
   }
 
   private onItemClick = (item: IRepositoryListItem) => {
@@ -92,7 +101,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
         rowHeight={RowHeight}
         selectedItem={selectedItem}
         renderItem={this.renderItem}
-        renderGroupLabel={this.renderGroupLabel}
+        renderGroupHeader={this.renderGroupHeader}
         onItemClick={this.onItemClick}
         groups={groups}
         onClose={this.onClose}

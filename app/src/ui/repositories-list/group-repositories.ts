@@ -2,23 +2,23 @@ import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { CloningRepository } from '../../lib/dispatcher'
 import { caseInsenstiveCompare } from '../../lib/compare'
-import { IFoldoutListGroup } from '../lib/foldout-list'
+import { IFoldoutListGroup, IFoldoutListItem } from '../lib/foldout-list'
 
-export type RepositoryGroup = 'github' | 'enterprise' | 'other'
+export type RepositoryGroupIdentifier = 'github' | 'enterprise' | 'other'
 
 export type Repositoryish = Repository | CloningRepository
 
-export interface IRepositoryListItem {
+export interface IRepositoryListItem extends IFoldoutListItem {
   readonly text: string
   readonly id: string
   readonly repository: Repositoryish
 }
 
 export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): ReadonlyArray<IFoldoutListGroup<IRepositoryListItem>> {
-  const grouped = new Map<RepositoryGroup, Repositoryish[]>()
+  const grouped = new Map<RepositoryGroupIdentifier, Repositoryish[]>()
   for (const repository of repositories) {
     const gitHubRepository = repository instanceof Repository ? repository.gitHubRepository : null
-    let group: RepositoryGroup = 'other'
+    let group: RepositoryGroupIdentifier = 'other'
     if (gitHubRepository) {
       if (gitHubRepository.endpoint === getDotComAPIEndpoint()) {
         group = 'github'
@@ -40,16 +40,9 @@ export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): R
 
   const groups = new Array<IFoldoutListGroup<IRepositoryListItem>>()
 
-  const addGroup = (group: RepositoryGroup) => {
-    const repositories = grouped.get(group)
+  const addGroup = (identifier: RepositoryGroupIdentifier) => {
+    const repositories = grouped.get(identifier)
     if (!repositories || repositories.length === 0) { return }
-
-    let label = 'Other'
-    if (group === 'github') {
-      label = 'GitHub'
-    } else if (group === 'enterprise') {
-      label = 'Enterprise'
-    }
 
     repositories.sort((x, y) => caseInsenstiveCompare(x.name, y.name))
     const items = repositories.map(r => ({
@@ -58,9 +51,10 @@ export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): R
       repository: r,
     }))
 
-    groups.push({ label, items })
+    groups.push({ identifier, items })
   }
 
+  // NB: This ordering reflects the order in the repositories sidebar.
   addGroup('github')
   addGroup('enterprise')
   addGroup('other')

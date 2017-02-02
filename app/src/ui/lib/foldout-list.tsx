@@ -7,18 +7,24 @@ import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
 export interface IFoldoutListItem {
+  /**
+   * The text which will be rendered in some way for the item. This is used
+   * entirely for filtering.
+   */
   readonly text: string
+
+  /** A unique identifier for the item. */
   readonly id: string
 }
 
 export interface IFoldoutListGroup<T> {
-  readonly label: string
+  readonly identifier: string
   readonly items: ReadonlyArray<T>
 }
 
 interface IGroup {
   readonly kind: 'group'
-  readonly label: string
+  readonly identifier: string
 }
 
 interface IItem<T> {
@@ -45,7 +51,7 @@ interface IFoldoutListProps<T> {
 
   readonly renderItem: (item: T) => JSX.Element | null
 
-  readonly renderGroupLabel: (label: string) => JSX.Element | null
+  readonly renderGroupHeader: (identifier: string) => JSX.Element | null
 
   readonly onItemClick: (item: T) => void
 
@@ -127,7 +133,7 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
 
       if (!items.length) { continue }
 
-      flattenedRows.push({ kind: 'group', label: group.label })
+      flattenedRows.push({ kind: 'group', identifier: group.identifier })
       for (const item of items) {
         flattenedRows.push({ kind: 'item', item })
       }
@@ -155,7 +161,7 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
     if (row.kind === 'item') {
       return this.props.renderItem(row.item)
     } else {
-      return this.props.renderGroupLabel(row.label)
+      return this.props.renderGroupHeader(row.identifier)
     }
   }
 

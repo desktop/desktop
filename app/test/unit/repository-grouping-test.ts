@@ -19,19 +19,19 @@ describe('Repository grouping', () => {
     const grouped = groupRepositories(repositories)
     expect(grouped.length).to.equal(3)
 
-    expect(grouped[0].label).to.equal('GitHub')
+    expect(grouped[0].identifier).to.equal('github')
     expect(grouped[0].items.length).to.equal(1)
 
     let item = grouped[0].items[0]
     expect(item.repository.path).to.equal('repo2')
 
-    expect(grouped[1].label).to.equal('Enterprise')
+    expect(grouped[1].identifier).to.equal('enterprise')
     expect(grouped[1].items.length).to.equal(1)
 
     item = grouped[1].items[0]
     expect(item.repository.path).to.equal('repo3')
 
-    expect(grouped[2].label).to.equal('Other')
+    expect(grouped[2].identifier).to.equal('other')
     expect(grouped[2].items.length).to.equal(1)
 
     item = grouped[2].items[0]
@@ -48,14 +48,14 @@ describe('Repository grouping', () => {
     const grouped = groupRepositories([ repoC, repoB, repoZ, repoD, repoA ])
     expect(grouped.length).to.equal(2)
 
-    expect(grouped[0].label).to.equal('GitHub')
+    expect(grouped[0].identifier).to.equal('github')
     expect(grouped[0].items.length).to.equal(2)
 
     let items = grouped[0].items
     expect(items[0].repository.path).to.equal('b')
     expect(items[1].repository.path).to.equal('d')
 
-    expect(grouped[1].label).to.equal('Other')
+    expect(grouped[1].identifier).to.equal('other')
     expect(grouped[1].items.length).to.equal(3)
 
     items = grouped[1].items
