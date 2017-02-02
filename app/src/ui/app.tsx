@@ -49,6 +49,7 @@ const dialogPopupTypes = new Set<PopupType>([
   PopupType.DeleteBranch,
   PopupType.MergeBranch,
   PopupType.RepositorySettings,
+  PopupType.UpdateAvailable,
 ])
 
 interface IAppProps {
