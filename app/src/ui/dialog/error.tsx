@@ -10,7 +10,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
  * The content (error message) is paired with a stop icon and receive
  * special styling.
  */
-export class DialogError extends React.Component<void, any> {
+export class DialogError extends React.Component<void, void> {
 
   public render() {
 
