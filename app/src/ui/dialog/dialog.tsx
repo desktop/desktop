@@ -70,7 +70,9 @@ export class Dialog extends React.Component<IDialogProps, void> {
     }
   }
 
-  private onSubmit = () => {
+  private onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
     if (this.props.onSubmit) {
       this.props.onSubmit()
     } else {
