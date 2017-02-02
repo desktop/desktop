@@ -52,6 +52,13 @@ dialog {
     opacity: 0.4;
   }
 
+  & > form > fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+
   .dialog-header {
     height: 53px;
     border-bottom: var(--base-border);

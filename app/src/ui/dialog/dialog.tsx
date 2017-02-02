@@ -10,6 +10,7 @@ interface IDialogProps {
   readonly type?: 'normal' | 'warning' | 'error'
   readonly onSubmit?: () => void
   readonly className?: string
+  readonly disabled?: boolean
 }
 
 export class Dialog extends React.Component<IDialogProps, void> {
@@ -110,8 +111,10 @@ export class Dialog extends React.Component<IDialogProps, void> {
         className={className}
         autoFocus>
           <form onSubmit={this.onSubmit}>
-            {this.renderHeader()}
-            {this.props.children}
+            <fieldset disabled={this.props.disabled}>
+              {this.renderHeader()}
+              {this.props.children}
+            </fieldset>
           </form>
       </dialog>
     )
