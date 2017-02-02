@@ -1,9 +1,6 @@
 import * as React from 'react'
 
-interface IDialogFooterProps {
-}
-
-export class DialogFooter extends React.Component<IDialogFooterProps, any> {
+export class DialogFooter extends React.Component<void, void> {
   public render() {
     return (
       <div className='dialog-footer'>
