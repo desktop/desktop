@@ -49,7 +49,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
             <li className='commit-summary-meta-item'
               title={authorTitle} aria-label='Author'>
               <span aria-hidden='true'>
-                <Avatar gitHubUser={this.props.gitHubUser} title={null}/>
+                <Avatar user={this.props.gitHubUser || undefined}/>
               </span>
 
               {author.name}
