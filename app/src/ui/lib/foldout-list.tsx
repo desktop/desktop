@@ -77,6 +77,7 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
   public constructor(props: IFoldoutListProps<T>) {
     super(props)
 
+    this.state = { filter: '', rows: [], selectedRow: -1 }
     this.state = this.createStateUpdate('', props)
   }
 
@@ -140,9 +141,9 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
     }
 
 
-    let selectedRow = -1
+    let selectedRow = this.state.selectedRow
     const selectedItem = props.selectedItem
-    if (selectedItem) {
+    if (selectedItem && selectedRow < 0) {
       const index = flattenedRows.findIndex(i => i.kind === 'item' && i.item.id === selectedItem.id)
       // If the selected item isn't in the list (e.g., filtered out), then
       // select the first visible item.
