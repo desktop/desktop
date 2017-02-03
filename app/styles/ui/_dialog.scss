@@ -1,3 +1,5 @@
+@import "../mixins";
+
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
 // allow easy layout using generalized components and elements such as <Row>
@@ -110,6 +112,8 @@ dialog {
       text-align: center;
       padding: 0;
       flex-grow: 1;
+
+      @include ellipsis;
     }
 
     button.close {
