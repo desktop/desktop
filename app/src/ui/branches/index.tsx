@@ -110,7 +110,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
     return (
       <BranchesFoldoutList
-        className='branch-list'
+        className='branches-list'
         expandButtonTitle={__DARWIN__ ? 'Create New Branch' : 'Create new branch'}
         showExpansion={this.state.showCreateDialog}
         onExpandClick={this.onCreateBranchToggle}
