@@ -1,5 +1,10 @@
 # Getting started
 
+## I just want to check it out! 
+
+Download the either the [installer for Mac](https://s3.amazonaws.com/github-desktop/releases/0.0.13-f4fbc44c/GitHub%20Desktop.zip) or [installer for Windows](https://s3.amazonaws.com/github-desktop/releases/0.0.13-f4fbc44c/GitHub%20DesktopSetup.exe). You'll be starting with a fresh installation, as there is no migration path from Desktop classic to Desktop TNG:9000. 
+
+## I want to work on it!
 ## Prerequisites
 
 ### Node.js
