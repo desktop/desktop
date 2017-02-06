@@ -7,6 +7,8 @@ import { Octicon } from '../octicons'
 import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
+const GitIgnoreFileName = '.gitignore'
+
 interface IChangedFileProps {
   readonly path: string
   readonly status: FileStatus
@@ -77,6 +79,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     event.preventDefault()
 
     const extension = Path.extname(this.props.path)
+    const fileName = Path.basename(this.props.path)
     const items: IMenuItem[] = [
       {
         label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
@@ -90,6 +93,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
       {
         label: 'Ignore',
         action: () => this.props.onIgnore(this.props.path),
+        enabled: fileName !== GitIgnoreFileName,
       },
     ]
 
@@ -97,6 +101,7 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
       items.push({
         label: __DARWIN__ ? `Ignore All ${extension} Files` : `Ignore all ${extension} files`,
         action: () => this.props.onIgnore(`*${extension}`),
+        enabled: fileName !== GitIgnoreFileName,
       })
     }
 
