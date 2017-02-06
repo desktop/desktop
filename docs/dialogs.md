@@ -35,7 +35,7 @@ Dialog itself.
 
 ```html
 <Dialog title='Preferences'>
-  <DialogError>Could not save ignore file. The file 
+  <DialogError>Could not save ignore file. EPERM Something something</DialogError>
   <TabBar>...</TabBar>
   <DialogContent>
     ...
