@@ -257,4 +257,16 @@ dialog {
   // Repository settings has long phrasing content in the gitignore
   // tab so we'll constrain it to 400px.
   &#repository-settings { width: 400px; }
+
+  &#app-error {
+    .dialog-content {
+      font-family: var(--font-family-monospace);
+      -webkit-user-select: auto;
+      user-select: auto;
+      cursor: text;
+
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  }
 }
