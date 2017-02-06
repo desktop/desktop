@@ -1051,6 +1051,10 @@ export class AppStore {
   }
 
   private async withPushPull(repository: Repository, fn: () => Promise<void>): Promise<void> {
+    const state = this.getRepositoryState(repository)
+    // Don't allow concurrent network operations.
+    if (state.pushPullInProgress) { return }
+
     this.updateRepositoryState(repository, state => ({ pushPullInProgress: true }))
     this.emitUpdate()
 
