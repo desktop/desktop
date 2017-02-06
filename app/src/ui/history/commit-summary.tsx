@@ -37,6 +37,10 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
 
     const author = this.props.author
     const authorTitle = `${author.name} <${author.email}>`
+    let avatarUser = undefined
+    if (this.props.gitHubUser) {
+      avatarUser = { ...author, avatarURL: this.props.gitHubUser.avatarURL }
+    }
 
     return (
       <div id='commit-summary'>
@@ -49,7 +53,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
             <li className='commit-summary-meta-item'
               title={authorTitle} aria-label='Author'>
               <span aria-hidden='true'>
-                <Avatar user={this.props.gitHubUser || undefined}/>
+                <Avatar user={avatarUser}/>
               </span>
 
               {author.name}

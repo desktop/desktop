@@ -152,13 +152,12 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     const avatarTitle = commitAuthor
       ? `Committing as ${commitAuthor.name} <${commitAuthor.email}>`
       : undefined
+    let avatarUser = undefined
+    if (commitAuthor && this.props.gitHubUser) {
+      avatarUser = { ...commitAuthor, avatarURL: this.props.gitHubUser.avatarURL }
+    }
 
-    // We're wrapping the avatar in a div because electron won't
-    // show a tooltip for img elements for some reason. If we can
-    // remove it in the future I'd be delighted.
-    return (
-      <Avatar user={this.props.gitHubUser || undefined} title={avatarTitle}/>
-    )
+    return <Avatar user={avatarUser} title={avatarTitle}/>
   }
 
   public render() {

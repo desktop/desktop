@@ -100,8 +100,9 @@ export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IC
   private getAvatarUser() {
     const email = this.state.email
     const avatarURL = this.state.avatarURL
-    if (email && avatarURL) {
-      return { email, avatarURL }
+    const name = this.state.name
+    if (email && avatarURL && name) {
+      return { email, avatarURL, name }
     } else {
       return null
     }
