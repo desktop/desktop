@@ -8,6 +8,9 @@ export async function addFileToIndex(repository: Repository, file: WorkingDirect
 
   if (file.status === FileStatus.New) {
     await git([ 'add', '--', file.path ], repository.path, 'addFileToIndex')
+  } else if (file.status === FileStatus.Copied) {
+    // TODO: maybe something necessary here with the oldPath?
+    await git([ 'add', '--', file.path ], repository.path, 'addFileToIndex')
   } else if (file.status === FileStatus.Renamed && file.oldPath) {
     await git([ 'add', '--', file.path ], repository.path, 'addFileToIndex')
     await git([ 'add', '-u', '--', file.oldPath ], repository.path, 'addFileToIndex')
