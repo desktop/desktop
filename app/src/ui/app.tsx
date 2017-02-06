@@ -168,8 +168,9 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onMenuEvent(name: MenuEvent): any {
-    if ((new Date()).getTime() > 0 && name !== 'show-preferences') {
-      this.props.dispatcher.postError({ name: 'foo', message: 'Test' })
+
+    // Don't react to menu events when an error dialog is shown.
+    if (this.state.errors.length) {
       return
     }
 
