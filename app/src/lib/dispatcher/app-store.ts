@@ -221,7 +221,6 @@ export class AppStore {
       remote: null,
       pushPullInProgress: false,
       lastFetched: null,
-      gitIgnoreText: null,
     }
   }
 
@@ -339,7 +338,6 @@ export class AppStore {
         aheadBehind: gitStore.aheadBehind,
         remote: gitStore.remote,
         lastFetched: gitStore.lastFetched,
-        gitIgnoreText: gitStore.gitIgnoreText,
       }
     ))
 
@@ -1297,20 +1295,6 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _openShell(path: string) {
     return openShell(path)
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _setGitIgnoreText(repository: Repository, text: string): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    await gitStore.setGitIgnoreText(text)
-
-    return this._refreshRepository(repository)
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _refreshGitIgnore(repository: Repository): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    return gitStore.refreshGitIgnoreText()
   }
 
   /** Takes a URL and opens it using the system default application */
