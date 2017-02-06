@@ -40,6 +40,7 @@ export function mapStatus(rawStatus: string): FileStatus {
   if (status === 'A') { return FileStatus.New }           // added
   if (status === 'D') { return FileStatus.Deleted }       // deleted
   if (status === 'R') { return FileStatus.Renamed }       // renamed
+  if (status === 'C') { return FileStatus.Copied }        // copied
   if (status === 'RM') { return FileStatus.Renamed }      // renamed in index, modified in working directory
   if (status === 'RD') { return FileStatus.Conflicted }   // renamed in index, deleted in working directory
   if (status === 'DD') { return FileStatus.Conflicted }   // Unmerged, both deleted

@@ -42,7 +42,7 @@ export function parsePorcelainStatus(output: string): ReadonlyArray<IStatusEntry
     // In the case of renames there's one more field separated
     // by a null character which holds the source/original path
     // before the rename.
-    if (statusCode.startsWith('R')) {
+    if (statusCode.startsWith('R') || statusCode.startsWith('C')) {
       oldPath = fields.shift()
     }
 
