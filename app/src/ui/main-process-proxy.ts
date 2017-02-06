@@ -34,10 +34,13 @@ export function getAppMenu() {
 }
 
 export interface IMenuItem {
+  /** The user-facing label. */
   readonly label?: string
 
+  /** The action to invoke when the user selects the item. */
   readonly action?: () => void
 
+  /** The type of item. */
   readonly type?: 'separator'
 }
 
