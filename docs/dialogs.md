@@ -17,7 +17,36 @@
 </Dialog>
 ```
 
-### Form example
+## Errors
+
+Dialogs should, when practical, render errors caused by its actions inline as
+opposed to opening an error dialog. An example of this is the Preferences dialog.
+If the dialog fails to write to the .gitignore or git config files as part of
+persisting changes it renders a short error message inline in the dialog using
+the `DialogError` component.
+
+The `DialogError` component, if used, must be the first child element of the
+Dialog itself.
+
+```html
+<Dialog title='Preferences'>
+  <DialogError>Could not save ignore file. The file 
+  <TabBar>...</TabBar>
+  <DialogContent>
+    ...
+  </DialogContent>
+  <DialogFooter>
+    <ButtonGroup>
+      <Button type='submit'>Ok</Button>
+      <Button>Cancel</Button>
+    </ButtonGroup>
+  </DialogFooter>
+</Dialog>
+```
+
+The content inside of the DialogError should be primarily text based. Avoid using
+the term 'Error' inside the text as that should be evident already based on the
+styling of the `DialogError` component.
 
 ## Best practices
 
@@ -76,3 +105,6 @@ dialog/form/row styles in a more straightforward way.
 
 The `Row` component receives a bottom margin, when used as an immediate
 child of `DialogContent`, making it an excellent tool for structuring content.
+
+If the content is primary text, as opposed to form component the `<p>` element
+should be used instead of the `Row` component.
