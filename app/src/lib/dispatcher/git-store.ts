@@ -479,4 +479,64 @@ export class GitStore {
 
     this.emitUpdate()
   }
+
+  /**
+   * Read the contents of the repository .gitignore.
+   * 
+   * Returns a promise which will either be rejected or resolved
+   * with the contents of the file. If there's no .gitignore file
+   * in the repository root the promise will resolve with null.
+   */
+  public async readGitIgnore(): Promise<string | null> {
+    const repository = this.repository
+    const ignorePath = Path.join(repository.path, '.gitignore')
+
+    return new Promise<string | null>((resolve, reject) => {
+      Fs.readFile(ignorePath, 'utf8', (err, data) => {
+        if (err) {
+          if (err.code === 'ENOENT') {
+            resolve(null)
+          } else {
+            reject(err)
+          }
+        } else {
+          resolve(data)
+        }
+      })
+    })
+  }
+
+  /** 
+   * Persist the given content to the repository root .gitignore.
+   * 
+   * If the repository root doesn't contain a .gitignore file one
+   * will be created, otherwise the current file will be overwritten.
+   */
+  public async saveGitIgnore(text: string): Promise<void> {
+    const repository = this.repository
+    const ignorePath = Path.join(repository.path, '.gitignore')
+    const fileContents = ensureTrailingNewline(text)
+
+    return new Promise<void>((resolve, reject) => {
+      Fs.writeFile(ignorePath, fileContents, err => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve()
+        }
+      })
+    })
+  }
+}
+
+function ensureTrailingNewline(text: string): string {
+  // mixed line endings might be an issue here
+  if (!text.endsWith('\n')) {
+    const linesEndInCRLF = text.indexOf('\r\n')
+    return linesEndInCRLF === -1
+      ? `${text}\n`
+      : `${text}\r\n`
+  } else {
+    return text
+  }
 }

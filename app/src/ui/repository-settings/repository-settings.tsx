@@ -1,6 +1,4 @@
 import * as React from 'react'
-import * as Path from 'path'
-import * as Fs from 'fs'
 import { TabBar } from '../tab-bar'
 import { Remote } from './remote'
 import { GitIgnore } from './git-ignore'
@@ -48,18 +46,13 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     }
   }
 
-  public componentWillMount() {
-    const repository = this.props.repository
-    const ignorePath = Path.join(repository.path, '.gitignore')
-
-    Fs.readFile(ignorePath, 'utf8', (err, data) => {
-      if (err) {
-        // TODO: what if this is a real error and we can't read the file?
-      } else {
-        // ensure we assign something to the current text
-        this.setState({ ignoreText: data })
-      }
-    })
+  public async componentWillMount() {
+    try {
+      const ignoreText = await this.props.dispatcher.readGitIgnore(this.props.repository)
+      this.setState({ ignoreText })
+    } catch(e) {
+      this.setState({ errors: [ `Could not read .gitignore: ${e}` ] })
+    }
   }
 
   private renderErrors(): JSX.Element[] | null {
@@ -154,7 +147,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
 
     if (this.state.ignoreTextHasChanged && this.state.ignoreText !== null) {
       try {
-        await this.saveGitIgnore()
+        await this.props.dispatcher.saveGitIgnore(this.props.repository, this.state.ignoreText || '')
       } catch (e) {
         errors.push(`Failed saving the .gitignore file: ${e}`)
       }
@@ -165,22 +158,6 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     } else {
       this.setState({ disabled: false, errors })
     }
-  }
-
-  private async saveGitIgnore(): Promise<void> {
-    const repository = this.props.repository
-    const ignorePath = Path.join(repository.path, '.gitignore')
-    const fileContents = ensureTrailingNewline(this.state.ignoreText || '')
-
-    return new Promise<void>((resolve, reject) => {
-      Fs.writeFile(ignorePath, fileContents, err => {
-        if (err) {
-          reject(err)
-        } else {
-          resolve()
-        }
-      })
-    })
   }
 
   private onRemoteUrlChanged = (url: string) => {
@@ -201,17 +178,5 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
 
   private onTabClicked = (index: number) => {
     this.setState({ selectedTab: index })
-  }
-}
-
-function ensureTrailingNewline(text: string): string {
-  // mixed line endings might be an issue here
-  if (!text.endsWith('\n')) {
-    const linesEndInCRLF = text.indexOf('\r\n')
-    return linesEndInCRLF === -1
-      ? `${text}\n`
-      : `${text}\r\n`
-  } else {
-    return text
   }
 }

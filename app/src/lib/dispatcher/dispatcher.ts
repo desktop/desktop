@@ -491,4 +491,26 @@ export class Dispatcher {
   public openShell(path: string) {
     return this.appStore._openShell(path)
   }
+
+  /** 
+   * Persist the given content to the repository's root .gitignore.
+   * 
+   * If the repository root doesn't contain a .gitignore file one
+   * will be created, otherwise the current file will be overwritten.
+   */
+  public async saveGitIgnore(repository: Repository, text: string): Promise<void> {
+    await this.appStore._saveGitIgnore(repository, text)
+    await this.appStore._refreshRepository(repository)
+  }
+
+  /**
+   * Read the contents of the repository's .gitignore.
+   * 
+   * Returns a promise which will either be rejected or resolved
+   * with the contents of the file. If there's no .gitignore file
+   * in the repository root the promise will resolve with null.
+   */
+  public async readGitIgnore(repository: Repository): Promise<string | null> {
+    return this.appStore._readGitIgnore(repository)
+  }
 }

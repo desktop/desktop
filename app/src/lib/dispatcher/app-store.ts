@@ -1301,4 +1301,16 @@ export class AppStore {
   public _openInBrowser(url: string) {
     return shell.openExternal(url)
   }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _saveGitIgnore(repository: Repository, text: string): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.saveGitIgnore(text)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _readGitIgnore(repository: Repository): Promise<string | null> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.readGitIgnore()
+  }
 }
