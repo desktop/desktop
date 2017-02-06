@@ -46,6 +46,9 @@ interface IAppProps {
   readonly appStore: AppStore
 }
 
+export const dialogTransitionEnterTimeout = 250
+export const dialogTransitionLeaveTimeout = 100
+
 export class App extends React.Component<IAppProps, IAppState> {
 
   /**
@@ -588,9 +591,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       <ReactCSSTransitionGroup
         transitionName='modal'
         component='div'
-        transitionEnterTimeout={250}
-        transitionLeaveTimeout={100}>
-        {this.renderPopupOrDialog()}
+        transitionEnterTimeout={dialogTransitionEnterTimeout}
+        transitionLeaveTimeout={dialogTransitionLeaveTimeout}
+      >
+        {this.currentPopupContent()}
       </ReactCSSTransitionGroup>
     )
   }
