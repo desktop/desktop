@@ -42,6 +42,9 @@ export interface IMenuItem {
 
   /** The type of item. */
   readonly type?: 'separator'
+
+  /** Is the menu item enabled? Defaults to true. */
+  readonly enabled?: boolean
 }
 
 /**
