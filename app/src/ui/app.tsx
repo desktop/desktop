@@ -181,7 +181,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'select-history': return this.selectHistory()
       case 'add-local-repository': return this.showFileBrowser()
       case 'create-branch': return this.showBranches(true)
-      case 'show-branches': return this.showBranches()
+      case 'show-branches': return this.showBranches(false)
       case 'remove-repository': return this.removeRepository()
       case 'add-repository': return this.addRepository()
       case 'rename-branch': return this.renameBranch()
@@ -301,11 +301,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private showBranches(expandCreateForm?: boolean) {
+  private showBranches(expandCreateBranch: boolean) {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateForm })
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch })
   }
 
   private selectChanges() {
@@ -766,30 +766,25 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!selection || selection.type !== SelectionType.Repository) {
       return null
     }
+
     const repository = selection.repository
 
     const state = this.props.appStore.getRepositoryState(repository)
-
-    let expandCreateForm = false
-
-    const foldout = this.state.currentFoldout
-    if (foldout) {
-      if (foldout.type === FoldoutType.Branch) {
-        expandCreateForm = foldout.expandCreateForm || false
-      }
-    }
 
     const tip = state.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid
       ? tip.branch
       : null
 
+    const foldout = this.state.currentFoldout
+    const expandCreateBranch = !!foldout && foldout.type === FoldoutType.Branch && foldout.expandCreateBranch
+
     return <Branches
       allBranches={state.branchesState.allBranches}
       recentBranches={state.branchesState.recentBranches}
       currentBranch={currentBranch}
       defaultBranch={state.branchesState.defaultBranch}
-      expandCreateForm={expandCreateForm}
+      expandCreateBranch={expandCreateBranch}
       dispatcher={this.props.dispatcher}
       repository={repository}
     />
@@ -797,7 +792,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
     newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch: false })
       : this.props.dispatcher.closeFoldout()
   }
 
