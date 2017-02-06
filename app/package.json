@@ -17,7 +17,6 @@
     "classnames": "^2.2.5",
     "codemirror": "^5.19.0",
     "dexie": "^1.4.1",
-    "electron-debug": "https://registry.npmjs.org/electron-debug/-/electron-debug-1.1.0.tgz",
     "electron-window-state": "^4.0.1",
     "event-kit": "^2.0.0",
     "front-matter": "^2.1.1",
