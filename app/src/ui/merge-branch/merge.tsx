@@ -7,6 +7,7 @@ import { Repository } from '../../models/repository'
 import { getAheadBehind } from '../../lib/git'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Row } from '../lib/row'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
@@ -54,11 +55,13 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
         onSubmit={this.merge}
       >
         <DialogContent>
-          <Select label='From' onChange={this.onBranchChange} value={selectedValue || undefined}>
-            {this.props.branches.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
-          </Select>
+          <Row>
+            <Select label='From' onChange={this.onBranchChange} value={selectedValue || undefined}>
+              {this.props.branches.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
+            </Select>
+          </Row>
 
-          <div>This will bring in {this.state.commitCount} {countPlural}.</div>
+          <p>This will bring in {this.state.commitCount} {countPlural}.</p>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
