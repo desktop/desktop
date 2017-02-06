@@ -780,7 +780,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       recentBranches={state.branchesState.recentBranches}
       currentBranch={currentBranch}
       defaultBranch={state.branchesState.defaultBranch}
-      showCreateBranchForm={state.branchesState.expandCreateBranch}
+      expandCreateBranch={state.branchesState.expandCreateBranch}
       dispatcher={this.props.dispatcher}
       repository={repository}
     />

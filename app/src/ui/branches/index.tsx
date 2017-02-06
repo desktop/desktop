@@ -19,7 +19,7 @@ interface IBranchesProps {
   readonly recentBranches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly showCreateBranchForm: boolean
+  readonly expandCreateBranch: boolean
 }
 
 interface IBranchesState {
@@ -173,7 +173,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private renderCreateBranch() {
-    if (!this.props.showCreateBranchForm) {
+    if (!this.props.expandCreateBranch) {
       return null
     }
 
@@ -195,7 +195,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
         <div>
           <ExpandFoldoutButton
             onClick={this.onCreateBranchToggle}
-            expanded={this.props.showCreateBranchForm}>
+            expanded={this.props.expandCreateBranch}>
               <div>{__DARWIN__ ? 'Create New Branch' : 'Create new branch'}</div>
           </ExpandFoldoutButton>
 
