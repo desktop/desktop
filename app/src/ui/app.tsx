@@ -57,6 +57,14 @@ export class App extends React.Component<IAppProps, IAppState> {
    */
   private lastKeyPressed: string | null = null
 
+  /**
+   * Gets a value indicating whether or not we're currently showing a
+   * modal dialog such as the preferences, or an error dialog.
+   */
+  private get isShowingModal() {
+    return this.state.currentPopup || this.state.errors.length
+  }
+
   public constructor(props: IAppProps) {
     super(props)
 
@@ -363,6 +371,8 @@ export class App extends React.Component<IAppProps, IAppState> {
    */
   private onWindowKeyDown = (event: KeyboardEvent) => {
     if (event.defaultPrevented) { return }
+
+    if (this.isShowingModal) { return }
 
     if (shouldRenderApplicationMenu()) {
       if (event.key === 'Alt') {
