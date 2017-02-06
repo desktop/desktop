@@ -1,5 +1,10 @@
 # Dialog
 
+Dialogs are the high-level component used to render popups such as Preferences,
+and repository setting as well as error messages. They're built upon the new
+`dialog` html element and are shown as modals which means that tab navigation
+are constrained to within the dialog itself.
+
 ## General structure
 
 ```html
