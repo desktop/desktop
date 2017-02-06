@@ -14,6 +14,7 @@ interface IChangesProps {
   readonly repository: Repository
   readonly changes: IChangesState
   readonly dispatcher: Dispatcher
+  readonly commitSummaryWidth: number
 }
 
 /** TODO: handle "repository not found" scenario */
@@ -47,7 +48,8 @@ export class Changes extends React.Component<IChangesProps, void> {
         <ChangedFileDetails
           path={file.path}
           oldPath={file.oldPath}
-          status={file.status} />
+          status={file.status}
+          commitSummaryWidth={this.props.commitSummaryWidth} />
 
         <div className='diff-wrapper'>
           <Diff repository={this.props.repository}

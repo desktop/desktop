@@ -7,6 +7,7 @@ interface IChangedFileDetailsProps {
   readonly path: string
   readonly oldPath?: string
   readonly status: FileStatus
+  readonly commitSummaryWidth: number
 }
 
 /** Displays information about a file */
@@ -16,6 +17,10 @@ export class ChangedFileDetails extends React.Component<IChangedFileDetailsProps
     const status = this.props.status
     const fileStatus = mapStatus(status)
 
+    // TODO: no repainting occurs when expanding window
+    // TODO: opt-out of this behaviour?
+    const availableSpace = window.innerWidth - this.props.commitSummaryWidth
+
     return (
       <div>
 
@@ -23,7 +28,7 @@ export class ChangedFileDetails extends React.Component<IChangedFileDetailsProps
           path={this.props.path}
           oldPath={this.props.oldPath}
           status={this.props.status}
-          availableWidth={400} // TODO: LOL
+          availableWidth={availableSpace}
         />
 
         <Octicon symbol={iconForStatus(status)}

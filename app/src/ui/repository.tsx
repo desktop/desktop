@@ -123,7 +123,8 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
     if (selectedSection === RepositorySection.Changes) {
       return <Changes repository={this.props.repository}
                       dispatcher={this.props.dispatcher}
-                      changes={this.props.state.changesState} />
+                      changes={this.props.state.changesState}
+                      commitSummaryWidth={this.props.commitSummaryWidth} />
     } else if (selectedSection === RepositorySection.History) {
       return <History repository={this.props.repository}
         dispatcher={this.props.dispatcher}
