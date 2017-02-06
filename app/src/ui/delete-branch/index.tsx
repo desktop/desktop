@@ -24,8 +24,8 @@ export class DeleteBranch extends React.Component<IDeleteBranchProps, void> {
         onDismissed={this.props.onDismissed}
       >
         <DialogContent>
-          <div>Delete branch "{this.props.branch.name}"?</div>
-          <div>This cannot be undone.</div>
+          <p>Delete branch "{this.props.branch.name}"?</p>
+          <p>This cannot be undone.</p>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
