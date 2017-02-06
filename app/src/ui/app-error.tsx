@@ -8,15 +8,32 @@ import { Dialog, DialogContent, DialogFooter } from './dialog'
 import { dialogTransitionEnterTimeout, dialogTransitionLeaveTimeout } from './app'
 
 interface IAppErrorProps {
+  /** The list of queued, app-wide, errors  */
   readonly errors: ReadonlyArray<IAppError>
+
+  /**
+   * A callback which is used whenever a particular error
+   * has been shown to, and been dismissed by, the user.
+   */
   readonly onClearError: (error: IAppError) => void
 }
 
 interface IAppErrorState {
+  /** The currently displayed error or null if no error is shown */
   readonly error: IAppError | null
+
+  /** 
+   * Whether or not the dialog and its buttons are disabled.
+   * This is used when the dialog is transitioning out of view.
+   */
   readonly disabled: boolean
 }
 
+/**
+ * A component which renders application-wide errors as dialogs. Only one error
+ * is shown per dialog and if multiple errors are queued up they will be shown
+ * in the order they were queued.
+ */
 export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
   public constructor(props: IAppErrorProps) {
@@ -28,12 +45,12 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   public componentWillReceiveProps(nextProps: IAppErrorProps) {
-    if (nextProps.errors.length) {
-      const error = nextProps.errors[0]
+    const error = nextProps.errors[0] || null
 
-      if (error !== this.state.error) {
-        this.setState({ error, disabled: false })
-      }
+    // We keep the currently shown error until it has disappeared
+    // from the first spot in the application error queue.
+    if (error !== this.state.error) {
+      this.setState({ error, disabled: false })
     }
   }
 
@@ -42,6 +59,10 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
     if (currentError) {
       this.setState({ error: null, disabled: true })
+
+      // Give some time for the dialog to nicely transition
+      // out before we clear the error and, potentially, deal
+      // with the next error in the queue.
       setTimeout(() => {
         this.props.onClearError(currentError)
       }, dialogTransitionLeaveTimeout)
