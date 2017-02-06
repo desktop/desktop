@@ -3,6 +3,29 @@
   flex-direction: column;
   flex-grow: 1;
   min-width: 0;
+
+  .header {
+
+    display: flex;
+    flex-direction: row;
+    flex-shrink: 0;
+    flex-grow: 0;
+
+    padding: var(--spacing-half);
+
+    .path {
+      flex-grow: 1;
+    }
+
+    .status {
+      &-new { fill: var(--color-new); }
+      &-copied { fill: var(--color-new); }
+      &-modified { fill: var(--color-modified); }
+      &-deleted { fill: var(--color-deleted); }
+    }
+
+    .octicon { vertical-align: text-bottom; }
+  }
 }
 
 .diff-wrapper {

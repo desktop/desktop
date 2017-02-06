@@ -22,18 +22,16 @@ export class ChangedFileDetails extends React.Component<IChangedFileDetailsProps
     const availableSpace = window.innerWidth - this.props.commitSummaryWidth
 
     return (
-      <div>
-
+      <div className='header'>
         <PathLabel
           path={this.props.path}
           oldPath={this.props.oldPath}
           status={this.props.status}
           availableWidth={availableSpace}
         />
-
         <Octicon symbol={iconForStatus(status)}
-                 className={'status status-' + fileStatus.toLowerCase()}
-                 title={fileStatus} />
+            className={'status status-' + fileStatus.toLowerCase()}
+            title={fileStatus} />
       </div>
     )
   }
