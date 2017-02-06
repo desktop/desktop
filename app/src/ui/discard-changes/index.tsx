@@ -6,6 +6,7 @@ import { WorkingDirectoryFileChange } from '../../models/status'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { PathText } from '../lib/path-text'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
@@ -26,17 +27,14 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
     const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
     return (
       <Dialog
+        id='discard-changes'
         title={ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'}
         onDismissed={this.props.onDismissed}
         type='warning'
-        className='discard-changes'
       >
         <DialogContent>
-          <div>
-            {this.renderFileList()}
-
-            <div>Changes can be restored by retrieving them from the {trashName}.</div>
-          </div>
+          {this.renderFileList()}
+          <p>Changes can be restored by retrieving them from the {trashName}.</p>
         </DialogContent>
 
         <DialogFooter>
@@ -52,17 +50,19 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
   private renderFileList() {
     if (this.props.files.length > MaxFilesToList) {
       return (
-        <div>
+        <p>
           Are you sure you want to discard all changes?
-          <div>&nbsp;</div>
-        </div>
+        </p>
       )
     } else {
       return (
-        <div>Are you sure you want to discard all changes to:
+        <div>
+          <p>Are you sure you want to discard all changes to:</p>
           <ul>
             {this.props.files.map(p =>
-              <li className='file-name' key={p.id}>{p.path}</li>
+              <li className='file-name' key={p.id}>
+                <PathText path={p.path} />
+              </li>
             )}
           </ul>
         </div>
