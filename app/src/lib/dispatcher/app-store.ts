@@ -21,7 +21,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
-import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
+import { API, getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
@@ -62,6 +62,8 @@ import {
 } from '../git'
 
 import { openShell } from '../open-shell'
+import { GitError } from '../git/core'
+import { GitError as GitErrorType } from 'git-kitchen-sink'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
@@ -305,7 +307,7 @@ export class AppStore {
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
       commitSummaryWidth: this.commitSummaryWidth,
-      appMenuState: this.appMenu ? this.appMenu.openMenus : [ ],
+      appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAppMenuToolbarButton: this.highlightAppMenuToolbarButton,
     }
@@ -632,7 +634,7 @@ export class AppStore {
           return file
         }
       })
-      .sort((x, y) => caseInsenstiveCompare(x.path, y.path))
+        .sort((x, y) => caseInsenstiveCompare(x.path, y.path))
 
       const includeAll = this.getIncludeAllState(mergedFiles)
 
@@ -732,7 +734,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
     const state = this.getRepositoryState(repository)
-    const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
+    const files = state.changesState.workingDirectory.files.filter(function (file, index, array) {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
@@ -966,10 +968,19 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _postError(error: IAppError): Promise<void> {
-    const newErrors = Array.from(this.errors)
-    newErrors.push(error)
-    this.errors = newErrors
-    this.emitUpdate()
+    if (error instanceof GitError) {
+      switch (error.result.gitError)  {
+        case GitErrorType.HTTPSAuthenticationFailed: {
+          alert('Do stuff')
+          break
+        }
+      }
+    } else {
+      const newErrors = Array.from(this.errors)
+      newErrors.push(error)
+      this.errors = newErrors
+      this.emitUpdate()
+    }
 
     return Promise.resolve()
   }
@@ -1145,7 +1156,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _clone(url: string, path: string, user: User | null): { promise: Promise<void>, repository: CloningRepository } {
     const promise = this.cloningRepositoriesStore.clone(url, path, user)
-    const repository = this.cloningRepositoriesStore.repositories.find(r => r.url === url && r.path === path)!
+    const repository = this.cloningRepositoriesStore.repositories.find(r => r.url === url && r.path === path) !
     return { promise, repository }
   }
 
