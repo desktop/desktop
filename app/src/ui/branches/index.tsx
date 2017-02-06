@@ -164,12 +164,10 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
   private onHideCreateBranch = () => {
     this.props.dispatcher.setBranchesFoldoutState(this.props.repository, false)
-    this.setState(this.createState(this.props, this.state.filter, this.state.selectedRow))
   }
 
   private onCreateBranchToggle = (isChecked: boolean) => {
     this.props.dispatcher.setBranchesFoldoutState(this.props.repository, isChecked)
-    this.setState(this.createState(this.props, this.state.filter, this.state.selectedRow))
   }
 
   private renderCreateBranch() {
