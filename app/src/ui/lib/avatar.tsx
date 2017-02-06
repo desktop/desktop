@@ -47,7 +47,9 @@ export class Avatar extends React.Component<IAvatarProps, void> {
     const title = this.getTitle()
 
     return (
-      <img className='avatar' title={title} src={url} alt={title}/>
+      <span title={title}>
+        <img className='avatar' title={title} src={url} alt={title}/>
+      </span>
     )
   }
 }
