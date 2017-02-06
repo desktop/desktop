@@ -9,6 +9,9 @@ export interface IAvatarUser {
 
   /** The user's avatar URL. */
   readonly avatarURL: string
+
+  /** The user's name. */
+  readonly name: string
 }
 
 interface IAvatarProps {
@@ -26,8 +29,14 @@ export class Avatar extends React.Component<IAvatarProps, void> {
       return this.props.title
     }
 
-    if (this.props.user) {
-      return this.props.user.email
+    const user = this.props.user
+    if (user) {
+      const name = user.name
+      if (name) {
+        return `${name} <${user.email}>`
+      } else {
+        return user.email
+      }
     }
 
     return 'Unknown user'
