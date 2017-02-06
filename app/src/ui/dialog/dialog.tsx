@@ -2,6 +2,13 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 import { DialogHeader } from './header'
 
+/**
+ * The time (in milliseconds) from when the dialog is mounted
+ * until it can be dismissed. See the isAppearing property in
+ * IDialogState for more information.
+ */
+const dismissGracePeriodMs = 250
+
 interface IDialogProps {
   /** 
    * An optional dialog title. Most, if not all dialogs should have
@@ -118,7 +125,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   private scheduleDismissGraceTimeout() {
     this.clearDismissGraceTimeout()
-    this.dismissGraceTimeoutId = window.setTimeout(this.onDismissGraceTimer, 250)
+    this.dismissGraceTimeoutId = window.setTimeout(this.onDismissGraceTimer, dismissGracePeriodMs)
   }
 
   private onDismissGraceTimer = () => {
