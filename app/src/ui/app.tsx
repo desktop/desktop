@@ -11,7 +11,6 @@ import { Repository } from '../models/repository'
 import { MenuEvent, MenuIDs } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
 import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
-import { Popuppy } from './popuppy'
 import { Branches } from './branches'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
@@ -31,10 +30,10 @@ import { Preferences } from './preferences'
 import { User } from '../models/user'
 import { TipState } from '../models/tip'
 import { shouldRenderApplicationMenu } from './lib/features'
-import { Button } from './lib/button'
-import { Form } from './lib/form'
 import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
+import { AppError } from './app-error-dialog'
+import { IAppError } from '../lib/app-state'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -169,6 +168,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onMenuEvent(name: MenuEvent): any {
+    if ((new Date()).getTime() > 0 && name !== 'show-preferences') {
+      this.props.dispatcher.postError({ name: 'foo', message: 'Test' })
+      return
+    }
+
     switch (name) {
       case 'push': return this.push()
       case 'pull': return this.pull()
@@ -567,25 +571,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     return assertNever(popup, `Unknown popup type: ${popup}`)
   }
 
-  private onPopupOverlayClick = () => { this.props.dispatcher.closePopup() }
-
-  private renderPopupOrDialog() {
-
-    const errorContent = this.renderErrors()
-    const popupContent = errorContent ? null : this.currentPopupContent()
-
-    if (errorContent) {
-      return (
-        <div className='fill-window'>
-          <div className='fill-window popup-overlay' onClick={this.onPopupOverlayClick}></div>
-          <Popuppy>{errorContent || popupContent}</Popuppy>
-        </div>
-      )
-    } else {
-      return popupContent
-    }
-  }
-
   private renderPopup() {
     return (
       <ReactCSSTransitionGroup
@@ -599,25 +584,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private clearErrors = () => {
-    const errors = this.state.errors
-
-    for (const error of errors) {
-      this.props.dispatcher.clearError(error)
-    }
+  private clearError = (error: IAppError) => {
+    this.props.dispatcher.clearError(error)
   }
 
-  private renderErrors() {
-    const errors = this.state.errors
-    if (!errors.length) { return null }
-
-    const msgs = errors.map(e => e.message)
+  private renderAppError() {
     return (
-      <Form>
-        {msgs.map((msg, i) => <pre className='popup-error-output' key={i}>{msg}</pre>)}
-
-        <Button onClick={this.clearErrors}>OK</Button>
-      </Form>
+      <AppError
+        errors={this.state.errors}
+        onClearError={this.clearError}
+      />
     )
   }
 
@@ -627,6 +603,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderToolbar()}
         {this.renderRepository()}
         {this.renderPopup()}
+        {this.renderAppError()}
       </div>
     )
   }
