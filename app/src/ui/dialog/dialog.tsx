@@ -76,6 +76,21 @@ interface IDialogProps {
   readonly disabled?: boolean
 }
 
+interface IDialogState {
+  /**
+   * When a dialog is shown we wait for a few hundred milliseconds before
+   * acknowledging a dismissal in order to avoid people accidentally dismissing
+   * dialogs that appear as they're doing other things. Since the entire
+   * backdrop of a dialog can be clicked to dismiss all it takes is one rogue
+   * click and the dialog is gone. This is less than ideal if we're in the
+   * middle of displaying an important error message.
+   * 
+   * This state boolean is used to keep track of whether we're still in that
+   * grace period or not.
+   */
+  readonly isAppearing: boolean
+}
+
 /**
  * A general purpose, versatile, dialog component which utilizes the new
  * <dialog> element. See https://demo.agektmr.com/dialog/
@@ -84,9 +99,31 @@ interface IDialogProps {
  * underlying elements. It's not possible to use the tab key to move focus
  * out of the dialog without first dismissing it.
  */
-export class Dialog extends React.Component<IDialogProps, void> {
+export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
   private dialogElement?: HTMLElement
+  private dismissGraceTimeoutId?: number
+
+  public constructor(props: IDialogProps) {
+    super(props)
+    this.state = { isAppearing: true }
+  }
+
+  private clearDismissGraceTimeout() {
+    if (this.dismissGraceTimeoutId !== undefined) {
+      clearTimeout(this.dismissGraceTimeoutId)
+      this.dismissGraceTimeoutId = undefined
+    }
+  }
+
+  private scheduleDismissGraceTimeout() {
+    this.clearDismissGraceTimeout()
+    this.dismissGraceTimeoutId = window.setTimeout(this.onDismissGraceTimer, 250)
+  }
+
+  private onDismissGraceTimer = () => {
+    this.setState({ isAppearing: false })
+  }
 
   private isDismissable() {
     return this.props.dismissable === undefined || this.props.dismissable
@@ -96,6 +133,13 @@ export class Dialog extends React.Component<IDialogProps, void> {
     // This cast to any is necessary since React doesn't know about the
     // dialog element yet.
     (this.dialogElement as any).showModal()
+
+    this.setState({ isAppearing: true })
+    this.scheduleDismissGraceTimeout()
+  }
+
+  public componentWillUnmount() {
+    this.clearDismissGraceTimeout()
   }
 
   private onDialogCancel = (e: Event) => {
@@ -141,7 +185,7 @@ export class Dialog extends React.Component<IDialogProps, void> {
   }
 
   private onDismiss = () => {
-    if (this.isDismissable()) {
+    if (this.isDismissable() && !this.state.isAppearing) {
       if (this.props.onDismissed) {
         this.props.onDismissed()
       }
