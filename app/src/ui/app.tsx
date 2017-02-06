@@ -522,6 +522,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private currentPopupContent(): JSX.Element | null {
+
+    // Hide any dialogs while we're displaying an error
+    if (this.state.errors.length) {
+      return null
+    }
+
     const popup = this.state.currentPopup
     if (!popup) { return null }
 
