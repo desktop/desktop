@@ -1,4 +1,4 @@
-import { git, envForAuthentication, expectedAuthenticationErrors } from './core'
+import { git, envForAuthentication, expectedAuthenticationErrors, GitError } from './core'
 import { Repository } from '../../models/repository'
 import { User } from '../../models/user'
 
@@ -10,10 +10,11 @@ export async function pull(repository: Repository, user: User | null, remote: st
     expectedErrors: expectedAuthenticationErrors(),
   }
 
-  const result = await git([ 'pull', remote, branch ], repository.path, 'pull', options)
+  const args = [ 'pull', remote, branch ]
+  const result = await git(args, repository.path, 'pull', options)
 
   if (result.gitErrorDescription) {
-    return Promise.reject(new Error(result.gitErrorDescription))
+    return Promise.reject(new GitError(result, args))
   }
 
   return Promise.resolve()
