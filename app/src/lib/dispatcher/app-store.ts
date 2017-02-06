@@ -212,7 +212,7 @@ export class AppStore {
         defaultBranch: null,
         allBranches: new Array<Branch>(),
         recentBranches: new Array<Branch>(),
-        showCreateBranchForm: false,
+        expandCreateBranch: false,
       },
       commitAuthor: null,
       gitHubUsers: new Map<string, IGitHubUser>(),
@@ -323,7 +323,7 @@ export class AppStore {
         defaultBranch: gitStore.defaultBranch,
         allBranches: gitStore.allBranches,
         recentBranches: gitStore.recentBranches,
-        showCreateBranchForm: state.showCreateBranchForm,
+        expandCreateBranch: state.expandCreateBranch,
       }
     ))
 
@@ -1207,14 +1207,14 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public _setBranchesFoldoutState(repository: Repository, showCreateBranchForm: boolean) {
+  public _setBranchesFoldoutState(repository: Repository, expandCreateBranch: boolean) {
     this.updateBranchesState(repository, state => (
       {
         tip: state.tip,
         defaultBranch: state.defaultBranch,
         allBranches: state.allBranches,
         recentBranches: state.recentBranches,
-        showCreateBranchForm,
+        expandCreateBranch,
       }
     ))
 

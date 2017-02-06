@@ -292,13 +292,13 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
-  private showBranches(expandCreateForm?: boolean) {
+  private showBranches(expandCreateBranch?: boolean) {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    if (expandCreateForm) {
+    if (expandCreateBranch) {
       const repository = state.repository
-      this.props.dispatcher.setBranchesFoldoutState(repository, expandCreateForm)
+      this.props.dispatcher.setBranchesFoldoutState(repository, expandCreateBranch)
     }
 
     this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
@@ -780,7 +780,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       recentBranches={state.branchesState.recentBranches}
       currentBranch={currentBranch}
       defaultBranch={state.branchesState.defaultBranch}
-      showCreateBranchForm={state.branchesState.showCreateBranchForm}
+      showCreateBranchForm={state.branchesState.expandCreateBranch}
       dispatcher={this.props.dispatcher}
       repository={repository}
     />
