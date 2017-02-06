@@ -1,17 +1,34 @@
 import * as React from 'react'
+import { PathLabel } from '../lib/path-label'
+import { FileStatus, mapStatus, iconForStatus } from '../../models/status'
+import { Octicon } from '../octicons'
 
 interface IChangedFileDetailsProps {
-  readonly filePath: string
+  readonly path: string
+  readonly oldPath?: string
+  readonly status: FileStatus
 }
 
 /** Displays information about a file */
 export class ChangedFileDetails extends React.Component<IChangedFileDetailsProps, void> {
   public render() {
-    const filePath = this.props.filePath
+
+    const status = this.props.status
+    const fileStatus = mapStatus(status)
 
     return (
       <div>
-        {filePath}
+
+        <PathLabel
+          path={this.props.path}
+          oldPath={this.props.oldPath}
+          status={this.props.status}
+          availableWidth={400} // TODO: LOL
+        />
+
+        <Octicon symbol={iconForStatus(status)}
+                 className={'status status-' + fileStatus.toLowerCase()}
+                 title={fileStatus} />
       </div>
     )
   }
