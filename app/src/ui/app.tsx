@@ -41,16 +41,6 @@ const UpdateCheckInterval = 1000 * 60 * 60 * 4
 
 const SendStatsInterval = 1000 * 60 * 60 * 4
 
-const dialogPopupTypes = new Set<PopupType>([
-  PopupType.Preferences,
-  PopupType.RenameBranch,
-  PopupType.ConfirmDiscardChanges,
-  PopupType.DeleteBranch,
-  PopupType.MergeBranch,
-  PopupType.RepositorySettings,
-  PopupType.UpdateAvailable,
-])
-
 interface IAppProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
@@ -581,9 +571,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const errorContent = this.renderErrors()
     const popupContent = errorContent ? null : this.currentPopupContent()
 
-    const popup = this.state.currentPopup
-
-    if (errorContent || (popup && !dialogPopupTypes.has(popup.type))) {
+    if (errorContent) {
       return (
         <div className='fill-window'>
           <div className='fill-window popup-overlay' onClick={this.onPopupOverlayClick}></div>
