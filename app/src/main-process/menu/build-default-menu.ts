@@ -190,6 +190,11 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         accelerator: 'CmdOrCtrl+Alt+G',
         click: emit('view-repository-on-github'),
       },
+      {
+        label: __DARWIN__ ? 'Open in Shell' : 'Op&en in shell',
+        id: 'open-in-shell',
+        click: emit('open-in-shell'),
+      },
       { type: 'separator' },
       {
         label: __DARWIN__ ? 'Repository Settings…' : 'Repository &settings…',
