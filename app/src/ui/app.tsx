@@ -32,7 +32,7 @@ import { TipState } from '../models/tip'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
-import { AppError } from './app-error-dialog'
+import { AppError } from './app-error'
 import { IAppError } from '../lib/app-state'
 
 /** The interval at which we should check for updates. */
