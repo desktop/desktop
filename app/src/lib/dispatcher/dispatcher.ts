@@ -353,11 +353,6 @@ export class Dispatcher {
     return this.appStore._clearContextualCommitMessage(repository)
   }
 
-  /** Update the branches foldout to indicate whether the create branch form should be displayed. */
-  public setBranchesFoldoutState(repository: Repository, expandCreateBranch: boolean) {
-    return this.appStore._setBranchesFoldoutState(repository, expandCreateBranch)
-  }
-
   /**
    * Set the width of the repository sidebar to the given
    * value. This affects the changes and history sidebar

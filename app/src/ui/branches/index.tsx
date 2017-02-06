@@ -9,6 +9,7 @@ import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { CreateBranch } from '../create-branch'
 import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
+import { FoldoutType } from '../../lib/app-state'
 
 const RowHeight = 30
 
@@ -163,11 +164,11 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private onHideCreateBranch = () => {
-    this.props.dispatcher.setBranchesFoldoutState(this.props.repository, false)
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch:  false })
   }
 
   private onCreateBranchToggle = (isChecked: boolean) => {
-    this.props.dispatcher.setBranchesFoldoutState(this.props.repository, isChecked)
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch: isChecked })
   }
 
   private renderCreateBranch() {
