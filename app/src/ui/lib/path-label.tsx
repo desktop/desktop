@@ -29,7 +29,10 @@ export class PathLabel extends React.Component<IPathLabelProps, void> {
       className: 'path',
     }
 
-    if (this.props.status === FileStatus.Renamed && this.props.oldPath) {
+    const status = this.props.status
+    const renderBothPaths = status === FileStatus.Renamed || status === FileStatus.Copied
+
+    if (renderBothPaths && this.props.oldPath) {
       return (
         <label {...props}>
           {this.props.oldPath} <Octicon symbol={OcticonSymbol.arrowRight} /> {this.props.path}
