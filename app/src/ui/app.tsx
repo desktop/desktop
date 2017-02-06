@@ -586,7 +586,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private renderPopup(): JSX.Element | null {
+  private renderPopup() {
     return (
       <ReactCSSTransitionGroup
         transitionName='modal'
