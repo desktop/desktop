@@ -8,6 +8,7 @@ import { CreateBranch } from '../create-branch'
 import { FilterList } from '../lib/filter-list'
 import { FoldoutType } from '../../lib/app-state'
 import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
+import { assertNever } from '../../lib/fatal-error'
 
 const BranchesFilterList: new() => FilterList<IBranchListItem> = FilterList as any
 
@@ -35,13 +36,15 @@ export class Branches extends React.Component<IBranchesProps, void> {
   }
 
   private renderGroupHeader = (identifier: BranchGroupIdentifier) => {
-    let label
+    let label: string
     if (identifier === 'default') {
       label = 'Default Branch'
     } else if (identifier === 'recent') {
       label = 'Recent Branches'
     } else if (identifier === 'other') {
       label = 'Other Branches'
+    } else {
+      return assertNever(identifier, `Unknown identifier: ${identifier}`)
     }
 
     return <div className='branches-list-content branches-list-label'>{label}</div>
