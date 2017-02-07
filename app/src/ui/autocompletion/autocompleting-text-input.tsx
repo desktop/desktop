@@ -63,7 +63,7 @@ interface IAutocompletingTextInputState<T> {
 }
 
 /** A text area which provides autocompletions as the user types. */
-export abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HTMLTextAreaElement> extends React.Component<IAutocompletingTextInputProps<ElementType>, IAutocompletingTextInputState<any>> {
+export abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HTMLTextAreaElement> extends React.Component<IAutocompletingTextInputProps<ElementType>, IAutocompletingTextInputState<Object>> {
   private element: ElementType | null = null
   private autocompletionList: List | null = null
 
@@ -207,7 +207,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     )
   }
 
-  private insertCompletion(item: any) {
+  private insertCompletion(item: Object) {
     const element = this.element!
     const autocompletionState = this.state.autocompletionState!
     const originalText = element.value
