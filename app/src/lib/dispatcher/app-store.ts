@@ -698,8 +698,15 @@ export class AppStore {
     if (!currentSelectedFile) { return }
 
     const diff = await getWorkingDirectoryDiff(repository, currentSelectedFile)
-    const selectableLines = new Set<number>()
 
+    const stateAfterLoad = this.getRepositoryState(repository)
+    const changesState = stateAfterLoad.changesState
+
+    // A whole bunch of things could have happened since we initiated the diff load
+    if (!changesState.selectedFile) { return }
+    if (changesState.selectedFile.id !== currentSelectedFile.id) { return }
+
+    const selectableLines = new Set<number>()
     if (diff.kind === DiffType.Text) {
       // The diff might have changed dramatically since last we loaded it. Ideally we
       // would be more clever about validating that any partial selection state is
@@ -718,13 +725,6 @@ export class AppStore {
 
     const newSelection = currentSelectedFile.selection.withSelectableLines(selectableLines)
     const selectedFile = currentSelectedFile.withSelection(newSelection)
-
-    const stateAfterLoad = this.getRepositoryState(repository)
-    const changesState = stateAfterLoad.changesState
-
-    // A whole bunch of things could have happened since we initiated the diff load
-    if (!changesState.selectedFile) { return }
-    if (changesState.selectedFile.id !== selectedFile.id) { return }
 
     const workingDirectory = changesState.workingDirectory.byReplacingFile(selectedFile)
     this.updateChangesState(repository, state => ({ selectedFile, diff, workingDirectory }))
