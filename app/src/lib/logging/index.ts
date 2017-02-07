@@ -7,8 +7,16 @@ import { ElectronConsole } from './electron-console'
 
 import { getUserDataPath as getUserDataPathRenderer } from '../../ui/lib/app-proxy'
 
+interface ILogger {
+  filename: string,
+  debug: (message: string) => void,
+  info: (message: string) => void,
+  error: (message: string, error?: Error) => void
+}
+
 let mainPath: string | null = null
 
+/** retrieve the userData path using the main process API */
 function getUserDataPathMain() {
   if (mainPath === null) {
     const { app } = require('electron')
@@ -18,6 +26,7 @@ function getUserDataPathMain() {
   return mainPath
 }
 
+/** resolve the log file location based on the current environment */
 function getLogFilePath(mainProcess: boolean): string {
   const path = mainProcess
     ? getUserDataPathMain()
@@ -28,15 +37,9 @@ function getLogFilePath(mainProcess: boolean): string {
   return Path.join(path, fileName)
 }
 
-interface ILogger {
-  filename: string,
-  debug: (message: string) => void,
-  info: (message: string) => void,
-  error: (message: string, error?: Error) => void
-}
-
 let logger: ILogger | null = null
 
+/** wireup the file and console loggers */
 function create(filename: string) {
   const fileLogger = new winston.transports.DailyRotateFile({
     filename,
