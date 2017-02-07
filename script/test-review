@@ -8,10 +8,10 @@ const path = require('path')
 
 function getLogDirectory() {
   if (process.platform === 'win32') {
-    return `${process.env.LOCALAPPDATA}\\desktop\\`
+    return `${process.env.APPDATA}\\GitHub Desktop\\`
   } else if (process.platform === 'darwin') {
     const home = os.homedir()
-    return `${home}/Library/Logs/GitHub/`
+    return `${home}/Library/Application Support/GitHub Desktop/`
   } else {
     console.error(`I dunno how to review for ${process.platform} :(`)
     process.exit(1)
