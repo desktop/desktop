@@ -720,12 +720,14 @@ export class AppStore {
     const selectedFile = currentSelectedFile.withSelection(newSelection)
 
     const stateAfterLoad = this.getRepositoryState(repository)
+    const changesState = stateAfterLoad.changesState
 
     // A whole bunch of things could have happened since we initiated the diff load
-    if (!stateAfterLoad.changesState.selectedFile) { return }
-    if (stateAfterLoad.changesState.selectedFile.id !== selectedFile.id) { return }
+    if (!changesState.selectedFile) { return }
+    if (changesState.selectedFile.id !== selectedFile.id) { return }
 
-    this.updateChangesState(repository, state => ({ selectedFile, diff }))
+    const workingDirectory = changesState.workingDirectory.byReplacingFile(selectedFile)
+    this.updateChangesState(repository, state => ({ selectedFile, diff, workingDirectory }))
     this.emitUpdate()
   }
 
