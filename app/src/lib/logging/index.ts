@@ -37,8 +37,7 @@ interface ILogger {
 
 let logger: ILogger | null = null
 
-function create(mainProcess: boolean = false) {
-  const filename = getLogFilePath(mainProcess)
+function create(filename: string) {
   const fileLogger = new winston.transports.DailyRotateFile({
     filename,
     humanReadableUnhandledException: true,
@@ -79,16 +78,20 @@ function create(mainProcess: boolean = false) {
   }
 }
 
+/** create a logger that's usable from the renderer process */
 export function getLogger(): ILogger {
   if (!logger) {
-    logger = create()
+    const filename = getLogFilePath(false)
+    logger = create(filename)
   }
   return logger
 }
 
+/** create a logger that's usable from the main process */
 export function getMainProcessLogger(): ILogger {
   if (!logger) {
-    logger = create(true)
+    const filename = getLogFilePath(false)
+    logger = create(filename)
   }
   return logger
 }
