@@ -18,7 +18,7 @@ interface IAvatarProps {
   /** The user whose avatar should be displayed. */
   readonly user?: IAvatarUser
 
-  /** The title of the avatar. Defaults to `email` if provided. */
+  /** The title of the avatar. Defaults to the name and email. */
   readonly title?: string
 }
 
