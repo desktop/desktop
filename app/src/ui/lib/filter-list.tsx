@@ -74,8 +74,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
   public constructor(props: IFilterListProps<T>) {
     super(props)
 
-    this.state = { filter: '', rows: [], selectedRow: -1 }
-    this.state = this.createStateUpdate('', props)
+    this.state = createStateUpdate('', -1, props)
   }
 
   public render() {
@@ -112,35 +111,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
   }
 
   public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
-    this.setState(this.createStateUpdate(this.state.filter, nextProps))
-  }
-
-  private createStateUpdate(filter: string, props: IFilterListProps<T>) {
-    const flattenedRows = new Array<IFilterListRow<T>>()
-    for (const group of props.groups) {
-      const items = group.items.filter(i => {
-        return i.text.toLowerCase().includes(filter.toLowerCase())
-      })
-
-      if (!items.length) { continue }
-
-      flattenedRows.push({ kind: 'group', identifier: group.identifier })
-      for (const item of items) {
-        flattenedRows.push({ kind: 'item', item })
-      }
-    }
-
-
-    let selectedRow = this.state.selectedRow
-    const selectedItem = props.selectedItem
-    if (selectedItem && selectedRow < 0) {
-      const index = flattenedRows.findIndex(i => i.kind === 'item' && i.item.id === selectedItem.id)
-      // If the selected item isn't in the list (e.g., filtered out), then
-      // select the first visible item.
-      selectedRow = index < 0 ? flattenedRows.findIndex(i => i.kind === 'item') : index
-    }
-
-    return { filter, rows: flattenedRows, selectedRow }
+    this.setState(createStateUpdate(this.state.filter, this.state.selectedRow, nextProps))
   }
 
   private onSelectionChanged = (index: number) => {
@@ -166,7 +137,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
 
   private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const text = event.currentTarget.value
-    this.setState(this.createStateUpdate(text, this.props))
+    this.setState(createStateUpdate(text, this.state.selectedRow, this.props))
   }
 
   private canSelectRow = (index: number) => {
@@ -233,4 +204,32 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
       this.onRowClick(list.nextSelectableRow('down', 0))
     }
   }
+}
+
+function createStateUpdate<T extends IFilterListItem>(filter: string, selectedRow: number, props: IFilterListProps<T>) {
+  const flattenedRows = new Array<IFilterListRow<T>>()
+  for (const group of props.groups) {
+    const items = group.items.filter(i => {
+      return i.text.toLowerCase().includes(filter.toLowerCase())
+    })
+
+    if (!items.length) { continue }
+
+    flattenedRows.push({ kind: 'group', identifier: group.identifier })
+    for (const item of items) {
+      flattenedRows.push({ kind: 'item', item })
+    }
+  }
+
+
+  let newSelectedRow = selectedRow
+  const selectedItem = props.selectedItem
+  if (selectedItem && newSelectedRow < 0) {
+    const index = flattenedRows.findIndex(i => i.kind === 'item' && i.item.id === selectedItem.id)
+    // If the selected item isn't in the list (e.g., filtered out), then
+    // select the first visible item.
+    newSelectedRow = index < 0 ? flattenedRows.findIndex(i => i.kind === 'item') : index
+  }
+
+  return { filter, rows: flattenedRows, selectedRow: newSelectedRow }
 }
