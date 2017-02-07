@@ -10,6 +10,7 @@
     "test": "npm run test:unit && npm run test:integration",
     "postinstall": "cd app && npm install && cd .. && git submodule update --recursive --init && npm run compile:tslint",
     "start": "cross-env NODE_ENV=development node script/start",
+    "debug": "cross-env NODE_ENV=development node script/debug",
     "compile:dev": "cross-env NODE_ENV=development webpack --config app/webpack.development.js",
     "compile:prod": "cross-env NODE_ENV=production webpack --config app/webpack.production.js",
     "build:dev": "npm run compile:dev && cross-env NODE_ENV=development node script/build",
