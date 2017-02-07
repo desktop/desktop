@@ -271,14 +271,20 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
 
   const helpItems = [ contactSupportItem ]
 
+  const throwUnhandledError: Electron.MenuItemOptions = {
+    label: 'Boomtown…',
+    click () {
+      throw new Error('Boomtown!')
+    },
+  }
+
   if (__DEV__) {
-    const throwUnhandledError: Electron.MenuItemOptions = {
-      label: 'Boomtown…',
-      click () {
-        throw new Error('Boomtown!')
-      },
+    if (__DARWIN__) {
+      helpItems.push(throwUnhandledError)
+    } else {
+      // TODO: is this the ideal place to put it on Windows?
+      updateMenuItems.push(throwUnhandledError)
     }
-    helpItems.push(throwUnhandledError)
   }
 
   if (__DARWIN__) {
