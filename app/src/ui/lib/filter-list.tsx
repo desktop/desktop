@@ -16,7 +16,7 @@ export interface IFilterListItem {
   readonly id: string
 }
 
-export interface IFilterListGroup<T> {
+export interface IFilterListGroup<T extends IFilterListItem> {
   readonly identifier: string
   readonly items: ReadonlyArray<T>
 }
@@ -33,7 +33,7 @@ interface IItem<T> {
 
 type IFilterListRow<T> = IGroup | IItem<T>
 
-interface IFilterListProps<T> {
+interface IFilterListProps<T extends IFilterListItem> {
   readonly className?: string
 
   readonly rowHeight: number
