@@ -12,7 +12,6 @@ import { assertNever } from '../lib/fatal-error'
 import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
 import { Popuppy } from './popuppy'
 import { Branches } from './branches'
-import { AddRepository } from './add-repository'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
@@ -130,6 +129,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     let onBranch = false
     let hasDefaultBranch = false
     let hasPublishedBranch = false
+    let networkActionInProgress = false
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
       const branchesState = selectedState.state.branchesState
@@ -154,6 +154,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       } else {
         onNonDefaultBranch = true
       }
+
+      networkActionInProgress = selectedState.state.pushPullInProgress
     }
 
     setMenuEnabled('rename-branch', onNonDefaultBranch)
@@ -162,6 +164,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     setMenuEnabled('merge-branch', onBranch)
     setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
     setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
+    setMenuEnabled('open-in-shell', onBranch)
+    setMenuEnabled('push', !networkActionInProgress)
+    setMenuEnabled('pull', !networkActionInProgress)
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -172,7 +177,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'select-history': return this.selectHistory()
       case 'add-local-repository': return this.showFileBrowser()
       case 'create-branch': return this.showBranches(true)
-      case 'show-branches': return this.showBranches()
+      case 'show-branches': return this.showBranches(false)
       case 'remove-repository': return this.removeRepository()
       case 'add-repository': return this.addRepository()
       case 'rename-branch': return this.renameBranch()
@@ -180,13 +185,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'check-for-updates': return this.checkForUpdates()
       case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
       case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
-      case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+      case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
       case 'open-working-directory': return this.openWorkingDirectory()
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
       case 'show-repository-settings' : return this.showRepositorySettings()
       case 'view-repository-on-github' : return this.viewRepositoryOnGitHub()
       case 'compare-branch': return this.compareBranch()
+      case 'open-in-shell' : return this.openShell()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -285,16 +291,17 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private addRepository() {
-    this.props.dispatcher.showPopup({
-      type: PopupType.AddRepository,
+    this.props.dispatcher.showFoldout({
+      type: FoldoutType.Repository,
+      expandAddRepository: true,
     })
   }
 
-  private showBranches(expandCreateForm?: boolean) {
+  private showBranches(expandCreateBranch: boolean) {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateForm })
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch })
   }
 
   private selectChanges() {
@@ -479,6 +486,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     return repository.gitHubRepository.htmlURL
   }
 
+  private openShell() {
+    const repository = this.getRepository()
+
+    if (!repository || repository instanceof CloningRepository) {
+      return
+    }
+
+    const repoFilePath = repository.path
+
+    this.props.dispatcher.openShell(repoFilePath)
+  }
+
   private renderTitlebar() {
     const winControls = __WIN32__
       ? <WindowControls />
@@ -498,13 +517,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const popup = this.state.currentPopup
     if (!popup) { return null }
 
-    if (popup.type === PopupType.AddRepository) {
-      const state = this.props.appStore.getState()
-      return <AddRepository
-        dispatcher={this.props.dispatcher}
-        users={state.users}
-      />
-    } else if (popup.type === PopupType.RenameBranch) {
+    if (popup.type === PopupType.RenameBranch) {
       return <RenameBranch dispatcher={this.props.dispatcher}
                            repository={popup.repository}
                            branch={popup.branch}/>
@@ -536,10 +549,15 @@ export class App extends React.Component<IAppProps, IAppState> {
       const repository = popup.repository
       const state = this.props.appStore.getRepositoryState(repository)
 
+      // ensure the latest version of the gitignore is retrieved
+      // before we switch to this view
+      this.props.dispatcher.refreshGitIgnore(repository)
+
       return <RepositorySettings
         remote={state.remote}
         dispatcher={this.props.dispatcher}
         repository={repository}
+        gitIgnoreText={state.gitIgnoreText}
       />
     }
 
@@ -670,19 +688,22 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepositoryList = (): JSX.Element => {
     const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
-
+    const foldout = this.state.currentFoldout
+    const expandAddRepository = !!foldout && foldout.type === FoldoutType.Repository && foldout.expandAddRepository
     return <RepositoriesList
       selectedRepository={selectedRepository}
       onSelectionChanged={this.onSelectionChanged}
       dispatcher={this.props.dispatcher}
       repositories={this.state.repositories}
       loading={this.state.loading}
+      users={this.state.users}
+      expandAddRepository={expandAddRepository}
     />
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
     newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
       : this.props.dispatcher.closeFoldout()
   }
 
@@ -701,8 +722,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       title = 'Select a repository'
     }
 
-    const isOpen = this.state.currentFoldout
-      && this.state.currentFoldout.type === FoldoutType.Repository
+    const isOpen = this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Repository
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
@@ -745,30 +765,25 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!selection || selection.type !== SelectionType.Repository) {
       return null
     }
+
     const repository = selection.repository
 
     const state = this.props.appStore.getRepositoryState(repository)
-
-    let expandCreateForm = false
-
-    const foldout = this.state.currentFoldout
-    if (foldout) {
-      if (foldout.type === FoldoutType.Branch) {
-        expandCreateForm = foldout.expandCreateForm || false
-      }
-    }
 
     const tip = state.branchesState.tip
     const currentBranch = tip.kind === TipState.Valid
       ? tip.branch
       : null
 
+    const foldout = this.state.currentFoldout
+    const expandCreateBranch = !!foldout && foldout.type === FoldoutType.Branch && foldout.expandCreateBranch
+
     return <Branches
       allBranches={state.branchesState.allBranches}
       recentBranches={state.branchesState.recentBranches}
       currentBranch={currentBranch}
       defaultBranch={state.branchesState.defaultBranch}
-      expandCreateForm={expandCreateForm}
+      expandCreateBranch={expandCreateBranch}
       dispatcher={this.props.dispatcher}
       repository={repository}
     />
@@ -776,7 +791,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
     newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch: false })
       : this.props.dispatcher.closeFoldout()
   }
 

@@ -42,6 +42,9 @@ interface IChangesListProps {
 
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
+
+  /** Called when the given pattern should be ignored. */
+  readonly onIgnore: (pattern: string) => void
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
@@ -69,6 +72,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         onDiscardChanges={this.onDiscardChanges}
         onDiscardAllChanges={this.onDiscardAllChanges}
         availableWidth={this.props.availableWidth}
+        onIgnore={this.props.onIgnore}
       />
     )
   }
