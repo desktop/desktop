@@ -8,7 +8,7 @@ import { setupFixtureRepository } from '../../fixture-helper'
 
 const temp = require('temp').track()
 
-describe.only('git/rm', () => {
+describe('git/rm', () => {
   let repository: Repository | null = null
 
   beforeEach(() => {
