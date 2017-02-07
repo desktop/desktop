@@ -21,17 +21,17 @@ export interface IFilterListGroup<T extends IFilterListItem> {
   readonly items: ReadonlyArray<T>
 }
 
-interface IGroup {
+interface IFlattenedGroup {
   readonly kind: 'group'
   readonly identifier: string
 }
 
-interface IItem<T extends IFilterListItem> {
+interface IFlattenedItem<T extends IFilterListItem> {
   readonly kind: 'item'
   readonly item: T
 }
 
-type IFilterListRow<T extends IFilterListItem> = IGroup | IItem<T>
+type IFilterListRow<T extends IFilterListItem> = IFlattenedGroup | IFlattenedItem<T>
 
 interface IFilterListProps<T extends IFilterListItem> {
   readonly className?: string
