@@ -2,11 +2,10 @@ import * as React from 'react'
 import * as classnames from 'classnames'
 
 import { List } from '../list'
-import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
-export interface IFoldoutListItem {
+export interface IFilterListItem {
   /**
    * The text which will be rendered in some way for the item. This is used
    * entirely for filtering.
@@ -17,7 +16,7 @@ export interface IFoldoutListItem {
   readonly id: string
 }
 
-export interface IFoldoutListGroup<T> {
+export interface IFilterListGroup<T> {
   readonly identifier: string
   readonly items: ReadonlyArray<T>
 }
@@ -32,49 +31,43 @@ interface IItem<T> {
   readonly item: T
 }
 
-type IFoldoutListRow<T> = IGroup | IItem<T>
+type IFilterListRow<T> = IGroup | IItem<T>
 
-interface IFoldoutListProps<T> {
+interface IFilterListProps<T> {
   readonly className?: string
 
   readonly rowHeight: number
 
-  readonly expandButtonTitle: string
-
-  readonly groups: ReadonlyArray<IFoldoutListGroup<T>>
+  readonly groups: ReadonlyArray<IFilterListGroup<T>>
 
   readonly selectedItem: T | null
-
-  readonly showExpansion: boolean
-
-  readonly renderExpansion: () => JSX.Element | null
 
   readonly renderItem: (item: T) => JSX.Element | null
 
   readonly renderGroupHeader: (identifier: string) => JSX.Element | null
 
-  readonly onItemClick: (item: T) => void
+  readonly renderPreList?: () => JSX.Element | null
 
-  readonly onExpandClick: () => void
+  readonly onItemClick: (item: T) => void
 
   readonly onClose: () => void
 
   readonly invalidationProps: any
 }
 
-interface IFoldoutListState<T> {
+interface IFilterListState<T> {
   readonly filter: string
 
-  readonly rows: ReadonlyArray<IFoldoutListRow<T>>
+  readonly rows: ReadonlyArray<IFilterListRow<T>>
 
   readonly selectedRow: number
 }
 
-export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFoldoutListProps<T>, IFoldoutListState<T>> {
+export class FilterList<T extends IFilterListItem> extends React.Component<IFilterListProps<T>, IFilterListState<T>> {
   private list: List | null = null
   private filterInput: HTMLInputElement | null = null
 
-  public constructor(props: IFoldoutListProps<T>) {
+  public constructor(props: IFilterListProps<T>) {
     super(props)
 
     this.state = { filter: '', rows: [], selectedRow: -1 }
@@ -83,52 +76,43 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
 
   public render() {
     return (
-      <div className={classnames('foldout-list', this.props.className)}>
-        <div className='foldout-list-contents'>
-          <ExpandFoldoutButton
-            onClick={this.props.onExpandClick}
-            expanded={this.props.showExpansion}>
-            {this.props.expandButtonTitle}
-          </ExpandFoldoutButton>
+      <div className={classnames('filter-list', this.props.className)}>
+        {this.props.renderPreList ? this.props.renderPreList() : null}
 
-          <Row>
-            <TextBox
-              labelClassName='filter-field'
-              type='search'
-              autoFocus={true}
-              placeholder='Filter'
-              onChange={this.onFilterChanged}
-              onKeyDown={this.onKeyDown}
-              onInputRef={this.onInputRef}/>
-          </Row>
+        <Row>
+          <TextBox
+            labelClassName='filter-list-filter-field'
+            type='search'
+            autoFocus={true}
+            placeholder='Filter'
+            onChange={this.onFilterChanged}
+            onKeyDown={this.onKeyDown}
+            onInputRef={this.onInputRef}/>
+        </Row>
 
-          <div className='foldout-list-container'>
-            <List
-              rowCount={this.state.rows.length}
-              rowRenderer={this.renderRow}
-              rowHeight={this.props.rowHeight}
-              selectedRow={this.state.selectedRow}
-              onSelectionChanged={this.onSelectionChanged}
-              onRowClick={this.onRowClick}
-              onRowKeyDown={this.onRowKeyDown}
-              canSelectRow={this.canSelectRow}
-              ref={this.onListRef}
-              invalidationProps={{ ...this.props, ...this.props.invalidationProps }}/>
-          </div>
+        <div className='filter-list-container'>
+          <List
+            rowCount={this.state.rows.length}
+            rowRenderer={this.renderRow}
+            rowHeight={this.props.rowHeight}
+            selectedRow={this.state.selectedRow}
+            onSelectionChanged={this.onSelectionChanged}
+            onRowClick={this.onRowClick}
+            onRowKeyDown={this.onRowKeyDown}
+            canSelectRow={this.canSelectRow}
+            ref={this.onListRef}
+            invalidationProps={{ ...this.props, ...this.props.invalidationProps }}/>
         </div>
-
-        {this.props.showExpansion ? this.props.renderExpansion() : null}
-
       </div>
     )
   }
 
-  public componentWillReceiveProps(nextProps: IFoldoutListProps<T>) {
+  public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
     this.setState(this.createStateUpdate(this.state.filter, nextProps))
   }
 
-  private createStateUpdate(filter: string, props: IFoldoutListProps<T>) {
-    const flattenedRows = new Array<IFoldoutListRow<T>>()
+  private createStateUpdate(filter: string, props: IFilterListProps<T>) {
+    const flattenedRows = new Array<IFilterListRow<T>>()
     for (const group of props.groups) {
       const items = group.items.filter(i => {
         return i.text.toLowerCase().includes(filter.toLowerCase())

@@ -1,16 +1,16 @@
 import { Branch } from '../../models/branch'
-import { IFoldoutListGroup, IFoldoutListItem } from '../lib/foldout-list'
+import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 
 export type BranchGroupIdentifier = 'default' | 'recent' | 'other'
 
-export interface IBranchListItem extends IFoldoutListItem {
+export interface IBranchListItem extends IFilterListItem {
   readonly text: string
   readonly id: string
   readonly branch: Branch
 }
 
-export function groupBranches(defaultBranch: Branch | null, currentBranch: Branch | null, allBranches: ReadonlyArray<Branch>, recentBranches: ReadonlyArray<Branch>): ReadonlyArray<IFoldoutListGroup<IBranchListItem>> {
-  const groups = new Array<IFoldoutListGroup<IBranchListItem>>()
+export function groupBranches(defaultBranch: Branch | null, currentBranch: Branch | null, allBranches: ReadonlyArray<Branch>, recentBranches: ReadonlyArray<Branch>): ReadonlyArray<IFilterListGroup<IBranchListItem>> {
+  const groups = new Array<IFilterListGroup<IBranchListItem>>()
 
   if (defaultBranch) {
     groups.push({

@@ -2,19 +2,19 @@ import { Repository } from '../../models/repository'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { CloningRepository } from '../../lib/dispatcher'
 import { caseInsenstiveCompare } from '../../lib/compare'
-import { IFoldoutListGroup, IFoldoutListItem } from '../lib/foldout-list'
+import { IFilterListGroup, IFilterListItem } from '../lib/filter-list'
 
 export type RepositoryGroupIdentifier = 'github' | 'enterprise' | 'other'
 
 export type Repositoryish = Repository | CloningRepository
 
-export interface IRepositoryListItem extends IFoldoutListItem {
+export interface IRepositoryListItem extends IFilterListItem {
   readonly text: string
   readonly id: string
   readonly repository: Repositoryish
 }
 
-export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): ReadonlyArray<IFoldoutListGroup<IRepositoryListItem>> {
+export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): ReadonlyArray<IFilterListGroup<IRepositoryListItem>> {
   const grouped = new Map<RepositoryGroupIdentifier, Repositoryish[]>()
   for (const repository of repositories) {
     const gitHubRepository = repository instanceof Repository ? repository.gitHubRepository : null
@@ -38,7 +38,7 @@ export function groupRepositories(repositories: ReadonlyArray<Repositoryish>): R
     repositories.push(repository)
   }
 
-  const groups = new Array<IFoldoutListGroup<IRepositoryListItem>>()
+  const groups = new Array<IFilterListGroup<IRepositoryListItem>>()
 
   const addGroup = (identifier: RepositoryGroupIdentifier) => {
     const repositories = grouped.get(identifier)

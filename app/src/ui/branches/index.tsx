@@ -5,10 +5,11 @@ import { Branch } from '../../models/branch'
 import { groupBranches, IBranchListItem, BranchGroupIdentifier } from './group-branches'
 import { BranchListItem } from './branch'
 import { CreateBranch } from '../create-branch'
-import { FoldoutList } from '../lib/foldout-list'
+import { FilterList } from '../lib/filter-list'
 import { FoldoutType } from '../../lib/app-state'
+import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
 
-const BranchesFoldoutList: new() => FoldoutList<IBranchListItem> = FoldoutList as any
+const BranchesFilterList: new() => FilterList<IBranchListItem> = FilterList as any
 
 const RowHeight = 30
 
@@ -66,7 +67,7 @@ export class Branches extends React.Component<IBranchesProps, void> {
     })
   }
 
-  private renderCreateBranch = () => {
+  private renderCreateBranch() {
     if (!this.props.expandCreateBranch) {
       return null
     }
@@ -87,6 +88,16 @@ export class Branches extends React.Component<IBranchesProps, void> {
     this.props.dispatcher.closeFoldout()
   }
 
+  private renderExpandButton = () => {
+    return (
+      <ExpandFoldoutButton
+        onClick={this.onCreateBranchToggle}
+        expanded={this.props.expandCreateBranch}>
+        {__DARWIN__ ? 'Create New Branch' : 'Create new branch'}
+      </ExpandFoldoutButton>
+    )
+  }
+
   public render() {
     const groups = groupBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches)
 
@@ -104,20 +115,20 @@ export class Branches extends React.Component<IBranchesProps, void> {
     }
 
     return (
-      <BranchesFoldoutList
-        className='branches-list'
-        expandButtonTitle={__DARWIN__ ? 'Create New Branch' : 'Create new branch'}
-        showExpansion={this.props.expandCreateBranch}
-        onExpandClick={this.onCreateBranchToggle}
-        renderExpansion={this.renderCreateBranch}
-        rowHeight={RowHeight}
-        selectedItem={selectedItem}
-        renderItem={this.renderItem}
-        renderGroupHeader={this.renderGroupHeader}
-        onItemClick={this.onItemClick}
-        groups={groups}
-        onClose={this.onClose}
-        invalidationProps={this.props.allBranches}/>
+      <div className='branches-list'>
+        <BranchesFilterList
+          renderPreList={this.renderExpandButton}
+          rowHeight={RowHeight}
+          selectedItem={selectedItem}
+          renderItem={this.renderItem}
+          renderGroupHeader={this.renderGroupHeader}
+          onItemClick={this.onItemClick}
+          groups={groups}
+          onClose={this.onClose}
+          invalidationProps={this.props.allBranches}/>
+
+        {this.renderCreateBranch()}
+      </div>
     )
   }
 }

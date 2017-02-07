@@ -1,6 +1,10 @@
 @import "../mixins";
 
 .repository-list {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+
   /**
    * Inherit the min-width from the ToolbarDropdown so that the repositories
    * list will always be the width of the button. Otherwise, if the Add

@@ -6,9 +6,10 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { AddRepository } from '../add-repository'
 import { User } from '../../models/user'
 import { FoldoutType } from '../../lib/app-state'
-import { FoldoutList } from '../lib/foldout-list'
+import { FilterList } from '../lib/filter-list'
+import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
 
-const RepositoryFoldoutList: new() => FoldoutList<IRepositoryListItem> = FoldoutList as any
+const RepositoryFilterList: new() => FilterList<IRepositoryListItem> = FilterList as any
 
 interface IRepositoriesListProps {
   readonly selectedRepository: Repositoryish | null
@@ -54,7 +55,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
     this.props.onSelectionChanged(item.repository)
   }
 
-  private renderAddRepository = () => {
+  private renderAddRepository() {
     if (!this.props.expandAddRepository) { return null }
 
     return <AddRepository dispatcher={this.props.dispatcher} users={this.props.users}/>
@@ -65,6 +66,16 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
       type: FoldoutType.Repository,
       expandAddRepository: !this.props.expandAddRepository,
     })
+  }
+
+  private renderExpandButton = () => {
+    return (
+      <ExpandFoldoutButton
+        onClick={this.onAddRepositoryBranchToggle}
+        expanded={this.props.expandAddRepository}>
+        {__DARWIN__ ? 'Add Repository' : 'Add repository'}
+      </ExpandFoldoutButton>
+    )
   }
 
   public render() {
@@ -92,20 +103,20 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
     }
 
     return (
-      <RepositoryFoldoutList
-        className='repository-list'
-        expandButtonTitle={__DARWIN__ ? 'Add Repository' : 'Add repository'}
-        showExpansion={this.props.expandAddRepository}
-        onExpandClick={this.onAddRepositoryBranchToggle}
-        renderExpansion={this.renderAddRepository}
-        rowHeight={RowHeight}
-        selectedItem={selectedItem}
-        renderItem={this.renderItem}
-        renderGroupHeader={this.renderGroupHeader}
-        onItemClick={this.onItemClick}
-        groups={groups}
-        onClose={this.onClose}
-        invalidationProps={this.props.repositories}/>
+      <div className='repository-list'>
+        <RepositoryFilterList
+          renderPreList={this.renderExpandButton}
+          rowHeight={RowHeight}
+          selectedItem={selectedItem}
+          renderItem={this.renderItem}
+          renderGroupHeader={this.renderGroupHeader}
+          onItemClick={this.onItemClick}
+          groups={groups}
+          onClose={this.onClose}
+          invalidationProps={this.props.repositories}/>
+
+        {this.renderAddRepository()}
+      </div>
     )
   }
 
