@@ -27,13 +27,13 @@ server.listen(port, 'localhost', err => {
 
   console.log(`Server running at http://localhost:${port}`)
 
-  const runningApp = run()
-  if (!runningApp) {
-    console.error("Couldn't launch the app. You probably need to build it first. Run `npm run build:dev`.")
-    process.exit(1)
-  }
+  // const runningApp = run()
+  // if (!runningApp) {
+  //   console.error("Couldn't launch the app. You probably need to build it first. Run `npm run build:dev`.")
+  //   process.exit(1)
+  // }
 
-  runningApp.on('close', () => {
-    process.exit(0)
-  })
+  // runningApp.on('close', () => {
+  //   process.exit(0)
+  // })
 })
