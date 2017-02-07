@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: row;
 
-  .foldout-list-contents {
+  &-contents {
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -21,5 +21,10 @@
       padding-right: var(--spacing);
       padding-bottom: var(--spacing);
     }
+  }
+
+  &-container {
+    display: flex;
+    flex: 1;
   }
 }

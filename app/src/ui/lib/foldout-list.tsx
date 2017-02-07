@@ -102,17 +102,19 @@ export class FoldoutList<T extends IFoldoutListItem> extends React.Component<IFo
               onInputRef={this.onInputRef}/>
           </Row>
 
-          <List
-            rowCount={this.state.rows.length}
-            rowRenderer={this.renderRow}
-            rowHeight={this.props.rowHeight}
-            selectedRow={this.state.selectedRow}
-            onSelectionChanged={this.onSelectionChanged}
-            onRowClick={this.onRowClick}
-            onRowKeyDown={this.onRowKeyDown}
-            canSelectRow={this.canSelectRow}
-            ref={this.onListRef}
-            invalidationProps={{ ...this.props, ...this.props.invalidationProps }}/>
+          <div className='foldout-list-container'>
+            <List
+              rowCount={this.state.rows.length}
+              rowRenderer={this.renderRow}
+              rowHeight={this.props.rowHeight}
+              selectedRow={this.state.selectedRow}
+              onSelectionChanged={this.onSelectionChanged}
+              onRowClick={this.onRowClick}
+              onRowKeyDown={this.onRowKeyDown}
+              canSelectRow={this.canSelectRow}
+              ref={this.onListRef}
+              invalidationProps={{ ...this.props, ...this.props.invalidationProps }}/>
+          </div>
         </div>
 
         {this.props.showExpansion ? this.props.renderExpansion() : null}
