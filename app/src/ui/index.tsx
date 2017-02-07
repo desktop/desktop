@@ -14,7 +14,7 @@ import { getDefaultDir, setDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
 import { sendReady } from './main-process-proxy'
 import { reportError } from '../lib/exception-reporting'
-import * as appProxy from './lib/app-proxy'
+import { getVersion, getUserDataPath } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
@@ -36,8 +36,8 @@ if (!process.env.TEST_ENV) {
 }
 
 process.on('uncaughtException', (error: Error) => {
-  getLogger().error('Uncaught exception on UI', error)
-  reportError(error, appProxy.getVersion())
+  getLogger(getUserDataPath()).error('Uncaught exception on UI', error)
+  reportError(error, getVersion())
 })
 
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))

@@ -5,8 +5,6 @@ import * as Path from 'path'
 
 import { ElectronConsole } from './electron-console'
 
-import { getUserDataPath as getUserDataPathRenderer } from '../../ui/lib/app-proxy'
-
 interface ILogger {
   filename: string,
   debug: (message: string) => void,
@@ -14,30 +12,12 @@ interface ILogger {
   error: (message: string, error?: Error) => void
 }
 
-let mainPath: string | null = null
-
-/** retrieve the userData path using the main process API */
-function getUserDataPathMain() {
-  if (mainPath === null) {
-    const { app } = require('electron')
-    mainPath = app.getPath('userData')
-  }
-
-  return mainPath
-}
-
 /** resolve the log file location based on the current environment */
-function getLogFilePath(mainProcess: boolean): string {
-  const path = mainProcess
-    ? getUserDataPathMain()
-    : getUserDataPathRenderer()
-
+function getLogFilePath(directory: string): string {
   const environment = process.env.NODE_ENV || 'production'
   const fileName = `desktop.${environment}.log`
-  return Path.join(path, fileName)
+  return Path.join(directory, fileName)
 }
-
-let logger: ILogger | null = null
 
 /** wireup the file and console loggers */
 function create(filename: string) {
@@ -81,20 +61,13 @@ function create(filename: string) {
   }
 }
 
-/** create a logger that's usable from the renderer process */
-export function getLogger(): ILogger {
-  if (!logger) {
-    const filename = getLogFilePath(false)
-    logger = create(filename)
-  }
-  return logger
-}
+// TODO: confirm that one logger is instantiated once for the renderer process
+//       and once for the main process
+let logger: ILogger | null = null
 
-/** create a logger that's usable from the main process */
-export function getMainProcessLogger(): ILogger {
+export function getLogger(directory: string): ILogger {
   if (!logger) {
-    const filename = getLogFilePath(false)
-    logger = create(filename)
+    logger = create(getLogFilePath(directory))
   }
   return logger
 }

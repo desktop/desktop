@@ -13,15 +13,15 @@ import {
 } from '../lib/dispatcher'
 import { API } from '../lib/api'
 import { reportError } from '../lib/exception-reporting'
-import * as appProxy from '../ui/lib/app-proxy'
+import { getVersion, getUserDataPath } from '../ui/lib/app-proxy'
 
 import { getLogger } from '../lib/logging'
 
 process.on('uncaughtException', (error: Error) => {
 
-  getLogger().error('Uncaught exception on shared process', error)
+  getLogger(getUserDataPath()).error('Uncaught exception on shared process', error)
 
-  reportError(error, appProxy.getVersion())
+  reportError(error, getVersion())
 })
 
 const usersStore = new UsersStore(localStorage, TokenStore)
