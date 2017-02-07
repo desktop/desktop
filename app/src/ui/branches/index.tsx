@@ -58,17 +58,11 @@ export class Branches extends React.Component<IBranchesProps, void> {
   }
 
   private onHideCreateBranch = () => {
-    this.props.dispatcher.showFoldout({
-      type: FoldoutType.Branch,
-      expandCreateBranch: false,
-    })
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch: false })
   }
 
   private onCreateBranchToggle = () => {
-    this.props.dispatcher.showFoldout({
-      type: FoldoutType.Branch,
-      expandCreateBranch: !this.props.expandCreateBranch,
-    })
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch: !this.props.expandCreateBranch })
   }
 
   private renderCreateBranch() {
