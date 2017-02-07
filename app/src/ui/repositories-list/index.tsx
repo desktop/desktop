@@ -8,6 +8,7 @@ import { User } from '../../models/user'
 import { FoldoutType } from '../../lib/app-state'
 import { FilterList } from '../lib/filter-list'
 import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
+import { assertNever } from '../../lib/fatal-error'
 
 const RepositoryFilterList: new() => FilterList<IRepositoryListItem> = FilterList as any
 
@@ -38,16 +39,20 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
     />
   }
 
+  private getGroupLabel(identifier: RepositoryGroupIdentifier) {
+    if (identifier === 'github') {
+      return 'GitHub'
+    } else if (identifier === 'enterprise') {
+      return 'Enterprise'
+    } else if (identifier === 'other') {
+      return 'Other'
+    } else {
+      return assertNever(identifier, `Unknown identifier: ${identifier}`)
+    }
+  }
+
   private renderGroupHeader = (identifier: RepositoryGroupIdentifier) => {
-    const label = (() => {
-      if (identifier === 'github') {
-        return 'GitHub'
-      } else if (identifier === 'enterprise') {
-        return 'Enterprise'
-      } else {
-        return 'Other'
-      }
-    })()
+    const label = this.getGroupLabel(identifier)
     return <div key={identifier} className='repository-group-label'>{label}</div>
   }
 
