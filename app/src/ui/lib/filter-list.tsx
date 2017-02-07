@@ -5,19 +5,21 @@ import { List } from '../list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
+/** An item in the filter list. */
 export interface IFilterListItem {
-  /**
-   * The text which will be rendered in some way for the item. This is used
-   * entirely for filtering.
-   */
+  /** The text which represents the item. This is used for filtering. */
   readonly text: string
 
   /** A unique identifier for the item. */
   readonly id: string
 }
 
+/** A group of items in the list. */
 export interface IFilterListGroup<T extends IFilterListItem> {
+  /** The identifier for this group. */
   readonly identifier: string
+
+  /** The items in the group. */
   readonly items: ReadonlyArray<T>
 }
 
@@ -31,23 +33,35 @@ interface IFlattenedItem<T extends IFilterListItem> {
   readonly item: T
 }
 
+/**
+ * A row in the list. This is used internally after the user-provided groups are
+ * flattened.
+ */
 type IFilterListRow<T extends IFilterListItem> = IFlattenedGroup | IFlattenedItem<T>
 
 interface IFilterListProps<T extends IFilterListItem> {
+  /** A class name for the wrapping element. */
   readonly className?: string
 
+  /** The height of the rows. */
   readonly rowHeight: number
 
+  /** The ordered groups to display in the list. */
   readonly groups: ReadonlyArray<IFilterListGroup<T>>
 
+  /** The selected item. */
   readonly selectedItem: T | null
 
+  /** Called to render each visible item. */
   readonly renderItem: (item: T) => JSX.Element | null
 
+  /** Called to render header for the group with the given identifier. */
   readonly renderGroupHeader: (identifier: string) => JSX.Element | null
 
+  /** Called to render content before/above the filter and list. */
   readonly renderPreList?: () => JSX.Element | null
 
+  /** Called when an item is clicked. */
   readonly onItemClick: (item: T) => void
 
   /**
@@ -56,6 +70,7 @@ interface IFilterListProps<T extends IFilterListItem> {
    */
   readonly onFilterKeyDown?: (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => void
 
+  /** Any props which should cause a re-render if they change. */
   readonly invalidationProps: any
 }
 
@@ -67,6 +82,7 @@ interface IFilterListState<T extends IFilterListItem> {
   readonly selectedRow: number
 }
 
+/** A List which includes the ability to filter based on its contents. */
 export class FilterList<T extends IFilterListItem> extends React.Component<IFilterListProps<T>, IFilterListState<T>> {
   private list: List | null = null
   private filterInput: HTMLInputElement | null = null
