@@ -24,6 +24,7 @@ interface IBranchesProps {
   readonly expandCreateBranch: boolean
 }
 
+/** The Branches list component. */
 export class Branches extends React.Component<IBranchesProps, void> {
   private renderItem = (item: IBranchListItem) => {
     const branch = item.branch
