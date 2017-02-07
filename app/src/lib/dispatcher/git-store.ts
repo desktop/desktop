@@ -23,6 +23,7 @@ import {
   getCommits,
   merge,
   setRemoteURL,
+  removeFromIndex,
 } from '../git'
 
 /** The number of commits to load from history per batch. */
@@ -503,6 +504,17 @@ export class GitStore {
     await this.loadCurrentRemote()
 
     this.emitUpdate()
+  }
+
+  /** Ignore the given path or pattern. */
+  public async ignore(pattern: string): Promise<void> {
+    await this.refreshGitIgnoreText()
+
+    const text = this.gitIgnoreText || ''
+    const newText = `${this.ensureTrailingNewline(text)}${pattern}\n`
+    await this.setGitIgnoreText(newText)
+
+    await removeFromIndex(this.repository, pattern)
   }
 
   private ensureTrailingNewline(text: string): string {

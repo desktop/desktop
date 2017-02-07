@@ -5,7 +5,7 @@ import { decode } from 'iconv-lite'
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { parseURL } from '../lib/parse-url'
-import { handleSquirrelEvent } from './updates'
+import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
@@ -144,6 +144,8 @@ app.on('ready', () => {
       return new MenuItem({
         label: item.label,
         click: () => event.sender.send('contextual-menu-action', i),
+        type: item.type,
+        enabled: item.enabled,
       })
     })
 
