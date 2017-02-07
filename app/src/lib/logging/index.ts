@@ -7,9 +7,15 @@ import { ElectronConsole } from './electron-console'
 
 import { getUserDataPath as getUserDataPathRenderer } from '../../ui/lib/app-proxy'
 
+let mainPath: string | null = null
+
 function getUserDataPathMain() {
-  const { app } = require('electron')
-  return app.getPath('userData')
+  if (mainPath === null) {
+    const { app } = require('electron')
+    mainPath = app.getPath('userData')
+  }
+
+  return mainPath
 }
 
 function getLogFilePath(mainProcess: boolean): string {
