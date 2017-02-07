@@ -1,5 +1,10 @@
 # Getting started
 
+## I just want to check it out! 
+
+Download the either the [installer for macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin) or [for Windows](https://central.github.com/deployments/desktop/desktop/latest/win32). You'll be starting with a fresh installation, as there is no migration path from Desktop classic to Desktop TNG:9000. 
+
+## I want to work on it!
 ## Prerequisites
 
 ### Node.js

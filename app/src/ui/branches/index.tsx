@@ -5,8 +5,8 @@ import { Branch } from '../../models/branch'
 import { groupBranches, IBranchListItem, BranchGroupIdentifier } from './group-branches'
 import { BranchListItem } from './branch'
 import { CreateBranch } from '../create-branch'
-
 import { FoldoutList } from '../lib/foldout-list'
+import { FoldoutType } from '../../lib/app-state'
 
 const BranchesFoldoutList: new() => FoldoutList<IBranchListItem> = FoldoutList as any
 
@@ -19,21 +19,10 @@ interface IBranchesProps {
   readonly recentBranches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly expandCreateForm: boolean
+  readonly expandCreateBranch: boolean
 }
 
-interface IBranchesState {
-  readonly showCreateDialog: boolean
-}
-
-export class Branches extends React.Component<IBranchesProps, IBranchesState> {
-  public constructor(props: IBranchesProps) {
-    super(props)
-
-    const expandCreateForm = props.expandCreateForm || false
-    this.state = { showCreateDialog: expandCreateForm }
-  }
-
+export class Branches extends React.Component<IBranchesProps, void> {
   private renderItem = (item: IBranchListItem) => {
     const branch = item.branch
     const commit = branch.tip
@@ -64,15 +53,21 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   }
 
   private onHideCreateBranch = () => {
-    this.setState({ showCreateDialog: false })
+    this.props.dispatcher.showFoldout({
+      type: FoldoutType.Branch,
+      expandCreateBranch: false,
+    })
   }
 
   private onCreateBranchToggle = () => {
-    this.setState({ showCreateDialog: !this.state.showCreateDialog })
+    this.props.dispatcher.showFoldout({
+      type: FoldoutType.Branch,
+      expandCreateBranch: !this.props.expandCreateBranch,
+    })
   }
 
   private renderCreateBranch = () => {
-    if (!this.state.showCreateDialog) {
+    if (!this.props.expandCreateBranch) {
       return null
     }
 
@@ -112,7 +107,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
       <BranchesFoldoutList
         className='branches-list'
         expandButtonTitle={__DARWIN__ ? 'Create New Branch' : 'Create new branch'}
-        showExpansion={this.state.showCreateDialog}
+        showExpansion={this.props.expandCreateBranch}
         onExpandClick={this.onCreateBranchToggle}
         renderExpansion={this.renderCreateBranch}
         rowHeight={RowHeight}
