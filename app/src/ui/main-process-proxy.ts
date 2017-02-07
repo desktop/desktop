@@ -34,8 +34,17 @@ export function getAppMenu() {
 }
 
 export interface IMenuItem {
-  readonly label: string
-  readonly action: () => void
+  /** The user-facing label. */
+  readonly label?: string
+
+  /** The action to invoke when the user selects the item. */
+  readonly action?: () => void
+
+  /** The type of item. */
+  readonly type?: 'separator'
+
+  /** Is the menu item enabled? Defaults to true. */
+  readonly enabled?: boolean
 }
 
 /**
@@ -52,7 +61,10 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   setTimeout(() => {
     ipcRenderer.once('contextual-menu-action', (event: Electron.IpcRendererEvent, index: number) => {
       const item = items[index]
-      item.action()
+      const action = item.action
+      if (action) {
+        action()
+      }
     })
 
     ipcRenderer.send('show-contextual-menu', items)

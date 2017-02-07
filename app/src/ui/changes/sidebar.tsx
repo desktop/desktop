@@ -104,6 +104,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     })
   }
 
+  private onIgnore = (pattern: string) => {
+    this.props.dispatcher.ignore(this.props.repository, pattern)
+  }
+
   /**
    * Toggles the selection of a given working directory file.
    * If the file is partially selected it the selection is cleared
@@ -202,6 +206,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           contextualCommitMessage={this.props.changes.contextualCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}
           availableWidth={this.props.availableWidth}
+          onIgnore={this.onIgnore}
         />
           {this.renderMostRecentLocalCommit()}
       </div>

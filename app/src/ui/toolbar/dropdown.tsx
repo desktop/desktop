@@ -50,6 +50,9 @@ export interface IToolbarDropdownProps {
    * Whether the button should displays its disclosure arrow. Defaults to true.
    */
   readonly showDisclosureArrow?: boolean
+
+  /** Whether the button is disabled. Defaults to false. */
+  readonly disabled?: boolean
 }
 
 interface IToolbarDropdownState {
@@ -205,6 +208,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         preContentRenderer={this.renderDropdownContents}
         style={this.props.style}
         iconClassName={this.props.iconClassName}
+        disabled={this.props.disabled}
       >
         {this.props.children}
         {this.renderDropdownArrow()}

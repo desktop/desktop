@@ -1057,6 +1057,10 @@ export class AppStore {
   }
 
   private async withPushPull(repository: Repository, fn: () => Promise<void>): Promise<void> {
+    const state = this.getRepositoryState(repository)
+    // Don't allow concurrent network operations.
+    if (state.pushPullInProgress) { return }
+
     this.updateRepositoryState(repository, state => ({ pushPullInProgress: true }))
     this.emitUpdate()
 
@@ -1344,5 +1348,12 @@ export class AppStore {
 
   public _recordLaunchStats(stats: ILaunchStats): Promise<void> {
     return this.statsStore.recordLaunchStats(stats)
+  }
+
+  public async _ignore(repository: Repository, pattern: string): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    await gitStore.ignore(pattern)
+
+    return this._refreshRepository(repository)
   }
 }
