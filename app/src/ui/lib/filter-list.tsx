@@ -26,12 +26,12 @@ interface IGroup {
   readonly identifier: string
 }
 
-interface IItem<T> {
+interface IItem<T extends IFilterListItem> {
   readonly kind: 'item'
   readonly item: T
 }
 
-type IFilterListRow<T> = IGroup | IItem<T>
+type IFilterListRow<T extends IFilterListItem> = IGroup | IItem<T>
 
 interface IFilterListProps<T extends IFilterListItem> {
   readonly className?: string
@@ -59,7 +59,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly invalidationProps: any
 }
 
-interface IFilterListState<T> {
+interface IFilterListState<T extends IFilterListItem> {
   readonly filter: string
 
   readonly rows: ReadonlyArray<IFilterListRow<T>>
