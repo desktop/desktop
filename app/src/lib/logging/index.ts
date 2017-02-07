@@ -62,7 +62,10 @@ function create(mainProcess: boolean = false) {
     info: (message: string) => winston.info(message),
     error: (message: string, error?: Error) => {
       if (error) {
-        winston.error(message, { error: error })
+        winston.error(message)
+        winston.error(` - name: ${error.name}`)
+        winston.error(` - message: ${error.message}`)
+        winston.error(` - stack: ${error.stack}`)
       } else {
         winston.error(message)
       }
