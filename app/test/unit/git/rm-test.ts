@@ -3,7 +3,7 @@ import * as Path from 'path'
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
-import { removeFromIndex /*, addFileToIndex*/ } from '../../../src/lib/git'
+import { removeFromIndex } from '../../../src/lib/git'
 import { setupFixtureRepository } from '../../fixture-helper'
 
 const temp = require('temp').track()
