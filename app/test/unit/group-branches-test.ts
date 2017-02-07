@@ -34,10 +34,10 @@ describe('Branches grouping', () => {
 
     expect(groups[1].identifier).to.equal('recent')
     items = groups[1].items
-    expect(items[1].branch).to.equal(recentBranches[0])
+    expect(items[0].branch).to.equal(recentBranches[0])
 
     expect(groups[2].identifier).to.equal('other')
     items = groups[2].items
-    expect(items[2].branch).to.equal(otherBranch)
+    expect(items[0].branch).to.equal(otherBranch)
   })
 })
