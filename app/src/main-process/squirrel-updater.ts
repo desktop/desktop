@@ -2,10 +2,6 @@ import { app } from 'electron'
 import * as ChildProcess from 'child_process'
 import * as Path from 'path'
 
-export function getFeedURL(username: string): string {
-  return `https://central.github.com/api/deployments/desktop/desktop/latest?version=${app.getVersion()}&username=${username}`
-}
-
 export function handleSquirrelEvent(eventName: string): boolean {
   const appFolder = Path.resolve(process.execPath, '..')
   const rootAtomFolder = Path.resolve(appFolder, '..')
