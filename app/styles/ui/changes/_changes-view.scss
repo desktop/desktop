@@ -6,6 +6,8 @@
 
   .header {
 
+    background: var(--diff-hunk-background-color);
+
     display: flex;
     flex-direction: row;
     flex-shrink: 0;
