@@ -271,20 +271,15 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
 
   const helpItems = [ contactSupportItem ]
 
-  const throwUnhandledError: Electron.MenuItemOptions = {
-    label: 'Boomtown…',
-    click () {
-      throw new Error('Boomtown!')
-    },
-  }
-
   if (__DEV__) {
-    if (__DARWIN__) {
-      helpItems.push(throwUnhandledError)
-    } else {
-      // TODO: is this the ideal place to put it on Windows?
-      updateMenuItems.push(throwUnhandledError)
+    const throwUnhandledError: Electron.MenuItemOptions = {
+      label: 'Boomtown…',
+      click () {
+        throw new Error('Boomtown!')
+      },
     }
+
+    helpItems.push(throwUnhandledError)
   }
 
   if (__DARWIN__) {
@@ -299,7 +294,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       submenu: [
         ...updateMenuItems,
         { type: 'separator' },
-        contactSupportItem,
+        ...helpItems,
       ],
     })
   }
