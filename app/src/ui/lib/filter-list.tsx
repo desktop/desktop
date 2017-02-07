@@ -50,7 +50,11 @@ interface IFilterListProps<T> {
 
   readonly onItemClick: (item: T) => void
 
-  readonly onClose: () => void
+  /**
+   * Called when a key down happens in the filter field. Users have a chance to
+   * respond or cancel the default behavior by calling `preventDefault`.
+   */
+  readonly onFilterKeyDown?: (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => void
 
   readonly invalidationProps: any
 }
@@ -203,6 +207,12 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
     const list = this.list
     if (!list) { return }
 
+    if (this.props.onFilterKeyDown) {
+      this.props.onFilterKeyDown(this.state.filter, event)
+    }
+
+    if (event.defaultPrevented) { return }
+
     if (event.key === 'ArrowDown') {
       if (this.state.rows.length > 0) {
         this.setState({ selectedRow: list.nextSelectableRow('down', 0) }, () => {
@@ -219,11 +229,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
       }
 
       event.preventDefault()
-    } else if (event.key === 'Escape') {
-      if (this.state.filter.length === 0) {
-        this.props.onClose()
-        event.preventDefault()
-      }
     } else if (event.key === 'Enter') {
       this.onRowClick(list.nextSelectableRow('down', 0))
     }

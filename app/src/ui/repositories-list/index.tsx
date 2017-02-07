@@ -68,6 +68,15 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
     })
   }
 
+  private onFilterKeyDown = (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Escape') {
+      if (filter.length === 0) {
+        this.props.dispatcher.closeFoldout()
+        event.preventDefault()
+      }
+    }
+  }
+
   private renderExpandButton = () => {
     return (
       <ExpandFoldoutButton
@@ -111,17 +120,13 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
           renderItem={this.renderItem}
           renderGroupHeader={this.renderGroupHeader}
           onItemClick={this.onItemClick}
+          onFilterKeyDown={this.onFilterKeyDown}
           groups={groups}
-          onClose={this.onClose}
           invalidationProps={this.props.repositories}/>
 
         {this.renderAddRepository()}
       </div>
     )
-  }
-
-  private onClose = () => {
-    this.props.dispatcher.closeFoldout()
   }
 }
 

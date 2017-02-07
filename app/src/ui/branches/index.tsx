@@ -82,10 +82,6 @@ export class Branches extends React.Component<IBranchesProps, void> {
     )
   }
 
-  private onClose = () => {
-    this.props.dispatcher.closeFoldout()
-  }
-
   private renderExpandButton = () => {
     return (
       <ExpandFoldoutButton
@@ -94,6 +90,15 @@ export class Branches extends React.Component<IBranchesProps, void> {
         {__DARWIN__ ? 'Create New Branch' : 'Create new branch'}
       </ExpandFoldoutButton>
     )
+  }
+
+  private onFilterKeyDown = (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Escape') {
+      if (filter.length === 0) {
+        this.props.dispatcher.closeFoldout()
+        event.preventDefault()
+      }
+    }
   }
 
   public render() {
@@ -121,8 +126,8 @@ export class Branches extends React.Component<IBranchesProps, void> {
           renderItem={this.renderItem}
           renderGroupHeader={this.renderGroupHeader}
           onItemClick={this.onItemClick}
+          onFilterKeyDown={this.onFilterKeyDown}
           groups={groups}
-          onClose={this.onClose}
           invalidationProps={this.props.allBranches}/>
 
         {this.renderCreateBranch()}
