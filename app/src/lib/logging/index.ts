@@ -46,13 +46,9 @@ function create() {
   }
 
   return {
-    debug: function(message: string) {
-      winston.debug(message)
-    },
-    info: function(message: string) {
-      winston.info(message)
-    },
-    error: function(message: string, error?: Error) {
+    debug: (message: string) => winston.debug(message),
+    info: (message: string) => winston.info(message),
+    error: (message: string, error?: Error) => {
       if (error) {
         winston.error(message, { error: error })
       } else {
