@@ -100,7 +100,7 @@ If you choose to use [Visual Studio Code](https://code.visualstudio.com/) there 
 1. Run the command `npm run start`
 2. Open _Chrome Dev Tools_
 
-[React Dev Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en) should automatically install itself on first start. If you would also like to use [Devtron](http://electron.atom.io/devtron/) run the command `require('devtron').install()` inside of the console in _Chrome Dev Tools_.
+[React Dev Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en) should automatically install itself on first start. If you would also like to use [Devtron](http://electron.atom.io/devtron/), run the command `require('devtron').install()` inside of the console in _Chrome Dev Tools_.
 
 ### VS Code
 
