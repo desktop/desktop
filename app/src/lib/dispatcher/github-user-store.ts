@@ -42,6 +42,12 @@ export class GitHubUserStore {
     return this.getUsersForEndpoint(endpoint)
   }
 
+  public async updateMentionables(repository: GitHubRepository, user: User): Promise<void> {
+    const api = new API(user)
+    const mentionables = await api.fetchMentionables(repository.owner.login, repository.name)
+    console.log(mentionables)
+  }
+
   /** Not to be called externally. See `Dispatcher`. */
   public async _loadAndCacheUser(users: ReadonlyArray<User>, repository: Repository, sha: string | null, email: string) {
     const endpoint = repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint()
