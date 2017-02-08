@@ -6,6 +6,7 @@
 
   .header {
     background: var(--diff-hunk-background-color);
+    border-bottom: 1px solid var(--diff-border-color);
 
     display: flex;
     flex-direction: row;
