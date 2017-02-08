@@ -267,6 +267,22 @@ app.on('activate', () => {
 
 function createWindow() {
   const window = new AppWindow(sharedProcess!)
+
+  if (__DEV__) {
+    const installer = require('electron-devtools-installer')
+    require('electron-debug')({ showDevTools: true })
+
+    const extensions = [
+      'REACT_DEVELOPER_TOOLS',
+    ]
+
+    for (const name of extensions) {
+      try {
+        installer.default(installer[name])
+      } catch (e) {}
+    }
+  }
+
   window.onClose(() => {
     mainWindow = null
 

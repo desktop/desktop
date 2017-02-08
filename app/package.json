@@ -38,6 +38,9 @@
     "winston-daily-rotate-file": "^1.4.3"
   },
   "devDependencies": {
+    "devtron": "^1.4.0",
+    "electron-debug": "^1.1.0",
+    "electron-devtools-installer": "^2.1.0",
     "fs-extra": "^1.0.0",
     "react-addons-perf": "^15.4.2",
     "react-addons-test-utils": "^15.4.2",
