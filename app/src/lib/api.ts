@@ -206,8 +206,8 @@ export class API {
     return allItems.filter((i: any) => !i.pullRequest)
   }
 
-  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object): Promise<IHTTPResponse> {
-    return request(this.user.endpoint, `token ${this.user.token}`, method, path, body)
+  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<IHTTPResponse> {
+    return request(this.user.endpoint, `token ${this.user.token}`, method, path, body, customHeaders)
   }
 
   /** Get the allowed poll interval for fetching. */
