@@ -63,13 +63,18 @@ export class CloningRepositoriesStore {
     return this.emitter.on('did-error', fn)
   }
 
-  /** Clone the repository at the URL to the path. */
-  public async clone(url: string, path: string, user: User | null): Promise<void> {
+  /**
+   * Clone the repository at the URL to the path.
+   *
+   * Returns a {Promise} which resolves to whether the clone was successful.
+   */
+  public async clone(url: string, path: string, user: User | null): Promise<boolean> {
     const repository = new CloningRepository(path, url)
     this._repositories.push(repository)
     this.stateByID.set(repository.id, { output: `Cloning into ${path}`, progressValue: null })
     this.emitUpdate()
 
+    let success = true
     const progressParser = new CloneProgressParser()
     try {
       await cloneRepo(url, path, user, progress => {
@@ -80,10 +85,13 @@ export class CloningRepositoriesStore {
         this.emitUpdate()
       })
     } catch (e) {
+      success = false
       this.emitError(e)
     }
 
     this.remove(repository)
+
+    return success
   }
 
   /** Get the repositories currently being cloned. */
