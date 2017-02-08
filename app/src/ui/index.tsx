@@ -45,8 +45,8 @@ const cloningRepositoriesStore = new CloningRepositoriesStore()
 const emojiStore = new EmojiStore()
 const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
 const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
-const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore, emojiStore, issuesStore)
-const dispatcher = new Dispatcher(appStore, statsStore)
+const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore, emojiStore, issuesStore, statsStore)
+const dispatcher = new Dispatcher(appStore)
 
 dispatcher.loadInitialState().then(() => {
   const now = Date.now()
