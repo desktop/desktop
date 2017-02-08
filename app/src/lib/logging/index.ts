@@ -6,10 +6,9 @@ import * as Path from 'path'
 import { ElectronConsole } from './electron-console'
 
 interface ILogger {
-  filename: string,
-  debug: (message: string) => void,
-  info: (message: string) => void,
-  error: (message: string, error?: Error) => void
+  readonly debug: (message: string) => void
+  readonly info: (message: string) => void
+  readonly error: (message: string, error?: Error) => void
 }
 
 /** resolve the log file location based on the current environment */
@@ -45,7 +44,6 @@ function create(filename: string) {
   })
 
   return {
-    filename,
     debug: (message: string) => winston.debug(message),
     info: (message: string) => winston.info(message),
     error: (message: string, error?: Error) => {
