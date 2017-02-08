@@ -95,6 +95,15 @@ If you choose to use [Visual Studio Code](https://code.visualstudio.com/) there 
 
 #### Debugging
 
+To debug from VS Code: iiy
+
+1. Run the command `npm run debug`
+2. Select the _Debug_ view from the view bar
+3. Select the process you would like to attach to (this will usually be the _Renderer_ process)
+4. Press `F5` or the green play button
+
+![2017-02-07_15-24-23](https://cloud.githubusercontent.com/assets/1715082/22712204/90ca44fa-ed49-11e6-9110-ffa9c1d4f752.jpg)
+
 ## Troubleshooting
 
 ### Issues compiling node-keytar on Windows
