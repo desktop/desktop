@@ -5,7 +5,6 @@
   min-width: 0;
 
   .header {
-
     background: var(--diff-hunk-background-color);
 
     display: flex;
@@ -19,13 +18,7 @@
       flex-grow: 1;
     }
 
-    .status {
-      &-new { fill: var(--color-new); }
-      &-copied { fill: var(--color-new); }
-      &-modified { fill: var(--color-modified); }
-      &-renamed { fill: var(--color-modified); }
-      &-deleted { fill: var(--color-deleted); }
-    }
+    @include octicon-status;
 
     .octicon { vertical-align: text-bottom; }
   }
