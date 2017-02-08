@@ -173,6 +173,8 @@ export class AppStore {
       this.emitUpdate()
     })
 
+    this.cloningRepositoriesStore.onDidError(e => this._postError(e))
+
     const rootDir = getAppPath()
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
   }
