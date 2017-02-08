@@ -83,6 +83,15 @@ Then switch to atom and follow these steps
 5. Provide the path
  * For Mac: `/usr/local/lib/node_modules/typescript/lib/typescriptServices.js`
  * For Windows: `C:\Users\[YOUR USERNAME]\AppData\Roaming\npm\node_modules\typescript\lib\typescriptServices.js`
+ 
+ ## Prefer Visual Studio Code?
+ 
+ If you choose to use [Visual Studio Code](https://code.visualstudio.com/) there are some plugins that we recommend installing.
+ 
+ * [TSLine](https://marketplace.visualstudio.com/items?itemName=eg2.tslint) - Shows linter errors and warning in the editor
+ * [empty-indent](https://marketplace.visualstudio.com/items?itemName=DmitryDorofeev.empty-indent) - Removes extraneous whitespace on saving
+ * [jsx](https://marketplace.visualstudio.com/items?itemName=TwentyChung.jsx) - Adds JSX support
+ * [Debugger fpr Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome) - Needed to allow debugging from VS Code
 
 ## Troubleshooting
 
