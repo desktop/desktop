@@ -7,7 +7,6 @@ interface IChangedFileDetailsProps {
   readonly path: string
   readonly oldPath?: string
   readonly status: FileStatus
-  readonly commitSummaryWidth: number
 }
 
 /** Displays information about a file */
@@ -22,8 +21,7 @@ export class ChangedFileDetails extends React.Component<IChangedFileDetailsProps
         <PathLabel
           path={this.props.path}
           oldPath={this.props.oldPath}
-          status={this.props.status}
-        />
+          status={this.props.status} />
         <Octicon symbol={iconForStatus(status)}
             className={'status status-' + fileStatus.toLowerCase()}
             title={fileStatus} />
