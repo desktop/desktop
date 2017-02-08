@@ -14,10 +14,12 @@ import { getDefaultDir, setDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
 import { sendReady } from './main-process-proxy'
 import { reportError } from '../lib/exception-reporting'
-import * as appProxy from './lib/app-proxy'
+import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
+
+import { getLogger } from '../lib/logging/renderer'
 
 if (__DEV__) {
   const g: any = global
@@ -34,7 +36,8 @@ if (!process.env.TEST_ENV) {
 }
 
 process.on('uncaughtException', (error: Error) => {
-  reportError(error, appProxy.getVersion())
+  getLogger().error('Uncaught exception on UI', error)
+  reportError(error, getVersion())
 })
 
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))

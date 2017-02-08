@@ -1,6 +1,7 @@
 'use strict'
 
 const path = require('path')
+const os = require('os')
 
 const projectRoot = path.join(__dirname, '..')
 const appPackage = require(path.join(projectRoot, 'app', 'package.json'))
@@ -65,6 +66,18 @@ function getBundleID () {
   return appPackage.bundleID
 }
 
+function getUserDataPath () {
+  if (process.platform === 'win32') {
+    return path.join(process.env.APPDATA, getProductName())
+  } else if (process.platform === 'darwin') {
+    const home = os.homedir()
+    return path.join(home, 'Library', 'Application Support', getProductName())
+  } else {
+    console.error(`I dunno how to review for ${process.platform} :(`)
+    process.exit(1)
+  }
+}
+
 module.exports = {
   getDistPath,
   getProductName,
@@ -78,5 +91,6 @@ module.exports = {
   getWindowsStandalonePath,
   getWindowsFullNugetPackageName,
   getWindowsFullNugetPackagePath,
-  getBundleID
+  getBundleID,
+  getUserDataPath,
 }

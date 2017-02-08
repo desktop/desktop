@@ -4,6 +4,7 @@ let app: Electron.App | null = null
 let version: string | null = null
 let name: string | null = null
 let path: string | null = null
+let userDataPath: string | null = null
 
 function getApp(): Electron.App {
   if (!app) {
@@ -40,7 +41,7 @@ export function getName(): string {
 }
 
 /**
- * Get the name of the app.
+ * Get the path to the application.
  *
  * This is preferrable to using `remote` directly because we cache the result.
  */
@@ -51,3 +52,17 @@ export function getAppPath(): string {
 
   return path
 }
+
+/**
+ * Get the path to the user's data.
+ *
+ * This is preferrable to using `remote` directly because we cache the result.
+ */
+export function getUserDataPath(): string {
+  if (!userDataPath) {
+    userDataPath = getApp().getPath('userData')
+  }
+
+  return userDataPath
+}
+
