@@ -10,6 +10,10 @@ import { FoldoutType } from '../../lib/app-state'
 import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
 import { assertNever } from '../../lib/fatal-error'
 
+/**
+ * TS can't parse generic specialization in JSX, so we have to alias it here
+ * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
+ */
 const BranchesFilterList: new() => FilterList<IBranchListItem> = FilterList as any
 
 const RowHeight = 30

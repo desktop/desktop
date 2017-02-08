@@ -10,6 +10,10 @@ import { FilterList } from '../lib/filter-list'
 import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
 import { assertNever } from '../../lib/fatal-error'
 
+/** 
+ * TS can't parse generic specialization in JSX, so we have to alias it here
+ * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
+ */
 const RepositoryFilterList: new() => FilterList<IRepositoryListItem> = FilterList as any
 
 interface IRepositoriesListProps {
