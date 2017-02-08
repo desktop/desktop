@@ -315,6 +315,15 @@ export class List extends React.Component<IListProps, void> {
     const element = this.props.rowRenderer(params.rowIndex)
     const role = selectable ? 'button' : undefined
 
+    // react-virtualized gives us an explicit pixel width for rows, but that
+    // widthcdoesn't take into account whether or not the scroll bar needs
+    // width, e.g., on macOS when "Show scroll bars" is set to "Always."
+    //
+    // *But* the parent grid uses `autoContainerWidth` which means its width
+    // *does* reflect any width needed by the scroll bar. So we should just use
+    // that width.
+    params.style.width = '100%'
+
     return (
       <div key={params.key}
            role={role}
