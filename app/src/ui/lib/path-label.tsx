@@ -12,7 +12,7 @@ interface IPathLabelProps {
   /** the type of change applied to the file */
   readonly status: FileStatus
 
-  readonly availableWidth: number
+  readonly availableWidth?: number
 }
 
 /**

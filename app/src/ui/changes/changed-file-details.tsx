@@ -17,17 +17,12 @@ export class ChangedFileDetails extends React.Component<IChangedFileDetailsProps
     const status = this.props.status
     const fileStatus = mapStatus(status)
 
-    // TODO: no repainting occurs when expanding window
-    // TODO: opt-out of this behaviour?
-    const availableSpace = window.innerWidth - this.props.commitSummaryWidth
-
     return (
       <div className='header'>
         <PathLabel
           path={this.props.path}
           oldPath={this.props.oldPath}
           status={this.props.status}
-          availableWidth={availableSpace}
         />
         <Octicon symbol={iconForStatus(status)}
             className={'status status-' + fileStatus.toLowerCase()}
