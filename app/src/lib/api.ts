@@ -57,6 +57,21 @@ export interface IAPIUser {
   readonly avatarUrl: string
 }
 
+/** The info we get from the mentionables endpoint. */
+export interface IAPIMentionableUser {
+  readonly avatar_url: string
+
+  /**
+   * Note that this may be an empty string in the case where the user has no
+   * public email address.
+   */
+  readonly email: string
+
+  readonly login: string
+
+  readonly name: string
+}
+
 /**
  * Information about a user's email as returned by the GitHub API.
  */
@@ -219,6 +234,14 @@ export class API {
       return parseInt(interval, 10)
     }
     return 0
+  }
+
+  /** Fetch the mentionable users for the repository. */
+  public async fetchMentionables(owner: string, name: string): Promise<ReadonlyArray<IAPIMentionableUser> | null> {
+    const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/mentionables/users`, undefined, {
+      'Accept': 'application/vnd.github.jerry-maguire-preview',
+    })
+    return deserialize<ReadonlyArray<IAPIMentionableUser>>(response.body)
   }
 }
 
