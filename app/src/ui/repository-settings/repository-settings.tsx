@@ -50,7 +50,7 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     try {
       const ignoreText = await this.props.dispatcher.readGitIgnore(this.props.repository)
       this.setState({ ignoreText })
-    } catch(e) {
+    } catch (e) {
       this.setState({ errors: [ `Could not read .gitignore: ${e}` ] })
     }
   }
