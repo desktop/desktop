@@ -95,10 +95,15 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     if (!directory) { return }
 
     const path = directory[0]
+
     this.setState({ ...this.state, path })
   }
 
   private createRepository = async () => {
+    if (!FS.existsSync(this.state.path)) {
+      return this.props.dispatcher.postError(new Error('The specified path does not exist.'))
+    }
+
     this.setState({ ...this.state, creating: true })
 
     const fullPath = Path.join(this.state.path, sanitizedRepositoryName(this.state.name))
