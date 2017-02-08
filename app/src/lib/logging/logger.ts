@@ -5,7 +5,7 @@ import * as Path from 'path'
 
 import { ElectronConsole } from './electron-console'
 
-interface ILogger {
+export interface ILogger {
   readonly debug: (message: string) => void
   readonly info: (message: string) => void
   readonly error: (message: string, error?: Error) => void
@@ -59,14 +59,7 @@ function create(filename: string) {
   }
 }
 
-// TODO: confirm that one logger is instantiated once for the renderer process
-//       and once for the main process
-let logger: ILogger | null = null
-
-export function getLogger(directory: string): ILogger {
-  if (!logger) {
-    logger = create(getLogFilePath(directory))
-  }
-  return logger
+export function createLogger(directory: string): ILogger {
+  return create(getLogFilePath(directory))
 }
 

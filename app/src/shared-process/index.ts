@@ -13,13 +13,13 @@ import {
 } from '../lib/dispatcher'
 import { API } from '../lib/api'
 import { reportError } from '../lib/exception-reporting'
-import { getVersion, getUserDataPath } from '../ui/lib/app-proxy'
+import { getVersion } from '../ui/lib/app-proxy'
 
-import { getLogger } from '../lib/logging'
+import { getLogger } from '../lib/logging/renderer'
 
 process.on('uncaughtException', (error: Error) => {
 
-  getLogger(getUserDataPath()).error('Uncaught exception on shared process', error)
+  getLogger().error('Uncaught exception on shared process', error)
 
   reportError(error, getVersion())
 })
