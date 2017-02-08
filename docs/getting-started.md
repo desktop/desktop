@@ -84,7 +84,7 @@ Then switch to atom and follow these steps
  * For Mac: `/usr/local/lib/node_modules/typescript/lib/typescriptServices.js`
  * For Windows: `C:\Users\[YOUR USERNAME]\AppData\Roaming\npm\node_modules\typescript\lib\typescriptServices.js`
  
-### Prefer Visual Studio Code?
+## Prefer Visual Studio Code?
  
 If you choose to use [Visual Studio Code](https://code.visualstudio.com/) there are some plugins that we recommend installing.
 
@@ -93,9 +93,16 @@ If you choose to use [Visual Studio Code](https://code.visualstudio.com/) there 
 * [jsx](https://marketplace.visualstudio.com/items?itemName=TwentyChung.jsx) - Adds JSX support
 * [Debugger fpr Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome) - Needed to allow debugging from VS Code
 
-#### Debugging
+## Debugging
 
-To debug from VS Code: iiy
+### Chrome 
+
+1. Run the command `npm run start`
+2. Open _Chrome Dev Tools_
+
+[React Dev Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en) should automatically install itself on first start. If you would also like to use [Devtron](http://electron.atom.io/devtron/) run the command `require('devtron').install()` inside of the console in _Chrome Dev Tools_.
+
+### VS Code
 
 1. Run the command `npm run debug`
 2. Select the _Debug_ view from the view bar
