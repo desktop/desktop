@@ -140,6 +140,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     let onBranch = false
     let hasDefaultBranch = false
     let hasPublishedBranch = false
+    let networkActionInProgress = false
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
       const branchesState = selectedState.state.branchesState
@@ -164,6 +165,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       } else {
         onNonDefaultBranch = true
       }
+
+      networkActionInProgress = selectedState.state.pushPullInProgress
     }
 
     setMenuEnabled('rename-branch', onNonDefaultBranch)
@@ -173,6 +176,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
     setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
     setMenuEnabled('open-in-shell', onBranch)
+    setMenuEnabled('push', !networkActionInProgress)
+    setMenuEnabled('pull', !networkActionInProgress)
   }
 
   private onMenuEvent(name: MenuEvent): any {

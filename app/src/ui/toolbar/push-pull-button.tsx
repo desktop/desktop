@@ -52,7 +52,8 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
         dropdownState={this.props.isPublishing ? 'open' : 'closed'}
         dropdownContentRenderer={this.renderFoldout}
         onDropdownStateChanged={this.performAction}
-        showDisclosureArrow={false}>
+        showDisclosureArrow={false}
+        disabled={this.props.networkActionInProgress}>
         {this.renderAheadBehind()}
       </ToolbarDropdown>
     )

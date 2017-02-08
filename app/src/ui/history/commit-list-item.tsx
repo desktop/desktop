@@ -1,13 +1,12 @@
 import * as React from 'react'
 import { Commit } from '../../models/commit'
 import { EmojiText } from '../lib/emoji-text'
-import { IGitHubUser } from '../../lib/dispatcher'
-import { Avatar } from '../lib/avatar'
+import { Avatar, IAvatarUser } from '../lib/avatar'
 import { RelativeTime } from '../relative-time'
 
 interface ICommitProps {
   readonly commit: Commit
-  readonly gitHubUser: IGitHubUser | null
+  readonly user: IAvatarUser | null
   readonly emoji: Map<string, string>
 }
 
@@ -18,7 +17,7 @@ export class CommitListItem extends React.Component<ICommitProps, void> {
 
     return (
       <div className='commit'>
-        <Avatar gitHubUser={this.props.gitHubUser} title={null}/>
+        <Avatar user={this.props.user || undefined}/>
         <div className='info'>
           <EmojiText className='summary' emoji={this.props.emoji}>{this.props.commit.summary}</EmojiText>
           <div className='byline'>
@@ -32,7 +31,7 @@ export class CommitListItem extends React.Component<ICommitProps, void> {
   public shouldComponentUpdate(nextProps: ICommitProps): boolean {
     return (
       this.props.commit.sha !== nextProps.commit.sha ||
-      this.props.gitHubUser !== nextProps.gitHubUser
+      this.props.user !== nextProps.user
     )
   }
 }

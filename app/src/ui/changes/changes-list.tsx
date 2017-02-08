@@ -18,7 +18,7 @@ const RowHeight = 30
 interface IChangesListProps {
   readonly repository: Repository
   readonly workingDirectory: WorkingDirectoryStatus
-  readonly selectedPath: string | null
+  readonly selectedFile: WorkingDirectoryFileChange | null
   readonly onFileSelectionChanged: (row: number) => void
   readonly onIncludeChanged: (path: string, include: boolean) => void
   readonly onSelectAll: (selectAll: boolean) => void
@@ -42,6 +42,9 @@ interface IChangesListProps {
 
   /** The autocompletion providers available to the repository. */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
+
+  /** Called when the given pattern should be ignored. */
+  readonly onIgnore: (pattern: string) => void
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
@@ -69,6 +72,7 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
         onDiscardChanges={this.onDiscardChanges}
         onDiscardAllChanges={this.onDiscardAllChanges}
         availableWidth={this.props.availableWidth}
+        onIgnore={this.props.onIgnore}
       />
     )
   }
@@ -97,7 +101,11 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
   }
 
   public render() {
-    const selectedRow = this.props.workingDirectory.files.findIndex(file => file.path === this.props.selectedPath)
+    let selectedRow = -1
+    const selectedFile = this.props.selectedFile
+    if (selectedFile) {
+      selectedRow = this.props.workingDirectory.files.findIndex(file => file.id === selectedFile.id)
+    }
 
     const fileCount = this.props.workingDirectory.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'

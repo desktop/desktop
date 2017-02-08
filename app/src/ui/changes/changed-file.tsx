@@ -1,10 +1,13 @@
 import * as React from 'react'
+import * as Path from 'path'
 
 import { FileStatus, mapStatus, iconForStatus } from '../../models/status'
 import { PathLabel } from '../lib/path-label'
 import { Octicon } from '../octicons'
-import { showContextualMenu } from '../main-process-proxy'
+import { showContextualMenu, IMenuItem } from '../main-process-proxy'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
+
+const GitIgnoreFileName = '.gitignore'
 
 interface IChangedFileProps {
   readonly path: string
@@ -15,6 +18,7 @@ interface IChangedFileProps {
   readonly onDiscardChanges: (path: string) => void
   readonly onDiscardAllChanges: () => void
   readonly availableWidth: number
+  readonly onIgnore: (pattern: string) => void
 }
 
 /** a changed file in the working directory for a given repository */
@@ -73,7 +77,10 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
   private onContextMenu = (event: React.MouseEvent<any>) => {
     event.preventDefault()
-    const items = [
+
+    const extension = Path.extname(this.props.path)
+    const fileName = Path.basename(this.props.path)
+    const items: IMenuItem[] = [
       {
         label: __DARWIN__ ? 'Discard Changes…' : 'Discard changes…',
         action: () => this.props.onDiscardChanges(this.props.path),
@@ -82,7 +89,22 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
         label: __DARWIN__ ? 'Discard All Changes…' : 'Discard all changes…',
         action: () => this.props.onDiscardAllChanges(),
       },
+      { type: 'separator' },
+      {
+        label: 'Ignore',
+        action: () => this.props.onIgnore(this.props.path),
+        enabled: fileName !== GitIgnoreFileName,
+      },
     ]
+
+    if (extension.length) {
+      items.push({
+        label: __DARWIN__ ? `Ignore All ${extension} Files` : `Ignore all ${extension} files`,
+        action: () => this.props.onIgnore(`*${extension}`),
+        enabled: fileName !== GitIgnoreFileName,
+      })
+    }
+
     showContextualMenu(items)
   }
 }

@@ -6,6 +6,7 @@ import { SignInDotCom } from './sign-in-dot-com'
 import { SignInEnterprise } from './sign-in-enterprise'
 import { ConfigureGit } from './configure-git'
 import { UiView } from '../ui-view'
+import { UsageOptOut } from './usage-opt-out'
 
 /** The steps along the Welcome flow. */
 export enum WelcomeStep {
@@ -13,6 +14,7 @@ export enum WelcomeStep {
   SignInToDotCom,
   SignInToEnterprise,
   ConfigureGit,
+  UsageOptOut,
 }
 
 interface IWelcomeProps {
@@ -43,6 +45,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
       case WelcomeStep.SignInToDotCom: return <SignInDotCom {...props}/>
       case WelcomeStep.SignInToEnterprise: return <SignInEnterprise {...props}/>
       case WelcomeStep.ConfigureGit: return <ConfigureGit {...props} users={this.props.appStore.getState().users}/>
+      case WelcomeStep.UsageOptOut: return <UsageOptOut {...props} optOut={this.props.appStore.getStatsOptOut()}/>
       default: return assertNever(step, `Unknown welcome step: ${step}`)
     }
   }

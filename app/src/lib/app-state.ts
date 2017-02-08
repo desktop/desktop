@@ -202,7 +202,13 @@ export interface IHistoryState {
 
 export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
+
+  /**
+   * The selected file. Note that this must be the same instance as is in
+   * `workingDirectory`.
+   */
   readonly selectedFile: WorkingDirectoryFileChange | null
+
   readonly diff: IDiff | null
 
   /**

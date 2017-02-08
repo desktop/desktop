@@ -17,31 +17,25 @@ describe('Repository grouping', () => {
 
   it('groups repositories by GitHub/Enterprise/Other', () => {
     const grouped = groupRepositories(repositories)
-    expect(grouped.length).to.equal(repositories.length + 3)
+    expect(grouped.length).to.equal(3)
 
-    let i = 0
-    expect(grouped[i].kind).to.equal('label')
-    expect((grouped[i] as any).label).to.equal('GitHub')
-    i++
+    expect(grouped[0].identifier).to.equal('github')
+    expect(grouped[0].items.length).to.equal(1)
 
-    expect(grouped[i].kind).to.equal('repository')
-    expect((grouped[i] as any).repository.path).to.equal('repo2')
-    i++
+    let item = grouped[0].items[0]
+    expect(item.repository.path).to.equal('repo2')
 
-    expect(grouped[i].kind).to.equal('label')
-    expect((grouped[i] as any).label).to.equal('Enterprise')
-    i++
+    expect(grouped[1].identifier).to.equal('enterprise')
+    expect(grouped[1].items.length).to.equal(1)
 
-    expect(grouped[i].kind).to.equal('repository')
-    expect((grouped[i] as any).repository.path).to.equal('repo3')
-    i++
+    item = grouped[1].items[0]
+    expect(item.repository.path).to.equal('repo3')
 
-    expect(grouped[i].kind).to.equal('label')
-    expect((grouped[i] as any).label).to.equal('Other')
-    i++
+    expect(grouped[2].identifier).to.equal('other')
+    expect(grouped[2].items.length).to.equal(1)
 
-    expect(grouped[i].kind).to.equal('repository')
-    expect((grouped[i] as any).repository.path).to.equal('repo1')
+    item = grouped[2].items[0]
+    expect(item.repository.path).to.equal('repo1')
   })
 
   it('sorts repositories alphabetically within each group', () => {
@@ -52,34 +46,21 @@ describe('Repository grouping', () => {
     const repoZ = new Repository('z', 3)
 
     const grouped = groupRepositories([ repoC, repoB, repoZ, repoD, repoA ])
+    expect(grouped.length).to.equal(2)
 
-    let i = 0
-    expect(grouped[i].kind).to.equal('label')
-    expect((grouped[i] as any).label).to.equal('GitHub')
-    i++
+    expect(grouped[0].identifier).to.equal('github')
+    expect(grouped[0].items.length).to.equal(2)
 
-    expect(grouped[i].kind).to.equal('repository')
-    expect((grouped[i] as any).repository.path).to.equal('b')
-    i++
+    let items = grouped[0].items
+    expect(items[0].repository.path).to.equal('b')
+    expect(items[1].repository.path).to.equal('d')
 
-    expect(grouped[i].kind).to.equal('repository')
-    expect((grouped[i] as any).repository.path).to.equal('d')
-    i++
+    expect(grouped[1].identifier).to.equal('other')
+    expect(grouped[1].items.length).to.equal(3)
 
-    expect(grouped[i].kind).to.equal('label')
-    expect((grouped[i] as any).label).to.equal('Other')
-    i++
-
-    expect(grouped[i].kind).to.equal('repository')
-    expect((grouped[i] as any).repository.path).to.equal('a')
-    i++
-
-    expect(grouped[i].kind).to.equal('repository')
-    expect((grouped[i] as any).repository.path).to.equal('c')
-    i++
-
-    expect(grouped[i].kind).to.equal('repository')
-    expect((grouped[i] as any).repository.path).to.equal('z')
-    i++
+    items = grouped[1].items
+    expect(items[0].repository.path).to.equal('a')
+    expect(items[1].repository.path).to.equal('c')
+    expect(items[2].repository.path).to.equal('z')
   })
 })

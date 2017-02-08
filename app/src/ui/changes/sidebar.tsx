@@ -104,6 +104,10 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
     })
   }
 
+  private onIgnore = (pattern: string) => {
+    this.props.dispatcher.ignore(this.props.repository, pattern)
+  }
+
   /**
    * Toggles the selection of a given working directory file.
    * If the file is partially selected it the selection is cleared
@@ -169,7 +173,6 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
   public render() {
     const changesState = this.props.changes
     const selectedFile = changesState.selectedFile
-    const selectedPath = selectedFile ? selectedFile.path : null
 
     // TODO: I think user will expect the avatar to match that which
     // they have configured in GitHub.com as well as GHE so when we add
@@ -187,7 +190,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           dispatcher={this.props.dispatcher}
           repository={this.props.repository}
           workingDirectory={changesState.workingDirectory}
-          selectedPath={selectedPath}
+          selectedFile={selectedFile}
           onFileSelectionChanged={this.onFileSelectionChanged}
           onCreateCommit={this.onCreateCommit}
           onIncludeChanged={this.onIncludeChanged}
@@ -202,6 +205,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           contextualCommitMessage={this.props.changes.contextualCommitMessage}
           autocompletionProviders={this.autocompletionProviders!}
           availableWidth={this.props.availableWidth}
+          onIgnore={this.onIgnore}
         />
           {this.renderMostRecentLocalCommit()}
       </div>
