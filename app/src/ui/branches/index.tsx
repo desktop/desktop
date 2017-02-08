@@ -40,19 +40,20 @@ export class Branches extends React.Component<IBranchesProps, void> {
       lastCommitDate={commit ? commit.author.date : null}/>
   }
 
-  private renderGroupHeader = (identifier: BranchGroupIdentifier) => {
-    let label: string
+  private getGroupLabel(identifier: BranchGroupIdentifier) {
     if (identifier === 'default') {
-      label = 'Default Branch'
+      return 'Default Branch'
     } else if (identifier === 'recent') {
-      label = 'Recent Branches'
+      return 'Recent Branches'
     } else if (identifier === 'other') {
-      label = 'Other Branches'
+      return 'Other Branches'
     } else {
       return assertNever(identifier, `Unknown identifier: ${identifier}`)
     }
+  }
 
-    return <div className='branches-list-content branches-list-label'>{label}</div>
+  private renderGroupHeader = (identifier: BranchGroupIdentifier) => {
+    return <div className='branches-list-content branches-list-label'>{this.getGroupLabel(identifier)}</div>
   }
 
   private onItemClick = (item: IBranchListItem) => {
