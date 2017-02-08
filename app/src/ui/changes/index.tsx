@@ -14,7 +14,6 @@ interface IChangesProps {
   readonly repository: Repository
   readonly changes: IChangesState
   readonly dispatcher: Dispatcher
-  readonly commitSummaryWidth: number
 }
 
 /** TODO: handle "repository not found" scenario */
