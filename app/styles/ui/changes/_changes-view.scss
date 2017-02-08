@@ -20,7 +20,10 @@
 
     @include octicon-status;
 
-    .octicon { vertical-align: text-bottom; }
+    .octicon {
+      flex-shrink:0;
+      vertical-align: text-bottom;
+    }
   }
 }
 
