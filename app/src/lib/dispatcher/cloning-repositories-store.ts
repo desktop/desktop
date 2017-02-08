@@ -54,28 +54,36 @@ export class CloningRepositoriesStore {
     return this.emitter.on('did-update', fn)
   }
 
+  private emitError(error: Error) {
+    this.emitter.emit('did-error', error)
+  }
+
+  /** Register a function to be called when an error occurs. */
+  public onDidError(fn: (error: Error) => void): Disposable {
+    return this.emitter.on('did-error', fn)
+  }
+
   /** Clone the repository at the URL to the path. */
-  public clone(url: string, path: string, user: User | null): Promise<void> {
+  public async clone(url: string, path: string, user: User | null): Promise<void> {
     const repository = new CloningRepository(path, url)
     this._repositories.push(repository)
     this.stateByID.set(repository.id, { output: `Cloning into ${path}`, progressValue: null })
+    this.emitUpdate()
 
     const progressParser = new CloneProgressParser()
-
-    const promise = cloneRepo(url, path, user, progress => {
+    try {
+      await cloneRepo(url, path, user, progress => {
         this.stateByID.set(repository.id, {
           output: progress,
           progressValue: progressParser.parse(progress),
         })
         this.emitUpdate()
       })
-      .then(() => {
-        this.remove(repository)
-      })
+    } catch (e) {
+      this.emitError(e)
+    }
 
-    this.emitUpdate()
-
-    return promise
+    this.remove(repository)
   }
 
   /** Get the repositories currently being cloned. */
