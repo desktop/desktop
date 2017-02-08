@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "0.0.22",
+  "version": "0.0.23",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -33,7 +33,9 @@
     "textarea-caret": "^3.0.1",
     "untildify": "^3.0.2",
     "username": "^2.2.2",
-    "uuid": "^3.0.1"
+    "uuid": "^3.0.1",
+    "winston": "^2.3.1",
+    "winston-daily-rotate-file": "^1.4.3"
   },
   "devDependencies": {
     "devtron": "^1.4.0",

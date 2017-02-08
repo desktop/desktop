@@ -9,5 +9,5 @@ export async function checkoutBranch(repository: Repository, name: string): Prom
 
 /** Check out the paths at HEAD. */
 export async function checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
-  await git([ 'checkout', '--', ...paths ], repository.path, 'checkoutPaths')
+  await git([ 'checkout', 'HEAD', '--', ...paths ], repository.path, 'checkoutPaths')
 }
