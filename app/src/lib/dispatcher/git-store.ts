@@ -1,5 +1,6 @@
 import * as Fs from 'fs'
 import * as Path from 'path'
+import { shell } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileStatus } from '../../models/status'
@@ -35,6 +36,14 @@ const LoadingHistoryRequestKey = 'history'
 
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
+
+/** File statuses which indicate the file exists on disk. */
+const OnDiskStatuses = new Set([
+  FileStatus.New,
+  FileStatus.Modified,
+  FileStatus.Renamed,
+  FileStatus.Conflicted,
+])
 
 /**
  * File statuses which indicate the file has previously been committed to the
@@ -562,6 +571,13 @@ export class GitStore {
   }
 
   public async discardChanges(files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+
+    const onDiskFiles = files.filter(f => OnDiskStatuses.has(f.status))
+    const absolutePaths = onDiskFiles.map(f => Path.join(this.repository.path, f.path))
+    for (const path of absolutePaths) {
+      shell.moveItemToTrash(path)
+    }
+
     const touchesGitIgnore = files.some(f => f.path.endsWith('.gitignore'))
     if (touchesGitIgnore && this.tip.kind === TipState.Valid) {
       const ref = await this.tip.branch.name

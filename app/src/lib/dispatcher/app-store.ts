@@ -18,7 +18,7 @@ import {
 import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
-import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
+import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
@@ -67,14 +67,6 @@ const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
 /** The `localStorage` key for whether we've shown the Welcome flow yet. */
 const HasShownWelcomeFlowKey = 'has-shown-welcome-flow'
-
-/** File statuses which indicate the file exists on disk. */
-const OnDiskStatuses = new Set([
-  FileStatus.New,
-  FileStatus.Modified,
-  FileStatus.Renamed,
-  FileStatus.Conflicted,
-])
 
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
@@ -1156,12 +1148,6 @@ export class AppStore {
   }
 
   public async _discardChanges(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>) {
-    const onDiskFiles = files.filter(f => OnDiskStatuses.has(f.status))
-    const absolutePaths = onDiskFiles.map(f => Path.join(repository.path, f.path))
-    for (const path of absolutePaths) {
-      shell.moveItemToTrash(path)
-    }
-
     const gitStore = this.getGitStore(repository)
     await gitStore.discardChanges(files)
 

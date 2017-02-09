@@ -30,10 +30,12 @@ describe('GitStore', () => {
 
     Fs.writeFileSync(filePath, 'WRITING SOME NEW WORDS\n')
 
+    // setup requires knowing about the current tip
+    await gitStore.loadCurrentAndDefaultBranch()
+
     // ignore the file
     await gitStore.ignore(file)
 
-    // get the status, see that we have the gitignore and the README
     let status = await getStatus(repo)
     let files = status.workingDirectory.files
 
