@@ -62,8 +62,8 @@ export interface IAPIMentionableUser {
   readonly avatar_url: string
 
   /**
-   * Note that this may be an empty string in the case where the user has no
-   * public email address.
+   * Note that this may be an empty string *or* null in the case where the user
+   * has no public email address.
    */
   readonly email: string | null
 
@@ -244,6 +244,7 @@ export class API {
 
   /** Fetch the mentionable users for the repository. */
   public async fetchMentionables(owner: string, name: string, etag: string | null): Promise<IAPIMentionablesResponse | null> {
+    // NB: this custom `Accept` is required for the `mentionables` endpoint.
     const headers: any = {
       'Accept': 'application/vnd.github.jerry-maguire-preview',
     }
@@ -253,7 +254,6 @@ export class API {
     }
 
     const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
-
     const users = deserialize<ReadonlyArray<IAPIMentionableUser>>(response.body)
     if (!users) { return null }
 

@@ -185,7 +185,7 @@ export class GitHubUserStore {
   }
 
   /**
-   * Store a mentionable associate between the user and repository.
+   * Store a mentionable association between the user and repository.
    *
    * Note that both the user and the repository *must* have already been cached
    * before calling this method. Otherwise it will throw.
