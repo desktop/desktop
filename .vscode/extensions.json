@@ -1,7 +1,6 @@
 {
   "recommendations": [
     "eg2.tslint",
-    "dbaeumer.vscode-eslint",
     "msjsdiag.debugger-for-chrome",
     "samverschueren.final-newline",
     "DmitryDorofeev.empty-indent"
