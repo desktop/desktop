@@ -45,7 +45,17 @@ export class GitHubUserStore {
   public async updateMentionables(repository: GitHubRepository, user: User): Promise<void> {
     const api = new API(user)
     const mentionables = await api.fetchMentionables(repository.owner.login, repository.name)
-    console.log(mentionables)
+    const gitHubUsers: ReadonlyArray<IGitHubUser> = mentionables.map(m => ({
+      ...m,
+      endpoint: user.endpoint,
+      avatarURL: m.avatar_url,
+    }))
+
+    for (const user of gitHubUsers) {
+      await this.cacheUser(user)
+    }
+
+    console.log(gitHubUsers)
   }
 
   /** Not to be called externally. See `Dispatcher`. */
