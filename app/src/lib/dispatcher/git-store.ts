@@ -2,6 +2,7 @@ import * as Fs from 'fs'
 import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
+import { WorkingDirectoryFileChange, FileStatus } from '../../models/status'
 import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { User } from '../../models/user'
@@ -24,6 +25,7 @@ import {
   merge,
   setRemoteURL,
   removeFromIndex,
+  checkoutPaths,
 } from '../git'
 
 /** The number of commits to load from history per batch. */
@@ -33,6 +35,18 @@ const LoadingHistoryRequestKey = 'history'
 
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
+
+/**
+ * File statuses which indicate the file has previously been committed to the
+ * repository.
+ */
+const CommittedStatuses = new Set([
+  FileStatus.Modified,
+  FileStatus.Deleted,
+  FileStatus.Renamed,
+  FileStatus.Conflicted,
+])
+
 
 /** A commit message summary and description. */
 export interface ICommitMessage {
@@ -545,5 +559,19 @@ export class GitStore {
           this.refreshGitIgnoreText()
         })
      })
+  }
+
+  public async discardChanges(files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+    const touchesGitIgnore = files.some(f => f.path.endsWith('.gitignore'))
+    if (touchesGitIgnore && this.tip.kind === TipState.Valid) {
+      const ref = await this.tip.branch.name
+      await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, ref))
+    }
+
+    const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
+
+    if (modifiedFiles.length) {
+      await this.performFailableOperation(() => checkoutPaths(this.repository, modifiedFiles.map(f => f.path)))
+    }
   }
 }

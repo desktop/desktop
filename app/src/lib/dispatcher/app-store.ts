@@ -58,10 +58,7 @@ import {
   addRemote,
   getBranchAheadBehind,
   createCommit,
-  checkoutPaths,
   checkoutBranch,
-  reset as resetRepo,
-  GitResetMode
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -75,17 +72,6 @@ const HasShownWelcomeFlowKey = 'has-shown-welcome-flow'
 const OnDiskStatuses = new Set([
   FileStatus.New,
   FileStatus.Modified,
-  FileStatus.Renamed,
-  FileStatus.Conflicted,
-])
-
-/**
- * File statuses which indicate the file has previously been committed to the
- * repository.
- */
-const CommittedStatuses = new Set([
-  FileStatus.Modified,
-  FileStatus.Deleted,
   FileStatus.Renamed,
   FileStatus.Conflicted,
 ])
@@ -1176,20 +1162,8 @@ export class AppStore {
       shell.moveItemToTrash(path)
     }
 
-    if (onDiskFiles.some(f => f.path.endsWith('.gitignore'))) {
-      const gitStore = this.getGitStore(repository)
-      if (gitStore.tip.kind === TipState.Valid) {
-        const branch = await gitStore.tip.branch
-        await gitStore.performFailableOperation(() => resetRepo(repository, GitResetMode.Mixed, branch.name))
-      }
-    }
-
-    const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
-
-    if (modifiedFiles.length) {
-      const gitStore = this.getGitStore(repository)
-      await gitStore.performFailableOperation(() => checkoutPaths(repository, modifiedFiles.map(f => f.path)))
-    }
+    const gitStore = this.getGitStore(repository)
+    await gitStore.discardChanges(files)
 
     return this._refreshRepository(repository)
   }
