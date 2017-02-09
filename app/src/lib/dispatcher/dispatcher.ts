@@ -311,7 +311,8 @@ export class Dispatcher {
   public async clone(url: string, path: string, user: User | null): Promise<void> {
     const { promise, repository } = this.appStore._clone(url, path, user)
     await this.selectRepository(repository)
-    await promise
+    const success = await promise
+    if (!success) { return }
 
     const addedRepositories = await this.addRepositories([ path ])
     await this.selectRepository(addedRepositories[0])
