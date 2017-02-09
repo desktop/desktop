@@ -4,6 +4,7 @@ import { User } from '../../models/user'
 import { GitHubRepository } from '../../models/github-repository'
 import { API,  getUserForEndpoint, getDotComAPIEndpoint } from '../api'
 import { GitHubUserDatabase, IGitHubUser } from './github-user-database'
+import { fatalError } from '../fatal-error'
 
 /**
  * The store for GitHub users. This is used to match commit authors to GitHub
@@ -45,17 +46,25 @@ export class GitHubUserStore {
   public async updateMentionables(repository: GitHubRepository, user: User): Promise<void> {
     const api = new API(user)
     const mentionables = await api.fetchMentionables(repository.owner.login, repository.name)
+    if (!mentionables) { return }
+
     const gitHubUsers: ReadonlyArray<IGitHubUser> = mentionables.map(m => ({
       ...m,
       endpoint: user.endpoint,
       avatarURL: m.avatar_url,
     }))
 
+    const cachedUsers = new Array<IGitHubUser>()
     for (const user of gitHubUsers) {
-      await this.cacheUser(user)
+      const cachedUser = await this.cacheUser(user)
+      if (cachedUser) {
+        cachedUsers.push(cachedUser)
+      }
     }
 
-    console.log(gitHubUsers)
+    for (const user of cachedUsers) {
+      await this.storeMentionable(user, repository)
+    }
   }
 
   /** Not to be called externally. See `Dispatcher`. */
@@ -123,7 +132,7 @@ export class GitHubUserStore {
   }
 
   /** Store the user in the cache. */
-  public async cacheUser(user: IGitHubUser): Promise<void> {
+  public async cacheUser(user: IGitHubUser): Promise<IGitHubUser | null> {
     user = userWithLowerCaseEmail(user)
 
     let userMap = this.getUsersForEndpoint(user.endpoint)
@@ -135,6 +144,7 @@ export class GitHubUserStore {
     userMap.set(user.email, user)
 
     const db = this.database
+    let addedUser: IGitHubUser | null = null
     await this.database.transaction('rw', this.database.users, function*() {
       const existing: IGitHubUser | null = yield db.users.where('[endpoint+email]')
         .equals([ user.endpoint, user.email ])
@@ -144,8 +154,31 @@ export class GitHubUserStore {
         user = { ...user, id: existing.id }
       }
 
-      yield db.users.put(user)
+      const id = yield db.users.put(user)
+      addedUser = yield db.users.get(id)
     })
+
+    return addedUser
+  }
+
+  /**
+   * Store a mentionable associate between the user and repository.
+   *
+   * Note that both the user and the repository *must* have already been cached
+   * before calling this method. Otherwise it will throw.
+   */
+  private async storeMentionable(user: IGitHubUser, repository: GitHubRepository) {
+    const userID = user.id
+    if (!userID) {
+      return fatalError(`Cannot store a mentionable association for a user that hasn't been cached yet.`)
+    }
+
+    const repositoryID = repository.dbID
+    if (!repositoryID) {
+      return fatalError(`Cannot store a mentionable association for a repository that hasn't been cached yet.`)
+    }
+
+    await this.database.mentionables.put({ userID, repositoryID })
   }
 }
 
