@@ -322,7 +322,7 @@ export class List extends React.Component<IListProps, void> {
     // *But* the parent Grid uses `autoContainerWidth` which means its width
     // *does* reflect any width needed by the scroll bar. So we should just use
     // that width.
-    params.style.width = '100%'
+    const style = { ...params.style, width: '100%' }
 
     return (
       <div key={params.key}
@@ -334,7 +334,7 @@ export class List extends React.Component<IListProps, void> {
            onMouseDown={(e) => this.handleMouseDown(rowIndex, e)}
            onClick={(e) => this.onRowClick(rowIndex, e)}
            onKeyDown={(e) => this.handleRowKeyDown(rowIndex, e)}
-           style={params.style}>
+           style={style}>
         {element}
       </div>
     )
