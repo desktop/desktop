@@ -146,39 +146,6 @@ dialog {
         outline: 0;
       }
     }
-
-    // macOS users expect the close button to be on the left hand side of
-    // the dialog so we'll have to do some hacks to make this work. The flexbox
-    // is already set up to center children so we'll just have to drop some
-    // absolute positioning and excessive growth.
-    @include darwin {
-
-      // First, ensure that we have enough padding on both sides of the dialog
-      // so that the title text doesn't cover the close button.
-      padding: 0 40px;
-
-      // Move the close button from being absolutely positioned right top: 
-      // being absolutely position left.
-      button.close {
-        left: var(--spacing);
-        right: auto;
-      }
-
-      // The icon is no longer absolutely positioned :/
-      // This looks way worse than on Windows IMO but whatcha gonna do?
-      svg.icon {
-        position: relative;
-        left: auto;
-        margin-right: var(--spacing-half);
-        flex-shrink: 0;
-      }
-
-      // Only give the title the minimum space it needs.
-      h1 {
-        flex-grow: 0;
-        margin: 0;
-      }
-    }
   }
 
   .dialog-content {
