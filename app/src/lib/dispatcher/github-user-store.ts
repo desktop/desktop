@@ -3,7 +3,7 @@ import { Repository } from '../../models/repository'
 import { User } from '../../models/user'
 import { GitHubRepository } from '../../models/github-repository'
 import { API,  getUserForEndpoint, getDotComAPIEndpoint } from '../api'
-import { GitHubUserDatabase, IGitHubUser } from './github-user-database'
+import { GitHubUserDatabase, IGitHubUser, IMentionableAssociation } from './github-user-database'
 import { fatalError } from '../fatal-error'
 
 /**
@@ -43,6 +43,7 @@ export class GitHubUserStore {
     return this.getUsersForEndpoint(endpoint)
   }
 
+  /** Update the mentionable users for the repository. */
   public async updateMentionables(repository: GitHubRepository, user: User): Promise<void> {
     const api = new API(user)
     const mentionables = await api.fetchMentionables(repository.owner.login, repository.name)
@@ -65,6 +66,10 @@ export class GitHubUserStore {
     for (const user of cachedUsers) {
       await this.storeMentionable(user, repository)
     }
+
+    await this.pruneRemovedMentionables(cachedUsers, repository)
+
+    this.emitUpdate()
   }
 
   /** Not to be called externally. See `Dispatcher`. */
@@ -178,7 +183,52 @@ export class GitHubUserStore {
       return fatalError(`Cannot store a mentionable association for a repository that hasn't been cached yet.`)
     }
 
-    await this.database.mentionables.put({ userID, repositoryID })
+    const db = this.database
+    await this.database.transaction('rw', this.database.mentionables, function*() {
+      const existing = yield db.mentionables
+        .where('[userID+repositoryID]')
+        .equals([ userID, repositoryID ])
+        .limit(1)
+        .first()
+      if (existing) { return }
+
+      yield db.mentionables.put({ userID, repositoryID })
+    })
+  }
+
+  /**
+   * Pune the mentionable associations by removing any association that isn't in
+   * the given array of users.
+   */
+  private async pruneRemovedMentionables(users: ReadonlyArray<IGitHubUser>, repository: GitHubRepository) {
+    const repositoryID = repository.dbID
+    if (!repositoryID) {
+      return fatalError(`Cannot prune removed mentionables for a repository that hasn't been cached yet.`)
+    }
+
+    const userIDs = new Set<number>()
+    for (const user of users) {
+      const userID = user.id
+      if (!userID) {
+        return fatalError(`Cannot prune removed mentionables with a user that hasn't been cached yet: ${user}`)
+      }
+
+      userIDs.add(userID)
+    }
+
+    const db = this.database
+    await this.database.transaction('rw', this.database.mentionables, function*() {
+      const associations: ReadonlyArray<IMentionableAssociation> = yield db.mentionables
+        .where('repositoryID')
+        .equals(repositoryID)
+        .toArray()
+
+      for (const association of associations) {
+        if (!userIDs.has(association.userID)) {
+          yield db.mentionables.delete(association.id!)
+        }
+      }
+    })
   }
 }
 

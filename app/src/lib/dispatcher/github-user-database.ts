@@ -12,6 +12,7 @@ export interface IGitHubUser {
 }
 
 export interface IMentionableAssociation {
+  readonly id?: number
   readonly userID: number
   readonly repositoryID: number
 }
@@ -28,7 +29,7 @@ export class GitHubUserDatabase extends Dexie {
     })
 
     this.version(DatabaseVersion).stores({
-      mentionables: '++, repositoryID',
+      mentionables: '++id, repositoryID, &[userID+repositoryID]',
     })
   }
 }
