@@ -60,6 +60,8 @@ import {
   createCommit,
   checkoutPaths,
   checkoutBranch,
+  reset as resetRepo,
+  GitResetMode
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -1172,6 +1174,14 @@ export class AppStore {
     const absolutePaths = onDiskFiles.map(f => Path.join(repository.path, f.path))
     for (const path of absolutePaths) {
       shell.moveItemToTrash(path)
+    }
+
+    if (onDiskFiles.some(f => f.path.endsWith('.gitignore'))) {
+      const gitStore = this.getGitStore(repository)
+      if (gitStore.tip.kind === TipState.Valid) {
+        const branch = await gitStore.tip.branch
+        await gitStore.performFailableOperation(() => resetRepo(repository, GitResetMode.Mixed, branch.name))
+      }
     }
 
     const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
