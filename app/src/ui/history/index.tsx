@@ -86,11 +86,20 @@ export class History extends React.Component<IHistoryProps, void> {
   }
 
   private renderFileList() {
+    const files = this.props.history.changedFiles
+    if (files.length === 0) {
+      return (
+      <div className='fill-window'>
+        No files in commit
+      </div>
+      )
+    }
+
     // -1 for right hand side border
     const availableWidth = this.props.commitSummaryWidth - 1
 
     return (<FileList
-          files={this.props.history.changedFiles}
+          files={files}
           onSelectedFileChanged={this.onFileSelected}
           selectedFile={this.props.history.selection.file}
           availableWidth={availableWidth}
