@@ -511,7 +511,8 @@ export class GitStore {
     await this.refreshGitIgnoreText()
 
     const text = this.gitIgnoreText || ''
-    const newText = `${this.ensureTrailingNewline(text)}${pattern}\n`
+    const currentContents = this.ensureTrailingNewline(text)
+    const newText = this.ensureTrailingNewline(`${currentContents}${pattern}`)
     await this.setGitIgnoreText(newText)
 
     await removeFromIndex(this.repository, pattern)
