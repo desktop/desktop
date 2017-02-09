@@ -7,6 +7,7 @@ import * as Path from 'path'
 
 import { GitStore } from '../../src/lib/dispatcher/git-store'
 import { FileStatus } from '../../src/models/status'
+import { TestAppShell } from '../test-app-shell'
 
 import {
   getStatus,
@@ -16,8 +17,10 @@ import { GitProcess } from 'git-kitchen-sink'
 describe('GitStore', () => {
   it('can discard changes from a repository', async () => {
 
+    const testShell = new TestAppShell()
+
     const repo = await setupEmptyRepository()
-    const gitStore = new GitStore(repo)
+    const gitStore = new GitStore(repo, testShell)
 
     const file = 'README.md'
     const filePath = Path.join(repo.path, file)

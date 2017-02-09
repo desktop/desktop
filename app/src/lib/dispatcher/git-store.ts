@@ -1,6 +1,5 @@
 import * as Fs from 'fs'
 import * as Path from 'path'
-import { shell } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileStatus } from '../../models/status'
@@ -9,6 +8,8 @@ import { Tip, TipState } from '../../models/tip'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
+
+import { AppShell } from '../../lib/dispatcher/app-shell'
 
 import {
   reset,
@@ -67,6 +68,8 @@ export interface ICommitMessage {
 export class GitStore {
   private readonly emitter = new Emitter()
 
+  private readonly shell: AppShell
+
   /** The commits keyed by their SHA. */
   public readonly commits = new Map<string, Commit>()
 
@@ -97,8 +100,9 @@ export class GitStore {
 
   private _gitIgnoreText: string | null = null
 
-  public constructor(repository: Repository) {
+  public constructor(repository: Repository, shell: AppShell) {
     this.repository = repository
+    this.shell = shell
   }
 
   private emitUpdate() {
@@ -575,7 +579,7 @@ export class GitStore {
     const onDiskFiles = files.filter(f => OnDiskStatuses.has(f.status))
     const absolutePaths = onDiskFiles.map(f => Path.join(this.repository.path, f.path))
     for (const path of absolutePaths) {
-      shell.moveItemToTrash(path)
+      this.shell.moveItemToTrash(path)
     }
 
     const touchesGitIgnore = files.some(f => f.path.endsWith('.gitignore'))
