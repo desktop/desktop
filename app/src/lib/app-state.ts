@@ -11,6 +11,7 @@ import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispa
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
+import { SignInStep } from './dispatcher/sign-in-store'
 
 export { ICloningRepositoryState }
 export { ICommitMessage }
@@ -30,6 +31,7 @@ export interface IAppState {
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
 
   readonly selectedState: PossibleSelections | null
+  readonly signInState: SignInStep | null
 
   readonly showWelcomeFlow: boolean
   readonly loading: boolean

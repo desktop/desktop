@@ -40,6 +40,7 @@ import { getAppMenu } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
+import { SignInStore, SignInStep } from './sign-in-store'
 
 import {
   getGitDir,
@@ -130,6 +131,8 @@ export class AppStore {
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
 
+  private readonly signInStore: SignInStore
+
   /**
    * The Application menu as an AppMenu instance or null if
    * the main process has not yet provided the renderer with
@@ -149,12 +152,13 @@ export class AppStore {
 
   private readonly statsStore: StatsStore
 
-  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore) {
+  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore, signInStore: SignInStore) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
     this.emojiStore = emojiStore
     this._issuesStore = issuesStore
     this.statsStore = statsStore
+    this.signInStore = signInStore
 
     const hasShownWelcomeFlow = localStorage.getItem(HasShownWelcomeFlowKey)
     this.showWelcomeFlow = !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
@@ -172,6 +176,9 @@ export class AppStore {
     this.cloningRepositoriesStore.onDidUpdate(() => {
       this.emitUpdate()
     })
+
+    this.signInStore.onDidUpdate(() => this.emitUpdate())
+    this.signInStore.onDidError(error => this._postError(error))
 
     const rootDir = getAppPath()
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
@@ -300,6 +307,7 @@ export class AppStore {
         ...this.cloningRepositoriesStore.repositories,
       ],
       selectedState: this.getSelectedState(),
+      signInState: this.signInStore.getState(),
       currentPopup: this.currentPopup,
       currentFoldout: this.currentFoldout,
       errors: this.errors,
