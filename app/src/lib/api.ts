@@ -65,7 +65,7 @@ export interface IAPIMentionableUser {
    * Note that this may be an empty string in the case where the user has no
    * public email address.
    */
-  readonly email: string
+  readonly email: string | null
 
   readonly login: string
 

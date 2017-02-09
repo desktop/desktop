@@ -51,6 +51,7 @@ export class GitHubUserStore {
 
     const gitHubUsers: ReadonlyArray<IGitHubUser> = mentionables.map(m => ({
       ...m,
+      email: m.email || '',
       endpoint: user.endpoint,
       avatarURL: m.avatar_url,
     }))
