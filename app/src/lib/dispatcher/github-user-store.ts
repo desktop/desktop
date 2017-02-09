@@ -20,6 +20,12 @@ export class GitHubUserStore {
 
   private readonly database: GitHubUserDatabase
 
+  /**
+   * The etag for the last mentionables request. Keyed by the GitHub repository
+   * `dbID`.
+   */
+  private readonly mentionablesEtags = new Map<number, string>()
+
   public constructor(database: GitHubUserDatabase) {
     this.database = database
   }
@@ -46,10 +52,21 @@ export class GitHubUserStore {
   /** Update the mentionable users for the repository. */
   public async updateMentionables(repository: GitHubRepository, user: User): Promise<void> {
     const api = new API(user)
-    const mentionables = await api.fetchMentionables(repository.owner.login, repository.name)
-    if (!mentionables) { return }
 
-    const gitHubUsers: ReadonlyArray<IGitHubUser> = mentionables.map(m => ({
+    const repositoryID = repository.dbID
+    if (!repositoryID) {
+      return fatalError(`Cannot update mentionables for a repository that hasn't been cached yet.`)
+    }
+    const etag = this.mentionablesEtags.get(repositoryID) || null
+
+    const response = await api.fetchMentionables(repository.owner.login, repository.name, etag)
+    if (!response) { return }
+
+    if (response.etag) {
+      this.mentionablesEtags.set(repositoryID, response.etag)
+    }
+
+    const gitHubUsers: ReadonlyArray<IGitHubUser> = response.users.map(m => ({
       ...m,
       email: m.email || '',
       endpoint: user.endpoint,

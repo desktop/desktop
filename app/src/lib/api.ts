@@ -57,7 +57,7 @@ export interface IAPIUser {
   readonly avatarUrl: string
 }
 
-/** The info we get from the mentionables endpoint. */
+/** The users we get from the mentionables endpoint. */
 export interface IAPIMentionableUser {
   readonly avatar_url: string
 
@@ -107,6 +107,12 @@ interface IAPIAccessToken {
 /** The partial server response when creating a new authorization on behalf of a user */
 interface IAPIAuthorization {
   readonly token: string
+}
+
+/** The response we receive from fetching mentionables. */
+interface IAPIMentionablesResponse {
+  readonly etag: string
+  readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
 /**
@@ -237,11 +243,22 @@ export class API {
   }
 
   /** Fetch the mentionable users for the repository. */
-  public async fetchMentionables(owner: string, name: string): Promise<ReadonlyArray<IAPIMentionableUser> | null> {
-    const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/mentionables/users`, undefined, {
+  public async fetchMentionables(owner: string, name: string, etag: string | null): Promise<IAPIMentionablesResponse | null> {
+    const headers: any = {
       'Accept': 'application/vnd.github.jerry-maguire-preview',
-    })
-    return deserialize<ReadonlyArray<IAPIMentionableUser>>(response.body)
+    }
+
+    if (etag) {
+      headers['If-None-Match'] = etag
+    }
+
+    const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
+
+    const users = deserialize<ReadonlyArray<IAPIMentionableUser>>(response.body)
+    if (!users) { return null }
+
+    const responseEtag = getHeader(response, 'etag')
+    return { users, etag: responseEtag || '' }
   }
 }
 
