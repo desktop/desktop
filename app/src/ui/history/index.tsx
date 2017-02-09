@@ -40,17 +40,18 @@ export class History extends React.Component<IHistoryProps, void> {
 
   private renderDiff(commit: Commit | null) {
     const files = this.props.history.changedFiles
-    if (files.length === 0) {
-      return null
-    }
-
     const file = this.props.history.selection.file
     const diff = this.props.history.diff
 
     if (!diff || !file) {
+      // don't show both 'empty' messages
+      const message = files.length === 0
+        ? ''
+        : 'No file selected'
+
       return (
         <div className='panel blankslate' id='diff'>
-          No file selected
+          { message }
         </div>
       )
     }
