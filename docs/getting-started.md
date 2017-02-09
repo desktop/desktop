@@ -83,6 +83,33 @@ Then switch to atom and follow these steps
 5. Provide the path
  * For Mac: `/usr/local/lib/node_modules/typescript/lib/typescriptServices.js`
  * For Windows: `C:\Users\[YOUR USERNAME]\AppData\Roaming\npm\node_modules\typescript\lib\typescriptServices.js`
+ 
+## Prefer Visual Studio Code?
+ 
+If you choose to use [Visual Studio Code](https://code.visualstudio.com/) there are some plugins that we recommend installing.
+
+* [TSLint](https://marketplace.visualstudio.com/items?itemName=eg2.tslint) - Shows linter errors and warning in the editor
+* [empty-indent](https://marketplace.visualstudio.com/items?itemName=DmitryDorofeev.empty-indent) - Removes extraneous whitespace on saving
+* [jsx](https://marketplace.visualstudio.com/items?itemName=TwentyChung.jsx) - Adds JSX support
+* [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome) - Needed to allow debugging from VS Code
+
+## Debugging
+
+### Chrome 
+
+1. Run the command `npm run start`
+2. Open _Chrome Dev Tools_
+
+[React Dev Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en) should automatically install itself on first start. If you would also like to use [Devtron](http://electron.atom.io/devtron/), run the command `require('devtron').install()` inside of the console in _Chrome Dev Tools_.
+
+### VS Code
+
+1. Run the command `npm run debug`
+2. Select the _Debug_ view from the view bar
+3. Select the process you would like to attach to (this will usually be the _Renderer_ process)
+4. Press `F5` or the green play button
+
+![2017-02-07_15-24-23](https://cloud.githubusercontent.com/assets/1715082/22712204/90ca44fa-ed49-11e6-9110-ffa9c1d4f752.jpg)
 
 ## Troubleshooting
 
