@@ -103,6 +103,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     if (!FS.existsSync(this.state.path)) {
       FS.mkdir(this.state.path, (err) => {
         if (err) {
+          console.error(err)
           this.props.dispatcher.postError(new Error('Failed to create directory'))
         } else {
           this.setState({ ...this.state, creating: true })
