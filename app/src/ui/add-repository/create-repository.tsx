@@ -91,7 +91,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   }
 
   private showFilePicker = () => {
-    const directory: string[] | null = remote.dialog.showOpenDialog({ properties: [ 'createDirectory', 'openDirectory' ] })
+    const directory: string[] | null = remote.dialog.showOpenDialog({ properties: ['createDirectory', 'openDirectory'] })
     if (!directory) { return }
 
     const path = directory[0]
@@ -101,93 +101,97 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private createRepository = async () => {
     if (!FS.existsSync(this.state.path)) {
-      return this.props.dispatcher.postError(new Error('The specified path does not exist.'))
-    }
+      FS.mkdir(this.state.path, (err) => {
+        if (err) {
+          this.props.dispatcher.postError(new Error('Failed to create directory'))
+        } else {
+          this.setState({ ...this.state, creating: true })
 
-    this.setState({ ...this.state, creating: true })
+          const fullPath = Path.join(this.state.path, sanitizedRepositoryName(this.state.name))
 
-    const fullPath = Path.join(this.state.path, sanitizedRepositoryName(this.state.name))
+          // NB: This exists & create check is race-y :(
+          FS.exists(fullPath, exists => {
+            FS.mkdir(fullPath, async () => {
+              await initGitRepository(fullPath)
 
-    // NB: This exists & create check is race-y :(
-    FS.exists(fullPath, exists => {
-      FS.mkdir(fullPath, async () => {
-        await initGitRepository(fullPath)
+              const repositories = await this.props.dispatcher.addRepositories([fullPath])
+              if (repositories.length < 1) { return }
 
-        const repositories = await this.props.dispatcher.addRepositories([ fullPath ])
-        if (repositories.length < 1) { return }
+              const repository = repositories[0]
 
-        const repository = repositories[0]
+              let createInitialCommit = false
+              if (this.state.createWithReadme) {
+                createInitialCommit = true
 
-        let createInitialCommit = false
-        if (this.state.createWithReadme) {
-          createInitialCommit = true
+                try {
+                  await writeDefaultReadme(fullPath, this.state.name)
+                } catch (e) {
+                  console.error(e)
 
-          try {
-            await writeDefaultReadme(fullPath, this.state.name)
-          } catch (e) {
-            console.error(e)
+                  this.props.dispatcher.postError(e)
+                }
+              }
 
-            this.props.dispatcher.postError(e)
-          }
-        }
+              const gitIgnore = this.state.gitIgnore
+              if (gitIgnore !== NoGitIgnoreValue) {
+                createInitialCommit = true
 
-        const gitIgnore = this.state.gitIgnore
-        if (gitIgnore !== NoGitIgnoreValue) {
-          createInitialCommit = true
+                try {
+                  await writeGitIgnore(fullPath, gitIgnore)
+                } catch (e) {
+                  console.error(e)
 
-          try {
-            await writeGitIgnore(fullPath, gitIgnore)
-          } catch (e) {
-            console.error(e)
+                  this.props.dispatcher.postError(e)
+                }
+              }
 
-            this.props.dispatcher.postError(e)
-          }
-        }
+              const licenseName = (this.state.license === NoLicenseValue.name ? null : this.state.license)
+              const license = (this.state.licenses || []).find(l => l.name === licenseName)
 
-        const licenseName = (this.state.license === NoLicenseValue.name ? null : this.state.license)
-        const license = (this.state.licenses || []).find(l => l.name === licenseName)
+              if (license) {
+                createInitialCommit = true
 
-        if (license) {
-          createInitialCommit = true
+                try {
+                  const author = await getAuthorIdentity(repository)
 
-          try {
-            const author = await getAuthorIdentity(repository)
+                  await writeLicense(fullPath, license, {
+                    fullname: author ? author.name : '',
+                    email: author ? author.email : '',
+                    year: (new Date()).getFullYear().toString(),
+                    description: '',
+                    project: this.state.name,
+                  })
+                } catch (e) {
+                  console.error(e)
 
-            await writeLicense(fullPath, license, {
-              fullname: author ? author.name : '',
-              email: author ? author.email : '',
-              year: (new Date()).getFullYear().toString(),
-              description: '',
-              project: this.state.name,
+                  this.props.dispatcher.postError(e)
+                }
+              }
+
+              if (createInitialCommit) {
+                try {
+                  const status = await getStatus(repository)
+                  const wd = status.workingDirectory
+                  const files = wd.files
+                  if (files.length > 0) {
+                    await createCommit(repository, 'Initial commit', files)
+                  }
+                } catch (e) {
+                  console.error(e)
+
+                  this.props.dispatcher.postError(e)
+                }
+              }
+
+              this.setState({ ...this.state, creating: false })
+
+              this.props.dispatcher.selectRepository(repository)
+              this.props.dispatcher.closeFoldout()
             })
-          } catch (e) {
-            console.error(e)
-
-            this.props.dispatcher.postError(e)
-          }
+          })
         }
-
-        if (createInitialCommit) {
-          try {
-            const status = await getStatus(repository)
-            const wd = status.workingDirectory
-            const files = wd.files
-            if (files.length > 0) {
-              await createCommit(repository, 'Initial commit', files)
-            }
-          } catch (e) {
-            console.error(e)
-
-            this.props.dispatcher.postError(e)
-          }
-        }
-
-        this.setState({ ...this.state, creating: false })
-
-        this.props.dispatcher.selectRepository(repository)
-        this.props.dispatcher.closeFoldout()
       })
-    })
+    }
   }
 
   private onCreateWithReadmeChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -215,7 +219,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private renderGitIgnores() {
     const gitIgnores = this.state.gitIgnoreNames || []
-    const options = [ NoGitIgnoreValue, ...gitIgnores ]
+    const options = [NoGitIgnoreValue, ...gitIgnores]
 
     return (
       <Select
@@ -230,7 +234,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private renderLicenses() {
     const licenses = this.state.licenses || []
-    const options = [ NoLicenseValue, ...licenses ]
+    const options = [NoLicenseValue, ...licenses]
 
     return (
       <Select
@@ -252,7 +256,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           label='Name'
           placeholder='repository name'
           onChange={this.onNameChanged}
-          autoFocus/>
+          autoFocus />
 
         {this.renderError()}
 
@@ -261,26 +265,26 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
             value={this.state.path}
             label='Local Path'
             placeholder='repository path'
-            onChange={this.onPathChanged}/>
+            onChange={this.onPathChanged} />
           <Button onClick={this.showFilePicker}>Choose…</Button>
         </Row>
 
         <Checkbox
           label='Initialize this repository with a README'
           value={this.state.createWithReadme ? CheckboxValue.On : CheckboxValue.Off}
-          onChange={this.onCreateWithReadmeChange}/>
+          onChange={this.onCreateWithReadmeChange} />
 
         {this.renderGitIgnores()}
 
         {this.renderLicenses()}
 
-        <hr/>
+        <hr />
 
         <Button type='submit' disabled={disabled} onClick={this.createRepository}>
           Create Repository
         </Button>
 
-        {this.state.creating ? <Loading/> : null}
+        {this.state.creating ? <Loading /> : null}
       </Form>
     )
   }
