@@ -1,67 +1,38 @@
 import * as React from 'react'
-import { Dispatcher } from '../../lib/dispatcher'
-import { Repository } from '../../models/repository'
-
-import { Form } from '../lib/form'
+import { DialogContent } from '../dialog'
 import { TextArea } from '../lib/text-area'
-import { Button } from '../lib/button'
-
+import { LinkButton } from '../lib/link-button'
 
 interface IGitIgnoreProps {
-  readonly dispatcher: Dispatcher
-  readonly repository: Repository
   readonly text: string | null
-}
-
-interface IGitIgnoreState {
-  readonly text: string
+  readonly onIgnoreTextChanged: (text: string) => void
+  readonly onShowExamples: () => void
 }
 
 /** A view for creating or modifying the repository's gitignore file */
-export class GitIgnore extends React.Component<IGitIgnoreProps, IGitIgnoreState> {
-
-  public constructor(props: IGitIgnoreProps) {
-    super(props)
-
-    const text = this.props.text || ''
-    this.state = { text }
-  }
+export class GitIgnore extends React.Component<IGitIgnoreProps, void> {
 
   public render() {
 
-    const existing = this.props.text
-    const current = this.state.text
-    // disable the submit button if the gitignore text isn't changed
-    const disabled = existing !== null && current === existing
-
     return (
-      <Form>
-        <div>Ignored files (.gitignore)</div>
+      <DialogContent>
+        <p>
+          The .gitignore file controls which files are tracked by Git and which
+          are ignored. Check out <LinkButton onClick={this.props.onShowExamples}>git-scm.com</LinkButton> for
+          more information about the file format, or simply ignore a file by
+          right clicking on it in the uncommitted changes view.
+        </p>
         <TextArea
           placeholder='Ignored files'
-          value={this.state.text}
+          value={this.props.text || ''}
           onChange={this.onChange}
           rows={6} />
-
-        <hr/>
-
-        <Button type='submit' onClick={this.save} disabled={disabled}>Save</Button>
-        <Button onClick={this.close}>Cancel</Button>
-      </Form>
+      </DialogContent>
     )
-  }
-
-  private close = () => {
-    this.props.dispatcher.closePopup()
   }
 
   private onChange = (event: React.FormEvent<HTMLTextAreaElement>) => {
     const text = event.currentTarget.value
-    this.setState({ text })
-  }
-
-  private save = () => {
-    this.props.dispatcher.setGitIgnoreText(this.props.repository, this.state.text)
-    this.close()
+    this.props.onIgnoreTextChanged(text)
   }
 }
