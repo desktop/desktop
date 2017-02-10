@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { IAutocompletionProvider } from './index'
-import { Dispatcher, GitHubUserStore } from '../../lib/dispatcher'
+import { GitHubUserStore } from '../../lib/dispatcher'
 import { GitHubRepository } from '../../models/github-repository'
 
 /** An autocompletion hit for a user. */
@@ -17,12 +17,10 @@ export interface IUserHit {
 export class UserAutocompletionProvider implements IAutocompletionProvider<IUserHit> {
   private readonly gitHubUserStore: GitHubUserStore
   private readonly repository: GitHubRepository
-  private readonly dispatcher: Dispatcher
 
-  public constructor(gitHubUserStore: GitHubUserStore, repository: GitHubRepository, dispatcher: Dispatcher) {
+  public constructor(gitHubUserStore: GitHubUserStore, repository: GitHubRepository) {
     this.gitHubUserStore = gitHubUserStore
     this.repository = repository
-    this.dispatcher = dispatcher
   }
 
   public getRegExp(): RegExp {
