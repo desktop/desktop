@@ -1,11 +1,12 @@
 import { Emitter, Disposable } from 'event-kit'
 import { User } from '../../models/user'
+import { assertNever, fatalError } from '../fatal-error'
+import { askUserToOAuth } from '../../lib/oauth'
 import {
   createAuthorization,
   AuthorizationResponse,
   fetchUser,
   AuthorizationResponseKind,
-  getHTMLURL,
   getDotComAPIEndpoint,
 } from '../../lib/api'
 
@@ -115,17 +116,16 @@ export class SignInStore {
   }
 
   public async authenticateWithBasicAuth(username: string, password: string): Promise<void> {
-    const step = this.state
+    const currentState = this.state
 
-    if (!step || step.kind !== Step.Authentication) {
-      const stepText = step ? step.kind : 'null'
-      this.emitError(new Error(`Sign in step '${stepText}' not compatible with authentication`))
-      return
+    if (!currentState || currentState.kind !== Step.Authentication) {
+      const stepText = currentState ? currentState.kind : 'null'
+      return fatalError(`Sign in step '${stepText}' not compatible with authentication`)
     }
 
-    const endpoint = step.endpoint
+    const endpoint = currentState.endpoint
 
-    this.setState({ ...step, loading: true })
+    this.setState({ ...currentState, loading: true })
 
     let response: AuthorizationResponse
     try {
@@ -141,24 +141,39 @@ export class SignInStore {
       this.emitAuthenticate(user)
       this.setState(null)
     } else if (response.kind === AuthorizationResponseKind.TwoFactorAuthenticationRequired) {
-      this.setState({
-        kind: Step.TwoFactorAuthentication,
-        endpoint,
-        username,
-        password,
-      })
+      this.setState({ kind: Step.TwoFactorAuthentication, endpoint, username, password })
     } else {
-      this.setState({
-        username,
-        password,
-        loading: false,
-        response,
-      })
+      if (response.kind === AuthorizationResponseKind.Error) {
+        if (response.response.error) {
+          this.emitError(response.response.error)
+        } else {
+          this.emitError(new Error(`The server responded with an error (${response.response.statusCode})\n\n${response.response.body}`))
+        }
+        this.setState({ ...currentState, loading: false })
+      } else if (response.kind === AuthorizationResponseKind.Failed) {
+        this.setState({
+          ...currentState,
+          loading: false,
+          error: new Error('Incorrect username or password.'),
+        })
+      } else {
+        return assertNever(response, `Unsupported response: ${response}`)
+      }
     }
   }
 
-  public authenticateWithBrowser() {
+  public async authenticateWithBrowser(): Promise<void> {
+    const currentState = this.state
 
+    if (!currentState || currentState.kind !== Step.Authentication) {
+      const stepText = currentState ? currentState.kind : 'null'
+      return fatalError(`Sign in step '${stepText}' not compatible with browser authentication`)
+    }
+
+    const user = await askUserToOAuth(currentState.endpoint)
+
+    this.emitAuthenticate(user)
+    this.setState(null)
   }
 
   public beginEnterpriseSignIn() {
