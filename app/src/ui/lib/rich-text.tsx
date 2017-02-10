@@ -44,12 +44,18 @@ function emojificationNexus(str: string, emoji: Map<string, string>): JSX.Elemen
   return <span>{elements}</span>
 }
 
+function handleClick (e: React.MouseEvent<HTMLAnchorElement>) {
+  const user = e.currentTarget.title
+  console.log(`TODO: handle click for ${user}`)
+}
+
 function usernameNexus(str: string, i: number): ReadonlyArray<JSX.Element | string> {
   const pieces = str.split(UsernameRegex)
   return pieces.map((fragment, j) => {
     if (fragment.startsWith('@')) {
       const innerKey = `${i}-${j}`
-      return <span key={innerKey} className='username'>{fragment}</span>
+      const user = fragment.substr(1)
+      return <a key={innerKey} className='username' onClick={handleClick} title={user}>{fragment}</a>
     } else {
       return fragment
     }
