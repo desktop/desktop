@@ -39,14 +39,19 @@ export class History extends React.Component<IHistoryProps, void> {
   }
 
   private renderDiff(commit: Commit | null) {
-
+    const files = this.props.history.changedFiles
     const file = this.props.history.selection.file
     const diff = this.props.history.diff
 
     if (!diff || !file) {
+      // don't show both 'empty' messages
+      const message = files.length === 0
+        ? ''
+        : 'No file selected'
+
       return (
         <div className='panel blankslate' id='diff'>
-          No file selected
+          { message }
         </div>
       )
     }
@@ -85,6 +90,27 @@ export class History extends React.Component<IHistoryProps, void> {
     this.props.dispatcher.setCommitSummaryWidth(width)
   }
 
+  private renderFileList() {
+    const files = this.props.history.changedFiles
+    if (files.length === 0) {
+      return (
+        <div className='fill-window'>
+          No files in commit
+        </div>
+      )
+    }
+
+    // -1 for right hand side border
+    const availableWidth = this.props.commitSummaryWidth - 1
+
+    return (
+      <FileList
+          files={files}
+          onSelectedFileChanged={this.onFileSelected}
+          selectedFile={this.props.history.selection.file}
+          availableWidth={availableWidth} />
+      )
+  }
 
   public render() {
     const sha = this.props.history.selection.sha
@@ -94,9 +120,6 @@ export class History extends React.Component<IHistoryProps, void> {
       return <NoCommitSelected/>
     }
 
-    // -1 for right hand side border
-    const availableWidth = this.props.commitSummaryWidth - 1
-
     return (
       <div id='history'>
         {this.renderCommitSummary(commit)}
@@ -104,14 +127,8 @@ export class History extends React.Component<IHistoryProps, void> {
           <Resizable
             width={this.props.commitSummaryWidth}
             onResize={this.onCommitSummaryResize}
-            onReset={this.onCommitSummaryReset}
-          >
-            <FileList
-              files={this.props.history.changedFiles}
-              onSelectedFileChanged={this.onFileSelected}
-              selectedFile={this.props.history.selection.file}
-              availableWidth={availableWidth}
-            />
+            onReset={this.onCommitSummaryReset}>
+            { this.renderFileList() }
           </Resizable>
           { this.renderDiff(commit) }
         </div>

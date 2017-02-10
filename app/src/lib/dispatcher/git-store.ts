@@ -532,7 +532,8 @@ export class GitStore {
   /** Ignore the given path or pattern. */
   public async ignore(pattern: string): Promise<void> {
     const text = await this.readGitIgnore() || ''
-    const newText = `${ensureTrailingNewline(text)}${pattern}\n`
+    const currentContents = this.ensureTrailingNewline(text)
+    const newText = this.ensureTrailingNewline(`${currentContents}${pattern}`)
     await this.saveGitIgnore(newText)
 
     await removeFromIndex(this.repository, pattern)

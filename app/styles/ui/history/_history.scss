@@ -19,4 +19,10 @@
   display: flex;
   flex-direction: row;
   flex: 1;
+
+  .fill-window {
+    // necessary for "no files in commit" view to
+    // look right alongside blank diff
+    border-right: var(--base-border);
+  }
 }
