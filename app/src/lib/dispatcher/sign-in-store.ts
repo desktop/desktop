@@ -44,7 +44,7 @@ export interface IAuthenticationStep extends ISignInStep {
 export interface ITwoFactorAuthenticationStep extends ISignInStep {
   readonly kind: Step.TwoFactorAuthentication
   readonly endpoint: string,
-  readonly login: string,
+  readonly username: string,
   readonly password: string
 }
 
