@@ -1,6 +1,13 @@
 import { Emitter, Disposable } from 'event-kit'
 import { User } from '../../models/user'
-import { getDotComAPIEndpoint } from '../../lib/api'
+import {
+  createAuthorization,
+  AuthorizationResponse,
+  fetchUser,
+  AuthorizationResponseKind,
+  getHTMLURL,
+  getDotComAPIEndpoint,
+} from '../../lib/api'
 
 export enum Step {
   EndpointEntry,
@@ -105,6 +112,53 @@ export class SignInStore {
       endpoint: getDotComAPIEndpoint(),
       authMethods: DefaultAuthMethods,
     })
+  }
+
+  public async authenticateWithBasicAuth(username: string, password: string): Promise<void> {
+    const step = this.state
+
+    if (!step || step.kind !== Step.Authentication) {
+      const stepText = step ? step.kind : 'null'
+      this.emitError(new Error(`Sign in step '${stepText}' not compatible with authentication`))
+      return
+    }
+
+    const endpoint = step.endpoint
+
+    this.setState({ ...step, loading: true })
+
+    let response: AuthorizationResponse
+    try {
+      response = await createAuthorization(endpoint, username, password, null)
+    } catch (e) {
+      this.emitError(e)
+      return
+    }
+
+    if (response.kind === AuthorizationResponseKind.Authorized) {
+      const token = response.token
+      const user = await fetchUser(endpoint, token)
+      this.emitAuthenticate(user)
+      this.setState(null)
+    } else if (response.kind === AuthorizationResponseKind.TwoFactorAuthenticationRequired) {
+      this.setState({
+        kind: Step.TwoFactorAuthentication,
+        endpoint,
+        username,
+        password,
+      })
+    } else {
+      this.setState({
+        username,
+        password,
+        loading: false,
+        response,
+      })
+    }
+  }
+
+  public authenticateWithBrowser() {
+
   }
 
   public beginEnterpriseSignIn() {
