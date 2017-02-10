@@ -24,7 +24,6 @@
 @import "ui/autocompletion";
 @import "ui/welcome";
 @import "ui/foldout";
-@import "ui/update-available";
 @import "ui/preferences";
 @import "ui/path-text";
 @import "ui/configure-git-user";
@@ -38,6 +37,7 @@
 @import "ui/errors";
 @import "ui/publish-repository";
 @import "ui/clone-repository";
+@import "ui/dialog";
 @import "ui/add-repository";
 @import "ui/expand-foldout-button";
 @import "ui/discard-changes";

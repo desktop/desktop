@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
 
-interface IButtonProps {
+export interface IButtonProps {
   /** A function to call on click. */
   readonly onClick?: () => void
 
