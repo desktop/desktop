@@ -582,7 +582,7 @@ export class GitStore {
       this.shell.moveItemToTrash(path)
     }
 
-    const touchesGitIgnore = files.some(f => f.path.endsWith('.gitignore'))
+    const touchesGitIgnore = files.some(f => Path.basename(f.path) === '.gitignore')
     if (touchesGitIgnore && this.tip.kind === TipState.Valid) {
       const ref = await this.tip.branch.name
       await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, ref))
