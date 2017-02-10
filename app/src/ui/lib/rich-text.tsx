@@ -1,7 +1,8 @@
 import * as React from 'react'
 
 const EmojiRegex = /(:.*?:)/g
-const UsernameRegex = /@[a-zA-Z0-9\-]*/g
+// TODO: refine this regex, so many edge cases, ugh
+const UsernameRegex = /[^\w](@[a-zA-Z0-9\-]*)/g
 
 interface IRichTextProps {
   readonly className?: string
@@ -34,19 +35,26 @@ function emojificationNexus(str: string, emoji: Map<string, string>): JSX.Elemen
   const elements = pieces.map((fragment, i) => {
     const path = emoji.get(fragment)
     if (path) {
-      return <img key={i} alt={fragment} title={fragment} className='emoji' src={path}/>
+      return [ <img key={i} alt={fragment} title={fragment} className='emoji' src={path}/> ]
     } else {
-      const innerPieces = fragment.split(UsernameRegex)
-      const innerElements = innerPieces.map((fragment, j) => {
-        if (fragment.startsWith('@')) {
-          return <span key={j} className='username'>{fragment}</span>
-        } else {
-          return fragment
-        }
-      })
-      return <span key={i}>{innerElements}</span>
+      return usernameNexus(fragment, i)
     }
   })
 
   return <span>{elements}</span>
+}
+
+function usernameNexus(str: string, i: number): ReadonlyArray<JSX.Element | string> {
+  const pieces = str.split(UsernameRegex)
+  return pieces.map((fragment, j) => {
+    console.log(`entry: ${fragment}`)
+    if (fragment.startsWith('@')) {
+      const innerKey = `${i}-${j}`
+      // TODO: this is terrible and hard-coded, but regex ugh
+      const text = ` ${fragment}`
+      return <span key={innerKey} className='username'>{text}</span>
+    } else {
+      return fragment
+    }
+  })
 }
