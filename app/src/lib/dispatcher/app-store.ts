@@ -226,6 +226,7 @@ export class AppStore {
       aheadBehind: null,
       remote: null,
       pushPullInProgress: false,
+      isCommitting: false,
       lastFetched: null,
     }
   }
@@ -737,15 +738,19 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
+
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
     const gitStore = this.getGitStore(repository)
-    const result = await gitStore.performFailableOperation(() => {
-      const commitMessage = formatCommitMessage(message)
-      return createCommit(repository, commitMessage, files)
+
+    const result = await this.isCommitting(repository, () => {
+      return gitStore.performFailableOperation(() => {
+        const commitMessage = formatCommitMessage(message)
+        return createCommit(repository, commitMessage, files)
+      })
     })
 
     if (result) {
@@ -1056,6 +1061,22 @@ export class AppStore {
         })
       }
     })
+  }
+
+  private async isCommitting(repository: Repository, fn: () => Promise<boolean>): Promise<boolean | void> {
+    const state = this.getRepositoryState(repository)
+    // ensure the user doesn't try and commit again
+    if (state.isCommitting) { return }
+
+    this.updateRepositoryState(repository, state => ({ isCommitting: true }))
+    this.emitUpdate()
+
+    try {
+      return await fn()
+    } finally {
+      this.updateRepositoryState(repository, state => ({ isCommitting: false }))
+      this.emitUpdate()
+    }
   }
 
   private async withPushPull(repository: Repository, fn: () => Promise<void>): Promise<void> {

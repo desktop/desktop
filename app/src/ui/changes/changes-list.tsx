@@ -30,6 +30,7 @@ interface IChangesListProps {
   readonly gitHubUser: IGitHubUser | null
   readonly dispatcher: Dispatcher
   readonly availableWidth: number
+  readonly isCommitting: boolean
 
   /**
    * Click event handler passed directly to the onRowClick prop of List, see
@@ -140,7 +141,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
                        dispatcher={this.props.dispatcher}
                        commitMessage={this.props.commitMessage}
                        contextualCommitMessage={this.props.contextualCommitMessage}
-                       autocompletionProviders={this.props.autocompletionProviders}/>
+                       autocompletionProviders={this.props.autocompletionProviders}
+                       isCommitting={this.props.isCommitting}/>
       </div>
     )
   }
