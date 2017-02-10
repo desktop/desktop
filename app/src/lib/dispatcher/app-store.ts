@@ -40,7 +40,7 @@ import { getAppMenu } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
-import { SignInStore, SignInStep } from './sign-in-store'
+import { SignInStore } from './sign-in-store'
 
 import {
   getGitDir,
