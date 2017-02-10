@@ -3,3 +3,13 @@
   height: 16px;
   vertical-align: text-bottom;
 }
+
+a.username {
+  font-weight: bold;
+  cursor: pointer;
+
+  &:hover {
+    color: var(--link-button-color);
+    text-decoration: underline;
+  }
+}
