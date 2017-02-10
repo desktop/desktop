@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { shell, ipcRenderer } from 'electron'
+import { ipcRenderer } from 'electron'
 import * as Path from 'path'
 import {
   IRepositoryState,
@@ -29,7 +29,7 @@ import { Commit } from '../../models/commit'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
-import { shell as appShell } from './app-shell'
+import { shell } from './app-shell'
 import { EmojiStore } from './emoji-store'
 import { GitStore, ICommitMessage } from './git-store'
 import { assertNever } from '../fatal-error'
@@ -342,7 +342,7 @@ export class AppStore {
   private getGitStore(repository: Repository): GitStore {
     let gitStore = this.gitStores.get(repository.id)
     if (!gitStore) {
-      gitStore = new GitStore(repository, appShell)
+      gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
       gitStore.onDidLoadNewCommits(commits => this.onGitStoreLoadedCommits(repository, commits))
       gitStore.onDidError(error => this._postError(error))

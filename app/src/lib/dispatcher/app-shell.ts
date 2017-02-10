@@ -1,9 +1,15 @@
 import { shell as electronShell } from 'electron'
 
 export interface IAppShell {
-  moveItemToTrash: (path: string) => boolean
+  readonly moveItemToTrash: (path: string) => boolean
+  readonly beep: () => void
+  readonly openExternal: (path: string) => void
+  readonly openItem: (path: string) => boolean
 }
 
 export const shell: IAppShell = {
-  moveItemToTrash: (path: string) => electronShell.moveItemToTrash(path),
+  moveItemToTrash: electronShell.moveItemToTrash,
+  beep: electronShell.beep,
+  openExternal: electronShell.openExternal,
+  openItem: electronShell.openItem,
 }
