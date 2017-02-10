@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
+import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { ipcRenderer, remote, shell } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
@@ -10,7 +11,6 @@ import { Repository } from '../models/repository'
 import { MenuEvent, MenuIDs } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
 import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
-import { Popuppy } from './popuppy'
 import { Branches } from './branches'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
@@ -30,10 +30,10 @@ import { Preferences } from './preferences'
 import { User } from '../models/user'
 import { TipState } from '../models/tip'
 import { shouldRenderApplicationMenu } from './lib/features'
-import { Button } from './lib/button'
-import { Form } from './lib/form'
 import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
+import { AppError } from './app-error'
+import { IAppError } from '../lib/app-state'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -45,6 +45,9 @@ interface IAppProps {
   readonly appStore: AppStore
 }
 
+export const dialogTransitionEnterTimeout = 250
+export const dialogTransitionLeaveTimeout = 100
+
 export class App extends React.Component<IAppProps, IAppState> {
 
   /**
@@ -53,6 +56,14 @@ export class App extends React.Component<IAppProps, IAppState> {
    * keyup and keydown.
    */
   private lastKeyPressed: string | null = null
+
+  /**
+   * Gets a value indicating whether or not we're currently showing a
+   * modal dialog such as the preferences, or an error dialog.
+   */
+  private get isShowingModal() {
+    return this.state.currentPopup || this.state.errors.length
+  }
 
   public constructor(props: IAppProps) {
     super(props)
@@ -170,6 +181,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onMenuEvent(name: MenuEvent): any {
+
+    // Don't react to menu events when an error dialog is shown.
+    if (this.state.errors.length) {
+      return
+    }
+
     switch (name) {
       case 'push': return this.push()
       case 'pull': return this.pull()
@@ -360,6 +377,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onWindowKeyDown = (event: KeyboardEvent) => {
     if (event.defaultPrevented) { return }
 
+    if (this.isShowingModal) { return }
+
     if (shouldRenderApplicationMenu()) {
       if (event.key === 'Alt') {
         this.props.dispatcher.setAppMenuToolbarButtonHighlightState(true)
@@ -513,7 +532,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  private onPopupDismissed = () => {
+    this.props.dispatcher.closePopup()
+  }
+
   private currentPopupContent(): JSX.Element | null {
+
+    // Hide any dialogs while we're displaying an error
+    if (this.state.errors.length) {
+      return null
+    }
+
     const popup = this.state.currentPopup
     if (!popup) { return null }
 
@@ -524,18 +553,21 @@ export class App extends React.Component<IAppProps, IAppState> {
     } else if (popup.type === PopupType.DeleteBranch) {
       return <DeleteBranch dispatcher={this.props.dispatcher}
                            repository={popup.repository}
-                           branch={popup.branch}/>
+                           branch={popup.branch}
+                           onDismissed={this.onPopupDismissed}/>
     } else if (popup.type === PopupType.ConfirmDiscardChanges) {
       return <DiscardChanges repository={popup.repository}
                              dispatcher={this.props.dispatcher}
-                             files={popup.files}/>
+                             files={popup.files}
+                             onDismissed={this.onPopupDismissed}/>
     } else if (popup.type === PopupType.UpdateAvailable) {
       return <UpdateAvailable dispatcher={this.props.dispatcher}/>
     } else if (popup.type === PopupType.Preferences) {
       return <Preferences
         dispatcher={this.props.dispatcher}
         dotComUser={this.getDotComUser()}
-        enterpriseUser={this.getEnterpriseUser()}/>
+        enterpriseUser={this.getEnterpriseUser()}
+        onDismissed={this.onPopupDismissed}/>
     } else if (popup.type === PopupType.MergeBranch) {
       const repository = popup.repository
       const state = this.props.appStore.getRepositoryState(repository)
@@ -543,64 +575,47 @@ export class App extends React.Component<IAppProps, IAppState> {
         dispatcher={this.props.dispatcher}
         repository={repository}
         branches={state.branchesState.allBranches}
+        onDismissed={this.onPopupDismissed}
       />
     }
     else if (popup.type === PopupType.RepositorySettings) {
       const repository = popup.repository
       const state = this.props.appStore.getRepositoryState(repository)
 
-      // ensure the latest version of the gitignore is retrieved
-      // before we switch to this view
-      this.props.dispatcher.refreshGitIgnore(repository)
-
       return <RepositorySettings
         remote={state.remote}
         dispatcher={this.props.dispatcher}
         repository={repository}
-        gitIgnoreText={state.gitIgnoreText}
+        onDismissed={this.onPopupDismissed}
       />
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)
   }
 
-  private onPopupOverlayClick = () => { this.props.dispatcher.closePopup() }
-
-  private renderPopup(): JSX.Element | null {
-    let content = this.renderErrors()
-    if (!content) {
-      content = this.currentPopupContent()
-    }
-
-    if (!content) { return null }
-
+  private renderPopup() {
     return (
-      <div className='fill-window'>
-        <div className='fill-window popup-overlay' onClick={this.onPopupOverlayClick}></div>
-        <Popuppy>{content}</Popuppy>
-      </div>
+      <ReactCSSTransitionGroup
+        transitionName='modal'
+        component='div'
+        transitionEnterTimeout={dialogTransitionEnterTimeout}
+        transitionLeaveTimeout={dialogTransitionLeaveTimeout}
+      >
+        {this.currentPopupContent()}
+      </ReactCSSTransitionGroup>
     )
   }
 
-  private clearErrors = () => {
-    const errors = this.state.errors
-
-    for (const error of errors) {
-      this.props.dispatcher.clearError(error)
-    }
+  private clearError = (error: IAppError) => {
+    this.props.dispatcher.clearError(error)
   }
 
-  private renderErrors() {
-    const errors = this.state.errors
-    if (!errors.length) { return null }
-
-    const msgs = errors.map(e => e.message)
+  private renderAppError() {
     return (
-      <Form>
-        {msgs.map((msg, i) => <pre className='popup-error-output' key={i}>{msg}</pre>)}
-
-        <Button onClick={this.clearErrors}>OK</Button>
-      </Form>
+      <AppError
+        errors={this.state.errors}
+        onClearError={this.clearError}
+      />
     )
   }
 
@@ -610,6 +625,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderToolbar()}
         {this.renderRepository()}
         {this.renderPopup()}
+        {this.renderAppError()}
       </div>
     )
   }
