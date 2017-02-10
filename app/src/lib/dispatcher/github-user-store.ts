@@ -75,7 +75,10 @@ export class GitHubUserStore {
 
     const cachedUsers = new Array<IGitHubUser>()
     for (const user of gitHubUsers) {
-      const cachedUser = await this.cacheUser(user)
+      // We don't overwrite email addresses since we might not get one from this
+      // endpoint, but we could already have one from looking up a commit
+      // specifically.
+      const cachedUser = await this.cacheUser(user, false)
       if (cachedUser) {
         cachedUsers.push(cachedUser)
       }
@@ -155,8 +158,8 @@ export class GitHubUserStore {
   }
 
   /** Store the user in the cache. */
-  public async cacheUser(user: IGitHubUser): Promise<IGitHubUser | null> {
     user = userWithLowerCaseEmail(user)
+  public async cacheUser(user: IGitHubUser, overwriteEmail: boolean = true): Promise<IGitHubUser | null> {
 
     let userMap = this.getUsersForEndpoint(user.endpoint)
     if (!userMap) {
@@ -174,7 +177,11 @@ export class GitHubUserStore {
         .limit(1)
         .first()
       if (existing) {
-        user = { ...user, id: existing.id }
+        if (overwriteEmail) {
+          user = { ...user, id: existing.id }
+        } else {
+          user = { ...user, id: existing.id, email: existing.email }
+        }
       }
 
       const id = yield db.users.put(user)
