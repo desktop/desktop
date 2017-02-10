@@ -60,5 +60,26 @@ describe('git/status', () => {
       expect(files[0].oldPath).to.equal('foo')
       expect(files[0].path).to.equal('bar')
     })
+
+    it('reflects copies', async () => {
+
+      const testRepoPath = await setupFixtureRepository('copy-detection-status')
+      repository = new Repository(testRepoPath, -1, null)
+
+      await GitProcess.exec([ 'add', '.' ], repository.path)
+
+      const status = await getStatus(repository)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(2)
+
+      expect(files[0].status).to.equal(FileStatus.Modified)
+      expect(files[0].oldPath).to.be.undefined
+      expect(files[0].path).to.equal('CONTRIBUTING.md')
+
+      expect(files[1].status).to.equal(FileStatus.Copied)
+      expect(files[1].oldPath).to.equal('CONTRIBUTING.md')
+      expect(files[1].path).to.equal('docs/OVERVIEW.md')
+    })
   })
 })

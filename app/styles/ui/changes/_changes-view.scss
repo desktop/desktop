@@ -3,6 +3,29 @@
   flex-direction: column;
   flex-grow: 1;
   min-width: 0;
+
+  .header {
+    background: var(--diff-hunk-background-color);
+    border-bottom: 1px solid var(--diff-border-color);
+
+    display: flex;
+    flex-direction: row;
+    flex-shrink: 0;
+    flex-grow: 0;
+
+    padding: var(--spacing-half);
+
+    .path {
+      flex-grow: 1;
+    }
+
+    @include octicon-status;
+
+    .octicon {
+      flex-shrink:0;
+      vertical-align: text-bottom;
+    }
+  }
 }
 
 .diff-wrapper {
