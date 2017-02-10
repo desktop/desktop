@@ -50,7 +50,7 @@ export interface ITwoFactorAuthenticationStep extends ISignInStep {
 
 export class SignInStore {
   private readonly emitter = new Emitter()
-  private step: SignInStep | null = null
+  private state: SignInStep | null = null
 
   public SignInStore() {
 
@@ -87,20 +87,20 @@ export class SignInStore {
   }
 
   public getState(): SignInStep | null {
-    return this.step
+    return this.state
   }
 
-  private setStep(step: SignInStep | null) {
-    this.step = step
+  private setState(state: SignInStep | null) {
+    this.state = state
     this.emitUpdate()
   }
 
   public reset() {
-    this.setStep(null)
+    this.setState(null)
   }
 
   public beginDotComSignIn() {
-    this.setStep({
+    this.setState({
       kind: Step.Authentication,
       endpoint: getDotComAPIEndpoint(),
       authMethods: DefaultAuthMethods,
@@ -108,6 +108,6 @@ export class SignInStore {
   }
 
   public beginEnterpriseSignIn() {
-    this.setStep({ kind: Step.EndpointEntry })
+    this.setState({ kind: Step.EndpointEntry })
   }
 }
