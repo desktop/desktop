@@ -248,6 +248,32 @@ export class GitHubUserStore {
       }
     })
   }
+
+  /** Get the mentionable users in the repository. */
+  public async getMentionableUsers(repository: GitHubRepository): Promise<ReadonlyArray<IGitHubUser>> {
+    const repositoryID = repository.dbID
+    if (!repositoryID) {
+      return fatalError(`Cannot get mentionables for a repository that hasn't been cached yet.`)
+    }
+
+    const users = new Array<IGitHubUser>()
+    const db = this.database
+    await this.database.transaction('r', this.database.mentionables, this.database.users, function*() {
+      const associations: ReadonlyArray<IMentionableAssociation> = yield db.mentionables
+        .where('repositoryID')
+        .equals(repositoryID)
+        .toArray()
+
+      for (const association of associations) {
+        const user = yield db.users.get(association.userID)
+        if (user) {
+          users.push(user)
+        }
+      }
+    })
+
+    return users
+  }
 }
 
 /**
