@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { shell, ipcRenderer } from 'electron'
+import { ipcRenderer } from 'electron'
 import * as Path from 'path'
 import {
   IRepositoryState,
@@ -18,7 +18,7 @@ import {
 import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
-import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
+import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
@@ -29,6 +29,7 @@ import { Commit } from '../../models/commit'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
+import { shell } from './app-shell'
 import { EmojiStore } from './emoji-store'
 import { GitStore, ICommitMessage } from './git-store'
 import { assertNever } from '../fatal-error'
@@ -58,7 +59,6 @@ import {
   addRemote,
   getBranchAheadBehind,
   createCommit,
-  checkoutPaths,
   checkoutBranch,
 } from '../git'
 
@@ -68,25 +68,6 @@ const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
 /** The `localStorage` key for whether we've shown the Welcome flow yet. */
 const HasShownWelcomeFlowKey = 'has-shown-welcome-flow'
-
-/** File statuses which indicate the file exists on disk. */
-const OnDiskStatuses = new Set([
-  FileStatus.New,
-  FileStatus.Modified,
-  FileStatus.Renamed,
-  FileStatus.Conflicted,
-])
-
-/**
- * File statuses which indicate the file has previously been committed to the
- * repository.
- */
-const CommittedStatuses = new Set([
-  FileStatus.Modified,
-  FileStatus.Deleted,
-  FileStatus.Renamed,
-  FileStatus.Conflicted,
-])
 
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
@@ -360,7 +341,7 @@ export class AppStore {
   private getGitStore(repository: Repository): GitStore {
     let gitStore = this.gitStores.get(repository.id)
     if (!gitStore) {
-      gitStore = new GitStore(repository)
+      gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
       gitStore.onDidLoadNewCommits(commits => this.onGitStoreLoadedCommits(repository, commits))
       gitStore.onDidError(error => this._postError(error))
@@ -1187,18 +1168,8 @@ export class AppStore {
   }
 
   public async _discardChanges(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>) {
-    const onDiskFiles = files.filter(f => OnDiskStatuses.has(f.status))
-    const absolutePaths = onDiskFiles.map(f => Path.join(repository.path, f.path))
-    for (const path of absolutePaths) {
-      shell.moveItemToTrash(path)
-    }
-
-    const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
-
-    if (modifiedFiles.length) {
-      const gitStore = this.getGitStore(repository)
-      await gitStore.performFailableOperation(() => checkoutPaths(repository, modifiedFiles.map(f => f.path)))
-    }
+    const gitStore = this.getGitStore(repository)
+    await gitStore.discardChanges(files)
 
     return this._refreshRepository(repository)
   }
