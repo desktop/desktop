@@ -1,7 +1,9 @@
-import { shell } from 'electron'
+import { shell as electronShell } from 'electron'
 
-export class AppShell {
-  public moveItemToTrash(path: string): boolean {
-    return shell.moveItemToTrash(path)
-  }
+export interface IAppShell {
+  moveItemToTrash: (path: string) => boolean
+}
+
+export const shell: IAppShell = {
+  moveItemToTrash: (path: string) => electronShell.moveItemToTrash(path),
 }

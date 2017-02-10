@@ -9,7 +9,7 @@ import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
 
-import { AppShell } from '../../lib/dispatcher/app-shell'
+import { IAppShell } from '../../lib/dispatcher/app-shell'
 
 import {
   reset,
@@ -68,7 +68,7 @@ export interface ICommitMessage {
 export class GitStore {
   private readonly emitter = new Emitter()
 
-  private readonly shell: AppShell
+  private readonly shell: IAppShell
 
   /** The commits keyed by their SHA. */
   public readonly commits = new Map<string, Commit>()
@@ -100,7 +100,7 @@ export class GitStore {
 
   private _gitIgnoreText: string | null = null
 
-  public constructor(repository: Repository, shell: AppShell) {
+  public constructor(repository: Repository, shell: IAppShell) {
     this.repository = repository
     this.shell = shell
   }

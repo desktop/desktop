@@ -29,7 +29,7 @@ import { Commit } from '../../models/commit'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
-import { AppShell } from './app-shell'
+import { shell as appShell } from './app-shell'
 import { EmojiStore } from './emoji-store'
 import { GitStore, ICommitMessage } from './git-store'
 import { assertNever } from '../fatal-error'
@@ -77,8 +77,6 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 
 export class AppStore {
   private emitter = new Emitter()
-
-  private readonly appShell = new AppShell()
 
   private users: ReadonlyArray<User> = new Array<User>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
@@ -344,7 +342,7 @@ export class AppStore {
   private getGitStore(repository: Repository): GitStore {
     let gitStore = this.gitStores.get(repository.id)
     if (!gitStore) {
-      gitStore = new GitStore(repository, this.appShell)
+      gitStore = new GitStore(repository, appShell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
       gitStore.onDidLoadNewCommits(commits => this.onGitStoreLoadedCommits(repository, commits))
       gitStore.onDidError(error => this._postError(error))
