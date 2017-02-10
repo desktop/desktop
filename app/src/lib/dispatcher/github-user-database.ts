@@ -7,7 +7,7 @@ export interface IGitHubUser {
   readonly id?: number
   readonly endpoint: string
   readonly email: string
-  readonly login: string | null
+  readonly login: string
   readonly avatarURL: string
 }
 
