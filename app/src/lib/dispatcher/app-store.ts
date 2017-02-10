@@ -1067,7 +1067,7 @@ export class AppStore {
 
   private async isCommitting(repository: Repository, fn: () => Promise<boolean>): Promise<boolean | void> {
     const state = this.getRepositoryState(repository)
-    // Don't allow concurrent network operations.
+    // ensure the user doesn't try and commit again
     if (state.isCommitting) { return }
 
     this.updateRepositoryState(repository, state => ({ isCommitting: true }))
