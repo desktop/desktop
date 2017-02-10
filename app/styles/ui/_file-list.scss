@@ -1,3 +1,5 @@
+@import "../mixins";
+
 .file-list {
 
   // this value affects virtualized lists, and without it
@@ -15,11 +17,7 @@
   // fall back to using the ambient foreground color of the
   // list item.
   .list-item:not(:focus) {
-    .status {
-      &-new { fill: var(--color-new); }
-      &-modified { fill: var(--color-modified); }
-      &-deleted { fill: var(--color-deleted); }
-    }
+    @include octicon-status;
   }
 
   .file {

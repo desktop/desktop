@@ -311,7 +311,8 @@ export class Dispatcher {
   public async clone(url: string, path: string, user: User | null): Promise<void> {
     const { promise, repository } = this.appStore._clone(url, path, user)
     await this.selectRepository(repository)
-    await promise
+    const success = await promise
+    if (!success) { return }
 
     const addedRepositories = await this.addRepositories([ path ])
     await this.selectRepository(addedRepositories[0])
@@ -474,16 +475,6 @@ export class Dispatcher {
     return this.appStore._setRemoteURL(repository, name, url)
   }
 
-  /** Write the given rules to the gitignore file at the root of the repository. */
-  public setGitIgnoreText(repository: Repository, text: string): Promise<void> {
-    return this.appStore._setGitIgnoreText(repository, text)
-  }
-
-  /** Populate the current root gitignore text into the application state */
-  public refreshGitIgnore(repository: Repository): Promise<void> {
-    return this.appStore._refreshGitIgnore(repository)
-  }
-
   /** Open the URL in a browser */
   public openInBrowser(url: string) {
     return this.appStore._openInBrowser(url)
@@ -497,6 +488,28 @@ export class Dispatcher {
   /** Opens a terminal window with path as the working directory */
   public openShell(path: string) {
     return this.appStore._openShell(path)
+  }
+
+  /** 
+   * Persist the given content to the repository's root .gitignore.
+   * 
+   * If the repository root doesn't contain a .gitignore file one
+   * will be created, otherwise the current file will be overwritten.
+   */
+  public async saveGitIgnore(repository: Repository, text: string): Promise<void> {
+    await this.appStore._saveGitIgnore(repository, text)
+    await this.appStore._refreshRepository(repository)
+  }
+
+  /**
+   * Read the contents of the repository's .gitignore.
+   * 
+   * Returns a promise which will either be rejected or resolved
+   * with the contents of the file. If there's no .gitignore file
+   * in the repository root the promise will resolve with null.
+   */
+  public async readGitIgnore(repository: Repository): Promise<string | null> {
+    return this.appStore._readGitIgnore(repository)
   }
 
   /** Set whether the user has opted out of stats reporting. */

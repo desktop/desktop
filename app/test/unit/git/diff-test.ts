@@ -211,5 +211,29 @@ describe('git/diff', () => {
       expect(first.lines[1].text).to.equal('-foo')
       expect(first.lines[2].text).to.equal('+bar')
     })
+
+    it('handles unborn repository with mixed state', async () => {
+
+      const repo = await setupEmptyRepository()
+
+      fs.writeFileSync(path.join(repo.path, 'foo'), 'WRITING THE FIRST LINE\n')
+
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+
+      fs.writeFileSync(path.join(repo.path, 'foo'), 'WRITING OVER THE TOP\n')
+
+      const status = await getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+
+      const diff = await getTextDiff(repo, files[0])
+
+      expect(diff.hunks.length).to.equal(1)
+
+      const first = diff.hunks[0]
+      expect(first.lines.length).to.equal(2)
+      expect(first.lines[1].text).to.equal('+WRITING OVER THE TOP')
+    })
   })
 })

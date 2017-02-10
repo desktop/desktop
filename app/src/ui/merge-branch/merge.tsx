@@ -1,16 +1,19 @@
 import * as React from 'react'
-import { Form } from '../lib/form'
 import { Select } from '../lib/select'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Branch } from '../../models/branch'
 import { Repository } from '../../models/repository'
 import { getAheadBehind } from '../../lib/git'
+import { ButtonGroup } from '../lib/button-group'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Row } from '../lib/row'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
   readonly branches: ReadonlyArray<Branch>
+  readonly onDismissed: () => void
 }
 
 interface IMergeState {
@@ -46,18 +49,27 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     const disabled = !selectedBranch
     const countPlural = this.state.commitCount === 1 ? 'commit' : 'commits'
     return (
-      <Form onSubmit={this.merge}>
-        <Select label='From' onChange={this.onBranchChange} value={selectedValue || undefined}>
-          {this.props.branches.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
-        </Select>
+      <Dialog
+        title={__DARWIN__ ? 'Merge Branch' : 'Merge branch'}
+        onDismissed={this.props.onDismissed}
+        onSubmit={this.merge}
+      >
+        <DialogContent>
+          <Row>
+            <Select label='From' onChange={this.onBranchChange} value={selectedValue || undefined}>
+              {this.props.branches.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
+            </Select>
+          </Row>
 
-        <div>This will bring in {this.state.commitCount} {countPlural}.</div>
-
-        <hr/>
-
-        <Button onClick={this.cancel}>Cancel</Button>
-        <Button type='submit' disabled={disabled}>Merge</Button>
-      </Form>
+          <p>This will bring in {this.state.commitCount} {countPlural}.</p>
+        </DialogContent>
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type='submit' disabled={disabled}>Merge</Button>
+            <Button onClick={this.cancel}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </Dialog>
     )
   }
 
