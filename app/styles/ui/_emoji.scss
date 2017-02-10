@@ -5,7 +5,7 @@
 }
 
 a.username {
-  font-weight: bold;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
 
   &:hover {
