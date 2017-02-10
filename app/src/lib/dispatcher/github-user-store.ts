@@ -172,8 +172,8 @@ export class GitHubUserStore {
     const db = this.database
     let addedUser: IGitHubUser | null = null
     await this.database.transaction('rw', this.database.users, function*() {
-      const existing: IGitHubUser | null = yield db.users.where('[endpoint+email]')
-        .equals([ user.endpoint, user.email ])
+      const existing: IGitHubUser | null = yield db.users.where('[endpoint+login]')
+        .equals([ user.endpoint, user.login.toLowerCase() ])
         .limit(1)
         .first()
       if (existing) {
