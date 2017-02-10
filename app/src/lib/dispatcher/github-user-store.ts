@@ -276,6 +276,34 @@ export class GitHubUserStore {
 
     return users
   }
+
+  /** Get the mentionable users which match the text in some way. */
+  public async getMentionableUsersMatching(repository: GitHubRepository, text: string): Promise<ReadonlyArray<IGitHubUser>> {
+    const users = await this.getMentionableUsers(repository)
+
+    const MaxScore = 1
+    const score = (u: IGitHubUser) => {
+      const login = u.login
+      if (login && login.toLowerCase().startsWith(text.toLowerCase())) {
+        return MaxScore
+      }
+
+      // `name` shouldn't even be `undefined` going forward, but older versions
+      // of the user cache didn't persist `name`. The `GitHubUserStore` will fix
+      // that, but autocompletions could be requested before that happens. So we
+      // need to check here even though the type says its superfluous.
+      const name = u.name
+      if (name && name.toLowerCase().includes(text.toLowerCase())) {
+        return MaxScore - 0.1
+      }
+
+      return 0
+    }
+
+    return users
+      .filter(u => score(u) > 0)
+      .sort((a, b) => score(b) - score(a))
+  }
 }
 
 /**

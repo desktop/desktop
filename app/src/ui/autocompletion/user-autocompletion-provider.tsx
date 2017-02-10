@@ -28,25 +28,8 @@ export class UserAutocompletionProvider implements IAutocompletionProvider<IUser
   }
 
   public async getAutocompletionItems(text: string): Promise<ReadonlyArray<IUserHit>> {
-    const users = await this.gitHubUserStore.getMentionableUsers(this.repository)
-    const filtered = users.filter(u => {
-      const login = u.login
-      if (login && login.startsWith(text)) {
-        return true
-      }
-
-      // `name` shouldn't even be `undefined` going forward, but older versions
-      // of the user cache didn't persist `name`. The `GitHubUserStore` will fix
-      // that, but autocompletions could be requested before that happens. So we
-      // need to check here even though the type says its superfluous.
-      const name = u.name
-      if (name && u.name.includes(text)) {
-        return true
-      }
-
-      return false
-    })
-    return filtered.map(u => ({ username: u.login!, name: u.name }))
+    const users = await this.gitHubUserStore.getMentionableUsersMatching(this.repository, text)
+    return users.map(u => ({ username: u.login!, name: u.name }))
   }
 
   public renderItem(item: IUserHit): JSX.Element {
