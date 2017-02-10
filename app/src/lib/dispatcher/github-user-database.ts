@@ -9,6 +9,7 @@ export interface IGitHubUser {
   readonly email: string
   readonly login: string | null
   readonly avatarURL: string
+  readonly name: string
 }
 
 export interface IMentionableAssociation {

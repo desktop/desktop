@@ -55,6 +55,7 @@ export interface IAPIUser {
   readonly type: 'user' | 'org'
   readonly login: string
   readonly avatarUrl: string
+  readonly name: string
 }
 
 /** The users we get from the mentionables endpoint. */
@@ -322,7 +323,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
 export async function fetchUser(endpoint: string, token: string): Promise<User> {
   const octo = new Octokat({ token, rootURL: endpoint })
   const user = await octo.user.fetch()
-  return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id)
+  return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id, user.name)
 }
 
 /** Get metadata from the server. */

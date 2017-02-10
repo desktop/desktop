@@ -137,6 +137,7 @@ export class GitHubUserStore {
           login: apiCommit.author.login,
           avatarURL: apiCommit.author.avatarUrl,
           endpoint: user.endpoint,
+          name: apiCommit.author.name,
         }
       }
     }
@@ -148,6 +149,7 @@ export class GitHubUserStore {
         login: matchingUser.login,
         avatarURL: matchingUser.avatarUrl,
         endpoint: user.endpoint,
+        name: matchingUser.name,
       }
     }
 
