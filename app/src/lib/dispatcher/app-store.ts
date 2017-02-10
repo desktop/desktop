@@ -208,7 +208,6 @@ export class AppStore {
       remote: null,
       pushPullInProgress: false,
       lastFetched: null,
-      gitIgnoreText: null,
     }
   }
 
@@ -326,7 +325,6 @@ export class AppStore {
         aheadBehind: gitStore.aheadBehind,
         remote: gitStore.remote,
         lastFetched: gitStore.lastFetched,
-        gitIgnoreText: gitStore.gitIgnoreText,
       }
     ))
 
@@ -1284,23 +1282,21 @@ export class AppStore {
     return openShell(path)
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _setGitIgnoreText(repository: Repository, text: string): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    await gitStore.setGitIgnoreText(text)
-
-    return this._refreshRepository(repository)
-  }
-
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _refreshGitIgnore(repository: Repository): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    return gitStore.refreshGitIgnoreText()
-  }
-
   /** Takes a URL and opens it using the system default application */
   public _openInBrowser(url: string) {
     return shell.openExternal(url)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _saveGitIgnore(repository: Repository, text: string): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.saveGitIgnore(text)
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _readGitIgnore(repository: Repository): Promise<string | null> {
+    const gitStore = this.getGitStore(repository)
+    return gitStore.readGitIgnore()
   }
 
   /** Has the user opted out of stats reporting? */

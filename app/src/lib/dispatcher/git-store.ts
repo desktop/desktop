@@ -497,29 +497,6 @@ export class GitStore {
     })
   }
 
-  /** The current contents of the gitignore file at the root of the repository */
-  public get gitIgnoreText(): string | null { return this._gitIgnoreText }
-
-  /** Populate the current root gitignore text into the application state */
-  public refreshGitIgnoreText(): Promise<void> {
-    const path = Path.join(this.repository.path, '.gitignore')
-    return new Promise<void>((resolve, reject) => {
-      Fs.readFile(path, 'utf8', (err, data) => {
-        if (err) {
-          // TODO: what if this is a real error and we can't read the file?
-          this._gitIgnoreText = null
-        } else {
-          // ensure we assign something to the current text
-          this._gitIgnoreText = data || null
-        }
-
-        resolve()
-
-        this.emitUpdate()
-      })
-    })
-  }
-
   /** Merge the named branch into the current branch. */
   public merge(branch: string): Promise<void> {
     return this.performFailableOperation(() => merge(this.repository, branch))
@@ -533,45 +510,62 @@ export class GitStore {
     this.emitUpdate()
   }
 
-  /** Ignore the given path or pattern. */
-  public async ignore(pattern: string): Promise<void> {
-    await this.refreshGitIgnoreText()
+  /**
+   * Read the contents of the repository .gitignore.
+   *
+   * Returns a promise which will either be rejected or resolved
+   * with the contents of the file. If there's no .gitignore file
+   * in the repository root the promise will resolve with null.
+   */
+  public async readGitIgnore(): Promise<string | null> {
+    const repository = this.repository
+    const ignorePath = Path.join(repository.path, '.gitignore')
 
-    const text = this.gitIgnoreText || ''
-    const newText = `${this.ensureTrailingNewline(text)}${pattern}\n`
-    await this.setGitIgnoreText(newText)
-
-    await removeFromIndex(this.repository, pattern)
+    return new Promise<string | null>((resolve, reject) => {
+      Fs.readFile(ignorePath, 'utf8', (err, data) => {
+        if (err) {
+          if (err.code === 'ENOENT') {
+            resolve(null)
+          } else {
+            reject(err)
+          }
+        } else {
+          resolve(data)
+        }
+      })
+    })
   }
 
-  private ensureTrailingNewline(text: string): string {
-    // mixed line endings might be an issue here
-    if (!text.endsWith('\n')) {
-      const linesEndInCRLF = text.indexOf('\r\n')
-      return linesEndInCRLF === -1
-        ? `${text}\n`
-        : `${text}\r\n`
-    } else {
-      return text
-    }
-  }
-
-  /** Overwrite the current .gitignore contents (if exists) */
-  public async setGitIgnoreText(text: string): Promise<void> {
-    const gitIgnorePath = Path.join(this.repository.path, '.gitignore')
-    const fileContents = this.ensureTrailingNewline(text)
+  /**
+   * Persist the given content to the repository root .gitignore.
+   *
+   * If the repository root doesn't contain a .gitignore file one
+   * will be created, otherwise the current file will be overwritten.
+   */
+  public async saveGitIgnore(text: string): Promise<void> {
+    const repository = this.repository
+    const ignorePath = Path.join(repository.path, '.gitignore')
+    const fileContents = ensureTrailingNewline(text)
 
     return new Promise<void>((resolve, reject) => {
-        Fs.writeFile(gitIgnorePath, fileContents, err => {
-          if (err) {
-            reject(err)
-          } else {
-            resolve()
-          }
+      Fs.writeFile(ignorePath, fileContents, err => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve()
+        }
+      })
+    })
+  }
 
-          this.refreshGitIgnoreText()
-        })
-     })
+  /** Ignore the given path or pattern. */
+  public async ignore(pattern: string): Promise<void> {
+    const text = await this.readGitIgnore() || ''
+    const currentContents = ensureTrailingNewline(text)
+    const newText = ensureTrailingNewline(`${currentContents}${pattern}`)
+    await this.saveGitIgnore(newText)
+
+    await removeFromIndex(this.repository, pattern)
   }
 
   public async discardChanges(files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
@@ -593,5 +587,17 @@ export class GitStore {
     if (modifiedFiles.length) {
       await this.performFailableOperation(() => checkoutPaths(this.repository, modifiedFiles.map(f => f.path)))
     }
+  }
+}
+
+function ensureTrailingNewline(text: string): string {
+  // mixed line endings might be an issue here
+  if (!text.endsWith('\n')) {
+    const linesEndInCRLF = text.indexOf('\r\n')
+    return linesEndInCRLF === -1
+      ? `${text}\n`
+      : `${text}\r\n`
+  } else {
+    return text
   }
 }

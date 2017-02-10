@@ -88,10 +88,8 @@ Then switch to atom and follow these steps
  
 If you choose to use [Visual Studio Code](https://code.visualstudio.com/) there are some plugins that we recommend installing.
 
-* [TSLint](https://marketplace.visualstudio.com/items?itemName=eg2.tslint) - Shows linter errors and warning in the editor
-* [empty-indent](https://marketplace.visualstudio.com/items?itemName=DmitryDorofeev.empty-indent) - Removes extraneous whitespace on saving
-* [jsx](https://marketplace.visualstudio.com/items?itemName=TwentyChung.jsx) - Adds JSX support
-* [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome) - Needed to allow debugging from VS Code
+1. While in the _Extension_ view, select *Show Workspace Recommended Extensions* from the dropdown menu
+2. Install all the extensions
 
 ## Debugging
 

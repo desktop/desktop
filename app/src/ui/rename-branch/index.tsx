@@ -4,9 +4,10 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { sanitizedBranchName } from '../create-branch/sanitized-branch-name'
-import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 interface IRenameBranchProps {
   readonly dispatcher: Dispatcher
@@ -37,19 +38,30 @@ export class RenameBranch extends React.Component<IRenameBranchProps, IRenameBra
   public render() {
     const disabled = !this.state.newName.length
     return (
-      <Form onSubmit={this.renameBranch}>
-        <TextBox
-          label='Name'
-          autoFocus={true}
-          value={this.state.newName}
-          onChange={this.onNameChange}
-          onKeyDown={this.onKeyDown}/>
+      <Dialog
+        id='rename-branch'
+        title={ __DARWIN__ ? 'Rename Branch' : 'Rename branch'}
+        onDismissed={this.cancel}
+        onSubmit={this.renameBranch}
+      >
+        <DialogContent>
+          <TextBox
+            label='Name'
+            autoFocus={true}
+            value={this.state.newName}
+            onChange={this.onNameChange}
+            onKeyDown={this.onKeyDown}/>
 
-        {this.renderError()}
+          {this.renderError()}
+        </DialogContent>
 
-        <Button onClick={this.cancel}>Cancel</Button>
-        <Button type='submit' disabled={disabled}>Rename {this.props.branch.name}</Button>
-      </Form>
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type='submit' disabled={disabled}>Rename {this.props.branch.name}</Button>
+            <Button onClick={this.cancel}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </Dialog>
     )
   }
 
