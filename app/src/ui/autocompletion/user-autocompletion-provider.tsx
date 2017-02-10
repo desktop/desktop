@@ -35,6 +35,10 @@ export class UserAutocompletionProvider implements IAutocompletionProvider<IUser
         return true
       }
 
+      // `name` shouldn't even be `undefined` going forward, but older versions
+      // of the user cache didn't persist `name`. The `GitHubUserStore` will fix
+      // that, but autocompletions could be requested before that happens. So we
+      // need to check here even though the type says its superfluous.
       const name = u.name
       if (name && u.name.includes(text)) {
         return true
