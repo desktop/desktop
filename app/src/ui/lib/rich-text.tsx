@@ -1,8 +1,8 @@
 import * as React from 'react'
 
 const EmojiRegex = /(:.*?:)/g
-// TODO: refine this regex, so many edge cases, ugh
-const UsernameRegex = /[^\w](@[a-zA-Z0-9\-]*)/g
+// TODO: refine this regex so email addresses are skipped
+const UsernameRegex = /(@[a-zA-Z0-9\-]*)/g
 
 interface IRichTextProps {
   readonly className?: string
@@ -47,12 +47,9 @@ function emojificationNexus(str: string, emoji: Map<string, string>): JSX.Elemen
 function usernameNexus(str: string, i: number): ReadonlyArray<JSX.Element | string> {
   const pieces = str.split(UsernameRegex)
   return pieces.map((fragment, j) => {
-    console.log(`entry: ${fragment}`)
     if (fragment.startsWith('@')) {
       const innerKey = `${i}-${j}`
-      // TODO: this is terrible and hard-coded, but regex ugh
-      const text = ` ${fragment}`
-      return <span key={innerKey} className='username'>{text}</span>
+      return <span key={innerKey} className='username'>{fragment}</span>
     } else {
       return fragment
     }
