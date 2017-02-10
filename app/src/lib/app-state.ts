@@ -124,7 +124,7 @@ export enum FoldoutType {
 
 export type Foldout =
   { type: FoldoutType.Repository, expandAddRepository: boolean } |
-  { type: FoldoutType.Branch, expandCreateForm?: boolean } |
+  { type: FoldoutType.Branch, expandCreateBranch: boolean } |
   { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } |
   { type: FoldoutType.Publish }
 
@@ -205,7 +205,13 @@ export interface IHistoryState {
 
 export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
+
+  /**
+   * The selected file. Note that this must be the same instance as is in
+   * `workingDirectory`.
+   */
   readonly selectedFile: WorkingDirectoryFileChange | null
+
   readonly diff: IDiff | null
 
   /**

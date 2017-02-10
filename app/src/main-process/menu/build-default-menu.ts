@@ -170,11 +170,13 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       { type: 'separator' },
       {
+        id: 'push',
         label: __DARWIN__ ? 'Push' : 'P&ush',
         accelerator: 'CmdOrCtrl+P',
         click: emit('push'),
       },
       {
+        id: 'pull',
         label: __DARWIN__ ? 'Pull' : 'Pu&ll',
         accelerator: 'CmdOrCtrl+Shift+P',
         click: emit('pull'),
@@ -267,10 +269,23 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     },
   }
 
+  const helpItems = [ contactSupportItem ]
+
+  if (__DEV__) {
+    const throwUnhandledError: Electron.MenuItemOptions = {
+      label: 'Boomtown…',
+      click () {
+        throw new Error('Boomtown!')
+      },
+    }
+
+    helpItems.push(throwUnhandledError)
+  }
+
   if (__DARWIN__) {
     template.push({
       role: 'help',
-      submenu: [ contactSupportItem ],
+      submenu: helpItems,
     })
   } else {
     // TODO: This needs a Window about item
@@ -279,7 +294,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       submenu: [
         ...updateMenuItems,
         { type: 'separator' },
-        contactSupportItem,
+        ...helpItems,
       ],
     })
   }

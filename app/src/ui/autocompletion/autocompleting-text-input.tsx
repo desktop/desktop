@@ -63,7 +63,7 @@ interface IAutocompletingTextInputState<T> {
 }
 
 /** A text area which provides autocompletions as the user types. */
-export abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HTMLTextAreaElement> extends React.Component<IAutocompletingTextInputProps<ElementType>, IAutocompletingTextInputState<any>> {
+export abstract class AutocompletingTextInput<ElementType extends HTMLInputElement | HTMLTextAreaElement> extends React.Component<IAutocompletingTextInputProps<ElementType>, IAutocompletingTextInputState<Object>> {
   private element: ElementType | null = null
   private autocompletionList: List | null = null
 
@@ -112,7 +112,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
 
     const left = coordinates.left
     const top = coordinates.top + YOffset
-    const selectedRow = items.indexOf(state.selectedItem)
+    const selectedRow = state.selectedItem ? items.indexOf(state.selectedItem) : -1
     const rect = element.getBoundingClientRect()
     const popupAbsoluteTop = rect.top + coordinates.top
     const windowHeight = element.ownerDocument.defaultView.innerHeight
@@ -207,7 +207,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     )
   }
 
-  private insertCompletion(item: any) {
+  private insertCompletion(item: Object) {
     const element = this.element!
     const autocompletionState = this.state.autocompletionState!
     const originalText = element.value
@@ -257,7 +257,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     const state = this.state.autocompletionState
     if (!state) { return }
 
-    const selectedRow = state.items.indexOf(state.selectedItem)
+    const selectedRow = state.selectedItem ? state.items.indexOf(state.selectedItem) : -1
     const direction = this.getMovementDirection(event)
     if (direction) {
       event.preventDefault()
@@ -272,9 +272,12 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
         rangeText: state.rangeText,
       } })
     } else if (event.key === 'Enter' || event.key === 'Tab') {
-      event.preventDefault()
+      const item = state.selectedItem
+      if (item) {
+        event.preventDefault()
 
-      this.insertCompletion(state.selectedItem)
+        this.insertCompletion(item)
+      }
     } else if (event.key === 'Escape') {
       this.setState({ autocompletionState: null })
     }

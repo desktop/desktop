@@ -5,11 +5,13 @@ import { decode } from 'iconv-lite'
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { parseURL } from '../lib/parse-url'
-import { handleSquirrelEvent } from './updates'
+import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 import { reportError } from '../lib/exception-reporting'
 import { IHTTPRequest, IHTTPResponse, getEncoding } from '../lib/http'
+
+import { getLogger } from '../lib/logging/main'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -26,6 +28,8 @@ process.on('uncaughtException', (error: Error) => {
     sharedProcess.console.error(error.name)
     sharedProcess.console.error(error.message)
   }
+
+  getLogger().error('Uncaught exception on main process', error)
 
   reportError(error, app.getVersion())
 })
@@ -144,6 +148,8 @@ app.on('ready', () => {
       return new MenuItem({
         label: item.label,
         click: () => event.sender.send('contextual-menu-action', i),
+        type: item.type,
+        enabled: item.enabled,
       })
     })
 
@@ -261,6 +267,22 @@ app.on('activate', () => {
 
 function createWindow() {
   const window = new AppWindow(sharedProcess!)
+
+  if (__DEV__) {
+    const installer = require('electron-devtools-installer')
+    require('electron-debug')({ showDevTools: true })
+
+    const extensions = [
+      'REACT_DEVELOPER_TOOLS',
+    ]
+
+    for (const name of extensions) {
+      try {
+        installer.default(installer[name])
+      } catch (e) {}
+    }
+  }
+
   window.onClose(() => {
     mainWindow = null
 

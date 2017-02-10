@@ -39,6 +39,7 @@ import { AppMenu, IMenu } from '../../models/app-menu'
 import { getAppMenu } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
+import { StatsStore, ILaunchStats } from '../stats'
 
 import {
   getGitDir,
@@ -146,11 +147,14 @@ export class AppStore {
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
 
-  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore) {
+  private readonly statsStore: StatsStore
+
+  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
     this.emojiStore = emojiStore
     this._issuesStore = issuesStore
+    this.statsStore = statsStore
 
     const hasShownWelcomeFlow = localStorage.getItem(HasShownWelcomeFlowKey)
     this.showWelcomeFlow = !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
@@ -168,6 +172,8 @@ export class AppStore {
     this.cloningRepositoriesStore.onDidUpdate(() => {
       this.emitUpdate()
     })
+
+    this.cloningRepositoriesStore.onDidError(e => this._postError(e))
 
     const rootDir = getAppPath()
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
@@ -698,8 +704,15 @@ export class AppStore {
     if (!currentSelectedFile) { return }
 
     const diff = await getWorkingDirectoryDiff(repository, currentSelectedFile)
-    const selectableLines = new Set<number>()
 
+    const stateAfterLoad = this.getRepositoryState(repository)
+    const changesState = stateAfterLoad.changesState
+
+    // A whole bunch of things could have happened since we initiated the diff load
+    if (!changesState.selectedFile) { return }
+    if (changesState.selectedFile.id !== currentSelectedFile.id) { return }
+
+    const selectableLines = new Set<number>()
     if (diff.kind === DiffType.Text) {
       // The diff might have changed dramatically since last we loaded it. Ideally we
       // would be more clever about validating that any partial selection state is
@@ -719,13 +732,8 @@ export class AppStore {
     const newSelection = currentSelectedFile.selection.withSelectableLines(selectableLines)
     const selectedFile = currentSelectedFile.withSelection(newSelection)
 
-    const stateAfterLoad = this.getRepositoryState(repository)
-
-    // A whole bunch of things could have happened since we initiated the diff load
-    if (!stateAfterLoad.changesState.selectedFile) { return }
-    if (stateAfterLoad.changesState.selectedFile.id !== selectedFile.id) { return }
-
-    this.updateChangesState(repository, state => ({ selectedFile, diff }))
+    const workingDirectory = changesState.workingDirectory.byReplacingFile(selectedFile)
+    this.updateChangesState(repository, state => ({ selectedFile, diff, workingDirectory }))
     this.emitUpdate()
   }
 
@@ -743,6 +751,8 @@ export class AppStore {
     })
 
     if (result) {
+      this.statsStore.recordCommit()
+
       await this._refreshRepository(repository)
       await this.refreshChangesSection(repository, { includingStatus: true, clearPartialState: true })
     }
@@ -1051,6 +1061,10 @@ export class AppStore {
   }
 
   private async withPushPull(repository: Repository, fn: () => Promise<void>): Promise<void> {
+    const state = this.getRepositoryState(repository)
+    // Don't allow concurrent network operations.
+    if (state.pushPullInProgress) { return }
+
     this.updateRepositoryState(repository, state => ({ pushPullInProgress: true }))
     this.emitUpdate()
 
@@ -1143,7 +1157,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clone(url: string, path: string, user: User | null): { promise: Promise<void>, repository: CloningRepository } {
+  public _clone(url: string, path: string, user: User | null): { promise: Promise<boolean>, repository: CloningRepository } {
     const promise = this.cloningRepositoriesStore.clone(url, path, user)
     const repository = this.cloningRepositoriesStore.repositories.find(r => r.url === url && r.path === path)!
     return { promise, repository }
@@ -1316,5 +1330,34 @@ export class AppStore {
   /** Takes a URL and opens it using the system default application */
   public _openInBrowser(url: string) {
     return shell.openExternal(url)
+  }
+
+  /** Has the user opted out of stats reporting? */
+  public getStatsOptOut(): boolean {
+    return this.statsStore.getOptOut()
+  }
+
+  /** Set whether the user has opted out of stats reporting. */
+  public _setStatsOptOut(optOut: boolean): Promise<void> {
+    this.statsStore.setOptOut(optOut)
+
+    this.emitUpdate()
+
+    return Promise.resolve()
+  }
+
+  public _reportStats() {
+    return this.statsStore.reportStats()
+  }
+
+  public _recordLaunchStats(stats: ILaunchStats): Promise<void> {
+    return this.statsStore.recordLaunchStats(stats)
+  }
+
+  public async _ignore(repository: Repository, pattern: string): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    await gitStore.ignore(pattern)
+
+    return this._refreshRepository(repository)
   }
 }

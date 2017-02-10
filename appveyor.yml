@@ -34,7 +34,11 @@ build_script:
   - npm run build:prod
 
 test_script:
-  - npm test
+  - npm run test:setup
+  - ./script/test-appveyor.bat
 
 on_success:
   - npm run publish
+
+on_finish:
+  - npm run test:review

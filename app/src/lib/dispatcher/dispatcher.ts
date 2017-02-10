@@ -15,7 +15,7 @@ import { ICommitMessage } from './git-store'
 import { v4 as guid } from 'uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
-import { StatsStore, ILaunchStats } from '../stats'
+import { ILaunchStats } from '../stats'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -52,11 +52,8 @@ type IPCResponse<T> = IResult<T> | IError
 export class Dispatcher {
   private appStore: AppStore
 
-  private statsStore: StatsStore
-
-  public constructor(appStore: AppStore, statsStore: StatsStore) {
+  public constructor(appStore: AppStore) {
     this.appStore = appStore
-    this.statsStore = statsStore
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
@@ -229,12 +226,7 @@ export class Dispatcher {
    * summary and description.
    */
   public async commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
-    const success = await this.appStore._commitIncludedChanges(repository, message)
-    if (success) {
-      this.statsStore.recordCommit()
-    }
-
-    return success
+    return this.appStore._commitIncludedChanges(repository, message)
   }
 
   /** Change the file's includedness. */
@@ -319,7 +311,8 @@ export class Dispatcher {
   public async clone(url: string, path: string, user: User | null): Promise<void> {
     const { promise, repository } = this.appStore._clone(url, path, user)
     await this.selectRepository(repository)
-    await promise
+    const success = await promise
+    if (!success) { return }
 
     const addedRepositories = await this.addRepositories([ path ])
     await this.selectRepository(addedRepositories[0])
@@ -469,12 +462,12 @@ export class Dispatcher {
 
   /** Record the given launch stats. */
   public recordLaunchStats(stats: ILaunchStats): Promise<void> {
-    return this.statsStore.recordLaunchStats(stats)
+    return this.appStore._recordLaunchStats(stats)
   }
 
   /** Report any stats if needed. */
   public reportStats(): Promise<void> {
-    return this.statsStore.reportStats()
+    return this.appStore._reportStats()
   }
 
   /** Changes the URL for the remote that matches the given name  */
@@ -497,8 +490,18 @@ export class Dispatcher {
     return this.appStore._openInBrowser(url)
   }
 
+  /** Add the pattern to the repository's gitignore. */
+  public ignore(repository: Repository, pattern: string): Promise<void> {
+    return this.appStore._ignore(repository, pattern)
+  }
+
   /** Opens a terminal window with path as the working directory */
   public openShell(path: string) {
     return this.appStore._openShell(path)
+  }
+
+  /** Set whether the user has opted out of stats reporting. */
+  public setStatsOptOut(optOut: boolean): Promise<void> {
+    return this.appStore._setStatsOptOut(optOut)
   }
 }
