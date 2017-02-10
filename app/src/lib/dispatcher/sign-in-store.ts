@@ -2,12 +2,16 @@ import { Emitter, Disposable } from 'event-kit'
 import { User } from '../../models/user'
 import { assertNever, fatalError } from '../fatal-error'
 import { askUserToOAuth } from '../../lib/oauth'
+import { validateURL, InvalidURLErrorName, InvalidProtocolErrorName } from '../../ui/lib/enterprise-validate-url'
+
 import {
   createAuthorization,
   AuthorizationResponse,
   fetchUser,
   AuthorizationResponseKind,
   getDotComAPIEndpoint,
+  getEnterpriseAPIURL,
+  fetchMetadata,
 } from '../../lib/api'
 
 export enum Step {
@@ -103,6 +107,25 @@ export class SignInStore {
     this.emitUpdate()
   }
 
+  private async fetchAllowedAuthenticationMethods(endpoint: string): Promise<Set<AuthenticationMethods>> {
+    const response = await fetchMetadata(endpoint)
+
+    if (response) {
+      const authMethods = new Set([
+        AuthenticationMethods.BasicAuth,
+        AuthenticationMethods.OAuth,
+      ])
+
+      if (response.verifiable_password_authentication === false) {
+        authMethods.delete(AuthenticationMethods.BasicAuth)
+      }
+
+      return authMethods
+    } else {
+      throw new Error('Unsupported Enterprise server')
+    }
+  }
+
   public reset() {
     this.setState(null)
   }
@@ -178,5 +201,39 @@ export class SignInStore {
 
   public beginEnterpriseSignIn() {
     this.setState({ kind: Step.EndpointEntry })
+  }
+
+  public async setEndpoint(url: string): Promise<void> {
+    const currentState = this.state
+    this.setState({ ...currentState, loading: true })
+
+    let validUrl: string
+    try {
+      validUrl = validateURL(url)
+    } catch (e) {
+      let error = e
+      if (e.name === InvalidURLErrorName) {
+        error = new Error(`The Enterprise server address doesn't appear to be a valid URL. We're expecting something like https://github.example.com.`)
+      } else if (e.name === InvalidProtocolErrorName) {
+        error = new Error('Unsupported protocol. We can only sign in to GitHub Enterprise instances over http or https.')
+      }
+
+      this.setState({ ...currentState, loading: false, error })
+      return
+    }
+
+    const endpoint = getEnterpriseAPIURL(validUrl)
+    try {
+      const authMethods = await this.fetchAllowedAuthenticationMethods(endpoint)
+      this.setState({ kind: Step.Authentication, endpoint, authMethods })
+    } catch (e) {
+      let error = e
+      // We'll get an ENOTFOUND if the address couldn't be resolved.
+      if (e.code === 'ENOTFOUND') {
+        error = new Error('The server could not be found')
+      }
+
+      this.setState({ ...currentState, loading: false, error })
+    }
   }
 }
