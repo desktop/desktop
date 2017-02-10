@@ -116,7 +116,7 @@ export class AppStore {
 
   private emitQueued = false
 
-  private readonly gitHubUserStore: GitHubUserStore
+  public readonly gitHubUserStore: GitHubUserStore
 
   private readonly cloningRepositoriesStore: CloningRepositoriesStore
 
