@@ -98,8 +98,6 @@ export class GitStore {
 
   private _lastFetched: Date | null = null
 
-  private _gitIgnoreText: string | null = null
-
   public constructor(repository: Repository, shell: IAppShell) {
     this.repository = repository
     this.shell = shell
