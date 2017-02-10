@@ -1,0 +1,9 @@
+@mixin octicon-status {
+  .status {
+    &-new { fill: var(--color-new); }
+    &-copied { fill: var(--color-new); }
+    &-modified { fill: var(--color-modified); }
+    &-renamed { fill: var(--color-modified); }
+    &-deleted { fill: var(--color-deleted); }
+  }
+}

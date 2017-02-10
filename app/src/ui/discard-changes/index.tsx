@@ -3,13 +3,16 @@ import * as React from 'react'
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { Form } from '../lib/form'
 import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { PathText } from '../lib/path-text'
 
 interface IDiscardChangesProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly files: ReadonlyArray<WorkingDirectoryFileChange>
+  readonly onDismissed: () => void
 }
 
 /**
@@ -23,43 +26,48 @@ export class DiscardChanges extends React.Component<IDiscardChangesProps, void> 
   public render() {
     const trashName = __DARWIN__ ? 'Trash' : 'Recycle Bin'
     return (
-      <Form className='discard-changes' onSubmit={this.cancel}>
-        <div>{ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'}</div>
-        <div>
+      <Dialog
+        id='discard-changes'
+        title={ __DARWIN__ ? 'Confirm Discard Changes' : 'Confirm discard changes'}
+        onDismissed={this.props.onDismissed}
+        type='warning'
+      >
+        <DialogContent>
           {this.renderFileList()}
+          <p>Changes can be restored by retrieving them from the {trashName}.</p>
+        </DialogContent>
 
-          <div>Changes can be restored by retrieving them from the {trashName}.</div>
-        </div>
-
-        <Button type='submit'>Cancel</Button>
-        <Button onClick={this.discard}>{__DARWIN__ ? 'Discard Changes' : 'Discard changes'}</Button>
-      </Form>
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type='submit'>Cancel</Button>
+            <Button onClick={this.discard}>{__DARWIN__ ? 'Discard Changes' : 'Discard changes'}</Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </Dialog>
     )
   }
 
   private renderFileList() {
     if (this.props.files.length > MaxFilesToList) {
       return (
-        <div>
+        <p>
           Are you sure you want to discard all changes?
-          <div>&nbsp;</div>
-        </div>
+        </p>
       )
     } else {
       return (
-        <div>Are you sure you want to discard all changes to:
+        <div>
+          <p>Are you sure you want to discard all changes to:</p>
           <ul>
             {this.props.files.map(p =>
-              <li className='file-name' key={p.id}>{p.path}</li>
+              <li className='file-name' key={p.id}>
+                <PathText path={p.path} />
+              </li>
             )}
           </ul>
         </div>
       )
     }
-  }
-
-  private cancel = () => {
-    this.props.dispatcher.closePopup()
   }
 
   private discard = () => {
