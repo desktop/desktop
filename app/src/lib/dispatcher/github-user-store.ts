@@ -75,7 +75,10 @@ export class GitHubUserStore {
 
     const cachedUsers = new Array<IGitHubUser>()
     for (const user of gitHubUsers) {
-      const cachedUser = await this.cacheUser(user)
+      // We don't overwrite email addresses since we might not get one from this
+      // endpoint, but we could already have one from looking up a commit
+      // specifically.
+      const cachedUser = await this.cacheUser(user, false)
       if (cachedUser) {
         cachedUsers.push(cachedUser)
       }
@@ -157,8 +160,8 @@ export class GitHubUserStore {
   }
 
   /** Store the user in the cache. */
-  public async cacheUser(user: IGitHubUser): Promise<IGitHubUser | null> {
-    user = userWithLowerCaseEmail(user)
+  public async cacheUser(user: IGitHubUser, overwriteEmail: boolean = true): Promise<IGitHubUser | null> {
+    user = userWithLowerCase(user)
 
     let userMap = this.getUsersForEndpoint(user.endpoint)
     if (!userMap) {
@@ -171,12 +174,16 @@ export class GitHubUserStore {
     const db = this.database
     let addedUser: IGitHubUser | null = null
     await this.database.transaction('rw', this.database.users, function*() {
-      const existing: IGitHubUser | null = yield db.users.where('[endpoint+email]')
-        .equals([ user.endpoint, user.email ])
+      const existing: IGitHubUser | null = yield db.users.where('[endpoint+login]')
+        .equals([ user.endpoint, user.login.toLowerCase() ])
         .limit(1)
         .first()
       if (existing) {
-        user = { ...user, id: existing.id }
+        if (overwriteEmail) {
+          user = { ...user, id: existing.id }
+        } else {
+          user = { ...user, id: existing.id, email: existing.email }
+        }
       }
 
       const id = yield db.users.put(user)
@@ -307,13 +314,12 @@ export class GitHubUserStore {
 }
 
 /**
- * Returns a copy of the user instance with the email property in
- * lower case. Returns the same instance if the email address is
- * already all lower case.
+ * Returns a copy of the user instance with relevant properties lower cased.
  */
-function userWithLowerCaseEmail(user: IGitHubUser): IGitHubUser {
-  const email = user.email.toLowerCase()
-  return email === user.email
-    ? user
-    : { ...user, email }
+function userWithLowerCase(user: IGitHubUser): IGitHubUser {
+  return {
+    ...user,
+    email: user.email.toLowerCase(),
+    login: user.login.toLowerCase(),
+  }
 }
