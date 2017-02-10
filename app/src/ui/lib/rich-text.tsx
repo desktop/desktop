@@ -36,24 +36,15 @@ function emojificationNexus(str: string, emoji: Map<string, string>): JSX.Elemen
     if (path) {
       return <img key={i} alt={fragment} title={fragment} className='emoji' src={path}/>
     } else {
-      return usernameNexus(fragment)
-    }
-  })
-
-  return <span>{elements}</span>
-}
-
-function usernameNexus(str: string): JSX.Element | null {
-  // If we've been given an empty string then return null so that we don't end
-  // up introducing an extra empty <span>.
-  if (!str.length) { return null }
-
-  const pieces = str.split(UsernameRegex)
-  const elements = pieces.map((fragment, i) => {
-    if (fragment.startsWith('@')) {
-      return <span key={i} className='bold'>{fragment}</span>
-    } else {
-      return fragment
+      const innerPieces = fragment.split(UsernameRegex)
+      const innerElements = innerPieces.map((fragment, j) => {
+        if (fragment.startsWith('@')) {
+          return <span key={j} className='username'>{fragment}</span>
+        } else {
+          return fragment
+        }
+      })
+      return <span key={i}>{innerElements}</span>
     }
   })
 
