@@ -177,6 +177,8 @@ export class AppStore {
       this.emitUpdate()
     })
 
+    this.cloningRepositoriesStore.onDidError(e => this._postError(e))
+
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this._postError(error))
 
@@ -1161,7 +1163,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clone(url: string, path: string, user: User | null): { promise: Promise<void>, repository: CloningRepository } {
+  public _clone(url: string, path: string, user: User | null): { promise: Promise<boolean>, repository: CloningRepository } {
     const promise = this.cloningRepositoriesStore.clone(url, path, user)
     const repository = this.cloningRepositoriesStore.repositories.find(r => r.url === url && r.path === path)!
     return { promise, repository }
