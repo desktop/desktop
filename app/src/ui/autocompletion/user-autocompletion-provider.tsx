@@ -31,10 +31,18 @@ export class UserAutocompletionProvider implements IAutocompletionProvider<IUser
     const users = await this.gitHubUserStore.getMentionableUsers(this.repository)
     const filtered = users.filter(u => {
       const login = u.login
-      // TODO: should also match on `name`
-      return login && login.startsWith(text)
+      if (login && login.startsWith(text)) {
+        return true
+      }
+
+      const name = u.name
+      if (name && u.name.includes(text)) {
+        return true
+      }
+
+      return false
     })
-    return filtered.map(u => ({ username: u.login!, name: u.login! }))
+    return filtered.map(u => ({ username: u.login!, name: u.name }))
   }
 
   public renderItem(item: IUserHit): JSX.Element {
