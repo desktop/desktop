@@ -12,7 +12,9 @@
   // used outside of this scope.
   $blue: #3d76c2;
   $yellow: #d0b44c;
+  $lightYellow: #f6a623;
   $red: #bf2b00;
+  $lightRed: #f04747;
   $green: #6cc644;
   $darkGray: #5f717f;
   $darkerGray: #3b3f46;
@@ -160,8 +162,8 @@
   --border-radius: 3px;
   --base-border: 1px solid var(--box-border-color);
 
-  --shadow-color: rgba(0,0,0,0.07);
-  --base-box-shadow: 0 1px 2px var(--shadow-color);
+  --shadow-color: rgba(71,83,95,0.19);
+  --base-box-shadow: 0 2px 7px var(--shadow-color);
 
   --toolbar-height: 52px;
 
@@ -250,4 +252,14 @@
   --error-color: $red;
   --form-error-background: #fddede;
   --form-error-border-color: #d3b2b2;
+
+  /** Dialog */
+  --dialog-warning-color: $lightYellow;
+  --dialog-error-color: $lightRed;
+
+  // http://easings.net/#easeOutBack
+  --easing-ease-out-back: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  
+  // http://easings.net/#easeInBack
+  --easing-ease-in-back: cubic-bezier(0.6, -0.28, 0.735, 0.045);
 }
