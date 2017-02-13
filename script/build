@@ -48,6 +48,7 @@ const options = {
     '/\\.git($|/)',
     '/node_modules/\\.bin($|/)'
   ],
+  'app-copyright': 'Copyright © 2017 GitHub, Inc.',
 
   // macOS
   'app-bundle-id': distInfo.getBundleID(),
