@@ -243,11 +243,12 @@ export function request(endpoint: string, authorization: string | null, method: 
 }
 
 
-export async function getAllPages<T>(path: string, options: { params: Object, endpoint: string, token: string }): Promise<ReadonlyArray<T>> {
-
+export async function getAllPages<T>(path: string, options: { params?: Object, endpoint: string, token: string }): Promise<ReadonlyArray<T>> {
   const allItems: Array<T> = []
 
-  let currentPath: string | null = `${path}${toQueryString(options.params)}`
+  const params = Object.assign({ per_page: '100' }, options.params)
+
+  let currentPath: string | null = `${path}${toQueryString(params)}`
 
   do {
     const response = await request(options.endpoint, `token ${options.token}`, 'GET', currentPath)

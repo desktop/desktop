@@ -115,7 +115,7 @@ export class API {
    * @returns A promise yielding an array of {APIRepository} instances or error
    */
   public async fetchRepos(): Promise<ReadonlyArray<IAPIRepository>> {
-    const options = { params: { per_page: '100' }, endpoint: this.user.endpoint, token: this.user.token }
+    const options = { endpoint: this.user.endpoint, token: this.user.token }
     const results = await getAllPages<IAPIRepository>('user/repos', options)
     return results
   }
@@ -136,7 +136,7 @@ export class API {
 
   /** Fetch the user's emails. */
   public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
-    const options = { params: { per_page: '100' }, endpoint: this.user.endpoint, token: this.user.token }
+    const options = { endpoint: this.user.endpoint, token: this.user.token }
     const emails = await getAllPages<IAPIEmail>('user/emails', options)
     return emails
   }
@@ -176,7 +176,7 @@ export class API {
 
   /** Fetch all the orgs to which the user belongs. */
   public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
-    const options = { params: { per_page: '100' }, endpoint: this.user.endpoint, token: this.user.token }
+    const options = { endpoint: this.user.endpoint, token: this.user.token }
     const orgs = await getAllPages<IAPIUser>('user/orgs', options)
     return orgs
   }
@@ -194,18 +194,14 @@ export class API {
    * since the given date.
    */
   public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
-    const params: any = {
-      state,
-      per_page: '100',
-    }
+    const params: any = { state }
 
     if (since) {
       params.since = since.toISOString()
     }
 
     const path = `repos/${owner}/${name}/issues`
-
-    const options = { params , endpoint: this.user.endpoint, token: this.user.token }
+    const options = { params, endpoint: this.user.endpoint, token: this.user.token }
     const allItems = await getAllPages<IAPIIssue>(path, options)
 
     // PRs are issues! But we only want Really Seriously Issues.
