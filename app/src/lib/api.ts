@@ -6,7 +6,6 @@ import { User } from '../models/user'
 
 import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize, getAllPages } from './http'
 
-const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
@@ -98,12 +97,10 @@ interface IAPIAuthorization {
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
-  private client: any
   private user: User
 
   public constructor(user: User) {
     this.user = user
-    this.client = new Octokat({ token: user.token, rootURL: user.endpoint })
   }
 
   /**
