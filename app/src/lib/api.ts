@@ -4,7 +4,7 @@ import * as Querystring from 'querystring'
 import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 
-import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize, getAllPages } from './http'
+import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize, getAllPages, get, post } from './http'
 
 const username: () => Promise<string> = require('username')
 
@@ -119,15 +119,13 @@ export class API {
 
   /** Fetch a repo by its owner and name. */
   public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
-    const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}`)
-    const repository = deserialize<IAPIRepository>(response.body)
+    const repository = await get<IAPIRepository>(`repos/${owner}/${name}`, { endpoint: this.user.endpoint, token: this.user.token })
     return repository
   }
 
   /** Fetch the logged in user. */
   public async fetchUser(): Promise<IAPIUser | null> {
-    const response = await this.authenticatedRequest('GET', `user`)
-    const user = deserialize<IAPIUser>(response.body)
+    const user = await get<IAPIUser>('user', { endpoint: this.user.endpoint, token: this.user.token })
     return user
   }
 
@@ -141,8 +139,8 @@ export class API {
   /** Fetch a commit from the repository. */
   public async fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
     try {
-      const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/commits/${sha}`)
-      const commit = deserialize<IAPICommit>(response.body)
+      // TODO: what should we do about error handling?
+      const commit = await get<IAPICommit>(`repos/${owner}/${name}/commits/${sha}`, { endpoint: this.user.endpoint, token: this.user.token })
       return commit
     } catch (e) {
       return null
@@ -152,9 +150,11 @@ export class API {
   /** Search for a user with the given public email. */
   public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
     try {
-      // TODO: this is probably malformed
+      // TODO: we should be pasing this as a query string parameter which is then formatted
+      // correctly inside `http`
       const results = await this.authenticatedRequest('GET', `search/users?q=${email} in:email type:user`)
       if (results.body) {
+        // TODO: actually use TYPES here
         const resultsWithMetadata: any = JSON.parse(results.body)
         const users = deserialize<IAPIUser[]>(resultsWithMetadata.items)
         // The results are sorted by score, best to worst. So the first result
@@ -181,8 +181,7 @@ export class API {
   /** Create a new GitHub repository with the given properties. */
   public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository | null> {
     const url = org ? `orgs/${org.login}/repos` : 'user/repos'
-    const response = await this.authenticatedRequest('POST', url, { name, description, private: private_ })
-    const repository = deserialize<IAPIRepository>(response.body)
+    const repository = await post<IAPIRepository>(url, { name, description, private: private_ }, { endpoint: this.user.endpoint, token: this.user.token })
     return repository
   }
 
@@ -278,8 +277,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
 
 /** Fetch the user authenticated by the token. */
 export async function fetchUser(endpoint: string, token: string): Promise<User | null> {
-  const response = await request(endpoint, `token ${token}`, 'GET', 'user')
-  const user = deserialize<IAPIUser>(response.body)
+  const user = await get<IAPIUser>('user', { endpoint, token })
   if (user) {
     return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id)
   } else {

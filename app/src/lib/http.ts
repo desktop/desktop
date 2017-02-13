@@ -242,6 +242,17 @@ export function request(endpoint: string, authorization: string | null, method: 
   return proxyRequest(options)
 }
 
+export async function post<T>(path: string, body: Object, options: { endpoint: string, token: string }): Promise<T | null> {
+  const response = await request(options.endpoint, `token ${options.token}`, 'POST', path, body)
+  const entity = deserialize<T>(response.body)
+  return entity
+}
+
+export async function get<T>(path: string, options: { endpoint: string, token: string }): Promise<T | null> {
+  const response = await request(options.endpoint, `token ${options.token}`, 'GET', path)
+  const entity = deserialize<T>(response.body)
+  return entity
+}
 
 export async function getAllPages<T>(path: string, options: { params?: Object, endpoint: string, token: string }): Promise<ReadonlyArray<T>> {
   const allItems: Array<T> = []
