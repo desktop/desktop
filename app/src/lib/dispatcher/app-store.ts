@@ -1364,4 +1364,8 @@ export class AppStore {
 
     return this._refreshRepository(repository)
   }
+
+  public _setSignInEndpoint(url: string): Promise<void> {
+    return this.signInStore.setEndpoint(url)
+  }
 }

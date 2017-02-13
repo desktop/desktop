@@ -516,4 +516,8 @@ export class Dispatcher {
   public setStatsOptOut(optOut: boolean): Promise<void> {
     return this.appStore._setStatsOptOut(optOut)
   }
+
+  public setSignInEndpoint(url: string): Promise<void> {
+    return this.appStore._setSignInEndpoint(url)
+  }
 }

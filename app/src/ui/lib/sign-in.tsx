@@ -17,7 +17,7 @@ interface ISignInProps {
 export class SignIn extends React.Component<ISignInProps, void> {
 
   private onEndpointEntered = (url: string) => {
-    this.props.dispatcher.onSignInEndpointEntered(url)
+    this.props.dispatcher.setSignInEndpoint(url)
   }
 
   public render() {
