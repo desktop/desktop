@@ -4,7 +4,7 @@ import * as Querystring from 'querystring'
 import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 
-import { IHTTPResponse, getHeader, resolveNextPath, toQueryString, HTTPMethod, request, deserialize } from './http'
+import { IHTTPResponse, getHeader, toQueryString, HTTPMethod, request, deserialize, getAllPages } from './http'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -196,26 +196,9 @@ export class API {
       params.since = since.toISOString()
     }
 
-    const allItems: Array<IAPIIssue> = []
+    const path = `repos/${owner}/${name}/issues${toQueryString(params)}`
 
-    let path: string | null = `repos/${owner}/${name}/issues${toQueryString(params)}`
-
-    do {
-      const response = await this.authenticatedRequest('GET', path)
-
-      if (response.statusCode !== 200) {
-        path = null
-        break
-      }
-
-      const issues = deserialize<IAPIIssue[]>(response.body)
-
-      if (issues) {
-        allItems.push(...issues)
-      }
-
-      path = resolveNextPath(response)
-    } while (path !== null)
+    const allItems = await getAllPages<IAPIIssue>(path, { endpoint: this.user.endpoint, token: this.user.token })
 
     // PRs are issues! But we only want Really Seriously Issues.
     return allItems.filter((i: any) => !i.pullRequest)

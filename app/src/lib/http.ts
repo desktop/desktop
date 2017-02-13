@@ -241,3 +241,30 @@ export function request(endpoint: string, authorization: string | null, method: 
 
   return proxyRequest(options)
 }
+
+
+export async function getAllPages<T>(path: string, options: { endpoint: string, token: string }): Promise<ReadonlyArray<T>> {
+
+    const allItems: Array<T> = []
+
+    let currentPath: string | null = path
+
+    do {
+      const response = await request(options.endpoint, `token ${options.token}`, 'GET', currentPath)
+
+      if (response.statusCode !== 200) {
+        currentPath = null
+        break
+      }
+
+      const issues = deserialize<T[]>(response.body)
+
+      if (issues) {
+        allItems.push(...issues)
+      }
+
+      currentPath = resolveNextPath(response)
+    } while (currentPath !== null)
+
+    return allItems
+}
