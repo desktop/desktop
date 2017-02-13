@@ -209,6 +209,7 @@ export class API {
 
   /** Get the allowed poll interval for fetching. */
   public async getFetchPollInterval(owner: string, name: string): Promise<number> {
+    // TODO: this seems really useful to do elsewhere we take in untrusted output
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
     const response = await this.authenticatedRequest('HEAD', path)
     const interval = getHeader(response, 'x-poll-interval')
