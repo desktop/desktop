@@ -158,9 +158,20 @@ export class SignInStore {
       return
     }
 
+    if (!this.state || this.state.kind !== Step.Authentication) {
+      // Looks like the sign in flow has been aborted
+      return
+    }
+
     if (response.kind === AuthorizationResponseKind.Authorized) {
       const token = response.token
       const user = await fetchUser(endpoint, token)
+
+      if (!this.state || this.state.kind !== Step.Authentication) {
+        // Looks like the sign in flow has been aborted
+        return
+      }
+
       this.emitAuthenticate(user)
       this.setState(null)
     } else if (response.kind === AuthorizationResponseKind.TwoFactorAuthenticationRequired) {
@@ -193,7 +204,20 @@ export class SignInStore {
       return fatalError(`Sign in step '${stepText}' not compatible with browser authentication`)
     }
 
-    const user = await askUserToOAuth(currentState.endpoint)
+    this.setState({ ...currentState, loading: true })
+
+    let user: User
+    try {
+      user = await askUserToOAuth(currentState.endpoint)
+    } catch (e) {
+      this.setState({ ...currentState, error: e, loading: false })
+      return
+    }
+
+    if (!this.state || this.state.kind !== Step.Authentication) {
+      // Looks like the sign in flow has been aborted
+      return
+    }
 
     this.emitAuthenticate(user)
     this.setState(null)
@@ -225,6 +249,12 @@ export class SignInStore {
     const endpoint = getEnterpriseAPIURL(validUrl)
     try {
       const authMethods = await this.fetchAllowedAuthenticationMethods(endpoint)
+
+      if (!this.state || this.state.kind !== Step.EndpointEntry) {
+        // Looks like the sign in flow has been aborted
+        return
+      }
+
       this.setState({ kind: Step.Authentication, endpoint, authMethods })
     } catch (e) {
       let error = e
