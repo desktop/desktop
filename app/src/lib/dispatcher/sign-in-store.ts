@@ -287,4 +287,62 @@ export class SignInStore {
       this.setState({ ...currentState, loading: false, error })
     }
   }
+
+  public async setTwoFactorOTP(otp: string) {
+
+    const currentState = this.state
+
+    if (!currentState || currentState.kind !== Step.TwoFactorAuthentication) {
+      const stepText = currentState ? currentState.kind : 'null'
+      return fatalError(`Sign in step '${stepText}' not compatible with two factor authentication`)
+    }
+
+    this.setState({ ...currentState, loading: true })
+
+    const response = await createAuthorization(
+      currentState.endpoint,
+      currentState.username,
+      currentState.password,
+      otp
+    )
+
+    if (!this.state || this.state.kind !== Step.EndpointEntry) {
+      // Looks like the sign in flow has been aborted
+      return
+    }
+
+    if (response.kind === AuthorizationResponseKind.Authorized) {
+      const token = response.token
+      const user = await fetchUser(currentState.endpoint, token)
+
+      if (!this.state || this.state.kind !== Step.EndpointEntry) {
+        // Looks like the sign in flow has been aborted
+        return
+      }
+
+      this.emitAuthenticate(user)
+      this.setState(null)
+    } else {
+      switch (response.kind) {
+        case AuthorizationResponseKind.Failed:
+        case AuthorizationResponseKind.TwoFactorAuthenticationRequired:
+          this.setState({
+            ...currentState,
+            loading: false,
+            error: new Error('Two-factor authentication failed.'),
+          })
+          break
+        case AuthorizationResponseKind.Error:
+          const error = response.response.error
+          if (error) {
+            this.emitError(error)
+          } else {
+            this.emitError(new Error(`The server responded with an error (${response.response.statusCode})\n\n${response.response.body}`))
+          }
+          break
+        default:
+          return assertNever(response, `Unknown response: ${response}`)
+      }
+    }
+  }
 }

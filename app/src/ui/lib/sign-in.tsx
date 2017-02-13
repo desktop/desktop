@@ -20,6 +20,18 @@ export class SignIn extends React.Component<ISignInProps, void> {
     this.props.dispatcher.setSignInEndpoint(url)
   }
 
+  private onCredentialsEntered = (username: string, password: string) => {
+    this.props.dispatcher.setSignInCredentials(username, password)
+  }
+
+  private onBrowserSignInRequested = () => {
+    this.props.dispatcher.requestBrowserAuthentication()
+  }
+
+  private onOTPEntered = (otp: string) => {
+    this.props.dispatcher.setSignInOTP(otp)
+  }
+
   public render() {
     const step = this.props.currentStep
     if (step.kind === Step.EndpointEntry) {

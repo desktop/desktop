@@ -1376,4 +1376,8 @@ export class AppStore {
   public _requestBrowserAuthentication(): Promise<void> {
     return this.signInStore.authenticateWithBrowser()
   }
+
+  public _setSignInOTP(otp: string): Promise<void> {
+    return this.signInStore.setTwoFactorOTP(otp)
+  }
 }

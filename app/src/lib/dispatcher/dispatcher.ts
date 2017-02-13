@@ -528,4 +528,8 @@ export class Dispatcher {
   public requestBrowserAuthentication(): Promise<void> {
     return this.appStore._requestBrowserAuthentication()
   }
+
+  public setSignInOTP(otp: string): Promise<void> {
+    return this.appStore._setSignInOTP(otp)
+  }
 }
