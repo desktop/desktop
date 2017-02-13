@@ -20,6 +20,8 @@ interface ITwoFactorAuthenticationProps {
 
   /** Called after successfully authenticating. */
   readonly onDidSignIn: (user: User) => void
+  readonly loading: boolean
+  readonly error: Error | null
 }
 
 interface ITwoFactorAuthenticationState {

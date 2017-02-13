@@ -39,8 +39,8 @@ export type SignInStep = IEndpointEntryStep | IAuthenticationStep | ITwoFactorAu
 
 export interface ISignInStep {
   readonly kind: Step
-  readonly error?: Error,
-  readonly loading?: boolean,
+  readonly error: Error | null,
+  readonly loading: boolean,
 }
 
 export interface IEndpointEntryStep extends ISignInStep {
@@ -135,6 +135,8 @@ export class SignInStore {
       kind: Step.Authentication,
       endpoint: getDotComAPIEndpoint(),
       authMethods: DefaultAuthMethods,
+      error: null,
+      loading: false,
     })
   }
 
@@ -175,7 +177,14 @@ export class SignInStore {
       this.emitAuthenticate(user)
       this.setState(null)
     } else if (response.kind === AuthorizationResponseKind.TwoFactorAuthenticationRequired) {
-      this.setState({ kind: Step.TwoFactorAuthentication, endpoint, username, password })
+      this.setState({
+        kind: Step.TwoFactorAuthentication,
+        endpoint,
+        username,
+        password,
+        error: null,
+        loading: false,
+      })
     } else {
       if (response.kind === AuthorizationResponseKind.Error) {
         if (response.response.error) {
@@ -224,11 +233,17 @@ export class SignInStore {
   }
 
   public beginEnterpriseSignIn() {
-    this.setState({ kind: Step.EndpointEntry })
+    this.setState({ kind: Step.EndpointEntry, error: null, loading: false })
   }
 
   public async setEndpoint(url: string): Promise<void> {
     const currentState = this.state
+
+    if (!currentState || currentState.kind !== Step.EndpointEntry) {
+      const stepText = currentState ? currentState.kind : 'null'
+      return fatalError(`Sign in step '${stepText}' not compatible with endpoint entry`)
+    }
+
     this.setState({ ...currentState, loading: true })
 
     let validUrl: string
@@ -255,7 +270,13 @@ export class SignInStore {
         return
       }
 
-      this.setState({ kind: Step.Authentication, endpoint, authMethods })
+      this.setState({
+        kind: Step.Authentication,
+        endpoint,
+        authMethods,
+        error: null,
+        loading: false,
+      })
     } catch (e) {
       let error = e
       // We'll get an ENOTFOUND if the address couldn't be resolved.

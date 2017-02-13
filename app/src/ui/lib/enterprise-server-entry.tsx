@@ -6,8 +6,8 @@ import { Button } from './button'
 import { Errors } from './errors'
 
 interface IEnterpriseServerEntryProps {
-  readonly loading?: boolean,
-  readonly error?: Error,
+  readonly loading: boolean,
+  readonly error: Error | null,
 
   readonly onSubmit: (url: string) => void
 

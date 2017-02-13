@@ -24,6 +24,8 @@ export class SignIn extends React.Component<ISignInProps, void> {
     const step = this.props.currentStep
     if (step.kind === Step.EndpointEntry) {
       return <EnterpriseServerEntry
+        loading={step.loading}
+        error={step.error}
         onSubmit={this.onEndpointEntered}
         additionalButtons={this.props.children}
       />
@@ -31,6 +33,8 @@ export class SignIn extends React.Component<ISignInProps, void> {
       const supportsBasicAuth = step.authMethods.has(AuthenticationMethods.BasicAuth)
       return <AuthenticationForm
         endpoint={step.endpoint}
+        loading={step.loading}
+        error={step.error}
         supportsBasicAuth={supportsBasicAuth}
         additionalButtons={this.props.children}
         onDidSignIn={this.onDidSignIn}
@@ -41,6 +45,8 @@ export class SignIn extends React.Component<ISignInProps, void> {
         login={step.username}
         password={step.password}
         onDidSignIn={this.onDidSignIn}/>
+        loading={step.loading}
+        error={step.error}
     } else {
       return assertNever(step, `Unknown sign-in step: ${step}`)
     }

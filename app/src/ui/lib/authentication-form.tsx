@@ -32,6 +32,9 @@ interface IAuthenticationFormProps {
 
   /** An array of additional buttons to render after the "Sign In" button. */
   readonly additionalButtons?: ReadonlyArray<JSX.Element>
+
+  readonly loading: boolean,
+  readonly error: Error | null,
 }
 
 interface IAuthenticationFormState {
