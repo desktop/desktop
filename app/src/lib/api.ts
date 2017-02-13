@@ -56,6 +56,10 @@ export interface IAPIUser {
   readonly avatarUrl: string
 }
 
+export interface IAPISearchUsers {
+  readonly items: IAPIUser[]
+}
+
 /**
  * Information about a user's email as returned by the GitHub API.
  */
@@ -154,13 +158,11 @@ export class API {
       // correctly inside `http`
       const results = await this.authenticatedRequest('GET', `search/users?q=${email} in:email type:user`)
       if (results.body) {
-        // TODO: actually use TYPES here
-        const resultsWithMetadata: any = JSON.parse(results.body)
-        const users = deserialize<IAPIUser[]>(resultsWithMetadata.items)
+        const users = deserialize<IAPISearchUsers>(results.body)
         // The results are sorted by score, best to worst. So the first result
         // is our best match.
         if (users) {
-          const user = users[0]
+          const user = users.items[0]
           return user
         }
       }
