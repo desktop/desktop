@@ -1368,4 +1368,12 @@ export class AppStore {
   public _setSignInEndpoint(url: string): Promise<void> {
     return this.signInStore.setEndpoint(url)
   }
+
+  public _setSignInCredentials(username: string, password: string): Promise<void> {
+    return this.signInStore.authenticateWithBasicAuth(username, password)
+  }
+
+  public _requestBrowserAuthentication(): Promise<void> {
+    return this.signInStore.authenticateWithBrowser()
+  }
 }

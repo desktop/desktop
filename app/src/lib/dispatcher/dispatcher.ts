@@ -520,4 +520,12 @@ export class Dispatcher {
   public setSignInEndpoint(url: string): Promise<void> {
     return this.appStore._setSignInEndpoint(url)
   }
+
+  public setSignInCredentials(username: string, password: string): Promise<void> {
+    return this.appStore._setSignInCredentials(username, password)
+  }
+
+  public requestBrowserAuthentication(): Promise<void> {
+    return this.appStore._requestBrowserAuthentication()
+  }
 }

@@ -1,16 +1,7 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { Octicon, OcticonSymbol } from '../octicons'
-import {
-  createAuthorization,
-  AuthorizationResponse,
-  fetchUser,
-  AuthorizationResponseKind,
-  getHTMLURL,
-} from '../../lib/api'
-import { User } from '../../models/user'
-import { assertNever } from '../../lib/fatal-error'
-import { askUserToOAuth } from '../../lib/oauth'
+import { getHTMLURL } from '../../lib/api'
 import { Loading } from './loading'
 import { Form } from './form'
 import { Button } from './button'
@@ -18,6 +9,7 @@ import { TextBox } from './text-box'
 import { Errors } from './errors'
 
 interface IAuthenticationFormProps {
+
   /** The endpoint against which the user is authenticating. */
   readonly endpoint: string
 
@@ -25,10 +17,9 @@ interface IAuthenticationFormProps {
   readonly supportsBasicAuth: boolean
 
   /** Called after the user has signed in. */
-  readonly onDidSignIn: (user: User) => void
+  readonly onSubmit: (username: string, password: string) => void
 
-  /** Called when two-factor authentication is required. */
-  readonly onNeeds2FA: (login: string, password: string) => void
+  readonly onBrowserSignInRequested: () => void
 
   /** An array of additional buttons to render after the "Sign In" button. */
   readonly additionalButtons?: ReadonlyArray<JSX.Element>
@@ -40,9 +31,6 @@ interface IAuthenticationFormProps {
 interface IAuthenticationFormState {
   readonly username: string
   readonly password: string
-
-  readonly loading: boolean
-  readonly response: AuthorizationResponse | null
 }
 
 /** The GitHub authentication component. */
@@ -50,7 +38,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   public constructor(props: IAuthenticationFormProps) {
     super(props)
 
-    this.state = { username: '', password: '', loading: false, response: null }
+    this.state = { username: '', password: '' }
   }
 
   public render() {
@@ -68,7 +56,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   private renderUsernamePassword() {
     if (!this.props.supportsBasicAuth) { return null }
 
-    const disabled = this.state.loading
+    const disabled = this.props.loading
     return (
       <div>
         <TextBox
@@ -95,12 +83,12 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   }
 
   private renderActions() {
-    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length || this.state.loading)
+    const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length || this.props.loading)
     return (
       <div className='actions'>
         {this.props.supportsBasicAuth ? <Button type='submit' disabled={signInDisabled}>Sign in</Button> : null}
         {this.props.additionalButtons}
-        {this.state.loading ? <Loading/> : null}
+        {this.props.loading ? <Loading/> : null}
       </div>
     )
   }
@@ -124,23 +112,10 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   }
 
   private renderError() {
-    const response = this.state.response
-    if (!response) { return null }
+    const error = this.props.error
+    if (!error) { return null }
 
-    switch (response.kind) {
-      case AuthorizationResponseKind.Failed: return <Errors>The username or password are incorrect.</Errors>
-      case AuthorizationResponseKind.Error: {
-        const error = response.response.error
-        if (error) {
-          return <Errors>An error occurred: {error.message}</Errors>
-        } else {
-          return <Errors>An unknown error occurred: {response.response.statusCode}: {response.response.body}</Errors>
-        }
-      }
-      case AuthorizationResponseKind.TwoFactorAuthenticationRequired: return null
-      case AuthorizationResponseKind.Authorized: return null
-      default: return assertNever(response, `Unknown response: ${response}`)
-    }
+    return <Errors>{error.message}</Errors>
   }
 
   private getForgotPasswordURL(): string {
@@ -148,54 +123,18 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
   }
 
   private onUsernameChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      username: event.currentTarget.value,
-      password: this.state.password,
-      loading: this.state.loading,
-      response: null,
-    })
+    this.setState({ username: event.currentTarget.value })
   }
 
   private onPasswordChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      username: this.state.username,
-      password: event.currentTarget.value,
-      loading: this.state.loading,
-      response: null,
-    })
+    this.setState({ password: event.currentTarget.value })
   }
 
-  private signInWithBrowser = async () => {
-    const user = await askUserToOAuth(this.props.endpoint)
-    this.props.onDidSignIn(user)
+  private signInWithBrowser = () => {
+    this.props.onBrowserSignInRequested()
   }
 
-  private signIn = async () => {
-    const username = this.state.username
-    const password = this.state.password
-    this.setState({
-      username,
-      password,
-      loading: true,
-      response: null,
-    })
-
-    const endpoint = this.props.endpoint
-    const response = await createAuthorization(endpoint, username, password, null)
-
-    if (response.kind === AuthorizationResponseKind.Authorized) {
-      const token = response.token
-      const user = await fetchUser(endpoint, token)
-      this.props.onDidSignIn(user)
-    } else if (response.kind === AuthorizationResponseKind.TwoFactorAuthenticationRequired) {
-      this.props.onNeeds2FA(username, password)
-    } else {
-      this.setState({
-        username,
-        password,
-        loading: false,
-        response,
-      })
-    }
+  private signIn = () => {
+    this.props.onSubmit(this.state.username, this.state.password)
   }
 }

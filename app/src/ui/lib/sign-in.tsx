@@ -32,13 +32,13 @@ export class SignIn extends React.Component<ISignInProps, void> {
     } else if (step.kind === Step.Authentication) {
       const supportsBasicAuth = step.authMethods.has(AuthenticationMethods.BasicAuth)
       return <AuthenticationForm
-        endpoint={step.endpoint}
         loading={step.loading}
         error={step.error}
         supportsBasicAuth={supportsBasicAuth}
+        endpoint={step.endpoint}
         additionalButtons={this.props.children}
-        onDidSignIn={this.onDidSignIn}
-        onNeeds2FA={this.onNeeds2FA}/>
+        onBrowserSignInRequested={this.onBrowserSignInRequested}
+        onSubmit={this.onCredentialsEntered}/>
     } else if (step.kind === Step.TwoFactorAuthentication) {
       return <TwoFactorAuthentication
         endpoint={step.endpoint}
