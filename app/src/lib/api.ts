@@ -182,11 +182,11 @@ export class API {
   }
 
   /** Create a new GitHub repository with the given properties. */
-  public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository> {
+  public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository | null> {
     const url = org ? `orgs/${org.login}/repos` : 'user/repos'
     const response = await this.authenticatedRequest('POST', url, { name, description, private: private_ })
     const repository = deserialize<IAPIRepository>(response.body)
-    return repository! // lolcry
+    return repository
   }
 
   /**
@@ -200,9 +200,8 @@ export class API {
       params.since = since.toISOString()
     }
 
-    const path = `repos/${owner}/${name}/issues`
     const options = { params, endpoint: this.user.endpoint, token: this.user.token }
-    const allItems = await getAllPages<IAPIIssue>(path, options)
+    const allItems = await getAllPages<IAPIIssue>(`repos/${owner}/${name}/issues`, options)
 
     // PRs are issues! But we only want Really Seriously Issues.
     return allItems.filter((i: any) => !i.pullRequest)

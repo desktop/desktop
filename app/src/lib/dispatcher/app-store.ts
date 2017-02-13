@@ -1155,9 +1155,15 @@ export class AppStore {
     const api = new API(account)
     const apiRepository = await api.createRepository(org, name, description, private_)
 
-    const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => addRemote(repository, 'origin', apiRepository.cloneUrl))
-    await gitStore.loadCurrentRemote()
+    if (apiRepository) {
+      const gitStore = this.getGitStore(repository)
+      await gitStore.performFailableOperation(() => addRemote(repository, 'origin', apiRepository.cloneUrl))
+      await gitStore.loadCurrentRemote()
+    } else {
+      // TODO: a better error here
+      console.error('unable to create repository on host. let\'s fail the process?')
+    }
+
     return this._push(repository)
   }
 
