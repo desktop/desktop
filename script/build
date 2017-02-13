@@ -54,7 +54,7 @@ const options = {
   'app-category-type': 'public.app-category.developer-tools',
   'protocols': [
     {
-      name: 'GitHub Auth',
+      name: distInfo.getBundleID(),
       schemes: [
         'x-github-client',
         'github-mac'
