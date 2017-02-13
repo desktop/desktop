@@ -1,9 +1,8 @@
 import * as React from 'react'
 import { AuthenticationForm } from './authentication-form'
-import { User } from '../../models/user'
-import { assertNever, fatalError } from '../../lib/fatal-error'
+import { assertNever } from '../../lib/fatal-error'
 import { TwoFactorAuthentication } from '../lib/two-factor-authentication'
-import { EnterpriseServerEntry, AuthenticationMethods } from '../lib/enterprise-server-entry'
+import { EnterpriseServerEntry } from '../lib/enterprise-server-entry'
 import { Dispatcher, SignInStep, Step } from '../../lib/dispatcher'
 
 interface ISignInProps {
@@ -17,11 +16,15 @@ interface ISignInProps {
 /** The sign in flow for GitHub. */
 export class SignIn extends React.Component<ISignInProps, void> {
 
+  private onEndpointEntered = (url: string) => {
+    this.props.dispatcher.onSignInEndpointEntered(url)
+  }
+
   public render() {
     const step = this.props.currentStep
     if (step.kind === Step.EndpointEntry) {
       return <EnterpriseServerEntry
-        onContinue={this.onContinue}
+        onSubmit={this.onEndpointEntered}
         additionalButtons={this.props.children}
       />
     } else if (step.kind === Step.Authentication) {
@@ -41,36 +44,5 @@ export class SignIn extends React.Component<ISignInProps, void> {
     } else {
       return assertNever(step, `Unknown sign-in step: ${step}`)
     }
-  }
-
-  private onContinue = (endpoint: string, authMethods: Set<AuthenticationMethods>) => {
-    this.setState({
-      step: {
-        kind: SignInStep.Authentication,
-        endpoint,
-        authMethods,
-      },
-    })
-  }
-
-  private onDidSignIn = (user: User) => {
-    this.props.onDidSignIn(user)
-  }
-
-  private onNeeds2FA = (login: string, password: string) => {
-    const currentStep = this.state.step
-    if (currentStep.kind !== SignInStep.Authentication) {
-      fatalError('You should only enter 2FA after authenticating!')
-      return
-    }
-
-    this.setState({
-      step: {
-        kind: SignInStep.TwoFactorAuthentication,
-        endpoint: currentStep.endpoint,
-        login,
-        password,
-      },
-    })
   }
 }
