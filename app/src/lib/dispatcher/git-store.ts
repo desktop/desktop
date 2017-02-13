@@ -2,11 +2,14 @@ import * as Fs from 'fs'
 import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
+import { WorkingDirectoryFileChange, FileStatus } from '../../models/status'
 import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
 import { User } from '../../models/user'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
+
+import { IAppShell } from '../../lib/dispatcher/app-shell'
 
 import {
   reset,
@@ -24,6 +27,7 @@ import {
   merge,
   setRemoteURL,
   removeFromIndex,
+  checkoutPaths,
 } from '../git'
 
 /** The number of commits to load from history per batch. */
@@ -34,6 +38,26 @@ const LoadingHistoryRequestKey = 'history'
 /** The max number of recent branches to find. */
 const RecentBranchesLimit = 5
 
+/** File statuses which indicate the file exists on disk. */
+const OnDiskStatuses = new Set([
+  FileStatus.New,
+  FileStatus.Modified,
+  FileStatus.Renamed,
+  FileStatus.Conflicted,
+])
+
+/**
+ * File statuses which indicate the file has previously been committed to the
+ * repository.
+ */
+const CommittedStatuses = new Set([
+  FileStatus.Modified,
+  FileStatus.Deleted,
+  FileStatus.Renamed,
+  FileStatus.Conflicted,
+])
+
+
 /** A commit message summary and description. */
 export interface ICommitMessage {
   readonly summary: string
@@ -43,6 +67,8 @@ export interface ICommitMessage {
 /** The store for a repository's git data. */
 export class GitStore {
   private readonly emitter = new Emitter()
+
+  private readonly shell: IAppShell
 
   /** The commits keyed by their SHA. */
   public readonly commits = new Map<string, Commit>()
@@ -72,8 +98,9 @@ export class GitStore {
 
   private _lastFetched: Date | null = null
 
-  public constructor(repository: Repository) {
+  public constructor(repository: Repository, shell: IAppShell) {
     this.repository = repository
+    this.shell = shell
   }
 
   private emitUpdate() {
@@ -483,7 +510,7 @@ export class GitStore {
 
   /**
    * Read the contents of the repository .gitignore.
-   * 
+   *
    * Returns a promise which will either be rejected or resolved
    * with the contents of the file. If there's no .gitignore file
    * in the repository root the promise will resolve with null.
@@ -507,9 +534,9 @@ export class GitStore {
     })
   }
 
-  /** 
+  /**
    * Persist the given content to the repository root .gitignore.
-   * 
+   *
    * If the repository root doesn't contain a .gitignore file one
    * will be created, otherwise the current file will be overwritten.
    */
@@ -537,6 +564,27 @@ export class GitStore {
     await this.saveGitIgnore(newText)
 
     await removeFromIndex(this.repository, pattern)
+  }
+
+  public async discardChanges(files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<void> {
+
+    const onDiskFiles = files.filter(f => OnDiskStatuses.has(f.status))
+    const absolutePaths = onDiskFiles.map(f => Path.join(this.repository.path, f.path))
+    for (const path of absolutePaths) {
+      this.shell.moveItemToTrash(path)
+    }
+
+    const touchesGitIgnore = files.some(f => Path.basename(f.path) === '.gitignore')
+    if (touchesGitIgnore && this.tip.kind === TipState.Valid) {
+      const ref = await this.tip.branch.name
+      await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, ref))
+    }
+
+    const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
+
+    if (modifiedFiles.length) {
+      await this.performFailableOperation(() => checkoutPaths(this.repository, modifiedFiles.map(f => f.path)))
+    }
   }
 }
 
