@@ -102,7 +102,11 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
     if (response.kind === AuthorizationResponseKind.Authorized) {
       const token = response.token
       const user = await fetchUser(this.props.endpoint, token)
-      this.props.onDidSignIn(user)
+      if (user) {
+        this.props.onDidSignIn(user)
+      } else {
+        console.error('TODO: what about if we get a null user here?')
+      }
     } else {
       this.setState({
         otp: this.state.otp,
