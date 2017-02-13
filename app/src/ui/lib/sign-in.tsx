@@ -4,10 +4,11 @@ import { User } from '../../models/user'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 import { TwoFactorAuthentication } from '../lib/two-factor-authentication'
 import { EnterpriseServerEntry, AuthenticationMethods } from '../lib/enterprise-server-entry'
-import { SignInStep, Step } from '../../lib/dispatcher/sign-in-store'
+import { Dispatcher, SignInStep, Step } from '../../lib/dispatcher'
 
 interface ISignInProps {
   readonly currentStep: SignInStep
+  readonly dispatcher: Dispatcher
 
   /** An array of additional buttons to render after the "Sign In" button. */
   readonly children?: ReadonlyArray<JSX.Element>

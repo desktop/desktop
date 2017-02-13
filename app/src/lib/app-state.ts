@@ -7,11 +7,10 @@ import { Branch } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
-import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
+import { CloningRepository, ICloningRepositoryState, IGitHubUser, SignInStep } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
-import { SignInStep } from './dispatcher/sign-in-store'
 
 export { ICloningRepositoryState }
 export { ICommitMessage }
