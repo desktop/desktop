@@ -3,7 +3,7 @@ import { AuthenticationForm } from './authentication-form'
 import { assertNever } from '../../lib/fatal-error'
 import { TwoFactorAuthentication } from '../lib/two-factor-authentication'
 import { EnterpriseServerEntry } from '../lib/enterprise-server-entry'
-import { Dispatcher, SignInStep, Step } from '../../lib/dispatcher'
+import { Dispatcher, SignInStep, Step, AuthenticationMethods } from '../../lib/dispatcher'
 
 interface ISignInProps {
   readonly currentStep: SignInStep
@@ -53,12 +53,9 @@ export class SignIn extends React.Component<ISignInProps, void> {
         onSubmit={this.onCredentialsEntered}/>
     } else if (step.kind === Step.TwoFactorAuthentication) {
       return <TwoFactorAuthentication
-        endpoint={step.endpoint}
-        login={step.username}
-        password={step.password}
-        onDidSignIn={this.onDidSignIn}/>
         loading={step.loading}
         error={step.error}
+        onOTPEntered={this.onOTPEntered}/>
     } else {
       return assertNever(step, `Unknown sign-in step: ${step}`)
     }
