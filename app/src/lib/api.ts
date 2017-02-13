@@ -4,7 +4,7 @@ import * as Querystring from 'querystring'
 import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 
-import { IHTTPResponse, getHeader, toQueryString, HTTPMethod, request, deserialize, getAllPages } from './http'
+import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize, getAllPages } from './http'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -115,20 +115,16 @@ export class API {
    * @returns A promise yielding an array of {APIRepository} instances or error
    */
   public async fetchRepos(): Promise<ReadonlyArray<IAPIRepository>> {
-    const results: IAPIRepository[] = []
-    let nextPage = this.client.user.repos
-    while (nextPage) {
-      const request = await nextPage.fetch()
-      results.push(...request.items)
-      nextPage = request.nextPage
-    }
-
+    const options = { params: { per_page: '100' }, endpoint: this.user.endpoint, token: this.user.token }
+    const results = await getAllPages<IAPIRepository>('user/repos', options)
     return results
   }
 
   /** Fetch a repo by its owner and name. */
-  public async fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
-    return this.client.repos(owner, name).fetch()
+  public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
+    const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}`)
+    const repository = deserialize<IAPIRepository>(response.body)
+    return repository
   }
 
   /** Fetch the logged in user. */
@@ -140,14 +136,16 @@ export class API {
 
   /** Fetch the user's emails. */
   public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
-    const result = await this.client.user.emails.fetch()
-    return result.items
+    const options = { params: { per_page: '100' }, endpoint: this.user.endpoint, token: this.user.token }
+    const emails = await getAllPages<IAPIEmail>('user/emails', options)
+    return emails
   }
 
   /** Fetch a commit from the repository. */
   public async fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
     try {
-      const commit = await this.client.repos(owner, name).commits(sha).fetch()
+      const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/commits/${sha}`)
+      const commit = deserialize<IAPICommit>(response.body)
       return commit
     } catch (e) {
       return null
@@ -157,29 +155,38 @@ export class API {
   /** Search for a user with the given public email. */
   public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
     try {
-      const result = await this.client.search.users.fetch({ q: `${email} in:email type:user` })
-      // The results are sorted by score, best to worst. So the first result is
-      // our best match.
-      const user = result.items[0]
-      return user
+      // TODO: this is probably malformed
+      const results = await this.authenticatedRequest('GET', `search/users?q=${email} in:email type:user`)
+      if (results.body) {
+        const resultsWithMetadata: any = JSON.parse(results.body)
+        const users = deserialize<IAPIUser[]>(resultsWithMetadata.items)
+        // The results are sorted by score, best to worst. So the first result
+        // is our best match.
+        if (users) {
+          const user = users[0]
+          return user
+        }
+      }
     } catch (e) {
-      return null
+      // TODO: ugh, this is the worst. make this less worst.
     }
+    return null
+
   }
 
   /** Fetch all the orgs to which the user belongs. */
   public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
-    const result = await this.client.user.orgs.fetch()
-    return result.items
+    const options = { params: { per_page: '100' }, endpoint: this.user.endpoint, token: this.user.token }
+    const orgs = await getAllPages<IAPIUser>('user/orgs', options)
+    return orgs
   }
 
   /** Create a new GitHub repository with the given properties. */
   public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository> {
-    if (org) {
-      return this.client.orgs(org.login).repos.create({ name, description, private: private_ })
-    } else {
-      return this.client.user.repos.create({ name, description, private: private_ })
-    }
+    const url = org ? `orgs/${org.login}/repos` : 'user/repos'
+    const response = await this.authenticatedRequest('POST', url, { name, description, private: private_ })
+    const repository = deserialize<IAPIRepository>(response.body)
+    return repository! // lolcry
   }
 
   /**
@@ -196,9 +203,10 @@ export class API {
       params.since = since.toISOString()
     }
 
-    const path = `repos/${owner}/${name}/issues${toQueryString(params)}`
+    const path = `repos/${owner}/${name}/issues`
 
-    const allItems = await getAllPages<IAPIIssue>(path, { endpoint: this.user.endpoint, token: this.user.token })
+    const options = { params , endpoint: this.user.endpoint, token: this.user.token }
+    const allItems = await getAllPages<IAPIIssue>(path, options)
 
     // PRs are issues! But we only want Really Seriously Issues.
     return allItems.filter((i: any) => !i.pullRequest)

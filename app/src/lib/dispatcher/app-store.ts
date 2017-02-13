@@ -944,7 +944,12 @@ export class AppStore {
 
     const api = new API(user)
     const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
-    return repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
+    if (apiRepo) {
+      return repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
+    } else {
+      // unable to resolve repository through API
+      return repository
+    }
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {

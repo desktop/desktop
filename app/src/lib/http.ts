@@ -74,7 +74,7 @@ export function getLinkHeaders(response: IHTTPResponse): { next?: URL.Url } {
       }
     }
   }
-  return { }
+  return {}
 }
 
 /**
@@ -85,14 +85,14 @@ export function getLinkHeaders(response: IHTTPResponse): { next?: URL.Url } {
 export function toQueryString(json: any): string {
   // citation: http://stackoverflow.com/a/30707423/1363815
   return '?' +
-      Object.keys(json).map(function(key) {
-        // timestamps in the GitHub API should not be URI-encoded
-        if (key === 'since') {
-          return `${key}=${json[key]}`
-        }
-        return encodeURIComponent(key) + '=' +
-            encodeURIComponent(json[key])
-      }).join('&')
+    Object.keys(json).map(function (key) {
+      // timestamps in the GitHub API should not be URI-encoded
+      if (key === 'since') {
+        return `${key}=${json[key]}`
+      }
+      return encodeURIComponent(key) + '=' +
+        encodeURIComponent(json[key])
+    }).join('&')
 }
 
 /**
@@ -243,28 +243,28 @@ export function request(endpoint: string, authorization: string | null, method: 
 }
 
 
-export async function getAllPages<T>(path: string, options: { endpoint: string, token: string }): Promise<ReadonlyArray<T>> {
+export async function getAllPages<T>(path: string, options: { params: Object, endpoint: string, token: string }): Promise<ReadonlyArray<T>> {
 
-    const allItems: Array<T> = []
+  const allItems: Array<T> = []
 
-    let currentPath: string | null = path
+  let currentPath: string | null = `${path}${toQueryString(options.params)}`
 
-    do {
-      const response = await request(options.endpoint, `token ${options.token}`, 'GET', currentPath)
+  do {
+    const response = await request(options.endpoint, `token ${options.token}`, 'GET', currentPath)
 
-      if (response.statusCode !== 200) {
-        currentPath = null
-        break
-      }
+    if (response.statusCode !== 200) {
+      currentPath = null
+      break
+    }
 
-      const issues = deserialize<T[]>(response.body)
+    const issues = deserialize<T[]>(response.body)
 
-      if (issues) {
-        allItems.push(...issues)
-      }
+    if (issues) {
+      allItems.push(...issues)
+    }
 
-      currentPath = resolveNextPath(response)
-    } while (currentPath !== null)
+    currentPath = resolveNextPath(response)
+  } while (currentPath !== null)
 
-    return allItems
+  return allItems
 }
