@@ -36,6 +36,13 @@ export interface IRemoveUserAction {
   readonly user: IUser
 }
 
+export interface IUpdateRepositoryMissingAction {
+  readonly name: 'update-repository-missing'
+  readonly repository: IRepository
+  readonly missing: boolean
+}
+
 export type Action = IGetUsersAction | IGetRepositoriesAction |
                      IAddRepositoriesAction | IUpdateGitHubRepositoryAction |
-                     IRemoveRepositoriesAction | IAddUserAction | IRemoveUserAction
+                     IRemoveRepositoriesAction | IAddUserAction | IRemoveUserAction |
+                     IUpdateRepositoryMissingAction

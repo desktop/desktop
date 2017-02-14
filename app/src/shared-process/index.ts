@@ -10,6 +10,7 @@ import {
   IUpdateGitHubRepositoryAction,
   IRemoveRepositoriesAction,
   IAddUserAction,
+  IUpdateRepositoryMissingAction,
 } from '../lib/dispatcher'
 import { API } from '../lib/api'
 import { reportError } from '../lib/exception-reporting'
@@ -104,6 +105,15 @@ register('get-repositories', () => {
 register('update-github-repository', async ({ repository }: IUpdateGitHubRepositoryAction) => {
   const inflatedRepository = Repository.fromJSON(repository as IRepository)
   const updatedRepository = await repositoriesStore.updateGitHubRepository(inflatedRepository)
+
+  broadcastUpdate()
+
+  return updatedRepository
+})
+
+register('update-repository-missing', async ({ repository, missing }: IUpdateRepositoryMissingAction) => {
+  const inflatedRepository = Repository.fromJSON(repository)
+  const updatedRepository = await repositoriesStore.updateRepositoryMissing(inflatedRepository, missing)
 
   broadcastUpdate()
 
