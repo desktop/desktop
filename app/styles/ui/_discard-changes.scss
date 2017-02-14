@@ -1,5 +1,12 @@
-.discard-changes {
+#discard-changes {
   .file-name {
     font-family: var(--font-family-monospace);
+  }
+
+  .dialog-content ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    margin-bottom: var(--spacing);
   }
 }

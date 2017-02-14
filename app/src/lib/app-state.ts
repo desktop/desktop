@@ -173,11 +173,11 @@ export interface IRepositoryState {
   /** Is a push/pull/update in progress? */
   readonly pushPullInProgress: boolean
 
+  /** Is a commit in progress? */
+  readonly isCommitting: boolean
+
   /** The date the repository was last fetched. */
   readonly lastFetched: Date | null
-
-  /** The current text of the gitignore file at the root of the repository */
-  readonly gitIgnoreText: string | null
 }
 
 export interface IBranchesState {
