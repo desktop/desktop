@@ -754,7 +754,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderPushPullToolbarButton() {
     const selection = this.state.selectedState
-    if (!selection || selection.type === SelectionType.CloningRepository) {
+    if (!selection || selection.type !== SelectionType.Repository) {
       return null
     }
 
