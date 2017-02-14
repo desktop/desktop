@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Dispatcher, AppStore } from '../../lib/dispatcher'
+import { Dispatcher, AppStore, SignInStep } from '../../lib/dispatcher'
 import { assertNever } from '../../lib/fatal-error'
 import { Start } from './start'
 import { SignInDotCom } from './sign-in-dot-com'
@@ -20,6 +20,7 @@ export enum WelcomeStep {
 interface IWelcomeProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
+  readonly signInState: SignInStep | null
 }
 
 interface IWelcomeState {
@@ -38,7 +39,8 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     const step = this.state.currentStep
     const advance = (step: WelcomeStep) => this.advanceToStep(step)
     const done = () => this.done()
-    const props = { dispatcher: this.props.dispatcher, advance, done }
+    const signInState = this.props.signInState
+    const props = { dispatcher: this.props.dispatcher, advance, done, signInState }
 
     switch (step) {
       case WelcomeStep.Start: return <Start {...props}/>

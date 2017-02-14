@@ -8,19 +8,31 @@ import { Dispatcher, SignInStep } from '../../lib/dispatcher'
 interface ISignInEnterpriseProps {
   readonly dispatcher: Dispatcher
   readonly advance: (step: WelcomeStep) => void
-  readonly signInState: SignInStep
+  readonly signInState: SignInStep | null
 }
 
 /** The Welcome flow step to login to an Enterprise instance. */
 export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, void> {
+
+  public componentWillMount() {
+    this.props.dispatcher.beginEnterpriseSignIn()
+  }
+
   public render() {
+
+    const currentStep = this.props.signInState
+
+    if (!currentStep) {
+      return null
+    }
+
     return (
       <div id='sign-in-enterprise'>
         <h1 className='welcome-title'>Sign in to your GitHub Enterprise server</h1>
         <p className='welcome-text'>Get started by signing into GitHub Enterprise</p>
 
         <SignIn
-          currentStep={this.props.signInState}
+          currentStep={currentStep}
           dispatcher={this.props.dispatcher}
         >
           <Button onClick={this.cancel}>Cancel</Button>
