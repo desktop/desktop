@@ -1365,6 +1365,16 @@ export class AppStore {
     return this._refreshRepository(repository)
   }
 
+  public _beginDotComSignIn(): Promise<void> {
+    this.signInStore.beginDotComSignIn()
+    return Promise.resolve()
+  }
+
+  public _beginEnterpriseSignIn(): Promise<void> {
+    this.signInStore.beginEnterpriseSignIn()
+    return Promise.resolve()
+  }
+
   public _setSignInEndpoint(url: string): Promise<void> {
     return this.signInStore.setEndpoint(url)
   }

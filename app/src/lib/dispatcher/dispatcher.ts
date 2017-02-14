@@ -517,6 +517,14 @@ export class Dispatcher {
     return this.appStore._setStatsOptOut(optOut)
   }
 
+  public beginDotComSignIn(): Promise<void> {
+    return this.appStore._beginDotComSignIn()
+  }
+
+  public beginEnterpriseSignIn(): Promise<void> {
+    return this.appStore._beginEnterpriseSignIn()
+  }
+
   public setSignInEndpoint(url: string): Promise<void> {
     return this.appStore._setSignInEndpoint(url)
   }
