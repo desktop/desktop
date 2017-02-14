@@ -48,13 +48,14 @@ const options = {
     '/\\.git($|/)',
     '/node_modules/\\.bin($|/)'
   ],
+  'app-copyright': 'Copyright © 2017 GitHub, Inc.',
 
   // macOS
   'app-bundle-id': distInfo.getBundleID(),
   'app-category-type': 'public.app-category.developer-tools',
   'protocols': [
     {
-      name: 'GitHub Auth',
+      name: distInfo.getBundleID(),
       schemes: [
         'x-github-client',
         'github-mac'
