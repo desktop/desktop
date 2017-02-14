@@ -42,7 +42,7 @@ describe('git/core', () => {
       let threw = false
       try {
         await git(args, repository!.path, 'test', {
-          expectedErrors: new Set([ GitError.GitNotFound ]),
+          expectedErrors: new Set([ GitError.SSHKeyAuditUnverified ]),
         })
       } catch (e) {
         threw = true

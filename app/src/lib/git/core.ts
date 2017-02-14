@@ -157,7 +157,6 @@ export async function git(args: string[], path: string, name: string, options?: 
 
 function getDescriptionForError(error: GitKitchenSinkError): string {
   switch (error) {
-    case GitKitchenSinkError.GitNotFound: return 'Git could not be found.'
     case GitKitchenSinkError.SSHKeyAuditUnverified: return 'The SSH key is unverified.'
     case GitKitchenSinkError.SSHAuthenticationFailed:
     case GitKitchenSinkError.SSHPermissionDenied:
@@ -185,6 +184,7 @@ function getDescriptionForError(error: GitKitchenSinkError): string {
     case GitKitchenSinkError.PatchDoesNotApply: return 'The requested changes conflict with one or more files in the repository.'
     case GitKitchenSinkError.BranchAlreadyExists: return 'A branch with that name already exists'
     case GitKitchenSinkError.BadRevision: return 'Bad revision'
+    case GitKitchenSinkError.NotAGitRepository: return 'This is not a git repository'
     default: return assertNever(error, `Unknown error: ${error}`)
   }
 }
