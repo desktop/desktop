@@ -3,7 +3,7 @@ import { WelcomeStep } from './welcome'
 import { Button } from '../lib/button'
 import { SignIn } from '../lib/sign-in'
 import { User } from '../../models/user'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher, SignInStep } from '../../lib/dispatcher'
 
 interface ISignInEnterpriseProps {
   readonly dispatcher: Dispatcher
