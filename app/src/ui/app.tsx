@@ -34,6 +34,7 @@ import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
 import { IAppError } from '../lib/app-state'
+import { MissingRepository } from './missing-repository'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -897,6 +898,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     } else if (selectedState.type === SelectionType.CloningRepository) {
       return <CloningRepositoryView repository={selectedState.repository}
                                     state={selectedState.state}/>
+    } else if (selectedState.type === SelectionType.MissingRepository) {
+      return <MissingRepository repository={selectedState.repository} dispatcher={this.props.dispatcher}/>
     } else {
       return assertNever(selectedState, `Unknown state: ${selectedState}`)
     }
