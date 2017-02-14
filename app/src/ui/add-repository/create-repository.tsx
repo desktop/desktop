@@ -92,7 +92,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   }
 
   private showFilePicker = () => {
-    const directory: string[] | null = remote.dialog.showOpenDialog({ properties: ['createDirectory', 'openDirectory'] })
+    const directory: string[] | null = remote.dialog.showOpenDialog({ properties: [ 'createDirectory', 'openDirectory' ] })
     if (!directory) { return }
 
     const path = directory[0]
@@ -130,7 +130,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
     await initGitRepository(fullPath)
 
-    const repositories = await this.props.dispatcher.addRepositories([fullPath])
+    const repositories = await this.props.dispatcher.addRepositories([ fullPath ])
     if (repositories.length < 1) { return }
 
     const repository = repositories[0]
@@ -231,7 +231,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private renderGitIgnores() {
     const gitIgnores = this.state.gitIgnoreNames || []
-    const options = [NoGitIgnoreValue, ...gitIgnores]
+    const options = [ NoGitIgnoreValue, ...gitIgnores ]
 
     return (
       <Select
@@ -246,7 +246,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private renderLicenses() {
     const licenses = this.state.licenses || []
-    const options = [NoLicenseValue, ...licenses]
+    const options = [ NoLicenseValue, ...licenses ]
 
     return (
       <Select
