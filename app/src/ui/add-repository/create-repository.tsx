@@ -92,7 +92,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   }
 
   private showFilePicker = () => {
-    const directory: string[] | null = remote.dialog.showOpenDialog({ properties: [ 'createDirectory', 'openDirectory' ] })
+    const directory: string[] | null = remote.dialog.showOpenDialog({ properties: ['createDirectory', 'openDirectory'] })
     if (!directory) { return }
 
     const path = directory[0]
@@ -100,97 +100,109 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     this.setState({ ...this.state, path })
   }
 
+  private ensureDirectory(directory: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      FS.stat(directory, (err, stat) => {
+        if (err) {
+          // An ENOENT error most likely means that the provided directory doesn't exist
+          if (err.code === 'ENOENT') {
+            FSE.ensureDir(directory, (err) => {
+              if (err) {
+                // An error here is bad, so we need to reject
+                return reject(err)
+              }
+              return resolve()
+            })
+          }
+        } else {
+          return resolve()
+        }
+      })
+    })
+  }
+
   private createRepository = async () => {
     const fullPath = Path.join(this.state.path, sanitizedRepositoryName(this.state.name))
 
-    FS.stat(fullPath, async (err, stat) => {
-      if (err) {
-        FSE.ensureDir(fullPath, (err) => {
-          if (err) {
-            console.error(err)
-            this.props.dispatcher.postError(new Error('Failed to create directory'))
-          }
+    await this.ensureDirectory(fullPath)
+
+    this.setState({ ...this.state, creating: true })
+
+    await initGitRepository(fullPath)
+
+    const repositories = await this.props.dispatcher.addRepositories([fullPath])
+    if (repositories.length < 1) { return }
+
+    const repository = repositories[0]
+
+    let createInitialCommit = false
+    if (this.state.createWithReadme) {
+      createInitialCommit = true
+
+      try {
+        await writeDefaultReadme(fullPath, this.state.name)
+      } catch (e) {
+        console.error(e)
+
+        this.props.dispatcher.postError(e)
+      }
+    }
+
+    const gitIgnore = this.state.gitIgnore
+    if (gitIgnore !== NoGitIgnoreValue) {
+      createInitialCommit = true
+
+      try {
+        await writeGitIgnore(fullPath, gitIgnore)
+      } catch (e) {
+        console.error(e)
+
+        this.props.dispatcher.postError(e)
+      }
+    }
+
+    const licenseName = (this.state.license === NoLicenseValue.name ? null : this.state.license)
+    const license = (this.state.licenses || []).find(l => l.name === licenseName)
+
+    if (license) {
+      createInitialCommit = true
+
+      try {
+        const author = await getAuthorIdentity(repository)
+
+        await writeLicense(fullPath, license, {
+          fullname: author ? author.name : '',
+          email: author ? author.email : '',
+          year: (new Date()).getFullYear().toString(),
+          description: '',
+          project: this.state.name,
         })
+      } catch (e) {
+        console.error(e)
+
+        this.props.dispatcher.postError(e)
       }
+    }
 
-      this.setState({ ...this.state, creating: true })
-
-      await initGitRepository(fullPath)
-
-      const repositories = await this.props.dispatcher.addRepositories([ fullPath ])
-      if (repositories.length < 1) { return }
-
-      const repository = repositories[0]
-
-      let createInitialCommit = false
-      if (this.state.createWithReadme) {
-        createInitialCommit = true
-
-        try {
-          await writeDefaultReadme(fullPath, this.state.name)
-        } catch (e) {
-          console.error(e)
-
-          this.props.dispatcher.postError(e)
+    if (createInitialCommit) {
+      try {
+        const status = await getStatus(repository)
+        const wd = status.workingDirectory
+        const files = wd.files
+        if (files.length > 0) {
+          await createCommit(repository, 'Initial commit', files)
         }
+      } catch (e) {
+        console.error(e)
+
+        this.props.dispatcher.postError(e)
       }
+    }
 
-      const gitIgnore = this.state.gitIgnore
-      if (gitIgnore !== NoGitIgnoreValue) {
-        createInitialCommit = true
+    this.setState({ ...this.state, creating: false })
 
-        try {
-          await writeGitIgnore(fullPath, gitIgnore)
-        } catch (e) {
-          console.error(e)
-
-          this.props.dispatcher.postError(e)
-        }
-      }
-
-      const licenseName = (this.state.license === NoLicenseValue.name ? null : this.state.license)
-      const license = (this.state.licenses || []).find(l => l.name === licenseName)
-
-      if (license) {
-        createInitialCommit = true
-
-        try {
-          const author = await getAuthorIdentity(repository)
-
-          await writeLicense(fullPath, license, {
-            fullname: author ? author.name : '',
-            email: author ? author.email : '',
-            year: (new Date()).getFullYear().toString(),
-            description: '',
-            project: this.state.name,
-          })
-        } catch (e) {
-          console.error(e)
-
-          this.props.dispatcher.postError(e)
-        }
-      }
-
-      if (createInitialCommit) {
-        try {
-          const status = await getStatus(repository)
-          const wd = status.workingDirectory
-          const files = wd.files
-          if (files.length > 0) {
-            await createCommit(repository, 'Initial commit', files)
-          }
-        } catch (e) {
-          console.error(e)
-
-          this.props.dispatcher.postError(e)
-        }
-      }
-
-      this.setState({ ...this.state, creating: false })
-
-      this.props.dispatcher.selectRepository(repository)
-      this.props.dispatcher.closeFoldout()
-    })
+    this.props.dispatcher.selectRepository(repository)
+    this.props.dispatcher.closeFoldout()
   }
 
 
@@ -219,7 +231,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private renderGitIgnores() {
     const gitIgnores = this.state.gitIgnoreNames || []
-    const options = [ NoGitIgnoreValue, ...gitIgnores ]
+    const options = [NoGitIgnoreValue, ...gitIgnores]
 
     return (
       <Select
@@ -234,7 +246,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
   private renderLicenses() {
     const licenses = this.state.licenses || []
-    const options = [ NoLicenseValue, ...licenses ]
+    const options = [NoLicenseValue, ...licenses]
 
     return (
       <Select
