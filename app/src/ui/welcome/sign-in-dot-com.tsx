@@ -1,14 +1,13 @@
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { SignIn } from '../lib/sign-in'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher, SignInStep } from '../../lib/dispatcher'
 import { Button } from '../lib/button'
-import { User } from '../../models/user'
-import { getDotComAPIEndpoint } from '../../lib/api'
 
 interface ISignInDotComProps {
   readonly dispatcher: Dispatcher
   readonly advance: (step: WelcomeStep) => void
+  readonly signInState: SignInStep
 }
 
 /** The Welcome flow step to login to GitHub.com. */
@@ -19,8 +18,8 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, void> {
         <h1 className='welcome-title'>Sign in to GitHub.com</h1>
 
         <SignIn
-          endpoint={getDotComAPIEndpoint()}
-          onDidSignIn={this.onDidSignIn}>
+          currentStep={this.props.signInState}
+          dispatcher={this.props.dispatcher}>
           <Button onClick={this.cancel}>Cancel</Button>
         </SignIn>
       </div>
@@ -29,11 +28,5 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, void> {
 
   private cancel = () => {
     this.props.advance(WelcomeStep.Start)
-  }
-
-  private onDidSignIn = async (user: User) => {
-    await this.props.dispatcher.addUser(user)
-
-    this.props.advance(WelcomeStep.ConfigureGit)
   }
 }

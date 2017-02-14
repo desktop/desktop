@@ -769,7 +769,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
       isPublishing={isPublishing}
-      users={this.state.users}/>
+      users={this.state.users}
+      signInState={this.state.signInState}/>
   }
 
   private renderBranchFoldout = (): JSX.Element | null => {
