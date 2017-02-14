@@ -81,6 +81,7 @@ export class RepositoriesStore {
     const id = await this.db.repositories.add({
       path,
       gitHubRepositoryID: null,
+      missing: false,
     })
     return new Repository(path, id)
   }

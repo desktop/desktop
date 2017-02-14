@@ -23,6 +23,7 @@ export interface IDatabaseRepository {
   readonly id?: number | null
   readonly gitHubRepositoryID: number | null
   readonly path: string
+  readonly missing: boolean
 }
 
 /** The app database. */
