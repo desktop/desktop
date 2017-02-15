@@ -2,9 +2,7 @@ import * as React from 'react'
 import { User } from '../../models/user'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Button } from '../lib/button'
-import { SignIn } from '../lib/sign-in'
 import { assertNever } from '../../lib/fatal-error'
-import { getDotComAPIEndpoint } from '../../lib/api'
 import { DialogContent } from '../dialog'
 
 interface IAccountsProps {
@@ -44,12 +42,12 @@ export class Accounts extends React.Component<IAccountsProps, void> {
   private renderSignIn(type: SignInType) {
     switch (type) {
       case SignInType.DotCom: {
-        return <SignIn
-          endpoint={getDotComAPIEndpoint()}
-          onDidSignIn={this.onDidSignIn}/>
+        return <Button>Sign in to GitHub.com</Button>
       }
-      case SignInType.Enterprise: return <SignIn onDidSignIn={this.onDidSignIn}/>
-      default: return assertNever(type, `Unknown sign in type: ${type}`)
+      case SignInType.Enterprise:
+        return <Button>Sign in to GitHub Enterprise</Button>
+      default:
+        return assertNever(type, `Unknown sign in type: ${type}`)
     }
   }
 
@@ -57,9 +55,5 @@ export class Accounts extends React.Component<IAccountsProps, void> {
     return () => {
       this.props.dispatcher.removeUser(user)
     }
-  }
-
-  private onDidSignIn = async (user: User) => {
-    await this.props.dispatcher.addUser(user)
   }
 }
