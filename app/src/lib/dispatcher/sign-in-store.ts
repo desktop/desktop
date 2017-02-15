@@ -304,12 +304,19 @@ export class SignInStore {
 
     this.setState({ ...currentState, loading: true })
 
-    const response = await createAuthorization(
-      currentState.endpoint,
-      currentState.username,
-      currentState.password,
-      otp
-    )
+    let response: AuthorizationResponse
+
+    try {
+      response = await createAuthorization(
+        currentState.endpoint,
+        currentState.username,
+        currentState.password,
+        otp
+      )
+    } catch (e) {
+      this.emitError(e)
+      return
+    }
 
     if (!this.state || this.state.kind !== Step.TwoFactorAuthentication) {
       // Looks like the sign in flow has been aborted
