@@ -18,6 +18,7 @@ export enum Step {
   EndpointEntry,
   Authentication,
   TwoFactorAuthentication,
+  Success,
 }
 
 /** The authentication methods server allows. */
@@ -35,7 +36,7 @@ export const DefaultAuthMethods = new Set([
   AuthenticationMethods.OAuth,
 ])
 
-export type SignInStep = IEndpointEntryStep | IAuthenticationStep | ITwoFactorAuthenticationStep
+export type SignInStep = IEndpointEntryStep | IAuthenticationStep | ITwoFactorAuthenticationStep | ISuccessStep
 
 export interface ISignInStep {
   readonly kind: Step
@@ -58,6 +59,10 @@ export interface ITwoFactorAuthenticationStep extends ISignInStep {
   readonly endpoint: string,
   readonly username: string,
   readonly password: string
+}
+
+export interface ISuccessStep {
+  readonly kind: Step.Success
 }
 
 export class SignInStore {
@@ -175,7 +180,7 @@ export class SignInStore {
       }
 
       this.emitAuthenticate(user)
-      this.setState(null)
+      this.setState({ kind: Step.Success })
     } else if (response.kind === AuthorizationResponseKind.TwoFactorAuthenticationRequired) {
       this.setState({
         kind: Step.TwoFactorAuthentication,
@@ -229,7 +234,7 @@ export class SignInStore {
     }
 
     this.emitAuthenticate(user)
-    this.setState(null)
+    this.setState({ kind: Step.Success })
   }
 
   public beginEnterpriseSignIn() {
