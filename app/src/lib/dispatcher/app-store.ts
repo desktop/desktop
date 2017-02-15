@@ -1365,6 +1365,11 @@ export class AppStore {
     return this._refreshRepository(repository)
   }
 
+  public _resetSignInState(): Promise<void> {
+    this.signInStore.reset()
+    return Promise.resolve()
+  }
+
   public _beginDotComSignIn(): Promise<void> {
     this.signInStore.beginDotComSignIn()
     return Promise.resolve()

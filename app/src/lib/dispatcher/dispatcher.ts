@@ -517,6 +517,10 @@ export class Dispatcher {
     return this.appStore._setStatsOptOut(optOut)
   }
 
+  public resetSignInState(): Promise<void> {
+    return this.appStore._resetSignInState()
+  }
+
   public beginDotComSignIn(): Promise<void> {
     return this.appStore._beginDotComSignIn()
   }
@@ -540,4 +544,5 @@ export class Dispatcher {
   public setSignInOTP(otp: string): Promise<void> {
     return this.appStore._setSignInOTP(otp)
   }
+  
 }
