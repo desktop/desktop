@@ -56,6 +56,8 @@ export class SignIn extends React.Component<ISignInProps, void> {
         loading={step.loading}
         error={step.error}
         onOTPEntered={this.onOTPEntered}/>
+    } else if (step.kind === Step.Success) {
+      return null
     } else {
       return assertNever(step, `Unknown sign-in step: ${step}`)
     }
