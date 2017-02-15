@@ -311,7 +311,7 @@ export class SignInStore {
       otp
     )
 
-    if (!this.state || this.state.kind !== Step.EndpointEntry) {
+    if (!this.state || this.state.kind !== Step.TwoFactorAuthentication) {
       // Looks like the sign in flow has been aborted
       return
     }
