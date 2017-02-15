@@ -160,11 +160,16 @@ export class AppStore {
 
     this.cloningRepositoriesStore.onDidError(e => this._postError(e))
 
+    this.signInStore.onDidAuthenticate(user => this.emitAuthenticate(user))
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this._postError(error))
 
     const rootDir = getAppPath()
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
+  }
+
+  private emitAuthenticate(user: User) {
+    this.emitter.emit('did-authenticate', user)
   }
 
   private emitUpdate() {
@@ -176,6 +181,10 @@ export class AppStore {
       this.emitter.emit('did-update', this.getState())
       this.emitQueued = false
     })
+  }
+
+  public onDidAuthenticate(fn: (user: User) => void): Disposable {
+    return this.emitter.on('did-authenticate', fn)
   }
 
   public onDidUpdate(fn: (state: IAppState) => void): Disposable {

@@ -55,6 +55,10 @@ export class Dispatcher {
   public constructor(appStore: AppStore) {
     this.appStore = appStore
 
+    appStore.onDidAuthenticate((user) => {
+      this.addUser(user)
+    })
+
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
 
