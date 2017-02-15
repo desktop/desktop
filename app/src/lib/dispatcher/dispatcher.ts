@@ -51,7 +51,7 @@ type IPCResponse<T> = IResult<T> | IError
  * An error handler function.
  *
  * If the returned {Promise} returns an error, it will be passed to the next
- * error handler. If it returns null, the error propagation is halted.
+ * error handler. If it returns null, error propagation is halted.
  */
 type ErrorHandler = (error: Error, appState: IAppState, dispatcher: Dispatcher) => Promise<Error | null>
 
