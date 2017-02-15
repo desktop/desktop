@@ -1,7 +1,6 @@
 import { remote } from 'electron'
 import * as React from 'react'
 import * as Path from 'path'
-import * as FS from 'fs'
 import * as FSE from 'fs-extra'
 
 import { Dispatcher } from '../../lib/dispatcher'
