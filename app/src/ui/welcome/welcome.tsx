@@ -40,9 +40,15 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     // to signal that we've successfully logged in we'll advance to the
     // next step
     if (this.state.currentStep === WelcomeStep.SignInToDotCom || this.state.currentStep === WelcomeStep.SignInToEnterprise) {
-      if (this.props.signInState && nextProps.signInState && nextProps.signInState.kind === Step.Success) {
-        this.advanceToStep(WelcomeStep.ConfigureGit)
-        this.props.dispatcher.resetSignInState()
+      if (this.props.signInState && nextProps.signInState) {
+        // Only advance when the state first changes...
+        if (this.props.signInState.kind !== nextProps.signInState.kind) {
+          // ...and changes to success
+          if (nextProps.signInState.kind === Step.Success) {
+            this.advanceToStep(WelcomeStep.ConfigureGit)
+            this.props.dispatcher.resetSignInState()
+          }
+        }
       }
     }
   }
