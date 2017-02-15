@@ -174,6 +174,9 @@ export interface IRepositoryState {
   /** Is a push/pull/update in progress? */
   readonly pushPullInProgress: boolean
 
+  /** Is a commit in progress? */
+  readonly isCommitting: boolean
+
   /** The date the repository was last fetched. */
   readonly lastFetched: Date | null
 }

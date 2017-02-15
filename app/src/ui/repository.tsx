@@ -68,7 +68,8 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         emoji={this.props.emoji}
         mostRecentLocalCommit={mostRecentLocalCommit}
         issuesStore={this.props.issuesStore}
-        availableWidth={availableWidth} />
+        availableWidth={availableWidth}
+        isCommitting={this.props.state.isCommitting} />
     )
   }
 
