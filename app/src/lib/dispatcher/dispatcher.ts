@@ -3,7 +3,7 @@ import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
-import { RepositorySection, Popup, Foldout, IAppError, FoldoutType, IAppState } from '../app-state'
+import { RepositorySection, Popup, Foldout, FoldoutType, IAppState } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
@@ -52,7 +52,7 @@ type IPCResponse<T> = IResult<T> | IError
  * If the returned {Promise} returns an error, it will be passed to the next
  * error handler. If it returns null, the error propagation is halted.
  */
-type ErrorHandler = (error: IAppError, appState: IAppState, dispatcher: Dispatcher) => Promise<IAppError | null>
+type ErrorHandler = (error: Error, appState: IAppState, dispatcher: Dispatcher) => Promise<Error | null>
 
 /**
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
@@ -312,9 +312,9 @@ export class Dispatcher {
    * Post the given error. This will send the error through the standard error
    * handler machinery.
    */
-  public async postError(error: IAppError): Promise<void> {
+  public async postError(error: Error): Promise<void> {
     const appState = this.appStore.getState()
-    let currentError: IAppError | null = error
+    let currentError: Error | null = error
     for (const handler of this.errorHandlers.reverse()) {
       currentError = await handler(currentError, appState, this)
 
@@ -331,12 +331,12 @@ export class Dispatcher {
    * machinery. You probably don't want that. See `Dispatcher.postError`
    * instead.
    */
-  public presentError(error: IAppError): Promise<void> {
+  public presentError(error: Error): Promise<void> {
     return this.appStore._pushError(error)
   }
 
   /** Clear the given error. */
-  public clearError(error: IAppError): Promise<void> {
+  public clearError(error: Error): Promise<void> {
     return this.appStore._clearError(error)
   }
 

@@ -11,7 +11,6 @@ import {
   FoldoutType,
   Foldout,
   IBranchesState,
-  IAppError,
   PossibleSelections,
   SelectionType,
 } from '../app-state'
@@ -93,7 +92,7 @@ export class AppStore {
   private currentPopup: Popup | null = null
   private currentFoldout: Foldout | null = null
 
-  private errors: ReadonlyArray<IAppError> = new Array<IAppError>()
+  private errors: ReadonlyArray<Error> = new Array<Error>()
 
   private emitQueued = false
 
@@ -175,11 +174,11 @@ export class AppStore {
     return this.emitter.on('did-update', fn)
   }
 
-  private emitError(error: IAppError) {
+  private emitError(error: Error) {
     this.emitter.emit('did-error', error)
   }
 
-  public onDidError(fn: (error: IAppError) => void): Disposable {
+  public onDidError(fn: (error: Error) => void): Disposable {
     return this.emitter.on('did-error', fn)
   }
 
@@ -967,7 +966,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _pushError(error: IAppError): Promise<void> {
+  public _pushError(error: Error): Promise<void> {
     const newErrors = Array.from(this.errors)
     newErrors.push(error)
     this.errors = newErrors
@@ -977,7 +976,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clearError(error: IAppError): Promise<void> {
+  public _clearError(error: Error): Promise<void> {
     this.errors = this.errors.filter(e => e !== error)
     this.emitUpdate()
 
