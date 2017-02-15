@@ -124,7 +124,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     const fullPath = Path.join(this.state.path, sanitizedRepositoryName(this.state.name))
 
     try {
-        await this.ensureDirectory(fullPath)
+      await this.ensureDirectory(fullPath)
     } catch (ex) {
       console.error(ex)
       this.props.dispatcher.postError(ex)
