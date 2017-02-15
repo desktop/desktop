@@ -333,7 +333,7 @@ export class SignInStore {
       }
 
       this.emitAuthenticate(user)
-      this.setState(null)
+      this.setState({ kind: Step.Success })
     } else {
       switch (response.kind) {
         case AuthorizationResponseKind.Failed:
