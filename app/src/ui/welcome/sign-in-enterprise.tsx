@@ -2,7 +2,6 @@ import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { Button } from '../lib/button'
 import { SignIn } from '../lib/sign-in'
-import { User } from '../../models/user'
 import { Dispatcher, SignInStep } from '../../lib/dispatcher'
 
 interface ISignInEnterpriseProps {
@@ -13,10 +12,6 @@ interface ISignInEnterpriseProps {
 
 /** The Welcome flow step to login to an Enterprise instance. */
 export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, void> {
-
-  public componentWillMount() {
-    this.props.dispatcher.beginEnterpriseSignIn()
-  }
 
   public render() {
 
@@ -43,11 +38,5 @@ export class SignInEnterprise extends React.Component<ISignInEnterpriseProps, vo
 
   private cancel = () => {
     this.props.advance(WelcomeStep.Start)
-  }
-
-  private onDidSignIn = async (user: User) => {
-    await this.props.dispatcher.addUser(user)
-
-    this.props.advance(WelcomeStep.ConfigureGit)
   }
 }
