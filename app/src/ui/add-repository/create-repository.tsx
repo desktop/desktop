@@ -103,20 +103,19 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   private ensureDirectory(directory: string): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       FS.stat(directory, (err, stat) => {
-        if (err) {
-          // An ENOENT error most likely means that the provided directory doesn't exist
-          if (err.code === 'ENOENT') {
-            FSE.ensureDir(directory, (err) => {
-              if (err) {
-                // An error here is bad, so we need to reject
-                return reject(err)
-              }
-              return resolve()
-            })
-          }
-        } else {
+        if (!err) {
           return resolve()
         }
+
+        // An ENOENT error most likely means that the provided directory doesn't exist
+        FSE.ensureDir(directory, (err) => {
+          if (err) {
+            // An error here is bad, so we need to reject
+            return reject(err)
+          }
+
+          return resolve()
+        })
       })
     })
   }
@@ -124,7 +123,12 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
   private createRepository = async () => {
     const fullPath = Path.join(this.state.path, sanitizedRepositoryName(this.state.name))
 
-    await this.ensureDirectory(fullPath)
+    try {
+        await this.ensureDirectory(fullPath)
+    } catch (ex) {
+      console.error(ex)
+      this.props.dispatcher.postError(ex)
+    }
 
     this.setState({ ...this.state, creating: true })
 
