@@ -62,7 +62,7 @@ type ErrorHandler = (error: Error, appState: IAppState, dispatcher: Dispatcher) 
 export class Dispatcher {
   private appStore: AppStore
 
-  private errorHandlers = new Array<ErrorHandler>()
+  private readonly errorHandlers = new Array<ErrorHandler>()
 
   public constructor(appStore: AppStore) {
     this.appStore = appStore
