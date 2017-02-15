@@ -178,8 +178,8 @@ export class AppStore {
     this.emitQueued = true
 
     window.requestAnimationFrame(() => {
-      this.emitter.emit('did-update', this.getState())
       this.emitQueued = false
+      this.emitter.emit('did-update', this.getState())
     })
   }
 
