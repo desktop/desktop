@@ -1,4 +1,5 @@
 import { ipcRenderer } from 'electron'
+import { Disposable } from 'event-kit'
 import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
@@ -558,7 +559,14 @@ export class Dispatcher {
    * passed to the next handler, etc. If the handler's {Promise} resolves to
    * null, error propagation is halted.
    */
-  public registerErrorHandler(handler: ErrorHandler) {
+  public registerErrorHandler(handler: ErrorHandler): Disposable {
     this.errorHandlers.push(handler)
+
+    return new Disposable(() => {
+      const i = this.errorHandlers.indexOf(handler)
+      if (i >= 0) {
+        this.errorHandlers.splice(i, 1)
+      }
+    })
   }
 }
