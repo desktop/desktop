@@ -178,6 +178,7 @@ export class AppStore {
     this.emitter.emit('did-error', error)
   }
 
+  /** Register a listener for when an error occurs. */
   public onDidError(fn: (error: Error) => void): Disposable {
     return this.emitter.on('did-error', fn)
   }
