@@ -3,7 +3,7 @@ import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
-import { RepositorySection, Popup, Foldout, IAppError, FoldoutType } from '../app-state'
+import { RepositorySection, Popup, Foldout, IAppError, FoldoutType, IAppState } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
@@ -16,6 +16,7 @@ import { v4 as guid } from 'uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
+import { fatalError } from '../fatal-error'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -46,11 +47,21 @@ interface IError {
 type IPCResponse<T> = IResult<T> | IError
 
 /**
+ * An error handler function.
+ *
+ * If the returned {Promise} returns an error, it will be passed to the next
+ * error handler. If it returns null, the error propagation is halted.
+ */
+type ErrorHandler = (error: IAppError, appState: IAppState, dispatcher: Dispatcher) => Promise<IAppError | null>
+
+/**
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
  * decouples the consumer of state from where/how it is stored.
  */
 export class Dispatcher {
   private appStore: AppStore
+
+  private errorHandlers = new Array<ErrorHandler>()
 
   public constructor(appStore: AppStore) {
     this.appStore = appStore
@@ -297,9 +308,31 @@ export class Dispatcher {
     return this.refreshGitHubRepositoryInfo(repository)
   }
 
-  /** Post the given error. */
-  public postError(error: IAppError): Promise<void> {
-    return this.appStore._postError(error)
+  /**
+   * Post the given error. This will send the error through the standard error
+   * handler machinery.
+   */
+  public async postError(error: IAppError): Promise<void> {
+    const appState = this.appStore.getState()
+    let currentError: IAppError | null = error
+    for (const handler of this.errorHandlers.reverse()) {
+      currentError = await handler(currentError, appState, this)
+
+      if (!currentError) { break }
+    }
+
+    if (currentError) {
+      fatalError(`Unhandled error ${currentError}. This shouldn't happen! All errors should be handled, even if it's just by the default handler.`)
+    }
+  }
+
+  /**
+   * Post the given error. Note that this bypasses the standard error handler
+   * machinery. You probably don't want that. See `Dispatcher.postError`
+   * instead.
+   */
+  public presentError(error: IAppError): Promise<void> {
+    return this.appStore._pushError(error)
   }
 
   /** Clear the given error. */
@@ -490,9 +523,9 @@ export class Dispatcher {
     return this.appStore._openShell(path)
   }
 
-  /** 
+  /**
    * Persist the given content to the repository's root .gitignore.
-   * 
+   *
    * If the repository root doesn't contain a .gitignore file one
    * will be created, otherwise the current file will be overwritten.
    */
@@ -503,7 +536,7 @@ export class Dispatcher {
 
   /**
    * Read the contents of the repository's .gitignore.
-   * 
+   *
    * Returns a promise which will either be rejected or resolved
    * with the contents of the file. If there's no .gitignore file
    * in the repository root the promise will resolve with null.
@@ -515,5 +548,17 @@ export class Dispatcher {
   /** Set whether the user has opted out of stats reporting. */
   public setStatsOptOut(optOut: boolean): Promise<void> {
     return this.appStore._setStatsOptOut(optOut)
+  }
+
+  /**
+   * Register a new error handler.
+   *
+   * Error handlers are called in order starting with the most recently
+   * registered handler. The error which the returned {Promise} resolves to is
+   * passed to the next handler, etc. If the handler's {Promise} resolves to
+   * null, error propagation is halted.
+   */
+  public registerErrorHandler(handler: ErrorHandler) {
+    this.errorHandlers.push(handler)
   }
 }
