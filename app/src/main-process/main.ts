@@ -20,21 +20,6 @@ let network: Electron.Net | null = null
 
 const launchTime = Date.now()
 
-const installExtenstions = () => {
-  const installer = require('electron-devtools-installer')
-  require('electron-debug')({ showDevTools: true })
-
-  const extensions = [
-    'REACT_DEVELOPER_TOOLS',
-  ]
-
-  for (const name of extensions) {
-    try {
-      installer.default(installer[name])
-    } catch (e) {}
-  }
-}
-
 let readyTime: number | null = null
 
 process.on('uncaughtException', (error: Error) => {
