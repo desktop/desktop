@@ -965,7 +965,7 @@ export class AppStore {
     if (error instanceof GitError) {
       switch (error.result.gitError)  {
         case GitErrorType.HTTPSAuthenticationFailed: {
-          alert('Do stuff')
+          //Need access to the dispatcher...
           break
         }
       }
