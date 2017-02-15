@@ -94,7 +94,7 @@ export class SignInStore {
    * Register a function to be called when the store successfully
    * authenticates a user.
    */
-  public onDidAuthenticate(fn: () => void): Disposable {
+  public onDidAuthenticate(fn: (user: User) => void): Disposable {
     return this.emitter.on('did-authenticate', fn)
   }
 
