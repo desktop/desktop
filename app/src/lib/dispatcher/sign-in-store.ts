@@ -320,7 +320,7 @@ export class SignInStore {
       const token = response.token
       const user = await fetchUser(currentState.endpoint, token)
 
-      if (!this.state || this.state.kind !== Step.EndpointEntry) {
+      if (!this.state || this.state.kind !== Step.TwoFactorAuthentication) {
         // Looks like the sign in flow has been aborted
         return
       }
