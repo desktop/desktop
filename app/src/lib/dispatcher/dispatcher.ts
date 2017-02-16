@@ -4,7 +4,7 @@ import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
-import { RepositorySection, Popup, Foldout, FoldoutType, IAppState } from '../app-state'
+import { RepositorySection, Popup, Foldout, FoldoutType } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
@@ -53,7 +53,7 @@ type IPCResponse<T> = IResult<T> | IError
  * If the returned {Promise} returns an error, it will be passed to the next
  * error handler. If it returns null, error propagation is halted.
  */
-type ErrorHandler = (error: Error, appState: IAppState, dispatcher: Dispatcher) => Promise<Error | null>
+type ErrorHandler = (error: Error, dispatcher: Dispatcher) => Promise<Error | null>
 
 /**
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
@@ -314,10 +314,9 @@ export class Dispatcher {
    * handler machinery.
    */
   public async postError(error: Error): Promise<void> {
-    const appState = this.appStore.getState()
     let currentError: Error | null = error
     for (const handler of this.errorHandlers.reverse()) {
-      currentError = await handler(currentError, appState, this)
+      currentError = await handler(currentError, this)
 
       if (!currentError) { break }
     }
