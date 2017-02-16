@@ -11,7 +11,6 @@ import {
   FoldoutType,
   Foldout,
   IBranchesState,
-  IAppError,
   PossibleSelections,
   SelectionType,
 } from '../app-state'
@@ -93,7 +92,7 @@ export class AppStore {
   private currentPopup: Popup | null = null
   private currentFoldout: Foldout | null = null
 
-  private errors: ReadonlyArray<IAppError> = new Array<IAppError>()
+  private errors: ReadonlyArray<Error> = new Array<Error>()
 
   private emitQueued = false
 
@@ -154,7 +153,7 @@ export class AppStore {
       this.emitUpdate()
     })
 
-    this.cloningRepositoriesStore.onDidError(e => this._postError(e))
+    this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
     const rootDir = getAppPath()
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
@@ -173,6 +172,15 @@ export class AppStore {
 
   public onDidUpdate(fn: (state: IAppState) => void): Disposable {
     return this.emitter.on('did-update', fn)
+  }
+
+  private emitError(error: Error) {
+    this.emitter.emit('did-error', error)
+  }
+
+  /** Register a listener for when an error occurs. */
+  public onDidError(fn: (error: Error) => void): Disposable {
+    return this.emitter.on('did-error', fn)
   }
 
   private getInitialRepositoryState(): IRepositoryState {
@@ -344,7 +352,7 @@ export class AppStore {
       gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
       gitStore.onDidLoadNewCommits(commits => this.onGitStoreLoadedCommits(repository, commits))
-      gitStore.onDidError(error => this._postError(error))
+      gitStore.onDidError(error => this.emitError(error))
 
       this.gitStores.set(repository.id, gitStore)
     }
@@ -970,7 +978,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _postError(error: IAppError): Promise<void> {
+  public _pushError(error: Error): Promise<void> {
     const newErrors = Array.from(this.errors)
     newErrors.push(error)
     this.errors = newErrors
@@ -980,7 +988,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clearError(error: IAppError): Promise<void> {
+  public _clearError(error: Error): Promise<void> {
     this.errors = this.errors.filter(e => e !== error)
     this.emitUpdate()
 
@@ -993,7 +1001,7 @@ export class AppStore {
       const gitDir = await getGitDir(path)
       return gitDir ? Path.dirname(gitDir) : null
     } catch (e) {
-      this._postError(e)
+      this.emitError(e)
       return null
     }
   }
