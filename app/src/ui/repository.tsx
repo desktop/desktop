@@ -8,6 +8,8 @@ import { Resizable } from './resizable'
 import { TabBar } from './tab-bar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
 import { Dispatcher, IssuesStore } from '../lib/dispatcher'
+import { LinkEventHandler } from './lib/link-handler'
+
 import { assertNever } from '../lib/fatal-error'
 
 interface IRepositoryProps {
@@ -15,6 +17,7 @@ interface IRepositoryProps {
   readonly state: IRepositoryModelState
   readonly dispatcher: Dispatcher
   readonly emoji: Map<string, string>
+  readonly linkClicked?: LinkEventHandler
   readonly sidebarWidth: number
   readonly commitSummaryWidth: number
   readonly issuesStore: IssuesStore
@@ -66,6 +69,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         commitAuthor={this.props.state.commitAuthor}
         gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
+        linkClicked={this.props.linkClicked}
         mostRecentLocalCommit={mostRecentLocalCommit}
         issuesStore={this.props.issuesStore}
         availableWidth={availableWidth}
@@ -130,6 +134,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         dispatcher={this.props.dispatcher}
         history={this.props.state.historyState}
         emoji={this.props.emoji}
+        linkClicked={this.props.linkClicked}
         commits={this.props.state.commits}
         localCommitSHAs={this.props.state.localCommitSHAs}
         commitSummaryWidth={this.props.commitSummaryWidth}

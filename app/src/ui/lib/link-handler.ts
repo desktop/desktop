@@ -14,6 +14,6 @@ export interface IIssueClick {
   readonly number: number
 }
 
-type ILinkClicked = IUserClick | IIssueClick
+export type ILinkClicked = IUserClick | IIssueClick
 
 export type LinkEventHandler = (event: ILinkClicked) => void

@@ -52,12 +52,24 @@ function usernameNexus(str: string, i: number, linkClicked?: LinkEventHandler): 
   return pieces.map((fragment, j) => {
     if (fragment.startsWith('@')) {
       const innerKey = `${i}-${j}`
-      const user = fragment.substr(1)
-      const handler = linkClicked
-        ? () => linkClicked({ kind: LinkType.User, user })
-        : () => { }
 
-      return <a key={innerKey} className='username' onClick={handler} title={user}>{fragment}</a>
+
+      if (linkClicked) {
+        const user = fragment.substr(1)
+        const callback = () => {
+          debugger
+          linkClicked({ kind: LinkType.User, user })
+        }
+        return <a
+          key={innerKey}
+          className='username'
+          onClick={callback}
+          title={user}>
+            {fragment}
+          </a>
+      } else {
+        return <span key={innerKey} className='username'>{fragment}</span>
+      }
     } else {
       return fragment
     }

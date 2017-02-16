@@ -4,8 +4,11 @@
   vertical-align: text-bottom;
 }
 
-a.username {
+.username {
   font-weight: var(--font-weight-semibold);
+}
+
+a.username {
   cursor: pointer;
 
   &:hover {
