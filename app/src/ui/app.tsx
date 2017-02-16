@@ -34,6 +34,7 @@ import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
 import { IAppError } from '../lib/app-state'
+import { SignIn } from './sign-in'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -536,6 +537,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.closePopup()
   }
 
+  private onSignInDialogDismissed = () => {
+    this.props.dispatcher.resetSignInState()
+    this.onPopupDismissed()
+  }
+
   private currentPopupContent(): JSX.Element | null {
 
     // Hide any dialogs while we're displaying an error
@@ -587,6 +593,14 @@ export class App extends React.Component<IAppProps, IAppState> {
         repository={repository}
         onDismissed={this.onPopupDismissed}
       />
+    } else if (popup.type === PopupType.SignIn) {
+      return (
+        <SignIn
+          signInState={this.state.signInState}
+          dispatcher={this.props.dispatcher}
+          onDismissed={this.onSignInDialogDismissed}
+        />
+      )
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)

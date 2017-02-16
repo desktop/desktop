@@ -3,7 +3,7 @@ import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
-import { RepositorySection, Popup, Foldout, IAppError, FoldoutType } from '../app-state'
+import { RepositorySection, Popup, PopupType, Foldout, IAppError, FoldoutType } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
@@ -548,5 +548,9 @@ export class Dispatcher {
   public setSignInOTP(otp: string): Promise<void> {
     return this.appStore._setSignInOTP(otp)
   }
-  
+
+  public async showDotComSignInDialog(): Promise<void> {
+    await this.appStore._beginDotComSignIn()
+    await this.appStore._showPopup({ type: PopupType.SignIn })
+  }
 }
