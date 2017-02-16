@@ -123,7 +123,13 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
     this.setState({ ...this.state, creating: true })
 
-    await initGitRepository(fullPath)
+    try {
+      await initGitRepository(fullPath)
+    } catch (ex) {
+      this.setState({ ...this.state, creating: false })
+      console.error(ex)
+      return this.props.dispatcher.postError(ex)
+    }
 
     const repositories = await this.props.dispatcher.addRepositories([ fullPath ])
     if (repositories.length < 1) { return }
