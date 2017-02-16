@@ -21,11 +21,10 @@ import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } fro
 import { defaultErrorHandler } from '../lib/dispatcher'
 
 import { getLogger } from '../lib/logging/renderer'
+import { installDevGlobals } from './install-globals'
 
 if (__DEV__) {
-  const g: any = global
-  // Expose GitPerf as a global so it can be started.
-  g.GitPerf = require('./lib/git-perf')
+  installDevGlobals()
 }
 
 const startTime = Date.now()
