@@ -1,7 +1,6 @@
 import * as React from 'react'
 import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 
-import { IAppError } from '../lib/app-state'
 import { Button } from './lib/button'
 import { ButtonGroup } from './lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from './dialog'
@@ -9,20 +8,20 @@ import { dialogTransitionEnterTimeout, dialogTransitionLeaveTimeout } from './ap
 
 interface IAppErrorProps {
   /** The list of queued, app-wide, errors  */
-  readonly errors: ReadonlyArray<IAppError>
+  readonly errors: ReadonlyArray<Error>
 
   /**
    * A callback which is used whenever a particular error
    * has been shown to, and been dismissed by, the user.
    */
-  readonly onClearError: (error: IAppError) => void
+  readonly onClearError: (error: Error) => void
 }
 
 interface IAppErrorState {
   /** The currently displayed error or null if no error is shown */
-  readonly error: IAppError | null
+  readonly error: Error | null
 
-  /** 
+  /**
    * Whether or not the dialog and its buttons are disabled.
    * This is used when the dialog is transitioning out of view.
    */

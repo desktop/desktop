@@ -46,7 +46,7 @@ export interface IGitResult extends GitKitchenSinkResult {
   readonly gitErrorDescription: string | null
 }
 
-export class GitError {
+export class GitError extends Error {
   /** The result from the failed command. */
   public readonly result: IGitResult
 
@@ -54,6 +54,8 @@ export class GitError {
   public readonly args: ReadonlyArray<string>
 
   public constructor(result: IGitResult, args: ReadonlyArray<string>) {
+    super('GitError')
+
     this.result = result
     this.args = args
   }
