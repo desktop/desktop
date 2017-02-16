@@ -3,7 +3,7 @@ import * as classNames from 'classnames'
 
 export interface IButtonProps {
   /** A function to call on click. */
-  readonly onClick?: () => void
+  readonly onClick?: (event: React.FormEvent<HTMLButtonElement>) => void
 
   /** The title of the button. */
   readonly children?: string
@@ -51,7 +51,7 @@ export class Button extends React.Component<IButtonProps, void> {
 
     const onClick = this.props.onClick
     if (onClick) {
-      onClick()
+      onClick(event)
     }
   }
 }
