@@ -48,30 +48,24 @@ function emojificationNexus(str: string, emoji: Map<string, string>, linkClicked
 }
 
 function usernameNexus(str: string, i: number, linkClicked?: LinkEventHandler): ReadonlyArray<JSX.Element | string> {
+  if (linkClicked === undefined) {
+    return [ str ]
+  } else {
   const pieces = str.split(UsernameRegex)
   return pieces.map((fragment, j) => {
     if (fragment.startsWith('@')) {
       const innerKey = `${i}-${j}`
-
-
-      if (linkClicked) {
-        const user = fragment.substr(1)
-        const callback = () => {
-          debugger
-          linkClicked({ kind: LinkType.User, user })
-        }
-        return <a
-          key={innerKey}
-          className='username'
-          onClick={callback}
-          title={user}>
-            {fragment}
-          </a>
-      } else {
-        return <span key={innerKey} className='username'>{fragment}</span>
-      }
+      const user = fragment.substr(1)
+      return <a
+        key={innerKey}
+        className='username'
+        onClick={() => linkClicked({ kind: LinkType.User, user })}
+        title={user}>
+          {fragment}
+        </a>
     } else {
       return fragment
     }
   })
+  }
 }
