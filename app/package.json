@@ -35,13 +35,13 @@
     "username": "^2.2.2",
     "uuid": "^3.0.1",
     "winston": "^2.3.1",
-    "winston-daily-rotate-file": "^1.4.3"
+    "winston-daily-rotate-file": "^1.4.3",
+    "fs-extra": "^1.0.0",
   },
   "devDependencies": {
     "devtron": "^1.4.0",
     "electron-debug": "^1.1.0",
-    "electron-devtools-installer": "^2.1.0",
-    "fs-extra": "^1.0.0",
+    "electron-devtools-installer": "^2.1.0",    
     "react-addons-perf": "^15.4.2",
     "react-addons-test-utils": "^15.4.2",
     "style-loader": "^0.13.1",
