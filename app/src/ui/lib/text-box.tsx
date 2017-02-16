@@ -26,6 +26,18 @@ interface ITextBoxProps {
   /** Called when the user changes the value in the input field. */
   readonly onChange?: (event: React.FormEvent<HTMLInputElement>) => void
 
+  /**
+   * Called when the user changes the value in the input field.
+   * 
+   * This differs from the onChange event in that it passes only the new
+   * value and not the event itself. Subscribe to the onChange event if you
+   * need the ability to prevent the action from occurring.
+   * 
+   * This callback will not be invoked if the callback from onChange calls
+   * preventDefault.
+   */
+  readonly onValueChanged?: (value: string) => void
+
   /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => void
 
@@ -38,6 +50,17 @@ interface ITextBoxProps {
 
 /** An input element with app-standard styles. */
 export class TextBox extends React.Component<ITextBoxProps, void> {
+
+  private onChange = (event: React.FormEvent<HTMLInputElement>) => {
+    if (this.props.onChange) {
+      this.props.onChange(event)
+    }
+
+    if (this.props.onValueChanged && !event.defaultPrevented) {
+      this.props.onValueChanged(event.currentTarget.value)
+    }
+  }
+
   public render() {
     const className = classNames('text-box-component', this.props.labelClassName)
     return (
@@ -51,7 +74,7 @@ export class TextBox extends React.Component<ITextBoxProps, void> {
           type={this.props.type}
           placeholder={this.props.placeholder}
           value={this.props.value}
-          onChange={this.props.onChange}
+          onChange={this.onChange}
           onKeyDown={this.props.onKeyDown}
           ref={this.props.onInputRef}/>
       </label>
