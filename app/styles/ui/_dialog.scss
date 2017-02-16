@@ -250,15 +250,18 @@ dialog {
     }
   }
 
-  &#preferences .accounts-tab {
-    max-width: 400px;
+  &#preferences {
 
-    .account-sign-in {
-      button {
-        flex-shrink: 0;
-        flex-grow: 0;
-        align-self: flex-start;
-        width: 120px;
+    width: 450px;    
+
+    .accounts-tab {
+      .account-sign-in {
+        button {
+          flex-shrink: 0;
+          flex-grow: 0;
+          align-self: flex-start;
+          width: 120px;
+        }
       }
     }
   }
