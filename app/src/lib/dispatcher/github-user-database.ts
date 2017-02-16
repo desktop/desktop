@@ -29,7 +29,7 @@ export class GitHubUserDatabase extends Dexie {
     })
 
     this.version(DatabaseVersion).stores({
-      users: '++id, [endpoint+email], &[endpoint+login]',
+      users: '++id, [endpoint+email], [endpoint+login]',
       mentionables: '++id, repositoryID, &[userID+repositoryID]',
     })
   }
