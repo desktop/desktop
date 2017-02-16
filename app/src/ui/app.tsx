@@ -33,7 +33,6 @@ import { shouldRenderApplicationMenu } from './lib/features'
 import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
-import { IAppError } from '../lib/app-state'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -73,6 +72,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.setState(state)
 
       this.updateMenu(state)
+    })
+
+    props.appStore.onDidError(error => {
+      props.dispatcher.postError(error)
     })
 
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
@@ -606,7 +609,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private clearError = (error: IAppError) => {
+  private clearError = (error: Error) => {
     this.props.dispatcher.clearError(error)
   }
 
