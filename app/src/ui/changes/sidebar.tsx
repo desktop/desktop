@@ -32,6 +32,7 @@ interface IChangesSidebarProps {
   readonly mostRecentLocalCommit: Commit | null
   readonly issuesStore: IssuesStore
   readonly availableWidth: number
+  readonly isCommitting: boolean
   readonly gitHubUserStore: GitHubUserStore
 }
 
@@ -208,6 +209,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           autocompletionProviders={this.autocompletionProviders!}
           availableWidth={this.props.availableWidth}
           onIgnore={this.onIgnore}
+          isCommitting={this.props.isCommitting}
         />
           {this.renderMostRecentLocalCommit()}
       </div>

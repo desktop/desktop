@@ -70,7 +70,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         mostRecentLocalCommit={mostRecentLocalCommit}
         issuesStore={this.props.issuesStore}
         gitHubUserStore={this.props.gitHubUserStore}
-        availableWidth={availableWidth} />
+        isCommitting={this.props.state.isCommitting} />
     )
   }
 
