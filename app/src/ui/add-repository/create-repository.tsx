@@ -118,7 +118,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       await this.ensureDirectory(fullPath)
     } catch (ex) {
       console.error(ex)
-      this.props.dispatcher.postError(ex)
+      return this.props.dispatcher.postError(ex)
     }
 
     this.setState({ ...this.state, creating: true })
