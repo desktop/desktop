@@ -46,6 +46,21 @@ export interface IGitResult extends GitKitchenSinkResult {
   readonly gitErrorDescription: string | null
 }
 
+function getResultMessage(result: IGitResult) {
+  const description = result.gitErrorDescription
+  if (description) {
+    return description
+  }
+
+  if (result.stderr.length) {
+    return result.stderr
+  } else if (result.stdout.length) {
+    return result.stdout
+  } else {
+    return 'Unknown error'
+  }
+}
+
 export class GitError extends Error {
   /** The result from the failed command. */
   public readonly result: IGitResult
@@ -54,25 +69,11 @@ export class GitError extends Error {
   public readonly args: ReadonlyArray<string>
 
   public constructor(result: IGitResult, args: ReadonlyArray<string>) {
-    super('GitError')
+    super(getResultMessage(result))
 
+    this.name = 'GitError'
     this.result = result
     this.args = args
-  }
-
-  public get message(): string {
-    const description = this.result.gitErrorDescription
-    if (description) {
-      return description
-    }
-
-    if (this.result.stderr.length) {
-      return this.result.stderr
-    } else if (this.result.stdout.length) {
-      return this.result.stdout
-    } else {
-      return `Unknown error`
-    }
   }
 }
 
