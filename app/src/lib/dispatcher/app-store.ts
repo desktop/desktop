@@ -507,6 +507,7 @@ export class AppStore {
       await this._refreshRepository(repository)
 
       this.startBackgroundFetching(repository)
+      this.refreshMentionables(repository)
     } else {
       return Promise.resolve()
     }
@@ -530,6 +531,16 @@ export class AppStore {
       backgroundFetcher.stop()
       this.currentBackgroundFetcher = null
     }
+  }
+
+  private refreshMentionables(repository: Repository) {
+    const user = this.getUserForRepository(repository)
+    if (!user) { return }
+
+    const gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) { return }
+
+    this.gitHubUserStore.updateMentionables(gitHubRepository, user)
   }
 
   private startBackgroundFetching(repository: Repository) {
