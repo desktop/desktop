@@ -4,6 +4,7 @@ import { Commit } from '../../models/commit'
 import { RichText } from '../lib/rich-text'
 import { RelativeTime } from '../relative-time'
 import { Button } from '../lib/button'
+import { LinkEventHandler } from '../lib/link-handler'
 
 interface IUndoCommitProps {
   /** The function to call when the Undo button is clicked. */
@@ -13,6 +14,8 @@ interface IUndoCommitProps {
   readonly commit: Commit
 
   readonly emoji: Map<string, string>
+
+  readonly linkClicked?: LinkEventHandler
 }
 
 /** The Undo Commit component. */
@@ -23,7 +26,12 @@ export class UndoCommit extends React.Component<IUndoCommitProps, void> {
       <div id='undo-commit'>
         <div className='commit-info'>
           <div className='ago'>Committed <RelativeTime date={authorDate} /></div>
-          <RichText emoji={this.props.emoji} className='summary'>{this.props.commit.summary}</RichText>
+          <RichText
+            emoji={this.props.emoji}
+            className='summary'
+            linkClicked={this.props.linkClicked}>
+            {this.props.commit.summary}
+          </RichText>
         </div>
         <div className='actions'>
           <Button type='submit' onClick={this.props.onUndo}>Undo</Button>

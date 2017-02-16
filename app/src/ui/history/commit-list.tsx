@@ -31,7 +31,11 @@ export class CommitList extends React.Component<ICommitListProps, void> {
         avatarUser = { ...commit.author, avatarURL: gitHubUser.avatarURL }
       }
 
-      return <CommitListItem key={commit.sha} commit={commit} user={avatarUser} emoji={this.props.emoji}/>
+      return <CommitListItem
+        key={commit.sha}
+        commit={commit}
+        user={avatarUser}
+        emoji={this.props.emoji} />
     } else {
       return <CommitFacadeListItem key={row}/>
     }
