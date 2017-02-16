@@ -3,7 +3,6 @@ import { isHeadUnborn } from './rev-parse'
 import { stageFiles } from './add'
 import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { IAppError } from '../app-state'
 
 export async function createCommit(repository: Repository, message: string, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<boolean> {
   // Clear the staging area, our diffs reflect the difference between the
@@ -31,12 +30,9 @@ export async function createCommit(repository: Repository, message: string, file
         standardError = `, with output: '${output}'`
       }
       const exitCode = e.result.exitCode
-      const appError: IAppError = {
-        name: 'commit-failed',
-        message: `Commit failed - exit code ${exitCode} received${standardError}`,
-      }
-
-      throw appError
+      const error = new Error(`Commit failed - exit code ${exitCode} received${standardError}`)
+      error.name = 'commit-failed'
+      throw error
     } else {
       throw e
     }

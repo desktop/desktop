@@ -24,6 +24,7 @@ interface ICommitMessageProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
+  readonly isCommitting: boolean
 }
 
 interface ICommitMessageState {
@@ -162,7 +163,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
   public render() {
     const branchName = this.props.branch ? this.props.branch : 'master'
-    const buttonEnabled = this.canCommit()
+    const buttonEnabled = this.canCommit() && !this.props.isCommitting
 
     return (
       <div id='commit-message'>

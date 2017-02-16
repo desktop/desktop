@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { shell, ipcRenderer } from 'electron'
+import { ipcRenderer } from 'electron'
 import * as Path from 'path'
 import {
   IRepositoryState,
@@ -11,14 +11,13 @@ import {
   FoldoutType,
   Foldout,
   IBranchesState,
-  IAppError,
   PossibleSelections,
   SelectionType,
 } from '../app-state'
 import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
-import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange, FileStatus } from '../../models/status'
+import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
@@ -29,6 +28,7 @@ import { Commit } from '../../models/commit'
 import { CloningRepository, CloningRepositoriesStore } from './cloning-repositories-store'
 import { IGitHubUser } from './github-user-database'
 import { GitHubUserStore } from './github-user-store'
+import { shell } from './app-shell'
 import { EmojiStore } from './emoji-store'
 import { GitStore, ICommitMessage } from './git-store'
 import { assertNever } from '../fatal-error'
@@ -58,7 +58,6 @@ import {
   addRemote,
   getBranchAheadBehind,
   createCommit,
-  checkoutPaths,
   checkoutBranch,
 } from '../git'
 
@@ -68,25 +67,6 @@ const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
 /** The `localStorage` key for whether we've shown the Welcome flow yet. */
 const HasShownWelcomeFlowKey = 'has-shown-welcome-flow'
-
-/** File statuses which indicate the file exists on disk. */
-const OnDiskStatuses = new Set([
-  FileStatus.New,
-  FileStatus.Modified,
-  FileStatus.Renamed,
-  FileStatus.Conflicted,
-])
-
-/**
- * File statuses which indicate the file has previously been committed to the
- * repository.
- */
-const CommittedStatuses = new Set([
-  FileStatus.Modified,
-  FileStatus.Deleted,
-  FileStatus.Renamed,
-  FileStatus.Conflicted,
-])
 
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
@@ -112,7 +92,7 @@ export class AppStore {
   private currentPopup: Popup | null = null
   private currentFoldout: Foldout | null = null
 
-  private errors: ReadonlyArray<IAppError> = new Array<IAppError>()
+  private errors: ReadonlyArray<Error> = new Array<Error>()
 
   private emitQueued = false
 
@@ -173,7 +153,7 @@ export class AppStore {
       this.emitUpdate()
     })
 
-    this.cloningRepositoriesStore.onDidError(e => this._postError(e))
+    this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
     const rootDir = getAppPath()
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
@@ -192,6 +172,15 @@ export class AppStore {
 
   public onDidUpdate(fn: (state: IAppState) => void): Disposable {
     return this.emitter.on('did-update', fn)
+  }
+
+  private emitError(error: Error) {
+    this.emitter.emit('did-error', error)
+  }
+
+  /** Register a listener for when an error occurs. */
+  public onDidError(fn: (error: Error) => void): Disposable {
+    return this.emitter.on('did-error', fn)
   }
 
   private getInitialRepositoryState(): IRepositoryState {
@@ -226,6 +215,7 @@ export class AppStore {
       aheadBehind: null,
       remote: null,
       pushPullInProgress: false,
+      isCommitting: false,
       lastFetched: null,
     }
   }
@@ -359,10 +349,10 @@ export class AppStore {
   private getGitStore(repository: Repository): GitStore {
     let gitStore = this.gitStores.get(repository.id)
     if (!gitStore) {
-      gitStore = new GitStore(repository)
+      gitStore = new GitStore(repository, shell)
       gitStore.onDidUpdate(() => this.onGitStoreUpdated(repository, gitStore!))
       gitStore.onDidLoadNewCommits(commits => this.onGitStoreLoadedCommits(repository, commits))
-      gitStore.onDidError(error => this._postError(error))
+      gitStore.onDidError(error => this.emitError(error))
 
       this.gitStores.set(repository.id, gitStore)
     }
@@ -517,6 +507,7 @@ export class AppStore {
       await this._refreshRepository(repository)
 
       this.startBackgroundFetching(repository)
+      this.refreshMentionables(repository)
     } else {
       return Promise.resolve()
     }
@@ -540,6 +531,16 @@ export class AppStore {
       backgroundFetcher.stop()
       this.currentBackgroundFetcher = null
     }
+  }
+
+  private refreshMentionables(repository: Repository) {
+    const user = this.getUserForRepository(repository)
+    if (!user) { return }
+
+    const gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) { return }
+
+    this.gitHubUserStore.updateMentionables(gitHubRepository, user)
   }
 
   private startBackgroundFetching(repository: Repository) {
@@ -737,15 +738,19 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
+
     const state = this.getRepositoryState(repository)
     const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
     const gitStore = this.getGitStore(repository)
-    const result = await gitStore.performFailableOperation(() => {
-      const commitMessage = formatCommitMessage(message)
-      return createCommit(repository, commitMessage, files)
+
+    const result = await this.isCommitting(repository, () => {
+      return gitStore.performFailableOperation(() => {
+        const commitMessage = formatCommitMessage(message)
+        return createCommit(repository, commitMessage, files)
+      })
     })
 
     if (result) {
@@ -973,7 +978,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _postError(error: IAppError): Promise<void> {
+  public _pushError(error: Error): Promise<void> {
     const newErrors = Array.from(this.errors)
     newErrors.push(error)
     this.errors = newErrors
@@ -983,7 +988,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clearError(error: IAppError): Promise<void> {
+  public _clearError(error: Error): Promise<void> {
     this.errors = this.errors.filter(e => e !== error)
     this.emitUpdate()
 
@@ -996,7 +1001,7 @@ export class AppStore {
       const gitDir = await getGitDir(path)
       return gitDir ? Path.dirname(gitDir) : null
     } catch (e) {
-      this._postError(e)
+      this.emitError(e)
       return null
     }
   }
@@ -1056,6 +1061,22 @@ export class AppStore {
         })
       }
     })
+  }
+
+  private async isCommitting(repository: Repository, fn: () => Promise<boolean>): Promise<boolean | void> {
+    const state = this.getRepositoryState(repository)
+    // ensure the user doesn't try and commit again
+    if (state.isCommitting) { return }
+
+    this.updateRepositoryState(repository, state => ({ isCommitting: true }))
+    this.emitUpdate()
+
+    try {
+      return await fn()
+    } finally {
+      this.updateRepositoryState(repository, state => ({ isCommitting: false }))
+      this.emitUpdate()
+    }
   }
 
   private async withPushPull(repository: Repository, fn: () => Promise<void>): Promise<void> {
@@ -1166,18 +1187,8 @@ export class AppStore {
   }
 
   public async _discardChanges(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>) {
-    const onDiskFiles = files.filter(f => OnDiskStatuses.has(f.status))
-    const absolutePaths = onDiskFiles.map(f => Path.join(repository.path, f.path))
-    for (const path of absolutePaths) {
-      shell.moveItemToTrash(path)
-    }
-
-    const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
-
-    if (modifiedFiles.length) {
-      const gitStore = this.getGitStore(repository)
-      await gitStore.performFailableOperation(() => checkoutPaths(repository, modifiedFiles.map(f => f.path)))
-    }
+    const gitStore = this.getGitStore(repository)
+    await gitStore.discardChanges(files)
 
     return this._refreshRepository(repository)
   }

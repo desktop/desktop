@@ -18,13 +18,13 @@ import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
+import { defaultErrorHandler } from '../lib/dispatcher'
 
 import { getLogger } from '../lib/logging/renderer'
+import { installDevGlobals } from './install-globals'
 
 if (__DEV__) {
-  const g: any = global
-  // Expose GitPerf as a global so it can be started.
-  g.GitPerf = require('./lib/git-perf')
+  installDevGlobals()
 }
 
 const startTime = Date.now()
@@ -47,6 +47,7 @@ const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
 const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
 const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore, emojiStore, issuesStore, statsStore)
 const dispatcher = new Dispatcher(appStore)
+dispatcher.registerErrorHandler(defaultErrorHandler)
 
 dispatcher.loadInitialState().then(() => {
   const now = Date.now()
