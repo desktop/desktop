@@ -53,7 +53,7 @@ type IPCResponse<T> = IResult<T> | IError
  * If the returned {Promise} returns an error, it will be passed to the next
  * error handler. If it returns null, error propagation is halted.
  */
-type ErrorHandler = (error: Error, dispatcher: Dispatcher) => Promise<Error | null>
+export type ErrorHandler = (error: Error, dispatcher: Dispatcher) => Promise<Error | null>
 
 /**
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
