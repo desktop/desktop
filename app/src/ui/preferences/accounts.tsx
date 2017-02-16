@@ -1,14 +1,17 @@
 import * as React from 'react'
 import { User } from '../../models/user'
-import { Dispatcher } from '../../lib/dispatcher'
 import { Button } from '../lib/button'
+import { Row } from '../lib/row'
 import { assertNever } from '../../lib/fatal-error'
 import { DialogContent } from '../dialog'
 
 interface IAccountsProps {
-  readonly dispatcher: Dispatcher
   readonly dotComUser: User | null
   readonly enterpriseUser: User | null
+
+  readonly onDotComSignIn: () => void
+  readonly onEnterpriseSignIn: () => void
+  readonly onLogout: (user: User) => void
 }
 
 enum SignInType {
@@ -19,7 +22,7 @@ enum SignInType {
 export class Accounts extends React.Component<IAccountsProps, void> {
   public render() {
     return (
-      <DialogContent>
+      <DialogContent className='accounts-tab'>
         <h2>GitHub.com</h2>
         {this.props.dotComUser ? this.renderUser(this.props.dotComUser) : this.renderSignIn(SignInType.DotCom)}
 
@@ -39,13 +42,40 @@ export class Accounts extends React.Component<IAccountsProps, void> {
     )
   }
 
+  private onDotComSignIn = (event: React.FormEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    this.props.onDotComSignIn()
+  }
+
+  private onEnterpriseSignIn = (event: React.FormEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    this.props.onEnterpriseSignIn()
+  }
+
   private renderSignIn(type: SignInType) {
     switch (type) {
       case SignInType.DotCom: {
-        return <Button>Sign in to GitHub.com</Button>
+
+        return (
+          <Row className='account-sign-in'>
+            <div>
+              Sign in to your GitHub.com account to access your
+              repositories
+            </div>
+            <Button type='submit' onClick={this.onDotComSignIn}>Sign in</Button>
+          </Row>
+        )
       }
       case SignInType.Enterprise:
-        return <Button>Sign in to GitHub Enterprise</Button>
+        return (
+          <Row className='account-sign-in'>
+            <div>
+              If you have a GitHub Enterprise account at work, sign in to it
+              to get access to your repositories.
+            </div>
+            <Button type='submit' onClick={this.onEnterpriseSignIn}>Sign in</Button>
+          </Row>
+        )
       default:
         return assertNever(type, `Unknown sign in type: ${type}`)
     }
@@ -53,7 +83,7 @@ export class Accounts extends React.Component<IAccountsProps, void> {
 
   private logout = (user: User) => {
     return () => {
-      this.props.dispatcher.removeUser(user)
+      this.props.onLogout(user)
     }
   }
 }
