@@ -553,4 +553,9 @@ export class Dispatcher {
     await this.appStore._beginDotComSignIn()
     await this.appStore._showPopup({ type: PopupType.SignIn })
   }
+
+  public async showEnterpriseSignInDialog(): Promise<void> {
+    await this.appStore._beginEnterpriseSignIn()
+    await this.appStore._showPopup({ type: PopupType.SignIn })
+  }
 }
