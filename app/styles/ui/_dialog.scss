@@ -166,6 +166,17 @@ dialog {
         margin-bottom: 0;
       }
     }
+
+    h2 {
+      font-weight: var(--font-weight-light);
+      font-size: var(--font-size-md);
+      margin-top: 0;
+      margin-bottom: var(--spacing-half);
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
   }
 
   .dialog-footer {
@@ -236,6 +247,19 @@ dialog {
 
       max-height: 400px;
       overflow-y: auto;
+    }
+  }
+
+  &#preferences .accounts-tab {
+    max-width: 400px;
+
+    .account-sign-in {
+      button {
+        flex-shrink: 0;
+        flex-grow: 0;
+        align-self: flex-start;
+        width: 120px;
+      }
     }
   }
 }
