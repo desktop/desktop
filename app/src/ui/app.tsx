@@ -577,8 +577,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         branches={state.branchesState.allBranches}
         onDismissed={this.onPopupDismissed}
       />
-    }
-    else if (popup.type === PopupType.RepositorySettings) {
+    } else if (popup.type === PopupType.RepositorySettings) {
       const repository = popup.repository
       const state = this.props.appStore.getRepositoryState(repository)
 
