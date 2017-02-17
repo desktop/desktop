@@ -160,6 +160,13 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
       return
     }
 
+    // This event handler catches the onClick event of buttons in the
+    // dialog. Ie, if someone hits enter inside the dialog form the submit
+    // button will be 
+    if (e.target !== this.dialogElement) {
+      return
+    }
+
     // Figure out if the user clicked on the backdrop or in the dialog itself.
     const rect = e.currentTarget.getBoundingClientRect()
 
