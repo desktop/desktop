@@ -58,8 +58,8 @@ function usernameNexus(str: string, i: number, linkClicked?: LinkEventHandler): 
       return null
     }
 
+    const innerKey = `${i}-${j}`
     if (fragment.startsWith('@')) {
-      const innerKey = `${i}-${j}`
       const user = fragment.substr(1)
       return <a
         key={innerKey}
@@ -69,7 +69,6 @@ function usernameNexus(str: string, i: number, linkClicked?: LinkEventHandler): 
           {fragment}
         </a>
     } else if (fragment.startsWith('#')) {
-      const innerKey = `${i}-${j}`
       const id = parseInt(fragment.substr(1), 10)
       return <a
         key={innerKey}
