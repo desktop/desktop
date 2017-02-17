@@ -10,12 +10,15 @@ interface IMissingRepositoryProps {
   readonly repository: Repository
 }
 
+/** The view displayed when a repository is missing. */
 export class MissingRepository extends React.Component<IMissingRepositoryProps, void> {
   public render() {
     return (
       <UiView id='missing-repository-view'>
-        <h1>Can't find "{this.props.repository.name}"</h1>
-        <Button onClick={this.remove}>Remove</Button>
+        <div className='title-container'>
+          <div className='title'>Can't find "{this.props.repository.name}"</div>
+          <div className='details'>It was last seen at {this.props.repository.path}</div>
+        </div>
       </UiView>
     )
   }
