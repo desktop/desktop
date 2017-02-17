@@ -15,13 +15,13 @@ interface IMissingRepositoryProps {
 export class MissingRepository extends React.Component<IMissingRepositoryProps, void> {
   public render() {
     const buttons = new Array<JSX.Element>()
-    buttons.push(<Button onClick={this.locate}>Locate…</Button>)
+    buttons.push(<Button key='locate' onClick={this.locate}>Locate…</Button>)
 
     if (this.canCloneAgain()) {
-      buttons.push(<Button onClick={this.cloneAgain}>Clone Again</Button>)
+      buttons.push(<Button key='clone-again' onClick={this.cloneAgain}>Clone Again</Button>)
     }
 
-    buttons.push(<Button onClick={this.remove}>Remove</Button>)
+    buttons.push(<Button key='remove' onClick={this.remove}>Remove</Button>)
 
     return (
       <UiView id='missing-repository-view'>
