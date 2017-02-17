@@ -31,7 +31,7 @@ export class Repository implements IRepository {
     }
   }
 
-  public constructor(path: string, id: number, gitHubRepository: GitHubRepository | null = null, missing: boolean = false) {
+  public constructor(path: string, id: number, gitHubRepository: GitHubRepository | null, missing: boolean) {
     this.path = path
     this.gitHubRepository = gitHubRepository
     this.id = id
