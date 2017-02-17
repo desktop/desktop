@@ -71,4 +71,23 @@
       @include ellipsis;
     }
   }
+
+  .user {
+    display: flex;
+    flex-grow: 1;
+
+    height: 100%;
+    width: 100%;
+
+    .username {
+      font-weight: var(--font-weight-semibold);
+      margin-right: var(--spacing-half);
+    }
+
+    .name {
+      @include ellipsis;
+
+      color: var(--text-secondary-color);
+    }
+  }
 }
