@@ -11,7 +11,7 @@ export async function defaultErrorHandler(error: Error, dispatcher: Dispatcher):
 }
 
 /** Create a new missing repository error handler with the given AppStore. */
-export function missingRepositoryHandler(appStore: AppStore): ErrorHandler {
+export function createMissingRepositoryHandler(appStore: AppStore): ErrorHandler {
   return async (error: Error, dispatcher: Dispatcher) => {
     const appState = appStore.getState()
     const selectedState = appState.selectedState
