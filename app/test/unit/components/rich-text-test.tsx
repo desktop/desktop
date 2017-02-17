@@ -11,8 +11,10 @@ describe('RichText', () => {
   const emoji = new Map<string, string>([ [ ':shipit:', '/some/path.png' ] ])
 
   describe('with GitHub repository', () => {
+
+    const linkClicked = () => { }
+
     it('renders emoji when matched', () => {
-      const linkClicked = () => { }
       const children = 'releasing the thing :shipit:'
 
       const wrapper = shallow(
@@ -24,7 +26,6 @@ describe('RichText', () => {
     })
 
     it('skips emoji when no match exists', () => {
-      const linkClicked = () => { }
       const children = 'releasing the thing :unknown:'
 
       const wrapper = shallow(
@@ -37,7 +38,6 @@ describe('RichText', () => {
 
 
     it('renders hyperlink when a mention is found', () => {
-      const linkClicked = () => { }
       const children = 'fixed based on suggestion from @shiftkey'
 
       const wrapper = shallow(
@@ -49,7 +49,6 @@ describe('RichText', () => {
     })
 
     it('renders hyperlink when an issue reference is found', () => {
-      const linkClicked = () => { }
       const children = 'Merge pull request #955 from desktop/computering-icons-for-all'
 
       const wrapper = shallow(
