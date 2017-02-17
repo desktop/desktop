@@ -540,58 +540,57 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private currentPopupContent(): JSX.Element | null {
-
     // Hide any dialogs while we're displaying an error
-    if (this.state.errors.length) {
-      return null
-    }
+    if (this.state.errors.length) { return null }
 
     const popup = this.state.currentPopup
+
     if (!popup) { return null }
 
-    if (popup.type === PopupType.RenameBranch) {
-      return <RenameBranch dispatcher={this.props.dispatcher}
-                           repository={popup.repository}
-                           branch={popup.branch}/>
-    } else if (popup.type === PopupType.DeleteBranch) {
-      return <DeleteBranch dispatcher={this.props.dispatcher}
-                           repository={popup.repository}
-                           branch={popup.branch}
-                           onDismissed={this.onPopupDismissed}/>
-    } else if (popup.type === PopupType.ConfirmDiscardChanges) {
-      return <DiscardChanges repository={popup.repository}
-                             dispatcher={this.props.dispatcher}
-                             files={popup.files}
+    switch (popup.type) {
+      case PopupType.RenameBranch:
+        return <RenameBranch dispatcher={this.props.dispatcher}
+                             repository={popup.repository}
+                             branch={popup.branch}/>
+      case PopupType.DeleteBranch:
+        return <DeleteBranch dispatcher={this.props.dispatcher}
+                             repository={popup.repository}
+                             branch={popup.branch}
                              onDismissed={this.onPopupDismissed}/>
-    } else if (popup.type === PopupType.UpdateAvailable) {
-      return <UpdateAvailable dispatcher={this.props.dispatcher}/>
-    } else if (popup.type === PopupType.Preferences) {
-      return <Preferences
-        dispatcher={this.props.dispatcher}
-        dotComUser={this.getDotComUser()}
-        enterpriseUser={this.getEnterpriseUser()}
-        onDismissed={this.onPopupDismissed}/>
-    } else if (popup.type === PopupType.MergeBranch) {
-      const repository = popup.repository
-      const state = this.props.appStore.getRepositoryState(repository)
-      return <Merge
-        dispatcher={this.props.dispatcher}
-        repository={repository}
-        branches={state.branchesState.allBranches}
-        onDismissed={this.onPopupDismissed}
-      />
-    }
-    else if (popup.type === PopupType.RepositorySettings) {
-      const repository = popup.repository
-      const state = this.props.appStore.getRepositoryState(repository)
+      case PopupType.ConfirmDiscardChanges:
+        return <DiscardChanges repository={popup.repository}
+                               dispatcher={this.props.dispatcher}
+                               files={popup.files}
+                               onDismissed={this.onPopupDismissed}/>
+      case PopupType.UpdateAvailable:
+        return <UpdateAvailable dispatcher={this.props.dispatcher}/>
+      case PopupType.Preferences:
+        return <Preferences dispatcher={this.props.dispatcher}
+                            dotComUser={this.getDotComUser()}
+                            enterpriseUser={this.getEnterpriseUser()}
+                            onDismissed={this.onPopupDismissed}/>
+      case PopupType.MergeBranch: {
+        const repository = popup.repository
+        const state = this.props.appStore.getRepositoryState(repository)
 
-      return <RepositorySettings
-        remote={state.remote}
-        dispatcher={this.props.dispatcher}
-        repository={repository}
-        onDismissed={this.onPopupDismissed}
-      />
+        return <Merge dispatcher={this.props.dispatcher}
+                      repository={repository}
+                      branches={state.branchesState.allBranches}
+                      onDismissed={this.onPopupDismissed} />
+      }
+      case PopupType.RepositorySettings: {
+        const repository = popup.repository
+        const state = this.props.appStore.getRepositoryState(repository)
+
+        return <RepositorySettings remote={state.remote}
+                                   dispatcher={this.props.dispatcher}
+                                   repository={repository}
+                                   onDismissed={this.onPopupDismissed} />
+      }
+      default:
+        return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)
   }
