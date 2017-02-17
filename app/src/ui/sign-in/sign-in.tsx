@@ -1,7 +1,17 @@
 import * as React from 'react'
-import { Dispatcher, SignInStep, Step, IEndpointEntryStep, IAuthenticationStep, ITwoFactorAuthenticationStep } from '../../lib/dispatcher'
+import {
+  Dispatcher,
+  SignInStep,
+  Step,
+  IEndpointEntryStep,
+  IAuthenticationStep,
+  ITwoFactorAuthenticationStep,
+  AuthenticationMethods,
+} from '../../lib/dispatcher'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
+import { LinkButton } from '../lib/link-button'
+import { Octicon, OcticonSymbol } from '../octicons'
 import { Row } from '../lib/row'
 import { TextBox } from '../lib/text-box'
 import { ButtonGroup } from '../lib/button-group'
@@ -55,7 +65,11 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         this.props.dispatcher.setSignInEndpoint(this.state.endpoint)
         break
       case Step.Authentication:
-        this.props.dispatcher.setSignInCredentials(this.state.username, this.state.password)
+        if (state.authMethods.has(AuthenticationMethods.OAuth) && !state.authMethods.has(AuthenticationMethods.BasicAuth)) {
+          this.props.dispatcher.requestBrowserAuthentication()
+        } else {
+          this.props.dispatcher.setSignInCredentials(this.state.username, this.state.password)
+        }
         break
       case Step.TwoFactorAuthentication:
         this.props.dispatcher.setSignInOTP(this.state.otpToken)
@@ -84,6 +98,10 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     this.setState({ otpToken })
   }
 
+  private onSignInWithBrowser = () => {
+    this.props.dispatcher.requestBrowserAuthentication()
+  }
+
   private renderErrors() {
     if (!this.props.signInState || this.props.signInState.kind === Step.Success || !this.props.signInState.error) {
       return null
@@ -110,8 +128,14 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         primaryButtonText = 'Continue'
         break
       case Step.TwoFactorAuthentication:
-      case Step.Authentication:
         primaryButtonText = 'Sign in'
+        break
+      case Step.Authentication:
+        if (state.authMethods.has(AuthenticationMethods.OAuth) && !state.authMethods.has(AuthenticationMethods.BasicAuth)) {
+          primaryButtonText = 'Continue with browser'
+        } else {
+          primaryButtonText = 'Sign in'
+        }
         break
       default:
         return assertNever(state, `Unknown sign in step ${stepKind}`)
@@ -141,7 +165,38 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     )
   }
 
+  private renderSignInWithBrowser() {
+    return (
+      <div>
+        <Row>
+          <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div>
+        </Row>
+        <Row>
+          <LinkButton onClick={this.onSignInWithBrowser}>
+            Sign in using your browser
+            <Octicon symbol={OcticonSymbol.linkExternal} />
+          </LinkButton>
+        </Row>
+      </div>
+    )
+  }
+
   private renderAuthenticationStep(step: IAuthenticationStep) {
+
+    if (step.authMethods.has(AuthenticationMethods.OAuth) && !step.authMethods.has(AuthenticationMethods.BasicAuth)) {
+      return (
+        <DialogContent>
+          <p>
+            Your GitHub Enterprise instance requires you to sign in with your browser.
+          </p>
+        </DialogContent>
+      )
+    }
+
+    const signInWithBrowser = step.authMethods.has(AuthenticationMethods.OAuth)
+      ? this.renderSignInWithBrowser()
+      : null
+
     return (
       <DialogContent>
         <Row>
@@ -158,6 +213,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             onValueChanged={this.onPasswordChanged}
           />
         </Row>
+        {signInWithBrowser}
       </DialogContent>
     )
   }
