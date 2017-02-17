@@ -11,7 +11,7 @@ export interface IUserClick {
 
 export interface IIssueClick {
   readonly kind: LinkType.Issue
-  readonly number: number
+  readonly id: number
 }
 
 export type ILinkClicked = IUserClick | IIssueClick

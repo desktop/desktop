@@ -274,7 +274,7 @@ export class AppStore {
         if (event.kind === LinkType.User) {
           console.log(`TODO: resolve for user ${event.user} on ${endpoint}`)
         } else if (event.kind === LinkType.Issue) {
-          console.log(`TODO: resolve for issue ${event.number}`)
+          console.log(`TODO: resolve for issue ${event.id}`)
         } else {
           assertNever(event, `Unknown event: ${event}`)
         }

@@ -4,7 +4,7 @@ import { LinkEventHandler, LinkType } from './link-handler'
 
 const EmojiRegex = /(:.*?:)/g
 // TODO: refine this regex so email addresses are skipped
-const UsernameRegex = /(@[a-zA-Z0-9\-]*)/g
+const UsernameOrIssueRegex = /(@[a-zA-Z0-9\-]*)|(#[0-9]{1,})/g
 
 interface IRichTextProps {
   readonly className?: string
@@ -51,8 +51,13 @@ function usernameNexus(str: string, i: number, linkClicked?: LinkEventHandler): 
   if (linkClicked === undefined) {
     return [ str ]
   } else {
-  const pieces = str.split(UsernameRegex)
-  return pieces.map((fragment, j) => {
+  const pieces = str.split(UsernameOrIssueRegex)
+
+  const transform = pieces.map((fragment, j) => {
+    if (fragment === undefined || fragment === '') {
+      return null
+    }
+
     if (fragment.startsWith('@')) {
       const innerKey = `${i}-${j}`
       const user = fragment.substr(1)
@@ -63,9 +68,29 @@ function usernameNexus(str: string, i: number, linkClicked?: LinkEventHandler): 
         title={user}>
           {fragment}
         </a>
+    } else if (fragment.startsWith('#')) {
+      const innerKey = `${i}-${j}`
+      const id = parseInt(fragment.substr(1), 10)
+      return <a
+        key={innerKey}
+        className='issue'
+        onClick={() => linkClicked({ kind: LinkType.Issue, id })}>
+          {fragment}
+        </a>
     } else {
       return fragment
     }
   })
+
+  // TODO: this is terrible, why are you failing me TYPES?
+  const newArray: Array<string | JSX.Element> = [ ]
+
+  for (const elem of transform) {
+    if (elem !== null) {
+      newArray.push(elem)
+    }
+  }
+
+  return newArray
   }
 }
