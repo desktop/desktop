@@ -140,6 +140,7 @@ export class GitHubUserStore {
           login: apiCommit.author.login,
           avatarURL: apiCommit.author.avatarUrl,
           endpoint: user.endpoint,
+          name: apiCommit.author.name,
         }
       }
     }
@@ -151,6 +152,7 @@ export class GitHubUserStore {
         login: matchingUser.login,
         avatarURL: matchingUser.avatarUrl,
         endpoint: user.endpoint,
+        name: matchingUser.name,
       }
     }
 
@@ -254,6 +256,60 @@ export class GitHubUserStore {
         }
       }
     })
+  }
+
+  /** Get the mentionable users in the repository. */
+  public async getMentionableUsers(repository: GitHubRepository): Promise<ReadonlyArray<IGitHubUser>> {
+    const repositoryID = repository.dbID
+    if (!repositoryID) {
+      return fatalError(`Cannot get mentionables for a repository that hasn't been cached yet.`)
+    }
+
+    const users = new Array<IGitHubUser>()
+    const db = this.database
+    await this.database.transaction('r', this.database.mentionables, this.database.users, function*() {
+      const associations: ReadonlyArray<IMentionableAssociation> = yield db.mentionables
+        .where('repositoryID')
+        .equals(repositoryID)
+        .toArray()
+
+      for (const association of associations) {
+        const user = yield db.users.get(association.userID)
+        if (user) {
+          users.push(user)
+        }
+      }
+    })
+
+    return users
+  }
+
+  /** Get the mentionable users which match the text in some way. */
+  public async getMentionableUsersMatching(repository: GitHubRepository, text: string): Promise<ReadonlyArray<IGitHubUser>> {
+    const users = await this.getMentionableUsers(repository)
+
+    const MaxScore = 1
+    const score = (u: IGitHubUser) => {
+      const login = u.login
+      if (login && login.toLowerCase().startsWith(text.toLowerCase())) {
+        return MaxScore
+      }
+
+      // `name` shouldn't even be `undefined` going forward, but older versions
+      // of the user cache didn't persist `name`. The `GitHubUserStore` will fix
+      // that, but autocompletions could be requested before that happens. So we
+      // need to check here even though the type says its superfluous.
+      const name = u.name
+      if (name && name.toLowerCase().includes(text.toLowerCase())) {
+        return MaxScore - 0.1
+      }
+
+      return 0
+    }
+
+    return users
+      .filter(u => score(u) > 0)
+      .sort((a, b) => score(b) - score(a))
   }
 }
 
