@@ -25,7 +25,7 @@ export class RepositoriesStore {
     const inflatedRepos: Repository[] = []
     const db = this.db
     const transaction = this.db.transaction('r', this.db.repositories, this.db.gitHubRepositories, this.db.owners, function*(){
-      const repos = yield db.repositories.toArray()
+      const repos: ReadonlyArray<IDatabaseRepository> = yield db.repositories.toArray()
       for (const repo of repos) {
         let inflatedRepo: Repository | null = null
         if (repo.gitHubRepositoryID) {
