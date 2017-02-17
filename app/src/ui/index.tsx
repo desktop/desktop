@@ -70,7 +70,7 @@ ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(arg
 
 ipcRenderer.on('focus', () => {
   const state = appStore.getState().selectedState
-  if (!state || state.type === SelectionType.CloningRepository) { return }
+  if (!state || state.type !== SelectionType.Repository) { return }
 
   dispatcher.refreshRepository(state.repository)
 })
