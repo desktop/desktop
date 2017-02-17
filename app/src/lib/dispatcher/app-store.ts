@@ -507,15 +507,17 @@ export class AppStore {
     if (repository instanceof Repository) {
       localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
 
-      const gitHubRepository = repository.gitHubRepository
-      if (gitHubRepository) {
-        this._updateIssues(gitHubRepository)
+      if (!repository.missing) {
+        const gitHubRepository = repository.gitHubRepository
+        if (gitHubRepository) {
+          this._updateIssues(gitHubRepository)
+        }
+
+        await this._refreshRepository(repository)
+
+        this.startBackgroundFetching(repository)
+        this.refreshMentionables(repository)
       }
-
-      await this._refreshRepository(repository)
-
-      this.startBackgroundFetching(repository)
-      this.refreshMentionables(repository)
     } else {
       return Promise.resolve()
     }
