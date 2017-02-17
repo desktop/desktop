@@ -62,8 +62,6 @@ import {
 } from '../git'
 
 import { openShell } from '../open-shell'
-import { GitError } from '../git/core'
-import { GitError as GitErrorType } from 'git-kitchen-sink'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
 
