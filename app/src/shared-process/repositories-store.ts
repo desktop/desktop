@@ -32,9 +32,9 @@ export class RepositoriesStore {
           const gitHubRepository = yield db.gitHubRepositories.get(repo.gitHubRepositoryID)
           const owner = yield db.owners.get(gitHubRepository.ownerID)
           const gitHubRepo = new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint), gitHubRepository.id, gitHubRepository.private, gitHubRepository.fork, gitHubRepository.htmlURL, gitHubRepository.defaultBranch)
-          inflatedRepo = new Repository(repo.path, repo.id, gitHubRepo)
+          inflatedRepo = new Repository(repo.path, repo.id!, gitHubRepo, repo.missing)
         } else {
-          inflatedRepo = new Repository(repo.path, repo.id)
+          inflatedRepo = new Repository(repo.path, repo.id!, null, repo.missing)
         }
         inflatedRepos.push(inflatedRepo)
       }
@@ -60,7 +60,7 @@ export class RepositoriesStore {
       const id = existing.id!
 
       if (!existing.gitHubRepositoryID) {
-        repository = new Repository(path, id)
+        repository = new Repository(path, id, null, false)
         return
       }
 
@@ -69,7 +69,7 @@ export class RepositoriesStore {
 
       const owner = new Owner(dbOwner.login, dbOwner.endpoint)
       const gitHubRepo = new GitHubRepository(dbRepo.name, owner, existing.gitHubRepositoryID, dbRepo.private, dbRepo.fork, dbRepo.htmlURL, dbRepo.defaultBranch)
-      repository = new Repository(path, id, gitHubRepo)
+      repository = new Repository(path, id, gitHubRepo, false)
     })
 
     await transaction
@@ -83,7 +83,7 @@ export class RepositoriesStore {
       gitHubRepositoryID: null,
       missing: false,
     })
-    return new Repository(path, id)
+    return new Repository(path, id, null, false)
   }
 
   public async removeRepository(repoID: number): Promise<void> {
