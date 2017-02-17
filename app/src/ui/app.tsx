@@ -33,6 +33,7 @@ import { shouldRenderApplicationMenu } from './lib/features'
 import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
+import { SignIn } from './lib/sign-in'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -587,11 +588,16 @@ export class App extends React.Component<IAppProps, IAppState> {
                                    repository={repository}
                                    onDismissed={this.onPopupDismissed} />
       }
+      case PopupType.Signin:
+        return <SignIn endpoint={getDotComAPIEndpoint()}
+                       onDidSignIn={this.onDidSignin} />
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
   }
 
+  private onDidSignin = async (user: User) => {
+    await this.props.dispatcher.addUser(user)
   }
 
   private renderPopup() {
