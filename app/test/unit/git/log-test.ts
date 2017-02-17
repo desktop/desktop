@@ -14,7 +14,7 @@ describe('git/log', () => {
 
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
-    repository = new Repository(testRepoPath, -1, null)
+    repository = new Repository(testRepoPath, -1, null, false)
   })
 
   after(() => {
@@ -42,7 +42,7 @@ describe('git/log', () => {
 
     it('detects renames', async () => {
       const testRepoPath = setupFixtureRepository('rename-history-detection')
-      repository = new Repository(testRepoPath, -1, null)
+      repository = new Repository(testRepoPath, -1, null, false)
 
       const first = await getChangedFiles(repository, '55bdecb')
       expect(first.length).to.equal(1)
@@ -59,7 +59,7 @@ describe('git/log', () => {
 
     it('detect copies', async () => {
       const testRepoPath = setupFixtureRepository('copies-history-detection')
-      repository = new Repository(testRepoPath, -1, null)
+      repository = new Repository(testRepoPath, -1, null, false)
 
       // ensure the test repository is configured to detect copies
       await GitProcess.exec([ 'config', 'diff.renames', 'copies' ], repository.path)

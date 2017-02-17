@@ -43,5 +43,5 @@ export async function setupEmptyRepository(): Promise<Repository> {
   const repoPath = temp.mkdirSync('desktop-empty-repo-')
   await GitProcess.exec([ 'init' ], repoPath)
 
-  return new Repository(repoPath, -1, null)
+  return new Repository(repoPath, -1, null, false)
 }
