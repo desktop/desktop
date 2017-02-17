@@ -236,9 +236,8 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
         ref={this.onDialogRef}
         id={this.props.id}
         onClick={this.onDialogClick}
-        className={className}
-        autoFocus>
-          <form onSubmit={this.onSubmit}>
+        className={className}>
+          <form onSubmit={this.onSubmit} autoFocus>
             <fieldset disabled={this.props.disabled}>
               {this.renderHeader()}
               {this.props.children}
