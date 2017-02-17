@@ -23,7 +23,7 @@ export function missingRepositoryHandler(appStore: AppStore): ErrorHandler {
       error instanceof GitError && error.result.gitError === GitErrorType.NotAGitRepository
 
     if (missing) {
-      dispatcher.updateRepositoryMissing(selectedState.repository, true)
+      await dispatcher.updateRepositoryMissing(selectedState.repository, true)
       return null
     }
 
