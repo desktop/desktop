@@ -592,7 +592,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-    return assertNever(popup, `Unknown popup type: ${popup}`)
   }
 
   private renderPopup() {
