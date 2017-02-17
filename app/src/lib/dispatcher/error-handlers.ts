@@ -15,8 +15,17 @@ export function missingRepositoryHandler(appStore: AppStore): ErrorHandler {
   return async (error: Error, dispatcher: Dispatcher) => {
     const appState = appStore.getState()
     const selectedState = appState.selectedState
-    if (!selectedState || selectedState.type !== SelectionType.Repository) {
+    if (!selectedState) {
       return error
+    }
+
+    if (selectedState.type !== SelectionType.MissingRepository && selectedState.type !== SelectionType.Repository) {
+      return error
+    }
+
+    const repository = selectedState.repository
+    if (repository.missing) {
+      return null
     }
 
     const missing =
