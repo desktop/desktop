@@ -47,7 +47,7 @@ export class MissingRepository extends React.Component<IMissingRepositoryProps, 
   }
 
   private locate = () => {
-
+    this.props.dispatcher.relocateRepository(this.props.repository)
   }
 
   private cloneAgain = () => {

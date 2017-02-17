@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 import { Disposable } from 'event-kit'
 import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
@@ -575,5 +575,18 @@ export class Dispatcher {
         this.errorHandlers.splice(i, 1)
       }
     })
+  }
+
+  public relocateRepository(repository: Repository): Promise<void> {
+    const directories = remote.dialog.showOpenDialog({
+      properties: [ 'openDirectory' ],
+    })
+
+    // TODO: Update repository path and missing status
+    if (directories && directories.length > 0) {
+      this.addRepositories(directories)
+    }
+
+    return Promise.resolve()
   }
 }
