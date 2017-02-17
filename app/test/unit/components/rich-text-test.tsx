@@ -32,7 +32,7 @@ describe('RichText', () => {
         <RichText emoji={emoji} children={children} linkClicked={linkClicked} />
       )
 
-      const links = wrapper.find('.username')
+      const links = wrapper.find('.emoji')
       expect(links.length).to.equal(0)
     })
 
@@ -79,7 +79,7 @@ describe('RichText', () => {
         <RichText emoji={emoji} children={children} />
       )
 
-      const links = wrapper.find('.username')
+      const links = wrapper.find('.emoji')
       expect(links.length).to.equal(0)
     })
     it('does not render hyperlink for mention', () => {
