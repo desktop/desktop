@@ -587,15 +587,14 @@ export class AppStore {
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
     if (selectedRepository) {
-      const i = this.repositories.findIndex(r => {
-        return selectedRepository.constructor === r.constructor && r.id === selectedRepository.id
-      })
-      if (i === -1) {
-        newSelectedRepository = null
-      }
+      const r = this.repositories.find(r =>
+        selectedRepository.constructor === r.constructor && r.id === selectedRepository.id
+      ) || null
+
+      newSelectedRepository = r
     }
 
-    if (!this.selectedRepository && this.repositories.length > 0) {
+    if (!newSelectedRepository && this.repositories.length > 0) {
       const lastSelectedID = parseInt(localStorage.getItem(LastSelectedRepositoryIDKey) || '', 10)
       if (lastSelectedID && !isNaN(lastSelectedID)) {
         newSelectedRepository = this.repositories.find(r => r.id === lastSelectedID) || null
@@ -606,9 +605,7 @@ export class AppStore {
       }
     }
 
-    if (newSelectedRepository !== selectedRepository) {
-      this._selectRepository(newSelectedRepository)
-    }
+    this._selectRepository(newSelectedRepository)
 
     this.sidebarWidth = parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) || defaultSidebarWidth
     this.commitSummaryWidth = parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) || defaultCommitSummaryWidth
