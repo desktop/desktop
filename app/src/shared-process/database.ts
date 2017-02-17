@@ -17,6 +17,7 @@ export interface IDatabaseGitHubRepository {
   readonly fork: boolean | null
   readonly htmlURL: string | null
   readonly defaultBranch: string | null
+  readonly cloneURL: string | null
 }
 
 export interface IDatabaseRepository {

@@ -29,9 +29,9 @@ export class RepositoriesStore {
       for (const repo of repos) {
         let inflatedRepo: Repository | null = null
         if (repo.gitHubRepositoryID) {
-          const gitHubRepository = yield db.gitHubRepositories.get(repo.gitHubRepositoryID)
+          const gitHubRepository: IDatabaseGitHubRepository = yield db.gitHubRepositories.get(repo.gitHubRepositoryID)
           const owner = yield db.owners.get(gitHubRepository.ownerID)
-          const gitHubRepo = new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint), gitHubRepository.id, gitHubRepository.private, gitHubRepository.fork, gitHubRepository.htmlURL, gitHubRepository.defaultBranch)
+          const gitHubRepo = new GitHubRepository(gitHubRepository.name, new Owner(owner.login, owner.endpoint), gitHubRepository.id!, gitHubRepository.private, gitHubRepository.fork, gitHubRepository.htmlURL, gitHubRepository.defaultBranch, gitHubRepository.cloneURL)
           inflatedRepo = new Repository(repo.path, repo.id!, gitHubRepo, repo.missing)
         } else {
           inflatedRepo = new Repository(repo.path, repo.id!, null, repo.missing)
@@ -64,11 +64,11 @@ export class RepositoriesStore {
         return
       }
 
-      const dbRepo = yield db.gitHubRepositories.get(existing.gitHubRepositoryID)
+      const dbRepo: IDatabaseGitHubRepository = yield db.gitHubRepositories.get(existing.gitHubRepositoryID)
       const dbOwner = yield db.owners.get(dbRepo.ownerID)
 
       const owner = new Owner(dbOwner.login, dbOwner.endpoint)
-      const gitHubRepo = new GitHubRepository(dbRepo.name, owner, existing.gitHubRepositoryID, dbRepo.private, dbRepo.fork, dbRepo.htmlURL, dbRepo.defaultBranch)
+      const gitHubRepo = new GitHubRepository(dbRepo.name, owner, existing.gitHubRepositoryID, dbRepo.private, dbRepo.fork, dbRepo.htmlURL, dbRepo.defaultBranch, dbRepo.cloneURL)
       repository = new Repository(path, id, gitHubRepo, false)
     })
 
@@ -153,6 +153,7 @@ export class RepositoriesStore {
         htmlURL: newGitHubRepo.htmlURL,
         name: newGitHubRepo.name,
         ownerID,
+        cloneURL: newGitHubRepo.cloneURL,
       }
 
       if (existingGitHubRepo) {
@@ -165,6 +166,6 @@ export class RepositoriesStore {
 
     await transaction
 
-    return repository.withGitHubRepository(new GitHubRepository(newGitHubRepo.name, newGitHubRepo.owner, gitHubRepositoryID!, newGitHubRepo.private, newGitHubRepo.fork, newGitHubRepo.htmlURL, newGitHubRepo.defaultBranch))
+    return repository.withGitHubRepository(new GitHubRepository(newGitHubRepo.name, newGitHubRepo.owner, gitHubRepositoryID!, newGitHubRepo.private, newGitHubRepo.fork, newGitHubRepo.htmlURL, newGitHubRepo.defaultBranch, newGitHubRepo.cloneURL))
   }
 }
