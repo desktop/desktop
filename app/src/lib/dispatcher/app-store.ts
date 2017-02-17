@@ -80,7 +80,7 @@ export class AppStore {
   private users: ReadonlyArray<User> = new Array<User>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
 
-  private selectedState: PossibleSelections | null = null
+  private selectedRepository: Repository | CloningRepository | null = null
 
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
@@ -262,6 +262,35 @@ export class AppStore {
     })
   }
 
+  private getSelectedState(): PossibleSelections | null {
+    const repository = this.selectedRepository
+    if (!repository) { return null }
+
+    if (repository instanceof Repository) {
+      if (repository.missing) {
+        return {
+          type: SelectionType.MissingRepository,
+          repository,
+        }
+      } else {
+        return {
+          type: SelectionType.Repository,
+          repository,
+          state: this.getRepositoryState(repository),
+        }
+      }
+    } else {
+      const cloningState = this.cloningRepositoriesStore.getRepositoryState(repository)
+      if (!cloningState) { return null }
+
+      return {
+        type: SelectionType.CloningRepository,
+        repository,
+        state: cloningState,
+      }
+    }
+  }
+
   public getState(): IAppState {
     return {
       users: this.users,
@@ -269,7 +298,7 @@ export class AppStore {
         ...this.repositories,
         ...this.cloningRepositoriesStore.repositories,
       ],
-      selectedState: this.selectedState,
+      selectedState: this.getSelectedState(),
       currentPopup: this.currentPopup,
       currentFoldout: this.currentFoldout,
       errors: this.errors,
@@ -465,39 +494,9 @@ export class AppStore {
     this.emitUpdate()
   }
 
-  private selectedStateForRepository(repository: Repository | CloningRepository | null): PossibleSelections | null {
-    if (!repository) { return null }
-
-    if (repository instanceof Repository) {
-      if (repository.missing) {
-        return {
-          type: SelectionType.MissingRepository,
-          repository,
-        }
-      } else {
-        return {
-          type: SelectionType.Repository,
-          repository,
-          state: this.getRepositoryState(repository),
-        }
-      }
-    } else if (repository instanceof CloningRepository) {
-      const cloningState = this.cloningRepositoriesStore.getRepositoryState(repository)
-      if (!cloningState) { return null }
-
-      return {
-        type: SelectionType.CloningRepository,
-        repository,
-        state: cloningState,
-      }
-    } else {
-      return assertNever(repository, `Unknown repository type: ${repository}`)
-    }
-  }
-
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _selectRepository(repository: Repository | CloningRepository | null): Promise<void> {
-    this.selectedState = this.selectedStateForRepository(repository)
+    this.selectedRepository = repository
     this.emitUpdate()
 
     this.stopBackgroundFetching()
@@ -585,8 +584,8 @@ export class AppStore {
       }
     }
 
-    const selectedRepository = this.selectedState && this.selectedState.repository
-    let newSelectedRepository: Repository | CloningRepository | null = selectedRepository
+    const selectedRepository = this.selectedRepository
+    let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
     if (selectedRepository) {
       const i = this.repositories.findIndex(r => {
         return selectedRepository.constructor === r.constructor && r.id === selectedRepository.id
@@ -596,7 +595,7 @@ export class AppStore {
       }
     }
 
-    if (!this.selectedState && this.repositories.length > 0) {
+    if (!this.selectedRepository && this.repositories.length > 0) {
       const lastSelectedID = parseInt(localStorage.getItem(LastSelectedRepositoryIDKey) || '', 10)
       if (lastSelectedID && !isNaN(lastSelectedID)) {
         newSelectedRepository = this.repositories.find(r => r.id === lastSelectedID) || null
