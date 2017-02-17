@@ -1,7 +1,26 @@
 import { Dispatcher, AppStore, ErrorHandler } from './index'
 import { SelectionType } from '../app-state'
 import { GitError } from '../git/core'
-import { GitError as GitErrorType } from 'git-kitchen-sink'
+import { GitError as GitErrorType, RepositoryDoesNotExistErrorCode } from 'git-kitchen-sink'
+
+/** An error which also has a code property. */
+interface IErrorWithCode extends Error {
+  readonly code: string
+}
+
+/**
+ * Cast the error to an error containing a code if it has a code. Otherwise
+ * return null.
+ */
+function asErrorWithCode(error: Error): IErrorWithCode | null {
+  const e = error as any
+  if (e.code) {
+    return e
+  } else {
+    return null
+  }
+}
+
 
 /** Handle errors by presenting them. */
 export async function defaultErrorHandler(error: Error, dispatcher: Dispatcher): Promise<Error | null> {
@@ -28,8 +47,11 @@ export function createMissingRepositoryHandler(appStore: AppStore): ErrorHandler
       return null
     }
 
+    const errorWithCode = asErrorWithCode(error)
+
     const missing =
-      error instanceof GitError && error.result.gitError === GitErrorType.NotAGitRepository
+      error instanceof GitError && error.result.gitError === GitErrorType.NotAGitRepository ||
+      (errorWithCode && errorWithCode.code === RepositoryDoesNotExistErrorCode)
 
     if (missing) {
       await dispatcher.updateRepositoryMissing(selectedState.repository, true)
