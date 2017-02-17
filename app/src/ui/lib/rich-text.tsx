@@ -50,46 +50,45 @@ function emojificationNexus(str: string, emoji: Map<string, string>, linkClicked
 function usernameNexus(str: string, i: number, linkClicked?: LinkEventHandler): ReadonlyArray<JSX.Element | string> {
   if (linkClicked === undefined) {
     return [ str ]
-  } else {
+  }
+
   const pieces = str.split(UsernameOrIssueRegex)
 
-  const transform = pieces.map((fragment, j) => {
-    if (fragment === undefined || fragment === '') {
-      return null
+  const results: Array<JSX.Element | string> = [ ]
+
+  for (let j = 0; j < pieces.length; j++) {
+    const fragment = pieces[j]
+
+    // because we are using an | to build up this regex here, we
+    // see undefined entries to represent matches for the "other"
+    // result. these can be safely ignored.
+    if (fragment === undefined) {
+      continue
     }
 
     const innerKey = `${i}-${j}`
+
     if (fragment.startsWith('@')) {
       const user = fragment.substr(1)
-      return <a
+      results.push(<a
         key={innerKey}
         className='username'
         onClick={() => linkClicked({ kind: LinkType.User, user })}
         title={user}>
           {fragment}
-        </a>
+        </a>)
     } else if (fragment.startsWith('#')) {
       const id = parseInt(fragment.substr(1), 10)
-      return <a
+      results.push(<a
         key={innerKey}
         className='issue'
         onClick={() => linkClicked({ kind: LinkType.Issue, id })}>
           {fragment}
-        </a>
+        </a>)
     } else {
-      return fragment
-    }
-  })
-
-  // TODO: this is terrible, why are you failing me TYPES?
-  const newArray: Array<string | JSX.Element> = [ ]
-
-  for (const elem of transform) {
-    if (elem !== null) {
-      newArray.push(elem)
+      results.push(fragment)
     }
   }
 
-  return newArray
-  }
+  return results
 }
