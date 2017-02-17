@@ -267,10 +267,17 @@ export class AppStore {
     if (!repository) { return null }
 
     if (repository instanceof Repository) {
-      return {
-        type: SelectionType.Repository,
-        repository,
-        state: this.getRepositoryState(repository),
+      if (repository.missing) {
+        return {
+          type: SelectionType.MissingRepository,
+          repository,
+        }
+      } else {
+        return {
+          type: SelectionType.Repository,
+          repository,
+          state: this.getRepositoryState(repository),
+        }
       }
     } else {
       const cloningState = this.cloningRepositoriesStore.getRepositoryState(repository)
