@@ -848,6 +848,8 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _refreshRepository(repository: Repository): Promise<void> {
+    if (repository.missing) { return }
+
     const state = this.getRepositoryState(repository)
     const gitStore = this.getGitStore(repository)
 
