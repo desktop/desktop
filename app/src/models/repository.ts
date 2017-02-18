@@ -51,6 +51,11 @@ export class Repository implements IRepository {
     return new Repository(this.path, this.id, this.gitHubRepository, missing)
   }
 
+  /** Create a new repository with a changed path. */
+  public withPath(path: string): Repository {
+    return new Repository(path, this.id, this.gitHubRepository, this.missing)
+  }
+
   public get name(): string {
     return path.basename(this.path)
   }
