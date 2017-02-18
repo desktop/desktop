@@ -577,16 +577,19 @@ export class Dispatcher {
     })
   }
 
-  public relocateRepository(repository: Repository): Promise<void> {
+  public async relocateRepository(repository: Repository): Promise<void> {
     const directories = remote.dialog.showOpenDialog({
       properties: [ 'openDirectory' ],
     })
 
-    // TODO: Update repository path and missing status
     if (directories && directories.length > 0) {
-      this.addRepositories(directories)
+      await this.updateRepositoryPath(repository, directories[0])
+      await this.updateRepositoryMissing(repository, false)
     }
+  }
 
-    return Promise.resolve()
+  /** Update the repository's path. */
+  private async updateRepositoryPath(repository: Repository, path: string): Promise<void> {
+    await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-path', repository, path })
   }
 }
