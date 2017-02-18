@@ -104,6 +104,20 @@ export class RepositoriesStore {
     return updatedRepository
   }
 
+  /** Update the repository's path. */
+  public async updateRepositoryPath(repository: Repository, path: string): Promise<Repository> {
+    const repoID = repository.id
+    if (!repoID) {
+      return fatalError('`updateRepositoryPath` can only update the path for a repository which has been added to the database.')
+    }
+
+    const updatedRepository = repository.withPath(path)
+    const gitHubRepositoryID = updatedRepository.gitHubRepository ? updatedRepository.gitHubRepository.dbID : null
+    await this.db.repositories.put({ ...updatedRepository, gitHubRepositoryID, gitHubRepository: undefined })
+
+    return updatedRepository
+  }
+
   /** Update or add the repository's GitHub repository. */
   public async updateGitHubRepository(repository: Repository): Promise<Repository> {
     const repoID = repository.id

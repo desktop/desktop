@@ -36,13 +36,21 @@ export interface IRemoveUserAction {
   readonly user: IUser
 }
 
+/** Change a repository's `missing` status. */
 export interface IUpdateRepositoryMissingAction {
   readonly name: 'update-repository-missing'
   readonly repository: IRepository
   readonly missing: boolean
 }
 
+/** Change a repository's path. */
+export interface IUpdateRepositoryPathAction {
+  readonly name: 'update-repository-path'
+  readonly repository: IRepository
+  readonly path: string
+}
+
 export type Action = IGetUsersAction | IGetRepositoriesAction |
                      IAddRepositoriesAction | IUpdateGitHubRepositoryAction |
                      IRemoveRepositoriesAction | IAddUserAction | IRemoveUserAction |
-                     IUpdateRepositoryMissingAction
+                     IUpdateRepositoryMissingAction | IUpdateRepositoryPathAction
