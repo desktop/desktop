@@ -308,7 +308,8 @@ export async function createAuthorization(endpoint: string, login: string, passw
 export async function fetchUser(endpoint: string, token: string): Promise<User | null> {
   const user = await get<IAPIUser>('user', { endpoint, token })
   if (user) {
-    return new User(user.login, endpoint, token, new Array<string>(), user.avatar_url, user.id, user.name)
+    const emails = await getAllPages<IAPIEmail>('user/emails', { endpoint, token })
+    return new User(user.login, endpoint, token, emails.map(e => e.email), user.avatar_url, user.id, user.name)
   } else {
     return null
   }
