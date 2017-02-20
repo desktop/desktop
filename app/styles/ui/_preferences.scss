@@ -1,6 +1,41 @@
 #preferences {
-  .avatar {
-    width: 32px;
-    height: 32px;
+  .accounts-tab {
+
+    .account-info, .account-sign-in {
+      button {
+        flex-shrink: 0;
+        flex-grow: 0;
+        align-self: flex-start;
+        width: 120px;
+      }
+    }
+
+    .account-info {
+      // Avatar
+      .avatar {
+        // 32px for the image + 2 on each side for the base border.
+        width: 34px;
+        height: 34px;
+
+        border: var(--base-border);
+        border-radius: var(--border-radius);
+        margin-right: var(--spacing);
+
+        align-self: center;
+      }
+
+      .user-info {
+        flex-grow: 1;
+        align-self: flex-start;
+
+        .name { 
+          font-weight: var(--font-weight-semibold);
+          // Tighten it up a little so that the real name and
+          // username lines up with the avatar.
+          margin-top: -2px;
+          margin-bottom: -2px;
+        }
+      }
+    }
   }
 }
