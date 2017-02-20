@@ -186,8 +186,9 @@ app.on('ready', () => {
 
     request.on('login', (authInfo: AuthInfo, callback: (username?: string, password?: string) => void) => {
       sharedProcess!.console.log(`login encountered: ${JSON.stringify(authInfo)}`)
-      const { username, password } = getProxyInfo(authInfo)
-      callback(username, password)
+      getProxyInfo(authInfo).then(result => {
+        callback(result.username, result.password)
+      })
     })
 
     request.on('response', (response: Electron.IncomingMessage) => {
