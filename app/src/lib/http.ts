@@ -274,6 +274,10 @@ function isSuccess(statusCode: number | undefined): boolean {
  * @returns a promise which resolves to the deserialized object if the response is successful, or a rejected promise otherwise.
  */
 export async function post<T>(path: string, body: Object, options: IGitHubAPIOptions): Promise<T | null> {
+  if (path.startsWith('/')) {
+    return Promise.reject('Path must not start with a leading slash.')
+  }
+
   const response = await request(options.endpoint, `token ${options.token}`, 'POST', path, body)
 
   if (isSuccess(response.statusCode)) {
@@ -289,6 +293,10 @@ export async function post<T>(path: string, body: Object, options: IGitHubAPIOpt
  * @returns a promise which resolves to the deserialized object if the response is successful, or a rejected promise otherwise.
  */
 export async function get<T>(path: string, options: IGitHubAPIOptions): Promise<T | null> {
+  if (path.startsWith('/')) {
+    return Promise.reject('Path must not start with a leading slash.')
+  }
+
   let currentPath = path
   if (options.params) {
     currentPath = `${path}${toQueryString(options.params)}`
