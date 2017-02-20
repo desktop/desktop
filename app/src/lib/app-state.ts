@@ -11,6 +11,7 @@ import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispa
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
+import { AuthInfo } from '../lib/proxy'
 
 export { ICloningRepositoryState }
 export { ICommitMessage }
@@ -97,6 +98,7 @@ export enum PopupType {
   Preferences,
   MergeBranch,
   RepositorySettings,
+  ProxyAuthentication,
 }
 
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
@@ -105,7 +107,8 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.UpdateAvailable } |
                     { type: PopupType.Preferences } |
                     { type: PopupType.MergeBranch, repository: Repository } |
-                    { type: PopupType.RepositorySettings, repository: Repository }
+                    { type: PopupType.RepositorySettings, repository: Repository } |
+                    { type: PopupType.ProxyAuthentication, authInfo: AuthInfo }
 
 export enum FoldoutType {
   Repository,
