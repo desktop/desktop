@@ -6,7 +6,6 @@ import { User } from '../models/user'
 
 import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize, getAllPages, get, post, IGitHubAPIOptions } from './http'
 
-const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
