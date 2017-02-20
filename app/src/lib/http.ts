@@ -262,14 +262,13 @@ export async function post<T>(path: string, body: Object, options: IGitHubAPIOpt
 }
 
 export async function get<T>(path: string, options: IGitHubAPIOptions): Promise<T | null> {
-
   let currentPath = path
-
   if (options.params) {
     currentPath = `${path}${toQueryString(options.params)}`
   }
 
   const response = await request(options.endpoint, `token ${options.token}`, 'GET', currentPath)
+
   if (isSuccess(response.statusCode)) {
     return deserialize<T>(response.body)
   } else {
@@ -287,7 +286,7 @@ export async function getAllPages<T>(path: string, options: IGitHubAPIOptions): 
   do {
     const response = await request(options.endpoint, `token ${options.token}`, 'GET', currentPath)
 
-    if (response.statusCode !== 200) {
+    if (!isSuccess(response.statusCode)) {
       currentPath = null
       break
     }
