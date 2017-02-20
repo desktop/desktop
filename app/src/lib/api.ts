@@ -129,18 +129,6 @@ export class API {
     this.user = user
   }
 
-  /**
-   * Loads all repositories accessible to the current user.
-   *
-   * Loads public and private repositories across all organizations
-   * as well as the user account.
-   *
-   * @returns A promise yielding an array of {APIRepository} instances or error
-   */
-  public fetchRepos(): Promise<ReadonlyArray<IAPIRepository>> {
-    return getAllPages<IAPIRepository>('user/repos', this.withOptions())
-  }
-
   /** Fetch a repo by its owner and name. */
   public fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
     return get<IAPIRepository>(`repos/${owner}/${name}`, this.withOptions())
