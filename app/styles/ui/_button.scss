@@ -51,4 +51,9 @@
   &:hover {
     text-decoration: underline;
   }
+
+  &.link-with-icon svg {
+    margin-left: 0.25em;
+    vertical-align: middle;
+  }
 }

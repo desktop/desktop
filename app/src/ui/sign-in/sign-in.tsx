@@ -172,7 +172,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
           <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div>
         </Row>
         <Row>
-          <LinkButton onClick={this.onSignInWithBrowser}>
+          <LinkButton className='link-with-icon' onClick={this.onSignInWithBrowser}>
             Sign in using your browser
             <Octicon symbol={OcticonSymbol.linkExternal} />
           </LinkButton>
