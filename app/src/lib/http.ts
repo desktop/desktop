@@ -58,7 +58,7 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
   return null
 }
 
-export function getLinkHeaders(response: IHTTPResponse): { next?: URL.Url } {
+function getLinkHeaders(response: IHTTPResponse): { next?: URL.Url } {
   const linkHeader = getHeader(response, 'link')
   if (linkHeader) {
     const matches = /\<([a-z0-9\=\_\&\?\/\.\:]*)\>; rel="([a-z]*)"/.exec(linkHeader)
@@ -82,7 +82,7 @@ export function getLinkHeaders(response: IHTTPResponse): { next?: URL.Url } {
  *
  * Note: does not handle arrays or nested objects
  */
-export function toQueryString(json: any): string {
+function toQueryString(json: any): string {
   // citation: http://stackoverflow.com/a/30707423/1363815
   return '?' +
     Object.keys(json).map(function (key) {
@@ -101,7 +101,7 @@ export function toQueryString(json: any): string {
  *
  * Removes the host information, as the API client tracks this information.
  */
-export function resolveNextPath(response: IHTTPResponse): string | null {
+function resolveNextPath(response: IHTTPResponse): string | null {
   const linkHeader = getLinkHeaders(response)
   if (!linkHeader.next) {
     return null
@@ -191,7 +191,6 @@ export function getEncoding(response: IHTTPResponse): string | null {
       }
     }
   }
-
 
   // while we expect JSON endpoints to return a charset, we might
   // have some scenarios where this is not the case
