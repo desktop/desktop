@@ -181,10 +181,8 @@ export class API {
         token: this.user.token,
       }
       const users = await get<IAPISearchUsers>('search/users', options)
-
       if (users && users.items.length) {
-        const user = users.items[0]
-        return user
+        return users.items[0]
       } else {
         return null
       }
