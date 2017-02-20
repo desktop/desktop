@@ -72,10 +72,6 @@ export interface IAPIMentionableUser {
   readonly name: string
 }
 
-export interface IAPISearchUsers {
-  readonly items: IAPIUser[]
-}
-
 /**
  * Information about a user's email as returned by the GitHub API.
  */
@@ -119,6 +115,11 @@ interface IAPIMentionablesResponse {
   readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
+/** The response we receive from searching for users. */
+interface IAPISearchUsers {
+  readonly items: IAPIUser[]
+}
+
 /**
  * An object for making authenticated requests to the GitHub API
  */
@@ -148,6 +149,8 @@ export class API {
   public fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
     return get<IAPICommit>(`repos/${owner}/${name}/commits/${sha}`, this.withOptions())
   }
+
+
 
   /** Search for a user with the given public email. */
   public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
