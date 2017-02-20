@@ -137,15 +137,13 @@ export class API {
    *
    * @returns A promise yielding an array of {APIRepository} instances or error
    */
-  public async fetchRepos(): Promise<ReadonlyArray<IAPIRepository>> {
-    const results = await getAllPages<IAPIRepository>('user/repos', this.withOptions())
-    return results
+  public fetchRepos(): Promise<ReadonlyArray<IAPIRepository>> {
+    return getAllPages<IAPIRepository>('user/repos', this.withOptions())
   }
 
   /** Fetch a repo by its owner and name. */
-  public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
-    const repository = await get<IAPIRepository>(`repos/${owner}/${name}`, { endpoint: this.user.endpoint, token: this.user.token })
-    return repository
+  public fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
+    return get<IAPIRepository>(`repos/${owner}/${name}`, this.withOptions())
   }
 
   /** Fetch the logged in user. */
@@ -154,20 +152,13 @@ export class API {
   }
 
   /** Fetch the user's emails. */
-  public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
-    const emails = await getAllPages<IAPIEmail>('user/emails', this.withOptions())
-    return emails
+  public fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
+    return getAllPages<IAPIEmail>('user/emails', this.withOptions())
   }
 
   /** Fetch a commit from the repository. */
-  public async fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
-    try {
-      // TODO: what should we do about error handling?
-      const commit = await get<IAPICommit>(`repos/${owner}/${name}/commits/${sha}`, this.withOptions())
-      return commit
-    } catch (e) {
-      return null
-    }
+  public fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
+    return get<IAPICommit>(`repos/${owner}/${name}/commits/${sha}`, this.withOptions())
   }
 
   /** Search for a user with the given public email. */
