@@ -123,8 +123,9 @@ export class Branches extends React.Component<IBranchesProps, void> {
     }
 
     return (
-      <div className='branches-list'>
+      <div className='branches-list-container'>
         <BranchesFilterList
+          className='branches-list'
           renderPreList={this.renderExpandButton}
           rowHeight={RowHeight}
           selectedItem={selectedItem}
