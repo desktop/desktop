@@ -82,28 +82,6 @@
   right: 0;
 }
 
-.horizontal-rule {
-  text-align: center;
-  position: relative;
-
-  &:after {
-    border-bottom: var(--base-border);
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0.6em;
-  }
-
-  .horizontal-rule-content {
-    display: inline-block;
-    background: var(--background-color);
-    padding: 0 0.5em;
-    position: relative;
-    z-index: 1;
-  }
-}
-
 .sign-in-field {
   width: 100%;
 }
