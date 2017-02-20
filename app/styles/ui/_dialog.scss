@@ -251,4 +251,10 @@ dialog {
   }
 
   &#preferences { width: 450px; }
+
+  &#sign-in {
+    .sign-in-with-browser {
+      justify-content: center;
+    }
+  }
 }
