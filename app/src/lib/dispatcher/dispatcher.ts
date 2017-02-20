@@ -1,4 +1,5 @@
 import { ipcRenderer } from 'electron'
+import { Disposable } from 'event-kit'
 import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
@@ -16,6 +17,7 @@ import { v4 as guid } from 'uuid'
 import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
+import { fatalError } from '../fatal-error'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -46,11 +48,21 @@ interface IError {
 type IPCResponse<T> = IResult<T> | IError
 
 /**
+ * An error handler function.
+ *
+ * If the returned {Promise} returns an error, it will be passed to the next
+ * error handler. If it returns null, error propagation is halted.
+ */
+type ErrorHandler = (error: Error, dispatcher: Dispatcher) => Promise<Error | null>
+
+/**
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
  * decouples the consumer of state from where/how it is stored.
  */
 export class Dispatcher {
   private appStore: AppStore
+
+  private readonly errorHandlers = new Array<ErrorHandler>()
 
   public constructor(appStore: AppStore) {
     this.appStore = appStore
@@ -301,13 +313,34 @@ export class Dispatcher {
     return this.refreshGitHubRepositoryInfo(repository)
   }
 
-  /** Post the given error. */
-  public postError(error: IAppError): Promise<void> {
-    return this.appStore._postError(error)
+  /**
+   * Post the given error. This will send the error through the standard error
+   * handler machinery.
+   */
+  public async postError(error: Error): Promise<void> {
+    let currentError: Error | null = error
+    for (const handler of this.errorHandlers.reverse()) {
+      currentError = await handler(currentError, this)
+
+      if (!currentError) { break }
+    }
+
+    if (currentError) {
+      fatalError(`Unhandled error ${currentError}. This shouldn't happen! All errors should be handled, even if it's just by the default handler.`)
+    }
+  }
+
+  /**
+   * Post the given error. Note that this bypasses the standard error handler
+   * machinery. You probably don't want that. See `Dispatcher.postError`
+   * instead.
+   */
+  public presentError(error: Error): Promise<void> {
+    return this.appStore._pushError(error)
   }
 
   /** Clear the given error. */
-  public clearError(error: IAppError): Promise<void> {
+  public clearError(error: Error): Promise<void> {
     return this.appStore._clearError(error)
   }
 
@@ -494,9 +527,9 @@ export class Dispatcher {
     return this.appStore._openShell(path)
   }
 
-  /** 
+  /**
    * Persist the given content to the repository's root .gitignore.
-   * 
+   *
    * If the repository root doesn't contain a .gitignore file one
    * will be created, otherwise the current file will be overwritten.
    */
@@ -507,7 +540,7 @@ export class Dispatcher {
 
   /**
    * Read the contents of the repository's .gitignore.
-   * 
+   *
    * Returns a promise which will either be rejected or resolved
    * with the contents of the file. If there's no .gitignore file
    * in the repository root the promise will resolve with null.
@@ -557,5 +590,24 @@ export class Dispatcher {
   public async showEnterpriseSignInDialog(): Promise<void> {
     await this.appStore._beginEnterpriseSignIn()
     await this.appStore._showPopup({ type: PopupType.SignIn })
+  }
+
+  /**
+   * Register a new error handler.
+   *
+   * Error handlers are called in order starting with the most recently
+   * registered handler. The error which the returned {Promise} resolves to is
+   * passed to the next handler, etc. If the handler's {Promise} resolves to
+   * null, error propagation is halted.
+   */
+  public registerErrorHandler(handler: ErrorHandler): Disposable {
+    this.errorHandlers.push(handler)
+
+    return new Disposable(() => {
+      const i = this.errorHandlers.indexOf(handler)
+      if (i >= 0) {
+        this.errorHandlers.splice(i, 1)
+      }
+    })
   }
 }

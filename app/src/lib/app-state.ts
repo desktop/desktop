@@ -57,7 +57,7 @@ export interface IAppState {
    */
   readonly appMenuState: ReadonlyArray<IMenu>
 
-  readonly errors: ReadonlyArray<IAppError>
+  readonly errors: ReadonlyArray<Error>
 
   /** Map from the emoji shortcut (e.g., :+1:) to the image's local path. */
   readonly emoji: Map<string, string>
@@ -88,14 +88,6 @@ export interface IAppState {
    * platforms.
    */
   readonly highlightAppMenuToolbarButton: boolean
-}
-
-export interface IAppError {
-  /** The name of the error. This is for application use only. */
-  readonly name: string
-
-  /** The user-facing message. */
-  readonly message: string
 }
 
 export enum PopupType {

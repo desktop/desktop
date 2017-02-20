@@ -18,6 +18,7 @@ import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
+import { defaultErrorHandler } from '../lib/dispatcher'
 
 import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
@@ -56,6 +57,7 @@ const appStore = new AppStore(
 )
 
 const dispatcher = new Dispatcher(appStore)
+dispatcher.registerErrorHandler(defaultErrorHandler)
 
 dispatcher.loadInitialState().then(() => {
   const now = Date.now()

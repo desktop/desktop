@@ -45,13 +45,25 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, void> {
     }
   }
 
+  // When the dialog is shown as a modal it insists on giving the first input
+  // element focus and that happens to be the close button that we've explicitly
+  // specified to not be keyboard reachable. Closing the dialog should be done
+  // by hitting escape or clicking on the button. Only the elements within the
+  // dialog contents and footer should be keyboard reachable. So we employ this
+  // hack to blur the close button if it receives focus. If we don't do this then
+  // hitting enter inside a dialog won't submit the form at all but rather close
+  // the dialog.
+  private onCloseButtonFocus = (e: React.FocusEvent<HTMLButtonElement>) => {
+    //e.currentTarget.blur()
+  }
+
   private renderCloseButton() {
     if (!this.props.dismissable) {
       return null
     }
 
     return (
-      <button className='close' tabIndex={-1} onClick={this.onCloseButtonClick}>
+      <button className='close' tabIndex={-1} onClick={this.onCloseButtonClick} onFocus={this.onCloseButtonFocus}>
         <Octicon symbol={OcticonSymbol.x} />
       </button>
     )
