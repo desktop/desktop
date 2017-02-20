@@ -175,23 +175,22 @@ export class API {
   /** Search for a user with the given public email. */
   public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
     try {
-      // TODO: we should be pasing this as a query string parameter which is then formatted
-      // correctly inside `http`
-      const results = await this.authenticatedRequest('GET', `search/users?q=${email} in:email type:user`)
-      if (results.body) {
-        const users = deserialize<IAPISearchUsers>(results.body)
-        // The results are sorted by score, best to worst. So the first result
-        // is our best match.
-        if (users) {
-          const user = users.items[0]
-          return user
-        }
+      const options = {
+        params: { q: `${email} in:email type:user` },
+        endpoint: this.user.endpoint,
+        token: this.user.token,
+      }
+      const users = await get<IAPISearchUsers>('search/users', options)
+
+      if (users && users.items.length) {
+        const user = users.items[0]
+        return user
+      } else {
+        return null
       }
     } catch (e) {
-      // TODO: ugh, this is the worst. make this less worst.
+      return null
     }
-    return null
-
   }
 
   /** Fetch all the orgs to which the user belongs. */
