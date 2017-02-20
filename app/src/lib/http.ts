@@ -30,9 +30,13 @@ export interface IHTTPRequest {
 /** The HTTP methods available. */
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
+/** Options to provide when making API requests */
 export interface IGitHubAPIOptions {
+  /** Additional arguments to provide to the URL */
   readonly params?: Object
+  /** The server instance to interact with */
   readonly endpoint: string
+  /** The user token to set to the Authorization header */
   readonly token: string
 }
 
@@ -64,6 +68,11 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
   return null
 }
 
+/**
+ * Read the pagination headers from the HTTP response.
+ *
+ * For more information: https://developer.github.com/v3/#pagination
+ */
 function getLinkHeaders(response: IHTTPResponse): { next?: URL.Url } {
   const linkHeader = getHeader(response, 'link')
   if (linkHeader) {
@@ -247,10 +256,20 @@ export function request(endpoint: string, authorization: string | null, method: 
   return proxyRequest(options)
 }
 
+/**
+ * Verify a HTTP response is in the accepted range.
+ *
+ * Returns true if the status code is in the 2XX range.  Returns false otherwise.
+ */
 function isSuccess(statusCode: number | undefined): boolean {
   return statusCode >= 200 && statusCode <= 299
 }
 
+/**
+ * Execute a HTTP POST request against a given resource, and deserialize it to a given shape.
+ *
+ * @returns a promise which resolves to the deserialized object if the response is successful, or a rejected promise otherwise.
+ */
 export async function post<T>(path: string, body: Object, options: IGitHubAPIOptions): Promise<T | null> {
   const response = await request(options.endpoint, `token ${options.token}`, 'POST', path, body)
 
@@ -261,6 +280,11 @@ export async function post<T>(path: string, body: Object, options: IGitHubAPIOpt
   }
 }
 
+/**
+ * Execute a HTTP GET request against a given resource, and deserialize it to a given shape.
+ *
+ * @returns a promise which resolves to the deserialized object if the response is successful, or a rejected promise otherwise.
+ */
 export async function get<T>(path: string, options: IGitHubAPIOptions): Promise<T | null> {
   let currentPath = path
   if (options.params) {
@@ -276,6 +300,11 @@ export async function get<T>(path: string, options: IGitHubAPIOptions): Promise<
   }
 }
 
+/**
+ * Execute a HTTP GET request against a given resource, and deserialize it to an array of objects.
+ *
+ * @returns a promise which resolves to the deserialized list of objects if the response is successful, or an empty array otherwise.
+ */
 export async function getAllPages<T>(path: string, options: IGitHubAPIOptions): Promise<ReadonlyArray<T>> {
   const allItems: Array<T> = []
 
