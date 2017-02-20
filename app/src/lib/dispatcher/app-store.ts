@@ -1172,15 +1172,15 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
     const api = new API(account)
-    const apiRepository = await api.createRepository(org, name, description, private_)
-
-    if (apiRepository) {
-      const gitStore = this.getGitStore(repository)
-      await gitStore.performFailableOperation(() => addRemote(repository, 'origin', apiRepository.cloneUrl))
-      await gitStore.loadCurrentRemote()
-    } else {
-      // TODO: a better error here
-      console.error('unable to create repository on host. let\'s fail the process?')
+    try {
+      const apiRepository = await api.createRepository(org, name, description, private_)
+      if (apiRepository) {
+        const gitStore = this.getGitStore(repository)
+        await gitStore.performFailableOperation(() => addRemote(repository, 'origin', apiRepository.cloneUrl))
+        await gitStore.loadCurrentRemote()
+      }
+    } catch (e) {
+      this.emitError(e)
     }
 
     return this._push(repository)
