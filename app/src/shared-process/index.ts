@@ -40,7 +40,6 @@ async function updateUsers() {
     const updatedUser = await api.fetchUser()
     const emails = await api.fetchEmails()
     const justTheEmails = emails.map(e => e.email)
-    // TODO: hack this because we might deserialize null
     if (updatedUser) {
     return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl, updatedUser.id, updatedUser.name)
     } else {
