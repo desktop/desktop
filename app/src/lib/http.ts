@@ -242,13 +242,19 @@ export function request(endpoint: string, authorization: string | null, method: 
   return proxyRequest(options)
 }
 
-export async function post<T>(path: string, body: Object, options: { endpoint: string, token: string }): Promise<T | null> {
+export interface IGitHubAPIOptions {
+  readonly params?: Object
+  readonly endpoint: string
+  readonly token: string
+}
+
+export async function post<T>(path: string, body: Object, options: IGitHubAPIOptions): Promise<T | null> {
   const response = await request(options.endpoint, `token ${options.token}`, 'POST', path, body)
   const entity = deserialize<T>(response.body)
   return entity
 }
 
-export async function get<T>(path: string, options: { params?: Object, endpoint: string, token: string }): Promise<T | null> {
+export async function get<T>(path: string, options: IGitHubAPIOptions): Promise<T | null> {
 
   let currentPath = path
 
@@ -261,7 +267,7 @@ export async function get<T>(path: string, options: { params?: Object, endpoint:
   return entity
 }
 
-export async function getAllPages<T>(path: string, options: { params?: Object, endpoint: string, token: string }): Promise<ReadonlyArray<T>> {
+export async function getAllPages<T>(path: string, options: IGitHubAPIOptions): Promise<ReadonlyArray<T>> {
   const allItems: Array<T> = []
 
   const params = Object.assign({ per_page: '100' }, options.params)

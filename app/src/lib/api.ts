@@ -4,7 +4,7 @@ import * as Querystring from 'querystring'
 import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 
-import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize, getAllPages, get, post } from './http'
+import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize, getAllPages, get, post, IGitHubAPIOptions } from './http'
 
 const username: () => Promise<string> = require('username')
 
@@ -138,8 +138,7 @@ export class API {
    * @returns A promise yielding an array of {APIRepository} instances or error
    */
   public async fetchRepos(): Promise<ReadonlyArray<IAPIRepository>> {
-    const options = { endpoint: this.user.endpoint, token: this.user.token }
-    const results = await getAllPages<IAPIRepository>('user/repos', options)
+    const results = await getAllPages<IAPIRepository>('user/repos', this.withOptions())
     return results
   }
 
@@ -151,13 +150,12 @@ export class API {
 
   /** Fetch the logged in user. */
   public fetchUser(): Promise<IAPIUser | null> {
-    return get<IAPIUser>('user', { endpoint: this.user.endpoint, token: this.user.token })
+    return get<IAPIUser>('user', this.withOptions())
   }
 
   /** Fetch the user's emails. */
   public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
-    const options = { endpoint: this.user.endpoint, token: this.user.token }
-    const emails = await getAllPages<IAPIEmail>('user/emails', options)
+    const emails = await getAllPages<IAPIEmail>('user/emails', this.withOptions())
     return emails
   }
 
@@ -165,7 +163,7 @@ export class API {
   public async fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
     try {
       // TODO: what should we do about error handling?
-      const commit = await get<IAPICommit>(`repos/${owner}/${name}/commits/${sha}`, { endpoint: this.user.endpoint, token: this.user.token })
+      const commit = await get<IAPICommit>(`repos/${owner}/${name}/commits/${sha}`, this.withOptions())
       return commit
     } catch (e) {
       return null
@@ -175,12 +173,8 @@ export class API {
   /** Search for a user with the given public email. */
   public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
     try {
-      const options = {
-        params: { q: `${email} in:email type:user` },
-        endpoint: this.user.endpoint,
-        token: this.user.token,
-      }
-      const users = await get<IAPISearchUsers>('search/users', options)
+      const params = { q: `${email} in:email type:user` }
+      const users = await get<IAPISearchUsers>('search/users', this.withOptions({ params }))
       if (users && users.items.length) {
         return users.items[0]
       } else {
@@ -193,15 +187,14 @@ export class API {
 
   /** Fetch all the orgs to which the user belongs. */
   public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
-    const options = { endpoint: this.user.endpoint, token: this.user.token }
-    const orgs = await getAllPages<IAPIUser>('user/orgs', options)
+    const orgs = await getAllPages<IAPIUser>('user/orgs', this.withOptions())
     return orgs
   }
 
   /** Create a new GitHub repository with the given properties. */
   public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository | null> {
     const url = org ? `orgs/${org.login}/repos` : 'user/repos'
-    const repository = await post<IAPIRepository>(url, { name, description, private: private_ }, { endpoint: this.user.endpoint, token: this.user.token })
+    const repository = await post<IAPIRepository>(url, { name, description, private: private_ }, this.withOptions())
     return repository
   }
 
@@ -211,16 +204,14 @@ export class API {
    */
   public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
     const params: any = { state }
-
     if (since) {
       params.since = since.toISOString()
     }
 
-    const options = { params, endpoint: this.user.endpoint, token: this.user.token }
-    const allItems = await getAllPages<IAPIIssue>(`repos/${owner}/${name}/issues`, options)
+    const issues = await getAllPages<IAPIIssue>(`repos/${owner}/${name}/issues`, this.withOptions({ params }))
 
     // PRs are issues! But we only want Really Seriously Issues.
-    return allItems.filter((i: any) => !i.pullRequest)
+    return issues.filter((i: any) => !i.pullRequest)
   }
 
   private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<IHTTPResponse> {
@@ -256,6 +247,14 @@ export class API {
 
     const responseEtag = getHeader(response, 'etag')
     return { users, etag: responseEtag || '' }
+  }
+
+  private withOptions(additionalOptions?: Object): IGitHubAPIOptions {
+    const defaultOptions = {
+      endpoint: this.user.endpoint,
+      token: this.user.token,
+    }
+    return Object.assign(defaultOptions, additionalOptions)
   }
 }
 
