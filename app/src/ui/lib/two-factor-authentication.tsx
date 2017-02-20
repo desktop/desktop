@@ -2,6 +2,7 @@ import * as React from 'react'
 import { createAuthorization, AuthorizationResponse, fetchUser, AuthorizationResponseKind } from '../../lib/api'
 import { User } from '../../models/user'
 import { assertNever } from '../../lib/fatal-error'
+import { Dispatcher } from '../../lib/dispatcher'
 import { Loading } from './loading'
 import { Button } from './button'
 import { TextBox } from './text-box'
@@ -9,6 +10,8 @@ import { Form } from './form'
 import { Errors } from './errors'
 
 interface ITwoFactorAuthenticationProps {
+  readonly dispatcher: Dispatcher
+
   /** The endpoint to authenticate against. */
   readonly endpoint: string
 
@@ -101,11 +104,13 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
     const response = await createAuthorization(this.props.endpoint, this.props.login, this.props.password, this.state.otp)
     if (response.kind === AuthorizationResponseKind.Authorized) {
       const token = response.token
-      const user = await fetchUser(this.props.endpoint, token)
-      if (user) {
-        this.props.onDidSignIn(user)
-      } else {
-        console.error('TODO: what about if we get a null user here?')
+      try {
+        const user = await fetchUser(this.props.endpoint, token)
+        if (user) {
+          this.props.onDidSignIn(user)
+        }
+      } catch (e) {
+        this.props.dispatcher.postError(e)
       }
     } else {
       this.setState({

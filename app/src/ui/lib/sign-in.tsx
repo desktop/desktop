@@ -2,10 +2,13 @@ import * as React from 'react'
 import { AuthenticationForm } from './authentication-form'
 import { User } from '../../models/user'
 import { assertNever, fatalError } from '../../lib/fatal-error'
+import { Dispatcher } from '../../lib/dispatcher'
 import { TwoFactorAuthentication } from '../lib/two-factor-authentication'
 import { EnterpriseServerEntry, AuthenticationMethods } from '../lib/enterprise-server-entry'
 
 interface ISignInProps {
+  readonly dispatcher: Dispatcher
+
   /**
    * The endpoint against which the user is authenticating. If omitted, the
    * component will prompt for endpoint entry before moving on to the sign in
@@ -84,6 +87,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     } else if (step.kind === SignInStep.Authentication) {
       const supportsBasicAuth = step.authMethods.has(AuthenticationMethods.BasicAuth)
       return <AuthenticationForm
+        dispatcher={this.props.dispatcher}
         endpoint={step.endpoint}
         supportsBasicAuth={supportsBasicAuth}
         additionalButtons={this.props.children}
@@ -91,6 +95,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         onNeeds2FA={this.onNeeds2FA}/>
     } else if (step.kind === SignInStep.TwoFactorAuthentication) {
       return <TwoFactorAuthentication
+        dispatcher={this.props.dispatcher}
         endpoint={step.endpoint}
         login={step.login}
         password={step.password}

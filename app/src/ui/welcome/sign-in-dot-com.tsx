@@ -19,6 +19,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, void> {
         <h1 className='welcome-title'>Sign in to GitHub.com</h1>
 
         <SignIn
+          dispatcher={this.props.dispatcher}
           endpoint={getDotComAPIEndpoint()}
           onDidSignIn={this.onDidSignIn}>
           <Button onClick={this.cancel}>Cancel</Button>
