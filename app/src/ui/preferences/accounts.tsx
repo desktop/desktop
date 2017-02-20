@@ -38,7 +38,7 @@ export class Accounts extends React.Component<IAccountsProps, void> {
         <img className='avatar' src={user.avatarURL}/>
         <div className='user-info'>
           <div className='name'>{user.name}</div>
-          <div className='login'>{user.login}</div>
+          <div className='login'>@{user.login}</div>
         </div>
         <Button onClick={this.logout(user)}>Log Out</Button>
       </Row>
