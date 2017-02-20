@@ -190,5 +190,6 @@ function userToAPIUser(user: User): IAPIUser {
     type: 'user',
     id: user.id,
     url: user.endpoint,
+    name: user.name,
   }
 }

@@ -289,6 +289,7 @@ function createWindow() {
 
     const extensions = [
       'REACT_DEVELOPER_TOOLS',
+      'REACT_PERF',
     ]
 
     for (const name of extensions) {

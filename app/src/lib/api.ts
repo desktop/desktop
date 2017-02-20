@@ -54,6 +54,22 @@ export interface IAPIUser {
   readonly type: 'user' | 'org'
   readonly login: string
   readonly avatarUrl: string
+  readonly name: string
+}
+
+/** The users we get from the mentionables endpoint. */
+export interface IAPIMentionableUser {
+  readonly avatar_url: string
+
+  /**
+   * Note that this may be an empty string *or* null in the case where the user
+   * has no public email address.
+   */
+  readonly email: string | null
+
+  readonly login: string
+
+  readonly name: string
 }
 
 export interface IAPISearchUsers {
@@ -95,6 +111,12 @@ interface IAPIAccessToken {
 /** The partial server response when creating a new authorization on behalf of a user */
 interface IAPIAuthorization {
   readonly token: string
+}
+
+/** The response we receive from fetching mentionables. */
+interface IAPIMentionablesResponse {
+  readonly etag: string
+  readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
 /**
@@ -205,8 +227,8 @@ export class API {
     return allItems.filter((i: any) => !i.pullRequest)
   }
 
-  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object): Promise<IHTTPResponse> {
-    return request(this.user.endpoint, `token ${this.user.token}`, method, path, body)
+  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<IHTTPResponse> {
+    return request(this.user.endpoint, `token ${this.user.token}`, method, path, body, customHeaders)
   }
 
   /** Get the allowed poll interval for fetching. */
@@ -219,6 +241,25 @@ export class API {
       return parseInt(interval, 10)
     }
     return 0
+  }
+
+  /** Fetch the mentionable users for the repository. */
+  public async fetchMentionables(owner: string, name: string, etag: string | null): Promise<IAPIMentionablesResponse | null> {
+    // NB: this custom `Accept` is required for the `mentionables` endpoint.
+    const headers: any = {
+      'Accept': 'application/vnd.github.jerry-maguire-preview',
+    }
+
+    if (etag) {
+      headers['If-None-Match'] = etag
+    }
+
+    const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
+    const users = deserialize<ReadonlyArray<IAPIMentionableUser>>(response.body)
+    if (!users) { return null }
+
+    const responseEtag = getHeader(response, 'etag')
+    return { users, etag: responseEtag || '' }
   }
 }
 
@@ -282,7 +323,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
 export async function fetchUser(endpoint: string, token: string): Promise<User | null> {
   const user = await get<IAPIUser>('user', { endpoint, token })
   if (user) {
-    return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id)
+    return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id, user.name)
   } else {
     return null
   }

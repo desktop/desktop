@@ -42,9 +42,9 @@ async function updateUsers() {
     const justTheEmails = emails.map(e => e.email)
     // TODO: hack this because we might deserialize null
     if (updatedUser) {
-      return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl, updatedUser.id)
+    return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl, updatedUser.id, updatedUser.name)
     } else {
-      return new User(user.login, user.endpoint, user.token, justTheEmails, user.avatarURL, user.id)
+      return new User(user.login, user.endpoint, user.token, justTheEmails, user.avatarURL, user.id, user.name)
     }
   })
   broadcastUpdate()
