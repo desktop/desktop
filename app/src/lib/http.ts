@@ -248,8 +248,15 @@ export async function post<T>(path: string, body: Object, options: { endpoint: s
   return entity
 }
 
-export async function get<T>(path: string, options: { endpoint: string, token: string }): Promise<T | null> {
-  const response = await request(options.endpoint, `token ${options.token}`, 'GET', path)
+export async function get<T>(path: string, options: { params?: Object, endpoint: string, token: string }): Promise<T | null> {
+
+  let currentPath = path
+
+  if (options.params) {
+    currentPath = `${path}${toQueryString(options.params)}`
+  }
+
+  const response = await request(options.endpoint, `token ${options.token}`, 'GET', currentPath)
   const entity = deserialize<T>(response.body)
   return entity
 }
