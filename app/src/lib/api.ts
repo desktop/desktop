@@ -4,7 +4,17 @@ import * as Querystring from 'querystring'
 import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 
-import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize, getAllPages, get, post, IGitHubAPIOptions } from './http'
+import {
+  IHTTPResponse,
+  IGitHubAPIOptions,
+  HTTPMethod,
+  getHeader,
+  request,
+  deserialize,
+  getAllPages,
+  get,
+  post,
+} from './http'
 
 const username: () => Promise<string> = require('username')
 
