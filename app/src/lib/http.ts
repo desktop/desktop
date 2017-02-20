@@ -262,6 +262,9 @@ export function request(endpoint: string, authorization: string | null, method: 
  * Returns true if the status code is in the 2XX range.  Returns false otherwise.
  */
 function isSuccess(statusCode: number | undefined): boolean {
+  if (!statusCode) {
+    return false
+  }
   return statusCode >= 200 && statusCode <= 299
 }
 
