@@ -53,7 +53,7 @@ export interface IAPIUser {
   readonly url: string
   readonly type: 'user' | 'org'
   readonly login: string
-  readonly avatarUrl: string
+  readonly avatar_url: string
   readonly name: string
 }
 
@@ -308,7 +308,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
 export async function fetchUser(endpoint: string, token: string): Promise<User | null> {
   const user = await get<IAPIUser>('user', { endpoint, token })
   if (user) {
-    return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id, user.name)
+    return new User(user.login, endpoint, token, new Array<string>(), user.avatar_url, user.id, user.name)
   } else {
     return null
   }
