@@ -150,9 +150,8 @@ export class API {
   }
 
   /** Fetch the logged in user. */
-  public async fetchUser(): Promise<IAPIUser | null> {
-    const user = await get<IAPIUser>('user', { endpoint: this.user.endpoint, token: this.user.token })
-    return user
+  public fetchUser(): Promise<IAPIUser | null> {
+    return get<IAPIUser>('user', { endpoint: this.user.endpoint, token: this.user.token })
   }
 
   /** Fetch the user's emails. */
