@@ -255,12 +255,34 @@ dialog {
     width: 450px;    
 
     .accounts-tab {
-      .account-sign-in {
+
+      .account-info, .account-sign-in {
         button {
           flex-shrink: 0;
           flex-grow: 0;
           align-self: flex-start;
           width: 120px;
+        }
+      }
+
+      .account-info {
+        // Avatar
+        img {
+          border-radius: var(--border-radius);
+          margin-right: var(--spacing);
+
+          align-self: center;
+        }
+
+        .user-info {
+          flex-grow: 1;
+          align-self: flex-start;
+
+          .name { 
+            font-weight: var(--font-weight-semibold);
+            margin-top: -3px;
+            margin-bottom: -3px;
+          }
         }
       }
     }

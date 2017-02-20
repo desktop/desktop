@@ -34,11 +34,14 @@ export class Accounts extends React.Component<IAccountsProps, void> {
 
   private renderUser(user: User) {
     return (
-      <div>
+      <Row className='account-info'>
         <img className='avatar' src={user.avatarURL}/>
-        <span>{user.login}</span>
+        <div className='user-info'>
+          <div className='name'>{user.name}</div>
+          <div className='login'>{user.login}</div>
+        </div>
         <Button onClick={this.logout(user)}>Log Out</Button>
-      </div>
+      </Row>
     )
   }
 
