@@ -40,7 +40,11 @@ async function updateUsers() {
     const updatedUser = await api.fetchUser()
     const emails = await api.fetchEmails()
     const justTheEmails = emails.map(e => e.email)
-    return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl, updatedUser.id, updatedUser.name)
+    if (updatedUser) {
+    return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatar_url, updatedUser.id, updatedUser.name)
+    } else {
+      return new User(user.login, user.endpoint, user.token, justTheEmails, user.avatarURL, user.id, user.name)
+    }
   })
   broadcastUpdate()
 }

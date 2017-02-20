@@ -186,7 +186,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
 function userToAPIUser(user: User): IAPIUser {
   return {
     login: user.login,
-    avatarUrl: user.avatarURL,
+    avatar_url: user.avatarURL,
     type: 'user',
     id: user.id,
     url: user.endpoint,

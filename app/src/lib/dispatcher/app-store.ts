@@ -963,7 +963,12 @@ export class AppStore {
 
     const api = new API(user)
     const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
-    return repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
+    if (apiRepo) {
+      return repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
+    } else {
+      // unable to resolve repository through API
+      return repository
+    }
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
@@ -1167,11 +1172,17 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
     const api = new API(account)
-    const apiRepository = await api.createRepository(org, name, description, private_)
+    try {
+      const apiRepository = await api.createRepository(org, name, description, private_)
+      if (apiRepository) {
+        const gitStore = this.getGitStore(repository)
+        await gitStore.performFailableOperation(() => addRemote(repository, 'origin', apiRepository.cloneUrl))
+        await gitStore.loadCurrentRemote()
+      }
+    } catch (e) {
+      this.emitError(e)
+    }
 
-    const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => addRemote(repository, 'origin', apiRepository.cloneUrl))
-    await gitStore.loadCurrentRemote()
     return this._push(repository)
   }
 
