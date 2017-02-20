@@ -25,6 +25,7 @@ import { ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
 import { AppMenu } from './app-menu'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
+import { AuthInfo } from '../lib/proxy'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
 import { User } from '../models/user'
@@ -81,6 +82,18 @@ export class App extends React.Component<IAppProps, IAppState> {
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
       this.onMenuEvent(name)
     })
+
+
+    ipcRenderer.on('proxy/credentials-request', (event: Electron.IpcRendererEvent, { authInfo }: { authInfo: AuthInfo }) => {
+      if (authInfo.realm === 'FiddlerProxy (user: 1, pass: 1)') {
+        ipcRenderer.send('proxy/credentials-response', { username: '1', password: '1' })
+        return
+      }
+
+      // TODO: pop a dialog
+
+    })
+
 
     updateStore.onDidChange(state => {
       const visibleItem = (function () {

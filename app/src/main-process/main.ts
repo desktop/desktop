@@ -185,10 +185,27 @@ app.on('ready', () => {
     const request = network.request(requestOptions)
 
     request.on('login', (authInfo: AuthInfo, callback: (username?: string, password?: string) => void) => {
+
       sharedProcess!.console.log(`login encountered: ${JSON.stringify(authInfo)}`)
-      getProxyInfo(authInfo).then(result => {
+
+      if (!mainWindow) {
+        // we really can't do much here. yay!
+        return
+      }
+
+      const result = getProxyInfo(authInfo)
+      if (result) {
         callback(result.username, result.password)
+        return
+      }
+
+      ipcMain.once('proxy/credentials-response', (event, { username, password }: { username?: string, password?: string }) => {
+        // TODO: handle when result received
+        // TODO: handle when aborted (user cancels)
+        callback(username, password)
       })
+
+      mainWindow.sendProxyDialogRequest(authInfo)
     })
 
     request.on('response', (response: Electron.IncomingMessage) => {
@@ -201,7 +218,6 @@ app.on('ready', () => {
 
       response.on('error', () => {
         const error = new Error('request failed, probably due to not providing proxy credentials')
-        // TODO: if we have a proxy error, reset credentials for host associated with request
         sharedProcess!.console.error(error)
         event.sender.send(channel, { error })
       })
