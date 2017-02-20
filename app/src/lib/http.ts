@@ -30,6 +30,12 @@ export interface IHTTPRequest {
 /** The HTTP methods available. */
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
+export interface IGitHubAPIOptions {
+  readonly params?: Object
+  readonly endpoint: string
+  readonly token: string
+}
+
 /** Resolve a given header on the HTTP response */
 export function getHeader(response: IHTTPResponse, key: string): string | null {
   if (!response.headers) {
@@ -241,16 +247,18 @@ export function request(endpoint: string, authorization: string | null, method: 
   return proxyRequest(options)
 }
 
-export interface IGitHubAPIOptions {
-  readonly params?: Object
-  readonly endpoint: string
-  readonly token: string
+function isSuccess(statusCode: number | undefined): boolean {
+  return statusCode >= 200 && statusCode <= 299
 }
 
 export async function post<T>(path: string, body: Object, options: IGitHubAPIOptions): Promise<T | null> {
   const response = await request(options.endpoint, `token ${options.token}`, 'POST', path, body)
-  const entity = deserialize<T>(response.body)
-  return entity
+
+  if (isSuccess(response.statusCode)) {
+    return deserialize<T>(response.body)
+  } else {
+    return Promise.reject(`Could not complete request successfully. Status code ${response.statusCode} received.`)
+  }
 }
 
 export async function get<T>(path: string, options: IGitHubAPIOptions): Promise<T | null> {
@@ -262,8 +270,11 @@ export async function get<T>(path: string, options: IGitHubAPIOptions): Promise<
   }
 
   const response = await request(options.endpoint, `token ${options.token}`, 'GET', currentPath)
-  const entity = deserialize<T>(response.body)
-  return entity
+  if (isSuccess(response.statusCode)) {
+    return deserialize<T>(response.body)
+  } else {
+    return Promise.reject(`Could not complete request successfully. Status code ${response.statusCode} received.`)
+  }
 }
 
 export async function getAllPages<T>(path: string, options: IGitHubAPIOptions): Promise<ReadonlyArray<T>> {

@@ -194,8 +194,7 @@ export class API {
   /** Create a new GitHub repository with the given properties. */
   public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository | null> {
     const url = org ? `orgs/${org.login}/repos` : 'user/repos'
-    const repository = await post<IAPIRepository>(url, { name, description, private: private_ }, this.withOptions())
-    return repository
+    return post<IAPIRepository>(url, { name, description, private: private_ }, this.withOptions())
   }
 
   /**
