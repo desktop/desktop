@@ -161,7 +161,7 @@ export class AppStore {
 
     this.signInStore.onDidAuthenticate(user => this.emitAuthenticate(user))
     this.signInStore.onDidUpdate(() => this.emitUpdate())
-    this.signInStore.onDidError(error => this._postError(error))
+    this.signInStore.onDidError(error => this.emitError(error))
 
     const rootDir = getAppPath()
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
