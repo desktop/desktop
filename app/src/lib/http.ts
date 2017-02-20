@@ -278,7 +278,12 @@ export async function post<T>(path: string, body: Object, options: IGitHubAPIOpt
     return Promise.reject('Path must not start with a leading slash.')
   }
 
-  const response = await request(options.endpoint, `token ${options.token}`, 'POST', path, body)
+  let currentPath = path
+  if (options.params) {
+    currentPath = `${path}${toQueryString(options.params)}`
+  }
+
+  const response = await request(options.endpoint, `token ${options.token}`, 'POST', currentPath, body)
 
   if (isSuccess(response.statusCode)) {
     return deserialize<T>(response.body)
