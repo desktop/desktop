@@ -3,19 +3,29 @@ import * as React from 'react'
 import { LinkEventHandler, LinkType } from './link-handler'
 
 const EmojiRegex = /(:.*?:)/g
-// TODO: refine this regex so email addresses are skipped
 const UsernameOrIssueRegex = /(\w*@[a-zA-Z0-9\-]*)|(#[0-9]{1,})/g
 
 interface IRichTextProps {
   readonly className?: string
+
+  /** A lookup of emoji characters to map to image resources */
   readonly emoji: Map<string, string>
+
+  /** The raw text to inspect for things to highlight */
   readonly children?: string
+
+  /**
+   * The external callback to fire when a hyperlink has been clicked.
+   *
+   * If not specified, plain text is drawn.
+   */
   readonly linkClicked?: LinkEventHandler
 }
 
 /**
  * A component which replaces any emoji shortcuts (e.g., :+1:) in its child text
- * with the appropriate image tag.
+ * with the appropriate image tag, and also highlights username and issue mentions
+ * with hyperlink tags if it has an event handler to invoke.
  */
 export class RichText extends React.Component<IRichTextProps, void> {
   public render() {
@@ -48,7 +58,7 @@ function emojificationNexus(str: string, emoji: Map<string, string>, linkClicked
 }
 
 function usernameNexus(str: string, i: number, linkClicked?: LinkEventHandler): ReadonlyArray<JSX.Element | string> {
-  if (linkClicked === undefined) {
+  if (!linkClicked) {
     return [ str ]
   }
 
