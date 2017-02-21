@@ -1178,12 +1178,12 @@ export class AppStore {
         const gitStore = this.getGitStore(repository)
         await gitStore.performFailableOperation(() => addRemote(repository, 'origin', apiRepository.clone_url))
         await gitStore.loadCurrentRemote()
+        const updatedRepository = await this._repositoryWithRefreshedGitHubRepository(repository)
+        await this._push(updatedRepository)
       }
     } catch (e) {
       this.emitError(e)
     }
-
-    return this._push(repository)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
