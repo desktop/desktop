@@ -4,7 +4,7 @@ import { LinkEventHandler, LinkType } from './link-handler'
 
 const EmojiRegex = /(:.*?:)/g
 // TODO: refine this regex so email addresses are skipped
-const UsernameOrIssueRegex = /(@[a-zA-Z0-9\-]*)|(#[0-9]{1,})/g
+const UsernameOrIssueRegex = /(\w*@[a-zA-Z0-9\-]*)|(#[0-9]{1,})/g
 
 interface IRichTextProps {
   readonly className?: string
@@ -61,7 +61,7 @@ function usernameNexus(str: string, i: number, linkClicked?: LinkEventHandler): 
 
     // because we are using an | to build up this regex here, we
     // see undefined entries to represent matches for the "other"
-    // result. these can be safely ignored.
+    // expression in the regex. these can be safely ignored.
     if (fragment === undefined) {
       continue
     }
