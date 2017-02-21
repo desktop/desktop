@@ -1,8 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
 
-const uiViewClassName = 'ui-view'
-
 interface IUiViewProps extends React.HTMLProps<HTMLDivElement> { }
 
 /**
@@ -20,14 +18,14 @@ interface IUiViewProps extends React.HTMLProps<HTMLDivElement> { }
  */
 export class UiView extends React.Component<IUiViewProps, void> {
 
-  public static defaultProps: IUiViewProps = {
-    className: uiViewClassName,
-  }
-
   public render() {
-    const className = classNames(this.props.className, uiViewClassName)
-    return <div {...this.props} className={className}>
-      {this.props.children}
-    </div>
+    const className = classNames(this.props.className, 'ui-view')
+    const props = { ...this.props, className }
+
+    return (
+      <div {...props}>
+        {this.props.children}
+      </div>
+    )
   }
 }

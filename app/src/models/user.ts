@@ -6,6 +6,7 @@ export interface IUser {
   readonly emails: ReadonlyArray<string>
   readonly avatarURL: string
   readonly id: number
+  readonly name: string
 }
 
 /**
@@ -18,22 +19,24 @@ export class User implements IUser {
   public readonly emails: ReadonlyArray<string>
   public readonly avatarURL: string
   public readonly id: number
+  public readonly name: string
 
   /** Create a new User from some JSON. */
   public static fromJSON(obj: IUser): User {
-    return new User(obj.login, obj.endpoint, obj.token, obj.emails, obj.avatarURL, obj.id)
+    return new User(obj.login, obj.endpoint, obj.token, obj.emails, obj.avatarURL, obj.id, obj.name)
   }
 
-  public constructor(login: string, endpoint: string, token: string, emails: ReadonlyArray<string>, avatarURL: string, id: number) {
+  public constructor(login: string, endpoint: string, token: string, emails: ReadonlyArray<string>, avatarURL: string, id: number, name: string) {
     this.login = login
     this.endpoint = endpoint
     this.token = token
     this.emails = emails
     this.avatarURL = avatarURL
     this.id = id
+    this.name = name
   }
 
   public withToken(token: string): User {
-    return new User(this.login, this.endpoint, token, this.emails, this.avatarURL, this.id)
+    return new User(this.login, this.endpoint, token, this.emails, this.avatarURL, this.id, this.name)
   }
 }

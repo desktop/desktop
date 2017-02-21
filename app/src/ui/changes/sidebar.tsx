@@ -4,11 +4,11 @@ import { ChangesList } from './changes-list'
 import { DiffSelectionType } from '../../models/diff'
 import { IChangesState, PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
-import { Dispatcher, IGitHubUser, IssuesStore } from '../../lib/dispatcher'
+import { Dispatcher, IGitHubUser, IssuesStore, GitHubUserStore } from '../../lib/dispatcher'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Commit } from '../../models/commit'
 import { UndoCommit } from './undo-commit'
-import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocompletionProvider } from '../autocompletion'
+import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocompletionProvider, UserAutocompletionProvider } from '../autocompletion'
 import { ICommitMessage } from '../../lib/app-state'
 import { ClickSource } from '../list'
 import { WorkingDirectoryFileChange } from '../../models/status'
@@ -35,6 +35,7 @@ interface IChangesSidebarProps {
   readonly issuesStore: IssuesStore
   readonly availableWidth: number
   readonly isCommitting: boolean
+  readonly gitHubUserStore: GitHubUserStore
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> {
@@ -61,6 +62,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
       const gitHubRepository = props.repository.gitHubRepository
       if (gitHubRepository) {
         autocompletionProviders.push(new IssuesAutocompletionProvider(props.issuesStore, gitHubRepository, props.dispatcher))
+        autocompletionProviders.push(new UserAutocompletionProvider(props.gitHubUserStore, gitHubRepository))
       }
 
       this.autocompletionProviders = autocompletionProviders
