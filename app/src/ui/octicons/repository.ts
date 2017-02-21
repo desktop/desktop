@@ -7,7 +7,7 @@ export function iconForRepository(repository: Repository | CloningRepository) {
     return OcticonSymbol.desktopDownload
   } else {
     const gitHubRepo = repository.gitHubRepository
-    if (!gitHubRepo) { return OcticonSymbol.repo }
+    if (!gitHubRepo) { return OcticonSymbol.deviceDesktop }
 
     if (gitHubRepo.private) { return OcticonSymbol.lock }
     if (gitHubRepo.fork) { return OcticonSymbol.repoForked }
