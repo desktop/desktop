@@ -6,7 +6,7 @@ import { Dispatcher, SignInState } from '../../lib/dispatcher'
 
 interface ISignInProps {
   readonly dispatcher: Dispatcher
-  readonly signInState: SignInState
+  readonly signInState: SignInState | null
 }
 
 enum SignInTab {
@@ -49,9 +49,16 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   }
 
   private renderActiveTab() {
+
+    const signInState = this.props.signInState
+
+    if (!signInState) {
+      return null
+    }
+
     return (
       <SignInCore
-        signInState={this.props.signInState}
+        signInState={signInState}
         dispatcher={this.props.dispatcher}
       />
     )
