@@ -3,7 +3,7 @@ import { shell as electronShell } from 'electron'
 export interface IAppShell {
   readonly moveItemToTrash: (path: string) => boolean
   readonly beep: () => void
-  readonly openExternal: (path: string) => void
+  readonly openExternal: (url: string, options?: { activate: boolean}) => void
   readonly openItem: (path: string) => boolean
 }
 
