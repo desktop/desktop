@@ -1,13 +1,13 @@
 import * as React from 'react'
 import { WelcomeStep } from './welcome'
 import { SignIn } from '../lib/sign-in'
-import { Dispatcher, SignInStep } from '../../lib/dispatcher'
+import { Dispatcher, SignInState } from '../../lib/dispatcher'
 import { Button } from '../lib/button'
 
 interface ISignInDotComProps {
   readonly dispatcher: Dispatcher
   readonly advance: (step: WelcomeStep) => void
-  readonly signInState: SignInStep | null
+  readonly signInState: SignInState | null
 }
 
 /** The Welcome flow step to login to GitHub.com. */
@@ -19,9 +19,9 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, void> {
 
   public render() {
 
-    const currentStep = this.props.signInState
+    const state = this.props.signInState
 
-    if (!currentStep) {
+    if (!state) {
       return null
     }
 
@@ -30,7 +30,7 @@ export class SignInDotCom extends React.Component<ISignInDotComProps, void> {
         <h1 className='welcome-title'>Sign in to GitHub.com</h1>
 
         <SignIn
-          currentStep={currentStep}
+          signInState={state}
           dispatcher={this.props.dispatcher}>
           <Button onClick={this.cancel}>Cancel</Button>
         </SignIn>

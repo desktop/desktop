@@ -3,10 +3,10 @@ import { AuthenticationForm } from './authentication-form'
 import { assertNever } from '../../lib/fatal-error'
 import { TwoFactorAuthentication } from '../lib/two-factor-authentication'
 import { EnterpriseServerEntry } from '../lib/enterprise-server-entry'
-import { Dispatcher, SignInStep, Step, AuthenticationMethods } from '../../lib/dispatcher'
+import { Dispatcher, SignInState, SignInStep, AuthenticationMethods } from '../../lib/dispatcher'
 
 interface ISignInProps {
-  readonly currentStep: SignInStep
+  readonly signInState: SignInState
   readonly dispatcher: Dispatcher
 
   /** An array of additional buttons to render after the "Sign In" button. */
@@ -33,33 +33,35 @@ export class SignIn extends React.Component<ISignInProps, void> {
   }
 
   public render() {
-    const step = this.props.currentStep
-    if (step.kind === Step.EndpointEntry) {
+    const state = this.props.signInState
+    const stepText = this.props.signInState.kind
+
+    if (state.kind === SignInStep.EndpointEntry) {
       return <EnterpriseServerEntry
-        loading={step.loading}
-        error={step.error}
+        loading={state.loading}
+        error={state.error}
         onSubmit={this.onEndpointEntered}
         additionalButtons={this.props.children}
       />
-    } else if (step.kind === Step.Authentication) {
-      const supportsBasicAuth = step.authMethods.has(AuthenticationMethods.BasicAuth)
+    } else if (state.kind === SignInStep.Authentication) {
+      const supportsBasicAuth = state.authMethods.has(AuthenticationMethods.BasicAuth)
       return <AuthenticationForm
-        loading={step.loading}
-        error={step.error}
+        loading={state.loading}
+        error={state.error}
         supportsBasicAuth={supportsBasicAuth}
-        endpoint={step.endpoint}
+        endpoint={state.endpoint}
         additionalButtons={this.props.children}
         onBrowserSignInRequested={this.onBrowserSignInRequested}
         onSubmit={this.onCredentialsEntered}/>
-    } else if (step.kind === Step.TwoFactorAuthentication) {
+    } else if (state.kind === SignInStep.TwoFactorAuthentication) {
       return <TwoFactorAuthentication
-        loading={step.loading}
-        error={step.error}
+        loading={state.loading}
+        error={state.error}
         onOTPEntered={this.onOTPEntered}/>
-    } else if (step.kind === Step.Success) {
+    } else if (state.kind === SignInStep.Success) {
       return null
     } else {
-      return assertNever(step, `Unknown sign-in step: ${step}`)
+      return assertNever(state, `Unknown sign-in step: ${stepText}`)
     }
   }
 }

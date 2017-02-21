@@ -2,7 +2,7 @@ import * as React from 'react'
 import { ToolbarDropdown } from './dropdown'
 import { ToolbarButtonStyle } from './button'
 import { IAheadBehind } from '../../lib/app-state'
-import { Dispatcher, SignInStep } from '../../lib/dispatcher'
+import { Dispatcher, SignInState } from '../../lib/dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { RelativeTime } from '../relative-time'
@@ -34,7 +34,7 @@ interface IPushPullButtonProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 
-  readonly signInState: SignInStep | null
+  readonly signInState: SignInState | null
 }
 
 /**

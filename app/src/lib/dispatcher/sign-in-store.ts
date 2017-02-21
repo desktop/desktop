@@ -14,7 +14,7 @@ import {
   fetchMetadata,
 } from '../../lib/api'
 
-export enum Step {
+export enum SignInStep {
   EndpointEntry,
   Authentication,
   TwoFactorAuthentication,
@@ -36,38 +36,38 @@ export const DefaultAuthMethods = new Set([
   AuthenticationMethods.OAuth,
 ])
 
-export type SignInStep = IEndpointEntryStep | IAuthenticationStep | ITwoFactorAuthenticationStep | ISuccessStep
+export type SignInState = IEndpointEntryState | IAuthenticationState | ITwoFactorAuthenticationState | ISuccessState
 
-export interface ISignInStep {
-  readonly kind: Step
+export interface ISignInState {
+  readonly kind: SignInStep
   readonly error: Error | null,
   readonly loading: boolean,
 }
 
-export interface IEndpointEntryStep extends ISignInStep {
-  readonly kind: Step.EndpointEntry
+export interface IEndpointEntryState extends ISignInState {
+  readonly kind: SignInStep.EndpointEntry
 }
 
-export interface IAuthenticationStep extends ISignInStep {
-  readonly kind: Step.Authentication
+export interface IAuthenticationState extends ISignInState {
+  readonly kind: SignInStep.Authentication
   readonly endpoint: string,
   readonly authMethods: Set<AuthenticationMethods>
 }
 
-export interface ITwoFactorAuthenticationStep extends ISignInStep {
-  readonly kind: Step.TwoFactorAuthentication
+export interface ITwoFactorAuthenticationState extends ISignInState {
+  readonly kind: SignInStep.TwoFactorAuthentication
   readonly endpoint: string,
   readonly username: string,
   readonly password: string
 }
 
-export interface ISuccessStep {
-  readonly kind: Step.Success
+export interface ISuccessState {
+  readonly kind: SignInStep.Success
 }
 
 export class SignInStore {
   private readonly emitter = new Emitter()
-  private state: SignInStep | null = null
+  private state: SignInState | null = null
 
   public SignInStore() {
 
@@ -103,11 +103,11 @@ export class SignInStore {
     return this.emitter.on('did-error', fn)
   }
 
-  public getState(): SignInStep | null {
+  public getState(): SignInState | null {
     return this.state
   }
 
-  private setState(state: SignInStep | null) {
+  private setState(state: SignInState | null) {
     this.state = state
     this.emitUpdate()
   }
@@ -137,7 +137,7 @@ export class SignInStore {
 
   public beginDotComSignIn() {
     this.setState({
-      kind: Step.Authentication,
+      kind: SignInStep.Authentication,
       endpoint: getDotComAPIEndpoint(),
       authMethods: DefaultAuthMethods,
       error: null,
@@ -148,7 +148,7 @@ export class SignInStore {
   public async authenticateWithBasicAuth(username: string, password: string): Promise<void> {
     const currentState = this.state
 
-    if (!currentState || currentState.kind !== Step.Authentication) {
+    if (!currentState || currentState.kind !== SignInStep.Authentication) {
       const stepText = currentState ? currentState.kind : 'null'
       return fatalError(`Sign in step '${stepText}' not compatible with authentication`)
     }
@@ -165,7 +165,7 @@ export class SignInStore {
       return
     }
 
-    if (!this.state || this.state.kind !== Step.Authentication) {
+    if (!this.state || this.state.kind !== SignInStep.Authentication) {
       // Looks like the sign in flow has been aborted
       return
     }
@@ -174,16 +174,16 @@ export class SignInStore {
       const token = response.token
       const user = await fetchUser(endpoint, token)
 
-      if (!this.state || this.state.kind !== Step.Authentication) {
+      if (!this.state || this.state.kind !== SignInStep.Authentication) {
         // Looks like the sign in flow has been aborted
         return
       }
 
       this.emitAuthenticate(user)
-      this.setState({ kind: Step.Success })
+      this.setState({ kind: SignInStep.Success })
     } else if (response.kind === AuthorizationResponseKind.TwoFactorAuthenticationRequired) {
       this.setState({
-        kind: Step.TwoFactorAuthentication,
+        kind: SignInStep.TwoFactorAuthentication,
         endpoint,
         username,
         password,
@@ -213,7 +213,7 @@ export class SignInStore {
   public async authenticateWithBrowser(): Promise<void> {
     const currentState = this.state
 
-    if (!currentState || currentState.kind !== Step.Authentication) {
+    if (!currentState || currentState.kind !== SignInStep.Authentication) {
       const stepText = currentState ? currentState.kind : 'null'
       return fatalError(`Sign in step '${stepText}' not compatible with browser authentication`)
     }
@@ -228,23 +228,23 @@ export class SignInStore {
       return
     }
 
-    if (!this.state || this.state.kind !== Step.Authentication) {
+    if (!this.state || this.state.kind !== SignInStep.Authentication) {
       // Looks like the sign in flow has been aborted
       return
     }
 
     this.emitAuthenticate(user)
-    this.setState({ kind: Step.Success })
+    this.setState({ kind: SignInStep.Success })
   }
 
   public beginEnterpriseSignIn() {
-    this.setState({ kind: Step.EndpointEntry, error: null, loading: false })
+    this.setState({ kind: SignInStep.EndpointEntry, error: null, loading: false })
   }
 
   public async setEndpoint(url: string): Promise<void> {
     const currentState = this.state
 
-    if (!currentState || currentState.kind !== Step.EndpointEntry) {
+    if (!currentState || currentState.kind !== SignInStep.EndpointEntry) {
       const stepText = currentState ? currentState.kind : 'null'
       return fatalError(`Sign in step '${stepText}' not compatible with endpoint entry`)
     }
@@ -270,13 +270,13 @@ export class SignInStore {
     try {
       const authMethods = await this.fetchAllowedAuthenticationMethods(endpoint)
 
-      if (!this.state || this.state.kind !== Step.EndpointEntry) {
+      if (!this.state || this.state.kind !== SignInStep.EndpointEntry) {
         // Looks like the sign in flow has been aborted
         return
       }
 
       this.setState({
-        kind: Step.Authentication,
+        kind: SignInStep.Authentication,
         endpoint,
         authMethods,
         error: null,
@@ -297,7 +297,7 @@ export class SignInStore {
 
     const currentState = this.state
 
-    if (!currentState || currentState.kind !== Step.TwoFactorAuthentication) {
+    if (!currentState || currentState.kind !== SignInStep.TwoFactorAuthentication) {
       const stepText = currentState ? currentState.kind : 'null'
       return fatalError(`Sign in step '${stepText}' not compatible with two factor authentication`)
     }
@@ -318,7 +318,7 @@ export class SignInStore {
       return
     }
 
-    if (!this.state || this.state.kind !== Step.TwoFactorAuthentication) {
+    if (!this.state || this.state.kind !== SignInStep.TwoFactorAuthentication) {
       // Looks like the sign in flow has been aborted
       return
     }
@@ -327,13 +327,13 @@ export class SignInStore {
       const token = response.token
       const user = await fetchUser(currentState.endpoint, token)
 
-      if (!this.state || this.state.kind !== Step.TwoFactorAuthentication) {
+      if (!this.state || this.state.kind !== SignInStep.TwoFactorAuthentication) {
         // Looks like the sign in flow has been aborted
         return
       }
 
       this.emitAuthenticate(user)
-      this.setState({ kind: Step.Success })
+      this.setState({ kind: SignInStep.Success })
     } else {
       switch (response.kind) {
         case AuthorizationResponseKind.Failed:

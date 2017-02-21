@@ -1,11 +1,11 @@
 import * as React from 'react'
 import {
   Dispatcher,
+  SignInState,
   SignInStep,
-  Step,
-  IEndpointEntryStep,
-  IAuthenticationStep,
-  ITwoFactorAuthenticationStep,
+  IEndpointEntryState,
+  IAuthenticationState,
+  ITwoFactorAuthenticationState,
   AuthenticationMethods,
 } from '../../lib/dispatcher'
 import { assertNever } from '../../lib/fatal-error'
@@ -19,7 +19,7 @@ import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
 interface ISignInProps {
   readonly dispatcher: Dispatcher
-  readonly signInState: SignInStep | null
+  readonly signInState: SignInState | null
   readonly onDismissed: () => void
 }
 
@@ -45,7 +45,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
   public componentWillReceiveProps(nextProps: ISignInProps) {
     if (nextProps.signInState !== this.props.signInState) {
-      if (nextProps.signInState && nextProps.signInState.kind === Step.Success) {
+      if (nextProps.signInState && nextProps.signInState.kind === SignInStep.Success) {
         this.props.onDismissed()
       }
     }
@@ -61,20 +61,20 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     const stepKind = state.kind
 
     switch (state.kind) {
-      case Step.EndpointEntry:
+      case SignInStep.EndpointEntry:
         this.props.dispatcher.setSignInEndpoint(this.state.endpoint)
         break
-      case Step.Authentication:
+      case SignInStep.Authentication:
         if (state.authMethods.has(AuthenticationMethods.OAuth) && !state.authMethods.has(AuthenticationMethods.BasicAuth)) {
           this.props.dispatcher.requestBrowserAuthentication()
         } else {
           this.props.dispatcher.setSignInCredentials(this.state.username, this.state.password)
         }
         break
-      case Step.TwoFactorAuthentication:
+      case SignInStep.TwoFactorAuthentication:
         this.props.dispatcher.setSignInOTP(this.state.otpToken)
         break
-      case Step.Success:
+      case SignInStep.Success:
         this.props.onDismissed()
         break
       default:
@@ -103,7 +103,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   }
 
   private renderErrors() {
-    if (!this.props.signInState || this.props.signInState.kind === Step.Success || !this.props.signInState.error) {
+    if (!this.props.signInState || this.props.signInState.kind === SignInStep.Success || !this.props.signInState.error) {
       return null
     }
 
@@ -116,7 +116,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
     const state = this.props.signInState
 
-    if (!state || state.kind === Step.Success) {
+    if (!state || state.kind === SignInStep.Success) {
       return null
     }
 
@@ -124,13 +124,13 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     const stepKind = state.kind
 
     switch (state.kind) {
-      case Step.EndpointEntry:
+      case SignInStep.EndpointEntry:
         primaryButtonText = 'Continue'
         break
-      case Step.TwoFactorAuthentication:
+      case SignInStep.TwoFactorAuthentication:
         primaryButtonText = 'Sign in'
         break
-      case Step.Authentication:
+      case SignInStep.Authentication:
         if (state.authMethods.has(AuthenticationMethods.OAuth) && !state.authMethods.has(AuthenticationMethods.BasicAuth)) {
           primaryButtonText = 'Continue with browser'
         } else {
@@ -151,7 +151,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     )
   }
 
-  private renderEndpointEntryStep(step: IEndpointEntryStep) {
+  private renderEndpointEntryStep(state: IEndpointEntryState) {
     return (
       <DialogContent>
         <Row>
@@ -181,9 +181,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     )
   }
 
-  private renderAuthenticationStep(step: IAuthenticationStep) {
+  private renderAuthenticationStep(state: IAuthenticationState) {
 
-    if (step.authMethods.has(AuthenticationMethods.OAuth) && !step.authMethods.has(AuthenticationMethods.BasicAuth)) {
+    if (state.authMethods.has(AuthenticationMethods.OAuth) && !state.authMethods.has(AuthenticationMethods.BasicAuth)) {
       return (
         <DialogContent>
           <p>
@@ -193,7 +193,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       )
     }
 
-    const signInWithBrowser = step.authMethods.has(AuthenticationMethods.OAuth)
+    const signInWithBrowser = state.authMethods.has(AuthenticationMethods.OAuth)
       ? this.renderSignInWithBrowser()
       : null
 
@@ -218,7 +218,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     )
   }
 
-  private renderTwoFactorAuthenticationStep(step: ITwoFactorAuthenticationStep) {
+  private renderTwoFactorAuthenticationStep(state: ITwoFactorAuthenticationState) {
     // TODO: Add "What's this" link button
     return (
       <DialogContent>
@@ -244,10 +244,10 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     const stepKind = state.kind
 
     switch (state.kind) {
-      case Step.EndpointEntry: return this.renderEndpointEntryStep(state)
-      case Step.Authentication: return this.renderAuthenticationStep(state)
-      case Step.TwoFactorAuthentication: return this.renderTwoFactorAuthenticationStep(state)
-      case Step.Success: return null
+      case SignInStep.EndpointEntry: return this.renderEndpointEntryStep(state)
+      case SignInStep.Authentication: return this.renderAuthenticationStep(state)
+      case SignInStep.TwoFactorAuthentication: return this.renderTwoFactorAuthenticationStep(state)
+      case SignInStep.Success: return null
       default: return assertNever(state, `Unknown sign in step ${stepKind}`)
     }
   }
@@ -256,7 +256,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
     const state = this.props.signInState
 
-    if (!state || state.kind === Step.Success) {
+    if (!state || state.kind === SignInStep.Success) {
       return null
     }
 

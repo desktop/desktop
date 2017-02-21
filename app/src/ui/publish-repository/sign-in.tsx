@@ -2,11 +2,11 @@ import * as React from 'react'
 import { TabBar } from '../tab-bar'
 import { SignIn as SignInCore } from '../lib/sign-in'
 import { fatalError } from '../../lib/fatal-error'
-import { Dispatcher, SignInStep } from '../../lib/dispatcher'
+import { Dispatcher, SignInState } from '../../lib/dispatcher'
 
 interface ISignInProps {
   readonly dispatcher: Dispatcher
-  readonly signInState: SignInStep | null
+  readonly signInState: SignInState | null
 }
 
 enum SignInTab {
@@ -50,13 +50,13 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
   private renderActiveTab() {
 
-    const currentStep = this.props.signInState
+    const state = this.props.signInState
 
-    if (!currentStep) {
+    if (!state) {
       return null
     }
 
-    return <SignInCore currentStep={currentStep} dispatcher={this.props.dispatcher} />
+    return <SignInCore signInState={state} dispatcher={this.props.dispatcher} />
   }
 
   private onTabClicked = (index: number) => {

@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Dispatcher, AppStore, SignInStep, Step } from '../../lib/dispatcher'
+import { Dispatcher, AppStore, SignInState, SignInStep } from '../../lib/dispatcher'
 import { assertNever } from '../../lib/fatal-error'
 import { Start } from './start'
 import { SignInDotCom } from './sign-in-dot-com'
@@ -20,7 +20,7 @@ export enum WelcomeStep {
 interface IWelcomeProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
-  readonly signInState: SignInStep | null
+  readonly signInState: SignInState | null
 }
 
 interface IWelcomeState {
@@ -44,7 +44,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
         // Only advance when the state first changes...
         if (this.props.signInState.kind !== nextProps.signInState.kind) {
           // ...and changes to success
-          if (nextProps.signInState.kind === Step.Success) {
+          if (nextProps.signInState.kind === SignInStep.Success) {
             this.advanceToStep(WelcomeStep.ConfigureGit)
             this.props.dispatcher.resetSignInState()
           }
