@@ -40,6 +40,13 @@ describe('RichText', () => {
       expect(links.length).to.equal(0)
     })
 
+    it('render hyperlink when starting with a @', () => {
+      const children = '@shiftkey was here'
+      const wrapper = createComponent(children, linkClicked)
+      const links = wrapper.find('.username')
+      expect(links.length).to.equal(1)
+    })
+
     it('renders hyperlink when a mention is found', () => {
       const children = 'fixed based on suggestion from @shiftkey'
       const wrapper = createComponent(children, linkClicked)
