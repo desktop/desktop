@@ -36,6 +36,16 @@ describe('RichText', () => {
       expect(links.length).to.equal(0)
     })
 
+    it('does not render hyperlink when email address found', () => {
+      const children = 'the email address support@github.com should be ignored'
+
+      const wrapper = shallow(
+        <RichText emoji={emoji} children={children} linkClicked={linkClicked} />
+      )
+
+      const links = wrapper.find('.username')
+      expect(links.length).to.equal(0)
+    })
 
     it('renders hyperlink when a mention is found', () => {
       const children = 'fixed based on suggestion from @shiftkey'
@@ -82,6 +92,7 @@ describe('RichText', () => {
       const links = wrapper.find('.emoji')
       expect(links.length).to.equal(0)
     })
+
     it('does not render hyperlink for mention', () => {
       const children = 'fixed based on suggestion from @shiftkey'
 
