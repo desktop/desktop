@@ -161,8 +161,10 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     }
 
     // This event handler catches the onClick event of buttons in the
-    // dialog. Ie, if someone hits enter inside the dialog form the submit
-    // button will be 
+    // dialog. Ie, if someone hits enter inside the dialog form an onClick
+    // event will be raised on the the submit button which isn't what we
+    // want so we'll make sure that the original target for the event is
+    // our own dialog element.
     if (e.target !== this.dialogElement) {
       return
     }
