@@ -228,6 +228,7 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
   private pathElement: HTMLDivElement | null = null
   private pathInnerElement: HTMLSpanElement | null = null
+  private resizeObserver: any | null = null
 
   public constructor(props: IPathTextProps) {
     super(props)
@@ -238,10 +239,24 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
     if (nextProps.path !== this.props.path) {
       this.setState(createState(nextProps.path))
     }
+
+    if (nextProps.availableWidth !== undefined) {
+      if (this.resizeObserver) {
+        this.resizeObserver.disconnect()
+        this.resizeObserver = null
+      }
+    }
   }
 
   public componentDidMount() {
     this.resizeIfNecessary()
+  }
+
+  public componentWillUnmount() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+      this.resizeObserver = null
+    }
   }
 
   public componentDidUpdate() {
@@ -250,6 +265,31 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
   private onPathElementRef = (element: HTMLDivElement | undefined) => {
     this.pathElement = element || null
+
+    if (!element) {
+      if (this.resizeObserver) {
+        this.resizeObserver.disconnect()
+      }
+    } else {
+
+      if (this.props.availableWidth) { return }
+
+      if (!this.resizeObserver) {
+        const ResizeObserver = (window as any).ResizeObserver
+
+        if (!ResizeObserver) {
+          return
+        }
+
+        this.resizeObserver = new ResizeObserver((entries: ReadonlyArray<HTMLElement>) => {
+          console.log('resized!', entries)
+          this.resizeIfNecessary()
+        })
+      }
+
+      this.resizeObserver.disconnect()
+      this.resizeObserver.observe(element)
+    }
   }
 
   private onPathInnerElementRef = (element: HTMLSpanElement | undefined) => {
