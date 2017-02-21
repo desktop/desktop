@@ -22,6 +22,22 @@ interface IPublishProps {
  * in component.
  */
 export class Publish extends React.Component<IPublishProps, void> {
+
+  public constructor(props: IPublishProps) {
+    super(props)
+    this.receiveProps(props)
+  }
+
+  private receiveProps(props: IPublishProps) {
+    if (!props.users.length && !props.signInState) {
+      props.dispatcher.beginDotComSignIn()
+    }
+  }
+
+  public componentWillReceiveProps(nextProps: IPublishProps) {
+    this.receiveProps(nextProps)
+  }
+
   public render() {
     if (this.props.users.length > 0) {
       return <PublishRepository
@@ -29,10 +45,19 @@ export class Publish extends React.Component<IPublishProps, void> {
         repository={this.props.repository}
         users={this.props.users}/>
     } else {
-      return <SignIn
-        dispatcher={this.props.dispatcher}
-        signInState={this.props.signInState}
-      />
+
+      const signInState = this.props.signInState
+
+      if (!signInState) {
+        return null
+      }
+
+      return (
+        <SignIn
+          dispatcher={this.props.dispatcher}
+          signInState={signInState}
+        />
+      )
     }
   }
 }
