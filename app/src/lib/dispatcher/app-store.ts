@@ -40,7 +40,8 @@ import { getAppMenu } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
-import { LinkEventHandler, ILinkClicked, LinkType } from '../../ui/lib/link-handler'
+import { LinkEventHandler, ILinkClicked, launchInBrowser } from '../../ui/lib/link-handler'
+
 
 import {
   getGitDir,
@@ -263,23 +264,12 @@ export class AppStore {
     })
   }
 
+
+
   private getLinkClicked(repository: Repository): LinkEventHandler | undefined {
-    if (repository.gitHubRepository === null) {
-      return undefined
-    } else {
-      return (event: ILinkClicked) => {
-        const repo = repository.gitHubRepository!
-        const endpoint = repo.endpoint
-        //const repository = selectedState.repository
-        if (event.kind === LinkType.User) {
-          console.log(`TODO: resolve for user ${event.user} on ${endpoint}`)
-        } else if (event.kind === LinkType.Issue) {
-          console.log(`TODO: resolve for issue ${event.id}`)
-        } else {
-          assertNever(event, `Unknown event: ${event}`)
-        }
-      }
-    }
+    return repository.gitHubRepository
+      ? (event: ILinkClicked) => launchInBrowser(event, repository.gitHubRepository!) // TODO: ugh
+      : undefined
   }
 
   private getSelectedState(): PossibleSelections | null {
