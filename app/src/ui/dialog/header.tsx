@@ -54,7 +54,7 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, void> {
   // hitting enter inside a dialog won't submit the form at all but rather close
   // the dialog.
   private onCloseButtonFocus = (e: React.FocusEvent<HTMLButtonElement>) => {
-    //e.currentTarget.blur()
+    e.currentTarget.blur()
   }
 
   private renderCloseButton() {
