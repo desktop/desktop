@@ -43,12 +43,12 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     const status = this.props.status
     const fileStatus = mapStatus(status)
 
-    const listItemPadding = 5 + 5
-    const checkboxWidth = 20 + 5
-    const statusWidth = 16
-    const filePadding = 5
+    // const listItemPadding = 5 + 5
+    // const checkboxWidth = 20 + 5
+    // const statusWidth = 16
+    // const filePadding = 5
 
-    const availablePathWidth = this.props.availableWidth - listItemPadding - checkboxWidth - filePadding - statusWidth
+    //const availablePathWidth = this.props.availableWidth - listItemPadding - checkboxWidth - filePadding - statusWidth
 
     return (
       <div className='file' onContextMenu={this.onContextMenu}>
@@ -65,7 +65,6 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
           path={this.props.path}
           oldPath={this.props.oldPath}
           status={this.props.status}
-          availableWidth={availablePathWidth}
         />
 
         <Octicon symbol={iconForStatus(status)}
