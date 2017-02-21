@@ -228,11 +228,20 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
   private pathElement: HTMLDivElement | null = null
   private pathInnerElement: HTMLSpanElement | null = null
-  private resizeObserver: any | null = null
+  private readonly resizeObserver: any | null = null
 
   public constructor(props: IPathTextProps) {
     super(props)
     this.state = createState(props.path)
+
+    const ResizeObserver = (window as any).ResizeObserver
+
+    if (ResizeObserver) {
+      this.resizeObserver = new ResizeObserver((entries: ReadonlyArray<HTMLElement>) => {
+        console.log('resized!', entries)
+        this.resizeIfNecessary()
+      })
+    }
   }
 
   public componentWillReceiveProps(nextProps: IPathTextProps) {
@@ -243,19 +252,23 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
     if (nextProps.availableWidth !== undefined) {
       if (this.resizeObserver) {
         this.resizeObserver.disconnect()
-        this.resizeObserver = null
+      }
+    } else {
+      if (this.resizeObserver && this.pathElement) {
+        this.resizeObserver.observe(this.pathElement)
       }
     }
   }
 
   public componentDidMount() {
-    this.resizeIfNecessary()
+    if (!this.resizeObserver) {
+      this.resizeIfNecessary()
+    }
   }
 
   public componentWillUnmount() {
     if (this.resizeObserver) {
       this.resizeObserver.disconnect()
-      this.resizeObserver = null
     }
   }
 
@@ -271,24 +284,13 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
         this.resizeObserver.disconnect()
       }
     } else {
+      if (this.resizeObserver) {
+        this.resizeObserver.disconnect()
 
-      if (this.props.availableWidth) { return }
-
-      if (!this.resizeObserver) {
-        const ResizeObserver = (window as any).ResizeObserver
-
-        if (!ResizeObserver) {
-          return
+        if (this.props.availableWidth === undefined) {
+          this.resizeObserver.observe(element)
         }
-
-        this.resizeObserver = new ResizeObserver((entries: ReadonlyArray<HTMLElement>) => {
-          console.log('resized!', entries)
-          this.resizeIfNecessary()
-        })
       }
-
-      this.resizeObserver.disconnect()
-      this.resizeObserver.observe(element)
     }
   }
 
