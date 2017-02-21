@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Repository } from '../../models/repository'
-import { Octicon, OcticonSymbol } from '../octicons'
+import { Octicon, iconForRepository } from '../octicons'
 import { Dispatcher, CloningRepository } from '../../lib/dispatcher'
 import { showContextualMenu } from '../main-process-proxy'
 
@@ -46,20 +46,5 @@ export class RepositoryListItem extends React.Component<IRepositoryListItemProps
 
   private removeRepository() {
     this.props.dispatcher.removeRepositories([ this.props.repository ])
-  }
-}
-
-function iconForRepository(repository: Repository | CloningRepository): OcticonSymbol {
-
-  if (repository instanceof CloningRepository) {
-    return OcticonSymbol.desktopDownload
-  } else {
-    const gitHubRepo = repository.gitHubRepository
-    if (!gitHubRepo) { return OcticonSymbol.deviceDesktop }
-
-    if (gitHubRepo.private) { return OcticonSymbol.lock }
-    if (gitHubRepo.fork) { return OcticonSymbol.repoForked }
-
-    return OcticonSymbol.repo
   }
 }
