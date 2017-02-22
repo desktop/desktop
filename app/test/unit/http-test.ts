@@ -1,7 +1,13 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { getEncoding, getContentType, IHTTPResponse, toQueryString } from '../../src/lib/http'
+import {
+  getEncoding,
+  getContentType,
+  getLinkHeaders,
+  IHTTPResponse,
+  toQueryString,
+} from '../../src/lib/http'
 
 describe('HTTP', () => {
   describe('getContentType', () => {
@@ -125,6 +131,38 @@ describe('HTTP', () => {
 
       const result = toQueryString(params)
       expect(result).to.equal('?something=ha%20ha%20business')
+    })
+  })
+
+  describe('getLinkHeaders', () => {
+    it('finds valid URL', () => {
+      const sampleResponse: IHTTPResponse = {
+        headers: {
+          'link': [ '<https://api.github.com/user/repos?page=3&per_page=100>; rel="next",\n'
+            + '<https://api.github.com/user/repos?page=50&per_page=100>; rel="last"' ],
+        },
+      }
+
+      const result = getLinkHeaders(sampleResponse)
+      expect(result.next!.path).to.equal('/user/repos?page=3&per_page=100')
+    })
+
+    it('returns undefined when missing', () => {
+      const sampleResponse: IHTTPResponse = {
+        headers: { },
+      }
+      const result = getLinkHeaders(sampleResponse)
+      expect(result.next).to.be.undefined
+    })
+
+    it('returns undefined when unable to parse URL', () => {
+      const sampleResponse: IHTTPResponse = {
+        headers: {
+          'link': [ '<this-is-a-garbage-url>; rel="next", <and-this-is-too>; rel="last"' ],
+        },
+      }
+      const result = getLinkHeaders(sampleResponse)
+      expect(result.next).to.be.undefined
     })
   })
 })

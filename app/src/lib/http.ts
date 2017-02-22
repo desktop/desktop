@@ -77,15 +77,20 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
  *
  * For more information: https://developer.github.com/v3/#pagination
  */
-function getLinkHeaders(response: IHTTPResponse): { next?: URL.Url } {
+export function getLinkHeaders(response: IHTTPResponse): { next?: URL.Url } {
   const linkHeader = getHeader(response, 'link')
   if (linkHeader) {
+    // this regex looks for the comma-separated values inside the Link header
+    // for example:
+    // Link: <https://api.github.com/user/repos?page=3&per_page=100>; rel="next",
+    //  <https://api.github.com/user/repos?page=50&per_page=100>; rel="last"
     const matches = /\<([a-z0-9\=\_\&\?\/\.\:]*)\>; rel="([a-z]*)"/.exec(linkHeader)
     if (matches) {
       const pairs = matches.slice(1)
       for (let i = 0; i < pairs.length; i += 2) {
         const url = pairs[i]
         const type = pairs[i + 1]
+        // we're only interested in the 'next' header at the moment
         if (type === 'next') {
           const result = URL.parse(url)
           return { next: result }
@@ -144,7 +149,6 @@ function resolveNextPath(response: IHTTPResponse): string | null {
 
   return null
 }
-
 
 /**
  * Deserialize the HTTP response body into an expected object shape
