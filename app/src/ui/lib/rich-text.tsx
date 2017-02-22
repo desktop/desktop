@@ -53,14 +53,14 @@ function emojificationNexus(str: string, emoji: Map<string, string>, repository?
     if (path) {
       return [ <img key={i} alt={fragment} title={fragment} className='emoji' src={path}/> ]
     } else {
-      return usernameNexus(fragment, i, repository)
+      return renderUsernameOrIssues(fragment, i, repository)
     }
   })
 
   return <span>{elements}</span>
 }
 
-function usernameNexus(str: string, i: number, repository?: Repository): ReadonlyArray<JSX.Element | string> {
+function renderUsernameOrIssues(str: string, i: number, repository?: Repository): ReadonlyArray<JSX.Element | string> {
   if (!repository || !repository.gitHubRepository) {
     return [ str ]
   }
