@@ -69,36 +69,42 @@ describe('RichText', () => {
     })
 
     it('render link when text starts with a @', () => {
-      const expected = `${host}/${login}`
+      const expectedUri = `${host}/${login}`
       const text = `@${login} was here`
 
       const wrapper = createComponent(text, repository)
       const links = wrapper.find(LinkButton)
       expect(links.length).to.equal(1)
 
-      expect(links.at(0).props().uri).to.equal(expected)
+      const first = links.at(0).props()
+      expect(first.uri).to.equal(expectedUri)
+      expect(first.children).to.equal(`@${login}`)
     })
 
     it('renders link when a mention is found', () => {
-      const expected = `${host}/${login}`
+      const expectedUri = `${host}/${login}`
       const text = `fixed based on suggestion from @${login}`
 
       const wrapper = createComponent(text, repository)
       const links = wrapper.find(LinkButton)
       expect(links.length).to.equal(1)
 
-      expect(links.at(0).props().uri).to.equal(expected)
+      const first = links.at(0).props()
+      expect(first.uri).to.equal(expectedUri)
+      expect(first.children).to.equal(`@${login}`)
     })
 
     it('renders link when an issue reference is found', () => {
       const id = 955
-      const expected = `${htmlURL}/issues/${id}`
+      const expectedUri = `${htmlURL}/issues/${id}`
       const text = `Merge pull request #955 from desktop/computering-icons-for-all`
       const wrapper = createComponent(text, repository)
       const links = wrapper.find(LinkButton)
       expect(links.length).to.equal(1)
 
-      expect(links.at(0).props().uri).to.equal(expected)
+      const first = links.at(0).props()
+      expect(first.uri).to.equal(expectedUri)
+      expect(first.children).to.equal(`#${id}`)
     })
   })
 
