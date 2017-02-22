@@ -64,7 +64,7 @@
     "ts-loader": "^1.3.3",
     "ts-node": "^1.7.3",
     "tslint": "^3.14.0",
-    "typescript": "^2.1.5",
+    "typescript": "^2.2.1",
     "vrsource-tslint-rules": "^0.12.0",
     "webpack": "^1.12.15",
     "webpack-dev-middleware": "^1.6.1",
@@ -90,7 +90,6 @@
     "@types/react-addons-test-utils": "^0.14.17",
     "@types/react-dom": "^0.14.23",
     "@types/react-virtualized": "0.0.3",
-    "@types/uuid": "^2.0.29",
-    "@types/whatwg-fetch": "0.0.28"
+    "@types/uuid": "^2.0.29"
   }
 }
