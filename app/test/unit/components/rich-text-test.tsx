@@ -4,6 +4,7 @@ const expect = chai.expect
 import * as React from 'react'
 import { shallow } from 'enzyme'
 
+import { GitHubRepository } from '../../../src/models/github-repository'
 import { Repository } from '../../../src/models/repository'
 import { RichText } from '../../../src/ui/lib/rich-text'
 
@@ -18,8 +19,27 @@ describe('RichText', () => {
 
   describe('with GitHub repository', () => {
 
+    let gitHubRepository: GitHubRepository | null = null
+    gitHubRepository = {
+      dbID: 1,
+      name: 'some-repo',
+      owner: {
+        endpoint: 'https://api.github.com',
+        login: 'shiftkey',
+      },
+      endpoint: 'https://api.github.com',
+      fullName: 'shiftkey/some-repo',
+      private: false,
+      fork: false,
+      htmlURL: 'https://github.com/shiftkey/some-repo',
+      defaultBranch: 'master',
+      withAPI: (apiRepository) => {
+        return gitHubRepository!
+      },
+    }
+
     // TODO: fix up this mock so that the tests will pass again
-    const repository = new Repository('some/path/to/repo', 1)
+    const repository = new Repository('some/path/to/repo', 1, gitHubRepository)
 
     it('renders emoji when matched', () => {
       const children = 'releasing the thing :shipit:'
