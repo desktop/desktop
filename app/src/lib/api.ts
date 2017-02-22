@@ -194,7 +194,7 @@ export class API {
   public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
     const params: any = { state }
     if (since) {
-      params.since = since.toISOString()
+      params.since = since
     }
 
     const issues = await getAllPages<IAPIIssue>(`repos/${owner}/${name}/issues`, this.withOptions({ params }))

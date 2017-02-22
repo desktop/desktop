@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { getEncoding, getContentType, IHTTPResponse } from '../../src/lib/http'
+import { getEncoding, getContentType, IHTTPResponse, toQueryString } from '../../src/lib/http'
 
 describe('HTTP', () => {
   describe('getContentType', () => {
@@ -105,6 +105,26 @@ describe('HTTP', () => {
 
       const result = getEncoding(sampleResponse)
       expect(result).to.be.null
+    })
+  })
+
+  describe('toQueryString', () => {
+    it('renders date value without URI encoding', () => {
+      const params = {
+        'since': new Date('2016-08-31T01:02:03Z'),
+      }
+
+      const result = toQueryString(params)
+      expect(result).to.equal('?since=2016-08-31T01:02:03.000Z')
+    })
+
+    it('renders string value with encoding', () => {
+      const params = {
+        'something': 'ha ha business',
+      }
+
+      const result = toQueryString(params)
+      expect(result).to.equal('?something=ha%20ha%20business')
     })
   })
 })

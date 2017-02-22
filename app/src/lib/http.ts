@@ -30,10 +30,14 @@ export interface IHTTPRequest {
 /** The HTTP methods available. */
 export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'HEAD'
 
+type IAdditionalParameters = {
+  [key: string]: string | Date
+}
+
 /** Options to provide when making API requests */
 export interface IGitHubAPIOptions {
   /** Additional arguments to provide to the URL */
-  readonly params?: Object
+  readonly params?: IAdditionalParameters
   /** The server instance to interact with */
   readonly endpoint: string
   /** The user token to set to the Authorization header */
@@ -97,19 +101,23 @@ function getLinkHeaders(response: IHTTPResponse): { next?: URL.Url } {
  *
  * Note: does not handle arrays or nested objects
  */
-function toQueryString(json: any): string {
+export function toQueryString(object: IAdditionalParameters): string {
   // citation: http://stackoverflow.com/a/30707423/1363815
   return '?' +
-    Object.keys(json).map(function (key) {
-      // timestamp fields such as `since` and `before` are
-      // expected to be formatted in the raw ISO-8601 format
-      // (YYYY-MM-DDTHH:MM:SSZ) and must not be URI-encoded,
-      // otherwise this will format the : and - characters
-      if (key === 'since') {
-        return `${key}=${json[key]}`
+
+    Object.keys(object).map(function (key) {
+      const value: any = object[key]
+
+      if (value instanceof Date) {
+        // timestamp fields such as `since` and `before` are
+        // expected to be formatted in the raw ISO-8601 format
+        // (YYYY-MM-DDTHH:MM:SSZ) and must not be URI-encoded,
+        // otherwise this will format the : and - characters
+        return `${key}=${value.toISOString()}`
+      } else {
+        return encodeURIComponent(key) + '=' +
+          encodeURIComponent(value)
       }
-      return encodeURIComponent(key) + '=' +
-        encodeURIComponent(json[key])
     }).join('&')
 }
 
@@ -271,7 +279,7 @@ function isSuccess(statusCode: number | undefined): boolean {
   return statusCode >= 200 && statusCode <= 299
 }
 
-function resolveUrl(basePath: string, params?: Object): string {
+function resolveUrl(basePath: string, params?: IAdditionalParameters): string {
   if (basePath.startsWith('/')) {
     throw new Error('Path must not start with a leading slash.')
   }
