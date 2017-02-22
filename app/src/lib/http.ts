@@ -268,27 +268,31 @@ function isSuccess(statusCode: number | undefined): boolean {
   return statusCode >= 200 && statusCode <= 299
 }
 
+function resolveUrl(basePath: string, params?: Object): string {
+  if (basePath.startsWith('/')) {
+    throw new Error('Path must not start with a leading slash.')
+  }
+
+  if (basePath.indexOf('?') > -1) {
+    throw new Error('Base path must not contain query string parameters. Use `options.params` to provide these.')
+  }
+
+  return params ? `${basePath}${toQueryString(params)}` : basePath
+}
+
 /**
  * Execute a HTTP POST request against a given resource, and deserialize it to a given shape.
  *
  * @returns a promise which resolves to the deserialized object if the response is successful, or a rejected promise otherwise.
  */
-export async function post<T>(path: string, body: Object, options: IGitHubAPIOptions): Promise<T | null> {
-  if (path.startsWith('/')) {
-    return Promise.reject('Path must not start with a leading slash.')
-  }
-
-  let currentPath = path
-  if (options.params) {
-    currentPath = `${path}${toQueryString(options.params)}`
-  }
-
-  const response = await request(options.endpoint, `token ${options.token}`, 'POST', currentPath, body)
+export async function post<T>(basePath: string, body: Object, options: IGitHubAPIOptions): Promise<T | null> {
+  const path = resolveUrl(basePath, options.params)
+  const response = await request(options.endpoint, `token ${options.token}`, 'POST', path, body)
 
   if (isSuccess(response.statusCode)) {
     return deserialize<T>(response.body)
   } else {
-    return Promise.reject(`Could not complete request successfully. Status code ${response.statusCode} received.`)
+    throw new Error(`Could not complete request successfully. Status code ${response.statusCode} received.`)
   }
 }
 
@@ -298,21 +302,13 @@ export async function post<T>(path: string, body: Object, options: IGitHubAPIOpt
  * @returns a promise which resolves to the deserialized object if the response is successful, or a rejected promise otherwise.
  */
 export async function get<T>(path: string, options: IGitHubAPIOptions): Promise<T | null> {
-  if (path.startsWith('/')) {
-    return Promise.reject('Path must not start with a leading slash.')
-  }
-
-  let currentPath = path
-  if (options.params) {
-    currentPath = `${path}${toQueryString(options.params)}`
-  }
-
+  const currentPath = resolveUrl(path, options.params)
   const response = await request(options.endpoint, `token ${options.token}`, 'GET', currentPath)
 
   if (isSuccess(response.statusCode)) {
     return deserialize<T>(response.body)
   } else {
-    return Promise.reject(`Could not complete request successfully. Status code ${response.statusCode} received.`)
+    throw new Error(`Could not complete request successfully. Status code ${response.statusCode} received.`)
   }
 }
 
