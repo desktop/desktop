@@ -4,6 +4,7 @@ import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { assertNever } from '../../lib/fatal-error'
 import { DialogContent } from '../dialog'
+import { Avatar, IAvatarUser } from '../lib/avatar'
 
 interface IAccountsProps {
   readonly dotComUser: User | null
@@ -33,9 +34,17 @@ export class Accounts extends React.Component<IAccountsProps, void> {
   }
 
   private renderUser(user: User) {
+    const email = user.emails[0] || ''
+
+    const avatarUser: IAvatarUser = {
+      name: user.name,
+      email: email,
+      avatarURL: user.avatarURL
+    }
+
     return (
       <Row className='account-info'>
-        <img className='avatar' src={user.avatarURL}/>
+        <Avatar user={avatarUser} />
         <div className='user-info'>
           <div className='name'>{user.name}</div>
           <div className='login'>@{user.login}</div>
