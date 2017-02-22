@@ -238,7 +238,6 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
 
     if (ResizeObserver) {
       this.resizeObserver = new ResizeObserver((entries: ReadonlyArray<HTMLElement>) => {
-        console.log('resized!', entries)
         this.resizeIfNecessary()
       })
     }
