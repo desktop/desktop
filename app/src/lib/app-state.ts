@@ -11,7 +11,6 @@ import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispa
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
-import { LinkEventHandler } from '../ui/lib/link-handler'
 
 export { ICloningRepositoryState }
 export { ICommitMessage }
@@ -22,7 +21,7 @@ export enum SelectionType {
   CloningRepository,
 }
 
-export type PossibleSelections = { type: SelectionType.Repository, repository: Repository, state: IRepositoryState, linkClicked?: LinkEventHandler } |
+export type PossibleSelections = { type: SelectionType.Repository, repository: Repository, state: IRepositoryState } |
                                  { type: SelectionType.CloningRepository, repository: CloningRepository, state: ICloningRepositoryState }
 
 /** All of the shared app state. */

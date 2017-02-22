@@ -8,7 +8,6 @@ import { Commit } from '../../models/commit'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
-import { LinkEventHandler } from '../lib/link-handler'
 import { IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
 
@@ -21,7 +20,6 @@ interface IHistoryProps {
   readonly dispatcher: Dispatcher
   readonly history: IHistoryState
   readonly emoji: Map<string, string>
-  readonly linkClicked?: LinkEventHandler
   readonly commits: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly commitSummaryWidth: number
@@ -78,7 +76,6 @@ export class History extends React.Component<IHistoryProps, void> {
       author={commit.author}
       files={this.props.history.changedFiles}
       emoji={this.props.emoji}
-      linkClicked={this.props.linkClicked}
       repository={this.props.repository}
       isLocal={isLocal}
       gitHubUser={gitHubUser}

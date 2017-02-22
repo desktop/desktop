@@ -1,10 +1,10 @@
 import * as React from 'react'
 
 import { Commit } from '../../models/commit'
+import { Repository } from '../../models/repository'
 import { RichText } from '../lib/rich-text'
 import { RelativeTime } from '../relative-time'
 import { Button } from '../lib/button'
-import { LinkEventHandler } from '../lib/link-handler'
 
 interface IUndoCommitProps {
   /** The function to call when the Undo button is clicked. */
@@ -15,7 +15,7 @@ interface IUndoCommitProps {
 
   readonly emoji: Map<string, string>
 
-  readonly linkClicked?: LinkEventHandler
+  readonly repository: Repository
 }
 
 /** The Undo Commit component. */
@@ -29,7 +29,7 @@ export class UndoCommit extends React.Component<IUndoCommitProps, void> {
           <RichText
             emoji={this.props.emoji}
             className='summary'
-            linkClicked={this.props.linkClicked}>
+            repository={this.props.repository}>
             {this.props.commit.summary}
           </RichText>
         </div>

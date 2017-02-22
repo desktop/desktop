@@ -893,7 +893,6 @@ export class App extends React.Component<IAppProps, IAppState> {
                         state={selectedState.state}
                         dispatcher={this.props.dispatcher}
                         emoji={this.state.emoji}
-                        linkClicked={selectedState.linkClicked}
                         sidebarWidth={this.state.sidebarWidth}
                         commitSummaryWidth={this.state.commitSummaryWidth}
                         issuesStore={this.props.appStore.issuesStore}

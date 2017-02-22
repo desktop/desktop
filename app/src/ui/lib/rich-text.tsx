@@ -1,6 +1,8 @@
 import * as React from 'react'
 
-import { LinkEventHandler, LinkType } from './link-handler'
+import { LinkButton } from './link-button'
+import { Repository } from '../../models/repository'
+import { getHTMLURL } from '../../lib/api'
 
 const EmojiRegex = /(:.*?:)/g
 const UsernameOrIssueRegex = /(\w*@[a-zA-Z0-9\-]*)|(#[0-9]{1,})/g
@@ -14,12 +16,8 @@ interface IRichTextProps {
   /** The raw text to inspect for things to highlight */
   readonly children?: string
 
-  /**
-   * The external callback to fire when a hyperlink has been clicked.
-   *
-   * If not specified, plain text is drawn.
-   */
-  readonly linkClicked?: LinkEventHandler
+  /** The active repository */
+  readonly repository?: Repository
 }
 
 /**
@@ -32,14 +30,14 @@ export class RichText extends React.Component<IRichTextProps, void> {
     const children = this.props.children as string || ''
     return (
       <div className={this.props.className}>
-        {emojificationNexus(children, this.props.emoji, this.props.linkClicked)}
+        {emojificationNexus(children, this.props.emoji, this.props.repository)}
       </div>
     )
   }
 }
 
 /** Shoutout to @robrix's naming expertise. */
-function emojificationNexus(str: string, emoji: Map<string, string>, linkClicked?: LinkEventHandler): JSX.Element | null {
+function emojificationNexus(str: string, emoji: Map<string, string>, repository?: Repository): JSX.Element | null {
   // If we've been given an empty string then return null so that we don't end
   // up introducing an extra empty <span>.
   if (!str.length) { return null }
@@ -50,15 +48,15 @@ function emojificationNexus(str: string, emoji: Map<string, string>, linkClicked
     if (path) {
       return [ <img key={i} alt={fragment} title={fragment} className='emoji' src={path}/> ]
     } else {
-      return usernameNexus(fragment, i, linkClicked)
+      return usernameNexus(fragment, i, repository)
     }
   })
 
   return <span>{elements}</span>
 }
 
-function usernameNexus(str: string, i: number, linkClicked?: LinkEventHandler): ReadonlyArray<JSX.Element | string> {
-  if (!linkClicked) {
+function usernameNexus(str: string, i: number, repository?: Repository): ReadonlyArray<JSX.Element | string> {
+  if (!repository || !repository.gitHubRepository) {
     return [ str ]
   }
 
@@ -80,21 +78,22 @@ function usernameNexus(str: string, i: number, linkClicked?: LinkEventHandler): 
 
     if (fragment.startsWith('@')) {
       const user = fragment.substr(1)
-      results.push(<a
+      const host = getHTMLURL(repository.gitHubRepository.endpoint)
+      const url = `${host}/${user}`
+
+      results.push(<LinkButton
         key={innerKey}
-        className='username'
-        onClick={() => linkClicked({ kind: LinkType.User, user })}
-        title={user}>
+        uri={url}>
           {fragment}
-        </a>)
+        </LinkButton>)
     } else if (fragment.startsWith('#')) {
       const id = parseInt(fragment.substr(1), 10)
-      results.push(<a
+      const url = `${repository.gitHubRepository.htmlURL}/issues/${id}`
+      results.push(<LinkButton
         key={innerKey}
-        className='issue'
-        onClick={() => linkClicked({ kind: LinkType.Issue, id })}>
+        uri={url}>
           {fragment}
-        </a>)
+        </LinkButton>)
     } else {
       results.push(fragment)
     }

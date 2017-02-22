@@ -40,8 +40,6 @@ import { getAppMenu } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
-import { LinkEventHandler, ILinkClicked, launchInBrowser } from '../../ui/lib/link-handler'
-
 
 import {
   getGitDir,
@@ -264,14 +262,6 @@ export class AppStore {
     })
   }
 
-
-
-  private getLinkClicked(repository: Repository): LinkEventHandler | undefined {
-    return repository.gitHubRepository
-      ? (event: ILinkClicked) => launchInBrowser(event, repository.gitHubRepository!) // TODO: ugh
-      : undefined
-  }
-
   private getSelectedState(): PossibleSelections | null {
     const repository = this.selectedRepository
     if (!repository) { return null }
@@ -281,7 +271,6 @@ export class AppStore {
         type: SelectionType.Repository,
         repository,
         state: this.getRepositoryState(repository),
-        linkClicked: this.getLinkClicked(repository),
       }
     } else {
       const cloningState = this.cloningRepositoriesStore.getRepositoryState(repository)

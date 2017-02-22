@@ -12,7 +12,6 @@ import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocomplet
 import { ICommitMessage } from '../../lib/app-state'
 import { ClickSource } from '../list'
 import { WorkingDirectoryFileChange } from '../../models/status'
-import { LinkEventHandler } from '../lib/link-handler'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -30,7 +29,6 @@ interface IChangesSidebarProps {
   readonly branch: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
-  readonly linkClicked?: LinkEventHandler
   readonly mostRecentLocalCommit: Commit | null
   readonly issuesStore: IssuesStore
   readonly availableWidth: number
@@ -161,7 +159,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
         commit={commit}
         onUndo={this.onUndo}
         emoji={this.props.emoji}
-        linkClicked={this.props.linkClicked} />
+        repository={this.props.repository} />
     }
 
     return (

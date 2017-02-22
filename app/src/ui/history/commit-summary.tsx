@@ -7,7 +7,6 @@ import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Avatar } from '../lib/avatar'
-import { LinkEventHandler } from '../lib/link-handler'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -17,7 +16,6 @@ interface ICommitSummaryProps {
   readonly author: CommitIdentity
   readonly files: ReadonlyArray<FileChange>
   readonly emoji: Map<string, string>
-  readonly linkClicked?: LinkEventHandler
   readonly isLocal: boolean
   readonly gitHubUser: IGitHubUser | null
 }
@@ -50,7 +48,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
           <RichText
             className='commit-summary-title'
             emoji={this.props.emoji}
-            linkClicked={this.props.linkClicked}>
+            repository={this.props.repository}>
             {this.props.summary}
           </RichText>
 
@@ -87,7 +85,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
         <RichText
           className='commit-summary-description'
           emoji={this.props.emoji}
-          linkClicked={this.props.linkClicked}>
+          repository={this.props.repository}>
           {this.props.body}
         </RichText>
       </div>
