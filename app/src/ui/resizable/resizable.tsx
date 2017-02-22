@@ -87,11 +87,13 @@ export class Resizable extends React.Component<IResizableProps, void> {
   private handleDragMove = (e: MouseEvent) => {
     const deltaX = e.clientX - this.startX
 
-    const newWidth = this.startWidth + deltaX
-    const newWidthClamped = this.clampWidth(newWidth)
+    if (this.startWidth) {
+      const newWidth = this.startWidth + deltaX
+      const newWidthClamped = this.clampWidth(newWidth)
 
-    if (this.props.onResize) {
-      this.props.onResize(newWidthClamped)
+      if (this.props.onResize) {
+        this.props.onResize(newWidthClamped)
+      }
     }
   }
 
