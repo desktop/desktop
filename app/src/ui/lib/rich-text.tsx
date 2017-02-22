@@ -16,7 +16,12 @@ interface IRichTextProps {
   /** The raw text to inspect for things to highlight */
   readonly children?: string
 
-  /** The active repository */
+  /**
+   * The repository to use as the source for URLs for the rich text.
+   *
+   * If not specified, or the repository is a non-GitHub repository,
+   * no link highlighting is performed.
+   */
   readonly repository?: Repository
 }
 
