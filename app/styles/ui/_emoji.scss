@@ -3,16 +3,3 @@
   height: 16px;
   vertical-align: text-bottom;
 }
-
-.username, .issue {
-  font-weight: var(--font-weight-semibold);
-}
-
-a.username, a.issue {
-  cursor: pointer;
-
-  &:hover {
-    color: var(--link-button-color);
-    text-decoration: underline;
-  }
-}
