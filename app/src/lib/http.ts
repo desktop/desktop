@@ -329,9 +329,8 @@ export async function get<T>(path: string, options: IGitHubAPIOptions): Promise<
  * @returns a promise which resolves to the deserialized list of objects if the response is successful, or an empty array otherwise.
  */
 export async function getAllPages<T>(path: string, options: IGitHubAPIOptions): Promise<ReadonlyArray<T>> {
-  const allItems: Array<T> = []
-
-  const params = Object.assign({ per_page: '100' }, options.params)
+  const allItems = new Array<T>()
+  const params = { ...{ per_page: '100' }, ...options.params }
 
   let currentPath: string | null = `${path}${toQueryString(params)}`
 
