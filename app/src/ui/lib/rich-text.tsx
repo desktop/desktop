@@ -28,7 +28,7 @@ interface IRichTextProps {
 /**
  * A component which replaces any emoji shortcuts (e.g., :+1:) in its child text
  * with the appropriate image tag, and also highlights username and issue mentions
- * with hyperlink tags if it has an event handler to invoke.
+ * with hyperlink tags if it has a repository to read.
  */
 export class RichText extends React.Component<IRichTextProps, void> {
   public render() {
