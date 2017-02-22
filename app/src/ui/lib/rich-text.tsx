@@ -61,48 +61,44 @@ function emojificationNexus(str: string, emoji: Map<string, string>, repository?
 }
 
 function renderUsernameOrIssues(str: string, i: number, repository?: Repository): ReadonlyArray<JSX.Element | string> {
-  if (!repository || !repository.gitHubRepository) {
-    return [ str ]
-  }
+  if (!repository) { return [ str ] }
+
+  const repo = repository.gitHubRepository
+
+  if (!repo) { return [ str ] }
 
   const pieces = str.split(UsernameOrIssueRegex)
 
   const results: Array<JSX.Element | string> = [ ]
 
-  for (let j = 0; j < pieces.length; j++) {
-    const fragment = pieces[j]
-
+  pieces.forEach((piece, j) => {
     // because we are using an | to build up this regex here, we
     // see undefined entries to represent matches for the "other"
     // expression in the regex. these can be safely ignored.
-    if (fragment === undefined) {
-      continue
-    }
+    if (!piece) { return }
 
     const innerKey = `${i}-${j}`
 
-    if (fragment.startsWith('@')) {
-      const user = fragment.substr(1)
-      const host = getHTMLURL(repository.gitHubRepository.endpoint)
+    if (piece.startsWith('@')) {
+      const user = piece.substr(1)
+      const host = getHTMLURL(repo.endpoint)
       const url = `${host}/${user}`
 
       results.push(<LinkButton
         key={innerKey}
-        uri={url}>
-          {fragment}
-        </LinkButton>)
-    } else if (fragment.startsWith('#')) {
-      const id = parseInt(fragment.substr(1), 10)
-      const url = `${repository.gitHubRepository.htmlURL}/issues/${id}`
+        uri={url}
+        children={piece} />)
+    } else if (piece.startsWith('#')) {
+      const id = parseInt(piece.substr(1), 10)
+      const url = `${repo.htmlURL}/issues/${id}`
       results.push(<LinkButton
         key={innerKey}
-        uri={url}>
-          {fragment}
-        </LinkButton>)
+        uri={url}
+        children={piece} />)
     } else {
-      results.push(fragment)
+      results.push(piece)
     }
-  }
+  })
 
   return results
 }
