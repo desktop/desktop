@@ -20,19 +20,25 @@ describe('RichText', () => {
 
   describe('with GitHub repository', () => {
 
+    const host = 'https://github.com'
+    const endpoint = 'https://api.github.com'
+    const login = 'shiftkey'
+    const name = 'some-repo'
+    const htmlURL = `${host}/${login}/${name}`
+
     let gitHubRepository: GitHubRepository | null = null
     gitHubRepository = {
       dbID: 1,
-      name: 'some-repo',
+      name,
       owner: {
-        endpoint: 'https://api.github.com',
-        login: 'shiftkey',
+        endpoint,
+        login,
       },
       endpoint: 'https://api.github.com',
-      fullName: 'shiftkey/some-repo',
+      fullName: `${login}/${name}`,
       private: false,
       fork: false,
-      htmlURL: 'https://github.com/shiftkey/some-repo',
+      htmlURL: htmlURL,
       defaultBranch: 'master',
       withAPI: (apiRepository) => {
         return gitHubRepository!
@@ -41,74 +47,86 @@ describe('RichText', () => {
 
     const repository = new Repository('some/path/to/repo', 1, gitHubRepository)
 
-    it('renders emoji when matched', () => {
-      const children = 'releasing the thing :shipit:'
-      const wrapper = createComponent(children, repository)
+    it('renders an emoji match', () => {
+      const text = 'releasing the thing :shipit:'
+      const wrapper = createComponent(text, repository)
       const links = wrapper.find('.emoji')
       expect(links.length).to.equal(1)
     })
 
     it('skips emoji when no match exists', () => {
-      const children = 'releasing the thing :unknown:'
-      const wrapper = createComponent(children, repository)
+      const text = 'releasing the thing :unknown:'
+      const wrapper = createComponent(text, repository)
       const links = wrapper.find('.emoji')
       expect(links.length).to.equal(0)
     })
 
-    it('does not render hyperlink when email address found', () => {
-      const children = 'the email address support@github.com should be ignored'
-      const wrapper = createComponent(children, repository)
+    it('does not render link when email address found', () => {
+      const text = 'the email address support@github.com should be ignored'
+      const wrapper = createComponent(text, repository)
       const links = wrapper.find(LinkButton)
       expect(links.length).to.equal(0)
     })
 
-    it('render hyperlink when starting with a @', () => {
-      const children = '@shiftkey was here'
-      const wrapper = createComponent(children, repository)
+    it('render link when text starts with a @', () => {
+      const expected = `${host}/${login}`
+      const text = `@${login} was here`
+
+      const wrapper = createComponent(text, repository)
       const links = wrapper.find(LinkButton)
       expect(links.length).to.equal(1)
+
+      expect(links.at(0).props().uri).to.equal(expected)
     })
 
-    it('renders hyperlink when a mention is found', () => {
-      const children = 'fixed based on suggestion from @shiftkey'
-      const wrapper = createComponent(children, repository)
+    it('renders link when a mention is found', () => {
+      const expected = `${host}/${login}`
+      const text = `fixed based on suggestion from @${login}`
+
+      const wrapper = createComponent(text, repository)
       const links = wrapper.find(LinkButton)
       expect(links.length).to.equal(1)
+
+      expect(links.at(0).props().uri).to.equal(expected)
     })
 
-    it('renders hyperlink when an issue reference is found', () => {
-      const children = 'Merge pull request #955 from desktop/computering-icons-for-all'
-      const wrapper = createComponent(children, repository)
+    it('renders link when an issue reference is found', () => {
+      const id = 955
+      const expected = `${htmlURL}/issues/${id}`
+      const text = `Merge pull request #955 from desktop/computering-icons-for-all`
+      const wrapper = createComponent(text, repository)
       const links = wrapper.find(LinkButton)
       expect(links.length).to.equal(1)
+
+      expect(links.at(0).props().uri).to.equal(expected)
     })
   })
 
   describe('with non-GitHub repository', () => {
-    it('renders emoji when matched', () => {
-      const children = 'releasing the thing :shipit:'
-      const wrapper = createComponent(children)
+    it('renders an emoji match', () => {
+      const text = 'releasing the thing :shipit:'
+      const wrapper = createComponent(text)
       const links = wrapper.find('.emoji')
       expect(links.length).to.equal(1)
     })
 
     it('skips emoji when no match exists', () => {
-      const children = 'releasing the thing :unknown:'
-      const wrapper = createComponent(children)
+      const text = 'releasing the thing :unknown:'
+      const wrapper = createComponent(text)
       const links = wrapper.find('.emoji')
       expect(links.length).to.equal(0)
     })
 
-    it('does not render hyperlink for mention', () => {
-      const children = 'fixed based on suggestion from @shiftkey'
-      const wrapper = createComponent(children)
+    it('does not render link for mention', () => {
+      const text = 'fixed based on suggestion from @shiftkey'
+      const wrapper = createComponent(text)
       const links = wrapper.find(LinkButton)
       expect(links.length).to.equal(0)
     })
 
-    it('does not render hyperlink for issue reference', () => {
-      const children = 'Merge pull request #955 from desktop/computering-icons-for-all'
-      const wrapper = createComponent(children)
+    it('does not render link for issue reference', () => {
+      const text = 'Merge pull request #955 from desktop/computering-icons-for-all'
+      const wrapper = createComponent(text)
       const links = wrapper.find(LinkButton)
       expect(links.length).to.equal(0)
     })
