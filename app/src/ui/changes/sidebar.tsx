@@ -158,8 +158,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
       child = <UndoCommit
         commit={commit}
         onUndo={this.onUndo}
-        emoji={this.props.emoji}
-        repository={this.props.repository} />
+        emoji={this.props.emoji}/>
     }
 
     return (
