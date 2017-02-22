@@ -159,7 +159,7 @@ describe('HTTP', () => {
     it('returns undefined when unable to parse URL for next', () => {
       const sampleResponse = {
         headers: {
-          'link': [ '<this-is-a-garbage-url>; rel="next", <and-this-is-too>; rel="last"' ],
+          'link': [ '<thisisabadurl>; rel="next", <andalsothis>; rel="last"' ],
         },
       }
       const result = getLinkHeaders(sampleResponse)
