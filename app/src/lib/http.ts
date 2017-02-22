@@ -72,33 +72,63 @@ export function getHeader(response: IHTTPResponse, key: string): string | null {
   return null
 }
 
+type LinkHeaders = {
+  readonly first?: string,
+  readonly prev?: string,
+  readonly next?: string,
+  readonly last?: string,
+}
+
 /**
  * Read the pagination headers from the HTTP response.
  *
  * For more information: https://developer.github.com/v3/#pagination
  */
-export function getLinkHeaders(response: IHTTPResponse): { next?: URL.Url } {
+export function getLinkHeaders(response: IHTTPResponse): LinkHeaders {
   const linkHeader = getHeader(response, 'link')
-  if (linkHeader) {
-    // this regex looks for the comma-separated values inside the Link header
-    // for example:
-    // Link: <https://api.github.com/user/repos?page=3&per_page=100>; rel="next",
-    //  <https://api.github.com/user/repos?page=50&per_page=100>; rel="last"
-    const matches = /\<([a-z0-9\=\_\&\?\/\.\:]*)\>; rel="([a-z]*)"/.exec(linkHeader)
-    if (matches) {
-      const pairs = matches.slice(1)
-      for (let i = 0; i < pairs.length; i += 2) {
-        const url = pairs[i]
-        const type = pairs[i + 1]
-        // we're only interested in the 'next' header at the moment
-        if (type === 'next') {
-          const result = URL.parse(url)
-          return { next: result }
+
+  if (!linkHeader) { return { } }
+
+  let first, prev, next, last: string | undefined = undefined
+
+  // looking for the comma-separated values inside the Link header
+  // for example:
+  // Link: <https://api.github.com/user/repos?page=3&per_page=100>; rel="next",
+  //  <https://api.github.com/user/repos?page=50&per_page=100>; rel="last"
+  const linkHeaderRegex = /\<([a-z0-9\=\_\&\?\/\.\:]*)\>; rel=\"(first|prev|next|last)\"/g
+
+  let matches = linkHeaderRegex.exec(linkHeader)
+
+  while (matches) {
+    for (let i = 1; i < matches.length; i += 2) {
+      const url = matches[i]
+      const type = matches[i + 1]
+      if (type === 'first') {
+        const result = URL.parse(url)
+        if (result) {
+          first = result.path
+        }
+      } else if (type === 'prev') {
+        const result = URL.parse(url)
+        if (result) {
+          prev = result.path
+        }
+      } else if (type === 'next') {
+        const result = URL.parse(url)
+        if (result) {
+          next = result.path
+        }
+      } else if (type === 'last') {
+        const result = URL.parse(url)
+        if (result) {
+          last = result.path
         }
       }
     }
+    matches = linkHeaderRegex.exec(linkHeader)
   }
-  return {}
+
+  return { first, prev, next, last }
 }
 
 /**
@@ -138,7 +168,7 @@ function resolveNextPath(response: IHTTPResponse): string | null {
     return null
   }
 
-  const nextPath = linkHeader.next.path
+  const nextPath = linkHeader.next
   if (nextPath) {
     if (nextPath.startsWith('/')) {
       // URL builder will specify this, let's drop it here

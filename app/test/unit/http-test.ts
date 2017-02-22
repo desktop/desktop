@@ -135,34 +135,36 @@ describe('HTTP', () => {
   })
 
   describe('getLinkHeaders', () => {
-    it('finds valid URL', () => {
-      const sampleResponse: IHTTPResponse = {
+    it('finds valid URLs for next and last', () => {
+      const sampleResponse = {
         headers: {
-          'link': [ '<https://api.github.com/user/repos?page=3&per_page=100>; rel="next",\n'
-            + '<https://api.github.com/user/repos?page=50&per_page=100>; rel="last"' ],
+          'link': [ '<https://api.github.com/user/repos?page=3&per_page=100>; rel="next", <https://api.github.com/user/repos?page=50&per_page=100>; rel="last"' ],
         },
       }
 
       const result = getLinkHeaders(sampleResponse)
-      expect(result.next!.path).to.equal('/user/repos?page=3&per_page=100')
+      expect(result!.next).to.equal('/user/repos?page=3&per_page=100')
+      expect(result!.last).to.equal('/user/repos?page=50&per_page=100')
     })
 
-    it('returns undefined when missing', () => {
-      const sampleResponse: IHTTPResponse = {
+    it('returns undefined when next is missing', () => {
+      const sampleResponse = {
         headers: { },
       }
       const result = getLinkHeaders(sampleResponse)
       expect(result.next).to.be.undefined
+      expect(result.last).to.be.undefined
     })
 
-    it('returns undefined when unable to parse URL', () => {
-      const sampleResponse: IHTTPResponse = {
+    it('returns undefined when unable to parse URL for next', () => {
+      const sampleResponse = {
         headers: {
           'link': [ '<this-is-a-garbage-url>; rel="next", <and-this-is-too>; rel="last"' ],
         },
       }
       const result = getLinkHeaders(sampleResponse)
       expect(result.next).to.be.undefined
+      expect(result.last).to.be.undefined
     })
   })
 })
