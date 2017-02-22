@@ -160,8 +160,6 @@ export class API {
     return get<IAPICommit>(`repos/${owner}/${name}/commits/${sha}`, this.withOptions())
   }
 
-
-
   /** Search for a user with the given public email. */
   public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
     try {

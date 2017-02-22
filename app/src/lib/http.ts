@@ -101,7 +101,10 @@ function toQueryString(json: any): string {
   // citation: http://stackoverflow.com/a/30707423/1363815
   return '?' +
     Object.keys(json).map(function (key) {
-      // timestamps in the GitHub API should not be URI-encoded
+      // timestamp fields such as `since` and `before` are
+      // expected to be formatted in the raw ISO-8601 format
+      // (YYYY-MM-DDTHH:MM:SSZ) and must not be URI-encoded,
+      // otherwise this will format the : and - characters
       if (key === 'since') {
         return `${key}=${json[key]}`
       }
