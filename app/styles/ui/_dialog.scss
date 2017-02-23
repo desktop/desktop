@@ -223,6 +223,11 @@ dialog {
     padding: var(--spacing);
     align-items: center;
 
+    // Error messages may contains newlines which separates sections
+    // of the error of indicate nested errors. We want to preserve these
+    // while still forcing line breaks if necessary.
+    white-space: pre-wrap;
+
     background: var(--form-error-background);
     border-bottom: 1px solid var(--form-error-border-color);
     color: var(--error-color);
