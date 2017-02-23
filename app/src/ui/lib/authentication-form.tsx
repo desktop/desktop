@@ -16,16 +16,36 @@ interface IAuthenticationFormProps {
   /** Does the server support basic auth? */
   readonly supportsBasicAuth: boolean
 
-  /** Called after the user has signed in. */
+  /**
+   * A callback which is invoked once the user has entered a username
+   * and password and submitted those either by clicking on the submit
+   * button or by submitting the form through other means (ie hitting Enter).
+   */
   readonly onSubmit: (username: string, password: string) => void
 
+  /**
+   * A callback which is invoked if the user requests OAuth sign in using
+   * their system configured browser.
+   */
   readonly onBrowserSignInRequested: () => void
 
   /** An array of additional buttons to render after the "Sign In" button. */
   readonly additionalButtons?: ReadonlyArray<JSX.Element>
 
-  readonly loading: boolean,
-  readonly error: Error | null,
+  /**
+   * An error which, if present, is presented to the
+   * user in close proximity to the actions or input fields
+   * related to the current step.
+   */
+  readonly error: Error | null
+
+  /**
+   * A value indicating whether or not the sign in store is
+   * busy processing a request. While this value is true all
+   * form inputs and actions save for a cancel action will
+   * be disabled.
+   */
+  readonly loading: boolean
 }
 
 interface IAuthenticationFormState {
