@@ -30,6 +30,14 @@ export interface IAppState {
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
 
   readonly selectedState: PossibleSelections | null
+
+  /**
+   * The state of the ongoing (if any) sign in process. See SignInState
+   * and SignInStore for more details. Null if no current sign in flow
+   * is active. Sign in flows are initiated through the dispatcher methods
+   * beginDotComSignIn and beginEnterpriseSign in or via the
+   * showDotcomSignInDialog and showEnterpriseSignInDialog methods.
+   */
   readonly signInState: SignInState | null
 
   readonly showWelcomeFlow: boolean
