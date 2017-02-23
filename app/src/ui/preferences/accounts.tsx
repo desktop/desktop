@@ -39,7 +39,7 @@ export class Accounts extends React.Component<IAccountsProps, void> {
     const avatarUser: IAvatarUser = {
       name: user.name,
       email: email,
-      avatarURL: user.avatarURL
+      avatarURL: user.avatarURL,
     }
 
     return (
