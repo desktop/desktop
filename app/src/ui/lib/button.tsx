@@ -2,7 +2,12 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 
 export interface IButtonProps {
-  /** A function to call on click. */
+  /**
+   * A callback which is invoked when the button is clicked
+   * using a pointer device or keyboard. The source event is
+   * passed along and can be used to prevent the default action
+   * or stop the even from bubbling.
+   */
   readonly onClick?: (event: React.FormEvent<HTMLButtonElement>) => void
 
   /** The title of the button. */
