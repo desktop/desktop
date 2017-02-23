@@ -14,6 +14,10 @@ import {
   fetchMetadata,
 } from '../../lib/api'
 
+/**
+ * An enumeration of the possible steps that the sign in
+ * store can be in save for the unitialized state (null).
+ */
 export enum SignInStep {
   EndpointEntry,
   Authentication,
