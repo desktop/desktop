@@ -36,24 +36,71 @@ export const DefaultAuthMethods = new Set([
   AuthenticationMethods.OAuth,
 ])
 
-export type SignInState = IEndpointEntryState | IAuthenticationState | ITwoFactorAuthenticationState | ISuccessState
+/**
+ * The union type of all possible states that the sign in
+ * store can be in save the unitialized state (null).
+ */
+export type SignInState =
+  IEndpointEntryState |
+  IAuthenticationState |
+  ITwoFactorAuthenticationState |
+  ISuccessState
 
+/**
+ * Base interface for shared properties between states
+ */
 export interface ISignInState {
+  /**
+   * The sign in step represented by this state
+   */
   readonly kind: SignInStep
+
+  /**
+   * An error which, if present, should be presented to the
+   * user in close proximity to the actions or input fields
+   * related to the current step.
+   */
   readonly error: Error | null,
+
+  /**
+   * A value indicating whether or not the sign in store is
+   * busy processing a request. While this value is true all
+   * form inputs and actions save for a cancel action should
+   * be disabled and the user should be made aware that the
+   * sign in process is ongoing.
+   */
   readonly loading: boolean,
 }
 
+/**
+ * State interface representing the endpoint entry step.
+ * This is the initial step in the Enterprise sign in flow
+ * and is not present when signing in to GitHub.com
+ */
 export interface IEndpointEntryState extends ISignInState {
   readonly kind: SignInStep.EndpointEntry
 }
 
+/**
+ * State interface representing the Authentication step where
+ * the user provides credentials and/or initiates a browser
+ * OAuth sign in process. This step occurs as the first step
+ * when signing in to GitHub.com and as the second step when
+ * signing in to a GitHub Enterprise instance.
+ */
 export interface IAuthenticationState extends ISignInState {
   readonly kind: SignInStep.Authentication
   readonly endpoint: string,
   readonly authMethods: Set<AuthenticationMethods>
 }
 
+/**
+ * State interface representing the TwoFactorAuthentication
+ * step where the user provides an OTP token. This step
+ * occurs after the authentication step both for GitHub.com,
+ * and GitHub Enterprise when the user has enabled two factor
+ * authentication on the host.
+ */
 export interface ITwoFactorAuthenticationState extends ISignInState {
   readonly kind: SignInStep.TwoFactorAuthentication
   readonly endpoint: string,
@@ -61,22 +108,27 @@ export interface ITwoFactorAuthenticationState extends ISignInState {
   readonly password: string
 }
 
+/**
+ * Sentinel step representing a successful sign in process. Sign in
+ * components may use this as a signal to dismiss the ongoing flow
+ * or to show a message to the user indicating that they've been
+ * successfully signed in.
+ */
 export interface ISuccessState {
   readonly kind: SignInStep.Success
 }
 
+/**
+ * A store encapsulating all logic related to signing in a user
+ * to GitHub.com, or a GitHub Enteprise instance.
+ */
 export class SignInStore {
   private readonly emitter = new Emitter()
   private state: SignInState | null = null
 
-  public SignInStore() {
-
-  }
-
   private emitUpdate() {
     this.emitter.emit('did-update', this.getState())
   }
-
 
   private emitAuthenticate(user: User) {
     this.emitter.emit('did-authenticate', user)
@@ -109,6 +161,10 @@ export class SignInStore {
     return this.emitter.on('did-error', fn)
   }
 
+  /**
+   * Returns the current state of the sign in store or null if
+   * no sign in process is in flight.
+   */
   public getState(): SignInState | null {
     return this.state
   }
