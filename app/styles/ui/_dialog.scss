@@ -263,5 +263,10 @@ dialog {
     .sign-in-with-browser {
       justify-content: center;
     }
+
+    .forgot-password-row, .what-is-this-row {
+      font-size: var(--font-size-sm);
+      justify-content: flex-end;
+    }
   }
 }
