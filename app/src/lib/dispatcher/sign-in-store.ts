@@ -64,7 +64,7 @@ export interface ISignInState {
    * user in close proximity to the actions or input fields
    * related to the current step.
    */
-  readonly error: Error | null,
+  readonly error: Error | null
 
   /**
    * A value indicating whether or not the sign in store is
@@ -73,7 +73,7 @@ export interface ISignInState {
    * be disabled and the user should be made aware that the
    * sign in process is ongoing.
    */
-  readonly loading: boolean,
+  readonly loading: boolean
 }
 
 /**
@@ -101,7 +101,7 @@ export interface IAuthenticationState extends ISignInState {
    * signing in against GitHub.com or a user-specified
    * URL when signing in against a GitHub Enterprise instance.
    */
-  readonly endpoint: string,
+  readonly endpoint: string
 
   /**
    * A set of available authentication methods for the endpoint.
@@ -127,13 +127,13 @@ export interface ITwoFactorAuthenticationState extends ISignInState {
    * signing in against GitHub.com or a user-specified
    * URL when signing in against a GitHub Enterprise instance.
    */
-  readonly endpoint: string,
+  readonly endpoint: string
 
   /**
    * The username specified by the user in the preceeding
    * Authentication step
    */
-  readonly username: string,
+  readonly username: string
 
   /**
    * The password specified by the user in the preceeding
