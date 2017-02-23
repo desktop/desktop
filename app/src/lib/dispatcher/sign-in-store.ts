@@ -141,10 +141,18 @@ export class SignInStore {
     }
   }
 
+  /**
+   * Clear any in-flight sign in state and return to the
+   * initial (no sign-in) state.
+   */
   public reset() {
     this.setState(null)
   }
 
+  /**
+   * Initiate a sign in flow for github.com. This will put the store
+   * in the Authentication step ready to receive user credentials.
+   */
   public beginDotComSignIn() {
     this.setState({
       kind: SignInStep.Authentication,
@@ -155,6 +163,18 @@ export class SignInStore {
     })
   }
 
+  /**
+   * Attempt to advance from the authentication step using a username
+   * and password. This method must only be called when the store is
+   * in the authentication step or an error will be thrown. If the
+   * provided credentials are valid the store will either advance to
+   * the Success step or to the TwoFactorAuthentication step if the
+   * user has enabled two factor authentication.
+   *
+   * If an error occurs during sign in (such as invalid credentials)
+   * the authentication state will be updated with that error so that
+   * the responsible component can present it to the user.
+   */
   public async authenticateWithBasicAuth(username: string, password: string): Promise<void> {
     const currentState = this.state
 
@@ -220,6 +240,17 @@ export class SignInStore {
     }
   }
 
+  /**
+   * Initiate an OAuth sign in using the system configured browser.
+   * This method must only be called when the store is in the authentication
+   * step or an error will be thrown.
+   *
+   * The promise returned will only resolve once the user has successfully
+   * authenticated. If the user terminates the sign-in process by closing
+   * their browser before the protocol handler is invoked, by denying the
+   * protocol handler to execute or by providing the wrong credentials
+   * this promise will never complete.
+   */
   public async authenticateWithBrowser(): Promise<void> {
     const currentState = this.state
 
@@ -247,10 +278,28 @@ export class SignInStore {
     this.setState({ kind: SignInStep.Success })
   }
 
+  /**
+   * Initiate a sign in flow for a GitHub Enterprise instance. This will
+   * put the store in the EndpointEntry step ready to receive the url
+   * to the enterprise instance.
+   */
   public beginEnterpriseSignIn() {
     this.setState({ kind: SignInStep.EndpointEntry, error: null, loading: false })
   }
 
+  /**
+   * Attempt to advance from the EndpointEntry step with the given endpoint
+   * url. This method must only be called when the store is in the authentication
+   * step or an error will be thrown.
+   *
+   * The provided endpoint url will be validated for syntactic correctness as
+   * well as connectivity before the promise resolves. If the endpoint url is
+   * invalid or the host can't be reached the promise will be rejected and the
+   * sign in state updated with an error to be presented to the user.
+   *
+   * If validation is successful the store will advance to the authentication
+   * step.
+   */
   public async setEndpoint(url: string): Promise<void> {
     const currentState = this.state
 
@@ -303,6 +352,18 @@ export class SignInStore {
     }
   }
 
+  /**
+   * Attempt to complete the sign in flow with the given OTP token.\
+   * This method must only be called when the store is in the
+   * TwoFactorAuthentication step or an error will be thrown.
+   *
+   * If the provided token is valid the store will advance to
+   * the Success step.
+   *
+   * If an error occurs during sign in (such as invalid credentials)
+   * the authentication state will be updated with that error so that
+   * the responsible component can present it to the user.
+   */
   public async setTwoFactorOTP(otp: string) {
 
     const currentState = this.state
