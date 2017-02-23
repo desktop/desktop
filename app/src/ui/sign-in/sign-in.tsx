@@ -210,6 +210,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
           <TextBox
             label='Password'
             value={this.state.password}
+            type='password'
             onValueChanged={this.onPasswordChanged}
           />
         </Row>
