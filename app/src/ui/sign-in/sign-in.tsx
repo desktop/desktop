@@ -214,6 +214,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             onValueChanged={this.onPasswordChanged}
           />
         </Row>
+        <Row className='forgot-password-row'>
+          <LinkButton uri={state.forgotPasswordUrl}>Forgot password?</LinkButton>
+        </Row>
         {signInWithBrowser}
       </DialogContent>
     )

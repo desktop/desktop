@@ -45,14 +45,17 @@ export class SignIn extends React.Component<ISignInProps, void> {
       />
     } else if (state.kind === SignInStep.Authentication) {
       const supportsBasicAuth = state.authMethods.has(AuthenticationMethods.BasicAuth)
-      return <AuthenticationForm
-        loading={state.loading}
-        error={state.error}
-        supportsBasicAuth={supportsBasicAuth}
-        endpoint={state.endpoint}
-        additionalButtons={this.props.children}
-        onBrowserSignInRequested={this.onBrowserSignInRequested}
-        onSubmit={this.onCredentialsEntered}/>
+      return (
+        <AuthenticationForm
+          loading={state.loading}
+          error={state.error}
+          supportsBasicAuth={supportsBasicAuth}
+          additionalButtons={this.props.children}
+          onBrowserSignInRequested={this.onBrowserSignInRequested}
+          onSubmit={this.onCredentialsEntered}
+          forgotPasswordUrl={state.forgotPasswordUrl}
+        />
+      )
     } else if (state.kind === SignInStep.TwoFactorAuthentication) {
       return <TwoFactorAuthentication
         loading={state.loading}

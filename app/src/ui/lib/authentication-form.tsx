@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { getHTMLURL } from '../../lib/api'
 import { Loading } from './loading'
 import { Form } from './form'
 import { Button } from './button'
@@ -9,9 +8,6 @@ import { TextBox } from './text-box'
 import { Errors } from './errors'
 
 interface IAuthenticationFormProps {
-
-  /** The endpoint against which the user is authenticating. */
-  readonly endpoint: string
 
   /** Does the server support basic auth? */
   readonly supportsBasicAuth: boolean
@@ -46,6 +42,8 @@ interface IAuthenticationFormProps {
    * be disabled.
    */
   readonly loading: boolean
+
+  readonly forgotPasswordUrl: string
 }
 
 interface IAuthenticationFormState {
@@ -92,7 +90,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
             disabled={disabled}
             onChange={this.onPasswordChange}/>
 
-          <LinkButton className='forgot-password-link' uri={this.getForgotPasswordURL()}>
+          <LinkButton className='forgot-password-link' uri={this.props.forgotPasswordUrl}>
             Forgot password?
           </LinkButton>
         </div>
@@ -136,10 +134,6 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     if (!error) { return null }
 
     return <Errors>{error.message}</Errors>
-  }
-
-  private getForgotPasswordURL(): string {
-    return `${getHTMLURL(this.props.endpoint)}/password_reset`
   }
 
   private onUsernameChange = (event: React.FormEvent<HTMLInputElement>) => {

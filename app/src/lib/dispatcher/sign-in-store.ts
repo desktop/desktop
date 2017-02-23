@@ -9,6 +9,7 @@ import {
   AuthorizationResponse,
   fetchUser,
   AuthorizationResponseKind,
+  getHTMLURL,
   getDotComAPIEndpoint,
   getEnterpriseAPIURL,
   fetchMetadata,
@@ -109,6 +110,8 @@ export interface IAuthenticationState extends ISignInState {
    * Basic Authentication.
    */
   readonly authMethods: Set<AuthenticationMethods>
+
+  readonly forgotPasswordUrl: string
 }
 
 /**
@@ -231,6 +234,10 @@ export class SignInStore {
     }
   }
 
+    private getForgotPasswordURL(endpoint: string): string {
+    return `${getHTMLURL(endpoint)}/password_reset`
+  }
+
   /**
    * Clear any in-flight sign in state and return to the
    * initial (no sign-in) state.
@@ -244,12 +251,15 @@ export class SignInStore {
    * in the Authentication step ready to receive user credentials.
    */
   public beginDotComSignIn() {
+    const endpoint = getDotComAPIEndpoint()
+
     this.setState({
       kind: SignInStep.Authentication,
-      endpoint: getDotComAPIEndpoint(),
+      endpoint,
       authMethods: DefaultAuthMethods,
       error: null,
       loading: false,
+      forgotPasswordUrl: this.getForgotPasswordURL(endpoint),
     })
   }
 
@@ -430,6 +440,7 @@ export class SignInStore {
         authMethods,
         error: null,
         loading: false,
+        forgotPasswordUrl: this.getForgotPasswordURL(endpoint),
       })
     } catch (e) {
       let error = e
