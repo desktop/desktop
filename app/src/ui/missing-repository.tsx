@@ -73,10 +73,8 @@ export class MissingRepository extends React.Component<IMissingRepositoryProps, 
     const cloneURL = gitHubRepository.cloneURL
     if (!cloneURL) { return }
 
-    // TODO: smooth transition from here to there
     // TODO: find suitable user for credentials
 
-    await this.props.dispatcher.clone(cloneURL, this.props.repository.path, null)
-    await this.props.dispatcher.updateRepositoryMissing(this.props.repository, false)
+    await this.props.dispatcher.cloneAgain(cloneURL, this.props.repository.path, null)
   }
 }

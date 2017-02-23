@@ -348,6 +348,26 @@ export class Dispatcher {
     return this.appStore._clearError(error)
   }
 
+  /** Clone the repository again to the path and update the existing repository state. */
+  public async cloneAgain(url: string, path: string, user: User | null): Promise<void> {
+    const { promise, repository } = this.appStore._clone(url, path, user)
+    await this.selectRepository(repository)
+    const success = await promise
+    if (!success) { return }
+
+    // TODO: refine this to remove the jitter as it switches back to found repository
+    const repositories = await this.loadRepositories()
+    let updatedRepository = repositories.find(r => r.path === path)
+    if (!updatedRepository) {
+      const addedRepositories = await this.addRepositories([ path ])
+      updatedRepository = addedRepositories[0]
+    } else {
+      await this.updateRepositoryMissing(updatedRepository, false)
+    }
+
+    await this.selectRepository(updatedRepository)
+  }
+
   /** Clone the repository to the path. */
   public async clone(url: string, path: string, user: User | null): Promise<void> {
     const { promise, repository } = this.appStore._clone(url, path, user)
