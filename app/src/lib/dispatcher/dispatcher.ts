@@ -570,7 +570,6 @@ export class Dispatcher {
     return this.appStore._beginDotComSignIn()
   }
 
-
   /**
    * Initiate a sign in flow for a GitHub Enterprise instance. This will
    * put the store in the EndpointEntry step ready to receive the url
