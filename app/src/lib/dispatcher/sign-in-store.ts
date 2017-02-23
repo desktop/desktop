@@ -120,8 +120,25 @@ export interface IAuthenticationState extends ISignInState {
  */
 export interface ITwoFactorAuthenticationState extends ISignInState {
   readonly kind: SignInStep.TwoFactorAuthentication
+
+  /**
+   * The URL to the host which we're currently authenticating
+   * against. This will be either https://api.github.com when
+   * signing in against GitHub.com or a user-specified
+   * URL when signing in against a GitHub Enterprise instance.
+   */
   readonly endpoint: string,
+
+  /**
+   * The username specified by the user in the preceeding
+   * Authentication step
+   */
   readonly username: string,
+
+  /**
+   * The password specified by the user in the preceeding
+   * Authentication step
+   */
   readonly password: string
 }
 
