@@ -220,9 +220,13 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   }
 
   private renderTwoFactorAuthenticationStep(state: ITwoFactorAuthenticationState) {
-    // TODO: Add "What's this" link button
     return (
       <DialogContent>
+        <p>
+          Open the two-factor authentication app on your device to view your
+          authentication code and verify your identity.
+          {' '}<LinkButton uri='https://help.github.com/articles/providing-your-2fa-authentication-code/'>What's this?</LinkButton>
+        </p>
         <Row>
           <TextBox
             label='Authentication code'
