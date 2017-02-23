@@ -201,7 +201,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       <DialogContent>
         <Row>
           <TextBox
-            label='Username'
+            label='Username or email address'
             value={this.state.username}
             onValueChanged={this.onUsernameChanged}
           />
