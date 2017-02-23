@@ -2,6 +2,9 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 
 interface IDialogContentProps {
+  /**
+   * An optional className to be applied to the rendered div element.
+   */
   readonly className?: string
 }
 
