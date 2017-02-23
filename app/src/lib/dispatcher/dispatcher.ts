@@ -644,11 +644,19 @@ export class Dispatcher {
     return this.appStore._setSignInOTP(otp)
   }
 
+  /**
+   * Launch a sign in dialog for authenticating a user with
+   * GitHub.com.
+   */
   public async showDotComSignInDialog(): Promise<void> {
     await this.appStore._beginDotComSignIn()
     await this.appStore._showPopup({ type: PopupType.SignIn })
   }
 
+  /**
+   * Launch a sign in dialog for authenticating a user with
+   * a GitHub Enterprise instance.
+   */
   public async showEnterpriseSignInDialog(): Promise<void> {
     await this.appStore._beginEnterpriseSignIn()
     await this.appStore._showPopup({ type: PopupType.SignIn })
