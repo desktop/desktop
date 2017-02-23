@@ -113,6 +113,10 @@ export class SignInStore {
     return this.state
   }
 
+  /**
+   * Update the internal state of the store and emit an update
+   * event.
+   */
   private setState(state: SignInState | null) {
     this.state = state
     this.emitUpdate()
