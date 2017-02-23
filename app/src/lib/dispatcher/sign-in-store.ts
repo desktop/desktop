@@ -139,7 +139,7 @@ export class SignInStore {
   }
 
   /** Register a function to be called when the store updates. */
-  public onDidUpdate(fn: () => void): Disposable {
+  public onDidUpdate(fn: (state: ISignInState) => void): Disposable {
     return this.emitter.on('did-update', fn)
   }
 
