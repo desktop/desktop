@@ -94,7 +94,20 @@ export interface IEndpointEntryState extends ISignInState {
  */
 export interface IAuthenticationState extends ISignInState {
   readonly kind: SignInStep.Authentication
+
+  /**
+   * The URL to the host which we're currently authenticating
+   * against. This will be either https://api.github.com when
+   * signing in against GitHub.com or a user-specified
+   * URL when signing in against a GitHub Enterprise instance.
+   */
   readonly endpoint: string,
+
+  /**
+   * A set of available authentication methods for the endpoint.
+   * All endpoints currently support OAuth but not all support
+   * Basic Authentication.
+   */
   readonly authMethods: Set<AuthenticationMethods>
 }
 
