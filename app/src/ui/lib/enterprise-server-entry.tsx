@@ -22,7 +22,7 @@ interface IEnterpriseServerEntryProps {
   readonly loading: boolean
 
   /**
-   * A callback which is invoked once the user has entered and
+   * A callback which is invoked once the user has entered an
    * endpoint url and submitted it either by clicking on the submit
    * button or by submitting the form through other means (ie hitting Enter).
    */
