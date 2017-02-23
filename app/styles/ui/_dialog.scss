@@ -26,7 +26,7 @@ dialog {
   // The modal class here is the transition name for the react css transition
   // group which allows us to apply an animation when the popup appears.
   &.modal {
-    
+
     &-enter {
       opacity: 1;
       transform: scale(0.75);
@@ -180,10 +180,10 @@ dialog {
   }
 
   .dialog-footer {
-    
+
     border-top: var(--base-border);
     padding: var(--spacing-double);
-    
+
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
