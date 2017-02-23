@@ -182,6 +182,10 @@ export class AppStore {
     })
   }
 
+  /**
+   * Registers an event handler which will be invoked whenever
+   * a user has successfully completed a sign-in process.
+   */
   public onDidAuthenticate(fn: (user: User) => void): Disposable {
     return this.emitter.on('did-authenticate', fn)
   }

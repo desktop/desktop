@@ -77,6 +77,7 @@ export class SignInStore {
     this.emitter.emit('did-update', this.getState())
   }
 
+
   private emitAuthenticate(user: User) {
     this.emitter.emit('did-authenticate', user)
   }
@@ -91,14 +92,19 @@ export class SignInStore {
   }
 
   /**
-   * Register a function to be called when the store successfully
-   * authenticates a user.
+   * Registers an event handler which will be invoked whenever
+   * a user has successfully completed a sign-in process.
    */
   public onDidAuthenticate(fn: (user: User) => void): Disposable {
     return this.emitter.on('did-authenticate', fn)
   }
 
-  /** Register a function to be called when an error occurs. */
+  /**
+   * Register an even handler which will be invoked whenever
+   * an unexpected error occurs during the sign-in process. Note
+   * that some error are handled in the flow and passed along in
+   * the sign in state for inline presentation to the user.
+   */
   public onDidError(fn: (error: Error) => void): Disposable {
     return this.emitter.on('did-error', fn)
   }
