@@ -3,6 +3,7 @@ import * as React from 'react'
 import { UiView } from './ui-view'
 import { Dispatcher } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
+import { Octicon, OcticonSymbol } from './octicons'
 import { Button } from './lib/button'
 import { Row } from './lib/row'
 
@@ -15,13 +16,28 @@ interface IMissingRepositoryProps {
 export class MissingRepository extends React.Component<IMissingRepositoryProps, void> {
   public render() {
     const buttons = new Array<JSX.Element>()
-    buttons.push(<Button key='locate' onClick={this.locate}>Locate…</Button>)
+    buttons.push(
+      <Button key='locate' onClick={this.locate}>
+        <Octicon symbol={OcticonSymbol.search} />
+        <span>Locate…</span>
+      </Button>
+    )
 
     if (this.canCloneAgain()) {
-      buttons.push(<Button key='clone-again' onClick={this.cloneAgain}>Clone Again</Button>)
+      buttons.push(
+        <Button key='clone-again' onClick={this.cloneAgain}>
+          <Octicon symbol={OcticonSymbol.repoClone} />
+          <div>Clone Again</div>
+        </Button>
+      )
     }
 
-    buttons.push(<Button key='remove' onClick={this.remove}>Remove</Button>)
+    buttons.push(
+      <Button key='remove' onClick={this.remove}>
+        <Octicon symbol={OcticonSymbol.x} />
+        <div>Remove</div>
+      </Button>
+    )
 
     return (
       <UiView id='missing-repository-view'>

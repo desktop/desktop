@@ -40,6 +40,18 @@
     margin-bottom: var(--spacing);
   }
 
+  button {
+    height: auto;
+    flex: 1;
+    flex-direction: row;
+
+    /*
+     * this overrides the default button behaviour of `flex-end`
+     * not sure if this is necessary or not
+     */
+    align-self: auto;
+  }
+
   /* Big clone icon */
   .octicon {
     width: 32px;
