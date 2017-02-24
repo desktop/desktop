@@ -212,10 +212,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             value={this.state.password}
             type='password'
             onValueChanged={this.onPasswordChanged}
+            labelLinkText='Forgot password?'
+            labelLinkUri={state.forgotPasswordUrl}
           />
-        </Row>
-        <Row className='forgot-password-row'>
-          <LinkButton uri={state.forgotPasswordUrl}>Forgot password?</LinkButton>
         </Row>
         {signInWithBrowser}
       </DialogContent>
@@ -234,10 +233,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             label='Authentication code'
             value={this.state.otpToken}
             onValueChanged={this.onOTPTokenChanged}
+            labelLinkText={`What's this?`}
+            labelLinkUri='https://help.github.com/articles/providing-your-2fa-authentication-code/'
           />
-        </Row>
-        <Row className='what-is-this-row'>
-          <LinkButton uri='https://help.github.com/articles/providing-your-2fa-authentication-code/'>What's this?</LinkButton>
         </Row>
       </DialogContent>
     )
