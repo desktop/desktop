@@ -133,7 +133,6 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
   public render() {
     const className = classNames('text-box-component', this.props.className)
-
     const inputId = this.props.label ? this.state.inputId : undefined
 
     return (
