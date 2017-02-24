@@ -1,5 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
+import { v4 as guid } from 'uuid'
 
 interface ITextBoxProps {
   /** The label for the input field. */
@@ -48,8 +49,16 @@ interface ITextBoxProps {
   readonly onInputRef?: (instance: HTMLInputElement) => void
 }
 
+interface ITextBoxState {
+  readonly inputId?: string
+}
+
 /** An input element with app-standard styles. */
-export class TextBox extends React.Component<ITextBoxProps, void> {
+export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
+
+  public componentWillMount() {
+    this.setState({ inputId: guid() })
+  }
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
     if (this.props.onChange) {
@@ -63,11 +72,19 @@ export class TextBox extends React.Component<ITextBoxProps, void> {
 
   public render() {
     const className = classNames('text-box-component', this.props.className)
+
+    const inputId = this.props.label ? this.state.inputId : undefined
+
+    const label = this.props.label
+      ? <label htmlFor={inputId}>{this.props.label}</label>
+      : null
+
     return (
-      <label className={className}>
-        {this.props.label}
+      <div className={className}>
+        {label}
 
         <input
+          id={inputId}
           autoFocus={this.props.autoFocus}
           disabled={this.props.disabled}
           type={this.props.type}
@@ -76,7 +93,7 @@ export class TextBox extends React.Component<ITextBoxProps, void> {
           onChange={this.onChange}
           onKeyDown={this.props.onKeyDown}
           ref={this.props.onInputRef}/>
-      </label>
+      </div>
     )
   }
 }
