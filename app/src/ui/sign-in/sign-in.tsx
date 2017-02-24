@@ -122,6 +122,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
     let primaryButtonText: string
     const stepKind = state.kind
+    let tabIndexPrimary: number | undefined = undefined
+    let tabIndexSecondary: number | undefined = undefined
 
     switch (state.kind) {
       case SignInStep.EndpointEntry:
@@ -136,6 +138,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         } else {
           primaryButtonText = 'Sign in'
         }
+        tabIndexPrimary = 4
+        tabIndexSecondary = 5
         break
       default:
         return assertNever(state, `Unknown sign in step ${stepKind}`)
@@ -144,8 +148,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     return (
       <DialogFooter>
         <ButtonGroup>
-          <Button type='submit'>{primaryButtonText}</Button>
-          <Button onClick={this.props.onDismissed}>Cancel</Button>
+          <Button type='submit' tabIndex={tabIndexPrimary}>{primaryButtonText}</Button>
+          <Button onClick={this.props.onDismissed} tabIndex={tabIndexSecondary}>Cancel</Button>
         </ButtonGroup>
       </DialogFooter>
     )
@@ -159,6 +163,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             label='Enterprise server address'
             value={this.state.endpoint}
             onValueChanged={this.onEndpointChanged}
+            placeholder='https://github.example.com'
             autoFocus
           />
         </Row>
@@ -173,7 +178,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
           <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div>
         </Row>
         <Row className='sign-in-with-browser'>
-          <LinkButton className='link-with-icon' onClick={this.onSignInWithBrowser}>
+          <LinkButton tabIndex={3} className='link-with-icon' onClick={this.onSignInWithBrowser}>
             Sign in using your browser
             <Octicon symbol={OcticonSymbol.linkExternal} />
           </LinkButton>
@@ -206,6 +211,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             value={this.state.username}
             onValueChanged={this.onUsernameChanged}
             autoFocus
+            tabIndex={1}
           />
         </Row>
         <Row>
@@ -216,6 +222,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             onValueChanged={this.onPasswordChanged}
             labelLinkText='Forgot password?'
             labelLinkUri={state.forgotPasswordUrl}
+            tabIndex={2}
           />
         </Row>
         {signInWithBrowser}
