@@ -81,6 +81,15 @@ interface IDialogProps {
    * dialog from being dismissed.
    */
   readonly disabled?: boolean
+
+  /**
+   * Whether or not the dialog contents are currently involved in processing
+   * data, executing an asynchronous operation or by other means working.
+   * Setting this value will render a spinning progress icon in the dialog
+   * header (if the dialog has a header). Note that if the spinning icon
+   * will temporarily replace the dialog icon (if present) for the duration
+   * of the loading operation.
+   */
   readonly loading?: boolean
 }
 
