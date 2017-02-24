@@ -159,6 +159,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             label='Enterprise server address'
             value={this.state.endpoint}
             onValueChanged={this.onEndpointChanged}
+            autoFocus
           />
         </Row>
       </DialogContent>
@@ -204,6 +205,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             label='Username or email address'
             value={this.state.username}
             onValueChanged={this.onUsernameChanged}
+            autoFocus
           />
         </Row>
         <Row>
@@ -233,6 +235,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             label='Authentication code'
             value={this.state.otpToken}
             onValueChanged={this.onOTPTokenChanged}
+            autoFocus
             labelLinkText={`What's this?`}
             labelLinkUri='https://help.github.com/articles/providing-your-2fa-authentication-code/'
           />
