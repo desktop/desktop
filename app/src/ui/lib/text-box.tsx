@@ -49,8 +49,30 @@ interface ITextBoxProps {
   /** A callback to receive the underlying `input` instance. */
   readonly onInputRef?: (instance: HTMLInputElement) => void
 
+  /**
+   * An optional text for a link label element. A link label is, for the purposes
+   * of this control an anchor element that's rendered alongside (ie on the same)
+   * row as the the label element. The link label will only be rendered if the
+   * textbox has a label text. This is used for presenting the user with a contextual
+   * link related to a specific text input such as a password recovery link for
+   * a password text box.
+   */
   readonly labelLinkText?: string
+
+  /**
+   * An optional URL to be opened when the label link (if present, see the
+   * labelLinkText prop for more details) is clicked. The link will be opened using the
+   * standard semantics of a LinkButton, i.e. in the configured system browser.
+   *
+   * If not specified consumers need to subscribe to the onLabelLinkClick event.
+   */
   readonly labelLinkUri?: string
+
+  /**
+   * An optional event handler which is invoked when the label link (if present,
+   * see the labelLinkText prop for more details) is clicked. See the onClick
+   * event on the LinkButton component for more details.
+   */
   readonly onLabelLinkClick?: () => void
 }
 
