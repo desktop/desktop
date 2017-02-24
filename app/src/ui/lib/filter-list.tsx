@@ -103,6 +103,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
             type='search'
             autoFocus={true}
             placeholder='Filter'
+            className='filter-list-filter-field'
             onChange={this.onFilterChanged}
             onKeyDown={this.onKeyDown}
             onInputRef={this.onInputRef}/>
