@@ -81,6 +81,7 @@ interface IDialogProps {
    * dialog from being dismissed.
    */
   readonly disabled?: boolean
+  readonly loading?: boolean
 }
 
 interface IDialogState {
@@ -229,6 +230,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
         dismissable={this.isDismissable()}
         onDismissed={this.onDismiss}
         type={this.props.type}
+        loading={this.props.loading}
       />
     )
   }

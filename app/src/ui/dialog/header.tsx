@@ -27,6 +27,7 @@ interface IDialogHeaderProps {
    * Defaults to 'normal' if omitted.
    */
   readonly type?: 'normal' | 'warning' | 'error'
+  readonly loading?: boolean
 }
 
 /**
@@ -63,6 +64,11 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, void> {
   }
 
   private renderIcon() {
+
+    if (this.props.loading === true) {
+      return <Octicon className='icon spin' symbol={OcticonSymbol.sync} />
+    }
+
     if (this.props.type === undefined || this.props.type === 'normal') {
       return null
     } else if (this.props.type === 'error') {
