@@ -100,7 +100,6 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
 
         <Row>
           <TextBox
-            labelClassName='filter-list-filter-field'
             type='search'
             autoFocus={true}
             placeholder='Filter'
