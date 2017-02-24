@@ -21,6 +21,8 @@ cache:
     - node_modules
 
 install:
+  - npm prune
+  - cd app && npm prune && cd ..
   - npm install
 
 script:
