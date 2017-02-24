@@ -74,15 +74,13 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
           autoFocus={true}
           onChange={this.onUsernameChange}/>
 
-        <div className='password-container'>
-          <TextBox
-            label='Password'
-            type='password'
-            disabled={disabled}
-            onChange={this.onPasswordChange}
-            labelLinkText='Forgot password?'
-            labelLinkUri={this.getForgotPasswordURL()}/>
-        </div>
+        <TextBox
+          label='Password'
+          type='password'
+          disabled={disabled}
+          onChange={this.onPasswordChange}
+          labelLinkText='Forgot password?'
+          labelLinkUri={this.getForgotPasswordURL()}/>
 
         {this.renderActions()}
       </div>
