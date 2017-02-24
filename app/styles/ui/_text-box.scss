@@ -5,7 +5,7 @@
   flex-direction: column;
   flex: 1;
 
-  .label {
+  .label-container {
     display: flex;
 
     label {
@@ -13,7 +13,9 @@
       flex-grow: 1;
     }
 
-    a {
+    .link-label {
+      @include ellipsis;
+
       justify-content: flex-end;
       flex-shrink: 0;
       flex-grow: 0;

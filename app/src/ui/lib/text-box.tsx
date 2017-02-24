@@ -84,6 +84,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
       <LinkButton
         uri={this.props.labelLinkUri}
         onClick={this.props.onLabelLinkClick}
+        className='link-label'
       >
           {this.props.labelLinkText}
       </LinkButton>
@@ -96,7 +97,7 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
     }
 
     return (
-      <div className='label'>
+      <div className='label-container'>
         <label htmlFor={this.state.inputId}>{this.props.label}</label>
         {this.renderLabelLink()}
       </div>
