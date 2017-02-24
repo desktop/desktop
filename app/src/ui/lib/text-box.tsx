@@ -25,11 +25,11 @@ interface ITextBoxProps {
 
   /**
    * Called when the user changes the value in the input field.
-   * 
+   *
    * This differs from the onChange event in that it passes only the new
    * value and not the event itself. Subscribe to the onChange event if you
    * need the ability to prevent the action from occurring.
-   * 
+   *
    * This callback will not be invoked if the callback from onChange calls
    * preventDefault.
    */
