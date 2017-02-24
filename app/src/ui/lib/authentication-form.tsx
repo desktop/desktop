@@ -79,11 +79,9 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
             label='Password'
             type='password'
             disabled={disabled}
-            onChange={this.onPasswordChange}/>
-
-          <LinkButton className='forgot-password-link' uri={this.getForgotPasswordURL()}>
-            Forgot password?
-          </LinkButton>
+            onChange={this.onPasswordChange}
+            labelLinkText='Forgot password?'
+            labelLinkUri={this.getForgotPasswordURL()}/>
         </div>
 
         {this.renderActions()}
