@@ -5,8 +5,11 @@ interface ITextBoxProps {
   /** The label for the input field. */
   readonly label?: string
 
-  /** The class name for the label. */
-  readonly labelClassName?: string
+  /**
+   * An optional className to be applied to the rendered
+   * top level element of the component.
+   */
+  readonly className?: string
 
   /** The placeholder for the input field. */
   readonly placeholder?: string
@@ -59,7 +62,7 @@ export class TextBox extends React.Component<ITextBoxProps, void> {
   }
 
   public render() {
-    const className = classNames('text-box-component', this.props.labelClassName)
+    const className = classNames('text-box-component', this.props.className)
     return (
       <label className={className}>
         {this.props.label}
