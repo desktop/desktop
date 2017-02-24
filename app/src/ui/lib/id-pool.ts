@@ -12,6 +12,27 @@ function sanitizeId(id: string): string {
   return id.replace(/[^a-z0-9\-_:.]+/ig, '_')
 }
 
+/**
+ * Generate a unique id for an html element. The Id pool
+ * maintains a list of used ids and if an id with a duplicate
+ * prefix is already in use a counter value will be appended
+ * to the generated id to maintain uniqueness.
+ * 
+ * This method should be called from a component's
+ * componentWillMount method and then released using the
+ * releaseUniqueId method from the component's componentWillUnmount
+ * method. The component should store the generated id in its
+ * state for the lifetime of the component.
+ * 
+ * @param prefix - A prefix used to distinguish components
+ *                 or instances of components from each other.
+ *                 At minimum a component should pass its own
+ *                 name and ideally it should pass some other
+ *                 form of semi-unique string directly related
+ *                 to the currently rendering instance of that
+ *                 component such as a friendly name (if such
+ *                 a value exist. See TextBox for a good example).
+ */
 export function createUniqueId(prefix: string): string {
 
   if (__DEV__) {
@@ -47,6 +68,10 @@ export function createUniqueId(prefix: string): string {
   return uuid()
 }
 
+/**
+ * Release a previously generated id such that it can be
+ * reused by another component instance.
+ */
 export function releaseUniqueId(id: string) {
   activeIds.delete(id)
 }
