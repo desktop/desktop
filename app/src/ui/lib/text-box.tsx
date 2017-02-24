@@ -74,6 +74,9 @@ interface ITextBoxProps {
    * event on the LinkButton component for more details.
    */
   readonly onLabelLinkClick?: () => void
+
+  /** The tab index of the input element. */
+  readonly tabIndex?: number
 }
 
 interface ITextBoxState {
@@ -157,7 +160,8 @@ export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
           value={this.props.value}
           onChange={this.onChange}
           onKeyDown={this.props.onKeyDown}
-          ref={this.props.onInputRef}/>
+          ref={this.props.onInputRef}
+          tabIndex={this.props.tabIndex}/>
       </div>
     )
   }

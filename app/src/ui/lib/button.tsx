@@ -30,6 +30,9 @@ export interface IButtonProps {
    * this will be unnecessary.
    */
   readonly onButtonRef?: (instance: HTMLButtonElement) => void
+
+  /** The tab index of the button element. */
+  readonly tabIndex?: number
 }
 
 /** A button component. */
@@ -43,7 +46,8 @@ export class Button extends React.Component<IButtonProps, void> {
         disabled={this.props.disabled}
         onClick={this.onClick}
         type={this.props.type || 'button'}
-        ref={this.props.onButtonRef}>
+        ref={this.props.onButtonRef}
+        tabIndex={this.props.tabIndex}>
         {this.props.children}
       </button>
     )
