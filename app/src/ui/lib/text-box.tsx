@@ -8,9 +8,6 @@ interface ITextBoxProps {
   /** The class name for the label. */
   readonly labelClassName?: string
 
-  /** The class name for the input field. */
-  readonly inputClassName?: string
-
   /** The placeholder for the input field. */
   readonly placeholder?: string
 
@@ -69,7 +66,6 @@ export class TextBox extends React.Component<ITextBoxProps, void> {
 
         <input
           autoFocus={this.props.autoFocus}
-          className={this.props.inputClassName}
           disabled={this.props.disabled}
           type={this.props.type}
           placeholder={this.props.placeholder}
