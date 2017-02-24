@@ -3,6 +3,15 @@ import { v4 as uuid } from 'uuid'
 const activeIds = new Set<string>()
 const poolPrefix = '__'
 
+function sanitizeId(id: string): string {
+  // We're following the old HTML4 rules for ids for know
+  // and we're explicitly not testing for a valid first
+  // character since we have the poolPrefix which will
+  // guarantee that.
+  // See http://stackoverflow.com/a/79022/2114
+  return id.replace(/[^a-z0-9\-_:.]+/ig, '_')
+}
+
 export function createUniqueId(prefix: string): string {
 
   if (__DEV__) {
@@ -11,9 +20,12 @@ export function createUniqueId(prefix: string): string {
     }
   }
 
+  const safePrefix = sanitizeId(`${poolPrefix}${prefix}`)
+
   for (let i = 0; i < 100; i++) {
-    const suffix = i > 0 ? i.toString() : ''
-    const id = `${poolPrefix}${prefix}${suffix}`
+    const id = i > 0
+      ? `${safePrefix}_${i}`
+      : safePrefix
 
     if (!activeIds.has(id)) {
       activeIds.add(id)
