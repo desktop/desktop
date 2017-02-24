@@ -357,15 +357,14 @@ export class Dispatcher {
 
     // TODO: refine this to remove the jitter as it switches back to found repository
     const repositories = await this.loadRepositories()
-    let updatedRepository = repositories.find(r => r.path === path)
+    const updatedRepository = repositories.find(r => r.path === path)
     if (!updatedRepository) {
       const addedRepositories = await this.addRepositories([ path ])
-      updatedRepository = addedRepositories[0]
+      await this.selectRepository(addedRepositories[0])
     } else {
-      await this.updateRepositoryMissing(updatedRepository, false)
+      const repo = await this.updateRepositoryMissing(updatedRepository, false)
+      await this.selectRepository(repo)
     }
-
-    await this.selectRepository(updatedRepository)
   }
 
   /** Clone the repository to the path. */
