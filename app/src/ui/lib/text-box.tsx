@@ -89,8 +89,8 @@ interface ITextBoxState {
 export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
   public componentWillMount() {
-    const type = this.props.type || 'text'
-    const inputId = createUniqueId(`text-box-${type}`)
+    const friendlyName = this.props.label || this.props.placeholder
+    const inputId = createUniqueId(`TextBox_${friendlyName}`)
 
     this.setState({ inputId })
   }
