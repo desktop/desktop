@@ -603,7 +603,13 @@ export class Dispatcher {
 
     if (directories && directories.length > 0) {
       await this.updateRepositoryPath(repository, directories[0])
-      await this.updateRepositoryMissing(repository, false)
+
+      const repositories = await this.loadRepositories()
+      const updatedRepository = repositories.find(r => r.path === repository.path)
+      if (updatedRepository) {
+        const repo = await this.updateRepositoryMissing(repository, false)
+        await this.selectRepository(repo)
+      }
     }
   }
 
