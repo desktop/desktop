@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
-import { v4 as guid } from 'uuid'
+import { createUniqueId, releaseUniqueId } from './id-pool'
 import { LinkButton } from './link-button'
 
 interface ITextBoxProps {
@@ -89,7 +89,16 @@ interface ITextBoxState {
 export class TextBox extends React.Component<ITextBoxProps, ITextBoxState> {
 
   public componentWillMount() {
-    this.setState({ inputId: guid() })
+    const type = this.props.type || 'text'
+    const inputId = createUniqueId(`text-box-${type}`)
+
+    this.setState({ inputId })
+  }
+
+  public componentWillUnmount() {
+    if (this.state.inputId) {
+      releaseUniqueId(this.state.inputId)
+    }
   }
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
