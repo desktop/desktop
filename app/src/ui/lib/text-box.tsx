@@ -77,6 +77,11 @@ interface ITextBoxProps {
 }
 
 interface ITextBoxState {
+  /**
+   * An automatically generated id for the input element used to reference
+   * it from the label element. This is generated once when the component
+   * is mounted.
+   */
   readonly inputId?: string
 }
 
