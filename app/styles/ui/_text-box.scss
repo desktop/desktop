@@ -11,8 +11,6 @@
     font-family: var(--font-family-sans-serif);
     padding: var(--spacing-half);
 
-    resize: none;
-
     &:focus {
       outline: none;
       border-color: var(--focus-color);
