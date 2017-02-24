@@ -39,22 +39,10 @@ interface IDialogHeaderProps {
  */
 export class DialogHeader extends React.Component<IDialogHeaderProps, void> {
 
-  private onCloseButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  private onCloseButtonClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (this.props.onDismissed) {
       this.props.onDismissed()
     }
-  }
-
-  // When the dialog is shown as a modal it insists on giving the first input
-  // element focus and that happens to be the close button that we've explicitly
-  // specified to not be keyboard reachable. Closing the dialog should be done
-  // by hitting escape or clicking on the button. Only the elements within the
-  // dialog contents and footer should be keyboard reachable. So we employ this
-  // hack to blur the close button if it receives focus. If we don't do this then
-  // hitting enter inside a dialog won't submit the form at all but rather close
-  // the dialog.
-  private onCloseButtonFocus = (e: React.FocusEvent<HTMLButtonElement>) => {
-    e.currentTarget.blur()
   }
 
   private renderCloseButton() {
@@ -62,10 +50,15 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, void> {
       return null
     }
 
+    // We're intentionally using <a> here instead of <button> because
+    // we can't prevent chromium from giving it focus when the the dialog
+    // appears. Setting tabindex to -1 doesn't work. This might be a bug,
+    // I don't know and we may want to revisit it at some point but for
+    // now an anchor will have to do.
     return (
-      <button className='close' tabIndex={-1} onClick={this.onCloseButtonClick} onFocus={this.onCloseButtonFocus}>
+      <a className='close' onClick={this.onCloseButtonClick}>
         <Octicon symbol={OcticonSymbol.x} />
-      </button>
+      </a>
     )
   }
 

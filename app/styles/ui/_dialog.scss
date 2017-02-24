@@ -118,7 +118,7 @@ dialog {
       @include ellipsis;
     }
 
-    button.close {
+    .close {
       position: absolute;
       right: var(--spacing);
       top: var(--spacing);
