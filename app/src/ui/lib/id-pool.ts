@@ -21,6 +21,13 @@ export function createUniqueId(prefix: string): string {
     }
   }
 
+  // If we've failed to create an id 100 times it's likely
+  // that we've either started using the id pool so widely
+  // that 100 isn't enough at which point we should really
+  // look into the root cause because that shouldn't be
+  // necessary. In either case, let's just return a uuid
+  // without storing it in the activeIds set because we
+  // know it'll be unique.
   if (__DEV__) {
     console.warn(`Exhausted search for valid id for ${prefix}. Please investigate.`)
   }
