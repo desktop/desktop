@@ -16,7 +16,7 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
-import { OcticonSymbol } from './octicons'
+import { OcticonSymbol, iconForRepository } from './octicons'
 import { setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateState } from './lib/update-store'
@@ -634,20 +634,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private iconForRepository(repository: Repository | CloningRepository) {
-    if (repository instanceof CloningRepository) {
-      return OcticonSymbol.desktopDownload
-    } else {
-      const gitHubRepo = repository.gitHubRepository
-      if (!gitHubRepo) { return OcticonSymbol.repo }
-
-      if (gitHubRepo.private) { return OcticonSymbol.lock }
-      if (gitHubRepo.fork) { return OcticonSymbol.repoForked }
-
-      return OcticonSymbol.repo
-    }
-  }
-
   private closeAppMenu = () => {
     this.props.dispatcher.closeFoldout()
   }
@@ -735,7 +721,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     let icon: OcticonSymbol
     let title: string
     if (repository) {
-      icon = this.iconForRepository(repository)
+      icon = iconForRepository(repository)
       title = repository.name
     } else {
       icon = OcticonSymbol.repo
