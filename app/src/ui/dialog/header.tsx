@@ -23,7 +23,7 @@ interface IDialogHeaderProps {
   /**
    * An optional type of dialog header. If the type is error or warning
    * an applicable icon will be rendered top left in the dialog.
-   * 
+   *
    * Defaults to 'normal' if omitted.
    */
   readonly type?: 'normal' | 'warning' | 'error'
@@ -32,7 +32,7 @@ interface IDialogHeaderProps {
    * Whether or not the dialog contents are currently involved in processing
    * data, executing an asynchronous operation or by other means working.
    * Setting this value will render a spinning progress icon in the header.
-   * Note that if the spinning icon will temporarily replace the dialog icon
+   * Note that the spinning icon will temporarily replace the dialog icon
    * (if present) for the duration of the loading operation.
    */
   readonly loading?: boolean
@@ -40,7 +40,7 @@ interface IDialogHeaderProps {
 
 /**
  * A high-level component for Dialog headers.
- * 
+ *
  * This component should typically not be used by consumers as the title prop
  * of the Dialog component should suffice. There are, however, cases where
  * custom content needs to be rendered in a dialog and in that scenario it
