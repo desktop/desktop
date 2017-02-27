@@ -68,7 +68,7 @@ function renderUsernameOrIssues(str: string, i: number, repository?: Repository)
 
   const pieces = str.split(UsernameOrIssueRegex)
 
-  const results: Array<JSX.Element | string> = [ ]
+  const results = new Array<JSX.Element | string>()
 
   pieces.forEach((piece, j) => {
     // because we are using an | to build up this regex here, we
