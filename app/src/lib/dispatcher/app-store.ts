@@ -740,7 +740,7 @@ export class AppStore {
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
 
     const state = this.getRepositoryState(repository)
-    const files = state.changesState.workingDirectory.files.filter(function (file, index, array) {
+    const files = state.changesState.workingDirectory.files.filter((file, index, array) => {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
