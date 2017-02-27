@@ -12,9 +12,9 @@ import { LinkButton } from '../../../src/ui/lib/link-button'
 describe('RichText', () => {
   const emoji = new Map<string, string>([ [ ':shipit:', '/some/path.png' ] ])
 
-  function createComponent(children: string, repository?: Repository) {
+  function createComponent(text: string, repository?: Repository) {
     return shallow(
-      <RichText emoji={emoji} children={children} repository={repository} />
+      <RichText emoji={emoji} text={text} repository={repository} />
     )
   }
 
