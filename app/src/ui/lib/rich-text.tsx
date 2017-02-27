@@ -14,7 +14,7 @@ interface IRichTextProps {
   readonly emoji: Map<string, string>
 
   /** The raw text to inspect for things to highlight */
-  readonly children?: string
+  readonly text: string
 
   /**
    * The repository to use as the source for URLs for the rich text.
@@ -32,10 +32,9 @@ interface IRichTextProps {
  */
 export class RichText extends React.Component<IRichTextProps, void> {
   public render() {
-    const children = this.props.children as string || ''
     return (
       <div className={this.props.className}>
-        {emojificationNexus(children, this.props.emoji, this.props.repository)}
+        {emojificationNexus(this.props.text, this.props.emoji, this.props.repository)}
       </div>
     )
   }

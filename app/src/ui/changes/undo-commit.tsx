@@ -25,9 +25,8 @@ export class UndoCommit extends React.Component<IUndoCommitProps, void> {
           <div className='ago'>Committed <RelativeTime date={authorDate} /></div>
           <RichText
             emoji={this.props.emoji}
-            className='summary'>
-            {this.props.commit.summary}
-          </RichText>
+            className='summary'
+            text={this.props.commit.summary} />
         </div>
         <div className='actions'>
           <Button type='submit' onClick={this.props.onUndo}>Undo</Button>

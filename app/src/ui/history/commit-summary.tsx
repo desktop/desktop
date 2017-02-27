@@ -48,9 +48,8 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
           <RichText
             className='commit-summary-title'
             emoji={this.props.emoji}
-            repository={this.props.repository}>
-            {this.props.summary}
-          </RichText>
+            repository={this.props.repository}
+            text={this.props.summary} />
 
           <ul className='commit-summary-meta'>
             <li className='commit-summary-meta-item'
@@ -85,9 +84,8 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
         <RichText
           className='commit-summary-description'
           emoji={this.props.emoji}
-          repository={this.props.repository}>
-          {this.props.body}
-        </RichText>
+          repository={this.props.repository}
+          text={this.props.body} />
       </div>
     )
   }
