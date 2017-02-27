@@ -10,12 +10,12 @@ import { DialogHeader } from './header'
 const dismissGracePeriodMs = 250
 
 interface IDialogProps {
-  /** 
+  /**
    * An optional dialog title. Most, if not all dialogs should have
    * this. When present the Dialog renders a DialogHeader element
    * containing an icon (if the type prop warrants it), the title itself
    * and a close button (if the dialog is dismissable).
-   * 
+   *
    * By omitting this consumers may use their own custom DialogHeader
    * for when the default component doesn't cut it.
    */
@@ -27,11 +27,11 @@ interface IDialogProps {
    * the close button in the header (if a header was specified). Dismissal
    * will trigger the onDismissed event which callers must handle and pass
    * on to the dispatcher in order to close the dialog.
-   * 
+   *
    * A non-dismissable dialog can only be closed by means of the component
    * implementing a dialog. An example would be a critical error or warning
    * that requires explicit user action by for example clicking on a button.
-   * 
+   *
    * Defaults to true if omitted.
    */
   readonly dismissable?: boolean
@@ -50,7 +50,7 @@ interface IDialogProps {
   /**
    * An optional dialog type. A warning or error dialog type triggers custom
    * styling of the dialog, see _dialog.scss for more detail.
-   * 
+   *
    * Defaults to 'normal' if omitted
    */
   readonly type?: 'normal' | 'warning' | 'error'
@@ -58,7 +58,7 @@ interface IDialogProps {
   /**
    * An event triggered when the dialog form is submitted. All dialogs contain
    * a top-level form element which can be triggered through a submit button.
-   * 
+   *
    * Consumers should handle this rather than subscribing to the onClick event
    * on the button itself since there may be other ways of submitting a specific
    * form (such as Ctrl+Enter).
@@ -101,7 +101,7 @@ interface IDialogState {
    * backdrop of a dialog can be clicked to dismiss all it takes is one rogue
    * click and the dialog is gone. This is less than ideal if we're in the
    * middle of displaying an important error message.
-   * 
+   *
    * This state boolean is used to keep track of whether we're still in that
    * grace period or not.
    */
@@ -111,7 +111,7 @@ interface IDialogState {
 /**
  * A general purpose, versatile, dialog component which utilizes the new
  * <dialog> element. See https://demo.agektmr.com/dialog/
- * 
+ *
  * A dialog is opened as a modal that prevents keyboard or pointer access to
  * underlying elements. It's not possible to use the tab key to move focus
  * out of the dialog without first dismissing it.

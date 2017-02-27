@@ -23,7 +23,7 @@ interface IDialogHeaderProps {
   /**
    * An optional type of dialog header. If the type is error or warning
    * an applicable icon will be rendered top left in the dialog.
-   * 
+   *
    * Defaults to 'normal' if omitted.
    */
   readonly type?: 'normal' | 'warning' | 'error'
@@ -40,7 +40,7 @@ interface IDialogHeaderProps {
 
 /**
  * A high-level component for Dialog headers.
- * 
+ *
  * This component should typically not be used by consumers as the title prop
  * of the Dialog component should suffice. There are, however, cases where
  * custom content needs to be rendered in a dialog and in that scenario it
