@@ -359,18 +359,11 @@ export class Dispatcher {
     const repositories = await this.loadRepositories()
     const found = repositories.find(r => r.path === path)
 
-    let updatedRepository: Repository | null = null
-    if (!found) {
-      const addedRepositories = await this.addRepositories([ path ])
-      updatedRepository = addedRepositories[0]
-    } else {
-      updatedRepository = await this.updateRepositoryMissing(found, false)
-    }
-
-    if (updatedRepository) {
+    if (found) {
+      const updatedRepository = await this.updateRepositoryMissing(found, false)
       await this.selectRepository(updatedRepository)
     }
-  }
+ }
 
   /** Clone the repository to the path. */
   public async clone(url: string, path: string, user: User | null): Promise<void> {
