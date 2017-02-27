@@ -52,10 +52,12 @@ interface ITextBoxProps {
   /**
    * An optional text for a link label element. A link label is, for the purposes
    * of this control an anchor element that's rendered alongside (ie on the same)
-   * row as the the label element. The link label will only be rendered if the
-   * textbox has a label text. This is used for presenting the user with a contextual
-   * link related to a specific text input such as a password recovery link for
-   * a password text box.
+   * row as the the label element. 
+   * 
+   * Note that the link label will only be rendered if the textbox has a
+   * label text (specified through the label prop). A link label is used for
+   * presenting the user with a contextual link related to a specific text
+   * input such as a password recovery link for a password text box.
    */
   readonly labelLinkText?: string
 
