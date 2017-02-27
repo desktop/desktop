@@ -356,7 +356,6 @@ export class AppStore {
   private removeGitStore(repository: Repository) {
     if (this.gitStores.has(repository.id)) {
       this.gitStores.delete(repository.id)
-      console.info(`removed git store for ${repository.id}`)
     }
   }
 
