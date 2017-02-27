@@ -10,7 +10,7 @@ import { FilterList } from '../lib/filter-list'
 import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
 import { assertNever } from '../../lib/fatal-error'
 
-/** 
+/**
  * TS can't parse generic specialization in JSX, so we have to alias it here
  * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
  */
@@ -98,11 +98,11 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
 
   public render() {
     if (this.props.loading) {
-      return <Loading/>
+      return this.loading()
     }
 
     if (this.props.repositories.length < 1) {
-      return <NoRepositories/>
+      return this.noRepositories()
     }
 
     const groups = groupRepositories(this.props.repositories)
@@ -137,12 +137,28 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
       </div>
     )
   }
-}
 
-function Loading() {
-  return <div className='sidebar-message'>Loading…</div>
-}
+  private noRepositories() {
+    return (
+      <div className='repository-list'>
+        <div className='filter-list'>
+          {this.renderExpandButton()}
+          <div className='sidebar-message'>No repositories</div>
+        </div>
 
-function NoRepositories() {
-  return <div className='sidebar-message'>No repositories</div>
+        {this.renderAddRepository()}
+      </div>)
+  }
+
+  private loading() {
+    return (
+      <div className='repository-list'>
+        <div className='filter-list'>
+          {this.renderExpandButton()}
+          <div className='sidebar-message'>Loading…</div>
+        </div>
+
+        {this.renderAddRepository()}
+      </div>)
+  }
 }
