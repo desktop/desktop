@@ -355,7 +355,9 @@ export class Dispatcher {
     const success = await promise
     if (!success) { return }
 
-    // TODO: can we do away with this whole selection process?
+    // in the background the shared process has updated the repository list
+    // to ensure a smooth transition back, we should lookup the new repository
+    // and update it's state after the clone has completed
     const repositories = await this.loadRepositories()
     const found = repositories.find(r => r.path === path)
 
