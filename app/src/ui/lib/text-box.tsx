@@ -81,8 +81,8 @@ interface ITextBoxProps {
 interface ITextBoxState {
   /**
    * An automatically generated id for the input element used to reference
-   * it from the label element. This is generated once when the component
-   * is mounted.
+   * it from the label element. This is generated once via the id pool when the
+   * component is mounted and then released once the component unmounts.
    */
   readonly inputId?: string
 }
