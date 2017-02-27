@@ -355,15 +355,20 @@ export class Dispatcher {
     const success = await promise
     if (!success) { return }
 
-    // TODO: refine this to remove the jitter as it switches back to found repository
+    // TODO: can we do away with this whole selection process?
     const repositories = await this.loadRepositories()
-    const updatedRepository = repositories.find(r => r.path === path)
-    if (!updatedRepository) {
+    const found = repositories.find(r => r.path === path)
+
+    let updatedRepository: Repository | null = null
+    if (!found) {
       const addedRepositories = await this.addRepositories([ path ])
-      await this.selectRepository(addedRepositories[0])
+      updatedRepository = addedRepositories[0]
     } else {
-      const repo = await this.updateRepositoryMissing(updatedRepository, false)
-      await this.selectRepository(repo)
+      updatedRepository = await this.updateRepositoryMissing(found, false)
+    }
+
+    if (updatedRepository) {
+      await this.selectRepository(updatedRepository)
     }
   }
 
