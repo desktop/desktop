@@ -5,7 +5,7 @@ import { Repository } from '../../models/repository'
 import { getHTMLURL } from '../../lib/api'
 
 const EmojiRegex = /(:.*?:)/g
-const UsernameOrIssueRegex = /(\w*@[a-zA-Z0-9\-]*)|(#[0-9]{1,})/g
+const UsernameOrIssueRegex = /(\w*@[a-zA-Z0-9\-]+)|(#[0-9]+)/g
 
 interface IRichTextProps {
   readonly className?: string
