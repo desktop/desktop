@@ -637,7 +637,7 @@ export class AppStore {
           return file
         }
       })
-        .sort((x, y) => caseInsenstiveCompare(x.path, y.path))
+      .sort((x, y) => caseInsenstiveCompare(x.path, y.path))
 
       const includeAll = this.getIncludeAllState(mergedFiles)
 
