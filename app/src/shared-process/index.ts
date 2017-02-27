@@ -124,8 +124,9 @@ register('update-repository-missing', async ({ repository, missing }: IUpdateRep
 register('update-repository-path', async ({ repository, path }: IUpdateRepositoryPathAction) => {
   const inflatedRepository = Repository.fromJSON(repository)
   const updatedRepository = await repositoriesStore.updateRepositoryPath(inflatedRepository, path)
+  const newUpdatedRepository = await repositoriesStore.updateRepositoryMissing(updatedRepository, false)
 
   broadcastUpdate()
 
-  return updatedRepository
+  return newUpdatedRepository
 })
