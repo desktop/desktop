@@ -353,6 +353,13 @@ export class AppStore {
     }
   }
 
+  private removeGitStore(repository: Repository) {
+    if (this.gitStores.has(repository.id)) {
+      this.gitStores.delete(repository.id)
+      console.info(`removed git store for ${repository.id}`)
+    }
+  }
+
   private getGitStore(repository: Repository): GitStore {
     let gitStore = this.gitStores.get(repository.id)
     if (!gitStore) {
@@ -516,6 +523,8 @@ export class AppStore {
 
         this.startBackgroundFetching(repository)
         this.refreshMentionables(repository)
+      } else {
+        this.removeGitStore(repository)
       }
     } else {
       return Promise.resolve()
