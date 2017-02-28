@@ -8,6 +8,10 @@ import { AccessText } from '../lib/access-text'
 interface IMenuListItemProps {
   readonly item: MenuItem
   readonly highlightAccessKey: boolean
+
+  readonly renderAcceleratorText?: boolean
+  readonly renderIcon?: boolean
+  readonly renderSubMenuArrow?: boolean
 }
 
 /**
@@ -58,6 +62,10 @@ export class MenuListItem extends React.Component<IMenuListItemProps, void> {
 
   private getIcon(item: MenuItem): JSX.Element | null {
 
+    if (this.props.renderIcon === false) {
+      return null
+    }
+
     if (item.type === 'checkbox' && item.checked) {
       return <Octicon className='icon' symbol={OcticonSymbol.check} />
     } else if (item.type === 'radio' && item.checked) {
@@ -74,11 +82,11 @@ export class MenuListItem extends React.Component<IMenuListItemProps, void> {
       return <hr />
     }
 
-    const arrow = item.type === 'submenuItem'
+    const arrow = item.type === 'submenuItem' && this.props.renderSubMenuArrow !== false
       ? <Octicon className='submenu-arrow' symbol={OcticonSymbol.triangleRight} />
       : null
 
-    const accelerator = item.type !== 'submenuItem' && item.accelerator
+    const accelerator = item.type !== 'submenuItem' && item.accelerator && this.props.renderAcceleratorText !== false
       ? <div className='accelerator'>{friendlyAcceleratorText(item.accelerator)}</div>
       : null
 
