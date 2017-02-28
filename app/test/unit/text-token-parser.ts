@@ -32,6 +32,17 @@ describe('simple parsing', () => {
     expect(results[2].text).to.equal(' this thing')
   })
 
+  it('renders a mention at the beginning', () => {
+    const text = '@shiftkey was here'
+    tokenizer.tokenize(text)
+    const results = tokenizer.results
+    expect(results.length).to.equal(2)
+    expect(results[0].type).to.equal(TokenType.Mention)
+    expect(results[0].text).to.equal('@shiftkey')
+    expect(results[1].type).to.equal(TokenType.Text)
+    expect(results[1].text).to.equal(' was here')
+  })
+
   it('renders a mention', () => {
     const text = 'this one is for that @haacked fellow'
     tokenizer.tokenize(text)
