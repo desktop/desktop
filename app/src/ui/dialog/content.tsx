@@ -1,4 +1,9 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
+
+interface IDialogContentProps {
+  readonly className?: string
+}
 
 /**
  * A container component for content (ie non-header, non-footer) in a Dialog.
@@ -9,11 +14,14 @@ import * as React from 'react'
  * to avoid excessive nesting and to ensure that styles applying to phrasing
  * content in the dialog get applied consistently.
  */
-export class DialogContent extends React.Component<void, void> {
+export class DialogContent extends React.Component<IDialogContentProps, void> {
 
   public render() {
+
+    const className = classNames('dialog-content', this.props.className)
+
     return (
-      <div className='dialog-content'>
+      <div className={className}>
         {this.props.children}
       </div>
     )

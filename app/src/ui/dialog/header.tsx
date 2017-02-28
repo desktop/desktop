@@ -23,15 +23,24 @@ interface IDialogHeaderProps {
   /**
    * An optional type of dialog header. If the type is error or warning
    * an applicable icon will be rendered top left in the dialog.
-   * 
+   *
    * Defaults to 'normal' if omitted.
    */
   readonly type?: 'normal' | 'warning' | 'error'
+
+  /**
+   * Whether or not the dialog contents are currently involved in processing
+   * data, executing an asynchronous operation or by other means working.
+   * Setting this value will render a spinning progress icon in the header.
+   * Note that the spinning icon will temporarily replace the dialog icon
+   * (if present) for the duration of the loading operation.
+   */
+  readonly loading?: boolean
 }
 
 /**
  * A high-level component for Dialog headers.
- * 
+ *
  * This component should typically not be used by consumers as the title prop
  * of the Dialog component should suffice. There are, however, cases where
  * custom content needs to be rendered in a dialog and in that scenario it
@@ -39,22 +48,10 @@ interface IDialogHeaderProps {
  */
 export class DialogHeader extends React.Component<IDialogHeaderProps, void> {
 
-  private onCloseButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  private onCloseButtonClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     if (this.props.onDismissed) {
       this.props.onDismissed()
     }
-  }
-
-  // When the dialog is shown as a modal it insists on giving the first input
-  // element focus and that happens to be the close button that we've explicitly
-  // specified to not be keyboard reachable. Closing the dialog should be done
-  // by hitting escape or clicking on the button. Only the elements within the
-  // dialog contents and footer should be keyboard reachable. So we employ this
-  // hack to blur the close button if it receives focus. If we don't do this then
-  // hitting enter inside a dialog won't submit the form at all but rather close
-  // the dialog.
-  private onCloseButtonFocus = (e: React.FocusEvent<HTMLButtonElement>) => {
-    e.currentTarget.blur()
   }
 
   private renderCloseButton() {
@@ -62,14 +59,24 @@ export class DialogHeader extends React.Component<IDialogHeaderProps, void> {
       return null
     }
 
+    // We're intentionally using <a> here instead of <button> because
+    // we can't prevent chromium from giving it focus when the the dialog
+    // appears. Setting tabindex to -1 doesn't work. This might be a bug,
+    // I don't know and we may want to revisit it at some point but for
+    // now an anchor will have to do.
     return (
-      <button className='close' tabIndex={-1} onClick={this.onCloseButtonClick} onFocus={this.onCloseButtonFocus}>
+      <a className='close' onClick={this.onCloseButtonClick}>
         <Octicon symbol={OcticonSymbol.x} />
-      </button>
+      </a>
     )
   }
 
   private renderIcon() {
+
+    if (this.props.loading === true) {
+      return <Octicon className='icon spin' symbol={OcticonSymbol.sync} />
+    }
+
     if (this.props.type === undefined || this.props.type === 'normal') {
       return null
     } else if (this.props.type === 'error') {
