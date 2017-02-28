@@ -188,6 +188,7 @@ export class Tokenizer {
           const idText = issueMatch[1]
           const id = parseInt(idText, 10)
           this._results.push({ kind: TokenType.Issue,  url: maybeHyperlink, id, text: `#${idText}` })
+          return { nextIndex }
         }
       } else {
         this._results.push({ kind: TokenType.Link, url: maybeHyperlink, text: maybeHyperlink })
