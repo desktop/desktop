@@ -526,7 +526,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       : null
 
     const menuBar = __WIN32__ && this.state.appMenuState.length
-      ? <AppMenuBar appMenu={this.state.appMenuState[0]} />
+      ? <AppMenuBar
+          appMenu={this.state.appMenuState}
+          dispatcher={this.props.dispatcher}
+          highlightAppMenuToolbarButton={this.state.highlightAppMenuToolbarButton}
+        />
       : null
 
     const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
