@@ -6,14 +6,9 @@ import { Tokenizer, TokenType } from '../../src/lib/text-token-parser'
 const tokenizer = new Tokenizer()
 
 describe('simple parsing', () => {
-  beforeEach(() => {
-    tokenizer.reset()
-  })
-
   it('preserves plain text string', () => {
     const text = 'this is a string without anything interesting'
-    tokenizer.tokenize(text)
-    const results = tokenizer.results
+    const results = tokenizer.tokenize(text)
     expect(results.length).to.equal(1)
     expect(results[0].type).to.equal(TokenType.Text)
     expect(results[0].text).to.equal(text)
@@ -21,8 +16,7 @@ describe('simple parsing', () => {
 
   it('returns emoji between two string elements', () => {
     const text = 'let\'s :ship: this thing'
-    tokenizer.tokenize(text)
-    const results = tokenizer.results
+    const results = tokenizer.tokenize(text)
     expect(results.length).to.equal(3)
     expect(results[0].type).to.equal(TokenType.Text)
     expect(results[0].text).to.equal('let\'s ')
@@ -34,8 +28,7 @@ describe('simple parsing', () => {
 
   it('renders a mention at the beginning', () => {
     const text = '@shiftkey was here'
-    tokenizer.tokenize(text)
-    const results = tokenizer.results
+    const results = tokenizer.tokenize(text)
     expect(results.length).to.equal(2)
     expect(results[0].type).to.equal(TokenType.Mention)
     expect(results[0].text).to.equal('@shiftkey')
@@ -45,8 +38,8 @@ describe('simple parsing', () => {
 
   it('renders a mention', () => {
     const text = 'this one is for that @haacked fellow'
-    tokenizer.tokenize(text)
-    const results = tokenizer.results
+
+    const results = tokenizer.tokenize(text)
     expect(results.length).to.equal(3)
     expect(results[0].type).to.equal(TokenType.Text)
     expect(results[0].text).to.equal('this one is for that ')
@@ -83,8 +76,7 @@ This fixes `
 
 Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
 
-    tokenizer.tokenize(text)
-    const results = tokenizer.results
+    const results = tokenizer.tokenize(text)
     expect(results.length).to.equal(3)
     expect(results[0].type).to.equal(TokenType.Text)
     expect(results[0].text).to.equal(expectedBefore)
