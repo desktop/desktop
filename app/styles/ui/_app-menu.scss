@@ -115,15 +115,11 @@
 }
 
 #app-menu-bar {
-  padding: 0;
-  margin: 0;
-
   display: flex;
-  list-style: none;
 
-  align-content: center;
-
-  li {
-    margin: 0 var(--spacing-half);
+  .toolbar-button > button {
+    padding: 0  var(--spacing);
+    border: 0;
   }
+
 }
