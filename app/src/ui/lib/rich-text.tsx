@@ -54,7 +54,7 @@ export class RichText extends React.Component<IRichTextProps, void> {
         case TokenType.Issue:
           return renderIssue(r, index)
         case TokenType.Link:
-          return <LinkButton uri={r.url} children={r.text} />
+          return <LinkButton key={index} uri={r.url} children={r.text} />
         case TokenType.Text:
           return r.text
         default:
