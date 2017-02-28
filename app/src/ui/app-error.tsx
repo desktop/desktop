@@ -72,33 +72,8 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
-  private renderFooter() {
-   const error = this.state.error
 
-    if (!error) {
-      return null
     }
-
-    if (error instanceof GitError) {
-      switch (error.result.gitError)  {
-        case GitErrorType.HTTPSAuthenticationFailed:
-          return (
-            <DialogFooter>
-              <ButtonGroup>
-                <Button type='submit'>OK</Button>
-              </ButtonGroup>
-            </DialogFooter>
-          )
-      }
-    }
-
-    return (
-      <DialogFooter>
-        <ButtonGroup>
-          <Button type='submit'>Close</Button>
-        </ButtonGroup>
-      </DialogFooter>
-    )
   }
 
   private renderDialog() {
