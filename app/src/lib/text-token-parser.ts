@@ -101,7 +101,7 @@ export class Tokenizer {
 
   private scanForMention(text: string, index: number): LookupResult | null {
     const lastItem = this.peek()
-    if (lastItem !== ' ') {
+    if (lastItem && lastItem !== ' ') {
       this.append('@')
       return null
     }
@@ -119,12 +119,11 @@ export class Tokenizer {
   }
 
   public tokenize(text: string) {
-    let i = 0;
-
+    let i = 0
     let match: LookupResult | null = null
 
     while (i < text.length) {
-      let element = text[i]
+      const element = text[i]
       switch (element) {
         case ':':
           match = this.scanForEmoji(text, i)
