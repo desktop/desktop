@@ -39,9 +39,32 @@ interface IRichTextProps {
  */
 export class RichText extends React.Component<IRichTextProps, void> {
   public render() {
+    const str = this.props.text
+
+    // If we've been given an empty string then return null so that we don't end
+    // up introducing an extra empty <span>.
+    if (!str.length) { return null }
+
+    const tokenizer = new Tokenizer()
+
+    const elements = tokenizer.tokenize(str).map((r, index) => {
+      switch (r.kind) {
+        case TokenType.Emoji:
+          return renderEmoji(r, index, this.props.emoji)
+        case TokenType.Mention:
+          return renderMention(r, index, this.props.repository)
+        case TokenType.Issue:
+          return renderIssue(r, index, this.props.repository)
+        case TokenType.Text:
+          return r.text
+        default:
+          return assertNever(r, 'Unknown token type: ${r.kind}')
+      }
+    })
+
     return (
       <div className={this.props.className}>
-        {emojificationNexus(this.props.text, this.props.emoji, this.props.repository)}
+        <span>{elements}</span>
       </div>
     )
   }
@@ -56,8 +79,7 @@ function renderMention(match: MentionMatch, index: number, repository?: Reposito
   const repo = resolveGitHubRepository(repository)
   if (!repo) { return match.text }
 
-  const host = getHTMLURL(repo.endpoint)
-  const url = `${host}/${match.name}`
+  const url = `${getHTMLURL(repo.endpoint)}/${match.name}`
 
   return <LinkButton
     key={index}
@@ -83,30 +105,4 @@ function renderEmoji(match: EmojiMatch, index: number, emoji: Map<string, string
   } else {
     return match.text
   }
-}
-
-/** Shoutout to @robrix's naming expertise. */
-function emojificationNexus(str: string, emoji: Map<string, string>, repository?: Repository): JSX.Element | null {
-  // If we've been given an empty string then return null so that we don't end
-  // up introducing an extra empty <span>.
-  if (!str.length) { return null }
-
-  const tokenizer = new Tokenizer()
-
-  const elements = tokenizer.tokenize(str).map((r, index) => {
-    switch (r.kind) {
-      case TokenType.Emoji:
-        return renderEmoji(r, index, emoji)
-      case TokenType.Mention:
-        return renderMention(r, index, repository)
-      case TokenType.Issue:
-        return renderIssue(r, index, repository)
-      case TokenType.Text:
-        return r.text
-      default:
-        return assertNever(r, 'Unknown token type: ${r.kind}')
-    }
-  })
-
-  return <span>{elements}</span>
 }
