@@ -2,8 +2,6 @@ import * as React from 'react'
 
 import { LinkButton } from './link-button'
 import { Repository } from '../../models/repository'
-import { GitHubRepository } from '../../models/github-repository'
-import { getHTMLURL } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
 
 import {
@@ -45,16 +43,16 @@ export class RichText extends React.Component<IRichTextProps, void> {
     // up introducing an extra empty <span>.
     if (!str.length) { return null }
 
-    const tokenizer = new Tokenizer()
+    const tokenizer = new Tokenizer(this.props.emoji, this.props.repository)
 
     const elements = tokenizer.tokenize(str).map((r, index) => {
       switch (r.kind) {
         case TokenType.Emoji:
           return renderEmoji(r, index, this.props.emoji)
         case TokenType.Mention:
-          return renderMention(r, index, this.props.repository)
+          return renderMention(r, index)
         case TokenType.Issue:
-          return renderIssue(r, index, this.props.repository)
+          return renderIssue(r, index)
         case TokenType.Text:
           return r.text
         default:
@@ -70,31 +68,21 @@ export class RichText extends React.Component<IRichTextProps, void> {
   }
 }
 
-function resolveGitHubRepository(repository?: Repository): GitHubRepository | null {
-  if (!repository) { return null }
-  return repository.gitHubRepository
-}
-
-function renderMention(match: MentionMatch, index: number, repository?: Repository): JSX.Element | string {
-  const repo = resolveGitHubRepository(repository)
-  if (!repo) { return match.text }
-
-  const url = `${getHTMLURL(repo.endpoint)}/${match.name}`
+function renderMention(match: MentionMatch, index: number): JSX.Element | string {
+  if (!match.url) { return match.text }
 
   return <LinkButton
     key={index}
-    uri={url}
+    uri={match.url}
     children={match.text} />
 }
 
-function renderIssue(match: IssueMatch, index: number, repository?: Repository): JSX.Element | string {
-  const repo = resolveGitHubRepository(repository)
-  if (!repo) { return match.text }
+function renderIssue(match: IssueMatch, index: number): JSX.Element | string {
+  if (!match.url) { return match.text }
 
-  const url = `${repo.htmlURL}/issues/${match.id}`
   return <LinkButton
     key={index}
-    uri={url}
+    uri={match.url}
     children={match.text} />
 }
 

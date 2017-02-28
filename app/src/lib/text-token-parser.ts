@@ -1,3 +1,7 @@
+import { Repository } from '../models/repository'
+import { GitHubRepository } from '../models/github-repository'
+import { getHTMLURL } from './api'
+
 export enum TokenType {
   Text,
   Emoji,
@@ -8,13 +12,15 @@ export enum TokenType {
 export type IssueMatch = {
   readonly kind: TokenType.Issue,
   readonly text: string,
-  readonly id: number
+  readonly id: number,
+  readonly url?: string,
 }
 
 export type MentionMatch = {
   readonly kind: TokenType.Mention,
   readonly text: string,
-  readonly name: string
+  readonly name: string,
+  readonly url?: string,
 }
 
 export type EmojiMatch = {
@@ -42,8 +48,19 @@ const mentionRegex = /@[a-zA-Z0-9\-]+/
  */
 export class Tokenizer {
 
+  private readonly emoji?: Map<string, string>
+  private readonly repository: GitHubRepository | null
+
   private _results = new Array<TokenResult>()
   private _currentString = ''
+
+  public constructor(emoji?: Map<string, string>, repository?: Repository) {
+    this.emoji = emoji
+
+    if (repository) {
+      this.repository = repository.gitHubRepository
+    }
+  }
 
   private reset() {
     this._results = new Array<TokenResult>()
@@ -114,7 +131,8 @@ export class Tokenizer {
     if (issueRegex.exec(maybeIssue)) {
       this.flush()
       const id = parseInt(maybeIssue.substr(1), 10)
-      this._results.push({ kind: TokenType.Issue, text: maybeIssue, id })
+      const url = this.repository ? `${this.repository.htmlURL}/issues/${id}` : undefined
+      this._results.push({ kind: TokenType.Issue, text: maybeIssue, id, url })
       return { nextIndex }
     } else {
       this.append('#')
@@ -136,7 +154,8 @@ export class Tokenizer {
     if (mentionRegex.exec(maybeMention)) {
       this.flush()
       const name = maybeMention.substr(1)
-      this._results.push({ kind: TokenType.Mention, text: maybeMention, name })
+      const url = this.repository ? `${getHTMLURL(this.repository.endpoint)}/${name}` : undefined
+      this._results.push({ kind: TokenType.Mention, text: maybeMention, name, url })
       return { nextIndex }
     } else {
       this.append('@')
