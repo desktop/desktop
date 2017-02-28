@@ -127,10 +127,9 @@ export class Tokenizer {
       this.flush()
       this._results.push({ kind: TokenType.Emoji, text: maybeEmoji })
       return { nextIndex }
-    } else {
-      this.append(':')
-      return null
     }
+
+    return null
   }
 
   private scanForIssue(text: string, index: number): LookupResult | null {
@@ -142,20 +141,16 @@ export class Tokenizer {
       const url = this.repository ? `${this.repository.htmlURL}/issues/${id}` : undefined
       this._results.push({ kind: TokenType.Issue, text: maybeIssue, id, url })
       return { nextIndex }
-    } else {
-      this.append('#')
-      return null
     }
+
+    return null
   }
 
   private scanForMention(text: string, index: number): LookupResult | null {
     // to ensure this isn't part of an email address, peek at the previous
     // character - if something is found and it's not whitespace, bail out
     const lastItem = this.peek()
-    if (lastItem && lastItem !== ' ') {
-      this.append('@')
-      return null
-    }
+    if (lastItem && lastItem !== ' ') { return null }
 
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeMention = text.slice(index, nextIndex)
@@ -165,10 +160,9 @@ export class Tokenizer {
       const url = this.repository ? `${getHTMLURL(this.repository.endpoint)}/${name}` : undefined
       this._results.push({ kind: TokenType.Mention, text: maybeMention, name, url })
       return { nextIndex }
-    } else {
-      this.append('@')
-      return null
     }
+
+    return null
   }
 
   private scanForHyperlink(text: string, index: number): LookupResult | null {
@@ -176,7 +170,6 @@ export class Tokenizer {
     // found and it's not whitespace, bail out
     const lastItem = this.peek()
     if (lastItem && lastItem !== ' ') {
-      this.append('h')
       return null
     }
 
@@ -195,18 +188,14 @@ export class Tokenizer {
           const idText = issueMatch[1]
           const id = parseInt(idText, 10)
           this._results.push({ kind: TokenType.Issue,  url: maybeHyperlink, id, text: `#${idText}` })
-        } else {
-           return null
         }
       } else {
         this._results.push({ kind: TokenType.Link, url: maybeHyperlink, text: maybeHyperlink })
         return { nextIndex }
       }
-      return null
-    } else {
-      this.append('h')
-      return null
     }
+
+    return null
   }
 
   /**
@@ -229,6 +218,7 @@ export class Tokenizer {
           if (match) {
             i = match.nextIndex
           } else {
+            this.append(element)
             i++
           }
           break
@@ -238,6 +228,7 @@ export class Tokenizer {
           if (match) {
             i = match.nextIndex
           } else {
+            this.append(element)
             i++
           }
           break
@@ -247,6 +238,7 @@ export class Tokenizer {
           if (match) {
             i = match.nextIndex
           } else {
+            this.append(element)
             i++
           }
           break
@@ -256,6 +248,7 @@ export class Tokenizer {
           if (match) {
             i = match.nextIndex
           } else {
+            this.append(element)
             i++
           }
           break
