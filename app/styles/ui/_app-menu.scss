@@ -120,6 +120,11 @@
   .toolbar-button > button {
     padding: 0  var(--spacing);
     border: 0;
+
+    .access-key.highlight {
+      text-decoration: underline;
+    }
   }
+
 
 }
