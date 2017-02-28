@@ -95,7 +95,11 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         <DialogContent>
           {error.message}
         </DialogContent>
-        {this.renderFooter()}
+        <DialogFooter>
+        <ButtonGroup>
+          <Button type='submit'>Close</Button>
+        </ButtonGroup>
+      </DialogFooter>
       </Dialog>
     )
   }
