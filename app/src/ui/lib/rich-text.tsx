@@ -11,7 +11,7 @@ import {
   TokenType,
   IssueMatch,
   EmojiMatch,
-  MentionMatch
+  MentionMatch,
 } from '../../lib/text-token-parser'
 
 interface IRichTextProps {

@@ -37,6 +37,9 @@ const emojiRegex = /:.*?:/
 const issueRegex = /#[0-9]+/
 const mentionRegex = /@[a-zA-Z0-9\-]+/
 
+/**
+ * A look-ahead tokenizer designed for scanning commit messages for emoji, issues and mentions.
+ */
 export class Tokenizer {
 
   private _results = new Array<TokenResult>()
@@ -70,19 +73,26 @@ export class Tokenizer {
     const indexOfNextSpace = text.indexOf(' ', index + 1)
 
     if (indexOfNextNewline > -1 && indexOfNextSpace > -1) {
+      // if we find whitespace and a newline, take whichever is closest
       if (indexOfNextNewline < indexOfNextSpace) {
         return indexOfNextNewline
       } else {
         return indexOfNextSpace
       }
-    } else if (indexOfNextNewline > -1) {
-      return indexOfNextNewline
-    } else if (indexOfNextSpace > -1) {
-      return indexOfNextSpace
-    } else {
-      // as a fallback use the entire remaining string
-      return text.length
     }
+
+    // favouring newlines over whitespace here because people often like to
+    // use mentions or issues at the end of a sentence.
+    if (indexOfNextNewline > -1) {
+      return indexOfNextNewline
+    }
+
+    if (indexOfNextSpace > -1) {
+      return indexOfNextSpace
+    }
+
+    // as a fallback use the entire remaining string
+    return text.length
   }
 
   private scanForEmoji(text: string, index: number): LookupResult | null {
@@ -113,6 +123,8 @@ export class Tokenizer {
   }
 
   private scanForMention(text: string, index: number): LookupResult | null {
+    // to ensure this isn't part of an email address, peek at the previous
+    // character - if something is found and it's not whitespace, bail out
     const lastItem = this.peek()
     if (lastItem && lastItem !== ' ') {
       this.append('@')
@@ -132,6 +144,12 @@ export class Tokenizer {
     }
   }
 
+  /**
+   * Scan the string for tokens that match with entities an application
+   * might be interested in.
+   *
+   * @returns an array of tokens representing the scan results.
+   */
   public tokenize(text: string): ReadonlyArray<TokenResult> {
     this.reset()
 
@@ -167,7 +185,6 @@ export class Tokenizer {
             i++
           }
           break
-
 
         default:
           this.append(element)
