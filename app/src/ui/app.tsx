@@ -10,7 +10,7 @@ import { Dispatcher, AppStore, CloningRepository } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
 import { MenuEvent, MenuIDs } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
-import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
+import { IAppState, RepositorySection, Popup, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
 import { Branches } from './branches'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
@@ -619,8 +619,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       <AppError
         errors={this.state.errors}
         onClearError={this.clearError}
+        onShowLogin={this.ShowPopup}
       />
     )
+  }
+
+  private ShowPopup = (popup: Popup) => {
+     this.props.dispatcher.showPopup(popup)
   }
 
   private renderApp() {
