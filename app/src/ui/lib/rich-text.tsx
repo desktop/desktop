@@ -2,10 +2,11 @@ import * as React from 'react'
 
 import { LinkButton } from './link-button'
 import { Repository } from '../../models/repository'
+import { GitHubRepository } from '../../models/github-repository'
 import { getHTMLURL } from '../../lib/api'
+import { Tokenizer, TokenType } from '../../lib/text-token-parser'
 
-const EmojiRegex = /(:.*?:)/g
-const UsernameOrIssueRegex = /(\w*@[a-zA-Z0-9\-]+)|(#[0-9]+)/g
+const tokenizer = new Tokenizer()
 
 interface IRichTextProps {
   readonly className?: string
@@ -40,64 +41,68 @@ export class RichText extends React.Component<IRichTextProps, void> {
   }
 }
 
+function resolveGitHubRepository(repository?: Repository): GitHubRepository | null {
+  if (!repository) { return null }
+  return repository.gitHubRepository
+}
+
+function renderMention(fragment: string, index: number, repository?: Repository): JSX.Element | string {
+  const repo = resolveGitHubRepository(repository)
+  if (!repo) { return fragment }
+
+  const user = fragment.substr(1)
+  const host = getHTMLURL(repo.endpoint)
+  const url = `${host}/${user}`
+
+  return <LinkButton
+    key={index}
+    uri={url}
+    children={fragment} />
+}
+
+function renderIssue(fragment: string, index: number, repository?: Repository): JSX.Element | string {
+  const repo = resolveGitHubRepository(repository)
+  if (!repo) { return fragment }
+
+  const id = parseInt(fragment.substr(1), 10)
+  const url = `${repo.htmlURL}/issues/${id}`
+  return <LinkButton
+    key={index}
+    uri={url}
+    children={fragment} />
+}
+
+function renderEmoji(fragment: string, index: number, emoji: Map<string, string>): JSX.Element | string {
+  const path = emoji.get(fragment)
+  if (path) {
+    return <img key={index} alt={fragment} title={fragment} className='emoji' src={path}/>
+  } else {
+    return fragment
+  }
+}
+
 /** Shoutout to @robrix's naming expertise. */
 function emojificationNexus(str: string, emoji: Map<string, string>, repository?: Repository): JSX.Element | null {
   // If we've been given an empty string then return null so that we don't end
   // up introducing an extra empty <span>.
   if (!str.length) { return null }
 
-  const pieces = str.split(EmojiRegex)
-  const elements = pieces.map((fragment, i) => {
-    const path = emoji.get(fragment)
-    if (path) {
-      return [ <img key={i} alt={fragment} title={fragment} className='emoji' src={path}/> ]
-    } else {
-      return renderUsernameOrIssues(fragment, i, repository)
+  // TODO: this feels crufty, let's see if we can clean this up a bit
+  tokenizer.reset()
+  tokenizer.tokenize(str)
+
+  const elements = tokenizer.results.map((r, index) => {
+    switch (r.type) {
+      case TokenType.Emoji:
+        return renderEmoji(r.text, index, emoji)
+      case TokenType.Mention:
+        return renderMention(r.text, index, repository)
+      case TokenType.Issue:
+        return renderIssue(r.text, index, repository)
+      default:
+        return r.text
     }
   })
 
   return <span>{elements}</span>
-}
-
-function renderUsernameOrIssues(str: string, i: number, repository?: Repository): ReadonlyArray<JSX.Element | string> {
-  if (!repository) { return [ str ] }
-
-  const repo = repository.gitHubRepository
-
-  if (!repo) { return [ str ] }
-
-  const pieces = str.split(UsernameOrIssueRegex)
-
-  const results = new Array<JSX.Element | string>()
-
-  pieces.forEach((piece, j) => {
-    // because we are using an | to build up this regex here, we
-    // see undefined entries to represent matches for the "other"
-    // expression in the regex. these can be safely ignored.
-    if (!piece) { return }
-
-    const innerKey = `${i}-${j}`
-
-    if (piece.startsWith('@')) {
-      const user = piece.substr(1)
-      const host = getHTMLURL(repo.endpoint)
-      const url = `${host}/${user}`
-
-      results.push(<LinkButton
-        key={innerKey}
-        uri={url}
-        children={piece} />)
-    } else if (piece.startsWith('#')) {
-      const id = parseInt(piece.substr(1), 10)
-      const url = `${repo.htmlURL}/issues/${id}`
-      results.push(<LinkButton
-        key={innerKey}
-        uri={url}
-        children={piece} />)
-    } else {
-      results.push(piece)
-    }
-  })
-
-  return results
 }
