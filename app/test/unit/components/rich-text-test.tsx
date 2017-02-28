@@ -106,6 +106,28 @@ describe('RichText', () => {
       expect(first.uri).to.equal(expectedUri)
       expect(first.children).to.equal(`#${id}`)
     })
+
+    it('converts full URL to issue shorthand', () => {
+      const text = `Note: we keep a "black list" of authentication methods for which we do
+not want to enable http.emptyAuth automatically. A white list would be
+nicer, but less robust, as we want to support linking to several cURL
+versions and the list of authentication methods (as well as their names)
+changed over time.
+
+[jes: actually added the "auto" handling, excluded Digest, too]
+
+This fixes https://github.com/shiftkey/some-repo/issues/1034
+
+Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
+
+      const wrapper = createComponent(text, repository)
+      const links = wrapper.find(LinkButton)
+      expect(links.length).to.equal(1)
+
+      const first = links.at(0).props()
+      expect(first.uri).to.equal('https://github.com/shiftkey/some-repo/issues/1034')
+      expect(first.children).to.equal('#1034')
+    })
   })
 
   describe('with non-GitHub repository', () => {
@@ -121,6 +143,28 @@ describe('RichText', () => {
       const wrapper = createComponent(text)
       const links = wrapper.find('.emoji')
       expect(links.length).to.equal(0)
+    })
+
+    it('renders plain link for full URL', () => {
+      const text = `Note: we keep a "black list" of authentication methods for which we do
+not want to enable http.emptyAuth automatically. A white list would be
+nicer, but less robust, as we want to support linking to several cURL
+versions and the list of authentication methods (as well as their names)
+changed over time.
+
+[jes: actually added the "auto" handling, excluded Digest, too]
+
+This fixes https://github.com/shiftkey/some-repo/issues/1034
+
+Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
+
+      const wrapper = createComponent(text)
+      const links = wrapper.find(LinkButton)
+      expect(links.length).to.equal(1)
+
+      const first = links.at(0).props()
+      expect(first.uri).to.equal('https://github.com/shiftkey/some-repo/issues/1034')
+      expect(first.children).to.equal('https://github.com/shiftkey/some-repo/issues/1034')
     })
 
     it('does not render link for mention', () => {
