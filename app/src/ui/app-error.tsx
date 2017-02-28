@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogFooter } from './dialog'
 import { dialogTransitionEnterTimeout, dialogTransitionLeaveTimeout } from './app'
 import { GitError } from '../lib/git/core'
 import { GitError as GitErrorType } from 'git-kitchen-sink'
+import { Popup, PopupType } from '../lib/app-state'
 
 interface IAppErrorProps {
   /** The list of queued, app-wide, errors  */
@@ -17,6 +18,7 @@ interface IAppErrorProps {
    * has been shown to, and been dismissed by, the user.
    */
   readonly onClearError: (error: Error) => void
+  readonly onShowLogin: (popupType: Popup) => void | null
 }
 
 interface IAppErrorState {
