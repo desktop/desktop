@@ -90,16 +90,27 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       return null
     }
 
+    let message: string = ''
+
+    if (error instanceof GitError) {
+      switch (error.result.gitError)  {
+        case GitErrorType.HTTPSAuthenticationFailed:
+          message = 'You must be signed in to perform this action'
+        break
+      }
+    }
+
+    message = message === '' ? error.message : message
+
     return (
       <Dialog
         id='app-error'
         type='error'
         title='Error'
         onDismissed={this.onDismissed}
-        disabled={this.state.disabled}
-      >
+        disabled={this.state.disabled}>
         <DialogContent>
-          {error.message}
+          {message}
         </DialogContent>
         <DialogFooter>
         <ButtonGroup>
