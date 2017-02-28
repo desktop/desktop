@@ -20,40 +20,33 @@ const mentionRegex = /@[a-zA-Z0-9\-]+/
 
 export class Tokenizer {
 
-  private readonly _results = new Array<TokenResult>()
+  private _results = new Array<TokenResult>()
+  private _currentString = ''
 
-  private currentStringArray = ''
-
-  public get results(): ReadonlyArray<TokenResult> {
-    return this._results
-  }
-
-  public reset() {
-    while (this._results.length) {
-      this._results.pop()
-    }
-    this.currentStringArray = ''
+  private reset() {
+    this._results = new Array<TokenResult>()
+    this._currentString = ''
   }
 
   private append(character: string) {
-    this.currentStringArray += character
+    this._currentString += character
   }
 
   private flush() {
-    if (this.currentStringArray.length) {
-      this._results.push({ type: TokenType.Text, text: this.currentStringArray })
-      this.currentStringArray = ''
+    if (this._currentString.length) {
+      this._results.push({ type: TokenType.Text, text: this._currentString })
+      this._currentString = ''
     }
   }
 
   private peek(): string | null {
-    if (this.currentStringArray.length) {
-      return this.currentStringArray[this.currentStringArray.length - 1]
+    if (this._currentString.length) {
+      return this._currentString[this._currentString.length - 1]
     }
     return null
   }
 
-  private scanForNextWhitespaceIndex(text: string, index: number): number {
+  private scanForEndOfWord(text: string, index: number): number {
     const indexOfNextNewline = text.indexOf('\n', index + 1)
     const indexOfNextSpace = text.indexOf(' ', index + 1)
 
@@ -74,20 +67,20 @@ export class Tokenizer {
   }
 
   private scanForEmoji(text: string, index: number): LookupResult | null {
-    const nextIndex = this.scanForNextWhitespaceIndex(text, index)
+    const nextIndex = this.scanForEndOfWord(text, index)
     const maybeEmoji = text.slice(index, nextIndex)
     if (emojiRegex.exec(maybeEmoji)) {
       this.flush()
       this._results.push({ type: TokenType.Emoji, text: maybeEmoji })
       return { nextIndex }
     } else {
-      this.currentStringArray += ':'
+      this.append(':')
       return null
     }
   }
 
   private scanForIssue(text: string, index: number): LookupResult | null {
-    const nextIndex = this.scanForNextWhitespaceIndex(text, index)
+    const nextIndex = this.scanForEndOfWord(text, index)
     const maybeIssue = text.slice(index, nextIndex)
     if (issueRegex.exec(maybeIssue)) {
       this.flush()
@@ -106,7 +99,7 @@ export class Tokenizer {
       return null
     }
 
-    const nextIndex = this.scanForNextWhitespaceIndex(text, index)
+    const nextIndex = this.scanForEndOfWord(text, index)
     const maybeMention = text.slice(index, nextIndex)
     if (mentionRegex.exec(maybeMention)) {
       this.flush()
@@ -118,7 +111,9 @@ export class Tokenizer {
     }
   }
 
-  public tokenize(text: string) {
+  public tokenize(text: string): ReadonlyArray<TokenResult> {
+    this.reset()
+
     let i = 0
     let match: LookupResult | null = null
 
@@ -154,12 +149,13 @@ export class Tokenizer {
 
 
         default:
-          this.currentStringArray += element
+          this.append(element)
           i++
           break
       }
     }
 
     this.flush()
+    return this._results
   }
 }

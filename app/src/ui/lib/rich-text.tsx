@@ -6,8 +6,6 @@ import { GitHubRepository } from '../../models/github-repository'
 import { getHTMLURL } from '../../lib/api'
 import { Tokenizer, TokenType } from '../../lib/text-token-parser'
 
-const tokenizer = new Tokenizer()
-
 interface IRichTextProps {
   readonly className?: string
 
@@ -87,11 +85,9 @@ function emojificationNexus(str: string, emoji: Map<string, string>, repository?
   // up introducing an extra empty <span>.
   if (!str.length) { return null }
 
-  // TODO: this feels crufty, let's see if we can clean this up a bit
-  tokenizer.reset()
-  tokenizer.tokenize(str)
+  const tokenizer = new Tokenizer()
 
-  const elements = tokenizer.results.map((r, index) => {
+  const elements = tokenizer.tokenize(str).map((r, index) => {
     switch (r.type) {
       case TokenType.Emoji:
         return renderEmoji(r.text, index, emoji)
