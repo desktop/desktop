@@ -68,11 +68,17 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       // with the next error in the queue.
       setTimeout(() => {
         this.props.onClearError(currentError)
+
+        const showLogin = this.props.onShowLogin
+
+        if (currentError instanceof GitError) {
+          switch (currentError.result.gitError)  {
+            case GitErrorType.HTTPSAuthenticationFailed:
+              showLogin({ type: PopupType.Signin })
+            break
+          }
+        }
       }, dialogTransitionLeaveTimeout)
-    }
-  }
-
-
     }
   }
 
