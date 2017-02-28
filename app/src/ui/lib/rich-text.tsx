@@ -4,7 +4,8 @@ import { LinkButton } from './link-button'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { getHTMLURL } from '../../lib/api'
-import { Tokenizer, TokenType } from '../../lib/text-token-parser'
+import { assertNever } from '../../lib/fatal-error'
+import { Tokenizer, TokenType, IssueMatch } from '../../lib/text-token-parser'
 
 interface IRichTextProps {
   readonly className?: string
@@ -58,16 +59,15 @@ function renderMention(fragment: string, index: number, repository?: Repository)
     children={fragment} />
 }
 
-function renderIssue(fragment: string, index: number, repository?: Repository): JSX.Element | string {
+function renderIssue(match: IssueMatch, index: number, repository?: Repository): JSX.Element | string {
   const repo = resolveGitHubRepository(repository)
-  if (!repo) { return fragment }
+  if (!repo) { return match.text }
 
-  const id = parseInt(fragment.substr(1), 10)
-  const url = `${repo.htmlURL}/issues/${id}`
+  const url = `${repo.htmlURL}/issues/${match.id}`
   return <LinkButton
     key={index}
     uri={url}
-    children={fragment} />
+    children={match.text} />
 }
 
 function renderEmoji(fragment: string, index: number, emoji: Map<string, string>): JSX.Element | string {
@@ -88,15 +88,17 @@ function emojificationNexus(str: string, emoji: Map<string, string>, repository?
   const tokenizer = new Tokenizer()
 
   const elements = tokenizer.tokenize(str).map((r, index) => {
-    switch (r.type) {
+    switch (r.kind) {
       case TokenType.Emoji:
         return renderEmoji(r.text, index, emoji)
       case TokenType.Mention:
         return renderMention(r.text, index, repository)
       case TokenType.Issue:
-        return renderIssue(r.text, index, repository)
-      default:
+        return renderIssue(r, index, repository)
+      case TokenType.Text:
         return r.text
+      default:
+        return assertNever(r, 'Unknown token type: ${r.kind}')
     }
   })
 

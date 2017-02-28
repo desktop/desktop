@@ -5,10 +5,19 @@ export enum TokenType {
   Mention,
 }
 
-export type TokenResult = {
-  readonly type: TokenType,
+export type IssueMatch = {
+  readonly kind: TokenType.Issue,
+  readonly text: string,
+  readonly id: number
+}
+
+export type PlainText = {
+  // TODO: rewrite this to have more granular signatures
+  readonly kind: TokenType.Text | TokenType.Emoji | TokenType.Mention,
   readonly text: string,
 }
+
+export type TokenResult = PlainText | IssueMatch
 
 type LookupResult = {
   nextIndex: number
@@ -34,7 +43,7 @@ export class Tokenizer {
 
   private flush() {
     if (this._currentString.length) {
-      this._results.push({ type: TokenType.Text, text: this._currentString })
+      this._results.push({ kind: TokenType.Text, text: this._currentString })
       this._currentString = ''
     }
   }
@@ -71,7 +80,7 @@ export class Tokenizer {
     const maybeEmoji = text.slice(index, nextIndex)
     if (emojiRegex.exec(maybeEmoji)) {
       this.flush()
-      this._results.push({ type: TokenType.Emoji, text: maybeEmoji })
+      this._results.push({ kind: TokenType.Emoji, text: maybeEmoji })
       return { nextIndex }
     } else {
       this.append(':')
@@ -84,7 +93,8 @@ export class Tokenizer {
     const maybeIssue = text.slice(index, nextIndex)
     if (issueRegex.exec(maybeIssue)) {
       this.flush()
-      this._results.push({ type: TokenType.Issue, text: maybeIssue })
+      const id = parseInt(maybeIssue.substr(1), 10)
+      this._results.push({ kind: TokenType.Issue, text: maybeIssue, id })
       return { nextIndex }
     } else {
       this.append('#')
@@ -103,7 +113,7 @@ export class Tokenizer {
     const maybeMention = text.slice(index, nextIndex)
     if (mentionRegex.exec(maybeMention)) {
       this.flush()
-      this._results.push({ type: TokenType.Mention, text: maybeMention })
+      this._results.push({ kind: TokenType.Mention, text: maybeMention })
       return { nextIndex }
     } else {
       this.append('@')

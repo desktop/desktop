@@ -10,7 +10,7 @@ describe('simple parsing', () => {
     const text = 'this is a string without anything interesting'
     const results = tokenizer.tokenize(text)
     expect(results.length).to.equal(1)
-    expect(results[0].type).to.equal(TokenType.Text)
+    expect(results[0].kind).to.equal(TokenType.Text)
     expect(results[0].text).to.equal(text)
   })
 
@@ -18,11 +18,11 @@ describe('simple parsing', () => {
     const text = 'let\'s :ship: this thing'
     const results = tokenizer.tokenize(text)
     expect(results.length).to.equal(3)
-    expect(results[0].type).to.equal(TokenType.Text)
+    expect(results[0].kind).to.equal(TokenType.Text)
     expect(results[0].text).to.equal('let\'s ')
-    expect(results[1].type).to.equal(TokenType.Emoji)
+    expect(results[1].kind).to.equal(TokenType.Emoji)
     expect(results[1].text).to.equal(':ship:')
-    expect(results[2].type).to.equal(TokenType.Text)
+    expect(results[2].kind).to.equal(TokenType.Text)
     expect(results[2].text).to.equal(' this thing')
   })
 
@@ -30,9 +30,9 @@ describe('simple parsing', () => {
     const text = '@shiftkey was here'
     const results = tokenizer.tokenize(text)
     expect(results.length).to.equal(2)
-    expect(results[0].type).to.equal(TokenType.Mention)
+    expect(results[0].kind).to.equal(TokenType.Mention)
     expect(results[0].text).to.equal('@shiftkey')
-    expect(results[1].type).to.equal(TokenType.Text)
+    expect(results[1].kind).to.equal(TokenType.Text)
     expect(results[1].text).to.equal(' was here')
   })
 
@@ -41,11 +41,11 @@ describe('simple parsing', () => {
 
     const results = tokenizer.tokenize(text)
     expect(results.length).to.equal(3)
-    expect(results[0].type).to.equal(TokenType.Text)
+    expect(results[0].kind).to.equal(TokenType.Text)
     expect(results[0].text).to.equal('this one is for that ')
-    expect(results[1].type).to.equal(TokenType.Mention)
+    expect(results[1].kind).to.equal(TokenType.Mention)
     expect(results[1].text).to.equal('@haacked')
-    expect(results[2].type).to.equal(TokenType.Text)
+    expect(results[2].kind).to.equal(TokenType.Text)
     expect(results[2].text).to.equal(' fellow')
   })
 
@@ -78,11 +78,11 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
 
     const results = tokenizer.tokenize(text)
     expect(results.length).to.equal(3)
-    expect(results[0].type).to.equal(TokenType.Text)
+    expect(results[0].kind).to.equal(TokenType.Text)
     expect(results[0].text).to.equal(expectedBefore)
-    expect(results[1].type).to.equal(TokenType.Issue)
+    expect(results[1].kind).to.equal(TokenType.Issue)
     expect(results[1].text).to.equal('#1034')
-    expect(results[2].type).to.equal(TokenType.Text)
+    expect(results[2].kind).to.equal(TokenType.Text)
     expect(results[2].text).to.equal(expectedAfter)
   })
 })
