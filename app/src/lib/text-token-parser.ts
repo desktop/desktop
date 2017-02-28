@@ -46,11 +46,6 @@ type LookupResult = {
   nextIndex: number
 }
 
-const emojiRegex = /:.*?:/
-const issueRegex = /#[0-9]+/
-const mentionRegex = /@[a-zA-Z0-9\-]+/
-const hyperlinkRegex = /^(http(s?))\:\/\//
-
 /**
  * A look-ahead tokenizer designed for scanning commit messages for emoji, issues and mentions.
  */
@@ -123,7 +118,7 @@ export class Tokenizer {
   private scanForEmoji(text: string, index: number): LookupResult | null {
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeEmoji = text.slice(index, nextIndex)
-    if (!emojiRegex.exec(maybeEmoji)) { return null }
+    if (!/:.*?:/.exec(maybeEmoji)) { return null }
 
     this.flush()
     this._results.push({ kind: TokenType.Emoji, text: maybeEmoji })
@@ -133,7 +128,7 @@ export class Tokenizer {
   private scanForIssue(text: string, index: number): LookupResult | null {
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeIssue = text.slice(index, nextIndex)
-    if (!issueRegex.exec(maybeIssue)) { return null }
+    if (!/#[0-9]+/.exec(maybeIssue)) { return null }
 
     this.flush()
     const id = parseInt(maybeIssue.substr(1), 10)
@@ -150,7 +145,7 @@ export class Tokenizer {
 
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeMention = text.slice(index, nextIndex)
-    if (!mentionRegex.exec(maybeMention)) { return null }
+    if (!/@[a-zA-Z0-9\-]+/.exec(maybeMention)) { return null }
 
     this.flush()
     const name = maybeMention.substr(1)
@@ -163,15 +158,13 @@ export class Tokenizer {
     // to ensure this isn't just the part of some word - if something is
     // found and it's not whitespace, bail out
     const lastItem = this.peek()
-    if (lastItem && lastItem !== ' ') {
-      return null
-    }
+    if (lastItem && lastItem !== ' ') { return null }
 
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeHyperlink = text.slice(index, nextIndex)
-    if (!hyperlinkRegex.exec(maybeHyperlink)) { return null }
-    this.flush()
+    if (!/^(http(s?))\:\/\//.exec(maybeHyperlink)) { return null }
 
+    this.flush()
     if (this.repository && this.repository.htmlURL) {
       // case-insensitive regex to see if this matches the issue URL template for the current repository
       const regex = new RegExp(`${this.repository.htmlURL}\/issues\/([0-9]{1,})`, 'i')
