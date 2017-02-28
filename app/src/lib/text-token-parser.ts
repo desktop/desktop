@@ -123,27 +123,23 @@ export class Tokenizer {
   private scanForEmoji(text: string, index: number): LookupResult | null {
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeEmoji = text.slice(index, nextIndex)
-    if (emojiRegex.exec(maybeEmoji)) {
-      this.flush()
-      this._results.push({ kind: TokenType.Emoji, text: maybeEmoji })
-      return { nextIndex }
-    }
+    if (!emojiRegex.exec(maybeEmoji)) { return null }
 
-    return null
+    this.flush()
+    this._results.push({ kind: TokenType.Emoji, text: maybeEmoji })
+    return { nextIndex }
   }
 
   private scanForIssue(text: string, index: number): LookupResult | null {
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeIssue = text.slice(index, nextIndex)
-    if (issueRegex.exec(maybeIssue)) {
-      this.flush()
-      const id = parseInt(maybeIssue.substr(1), 10)
-      const url = this.repository ? `${this.repository.htmlURL}/issues/${id}` : undefined
-      this._results.push({ kind: TokenType.Issue, text: maybeIssue, id, url })
-      return { nextIndex }
-    }
+    if (!issueRegex.exec(maybeIssue)) { return null }
 
-    return null
+    this.flush()
+    const id = parseInt(maybeIssue.substr(1), 10)
+    const url = this.repository ? `${this.repository.htmlURL}/issues/${id}` : undefined
+    this._results.push({ kind: TokenType.Issue, text: maybeIssue, id, url })
+    return { nextIndex }
   }
 
   private scanForMention(text: string, index: number): LookupResult | null {
@@ -154,15 +150,13 @@ export class Tokenizer {
 
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeMention = text.slice(index, nextIndex)
-    if (mentionRegex.exec(maybeMention)) {
-      this.flush()
-      const name = maybeMention.substr(1)
-      const url = this.repository ? `${getHTMLURL(this.repository.endpoint)}/${name}` : undefined
-      this._results.push({ kind: TokenType.Mention, text: maybeMention, name, url })
-      return { nextIndex }
-    }
+    if (!mentionRegex.exec(maybeMention)) { return null }
 
-    return null
+    this.flush()
+    const name = maybeMention.substr(1)
+    const url = this.repository ? `${getHTMLURL(this.repository.endpoint)}/${name}` : undefined
+    this._results.push({ kind: TokenType.Mention, text: maybeMention, name, url })
+    return { nextIndex }
   }
 
   private scanForHyperlink(text: string, index: number): LookupResult | null {
@@ -175,27 +169,24 @@ export class Tokenizer {
 
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeHyperlink = text.slice(index, nextIndex)
-    if (hyperlinkRegex.exec(maybeHyperlink)) {
-      this.flush()
+    if (!hyperlinkRegex.exec(maybeHyperlink)) { return null }
+    this.flush()
 
-      if (this.repository && this.repository.htmlURL) {
-        // case-insensitive regex to see if this matches the issue URL template for the current repository
-        const regex = new RegExp(`${this.repository.htmlURL}\/issues\/([0-9]{1,})`, 'i')
-        const issueMatch = regex.exec(maybeHyperlink)
-        if (issueMatch) {
-          const idText = issueMatch[1]
-          const id = parseInt(idText, 10)
-          this._results.push({ kind: TokenType.Issue,  url: maybeHyperlink, id, text: `#${idText}` })
-          return { nextIndex }
-        }
+    if (this.repository && this.repository.htmlURL) {
+      // case-insensitive regex to see if this matches the issue URL template for the current repository
+      const regex = new RegExp(`${this.repository.htmlURL}\/issues\/([0-9]{1,})`, 'i')
+      const issueMatch = regex.exec(maybeHyperlink)
+      if (issueMatch) {
+        const idText = issueMatch[1]
+        const id = parseInt(idText, 10)
+        this._results.push({ kind: TokenType.Issue,  url: maybeHyperlink, id, text: `#${idText}` })
+        return { nextIndex }
       }
-
-      // whatever, just render a hyperlink all the same
-      this._results.push({ kind: TokenType.Link, url: maybeHyperlink, text: maybeHyperlink })
-      return { nextIndex }
     }
 
-    return null
+    // whatever, just render a hyperlink all the same
+    this._results.push({ kind: TokenType.Link, url: maybeHyperlink, text: maybeHyperlink })
+    return { nextIndex }
   }
 
   /**
