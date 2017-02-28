@@ -15,7 +15,7 @@ export enum ToolbarButtonStyle {
 
 export interface IToolbarButtonProps {
   /** The primary button text, describing its function */
-  readonly title: string
+  readonly title?: string
 
   /** An optional description of the function of the button */
   readonly description?: JSX.Element | string
@@ -92,6 +92,15 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
   }
 
   private renderText() {
+
+    if (!this.props.title && !this.props.description) {
+      return null
+    }
+
+    const title = this.props.title
+      ? <div className='title'>{this.props.title}</div>
+      : null
+
     const description = this.props.description
       ? <div className='description'>{this.props.description}</div>
       : null
@@ -101,7 +110,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
       case ToolbarButtonStyle.Standard:
         return (
           <div className='text'>
-            <div className='title'>{this.props.title}</div>
+            {title}
             {description}
           </div>
         )
