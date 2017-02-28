@@ -23,7 +23,7 @@ import { updateStore, UpdateState } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
-import { AppMenu } from './app-menu'
+import { AppMenu, AppMenuBar } from './app-menu'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
@@ -525,11 +525,16 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? <WindowControls />
       : null
 
+    const menuBar = __WIN32__ && this.state.appMenuState.length
+      ? <AppMenuBar appMenu={this.state.appMenuState[0]} />
+      : null
+
     const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
 
     return (
       <div className={titleBarClass} id='desktop-app-title-bar'>
         <span className='app-title'>GitHub Desktop</span>
+        {menuBar}
         {winControls}
       </div>
     )
