@@ -5,7 +5,7 @@ import { Tokenizer, TokenType } from '../../src/lib/text-token-parser'
 
 const tokenizer = new Tokenizer()
 
-describe('simple parsing', () => {
+describe('Tokenizer', () => {
   it('preserves plain text string', () => {
     const text = 'this is a string without anything interesting'
     const results = tokenizer.tokenize(text)
