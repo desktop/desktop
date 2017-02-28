@@ -7,6 +7,7 @@ export enum TokenType {
   Emoji,
   Issue,
   Mention,
+  Link,
 }
 
 export type IssueMatch = {
@@ -28,12 +29,18 @@ export type EmojiMatch = {
   readonly text: string,
 }
 
+export type HyperlinkMatch = {
+  readonly kind: TokenType.Link,
+  readonly text: string,
+  readonly url?: string,
+}
+
 export type PlainText = {
   readonly kind: TokenType.Text,
   readonly text: string,
 }
 
-export type TokenResult = PlainText | IssueMatch | MentionMatch | EmojiMatch
+export type TokenResult = PlainText | IssueMatch | MentionMatch | EmojiMatch | HyperlinkMatch
 
 type LookupResult = {
   nextIndex: number
@@ -42,6 +49,7 @@ type LookupResult = {
 const emojiRegex = /:.*?:/
 const issueRegex = /#[0-9]+/
 const mentionRegex = /@[a-zA-Z0-9\-]+/
+const hyperlinkRegex = /^(http(s?))\:\/\//
 
 /**
  * A look-ahead tokenizer designed for scanning commit messages for emoji, issues and mentions.
@@ -163,6 +171,44 @@ export class Tokenizer {
     }
   }
 
+  private scanForHyperlink(text: string, index: number): LookupResult | null {
+    // to ensure this isn't just the part of some word - if something is
+    // found and it's not whitespace, bail out
+    const lastItem = this.peek()
+    if (lastItem && lastItem !== ' ') {
+      this.append('h')
+      return null
+    }
+
+    const nextIndex = this.scanForEndOfWord(text, index)
+    const maybeHyperlink = text.slice(index, nextIndex)
+    if (hyperlinkRegex.exec(maybeHyperlink)) {
+      this.flush()
+
+      if (this.repository && this.repository.htmlURL) {
+        const repositoryCompare = this.repository.htmlURL.toLowerCase()
+
+        // looking to see if this matches the issue URL template for the current repository
+        const regex = new RegExp(`${repositoryCompare}\/issues\/([0-9]{1,})`)
+        const issueMatch = regex.exec(maybeHyperlink)
+        if (issueMatch) {
+          const idText = issueMatch[1]
+          const id = parseInt(idText, 10)
+          this._results.push({ kind: TokenType.Issue,  url: maybeHyperlink, id, text: `#${idText}` })
+        } else {
+           return null
+        }
+      } else {
+        this._results.push({ kind: TokenType.Link, url: maybeHyperlink, text: maybeHyperlink })
+        return { nextIndex }
+      }
+      return null
+    } else {
+      this.append('h')
+      return null
+    }
+  }
+
   /**
    * Scan the string for tokens that match with entities an application
    * might be interested in.
@@ -198,6 +244,15 @@ export class Tokenizer {
 
         case '@':
           match = this.scanForMention(text, i)
+          if (match) {
+            i = match.nextIndex
+          } else {
+            i++
+          }
+          break
+
+        case 'h':
+          match = this.scanForHyperlink(text, i)
           if (match) {
             i = match.nextIndex
           } else {
