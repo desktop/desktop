@@ -5,6 +5,8 @@ import { Button } from './lib/button'
 import { ButtonGroup } from './lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from './dialog'
 import { dialogTransitionEnterTimeout, dialogTransitionLeaveTimeout } from './app'
+import { GitError } from '../lib/git/core'
+import { GitError as GitErrorType } from 'git-kitchen-sink'
 
 interface IAppErrorProps {
   /** The list of queued, app-wide, errors  */
@@ -68,6 +70,35 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
+  private renderFooter() {
+   const error = this.state.error
+
+    if (!error) {
+      return null
+    }
+
+    if (error instanceof GitError) {
+      switch (error.result.gitError)  {
+        case GitErrorType.HTTPSAuthenticationFailed:
+          return (
+            <DialogFooter>
+              <ButtonGroup>
+                <Button type='submit'>OK</Button>
+              </ButtonGroup>
+            </DialogFooter>
+          )
+      }
+    }
+
+    return (
+      <DialogFooter>
+        <ButtonGroup>
+          <Button type='submit'>Close</Button>
+        </ButtonGroup>
+      </DialogFooter>
+    )
+  }
+
   private renderDialog() {
 
     const error = this.state.error
@@ -87,11 +118,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         <DialogContent>
           {error.message}
         </DialogContent>
-        <DialogFooter>
-          <ButtonGroup>
-            <Button type='submit'>Close</Button>
-          </ButtonGroup>
-        </DialogFooter>
+        {this.renderFooter()}
       </Dialog>
     )
   }
@@ -102,8 +129,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         transitionName='modal'
         component='div'
         transitionEnterTimeout={dialogTransitionEnterTimeout}
-        transitionLeaveTimeout={dialogTransitionLeaveTimeout}
-      >
+        transitionLeaveTimeout={dialogTransitionLeaveTimeout}>
         {this.renderDialog()}
       </ReactCSSTransitionGroup>
     )

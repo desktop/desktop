@@ -11,7 +11,7 @@ export async function defaultErrorHandler(error: Error, dispatcher: Dispatcher):
 }
 
 //** Handle errors by giving user actions to complete. */
-export async function performActionErrorHandler(error: Error, dispatcher: Dispatcher): Promise<Error | null> {
+export async function performGitActionErrorHandler(error: Error, dispatcher: Dispatcher): Promise<Error | null> {
   if (error instanceof GitError) {
     switch (error.result.gitError)  {
       case GitErrorType.HTTPSAuthenticationFailed: {
@@ -19,7 +19,9 @@ export async function performActionErrorHandler(error: Error, dispatcher: Dispat
         break
       }
     }
+
+    return null
   }
 
-  return null
+  return error
 }

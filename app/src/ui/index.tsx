@@ -18,7 +18,7 @@ import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
-import { defaultErrorHandler, performActionErrorHandler } from '../lib/dispatcher'
+import { defaultErrorHandler, performGitActionErrorHandler } from '../lib/dispatcher'
 
 import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
@@ -49,7 +49,7 @@ const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore, emojiSt
 const dispatcher = new Dispatcher(appStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
-dispatcher.registerErrorHandler(performActionErrorHandler)
+// dispatcher.registerErrorHandler(performGitActionErrorHandler)
 
 dispatcher.loadInitialState().then(() => {
   const now = Date.now()
