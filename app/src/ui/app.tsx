@@ -858,12 +858,35 @@ export class App extends React.Component<IAppProps, IAppState> {
         <div
           className='sidebar-section'
           style={{ width: this.state.sidebarWidth }}>
+          {this.renderAddToolbar()}
           {this.renderAppMenuToolbarButton()}
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
       </Toolbar>
+    )
+  }
+
+  private renderAddToolbar() {
+    const isOpen = this.state.currentFoldout
+      && this.state.currentFoldout.type === FoldoutType.AppMenu
+
+    const className = classNames(
+      'app-menu'
+    )
+
+    const currentState: DropdownState = isOpen ? 'open' : 'closed'
+
+    return (
+      <ToolbarDropdown
+        icon={OcticonSymbol.plus}
+        className={className}
+        title='.'
+        dropdownContentRenderer={this.renderAppMenu}
+        onDropdownStateChanged={this.onAppMenuDropdownStateChanged}
+        dropdownState={currentState}
+        />
     )
   }
 
