@@ -5,7 +5,14 @@ import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { getHTMLURL } from '../../lib/api'
 import { assertNever } from '../../lib/fatal-error'
-import { Tokenizer, TokenType, IssueMatch } from '../../lib/text-token-parser'
+
+import {
+  Tokenizer,
+  TokenType,
+  IssueMatch,
+  EmojiMatch,
+  MentionMatch
+} from '../../lib/text-token-parser'
 
 interface IRichTextProps {
   readonly className?: string
@@ -45,18 +52,17 @@ function resolveGitHubRepository(repository?: Repository): GitHubRepository | nu
   return repository.gitHubRepository
 }
 
-function renderMention(fragment: string, index: number, repository?: Repository): JSX.Element | string {
+function renderMention(match: MentionMatch, index: number, repository?: Repository): JSX.Element | string {
   const repo = resolveGitHubRepository(repository)
-  if (!repo) { return fragment }
+  if (!repo) { return match.text }
 
-  const user = fragment.substr(1)
   const host = getHTMLURL(repo.endpoint)
-  const url = `${host}/${user}`
+  const url = `${host}/${match.name}`
 
   return <LinkButton
     key={index}
     uri={url}
-    children={fragment} />
+    children={match.text} />
 }
 
 function renderIssue(match: IssueMatch, index: number, repository?: Repository): JSX.Element | string {
@@ -70,12 +76,12 @@ function renderIssue(match: IssueMatch, index: number, repository?: Repository):
     children={match.text} />
 }
 
-function renderEmoji(fragment: string, index: number, emoji: Map<string, string>): JSX.Element | string {
-  const path = emoji.get(fragment)
+function renderEmoji(match: EmojiMatch, index: number, emoji: Map<string, string>): JSX.Element | string {
+  const path = emoji.get(match.text)
   if (path) {
-    return <img key={index} alt={fragment} title={fragment} className='emoji' src={path}/>
+    return <img key={index} alt={match.text} title={match.text} className='emoji' src={path}/>
   } else {
-    return fragment
+    return match.text
   }
 }
 
@@ -90,9 +96,9 @@ function emojificationNexus(str: string, emoji: Map<string, string>, repository?
   const elements = tokenizer.tokenize(str).map((r, index) => {
     switch (r.kind) {
       case TokenType.Emoji:
-        return renderEmoji(r.text, index, emoji)
+        return renderEmoji(r, index, emoji)
       case TokenType.Mention:
-        return renderMention(r.text, index, repository)
+        return renderMention(r, index, repository)
       case TokenType.Issue:
         return renderIssue(r, index, repository)
       case TokenType.Text:
