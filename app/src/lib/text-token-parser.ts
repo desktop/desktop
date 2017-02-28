@@ -179,10 +179,8 @@ export class Tokenizer {
       this.flush()
 
       if (this.repository && this.repository.htmlURL) {
-        const repositoryCompare = this.repository.htmlURL.toLowerCase()
-
-        // looking to see if this matches the issue URL template for the current repository
-        const regex = new RegExp(`${repositoryCompare}\/issues\/([0-9]{1,})`)
+        // case-insensitive regex to see if this matches the issue URL template for the current repository
+        const regex = new RegExp(`${this.repository.htmlURL}\/issues\/([0-9]{1,})`, 'i')
         const issueMatch = regex.exec(maybeHyperlink)
         if (issueMatch) {
           const idText = issueMatch[1]
@@ -190,10 +188,11 @@ export class Tokenizer {
           this._results.push({ kind: TokenType.Issue,  url: maybeHyperlink, id, text: `#${idText}` })
           return { nextIndex }
         }
-      } else {
-        this._results.push({ kind: TokenType.Link, url: maybeHyperlink, text: maybeHyperlink })
-        return { nextIndex }
       }
+
+      // whatever, just render a hyperlink all the same
+      this._results.push({ kind: TokenType.Link, url: maybeHyperlink, text: maybeHyperlink })
+      return { nextIndex }
     }
 
     return null
