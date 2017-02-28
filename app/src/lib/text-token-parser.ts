@@ -11,13 +11,23 @@ export type IssueMatch = {
   readonly id: number
 }
 
-export type PlainText = {
-  // TODO: rewrite this to have more granular signatures
-  readonly kind: TokenType.Text | TokenType.Emoji | TokenType.Mention,
+export type MentionMatch = {
+  readonly kind: TokenType.Mention,
+  readonly text: string,
+  readonly name: string
+}
+
+export type EmojiMatch = {
+  readonly kind: TokenType.Emoji,
   readonly text: string,
 }
 
-export type TokenResult = PlainText | IssueMatch
+export type PlainText = {
+  readonly kind: TokenType.Text,
+  readonly text: string,
+}
+
+export type TokenResult = PlainText | IssueMatch | MentionMatch | EmojiMatch
 
 type LookupResult = {
   nextIndex: number
@@ -113,7 +123,8 @@ export class Tokenizer {
     const maybeMention = text.slice(index, nextIndex)
     if (mentionRegex.exec(maybeMention)) {
       this.flush()
-      this._results.push({ kind: TokenType.Mention, text: maybeMention })
+      const name = maybeMention.substr(1)
+      this._results.push({ kind: TokenType.Mention, text: maybeMention, name })
       return { nextIndex }
     } else {
       this.append('@')
