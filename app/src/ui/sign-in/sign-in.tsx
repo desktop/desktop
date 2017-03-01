@@ -6,7 +6,6 @@ import {
   IEndpointEntryState,
   IAuthenticationState,
   ITwoFactorAuthenticationState,
-  AuthenticationMethods,
 } from '../../lib/dispatcher'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
@@ -65,7 +64,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         this.props.dispatcher.setSignInEndpoint(this.state.endpoint)
         break
       case SignInStep.Authentication:
-        if (state.authMethods.has(AuthenticationMethods.OAuth) && !state.authMethods.has(AuthenticationMethods.BasicAuth)) {
+        if (!state.supportsBasicAuth) {
           this.props.dispatcher.requestBrowserAuthentication()
         } else {
           this.props.dispatcher.setSignInCredentials(this.state.username, this.state.password)
@@ -133,7 +132,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         primaryButtonText = 'Sign in'
         break
       case SignInStep.Authentication:
-        if (state.authMethods.has(AuthenticationMethods.OAuth) && !state.authMethods.has(AuthenticationMethods.BasicAuth)) {
+        if (!state.supportsBasicAuth) {
           primaryButtonText = 'Continue with browser'
         } else {
           primaryButtonText = 'Sign in'
@@ -170,25 +169,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     )
   }
 
-  private renderSignInWithBrowser() {
-    return (
-      <div>
-        <Row>
-          <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div>
-        </Row>
-        <Row className='sign-in-with-browser'>
-          <LinkButton tabIndex={3} className='link-with-icon' onClick={this.onSignInWithBrowser}>
-            Sign in using your browser
-            <Octicon symbol={OcticonSymbol.linkExternal} />
-          </LinkButton>
-        </Row>
-      </div>
-    )
-  }
-
   private renderAuthenticationStep(state: IAuthenticationState) {
 
-    if (state.authMethods.has(AuthenticationMethods.OAuth) && !state.authMethods.has(AuthenticationMethods.BasicAuth)) {
+    if (!state.supportsBasicAuth) {
       return (
         <DialogContent>
           <p>
@@ -197,10 +180,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         </DialogContent>
       )
     }
-
-    const signInWithBrowser = state.authMethods.has(AuthenticationMethods.OAuth)
-      ? this.renderSignInWithBrowser()
-      : null
 
     return (
       <DialogContent>
@@ -223,7 +202,15 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             tabIndex={2}
           />
         </Row>
-        {signInWithBrowser}
+        <Row>
+          <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div>
+        </Row>
+        <Row className='sign-in-with-browser'>
+          <LinkButton tabIndex={3} className='link-with-icon' onClick={this.onSignInWithBrowser}>
+            Sign in using your browser
+            <Octicon symbol={OcticonSymbol.linkExternal} />
+          </LinkButton>
+        </Row>
       </DialogContent>
     )
   }

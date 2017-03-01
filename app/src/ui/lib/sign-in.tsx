@@ -7,7 +7,6 @@ import {
   Dispatcher,
   SignInState,
   SignInStep,
-  AuthenticationMethods,
   IEndpointEntryState,
   IAuthenticationState,
   ITwoFactorAuthenticationState,
@@ -50,12 +49,11 @@ export class SignIn extends React.Component<ISignInProps, void> {
   }
 
   private renderAuthenticationStep(state: IAuthenticationState) {
-    const supportsBasicAuth = state.authMethods.has(AuthenticationMethods.BasicAuth)
     return (
       <AuthenticationForm
         loading={state.loading}
         error={state.error}
-        supportsBasicAuth={supportsBasicAuth}
+        supportsBasicAuth={state.supportsBasicAuth}
         additionalButtons={this.props.children}
         onBrowserSignInRequested={this.onBrowserSignInRequested}
         onSubmit={this.onCredentialsEntered}

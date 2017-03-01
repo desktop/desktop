@@ -26,21 +26,6 @@ export enum SignInStep {
   Success,
 }
 
-/** The authentication methods server allows. */
-export enum AuthenticationMethods {
-  /** Basic auth in order to create authorization tokens. */
-  BasicAuth,
-
-  /** OAuth web flow. */
-  OAuth,
-}
-
-/** The default set of authentication methods. */
-export const DefaultAuthMethods = new Set([
-  AuthenticationMethods.BasicAuth,
-  AuthenticationMethods.OAuth,
-])
-
 /**
  * The union type of all possible states that the sign in
  * store can be in save the unitialized state (null).
@@ -105,12 +90,16 @@ export interface IAuthenticationState extends ISignInState {
   readonly endpoint: string
 
   /**
-   * A set of available authentication methods for the endpoint.
-   * All endpoints currently support OAuth but not all support
-   * Basic Authentication.
+   * A value indicating whether or not the endpoint supports
+   * basic authentication (i.e. username and password). All
+   * GitHub Enterprise instances support OAuth (or web flow
+   * sign-in).
    */
-  readonly authMethods: Set<AuthenticationMethods>
+  readonly supportsBasicAuth: boolean
 
+  /**
+   * The endpoint-specific URL for resetting credentials.
+   */
   readonly forgotPasswordUrl: string
 }
 
@@ -215,20 +204,15 @@ export class SignInStore {
     this.emitUpdate()
   }
 
-  private async fetchAllowedAuthenticationMethods(endpoint: string): Promise<Set<AuthenticationMethods>> {
+  private async endpointSupportsBasicAuth(endpoint: string): Promise<boolean> {
     const response = await fetchMetadata(endpoint)
 
     if (response) {
-      const authMethods = new Set([
-        AuthenticationMethods.BasicAuth,
-        AuthenticationMethods.OAuth,
-      ])
-
       if (response.verifiable_password_authentication === false) {
-        authMethods.delete(AuthenticationMethods.BasicAuth)
+        return false
+      } else {
+        return true
       }
-
-      return authMethods
     } else {
       throw new Error('Unsupported Enterprise server')
     }
@@ -256,7 +240,7 @@ export class SignInStore {
     this.setState({
       kind: SignInStep.Authentication,
       endpoint,
-      authMethods: DefaultAuthMethods,
+      supportsBasicAuth: true,
       error: null,
       loading: false,
       forgotPasswordUrl: this.getForgotPasswordURL(endpoint),
@@ -427,7 +411,7 @@ export class SignInStore {
 
     const endpoint = getEnterpriseAPIURL(validUrl)
     try {
-      const authMethods = await this.fetchAllowedAuthenticationMethods(endpoint)
+      const supportsBasicAuth = await this.endpointSupportsBasicAuth(endpoint)
 
       if (!this.state || this.state.kind !== SignInStep.EndpointEntry) {
         // Looks like the sign in flow has been aborted
@@ -437,7 +421,7 @@ export class SignInStore {
       this.setState({
         kind: SignInStep.Authentication,
         endpoint,
-        authMethods,
+        supportsBasicAuth,
         error: null,
         loading: false,
         forgotPasswordUrl: this.getForgotPasswordURL(endpoint),
