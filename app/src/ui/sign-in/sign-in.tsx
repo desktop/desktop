@@ -101,16 +101,6 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     this.props.dispatcher.requestBrowserAuthentication()
   }
 
-  private renderErrors() {
-    if (!this.props.signInState || this.props.signInState.kind === SignInStep.Success || !this.props.signInState.error) {
-      return null
-    }
-
-    const error = this.props.signInState.error
-
-    return <DialogError>{error.message}</DialogError>
-  }
-
   private renderFooter(): JSX.Element | null {
 
     const state = this.props.signInState
@@ -264,6 +254,10 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
     const disabled = state.loading
 
+    const errors = state.error
+      ? <DialogError>{state.error.message}</DialogError>
+      : null
+
     return (
       <Dialog
         id='sign-in'
@@ -273,7 +267,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         onSubmit={this.onSubmit}
         loading={state.loading}
       >
-        {this.renderErrors()}
+        {errors}
         {this.renderStep()}
         {this.renderFooter()}
       </Dialog>
