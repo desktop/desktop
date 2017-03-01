@@ -8,7 +8,7 @@ import { Repository } from '../../src/models/repository'
 
 const emoji = new Map<string, string>([ [ ':shipit:', '/some/path.png' ] ])
 
-describe.only('Tokenizer', () => {
+describe('Tokenizer', () => {
   describe('basic tests', () => {
     it('preserves plain text string', () => {
       const text = 'this is a string without anything interesting'
