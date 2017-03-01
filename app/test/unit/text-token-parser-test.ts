@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { Tokenizer, TokenType, MentionMatch, IssueMatch, EmojiMatch, HyperlinkMatch } from '../../src/lib/text-token-parser'
+import { Tokenizer, TokenType, EmojiMatch, HyperlinkMatch } from '../../src/lib/text-token-parser'
 import { GitHubRepository } from '../../src/models/github-repository'
 import { Repository } from '../../src/models/repository'
 
@@ -103,12 +103,11 @@ describe('Tokenizer', () => {
       const results = tokenizer.tokenize(text)
       expect(results.length).to.equal(2)
 
-      expect(results[0].kind).to.equal(TokenType.Mention)
-      const mention = results[0] as MentionMatch
+      expect(results[0].kind).to.equal(TokenType.Link)
+      const mention = results[0] as HyperlinkMatch
 
       expect(mention.text).to.equal('@shiftkey')
       expect(mention.url).to.equal(expectedUri)
-      expect(mention.name).to.equal('shiftkey')
 
       expect(results[1].kind).to.equal(TokenType.Text)
       expect(results[1].text).to.equal(' was here')
@@ -125,12 +124,11 @@ describe('Tokenizer', () => {
       expect(results[0].kind).to.equal(TokenType.Text)
       expect(results[0].text).to.equal('fixed based on suggestion from ')
 
-      expect(results[1].kind).to.equal(TokenType.Mention)
-      const mention = results[1] as MentionMatch
+      expect(results[1].kind).to.equal(TokenType.Link)
+      const mention = results[1] as HyperlinkMatch
 
       expect(mention.text).to.equal('@shiftkey')
       expect(mention.url).to.equal(expectedUri)
-      expect(mention.name).to.equal('shiftkey')
     })
 
     it('renders link when an issue reference is found', () => {
@@ -145,8 +143,8 @@ describe('Tokenizer', () => {
       expect(results[0].kind).to.equal(TokenType.Text)
       expect(results[0].text).to.equal('Merge pull request ')
 
-      expect(results[1].kind).to.equal(TokenType.Issue)
-      const mention = results[1] as IssueMatch
+      expect(results[1].kind).to.equal(TokenType.Link)
+      const mention = results[1] as HyperlinkMatch
 
       expect(mention.text).to.equal('#955')
       expect(mention.url).to.equal(expectedUri)
@@ -191,8 +189,8 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
       expect(results[0].kind).to.equal(TokenType.Text)
       expect(results[0].text).to.equal(expectedBefore)
 
-      expect(results[1].kind).to.equal(TokenType.Issue)
-      const issue = results[1] as IssueMatch
+      expect(results[1].kind).to.equal(TokenType.Link)
+      const issue = results[1] as HyperlinkMatch
 
       expect(issue.text).to.equal('#1034')
       expect(issue.url).to.equal('https://github.com/shiftkey/some-repo/issues/1034')

@@ -12,38 +12,10 @@ export enum TokenType {
    */
   Emoji,
   /*
-   * A token representing a GitHub issue - should be drawn as a hyperlink
-   * to launch the browser.
-   */
-  Issue,
-  /*
-   * A token representing mentioning a GitHub user - should be drawn as a
-   * hyperlink to launch the browser to the user's profile.
-   */
-  Mention,
-  /*
    * A token representing a generic link - should be drawn as a hyperlink
    * to launch the browser.
    */
   Link,
-}
-
-export type IssueMatch = {
-  readonly kind: TokenType.Issue,
-  // The text to display to the user e.g. #955
-  readonly text: string,
-  // The URL to launch when clicking on the link
-  readonly url: string,
-}
-
-export type MentionMatch = {
-  readonly kind: TokenType.Mention,
-  // The text to display inside the rendered link, e.g. @shiftkey
-  readonly text: string,
-  // The alternate text to display when hovering the link, e.g. 'shiftkey'
-  readonly name: string,
-  // The URL to launch when clicking on the link
-  readonly url: string,
 }
 
 export type EmojiMatch = {
@@ -68,7 +40,7 @@ export type PlainText = {
   readonly text: string,
 }
 
-export type TokenResult = PlainText | IssueMatch | MentionMatch | EmojiMatch | HyperlinkMatch
+export type TokenResult = PlainText | EmojiMatch | HyperlinkMatch
 
 type LookupResult = {
   nextIndex: number
@@ -169,7 +141,7 @@ export class Tokenizer {
     this.flush()
     const id = parseInt(maybeIssue.substr(1), 10)
     const url = `${this.repository.htmlURL}/issues/${id}`
-    this._results.push({ kind: TokenType.Issue, text: maybeIssue, url })
+    this._results.push({ kind: TokenType.Link, text: maybeIssue, url })
     return { nextIndex }
   }
 
@@ -189,7 +161,7 @@ export class Tokenizer {
     this.flush()
     const name = maybeMention.substr(1)
     const url = `${getHTMLURL(this.repository.endpoint)}/${name}`
-    this._results.push({ kind: TokenType.Mention, text: maybeMention, name, url })
+    this._results.push({ kind: TokenType.Link, text: maybeMention, url })
     return { nextIndex }
   }
 
@@ -210,12 +182,12 @@ export class Tokenizer {
       const issueMatch = regex.exec(maybeHyperlink)
       if (issueMatch) {
         const idText = issueMatch[1]
-        this._results.push({ kind: TokenType.Issue,  url: maybeHyperlink, text: `#${idText}` })
+        this._results.push({ kind: TokenType.Link,  url: maybeHyperlink, text: `#${idText}` })
         return { nextIndex }
       }
     }
 
-    // just render a hyperlink all the same
+    // just render a hyperlink with the full URL
     this._results.push({ kind: TokenType.Link, url: maybeHyperlink, text: maybeHyperlink })
     return { nextIndex }
   }

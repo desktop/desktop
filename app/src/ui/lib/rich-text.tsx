@@ -42,10 +42,6 @@ export class RichText extends React.Component<IRichTextProps, void> {
       switch (token.kind) {
         case TokenType.Emoji:
           return <img key={index} alt={token.text} title={token.text} className='emoji' src={token.path}/>
-        case TokenType.Mention:
-          return <LinkButton key={index} uri={token.url} children={token.text} />
-        case TokenType.Issue:
-          return <LinkButton key={index} uri={token.url} children={token.text} />
         case TokenType.Link:
           return <LinkButton key={index} uri={token.url} children={token.text} />
         case TokenType.Text:
