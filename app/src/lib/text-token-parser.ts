@@ -27,6 +27,7 @@ export type MentionMatch = {
 export type EmojiMatch = {
   readonly kind: TokenType.Emoji,
   readonly text: string,
+  readonly path: string,
 }
 
 export type HyperlinkMatch = {
@@ -120,9 +121,16 @@ export class Tokenizer {
     const maybeEmoji = text.slice(index, nextIndex)
     if (!/:.*?:/.exec(maybeEmoji)) { return null }
 
-    this.flush()
-    this._results.push({ kind: TokenType.Emoji, text: maybeEmoji })
-    return { nextIndex }
+    if (this.emoji) {
+      const path = this.emoji.get(maybeEmoji)
+      if (path) {
+        this.flush()
+        this._results.push({ kind: TokenType.Emoji, text: maybeEmoji, path })
+        return { nextIndex }
+      }
+    }
+
+    return null
   }
 
   private scanForIssue(text: string, index: number): LookupResult | null {

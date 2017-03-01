@@ -48,7 +48,7 @@ export class RichText extends React.Component<IRichTextProps, void> {
     const elements = tokenizer.tokenize(str).map((r, index) => {
       switch (r.kind) {
         case TokenType.Emoji:
-          return renderEmoji(r, index, this.props.emoji)
+          return renderEmoji(r, index)
         case TokenType.Mention:
           return renderMention(r, index)
         case TokenType.Issue:
@@ -88,11 +88,6 @@ function renderIssue(match: IssueMatch, index: number): JSX.Element | string {
     children={match.text} />
 }
 
-function renderEmoji(match: EmojiMatch, index: number, emoji: Map<string, string>): JSX.Element | string {
-  const path = emoji.get(match.text)
-  if (path) {
-    return <img key={index} alt={match.text} title={match.text} className='emoji' src={path}/>
-  } else {
-    return match.text
-  }
+function renderEmoji(match: EmojiMatch, index: number): JSX.Element | string {
+ return <img key={index} alt={match.text} title={match.text} className='emoji' src={match.path}/>
 }
