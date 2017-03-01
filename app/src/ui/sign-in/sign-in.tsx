@@ -31,6 +31,28 @@ interface ISignInState {
 
 export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
+  /**
+   * In our authentication step we display a username and password text box
+   * in the dialog content and two buttons to continue or cancel out of the
+   * flow in the dialog footer. In the case of the textbox we're using a link
+   * label (see the linkLabelText prop in the TextBox component) to render a
+   * 'forgot password' link above the password textbox. If we use regular tab
+   * the focus passes from the username field to the link label before going
+   * to the password field which isn't ideal from a ux perspective, users should
+   * be able to type their username and tab to the password field immediately.
+   * 
+   * This way of presenting the username, password and forgot password links
+   * is replicated here pretty much exactly the same way as it is on .com where
+   * they too use custom tab order.
+   * 
+   * This property is used so that we don't have to hard-code numeric constants
+   * for tab index but instead are able to infer the next tab index by
+   * incrementing this counter.
+   * 
+   * The counter itself is reset on each render pass.
+   */
+  private tabIndexCounter: number = 0
+
   public constructor(props: ISignInProps) {
     super(props)
 
@@ -111,6 +133,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
 
     let primaryButtonText: string
     const stepKind = state.kind
+
+    // See documentation for the the tabIndexCounter field
     let tabIndexPrimary: number | undefined = undefined
     let tabIndexSecondary: number | undefined = undefined
 
@@ -127,8 +151,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         } else {
           primaryButtonText = 'Sign in'
         }
-        tabIndexPrimary = 4
-        tabIndexSecondary = 5
+        tabIndexPrimary = ++this.tabIndexCounter
+        tabIndexSecondary = ++this.tabIndexCounter
         break
       default:
         return assertNever(state, `Unknown sign in step ${stepKind}`)
@@ -178,7 +202,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             label='Username or email address'
             value={this.state.username}
             onValueChanged={this.onUsernameChanged}
-            tabIndex={1}
+            tabIndex={++this.tabIndexCounter}
           />
         </Row>
         <Row>
@@ -189,14 +213,14 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
             onValueChanged={this.onPasswordChanged}
             labelLinkText='Forgot password?'
             labelLinkUri={state.forgotPasswordUrl}
-            tabIndex={2}
+            tabIndex={++this.tabIndexCounter}
           />
         </Row>
         <Row>
           <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div>
         </Row>
         <Row className='sign-in-with-browser'>
-          <LinkButton tabIndex={3} className='link-with-icon' onClick={this.onSignInWithBrowser}>
+          <LinkButton tabIndex={++this.tabIndexCounter} className='link-with-icon' onClick={this.onSignInWithBrowser}>
             Sign in using your browser
             <Octicon symbol={OcticonSymbol.linkExternal} />
           </LinkButton>
@@ -245,6 +269,8 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   }
 
   public render() {
+
+    this.tabIndexCounter = 0
 
     const state = this.props.signInState
 
