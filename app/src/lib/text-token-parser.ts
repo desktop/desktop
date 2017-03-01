@@ -184,31 +184,27 @@ export class Tokenizer {
     return { nextIndex }
   }
 
+  private inspectAndMove(element: string, index: number, callback: () => LookupResult | null): number {
+    const match = callback()
+    if (match) {
+      return match.nextIndex
+    } else {
+      this.append(element)
+      return index + 1
+    }
+  }
+
   private tokenizeNonGitHubRepository(text: string): ReadonlyArray<TokenResult> {
     let i = 0
-    let match: LookupResult | null = null
-
     while (i < text.length) {
       const element = text[i]
       switch (element) {
         case ':':
-          match = this.scanForEmoji(text, i)
-          if (match) {
-            i = match.nextIndex
-          } else {
-            this.append(element)
-            i++
-          }
+          i = this.inspectAndMove(element, i, () => this.scanForEmoji(text, i))
           break
 
         case 'h':
-          match = this.scanForHyperlink(text, i)
-          if (match) {
-            i = match.nextIndex
-          } else {
-            this.append(element)
-            i++
-          }
+          i = this.inspectAndMove(element, i, () => this.scanForHyperlink(text, i))
           break
 
         default:
@@ -224,49 +220,23 @@ export class Tokenizer {
 
   private tokenizeGitHubRepository(text: string, repository: GitHubRepository): ReadonlyArray<TokenResult> {
     let i = 0
-    let match: LookupResult | null = null
-
     while (i < text.length) {
       const element = text[i]
       switch (element) {
         case ':':
-          match = this.scanForEmoji(text, i)
-          if (match) {
-            i = match.nextIndex
-          } else {
-            this.append(element)
-            i++
-          }
+          i = this.inspectAndMove(element, i, () => this.scanForEmoji(text, i))
           break
 
         case '#':
-          match = this.scanForIssue(text, i, repository)
-          if (match) {
-            i = match.nextIndex
-          } else {
-            this.append(element)
-            i++
-          }
+          i = this.inspectAndMove(element, i, () => this.scanForIssue(text, i, repository))
           break
 
         case '@':
-          match = this.scanForMention(text, i, repository)
-          if (match) {
-            i = match.nextIndex
-          } else {
-            this.append(element)
-            i++
-          }
+          i = this.inspectAndMove(element, i, () => this.scanForMention(text, i, repository))
           break
 
         case 'h':
-          match = this.scanForHyperlink(text, i, repository)
-          if (match) {
-            i = match.nextIndex
-          } else {
-            this.append(element)
-            i++
-          }
+          i = this.inspectAndMove(element, i, () => this.scanForHyperlink(text, i, repository))
           break
 
         default:
