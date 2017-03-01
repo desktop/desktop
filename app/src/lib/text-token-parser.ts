@@ -94,22 +94,13 @@ export class Tokenizer {
 
     if (indexOfNextNewline > -1 && indexOfNextSpace > -1) {
       // if we find whitespace and a newline, take whichever is closest
-      if (indexOfNextNewline < indexOfNextSpace) {
-        return indexOfNextNewline
-      } else {
-        return indexOfNextSpace
-      }
+      return Math.min(indexOfNextNewline, indexOfNextSpace)
     }
 
     // favouring newlines over whitespace here because people often like to
     // use mentions or issues at the end of a sentence.
-    if (indexOfNextNewline > -1) {
-      return indexOfNextNewline
-    }
-
-    if (indexOfNextSpace > -1) {
-      return indexOfNextSpace
-    }
+    if (indexOfNextNewline > -1) { return indexOfNextNewline }
+    if (indexOfNextSpace > -1) { return indexOfNextSpace }
 
     // as a fallback use the entire remaining string
     return text.length
