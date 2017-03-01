@@ -58,9 +58,8 @@ export class Button extends React.Component<IButtonProps, void> {
       event.preventDefault()
     }
 
-    const onClick = this.props.onClick
-    if (onClick) {
-      onClick(event)
+    if (this.props.onClick) {
+      this.props.onClick(event)
     }
   }
 }
