@@ -18,7 +18,7 @@ interface IAppErrorProps {
    * has been shown to, and been dismissed by, the user.
    */
   readonly onClearError: (error: Error) => void
-  readonly onShowLogin: (popupType: Popup) => void | null
+  readonly onShowLogin?: (popupType: Popup) => void
 }
 
 interface IAppErrorState {
@@ -74,7 +74,9 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         if (currentError instanceof GitError) {
           switch (currentError.result.gitError)  {
             case GitErrorType.HTTPSAuthenticationFailed:
-              showLogin({ type: PopupType.Signin })
+              if (showLogin) {
+                showLogin({ type: PopupType.Signin })
+              }
             break
           }
         }

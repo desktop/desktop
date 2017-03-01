@@ -619,12 +619,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       <AppError
         errors={this.state.errors}
         onClearError={this.clearError}
-        onShowLogin={this.ShowPopup}
+        onShowLogin={this.showPopup}
       />
     )
   }
 
-  private ShowPopup = (popup: Popup) => {
+  private showPopup = (popup: Popup) => {
      this.props.dispatcher.showPopup(popup)
   }
 
