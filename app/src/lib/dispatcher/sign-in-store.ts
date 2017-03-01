@@ -234,7 +234,7 @@ export class SignInStore {
     }
   }
 
-    private getForgotPasswordURL(endpoint: string): string {
+  private getForgotPasswordURL(endpoint: string): string {
     return `${getHTMLURL(endpoint)}/password_reset`
   }
 
