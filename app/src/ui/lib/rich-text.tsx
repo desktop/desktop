@@ -2,15 +2,8 @@ import * as React from 'react'
 
 import { LinkButton } from './link-button'
 import { Repository } from '../../models/repository'
+import { Tokenizer, TokenType } from '../../lib/text-token-parser'
 import { assertNever } from '../../lib/fatal-error'
-
-import {
-  Tokenizer,
-  TokenType,
-  IssueMatch,
-  EmojiMatch,
-  MentionMatch,
-} from '../../lib/text-token-parser'
 
 interface IRichTextProps {
   readonly className?: string
@@ -45,20 +38,20 @@ export class RichText extends React.Component<IRichTextProps, void> {
 
     const tokenizer = new Tokenizer(this.props.emoji, this.props.repository)
 
-    const elements = tokenizer.tokenize(str).map((r, index) => {
-      switch (r.kind) {
+    const elements = tokenizer.tokenize(str).map((token, index) => {
+      switch (token.kind) {
         case TokenType.Emoji:
-          return renderEmoji(r, index)
+          return <img key={index} alt={token.text} title={token.text} className='emoji' src={token.path}/>
         case TokenType.Mention:
-          return renderMention(r, index)
+          return <LinkButton key={index} uri={token.url} children={token.text} />
         case TokenType.Issue:
-          return renderIssue(r, index)
+          return <LinkButton key={index} uri={token.url} children={token.text} />
         case TokenType.Link:
-          return <LinkButton key={index} uri={r.url} children={r.text} />
+          return <LinkButton key={index} uri={token.url} children={token.text} />
         case TokenType.Text:
-          return r.text
+          return token.text
         default:
-          return assertNever(r, 'Unknown token type: ${r.kind}')
+          return assertNever(token, 'Unknown token type: ${r.kind}')
       }
     })
 
@@ -68,26 +61,4 @@ export class RichText extends React.Component<IRichTextProps, void> {
       </div>
     )
   }
-}
-
-function renderMention(match: MentionMatch, index: number): JSX.Element | string {
-  if (!match.url) { return match.text }
-
-  return <LinkButton
-    key={index}
-    uri={match.url}
-    children={match.text} />
-}
-
-function renderIssue(match: IssueMatch, index: number): JSX.Element | string {
-  if (!match.url) { return match.text }
-
-  return <LinkButton
-    key={index}
-    uri={match.url}
-    children={match.text} />
-}
-
-function renderEmoji(match: EmojiMatch, index: number): JSX.Element | string {
- return <img key={index} alt={match.text} title={match.text} className='emoji' src={match.path}/>
 }

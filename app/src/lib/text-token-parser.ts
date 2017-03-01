@@ -3,41 +3,68 @@ import { GitHubRepository } from '../models/github-repository'
 import { getHTMLURL } from './api'
 
 export enum TokenType {
+  /*
+   * A token that should be rendered as-is, without any formatting.
+   */
   Text,
+  /*
+   * A token representing an emoji character - should be replaced with an image.
+   */
   Emoji,
+  /*
+   * A token representing a GitHub issue - should be drawn as a hyperlink
+   * to launch the browser.
+   */
   Issue,
+  /*
+   * A token representing mentioning a GitHub user - should be drawn as a
+   * hyperlink to launch the browser to the user's profile.
+   */
   Mention,
+  /*
+   * A token representing a generic link - should be drawn as a hyperlink
+   * to launch the browser.
+   */
   Link,
 }
 
 export type IssueMatch = {
   readonly kind: TokenType.Issue,
+  // The text to display to the user e.g. #955
   readonly text: string,
-  readonly id: number,
-  readonly url?: string,
+  // The URL to launch when clicking on the link
+  readonly url: string,
 }
 
 export type MentionMatch = {
   readonly kind: TokenType.Mention,
+  // The text to display inside the rendered link, e.g. @shiftkey
   readonly text: string,
+  // The alternate text to display when hovering the link, e.g. 'shiftkey'
   readonly name: string,
-  readonly url?: string,
+  // The URL to launch when clicking on the link
+  readonly url: string,
 }
 
 export type EmojiMatch = {
   readonly kind: TokenType.Emoji,
+  // The alternate text to display with the image, e.g. ':+1:'
   readonly text: string,
+  // The path on disk to the image.
   readonly path: string,
 }
 
 export type HyperlinkMatch = {
   readonly kind: TokenType.Link,
+  // The text to display inside the rendered link, e.g. @shiftkey
   readonly text: string,
-  readonly url?: string,
+  // The URL to launch when clicking on the link
+  readonly url: string,
 }
 
 export type PlainText = {
   readonly kind: TokenType.Text,
+  // The text to render.
   readonly text: string,
 }
 
@@ -48,7 +75,7 @@ type LookupResult = {
 }
 
 /**
- * A look-ahead tokenizer designed for scanning commit messages for emoji, issues and mentions.
+ * A look-ahead tokenizer designed for scanning commit messages for emoji, issues, mentions and links.
  */
 export class Tokenizer {
 
@@ -117,45 +144,43 @@ export class Tokenizer {
   }
 
   private scanForEmoji(text: string, index: number): LookupResult | null {
+    if (!this.emoji) { return null }
+
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeEmoji = text.slice(index, nextIndex)
     if (!/:.*?:/.exec(maybeEmoji)) { return null }
 
-    if (this.emoji) {
-      const path = this.emoji.get(maybeEmoji)
-      if (path) {
-        this.flush()
-        this._results.push({ kind: TokenType.Emoji, text: maybeEmoji, path })
-        return { nextIndex }
-      }
-    }
+    const path = this.emoji.get(maybeEmoji)
+    if (!path) { return null }
 
-    return null
+    this.flush()
+    this._results.push({ kind: TokenType.Emoji, text: maybeEmoji, path })
+    return { nextIndex }
   }
 
   private scanForIssue(text: string, index: number): LookupResult | null {
+    // don't lookup mentions for non-GitHub repositories
+    if (!this.repository) { return null }
+
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeIssue = text.slice(index, nextIndex)
     if (!/#[0-9]+/.exec(maybeIssue)) { return null }
 
-    // don't lookup mentions for non-GitHub repositories
-    if (!this.repository) { return null }
-
     this.flush()
     const id = parseInt(maybeIssue.substr(1), 10)
-    const url = this.repository ? `${this.repository.htmlURL}/issues/${id}` : undefined
-    this._results.push({ kind: TokenType.Issue, text: maybeIssue, id, url })
+    const url = `${this.repository.htmlURL}/issues/${id}`
+    this._results.push({ kind: TokenType.Issue, text: maybeIssue, url })
     return { nextIndex }
   }
 
   private scanForMention(text: string, index: number): LookupResult | null {
+    // don't lookup mentions for non-GitHub repositories
+    if (!this.repository) { return null }
+
     // to ensure this isn't part of an email address, peek at the previous
     // character - if something is found and it's not whitespace, bail out
     const lastItem = this.peek()
     if (lastItem && lastItem !== ' ') { return null }
-
-    // don't lookup mentions for non-GitHub repositories
-    if (!this.repository) { return null }
 
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeMention = text.slice(index, nextIndex)
@@ -163,7 +188,7 @@ export class Tokenizer {
 
     this.flush()
     const name = maybeMention.substr(1)
-    const url = this.repository ? `${getHTMLURL(this.repository.endpoint)}/${name}` : undefined
+    const url = `${getHTMLURL(this.repository.endpoint)}/${name}`
     this._results.push({ kind: TokenType.Mention, text: maybeMention, name, url })
     return { nextIndex }
   }
@@ -185,13 +210,12 @@ export class Tokenizer {
       const issueMatch = regex.exec(maybeHyperlink)
       if (issueMatch) {
         const idText = issueMatch[1]
-        const id = parseInt(idText, 10)
-        this._results.push({ kind: TokenType.Issue,  url: maybeHyperlink, id, text: `#${idText}` })
+        this._results.push({ kind: TokenType.Issue,  url: maybeHyperlink, text: `#${idText}` })
         return { nextIndex }
       }
     }
 
-    // whatever, just render a hyperlink all the same
+    // just render a hyperlink all the same
     this._results.push({ kind: TokenType.Link, url: maybeHyperlink, text: maybeHyperlink })
     return { nextIndex }
   }

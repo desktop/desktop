@@ -150,7 +150,6 @@ describe('Tokenizer', () => {
 
       expect(mention.text).to.equal('#955')
       expect(mention.url).to.equal(expectedUri)
-      expect(mention.id).to.equal(id)
 
       expect(results[2].kind).to.equal(TokenType.Text)
       expect(results[2].text).to.equal(' from desktop/computering-icons-for-all')
@@ -197,7 +196,6 @@ Signed-off-by: Johannes Schindelin <johannes.schindelin@gmx.de>`
 
       expect(issue.text).to.equal('#1034')
       expect(issue.url).to.equal('https://github.com/shiftkey/some-repo/issues/1034')
-      expect(issue.id).to.equal(1034)
 
       expect(results[2].kind).to.equal(TokenType.Text)
       expect(results[2].text).to.equal(expectedAfter)
