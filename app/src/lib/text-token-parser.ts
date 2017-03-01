@@ -51,13 +51,13 @@ type LookupResult = {
  */
 export class Tokenizer {
 
-  private readonly emoji?: Map<string, string>
+  private readonly emoji: Map<string, string>
   private readonly repository: GitHubRepository | null
 
   private _results = new Array<TokenResult>()
   private _currentString = ''
 
-  public constructor(emoji?: Map<string, string>, repository?: Repository) {
+  public constructor(emoji: Map<string, string>, repository?: Repository) {
     this.emoji = emoji
 
     if (repository) {
@@ -116,8 +116,6 @@ export class Tokenizer {
   }
 
   private scanForEmoji(text: string, index: number): LookupResult | null {
-    if (!this.emoji) { return null }
-
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeEmoji = text.slice(index, nextIndex)
     if (!/:.*?:/.exec(maybeEmoji)) { return null }

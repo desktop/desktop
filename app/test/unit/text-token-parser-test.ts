@@ -12,7 +12,7 @@ describe('Tokenizer', () => {
   describe('basic tests', () => {
     it('preserves plain text string', () => {
       const text = 'this is a string without anything interesting'
-      const tokenizer = new Tokenizer()
+      const tokenizer = new Tokenizer(emoji)
       const results = tokenizer.tokenize(text)
       expect(results.length).to.equal(1)
       expect(results[0].kind).to.equal(TokenType.Text)
