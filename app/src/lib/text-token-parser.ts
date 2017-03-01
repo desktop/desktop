@@ -130,25 +130,19 @@ export class Tokenizer {
     return { nextIndex }
   }
 
-  private scanForIssue(text: string, index: number): LookupResult | null {
-    // don't lookup issues for non-GitHub repositories
-    if (!this.repository) { return null }
-
+  private scanForIssue(text: string, index: number, repository: GitHubRepository): LookupResult | null {
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeIssue = text.slice(index, nextIndex)
     if (!/#[0-9]+/.exec(maybeIssue)) { return null }
 
     this.flush()
     const id = parseInt(maybeIssue.substr(1), 10)
-    const url = `${this.repository.htmlURL}/issues/${id}`
+    const url = `${repository.htmlURL}/issues/${id}`
     this._results.push({ kind: TokenType.Link, text: maybeIssue, url })
     return { nextIndex }
   }
 
-  private scanForMention(text: string, index: number): LookupResult | null {
-    // don't lookup mentions for non-GitHub repositories
-    if (!this.repository) { return null }
-
+  private scanForMention(text: string, index: number, repository: GitHubRepository): LookupResult | null {
     // to ensure this isn't part of an email address, peek at the previous
     // character - if something is found and it's not whitespace, bail out
     const lastItem = this.peek()
@@ -160,12 +154,12 @@ export class Tokenizer {
 
     this.flush()
     const name = maybeMention.substr(1)
-    const url = `${getHTMLURL(this.repository.endpoint)}/${name}`
+    const url = `${getHTMLURL(repository.endpoint)}/${name}`
     this._results.push({ kind: TokenType.Link, text: maybeMention, url })
     return { nextIndex }
   }
 
-  private scanForHyperlink(text: string, index: number): LookupResult | null {
+  private scanForHyperlink(text: string, index: number, repository?: GitHubRepository): LookupResult | null {
     // to ensure this isn't just the part of some word - if something is
     // found and it's not whitespace, bail out
     const lastItem = this.peek()
@@ -176,9 +170,9 @@ export class Tokenizer {
     if (!/^(http(s?))\:\/\//.exec(maybeHyperlink)) { return null }
 
     this.flush()
-    if (this.repository && this.repository.htmlURL) {
+    if (repository && repository.htmlURL) {
       // case-insensitive regex to see if this matches the issue URL template for the current repository
-      const regex = new RegExp(`${this.repository.htmlURL}\/issues\/([0-9]{1,})`, 'i')
+      const regex = new RegExp(`${repository.htmlURL}\/issues\/([0-9]{1,})`, 'i')
       const issueMatch = regex.exec(maybeHyperlink)
       if (issueMatch) {
         const idText = issueMatch[1]
@@ -192,15 +186,7 @@ export class Tokenizer {
     return { nextIndex }
   }
 
-  /**
-   * Scan the string for tokens that match with entities an application
-   * might be interested in.
-   *
-   * @returns an array of tokens representing the scan results.
-   */
-  public tokenize(text: string): ReadonlyArray<TokenResult> {
-    this.reset()
-
+  private tokenizeNonGitHubRepository(text: string): ReadonlyArray<TokenResult> {
     let i = 0
     let match: LookupResult | null = null
 
@@ -209,26 +195,6 @@ export class Tokenizer {
       switch (element) {
         case ':':
           match = this.scanForEmoji(text, i)
-          if (match) {
-            i = match.nextIndex
-          } else {
-            this.append(element)
-            i++
-          }
-          break
-
-        case '#':
-          match = this.scanForIssue(text, i)
-          if (match) {
-            i = match.nextIndex
-          } else {
-            this.append(element)
-            i++
-          }
-          break
-
-        case '@':
-          match = this.scanForMention(text, i)
           if (match) {
             i = match.nextIndex
           } else {
@@ -256,5 +222,79 @@ export class Tokenizer {
 
     this.flush()
     return this._results
+  }
+
+  private tokenizeGitHubRepository(text: string, repository: GitHubRepository): ReadonlyArray<TokenResult> {
+    let i = 0
+    let match: LookupResult | null = null
+
+    while (i < text.length) {
+      const element = text[i]
+      switch (element) {
+        case ':':
+          match = this.scanForEmoji(text, i)
+          if (match) {
+            i = match.nextIndex
+          } else {
+            this.append(element)
+            i++
+          }
+          break
+
+        case '#':
+          match = this.scanForIssue(text, i, repository)
+          if (match) {
+            i = match.nextIndex
+          } else {
+            this.append(element)
+            i++
+          }
+          break
+
+        case '@':
+          match = this.scanForMention(text, i, repository)
+          if (match) {
+            i = match.nextIndex
+          } else {
+            this.append(element)
+            i++
+          }
+          break
+
+        case 'h':
+          match = this.scanForHyperlink(text, i, repository)
+          if (match) {
+            i = match.nextIndex
+          } else {
+            this.append(element)
+            i++
+          }
+          break
+
+        default:
+          this.append(element)
+          i++
+          break
+      }
+    }
+
+    this.flush()
+    return this._results
+  }
+
+  /**
+   * Scan the string for tokens that match with entities an application
+   * might be interested in.
+   *
+   * @returns an array of tokens representing the scan results.
+   */
+  public tokenize(text: string): ReadonlyArray<TokenResult> {
+    this.reset()
+
+    if (this.repository) {
+      return this.tokenizeGitHubRepository(text, this.repository)
+    } else {
+      return this.tokenizeNonGitHubRepository(text)
+    }
   }
 }
