@@ -138,6 +138,9 @@ export class Tokenizer {
     const maybeIssue = text.slice(index, nextIndex)
     if (!/#[0-9]+/.exec(maybeIssue)) { return null }
 
+    // don't lookup mentions for non-GitHub repositories
+    if (!this.repository) { return null }
+
     this.flush()
     const id = parseInt(maybeIssue.substr(1), 10)
     const url = this.repository ? `${this.repository.htmlURL}/issues/${id}` : undefined
@@ -150,6 +153,9 @@ export class Tokenizer {
     // character - if something is found and it's not whitespace, bail out
     const lastItem = this.peek()
     if (lastItem && lastItem !== ' ') { return null }
+
+    // don't lookup mentions for non-GitHub repositories
+    if (!this.repository) { return null }
 
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeMention = text.slice(index, nextIndex)
