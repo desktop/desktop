@@ -131,7 +131,7 @@ export class Tokenizer {
   }
 
   private scanForIssue(text: string, index: number): LookupResult | null {
-    // don't lookup mentions for non-GitHub repositories
+    // don't lookup issues for non-GitHub repositories
     if (!this.repository) { return null }
 
     const nextIndex = this.scanForEndOfWord(text, index)
