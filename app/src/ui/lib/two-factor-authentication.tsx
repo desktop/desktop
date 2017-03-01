@@ -45,6 +45,10 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
   public render() {
     const textEntryDisabled = this.props.loading
     const signInDisabled = !this.state.otp.length || this.props.loading
+    const errors =  this.props.error
+      ? <Errors>{this.props.error.message}</Errors>
+      : null
+
     return (
       <div>
         <p className='welcome-text'>
@@ -59,7 +63,7 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
             autoFocus={true}
             onChange={this.onOTPChange}/>
 
-          {this.renderError()}
+          {errors}
 
           <Button type='submit' disabled={signInDisabled}>Verify</Button>
 
@@ -67,13 +71,6 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
         </Form>
       </div>
     )
-  }
-
-  private renderError() {
-    const error = this.props.error
-    if (!error) { return null }
-
-    return <Errors>{error.message}</Errors>
   }
 
   private onOTPChange = (event: React.FormEvent<HTMLInputElement>) => {
