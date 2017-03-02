@@ -158,7 +158,8 @@ app.on('ready', () => {
     }
 
     const window = BrowserWindow.fromWebContents(event.sender)
-    menu.popup(window)
+    const anyMenu: any = menu
+    anyMenu.popup(window, { async: true })
   })
 
   ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options }: { id: string, options: IHTTPRequest }) => {
