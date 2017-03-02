@@ -146,7 +146,7 @@ export interface ISuccessState {
 
 /**
  * A store encapsulating all logic related to signing in a user
- * to GitHub.com, or a GitHub Enteprise instance.
+ * to GitHub.com, or a GitHub Enterprise instance.
  */
 export class SignInStore {
   private readonly emitter = new Emitter()
