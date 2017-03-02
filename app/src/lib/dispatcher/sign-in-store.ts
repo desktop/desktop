@@ -15,6 +15,8 @@ import {
   fetchMetadata,
 } from '../../lib/api'
 
+import { minimumSupportedEnterpriseVersion } from '../../lib/enterprise'
+
 /**
  * An enumeration of the possible steps that the sign in
  * store can be in save for the unitialized state (null).
@@ -214,7 +216,7 @@ export class SignInStore {
         return true
       }
     } else {
-      throw new Error('Unsupported Enterprise server')
+      throw new Error(`Unable to authenticate with the GitHub Enterprise instance. Verify that the URL is correct and that your GitHub Enterprise instance is running version ${minimumSupportedEnterpriseVersion} or later.`)
     }
   }
 
@@ -309,7 +311,7 @@ export class SignInStore {
         if (response.response.error) {
           this.emitError(response.response.error)
         } else {
-          this.emitError(new Error(`The server responded with an error (${response.response.statusCode})\n\n${response.response.body}`))
+          this.emitError(new Error(`The server responded with an error while attempting to authenticate (${response.response.statusCode})\n\n${response.response.body}`))
         }
         this.setState({ ...currentState, loading: false })
       } else if (response.kind === AuthorizationResponseKind.Failed) {
@@ -400,9 +402,9 @@ export class SignInStore {
     } catch (e) {
       let error = e
       if (e.name === InvalidURLErrorName) {
-        error = new Error(`The Enterprise server address doesn't appear to be a valid URL. We're expecting something like https://github.example.com.`)
+        error = new Error(`The GitHub Enterprise instance address doesn't appear to be a valid URL. We're expecting something like https://github.example.com.`)
       } else if (e.name === InvalidProtocolErrorName) {
-        error = new Error('Unsupported protocol. We can only sign in to GitHub Enterprise instances over http or https.')
+        error = new Error('Unsupported protocol. Only http or https is supported when authenticating with GitHub Enterprise instances.')
       }
 
       this.setState({ ...currentState, loading: false, error })
@@ -430,7 +432,7 @@ export class SignInStore {
       let error = e
       // We'll get an ENOTFOUND if the address couldn't be resolved.
       if (e.code === 'ENOTFOUND') {
-        error = new Error('The server could not be found')
+        error = new Error('The server could not be found. Please verify that the URL is correct and that you have a stable internet connection.')
       }
 
       this.setState({ ...currentState, loading: false, error })
