@@ -38,7 +38,6 @@ interface IAppErrorState {
  * in the order they were queued.
  */
 export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
-
   public constructor(props: IAppErrorProps) {
     super(props)
     this.state = {
@@ -69,19 +68,38 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       setTimeout(() => {
         this.props.onClearError(currentError)
 
-        const showLogin = this.props.onShowLogin
-
         if (currentError instanceof GitError) {
-          switch (currentError.result.gitError)  {
-            case GitErrorType.HTTPSAuthenticationFailed:
-              if (showLogin) {
-                showLogin({ type: PopupType.Signin })
-              }
-            break
-          }
+          this.handleGitError(currentError)
         }
       }, dialogTransitionLeaveTimeout)
     }
+  }
+
+  private handleGitError(error: GitError): void {
+    const showLogin = this.props.onShowLogin
+
+    if (!showLogin) {
+      return
+    }
+
+    const gitError = error.result.gitError
+
+    switch (gitError) {
+      case GitErrorType.HTTPSAuthenticationFailed:
+        showLogin({ type: PopupType.Signin })
+      break
+    }
+  }
+
+  private getResolutionForGitError(error: GitError): string {
+    const gitErrorType = error.result.gitError
+
+    switch (gitErrorType) {
+        case GitErrorType.HTTPSAuthenticationFailed:
+          return 'You must be signed in to perform this action'
+    }
+
+    return `Unknown error: ${error}`
   }
 
   private renderDialog() {
@@ -92,17 +110,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       return null
     }
 
-    let message: string = ''
-
-    if (error instanceof GitError) {
-      switch (error.result.gitError)  {
-        case GitErrorType.HTTPSAuthenticationFailed:
-          message = 'You must be signed in to perform this action'
-        break
-      }
-    }
-
-    message = message === '' ? error.message : message
+    const message: string = error instanceof GitError ? this.getResolutionForGitError(error) : error.message
 
     return (
       <Dialog
