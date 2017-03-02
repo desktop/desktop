@@ -45,10 +45,15 @@ export class Accounts extends React.Component<IAccountsProps, void> {
     switch (type) {
       case SignInType.DotCom: {
         return <SignIn
+          dispatcher={this.props.dispatcher}
           endpoint={getDotComAPIEndpoint()}
           onDidSignIn={this.onDidSignIn}/>
       }
-      case SignInType.Enterprise: return <SignIn onDidSignIn={this.onDidSignIn}/>
+      case SignInType.Enterprise: {
+        return <SignIn
+          dispatcher={this.props.dispatcher}
+          onDidSignIn={this.onDidSignIn}/>
+      }
       default: return assertNever(type, `Unknown sign in type: ${type}`)
     }
   }

@@ -10,6 +10,7 @@ import {
 } from '../../lib/api'
 import { User } from '../../models/user'
 import { assertNever } from '../../lib/fatal-error'
+import { Dispatcher } from '../../lib/dispatcher'
 import { askUserToOAuth } from '../../lib/oauth'
 import { Loading } from './loading'
 import { Form } from './form'
@@ -18,6 +19,8 @@ import { TextBox } from './text-box'
 import { Errors } from './errors'
 
 interface IAuthenticationFormProps {
+  readonly dispatcher: Dispatcher
+
   /** The endpoint against which the user is authenticating. */
   readonly endpoint: string
 
@@ -178,8 +181,14 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
 
     if (response.kind === AuthorizationResponseKind.Authorized) {
       const token = response.token
-      const user = await fetchUser(endpoint, token)
-      this.props.onDidSignIn(user)
+      try {
+        const user = await fetchUser(endpoint, token)
+        if (user) {
+          this.props.onDidSignIn(user)
+        }
+      } catch (e) {
+        this.props.dispatcher.postError(e)
+      }
     } else if (response.kind === AuthorizationResponseKind.TwoFactorAuthenticationRequired) {
       this.props.onNeeds2FA(username, password)
     } else {

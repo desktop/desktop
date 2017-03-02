@@ -4,9 +4,18 @@ import * as Querystring from 'querystring'
 import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 
-import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
+import {
+  IHTTPResponse,
+  IGitHubAPIOptions,
+  HTTPMethod,
+  getHeader,
+  request,
+  deserialize,
+  getAllPages,
+  get,
+  post,
+} from './http'
 
-const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
 
 const ClientID = 'de0e3c7e9973e1c4dd77'
@@ -28,14 +37,14 @@ const NoteURL = 'https://desktop.github.com/'
  * Information about a repository as returned by the GitHub API.
  */
 export interface IAPIRepository {
-  readonly cloneUrl: string
-  readonly htmlUrl: string
+  readonly clone_url: string
+  readonly html_url: string
   readonly name: string
   readonly owner: IAPIUser
   readonly private: boolean
   readonly fork: boolean
-  readonly stargazersCount: number
-  readonly defaultBranch: string
+  readonly stargazers_count: number
+  readonly default_branch: string
 }
 
 /**
@@ -54,7 +63,7 @@ export interface IAPIUser {
   readonly url: string
   readonly type: 'user' | 'org'
   readonly login: string
-  readonly avatarUrl: string
+  readonly avatar_url: string
   readonly name: string
 }
 
@@ -116,72 +125,51 @@ interface IAPIMentionablesResponse {
   readonly users: ReadonlyArray<IAPIMentionableUser>
 }
 
+/** The response we receive from searching for users. */
+interface IAPISearchUsers {
+  readonly items: IAPIUser[]
+}
+
 /**
  * An object for making authenticated requests to the GitHub API
  */
 export class API {
-  private client: any
   private user: User
 
   public constructor(user: User) {
     this.user = user
-    this.client = new Octokat({ token: user.token, rootURL: user.endpoint })
-  }
-
-  /**
-   * Loads all repositories accessible to the current user.
-   *
-   * Loads public and private repositories across all organizations
-   * as well as the user account.
-   *
-   * @returns A promise yielding an array of {APIRepository} instances or error
-   */
-  public async fetchRepos(): Promise<ReadonlyArray<IAPIRepository>> {
-    const results: IAPIRepository[] = []
-    let nextPage = this.client.user.repos
-    while (nextPage) {
-      const request = await nextPage.fetch()
-      results.push(...request.items)
-      nextPage = request.nextPage
-    }
-
-    return results
   }
 
   /** Fetch a repo by its owner and name. */
-  public async fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
-    return this.client.repos(owner, name).fetch()
+  public fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
+    return get<IAPIRepository>(`repos/${owner}/${name}`, this.withOptions())
   }
 
   /** Fetch the logged in user. */
-  public fetchUser(): Promise<IAPIUser> {
-    return this.client.user.fetch()
+  public fetchUser(): Promise<IAPIUser | null> {
+    return get<IAPIUser>('user', this.withOptions())
   }
 
   /** Fetch the user's emails. */
-  public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
-    const result = await this.client.user.emails.fetch()
-    return result.items
+  public fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
+    return getAllPages<IAPIEmail>('user/emails', this.withOptions())
   }
 
   /** Fetch a commit from the repository. */
-  public async fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
-    try {
-      const commit = await this.client.repos(owner, name).commits(sha).fetch()
-      return commit
-    } catch (e) {
-      return null
-    }
+  public fetchCommit(owner: string, name: string, sha: string): Promise<IAPICommit | null> {
+    return get<IAPICommit>(`repos/${owner}/${name}/commits/${sha}`, this.withOptions())
   }
 
   /** Search for a user with the given public email. */
   public async searchForUserWithEmail(email: string): Promise<IAPIUser | null> {
     try {
-      const result = await this.client.search.users.fetch({ q: `${email} in:email type:user` })
-      // The results are sorted by score, best to worst. So the first result is
-      // our best match.
-      const user = result.items[0]
-      return user
+      const params = { q: `${email} in:email type:user` }
+      const users = await get<IAPISearchUsers>('search/users', this.withOptions({ params }))
+      if (users && users.items.length) {
+        return users.items[0]
+      } else {
+        return null
+      }
     } catch (e) {
       return null
     }
@@ -189,17 +177,14 @@ export class API {
 
   /** Fetch all the orgs to which the user belongs. */
   public async fetchOrgs(): Promise<ReadonlyArray<IAPIUser>> {
-    const result = await this.client.user.orgs.fetch()
-    return result.items
+    const orgs = await getAllPages<IAPIUser>('user/orgs', this.withOptions())
+    return orgs
   }
 
   /** Create a new GitHub repository with the given properties. */
-  public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository> {
-    if (org) {
-      return this.client.orgs(org.login).repos.create({ name, description, private: private_ })
-    } else {
-      return this.client.user.repos.create({ name, description, private: private_ })
-    }
+  public async createRepository(org: IAPIUser | null, name: string, description: string, private_: boolean): Promise<IAPIRepository | null> {
+    const url = org ? `orgs/${org.login}/repos` : 'user/repos'
+    return post<IAPIRepository>(url, { name, description, private: private_ }, this.withOptions())
   }
 
   /**
@@ -209,23 +194,13 @@ export class API {
   public async fetchIssues(owner: string, name: string, state: 'open' | 'closed' | 'all', since: Date | null): Promise<ReadonlyArray<IAPIIssue>> {
     const params: any = { state }
     if (since) {
-      params.since = since.toISOString()
+      params.since = since
     }
 
-    const allItems: Array<IAPIIssue> = []
-    // Note that we only include `params` on the first fetch. Octokat.js will
-    // preserve them as we fetch subsequent pages and would fail to advance
-    // pages if we included the params on each call.
-    let result = await this.client.repos(owner, name).issues.fetch(params)
-    allItems.push(...result.items)
-
-    while (result.nextPage) {
-      result = await result.nextPage.fetch()
-      allItems.push(...result.items)
-    }
+    const issues = await getAllPages<IAPIIssue>(`repos/${owner}/${name}/issues`, this.withOptions({ params }))
 
     // PRs are issues! But we only want Really Seriously Issues.
-    return allItems.filter((i: any) => !i.pullRequest)
+    return issues.filter((i: any) => !i.pullRequest)
   }
 
   private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<IHTTPResponse> {
@@ -260,6 +235,14 @@ export class API {
 
     const responseEtag = getHeader(response, 'etag')
     return { users, etag: responseEtag || '' }
+  }
+
+  private withOptions(additionalOptions?: Object): IGitHubAPIOptions {
+    const defaultOptions = {
+      endpoint: this.user.endpoint,
+      token: this.user.token,
+    }
+    return Object.assign(defaultOptions, additionalOptions)
   }
 }
 
@@ -320,10 +303,14 @@ export async function createAuthorization(endpoint: string, login: string, passw
 }
 
 /** Fetch the user authenticated by the token. */
-export async function fetchUser(endpoint: string, token: string): Promise<User> {
-  const octo = new Octokat({ token, rootURL: endpoint })
-  const user = await octo.user.fetch()
-  return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id, user.name)
+export async function fetchUser(endpoint: string, token: string): Promise<User | null> {
+  const user = await get<IAPIUser>('user', { endpoint, token })
+  if (user) {
+    const emails = await getAllPages<IAPIEmail>('user/emails', { endpoint, token })
+    return new User(user.login, endpoint, token, emails.map(e => e.email), user.avatar_url, user.id, user.name)
+  } else {
+    return null
+  }
 }
 
 /** Get metadata from the server. */

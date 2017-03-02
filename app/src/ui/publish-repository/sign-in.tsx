@@ -50,11 +50,14 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     switch (index) {
       case SignInTab.DotCom: {
         return <SignInCore
+          dispatcher={this.props.dispatcher}
           endpoint={getDotComAPIEndpoint()}
           onDidSignIn={this.onDidSignIn}/>
       }
       case SignInTab.Enterprise: {
-        return <SignInCore onDidSignIn={this.onDidSignIn}/>
+        return <SignInCore
+          dispatcher={this.props.dispatcher}
+          onDidSignIn={this.onDidSignIn}/>
       }
       default: return assertNever(index, `Unknown tab index: ${index}`)
     }
