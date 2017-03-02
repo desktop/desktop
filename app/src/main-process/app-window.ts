@@ -7,6 +7,7 @@ import { MenuEvent } from './menu'
 import { URLActionType } from '../lib/parse-url'
 import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
+import { AuthInfo } from '../lib/proxy'
 
 import * as Path from 'path'
 import * as Fs from 'fs'
@@ -230,6 +231,10 @@ export class AppWindow {
   public sendAppMenu() {
     const menu = menuFromElectronMenu(Menu.getApplicationMenu())
     this.window.webContents.send('app-menu', { menu })
+  }
+
+  public sendProxyDialogRequest(authInfo: AuthInfo) {
+    this.window.webContents.send('proxy/credentials-request', { authInfo })
   }
 
   /**

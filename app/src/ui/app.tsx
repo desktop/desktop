@@ -14,6 +14,7 @@ import { IAppState, RepositorySection, PopupType, FoldoutType, SelectionType } f
 import { Branches } from './branches'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
+import { ProxyAuthentication } from './proxy-authentication'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
 import { OcticonSymbol, iconForRepository } from './octicons'
@@ -25,6 +26,7 @@ import { ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
 import { AppMenu } from './app-menu'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
+import { AuthInfo } from '../lib/proxy'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
 import { User } from '../models/user'
@@ -80,6 +82,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     ipcRenderer.on('menu-event', (event: Electron.IpcRendererEvent, { name }: { name: MenuEvent }) => {
       this.onMenuEvent(name)
+    })
+
+    ipcRenderer.on('proxy/credentials-request', (event: Electron.IpcRendererEvent, { authInfo }: { authInfo: AuthInfo }) => {
+      this.props.dispatcher.showPopup({ type: PopupType.ProxyAuthentication, authInfo })
     })
 
     updateStore.onDidChange(state => {
@@ -589,6 +595,11 @@ export class App extends React.Component<IAppProps, IAppState> {
         remote={state.remote}
         dispatcher={this.props.dispatcher}
         repository={repository}
+        onDismissed={this.onPopupDismissed}
+      />
+    } else if (popup.type === PopupType.ProxyAuthentication) {
+      return <ProxyAuthentication
+        authInfo={popup.authInfo}
         onDismissed={this.onPopupDismissed}
       />
     }
