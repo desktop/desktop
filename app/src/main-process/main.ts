@@ -12,6 +12,7 @@ import { reportError } from '../lib/exception-reporting'
 import { IHTTPRequest, IHTTPResponse, getEncoding } from '../lib/http'
 
 import { getLogger } from '../lib/logging/main'
+import { getProxyInfo, AuthInfo } from '../lib/proxy'
 
 let mainWindow: AppWindow | null = null
 let sharedProcess: SharedProcess | null = null
@@ -182,12 +183,43 @@ app.on('ready', () => {
     }
 
     const request = network.request(requestOptions)
+
+    request.on('login', (authInfo: AuthInfo, callback: (username?: string, password?: string) => void) => {
+
+      sharedProcess!.console.log(`login encountered: ${JSON.stringify(authInfo)}`)
+
+      if (!mainWindow) {
+        // we really can't do much here. yay!
+        return
+      }
+
+      const result = getProxyInfo(authInfo)
+      if (result) {
+        callback(result.username, result.password)
+        return
+      }
+
+      ipcMain.once('proxy/credentials-response', (event, { username, password }: { username?: string, password?: string }) => {
+        // TODO: handle when result received
+        // TODO: handle when aborted (user cancels)
+        callback(username, password)
+      })
+
+      mainWindow.sendProxyDialogRequest(authInfo)
+    })
+
     request.on('response', (response: Electron.IncomingMessage) => {
 
       const responseChunks: Array<Buffer> = [ ]
 
       response.on('abort', () => {
         event.sender.send(channel, { error: new Error('request aborted by the client') })
+      })
+
+      response.on('error', () => {
+        const error = new Error('request failed, probably due to not providing proxy credentials')
+        sharedProcess!.console.error(error)
+        event.sender.send(channel, { error })
       })
 
       response.on('data', (chunk: Buffer) => {

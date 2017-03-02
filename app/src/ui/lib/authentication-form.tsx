@@ -179,7 +179,11 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     if (response.kind === AuthorizationResponseKind.Authorized) {
       const token = response.token
       const user = await fetchUser(endpoint, token)
-      this.props.onDidSignIn(user)
+      if (user) {
+        this.props.onDidSignIn(user)
+      } else {
+        console.error('TODO: what about if we get a null user here?')
+      }
     } else if (response.kind === AuthorizationResponseKind.TwoFactorAuthenticationRequired) {
       this.props.onNeeds2FA(username, password)
     } else {
