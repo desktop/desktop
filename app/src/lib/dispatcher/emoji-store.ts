@@ -124,7 +124,12 @@ export class EmojiStore {
 
         // Sort and insert into actual map
         const keys = Array.from(tmp.keys()).sort()
-        keys.forEach(k => this.emoji.set(k, tmp.get(k)))
+        keys.forEach(k => {
+          const value = tmp.get(k)
+          if (value) {
+            this.emoji.set(k, value)
+          }
+        })
 
         resolve()
       })
