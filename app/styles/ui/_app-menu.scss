@@ -113,3 +113,24 @@
     border-bottom: var(--base-border);
   }
 }
+
+.add-menu {
+  list-style-type: none;
+  padding: 0;
+}
+
+.add-menu-item {
+  padding: var(--spacing-half) var(--spacing-double);
+
+  & + .add-menu-item-header {
+    margin-top: var(--spacing);
+  }
+
+  &:not(.add-menu-item-header):hover {
+    background-color: var(--box-alt-background-color);
+  }
+}
+
+.add-menu-item-header {
+  font-weight: var(--font-weight-semibold);
+}

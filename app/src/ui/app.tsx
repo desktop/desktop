@@ -883,11 +883,29 @@ export class App extends React.Component<IAppProps, IAppState> {
         icon={OcticonSymbol.plus}
         className={className}
         title='.'
-        dropdownContentRenderer={this.renderAppMenu}
+        dropdownContentRenderer={this.renderAddMenu}
         onDropdownStateChanged={this.onAppMenuDropdownStateChanged}
-        dropdownState={currentState}
-        />
+        dropdownState={currentState} />
     )
+  }
+
+  private renderAddMenu = (): JSX.Element | null => {
+    return (
+      <div id='app-menu-foldout'>
+        <ul className='menu-pane add-menu'>
+          <li className='add-menu-item add-menu-item-header'>Repository</li>
+          <li className='add-menu-item' onClick={this.onAppMenuClick}>Add local respository</li>
+          <li className='add-menu-item'>Create new repository</li>
+          <li className='add-menu-item'>Clone repository</li>
+          <li className='add-menu-item add-menu-item-header'>Branches</li>
+          <li className='add-menu-item'>Create new branch</li>
+        </ul>
+      </div>
+    )
+  }
+
+  private onAppMenuClick = () => {
+    console.log('App menu click:')
   }
 
   private renderRepository() {
