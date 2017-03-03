@@ -894,18 +894,27 @@ export class App extends React.Component<IAppProps, IAppState> {
       <div id='app-menu-foldout'>
         <ul className='menu-pane add-menu'>
           <li className='add-menu-item add-menu-item-header'>Repository</li>
-          <li className='add-menu-item' onClick={this.onAppMenuClick}>Add local respository</li>
-          <li className='add-menu-item'>Create new repository</li>
-          <li className='add-menu-item'>Clone repository</li>
+          <li className='add-menu-item' onClick={() => this.onAppMenuClick('add-repo')}>Add local respository</li>
+          <li className='add-menu-item' onClick={() => this.onAppMenuClick('create-repo')}>Create new repository</li>
+          <li className='add-menu-item' onClick={() => this.onAppMenuClick('clone-repo')}>Clone repository</li>
           <li className='add-menu-item add-menu-item-header'>Branches</li>
-          <li className='add-menu-item'>Create new branch</li>
+          <li className='add-menu-item' onClick={() => this.onAppMenuClick('create-branch')}>Create new branch</li>
         </ul>
       </div>
     )
   }
 
-  private onAppMenuClick = () => {
-    console.log('App menu click:')
+  private onAppMenuClick = (destination: string) => {
+    switch(destination) {
+      case 'add-repo':
+        return console.log("add repo");
+      case 'create-repo':
+        return console.log("create repo");
+      case 'clone-repo':
+        return console.log("clone repo");
+      case 'create-branch':
+        return console.log("create branch");
+    }
   }
 
   private renderRepository() {
