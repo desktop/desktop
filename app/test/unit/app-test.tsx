@@ -13,6 +13,7 @@ import {
   CloningRepositoriesStore,
   EmojiStore,
   IssuesStore,
+  SignInStore,
 } from '../../src/lib/dispatcher'
 import { InMemoryDispatcher } from '../in-memory-dispatcher'
 import { TestGitHubUserDatabase } from '../test-github-user-database'
@@ -36,7 +37,14 @@ describe('App', () => {
     await statsDb.reset()
     statsStore = new StatsStore(statsDb)
 
-    appStore = new AppStore(new GitHubUserStore(db), new CloningRepositoriesStore(), new EmojiStore(), new IssuesStore(issuesDb), statsStore)
+    appStore = new AppStore(
+      new GitHubUserStore(db),
+      new CloningRepositoriesStore(),
+      new EmojiStore(),
+      new IssuesStore(issuesDb),
+      statsStore,
+      new SignInStore()
+    )
 
     dispatcher = new InMemoryDispatcher(appStore)
   })
