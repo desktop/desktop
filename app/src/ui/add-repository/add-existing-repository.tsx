@@ -8,6 +8,7 @@ import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { FoldoutType } from '../../lib/app-state'
+import { Dialog, DialogContent } from '../dialog'
 
 const untildify: (str: string) => string = require('untildify')
 
@@ -30,25 +31,36 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     this.state = { path: '', isGitRepository: false }
   }
 
+  private onDismissed = () => {
+    console.log('dismissed yo')
+  }
+
   public render() {
     const disabled = this.state.path.length === 0 || this.state.isGitRepository == null
     return (
-      <Form onSubmit={this.addRepository}>
-        <Row>
-          <TextBox
-            value={this.state.path}
-            label='Local Path'
-            placeholder='repository path'
-            onChange={this.onPathChanged}
-            onKeyDown={this.onKeyDown}
-            autoFocus/>
-          <Button onClick={this.showFilePicker}>Choose…</Button>
-        </Row>
+      <Dialog
+        title='Add local repository'
+        onDismissed={this.onDismissed}>
 
-        <Button disabled={disabled} type='submit'>
-          {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
-        </Button>
-      </Form>
+        <DialogContent>
+          <Form onSubmit={this.addRepository}>
+            <Row>
+              <TextBox
+                value={this.state.path}
+                label='Local Path'
+                placeholder='repository path'
+                onChange={this.onPathChanged}
+                onKeyDown={this.onKeyDown}
+                autoFocus/>
+              <Button onClick={this.showFilePicker}>Choose…</Button>
+            </Row>
+
+            <Button disabled={disabled} type='submit'>
+              {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
+            </Button>
+          </Form>
+        </DialogContent>
+      </Dialog>
     )
   }
 

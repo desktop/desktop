@@ -33,6 +33,7 @@ import { shouldRenderApplicationMenu } from './lib/features'
 import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
+import { AddExistingRepository } from './add-repository/add-existing-repository'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -593,6 +594,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       />
     }
 
+    else if (popup.type === PopupType.AddRepository) {
+      return (
+        <AddExistingRepository
+          dispatcher={this.props.dispatcher} />
+      )
+    }
+
     return assertNever(popup, `Unknown popup type: ${popup}`)
   }
 
@@ -905,15 +913,16 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onAppMenuClick = (destination: string) => {
-    switch(destination) {
+    switch (destination) {
       case 'add-repo':
-        return console.log("add repo");
+        this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
+        break
       case 'create-repo':
-        return console.log("create repo");
+        return console.log('create repo')
       case 'clone-repo':
-        return console.log("clone repo");
+        return console.log('clone repo')
       case 'create-branch':
-        return console.log("create branch");
+        return console.log('create branch')
     }
   }
 
