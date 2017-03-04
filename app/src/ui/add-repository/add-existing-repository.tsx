@@ -31,10 +31,6 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     this.state = { path: '', isGitRepository: false }
   }
 
-  private onDismissed = () => {
-    console.log('dismissed yo')
-  }
-
   public render() {
     const disabled = this.state.path.length === 0 || this.state.isGitRepository == null
     return (
@@ -62,6 +58,10 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
         </DialogContent>
       </Dialog>
     )
+  }
+
+  private onDismissed = () => {
+    this.props.dispatcher.closePopup()
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
