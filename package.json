@@ -78,7 +78,7 @@
     "@types/chai-datetime": "0.0.30",
     "@types/classnames": "0.0.31",
     "@types/codemirror": "0.0.37",
-    "@types/electron": "^1.4.27",
+    "@types/electron": "^1.4.33",
     "@types/electron-window-state": "^2.0.28",
     "@types/event-kit": "^1.2.28",
     "@types/fs-extra": "0.0.35",
