@@ -889,7 +889,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <CloningRepositoryView repository={selectedState.repository}
                                     state={selectedState.state}/>
     } else if (selectedState.type === SelectionType.MissingRepository) {
-      return <MissingRepository repository={selectedState.repository} dispatcher={this.props.dispatcher}/>
+      return <MissingRepository repository={selectedState.repository} dispatcher={this.props.dispatcher} users={this.state.users} />
     } else {
       return assertNever(selectedState, `Unknown state: ${selectedState}`)
     }

@@ -3,6 +3,9 @@ import * as React from 'react'
 import { UiView } from './ui-view'
 import { Dispatcher } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
+import { User } from '../models/user'
+import { findUserForRemote } from '../lib/find-account'
+
 import { Octicon, OcticonSymbol } from './octicons'
 import { Button } from './lib/button'
 import { Row } from './lib/row'
@@ -10,6 +13,7 @@ import { Row } from './lib/row'
 interface IMissingRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
+  readonly users: ReadonlyArray<User>
 }
 
 /** The view displayed when a repository is missing. */
@@ -73,8 +77,11 @@ export class MissingRepository extends React.Component<IMissingRepositoryProps, 
     const cloneURL = gitHubRepository.cloneURL
     if (!cloneURL) { return }
 
-    // TODO: find suitable user for credentials
-
-    await this.props.dispatcher.cloneAgain(cloneURL, this.props.repository.path, null)
+    try {
+      const user = await findUserForRemote(cloneURL, this.props.users)
+      await this.props.dispatcher.cloneAgain(cloneURL, this.props.repository.path, user)
+    } catch (error) {
+      this.props.dispatcher.postError(error)
+    }
   }
 }
