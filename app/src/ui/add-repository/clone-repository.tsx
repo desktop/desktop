@@ -14,6 +14,7 @@ import { User } from '../../models/user'
 import { Errors } from '../lib/errors'
 import { API, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 import { parseRemote } from '../../lib/remote-parsing'
+import { Dialog, DialogContent } from '../dialog'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -72,29 +73,39 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       !!error && error.name === DestinationExistsErrorName
 
     return (
-      <Form className='clone-repository' onSubmit={this.clone}>
-        <div>
-          Enter a repository URL or GitHub username and repository (e.g., <span className='repository-pattern'>hubot/cool-repo</span>)
-        </div>
+      <Dialog
+        title='Clone a repository'
+        onDismissed={this.onDismissed}>
+        <DialogContent>
+          <Form className='clone-repository' onSubmit={this.clone}>
+            <div>
+              Enter a repository URL or GitHub username and repository (e.g., <span className='repository-pattern'>hubot/cool-repo</span>)
+            </div>
 
-        <TextBox placeholder='URL or username/repository' value={this.state.url} onChange={this.onURLChanged} autoFocus/>
+            <TextBox placeholder='URL or username/repository' value={this.state.url} onChange={this.onURLChanged} autoFocus/>
 
-        <Row>
-          <TextBox
-            value={this.state.path}
-            label={__DARWIN__ ? 'Local Path' : 'Local path'}
-            placeholder='repository path'
-            onChange={this.onPathChanged}/>
-          <Button onClick={this.showFilePicker}>Choose…</Button>
-        </Row>
+            <Row>
+              <TextBox
+                value={this.state.path}
+                label={__DARWIN__ ? 'Local Path' : 'Local path'}
+                placeholder='repository path'
+                onChange={this.onPathChanged}/>
+              <Button onClick={this.showFilePicker}>Choose…</Button>
+            </Row>
 
-        <Button disabled={disabled} type='submit'>Clone</Button>
+            <Button disabled={disabled} type='submit'>Clone</Button>
 
-        {error ? <Errors>{error.message}</Errors> : null}
+            {error ? <Errors>{error.message}</Errors> : null}
 
-        {this.state.loading ? <Loading/> : null}
-      </Form>
+            {this.state.loading ? <Loading/> : null}
+          </Form>
+        </DialogContent>
+      </Dialog>
     )
+  }
+
+  private onDismissed = () => {
+    this.props.dispatcher.closePopup()
   }
 
   private showFilePicker = () => {
