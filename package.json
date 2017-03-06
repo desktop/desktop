@@ -74,7 +74,7 @@
   "devDependencies": {
     "@types/chai": "^3.4.30",
     "@types/chai-datetime": "0.0.30",
-    "@types/classnames": "0.0.31",
+    "@types/classnames": "^0.0.32",
     "@types/codemirror": "0.0.37",
     "@types/electron": "^1.4.27",
     "@types/electron-window-state": "^2.0.28",
