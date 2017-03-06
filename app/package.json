@@ -15,7 +15,7 @@
   "dependencies": {
     "byline": "^4.2.2",
     "classnames": "^2.2.5",
-    "codemirror": "^5.19.0",
+    "codemirror": "^5.24.2",
     "dexie": "^1.4.1",
     "electron-window-state": "^4.0.1",
     "event-kit": "^2.0.0",
