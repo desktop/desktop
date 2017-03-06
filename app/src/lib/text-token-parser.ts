@@ -19,25 +19,25 @@ export enum TokenType {
 }
 
 export type EmojiMatch = {
-  readonly kind: TokenType.Emoji,
+  readonly kind: TokenType.Emoji
   // The alternate text to display with the image, e.g. ':+1:'
-  readonly text: string,
+  readonly text: string
   // The path on disk to the image.
-  readonly path: string,
+  readonly path: string
 }
 
 export type HyperlinkMatch = {
-  readonly kind: TokenType.Link,
+  readonly kind: TokenType.Link
   // The text to display inside the rendered link, e.g. @shiftkey
-  readonly text: string,
+  readonly text: string
   // The URL to launch when clicking on the link
-  readonly url: string,
+  readonly url: string
 }
 
 export type PlainText = {
-  readonly kind: TokenType.Text,
+  readonly kind: TokenType.Text
   // The text to render.
-  readonly text: string,
+  readonly text: string
 }
 
 export type TokenResult = PlainText | EmojiMatch | HyperlinkMatch
@@ -81,7 +81,7 @@ export class Tokenizer {
     }
   }
 
-  private peek(): string | null {
+  private getLastProcessedChar(): string | null {
     if (this._currentString.length) {
       return this._currentString[this._currentString.length - 1]
     }
@@ -109,7 +109,7 @@ export class Tokenizer {
   private scanForEmoji(text: string, index: number): LookupResult | null {
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeEmoji = text.slice(index, nextIndex)
-    if (!/:.*?:/.exec(maybeEmoji)) { return null }
+    if (!/^:.*?:$/.test(maybeEmoji)) { return null }
 
     const path = this.emoji.get(maybeEmoji)
     if (!path) { return null }
@@ -122,7 +122,7 @@ export class Tokenizer {
   private scanForIssue(text: string, index: number, repository: GitHubRepository): LookupResult | null {
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeIssue = text.slice(index, nextIndex)
-    if (!/#[0-9]+/.exec(maybeIssue)) { return null }
+    if (!/^#[0-9]+$/.test(maybeIssue)) { return null }
 
     this.flush()
     const id = parseInt(maybeIssue.substr(1), 10)
@@ -134,12 +134,12 @@ export class Tokenizer {
   private scanForMention(text: string, index: number, repository: GitHubRepository): LookupResult | null {
     // to ensure this isn't part of an email address, peek at the previous
     // character - if something is found and it's not whitespace, bail out
-    const lastItem = this.peek()
+    const lastItem = this.getLastProcessedChar()
     if (lastItem && lastItem !== ' ') { return null }
 
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeMention = text.slice(index, nextIndex)
-    if (!/@[a-zA-Z0-9\-]+/.exec(maybeMention)) { return null }
+    if (!/^@[a-zA-Z0-9\-]+$/.test(maybeMention)) { return null }
 
     this.flush()
     const name = maybeMention.substr(1)
@@ -151,12 +151,12 @@ export class Tokenizer {
   private scanForHyperlink(text: string, index: number, repository?: GitHubRepository): LookupResult | null {
     // to ensure this isn't just the part of some word - if something is
     // found and it's not whitespace, bail out
-    const lastItem = this.peek()
+    const lastItem = this.getLastProcessedChar()
     if (lastItem && lastItem !== ' ') { return null }
 
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeHyperlink = text.slice(index, nextIndex)
-    if (!/^(http(s?))\:\/\//.exec(maybeHyperlink)) { return null }
+    if (!/^(http(s?))\:\/\//.test(maybeHyperlink)) { return null }
 
     this.flush()
     if (repository && repository.htmlURL) {
