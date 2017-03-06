@@ -122,10 +122,12 @@ export class Tokenizer {
   private scanForIssue(text: string, index: number, repository: GitHubRepository): LookupResult | null {
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeIssue = text.slice(index, nextIndex)
-    if (!/^#[0-9]+$/.test(maybeIssue)) { return null }
+    if (!/^#\d+$/.test(maybeIssue)) { return null }
 
     this.flush()
     const id = parseInt(maybeIssue.substr(1), 10)
+    if (isNaN(id)) { return null }
+
     const url = `${repository.htmlURL}/issues/${id}`
     this._results.push({ kind: TokenType.Link, text: maybeIssue, url })
     return { nextIndex }
@@ -161,12 +163,14 @@ export class Tokenizer {
     this.flush()
     if (repository && repository.htmlURL) {
       // case-insensitive regex to see if this matches the issue URL template for the current repository
-      const regex = new RegExp(`${repository.htmlURL}\/issues\/([0-9]{1,})`, 'i')
-      const issueMatch = regex.exec(maybeHyperlink)
-      if (issueMatch) {
-        const idText = issueMatch[1]
-        this._results.push({ kind: TokenType.Link,  url: maybeHyperlink, text: `#${idText}` })
-        return { nextIndex }
+      const compare = repository.htmlURL.toLowerCase()
+      if (maybeHyperlink.toLowerCase().startsWith(`${compare}/issues/`)) {
+        const issueMatch = /\/issues\/(\d+)/.exec(maybeHyperlink)
+        if (issueMatch) {
+          const idText = issueMatch[1]
+          this._results.push({ kind: TokenType.Link,  url: maybeHyperlink, text: `#${idText}` })
+          return { nextIndex }
+        }
       }
     }
 
