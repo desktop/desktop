@@ -612,6 +612,10 @@ export class App extends React.Component<IAppProps, IAppState> {
           users={this.state.users}
           dispatcher={this.props.dispatcher} />
       )
+    } else if (popup.type === PopupType.CreateBranch) {
+      return (
+          <div>Hello</div>
+      )
     }
 
     return assertNever(popup, `Unknown popup type: ${popup}`)
@@ -782,6 +786,22 @@ export class App extends React.Component<IAppProps, IAppState> {
       users={this.state.users}/>
   }
 
+  private showCreateBranch = () => {
+    const selection = this.state.selectedState
+
+    // NB: This should never happen but in the case someone
+    // manages to delete the last repository while the drop down is
+    // open we'll just bail here.
+    if (!selection || selection.type !== SelectionType.Repository) {
+      return null
+    }
+
+    const repository = selection.repository
+
+    return this.props.dispatcher.showPopup({ type: PopupType.CreateBranch, repository })
+  }
+
+
   private renderBranchFoldout = (): JSX.Element | null => {
     const selection = this.state.selectedState
 
@@ -915,28 +935,27 @@ export class App extends React.Component<IAppProps, IAppState> {
       <div id='app-menu-foldout'>
         <ul className='menu-pane add-menu'>
           <li className='add-menu-item add-menu-item-header'>Repository</li>
-          <li className='add-menu-item' onClick={() => this.onAppMenuClick('add-repo')}>Add local respository</li>
-          <li className='add-menu-item' onClick={() => this.onAppMenuClick('create-repo')}>Create new repository</li>
-          <li className='add-menu-item' onClick={() => this.onAppMenuClick('clone-repo')}>Clone repository</li>
+          <li className='add-menu-item' onClick={this.onAddRepoClick}>Add local respository</li>
+          <li className='add-menu-item' onClick={this.onCreateRepo}>Create new repository</li>
+          <li className='add-menu-item' onClick={this.onCloneRepo}>Clone repository</li>
           <li className='add-menu-item add-menu-item-header'>Branches</li>
-          <li className='add-menu-item' onClick={() => this.onAppMenuClick('create-branch')}>Create new branch</li>
+          <li className='add-menu-item' onClick={this.showCreateBranch}>Create new branch</li>
         </ul>
       </div>
     )
   }
 
-  private onAppMenuClick = (destination: string) => {
-    switch (destination) {
-      case 'add-repo':
-        return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
-      case 'create-repo':
-        return this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
-      case 'clone-repo':
-        return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
-      case 'create-branch':
-        return console.log('create branch')
-    }
+  private onAddRepoClick = () => {
+    return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
   }
+
+  private onCreateRepo = () => {
+    return this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
+  }
+
+  private onCloneRepo = () => {
+    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
+}
 
   private renderRepository() {
     const selectedState = this.state.selectedState

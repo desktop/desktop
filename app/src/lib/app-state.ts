@@ -99,7 +99,8 @@ export enum PopupType {
   RepositorySettings,
   AddRepository,
   CreateRepository,
-  CloneRepository
+  CloneRepository,
+  CreateBranch
 }
 
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
@@ -111,7 +112,8 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.RepositorySettings, repository: Repository } |
                     { type: PopupType.AddRepository } |
                     { type: PopupType.CreateRepository } |
-                    { type: PopupType.CloneRepository }
+                    { type: PopupType.CloneRepository } |
+                    { type: PopupType.CreateBranch, repository: Repository }
 
 export enum FoldoutType {
   Repository,
