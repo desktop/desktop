@@ -1,13 +1,12 @@
 import * as React from 'react'
 import { TabBar } from '../tab-bar'
 import { SignIn as SignInCore } from '../lib/sign-in'
-import { assertNever } from '../../lib/fatal-error'
-import { Dispatcher } from '../../lib/dispatcher'
-import { getDotComAPIEndpoint } from '../../lib/api'
-import { User } from '../../models/user'
+import { fatalError } from '../../lib/fatal-error'
+import { Dispatcher, SignInState } from '../../lib/dispatcher'
 
 interface ISignInProps {
   readonly dispatcher: Dispatcher
+  readonly signInState: SignInState | null
 }
 
 enum SignInTab {
@@ -30,6 +29,10 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     this.state = { selectedIndex: SignInTab.DotCom }
   }
 
+  public componentWillMount() {
+    this.props.dispatcher.beginDotComSignIn()
+  }
+
   public render() {
     return (
       <div>
@@ -46,25 +49,31 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   }
 
   private renderActiveTab() {
-    const index = this.state.selectedIndex
-    switch (index) {
-      case SignInTab.DotCom: {
-        return <SignInCore
-          endpoint={getDotComAPIEndpoint()}
-          onDidSignIn={this.onDidSignIn}/>
-      }
-      case SignInTab.Enterprise: {
-        return <SignInCore onDidSignIn={this.onDidSignIn}/>
-      }
-      default: return assertNever(index, `Unknown tab index: ${index}`)
+
+    const signInState = this.props.signInState
+
+    if (!signInState) {
+      return null
     }
+
+    return (
+      <SignInCore
+        signInState={signInState}
+        dispatcher={this.props.dispatcher}
+      />
+    )
   }
 
   private onTabClicked = (index: number) => {
-    this.setState({ selectedIndex: index })
-  }
 
-  private onDidSignIn = (user: User) => {
-    this.props.dispatcher.addUser(user)
+    if (index === SignInTab.DotCom) {
+      this.props.dispatcher.beginDotComSignIn()
+    } else if (index === SignInTab.Enterprise) {
+      this.props.dispatcher.beginEnterpriseSignIn()
+    } else {
+      return fatalError(`Unsupported tab index ${index}`)
+    }
+
+    this.setState({ selectedIndex: index })
   }
 }
