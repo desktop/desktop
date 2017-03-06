@@ -72,7 +72,6 @@
     "xml2js": "^0.4.16"
   },
   "devDependencies": {
-    "@types/bunyan": "0.0.35",
     "@types/chai": "^3.4.30",
     "@types/chai-datetime": "0.0.30",
     "@types/classnames": "0.0.31",
