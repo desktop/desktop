@@ -16,7 +16,7 @@ import { sendReady } from './main-process-proxy'
 import { reportError } from '../lib/exception-reporting'
 import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
-import { IssuesDatabase, IssuesStore } from '../lib/dispatcher'
+import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
 import { defaultErrorHandler } from '../lib/dispatcher'
 
@@ -45,7 +45,17 @@ const cloningRepositoriesStore = new CloningRepositoriesStore()
 const emojiStore = new EmojiStore()
 const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
 const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
-const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore, emojiStore, issuesStore, statsStore)
+const signInStore = new SignInStore()
+
+const appStore = new AppStore(
+  gitHubUserStore,
+  cloningRepositoriesStore,
+  emojiStore,
+  issuesStore,
+  statsStore,
+  signInStore,
+)
+
 const dispatcher = new Dispatcher(appStore)
 dispatcher.registerErrorHandler(defaultErrorHandler)
 

@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { SignIn } from './sign-in'
 import { PublishRepository } from './publish-repository'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher, SignInState } from '../../lib/dispatcher'
 import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 
@@ -13,6 +13,8 @@ interface IPublishProps {
 
   /** The signed in users. */
   readonly users: ReadonlyArray<User>
+
+  readonly signInState: SignInState | null
 }
 
 /**
@@ -20,6 +22,7 @@ interface IPublishProps {
  * in component.
  */
 export class Publish extends React.Component<IPublishProps, void> {
+
   public render() {
     if (this.props.users.length > 0) {
       return <PublishRepository
@@ -27,7 +30,12 @@ export class Publish extends React.Component<IPublishProps, void> {
         repository={this.props.repository}
         users={this.props.users}/>
     } else {
-      return <SignIn dispatcher={this.props.dispatcher}/>
+      return (
+        <SignIn
+          dispatcher={this.props.dispatcher}
+          signInState={this.props.signInState}
+        />
+      )
     }
   }
 }
