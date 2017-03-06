@@ -53,6 +53,7 @@
     "fs-extra": "^2.0.0",
     "got": "^6.3.0",
     "html-webpack-plugin": "^2.21.0",
+    "klaw-sync": "^1.1.2",
     "mocha": "^3.0.2",
     "node-sass": "^3.12.2",
     "request": "^2.72.0",
