@@ -352,8 +352,7 @@ export class Dispatcher {
 
   /**
    * Clone a missing repository to the previous path, and update it's
-   * repository state if the clone completes without error.
-   *
+   * state in the repository list if the clone completes without error.
    */
   public async cloneAgain(url: string, path: string, user: User | null): Promise<void> {
     const { promise, repository } = this.appStore._clone(url, path, user)
@@ -365,7 +364,7 @@ export class Dispatcher {
     // To ensure a smooth transition back, we should lookup the new repository
     // and update it's state after the clone has completed
     const repositories = await this.loadRepositories()
-    const found = repositories.find(r => r.path === path)
+    const found = repositories.find(r => r.path === path) || null
 
     if (found) {
       const updatedRepository = await this.updateRepositoryMissing(found, false)
