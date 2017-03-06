@@ -44,7 +44,7 @@
     "cross-env": "^1.0.8",
     "css-loader": "^0.23.1",
     "electron": "1.6.1",
-    "electron-mocha": "3.0.5",
+    "electron-mocha": "3.3.0",
     "electron-packager": "8.1.0",
     "electron-winstaller": "^2.3.0",
     "express": "^4.13.4",
