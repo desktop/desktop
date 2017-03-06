@@ -1,0 +1,9 @@
+#app-menu-bar {
+  .toolbar-button > button {
+    color: var(--toolbar-button-secondary-color);
+
+    &:hover {
+      color: var(--toolbar-button-color);
+    }
+  }
+}
