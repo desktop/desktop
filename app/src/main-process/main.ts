@@ -158,6 +158,8 @@ app.on('ready', () => {
     }
 
     const window = BrowserWindow.fromWebContents(event.sender)
+    // TODO: read https://github.com/desktop/desktop/issues/1003
+    // to clean up this sin against T Y P E S
     const anyMenu: any = menu
     anyMenu.popup(window, { async: true })
   })
