@@ -36,6 +36,7 @@ import { AppError } from './app-error'
 import { AddExistingRepository } from './add-repository/add-existing-repository'
 import { CreateRepository } from './add-repository/create-repository'
 import { CloneRepository } from './add-repository/clone-repository'
+import { CreateBranch } from './create-branch'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -613,8 +614,21 @@ export class App extends React.Component<IAppProps, IAppState> {
           dispatcher={this.props.dispatcher} />
       )
     } else if (popup.type === PopupType.CreateBranch) {
+      const state = this.props.appStore.getRepositoryState(popup.repository)
+
+      const tip = state.branchesState.tip
+      const currentBranch = tip.kind === TipState.Valid
+        ? tip.branch
+        : null
+
+      const repository = popup.repository
+
       return (
-          <div>Hello</div>
+        <CreateBranch
+          currentBranch={currentBranch}
+          branches={state.branchesState.allBranches}
+          repository={repository}
+          dispatcher={this.props.dispatcher} />
       )
     }
 
@@ -955,7 +969,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onCloneRepo = () => {
     return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
-}
+  }
 
   private renderRepository() {
     const selectedState = this.state.selectedState
