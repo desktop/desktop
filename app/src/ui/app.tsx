@@ -732,8 +732,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderRepositoryList = (): JSX.Element => {
     const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
-    const foldout = this.state.currentFoldout
-    const expandAddRepository = !!foldout && foldout.type === FoldoutType.Repository && foldout.expandAddRepository
     return <RepositoriesList
       selectedRepository={selectedRepository}
       onSelectionChanged={this.onSelectionChanged}
@@ -741,8 +739,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       repositories={this.state.repositories}
       loading={this.state.loading}
       users={this.state.users}
-      expandAddRepository={expandAddRepository}
-    />
+      />
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
