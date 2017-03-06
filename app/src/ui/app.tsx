@@ -16,7 +16,7 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
-import { OcticonSymbol, iconForRepository } from './octicons'
+import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
 import { setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateState } from './lib/update-store'
@@ -536,8 +536,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
 
+    const appIcon = __WIN32__ && !this.state.showWelcomeFlow
+      ? <Octicon className='app-icon' symbol={OcticonSymbol.markGithub} />
+      : null
+
     return (
       <div className={titleBarClass} id='desktop-app-title-bar'>
+        {appIcon}
         {menuBar}
         {winControls}
       </div>
