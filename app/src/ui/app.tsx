@@ -538,7 +538,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     return (
       <div className={titleBarClass} id='desktop-app-title-bar'>
-        <span className='app-title'>GitHub Desktop</span>
         {menuBar}
         {winControls}
       </div>
