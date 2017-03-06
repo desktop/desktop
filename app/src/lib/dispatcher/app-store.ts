@@ -266,20 +266,7 @@ export class AppStore {
     const repository = this.selectedRepository
     if (!repository) { return null }
 
-    if (repository instanceof Repository) {
-      if (repository.missing) {
-        return {
-          type: SelectionType.MissingRepository,
-          repository,
-        }
-      } else {
-        return {
-          type: SelectionType.Repository,
-          repository,
-          state: this.getRepositoryState(repository),
-        }
-      }
-    } else {
+    if (repository instanceof CloningRepository) {
       const cloningState = this.cloningRepositoriesStore.getRepositoryState(repository)
       if (!cloningState) { return null }
 
@@ -288,6 +275,19 @@ export class AppStore {
         repository,
         state: cloningState,
       }
+    }
+
+    if (repository.missing) {
+      return {
+        type: SelectionType.MissingRepository,
+        repository,
+      }
+    }
+
+    return {
+      type: SelectionType.Repository,
+      repository,
+      state: this.getRepositoryState(repository),
     }
   }
 
@@ -596,13 +596,13 @@ export class AppStore {
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
     if (selectedRepository) {
       const r = this.repositories.find(r =>
-        selectedRepository.constructor === r.constructor && r.id === selectedRepository.id
+        r.constructor === selectedRepository.constructor && r.id === selectedRepository.id
       ) || null
 
       newSelectedRepository = r
     }
 
-    if (!newSelectedRepository && this.repositories.length > 0) {
+    if (newSelectedRepository !== null && this.repositories.length > 0) {
       const lastSelectedID = parseInt(localStorage.getItem(LastSelectedRepositoryIDKey) || '', 10)
       if (lastSelectedID && !isNaN(lastSelectedID)) {
         newSelectedRepository = this.repositories.find(r => r.id === lastSelectedID) || null

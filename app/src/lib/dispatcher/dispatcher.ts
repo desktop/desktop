@@ -321,9 +321,7 @@ export class Dispatcher {
    */
   public async postError(error: Error): Promise<void> {
     let currentError: Error | null = error
-    for (let i = this.errorHandlers.length - 1; i >= 0; i--) {
-      const handler = this.errorHandlers[i]
-
+    for (const handler of this.errorHandlers.reverse()) {
       currentError = await handler(currentError, this)
 
       if (!currentError) { break }
@@ -348,15 +346,19 @@ export class Dispatcher {
     return this.appStore._clearError(error)
   }
 
-  /** Clone the repository again to the path and update the existing repository state. */
+  /**
+   * Clone a missing repository to the previous path, and update it's
+   * repository state if the clone completes without error.
+   *
+   */
   public async cloneAgain(url: string, path: string, user: User | null): Promise<void> {
     const { promise, repository } = this.appStore._clone(url, path, user)
     await this.selectRepository(repository)
     const success = await promise
     if (!success) { return }
 
-    // in the background the shared process has updated the repository list
-    // to ensure a smooth transition back, we should lookup the new repository
+    // In the background the shared process has updated the repository list.
+    // To ensure a smooth transition back, we should lookup the new repository
     // and update it's state after the clone has completed
     const repositories = await this.loadRepositories()
     const found = repositories.find(r => r.path === path)
