@@ -534,6 +534,9 @@ export class AppStore {
     localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
 
     if (repository.missing) {
+      // as the repository is no longer found on disk, cleaning this up
+      // ensures we don't accidentally run any Git operations against the
+      // wrong location if the user then relocates the `.git` folder elsewhere
       this.removeGitStore(repository)
       return
     }
