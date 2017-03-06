@@ -1,5 +1,19 @@
 {
   "releases": {
+    "0.0.25": [
+      "[Added] Autocomplete for user mentions - #942",
+      "[Improved] Preferences sign-in flow is now standalone dialogs - #961",
+      "[Improved] Updated to Electron 1.6.1 - #939 #979",
+      "[Fixed] Handle and ignore user pressing 'enter' when matching list empty- #995",
+      "[Fixed] Show 'add repository' button when repository list empty - #984",
+      "[Fixed] Correct icon displayed for non-GitHub repository - #964 #955",
+      "[Fixed] User pressing 'enter' inside dialog now submits, instead of closing - #956",
+      "[Fixed] Updated URL handler entry on macOS - #945",
+      "[Fixed] Commit button now disabled while commit in progress - #940",
+      "[Fixed] Handle index state change when gitginore change is discarded - #935",
+      "[Fixed] 'Create new branch' view squashes branch list when expanded - #927",
+      "[Fixed] Application creates repository path if it doesn't exist on disk - #925"
+    ],
     "0.0.24": [
       "Changed a thing",
       "Added another thing"
