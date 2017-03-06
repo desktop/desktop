@@ -529,26 +529,24 @@ export class AppStore {
     this.stopBackgroundFetching()
 
     if (!repository) { return Promise.resolve() }
+    if (!(repository instanceof Repository)) { return Promise.resolve() }
 
-    if (repository instanceof Repository) {
-      localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
+    localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
 
-      if (!repository.missing) {
-        const gitHubRepository = repository.gitHubRepository
-        if (gitHubRepository) {
-          this._updateIssues(gitHubRepository)
-        }
-
-        await this._refreshRepository(repository)
-
-        this.startBackgroundFetching(repository)
-        this.refreshMentionables(repository)
-      } else {
-        this.removeGitStore(repository)
-      }
-    } else {
-      return Promise.resolve()
+    if (repository.missing) {
+      this.removeGitStore(repository)
+      return
     }
+
+    const gitHubRepository = repository.gitHubRepository
+    if (gitHubRepository) {
+      this._updateIssues(gitHubRepository)
+    }
+
+    await this._refreshRepository(repository)
+
+    this.startBackgroundFetching(repository)
+    this.refreshMentionables(repository)
   }
 
   public async _updateIssues(repository: GitHubRepository) {
