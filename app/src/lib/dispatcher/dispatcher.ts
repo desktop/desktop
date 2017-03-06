@@ -4,7 +4,7 @@ import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
-import { RepositorySection, Popup, Foldout, FoldoutType } from '../app-state'
+import { RepositorySection, Popup, PopupType, Foldout, FoldoutType } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
@@ -66,6 +66,10 @@ export class Dispatcher {
 
   public constructor(appStore: AppStore) {
     this.appStore = appStore
+
+    appStore.onDidAuthenticate((user) => {
+      this.addUser(user)
+    })
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
@@ -577,6 +581,113 @@ export class Dispatcher {
   /** Set whether the user has opted out of stats reporting. */
   public setStatsOptOut(optOut: boolean): Promise<void> {
     return this.appStore._setStatsOptOut(optOut)
+  }
+
+  /**
+   * Clear any in-flight sign in state and return to the
+   * initial (no sign-in) state.
+   */
+  public resetSignInState(): Promise<void> {
+    return this.appStore._resetSignInState()
+  }
+
+  /**
+   * Initiate a sign in flow for github.com. This will put the store
+   * in the Authentication step ready to receive user credentials.
+   */
+  public beginDotComSignIn(): Promise<void> {
+    return this.appStore._beginDotComSignIn()
+  }
+
+  /**
+   * Initiate a sign in flow for a GitHub Enterprise instance. This will
+   * put the store in the EndpointEntry step ready to receive the url
+   * to the enterprise instance.
+   */
+  public beginEnterpriseSignIn(): Promise<void> {
+    return this.appStore._beginEnterpriseSignIn()
+  }
+
+  /**
+   * Attempt to advance from the EndpointEntry step with the given endpoint
+   * url. This method must only be called when the store is in the authentication
+   * step or an error will be thrown.
+   *
+   * The provided endpoint url will be validated for syntactic correctness as
+   * well as connectivity before the promise resolves. If the endpoint url is
+   * invalid or the host can't be reached the promise will be rejected and the
+   * sign in state updated with an error to be presented to the user.
+   *
+   * If validation is successful the store will advance to the authentication
+   * step.
+   */
+  public setSignInEndpoint(url: string): Promise<void> {
+    return this.appStore._setSignInEndpoint(url)
+  }
+
+  /**
+   * Attempt to advance from the authentication step using a username
+   * and password. This method must only be called when the store is
+   * in the authentication step or an error will be thrown. If the
+   * provided credentials are valid the store will either advance to
+   * the Success step or to the TwoFactorAuthentication step if the
+   * user has enabled two factor authentication.
+   *
+   * If an error occurs during sign in (such as invalid credentials)
+   * the authentication state will be updated with that error so that
+   * the responsible component can present it to the user.
+   */
+  public setSignInCredentials(username: string, password: string): Promise<void> {
+    return this.appStore._setSignInCredentials(username, password)
+  }
+
+  /**
+   * Initiate an OAuth sign in using the system configured browser.
+   * This method must only be called when the store is in the authentication
+   * step or an error will be thrown.
+   *
+   * The promise returned will only resolve once the user has successfully
+   * authenticated. If the user terminates the sign-in process by closing
+   * their browser before the protocol handler is invoked, by denying the
+   * protocol handler to execute or by providing the wrong credentials
+   * this promise will never complete.
+   */
+  public requestBrowserAuthentication(): Promise<void> {
+    return this.appStore._requestBrowserAuthentication()
+  }
+
+  /**
+   * Attempt to complete the sign in flow with the given OTP token.\
+   * This method must only be called when the store is in the
+   * TwoFactorAuthentication step or an error will be thrown.
+   *
+   * If the provided token is valid the store will advance to
+   * the Success step.
+   *
+   * If an error occurs during sign in (such as invalid credentials)
+   * the authentication state will be updated with that error so that
+   * the responsible component can present it to the user.
+   */
+  public setSignInOTP(otp: string): Promise<void> {
+    return this.appStore._setSignInOTP(otp)
+  }
+
+  /**
+   * Launch a sign in dialog for authenticating a user with
+   * GitHub.com.
+   */
+  public async showDotComSignInDialog(): Promise<void> {
+    await this.appStore._beginDotComSignIn()
+    await this.appStore._showPopup({ type: PopupType.SignIn })
+  }
+
+  /**
+   * Launch a sign in dialog for authenticating a user with
+   * a GitHub Enterprise instance.
+   */
+  public async showEnterpriseSignInDialog(): Promise<void> {
+    await this.appStore._beginEnterpriseSignIn()
+    await this.appStore._showPopup({ type: PopupType.SignIn })
   }
 
   /**
