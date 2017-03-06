@@ -1,10 +1,16 @@
 import * as Path from 'path'
-const fs = require('fs-extra')
+import * as FSE from 'fs-extra'
+
+const klawSync = require('klaw-sync')
 
 const temp = require('temp').track()
 
 import { Repository } from '../src/models/repository'
 import { GitProcess } from 'git-kitchen-sink'
+
+type KlawEntry = {
+  path: string
+}
 
 /**
  * Set up the named fixture repository to be used in a test.
@@ -14,23 +20,23 @@ import { GitProcess } from 'git-kitchen-sink'
 export function setupFixtureRepository(repositoryName: string): string {
   const testRepoFixturePath = Path.join(__dirname, 'fixtures', repositoryName)
   const testRepoPath = temp.mkdirSync('desktop-git-test-')
-  fs.copySync(testRepoFixturePath, testRepoPath)
+  FSE.copySync(testRepoFixturePath, testRepoPath)
 
-  fs.renameSync(Path.join(testRepoPath, '_git'), Path.join(testRepoPath, '.git'))
+  FSE.renameSync(Path.join(testRepoPath, '_git'), Path.join(testRepoPath, '.git'))
 
-  const ignoreHiddenFiles = function(item: string){
-    const basename = Path.basename(item)
+  const ignoreHiddenFiles = function(item: KlawEntry){
+    const basename = Path.basename(item.path)
     return basename === '.' || basename[0] !== '.'
   }
 
-  const paths: ReadonlyArray<string> = fs.walkSync(testRepoPath)
-  const visiblePaths = paths.filter(ignoreHiddenFiles)
-  const submodules = visiblePaths.filter(path => Path.basename(path) === '_git')
+  const entries: ReadonlyArray<KlawEntry> = klawSync(testRepoPath)
+  const visiblePaths = entries.filter(ignoreHiddenFiles)
+  const submodules = visiblePaths.filter(entry => Path.basename(entry.path) === '_git')
 
-  submodules.forEach(submodule => {
-    const directory = Path.dirname(submodule)
+  submodules.forEach(entry => {
+    const directory = Path.dirname(entry.path)
     const newPath = Path.join(directory, '.git')
-    fs.renameSync(submodule, newPath)
+    FSE.renameSync(entry.path, newPath)
   })
 
   return testRepoPath
