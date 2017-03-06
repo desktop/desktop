@@ -34,6 +34,7 @@ import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
 import { AddExistingRepository } from './add-repository/add-existing-repository'
+import { CreateRepository } from './add-repository/create-repository'
 import { CloneRepository } from './add-repository/clone-repository'
 
 /** The interval at which we should check for updates. */
@@ -600,6 +601,11 @@ export class App extends React.Component<IAppProps, IAppState> {
         <AddExistingRepository
           dispatcher={this.props.dispatcher} />
       )
+    } else if (popup.type === PopupType.CreateRepository)  {
+      return (
+        <CreateRepository
+          dispatcher={this.props.dispatcher} />
+      )
     } else if (popup.type === PopupType.CloneRepository)  {
       return (
         <CloneRepository
@@ -924,7 +930,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'add-repo':
         return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
       case 'create-repo':
-        return console.log('create repo')
+        return this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
       case 'clone-repo':
         return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
       case 'create-branch':

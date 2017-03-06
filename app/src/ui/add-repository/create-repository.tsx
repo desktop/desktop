@@ -17,6 +17,7 @@ import { Loading } from '../lib/loading'
 import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { ILicense, getLicenses, writeLicense } from './licenses'
 import { getDefaultDir } from '../lib/default-dir'
+import { Dialog, DialogContent } from '../dialog'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -260,45 +261,55 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     )
   }
 
+  private onDismissed = () => {
+    this.props.dispatcher.closePopup()
+  }
+
   public render() {
     const disabled = this.state.path.length === 0 || this.state.name.length === 0 || this.state.creating
     return (
-      <Form>
-        <TextBox
-          value={this.state.name}
-          label='Name'
-          placeholder='repository name'
-          onChange={this.onNameChanged}
-          autoFocus />
+      <Dialog
+        title='Create a new repository'
+        onDismissed={this.onDismissed}>
+        <DialogContent>
+          <Form>
+            <TextBox
+              value={this.state.name}
+              label='Name'
+              placeholder='repository name'
+              onChange={this.onNameChanged}
+              autoFocus />
 
-        {this.renderError()}
+            {this.renderError()}
 
-        <Row>
-          <TextBox
-            value={this.state.path}
-            label='Local Path'
-            placeholder='repository path'
-            onChange={this.onPathChanged} />
-          <Button onClick={this.showFilePicker}>Choose…</Button>
-        </Row>
+            <Row>
+              <TextBox
+                value={this.state.path}
+                label='Local Path'
+                placeholder='repository path'
+                onChange={this.onPathChanged} />
+              <Button onClick={this.showFilePicker}>Choose…</Button>
+            </Row>
 
-        <Checkbox
-          label='Initialize this repository with a README'
-          value={this.state.createWithReadme ? CheckboxValue.On : CheckboxValue.Off}
-          onChange={this.onCreateWithReadmeChange} />
+            <Checkbox
+              label='Initialize this repository with a README'
+              value={this.state.createWithReadme ? CheckboxValue.On : CheckboxValue.Off}
+              onChange={this.onCreateWithReadmeChange} />
 
-        {this.renderGitIgnores()}
+            {this.renderGitIgnores()}
 
-        {this.renderLicenses()}
+            {this.renderLicenses()}
 
-        <hr />
+            <hr />
 
-        <Button type='submit' disabled={disabled} onClick={this.createRepository}>
-          Create Repository
-        </Button>
+            <Button type='submit' disabled={disabled} onClick={this.createRepository}>
+              Create Repository
+            </Button>
 
-        {this.state.creating ? <Loading /> : null}
-      </Form>
+            {this.state.creating ? <Loading /> : null}
+          </Form>
+        </DialogContent>
+      </Dialog>
     )
   }
 }
