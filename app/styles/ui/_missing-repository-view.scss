@@ -40,35 +40,6 @@
     margin-bottom: var(--spacing);
   }
 
-  button {
-    height: auto;
-    flex: 1;
-    flex-direction: row;
-
-    /*
-     * this overrides the default button behaviour of `flex-end`
-     * not sure if this is necessary or not
-     */
-    align-self: auto;
-  }
-
-  /* Big clone icon */
-  .octicon {
-    width: 32px;
-    height: 32px;
-
-    /* Space between the icon and title text */
-    margin-right: var(--spacing);
-
-    /* Don't grow nor shrink */
-    flex: none;
-
-    /* Warning: magic number. The icon looks poorly aligned
-     * against the baseline of the title text without this
-     */
-    margin-top: 4px;
-  }
-
   /* xl-sized title */
   .title {
     font-size: var(--font-size-xl);
@@ -77,5 +48,23 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+  }
+
+  .details {
+    margin-top: var(--spacing);
+    margin-bottom: var(--spacing);
+
+    .path {
+      font-family: var(--font-family-monospace);
+      background: var(--path-segment-background);
+      border: var(--path-segment-background);
+      border-radius: var(--border-radius);
+      padding: var(--path-segment-padding);
+    }
+  }
+
+  button {
+    // the three buttons should rougly fill the width of the panel
+    width: 120px;
   }
 }

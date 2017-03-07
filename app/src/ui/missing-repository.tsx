@@ -6,7 +6,6 @@ import { Repository } from '../models/repository'
 import { User } from '../models/user'
 import { findUserForRemote } from '../lib/find-account'
 
-import { Octicon, OcticonSymbol } from './octicons'
 import { Button } from './lib/button'
 import { Row } from './lib/row'
 
@@ -21,25 +20,22 @@ export class MissingRepository extends React.Component<IMissingRepositoryProps, 
   public render() {
     const buttons = new Array<JSX.Element>()
     buttons.push(
-      <Button key='locate' onClick={this.locate}>
-        <Octicon symbol={OcticonSymbol.search} />
-        <span>Locate…</span>
+      <Button key='locate' onClick={this.locate} type='submit'>
+        Locate…
       </Button>
     )
 
     if (this.canCloneAgain()) {
       buttons.push(
         <Button key='clone-again' onClick={this.cloneAgain}>
-          <Octicon symbol={OcticonSymbol.repoClone} />
-          <div>Clone Again</div>
+          Clone Again
         </Button>
       )
     }
 
     buttons.push(
       <Button key='remove' onClick={this.remove}>
-        <Octicon symbol={OcticonSymbol.x} />
-        <div>Remove</div>
+        Remove
       </Button>
     )
 
@@ -47,7 +43,7 @@ export class MissingRepository extends React.Component<IMissingRepositoryProps, 
       <UiView id='missing-repository-view'>
         <div className='title-container'>
           <div className='title'>Can't find "{this.props.repository.name}"</div>
-          <div className='details'>It was last seen at {this.props.repository.path}</div>
+          <div className='details'>It was last seen at <span className='path'>{this.props.repository.path}</span></div>
         </div>
 
         <Row>
