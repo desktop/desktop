@@ -208,7 +208,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   private cloneImpl(url: string, path: string, user: User | null) {
     this.props.dispatcher.clone(url, path, user)
-    this.props.dispatcher.closeFoldout()
+    this.props.dispatcher.closePopup()
 
     setDefaultDir(Path.resolve(path, '..'))
   }

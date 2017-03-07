@@ -135,6 +135,6 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
       await this.props.dispatcher.createBranch(this.props.repository, name, baseBranch.name)
     }
 
-    this.props.dispatcher.closeFoldout()
+    this.props.dispatcher.closePopup()
   }
 }

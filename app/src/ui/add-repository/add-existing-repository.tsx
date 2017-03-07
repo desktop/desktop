@@ -6,7 +6,6 @@ import { initGitRepository, isGitRepository } from '../../lib/git'
 import { Button } from '../lib/button'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
-import { FoldoutType } from '../../lib/app-state'
 import { Dialog, DialogContent } from '../dialog'
 
 const untildify: (str: string) => string = require('untildify')
@@ -69,7 +68,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
+      this.props.dispatcher.closePopup()
     }
   }
 
@@ -112,6 +111,6 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
       this.props.dispatcher.selectRepository(repository)
     }
 
-    this.props.dispatcher.closeFoldout()
+    this.props.dispatcher.closePopup()
   }
 }
