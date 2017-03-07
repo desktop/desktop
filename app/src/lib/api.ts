@@ -304,9 +304,9 @@ export async function createAuthorization(endpoint: string, login: string, passw
         const type = pieces[1].trim()
         switch (type) {
           case 'app':
-            return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode.Sms }
-          case 'sms':
             return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode.App }
+          case 'sms':
+            return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode.Sms }
           default:
             return { kind: AuthorizationResponseKind.Failed, response }
         }
