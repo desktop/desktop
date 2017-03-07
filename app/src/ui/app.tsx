@@ -209,7 +209,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'check-for-updates': return this.checkForUpdates()
       case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
       case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
-      case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
+      case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
       case 'open-working-directory': return this.openWorkingDirectory()
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
@@ -742,7 +742,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
     newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
       : this.props.dispatcher.closeFoldout()
   }
 
