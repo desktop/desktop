@@ -3,7 +3,6 @@ import * as React from 'react'
 import { RepositoryListItem } from './repository-list-item'
 import { groupRepositories, IRepositoryListItem, Repositoryish, RepositoryGroupIdentifier } from './group-repositories'
 import { Dispatcher } from '../../lib/dispatcher'
-import { User } from '../../models/user'
 import { FilterList } from '../lib/filter-list'
 import { assertNever } from '../../lib/fatal-error'
 
@@ -19,9 +18,6 @@ interface IRepositoriesListProps {
   readonly dispatcher: Dispatcher
   readonly loading: boolean
   readonly repositories: ReadonlyArray<Repositoryish>
-
-  /** The logged in users. */
-  readonly users: ReadonlyArray<User>
 }
 
 const RowHeight = 30

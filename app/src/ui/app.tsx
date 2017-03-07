@@ -738,7 +738,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       dispatcher={this.props.dispatcher}
       repositories={this.state.repositories}
       loading={this.state.loading}
-      users={this.state.users}
       />
   }
 
