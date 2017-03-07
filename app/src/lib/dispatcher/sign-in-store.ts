@@ -320,6 +320,12 @@ export class SignInStore {
           loading: false,
           error: new Error('Incorrect username or password.'),
         })
+      } else if (response.kind === AuthorizationResponseKind.UserRequiresVerification) {
+        this.setState({
+          ...currentState,
+          loading: false,
+          error: new Error('User has not verified their email address. Please sign-in to GitHub and confirm your email address before authenticating in GitHub Desktop'),
+        })
       } else {
         return assertNever(response, `Unsupported response: ${response}`)
       }
@@ -509,6 +515,10 @@ export class SignInStore {
           } else {
             this.emitError(new Error(`The server responded with an error (${response.response.statusCode})\n\n${response.response.body}`))
           }
+          break
+        case AuthorizationResponseKind.UserRequiresVerification:
+          const message = 'User has not verified their email address. Please sign-in to GitHub and confirm your email address before authenticating in GitHub Desktop'
+          this.emitError(new Error(message))
           break
         default:
           return assertNever(response, `Unknown response: ${response}`)
