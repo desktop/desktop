@@ -944,9 +944,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       <div id='app-menu-foldout' style={foldoutStyle}>
         <ul className='menu-pane add-menu'>
           <li className='add-menu-item add-menu-item-header'>Repository</li>
-          <li className='add-menu-item' onClick={this.onAddRepoClick}>Add local respository</li>
-          <li className='add-menu-item' onClick={this.onCreateRepo}>Create new repository</li>
-          <li className='add-menu-item' onClick={this.onCloneRepo}>Clone repository</li>
+          <li className='add-menu-item' onClick={this.showAddLocalRepo}>Add local respository</li>
+          <li className='add-menu-item' onClick={this.showCreateRepo}>Create new repository</li>
+          <li className='add-menu-item' onClick={this.showCloneRepo}>Clone repository</li>
           <li className='add-menu-item add-menu-item-header'>Branches</li>
           <li className='add-menu-item' onClick={this.showCreateBranch}>Create new branch</li>
         </ul>
@@ -954,15 +954,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private onAddRepoClick = () => {
+  private showAddLocalRepo = () => {
     return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
   }
 
-  private onCreateRepo = () => {
+  private showCreateRepo = () => {
     return this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
   }
 
-  private onCloneRepo = () => {
+  private showCloneRepo = () => {
     return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
   }
 
