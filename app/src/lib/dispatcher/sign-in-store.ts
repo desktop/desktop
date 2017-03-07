@@ -17,6 +17,11 @@ import {
 
 import { minimumSupportedEnterpriseVersion } from '../../lib/enterprise'
 
+function getUnverifiedErrorMessage(login: string, isEnterprise: boolean): string {
+  const friendlyInstanceName = isEnterprise ? 'your GitHub Enterprise instance' : 'GitHub.com'
+  return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to ${friendlyInstanceName} and confirm your email address in the Email section under account settings and try again.`
+}
+
 /**
  * An enumeration of the possible steps that the sign in
  * store can be in save for the unitialized state (null).
@@ -321,10 +326,12 @@ export class SignInStore {
           error: new Error('Incorrect username or password.'),
         })
       } else if (response.kind === AuthorizationResponseKind.UserRequiresVerification) {
+        const dotCom = getDotComAPIEndpoint()
+        const isEnterprise = endpoint !== dotCom
         this.setState({
           ...currentState,
           loading: false,
-          error: new Error('User has not verified their email address. Please sign-in to GitHub and confirm your email address before authenticating in GitHub Desktop'),
+          error: new Error(getUnverifiedErrorMessage(username, isEnterprise)),
         })
       } else {
         return assertNever(response, `Unsupported response: ${response}`)
@@ -517,7 +524,8 @@ export class SignInStore {
           }
           break
         case AuthorizationResponseKind.UserRequiresVerification:
-          const message = 'User has not verified their email address. Please sign-in to GitHub and confirm your email address before authenticating in GitHub Desktop'
+          const isEnterprise = currentState.endpoint !== getDotComAPIEndpoint()
+          const message = getUnverifiedErrorMessage(currentState.username, isEnterprise)
           this.emitError(new Error(message))
           break
         default:
