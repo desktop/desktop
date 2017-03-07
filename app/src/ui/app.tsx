@@ -325,7 +325,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch })
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
   }
 
   private selectChanges() {
@@ -831,15 +831,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? tip.branch
       : null
 
-    const foldout = this.state.currentFoldout
-    const expandCreateBranch = !!foldout && foldout.type === FoldoutType.Branch && foldout.expandCreateBranch
-
     return <Branches
       allBranches={state.branchesState.allBranches}
       recentBranches={state.branchesState.recentBranches}
       currentBranch={currentBranch}
       defaultBranch={state.branchesState.defaultBranch}
-      expandCreateBranch={expandCreateBranch}
       dispatcher={this.props.dispatcher}
       repository={repository}
     />
@@ -847,7 +843,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
     newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch: false })
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
       : this.props.dispatcher.closeFoldout()
   }
 

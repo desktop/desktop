@@ -125,7 +125,7 @@ export enum FoldoutType {
 
 export type Foldout =
   { type: FoldoutType.Repository, expandAddRepository: boolean } |
-  { type: FoldoutType.Branch, expandCreateBranch: boolean } |
+  { type: FoldoutType.Branch } |
   { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } |
   { type: FoldoutType.Publish } |
   { type: FoldoutType.AddMenu }
