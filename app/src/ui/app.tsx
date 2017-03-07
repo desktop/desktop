@@ -203,7 +203,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'create-branch': return this.showBranches()
       case 'show-branches': return this.showBranches()
       case 'remove-repository': return this.removeRepository()
-      case 'add-repository': return this.addRepository()
+      case 'create-repository': return this.createRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
       case 'check-for-updates': return this.checkForUpdates()
@@ -314,10 +314,9 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private addRepository() {
-    this.props.dispatcher.showFoldout({
-      type: FoldoutType.Repository,
-      expandAddRepository: true,
+  private createRepository() {
+    this.props.dispatcher.showPopup({
+      type: PopupType.CreateRepository,
     })
   }
 
