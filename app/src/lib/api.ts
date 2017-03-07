@@ -272,7 +272,7 @@ export enum AuthorizationResponseKind {
 
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
                                     { kind: AuthorizationResponseKind.Failed, response: IHTTPResponse } |
-                                    { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: string } |
+                                    { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: 'sms' | 'app' } |
                                     { kind: AuthorizationResponseKind.Error, response: IHTTPResponse }
 
 /**
@@ -301,7 +301,13 @@ export async function createAuthorization(endpoint: string, login: string, passw
       const pieces = otpResponse.split(';')
       if (pieces.length === 2) {
         const type = pieces[1].trim()
-        return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type }
+        switch (type) {
+          case 'app':
+          case 'sms':
+            return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type }
+          default:
+            return { kind: AuthorizationResponseKind.Failed, response }
+        }
       }
     }
 
