@@ -5,6 +5,11 @@ import { TextBox } from './text-box'
 import { Form } from './form'
 import { Errors } from './errors'
 
+import {
+  authenticatorAppWelcomeText,
+  smsMessageWelcomeText,
+ } from '../../lib/2fa'
+
 interface ITwoFactorAuthenticationProps {
 
   /**
@@ -56,11 +61,14 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
       ? <Errors>{this.props.error.message}</Errors>
       : null
 
+    const message = this.props.type === 'sms'
+      ? smsMessageWelcomeText
+      : authenticatorAppWelcomeText
+
     return (
       <div>
         <p className='welcome-text'>
-          Open the two-factor authentication app on your device to view your
-          authentication code and verify your identity.
+          { message }
         </p>
 
         <Form onSubmit={this.signIn}>

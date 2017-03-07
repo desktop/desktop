@@ -16,6 +16,11 @@ import { TextBox } from '../lib/text-box'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
+import {
+  authenticatorAppWelcomeText,
+  smsMessageWelcomeText,
+ } from '../../lib/2fa'
+
 interface ISignInProps {
   readonly dispatcher: Dispatcher
   readonly signInState: SignInState | null
@@ -200,11 +205,15 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   }
 
   private renderTwoFactorAuthenticationStep(state: ITwoFactorAuthenticationState) {
+
+    const message = state.type === 'sms'
+      ? smsMessageWelcomeText
+      : authenticatorAppWelcomeText
+
     return (
       <DialogContent>
         <p>
-          Open the two-factor authentication app on your device to view your
-          authentication code and verify your identity.
+          { message }
         </p>
         <Row>
           <TextBox
