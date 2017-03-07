@@ -158,7 +158,7 @@ export class Tokenizer {
 
     const nextIndex = this.scanForEndOfWord(text, index)
     const maybeHyperlink = text.slice(index, nextIndex)
-    if (!/^(http(s?))\:\/\//.test(maybeHyperlink)) { return null }
+    if (!/^https?:\/\//.test(maybeHyperlink)) { return null }
 
     this.flush()
     if (repository && repository.htmlURL) {
