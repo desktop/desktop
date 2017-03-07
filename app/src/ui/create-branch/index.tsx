@@ -4,7 +4,6 @@ import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { sanitizedBranchName } from './sanitized-branch-name'
 import { Branch } from '../../models/branch'
-import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { Select } from '../lib/select'
@@ -68,29 +67,28 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     return (
       <Dialog
         title='Create a branch'
+        onSubmit={this.createBranch}
         onDismissed={this.onDismissed}>
         <DialogContent>
-          <Form onSubmit={this.createBranch}>
-            <TextBox
-              label='Name'
-              autoFocus={true}
-              onChange={this.onBranchNameChange}
-              onKeyDown={this.onKeyDown}/>
+          <TextBox
+            label='Name'
+            autoFocus={true}
+            onChange={this.onBranchNameChange}
+            onKeyDown={this.onKeyDown}/>
 
-            {this.renderError()}
+          {this.renderError()}
 
-            <Select
-              label='From'
-              onChange={this.onBaseBranchChange}
-              defaultValue={currentBranch ? currentBranch.name : undefined}>
-              {this.props.branches.map(branch =>
-                <option key={branch.name} value={branch.name}>{branch.name}</option>
-              )}
-            </Select>
+          <Select
+            label='From'
+            onChange={this.onBaseBranchChange}
+            defaultValue={currentBranch ? currentBranch.name : undefined}>
+            {this.props.branches.map(branch =>
+              <option key={branch.name} value={branch.name}>{branch.name}</option>
+            )}
+          </Select>
 
-            <Button type='submit' disabled={disabled}>{__DARWIN__ ? 'Create Branch' : 'Create branch'}</Button>
-            <Button onClick={this.cancel}>Cancel</Button>
-          </Form>
+          <Button type='submit' disabled={disabled}>{__DARWIN__ ? 'Create Branch' : 'Create branch'}</Button>
+          <Button onClick={this.cancel}>Cancel</Button>
         </DialogContent>
       </Dialog>
     )

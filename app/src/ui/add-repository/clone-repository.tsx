@@ -3,7 +3,6 @@ import * as URL from 'url'
 import * as Path from 'path'
 import * as React from 'react'
 import * as FS from 'fs'
-import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
@@ -74,31 +73,31 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
     return (
       <Dialog
+        className='clone-repository'
         title='Clone a repository'
+        onSubmit={this.clone}
         onDismissed={this.onDismissed}>
         <DialogContent>
-          <Form className='clone-repository' onSubmit={this.clone}>
-            <div>
-              Enter a repository URL or GitHub username and repository (e.g., <span className='repository-pattern'>hubot/cool-repo</span>)
-            </div>
+          <div>
+            Enter a repository URL or GitHub username and repository (e.g., <span className='repository-pattern'>hubot/cool-repo</span>)
+          </div>
 
-            <TextBox placeholder='URL or username/repository' value={this.state.url} onChange={this.onURLChanged} autoFocus/>
+          <TextBox placeholder='URL or username/repository' value={this.state.url} onChange={this.onURLChanged} autoFocus/>
 
-            <Row>
-              <TextBox
-                value={this.state.path}
-                label={__DARWIN__ ? 'Local Path' : 'Local path'}
-                placeholder='repository path'
-                onChange={this.onPathChanged}/>
-              <Button onClick={this.showFilePicker}>Choose…</Button>
-            </Row>
+          <Row>
+            <TextBox
+              value={this.state.path}
+              label={__DARWIN__ ? 'Local Path' : 'Local path'}
+              placeholder='repository path'
+              onChange={this.onPathChanged}/>
+            <Button onClick={this.showFilePicker}>Choose…</Button>
+          </Row>
 
-            <Button disabled={disabled} type='submit'>Clone</Button>
+          <Button disabled={disabled} type='submit'>Clone</Button>
 
-            {error ? <Errors>{error.message}</Errors> : null}
+          {error ? <Errors>{error.message}</Errors> : null}
 
-            {this.state.loading ? <Loading/> : null}
-          </Form>
+          {this.state.loading ? <Loading/> : null}
         </DialogContent>
       </Dialog>
     )

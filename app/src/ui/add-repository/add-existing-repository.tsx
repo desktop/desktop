@@ -4,7 +4,6 @@ import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import { initGitRepository, isGitRepository } from '../../lib/git'
 import { Button } from '../lib/button'
-import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { FoldoutType } from '../../lib/app-state'
@@ -36,25 +35,24 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     return (
       <Dialog
         title='Add local repository'
+        onSubmit={this.addRepository}
         onDismissed={this.onDismissed}>
 
         <DialogContent>
-          <Form onSubmit={this.addRepository}>
-            <Row>
-              <TextBox
-                value={this.state.path}
-                label='Local Path'
-                placeholder='repository path'
-                onChange={this.onPathChanged}
-                onKeyDown={this.onKeyDown}
-                autoFocus/>
-              <Button onClick={this.showFilePicker}>Choose…</Button>
-            </Row>
+          <Row>
+            <TextBox
+              value={this.state.path}
+              label='Local Path'
+              placeholder='repository path'
+              onChange={this.onPathChanged}
+              onKeyDown={this.onKeyDown}
+              autoFocus/>
+            <Button onClick={this.showFilePicker}>Choose…</Button>
+          </Row>
 
-            <Button disabled={disabled} type='submit'>
-              {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
-            </Button>
-          </Form>
+          <Button disabled={disabled} type='submit'>
+            {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
+          </Button>
         </DialogContent>
       </Dialog>
     )
