@@ -107,8 +107,6 @@ export interface IAuthenticationState extends ISignInState {
   readonly forgotPasswordUrl: string
 }
 
-
-
 /**
  * State interface representing the TwoFactorAuthentication
  * step where the user provides an OTP token. This step
