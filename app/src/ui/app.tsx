@@ -765,10 +765,19 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
+    const dropdownStyle = {
+      position: 'absolute',
+      marginLeft: 0,
+      minWidth: this.state.sidebarWidth,
+      height: '100%',
+      top: 0,
+    }
+
     return <ToolbarDropdown
       icon={icon}
       title={title}
       description='Current repository'
+      dropdownStyle={dropdownStyle}
       onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
       dropdownContentRenderer={this.renderRepositoryList}
       dropdownState={currentState} />
