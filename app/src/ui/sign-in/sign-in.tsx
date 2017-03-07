@@ -16,6 +16,10 @@ import { TextBox } from '../lib/text-box'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
+import {
+  getWelcomeMessage,
+ } from '../../lib/2fa'
+
 interface ISignInProps {
   readonly dispatcher: Dispatcher
   readonly signInState: SignInState | null
@@ -203,8 +207,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     return (
       <DialogContent>
         <p>
-          Open the two-factor authentication app on your device to view your
-          authentication code and verify your identity.
+          { getWelcomeMessage(state.type) }
         </p>
         <Row>
           <TextBox

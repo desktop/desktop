@@ -5,6 +5,7 @@ import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 
 import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
+import { AuthenticationMode } from './2fa'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -292,7 +293,7 @@ export enum AuthorizationResponseKind {
 
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
                                     { kind: AuthorizationResponseKind.Failed, response: IHTTPResponse } |
-                                    { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: string } |
+                                    { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode } |
                                     { kind: AuthorizationResponseKind.Error, response: IHTTPResponse } |
                                     { kind: AuthorizationResponseKind.UserRequiresVerification }
 
@@ -322,7 +323,14 @@ export async function createAuthorization(endpoint: string, login: string, passw
       const pieces = otpResponse.split(';')
       if (pieces.length === 2) {
         const type = pieces[1].trim()
-        return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type }
+        switch (type) {
+          case 'app':
+            return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode.App }
+          case 'sms':
+            return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode.Sms }
+          default:
+            return { kind: AuthorizationResponseKind.Failed, response }
+        }
       }
     }
 
