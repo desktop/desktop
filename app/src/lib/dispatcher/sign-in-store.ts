@@ -15,6 +15,8 @@ import {
   fetchMetadata,
 } from '../../lib/api'
 
+import { AuthenticationMode } from '../../lib/2fa'
+
 import { minimumSupportedEnterpriseVersion } from '../../lib/enterprise'
 
 /**
@@ -106,14 +108,6 @@ export interface IAuthenticationState extends ISignInState {
 }
 
 
-/**
- * When authentication is requested via 2FA, the endpoint provides
- * a hint in the response header as to where the user should look
- * to retrieve the token.
- *
- * This needs to be propagated to the user.
- */
-type AuthenticationMode = 'sms' | 'app'
 
 /**
  * State interface representing the TwoFactorAuthentication
@@ -147,8 +141,6 @@ export interface ITwoFactorAuthenticationState extends ISignInState {
 
   /**
    * The 2FA type expected by the GitHub endpoint.
-   *
-   * Must be one of 'sms' (text message) or 'app' (TOTP mobile app)
    */
   readonly type: AuthenticationMode
 }

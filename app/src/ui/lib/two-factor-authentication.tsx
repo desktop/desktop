@@ -8,6 +8,7 @@ import { Errors } from './errors'
 import {
   authenticatorAppWelcomeText,
   smsMessageWelcomeText,
+  AuthenticationMode,
  } from '../../lib/2fa'
 
 interface ITwoFactorAuthenticationProps {
@@ -36,10 +37,8 @@ interface ITwoFactorAuthenticationProps {
 
   /**
    * The 2FA type expected by the GitHub endpoint.
-   *
-   * Must be one of 'sms' (text message) or 'app' (TOTP mobile app)
    */
-  readonly type: 'sms' | 'app'
+  readonly type: AuthenticationMode
 }
 
 interface ITwoFactorAuthenticationState {

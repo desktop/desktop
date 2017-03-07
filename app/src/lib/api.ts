@@ -5,6 +5,7 @@ import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 
 import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
+import { AuthenticationMode } from './2fa'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -272,7 +273,7 @@ export enum AuthorizationResponseKind {
 
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
                                     { kind: AuthorizationResponseKind.Failed, response: IHTTPResponse } |
-                                    { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: 'sms' | 'app' } |
+                                    { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode } |
                                     { kind: AuthorizationResponseKind.Error, response: IHTTPResponse }
 
 /**
