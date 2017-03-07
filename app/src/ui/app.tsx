@@ -200,7 +200,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'select-changes': return this.selectChanges()
       case 'select-history': return this.selectHistory()
       case 'add-local-repository': return this.showFileBrowser()
-      case 'create-branch': return this.showBranches()
+      case 'create-branch': return this.showCreateBranch()
       case 'show-branches': return this.showBranches()
       case 'remove-repository': return this.removeRepository()
       case 'create-repository': return this.createRepository()
