@@ -105,6 +105,16 @@ export interface IAuthenticationState extends ISignInState {
   readonly forgotPasswordUrl: string
 }
 
+
+/**
+ * When authentication is requested via 2FA, the endpoint provides
+ * a hint in the response header as to where the user should look
+ * to retrieve the token.
+ *
+ * This needs to be propagated to the user.
+ */
+type AuthenticationMode = 'sms' | 'app'
+
 /**
  * State interface representing the TwoFactorAuthentication
  * step where the user provides an OTP token. This step
@@ -134,6 +144,13 @@ export interface ITwoFactorAuthenticationState extends ISignInState {
    * Authentication step
    */
   readonly password: string
+
+  /**
+   * The 2FA type expected by the GitHub endpoint.
+   *
+   * Must be one of 'sms' (text message) or 'app' (TOTP mobile app)
+   */
+  readonly type: AuthenticationMode
 }
 
 /**
@@ -303,6 +320,7 @@ export class SignInStore {
         endpoint,
         username,
         password,
+        type: response.type,
         error: null,
         loading: false,
       })

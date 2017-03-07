@@ -28,6 +28,13 @@ interface ITwoFactorAuthenticationProps {
    * be disabled.
    */
   readonly loading: boolean
+
+  /**
+   * The 2FA type expected by the GitHub endpoint.
+   *
+   * Must be one of 'sms' (text message) or 'app' (TOTP mobile app)
+   */
+  readonly type: 'sms' | 'app'
 }
 
 interface ITwoFactorAuthenticationState {

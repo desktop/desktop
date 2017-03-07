@@ -67,6 +67,7 @@ export class SignIn extends React.Component<ISignInProps, void> {
       <TwoFactorAuthentication
         loading={state.loading}
         error={state.error}
+        type={state.type}
         onOTPEntered={this.onOTPEntered}
       />
     )
