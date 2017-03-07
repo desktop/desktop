@@ -937,8 +937,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderAddMenu = (): JSX.Element | null => {
+    const foldoutStyle = {
+      width: this.state.sidebarWidth,
+    }
+
     return (
-      <div id='app-menu-foldout'>
+      <div id='app-menu-foldout' style={foldoutStyle}>
         <ul className='menu-pane add-menu'>
           <li className='add-menu-item add-menu-item-header'>Repository</li>
           <li className='add-menu-item' onClick={this.onAddRepoClick}>Add local respository</li>
