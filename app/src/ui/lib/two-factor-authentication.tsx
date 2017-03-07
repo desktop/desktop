@@ -6,8 +6,7 @@ import { Form } from './form'
 import { Errors } from './errors'
 
 import {
-  authenticatorAppWelcomeText,
-  smsMessageWelcomeText,
+  getWelcomeMessage,
   AuthenticationMode,
  } from '../../lib/2fa'
 
@@ -60,14 +59,10 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
       ? <Errors>{this.props.error.message}</Errors>
       : null
 
-    const message = this.props.type === 'sms'
-      ? smsMessageWelcomeText
-      : authenticatorAppWelcomeText
-
     return (
       <div>
         <p className='welcome-text'>
-          { message }
+          { getWelcomeMessage(this.props.type) }
         </p>
 
         <Form onSubmit={this.signIn}>

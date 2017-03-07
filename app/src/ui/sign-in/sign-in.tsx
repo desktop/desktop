@@ -17,8 +17,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
 import {
-  authenticatorAppWelcomeText,
-  smsMessageWelcomeText,
+  getWelcomeMessage,
  } from '../../lib/2fa'
 
 interface ISignInProps {
@@ -205,15 +204,10 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
   }
 
   private renderTwoFactorAuthenticationStep(state: ITwoFactorAuthenticationState) {
-
-    const message = state.type === 'sms'
-      ? smsMessageWelcomeText
-      : authenticatorAppWelcomeText
-
     return (
       <DialogContent>
         <p>
-          { message }
+          { getWelcomeMessage(state.type) }
         </p>
         <Row>
           <TextBox
