@@ -45,6 +45,12 @@
         }
       }
     }
+
+    &.add-menu {
+      list-style-type: none;
+      padding: 0;
+      width: 100%;
+    }
   }
 
   // No focus outline for the list itself. When the app menu is opened without
@@ -112,11 +118,6 @@
     height: 1px;
     border-bottom: var(--base-border);
   }
-}
-
-.add-menu {
-  list-style-type: none;
-  padding: 0;
 }
 
 .add-menu-item {
