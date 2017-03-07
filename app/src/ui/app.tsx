@@ -807,6 +807,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const repository = selection.repository
 
+    this.props.dispatcher.closeFoldout()
     return this.props.dispatcher.showPopup({ type: PopupType.CreateBranch, repository })
   }
 
@@ -955,14 +956,17 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private showAddLocalRepo = () => {
+    this.props.dispatcher.closeFoldout()
     return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
   }
 
   private showCreateRepo = () => {
+    this.props.dispatcher.closeFoldout()
     return this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
   }
 
   private showCloneRepo = () => {
+    this.props.dispatcher.closeFoldout()
     return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
   }
 
