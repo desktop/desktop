@@ -5,6 +5,11 @@ import { TextBox } from './text-box'
 import { Form } from './form'
 import { Errors } from './errors'
 
+import {
+  getWelcomeMessage,
+  AuthenticationMode,
+ } from '../../lib/2fa'
+
 interface ITwoFactorAuthenticationProps {
 
   /**
@@ -28,6 +33,11 @@ interface ITwoFactorAuthenticationProps {
    * be disabled.
    */
   readonly loading: boolean
+
+  /**
+   * The 2FA type expected by the GitHub endpoint.
+   */
+  readonly type: AuthenticationMode
 }
 
 interface ITwoFactorAuthenticationState {
@@ -52,8 +62,7 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
     return (
       <div>
         <p className='welcome-text'>
-          Open the two-factor authentication app on your device to view your
-          authentication code and verify your identity.
+          { getWelcomeMessage(this.props.type) }
         </p>
 
         <Form onSubmit={this.signIn}>
