@@ -9,16 +9,31 @@ interface IAppMenuBarProps {
   readonly highlightAppMenuToolbarButton: boolean
 }
 
-export class AppMenuBar extends React.Component<IAppMenuBarProps, void> {
-  public render() {
+interface IAppMenuBarState {
+  readonly menuItems: ReadonlyArray<ISubmenuItem>
+}
 
+export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarState> {
+
+  public constructor(props: IAppMenuBarProps) {
+    super(props)
+    this.state = {
+      menuItems: this.buildMenuItems(props.appMenu)
+    }
+  }
+
+  public componentWillReceiveProps(nextProps: IAppMenuBarProps) {
+    this.setState({ menuItems: this.buildMenuItems(nextProps.appMenu) })
+  }
+
+  private buildMenuItems(appMenu: ReadonlyArray<IMenu>): ReadonlyArray<ISubmenuItem> {
     if (!this.props.appMenu.length) {
-      return null
+      return []
     }
 
     const topLevelMenu = this.props.appMenu[0]
-
     const items = topLevelMenu.items
+
     const submenuItems = new Array<ISubmenuItem>()
 
     for (const item of items) {
@@ -27,9 +42,13 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, void> {
       }
     }
 
+    return submenuItems
+  }
+
+  public render() {
     return (
       <div id='app-menu-bar'>
-        {submenuItems.map(this.renderMenuItem, this)}
+        {this.state.menuItems.map(this.renderMenuItem, this)}
       </div>
     )
   }
@@ -46,6 +65,36 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, void> {
     if (this.props.appMenu.length > 1) {
       this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item))
     }
+  }
+
+  private moveToAdjacentMenu(direction: 'next' | 'previous', sourceItem: ISubmenuItem) {
+    const rootItems = this.state.menuItems
+    const menuItemIx = rootItems
+      .findIndex(item => item.id === sourceItem.id)
+
+    if (menuItemIx === -1) {
+      return
+    }
+
+    const delta = direction === 'next' ? 1 : -1
+
+    // http://javascript.about.com/od/problemsolving/a/modulobug.htm
+    const nextMenuItemIx = ((menuItemIx + delta) + rootItems.length) % rootItems.length
+    const nextItem = rootItems[nextMenuItemIx]
+
+    if (!nextItem) {
+      return
+    }
+
+    this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(nextItem, true))
+  }
+
+  private onNextMenu = (menuItem: ISubmenuItem) => {
+    this.moveToAdjacentMenu('next', menuItem)
+  }
+
+  private onPreviousMenu = (menuItem: ISubmenuItem) => {
+    this.moveToAdjacentMenu('previous', menuItem)
   }
 
   private renderMenuItem(item: ISubmenuItem): JSX.Element {
@@ -69,6 +118,8 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, void> {
         onClose={this.onMenuClose}
         onOpen={this.onMenuOpen}
         onMouseEnter={this.onMenuButtonMouseEnter}
+        onNextMenu={this.onNextMenu}
+        onPreviousMenu={this.onPreviousMenu}
       />
     )
   }

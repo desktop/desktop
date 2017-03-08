@@ -14,6 +14,8 @@ interface IAppMenuBarButtonProps {
   readonly onClose: (menuItem: ISubmenuItem) => void
   readonly onOpen: (menuItem: ISubmenuItem) => void
   readonly onMouseEnter: (menuItem: ISubmenuItem) => void
+  readonly onNextMenu: (menuItem: ISubmenuItem) => void
+  readonly onPreviousMenu: (menuItem: ISubmenuItem) => void
 
   readonly dispatcher: Dispatcher
 }
@@ -68,6 +70,14 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
     }
   }
 
+  private onNextMenu = () => {
+    this.props.onNextMenu(this.props.menuItem)
+  }
+
+  private onPreviousMenu = () => {
+    this.props.onPreviousMenu(this.props.menuItem)
+  }
+
   private dropDownContentRenderer = () => {
     const menuState = this.props.menuState
 
@@ -82,6 +92,8 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
       state={menuState}
       enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
       autoHeight={true}
+      onNextMenu={this.onNextMenu}
+      onPreviousMenu={this.onPreviousMenu}
     />
   }
 }

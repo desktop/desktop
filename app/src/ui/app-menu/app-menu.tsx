@@ -41,6 +41,9 @@ interface IAppMenuProps {
   readonly openedWithAccessKey: boolean
 
   readonly autoHeight?: boolean
+
+  readonly onNextMenu: () => void
+  readonly onPreviousMenu: () => void
 }
 
 const expandCollapseTimeout = 300
@@ -123,14 +126,19 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       // on the root menu
       if (depth === 0 && event.key === 'Escape') {
         this.props.onClose()
+      } else if (depth === 0 && event.key === 'ArrowLeft') {
+        if (this.props.onPreviousMenu) {
+          this.props.onPreviousMenu()
+        }
       } else {
         this.props.dispatcher.setAppMenuState(menu => menu.withClosedMenu(this.props.state[depth]))
+
+        // Focus the previous menu, this might end up being -1 which is
+        // okay since ensurePaneFocus will ignore negative values and in
+        // this case the pane already has focus.
+        this.focusPane = depth - 1
       }
 
-      // Focus the previous menu, this might end up being -1 which is
-      // okay since ensurePaneFocus will ignore negative values and in
-      // this case the pane already has focus.
-      this.focusPane = depth - 1
       event.preventDefault()
     } else if (event.key === 'ArrowRight') {
       this.clearExpandCollapseTimer()
@@ -139,6 +147,11 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       if (item.type === 'submenuItem') {
         this.props.dispatcher.setAppMenuState(menu => menu.withOpenedMenu(item, true))
         this.focusPane = depth + 1
+        event.preventDefault()
+      } else {
+        if (this.props.onNextMenu) {
+          this.props.onNextMenu()
+        }
         event.preventDefault()
       }
     }
