@@ -307,9 +307,9 @@
       "dev": true
     },
     "electron-window-state": {
-      "version": "4.0.1",
-      "from": "electron-window-state@4.0.1",
-      "resolved": "https://registry.npmjs.org/electron-window-state/-/electron-window-state-4.0.1.tgz"
+      "version": "4.0.2",
+      "from": "electron-window-state@4.0.2",
+      "resolved": "https://registry.npmjs.org/electron-window-state/-/electron-window-state-4.0.2.tgz"
     },
     "emojis-list": {
       "version": "2.0.1",
