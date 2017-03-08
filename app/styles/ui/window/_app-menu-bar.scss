@@ -1,4 +1,15 @@
 #app-menu-bar {
+  display: flex;
+
+  .toolbar-button > button {
+    padding: 0  var(--spacing);
+    border: 0;
+
+    .access-key.highlight {
+      text-decoration: underline;
+    }
+  }
+
   .toolbar-button:not(.open) > button {
     color: var(--toolbar-button-secondary-color);
 
