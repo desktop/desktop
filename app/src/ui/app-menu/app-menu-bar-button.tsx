@@ -13,6 +13,7 @@ interface IAppMenuBarButtonProps {
 
   readonly onClose: (menuItem: ISubmenuItem) => void
   readonly onOpen: (menuItem: ISubmenuItem) => void
+  readonly onMouseEnter: (menuItem: ISubmenuItem) => void
 
   readonly dispatcher: Dispatcher
 }
@@ -36,6 +37,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         onDropdownStateChanged={this.onDropdownStateChanged}
         dropdownContentRenderer={this.dropDownContentRenderer}
         showDisclosureArrow={false}
+        onMouseEnter={this.onMouseEnter}
       >
         <MenuListItem
           item={item}
@@ -46,6 +48,10 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         />
       </ToolbarDropdown>
     )
+  }
+
+  private onMouseEnter = (event: React.MouseEvent<HTMLButtonElement>) => {
+    this.props.onMouseEnter(this.props.menuItem)
   }
 
   private onMenuClose = () => {

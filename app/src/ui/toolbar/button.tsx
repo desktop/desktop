@@ -32,6 +32,8 @@ export interface IToolbarButtonProps {
    */
   readonly onClick?: () => void
 
+  readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
+
   /**
    * An optional classname that will be appended to the default
    * class name 'toolbar-button'
@@ -82,7 +84,12 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     return (
       <div className={className}>
         {preContent}
-        <Button onClick={this.onClick} onButtonRef={this.onButtonRef} disabled={this.props.disabled}>
+        <Button
+          onClick={this.onClick}
+          onButtonRef={this.onButtonRef}
+          disabled={this.props.disabled}
+          onMouseEnter={this.props.onMouseEnter}
+        >
           {icon}
           {this.renderText()}
           {this.props.children}

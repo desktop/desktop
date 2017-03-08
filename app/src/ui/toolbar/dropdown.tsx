@@ -29,6 +29,8 @@ export interface IToolbarDropdownProps {
    */
   readonly onDropdownStateChanged: (state: DropdownState) => void
 
+  readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
+
   /**
    * An render callback for when the dropdown is open.
    * Use this to render the contents of the fold out.
@@ -194,6 +196,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         title={this.props.title}
         description={this.props.description}
         onClick={this.onClick}
+        onMouseEnter={this.props.onMouseEnter}
         className={className}
         preContentRenderer={this.renderDropdownContents}
         style={this.props.style}

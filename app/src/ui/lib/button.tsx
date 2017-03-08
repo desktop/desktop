@@ -10,6 +10,8 @@ export interface IButtonProps {
    */
   readonly onClick?: (event: React.FormEvent<HTMLButtonElement>) => void
 
+  readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
+
   /** The title of the button. */
   readonly children?: string
 
@@ -47,7 +49,8 @@ export class Button extends React.Component<IButtonProps, void> {
         onClick={this.onClick}
         type={this.props.type || 'button'}
         ref={this.props.onButtonRef}
-        tabIndex={this.props.tabIndex}>
+        tabIndex={this.props.tabIndex}
+        onMouseEnter={this.props.onMouseEnter}>
         {this.props.children}
       </button>
     )

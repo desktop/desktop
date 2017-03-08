@@ -42,6 +42,12 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, void> {
     this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item))
   }
 
+  private onMenuButtonMouseEnter = (item: ISubmenuItem) => {
+    if (this.props.appMenu.length > 1) {
+      this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item))
+    }
+  }
+
   private renderMenuItem(item: ISubmenuItem): JSX.Element {
 
     const openMenu = this.props.appMenu.length > 1
@@ -62,6 +68,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, void> {
         openedWithAccessKey={false}
         onClose={this.onMenuClose}
         onOpen={this.onMenuOpen}
+        onMouseEnter={this.onMenuButtonMouseEnter}
       />
     )
   }
