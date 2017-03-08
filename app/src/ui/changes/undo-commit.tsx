@@ -1,7 +1,7 @@
 import * as React from 'react'
 
 import { Commit } from '../../models/commit'
-import { EmojiText } from '../lib/emoji-text'
+import { RichText } from '../lib/rich-text'
 import { RelativeTime } from '../relative-time'
 import { Button } from '../lib/button'
 
@@ -23,7 +23,10 @@ export class UndoCommit extends React.Component<IUndoCommitProps, void> {
       <div id='undo-commit'>
         <div className='commit-info'>
           <div className='ago'>Committed <RelativeTime date={authorDate} /></div>
-          <EmojiText emoji={this.props.emoji} className='summary'>{this.props.commit.summary}</EmojiText>
+          <RichText
+            emoji={this.props.emoji}
+            className='summary'
+            text={this.props.commit.summary} />
         </div>
         <div className='actions'>
           <Button type='submit' onClick={this.props.onUndo}>Undo</Button>
