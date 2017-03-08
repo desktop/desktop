@@ -1,5 +1,9 @@
 {
   "releases": {
+    "0.0.27": [
+      "[Fixed] 2FA message shows details for SMS authentication - #1009",
+      "[Fixed] Autocomplete for users handles accounts containing `-` - #1008"
+    ],
     "0.0.26": [
       "[Fixed] Address deployment issue by properly documenting release notes"
     ],
