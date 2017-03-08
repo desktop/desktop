@@ -1,5 +1,5 @@
 #app-menu-bar {
-  .toolbar-button > button {
+  .toolbar-button:not(.open) > button {
     color: var(--toolbar-button-secondary-color);
 
     &:hover {
