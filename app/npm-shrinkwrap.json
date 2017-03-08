@@ -1079,9 +1079,9 @@
       "resolved": "https://registry.npmjs.org/winston/-/winston-2.3.1.tgz"
     },
     "winston-daily-rotate-file": {
-      "version": "1.4.3",
-      "from": "https://registry.npmjs.org/winston-daily-rotate-file/-/winston-daily-rotate-file-1.4.3.tgz",
-      "resolved": "https://registry.npmjs.org/winston-daily-rotate-file/-/winston-daily-rotate-file-1.4.3.tgz"
+      "version": "1.4.5",
+      "from": "winston-daily-rotate-file@1.4.5",
+      "resolved": "https://registry.npmjs.org/winston-daily-rotate-file/-/winston-daily-rotate-file-1.4.5.tgz"
     },
     "wordwrap": {
       "version": "0.0.3",
