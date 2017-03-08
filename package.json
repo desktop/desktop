@@ -43,7 +43,7 @@
     "chai-datetime": "^1.4.1",
     "cross-env": "^3.2.3",
     "css-loader": "^0.26.2",
-    "electron": "^1.6.3",
+    "electron": "1.6.3",
     "electron-mocha": "3.3.0",
     "electron-packager": "8.5.2",
     "electron-winstaller": "^2.3.0",
