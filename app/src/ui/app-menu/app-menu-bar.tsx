@@ -46,8 +46,6 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, void> {
 
     const menuState = this.props.appMenu.slice(1)
 
-    console.log(item.id, menuState.length)
-
     return (
       <AppMenuBarButton
         key={item.id}
