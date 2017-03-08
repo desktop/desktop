@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.0.28": [
+      "[Fixed] Bumping release notes to test deployments again"
+    ],
     "0.0.27": [
       "[Fixed] 2FA dialog when authenticating has information for SMS authentication - #1009",
       "[Fixed] Autocomplete for users handles accounts containing `-` - #1008"
