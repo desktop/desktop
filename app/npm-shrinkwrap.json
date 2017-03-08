@@ -997,9 +997,9 @@
       }
     },
     "textarea-caret": {
-      "version": "3.0.1",
-      "from": "textarea-caret@latest",
-      "resolved": "https://registry.npmjs.org/textarea-caret/-/textarea-caret-3.0.1.tgz"
+      "version": "3.0.2",
+      "from": "textarea-caret@3.0.2",
+      "resolved": "https://registry.npmjs.org/textarea-caret/-/textarea-caret-3.0.2.tgz"
     },
     "through": {
       "version": "2.3.8",
