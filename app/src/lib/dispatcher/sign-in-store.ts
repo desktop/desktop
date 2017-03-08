@@ -15,6 +15,8 @@ import {
   fetchMetadata,
 } from '../../lib/api'
 
+import { AuthenticationMode } from '../../lib/2fa'
+
 import { minimumSupportedEnterpriseVersion } from '../../lib/enterprise'
 
 /**
@@ -134,6 +136,11 @@ export interface ITwoFactorAuthenticationState extends ISignInState {
    * Authentication step
    */
   readonly password: string
+
+  /**
+   * The 2FA type expected by the GitHub endpoint.
+   */
+  readonly type: AuthenticationMode
 }
 
 /**
@@ -303,6 +310,7 @@ export class SignInStore {
         endpoint,
         username,
         password,
+        type: response.type,
         error: null,
         loading: false,
       })
