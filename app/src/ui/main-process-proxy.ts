@@ -47,28 +47,17 @@ export interface IMenuItem {
   readonly enabled?: boolean
 }
 
-/**
- * Delay the contextual menu slightly so that we have time to render any changes
- * in reaction to the click. Otherwise the modal menu loop on the main thread
- * blocks the renderer's run loop before it can redraw. See https://github.com/electron/electron/issues/1854.
- *
- * This amount was determined entirely by experimentation.
- */
-const ShowContextualMenuDelay = 30
-
 /** Show the given menu items in a contextual menu. */
 export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
-  setTimeout(() => {
-    ipcRenderer.once('contextual-menu-action', (event: Electron.IpcRendererEvent, index: number) => {
-      const item = items[index]
-      const action = item.action
-      if (action) {
-        action()
-      }
-    })
+  ipcRenderer.once('contextual-menu-action', (event: Electron.IpcRendererEvent, index: number) => {
+    const item = items[index]
+    const action = item.action
+    if (action) {
+      action()
+    }
+  })
 
-    ipcRenderer.send('show-contextual-menu', items)
-  }, ShowContextualMenuDelay)
+  ipcRenderer.send('show-contextual-menu', items)
 }
 
 export function proxyRequest(options: IHTTPRequest): Promise<IHTTPResponse> {
