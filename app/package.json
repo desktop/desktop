@@ -19,7 +19,7 @@
     "dexie": "^1.4.1",
     "electron-window-state": "^4.0.2",
     "event-kit": "^2.0.0",
-    "front-matter": "^2.1.1",
+    "front-matter": "^2.1.2",
     "fs-extra": "^2.0.0",
     "git-kitchen-sink": "^1.18.0",
     "iconv-lite": "^0.4.15",
