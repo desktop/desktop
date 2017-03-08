@@ -30,6 +30,7 @@ export interface IToolbarDropdownProps {
   readonly onDropdownStateChanged: (state: DropdownState) => void
 
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
+  readonly onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void
 
   /**
    * An render callback for when the dropdown is open.
@@ -202,6 +203,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         style={this.props.style}
         iconClassName={this.props.iconClassName}
         disabled={this.props.disabled}
+        onKeyDown={this.props.onKeyDown}
       >
         {this.props.children}
         {this.renderDropdownArrow()}

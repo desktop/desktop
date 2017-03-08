@@ -14,8 +14,7 @@ interface IAppMenuBarButtonProps {
   readonly onClose: (menuItem: ISubmenuItem) => void
   readonly onOpen: (menuItem: ISubmenuItem) => void
   readonly onMouseEnter: (menuItem: ISubmenuItem) => void
-  readonly onNextMenu: (menuItem: ISubmenuItem) => void
-  readonly onPreviousMenu: (menuItem: ISubmenuItem) => void
+  readonly onKeyDown: (menuItem: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => void
 
   readonly dispatcher: Dispatcher
 }
@@ -40,6 +39,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         dropdownContentRenderer={this.dropDownContentRenderer}
         showDisclosureArrow={false}
         onMouseEnter={this.onMouseEnter}
+        onKeyDown={this.onKeyDown}
       >
         <MenuListItem
           item={item}
@@ -56,6 +56,10 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
     this.props.onMouseEnter(this.props.menuItem)
   }
 
+  private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    this.props.onKeyDown(this.props.menuItem, event)
+  }
+
   private onMenuClose = () => {
     this.props.onClose(this.props.menuItem)
   }
@@ -68,14 +72,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
     } else {
       this.props.onOpen(this.props.menuItem)
     }
-  }
-
-  private onNextMenu = () => {
-    this.props.onNextMenu(this.props.menuItem)
-  }
-
-  private onPreviousMenu = () => {
-    this.props.onPreviousMenu(this.props.menuItem)
   }
 
   private dropDownContentRenderer = () => {
@@ -92,8 +88,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
       state={menuState}
       enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
       autoHeight={true}
-      onNextMenu={this.onNextMenu}
-      onPreviousMenu={this.onPreviousMenu}
     />
   }
 }

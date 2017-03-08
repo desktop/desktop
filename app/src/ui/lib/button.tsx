@@ -50,7 +50,8 @@ export class Button extends React.Component<IButtonProps, void> {
         type={this.props.type || 'button'}
         ref={this.props.onButtonRef}
         tabIndex={this.props.tabIndex}
-        onMouseEnter={this.props.onMouseEnter}>
+        onMouseEnter={this.props.onMouseEnter}
+      >
         {this.props.children}
       </button>
     )

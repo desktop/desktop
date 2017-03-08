@@ -89,12 +89,21 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(nextItem, true))
   }
 
-  private onNextMenu = (menuItem: ISubmenuItem) => {
-    this.moveToAdjacentMenu('next', menuItem)
-  }
+  private onMenuButtonKeyDown = (item: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => {
 
-  private onPreviousMenu = (menuItem: ISubmenuItem) => {
-    this.moveToAdjacentMenu('previous', menuItem)
+    console.log(event)
+
+    if (event.defaultPrevented) {
+      return
+    }
+
+    if (event.key === 'ArrowLeft') {
+      this.moveToAdjacentMenu('previous', item)
+      event.preventDefault()
+    } else if (event.key === 'ArrowRight') {
+      this.moveToAdjacentMenu('next', item)
+      event.preventDefault()
+    }
   }
 
   private renderMenuItem(item: ISubmenuItem): JSX.Element {
@@ -118,8 +127,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
         onClose={this.onMenuClose}
         onOpen={this.onMenuOpen}
         onMouseEnter={this.onMenuButtonMouseEnter}
-        onNextMenu={this.onNextMenu}
-        onPreviousMenu={this.onPreviousMenu}
+        onKeyDown={this.onMenuButtonKeyDown}
       />
     )
   }

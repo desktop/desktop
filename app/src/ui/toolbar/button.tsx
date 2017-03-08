@@ -33,6 +33,7 @@ export interface IToolbarButtonProps {
   readonly onClick?: () => void
 
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
+  readonly onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void
 
   /**
    * An optional classname that will be appended to the default
@@ -82,7 +83,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     const preContent = preContentRenderer && preContentRenderer()
 
     return (
-      <div className={className}>
+      <div className={className} onKeyDown={this.props.onKeyDown}>
         {preContent}
         <Button
           onClick={this.onClick}
