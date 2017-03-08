@@ -106,6 +106,25 @@ interface IAPIAccessToken {
   readonly token_type: string
 }
 
+/**
+ * The structure of error messages returned from the GitHub API.
+ *
+ * Details: https://developer.github.com/v3/#client-errors
+ */
+interface IError {
+  readonly resource: string
+  readonly field: string
+}
+
+/**
+ * The partial server response when an error has been returned.
+ *
+ * Details: https://developer.github.com/v3/#client-errors
+ */
+interface IAPIError {
+  readonly errors: IError[]
+}
+
 /** The partial server response when creating a new authorization on behalf of a user */
 interface IAPIAuthorization {
   readonly token: string
@@ -268,13 +287,15 @@ export enum AuthorizationResponseKind {
   Authorized,
   Failed,
   TwoFactorAuthenticationRequired,
+  UserRequiresVerification,
   Error,
 }
 
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
                                     { kind: AuthorizationResponseKind.Failed, response: IHTTPResponse } |
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode } |
-                                    { kind: AuthorizationResponseKind.Error, response: IHTTPResponse }
+                                    { kind: AuthorizationResponseKind.Error, response: IHTTPResponse } |
+                                    { kind: AuthorizationResponseKind.UserRequiresVerification }
 
 /**
  * Create an authorization with the given login, password, and one-time
@@ -314,6 +335,19 @@ export async function createAuthorization(endpoint: string, login: string, passw
     }
 
     return { kind: AuthorizationResponseKind.Failed, response }
+  }
+
+  if (response.statusCode === 422) {
+    const apiError = deserialize<IAPIError>(response.body)
+    if (apiError) {
+      for (const error of apiError.errors) {
+        const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
+        const isExpectedField =  error.field.toLowerCase() === 'user'
+        if (isExpectedField && isExpectedResource) {
+          return { kind: AuthorizationResponseKind.UserRequiresVerification }
+        }
+      }
+    }
   }
 
   const body = deserialize<IAPIAuthorization>(response.body)
