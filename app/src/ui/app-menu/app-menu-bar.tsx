@@ -1,8 +1,6 @@
 import * as React from 'react'
 import { IMenu, ISubmenuItem } from '../../models/app-menu'
-import { MenuListItem } from './menu-list-item'
-import { AppMenu } from './app-menu'
-import { ToolbarDropdown } from '../toolbar'
+import { AppMenuBarButton } from './app-menu-bar-button'
 import { Dispatcher } from '../../lib/dispatcher'
 
 interface IAppMenuBarProps {
@@ -36,52 +34,31 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, void> {
     )
   }
 
-  private onDropdownStateChanged = () => {
-
+  private onMenuClose = (item: ISubmenuItem) => {
+    this.props.dispatcher.setAppMenuState(m => m.withReset())
   }
 
-  private dropDownContentRenderer = () => {
-    const menuState = this.props.appMenu.slice(1)
-
-    if (!menuState.length) {
-      return null
-    }
-
-    return <AppMenu
-      dispatcher={this.props.dispatcher}
-      onClose={() => { }}
-      openedWithAccessKey={false}
-      state={menuState}
-      enableAccessKeyNavigation={false}
-    />
+  private onMenuOpen = (item: ISubmenuItem) => {
+    this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item))
   }
 
   private renderMenuItem(item: ISubmenuItem): JSX.Element {
 
-    const openMenu = this.props.appMenu.length > 1
-      ? this.props.appMenu[1]
-      : null
+    const menuState = this.props.appMenu.slice(1)
 
-    const dropDownState = openMenu && openMenu.id === item.id
-      ? 'open'
-      : 'closed'
+    console.log(item.id, menuState.length)
 
     return (
-      <ToolbarDropdown
+      <AppMenuBarButton
         key={item.id}
-        dropdownState={dropDownState}
-        onDropdownStateChanged={this.onDropdownStateChanged}
-        dropdownContentRenderer={this.dropDownContentRenderer}
-        showDisclosureArrow={false}
-      >
-        <MenuListItem
-          item={item}
-          highlightAccessKey={this.props.highlightAppMenuToolbarButton}
-          renderAcceleratorText={false}
-          renderIcon={false}
-          renderSubMenuArrow={false}
-        />
-      </ToolbarDropdown>
+        dispatcher={this.props.dispatcher}
+        menuItem={item}
+        menuState={menuState}
+        enableAccessKeyNavigation={this.props.highlightAppMenuToolbarButton}
+        openedWithAccessKey={false}
+        onClose={this.onMenuClose}
+        onOpen={this.onMenuOpen}
+      />
     )
   }
 }
