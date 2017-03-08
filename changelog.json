@@ -11,8 +11,7 @@
       "[Fixed] Handle index state change when gitginore change is discarded - #935",
       "[Fixed] 'Create new branch' view squashes branch list when expanded - #927",
       "[Fixed] Application creates repository path if it doesn't exist on disk - #925",
-      "[Improved] Preferences sign-in flow is now standalone dialogs - #961",
-      "[Improved] Updated to Electron 1.6.1 - #939 #979"
+      "[Improved] Preferences sign-in flow is now standalone dialogs - #961"
     ],
     "0.0.24": [
       "Changed a thing",
