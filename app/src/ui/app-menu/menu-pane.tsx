@@ -199,7 +199,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
   public render(): JSX.Element {
 
     const style: React.CSSProperties = this.props.autoHeight === true
-      ? { height: getListHeight(this.props.items) + 5 }
+      ? { height: getListHeight(this.props.items) + 5, maxHeight: '100%' }
       : { }
 
     return (
