@@ -142,7 +142,7 @@ function updateDeploy (artifacts) {
       }
 
       if (response.statusCode !== 200) {
-        reject(new Error(`Received a non-200 response (${response.statusCode}): ${body}`))
+        reject(new Error(`Received a non-200 response (${response.statusCode}): ${JSON.stringify(body)}`))
         return
       }
 

@@ -2,8 +2,13 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 
 export interface IButtonProps {
-  /** A function to call on click. */
-  readonly onClick?: () => void
+  /**
+   * A callback which is invoked when the button is clicked
+   * using a pointer device or keyboard. The source event is
+   * passed along and can be used to prevent the default action
+   * or stop the even from bubbling.
+   */
+  readonly onClick?: (event: React.FormEvent<HTMLButtonElement>) => void
 
   /** The title of the button. */
   readonly children?: string
@@ -25,6 +30,9 @@ export interface IButtonProps {
    * this will be unnecessary.
    */
   readonly onButtonRef?: (instance: HTMLButtonElement) => void
+
+  /** The tab index of the button element. */
+  readonly tabIndex?: number
 }
 
 /** A button component. */
@@ -38,7 +46,8 @@ export class Button extends React.Component<IButtonProps, void> {
         disabled={this.props.disabled}
         onClick={this.onClick}
         type={this.props.type || 'button'}
-        ref={this.props.onButtonRef}>
+        ref={this.props.onButtonRef}
+        tabIndex={this.props.tabIndex}>
         {this.props.children}
       </button>
     )
@@ -49,9 +58,8 @@ export class Button extends React.Component<IButtonProps, void> {
       event.preventDefault()
     }
 
-    const onClick = this.props.onClick
-    if (onClick) {
-      onClick()
+    if (this.props.onClick) {
+      this.props.onClick(event)
     }
   }
 }

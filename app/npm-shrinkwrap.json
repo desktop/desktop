@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.24",
+  "version": "0.0.28",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
@@ -158,9 +158,9 @@
       "resolved": "https://registry.npmjs.org/classnames/-/classnames-2.2.5.tgz"
     },
     "codemirror": {
-      "version": "5.19.0",
-      "from": "codemirror@>=5.13.4 <6.0.0",
-      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.19.0.tgz"
+      "version": "5.24.2",
+      "from": "codemirror@5.24.2",
+      "resolved": "https://registry.npmjs.org/codemirror/-/codemirror-5.24.2.tgz"
     },
     "colors": {
       "version": "1.0.3",
@@ -405,9 +405,9 @@
       "resolved": "https://registry.npmjs.org/front-matter/-/front-matter-2.1.1.tgz"
     },
     "fs-extra": {
-      "version": "1.0.0",
-      "from": "fs-extra@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-1.0.0.tgz"
+      "version": "2.0.0",
+      "from": "fs-extra@latest",
+      "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-2.0.0.tgz"
     },
     "fs.realpath": {
       "version": "1.0.0",
@@ -658,19 +658,6 @@
       "version": "3.0.2",
       "from": "keytar@>=3.0.2 <4.0.0",
       "resolved": "https://registry.npmjs.org/keytar/-/keytar-3.0.2.tgz"
-    },
-    "klaw": {
-      "version": "1.3.1",
-      "from": "klaw@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/klaw/-/klaw-1.3.1.tgz",
-      "dependencies": {
-        "graceful-fs": {
-          "version": "4.1.11",
-          "from": "graceful-fs@>=4.1.9 <5.0.0",
-          "resolved": "https://registry.npmjs.org/graceful-fs/-/graceful-fs-4.1.11.tgz",
-          "optional": true
-        }
-      }
     },
     "loader-utils": {
       "version": "0.2.15",

@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "0.0.24",
+  "version": "0.0.28",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -15,12 +15,12 @@
   "dependencies": {
     "byline": "^4.2.2",
     "classnames": "^2.2.5",
-    "codemirror": "^5.19.0",
+    "codemirror": "^5.24.2",
     "dexie": "^1.4.1",
     "electron-window-state": "^4.0.1",
     "event-kit": "^2.0.0",
     "front-matter": "^2.1.1",
-    "fs-extra": "^1.0.0",
+    "fs-extra": "^2.0.0",
     "git-kitchen-sink": "^1.18.0",
     "iconv-lite": "^0.4.15",
     "keytar": "^3.0.2",

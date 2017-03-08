@@ -37,6 +37,7 @@ import { AddExistingRepository } from './add-repository/add-existing-repository'
 import { CreateRepository } from './add-repository/create-repository'
 import { CloneRepository } from './add-repository/clone-repository'
 import { CreateBranch } from './create-branch'
+import { SignIn } from './sign-in'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -542,6 +543,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.closePopup()
   }
 
+  private onSignInDialogDismissed = () => {
+    this.props.dispatcher.resetSignInState()
+    this.onPopupDismissed()
+  }
+
   private currentPopupContent(): JSX.Element | null {
 
     // Hide any dialogs while we're displaying an error
@@ -583,8 +589,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         branches={state.branchesState.allBranches}
         onDismissed={this.onPopupDismissed}
       />
-    }
-    else if (popup.type === PopupType.RepositorySettings) {
+    } else if (popup.type === PopupType.RepositorySettings) {
       const repository = popup.repository
       const state = this.props.appStore.getRepositoryState(repository)
 
@@ -594,6 +599,14 @@ export class App extends React.Component<IAppProps, IAppState> {
         repository={repository}
         onDismissed={this.onPopupDismissed}
       />
+    } else if (popup.type === PopupType.SignIn) {
+      return (
+        <SignIn
+          signInState={this.state.signInState}
+          dispatcher={this.props.dispatcher}
+          onDismissed={this.onSignInDialogDismissed}
+        />
+      )
     }
 
     else if (popup.type === PopupType.AddRepository) {
@@ -801,7 +814,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
       isPublishing={isPublishing}
-      users={this.state.users}/>
+      users={this.state.users}
+      signInState={this.state.signInState}/>
   }
 
   private showCreateBranch = () => {
@@ -1006,7 +1020,11 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderWelcomeFlow() {
     return (
-      <Welcome dispatcher={this.props.dispatcher} appStore={this.props.appStore}/>
+      <Welcome
+        dispatcher={this.props.dispatcher}
+        appStore={this.props.appStore}
+        signInState={this.state.signInState}
+      />
     )
   }
 

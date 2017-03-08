@@ -40,6 +40,7 @@ import { getAppMenu } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
+import { SignInStore } from './sign-in-store'
 
 import {
   getGitDir,
@@ -110,6 +111,8 @@ export class AppStore {
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
 
+  private readonly signInStore: SignInStore
+
   /**
    * The Application menu as an AppMenu instance or null if
    * the main process has not yet provided the renderer with
@@ -129,12 +132,13 @@ export class AppStore {
 
   private readonly statsStore: StatsStore
 
-  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore) {
+  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore, signInStore: SignInStore) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
     this.emojiStore = emojiStore
     this._issuesStore = issuesStore
     this.statsStore = statsStore
+    this.signInStore = signInStore
 
     const hasShownWelcomeFlow = localStorage.getItem(HasShownWelcomeFlowKey)
     this.showWelcomeFlow = !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
@@ -155,8 +159,16 @@ export class AppStore {
 
     this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
+    this.signInStore.onDidAuthenticate(user => this.emitAuthenticate(user))
+    this.signInStore.onDidUpdate(() => this.emitUpdate())
+    this.signInStore.onDidError(error => this.emitError(error))
+
     const rootDir = getAppPath()
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
+  }
+
+  private emitAuthenticate(user: User) {
+    this.emitter.emit('did-authenticate', user)
   }
 
   private emitUpdate() {
@@ -168,6 +180,14 @@ export class AppStore {
       this.emitQueued = false
       this.emitter.emit('did-update', this.getState())
     })
+  }
+
+  /**
+   * Registers an event handler which will be invoked whenever
+   * a user has successfully completed a sign-in process.
+   */
+  public onDidAuthenticate(fn: (user: User) => void): Disposable {
+    return this.emitter.on('did-authenticate', fn)
   }
 
   public onDidUpdate(fn: (state: IAppState) => void): Disposable {
@@ -292,6 +312,7 @@ export class AppStore {
         ...this.cloningRepositoriesStore.repositories,
       ],
       selectedState: this.getSelectedState(),
+      signInState: this.signInStore.getState(),
       currentPopup: this.currentPopup,
       currentFoldout: this.currentFoldout,
       errors: this.errors,
@@ -1366,5 +1387,36 @@ export class AppStore {
     await gitStore.ignore(pattern)
 
     return this._refreshRepository(repository)
+  }
+
+  public _resetSignInState(): Promise<void> {
+    this.signInStore.reset()
+    return Promise.resolve()
+  }
+
+  public _beginDotComSignIn(): Promise<void> {
+    this.signInStore.beginDotComSignIn()
+    return Promise.resolve()
+  }
+
+  public _beginEnterpriseSignIn(): Promise<void> {
+    this.signInStore.beginEnterpriseSignIn()
+    return Promise.resolve()
+  }
+
+  public _setSignInEndpoint(url: string): Promise<void> {
+    return this.signInStore.setEndpoint(url)
+  }
+
+  public _setSignInCredentials(username: string, password: string): Promise<void> {
+    return this.signInStore.authenticateWithBasicAuth(username, password)
+  }
+
+  public _requestBrowserAuthentication(): Promise<void> {
+    return this.signInStore.authenticateWithBrowser()
+  }
+
+  public _setSignInOTP(otp: string): Promise<void> {
+    return this.signInStore.setTwoFactorOTP(otp)
   }
 }
