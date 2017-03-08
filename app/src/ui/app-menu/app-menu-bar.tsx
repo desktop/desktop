@@ -35,7 +35,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, void> {
   }
 
   private onMenuClose = (item: ISubmenuItem) => {
-    this.props.dispatcher.setAppMenuState(m => m.withReset())
+    this.props.dispatcher.setAppMenuState(m => m.withClosedMenu(item.menu))
   }
 
   private onMenuOpen = (item: ISubmenuItem) => {
@@ -44,7 +44,13 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, void> {
 
   private renderMenuItem(item: ISubmenuItem): JSX.Element {
 
-    const menuState = this.props.appMenu.slice(1)
+    const openMenu = this.props.appMenu.length > 1
+      ? this.props.appMenu[1]
+      : null
+
+    const menuState = openMenu && openMenu.id === item.id
+      ? this.props.appMenu.slice(1)
+      : []
 
     return (
       <AppMenuBarButton
