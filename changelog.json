@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.0.26": [
+      "[Fixed] Address deployment issue by properly documenting release notes"
+    ],
     "0.0.25": [
       "[Added] Autocomplete displays user matches - #942",
       "[Fixed] Handle Enter key in repository and branch list when no matches exist - #995",
