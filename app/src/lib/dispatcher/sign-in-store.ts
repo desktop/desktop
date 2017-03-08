@@ -15,7 +15,13 @@ import {
   fetchMetadata,
 } from '../../lib/api'
 
+import { AuthenticationMode } from '../../lib/2fa'
+
 import { minimumSupportedEnterpriseVersion } from '../../lib/enterprise'
+
+function getUnverifiedUserErrorMessage(login: string): string {
+  return `Unable to authenticate. The account ${login} is lacking a verified email address. Please sign in to GitHub.com, confirm your email address in the Emails section under Personal settings, and try again.`
+}
 
 /**
  * An enumeration of the possible steps that the sign in
@@ -134,6 +140,11 @@ export interface ITwoFactorAuthenticationState extends ISignInState {
    * Authentication step
    */
   readonly password: string
+
+  /**
+   * The 2FA type expected by the GitHub endpoint.
+   */
+  readonly type: AuthenticationMode
 }
 
 /**
@@ -303,6 +314,7 @@ export class SignInStore {
         endpoint,
         username,
         password,
+        type: response.type,
         error: null,
         loading: false,
       })
@@ -319,6 +331,12 @@ export class SignInStore {
           ...currentState,
           loading: false,
           error: new Error('Incorrect username or password.'),
+        })
+      } else if (response.kind === AuthorizationResponseKind.UserRequiresVerification) {
+        this.setState({
+          ...currentState,
+          loading: false,
+          error: new Error(getUnverifiedUserErrorMessage(username)),
         })
       } else {
         return assertNever(response, `Unsupported response: ${response}`)
@@ -509,6 +527,9 @@ export class SignInStore {
           } else {
             this.emitError(new Error(`The server responded with an error (${response.response.statusCode})\n\n${response.response.body}`))
           }
+          break
+        case AuthorizationResponseKind.UserRequiresVerification:
+          this.emitError(new Error(getUnverifiedUserErrorMessage(currentState.username)))
           break
         default:
           return assertNever(response, `Unknown response: ${response}`)
