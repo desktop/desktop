@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
 import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { ipcRenderer, remote, shell } from 'electron'
 
@@ -23,7 +22,7 @@ import { updateStore, UpdateState } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
-import { AppMenu, AppMenuBar } from './app-menu'
+import { AppMenuBar } from './app-menu'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
@@ -659,64 +658,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private closeAppMenu = () => {
-    this.props.dispatcher.closeFoldout()
-  }
-
-  private renderAppMenu = (): JSX.Element | null => {
-    if (!this.state.appMenuState || !shouldRenderApplicationMenu()) {
-      return null
-    }
-
-    const foldoutState = this.state.currentFoldout
-
-    if (!foldoutState || foldoutState.type !== FoldoutType.AppMenu) {
-      return null
-    }
-
-    return (
-      <AppMenu
-        state={this.state.appMenuState}
-        dispatcher={this.props.dispatcher}
-        onClose={this.closeAppMenu}
-        enableAccessKeyNavigation={foldoutState.enableAccessKeyNavigation}
-        openedWithAccessKey={foldoutState.openedWithAccessKey || false}
-      />
-    )
-  }
-
-  private onAppMenuDropdownStateChanged = (newState: DropdownState) => {
-    if (newState === 'open') {
-      this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-      this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation: false })
-    } else {
-      this.props.dispatcher.closeFoldout()
-    }
-  }
-
-  private renderAppMenuToolbarButton() {
-    if (!this.state.appMenuState || !shouldRenderApplicationMenu()) {
-      return null
-    }
-
-    const isOpen = this.state.currentFoldout
-      && this.state.currentFoldout.type === FoldoutType.AppMenu
-
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-    const className = classNames(
-      'app-menu',
-      { 'highlight': this.state.highlightAppMenuToolbarButton },
-    )
-
-    return <ToolbarDropdown
-      className={className}
-      icon={OcticonSymbol.threeBars}
-      title='Menu'
-      onDropdownStateChanged={this.onAppMenuDropdownStateChanged}
-      dropdownContentRenderer={this.renderAppMenu}
-      dropdownState={currentState} />
-  }
-
   private renderRepositoryList = (): JSX.Element => {
     const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
     const foldout = this.state.currentFoldout
@@ -885,7 +826,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         <div
           className='sidebar-section'
           style={{ width: this.state.sidebarWidth }}>
-          {this.renderAppMenuToolbarButton()}
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}
