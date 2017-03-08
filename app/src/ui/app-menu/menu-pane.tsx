@@ -51,6 +51,8 @@ interface IMenuPaneProps {
    * keyboard navigation by pressing access keys.
    */
   readonly enableAccessKeyNavigation: boolean
+
+  readonly autoHeight?: boolean
 }
 
 interface IMenuPaneState {
@@ -71,6 +73,19 @@ function getSelectedIndex(selectedItem: MenuItem | undefined, items: ReadonlyArr
   return selectedItem
     ? items.findIndex(i => i.id === selectedItem.id)
     : -1
+}
+
+export function getListHeight(menuItems: ReadonlyArray<MenuItem>) {
+  return menuItems.reduce((acc, item) => acc + getRowHeight(item), 0)
+}
+
+export function getRowHeight(item: MenuItem) {
+
+  if (!item.visible) {
+    return 0
+  }
+
+  return item.type === 'separator' ? SeparatorRowHeight : RowHeight
 }
 
 export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
@@ -183,8 +198,12 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
 
   public render(): JSX.Element {
 
+    const style: React.CSSProperties = this.props.autoHeight === true
+      ? { height: getListHeight(this.props.items) + 5 }
+      : { }
+
     return (
-      <div className='menu-pane' onMouseEnter={this.onMouseEnter} onKeyDown={this.onKeyDown}>
+      <div className='menu-pane' onMouseEnter={this.onMouseEnter} onKeyDown={this.onKeyDown} style={style}>
         <List
           ref={this.onListRef}
           rowCount={this.state.items.length}

@@ -75,6 +75,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
       openedWithAccessKey={this.props.openedWithAccessKey}
       state={menuState}
       enableAccessKeyNavigation={this.props.enableAccessKeyNavigation}
+      autoHeight={true}
     />
   }
 }

@@ -6,4 +6,12 @@
       color: var(--toolbar-button-color);
     }
   }
+
+  #foldout-container .foldout {
+    background: transparent;
+
+    .menu-pane {
+      background: var(--background-color);
+    }
+  }
 }

@@ -39,6 +39,8 @@ interface IAppMenuProps {
    * applied for consecutive renders.
    */
   readonly openedWithAccessKey: boolean
+
+  readonly autoHeight?: boolean
 }
 
 const expandCollapseTimeout = 300
@@ -229,6 +231,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       <MenuPane
         key={key}
         ref={this.onMenuPaneRef}
+        autoHeight={this.props.autoHeight}
         depth={depth}
         items={menu.items}
         selectedItem={menu.selectedItem}
