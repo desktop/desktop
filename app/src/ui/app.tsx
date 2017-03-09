@@ -949,7 +949,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       <ToolbarDropdown
         icon={OcticonSymbol.plus}
         className='app-menu'
-        title='.'
         dropdownContentRenderer={this.renderAddMenu}
         onDropdownStateChanged={this.onAppMenuDropdownStateChanged}
         dropdownState={currentState} />
