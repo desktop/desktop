@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { validateURL } from '../../src/ui/lib/enterprise-validate-url'
+import { validateURL, isValidText } from '../../src/ui/lib/enterprise-validate-url'
 
 describe('validateURL', () => {
   it('passes through a valid url', () => {
@@ -17,5 +17,27 @@ describe('validateURL', () => {
 
   it('throws if given an invalid protocol', () => {
     expect(() => validateURL('ftp://ghe.io')).to.throw()
+  })
+})
+
+describe('isValidText', () => {
+  it('expects some text', () => {
+    expect(isValidText('')).to.be.false
+  })
+
+  it('fails for whitespace', () => {
+    expect(isValidText('   ')).to.be.false
+  })
+
+  it('fails for words', () => {
+    expect(isValidText('ha 123 words')).to.be.false
+  })
+
+  it('succeeds with a hostname', () => {
+    expect(isValidText('myenterpriseserver')).to.be.true
+  })
+
+  it('succeeds with a URL', () => {
+    expect(isValidText('https://myenterpriseserver/')).to.be.true
   })
 })

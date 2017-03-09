@@ -12,6 +12,25 @@ export const InvalidURLErrorName = 'invalid-url'
 /** The name for errors thrown because of an invalid protocol. */
 export const InvalidProtocolErrorName = 'invalid-protocol'
 
+
+/**
+ * Ensure the user has entered something resembling a valid address.
+ *
+ * Currently this just checks the user has entered some text and that it
+ * doesn't contain whitespace.
+ *
+ * @param input the user input to validate
+ */
+export function isValidText(input: string): boolean {
+  if (input.length === 0) {
+    return false
+  }
+
+  const containsWhitespace = /\s+/.test(input)
+
+  return !containsWhitespace
+}
+
 /**
  * Validate the URL for a GitHub Enterprise instance.
  *
