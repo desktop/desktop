@@ -641,6 +641,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           currentBranch={currentBranch}
           branches={state.branchesState.allBranches}
           repository={repository}
+          onDismissed={this.onPopupDismissed}
           dispatcher={this.props.dispatcher} />
       )
     }
