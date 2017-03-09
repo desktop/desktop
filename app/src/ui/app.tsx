@@ -622,6 +622,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return (
         <CloneRepository
           users={this.state.users}
+          onDismissed={this.onPopupDismissed}
           dispatcher={this.props.dispatcher} />
       )
     } else if (popup.type === PopupType.CreateBranch) {

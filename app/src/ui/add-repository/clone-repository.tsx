@@ -10,10 +10,9 @@ import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
 import { Loading } from '../lib/loading'
 import { User } from '../../models/user'
-import { Errors } from '../lib/errors'
 import { API, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 import { parseRemote } from '../../lib/remote-parsing'
-import { Dialog, DialogContent } from '../dialog'
+import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
@@ -25,6 +24,7 @@ interface IRepositoryIdentifier {
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
+  readonly onDismissed: () => void
 
   /** The logged in users. */
   readonly users: ReadonlyArray<User>
@@ -76,7 +76,9 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
         className='clone-repository'
         title='Clone a repository'
         onSubmit={this.clone}
-        onDismissed={this.onDismissed}>
+        onDismissed={this.props.onDismissed}>
+        {error ? <DialogError>{error.message}</DialogError> : null}
+
         <DialogContent>
           <div>
             Enter a repository URL or GitHub username and repository (e.g., <span className='repository-pattern'>hubot/cool-repo</span>)
@@ -93,18 +95,15 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
 
-          <Button disabled={disabled} type='submit'>Clone</Button>
-
-          {error ? <Errors>{error.message}</Errors> : null}
-
           {this.state.loading ? <Loading/> : null}
         </DialogContent>
+
+        <DialogFooter>
+          <Button disabled={disabled} type='submit'>Clone</Button>
+          <Button onClick={this.props.onDismissed}>Cancel</Button>
+        </DialogFooter>
       </Dialog>
     )
-  }
-
-  private onDismissed = () => {
-    this.props.dispatcher.closePopup()
   }
 
   private showFilePicker = () => {
