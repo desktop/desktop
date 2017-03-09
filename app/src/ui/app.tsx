@@ -929,7 +929,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         <div
           className='sidebar-section'
           style={{ width: this.state.sidebarWidth }}>
-          {this.renderAddToolbar()}
+          {this.renderAddToolbarButton()}
           {this.renderAppMenuToolbarButton()}
           {this.renderRepositoryToolbarButton()}
         </div>
@@ -939,7 +939,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private renderAddToolbar() {
+  private renderAddToolbarButton() {
     const isOpen = this.state.currentFoldout
       && this.state.currentFoldout.type === FoldoutType.AppMenu
 
