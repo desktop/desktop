@@ -107,6 +107,6 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
       this.props.dispatcher.selectRepository(repository)
     }
 
-    this.props.dispatcher.closePopup()
+    this.props.onDismissed()
   }
 }
