@@ -46,7 +46,8 @@ export interface IToolbarDropdownProps {
   /** The button's style. Defaults to `ToolbarButtonStyle.Standard`. */
   readonly style?: ToolbarButtonStyle
 
-  /** Sets the styles for the dropdown's foldout. Useful for custom positioning
+  /**
+   * Sets the styles for the dropdown's foldout. Useful for custom positioning
    * and sizes.
    */
   readonly dropdownStyle?: React.CSSProperties
