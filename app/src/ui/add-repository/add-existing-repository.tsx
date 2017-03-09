@@ -50,16 +50,16 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
               autoFocus/>
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
-
-          <DialogFooter>
-            <ButtonGroup>
-              <Button disabled={disabled} type='submit'>
-                {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
-              </Button>
-              <Button onClick={this.props.onDismissed}>Cancel</Button>
-            </ButtonGroup>
-          </DialogFooter>
         </DialogContent>
+
+        <DialogFooter>
+          <ButtonGroup>
+            <Button disabled={disabled} type='submit'>
+              {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
+            </Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
       </Dialog>
     )
   }
