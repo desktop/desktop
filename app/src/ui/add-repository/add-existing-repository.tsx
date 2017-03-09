@@ -46,7 +46,6 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
               label='Local Path'
               placeholder='repository path'
               onChange={this.onPathChanged}
-              onKeyDown={this.onKeyDown}
               autoFocus/>
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
@@ -67,12 +66,6 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
     this.checkIfPathIsRepository(path)
-  }
-
-  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      this.props.dispatcher.closePopup()
-    }
   }
 
   private showFilePicker = () => {
