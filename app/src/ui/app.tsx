@@ -792,7 +792,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       icon={icon}
       title={title}
       description='Current repository'
-      dropdownStyle={dropdownStyle}
+      foldoutStyle={dropdownStyle}
       onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
       dropdownContentRenderer={this.renderRepositoryList}
       dropdownState={currentState} />

@@ -50,7 +50,7 @@ export interface IToolbarDropdownProps {
    * Sets the styles for the dropdown's foldout. Useful for custom positioning
    * and sizes.
    */
-  readonly dropdownStyle?: React.CSSProperties
+  readonly foldoutStyle?: React.CSSProperties
 
   /**
    * Whether the button should displays its disclosure arrow. Defaults to true.
@@ -162,8 +162,8 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
   }
 
   private getFoldoutStyle(): React.CSSProperties | undefined {
-    if (this.props.dropdownStyle) {
-      return this.props.dropdownStyle
+    if (this.props.foldoutStyle) {
+      return this.props.foldoutStyle
     }
 
     const rect = this.state.clientRect
