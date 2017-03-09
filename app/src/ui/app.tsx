@@ -612,6 +612,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     else if (popup.type === PopupType.AddRepository) {
       return (
         <AddExistingRepository
+          onDismissed={this.onPopupDismissed}
           dispatcher={this.props.dispatcher} />
       )
     } else if (popup.type === PopupType.CreateRepository)  {

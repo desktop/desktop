@@ -4,14 +4,16 @@ import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import { initGitRepository, isGitRepository } from '../../lib/git'
 import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
-import { Dialog, DialogContent } from '../dialog'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 const untildify: (str: string) => string = require('untildify')
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
+  readonly onDismissed: () => void
 }
 
 interface IAddExistingRepositoryState {
@@ -35,7 +37,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
       <Dialog
         title='Add local repository'
         onSubmit={this.addRepository}
-        onDismissed={this.onDismissed}>
+        onDismissed={this.props.onDismissed}>
 
         <DialogContent>
           <Row>
@@ -49,16 +51,17 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
 
-          <Button disabled={disabled} type='submit'>
-            {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
-          </Button>
+          <DialogFooter>
+            <ButtonGroup>
+              <Button disabled={disabled} type='submit'>
+                {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
+              </Button>
+              <Button onClick={this.props.onDismissed}>Cancel</Button>
+            </ButtonGroup>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     )
-  }
-
-  private onDismissed = () => {
-    this.props.dispatcher.closePopup()
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
