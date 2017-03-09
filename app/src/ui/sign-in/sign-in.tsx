@@ -132,6 +132,9 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
         if (!state.supportsBasicAuth) {
           primaryButtonText = 'Continue with browser'
         } else {
+          const validUserName = this.state.username.length > 0
+          const validPassword = this.state.password.length > 0
+          disableSubmit = !validUserName || !validPassword
           primaryButtonText = 'Sign in'
         }
         break
