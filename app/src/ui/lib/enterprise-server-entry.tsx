@@ -5,6 +5,8 @@ import { TextBox } from './text-box'
 import { Button } from './button'
 import { Errors } from './errors'
 
+import { isValidText } from './enterprise-validate-url'
+
 interface IEnterpriseServerEntryProps {
   /**
    * An error which, if present, is presented to the
@@ -45,7 +47,9 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
 
   public render() {
     const disableEntry = this.props.loading
-    const disableSubmission = !this.state.serverAddress.length || this.props.loading
+    const validText = isValidText(this.state.serverAddress)
+    const disableSubmission = !validText || this.props.loading
+
     return (
       <Form onSubmit={this.onSubmit}>
         <TextBox

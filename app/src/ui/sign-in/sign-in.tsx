@@ -16,6 +16,8 @@ import { TextBox } from '../lib/text-box'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 
+import { isValidText as isValidEnterpriseText } from '../lib/enterprise-validate-url'
+
 import {
   getWelcomeMessage,
  } from '../../lib/2fa'
@@ -113,11 +115,14 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
       return null
     }
 
+    let disableSubmit = false
+
     let primaryButtonText: string
     const stepKind = state.kind
 
     switch (state.kind) {
       case SignInStep.EndpointEntry:
+        disableSubmit = !isValidEnterpriseText(this.state.endpoint)
         primaryButtonText = 'Continue'
         break
       case SignInStep.TwoFactorAuthentication:
@@ -137,7 +142,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
     return (
       <DialogFooter>
         <ButtonGroup>
-          <Button type='submit'>{primaryButtonText}</Button>
+          <Button disabled={disableSubmit} type='submit'>{primaryButtonText}</Button>
           <Button onClick={this.props.onDismissed}>Cancel</Button>
         </ButtonGroup>
       </DialogFooter>
