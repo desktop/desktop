@@ -7,6 +7,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { initGitRepository, createCommit, getStatus, getAuthorIdentity } from '../../lib/git'
 import { sanitizedRepositoryName } from './sanitized-repository-name'
 import { TextBox } from '../lib/text-box'
+import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
@@ -16,7 +17,7 @@ import { Loading } from '../lib/loading'
 import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { ILicense, getLicenses, writeLicense } from './licenses'
 import { getDefaultDir } from '../lib/default-dir'
-import { Dialog, DialogContent } from '../dialog'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -30,6 +31,7 @@ const NoLicenseValue: ILicense = {
 
 interface ICreateRepositoryProps {
   readonly dispatcher: Dispatcher
+  readonly onDismissed: () => void
 }
 
 interface ICreateRepositoryState {
@@ -260,24 +262,22 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     )
   }
 
-  private onDismissed = () => {
-    this.props.dispatcher.closePopup()
-  }
-
   public render() {
     const disabled = this.state.path.length === 0 || this.state.name.length === 0 || this.state.creating
     return (
       <Dialog
         title='Create a new repository'
         onSubmit={this.createRepository}
-        onDismissed={this.onDismissed}>
+        onDismissed={this.props.onDismissed}>
         <DialogContent>
-          <TextBox
-            value={this.state.name}
-            label='Name'
-            placeholder='repository name'
-            onChange={this.onNameChanged}
-            autoFocus />
+          <Row>
+            <TextBox
+              value={this.state.name}
+              label='Name'
+              placeholder='repository name'
+              onChange={this.onNameChanged}
+              autoFocus />
+          </Row>
 
           {this.renderError()}
 
@@ -299,14 +299,18 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
           {this.renderLicenses()}
 
-          <hr />
-
-          <Button type='submit' disabled={disabled}>
-            Create Repository
-          </Button>
-
-          {this.state.creating ? <Loading /> : null}
         </DialogContent>
+
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type='submit' disabled={disabled}>
+              Create Repository
+              {this.state.creating ? <Loading /> : null}
+            </Button>
+
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
       </Dialog>
     )
   }
