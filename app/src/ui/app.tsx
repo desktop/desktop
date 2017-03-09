@@ -943,16 +943,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     const isOpen = this.state.currentFoldout
       && this.state.currentFoldout.type === FoldoutType.AppMenu
 
-    const className = classNames(
-      'app-menu'
-    )
-
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
     return (
       <ToolbarDropdown
         icon={OcticonSymbol.plus}
-        className={className}
+        className='app-menu'
         title='.'
         dropdownContentRenderer={this.renderAddMenu}
         onDropdownStateChanged={this.onAppMenuDropdownStateChanged}
