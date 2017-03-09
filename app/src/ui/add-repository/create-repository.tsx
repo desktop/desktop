@@ -205,7 +205,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     this.setState({ ...this.state, creating: false })
 
     this.props.dispatcher.selectRepository(repository)
-    this.props.dispatcher.closePopup()
+    this.props.onDismissed()
   }
 
 
