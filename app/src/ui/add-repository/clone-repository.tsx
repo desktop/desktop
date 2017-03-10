@@ -5,6 +5,7 @@ import * as React from 'react'
 import * as FS from 'fs'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../../lib/dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
@@ -103,8 +104,10 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
         </DialogContent>
 
         <DialogFooter>
-          <Button onClick={this.props.onDismissed}>Cancel</Button>
-          <Button disabled={disabled} type='submit'>Clone</Button>
+          <ButtonGroup>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
+            <Button disabled={disabled} type='submit'>Clone</Button>
+          </ButtonGroup>
         </DialogFooter>
       </Dialog>
     )
