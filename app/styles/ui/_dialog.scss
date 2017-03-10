@@ -270,3 +270,12 @@ dialog {
     }
   }
 }
+
+.warning-helper-text {
+  font-size: var(--font-size-sm);
+
+  .octicon {
+    fill: var(--dialog-warning-color);
+    margin-right: var(--spacing-half);
+  }
+}

@@ -10,6 +10,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Select } from '../lib/select'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface ICreateBranchProps {
   readonly repository: Repository
@@ -43,7 +44,10 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     if (this.state.proposedName === this.state.sanitizedName) { return null }
 
     return (
-      <div>Will be created as {this.state.sanitizedName}</div>
+      <Row className='warning-helper-text'>
+        <Octicon symbol={OcticonSymbol.alert} />
+        Will be created as {this.state.sanitizedName}
+      </Row>
     )
   }
 
