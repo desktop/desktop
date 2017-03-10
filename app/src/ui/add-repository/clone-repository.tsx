@@ -8,7 +8,6 @@ import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
-import { Loading } from '../lib/loading'
 import { User } from '../../models/user'
 import { API, getDotComAPIEndpoint, getHTMLURL } from '../../lib/api'
 import { parseRemote } from '../../lib/remote-parsing'
@@ -76,7 +75,8 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
         className='clone-repository'
         title='Clone a repository'
         onSubmit={this.clone}
-        onDismissed={this.props.onDismissed}>
+        onDismissed={this.props.onDismissed}
+        loading={this.state.loading}>
         {error ? <DialogError>{error.message}</DialogError> : null}
 
         <DialogContent>
@@ -100,8 +100,6 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
               onChange={this.onPathChanged}/>
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
-
-          {this.state.loading ? <Loading/> : null}
         </DialogContent>
 
         <DialogFooter>
