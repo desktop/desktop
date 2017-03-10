@@ -35,7 +35,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
     const disabled = this.state.path.length === 0 || this.state.isGitRepository == null
     return (
       <Dialog
-        title='Add local repository'
+        title={__DARWIN__ ? 'Add Local Repository' : 'Add local repository'}
         onSubmit={this.addRepository}
         onDismissed={this.props.onDismissed}>
 
@@ -43,7 +43,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
           <Row>
             <TextBox
               value={this.state.path}
-              label='Local Path'
+              label={__DARWIN__ ? 'Local Path' : 'Local path'}
               placeholder='repository path'
               onChange={this.onPathChanged}
               autoFocus/>
