@@ -72,9 +72,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
               onChange={this.onBranchNameChange} />
           </Row>
 
-          <Row>
-            {this.renderSanitizedName()}
-          </Row>
+          {this.renderSanitizedName()}
 
           <Row>
             <Select
