@@ -18,6 +18,7 @@ import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { ILicense, getLicenses, writeLicense } from './licenses'
 import { getDefaultDir } from '../lib/default-dir'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 /** The sentinel value used to indicate no gitignore should be used. */
 const NoGitIgnoreValue = 'None'
@@ -213,12 +214,15 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     this.setState({ ...this.state, createWithReadme: event.currentTarget.checked })
   }
 
-  private renderError() {
+  private renderSanitizedName() {
     const sanitizedName = sanitizedRepositoryName(this.state.name)
     if (this.state.name === sanitizedName) { return null }
 
     return (
-      <div>Will be created as {sanitizedName}</div>
+      <Row className='warning-helper-text'>
+        <Octicon symbol={OcticonSymbol.alert} />
+        Will be created as {sanitizedName}
+      </Row>
     )
   }
 
@@ -279,7 +283,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
               autoFocus />
           </Row>
 
-          {this.renderError()}
+          {this.renderSanitizedName()}
 
           <Row>
             <TextBox
