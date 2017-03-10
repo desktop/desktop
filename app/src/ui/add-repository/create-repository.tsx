@@ -13,7 +13,6 @@ import { Row } from '../lib/row'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { writeDefaultReadme } from './write-default-readme'
 import { Select } from '../lib/select'
-import { Loading } from '../lib/loading'
 import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { ILicense, getLicenses, writeLicense } from './licenses'
 import { getDefaultDir } from '../lib/default-dir'
@@ -274,7 +273,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     const disabled = this.state.path.length === 0 || this.state.name.length === 0 || this.state.creating
     return (
       <Dialog
-        title='Create a new repository'
+        title={__DARWIN__ ? 'Create a New Repository' : 'Create a new repository'}
         onSubmit={this.createRepository}
         onDismissed={this.props.onDismissed}>
         <DialogContent>
@@ -292,7 +291,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
           <Row>
             <TextBox
               value={this.state.path}
-              label='Local Path'
+              label={__DARWIN__ ? 'Local Path' : 'Local path'}
               placeholder='repository path'
               onChange={this.onPathChanged} />
             <Button onClick={this.showFilePicker}>Choose…</Button>
@@ -314,8 +313,8 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         <DialogFooter>
           <ButtonGroup>
             <Button type='submit' disabled={disabled}>
-              Create Repository
               {this.state.creating ? <Loading /> : null}
+              {__DARWIN__ ? 'Create Repository' : 'Create repository'}
             </Button>
 
             <Button onClick={this.props.onDismissed}>Cancel</Button>
