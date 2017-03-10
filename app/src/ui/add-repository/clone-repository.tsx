@@ -80,9 +80,9 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
         {error ? <DialogError>{error.message}</DialogError> : null}
 
         <DialogContent>
-          <div>
+          <p>
             Enter a repository URL or GitHub username and repository (e.g., <span className='repository-pattern'>hubot/cool-repo</span>)
-          </div>
+          </p>
 
           <TextBox placeholder='URL or username/repository' value={this.state.url} onChange={this.onURLChanged} autoFocus/>
 
