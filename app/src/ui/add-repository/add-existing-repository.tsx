@@ -33,6 +33,11 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
   public render() {
     const disabled = this.state.path.length === 0 || this.state.isGitRepository == null
+
+    const submitButtonText = this.state.isGitRepository
+      ? (__DARWIN__ ? 'Add Repository' : 'Add repository')
+      : (__DARWIN__ ? 'Create & Add Repository' : 'Create & add repository')
+
     return (
       <Dialog
         title={__DARWIN__ ? 'Add Local Repository' : 'Add local repository'}
@@ -54,7 +59,7 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
         <DialogFooter>
           <ButtonGroup>
             <Button disabled={disabled} type='submit'>
-              {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
+              {submitButtonText}
             </Button>
             <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
