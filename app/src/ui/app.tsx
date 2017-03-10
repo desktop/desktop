@@ -780,7 +780,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
-    const dropdownStyle = {
+    const foldoutStyle = {
       position: 'absolute',
       marginLeft: 0,
       minWidth: this.state.sidebarWidth,
@@ -792,7 +792,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       icon={icon}
       title={title}
       description='Current repository'
-      foldoutStyle={dropdownStyle}
+      foldoutStyle={foldoutStyle}
       onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
       dropdownContentRenderer={this.renderRepositoryList}
       dropdownState={currentState} />
