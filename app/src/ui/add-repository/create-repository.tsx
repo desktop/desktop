@@ -274,6 +274,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     return (
       <Dialog
         title={__DARWIN__ ? 'Create a New Repository' : 'Create a new repository'}
+        loading={this.state.creating}
         onSubmit={this.createRepository}
         onDismissed={this.props.onDismissed}>
         <DialogContent>
@@ -313,7 +314,6 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
         <DialogFooter>
           <ButtonGroup>
             <Button type='submit' disabled={disabled}>
-              {this.state.creating ? <Loading /> : null}
               {__DARWIN__ ? 'Create Repository' : 'Create repository'}
             </Button>
 
