@@ -241,13 +241,15 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     const options = [ NoGitIgnoreValue, ...gitIgnores ]
 
     return (
-      <Select
-        label='Git Ignore'
-        value={this.state.gitIgnore}
-        onChange={this.onGitIgnoreChange}
-      >
-        {options.map(n => <option key={n} value={n}>{n}</option>)}
-      </Select>
+      <Row>
+        <Select
+          label='Git Ignore'
+          value={this.state.gitIgnore}
+          onChange={this.onGitIgnoreChange}
+        >
+          {options.map(n => <option key={n} value={n}>{n}</option>)}
+        </Select>
+      </Row>
     )
   }
 
@@ -256,13 +258,15 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     const options = [ NoLicenseValue, ...licenses ]
 
     return (
-      <Select
-        label='License'
-        value={this.state.license}
-        onChange={this.onLicenseChange}
-      >
-        {options.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
-      </Select>
+      <Row>
+        <Select
+          label='License'
+          value={this.state.license}
+          onChange={this.onLicenseChange}
+        >
+          {options.map(l => <option key={l.name} value={l.name}>{l.name}</option>)}
+        </Select>
+      </Row>
     )
   }
 
@@ -294,10 +298,12 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
             <Button onClick={this.showFilePicker}>Choose…</Button>
           </Row>
 
-          <Checkbox
-            label='Initialize this repository with a README'
-            value={this.state.createWithReadme ? CheckboxValue.On : CheckboxValue.Off}
-            onChange={this.onCreateWithReadmeChange} />
+          <Row>
+            <Checkbox
+              label='Initialize this repository with a README'
+              value={this.state.createWithReadme ? CheckboxValue.On : CheckboxValue.Off}
+              onChange={this.onCreateWithReadmeChange} />
+          </Row>
 
           {this.renderGitIgnores()}
 
