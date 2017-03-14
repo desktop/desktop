@@ -712,6 +712,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+    private onAddMenuDropdownStateChanged = (newState: DropdownState) => {
+    if (newState === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.AddMenu, enableAccessKeyNavigation: false })
+    } else {
+      this.props.dispatcher.closeFoldout()
+    }
+  }
+
   private onAppMenuDropdownStateChanged = (newState: DropdownState) => {
     if (newState === 'open') {
       this.props.dispatcher.setAppMenuState(menu => menu.withReset())
@@ -942,7 +950,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderAddToolbarButton() {
     const isOpen = this.state.currentFoldout
-      && this.state.currentFoldout.type === FoldoutType.AppMenu
+      && this.state.currentFoldout.type === FoldoutType.AddMenu
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
@@ -951,7 +959,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         icon={OcticonSymbol.plus}
         className='app-menu'
         dropdownContentRenderer={this.renderAddMenu}
-        onDropdownStateChanged={this.onAppMenuDropdownStateChanged}
+        onDropdownStateChanged={this.onAddMenuDropdownStateChanged}
         dropdownState={currentState} />
     )
   }
