@@ -105,8 +105,8 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
         <DialogFooter>
           <ButtonGroup>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
             <Button disabled={disabled} type='submit'>Clone</Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
