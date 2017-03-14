@@ -81,7 +81,7 @@
     "@types/electron-window-state": "^2.0.28",
     "@types/event-kit": "^1.2.28",
     "@types/fs-extra": "0.0.37",
-    "@types/keytar": "^3.0.28",
+    "@types/keytar": "^3.0.30",
     "@types/mocha": "^2.2.29",
     "@types/node": "^6.0.31",
     "@types/react": "^15.0.8",
