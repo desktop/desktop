@@ -1,6 +1,8 @@
 @import "../mixins";
 
 .toolbar-button.app-menu {
+  min-width: 57px;
+
   .text, .dropdownArrow {
     display: none;
   }
@@ -44,6 +46,12 @@
           background-color: var(--box-selected-active-background-color);
         }
       }
+    }
+
+    &.add-menu {
+      list-style-type: none;
+      padding: 0;
+      width: 100%;
     }
   }
 
@@ -112,4 +120,20 @@
     height: 1px;
     border-bottom: var(--base-border);
   }
+}
+
+.add-menu-item {
+  padding: var(--spacing-half) var(--spacing-double);
+
+  & + .add-menu-item-header {
+    margin-top: var(--spacing);
+  }
+
+  &:not(.add-menu-item-header):hover {
+    background-color: var(--box-alt-background-color);
+  }
+}
+
+.add-menu-item-header {
+  opacity: 0.6;
 }

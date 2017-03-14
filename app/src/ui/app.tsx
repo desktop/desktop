@@ -32,6 +32,8 @@ import { shouldRenderApplicationMenu } from './lib/features'
 import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
+import { AddExistingRepository, CreateRepository, CloneRepository } from './add-repository'
+import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 
 /** The interval at which we should check for updates. */
@@ -196,16 +198,16 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'select-changes': return this.selectChanges()
       case 'select-history': return this.selectHistory()
       case 'add-local-repository': return this.showFileBrowser()
-      case 'create-branch': return this.showBranches(true)
-      case 'show-branches': return this.showBranches(false)
+      case 'create-branch': return this.showCreateBranch()
+      case 'show-branches': return this.showBranches()
       case 'remove-repository': return this.removeRepository()
-      case 'add-repository': return this.addRepository()
+      case 'create-repository': return this.createRepository()
       case 'rename-branch': return this.renameBranch()
       case 'delete-branch': return this.deleteBranch()
       case 'check-for-updates': return this.checkForUpdates()
       case 'quit-and-install-update': return updateStore.quitAndInstallUpdate()
       case 'show-preferences': return this.props.dispatcher.showPopup({ type: PopupType.Preferences })
-      case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
+      case 'choose-repository': return this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
       case 'open-working-directory': return this.openWorkingDirectory()
       case 'update-branch': return this.updateBranch()
       case 'merge-branch': return this.mergeBranch()
@@ -310,18 +312,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
-  private addRepository() {
-    this.props.dispatcher.showFoldout({
-      type: FoldoutType.Repository,
-      expandAddRepository: true,
+  private createRepository() {
+    this.props.dispatcher.showPopup({
+      type: PopupType.CreateRepository,
     })
   }
 
-  private showBranches(expandCreateBranch: boolean) {
+  private showBranches() {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch })
+    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
   }
 
   private selectChanges() {
@@ -618,6 +619,45 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
     }
 
+    else if (popup.type === PopupType.AddRepository) {
+      return (
+        <AddExistingRepository
+          onDismissed={this.onPopupDismissed}
+          dispatcher={this.props.dispatcher} />
+      )
+    } else if (popup.type === PopupType.CreateRepository)  {
+      return (
+        <CreateRepository
+          onDismissed={this.onPopupDismissed}
+          dispatcher={this.props.dispatcher} />
+      )
+    } else if (popup.type === PopupType.CloneRepository)  {
+      return (
+        <CloneRepository
+          users={this.state.users}
+          onDismissed={this.onPopupDismissed}
+          dispatcher={this.props.dispatcher} />
+      )
+    } else if (popup.type === PopupType.CreateBranch) {
+      const state = this.props.appStore.getRepositoryState(popup.repository)
+
+      const tip = state.branchesState.tip
+      const currentBranch = tip.kind === TipState.Valid
+        ? tip.branch
+        : null
+
+      const repository = popup.repository
+
+      return (
+        <CreateBranch
+          currentBranch={currentBranch}
+          branches={state.branchesState.allBranches}
+          repository={repository}
+          onDismissed={this.onPopupDismissed}
+          dispatcher={this.props.dispatcher} />
+      )
+    }
+
     return assertNever(popup, `Unknown popup type: ${popup}`)
   }
 
@@ -658,24 +698,28 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+    private onAddMenuDropdownStateChanged = (newState: DropdownState) => {
+    if (newState === 'open') {
+      this.props.dispatcher.showFoldout({ type: FoldoutType.AddMenu, enableAccessKeyNavigation: false })
+    } else {
+      this.props.dispatcher.closeFoldout()
+    }
+  }
+
   private renderRepositoryList = (): JSX.Element => {
     const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
-    const foldout = this.state.currentFoldout
-    const expandAddRepository = !!foldout && foldout.type === FoldoutType.Repository && foldout.expandAddRepository
     return <RepositoriesList
       selectedRepository={selectedRepository}
       onSelectionChanged={this.onSelectionChanged}
       dispatcher={this.props.dispatcher}
       repositories={this.state.repositories}
       loading={this.state.loading}
-      users={this.state.users}
-      expandAddRepository={expandAddRepository}
-    />
+      />
   }
 
   private onRepositoryDropdownStateChanged = (newState: DropdownState) => {
     newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Repository })
       : this.props.dispatcher.closeFoldout()
   }
 
@@ -698,10 +742,19 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
+    const foldoutStyle = {
+      position: 'absolute',
+      marginLeft: 0,
+      minWidth: this.state.sidebarWidth,
+      height: '100%',
+      top: 0,
+    }
+
     return <ToolbarDropdown
       icon={icon}
       title={title}
       description='Current repository'
+      foldoutStyle={foldoutStyle}
       onDropdownStateChanged={this.onRepositoryDropdownStateChanged}
       dropdownContentRenderer={this.renderRepositoryList}
       dropdownState={currentState} />
@@ -729,6 +782,23 @@ export class App extends React.Component<IAppProps, IAppState> {
       signInState={this.state.signInState}/>
   }
 
+  private showCreateBranch = () => {
+    const selection = this.state.selectedState
+
+    // NB: This should never happen but in the case someone
+    // manages to delete the last repository while the drop down is
+    // open we'll just bail here.
+    if (!selection || selection.type !== SelectionType.Repository) {
+      return null
+    }
+
+    const repository = selection.repository
+
+    this.props.dispatcher.closeFoldout()
+    return this.props.dispatcher.showPopup({ type: PopupType.CreateBranch, repository })
+  }
+
+
   private renderBranchFoldout = (): JSX.Element | null => {
     const selection = this.state.selectedState
 
@@ -748,15 +818,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? tip.branch
       : null
 
-    const foldout = this.state.currentFoldout
-    const expandCreateBranch = !!foldout && foldout.type === FoldoutType.Branch && foldout.expandCreateBranch
-
     return <Branches
       allBranches={state.branchesState.allBranches}
       recentBranches={state.branchesState.recentBranches}
       currentBranch={currentBranch}
       defaultBranch={state.branchesState.defaultBranch}
-      expandCreateBranch={expandCreateBranch}
       dispatcher={this.props.dispatcher}
       repository={repository}
     />
@@ -764,7 +830,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
     newState === 'open'
-      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch: false })
+      ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
       : this.props.dispatcher.closeFoldout()
   }
 
@@ -826,12 +892,63 @@ export class App extends React.Component<IAppProps, IAppState> {
         <div
           className='sidebar-section'
           style={{ width: this.state.sidebarWidth }}>
+          {this.renderAddToolbarButton()}
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
       </Toolbar>
     )
+  }
+
+  private renderAddToolbarButton() {
+    const isOpen = this.state.currentFoldout
+      && this.state.currentFoldout.type === FoldoutType.AddMenu
+
+    const currentState: DropdownState = isOpen ? 'open' : 'closed'
+
+    return (
+      <ToolbarDropdown
+        icon={OcticonSymbol.plus}
+        className='app-menu'
+        dropdownContentRenderer={this.renderAddMenu}
+        onDropdownStateChanged={this.onAddMenuDropdownStateChanged}
+        dropdownState={currentState} />
+    )
+  }
+
+  private renderAddMenu = (): JSX.Element | null => {
+    const foldoutStyle = {
+      width: this.state.sidebarWidth,
+    }
+
+    return (
+      <div id='app-menu-foldout' style={foldoutStyle}>
+        <ul className='menu-pane add-menu'>
+          <li className='add-menu-item add-menu-item-header'>Repository</li>
+          <li className='add-menu-item' onClick={this.showAddLocalRepo}>Add local respository</li>
+          <li className='add-menu-item' onClick={this.showCreateRepo}>Create new repository</li>
+          <li className='add-menu-item' onClick={this.showCloneRepo}>Clone repository</li>
+          <li className='add-menu-item add-menu-item-header'>Branches</li>
+          <li className='add-menu-item' onClick={this.showCreateBranch}>Create new branch</li>
+        </ul>
+      </div>
+    )
+  }
+
+  private showAddLocalRepo = () => {
+    this.props.dispatcher.closeFoldout()
+    return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
+  }
+
+  private showCreateRepo = () => {
+    this.props.dispatcher.closeFoldout()
+    return this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
+  }
+
+  private showCloneRepo = () => {
+    this.props.dispatcher.closeFoldout()
+    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
   }
 
   private renderRepository() {
