@@ -37,10 +37,17 @@ export function isValidText(input: string): boolean {
  * Returns the validated URL, or throws if the URL cannot be validated.
  */
 export function validateURL(address: string): string {
-  let url = URL.parse(address)
+  const trimmed = address.trim()
+  if (trimmed.length === 0) {
+    const error = new Error('Unknown address')
+    error.name = InvalidURLErrorName
+    throw error
+  }
+
+  let url = URL.parse(trimmed)
   if (!url.host) {
     // E.g., if they user entered 'ghe.io', let's assume they're using https.
-    address = `https://${address}`
+    address = `https://${trimmed}`
     url = URL.parse(address)
   }
 
