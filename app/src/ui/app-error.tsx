@@ -18,7 +18,7 @@ interface IAppErrorProps {
    * has been shown to, and been dismissed by, the user.
    */
   readonly onClearError: (error: Error) => void
-  readonly onShowLogin?: (popupType: Popup) => void
+  readonly onShowPopup?: (popupType: Popup) => void | undefined
 }
 
 interface IAppErrorState {
@@ -67,50 +67,45 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       // with the next error in the queue.
       setTimeout(() => {
         this.props.onClearError(currentError)
-
-        if (currentError instanceof GitError) {
-          this.handleGitError(currentError)
-        }
       }, dialogTransitionLeaveTimeout)
     }
   }
+  private showPreferencesDialog = () => {
+    const showPreferences = this.props.onShowPopup
 
-  private handleGitError(error: GitError): void {
-    const showLogin = this.props.onShowLogin
-
-    if (!showLogin) {
+    if (!showPreferences) {
       return
     }
 
-    const gitError = error.result.gitError
-
-    switch (gitError) {
-      case GitErrorType.HTTPSAuthenticationFailed:
-        showLogin({ type: PopupType.Preferences })
-      break
-    }
+    showPreferences({ type: PopupType.Preferences })
   }
 
-  private getResolutionForGitError(error: GitError): string {
-    const gitErrorType = error.result.gitError
+  private handleGitError(error: GitError) {
+    const gitError = error.result.gitError
 
-    switch (gitErrorType) {
-        case GitErrorType.HTTPSAuthenticationFailed:
-          return 'You must be signed in to perform this action'
+    switch (gitError)  {
+      case GitErrorType.HTTPSAuthenticationFailed: {
+        return (
+          <ButtonGroup>
+            <Button type='submit'onClick={this.showPreferencesDialog}>
+              Open Preferences
+            </Button>
+          </ButtonGroup>)
+      }
+      default:
+        return (
+          <ButtonGroup>
+            <Button type='submit'>Close</Button>
+          </ButtonGroup>)
     }
-
-    return `Unknown error: ${error}`
   }
 
   private renderDialog() {
-
     const error = this.state.error
 
     if (!error) {
       return null
     }
-
-    const message: string = error instanceof GitError ? this.getResolutionForGitError(error) : error.message
 
     return (
       <Dialog
@@ -120,15 +115,24 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         onDismissed={this.onDismissed}
         disabled={this.state.disabled}>
         <DialogContent>
-          {message}
+          {error instanceof GitError ? error.result.gitErrorDescription : error.message}
         </DialogContent>
         <DialogFooter>
-        <ButtonGroup>
-          <Button type='submit'>Close</Button>
-        </ButtonGroup>
-      </DialogFooter>
+          {this.renderFooter(error)}
+        </DialogFooter>
       </Dialog>
     )
+  }
+
+  private renderFooter(error: Error) {
+    if (error instanceof GitError) {
+      return this.handleGitError(error)
+    }
+
+    return (
+      <ButtonGroup>
+        <Button type='submit'>Close</Button>
+      </ButtonGroup>)
   }
 
   public render() {
