@@ -81,9 +81,9 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private handleGitError(error: GitError) {
-    const gitError = error.result.gitError
+    const gitErrorType = error.result.gitError
 
-    switch (gitError)  {
+    switch (gitErrorType)  {
       case GitErrorType.HTTPSAuthenticationFailed: {
         return (
           <ButtonGroup>
