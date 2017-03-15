@@ -10,6 +10,7 @@ interface IAppMenuBarButtonProps {
   readonly menuState: ReadonlyArray<IMenu>
   readonly enableAccessKeyNavigation: boolean
   readonly openedWithAccessKey: boolean
+  readonly highlightAppMenuToolbarButton: boolean
 
   readonly onClose: (menuItem: ISubmenuItem) => void
   readonly onOpen: (menuItem: ISubmenuItem) => void
@@ -43,7 +44,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
       >
         <MenuListItem
           item={item}
-          highlightAccessKey={this.props.enableAccessKeyNavigation}
+          highlightAccessKey={this.props.highlightAppMenuToolbarButton}
           renderAcceleratorText={false}
           renderIcon={false}
           renderSubMenuArrow={false}

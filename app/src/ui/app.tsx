@@ -526,11 +526,16 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? <WindowControls />
       : null
 
+    const foldoutState = this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu
+      ? this.state.currentFoldout
+      : null
+
     const menuBar = __WIN32__ && this.state.appMenuState.length && !this.state.showWelcomeFlow
       ? <AppMenuBar
           appMenu={this.state.appMenuState}
           dispatcher={this.props.dispatcher}
           highlightAppMenuToolbarButton={this.state.highlightAppMenuToolbarButton}
+          foldoutState={foldoutState}
         />
       : null
 

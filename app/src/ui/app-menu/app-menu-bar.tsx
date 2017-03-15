@@ -2,11 +2,13 @@ import * as React from 'react'
 import { IMenu, ISubmenuItem } from '../../models/app-menu'
 import { AppMenuBarButton } from './app-menu-bar-button'
 import { Dispatcher } from '../../lib/dispatcher'
+import { FoldoutType } from '../../lib/app-state'
 
 interface IAppMenuBarProps {
   readonly appMenu: ReadonlyArray<IMenu>
   readonly dispatcher: Dispatcher
   readonly highlightAppMenuToolbarButton: boolean
+  readonly foldoutState: { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } | null
 }
 
 interface IAppMenuBarState {
@@ -54,10 +56,18 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   }
 
   private onMenuClose = (item: ISubmenuItem) => {
+    if (this.props.foldoutState) {
+      this.props.dispatcher.closeFoldout()
+    }
     this.props.dispatcher.setAppMenuState(m => m.withClosedMenu(item.menu))
   }
 
   private onMenuOpen = (item: ISubmenuItem) => {
+    const enableAccessKeyNavigation = this.props.foldoutState
+      ? this.props.foldoutState.enableAccessKeyNavigation
+      : false
+
+    this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation })
     this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item))
   }
 
@@ -106,7 +116,9 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
 
   private renderMenuItem(item: ISubmenuItem): JSX.Element {
 
-    const openMenu = this.props.appMenu.length > 1
+    const foldoutState = this.props.foldoutState
+
+    const openMenu = foldoutState && this.props.appMenu.length > 1
       ? this.props.appMenu[1]
       : null
 
@@ -114,14 +126,23 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
       ? this.props.appMenu.slice(1)
       : []
 
+    const openedWithAccessKey = foldoutState
+      ? foldoutState.openedWithAccessKey || false
+      : false
+
+      const enableAccessKeyNavigation = foldoutState
+        ? foldoutState.enableAccessKeyNavigation
+        : false
+
     return (
       <AppMenuBarButton
         key={item.id}
         dispatcher={this.props.dispatcher}
         menuItem={item}
         menuState={menuState}
-        enableAccessKeyNavigation={this.props.highlightAppMenuToolbarButton}
-        openedWithAccessKey={false}
+        highlightAppMenuToolbarButton={this.props.highlightAppMenuToolbarButton}
+        enableAccessKeyNavigation={enableAccessKeyNavigation}
+        openedWithAccessKey={openedWithAccessKey}
         onClose={this.onMenuClose}
         onOpen={this.onMenuOpen}
         onMouseEnter={this.onMenuButtonMouseEnter}
