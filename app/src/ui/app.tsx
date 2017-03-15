@@ -623,7 +623,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         />
       )
     }
-
     else if (popup.type === PopupType.AddRepository) {
       return (
         <AddExistingRepository
