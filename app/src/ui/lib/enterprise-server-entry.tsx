@@ -45,7 +45,7 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
 
   public render() {
     const disableEntry = this.props.loading
-    const disableSubmission = this.state.serverAddress.length > 0 || this.props.loading
+    const disableSubmission = this.state.serverAddress.length === 0 || this.props.loading
 
     return (
       <Form onSubmit={this.onSubmit}>
