@@ -18,7 +18,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   public constructor(props: IAppMenuBarProps) {
     super(props)
     this.state = {
-      menuItems: this.buildMenuItems(props.appMenu)
+      menuItems: this.buildMenuItems(props.appMenu),
     }
   }
 
