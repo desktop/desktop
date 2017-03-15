@@ -77,7 +77,9 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       return
     }
 
-    showPreferences({ type: PopupType.Preferences })
+    setTimeout(() => {
+      showPreferences({ type: PopupType.Preferences })
+    }, dialogTransitionLeaveTimeout)
   }
 
   private handleGitError(error: GitError) {
