@@ -86,7 +86,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
     switch (gitError) {
       case GitErrorType.HTTPSAuthenticationFailed:
-        showLogin({ type: PopupType.Signin })
+        showLogin({ type: PopupType.Preferences })
       break
     }
   }
