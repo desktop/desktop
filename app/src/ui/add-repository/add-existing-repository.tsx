@@ -4,15 +4,16 @@ import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import { initGitRepository, isGitRepository } from '../../lib/git'
 import { Button } from '../lib/button'
-import { Form } from '../lib/form'
+import { ButtonGroup } from '../lib/button-group'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
-import { FoldoutType } from '../../lib/app-state'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 const untildify: (str: string) => string = require('untildify')
 
 interface IAddExistingRepositoryProps {
   readonly dispatcher: Dispatcher
+  readonly onDismissed: () => void
 }
 
 interface IAddExistingRepositoryState {
@@ -32,35 +33,44 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
 
   public render() {
     const disabled = this.state.path.length === 0 || this.state.isGitRepository == null
-    return (
-      <Form onSubmit={this.addRepository}>
-        <Row>
-          <TextBox
-            value={this.state.path}
-            label='Local Path'
-            placeholder='repository path'
-            onChange={this.onPathChanged}
-            onKeyDown={this.onKeyDown}
-            autoFocus/>
-          <Button onClick={this.showFilePicker}>Choose…</Button>
-        </Row>
 
-        <Button disabled={disabled} type='submit'>
-          {this.state.isGitRepository ? 'Add Repository' : 'Create & Add Repository'}
-        </Button>
-      </Form>
+    const submitButtonText = this.state.isGitRepository
+      ? (__DARWIN__ ? 'Add Repository' : 'Add repository')
+      : (__DARWIN__ ? 'Create & Add Repository' : 'Create & add repository')
+
+    return (
+      <Dialog
+        title={__DARWIN__ ? 'Add Local Repository' : 'Add local repository'}
+        onSubmit={this.addRepository}
+        onDismissed={this.props.onDismissed}>
+
+        <DialogContent>
+          <Row>
+            <TextBox
+              value={this.state.path}
+              label={__DARWIN__ ? 'Local Path' : 'Local path'}
+              placeholder='repository path'
+              onChange={this.onPathChanged}
+              autoFocus/>
+            <Button onClick={this.showFilePicker}>Choose…</Button>
+          </Row>
+        </DialogContent>
+
+        <DialogFooter>
+          <ButtonGroup>
+            <Button disabled={disabled} type='submit'>
+              {submitButtonText}
+            </Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </Dialog>
     )
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
     this.checkIfPathIsRepository(path)
-  }
-
-  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
-    }
   }
 
   private showFilePicker = () => {
@@ -102,6 +112,6 @@ export class AddExistingRepository extends React.Component<IAddExistingRepositor
       this.props.dispatcher.selectRepository(repository)
     }
 
-    this.props.dispatcher.closeFoldout()
+    this.props.onDismissed()
   }
 }

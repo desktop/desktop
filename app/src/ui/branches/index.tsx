@@ -4,10 +4,7 @@ import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
 import { groupBranches, IBranchListItem, BranchGroupIdentifier } from './group-branches'
 import { BranchListItem } from './branch'
-import { CreateBranch } from '../create-branch'
 import { FilterList } from '../lib/filter-list'
-import { FoldoutType } from '../../lib/app-state'
-import { ExpandFoldoutButton } from '../lib/expand-foldout-button'
 import { assertNever } from '../../lib/fatal-error'
 
 /**
@@ -25,7 +22,6 @@ interface IBranchesProps {
   readonly recentBranches: ReadonlyArray<Branch>
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly expandCreateBranch: boolean
 }
 
 /** The Branches list component. */
@@ -62,41 +58,6 @@ export class Branches extends React.Component<IBranchesProps, void> {
     this.props.dispatcher.checkoutBranch(this.props.repository, branch.nameWithoutRemote)
   }
 
-  private onHideCreateBranch = () => {
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch: false })
-  }
-
-  private onCreateBranchToggle = () => {
-    this.props.dispatcher.showFoldout({ type: FoldoutType.Branch, expandCreateBranch: !this.props.expandCreateBranch })
-  }
-
-  private renderCreateBranch() {
-    if (!this.props.expandCreateBranch) {
-      return null
-    }
-
-    return (
-      <div id='new-branch'>
-        <CreateBranch
-          branches={this.props.allBranches}
-          currentBranch={this.props.currentBranch}
-          dispatcher={this.props.dispatcher}
-          repository={this.props.repository}
-          hideBranchPanel={this.onHideCreateBranch} />
-      </div>
-    )
-  }
-
-  private renderExpandButton = () => {
-    return (
-      <ExpandFoldoutButton
-        onClick={this.onCreateBranchToggle}
-        expanded={this.props.expandCreateBranch}>
-        {__DARWIN__ ? 'Create New Branch' : 'Create new branch'}
-      </ExpandFoldoutButton>
-    )
-  }
-
   private onFilterKeyDown = (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Escape') {
       if (filter.length === 0) {
@@ -126,7 +87,6 @@ export class Branches extends React.Component<IBranchesProps, void> {
       <div className='branches-list-container'>
         <BranchesFilterList
           className='branches-list'
-          renderPreList={this.renderExpandButton}
           rowHeight={RowHeight}
           selectedItem={selectedItem}
           renderItem={this.renderItem}
@@ -135,8 +95,6 @@ export class Branches extends React.Component<IBranchesProps, void> {
           onFilterKeyDown={this.onFilterKeyDown}
           groups={groups}
           invalidationProps={this.props.allBranches}/>
-
-        {this.renderCreateBranch()}
       </div>
     )
   }

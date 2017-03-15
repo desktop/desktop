@@ -7,7 +7,7 @@ export type MenuEvent =
   'create-branch' |
   'show-branches' |
   'remove-repository' |
-  'add-repository' |
+  'create-repository' |
   'rename-branch' |
   'delete-branch' |
   'check-for-updates' |
