@@ -53,7 +53,8 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
           label='Enterprise server address'
           autoFocus={true}
           disabled={disableEntry}
-          onValueChanged={this.onServerAddressChanged}/>
+          onValueChanged={this.onServerAddressChanged}
+          placeholder='https://github.example.com' />
 
         <Button type='submit' disabled={disableSubmission}>Continue</Button>
 
