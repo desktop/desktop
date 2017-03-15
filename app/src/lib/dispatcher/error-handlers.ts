@@ -1,7 +1,7 @@
 import { Dispatcher, AppStore, ErrorHandler } from './index'
 import { SelectionType } from '../app-state'
 import { GitError } from '../git/core'
-import { GitError as GitErrorType, RepositoryDoesNotExistErrorCode } from 'git-kitchen-sink'
+import { GitError as GitErrorType, RepositoryDoesNotExistErrorCode } from 'dugite'
 
 /** An error which also has a code property. */
 interface IErrorWithCode extends Error {

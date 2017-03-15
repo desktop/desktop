@@ -16,7 +16,7 @@ import {
   getBlobImage,
 } from '../../../src/lib/git'
 
-import { GitProcess } from 'git-kitchen-sink'
+import { GitProcess } from 'dugite'
 
 async function getTextDiff(repo: Repository, file: WorkingDirectoryFileChange): Promise<ITextDiff> {
   const diff = await getWorkingDirectoryDiff(repo, file)

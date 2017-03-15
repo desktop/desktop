@@ -6,7 +6,7 @@ const klawSync = require('klaw-sync')
 const temp = require('temp').track()
 
 import { Repository } from '../src/models/repository'
-import { GitProcess } from 'git-kitchen-sink'
+import { GitProcess } from 'dugite'
 
 type KlawEntry = {
   path: string

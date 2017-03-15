@@ -11,7 +11,7 @@ import {
 } from '../../../src/lib/git'
 
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
-import { GitProcess } from 'git-kitchen-sink'
+import { GitProcess } from 'dugite'
 import { FileStatus, WorkingDirectoryFileChange } from '../../../src/models/status'
 import { DiffSelectionType, DiffSelection, ITextDiff, DiffType } from '../../../src/models/diff'
 

@@ -12,7 +12,7 @@ import { shell } from '../test-app-shell'
 import {
   getStatus,
 } from '../../src/lib/git'
-import { GitProcess } from 'git-kitchen-sink'
+import { GitProcess } from 'dugite'
 
 describe('GitStore', () => {
   it('can discard changes from a repository', async () => {
