@@ -18,6 +18,10 @@ export const InvalidProtocolErrorName = 'invalid-protocol'
  * Returns the validated URL, or throws if the URL cannot be validated.
  */
 export function validateURL(address: string): string {
+
+  // ensure user has specified text and not just whitespace
+  // we will interact with this server so we can be fairly
+  // relaxed here about what we accept for the server name
   const trimmed = address.trim()
   if (trimmed.length === 0) {
     const error = new Error('Unknown address')
