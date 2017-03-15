@@ -661,13 +661,13 @@ export class App extends React.Component<IAppProps, IAppState> {
       <AppError
         errors={this.state.errors}
         onClearError={this.clearError}
-        onShowLogin={this.showPopup}
+        onShowPopup={this.showPopup}
       />
     )
   }
 
   private showPopup = (popup: Popup) => {
-     this.props.dispatcher.showPopup(popup)
+    this.props.dispatcher.showPopup(popup)
   }
 
   private renderApp() {
