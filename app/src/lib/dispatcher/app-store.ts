@@ -286,13 +286,7 @@ export class AppStore {
     const repository = this.selectedRepository
     if (!repository) { return null }
 
-    if (repository instanceof Repository) {
-      return {
-        type: SelectionType.Repository,
-        repository,
-        state: this.getRepositoryState(repository),
-      }
-    } else {
+    if (repository instanceof CloningRepository) {
       const cloningState = this.cloningRepositoriesStore.getRepositoryState(repository)
       if (!cloningState) { return null }
 
@@ -301,6 +295,19 @@ export class AppStore {
         repository,
         state: cloningState,
       }
+    }
+
+    if (repository.missing) {
+      return {
+        type: SelectionType.MissingRepository,
+        repository,
+      }
+    }
+
+    return {
+      type: SelectionType.Repository,
+      repository,
+      state: this.getRepositoryState(repository),
     }
   }
 
@@ -364,6 +371,12 @@ export class AppStore {
   private onGitStoreLoadedCommits(repository: Repository, commits: ReadonlyArray<Commit>) {
     for (const commit of commits) {
       this.gitHubUserStore._loadAndCacheUser(this.users, repository, commit.sha, commit.author.email)
+    }
+  }
+
+  private removeGitStore(repository: Repository) {
+    if (this.gitStores.has(repository.id)) {
+      this.gitStores.delete(repository.id)
     }
   }
 
@@ -516,22 +529,27 @@ export class AppStore {
     this.stopBackgroundFetching()
 
     if (!repository) { return Promise.resolve() }
+    if (!(repository instanceof Repository)) { return Promise.resolve() }
 
-    if (repository instanceof Repository) {
-      localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
+    localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
 
-      const gitHubRepository = repository.gitHubRepository
-      if (gitHubRepository) {
-        this._updateIssues(gitHubRepository)
-      }
-
-      await this._refreshRepository(repository)
-
-      this.startBackgroundFetching(repository)
-      this.refreshMentionables(repository)
-    } else {
-      return Promise.resolve()
+    if (repository.missing) {
+      // as the repository is no longer found on disk, cleaning this up
+      // ensures we don't accidentally run any Git operations against the
+      // wrong location if the user then relocates the `.git` folder elsewhere
+      this.removeGitStore(repository)
+      return
     }
+
+    const gitHubRepository = repository.gitHubRepository
+    if (gitHubRepository) {
+      this._updateIssues(gitHubRepository)
+    }
+
+    await this._refreshRepository(repository)
+
+    this.startBackgroundFetching(repository)
+    this.refreshMentionables(repository)
   }
 
   public async _updateIssues(repository: GitHubRepository) {
@@ -599,15 +617,14 @@ export class AppStore {
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
     if (selectedRepository) {
-      const i = this.repositories.findIndex(r => {
-        return selectedRepository.constructor === r.constructor && r.id === selectedRepository.id
-      })
-      if (i === -1) {
-        newSelectedRepository = null
-      }
+      const r = this.repositories.find(r =>
+        r.constructor === selectedRepository.constructor && r.id === selectedRepository.id
+      ) || null
+
+      newSelectedRepository = r
     }
 
-    if (!this.selectedRepository && this.repositories.length > 0) {
+    if (newSelectedRepository !== null && this.repositories.length > 0) {
       const lastSelectedID = parseInt(localStorage.getItem(LastSelectedRepositoryIDKey) || '', 10)
       if (lastSelectedID && !isNaN(lastSelectedID)) {
         newSelectedRepository = this.repositories.find(r => r.id === lastSelectedID) || null
@@ -618,9 +635,7 @@ export class AppStore {
       }
     }
 
-    if (newSelectedRepository !== selectedRepository) {
-      this._selectRepository(newSelectedRepository)
-    }
+    this._selectRepository(newSelectedRepository)
 
     this.sidebarWidth = parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) || defaultSidebarWidth
     this.commitSummaryWidth = parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) || defaultCommitSummaryWidth
@@ -859,6 +874,8 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _refreshRepository(repository: Repository): Promise<void> {
+    if (repository.missing) { return }
+
     const state = this.getRepositoryState(repository)
     const gitStore = this.getGitStore(repository)
 

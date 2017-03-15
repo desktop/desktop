@@ -18,7 +18,7 @@ import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
-import { defaultErrorHandler } from '../lib/dispatcher'
+import { defaultErrorHandler, createMissingRepositoryHandler } from '../lib/dispatcher'
 
 import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
@@ -58,6 +58,7 @@ const appStore = new AppStore(
 
 const dispatcher = new Dispatcher(appStore)
 dispatcher.registerErrorHandler(defaultErrorHandler)
+dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
 
 dispatcher.loadInitialState().then(() => {
   const now = Date.now()
@@ -79,7 +80,7 @@ ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(arg
 
 ipcRenderer.on('focus', () => {
   const state = appStore.getState().selectedState
-  if (!state || state.type === SelectionType.CloningRepository) { return }
+  if (!state || state.type !== SelectionType.Repository) { return }
 
   dispatcher.refreshRepository(state.repository)
 })

@@ -21,6 +21,7 @@ function getTestRepository(isPrivate: boolean, isFork: boolean = false): GitHubR
     fullName: 'shiftkey/some-repo',
     private: isPrivate,
     fork: isFork,
+    cloneURL: 'https://github.com/shiftkey/some-repo.git',
     htmlURL: 'https://github.com/shiftkey/some-repo',
     defaultBranch: 'master',
     withAPI: (apiRepository: IAPIRepository) => {
@@ -39,28 +40,28 @@ describe('octicon/iconForRepository', () => {
   })
 
   it('shows computer icon for non-GitHub repository', () => {
-    const repository = new Repository('C:/some/path/to/repo', 1)
+    const repository = new Repository('C:/some/path/to/repo', 1, null, false)
     const icon = iconForRepository(repository)
     expect(icon).to.deep.equal(OcticonSymbol.deviceDesktop)
   })
 
   it('shows repo icon for public GitHub repository', () => {
     const gitHubRepository = getTestRepository(false)
-    const repository = new Repository('C:/some/path/to/repo', 1, gitHubRepository)
+    const repository = new Repository('C:/some/path/to/repo', 1, gitHubRepository, false)
     const icon = iconForRepository(repository)
     expect(icon).to.deep.equal(OcticonSymbol.repo)
   })
 
   it('shows lock icon for public GitHub repository', () => {
     const gitHubRepository = getTestRepository(true)
-    const repository = new Repository('C:/some/path/to/repo', 1, gitHubRepository)
+    const repository = new Repository('C:/some/path/to/repo', 1, gitHubRepository, false)
     const icon = iconForRepository(repository)
     expect(icon).to.deep.equal(OcticonSymbol.lock)
   })
 
   it('shows fork icon for forked GitHub repository', () => {
     const gitHubRepository = getTestRepository(false, true)
-    const repository = new Repository('C:/some/path/to/repo', 1, gitHubRepository)
+    const repository = new Repository('C:/some/path/to/repo', 1, gitHubRepository, false)
     const icon = iconForRepository(repository)
     expect(icon).to.deep.equal(OcticonSymbol.repoForked)
   })

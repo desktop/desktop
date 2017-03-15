@@ -1,4 +1,4 @@
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 import { Disposable } from 'event-kit'
 import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
@@ -53,7 +53,7 @@ type IPCResponse<T> = IResult<T> | IError
  * If the returned {Promise} returns an error, it will be passed to the next
  * error handler. If it returns null, error propagation is halted.
  */
-type ErrorHandler = (error: Error, dispatcher: Dispatcher) => Promise<Error | null>
+export type ErrorHandler = (error: Error, dispatcher: Dispatcher) => Promise<Error | null>
 
 /**
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
@@ -174,6 +174,12 @@ export class Dispatcher {
     if (refreshedRepository === repository) { return refreshedRepository }
 
     const repo = await this.dispatchToSharedProcess<IRepository>({ name: 'update-github-repository', repository: refreshedRepository })
+    return Repository.fromJSON(repo)
+  }
+
+  /** Update the repository's `missing` flag. */
+  public async updateRepositoryMissing(repository: Repository, missing: boolean): Promise<Repository> {
+    const repo = await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-missing', repository, missing })
     return Repository.fromJSON(repo)
   }
 
@@ -343,6 +349,28 @@ export class Dispatcher {
   public clearError(error: Error): Promise<void> {
     return this.appStore._clearError(error)
   }
+
+  /**
+   * Clone a missing repository to the previous path, and update it's
+   * state in the repository list if the clone completes without error.
+   */
+  public async cloneAgain(url: string, path: string, user: User | null): Promise<void> {
+    const { promise, repository } = this.appStore._clone(url, path, user)
+    await this.selectRepository(repository)
+    const success = await promise
+    if (!success) { return }
+
+    // In the background the shared process has updated the repository list.
+    // To ensure a smooth transition back, we should lookup the new repository
+    // and update it's state after the clone has completed
+    const repositories = await this.loadRepositories()
+    const found = repositories.find(r => r.path === path) || null
+
+    if (found) {
+      const updatedRepository = await this.updateRepositoryMissing(found, false)
+      await this.selectRepository(updatedRepository)
+    }
+ }
 
   /** Clone the repository to the path. */
   public async clone(url: string, path: string, user: User | null): Promise<void> {
@@ -678,5 +706,24 @@ export class Dispatcher {
         this.errorHandlers.splice(i, 1)
       }
     })
+  }
+
+  /**
+   * Update the location of an existing repository and clear the missing flag.
+   */
+  public async relocateRepository(repository: Repository): Promise<void> {
+    const directories = remote.dialog.showOpenDialog({
+      properties: [ 'openDirectory' ],
+    })
+
+    if (directories && directories.length > 0) {
+      const newPath = directories[0]
+      await this.updateRepositoryPath(repository, newPath)
+    }
+  }
+
+  /** Update the repository's path. */
+  private async updateRepositoryPath(repository: Repository, path: string): Promise<void> {
+    await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-path', repository, path })
   }
 }

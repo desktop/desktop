@@ -30,7 +30,7 @@ describe('git/commit', () => {
 
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
-    repository = new Repository(testRepoPath, -1, null)
+    repository = new Repository(testRepoPath, -1, null, false)
   })
 
   after(() => {
@@ -110,7 +110,7 @@ describe('git/commit', () => {
 
     beforeEach(() => {
       const testRepoPath = setupFixtureRepository('repo-with-changes')
-      repository = new Repository(testRepoPath, -1, null)
+      repository = new Repository(testRepoPath, -1, null, false)
     })
 
     it('can commit some lines from new file', async () => {
