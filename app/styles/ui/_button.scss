@@ -48,7 +48,14 @@
   text-decoration: none;
   cursor: pointer;
 
+  display: inline-flex;
+  align-items: center;
+
   &:hover {
     text-decoration: underline;
+  }
+
+  &.link-with-icon .octicon {
+    margin-left: var(--spacing-half);
   }
 }

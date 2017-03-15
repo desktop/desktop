@@ -7,7 +7,7 @@ import { Branch } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
-import { CloningRepository, ICloningRepositoryState, IGitHubUser } from './dispatcher'
+import { CloningRepository, ICloningRepositoryState, IGitHubUser, SignInState } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
@@ -30,6 +30,15 @@ export interface IAppState {
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
 
   readonly selectedState: PossibleSelections | null
+
+  /**
+   * The state of the ongoing (if any) sign in process. See SignInState
+   * and SignInStore for more details. Null if no current sign in flow
+   * is active. Sign in flows are initiated through the dispatcher methods
+   * beginDotComSignIn and beginEnterpriseSign in or via the
+   * showDotcomSignInDialog and showEnterpriseSignInDialog methods.
+   */
+  readonly signInState: SignInState | null
 
   readonly showWelcomeFlow: boolean
   readonly loading: boolean
@@ -97,7 +106,11 @@ export enum PopupType {
   Preferences,
   MergeBranch,
   RepositorySettings,
-  Signin,
+  AddRepository,
+  CreateRepository,
+  CloneRepository,
+  CreateBranch,
+  SignIn
 }
 
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
@@ -107,20 +120,26 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.Preferences } |
                     { type: PopupType.MergeBranch, repository: Repository } |
                     { type: PopupType.RepositorySettings, repository: Repository } |
-                    { type: PopupType.Signin }
+                    { type: PopupType.AddRepository } |
+                    { type: PopupType.CreateRepository } |
+                    { type: PopupType.CloneRepository } |
+                    { type: PopupType.CreateBranch, repository: Repository } |
+                    { type: PopupType.SignIn }
 
 export enum FoldoutType {
   Repository,
   Branch,
   AppMenu,
   Publish,
+  AddMenu,
 }
 
 export type Foldout =
-  { type: FoldoutType.Repository, expandAddRepository: boolean } |
-  { type: FoldoutType.Branch, expandCreateBranch: boolean } |
+  { type: FoldoutType.Repository } |
+  { type: FoldoutType.Branch } |
   { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } |
-  { type: FoldoutType.Publish }
+  { type: FoldoutType.Publish } |
+  { type: FoldoutType.AddMenu }
 
 export enum RepositorySection {
   Changes,

@@ -1,5 +1,28 @@
 {
   "releases": {
+    "0.0.28": [
+      "[Fixed] Bumping release notes to test deployments again"
+    ],
+    "0.0.27": [
+      "[Fixed] 2FA dialog when authenticating has information for SMS authentication - #1009",
+      "[Fixed] Autocomplete for users handles accounts containing `-` - #1008"
+    ],
+    "0.0.26": [
+      "[Fixed] Address deployment issue by properly documenting release notes"
+    ],
+    "0.0.25": [
+      "[Added] Autocomplete displays user matches - #942",
+      "[Fixed] Handle Enter key in repository and branch list when no matches exist - #995",
+      "[Fixed] 'Add Repository' button displays in dropdown when repository list empty - #984",
+      "[Fixed] Correct icon displayed for non-GitHub repository - #964 #955",
+      "[Fixed] Enter key when inside dialog submits form - #956",
+      "[Fixed] Updated URL handler entry on macOS - #945",
+      "[Fixed] Commit button is disabled while commit in progress - #940",
+      "[Fixed] Handle index state change when gitginore change is discarded - #935",
+      "[Fixed] 'Create New Branch' view squashes branch list when expanded - #927",
+      "[Fixed] Application creates repository path if it doesn't exist on disk - #925",
+      "[Improved] Preferences sign-in flow updated to standalone dialogs - #961"
+    ],
     "0.0.24": [
       "Changed a thing",
       "Added another thing"

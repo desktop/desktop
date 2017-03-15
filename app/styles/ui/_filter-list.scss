@@ -12,9 +12,7 @@
   border-right-style: solid;
 
   &-filter-field {
-    padding-left: var(--spacing);
-    padding-right: var(--spacing);
-    padding-bottom: var(--spacing);
+    padding: var(--spacing);
   }
 
   &-container {

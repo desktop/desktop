@@ -24,12 +24,12 @@ export class UserAutocompletionProvider implements IAutocompletionProvider<IUser
   }
 
   public getRegExp(): RegExp {
-    return /(?:^|\n| )(?:@)([a-z0-9\\+\\-][a-z0-9_]*)?/g
+    return /(?:^|\n| )(?:@)([a-z0-9\\+\\-][a-z0-9_\-]*)?/g
   }
 
   public async getAutocompletionItems(text: string): Promise<ReadonlyArray<IUserHit>> {
     const users = await this.gitHubUserStore.getMentionableUsersMatching(this.repository, text)
-    return users.map(u => ({ username: u.login!, name: u.name }))
+    return users.map(u => ({ username: u.login, name: u.name }))
   }
 
   public renderItem(item: IUserHit): JSX.Element {
