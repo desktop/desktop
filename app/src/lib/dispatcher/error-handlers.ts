@@ -15,7 +15,7 @@ export async function performGitActionErrorHandler(error: Error, dispatcher: Dis
   if (error instanceof GitError) {
     switch (error.result.gitError)  {
       case GitErrorType.HTTPSAuthenticationFailed: {
-        await dispatcher.showPopup({ type: popupType.Signin })
+        await dispatcher.showPopup({ type: popupType.Preferences })
         break
       }
     }
