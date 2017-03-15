@@ -2,23 +2,23 @@ import { remote } from 'electron'
 import * as Path from 'path'
 import * as React from 'react'
 import * as FS from 'fs'
-import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../../lib/dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
-import { Loading } from '../lib/loading'
 import { User } from '../../models/user'
-import { Errors } from '../lib/errors'
 import { parseOwnerAndName, IRepositoryIdentifier } from '../../lib/remote-parsing'
 import { findUserForRemote } from '../../lib/find-account'
+import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 
 /** The name for the error when the destination already exists. */
 const DestinationExistsErrorName = 'DestinationExistsError'
 
 interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
+  readonly onDismissed: () => void
 
   /** The logged in users. */
   readonly users: ReadonlyArray<User>
@@ -66,28 +66,44 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       !!error && error.name === DestinationExistsErrorName
 
     return (
-      <Form className='clone-repository' onSubmit={this.clone}>
-        <div>
-          Enter a repository URL or GitHub username and repository (e.g., <span className='repository-pattern'>hubot/cool-repo</span>)
-        </div>
+      <Dialog
+        className='clone-repository'
+        title='Clone a repository'
+        onSubmit={this.clone}
+        onDismissed={this.props.onDismissed}
+        loading={this.state.loading}>
+        {error ? <DialogError>{error.message}</DialogError> : null}
 
-        <TextBox placeholder='URL or username/repository' value={this.state.url} onChange={this.onURLChanged} autoFocus/>
+        <DialogContent>
+          <p>
+            Enter a repository URL or GitHub username and repository (e.g., <span className='repository-pattern'>hubot/cool-repo</span>)
+          </p>
 
-        <Row>
-          <TextBox
-            value={this.state.path}
-            label={__DARWIN__ ? 'Local Path' : 'Local path'}
-            placeholder='repository path'
-            onChange={this.onPathChanged}/>
-          <Button onClick={this.showFilePicker}>Choose…</Button>
-        </Row>
+          <Row>
+            <TextBox
+              placeholder='URL or username/repository'
+              value={this.state.url}
+              onChange={this.onURLChanged}
+              autoFocus/>
+          </Row>
 
-        <Button disabled={disabled} type='submit'>Clone</Button>
+          <Row>
+            <TextBox
+              value={this.state.path}
+              label={__DARWIN__ ? 'Local Path' : 'Local path'}
+              placeholder='repository path'
+              onChange={this.onPathChanged}/>
+            <Button onClick={this.showFilePicker}>Choose…</Button>
+          </Row>
+        </DialogContent>
 
-        {error ? <Errors>{error.message}</Errors> : null}
-
-        {this.state.loading ? <Loading/> : null}
-      </Form>
+        <DialogFooter>
+          <ButtonGroup>
+            <Button disabled={disabled} type='submit'>Clone</Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </Dialog>
     )
   }
 
@@ -164,7 +180,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   private cloneImpl(url: string, path: string, user: User | null) {
     this.props.dispatcher.clone(url, path, user)
-    this.props.dispatcher.closeFoldout()
+    this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))
   }

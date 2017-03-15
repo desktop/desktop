@@ -108,7 +108,11 @@ export enum PopupType {
   Preferences,
   MergeBranch,
   RepositorySettings,
-  SignIn,
+  AddRepository,
+  CreateRepository,
+  CloneRepository,
+  CreateBranch,
+  SignIn
 }
 
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
@@ -118,6 +122,10 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.Preferences } |
                     { type: PopupType.MergeBranch, repository: Repository } |
                     { type: PopupType.RepositorySettings, repository: Repository } |
+                    { type: PopupType.AddRepository } |
+                    { type: PopupType.CreateRepository } |
+                    { type: PopupType.CloneRepository } |
+                    { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.SignIn }
 
 export enum FoldoutType {
@@ -125,13 +133,15 @@ export enum FoldoutType {
   Branch,
   AppMenu,
   Publish,
+  AddMenu,
 }
 
 export type Foldout =
-  { type: FoldoutType.Repository, expandAddRepository: boolean } |
-  { type: FoldoutType.Branch, expandCreateBranch: boolean } |
+  { type: FoldoutType.Repository } |
+  { type: FoldoutType.Branch } |
   { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } |
-  { type: FoldoutType.Publish }
+  { type: FoldoutType.Publish } |
+  { type: FoldoutType.AddMenu }
 
 export enum RepositorySection {
   Changes,

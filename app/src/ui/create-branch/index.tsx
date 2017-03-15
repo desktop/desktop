@@ -4,17 +4,20 @@ import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
 import { sanitizedBranchName } from './sanitized-branch-name'
 import { Branch } from '../../models/branch'
-import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
+import { Row } from '../lib/row'
 import { Button } from '../lib/button'
+import { ButtonGroup } from '../lib/button-group'
 import { Select } from '../lib/select'
+import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface ICreateBranchProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
+  readonly onDismissed: () => void
   readonly branches: ReadonlyArray<Branch>
   readonly currentBranch: Branch | null
-  readonly hideBranchPanel?: () => void
 }
 
 interface ICreateBranchState {
@@ -37,58 +40,60 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     }
   }
 
-  private renderError() {
-    const error = this.state.currentError
-    if (error) {
-      return <div>{error.message}</div>
-    } else {
-      if (this.state.proposedName === this.state.sanitizedName) { return null }
+  private renderSanitizedName() {
+    if (this.state.proposedName === this.state.sanitizedName) { return null }
 
-      return (
-        <div>Will be created as {this.state.sanitizedName}</div>
-      )
-    }
-  }
-
-  private cancel = () => {
-    if (this.props.hideBranchPanel) {
-      this.props.hideBranchPanel()
-    }
+    return (
+      <Row className='warning-helper-text'>
+        <Octicon symbol={OcticonSymbol.alert} />
+        Will be created as {this.state.sanitizedName}
+      </Row>
+    )
   }
 
   public render() {
     const proposedName = this.state.proposedName
     const disabled = !proposedName.length || !!this.state.currentError
     const currentBranch = this.props.currentBranch
+    const error = this.state.currentError
+
     return (
-      <Form onSubmit={this.createBranch}>
-        <TextBox
-          label='Name'
-          autoFocus={true}
-          onChange={this.onBranchNameChange}
-          onKeyDown={this.onKeyDown}/>
+      <Dialog
+        title='Create a branch'
+        onSubmit={this.createBranch}
+        onDismissed={this.props.onDismissed}>
+        {error ? <DialogError>{error.message}</DialogError> : null}
 
-        {this.renderError()}
+        <DialogContent>
+          <Row>
+            <TextBox
+              label='Name'
+              autoFocus={true}
+              onChange={this.onBranchNameChange} />
+          </Row>
 
-        <Select
-          label='From'
-          onChange={this.onBaseBranchChange}
-          defaultValue={currentBranch ? currentBranch.name : undefined}>
-          {this.props.branches.map(branch =>
-            <option key={branch.name} value={branch.name}>{branch.name}</option>
-          )}
-        </Select>
+          {this.renderSanitizedName()}
 
-        <Button type='submit' disabled={disabled}>{__DARWIN__ ? 'Create Branch' : 'Create branch'}</Button>
-        <Button onClick={this.cancel}>Cancel</Button>
-      </Form>
+          <Row>
+            <Select
+              label='From'
+              onChange={this.onBaseBranchChange}
+              defaultValue={currentBranch ? currentBranch.name : undefined}>
+              {this.props.branches.map(branch =>
+                <option key={branch.name} value={branch.name}>{branch.name}</option>
+              )}
+            </Select>
+          </Row>
+        </DialogContent>
+
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type='submit' disabled={disabled}>{__DARWIN__ ? 'Create Branch' : 'Create branch'}</Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </Dialog>
     )
-  }
-
-  private onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Escape') {
-      this.cancel()
-    }
   }
 
   private onBranchNameChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -126,6 +131,6 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
       await this.props.dispatcher.createBranch(this.props.repository, name, baseBranch.name)
     }
 
-    this.props.dispatcher.closeFoldout()
+    this.props.onDismissed()
   }
 }
