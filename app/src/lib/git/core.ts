@@ -163,7 +163,7 @@ function getDescriptionForError(error: GitKitchenSinkError): string {
     case GitKitchenSinkError.SSHKeyAuditUnverified: return 'The SSH key is unverified.'
     case GitKitchenSinkError.SSHAuthenticationFailed:
     case GitKitchenSinkError.SSHPermissionDenied:
-    case GitKitchenSinkError.HTTPSAuthenticationFailed: return 'Authentication failed. You may not have permission to access the repository.'
+    case GitKitchenSinkError.HTTPSAuthenticationFailed: return `Authentication failed. You may not have permission to access the repository. Open ${__DARWIN__ ? 'preferences' : 'options'} and verify that you're signed in with an account that has permission to access this repository.`
     case GitKitchenSinkError.RemoteDisconnection: return 'The remote disconnected. Check your Internet connection and try again.'
     case GitKitchenSinkError.HostDown: return 'The host is down. Check your Internet connection and try again.'
     case GitKitchenSinkError.RebaseConflicts: return 'We found some conflicts while trying to rebase. Please resolve the conflicts before continuing.'
