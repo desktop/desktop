@@ -70,12 +70,15 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       }, dialogTransitionLeaveTimeout)
     }
   }
+
   private showPreferencesDialog = () => {
     const showPreferences = this.props.onShowPopup
 
     if (!showPreferences) {
       return
     }
+
+    this.onDismissed()
 
     //This is a hacky solution to resolve multiple dialog windows
     //being open at the same time.
@@ -91,10 +94,10 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       case GitErrorType.HTTPSAuthenticationFailed: {
         return (
           <ButtonGroup>
-            <Button type='submit'onClick={this.showPreferencesDialog}>
+            <Button type='submit'>Close</Button>
+            <Button onClick={this.showPreferencesDialog}>
               {__DARWIN__ ? 'Open Preferences' : 'Open options'}
             </Button>
-            <Button type='submit'>Close</Button>
           </ButtonGroup>)
       }
       default:
