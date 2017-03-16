@@ -24,5 +24,5 @@ export function openShell(fullPath: string, shell?: string) {
     return fatalError('Unsupported OS')
   }
 
-  return spawn(commandName, Array.from(commandArgs), { 'shell' : true })
+  return spawn(commandName, Array.from(commandArgs), { 'shell': true, cwd: fullPath })
 }
