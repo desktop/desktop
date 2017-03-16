@@ -6,7 +6,7 @@ import { ButtonGroup } from './lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from './dialog'
 import { dialogTransitionEnterTimeout, dialogTransitionLeaveTimeout } from './app'
 import { GitError } from '../lib/git/core'
-import { GitError as GitErrorType } from 'git-kitchen-sink'
+import { GitError as GitErrorType } from 'dugite'
 import { Popup, PopupType } from '../lib/app-state'
 
 interface IAppErrorProps {
