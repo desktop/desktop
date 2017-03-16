@@ -33,6 +33,7 @@ import { shouldRenderApplicationMenu } from './lib/features'
 import { Merge } from './merge-branch'
 import { RepositorySettings } from './repository-settings'
 import { AppError } from './app-error'
+import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository, CloneRepository } from './add-repository'
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
@@ -803,7 +804,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderPushPullToolbarButton() {
     const selection = this.state.selectedState
-    if (!selection || selection.type === SelectionType.CloningRepository) {
+    if (!selection || selection.type !== SelectionType.Repository) {
       return null
     }
 
@@ -968,7 +969,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       <div id='app-menu-foldout' style={foldoutStyle}>
         <ul className='menu-pane add-menu'>
           <li className='add-menu-item add-menu-item-header'>Repository</li>
-          <li className='add-menu-item' onClick={this.showAddLocalRepo}>Add local respository</li>
+          <li className='add-menu-item' onClick={this.showAddLocalRepo}>Add local repository</li>
           <li className='add-menu-item' onClick={this.showCreateRepo}>Create new repository</li>
           <li className='add-menu-item' onClick={this.showCloneRepo}>Clone repository</li>
           <li className='add-menu-item add-menu-item-header'>Branches</li>
@@ -1013,6 +1014,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     } else if (selectedState.type === SelectionType.CloningRepository) {
       return <CloningRepositoryView repository={selectedState.repository}
                                     state={selectedState.state}/>
+    } else if (selectedState.type === SelectionType.MissingRepository) {
+      return <MissingRepository repository={selectedState.repository} dispatcher={this.props.dispatcher} users={this.state.users} />
     } else {
       return assertNever(selectedState, `Unknown state: ${selectedState}`)
     }

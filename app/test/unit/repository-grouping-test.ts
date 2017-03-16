@@ -10,9 +10,9 @@ import { CloningRepository } from '../../src/lib/dispatcher'
 
 describe('Repository grouping', () => {
   const repositories: Array<Repository | CloningRepository> = [
-    new Repository('repo1', 1),
-    new Repository('repo2', 2, new GitHubRepository('my-repo2', new Owner('', getDotComAPIEndpoint()), 1)),
-    new Repository('repo3', 3, new GitHubRepository('my-repo3', new Owner('', ''), 1)),
+    new Repository('repo1', 1, null, false),
+    new Repository('repo2', 2, new GitHubRepository('my-repo2', new Owner('', getDotComAPIEndpoint()), 1), false),
+    new Repository('repo3', 3, new GitHubRepository('my-repo3', new Owner('', ''), 1), false),
   ]
 
   it('groups repositories by GitHub/Enterprise/Other', () => {
@@ -39,11 +39,11 @@ describe('Repository grouping', () => {
   })
 
   it('sorts repositories alphabetically within each group', () => {
-    const repoA = new Repository('a', 1)
-    const repoB = new Repository('b', 2, new GitHubRepository('b', new Owner('', getDotComAPIEndpoint()), 1))
-    const repoC = new Repository('c', 2)
-    const repoD = new Repository('d', 2, new GitHubRepository('d', new Owner('', getDotComAPIEndpoint()), 1))
-    const repoZ = new Repository('z', 3)
+    const repoA = new Repository('a', 1, null, false)
+    const repoB = new Repository('b', 2, new GitHubRepository('b', new Owner('', getDotComAPIEndpoint()), 1), false)
+    const repoC = new Repository('c', 2, null, false)
+    const repoD = new Repository('d', 2, new GitHubRepository('d', new Owner('', getDotComAPIEndpoint()), 1), false)
+    const repoZ = new Repository('z', 3, null, false)
 
     const grouped = groupRepositories([ repoC, repoB, repoZ, repoD, repoA ])
     expect(grouped.length).to.equal(2)

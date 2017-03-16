@@ -6,7 +6,7 @@ const klawSync = require('klaw-sync')
 const temp = require('temp').track()
 
 import { Repository } from '../src/models/repository'
-import { GitProcess } from 'git-kitchen-sink'
+import { GitProcess } from 'dugite'
 
 type KlawEntry = {
   path: string
@@ -49,5 +49,5 @@ export async function setupEmptyRepository(): Promise<Repository> {
   const repoPath = temp.mkdirSync('desktop-empty-repo-')
   await GitProcess.exec([ 'init' ], repoPath)
 
-  return new Repository(repoPath, -1, null)
+  return new Repository(repoPath, -1, null, false)
 }

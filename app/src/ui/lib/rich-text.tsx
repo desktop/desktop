@@ -45,7 +45,7 @@ export class RichText extends React.Component<IRichTextProps, void> {
         case TokenType.Link:
           return <LinkButton key={index} uri={token.url} children={token.text} />
         case TokenType.Text:
-          return token.text
+          return <span key={index}>{token.text}</span>
         default:
           return assertNever(token, 'Unknown token type: ${r.kind}')
       }

@@ -40,6 +40,7 @@ describe('Tokenizer', () => {
     const login = 'shiftkey'
     const name = 'some-repo'
     const htmlURL = `${host}/${login}/${name}`
+    const cloneURL = `${host}/${login}/${name}.git`
 
     let gitHubRepository: GitHubRepository | null = null
     gitHubRepository = {
@@ -49,6 +50,7 @@ describe('Tokenizer', () => {
         endpoint,
         login,
       },
+      cloneURL,
       endpoint: 'https://api.github.com',
       fullName: `${login}/${name}`,
       private: false,
@@ -60,7 +62,7 @@ describe('Tokenizer', () => {
       },
     }
 
-    const repository = new Repository('some/path/to/repo', 1, gitHubRepository)
+    const repository = new Repository('some/path/to/repo', 1, gitHubRepository, false)
 
     it('renders an emoji match', () => {
       const text = 'releasing the thing :shipit:'

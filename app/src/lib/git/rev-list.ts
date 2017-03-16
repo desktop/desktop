@@ -1,4 +1,4 @@
-import { GitError } from 'git-kitchen-sink'
+import { GitError } from 'dugite'
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
