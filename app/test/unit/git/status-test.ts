@@ -5,7 +5,7 @@ import { Repository } from '../../../src/models/repository'
 import { getStatus } from '../../../src/lib/git/status'
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 import { FileStatus } from '../../../src/models/status'
-import { GitProcess } from 'git-kitchen-sink'
+import { GitProcess } from 'dugite'
 
 import * as fs from 'fs-extra'
 const temp = require('temp').track()

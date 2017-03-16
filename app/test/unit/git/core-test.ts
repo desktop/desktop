@@ -1,5 +1,5 @@
 import { expect } from 'chai'
-import { GitError } from 'git-kitchen-sink'
+import { GitError } from 'dugite'
 
 import { Repository } from '../../../src/models/repository'
 import { git } from '../../../src/lib/git'

@@ -8,7 +8,7 @@ import {
   IGitResult as GitKitchenSinkResult,
   GitError as GitKitchenSinkError,
   IGitExecutionOptions as GitKitchenSinkExecutionOptions,
-} from 'git-kitchen-sink'
+} from 'dugite'
 
 /**
  * An extension of the execution options in git-kitchen-sink that
@@ -188,6 +188,7 @@ function getDescriptionForError(error: GitKitchenSinkError): string {
     case GitKitchenSinkError.BranchAlreadyExists: return 'A branch with that name already exists'
     case GitKitchenSinkError.BadRevision: return 'Bad revision'
     case GitKitchenSinkError.NotAGitRepository: return 'This is not a git repository'
+    case GitKitchenSinkError.ProtectedBranchRequiresReview: return 'This branch is protected and any changes requires an approved review. Open a pull request with changes targeting this branch instead.'
     default: return assertNever(error, `Unknown error: ${error}`)
   }
 }
