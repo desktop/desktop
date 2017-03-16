@@ -974,7 +974,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       <div id='app-menu-foldout' style={foldoutStyle}>
         <ul className='menu-pane add-menu'>
           <li className='add-menu-item add-menu-item-header'>Repository</li>
-          <li className='add-menu-item' onClick={this.showAddLocalRepo}>Add local respository</li>
+          <li className='add-menu-item' onClick={this.showAddLocalRepo}>Add local repository</li>
           <li className='add-menu-item' onClick={this.showCreateRepo}>Create new repository</li>
           <li className='add-menu-item' onClick={this.showCloneRepo}>Clone repository</li>
           <li className='add-menu-item add-menu-item-header'>Branches</li>
