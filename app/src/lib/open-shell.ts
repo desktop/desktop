@@ -10,14 +10,9 @@ export function openShell(fullPath: string, shell?: string) {
   }
 
   if (__WIN32__) {
-    const commandArgs = shell
-      // not sure what other sorts of arguments we expect here
-      // so for now let's just try and launch this other shell
-      ? [ shell ]
-      // '/K' to run the subseqent command and keep the prompt visible
-      // 'TITLE {value}' sets the Command Prompt title to {value}
-      : [ 'cmd', '/K', 'TITLE GitHub Desktop' ]
-    return spawn('START', commandArgs, { 'shell': true, cwd: fullPath })
+    // not sure what other sorts of arguments we expect here
+    // so for now let's just try and launch this other shell
+    return spawn('START', [ shell || 'cmd' ], { 'shell': true, cwd: fullPath })
   }
 
   return fatalError('Unsupported OS')
