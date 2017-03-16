@@ -24,14 +24,13 @@
   }
 
   // Enable text selection inside the title and description elements.
-  // The span descendant selector is necessary since both title and
-  // description is EmojiText components which renders all text inside
-  // of a <span>.
-  &-title span,
-  &-description span {
-    -webkit-user-select: auto;
-    user-select: auto;
-    cursor: text;
+  &-title,
+  &-description {
+    span, a {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+    span { cursor: text; }
   }
 
   &-description {

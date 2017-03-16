@@ -19,7 +19,7 @@ describe('git/branch', () => {
 
     it('returns detached for arbitrary checkout', async () => {
       const path = await setupFixtureRepository('detached-head')
-      const repository = new Repository(path, -1, null)
+      const repository = new Repository(path, -1, null, false)
 
       const result = await getTip(repository)
       const tip = result!
@@ -31,7 +31,7 @@ describe('git/branch', () => {
 
     it('returns current branch when on a valid HEAD', async () => {
       const path = await setupFixtureRepository('repo-with-many-refs')
-      const repository = new Repository(path, -1, null)
+      const repository = new Repository(path, -1, null, false)
 
       const result = await getTip(repository)
       const tip = result!
@@ -44,7 +44,7 @@ describe('git/branch', () => {
 
     it('returns non-origin remote', async () => {
       const path = await setupFixtureRepository('repo-with-multiple-remotes')
-      const repository = new Repository(path, -1, null)
+      const repository = new Repository(path, -1, null, false)
 
       const result = await getTip(repository)
       const tip = result!
@@ -58,7 +58,7 @@ describe('git/branch', () => {
   describe('upstreamWithoutRemote', () => {
     it('returns the upstream name without the remote prefix', async () => {
       const path = await setupFixtureRepository('repo-with-multiple-remotes')
-      const repository = new Repository(path, -1, null)
+      const repository = new Repository(path, -1, null, false)
 
       const result = await getTip(repository)
       const tip = result!

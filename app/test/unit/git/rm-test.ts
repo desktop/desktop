@@ -6,7 +6,7 @@ import { Repository } from '../../../src/models/repository'
 import { removeFromIndex } from '../../../src/lib/git'
 import { setupFixtureRepository, setupEmptyRepository } from '../../fixture-helper'
 
-import { GitProcess } from 'git-kitchen-sink'
+import { GitProcess } from 'dugite'
 
 const temp = require('temp').track()
 
@@ -15,7 +15,7 @@ describe('git/rm', () => {
 
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('test-repo')
-    repository = new Repository(testRepoPath, -1, null)
+    repository = new Repository(testRepoPath, -1, null, false)
   })
 
   after(() => {
