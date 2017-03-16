@@ -8,13 +8,19 @@ export function openShell(fullPath: string, shell?: string) {
 
   if ( __DARWIN__) {
     commandName = 'open'
-    commandArgs = [ '-a', shell || 'Terminal', fullPath ]
-  }
-  else if (__WIN32__) {
+    commandArgs = [ '-a', shell || 'Terminal' ]
+  } else if (__WIN32__) {
     commandName = 'START'
-    commandArgs = [ shell || 'cmd', '/D', `"${fullPath}"` , 'title', 'GitHub Desktop' ]
-  }
-  else {
+    if (shell) {
+      // not sure what other sorts of arguments we expect here
+      // so for now let's just try and launch this other shell
+      commandArgs = [ shell ]
+    } else {
+      // '/K' to run the subseqent command and keep the prompt visible
+      // 'TITLE {value}' sets the Command Prompt title to {value}
+      commandArgs = [ 'cmd', '/K', 'TITLE GitHub Desktop' ]
+    }
+  } else {
     return fatalError('Unsupported OS')
   }
 
