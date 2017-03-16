@@ -82,7 +82,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }, dialogTransitionLeaveTimeout)
   }
 
-  private handleGitError(error: GitError) {
+  private renderGitErrorFooter(error: GitError) {
     const gitErrorType = error.result.gitError
 
     switch (gitErrorType)  {
@@ -92,6 +92,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
             <Button type='submit'onClick={this.showPreferencesDialog}>
               Open Preferences
             </Button>
+            <Button type='submit'>Close</Button>
           </ButtonGroup>)
       }
       default:
@@ -128,7 +129,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
   private renderFooter(error: Error) {
     if (error instanceof GitError) {
-      return this.handleGitError(error)
+      return this.renderGitErrorFooter(error)
     }
 
     return (
