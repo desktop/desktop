@@ -77,6 +77,8 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       return
     }
 
+    //This is a hacky solution to resolve multiple dialog windows
+    //being open at the same time.
     setTimeout(() => {
       showPreferences({ type: PopupType.Preferences })
     }, dialogTransitionLeaveTimeout)
