@@ -143,7 +143,8 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         transitionName='modal'
         component='div'
         transitionEnterTimeout={dialogTransitionEnterTimeout}
-        transitionLeaveTimeout={dialogTransitionLeaveTimeout}>
+        transitionLeaveTimeout={dialogTransitionLeaveTimeout}
+      >
         {this.renderDialog()}
       </ReactCSSTransitionGroup>
     )
