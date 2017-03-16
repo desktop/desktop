@@ -624,7 +624,7 @@ export class AppStore {
       newSelectedRepository = r
     }
 
-    if (newSelectedRepository !== null && this.repositories.length > 0) {
+    if (newSelectedRepository === null && this.repositories.length > 0) {
       const lastSelectedID = parseInt(localStorage.getItem(LastSelectedRepositoryIDKey) || '', 10)
       if (lastSelectedID && !isNaN(lastSelectedID)) {
         newSelectedRepository = this.repositories.find(r => r.id === lastSelectedID) || null
