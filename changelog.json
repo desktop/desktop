@@ -1,5 +1,14 @@
 {
   "releases": {
+    "0.0.29": [
+      "[New] Commit summary and description fields now display issues and mentions as links for GitHub repositories - #941",
+      "[New] Show placeholder when the repository cannot be found on disk - #946",
+      "[New] New Repository actions moved out of popover and into new menu - #1018",
+      "[Fixed] Display a helpful error message when an unverified user signs into GitHub Desktop - #1010",
+      "[Fixed] Fix kerning issue when access keys displayed - #1033",
+      "[Fixed] Protected branches show a descriptive error when the push is rejected - #1036",
+      "[Fixed] 'Open in shell' on Windows opens to repository location - #1037"
+    ],
     "0.0.28": [
       "[Fixed] Bumping release notes to test deployments again"
     ],
