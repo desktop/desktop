@@ -1,7 +1,7 @@
 {
   "releases": {
     "0.0.30": [
-      "[Fixed] Crash when using any of the Edit menu items due to incorrect method signature - #1041"
+      "[Fixed] Crash when invoking menu item due to incorrect method signature - #1041"
     ],
     "0.0.29": [
       "[New] Commit summary and description fields now display issues and mentions as links for GitHub repositories - #941",
