@@ -88,13 +88,41 @@ export function getRowHeight(item: MenuItem) {
   return item.type === 'separator' ? SeparatorRowHeight : RowHeight
 }
 
+/**
+ * Creates a menu pane state given props. This is intentionally not
+ * an instance member in order to avoid mistakenly using any other
+ * input data or state than the received props.
+ */
+function createState(props: IMenuPaneProps): IMenuPaneState {
+
+  const items = new Array<MenuItem>()
+  const selectedItem = props.selectedItem
+
+  let selectedIndex = -1
+
+  // Filter out all invisible items and maintain the correct
+  // selected index (if possible)
+  for (let i = 0; i < props.items.length; i++) {
+    const item = props.items[i]
+
+    if (item.visible) {
+      items.push(item)
+      if (item === selectedItem) {
+        selectedIndex = items.length - 1
+      }
+    }
+  }
+
+  return { items, selectedIndex }
+}
+
 export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
 
   private list: List
 
   public constructor(props: IMenuPaneProps) {
     super(props)
-    this.state = this.createState(props)
+    this.state = createState(props)
   }
 
   public componentWillReceiveProps(nextProps: IMenuPaneProps) {
@@ -107,31 +135,8 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
         this.setState({ selectedIndex })
       }
     } else {
-      this.setState(this.createState(nextProps))
+      this.setState(createState(nextProps))
     }
-  }
-
-  private createState(props: IMenuPaneProps): IMenuPaneState {
-
-    const items = new Array<MenuItem>()
-    const selectedItem = props.selectedItem
-
-    let selectedIndex = -1
-
-    // Filter out all invisible items and maintain the correct
-    // selected index (if possible)
-    for (let i = 0; i < props.items.length; i++) {
-      const item = props.items[i]
-
-      if (item.visible) {
-        items.push(item)
-        if (item === selectedItem) {
-          selectedIndex = items.length - 1
-        }
-      }
-    }
-
-    return { items, selectedIndex }
   }
 
   private onRowClick = (row: number, source: ClickSource) => {
