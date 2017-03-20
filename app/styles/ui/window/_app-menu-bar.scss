@@ -26,8 +26,20 @@
     // but have an opaque background on the menu pane.
     background: transparent;
 
+    // This is yet another hack, since the foldout has to extend
+    // to 100% of the available width (or else we can't constrain
+    // the height of the menu panes) we won't be able to close
+    // the pane by clicking directly underneath it. So in order
+    // to solve that we disable pointer events on the foldout
+    // so that clicks on any part of the foldout where there's
+    // no menu pane actually end up registering on the foldout
+    // overload. We then re-enable them on the menu pane itself
+    // so that mouse events work as expected.
+    pointer-events: none;
+
     .menu-pane {
       background: var(--background-color);
+      pointer-events: all;
     }
   }
 }
