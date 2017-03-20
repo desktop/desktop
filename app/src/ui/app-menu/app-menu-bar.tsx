@@ -26,6 +26,15 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
 
   public componentWillReceiveProps(nextProps: IAppMenuBarProps) {
     this.setState({ menuItems: this.buildMenuItems(nextProps.appMenu) })
+
+    // If the app menu foldout is open but...
+    if (nextProps.foldoutState) {
+      // ...only the root menu is open
+      if (nextProps.appMenu.length <= 1) {
+        // Let's make sure to close the foldout
+        this.props.dispatcher.closeFoldout()
+      }
+    }
   }
 
   private buildMenuItems(appMenu: ReadonlyArray<IMenu>): ReadonlyArray<ISubmenuItem> {
