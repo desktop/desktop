@@ -19,6 +19,11 @@
   }
 
   #foldout-container .foldout {
+    // Normaly the foldouts have an opaque background but we're
+    // doing a little hack here to make it appear as if the menus
+    // only extend as far as is required to show all menu items.
+    // So we'll have the background of the foldout be transparent
+    // but have an opaque background on the menu pane.
     background: transparent;
 
     .menu-pane {
