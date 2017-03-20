@@ -114,7 +114,7 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
   private createState(props: IMenuPaneProps): IMenuPaneState {
 
     const items = new Array<MenuItem>()
-    const selectedItem = this.props.selectedItem
+    const selectedItem = props.selectedItem
 
     let selectedIndex = -1
 
