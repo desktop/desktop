@@ -37,6 +37,10 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     }
   }
 
+  /**
+   * Build a list of top-level menu items which have child menus of their
+   * own (ie submenu items).
+   */
   private buildMenuItems(appMenu: ReadonlyArray<IMenu>): ReadonlyArray<ISubmenuItem> {
     if (!this.props.appMenu.length) {
       return []
