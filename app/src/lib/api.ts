@@ -372,9 +372,16 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 export async function fetchMetadata(endpoint: string): Promise<IServerMetadata | null> {
 
   return new Promise<IServerMetadata | null>((resolve, reject) => {
+    const url = `${endpoint}/meta`
     const xhr = new XMLHttpRequest()
-    xhr.open('GET', `${endpoint}/meta`)
+    xhr.open('GET', url)
     xhr.setRequestHeader('Content-Type', 'application/json')
+
+    xhr.onerror = (event) => {
+      event.preventDefault()
+      reject(event.error || `Request to ${url} failed`)
+    }
+
     xhr.onreadystatechange = () => {
       if (xhr.readyState !== 4) {
         return
