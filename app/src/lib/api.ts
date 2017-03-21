@@ -389,7 +389,7 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
     }
 
     xhr.onreadystatechange = () => {
-      if (xhr.readyState !== 4) {
+      if (xhr.readyState !== XMLHttpRequest.DONE) {
         return
       }
 
