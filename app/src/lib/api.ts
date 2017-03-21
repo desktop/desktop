@@ -371,44 +371,28 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 /** Get metadata from the server. */
 export async function fetchMetadata(endpoint: string): Promise<IServerMetadata | null> {
 
-  return new Promise<IServerMetadata | null>((resolve, reject) => {
-    const url = `${endpoint}/meta`
-    const xhr = new XMLHttpRequest()
-    xhr.open('GET', url)
-    xhr.setRequestHeader('Content-Type', 'application/json')
+  const url = `${endpoint}/meta`
+  return fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).then(async (response) =>  {
 
-    xhr.onloadend = (event) => {
-      if (xhr.status === 404) {
-        resolve(null)
-      }
+    if (response.status !== 200) {
+      return null
     }
 
-    xhr.onerror = (event) => {
-      event.preventDefault()
-      reject(event.error || `Request to ${url} failed`)
+    const text = await response.text()
+    const body = deserialize<IServerMetadata>(text)
+    if (!body || body.verifiable_password_authentication === undefined) {
+      return null
     }
 
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState !== XMLHttpRequest.DONE) {
-        return
-      }
-
-      const statusCode = xhr.status
-      if (statusCode !== 200) {
-        resolve(null)
-        return
-      }
-
-      const body = deserialize<IServerMetadata>(xhr.responseText)
-      if (!body || body.verifiable_password_authentication === undefined) {
-        resolve(null)
-        return
-      }
-
-      resolve(body)
-    }
-
-    xhr.send()
+    return body
+  }).catch(error => {
+    console.error(error || `Request to ${url} failed`)
+    return null
   })
 }
 
