@@ -370,17 +370,33 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 
 /** Get metadata from the server. */
 export async function fetchMetadata(endpoint: string): Promise<IServerMetadata | null> {
-  const response = await request(endpoint, null, 'GET', 'meta')
-  if (response.statusCode === 200) {
-    const body = deserialize<IServerMetadata>(response.body)
-    // If the response doesn't include the field we need, then it's not a valid
-    // response.
-    if (!body || body.verifiable_password_authentication === undefined) { return null }
 
-    return body
-  } else {
-    return null
-  }
+  return new Promise<IServerMetadata | null>((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    xhr.open('GET', `${endpoint}/meta`)
+    xhr.setRequestHeader('Content-Type', 'application/json')
+    xhr.onreadystatechange = () => {
+      if (xhr.readyState !== 4) {
+        return
+      }
+
+      const statusCode = xhr.status
+      if (statusCode !== 200) {
+        resolve(null)
+        return
+      }
+
+      const body = deserialize<IServerMetadata>(xhr.responseText)
+      if (!body || body.verifiable_password_authentication === undefined) {
+        resolve(null)
+        return
+      }
+
+      resolve(body)
+    }
+
+    xhr.send()
+  })
 }
 
 /** The note used for created authorizations. */
