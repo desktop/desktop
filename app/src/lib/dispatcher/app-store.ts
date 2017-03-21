@@ -559,8 +559,7 @@ export class AppStore {
     try {
       await this._issuesStore.fetchIssues(repository, user)
     } catch (e) {
-      console.log(`Error fetching issues for ${repository.name}:`)
-      console.error(e)
+      console.warn(`Unable to fetch issues for ${repository.fullName}: ${e}`)
     }
   }
 
