@@ -377,6 +377,12 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
     xhr.open('GET', url)
     xhr.setRequestHeader('Content-Type', 'application/json')
 
+    xhr.onloadend = (event) => {
+      if (xhr.status === 404) {
+        resolve(null)
+      }
+    }
+
     xhr.onerror = (event) => {
       event.preventDefault()
       reject(event.error || `Request to ${url} failed`)
