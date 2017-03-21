@@ -19,10 +19,12 @@ export { IAheadBehind }
 export enum SelectionType {
   Repository,
   CloningRepository,
+  MissingRepository,
 }
 
 export type PossibleSelections = { type: SelectionType.Repository, repository: Repository, state: IRepositoryState } |
-                                 { type: SelectionType.CloningRepository, repository: CloningRepository, state: ICloningRepositoryState }
+                                 { type: SelectionType.CloningRepository, repository: CloningRepository, state: ICloningRepositoryState } |
+                                 { type: SelectionType.MissingRepository, repository: Repository }
 
 /** All of the shared app state. */
 export interface IAppState {

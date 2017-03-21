@@ -1,0 +1,70 @@
+@import "../mixins";
+
+#missing-repository-view {
+
+  /* The view's position in relation to its parent, ie full
+   * width, vertically centered...  */
+  justify-content: center;
+  // ... and horizontally centered
+  align-self: center;
+  width: 600px;
+
+  /* TODO: Revisit, this might not be the best way to do it.
+   * We don't want the contents to sit smack on the vertical
+   * midline. The view itself doesn't extend 100% to the top
+   * on most platforms (due to our title bar) and it looks
+   * better if we position it centered on the ~40% line.
+   */
+  margin-top: -60px;
+
+  /* Add a ~20px padding around the view to ensure that
+   * content doesn't touch the edge of the sideline or
+   * window when space is scarce.
+   */
+  padding: var(--spacing-double);
+
+  /*  Center children horizontally */
+  align-items: center;
+
+  /* Holds the icon and title, position them next to each other */
+  .title-container {
+    /* See comment about min-width on #cloning-repository-view,
+     * this ensure that we're filling the x-space available but no more
+     */
+    max-width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    margin-bottom: var(--spacing);
+  }
+
+  /* xl-sized title */
+  .title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-light);
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  .details {
+    margin-top: var(--spacing);
+    margin-bottom: var(--spacing);
+
+    .path {
+      font-family: var(--font-family-monospace);
+      background: var(--path-segment-background);
+      border: var(--path-segment-background);
+      border-radius: var(--border-radius);
+      padding: var(--path-segment-padding);
+    }
+  }
+
+  button {
+    // the three buttons should rougly fill the width of the panel
+    width: 120px;
+  }
+}
