@@ -16,6 +16,33 @@ interface IAppMenuBarState {
 }
 
 /**
+ * Creates menu bar state given props. This is intentionally not
+ * an instance member in order to avoid mistakenly using any other
+ * input data or state than the received props.
+ * 
+ * The state consists of a list of top-level menu items which have
+ * child menus of their own (ie submenu items).
+ */
+function createState(props: IAppMenuBarProps): IAppMenuBarState {
+    if (!props.appMenu.length) {
+      return { menuItems: [ ] }
+    }
+
+    const topLevelMenu = props.appMenu[0]
+    const items = topLevelMenu.items
+
+    const menuItems = new Array<ISubmenuItem>()
+
+    for (const item of items) {
+      if (item.type === 'submenuItem') {
+        menuItems.push(item)
+      }
+    }
+
+    return { menuItems }
+}
+
+/**
  * A Windows-style application menu bar which renders in the title
  * bar section of the app and utilizes foldouts for displaying interactive
  * menus.
@@ -24,13 +51,13 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
 
   public constructor(props: IAppMenuBarProps) {
     super(props)
-    this.state = {
-      menuItems: this.buildMenuItems(props.appMenu),
-    }
+    this.state = createState(props)
   }
 
   public componentWillReceiveProps(nextProps: IAppMenuBarProps) {
-    this.setState({ menuItems: this.buildMenuItems(nextProps.appMenu) })
+    if (nextProps.appMenu !== this.props.appMenu) {
+      this.setState(createState(nextProps))
+    }
 
     // If the app menu foldout is open but...
     if (nextProps.foldoutState) {
@@ -42,28 +69,6 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     }
   }
 
-  /**
-   * Build a list of top-level menu items which have child menus of their
-   * own (ie submenu items).
-   */
-  private buildMenuItems(appMenu: ReadonlyArray<IMenu>): ReadonlyArray<ISubmenuItem> {
-    if (!this.props.appMenu.length) {
-      return []
-    }
-
-    const topLevelMenu = this.props.appMenu[0]
-    const items = topLevelMenu.items
-
-    const submenuItems = new Array<ISubmenuItem>()
-
-    for (const item of items) {
-      if (item.type === 'submenuItem') {
-        submenuItems.push(item)
-      }
-    }
-
-    return submenuItems
-  }
 
   public render() {
     return (
