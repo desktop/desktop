@@ -141,10 +141,15 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
 
     const foldoutState = this.props.foldoutState
 
+    // Determine whether a top-level application menu is currently
+    // open and use that if, and only if, the application menu foldout
+    // is active.
     const openMenu = foldoutState && this.props.appMenu.length > 1
       ? this.props.appMenu[1]
       : null
 
+    // Slice away the top menu so that each menu bar button receives
+    // their menu item's menu and any open submenus.
     const menuState = openMenu && openMenu.id === item.id
       ? this.props.appMenu.slice(1)
       : []
