@@ -15,6 +15,11 @@ interface IAppMenuBarState {
   readonly menuItems: ReadonlyArray<ISubmenuItem>
 }
 
+/**
+ * A Windows-style application menu bar which renders in the title
+ * bar section of the app and utilizes foldouts for displaying interactive
+ * menus.
+ */
 export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarState> {
 
   public constructor(props: IAppMenuBarProps) {
