@@ -97,13 +97,13 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   template.push({
     label: __DARWIN__ ? 'Edit' : '&Edit',
     submenu: [
-      { role: 'undo' },
-      { role: 'redo' },
+      { role: 'undo', label: __DARWIN__ ? 'Undo' : '&Undo' },
+      { role: 'redo', label: __DARWIN__ ? 'Redo' : '&Redo' },
       { type: 'separator' },
-      { role: 'cut' },
-      { role: 'copy' },
-      { role: 'paste' },
-      { role: 'selectall' },
+      { role: 'cut', label: __DARWIN__ ? 'Cut' : 'Cu&t' },
+      { role: 'copy', label: __DARWIN__ ? 'Copy' : '&Copy' },
+      { role: 'paste', label: __DARWIN__ ? 'Paste' : '&Paste' },
+      { role: 'selectall', label: __DARWIN__ ? 'Select All' : 'Select &all' },
     ],
   })
 
