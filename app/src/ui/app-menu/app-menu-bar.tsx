@@ -153,9 +153,9 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
       ? foldoutState.openedWithAccessKey || false
       : false
 
-      const enableAccessKeyNavigation = foldoutState
-        ? foldoutState.enableAccessKeyNavigation
-        : false
+    const enableAccessKeyNavigation = foldoutState
+      ? foldoutState.enableAccessKeyNavigation
+      : false
 
     return (
       <AppMenuBarButton
