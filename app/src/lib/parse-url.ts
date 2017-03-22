@@ -39,11 +39,13 @@ export function parseURL(url: string): URLActionType {
   const actionName = hostname.toLowerCase()
   if (actionName === 'oauth') {
     return { name: 'oauth', args: { code: parsedURL.query.code } }
-  } else if (actionName === 'openrepo') {
+  }
+
+  if (actionName === 'openrepo') {
     // The `path` will be: /https://github.com/user/repo, so we need to take a
     // substring from the first character on.
     return { name: 'open-repository', args: { url: `${parsedURL.path!.substr(1)}.git` } }
-  } else {
-    return unknown
   }
+
+  return unknown
 }
