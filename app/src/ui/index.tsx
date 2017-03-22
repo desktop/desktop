@@ -152,7 +152,15 @@ function openRepository(url: string, branch?: string) {
   })
 
   if (existingRepository) {
-    return dispatcher.selectRepository(existingRepository)
+    // we know this because of the previous find check. it's fiiiine.
+    const repo = existingRepository as Repository
+    return dispatcher.selectRepository(repo).then(() => {
+      if (branch) {
+        return dispatcher.checkoutBranch(repo, branch)
+      } else {
+        return Promise.resolve()
+      }
+    })
   } else {
     return cloneRepository(url, branch)
   }
