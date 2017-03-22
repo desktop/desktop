@@ -116,7 +116,7 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
   }
 })
 
-function cloneRepository(url: string) {
+function cloneRepository(url: string, branch?: string) {
   const cloneLocation = getDefaultDir()
 
   const defaultName = Path.basename(Url.parse(url)!.path!, '.git')
@@ -133,7 +133,16 @@ function cloneRepository(url: string) {
   // TODO: This isn't quite right. We should probably get the user from the
   // context or URL or something.
   const user = state.users[0]
-  return dispatcher.clone(url, path, user)
+
+  const clonePromise = dispatcher.clone(url, path, user)
+
+  if (!branch) { return clonePromise }
+
+  return clonePromise.then(repository => {
+    if (!repository) { return }
+
+    return dispatcher.checkoutBranch(repository, branch)
+  })
 }
 
 function openRepository(url: string) {
