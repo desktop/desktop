@@ -32,7 +32,22 @@ export interface IToolbarButtonProps {
    */
   readonly onClick?: () => void
 
+  /**
+   * A function that's called when the user hovers over the button with
+   * a pointer device. Note that this only fires for mouse events inside
+   * the button and not any content rendered by the preContentRenderer
+   * callback.
+   */
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
+
+  /**
+   * A function that's called when a key event is received from the 
+   * ToolbarButton component or any of its descendants.
+   * 
+   * Consumers of this event should not act on the event if the event has
+   * had its default action prevented by an earlier consumer that's called
+   * the preventDefault method on the event instance.
+   */
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void
 
   /**

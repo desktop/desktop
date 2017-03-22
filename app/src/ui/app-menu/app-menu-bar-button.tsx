@@ -14,7 +14,25 @@ interface IAppMenuBarButtonProps {
 
   readonly onClose: (menuItem: ISubmenuItem) => void
   readonly onOpen: (menuItem: ISubmenuItem) => void
+
+  /**
+   * A function that's called when the user hovers over the menu item with
+   * a pointer device. Note that this only fires for mouse events inside
+   * of the button and not when hovering content inside the foldout such
+   * as menu items.
+   */
   readonly onMouseEnter: (menuItem: ISubmenuItem) => void
+
+  /**
+   * A function that's called when a key event is received from the MenuBar
+   * button component or any of its descendants. Note that this includes any
+   * component or element within the foldout when that is open like, for
+   * example, MenuItem components.
+   * 
+   * Consumers of this event should not act on the event if the event has
+   * had its default action prevented by an earlier consumer that's called
+   * the preventDefault method on the event instance.
+   */
   readonly onKeyDown: (menuItem: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => void
 
   readonly dispatcher: Dispatcher
