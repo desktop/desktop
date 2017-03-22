@@ -137,7 +137,21 @@ export enum FoldoutType {
 
 export type AppMenuFoldout = {
   type: FoldoutType.AppMenu,
+
+  /**
+   * Whether or not the application menu was opened with the Alt key, this
+   * enables access key highlighting for applicable menu items as well as
+   * keyboard navigation by pressing access keys.
+   */
   enableAccessKeyNavigation: boolean,
+
+  /**
+   * Whether the menu was opened by pressing Alt (or Alt+X where X is an
+   * access key for one of the top level menu items). This is used as a
+   * one-time signal to the AppMenu to use some special semantics for
+   * selection and focus. Specifically it will ensure that the last opened
+   * menu will receive focus.
+   */
   openedWithAccessKey?: boolean,
 }
 
