@@ -6,13 +6,59 @@ import { ToolbarDropdown } from '../toolbar'
 import { Dispatcher } from '../../lib/dispatcher'
 
 interface IAppMenuBarButtonProps {
+  /**
+   * The top-level menu item. Currently only submenu items can be rendered as
+   * top-level menu bar buttons.
+   */
   readonly menuItem: ISubmenuItem
+
+  /**
+   * A list of open menus to be rendered, each menu may have
+   * a selected item. An empty array signifies that the menu
+   * is not open and an array containing more than one element
+   * means that there's one or more submenus open.
+   */
   readonly menuState: ReadonlyArray<IMenu>
+
+  /**
+   * Whether or not the application menu was opened with the Alt key, this
+   * enables access key highlighting for applicable menu items as well as
+   * keyboard navigation by pressing access keys.
+   */
   readonly enableAccessKeyNavigation: boolean
+
+  /**
+   * Whether the menu was opened by pressing Alt (or Alt+X where X is an
+   * access key for one of the top level menu items). This is used as a
+   * one-time signal to the AppMenu to use some special semantics for
+   * selection and focus. Specifically it will ensure that the last opened
+   * menu will receive focus.
+   */
   readonly openedWithAccessKey: boolean
+
+  /**
+   * Whether or not to highlight the access key of a top-level menu
+   * items (if they have one). This is normally true when the Alt-key
+   * is pressed, signifying that the item is accessible by holding Alt
+   * and pressing the corresponding access key. Note that this is a Windows
+   * convention.
+   * 
+   * See the highlight prop of the AccessText component for more details.
+   */
   readonly highlightAppMenuToolbarButton: boolean
 
+  /**
+   * A function that's called when the menu item is closed by the user clicking
+   * on the button while it is expanded. This is a specialized version
+   * of the onDropdownStateChanged prop of the ToolbarDropdown component
+   */
   readonly onClose: (menuItem: ISubmenuItem) => void
+
+  /**
+   * A function that's called when the menu item is opened by the user clicking
+   * on the button while it is collapsed. This is a specialized version
+   * of the onDropdownStateChanged prop of the ToolbarDropdown component
+   */
   readonly onOpen: (menuItem: ISubmenuItem) => void
 
   /**
