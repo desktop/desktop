@@ -2,13 +2,13 @@ import * as React from 'react'
 import { IMenu, ISubmenuItem } from '../../models/app-menu'
 import { AppMenuBarButton } from './app-menu-bar-button'
 import { Dispatcher } from '../../lib/dispatcher'
-import { FoldoutType } from '../../lib/app-state'
+import { AppMenuFoldout, FoldoutType } from '../../lib/app-state'
 
 interface IAppMenuBarProps {
   readonly appMenu: ReadonlyArray<IMenu>
   readonly dispatcher: Dispatcher
   readonly highlightAppMenuAccessKeys: boolean
-  readonly foldoutState: { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } | null
+  readonly foldoutState: AppMenuFoldout | null
 }
 
 interface IAppMenuBarState {

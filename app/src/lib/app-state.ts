@@ -135,12 +135,18 @@ export enum FoldoutType {
   AddMenu,
 }
 
+export type AppMenuFoldout = {
+  type: FoldoutType.AppMenu,
+  enableAccessKeyNavigation: boolean,
+  openedWithAccessKey?: boolean 
+}
+
 export type Foldout =
   { type: FoldoutType.Repository } |
   { type: FoldoutType.Branch } |
-  { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } |
   { type: FoldoutType.Publish } |
-  { type: FoldoutType.AddMenu }
+  { type: FoldoutType.AddMenu } |
+  AppMenuFoldout
 
 export enum RepositorySection {
   Changes,
