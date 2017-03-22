@@ -20,6 +20,11 @@ interface IAppMenuBarButtonProps {
   readonly dispatcher: Dispatcher
 }
 
+/**
+ * A button used inside of a menubar which utilizes the ToolbarDropdown component
+ * in order to render the menu item as well as a foldout containing the item's
+ * submenu (if open).
+ */
 export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, void> {
   public render() {
     const openMenu = this.props.menuState.length
