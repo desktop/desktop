@@ -9,14 +9,18 @@ export interface IOAuthActionArgs {
   readonly code: string
 }
 
+export interface IOpenRepositoryArgs {
+  readonly url: string
+}
+
 export interface IOAuthAction extends IURLAction<IOAuthActionArgs> {
   readonly name: 'oauth'
   readonly args: IOAuthActionArgs
 }
 
-export interface IOpenRepositoryAction extends IURLAction<string> {
+export interface IOpenRepositoryAction extends IURLAction<IOpenRepositoryArgs> {
   readonly name: 'open-repository'
-  readonly args: string
+  readonly args: IOpenRepositoryArgs
 }
 
 export interface IUnknownAction extends IURLAction<{}> {
@@ -38,7 +42,7 @@ export function parseURL(url: string): URLActionType {
   } else if (actionName === 'openrepo') {
     // The `path` will be: /https://github.com/user/repo, so we need to take a
     // substring from the first character on.
-    return { name: 'open-repository', args: `${parsedURL.path!.substr(1)}.git` }
+    return { name: 'open-repository', args: { url: `${parsedURL.path!.substr(1)}.git` } }
   } else {
     return unknown
   }

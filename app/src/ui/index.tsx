@@ -105,7 +105,7 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
       rejectOAuthRequest(e)
     }
   } else if (action.name === 'open-repository') {
-    openRepository(action.args)
+    openRepository(action.args.url)
   } else {
     console.log(`Unknown URL action: ${action.name}`)
   }

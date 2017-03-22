@@ -28,7 +28,7 @@ describe('parseURL', () => {
       expect(result.name).to.equal('open-repository')
 
       const openRepo = result as IOpenRepositoryAction
-      expect(openRepo.args).to.equal('https://github.com/desktop/desktop.git')
+      expect(openRepo.args.url).to.equal('https://github.com/desktop/desktop.git')
     })
 
     // TODO: match on known patterns and extract:
