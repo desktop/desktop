@@ -355,7 +355,7 @@ export class Dispatcher {
    * state in the repository list if the clone completes without error.
    */
   public async cloneAgain(url: string, path: string, user: User | null): Promise<void> {
-    const { promise, repository } = this.appStore._clone(url, path, user)
+    const { promise, repository } = this.appStore._clone(url, path, { user })
     await this.selectRepository(repository)
     const success = await promise
     if (!success) { return }
@@ -373,8 +373,8 @@ export class Dispatcher {
  }
 
   /** Clone the repository to the path. */
-  public async clone(url: string, path: string, user: User | null): Promise<Repository | null> {
-    const { promise, repository } = this.appStore._clone(url, path, user)
+  public async clone(url: string, path: string, options: { user: User | null, branch?: string }): Promise<Repository | null> {
+    const { promise, repository } = this.appStore._clone(url, path, options)
     await this.selectRepository(repository)
     const success = await promise
     if (!success) { return null }

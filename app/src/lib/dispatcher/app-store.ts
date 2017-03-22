@@ -1214,8 +1214,8 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clone(url: string, path: string, user: User | null): { promise: Promise<boolean>, repository: CloningRepository } {
-    const promise = this.cloningRepositoriesStore.clone(url, path, user)
+  public _clone(url: string, path: string, options: { user: User | null, branch?: string }): { promise: Promise<boolean>, repository: CloningRepository } {
+    const promise = this.cloningRepositoriesStore.clone(url, path, options)
     const repository = this.cloningRepositoriesStore.repositories.find(r => r.url === url && r.path === path)!
     return { promise, repository }
   }
