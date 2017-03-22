@@ -7,11 +7,29 @@ import { AppMenuFoldout, FoldoutType } from '../../lib/app-state'
 interface IAppMenuBarProps {
   readonly appMenu: ReadonlyArray<IMenu>
   readonly dispatcher: Dispatcher
+
+  /**
+   * Whether or not to highlight access keys for top-level menu items.
+   * Note that this does not affect whether access keys are highlighted
+   * for menu items in submenus, that's controlled by the foldoutState
+   * enableAccessKeyNavigation prop and follows Windows conventions such
+   * that opening a menu by clicking on it and then hitting Alt does
+   * not highlight the access keys within.
+   */
   readonly highlightAppMenuAccessKeys: boolean
+
+  /**
+   * The current AppMenu foldout state. If null that means that the
+   * app menu foldout is not currently open.
+   */
   readonly foldoutState: AppMenuFoldout | null
 }
 
 interface IAppMenuBarState {
+  /**
+   * A list of visible top-level menu items which have child menus of
+   * their own (ie submenu items).
+   */
   readonly menuItems: ReadonlyArray<ISubmenuItem>
 }
 
