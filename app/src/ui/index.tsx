@@ -93,21 +93,26 @@ ipcRenderer.on('blur', () => {
 })
 
 ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
-  if (action.name === 'oauth') {
-    try {
-      const user = await requestAuthenticatedUser(action.args.code)
-      if (user) {
-        resolveOAuthRequest(user)
-      } else {
-        rejectOAuthRequest(new Error('Unable to fetch authenticated user.'))
+  switch (action.name) {
+    case 'oauth':
+      try {
+        const user = await requestAuthenticatedUser(action.args.code)
+        if (user) {
+          resolveOAuthRequest(user)
+        } else {
+          rejectOAuthRequest(new Error('Unable to fetch authenticated user.'))
+        }
+      } catch (e) {
+        rejectOAuthRequest(e)
       }
-    } catch (e) {
-      rejectOAuthRequest(e)
-    }
-  } else if (action.name === 'open-repository') {
-    openRepository(action.args.url)
-  } else {
-    console.log(`Unknown URL action: ${action.name}`)
+      break
+
+    case 'open-repository':
+      openRepository(action.args.url)
+      break
+
+    default:
+      console.log(`Unknown URL action: ${action.name}`)
   }
 })
 
