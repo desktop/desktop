@@ -372,7 +372,7 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 export async function fetchMetadata(endpoint: string): Promise<IServerMetadata | null> {
 
   const url = `${endpoint}/meta`
-  return fetch(url, {
+  return await fetch(url, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
