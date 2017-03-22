@@ -148,8 +148,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     let hasDefaultBranch = false
     let hasPublishedBranch = false
     let networkActionInProgress = false
+    let repositorySelected = false
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
+      repositorySelected = true
       const branchesState = selectedState.state.branchesState
       const tip = branchesState.tip
       const defaultBranch = branchesState.defaultBranch
@@ -185,6 +187,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     setMenuEnabled('open-in-shell', onBranch)
     setMenuEnabled('push', !networkActionInProgress)
     setMenuEnabled('pull', !networkActionInProgress)
+    setMenuEnabled('repository', repositorySelected)
   }
 
   private onMenuEvent(name: MenuEvent): any {
