@@ -117,7 +117,7 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
   }
 })
 
-function cloneRepository(url: string, branch?: string) {
+function cloneRepository(url: string, branch?: string): Promise<Repository | null> {
   const cloneLocation = getDefaultDir()
 
   const defaultName = Path.basename(Url.parse(url)!.path!, '.git')
@@ -125,7 +125,7 @@ function cloneRepository(url: string, branch?: string) {
     buttonLabel: 'Clone',
     defaultPath: Path.join(cloneLocation, defaultName),
   })
-  if (!path) { return }
+  if (!path) { return Promise.resolve(null) }
 
   setDefaultDir(Path.resolve(path, '..'))
 
@@ -138,7 +138,7 @@ function cloneRepository(url: string, branch?: string) {
   return dispatcher.clone(url, path, { user: userForRepository, branch })
 }
 
-function openRepository(url: string, branch?: string) {
+function openRepository(url: string, branch?: string): Promise<Repository | null> {
   const state = appStore.getState()
   const repositories = state.repositories
   const existingRepository = repositories.find(r => {
@@ -154,16 +154,15 @@ function openRepository(url: string, branch?: string) {
   if (existingRepository) {
     // we know this because of the previous find check. it's fiiiine.
     const repo = existingRepository as Repository
+    // TODO: clean up this hack and flow the selected repository through
     return dispatcher.selectRepository(repo).then(() => {
-      if (branch) {
-        return dispatcher.checkoutBranch(repo, branch)
-      } else {
-        return Promise.resolve()
-      }
+      if (!branch) { return Promise.resolve(repo) }
+
+      return dispatcher.checkoutBranch(repo, branch).then(() => repo)
     })
-  } else {
-    return cloneRepository(url, branch)
   }
+
+  return cloneRepository(url, branch)
 }
 
 ReactDOM.render(
