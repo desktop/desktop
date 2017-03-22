@@ -31,18 +31,29 @@ describe('parseURL', () => {
       expect(openRepo.args.url).to.equal('https://github.com/desktop/desktop.git')
     })
 
-    // TODO: match on known patterns and extract:
-    //
-    // local branch in the repository
-    // -> github-mac://openRepo/https://github.com/desktop/desktop?branch=cancel-2fa-flow
-    //
-    // pull request from fork
-    // -> github-mac://openRepo/https://github.com/octokit/octokit.net?branch=pr%2F1569&pr=1569
-    //
-    // open file
-    // -> github-mac://openRepo/https://github.com/octokit/octokit.net?branch=master&filepath=README.md
+    it('adds branch name if set', () => {
+      const result = parseURL('github-mac://openRepo/https://github.com/desktop/desktop?branch=cancel-2fa-flow')
+      expect(result.name).to.equal('open-repository')
 
+      const openRepo = result as IOpenRepositoryAction
+      expect(openRepo.args.branch).to.equal('cancel-2fa-flow')
+    })
 
+    it('adds pull request ID if found', () => {
+      const result = parseURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=pr%2F1569&pr=1569')
+      expect(result.name).to.equal('open-repository')
+
+      const openRepo = result as IOpenRepositoryAction
+      expect(openRepo.args.branch).to.equal('pr/1569')
+      expect(openRepo.args.pr).to.equal('1569')
+    })
+
+    it('adds file path if found', () => {
+      const result = parseURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=master&filepath=Octokit.Reactive%2FOctokit.Reactive.csproj')
+      expect(result.name).to.equal('open-repository')
+
+      const openRepo = result as IOpenRepositoryAction
+      expect(openRepo.args.filepath).to.equal('Octokit.Reactive/Octokit.Reactive.csproj')
+    })
   })
-
 })

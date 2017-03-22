@@ -10,7 +10,14 @@ export interface IOAuthActionArgs {
 }
 
 export interface IOpenRepositoryArgs {
+  // the remote repository location associated with the "Open in Desktop" action
   readonly url: string
+  // the optional branch name which should be checked out. use the default branch otherwise.
+  readonly branch?: string
+  // the pull request number, if pull request originates from a fork of the repository
+  readonly pr?: string
+  // the file to open after cloning the repository
+  readonly filepath?: string
 }
 
 export interface IOAuthAction extends IURLAction<IOAuthActionArgs> {
@@ -44,7 +51,17 @@ export function parseURL(url: string): URLActionType {
   if (actionName === 'openrepo') {
     // The `path` will be: /https://github.com/user/repo, so we need to take a
     // substring from the first character on.
-    return { name: 'open-repository', args: { url: `${parsedURL.path!.substr(1)}.git` } }
+    const queryString = parsedURL.query
+
+    return {
+      name: 'open-repository',
+      args: {
+        url: `${parsedURL.path!.substr(1)}.git`,
+        branch: queryString.branch,
+        pr: queryString.pr,
+        filepath: queryString.filepath,
+      },
+    }
   }
 
   return unknown
