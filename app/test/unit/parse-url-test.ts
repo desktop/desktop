@@ -1,15 +1,29 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { parseURL, IOpenRepositoryAction } from '../../src/lib/parse-url'
+import { parseURL, IOpenRepositoryAction, IOAuthAction } from '../../src/lib/parse-url'
 
 describe('parseURL', () => {
   it('returns unknown by default', () => {
     expect(parseURL('').name).to.equal('unknown')
   })
 
+  describe('oauth', () => {
+    it('returns right name', () => {
+      const expectedArgs = {
+        'code': '18142422',
+      }
+
+      const result = parseURL('x-github-client://oauth?code=18142422&state=e4cd2dea-1567-46aa-8eb2-c7f56e943187')
+      expect(result.name).to.equal('oauth')
+
+      const openRepo = result as IOAuthAction
+      expect(openRepo.args).to.deep.equal(expectedArgs)
+    })
+  })
+
   describe('openRepo', () => {
-    it('returns URL for valid clone', () => {
+    it('returns right name', () => {
       const result = parseURL('github-mac://openRepo/https://github.com/desktop/desktop')
       expect(result.name).to.equal('open-repository')
 
