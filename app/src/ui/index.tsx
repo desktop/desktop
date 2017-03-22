@@ -135,15 +135,7 @@ function cloneRepository(url: string, branch?: string) {
   // context or URL or something.
   const user = state.users[0]
 
-  const clonePromise = dispatcher.clone(url, path, { user, branch })
-
-  if (!branch) { return clonePromise }
-
-  return clonePromise.then(repository => {
-    if (!repository) { return }
-
-    return dispatcher.checkoutBranch(repository, branch)
-  })
+  return dispatcher.clone(url, path, { user, branch })
 }
 
 function openRepository(url: string, branch?: string) {
