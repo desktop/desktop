@@ -68,6 +68,7 @@ export class SignIn extends React.Component<ISignInProps, void> {
         loading={state.loading}
         error={state.error}
         type={state.type}
+        additionalButtons={this.props.children}
         onOTPEntered={this.onOTPEntered}
       />
     )

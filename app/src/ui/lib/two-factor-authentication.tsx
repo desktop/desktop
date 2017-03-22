@@ -19,6 +19,9 @@ interface ITwoFactorAuthenticationProps {
    */
   readonly onOTPEntered: (otp: string) => void
 
+  /** An array of additional buttons to render after the "Sign In" button. */
+  readonly additionalButtons?: ReadonlyArray<JSX.Element>
+
   /**
    * An error which, if present, is presented to the
    * user in close proximity to the actions or input fields
@@ -75,6 +78,7 @@ export class TwoFactorAuthentication extends React.Component<ITwoFactorAuthentic
           {errors}
 
           <Button type='submit' disabled={signInDisabled}>Verify</Button>
+          {this.props.additionalButtons}
 
           {this.props.loading ? <Loading/> : null}
         </Form>
