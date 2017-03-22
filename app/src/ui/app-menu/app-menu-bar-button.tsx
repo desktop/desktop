@@ -32,6 +32,8 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
       ? 'open'
       : 'closed'
 
+    const disabled = !item.enabled
+
     return (
       <ToolbarDropdown
         key={item.id}
@@ -41,6 +43,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         showDisclosureArrow={false}
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}
+        disabled={disabled}
       >
         <MenuListItem
           item={item}
