@@ -377,7 +377,7 @@ export class Dispatcher {
     const { promise, repository } = this.appStore._clone(url, path, options)
     await this.selectRepository(repository)
     const success = await promise
-    if (!success) { return  }
+    if (!success) { return }
 
     const addedRepositories = await this.addRepositories([ path ])
     await this.selectRepository(addedRepositories[0])
