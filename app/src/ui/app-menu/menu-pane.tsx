@@ -52,6 +52,14 @@ interface IMenuPaneProps {
    */
   readonly enableAccessKeyNavigation: boolean
 
+  /**
+   * If true the MenuPane only takes up as much vertical space needed to
+   * show all menu items. This does not affect maximum height, i.e. if the
+   * visible menu items takes up more space than what is available the menu
+   * will still overflow and be scrollable.
+   * 
+   * @default false
+   */
   readonly autoHeight?: boolean
 }
 
