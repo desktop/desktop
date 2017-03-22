@@ -116,6 +116,26 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
   }
 })
 
+function cloneRepository(url: string) {
+  const cloneLocation = getDefaultDir()
+
+  const defaultName = Path.basename(Url.parse(url)!.path!, '.git')
+  const path: string | null = remote.dialog.showSaveDialog({
+    buttonLabel: 'Clone',
+    defaultPath: Path.join(cloneLocation, defaultName),
+  })
+  if (!path) { return }
+
+  setDefaultDir(Path.resolve(path, '..'))
+
+  const state = appStore.getState()
+
+  // TODO: This isn't quite right. We should probably get the user from the
+  // context or URL or something.
+  const user = state.users[0]
+  return dispatcher.clone(url, path, user)
+}
+
 function openRepository(url: string) {
   const state = appStore.getState()
   const repositories = state.repositories
@@ -132,21 +152,7 @@ function openRepository(url: string) {
   if (existingRepository) {
     return dispatcher.selectRepository(existingRepository)
   } else {
-    const cloneLocation = getDefaultDir()
-
-    const defaultName = Path.basename(Url.parse(url)!.path!, '.git')
-    const path: string | null = remote.dialog.showSaveDialog({
-      buttonLabel: 'Clone',
-      defaultPath: Path.join(cloneLocation, defaultName),
-    })
-    if (!path) { return }
-
-    setDefaultDir(Path.resolve(path, '..'))
-
-    // TODO: This isn't quite right. We should probably get the user from the
-    // context or URL or something.
-    const user = state.users[0]
-    return dispatcher.clone(url, path, user)
+    return cloneRepository(url)
   }
 }
 
