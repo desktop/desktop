@@ -32,10 +32,6 @@ interface IAppMenuProps {
    * one-time signal to the AppMenu to use some special semantics for
    * selection and focus. Specifically it will ensure that the last opened
    * menu will receive focus.
-   * 
-   * If, true, the semantics outlined above will be applied after which
-   * the dispatcher will be called to clear the prop such that it's not
-   * applied for consecutive renders.
    */
   readonly openedWithAccessKey: boolean
 
