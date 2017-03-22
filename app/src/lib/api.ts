@@ -398,7 +398,7 @@ async function getNote(): Promise<string> {
 }
 
 /**
- * Get the URL for the HTML site. For example:
+ * Map a repository's URL to the endpoint associated with it. For example:
  *
  * https://github.com/desktop/desktop -> https://api.github.com
  * http://github.mycompany.com/my-team/my-project -> http://github.mycompany.com/api
