@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom'
 import * as Path from 'path'
 import * as Url from 'url'
 
-import { ipcRenderer, remote } from 'electron'
+import { ipcRenderer, remote, shell } from 'electron'
 
 import { App } from './app'
 import { WindowState, getWindowState } from '../lib/window-state'
@@ -108,8 +108,15 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
       break
 
     case 'open-repository':
-      const { url, branch } = action.args
-      openRepository(url, branch)
+      const { url, branch, filepath } = action.args
+      openRepository(url, branch).then(repository => {
+        if (repository && filepath) {
+          const fullPath = Path.join(repository.path, filepath)
+          // because Windows uses different path separators here
+          const normalized = Path.normalize(fullPath)
+          shell.openItem(normalized)
+        }
+      })
       break
 
     default:
