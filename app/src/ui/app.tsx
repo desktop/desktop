@@ -522,22 +522,48 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.openShell(repoFilePath)
   }
 
+  /**
+   * Conditionally renders a menu bar. The menu bar is currently only rendered
+   * on Windows.
+   */
+  private renderAppMenuBar() {
+
+    // We only render the app menu bar on Windows
+    if (!__WIN32__) {
+      return null
+    }
+
+    // Have we received an app menu from the main process yet?
+    if (!this.state.appMenuState.length) {
+      return null
+    }
+
+    // Don't render the menu bar during the welcome flow
+    if (this.state.showWelcomeFlow) {
+      return null
+    }
+
+    const currentFoldout = this.state.currentFoldout
+
+    // AppMenuBar requires us to pass a strongly typed AppMenuFoldout state or
+    // null if the AppMenu foldout is not currently active.
+    const foldoutState = currentFoldout && currentFoldout.type === FoldoutType.AppMenu
+      ? currentFoldout
+      : null
+
+    return (
+      <AppMenuBar
+        appMenu={this.state.appMenuState}
+        dispatcher={this.props.dispatcher}
+        highlightAppMenuAccessKeys={this.state.highlightAccessKeys}
+        foldoutState={foldoutState}
+      />
+    )
+  }
+
   private renderTitlebar() {
     const winControls = __WIN32__
       ? <WindowControls />
-      : null
-
-    const foldoutState = this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu
-      ? this.state.currentFoldout
-      : null
-
-    const menuBar = __WIN32__ && this.state.appMenuState.length && !this.state.showWelcomeFlow
-      ? <AppMenuBar
-          appMenu={this.state.appMenuState}
-          dispatcher={this.props.dispatcher}
-          highlightAppMenuAccessKeys={this.state.highlightAccessKeys}
-          foldoutState={foldoutState}
-        />
       : null
 
     // On windows it's not possible to resize a frameless window if the
@@ -559,7 +585,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <div className={titleBarClass} id='desktop-app-title-bar'>
         {appIcon}
-        {menuBar}
+        {this.renderAppMenuBar()}
         {resizeHandle}
         {winControls}
       </div>
