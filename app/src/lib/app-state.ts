@@ -138,7 +138,7 @@ export enum FoldoutType {
 export type AppMenuFoldout = {
   type: FoldoutType.AppMenu,
   enableAccessKeyNavigation: boolean,
-  openedWithAccessKey?: boolean 
+  openedWithAccessKey?: boolean,
 }
 
 export type Foldout =
