@@ -33,7 +33,9 @@ interface IMenuPaneProps {
   readonly onItemClicked: (depth: number, item: MenuItem, source: ClickSource) => void
 
   /**
-   * A callback for when a keyboard key is pressed on a menu item.
+   * A callback for when a keyboard key is pressed on a menu item. Note that
+   * this only picks up on keyboard events received by a MenuItem and does
+   * not cover keyboard events received on the MenuPane component itself.
    */
   readonly onItemKeyDown: (depth: number, item: MenuItem, event: React.KeyboardEvent<any>) => void
 
