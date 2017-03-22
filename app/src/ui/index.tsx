@@ -112,7 +112,7 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
       break
 
     default:
-      console.log(`Unknown URL action: ${action.name}`)
+      console.log(`Unknown URL action: ${action.name} - payload: ${JSON.stringify(action)}`)
   }
 })
 
