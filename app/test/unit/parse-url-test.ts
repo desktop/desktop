@@ -31,11 +31,17 @@ describe('parseURL', () => {
       expect(openRepo.args.url).to.equal('https://github.com/desktop/desktop.git')
     })
 
+    it('returns unknown when no remote defined', () => {
+      const result = parseURL('github-mac://openRepo/')
+      expect(result.name).to.equal('unknown')
+    })
+
     it('adds branch name if set', () => {
       const result = parseURL('github-mac://openRepo/https://github.com/desktop/desktop?branch=cancel-2fa-flow')
       expect(result.name).to.equal('open-repository')
 
       const openRepo = result as IOpenRepositoryAction
+      expect(openRepo.args.url).to.equal('https://github.com/desktop/desktop.git')
       expect(openRepo.args.branch).to.equal('cancel-2fa-flow')
     })
 
@@ -44,6 +50,7 @@ describe('parseURL', () => {
       expect(result.name).to.equal('open-repository')
 
       const openRepo = result as IOpenRepositoryAction
+      expect(openRepo.args.url).to.equal('https://github.com/octokit/octokit.net.git')
       expect(openRepo.args.branch).to.equal('pr/1569')
       expect(openRepo.args.pr).to.equal('1569')
     })
@@ -53,6 +60,8 @@ describe('parseURL', () => {
       expect(result.name).to.equal('open-repository')
 
       const openRepo = result as IOpenRepositoryAction
+      expect(openRepo.args.url).to.equal('https://github.com/octokit/octokit.net.git')
+      expect(openRepo.args.branch).to.equal('master')
       expect(openRepo.args.filepath).to.equal('Octokit.Reactive/Octokit.Reactive.csproj')
     })
   })

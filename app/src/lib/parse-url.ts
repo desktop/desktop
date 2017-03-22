@@ -49,14 +49,25 @@ export function parseURL(url: string): URLActionType {
   }
 
   if (actionName === 'openrepo') {
-    // The `path` will be: /https://github.com/user/repo, so we need to take a
-    // substring from the first character on.
+
+    // we require something resembling a URL first
+    // - bail out if it's not defined
+    // - bail out if you only have `/`
+    const pathName = parsedURL.pathname
+    if (!pathName || pathName.length <= 1) { return unknown }
+
+    // trim the leading / from the parsed URL
+    const probablyAURL = pathName.substr(1)
+
+    // suffix the remote URL with `.git`, for backwards compatibility
+    const url = `${probablyAURL}.git`
+
     const queryString = parsedURL.query
 
     return {
       name: 'open-repository',
       args: {
-        url: `${parsedURL.path!.substr(1)}.git`,
+        url,
         branch: queryString.branch,
         pr: queryString.pr,
         filepath: queryString.filepath,
