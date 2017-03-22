@@ -10,6 +10,10 @@ export interface IButtonProps {
    */
   readonly onClick?: (event: React.FormEvent<HTMLButtonElement>) => void
 
+  /**
+   * A function that's called when the user moves over the button with
+   * a pointer device.
+   */
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /** The title of the button. */
