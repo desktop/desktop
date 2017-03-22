@@ -19,7 +19,7 @@ import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
 import { defaultErrorHandler, createMissingRepositoryHandler } from '../lib/dispatcher'
-
+import { getEndpointForRepository, getUserForEndpoint } from '../lib/api'
 import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
 
@@ -131,11 +131,11 @@ function cloneRepository(url: string, branch?: string) {
 
   const state = appStore.getState()
 
-  // TODO: This isn't quite right. We should probably get the user from the
-  // context or URL or something.
-  const user = state.users[0]
+  const endpoint = getEndpointForRepository(url)
 
-  return dispatcher.clone(url, path, { user, branch })
+  const userForRepository = getUserForEndpoint(state.users, endpoint) || null
+
+  return dispatcher.clone(url, path, { user: userForRepository, branch })
 }
 
 function openRepository(url: string, branch?: string) {
