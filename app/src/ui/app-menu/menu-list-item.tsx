@@ -10,7 +10,6 @@ interface IMenuListItemProps {
   readonly highlightAccessKey: boolean
 
   readonly renderAcceleratorText?: boolean
-  readonly renderIcon?: boolean
   readonly renderSubMenuArrow?: boolean
 }
 
@@ -61,11 +60,6 @@ export function friendlyAcceleratorText(accelerator: string): string {
 export class MenuListItem extends React.Component<IMenuListItemProps, void> {
 
   private getIcon(item: MenuItem): JSX.Element | null {
-
-    if (this.props.renderIcon === false) {
-      return null
-    }
-
     if (item.type === 'checkbox' && item.checked) {
       return <Octicon className='icon' symbol={OcticonSymbol.check} />
     } else if (item.type === 'radio' && item.checked) {

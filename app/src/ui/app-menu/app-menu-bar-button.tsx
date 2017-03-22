@@ -54,7 +54,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
           item={item}
           highlightAccessKey={this.props.highlightAppMenuToolbarButton}
           renderAcceleratorText={false}
-          renderIcon={false}
           renderSubMenuArrow={false}
         />
       </ToolbarDropdown>
