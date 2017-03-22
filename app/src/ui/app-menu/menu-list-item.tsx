@@ -7,9 +7,26 @@ import { AccessText } from '../lib/access-text'
 
 interface IMenuListItemProps {
   readonly item: MenuItem
+
+  /**
+   * Whether or not to highlight the access key of a menu item (if one exists).
+   * 
+   * See the highlight prop of AccessText component for more details.
+   */
   readonly highlightAccessKey: boolean
 
+  /**
+   * Whether or not to render the accelerator (shortcut) next to the label.
+   * This can be turned off when the menu item is used as a stand-alone item
+   */
   readonly renderAcceleratorText?: boolean
+
+  /**
+   * Whether or not to render an arrow to the right of the label when the
+   * menu item has a submenu. This can be turned off when the menu item is
+   * used as a stand-alone item or when expanding the submenu doesn't follow
+   * the default conventions (i.e. expanding to the right).
+   */
   readonly renderSubMenuArrow?: boolean
 }
 
