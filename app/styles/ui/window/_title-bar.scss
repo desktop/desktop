@@ -30,7 +30,7 @@
   .resize-handle {
     flex-grow: 1;
     height: 3px;
-      -webkit-app-region: no-drag;
+    -webkit-app-region: no-drag;
   }
 
   // Don't ever show the title bar when we're in full screen mode.
