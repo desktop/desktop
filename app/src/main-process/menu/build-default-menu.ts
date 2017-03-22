@@ -243,7 +243,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       { type: 'separator' },
       {
-        label: __DARWIN__ ? 'Compare Branch on GitHub' : '&Compare branch on GitHub',
+        label: __DARWIN__ ? 'Compare on GitHub' : '&Compare on GitHub',
         id: 'compare-branch',
         accelerator: 'CmdOrCtrl+Shift+C',
         click: emit('compare-branch'),
