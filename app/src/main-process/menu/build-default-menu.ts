@@ -155,6 +155,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   })
 
   template.push({
+    id: 'repository',
     label: __DARWIN__ ? 'Repository' : '&Repository',
     submenu: [
       {
