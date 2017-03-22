@@ -386,7 +386,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (shouldRenderApplicationMenu()) {
       if (event.key === 'Alt') {
-        this.props.dispatcher.setAppMenuToolbarButtonHighlightState(true)
+        this.props.dispatcher.setAccessKeyHighlightState(true)
       } else if (event.altKey && !event.ctrlKey && !event.metaKey) {
         if (this.state.appMenuState.length) {
           const candidates = this.state.appMenuState[0].items
@@ -408,7 +408,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           }
         }
       } else if (!event.altKey) {
-        this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
+        this.props.dispatcher.setAccessKeyHighlightState(false)
       }
     }
 
@@ -425,7 +425,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (shouldRenderApplicationMenu()) {
       if (event.key === 'Alt') {
-        this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
+        this.props.dispatcher.setAccessKeyHighlightState(false)
 
         if (this.lastKeyPressed === 'Alt') {
           if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
@@ -535,7 +535,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? <AppMenuBar
           appMenu={this.state.appMenuState}
           dispatcher={this.props.dispatcher}
-          highlightAppMenuToolbarButton={this.state.highlightAppMenuToolbarButton}
+          highlightAppMenuAccessKeys={this.state.highlightAccessKeys}
           foldoutState={foldoutState}
         />
       : null

@@ -93,11 +93,10 @@ export interface IAppState {
   readonly titleBarStyle: 'light' | 'dark'
 
   /**
-   * Used to add a highlight class to the app menu toolbar icon
-   * when the Alt key is pressed. Only applicable on non-macOS
-   * platforms.
+   * Used to highlight access keys throughout the app when the
+   * Alt key is pressed. Only applicable on non-macOS platforms.
    */
-  readonly highlightAppMenuToolbarButton: boolean
+  readonly highlightAccessKeys: boolean
 }
 
 export enum PopupType {

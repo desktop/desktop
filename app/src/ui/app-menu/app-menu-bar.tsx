@@ -7,7 +7,7 @@ import { FoldoutType } from '../../lib/app-state'
 interface IAppMenuBarProps {
   readonly appMenu: ReadonlyArray<IMenu>
   readonly dispatcher: Dispatcher
-  readonly highlightAppMenuToolbarButton: boolean
+  readonly highlightAppMenuAccessKeys: boolean
   readonly foldoutState: { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } | null
 }
 
@@ -168,7 +168,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
         dispatcher={this.props.dispatcher}
         menuItem={item}
         menuState={menuState}
-        highlightAppMenuToolbarButton={this.props.highlightAppMenuToolbarButton}
+        highlightMenuAccessKey={this.props.highlightAppMenuAccessKeys}
         enableAccessKeyNavigation={enableAccessKeyNavigation}
         openedWithAccessKey={openedWithAccessKey}
         onClose={this.onMenuClose}

@@ -45,7 +45,7 @@ interface IAppMenuBarButtonProps {
    * 
    * See the highlight prop of the AccessText component for more details.
    */
-  readonly highlightAppMenuToolbarButton: boolean
+  readonly highlightMenuAccessKey: boolean
 
   /**
    * A function that's called when the menu item is closed by the user clicking
@@ -116,7 +116,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
       >
         <MenuListItem
           item={item}
-          highlightAccessKey={this.props.highlightAppMenuToolbarButton}
+          highlightAccessKey={this.props.highlightMenuAccessKey}
           renderAcceleratorText={false}
           renderSubMenuArrow={false}
         />
