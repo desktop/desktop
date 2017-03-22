@@ -145,7 +145,7 @@ function openRepository(url: string, branch?: string) {
     if (r instanceof Repository) {
       const gitHubRepository = r.gitHubRepository
       if (!gitHubRepository) { return false }
-      return gitHubRepository.htmlURL === url
+      return gitHubRepository.cloneURL === url
     } else {
       return false
     }
