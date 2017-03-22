@@ -540,6 +540,16 @@ export class App extends React.Component<IAppProps, IAppState> {
         />
       : null
 
+    // On windows it's not possible to resize a frameless window if the
+    // element that sits flush along the window edge has -webkit-app-region: drag.
+    // The menu bar buttons all have no-drag but the area between menu buttons and
+    // window controls need to disable dragging so we add a 3px tall element which
+    // disables drag while still letting users drag the app by the titlebar below
+    // those 3px.
+    const resizeHandle = __WIN32__
+      ? <div className='resize-handle' />
+      : null
+
     const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
 
     const appIcon = __WIN32__ && !this.state.showWelcomeFlow
@@ -550,6 +560,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       <div className={titleBarClass} id='desktop-app-title-bar'>
         {appIcon}
         {menuBar}
+        {resizeHandle}
         {winControls}
       </div>
     )
