@@ -373,16 +373,14 @@ export class Dispatcher {
  }
 
   /** Clone the repository to the path. */
-  public async clone(url: string, path: string, options: { user: User | null, branch?: string }): Promise<Repository | null> {
+  public async clone(url: string, path: string, options: { user: User | null, branch?: string }): Promise<void> {
     const { promise, repository } = this.appStore._clone(url, path, options)
     await this.selectRepository(repository)
     const success = await promise
-    if (!success) { return null }
+    if (!success) { return  }
 
     const addedRepositories = await this.addRepositories([ path ])
-    const newRepository = addedRepositories[0]
-    await this.selectRepository(newRepository)
-    return newRepository
+    await this.selectRepository(addedRepositories[0])
   }
 
   /** Rename the branch to a new name. */
