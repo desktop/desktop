@@ -20,7 +20,7 @@ interface IAppMenuBarState {
  * an instance member in order to avoid mistakenly using any other
  * input data or state than the received props.
  * 
- * The state consists of a list of top-level menu items which have
+ * The state consists of a list of visible top-level menu items which have
  * child menus of their own (ie submenu items).
  */
 function createState(props: IAppMenuBarProps): IAppMenuBarState {
@@ -34,7 +34,7 @@ function createState(props: IAppMenuBarProps): IAppMenuBarState {
     const menuItems = new Array<ISubmenuItem>()
 
     for (const item of items) {
-      if (item.type === 'submenuItem') {
+      if (item.type === 'submenuItem' && item.visible) {
         menuItems.push(item)
       }
     }
