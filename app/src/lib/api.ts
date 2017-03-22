@@ -456,8 +456,12 @@ export function getDotComAPIEndpoint(): string {
 }
 
 /** Get the user for the endpoint. */
-export function getUserForEndpoint(users: ReadonlyArray<User>, endpoint: string): User {
-  return users.filter(u => u.endpoint === endpoint)[0]
+export function getUserForEndpoint(users: ReadonlyArray<User>, endpoint: string): User | null {
+  const filteredUsers = users.filter(u => u.endpoint === endpoint)
+  if (filteredUsers.length) {
+    return filteredUsers[0]
+  }
+  return null
 }
 
 export function getOAuthAuthorizationURL(endpoint: string, state: string): string {
