@@ -108,7 +108,8 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
       break
 
     case 'open-repository':
-      openRepository(action.args.url)
+      const { url, branch } = action.args
+      openRepository(url, branch)
       break
 
     default:
@@ -145,7 +146,7 @@ function cloneRepository(url: string, branch?: string) {
   })
 }
 
-function openRepository(url: string) {
+function openRepository(url: string, branch?: string) {
   const state = appStore.getState()
   const repositories = state.repositories
   const existingRepository = repositories.find(r => {
@@ -161,7 +162,7 @@ function openRepository(url: string) {
   if (existingRepository) {
     return dispatcher.selectRepository(existingRepository)
   } else {
-    return cloneRepository(url)
+    return cloneRepository(url, branch)
   }
 }
 
