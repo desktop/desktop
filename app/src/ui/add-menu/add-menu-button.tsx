@@ -91,11 +91,13 @@ export class AddMenuButton extends React.Component<IAddMenuButtonProps, IAddMenu
 
   public render() {
 
+    const menuPaneBottomPadding = 5
+
     const foldoutStyle = {
       position: 'absolute',
       marginLeft: 0,
       minWidth: this.props.width,
-      height: getListHeight(this.state.items) + 5,
+      height: getListHeight(this.state.items) + menuPaneBottomPadding,
       maxHeight: '100%',
       top: 0,
     }
