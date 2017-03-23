@@ -18,7 +18,7 @@ interface IAppErrorProps {
    * has been shown to, and been dismissed by, the user.
    */
   readonly onClearError: (error: Error) => void
-  readonly onShowPopup?: (popupType: Popup) => void | undefined
+  readonly onShowPopup: (popupType: Popup) => void | undefined
 }
 
 interface IAppErrorState {
@@ -72,18 +72,12 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private showPreferencesDialog = () => {
-    const showPreferences = this.props.onShowPopup
-
-    if (!showPreferences) {
-      return
-    }
-
     this.onDismissed()
 
     //This is a hacky solution to resolve multiple dialog windows
     //being open at the same time.
     setTimeout(() => {
-      showPreferences({ type: PopupType.Preferences })
+      this.props.onShowPopup({ type: PopupType.Preferences })
     }, dialogTransitionLeaveTimeout)
   }
 
