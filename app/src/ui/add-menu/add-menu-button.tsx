@@ -8,7 +8,6 @@ import { getListHeight } from '../app-menu'
 
 interface IAddMenuButtonProps {
   readonly dropDownState: DropdownState
-  readonly width: number
   readonly onDropDownStateChanged: (dropDownState: DropdownState) => void
 
   readonly onShowAddLocalRepo: () => void

@@ -954,7 +954,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       <AddMenuButton
         onDropDownStateChanged={this.onAddMenuDropdownStateChanged}
         dropDownState={currentState}
-        width={this.state.sidebarWidth}
         onShowAddLocalRepo={this.showAddLocalRepo}
         onShowCreateRepo={this.showCreateRepo}
         onShowCloneRepo={this.showCloneRepo}
