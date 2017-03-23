@@ -224,7 +224,7 @@ export class Dispatcher {
   }
 
   /** Select the repository. */
-  public selectRepository(repository: Repository | CloningRepository): Promise<void> {
+  public selectRepository(repository: Repository | CloningRepository): Promise<Repository | null> {
     return this.appStore._selectRepository(repository)
   }
 
@@ -294,12 +294,12 @@ export class Dispatcher {
   }
 
   /** Create a new branch from the given starting point and check it out. */
-  public createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
+  public createBranch(repository: Repository, name: string, startPoint: string): Promise<Repository> {
     return this.appStore._createBranch(repository, name, startPoint)
   }
 
   /** Check out the given branch. */
-  public checkoutBranch(repository: Repository, name: string): Promise<void> {
+  public checkoutBranch(repository: Repository, name: string): Promise<Repository> {
     return this.appStore._checkoutBranch(repository, name)
   }
 

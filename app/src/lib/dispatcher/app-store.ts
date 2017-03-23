@@ -522,14 +522,14 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _selectRepository(repository: Repository | CloningRepository | null): Promise<void> {
+  public async _selectRepository(repository: Repository | CloningRepository | null): Promise<Repository | null> {
     this.selectedRepository = repository
     this.emitUpdate()
 
     this.stopBackgroundFetching()
 
-    if (!repository) { return Promise.resolve() }
-    if (!(repository instanceof Repository)) { return Promise.resolve() }
+    if (!repository) { return Promise.resolve(null) }
+    if (!(repository instanceof Repository)) { return Promise.resolve(null) }
 
     localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
 
@@ -538,7 +538,7 @@ export class AppStore {
       // ensures we don't accidentally run any Git operations against the
       // wrong location if the user then relocates the `.git` folder elsewhere
       this.removeGitStore(repository)
-      return
+      return Promise.resolve(null)
     }
 
     const gitHubRepository = repository.gitHubRepository
@@ -550,6 +550,8 @@ export class AppStore {
 
     this.startBackgroundFetching(repository)
     this.refreshMentionables(repository)
+
+    return repository
   }
 
   public async _updateIssues(repository: GitHubRepository) {
@@ -972,18 +974,19 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
+  public async _createBranch(repository: Repository, name: string, startPoint: string): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => createBranch(repository, name, startPoint))
     return this._checkoutBranch(repository, name)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _checkoutBranch(repository: Repository, name: string): Promise<void> {
+  public async _checkoutBranch(repository: Repository, name: string): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => checkoutBranch(repository, name))
 
-    return this._refreshRepository(repository)
+    await this._refreshRepository(repository)
+    return repository
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */

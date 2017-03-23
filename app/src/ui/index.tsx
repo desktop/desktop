@@ -124,7 +124,7 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
   }
 })
 
-function cloneRepository(url: string, branch?: string): Promise<Repository | null> {
+function cloneRepository(url: string, branch?: string, pr?: string): Promise<Repository | null> {
   const cloneLocation = getDefaultDir()
 
   const defaultName = Path.basename(Url.parse(url)!.path!, '.git')
@@ -162,10 +162,10 @@ function openRepository(url: string, branch?: string): Promise<Repository | null
     // we know this because of the previous find check. it's fiiiine.
     const repo = existingRepository as Repository
     // TODO: clean up this hack and flow the selected repository through
-    return dispatcher.selectRepository(repo).then(() => {
-      if (!branch) { return Promise.resolve(repo) }
+    return dispatcher.selectRepository(repo).then(r => {
+      if (!r || !branch) { return r }
 
-      return dispatcher.checkoutBranch(repo, branch).then(() => repo)
+      return dispatcher.checkoutBranch(r, branch)
     })
   }
 
