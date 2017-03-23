@@ -108,8 +108,13 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
       break
 
     case 'open-repository':
-      const { url, branch } = action.args
-      openRepository(url, branch)
+      const { pr, url, branch } = action.args
+
+      // a forked PR will set both of these values, despite the branch not existing
+      // in the repository - handle this and avoid cloning it
+      const branchToClone = (pr && branch) ? undefined : branch
+
+      openRepository(url, branchToClone)
         .then(repository => handleCloneInDesktopOptions(repository, action.args))
       break
 
@@ -161,7 +166,7 @@ async function handleCloneInDesktopOptions(repository: Repository | null, args: 
   }
 }
 
-function openRepository(url: string, branch?: string, pr?: string): Promise<Repository | null> {
+function openRepository(url: string, branch?: string): Promise<Repository | null> {
   const state = appStore.getState()
   const repositories = state.repositories
   const existingRepository = repositories.find(r => {
@@ -175,12 +180,8 @@ function openRepository(url: string, branch?: string, pr?: string): Promise<Repo
   })
 
   if (existingRepository) {
-    // we know this because of the previous find check. it's fiiiine.
-    const repo = existingRepository as Repository
-    // TODO: clean up this hack and flow the selected repository through
-    return dispatcher.selectRepository(repo).then(r => {
+    return dispatcher.selectRepository(existingRepository).then(r => {
       if (!r || !branch) { return r }
-
       return dispatcher.checkoutBranch(r, branch)
     })
   }
