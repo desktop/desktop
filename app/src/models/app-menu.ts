@@ -148,9 +148,9 @@ function getAccelerator(menuItem: Electron.MenuItem): string | null {
 /**
  * Return the access key (applicable on Windows) from a menu item label.
  *
- * An access key is a letter or symbol preceeded by an ampersand, i.e. in
+ * An access key is a letter or symbol preceded by an ampersand, i.e. in
  * the string "Check for &updates" the access key is 'u'. Access keys are
- * case insenitive and are unique per menu.
+ * case insensitive and are unique per menu.
  */
 function getAccessKey(text: string): string | null {
   const m = text.match(/&([^&])/)
@@ -303,7 +303,7 @@ export class AppMenu {
    * A list of currently open menus with their selected items
    * in the application menu.
    *
-   * The semantics around what constitues an open menu and how
+   * The semantics around what constitutes an open menu and how
    * selection works is defined within this class class as well as
    * in the individual components transforming that state.
    */

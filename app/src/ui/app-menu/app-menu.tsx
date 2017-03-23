@@ -2,7 +2,6 @@ import * as React from 'react'
 import { MenuPane } from './menu-pane'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IMenu, MenuItem, ISubmenuItem } from '../../models/app-menu'
-import { FoldoutType } from '../../lib/app-state'
 import { SelectionSource, ClickSource } from '../list'
 
 interface IAppMenuProps {
@@ -32,13 +31,19 @@ interface IAppMenuProps {
    * access key for one of the top level menu items). This is used as a
    * one-time signal to the AppMenu to use some special semantics for
    * selection and focus. Specifically it will ensure that the last opened
-   * menu will receieve focus.
-   * 
-   * If, true, the semantics outlined above will be applied after which
-   * the dispatcher will be called to clear the prop such that it's not
-   * applied for consecutive renders.
+   * menu will receive focus.
    */
   readonly openedWithAccessKey: boolean
+
+  /**
+   * If true the MenuPane only takes up as much vertical space needed to
+   * show all menu items. This does not affect maximum height, i.e. if the
+   * visible menu items takes up more space than what is available the menu
+   * will still overflow and be scrollable.
+   * 
+   * @default false
+   */
+  readonly autoHeight?: boolean
 }
 
 const expandCollapseTimeout = 300
@@ -72,20 +77,21 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   public constructor(props: IAppMenuProps) {
     super(props)
     this.focusPane = props.state.length - 1
-    this.receiveProps(props)
+    this.receiveProps(null, props)
   }
 
-  private receiveProps(nextProps: IAppMenuProps) {
+  private receiveProps(currentProps: IAppMenuProps | null, nextProps: IAppMenuProps) {
     if (nextProps.openedWithAccessKey) {
-      // Clear the openedWithAccessKey prop now that we've received it.
-      nextProps.dispatcher.showFoldout({
-        type: FoldoutType.AppMenu,
-        enableAccessKeyNavigation: nextProps.enableAccessKeyNavigation,
-      })
 
-      // Since we were opened with an access key we auto set focus to the
-      // last pane opened.
-      this.focusPane = nextProps.state.length - 1
+      // We only want to react to the openedWithAccessKey prop once, either
+      // when it goes from false to true or when we receive it as our first
+      // prop. By doing it this way we save ourselves having to go through
+      // the dispatcher and updating the value once we've received it.
+      if (!currentProps || !currentProps.openedWithAccessKey) {
+        // Since we were opened with an access key we auto set focus to the
+        // last pane opened.
+        this.focusPane = nextProps.state.length - 1
+      }
     }
   }
 
@@ -121,15 +127,13 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       // on the root menu
       if (depth === 0 && event.key === 'Escape') {
         this.props.onClose()
-      } else {
+        event.preventDefault()
+      } else if (depth > 0) {
         this.props.dispatcher.setAppMenuState(menu => menu.withClosedMenu(this.props.state[depth]))
-      }
 
-      // Focus the previous menu, this might end up being -1 which is
-      // okay since ensurePaneFocus will ignore negative values and in
-      // this case the pane already has focus.
-      this.focusPane = depth - 1
-      event.preventDefault()
+        this.focusPane = depth - 1
+        event.preventDefault()
+      }
     } else if (event.key === 'ArrowRight') {
       this.clearExpandCollapseTimer()
 
@@ -229,6 +233,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       <MenuPane
         key={key}
         ref={this.onMenuPaneRef}
+        autoHeight={this.props.autoHeight}
         depth={depth}
         items={menu.items}
         selectedItem={menu.selectedItem}
@@ -272,7 +277,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   }
 
   public componentWillReceiveProps(nextProps: IAppMenuProps) {
-    this.receiveProps(nextProps)
+    this.receiveProps(this.props, nextProps)
   }
 
   public componentDidMount() {

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
 import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { ipcRenderer, remote, shell } from 'electron'
 
@@ -16,14 +15,14 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
-import { OcticonSymbol, iconForRepository } from './octicons'
+import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
 import { setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateState } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
-import { AppMenu } from './app-menu'
+import { AppMenuBar } from './app-menu'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
@@ -388,7 +387,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (shouldRenderApplicationMenu()) {
       if (event.key === 'Alt') {
-        this.props.dispatcher.setAppMenuToolbarButtonHighlightState(true)
+        this.props.dispatcher.setAccessKeyHighlightState(true)
       } else if (event.altKey && !event.ctrlKey && !event.metaKey) {
         if (this.state.appMenuState.length) {
           const candidates = this.state.appMenuState[0].items
@@ -410,7 +409,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           }
         }
       } else if (!event.altKey) {
-        this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
+        this.props.dispatcher.setAccessKeyHighlightState(false)
       }
     }
 
@@ -427,7 +426,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (shouldRenderApplicationMenu()) {
       if (event.key === 'Alt') {
-        this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
+        this.props.dispatcher.setAccessKeyHighlightState(false)
 
         if (this.lastKeyPressed === 'Alt') {
           if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
@@ -524,16 +523,71 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.openShell(repoFilePath)
   }
 
+  /**
+   * Conditionally renders a menu bar. The menu bar is currently only rendered
+   * on Windows.
+   */
+  private renderAppMenuBar() {
+
+    // We only render the app menu bar on Windows
+    if (!__WIN32__) {
+      return null
+    }
+
+    // Have we received an app menu from the main process yet?
+    if (!this.state.appMenuState.length) {
+      return null
+    }
+
+    // Don't render the menu bar during the welcome flow
+    if (this.state.showWelcomeFlow) {
+      return null
+    }
+
+    const currentFoldout = this.state.currentFoldout
+
+    // AppMenuBar requires us to pass a strongly typed AppMenuFoldout state or
+    // null if the AppMenu foldout is not currently active.
+    const foldoutState = currentFoldout && currentFoldout.type === FoldoutType.AppMenu
+      ? currentFoldout
+      : null
+
+    return (
+      <AppMenuBar
+        appMenu={this.state.appMenuState}
+        dispatcher={this.props.dispatcher}
+        highlightAppMenuAccessKeys={this.state.highlightAccessKeys}
+        foldoutState={foldoutState}
+      />
+    )
+  }
+
   private renderTitlebar() {
     const winControls = __WIN32__
       ? <WindowControls />
       : null
 
+    // On windows it's not possible to resize a frameless window if the
+    // element that sits flush along the window edge has -webkit-app-region: drag.
+    // The menu bar buttons all have no-drag but the area between menu buttons and
+    // window controls need to disable dragging so we add a 3px tall element which
+    // disables drag while still letting users drag the app by the titlebar below
+    // those 3px.
+    const resizeHandle = __WIN32__
+      ? <div className='resize-handle' />
+      : null
+
     const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
+
+    const appIcon = __WIN32__ && !this.state.showWelcomeFlow
+      ? <Octicon className='app-icon' symbol={OcticonSymbol.markGithub} />
+      : null
 
     return (
       <div className={titleBarClass} id='desktop-app-title-bar'>
-        <span className='app-title'>GitHub Desktop</span>
+        {appIcon}
+        {this.renderAppMenuBar()}
+        {resizeHandle}
         {winControls}
       </div>
     )
@@ -608,7 +662,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         />
       )
     }
-
     else if (popup.type === PopupType.AddRepository) {
       return (
         <AddExistingRepository
@@ -688,70 +741,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private closeAppMenu = () => {
-    this.props.dispatcher.closeFoldout()
-  }
-
-  private renderAppMenu = (): JSX.Element | null => {
-    if (!this.state.appMenuState || !shouldRenderApplicationMenu()) {
-      return null
-    }
-
-    const foldoutState = this.state.currentFoldout
-
-    if (!foldoutState || foldoutState.type !== FoldoutType.AppMenu) {
-      return null
-    }
-
-    return (
-      <AppMenu
-        state={this.state.appMenuState}
-        dispatcher={this.props.dispatcher}
-        onClose={this.closeAppMenu}
-        enableAccessKeyNavigation={foldoutState.enableAccessKeyNavigation}
-        openedWithAccessKey={foldoutState.openedWithAccessKey || false}
-      />
-    )
-  }
-
     private onAddMenuDropdownStateChanged = (newState: DropdownState) => {
     if (newState === 'open') {
       this.props.dispatcher.showFoldout({ type: FoldoutType.AddMenu, enableAccessKeyNavigation: false })
     } else {
       this.props.dispatcher.closeFoldout()
     }
-  }
-
-  private onAppMenuDropdownStateChanged = (newState: DropdownState) => {
-    if (newState === 'open') {
-      this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-      this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation: false })
-    } else {
-      this.props.dispatcher.closeFoldout()
-    }
-  }
-
-  private renderAppMenuToolbarButton() {
-    if (!this.state.appMenuState || !shouldRenderApplicationMenu()) {
-      return null
-    }
-
-    const isOpen = this.state.currentFoldout
-      && this.state.currentFoldout.type === FoldoutType.AppMenu
-
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-    const className = classNames(
-      'app-menu',
-      { 'highlight': this.state.highlightAppMenuToolbarButton },
-    )
-
-    return <ToolbarDropdown
-      className={className}
-      icon={OcticonSymbol.threeBars}
-      title='Menu'
-      onDropdownStateChanged={this.onAppMenuDropdownStateChanged}
-      dropdownContentRenderer={this.renderAppMenu}
-      dropdownState={currentState} />
   }
 
   private renderRepositoryList = (): JSX.Element => {
@@ -941,7 +936,6 @@ export class App extends React.Component<IAppProps, IAppState> {
           className='sidebar-section'
           style={{ width: this.state.sidebarWidth }}>
           {this.renderAddToolbarButton()}
-          {this.renderAppMenuToolbarButton()}
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}

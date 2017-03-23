@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { assertNever } from '../../lib/fatal-error'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
+import { rectEquals } from '../lib/rect'
 import * as classNames from 'classnames'
 
 export type DropdownState = 'open' | 'closed'
@@ -27,6 +28,23 @@ export interface IToolbarDropdownProps {
    * space/enter while focused.
    */
   readonly onDropdownStateChanged: (state: DropdownState) => void
+
+  /**
+   * A function that's called when the user hovers over the button with
+   * a pointer device. Note that this only fires for mouse events inside
+   * the button and not when hovering content inside the foldout.
+   */
+  readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
+
+  /**
+   * A function that's called when a key event is received from the 
+   * ToolbarDropDown component or any of its descendants.
+   * 
+   * Consumers of this event should not act on the event if the event has
+   * had its default action prevented by an earlier consumer that's called
+   * the preventDefault method on the event instance.
+   */
+  readonly onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void
 
   /**
    * An render callback for when the dropdown is open.
@@ -105,17 +123,6 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     this.props.onDropdownStateChanged(newState)
   }
 
-  private rectEquals(x: ClientRect, y: ClientRect) {
-    return (
-      x.left === y.left &&
-      x.right === y.right &&
-      x.top === y.top &&
-      x.bottom === y.bottom &&
-      x.width === y.width &&
-      x.height === y.height
-    )
-  }
-
   private updateClientRectIfNecessary() {
     if (this.props.dropdownState  === 'open' && this.innerButton) {
       const buttonElement = this.innerButton.buttonElement
@@ -123,7 +130,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         const newRect = buttonElement.getBoundingClientRect()
         const currentRect = this.state.clientRect
 
-        if (!currentRect || !this.rectEquals(currentRect, newRect)) {
+        if (!currentRect || !rectEquals(currentRect, newRect)) {
           this.setState({ clientRect: newRect })
         }
       }
@@ -214,11 +221,13 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         title={this.props.title}
         description={this.props.description}
         onClick={this.onClick}
+        onMouseEnter={this.props.onMouseEnter}
         className={className}
         preContentRenderer={this.renderDropdownContents}
         style={this.props.style}
         iconClassName={this.props.iconClassName}
         disabled={this.props.disabled}
+        onKeyDown={this.props.onKeyDown}
       >
         {this.props.children}
         {this.renderDropdownArrow()}

@@ -89,7 +89,19 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   }
 
   if (!__DARWIN__) {
-    (fileMenu.submenu as Electron.MenuItemOptions[]).push({ type: 'separator' }, { role: 'quit' })
+    const fileItems = fileMenu.submenu as Electron.MenuItemOptions[]
+
+    fileItems.push(
+      { type: 'separator' },
+      {
+        label: '&Options…',
+        id: 'preferences',
+        accelerator: 'CmdOrCtrl+,',
+        click: emit('show-preferences'),
+      },
+      { type: 'separator' },
+      { role: 'quit' }
+    )
   }
 
   template.push(fileMenu)
@@ -231,7 +243,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       { type: 'separator' },
       {
-        label: __DARWIN__ ? 'Compare Branch on GitHub' : '&Compare branch on GitHub',
+        label: __DARWIN__ ? 'Compare on GitHub' : '&Compare on GitHub',
         id: 'compare-branch',
         accelerator: 'CmdOrCtrl+Shift+C',
         click: emit('compare-branch'),
@@ -249,17 +261,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         { role: 'front' },
       ],
     })
-  } else {
-    template.push(
-      { type: 'separator' },
-      {
-        label: '&Options…',
-        id: 'preferences',
-        accelerator: 'CmdOrCtrl+,',
-        click: emit('show-preferences'),
-      },
-      { type: 'separator' },
-    )
   }
 
   const contactSupportItem: Electron.MenuItemOptions = {
