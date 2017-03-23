@@ -4,6 +4,7 @@ import { ToolbarDropdown, DropdownState } from '../toolbar'
 import { OcticonSymbol } from '../octicons'
 import { MenuItem, IMenuItem, ISeparatorMenuItem } from '../../models/app-menu'
 import { assertNever } from '../../lib/fatal-error'
+import { getListHeight } from '../app-menu'
 
 interface IAddMenuButtonProps {
   readonly dropDownState: DropdownState
@@ -94,7 +95,8 @@ export class AddMenuButton extends React.Component<IAddMenuButtonProps, IAddMenu
       position: 'absolute',
       marginLeft: 0,
       minWidth: this.props.width,
-      height: '100%',
+      height: getListHeight(this.state.items) + 5,
+      maxHeight: '100%',
       top: 0,
     }
 
