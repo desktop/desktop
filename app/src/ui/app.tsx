@@ -973,7 +973,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   private renderAddMenu = () => {
     return (
       <AddMenu
-        width={this.state.sidebarWidth}
         onShowAddLocalRepo={this.showAddLocalRepo}
         onShowCreateRepo={this.showCreateRepo}
         onShowCloneRepo={this.showCloneRepo}
