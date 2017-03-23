@@ -22,14 +22,14 @@ interface IAddMenuButtonState {
 
 type MenuItemId = 'add-local-repo' | 'create-repo' | 'clone-repo' | 'create-branch'
 
-function createMenuItem(id: MenuItemId, label: string): IMenuItem {
+function createMenuItem(id: MenuItemId, label: string, accelerator?: string): IMenuItem {
   return {
     type: 'menuItem',
     id,
     label: label,
     enabled: true,
     visible: true,
-    accelerator: null,
+    accelerator: accelerator || null,
     accessKey: null,
   }
 }
@@ -41,11 +41,11 @@ export class AddMenuButton extends React.Component<IAddMenuButtonProps, IAddMenu
 
     this.state = {
       items: [
-        createMenuItem('add-local-repo', __DARWIN__ ? 'Add Local Repository' : 'Add local repository'),
+        createMenuItem('add-local-repo', __DARWIN__ ? 'Add Local Repository' : 'Add local repository', 'CmdOrCtrl+O'),
         createMenuItem('create-repo', __DARWIN__ ? 'Create New Repository' : 'Create new repository'),
         createMenuItem('clone-repo', __DARWIN__ ? 'Clone Repository' : 'Clone repository'),
         { id: 'sep', type: 'separator', visible: true },
-        createMenuItem('create-branch', __DARWIN__ ? 'Create Branch' : 'Create branch'),
+        createMenuItem('create-branch', __DARWIN__ ? 'Create Branch' : 'Create branch', 'CmdOrCtrl+Shift+N'),
       ],
     }
   }
