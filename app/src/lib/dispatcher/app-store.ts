@@ -1247,13 +1247,18 @@ export class AppStore {
     return gitStore.clearContextualCommitMessage()
   }
 
-  /** Fetch the repository. */
-  public async fetch(repository: Repository): Promise<void> {
+  /** Fetch the repository, with an optional refspec to fetch a specific ref. */
+  public async fetch(repository: Repository, refspec?: string): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
       const user = this.getUserForRepository(repository)
-      await gitStore.fetch(user)
-      await this.fastForwardBranches(repository)
+
+      if (refspec) {
+        await gitStore.fetchRefspec(user, refspec)
+      } else {
+        await gitStore.fetch(user)
+        await this.fastForwardBranches(repository)
+      }
     })
 
     return this._refreshRepository(repository)

@@ -17,6 +17,7 @@ import {
   getDefaultRemote,
   getRemotes,
   fetch as fetchRepo,
+  fetchRefspec,
   getRecentBranches,
   getBranches,
   getTip,
@@ -415,6 +416,21 @@ export class GitStore {
 
     for (const remote of remotes) {
       await this.performFailableOperation(() => fetchRepo(this.repository, user, remote.name))
+    }
+  }
+
+  /**
+   * Fetch a given refspec, using the given user for authentication.
+   *
+   * @param user - The user to use for authentication if needed.
+   */
+  public async fetchRefspec(user: User | null, refspec: string): Promise<void> {
+
+    // TODO: we should favour origin here
+    const remotes = await getRemotes(this.repository)
+
+    for (const remote of remotes) {
+      await this.performFailableOperation(() => fetchRefspec(this.repository, user, remote.name, refspec))
     }
   }
 

@@ -142,10 +142,26 @@ function cloneRepository(url: string, branch?: string, pr?: string): Promise<Rep
 
   const userForRepository = getUserForEndpoint(state.users, endpoint) || null
 
-  return dispatcher.clone(url, path, { user: userForRepository, branch })
+  const clone = dispatcher.clone(url, path, { user: userForRepository, branch })
+  if (!pr) { return clone }
+
+  return clone.then(async repository => {
+    // skip this if the clone failed for whatever reason
+    if (!repository) { return repository }
+
+    // skip this if we don't have a forked PR to checkout
+    if (!pr || !branch) { return repository }
+
+    const fetchspec = `pull/${pr}/head:${branch}`
+
+    await dispatcher.fetch(repository, fetchspec)
+    await dispatcher.checkoutBranch(repository, branch)
+
+    return repository
+  })
 }
 
-function openRepository(url: string, branch?: string): Promise<Repository | null> {
+function openRepository(url: string, branch?: string, pr?: string): Promise<Repository | null> {
   const state = appStore.getState()
   const repositories = state.repositories
   const existingRepository = repositories.find(r => {

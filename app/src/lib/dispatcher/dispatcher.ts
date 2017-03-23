@@ -458,8 +458,8 @@ export class Dispatcher {
   }
 
   /** Fetch the repository. */
-  public fetch(repository: Repository): Promise<void> {
-    return this.appStore.fetch(repository)
+  public fetch(repository: Repository, fetchspec?: string): Promise<void> {
+    return this.appStore.fetch(repository, fetchspec)
   }
 
   /** End the Welcome flow. */
