@@ -18,7 +18,6 @@ interface IAddMenuButtonProps {
 
 interface IAddMenuButtonState {
   readonly items: ReadonlyArray<IMenuItem | ISeparatorMenuItem>
-  readonly selectedItem?: MenuItem
 }
 
 type MenuItemId = 'add-local-repo' | 'create-repo' | 'clone-repo' | 'create-branch'
@@ -73,17 +72,11 @@ export class AddMenuButton extends React.Component<IAddMenuButtonProps, IAddMenu
     }
   }
 
-  private onSelectionChanged = (selectedItem: MenuItem) => {
-    this.setState({ selectedItem })
-  }
-
   private renderAddMenu = () => {
     return (
       <AddMenu
         items={this.state.items}
-        selectedItem={this.state.selectedItem}
         onItemClicked={this.onItemClicked}
-        onSelectionChanged={this.onSelectionChanged}
       />
     )
   }
