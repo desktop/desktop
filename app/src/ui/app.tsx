@@ -956,13 +956,23 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
+    const foldoutStyle = {
+      position: 'absolute',
+      marginLeft: 0,
+      minWidth: this.state.sidebarWidth,
+      height: '100%',
+      top: 0,
+    }
+
     return (
       <ToolbarDropdown
         icon={OcticonSymbol.plus}
         className='app-menu'
         dropdownContentRenderer={this.renderAddMenu}
         onDropdownStateChanged={this.onAddMenuDropdownStateChanged}
-        dropdownState={currentState} />
+        dropdownState={currentState}
+        foldoutStyle={foldoutStyle}
+      />
     )
   }
 
