@@ -66,11 +66,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     label: __DARWIN__ ? 'File' : '&File',
     submenu: [
       {
-        label: __DARWIN__ ? 'Choose Repository…' : '&Choose repository…',
-        accelerator: 'CmdOrCtrl+L',
-        click: emit('choose-repository'),
-      },
-      {
         label: __DARWIN__ ? 'New Repository…' : 'New &repository…',
         click: emit('create-repository'),
         accelerator: 'CmdOrCtrl+N',
@@ -125,6 +120,11 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         label: '&History',
         accelerator: 'CmdOrCtrl+2',
         click: emit('select-history'),
+      },
+      {
+        label: __DARWIN__ ? 'Repository List' : 'Repository &list',
+        accelerator: 'CmdOrCtrl+L',
+        click: emit('choose-repository'),
       },
       { type: 'separator' },
       {
