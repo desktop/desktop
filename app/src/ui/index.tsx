@@ -152,7 +152,7 @@ async function handleCloneInDesktopOptions(repository: Repository | null, args: 
 
   // we need to refetch for a forked PR and check that out
   if (pr && branch) {
-    const fetchspec = `pull/${pr}/HEAD:${branch}`
+    const fetchspec = `pull/${pr}/head:${branch}`
 
     await dispatcher.fetch(repository, fetchspec)
     await dispatcher.checkoutBranch(repository, branch)
