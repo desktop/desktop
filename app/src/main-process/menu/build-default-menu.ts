@@ -126,6 +126,11 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         accelerator: 'CmdOrCtrl+L',
         click: emit('choose-repository'),
       },
+      {
+        label: __DARWIN__ ? 'Branches List' : '&Branches list',
+        accelerator: 'CmdOrCtrl+B',
+        click: emit('show-branches'),
+      },
       { type: 'separator' },
       {
         label: '&Reload',
@@ -163,12 +168,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   template.push({
     label: __DARWIN__ ? 'Repository' : '&Repository',
     submenu: [
-      {
-        label: __DARWIN__ ? 'Show Branches' : 'Show &branches',
-        accelerator: 'CmdOrCtrl+B',
-        click: emit('show-branches'),
-      },
-      { type: 'separator' },
       {
         label: __DARWIN__ ? 'Open Working Directory' : '&Open working directory',
         accelerator: 'CmdOrCtrl+Shift+F',
