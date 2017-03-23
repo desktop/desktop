@@ -37,6 +37,7 @@ import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository, CloneRepository } from './add-repository'
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
+import { AddMenu } from './add-menu'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -965,22 +966,15 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-  private renderAddMenu = (): JSX.Element | null => {
-    const foldoutStyle = {
-      width: this.state.sidebarWidth,
-    }
-
+  private renderAddMenu = () => {
     return (
-      <div id='app-menu-foldout' style={foldoutStyle}>
-        <ul className='menu-pane add-menu'>
-          <li className='add-menu-item add-menu-item-header'>Repository</li>
-          <li className='add-menu-item' onClick={this.showAddLocalRepo}>Add local repository</li>
-          <li className='add-menu-item' onClick={this.showCreateRepo}>Create new repository</li>
-          <li className='add-menu-item' onClick={this.showCloneRepo}>Clone repository</li>
-          <li className='add-menu-item add-menu-item-header'>Branches</li>
-          <li className='add-menu-item' onClick={this.showCreateBranch}>Create new branch</li>
-        </ul>
-      </div>
+      <AddMenu
+        width={this.state.sidebarWidth}
+        onShowAddLocalRepo={this.showAddLocalRepo}
+        onShowCreateRepo={this.showCreateRepo}
+        onShowCloneRepo={this.showCloneRepo}
+        onShowCreateBranch={this.showCreateBranch}
+      />
     )
   }
 
