@@ -55,6 +55,11 @@ describe('parseURL', () => {
       expect(openRepo.args.pr).to.equal('1569')
     })
 
+    it('returns unknown for unexpected input', () => {
+      const result = parseURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=bar&pr=foo')
+      expect(result.name).to.equal('unknown')
+    })
+
     it('adds file path if found', () => {
       const result = parseURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=master&filepath=Octokit.Reactive%2FOctokit.Reactive.csproj')
       expect(result.name).to.equal('open-repository')

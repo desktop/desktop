@@ -64,12 +64,23 @@ export function parseURL(url: string): URLActionType {
 
     const queryString = parsedURL.query
 
+    const pr = queryString.pr
+    const branch = queryString.branch
+
+    if (pr) {
+      // if anything other than a number is used for the PR value, exit
+      if (!/^\d+$/.test(pr)) { return unknown }
+
+      // we also expect the branch for a forked PR to be a given ref
+      if (!/^pr\/\d+$/.test(branch)) { return unknown }
+    }
+
     return {
       name: 'open-repository',
       args: {
         url,
-        branch: queryString.branch,
-        pr: queryString.pr,
+        branch,
+        pr,
         filepath: queryString.filepath,
       },
     }
