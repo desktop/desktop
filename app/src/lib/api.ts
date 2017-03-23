@@ -372,12 +372,14 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 export async function fetchMetadata(endpoint: string): Promise<IServerMetadata | null> {
 
   const url = `${endpoint}/meta`
-  return await fetch(url, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  }).then(async (response) =>  {
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
 
     if (response.status !== 200) {
       return null
@@ -390,10 +392,10 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
     }
 
     return body
-  }).catch(error => {
+  } catch (error) {
     console.error(error || `Request to ${url} failed`)
     return null
-  })
+  }
 }
 
 /** The note used for created authorizations. */
