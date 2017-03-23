@@ -2,6 +2,8 @@ import * as React from 'react'
 import { AddMenu } from './add-menu'
 import { ToolbarDropdown, DropdownState } from '../toolbar'
 import { OcticonSymbol } from '../octicons'
+import { MenuItem, IMenuItem, ISeparatorMenuItem } from '../../models/app-menu'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IAddMenuButtonProps {
   readonly dropDownState: DropdownState
@@ -14,15 +16,74 @@ interface IAddMenuButtonProps {
   readonly onShowCreateBranch: () => void
 }
 
-export class AddMenuButton extends React.Component<IAddMenuButtonProps, void> {
+interface IAddMenuButtonState {
+  readonly items: ReadonlyArray<IMenuItem | ISeparatorMenuItem>
+  readonly selectedItem?: MenuItem
+}
+
+type MenuItemId = 'add-local-repo' | 'create-repo' | 'clone-repo' | 'create-branch'
+
+function createMenuItem(id: MenuItemId, label: string): IMenuItem {
+  return {
+    type: 'menuItem',
+    id,
+    label: label,
+    enabled: true,
+    visible: true,
+    accelerator: null,
+    accessKey: null,
+  }
+}
+
+export class AddMenuButton extends React.Component<IAddMenuButtonProps, IAddMenuButtonState> {
+
+  public constructor(props: IAddMenuButtonProps) {
+    super(props)
+
+    this.state = {
+      items: [
+        createMenuItem('add-local-repo', __DARWIN__ ? 'Add Local Repository' : 'Add local repository'),
+        createMenuItem('create-repo', __DARWIN__ ? 'Create New Repository' : 'Create new repository'),
+        createMenuItem('clone-repo', __DARWIN__ ? 'Clone Repository' : 'Clone repository'),
+        { id: 'sep', type: 'separator', visible: true },
+        createMenuItem('create-branch', __DARWIN__ ? 'Create Branch' : 'Create branch'),
+      ],
+    }
+  }
+
+  private onItemClicked = (item: MenuItem) => {
+
+    const id = item.id as MenuItemId
+
+    switch (id) {
+      case 'add-local-repo':
+        this.props.onShowAddLocalRepo()
+        break
+      case 'create-repo':
+        this.props.onShowCreateRepo()
+        break
+      case 'clone-repo':
+        this.props.onShowCloneRepo()
+        break
+      case 'create-branch':
+        this.props.onShowCreateBranch()
+        break
+      default:
+        assertNever(id, `Unknown menu item id: ${id}`)
+    }
+  }
+
+  private onSelectionChanged = (selectedItem: MenuItem) => {
+    this.setState({ selectedItem })
+  }
 
   private renderAddMenu = () => {
     return (
       <AddMenu
-        onShowAddLocalRepo={this.props.onShowAddLocalRepo}
-        onShowCreateRepo={this.props.onShowCreateRepo}
-        onShowCloneRepo={this.props.onShowCloneRepo}
-        onShowCreateBranch={this.props.onShowCreateBranch}
+        items={this.state.items}
+        selectedItem={this.state.selectedItem}
+        onItemClicked={this.onItemClicked}
+        onSelectionChanged={this.onSelectionChanged}
       />
     )
   }
