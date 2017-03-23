@@ -55,8 +55,14 @@ describe('parseURL', () => {
       expect(openRepo.args.pr).to.equal('1569')
     })
 
-    it('returns unknown for unexpected input', () => {
+    it('returns unknown for unexpected pull request input', () => {
       const result = parseURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=bar&pr=foo')
+      expect(result.name).to.equal('unknown')
+    })
+
+    it('returns unknown for invalid branch name', () => {
+      // branch=<>
+      const result = parseURL('github-mac://openRepo/https://github.com/octokit/octokit.net?branch=%3C%3E')
       expect(result.name).to.equal('unknown')
     })
 

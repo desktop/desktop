@@ -75,6 +75,14 @@ export function parseURL(url: string): URLActionType {
       if (!/^pr\/\d+$/.test(branch)) { return unknown }
     }
 
+    if (branch) {
+      // See https://www.kernel.org/pub/software/scm/git/docs/git-check-ref-format.html
+      // ASCII Control chars and space, DEL, ~ ^ : ? * [ \
+      // | " < and > is technically a valid refname but not on Windows
+      // the magic sequence @{, consecutive dots, leading and trailing dot, ref ending in .lock
+      if (/[\x00-\x20\x7F~^:?*\[\\|""<>]|@{|\.\.+|^\.|\.$|\.lock$/.test(branch)) { return unknown }
+    }
+
     return {
       name: 'open-repository',
       args: {
