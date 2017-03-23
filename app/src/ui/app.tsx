@@ -36,7 +36,7 @@ import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository, CloneRepository } from './add-repository'
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
-import { AddMenu } from './add-menu'
+import { AddMenuButton } from './add-menu'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -950,29 +950,11 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const currentState: DropdownState = isOpen ? 'open' : 'closed'
 
-    const foldoutStyle = {
-      position: 'absolute',
-      marginLeft: 0,
-      minWidth: this.state.sidebarWidth,
-      height: '100%',
-      top: 0,
-    }
-
     return (
-      <ToolbarDropdown
-        icon={OcticonSymbol.plus}
-        className='app-menu'
-        dropdownContentRenderer={this.renderAddMenu}
-        onDropdownStateChanged={this.onAddMenuDropdownStateChanged}
-        dropdownState={currentState}
-        foldoutStyle={foldoutStyle}
-      />
-    )
-  }
-
-  private renderAddMenu = () => {
-    return (
-      <AddMenu
+      <AddMenuButton
+        onDropDownStateChanged={this.onAddMenuDropdownStateChanged}
+        dropDownState={currentState}
+        width={this.state.sidebarWidth}
         onShowAddLocalRepo={this.showAddLocalRepo}
         onShowCreateRepo={this.showCreateRepo}
         onShowCloneRepo={this.showCloneRepo}
