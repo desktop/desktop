@@ -57,6 +57,7 @@ const appStore = new AppStore(
 )
 
 const dispatcher = new Dispatcher(appStore)
+
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
 
