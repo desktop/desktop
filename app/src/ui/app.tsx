@@ -217,6 +217,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'view-repository-on-github' : return this.viewRepositoryOnGitHub()
       case 'compare-branch': return this.compareBranch()
       case 'open-in-shell' : return this.openShell()
+      case 'clone-repository': return this.showCloneRepo()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
