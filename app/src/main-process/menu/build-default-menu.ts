@@ -86,6 +86,11 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         accelerator: 'CmdOrCtrl+O',
         click: emit('add-local-repository'),
       },
+      {
+        label: __DARWIN__ ? 'Clone Repository…' : 'Cl&one repository…',
+        accelerator: 'CmdOrCtrl+Shift+O',
+        click: emit('clone-repository'),
+      },
     ],
   }
 
