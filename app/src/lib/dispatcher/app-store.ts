@@ -20,7 +20,7 @@ import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
-import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
+import { API, getUserForEndpoint, IAPIUser } from '../../lib/api'
 import { caseInsenstiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
@@ -327,7 +327,7 @@ export class AppStore {
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
       commitSummaryWidth: this.commitSummaryWidth,
-      appMenuState: this.appMenu ? this.appMenu.openMenus : [ ],
+      appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
     }
@@ -774,7 +774,7 @@ export class AppStore {
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
 
     const state = this.getRepositoryState(repository)
-    const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
+    const files = state.changesState.workingDirectory.files.filter((file, index, array) => {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
@@ -1214,7 +1214,10 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _clone(url: string, path: string, user: User | null): { promise: Promise<boolean>, repository: CloningRepository } {
     const promise = this.cloningRepositoriesStore.clone(url, path, user)
-    const repository = this.cloningRepositoriesStore.repositories.find(r => r.url === url && r.path === path)!
+    const repository = this.cloningRepositoriesStore
+                           .repositories
+                           .find(r => r.url === url && r.path === path) !
+
     return { promise, repository }
   }
 
