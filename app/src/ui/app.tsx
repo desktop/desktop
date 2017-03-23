@@ -36,7 +36,6 @@ import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository, CloneRepository } from './add-repository'
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
-import { AddMenuButton } from './add-menu'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -319,6 +318,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.showPopup({
       type: PopupType.CreateRepository,
     })
+  }
+
+  private showCloneRepo() {
+    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
   }
 
   private showBranches() {
@@ -742,14 +745,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-    private onAddMenuDropdownStateChanged = (newState: DropdownState) => {
-    if (newState === 'open') {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.AddMenu, enableAccessKeyNavigation: false })
-    } else {
-      this.props.dispatcher.closeFoldout()
-    }
-  }
-
   private renderRepositoryList = (): JSX.Element => {
     const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
     return <RepositoriesList
@@ -936,46 +931,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         <div
           className='sidebar-section'
           style={{ width: this.state.sidebarWidth }}>
-          {this.renderAddToolbarButton()}
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
       </Toolbar>
     )
-  }
-
-  private renderAddToolbarButton() {
-    const isOpen = this.state.currentFoldout
-      && this.state.currentFoldout.type === FoldoutType.AddMenu
-
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-
-    return (
-      <AddMenuButton
-        onDropDownStateChanged={this.onAddMenuDropdownStateChanged}
-        dropDownState={currentState}
-        onShowAddLocalRepo={this.showAddLocalRepo}
-        onShowCreateRepo={this.showCreateRepo}
-        onShowCloneRepo={this.showCloneRepo}
-        onShowCreateBranch={this.showCreateBranch}
-      />
-    )
-  }
-
-  private showAddLocalRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
-  }
-
-  private showCreateRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
-  }
-
-  private showCloneRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
   }
 
   private renderRepository() {
