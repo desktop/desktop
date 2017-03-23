@@ -8,7 +8,7 @@ import { ipcRenderer, remote, shell } from 'electron'
 import { App } from './app'
 import { WindowState, getWindowState } from '../lib/window-state'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
-import { URLActionType } from '../lib/parse-url'
+import { URLActionType, IOpenRepositoryArgs } from '../lib/parse-url'
 import { Repository } from '../models/repository'
 import { getDefaultDir, setDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
@@ -108,15 +108,9 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
       break
 
     case 'open-repository':
-      const { url, branch, filepath } = action.args
-      openRepository(url, branch).then(repository => {
-        if (repository && filepath) {
-          const fullPath = Path.join(repository.path, filepath)
-          // because Windows uses different path separators here
-          const normalized = Path.normalize(fullPath)
-          shell.openItem(normalized)
-        }
-      })
+      const { url, branch } = action.args
+      openRepository(url, branch)
+        .then(repository => handleCloneInDesktopOptions(repository, action.args))
       break
 
     default:
@@ -124,7 +118,7 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
   }
 })
 
-function cloneRepository(url: string, branch?: string, pr?: string): Promise<Repository | null> {
+function cloneRepository(url: string, branch?: string): Promise<Repository | null> {
   const cloneLocation = getDefaultDir()
 
   const defaultName = Path.basename(Url.parse(url)!.path!, '.git')
@@ -142,23 +136,29 @@ function cloneRepository(url: string, branch?: string, pr?: string): Promise<Rep
 
   const userForRepository = getUserForEndpoint(state.users, endpoint) || null
 
-  const clone = dispatcher.clone(url, path, { user: userForRepository, branch })
-  if (!pr) { return clone }
+  return dispatcher.clone(url, path, { user: userForRepository, branch })
+}
 
-  return clone.then(async repository => {
-    // skip this if the clone failed for whatever reason
-    if (!repository) { return repository }
+async function handleCloneInDesktopOptions(repository: Repository | null, args: IOpenRepositoryArgs): Promise<void> {
+  // skip this if the clone failed for whatever reason
+  if (!repository) { return }
 
-    // skip this if we don't have a forked PR to checkout
-    if (!pr || !branch) { return repository }
+  const { filepath, pr, branch } = args
 
-    const fetchspec = `pull/${pr}/head:${branch}`
+  // we need to refetch for a forked PR and check that out
+  if (pr && branch) {
+    const fetchspec = `pull/${pr}/HEAD:${branch}`
 
     await dispatcher.fetch(repository, fetchspec)
     await dispatcher.checkoutBranch(repository, branch)
+  }
 
-    return repository
-  })
+  if (filepath) {
+    const fullPath = Path.join(repository.path, filepath)
+    // because Windows uses different path separators here
+    const normalized = Path.normalize(fullPath)
+    shell.openItem(normalized)
+  }
 }
 
 function openRepository(url: string, branch?: string, pr?: string): Promise<Repository | null> {
