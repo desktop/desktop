@@ -109,11 +109,10 @@ ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }
 
     case 'open-repository':
       const { pr, url, branch } = action.args
-
-      // a forked PR will set both of these values, despite the branch not existing
-      // in the repository - handle this and avoid cloning it
+      // a forked PR will provide both these values, despite the branch not existing
+      // in the repository - drop the branch argument in this case so a clone will
+      // checkout the default branch when it clones
       const branchToClone = (pr && branch) ? undefined : branch
-
       openRepository(url, branchToClone)
         .then(repository => handleCloneInDesktopOptions(repository, action.args))
       break
@@ -136,12 +135,9 @@ function cloneRepository(url: string, branch?: string): Promise<Repository | nul
   setDefaultDir(Path.resolve(path, '..'))
 
   const state = appStore.getState()
+  const user = getUserForEndpoint(state.users, getEndpointForRepository(url)) || null
 
-  const endpoint = getEndpointForRepository(url)
-
-  const userForRepository = getUserForEndpoint(state.users, endpoint) || null
-
-  return dispatcher.clone(url, path, { user: userForRepository, branch })
+  return dispatcher.clone(url, path, { user, branch })
 }
 
 async function handleCloneInDesktopOptions(repository: Repository | null, args: IOpenRepositoryArgs): Promise<void> {
@@ -152,9 +148,7 @@ async function handleCloneInDesktopOptions(repository: Repository | null, args: 
 
   // we need to refetch for a forked PR and check that out
   if (pr && branch) {
-    const fetchspec = `pull/${pr}/head:${branch}`
-
-    await dispatcher.fetch(repository, fetchspec)
+    await dispatcher.fetch(repository, `pull/${pr}/head:${branch}`)
     await dispatcher.checkoutBranch(repository, branch)
   }
 
@@ -180,9 +174,9 @@ function openRepository(url: string, branch?: string): Promise<Repository | null
   })
 
   if (existingRepository) {
-    return dispatcher.selectRepository(existingRepository).then(r => {
-      if (!r || !branch) { return r }
-      return dispatcher.checkoutBranch(r, branch)
+    return dispatcher.selectRepository(existingRepository).then(repo => {
+      if (!repo || !branch) { return repo }
+      return dispatcher.checkoutBranch(repo, branch)
     })
   }
 
