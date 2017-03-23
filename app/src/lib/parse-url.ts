@@ -66,12 +66,13 @@ export function parseURL(url: string): URLActionType {
 
     const pr = queryString.pr
     const branch = queryString.branch
+    const filepath = queryString.filepath
 
     if (pr) {
       // if anything other than a number is used for the PR value, exit
       if (!/^\d+$/.test(pr)) { return unknown }
 
-      // we also expect the branch for a forked PR to be a given ref
+      // we also expect the branch for a forked PR to be a given ref format
       if (!/^pr\/\d+$/.test(branch)) { return unknown }
     }
 
@@ -89,7 +90,7 @@ export function parseURL(url: string): URLActionType {
         url,
         branch,
         pr,
-        filepath: queryString.filepath,
+        filepath,
       },
     }
   }
