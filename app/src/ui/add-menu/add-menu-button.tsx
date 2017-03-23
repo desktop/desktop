@@ -42,8 +42,8 @@ export class AddMenuButton extends React.Component<IAddMenuButtonProps, IAddMenu
     this.state = {
       items: [
         createMenuItem('add-local-repo', __DARWIN__ ? 'Add Local Repository' : 'Add local repository', 'CmdOrCtrl+O'),
-        createMenuItem('create-repo', __DARWIN__ ? 'Create New Repository' : 'Create new repository'),
-        createMenuItem('clone-repo', __DARWIN__ ? 'Clone Repository' : 'Clone repository'),
+        createMenuItem('create-repo', __DARWIN__ ? 'Create New Repository' : 'Create new repository', 'CmdOrCtrl+N'),
+        createMenuItem('clone-repo', __DARWIN__ ? 'Clone Repository' : 'Clone repository', 'CmdOrCtrl+Shift+N'),
         { id: 'sep', type: 'separator', visible: true },
         createMenuItem('create-branch', __DARWIN__ ? 'Create Branch' : 'Create branch', 'CmdOrCtrl+Shift+N'),
       ],
