@@ -169,12 +169,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     label: __DARWIN__ ? 'Repository' : '&Repository',
     submenu: [
       {
-        label: __DARWIN__ ? 'Open Working Directory' : '&Open working directory',
-        accelerator: 'CmdOrCtrl+Shift+F',
-        click: emit('open-working-directory'),
-      },
-      { type: 'separator' },
-      {
         id: 'push',
         label: __DARWIN__ ? 'Push' : 'P&ush',
         accelerator: 'CmdOrCtrl+P',
@@ -201,6 +195,11 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         label: __DARWIN__ ? 'Open in Shell' : 'Op&en in shell',
         id: 'open-in-shell',
         click: emit('open-in-shell'),
+      },
+      {
+        label: __DARWIN__ ? 'Open Working Directory' : '&Open working directory',
+        accelerator: 'CmdOrCtrl+Shift+F',
+        click: emit('open-working-directory'),
       },
       { type: 'separator' },
       {
