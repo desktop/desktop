@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "0.0.28",
+  "version": "0.0.30",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -25,7 +25,7 @@
     "iconv-lite": "^0.4.15",
     "keytar": "^3.0.2",
     "moment": "^2.17.1",
-    "octokat": "^0.5.0-beta.0",
+    "octokat": "^0.6.4",
     "react": "^15.4.2",
     "react-addons-css-transition-group": "^15.4.2",
     "react-addons-shallow-compare": "^15.4.2",
