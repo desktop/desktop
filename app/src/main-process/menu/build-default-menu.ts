@@ -79,6 +79,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       {
         label: __DARWIN__ ? 'Create Repository…' : 'Create &repository…',
         click: emit('create-repository'),
+        accelerator: 'CmdOrCtrl+N',
       },
       {
         label: __DARWIN__ ? 'Add Local Repository…' : 'Add &local repository…',
