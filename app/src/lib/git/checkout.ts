@@ -7,7 +7,7 @@ export async function checkoutBranch(repository: Repository, name: string): Prom
     successExitCodes: new Set([ 0, 1 ]),
   }
 
-  const checkRef = await git([ 'check-ref-format', '--branch', name ], repository.path, 'checkoutBranch', options)
+  const checkRef = await git([ 'check-ref-format', '--normalize', `refs/heads/${name}` ], repository.path, 'checkoutBranch', options)
 
   if (checkRef.exitCode === 1) {
     throw new Error(`The provided name '${name}' is not a valid ref.`)
