@@ -61,6 +61,7 @@ export class GitHubUserStore {
 
     const response = await api.fetchMentionables(repository.owner.login, repository.name, etag)
     if (!response) { return }
+    if (!response.users) { return }
 
     if (response.etag) {
       this.mentionablesEtags.set(repositoryID, response.etag)
