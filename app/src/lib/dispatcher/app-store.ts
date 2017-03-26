@@ -524,14 +524,6 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _selectRepository(repository: Repository | CloningRepository | null): Promise<Repository | null> {
 
-    // shared process may try and select the already-selected repository
-    // this prevents duplicated calls to refresh the repository
-    if (this.selectedRepository && repository instanceof Repository) {
-      if (this.selectedRepository.id  === repository.id) {
-        return Promise.resolve(repository)
-      }
-    }
-
     this.selectedRepository = repository
     this.emitUpdate()
 
