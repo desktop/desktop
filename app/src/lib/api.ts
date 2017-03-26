@@ -393,7 +393,7 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
 
     return body
   } catch (error) {
-    console.error(error || `Request to ${url} failed`)
+    console.error(`Failed to load metadata from ${url}: ${error}`)
     return null
   }
 }
