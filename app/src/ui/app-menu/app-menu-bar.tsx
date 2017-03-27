@@ -70,6 +70,10 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   private focusedButton: HTMLButtonElement | null = null
   private readonly menuButtonRefsByMenuItemId: { [id: string]: AppMenuBarButton} = { }
 
+  public get menuButtonHasFocus(): boolean {
+    return this.focusedButton !== null
+  }
+
   public constructor(props: IAppMenuBarProps) {
     super(props)
     this.state = createState(props)
@@ -90,6 +94,42 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     }
   }
 
+  /**
+   * Move keyboard focus to the first menu item button in the
+   * menu bar. This has no effect when a menu is currently open.
+   */
+  public focusFirstMenuItem() {
+
+    // Menu currently open?
+    if (this.props.appMenu.length > 1) {
+      return
+    }
+
+    const rootItems = this.state.menuItems
+
+    if (!rootItems.length) {
+      return
+    }
+
+    const firstMenuItem = rootItems[0]
+    const firstMenuItemComponent = this.menuButtonRefsByMenuItemId[firstMenuItem.id]
+
+    if (!firstMenuItemComponent) {
+      return
+    }
+
+    firstMenuItemComponent.focusButton()
+  }
+
+  /**
+   * Remove keyboard focus from the currently focused menu button.
+   * This has no effect if no menu button has focus.
+   */
+  public blurCurrentlyFocusedItem() {
+    if (this.focusedButton) {
+      this.focusedButton.blur()
+    }
+  }
 
   public render() {
     return (
