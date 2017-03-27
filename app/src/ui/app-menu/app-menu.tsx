@@ -16,8 +16,13 @@ interface IAppMenuProps {
    * A required callback for when the app menu is closed. The menu is explicitly
    * closed when a menu item has been clicked (executed) or when the user
    * presses Escape on the top level menu pane.
+   * 
+   * @param closeSource An object describing the action that caused the menu
+   *                    to close. This can either be a keyboard event (hitting
+   *                    Escape) or the user executing one of the menu items by
+   *                    clicking on them or pressing enter.
    */
-  readonly onClose: () => void
+  readonly onClose: (closeSource: CloseSource) => void
 
   /**
    * Whether or not the application menu was opened with the Alt key, this
@@ -45,6 +50,17 @@ interface IAppMenuProps {
    */
   readonly autoHeight?: boolean
 }
+
+export interface IKeyboardCloseSource {
+  type: 'keyboard'
+  event: React.KeyboardEvent<HTMLElement>
+}
+
+export interface IItemExecutedCloseSource {
+  type: 'item-executed'
+}
+
+export type CloseSource = IKeyboardCloseSource | IItemExecutedCloseSource
 
 const expandCollapseTimeout = 300
 
@@ -115,7 +131,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       }
     } else if (item.type !== 'separator') {
       this.props.dispatcher.executeMenuItem(item)
-      this.props.onClose()
+      this.props.onClose({ type: 'item-executed' })
     }
   }
 
@@ -126,7 +142,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       // Only actually close the foldout when hitting escape
       // on the root menu
       if (depth === 0 && event.key === 'Escape') {
-        this.props.onClose()
+        this.props.onClose({ type: 'keyboard', event })
         event.preventDefault()
       } else if (depth > 0) {
         this.props.dispatcher.setAppMenuState(menu => menu.withClosedMenu(this.props.state[depth]))
@@ -212,10 +228,10 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     this.focusPane = depth
   }
 
-  private onKeyDown = (event: React.KeyboardEvent<any>) => {
+  private onKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if (!event.defaultPrevented && event.key === 'Escape') {
       event.preventDefault()
-      this.props.onClose()
+      this.props.onClose({ type: 'keyboard', event })
     }
   }
 
