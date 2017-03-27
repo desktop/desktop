@@ -3,7 +3,7 @@
     &-new { fill: var(--color-new); }
     &-copied { fill: var(--color-new); }
     &-modified { fill: var(--color-modified); }
-    &-renamed { fill: var(--color-modified); }
+    &-renamed { fill: var(--color-renamed); }
     &-deleted { fill: var(--color-deleted); }
   }
 }
