@@ -23,7 +23,7 @@ The menu bar should display the top-level menu items and each menu item
 should be clickable. When clicking on a menu item the associated sub menu
 should expand (or collapse if already open).
 
-### Keyboard navigation
+## Keyboard navigation
 
 When a user is holding down the `ALT` key the access-keys (which is separate from
 accelerator or "shortcut" keys) in the top-level menu items should be underlined.
@@ -49,10 +49,28 @@ any menus are expanded pressing `ALT` should immediately close any open menus.
 Pressing and releasing the `ALT` key while a top level menu item is focused should
 remove keyboard focus from the item.
 
-#### Focused top-level menu items
+### Focused top-level menu items
 
 When a top-level menu item has keyboard focused (and its menu is collapsed) a
 user should be able to expand the menu by pressing `Enter` or `ArrowDown`.
 
 Using the `ArrowLeft` and `ArrowRight` keys should move focus to the next
 adjacent menu item in that direction, looping around if necessary.
+
+### Expanded menus
+
+An expanded menu respond to `ArrowUp` and `ArrowDown`, moving the selection
+to the next adjacent menu item in that direction, looping around if necessary.
+
+Hitting `Enter` or `Space` should execute the currently selected menu item.
+
+#### Pointer device interactions
+
+Menu item selection should follow the pointer device so that pointing on a menu
+item automatically selects it. Moving outside of a menu should not close the menu.
+
+If a user points at a menu item which has a submenu of its own the selection
+should immediately switch to that menu item but the sub menu should not expand
+until a reasonable amount of time (currently 300ms) has passed so that a user
+can move their pointer from one menu item to the submenu item without activating
+any submenus in their path.
