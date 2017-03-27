@@ -112,12 +112,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     label: __DARWIN__ ? 'View' : '&View',
     submenu: [
       {
-        label: '&Changes',
+        label: __DARWIN__ ? 'Show Changes' : '&Changes',
         accelerator: 'CmdOrCtrl+1',
         click: emit('select-changes'),
       },
       {
-        label: '&History',
+        label: __DARWIN__ ? 'Show History' : '&History',
         accelerator: 'CmdOrCtrl+2',
         click: emit('select-history'),
       },
