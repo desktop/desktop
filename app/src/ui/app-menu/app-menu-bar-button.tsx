@@ -113,6 +113,15 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
     }
   }
 
+  /**
+   * Programmatically remove keyboard focus from the button element.
+   */
+  public blurButton() {
+    if (this.innerDropDown) {
+      this.innerDropDown.blurButton()
+    }
+  }
+
   private onButtonFocus = (event: React.FocusEvent<HTMLButtonElement>) => {
     this.hasFocus = true
 
