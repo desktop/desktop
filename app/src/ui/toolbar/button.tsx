@@ -121,6 +121,15 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
   }
 
   /**
+   * Programmatically remove keyboard focus from the button element.
+   */
+  public blur() {
+    if (this.innerButton) {
+      this.innerButton.blur()
+    }
+  }
+
+  /**
    * Get the client bounding box for the button element.
    * Returns undefined if the button hasn't been mounted yet.
    */

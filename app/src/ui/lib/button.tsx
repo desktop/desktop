@@ -85,6 +85,15 @@ export class Button extends React.Component<IButtonProps, void> {
   }
 
   /**
+   * Programmatically remove keyboard focus from the button element.
+   */
+  public blur() {
+    if (this.innerButton) {
+      this.innerButton.blur()
+    }
+  }
+
+  /**
    * Get the client bounding box for the button element
    */
   public getBoundingClientRect = (): ClientRect | undefined => {
