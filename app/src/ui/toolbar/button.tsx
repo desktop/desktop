@@ -99,7 +99,7 @@ export interface IToolbarButtonProps {
  */
 export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
 
-  public buttonElement: HTMLButtonElement | null = null
+  public innerButton: Button | null = null
 
   private onClick = () => {
     if (this.props.onClick) {
@@ -107,8 +107,27 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     }
   }
 
-  private onButtonRef = (ref: HTMLButtonElement) => {
-    this.buttonElement = ref
+  private onButtonRef = (ref: Button | null) => {
+    this.innerButton = ref
+  }
+
+  /**
+   * Programmatically move keyboard focus to the button element.
+   */
+  public focus = () => {
+    if (this.innerButton) {
+      this.innerButton.focus()
+    }
+  }
+
+  /**
+   * Get the client bounding box for the button element.
+   * Returns undefined if the button hasn't been mounted yet.
+   */
+  public getButtonBoundingClientRect = (): ClientRect | undefined => {
+    return this.innerButton
+      ? this.innerButton.getBoundingClientRect()
+      : undefined
   }
 
   public render() {
@@ -126,7 +145,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
         {preContent}
         <Button
           onClick={this.onClick}
-          onButtonRef={this.onButtonRef}
+          ref={this.onButtonRef}
           disabled={this.props.disabled}
           onMouseEnter={this.props.onMouseEnter}
           tabIndex={this.props.tabIndex}

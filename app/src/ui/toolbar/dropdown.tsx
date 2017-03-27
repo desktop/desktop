@@ -149,9 +149,8 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
 
   private updateClientRectIfNecessary() {
     if (this.props.dropdownState  === 'open' && this.innerButton) {
-      const buttonElement = this.innerButton.buttonElement
-      if (buttonElement) {
-        const newRect = buttonElement.getBoundingClientRect()
+      const newRect = this.innerButton.getButtonBoundingClientRect()
+      if (newRect) {
         const currentRect = this.state.clientRect
 
         if (!currentRect || !rectEquals(currentRect, newRect)) {
@@ -228,6 +227,15 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
 
   private onRef = (ref: ToolbarButton) => {
     this.innerButton = ref
+  }
+
+  /**
+   * Programmatically move keyboard focus to the button element.
+   */
+  public focus = () => {
+    if (this.innerButton) {
+      this.innerButton.focus()
+    }
   }
 
   public render() {

@@ -35,7 +35,7 @@ export interface IButtonProps {
    * handling of the `ref` type into some ungodly monstrosity. Hopefully someday
    * this will be unnecessary.
    */
-  readonly onButtonRef?: (instance: HTMLButtonElement) => void
+  readonly onButtonRef?: (instance: HTMLButtonElement | undefined) => void
 
   /**
    * The tab index of the button element.
@@ -64,6 +64,35 @@ export interface IButtonProps {
 
 /** A button component. */
 export class Button extends React.Component<IButtonProps, void> {
+
+  private innerButton: HTMLButtonElement | undefined = undefined
+
+  private onButtonRef = (button: HTMLButtonElement | undefined) => {
+    this.innerButton = button
+
+    if (this.props.onButtonRef) {
+      this.props.onButtonRef(button)
+    }
+  }
+
+  /**
+   * Programmatically move keyboard focus to the button element.
+   */
+  public focus = () => {
+    if (this.innerButton) {
+      this.innerButton.focus()
+    }
+  }
+
+  /**
+   * Get the client bounding box for the button element
+   */
+  public getBoundingClientRect = (): ClientRect | undefined => {
+    return this.innerButton
+      ? this.innerButton.getBoundingClientRect()
+      : undefined
+  }
+
   public render() {
     const className = classNames('button-component', this.props.className)
 
@@ -73,7 +102,7 @@ export class Button extends React.Component<IButtonProps, void> {
         disabled={this.props.disabled}
         onClick={this.onClick}
         type={this.props.type || 'button'}
-        ref={this.props.onButtonRef}
+        ref={this.onButtonRef}
         tabIndex={this.props.tabIndex}
         onMouseEnter={this.props.onMouseEnter}
       >
