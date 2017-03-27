@@ -124,7 +124,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
   /**
    * Programmatically move keyboard focus to the button element.
    */
-  public focus = () => {
+  public focusButton = () => {
     if (this.innerButton) {
       this.innerButton.focus()
     }
@@ -133,7 +133,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
   /**
    * Programmatically remove keyboard focus from the button element.
    */
-  public blur() {
+  public blurButton() {
     if (this.innerButton) {
       this.innerButton.blur()
     }

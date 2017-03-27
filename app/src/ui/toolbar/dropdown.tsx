@@ -244,7 +244,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
    */
   public focusButton = () => {
     if (this.innerButton) {
-      this.innerButton.focus()
+      this.innerButton.focusButton()
     }
   }
 
@@ -253,7 +253,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
    */
   public blurButton() {
     if (this.innerButton) {
-      this.innerButton.blur()
+      this.innerButton.blurButton()
     }
   }
 
