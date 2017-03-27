@@ -102,6 +102,7 @@ interface IAppMenuBarButtonProps {
 export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, void> {
 
   private innerDropDown: ToolbarDropdown | undefined = undefined
+  private hasFocus: boolean = false
 
   /**
    * Programmatically move keyboard focus to the button element.
@@ -113,12 +114,16 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   }
 
   private onButtonFocus = (event: React.FocusEvent<HTMLButtonElement>) => {
+    this.hasFocus = true
+
     if (this.props.onButtonFocus) {
       this.props.onButtonFocus(event)
     }
   }
 
   private onButtonBlur = (event: React.FocusEvent<HTMLButtonElement>) => {
+    this.hasFocus = false
+
     if (this.props.onButtonBlur) {
       this.props.onButtonBlur(event)
     }
