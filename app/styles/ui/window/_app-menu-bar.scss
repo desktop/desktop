@@ -13,7 +13,7 @@
   .toolbar-button:not(.open) > button {
     color: var(--toolbar-button-secondary-color);
 
-    &:hover {
+    &:hover,&:focus {
       color: var(--toolbar-button-color);
     }
   }
