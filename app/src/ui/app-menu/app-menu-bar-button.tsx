@@ -101,7 +101,7 @@ interface IAppMenuBarButtonProps {
  */
 export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, void> {
 
-  private innerDropDown: ToolbarDropdown | undefined = undefined
+  private innerDropDown: ToolbarDropdown | null = null
   private hasFocus: boolean = false
 
   /**
@@ -176,7 +176,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
     )
   }
 
-  private onDropDownRef = (dropdown: ToolbarDropdown | undefined) => {
+  private onDropDownRef = (dropdown: ToolbarDropdown | null) => {
     this.innerDropDown = dropdown
   }
 

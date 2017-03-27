@@ -206,7 +206,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     }
   }
 
-  private onMenuPaneRef = (pane: MenuPane) => {
+  private onMenuPaneRef = (pane: MenuPane | null) => {
     if (pane) {
       this.paneRefs[pane.props.depth] = pane
     }

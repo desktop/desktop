@@ -45,7 +45,7 @@ export interface IButtonProps {
    * handling of the `ref` type into some ungodly monstrosity. Hopefully someday
    * this will be unnecessary.
    */
-  readonly onButtonRef?: (instance: HTMLButtonElement | undefined) => void
+  readonly onButtonRef?: (instance: HTMLButtonElement | null) => void
 
   /**
    * The tab index of the button element.
@@ -75,9 +75,9 @@ export interface IButtonProps {
 /** A button component. */
 export class Button extends React.Component<IButtonProps, void> {
 
-  private innerButton: HTMLButtonElement | undefined = undefined
+  private innerButton: HTMLButtonElement | null = null
 
-  private onButtonRef = (button: HTMLButtonElement | undefined) => {
+  private onButtonRef = (button: HTMLButtonElement | null) => {
     this.innerButton = button
 
     if (this.props.onButtonRef) {
