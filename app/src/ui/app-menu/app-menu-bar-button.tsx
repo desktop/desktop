@@ -185,6 +185,20 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+
+    if (event.key === 'Escape' && this.hasFocus) {
+      const item = this.props.menuItem
+      const openMenu = this.props.menuState.length
+        ? this.props.menuState[0]
+        : null
+
+      const isOpen = openMenu && openMenu.id === item.id
+
+      if (!isOpen) {
+        this.blurButton()
+      }
+    }
+
     this.props.onKeyDown(this.props.menuItem, event)
   }
 
