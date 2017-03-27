@@ -36,7 +36,6 @@ function getPlatformSpecificNameOrSymbolForModifier(modifier: string): string {
 
     // Special case space because no one would be able to see it
     case ' ': return 'Space'
-    case ',': return 'Comma'
   }
 
   // Not a known modifier, likely a normal key
