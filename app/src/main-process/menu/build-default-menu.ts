@@ -122,12 +122,12 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click: emit('select-history'),
       },
       {
-        label: __DARWIN__ ? 'Repository List' : 'Repository &list',
+        label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
         accelerator: 'CmdOrCtrl+L',
         click: emit('choose-repository'),
       },
       {
-        label: __DARWIN__ ? 'Branches List' : '&Branches list',
+        label: __DARWIN__ ? 'Show Branches List' : '&Branches list',
         accelerator: 'CmdOrCtrl+B',
         click: emit('show-branches'),
       },
