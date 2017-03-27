@@ -142,7 +142,6 @@ interface IAppMenuBarButtonProps {
 export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, void> {
 
   private innerDropDown: ToolbarDropdown | null = null
-  private hasFocus: boolean = false
 
   /**
    * Programmatically move keyboard focus to the button element.
@@ -159,22 +158,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   public blurButton() {
     if (this.innerDropDown) {
       this.innerDropDown.blurButton()
-    }
-  }
-
-  private onButtonFocus = (event: React.FocusEvent<HTMLButtonElement>) => {
-    this.hasFocus = true
-
-    if (this.props.onButtonFocus) {
-      this.props.onButtonFocus(event)
-    }
-  }
-
-  private onButtonBlur = (event: React.FocusEvent<HTMLButtonElement>) => {
-    this.hasFocus = false
-
-    if (this.props.onButtonBlur) {
-      this.props.onButtonBlur(event)
     }
   }
 
@@ -215,8 +198,8 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         onKeyDown={this.onKeyDown}
         disabled={disabled}
         tabIndex={-1}
-        onButtonFocus={this.onButtonFocus}
-        onButtonBlur={this.onButtonBlur}
+        onButtonFocus={this.props.onButtonFocus}
+        onButtonBlur={this.props.onButtonBlur}
       >
         <MenuListItem
           item={item}
@@ -238,7 +221,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
 
-    if (event.key === 'Escape' && this.hasFocus) {
+    if (event.key === 'Escape') {
       // Are we currently collapsed?
       if (!this.props.menuState.length) {
         this.blurButton()
