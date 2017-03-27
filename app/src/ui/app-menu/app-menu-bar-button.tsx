@@ -81,6 +81,16 @@ interface IAppMenuBarButtonProps {
    */
   readonly onKeyDown: (menuItem: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => void
 
+  /**
+   * A function that's called when the button element receives keyboard focus.
+   */
+  readonly onButtonFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void
+
+  /**
+   * A function that's called when the button element looses keyboard focus.
+   */
+  readonly onButtonBlur?: (event: React.FocusEvent<HTMLButtonElement>) => void
+
   readonly dispatcher: Dispatcher
 }
 
@@ -99,6 +109,18 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   public focusButton() {
     if (this.innerDropDown) {
       this.innerDropDown.focusButton()
+    }
+  }
+
+  private onButtonFocus = (event: React.FocusEvent<HTMLButtonElement>) => {
+    if (this.props.onButtonFocus) {
+      this.props.onButtonFocus(event)
+    }
+  }
+
+  private onButtonBlur = (event: React.FocusEvent<HTMLButtonElement>) => {
+    if (this.props.onButtonBlur) {
+      this.props.onButtonBlur(event)
     }
   }
 
@@ -127,6 +149,8 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         onKeyDown={this.onKeyDown}
         disabled={disabled}
         tabIndex={-1}
+        onButtonFocus={this.onButtonFocus}
+        onButtonBlur={this.onButtonBlur}
       >
         <MenuListItem
           item={item}

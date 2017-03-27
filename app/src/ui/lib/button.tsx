@@ -16,6 +16,16 @@ export interface IButtonProps {
    */
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
+  /**
+   * A function that's called when the button element receives keyboard focus.
+   */
+  readonly onFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void
+
+  /**
+   * A function that's called when the button element looses keyboard focus.
+   */
+  readonly onBlur?: (event: React.FocusEvent<HTMLButtonElement>) => void
+
   /** The title of the button. */
   readonly children?: string
 
@@ -114,6 +124,8 @@ export class Button extends React.Component<IButtonProps, void> {
         ref={this.onButtonRef}
         tabIndex={this.props.tabIndex}
         onMouseEnter={this.props.onMouseEnter}
+        onFocus={this.props.onFocus}
+        onBlur={this.props.onBlur}
       >
         {this.props.children}
       </button>
