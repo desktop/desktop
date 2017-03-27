@@ -68,6 +68,30 @@ export interface IToolbarButtonProps {
 
   /** Whether the button's disabled. Defaults to false. */
   readonly disabled?: boolean
+
+  /**
+   * The tab index of the button element.
+   *
+   * A value of 'undefined' means that whether or not the element participates
+   * in sequential keyboard navigation is left to the user agent's default
+   * settings.
+   * 
+   * A negative value means that the element can receive focus but not
+   * through sequential keyboard navigation (i.e. only via programmatic
+   * focus)
+   * 
+   * A value of zero means that the element can receive focus through
+   * sequential keyboard navigation and that the order should be determined
+   * by the element's position in the DOM.
+   * 
+   * A positive value means that the element can receive focus through
+   * sequential keyboard navigation and that it should have the explicit
+   * order provided and not have it be determined by its position in the DOM.
+   *
+   * Note: A positive value should be avoided if at all possible as it's
+   * detrimental to accessibility in most scenarios.
+   */
+  readonly tabIndex?: number
 }
 
 /**
@@ -105,6 +129,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
           onButtonRef={this.onButtonRef}
           disabled={this.props.disabled}
           onMouseEnter={this.props.onMouseEnter}
+          tabIndex={this.props.tabIndex}
         >
           {icon}
           {this.renderText()}

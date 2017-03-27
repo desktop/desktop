@@ -113,6 +113,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}
         disabled={disabled}
+        tabIndex={-1}
       >
         <MenuListItem
           item={item}
