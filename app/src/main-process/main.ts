@@ -268,6 +268,13 @@ app.on('activate', () => {
   }
 })
 
+app.on('web-contents-created', (event, contents) => {
+  contents.on('new-window', (event) => {
+    // Prevent links or window.open from opening new windows
+    event.preventDefault()
+  })
+})
+
 function createWindow() {
   const window = new AppWindow(sharedProcess!)
 
