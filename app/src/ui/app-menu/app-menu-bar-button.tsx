@@ -90,6 +90,18 @@ interface IAppMenuBarButtonProps {
  * submenu (if open).
  */
 export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, void> {
+
+  private innerDropDown: ToolbarDropdown | undefined = undefined
+
+  /**
+   * Programmatically move keyboard focus to the button element.
+   */
+  public focusButton() {
+    if (this.innerDropDown) {
+      this.innerDropDown.focusButton()
+    }
+  }
+
   public render() {
     const openMenu = this.props.menuState.length
       ? this.props.menuState[0]
@@ -105,6 +117,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
 
     return (
       <ToolbarDropdown
+        ref={this.onDropDownRef}
         key={item.id}
         dropdownState={dropDownState}
         onDropdownStateChanged={this.onDropdownStateChanged}
@@ -123,6 +136,10 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         />
       </ToolbarDropdown>
     )
+  }
+
+  private onDropDownRef = (dropdown: ToolbarDropdown | undefined) => {
+    this.innerDropDown = dropdown
   }
 
   private onMouseEnter = (event: React.MouseEvent<HTMLButtonElement>) => {

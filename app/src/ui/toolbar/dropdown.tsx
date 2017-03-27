@@ -232,7 +232,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
   /**
    * Programmatically move keyboard focus to the button element.
    */
-  public focus = () => {
+  public focusButton = () => {
     if (this.innerButton) {
       this.innerButton.focus()
     }
