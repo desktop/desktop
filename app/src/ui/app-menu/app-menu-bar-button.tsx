@@ -98,7 +98,37 @@ interface IAppMenuBarButtonProps {
    */
   readonly onButtonBlur?: (event: React.FocusEvent<HTMLButtonElement>) => void
 
+  /**
+   * A function that's called once the component has been mounted. This, and
+   * the onWillUnmount prop are essentially equivalent to the ref callback
+   * except these methods pass along the menuItem so that the parent component
+   * is able to keep track of them without having to resort to closing over id's
+   * in its render method which would cause the component to re-render on each
+   * pass.
+   * 
+   * Note that this method is unreliable if the component can receive a new
+   * MenuItem during its lifetime. As such it's important that
+   * consumers on this component uses a key prop that's equal to the id of
+   * the menu item such that it won't be re-used. It's also important that
+   * consumers of this not rely on reference equality when tracking components
+   * and instead use the id of the menuItem.
+   */
   readonly onDidMount?: (menuItem: ISubmenuItem, button: AppMenuBarButton) => void
+
+  /**
+   * A function that's called directly before the component unmounts. This, and
+   * the onDidMount prop are essentially equivalent to the ref callback except
+   * these methods pass along the menuItem so that the parent component is able
+   * to keep track of them without having to resort to closing over id's in its
+   * render method which would cause the component to re-render on each pass.
+   * 
+   * Note that this method is unreliable if the component can receive a new
+   * MenuItem during its lifetime. As such it's important that
+   * consumers on this component uses a key prop that's equal to the id of
+   * the menu item such that it won't be re-used. It's also important that
+   * consumers of this not rely on reference equality when tracking components
+   * and instead use the id of the menuItem.
+   */
   readonly onWillUnmount?: (menuItem: ISubmenuItem, button: AppMenuBarButton) => void
 
   readonly dispatcher: Dispatcher
