@@ -16,6 +16,7 @@
   $red: #d73a49;
   $lightRed: #f04747;
   $green: #28a745;
+  $orange: #f66a0a;
   $black: #24292e;
   $darkGray: #838B94;
   $darkerGray: #3b3f46;
@@ -27,6 +28,7 @@
   --color-deleted: $red;
   --color-modified: $yellow;
   --color-renamed: $blue;
+  --color-conflicted: $orange;
 
   --text-color: $black;
   --text-secondary-color: $darkGray;
