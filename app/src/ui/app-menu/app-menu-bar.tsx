@@ -67,7 +67,7 @@ function createState(props: IAppMenuBarProps): IAppMenuBarState {
  */
 export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarState> {
 
-  private focusedButton: HTMLButtonElement | undefined = undefined
+  private focusedButton: HTMLButtonElement | null = null
 
   public constructor(props: IAppMenuBarProps) {
     super(props)
@@ -103,7 +103,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   }
 
   private onButtonBlur = (event: React.FocusEvent<HTMLButtonElement>) => {
-    this.focusedButton = undefined
+    this.focusedButton = null
   }
 
   private onMenuClose = (item: ISubmenuItem) => {
