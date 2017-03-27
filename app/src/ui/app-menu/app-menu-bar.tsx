@@ -114,13 +114,13 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     this.props.dispatcher.setAppMenuState(m => m.withClosedMenu(item.menu))
   }
 
-  private onMenuOpen = (item: ISubmenuItem) => {
+  private onMenuOpen = (item: ISubmenuItem, selectFirstItem?: boolean) => {
     const enableAccessKeyNavigation = this.props.foldoutState
       ? this.props.foldoutState.enableAccessKeyNavigation
       : false
 
     this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation })
-    this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item))
+    this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item, selectFirstItem))
   }
 
   private onMenuButtonMouseEnter = (item: ISubmenuItem) => {

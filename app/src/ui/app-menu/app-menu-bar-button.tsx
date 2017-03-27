@@ -59,7 +59,7 @@ interface IAppMenuBarButtonProps {
    * on the button while it is collapsed. This is a specialized version
    * of the onDropdownStateChanged prop of the ToolbarDropdown component
    */
-  readonly onOpen: (menuItem: ISubmenuItem) => void
+  readonly onOpen: (menuItem: ISubmenuItem, selectFirstItem?: boolean) => void
 
   /**
    * A function that's called when the user hovers over the menu item with
@@ -202,15 +202,16 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
 
     if (event.key === 'Escape' && this.hasFocus) {
-      const item = this.props.menuItem
-      const openMenu = this.props.menuState.length
-        ? this.props.menuState[0]
-        : null
-
-      const isOpen = openMenu && openMenu.id === item.id
-
-      if (!isOpen) {
+      // Are we currently collapsed?
+      if (!this.props.menuState.length) {
         this.blurButton()
+        event.preventDefault()
+      }
+    } else if (event.key === 'ArrowDown') {
+      // Are we currently collapsed?
+      if (!this.props.menuState.length) {
+        this.props.onOpen(this.props.menuItem, true)
+        event.preventDefault()
       }
     }
 
