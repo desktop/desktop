@@ -56,8 +56,15 @@ interface IAppMenuBarButtonProps {
 
   /**
    * A function that's called when the menu item is opened by the user clicking
-   * on the button while it is collapsed. This is a specialized version
-   * of the onDropdownStateChanged prop of the ToolbarDropdown component
+   * on the button or pressing the down arrow key while it is collapsed.
+   * This is a specialized version of the onDropdownStateChanged prop of the
+   * ToolbarDropdown component.
+   * 
+   * @param selectFirstItem - Whether or not to automatically select
+   *                          the first item in the newly opened menu.
+   *                          This is set when the menu is opened by the
+   *                          user pressing the down arrow key while focused
+   *                          on the button.
    */
   readonly onOpen: (menuItem: ISubmenuItem, selectFirstItem?: boolean) => void
 
