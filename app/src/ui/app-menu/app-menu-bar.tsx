@@ -152,7 +152,24 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
       return
     }
 
-    this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(nextItem, true))
+    const foldoutState = this.props.foldoutState
+
+    // Determine whether a top-level application menu is currently
+    // open and use that if, and only if, the application menu foldout
+    // is active.
+    const openMenu = foldoutState && this.props.appMenu.length > 1
+      ? true
+      : false
+
+    if (openMenu) {
+      this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(nextItem, true))
+    } else {
+      const nextButton = this.menuButtonRefsByMenuItemId[nextItem.id]
+
+      if (nextButton) {
+        nextButton.focusButton()
+      }
+    }
   }
 
   private onMenuButtonKeyDown = (item: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => {
