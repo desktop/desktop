@@ -387,6 +387,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (shouldRenderApplicationMenu()) {
       if (event.key === 'Alt') {
+
+        // Immediately close the menu if open and the user hits Alt. This is
+        // a Windows convention.
+        if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+          this.props.dispatcher.closeFoldout()
+        }
+
         this.props.dispatcher.setAccessKeyHighlightState(true)
       } else if (event.altKey && !event.ctrlKey && !event.metaKey) {
         if (this.state.appMenuState.length) {
