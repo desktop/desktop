@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { filterAndSort } from '../../src/lib/email'
+import { filterAndSort, resolveEmail } from '../../src/lib/email'
 import { IAPIEmail } from '../../src/lib/api'
 
 describe('email', () => {
@@ -102,6 +102,28 @@ describe('email', () => {
        expect(result[0].email).to.equal('first@somewhere.com')
        expect(result[1].email).to.equal('second@somewhere.com')
        expect(result[2].email).to.equal('third@somewhere.com')
+    })
+  })
+
+  describe('resolveEmail', () => {
+    it('returns null for empty array', () => {
+      expect(resolveEmail([])).to.be.null
+    })
+
+    it('returns noreply email if found', () => {
+      const emails = [
+        'second@somewhere.com',
+        'my-cool-name@users.noreply.github.com',
+      ]
+      expect(resolveEmail(emails)).to.equal('my-cool-name@users.noreply.github.com')
+    })
+
+    it('returns first value otherwise', () => {
+      const emails = [
+        'second@somewhere.com',
+        'first@somewhere.com',
+      ]
+      expect(resolveEmail(emails)).to.equal('second@somewhere.com')
     })
   })
 })

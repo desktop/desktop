@@ -13,6 +13,22 @@ export function filterAndSort(emails: ReadonlyArray<IAPIEmail>): ReadonlyArray<I
   return visibleEmails.sort(sortByPrimaryThenAlphabetically)
 }
 
+/**
+ * Resolve a suitable email address to use in the app for the current user.
+ *
+ * This will favour if a `noreply` email has been found in the list,
+ * or will otherwise fall back to using the first email address.
+ *
+ * @param emails
+ */
+export function resolveEmail(emails: ReadonlyArray<string>): string | null {
+  const noReplyFound = emails.find(email => email.toLowerCase().endsWith('@users.noreply.github.com'))
+
+  if (noReplyFound) { return noReplyFound }
+
+  return emails[0] || null
+}
+
 function sortByPrimaryThenAlphabetically(a: IAPIEmail, b: IAPIEmail): number {
   // Compare primary values first and favour whenever primary is found.
   // We only ever expect one primary email address.

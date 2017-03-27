@@ -5,6 +5,7 @@ import { Row } from '../lib/row'
 import { assertNever } from '../../lib/fatal-error'
 import { DialogContent } from '../dialog'
 import { Avatar, IAvatarUser } from '../lib/avatar'
+import { resolveEmail } from '../../lib/email'
 
 interface IAccountsProps {
   readonly dotComUser: User | null
@@ -34,7 +35,7 @@ export class Accounts extends React.Component<IAccountsProps, void> {
   }
 
   private renderUser(user: User) {
-    const email = user.emails[0] || ''
+    const email = resolveEmail(user.emails) || ''
 
     const avatarUser: IAvatarUser = {
       name: user.name,
