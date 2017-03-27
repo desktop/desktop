@@ -150,7 +150,14 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
     this.props.onKeyDown(this.props.menuItem, event)
   }
 
-  private onMenuClose = () => {
+  private onMenuClose = (closeSource: CloseSource) => {
+
+    // If the user closes the menu by hitting escape we explicitly move focus
+    // to the button so that it's highlighted and responds to Arrow keys.
+    if (closeSource.type === 'keyboard' && closeSource.event.key === 'Escape') {
+      this.focusButton()
+    }
+
     this.props.onClose(this.props.menuItem)
   }
 
