@@ -67,6 +67,8 @@ function createState(props: IAppMenuBarProps): IAppMenuBarState {
  */
 export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarState> {
 
+  private focusedButton: HTMLButtonElement | undefined = undefined
+
   public constructor(props: IAppMenuBarProps) {
     super(props)
     this.state = createState(props)
@@ -94,6 +96,14 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
         {this.state.menuItems.map(this.renderMenuItem, this)}
       </div>
     )
+  }
+
+  private onButtonFocus = (event: React.FocusEvent<HTMLButtonElement>) => {
+    this.focusedButton = event.currentTarget
+  }
+
+  private onButtonBlur = (event: React.FocusEvent<HTMLButtonElement>) => {
+    this.focusedButton = undefined
   }
 
   private onMenuClose = (item: ISubmenuItem) => {
@@ -193,6 +203,8 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
         onOpen={this.onMenuOpen}
         onMouseEnter={this.onMenuButtonMouseEnter}
         onKeyDown={this.onMenuButtonKeyDown}
+        onButtonFocus={this.onButtonFocus}
+        onButtonBlur={this.onButtonBlur}
       />
     )
   }
