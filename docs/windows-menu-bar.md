@@ -64,6 +64,12 @@ to the next adjacent menu item in that direction, looping around if necessary.
 
 Hitting `Enter` or `Space` should execute the currently selected menu item.
 
+`ArrowRight` should open a submenu if the currently selected item has one and
+move selection (and focus) to the first item in that submenu. If the current
+item does not have a submenu `ArrowRight` should have no effect.
+Similarly `ArrowLeft` should close the currently open submenu and move focus
+back to the sub-menu's parent item.
+
 #### Pointer device interactions
 
 Menu item selection should follow the pointer device so that pointing on a menu
