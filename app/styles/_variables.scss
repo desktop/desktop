@@ -19,7 +19,7 @@
   $black: #24292e;
   $darkGray: #838B94;
   $darkerGray: #3b3f46;
-  $gray: #ccc;
+  $gray: #E1E4E8;
   $lightGray: #F6F8FA;
   $white: #fff;
 
@@ -98,7 +98,7 @@
   /**
    * Border color for boxes.
    */
-  --box-border-color: #DFDFDF;
+  --box-border-color: $gray;
   --box-border-accent-color: $blue;
 
   /**
