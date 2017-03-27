@@ -21,7 +21,7 @@ export function filterAndSort(emails: ReadonlyArray<IAPIEmail>): ReadonlyArray<I
  *
  * @param emails
  */
-export function resolveEmail(emails: ReadonlyArray<string>): string | null {
+export function lookupEmail(emails: ReadonlyArray<string>): string | null {
   const noReplyFound = emails.find(email => email.toLowerCase().endsWith('@users.noreply.github.com'))
 
   if (noReplyFound) { return noReplyFound }

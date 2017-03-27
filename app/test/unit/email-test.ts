@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { filterAndSort, resolveEmail } from '../../src/lib/email'
+import { filterAndSort, lookupEmail } from '../../src/lib/email'
 import { IAPIEmail } from '../../src/lib/api'
 
 describe('email', () => {
@@ -107,7 +107,7 @@ describe('email', () => {
 
   describe('resolveEmail', () => {
     it('returns null for empty array', () => {
-      expect(resolveEmail([])).to.be.null
+      expect(lookupEmail([])).to.be.null
     })
 
     it('returns noreply email if found', () => {
@@ -115,7 +115,7 @@ describe('email', () => {
         'second@somewhere.com',
         'my-cool-name@users.noreply.github.com',
       ]
-      expect(resolveEmail(emails)).to.equal('my-cool-name@users.noreply.github.com')
+      expect(lookupEmail(emails)).to.equal('my-cool-name@users.noreply.github.com')
     })
 
     it('returns first value otherwise', () => {
@@ -123,7 +123,7 @@ describe('email', () => {
         'second@somewhere.com',
         'first@somewhere.com',
       ]
-      expect(resolveEmail(emails)).to.equal('second@somewhere.com')
+      expect(lookupEmail(emails)).to.equal('second@somewhere.com')
     })
   })
 })
