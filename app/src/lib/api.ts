@@ -6,6 +6,7 @@ import { User } from '../models/user'
 
 import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
 import { AuthenticationMode } from './2fa'
+import { filterAndSort as filterAndSortEmails } from './email'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -93,10 +94,8 @@ export interface IAPIEmail {
   /**
    * Defines the privacy settings for an email address provided by the user.
    * If 'private' is found, we should not use this email address anywhere.
-   *
-   * @default null
    */
-  readonly visibility?: string
+  readonly visibility: string | null
 }
 
 /** Information about an issue as returned by the GitHub API. */
@@ -194,10 +193,14 @@ export class API {
     return this.client.user.fetch()
   }
 
-  /** Fetch the user's emails. */
+  /**
+   * Fetch the user's emails, hiding any that have been defined as private
+   * to prevent misuse of sensitive data in the application. This also
+   * sorts the emails to ensure the primary email address is displayed first.
+   */
   public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
     const result = await this.client.user.emails.fetch()
-    return result.items
+    return filterAndSortEmails(<Array<IAPIEmail>>result.items)
   }
 
   /** Fetch a commit from the repository. */
