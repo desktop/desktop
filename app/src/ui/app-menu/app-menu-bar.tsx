@@ -68,6 +68,7 @@ function createState(props: IAppMenuBarProps): IAppMenuBarState {
 export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarState> {
 
   private focusedButton: HTMLButtonElement | null = null
+  private readonly menuButtonRefsByMenuItemId: { [id: string]: AppMenuBarButton} = { }
 
   public constructor(props: IAppMenuBarProps) {
     super(props)
@@ -169,6 +170,14 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     }
   }
 
+  private onMenuButtonDidMount = (menuItem: ISubmenuItem, button: AppMenuBarButton) => {
+    this.menuButtonRefsByMenuItemId[menuItem.id] = button
+  }
+
+  private onMenuButtonWillUnmount = (menuItem: ISubmenuItem, button: AppMenuBarButton) => {
+    delete this.menuButtonRefsByMenuItemId[menuItem.id]
+  }
+
   private renderMenuItem(item: ISubmenuItem): JSX.Element {
 
     const foldoutState = this.props.foldoutState
@@ -209,6 +218,8 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
         onKeyDown={this.onMenuButtonKeyDown}
         onButtonFocus={this.onButtonFocus}
         onButtonBlur={this.onButtonBlur}
+        onDidMount={this.onMenuButtonDidMount}
+        onWillUnmount={this.onMenuButtonWillUnmount}
       />
     )
   }

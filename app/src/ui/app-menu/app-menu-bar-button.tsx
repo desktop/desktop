@@ -91,6 +91,9 @@ interface IAppMenuBarButtonProps {
    */
   readonly onButtonBlur?: (event: React.FocusEvent<HTMLButtonElement>) => void
 
+  readonly onDidMount?: (menuItem: ISubmenuItem, button: AppMenuBarButton) => void
+  readonly onWillUnmount?: (menuItem: ISubmenuItem, button: AppMenuBarButton) => void
+
   readonly dispatcher: Dispatcher
 }
 
@@ -135,6 +138,18 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
 
     if (this.props.onButtonBlur) {
       this.props.onButtonBlur(event)
+    }
+  }
+
+  public componentDidMount() {
+    if (this.props.onDidMount) {
+      this.props.onDidMount(this.props.menuItem, this)
+    }
+  }
+
+  public componentWillUnmount() {
+    if (this.props.onWillUnmount) {
+      this.props.onWillUnmount(this.props.menuItem, this)
     }
   }
 
