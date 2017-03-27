@@ -126,6 +126,10 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     if (this.props.appMenu.length > 1) {
       this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item))
     }
+
+    if (this.focusedButton) {
+      this.focusedButton.blur()
+    }
   }
 
   private moveToAdjacentMenu(direction: 'next' | 'previous', sourceItem: ISubmenuItem) {
