@@ -18,10 +18,21 @@ export const InvalidProtocolErrorName = 'invalid-protocol'
  * Returns the validated URL, or throws if the URL cannot be validated.
  */
 export function validateURL(address: string): string {
-  let url = URL.parse(address)
+
+  // ensure user has specified text and not just whitespace
+  // we will interact with this server so we can be fairly
+  // relaxed here about what we accept for the server name
+  const trimmed = address.trim()
+  if (trimmed.length === 0) {
+    const error = new Error('Unknown address')
+    error.name = InvalidURLErrorName
+    throw error
+  }
+
+  let url = URL.parse(trimmed)
   if (!url.host) {
     // E.g., if they user entered 'ghe.io', let's assume they're using https.
-    address = `https://${address}`
+    address = `https://${trimmed}`
     url = URL.parse(address)
   }
 
