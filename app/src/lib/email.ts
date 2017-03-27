@@ -1,6 +1,14 @@
 import { IAPIEmail } from './api'
 
-export function filterAndSort(emails: Array<IAPIEmail>): ReadonlyArray<IAPIEmail> {
+/**
+ * Filter and sort the raw email address values returned from the GitHub API.
+ *
+ * It will ignore any private email addresses, and then sort by the primary
+ * field, and fall back to alphabetical ordering after that.
+ *
+ * @param emails
+ */
+export function filterAndSort(emails: ReadonlyArray<IAPIEmail>): ReadonlyArray<IAPIEmail> {
   const visibleEmails = emails.filter(email => email.visibility === null)
   return visibleEmails.sort(sortByPrimaryThenAlphabetically)
 }
