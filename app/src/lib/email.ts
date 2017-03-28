@@ -1,4 +1,5 @@
 import { IAPIEmail } from './api'
+import { compareDescending, caseInsensitiveCompare } from './compare'
 
 /**
  * Filter and sort the raw email address values returned from the GitHub API.
@@ -32,21 +33,7 @@ export function lookupEmail(emails: ReadonlyArray<string>): string | null {
 function sortByPrimaryThenAlphabetically(a: IAPIEmail, b: IAPIEmail): number {
   // Compare primary values first and favour whenever primary is found.
   // We only ever expect one primary email address.
-  if (a.primary && !b.primary) {
-    return -2
-  }
-  if (!a.primary && b.primary) {
-    return 2
-  }
-
-  // normalize this value so that it fits within the acceptable range
-  const textCompare = a.email.localeCompare(b.email)
-
-  if (textCompare < 0) {
-    return -1
-  } else if (textCompare > 0) {
-    return 1
-  } else {
-    return 0
-  }
+  //
+  // Otherwise sort the email addresses because we have nothing else to go by
+  return compareDescending(a.primary, b.primary) || caseInsensitiveCompare(a.email, b.email)
 }
