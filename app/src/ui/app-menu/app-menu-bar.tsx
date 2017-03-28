@@ -23,6 +23,15 @@ interface IAppMenuBarProps {
    * app menu foldout is not currently open.
    */
   readonly foldoutState: AppMenuFoldout | null
+
+  /**
+   * An optional function that's called when the menubar looses focus.
+   * 
+   * Note that this function will only be called once no descendant element
+   * of the menu bar has keyboard focus. In other words this differs
+   * from the traditional onBlur event.
+   */
+  readonly onLostFocus?: () => void
 }
 
 interface IAppMenuBarState {
@@ -67,8 +76,11 @@ function createState(props: IAppMenuBarProps): IAppMenuBarState {
  */
 export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarState> {
 
+  private menuBar: HTMLDivElement | null = null
   private focusedButton: HTMLButtonElement | null = null
   private readonly menuButtonRefsByMenuItemId: { [id: string]: AppMenuBarButton} = { }
+  private focusOutTimeout: number | null = null
+  private hasFocus: boolean = false
 
   public get menuButtonHasFocus(): boolean {
     return this.focusedButton !== null
@@ -133,10 +145,57 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
 
   public render() {
     return (
-      <div id='app-menu-bar'>
+      <div id='app-menu-bar' ref={this.onMenuBarRef}>
         {this.state.menuItems.map(this.renderMenuItem, this)}
       </div>
     )
+  }
+
+  private onMenuBarFocusIn = (event: FocusEvent) => {
+    if (!this.hasFocus) {
+      this.hasFocus = true
+      console.log('got focus')
+    }
+    this.clearFocusOutTimeout()
+  }
+
+  private onMenuBarFocusOut = (event: FocusEvent) => {
+    // When keyboard focus moves from one descendant within the
+    // menu bar to another we will receive one 'focusout' event
+    // followed immediately by a 'focusin' event. As such we
+    // can't tell whether we've lost focus until we're certain
+    // that we've only gotten the 'focusout' event.
+    //
+    // In order to achieve this we schedule our call to onLostFocusWithin
+    // and clear that timeout if we receive a 'focusin' event.
+    this.clearFocusOutTimeout()
+    this.focusOutTimeout = setImmediate(this.onLostFocusWithin)
+  }
+
+  private clearFocusOutTimeout() {
+    if (this.focusOutTimeout !== null) {
+      clearImmediate(this.focusOutTimeout)
+      this.focusOutTimeout = null
+    }
+  }
+
+  private onLostFocusWithin = () => {
+    this.hasFocus = false
+    this.focusOutTimeout = null
+    console.log('lost focus')
+  }
+
+  private onMenuBarRef = (menuBar: HTMLDivElement | null) => {
+    if (this.menuBar) {
+      this.menuBar.removeEventListener('focusin', this.onMenuBarFocusIn)
+      this.menuBar.removeEventListener('focusout', this.onMenuBarFocusOut)
+    }
+    this.menuBar = menuBar
+
+    if (this.menuBar) {
+      this.menuBar.addEventListener('focusin', this.onMenuBarFocusIn)
+      this.menuBar.addEventListener('focusout', this.onMenuBarFocusOut)
+    }
   }
 
   private onButtonFocus = (event: React.FocusEvent<HTMLButtonElement>) => {
