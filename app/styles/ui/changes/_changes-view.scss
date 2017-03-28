@@ -13,6 +13,7 @@
     flex-shrink: 0;
     flex-grow: 0;
 
+    height: 30px;
     padding: var(--spacing-half) var(--spacing);
 
     .path {
@@ -24,6 +25,8 @@
     .octicon {
       flex-shrink:0;
       vertical-align: text-bottom;
+      position: relative;
+      top: 2px;
     }
   }
 }
