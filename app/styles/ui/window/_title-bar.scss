@@ -9,18 +9,6 @@
   display: flex;
   flex-direction: row;
 
-  .app-title {
-    flex-grow: 1;
-    flex-shrink: 1;
-    text-align: center;
-    @include ellipsis;
-
-    // This is cheating a bit but we'll use this to "push" the
-    // window controls to the right on Windows. We could also
-    // display: none and do flex-direction row-reverse.
-    visibility: hidden;
-  }
-
   @include darwin {
     height: var(--darwin-title-bar-height);
     background: linear-gradient(to bottom, #3b3f46 0%,#2b2e33 100%);
@@ -31,6 +19,18 @@
     height: var(--win32-title-bar-height);
     background: var(--win32-title-bar-background-color);
     border-bottom: 1px solid #000;
+
+    .app-icon {
+      color: var(--toolbar-button-secondary-color);
+      margin: 0 var(--spacing);
+      align-self: center;
+    }
+  }
+
+  .resize-handle {
+    flex-grow: 1;
+    height: 3px;
+    -webkit-app-region: no-drag;
   }
 
   // Don't ever show the title bar when we're in full screen mode.
@@ -44,6 +44,7 @@
 
     flex-grow: 0;
     flex-shrink: 0;
+    margin-left: auto;
 
     // Each button contains a single SVG element with a Windows 10-replica
     // icon for the function it represents

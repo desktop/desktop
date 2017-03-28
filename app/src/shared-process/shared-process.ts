@@ -16,6 +16,11 @@ export class SharedProcess {
       height: 100,
       show: false,
       title: 'SharedProcess',
+      webPreferences: {
+        // Disable auxclick event
+        // See https://developers.google.com/web/updates/2016/10/auxclick
+        disableBlinkFeatures: 'Auxclick',
+      },
     })
 
     this.window.webContents.on('did-finish-load', () => {

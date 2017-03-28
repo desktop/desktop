@@ -10,24 +10,26 @@
   // in variables. It also makes it easier to read and understand what
   // color is being used. Note that these variables should _never_ be
   // used outside of this scope.
-  $blue: #3d76c2;
-  $yellow: #d0b44c;
+  $blue: #0366d6;
+  $yellow: #ffd33d;
   $lightYellow: #f6a623;
-  $red: #bf2b00;
+  $red: #d73a49;
   $lightRed: #f04747;
-  $green: #6cc644;
-  $darkGray: #5f717f;
+  $green: #28a745;
+  $black: #24292e;
+  $darkGray: #838B94;
   $darkerGray: #3b3f46;
-  $gray: #ccc;
-  $lightGray: #f9f9f9;
+  $gray: #E1E4E8;
+  $lightGray: #F6F8FA;
   $white: #fff;
 
   --color-new: $green;
   --color-deleted: $red;
   --color-modified: $yellow;
+  --color-renamed: $blue;
 
-  --text-color: $darkGray;
-  --text-secondary-color: #8A9499;
+  --text-color: $black;
+  --text-secondary-color: $darkGray;
   --background-color: $white;
 
   --button-height: 28px;
@@ -97,7 +99,7 @@
   /**
    * Border color for boxes.
    */
-  --box-border-color: #DFDFDF;
+  --box-border-color: $gray;
   --box-border-accent-color: $blue;
 
   /**
@@ -124,7 +126,7 @@
   /**
    * Text color for selected boxes without keyboard focus
    */
-  --box-selected-text-color: $darkGray;
+  --box-selected-text-color: $black;
 
   /**
    * Border color for selected boxes without keyboard focus
@@ -139,7 +141,7 @@
   /**
    * Text color for selected boxes with active keyboard focus
    */
-  --box-selected-active-text-color: $lightGray;
+  --box-selected-active-text-color: $white;
 
   /**
    * Border color for selected boxes with active keyboard focus
@@ -147,7 +149,7 @@
   --box-selected-active-border-color: $darkGray;
 
   /** The height of the title bar area on Win32 platforms */
-  --win32-title-bar-height: 23px;
+  --win32-title-bar-height: 28px;
   --win32-title-bar-background-color: darken($darkerGray, 10%);
 
   /** The height of the title bar area on darwin platforms */
