@@ -20,7 +20,34 @@ interface ICommitSummaryProps {
   readonly gitHubUser: IGitHubUser | null
 }
 
-export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
+interface ICommitSummaryState {
+  readonly isExpanded: boolean
+  readonly style: string
+  readonly symbol: OcticonSymbol
+}
+
+export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitSummaryState> {
+  public constructor(props: ICommitSummaryProps) {
+    super(props)
+
+    this.state = {
+      isExpanded: false,
+      symbol: OcticonSymbol.unfold,
+      style: 'commit-summary-collapsed',
+    }
+  }
+
+  private toggleExpander = () => {
+    if (this.state.isExpanded) {
+      this.setState({ symbol: OcticonSymbol.fold, isExpanded: true })
+    } else {
+      this.setState({ symbol: OcticonSymbol.unfold, isExpanded: false })
+    }
+
+    this.forceUpdate()
+    alert('Toggled')
+  }
+
   public render() {
     const fileCount = this.props.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
@@ -73,7 +100,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
             <li className='commit-summary-meta-item'
               title={filesDescription}>
               <span aria-hidden='true'>
-                <Octicon symbol={OcticonSymbol.diff} />
+                <Octicon className={this.state.style} symbol={OcticonSymbol.diff} />
               </span>
 
               {filesDescription}
@@ -81,7 +108,9 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
           </ul>
         </div>
 
-        <Octicon className='commit-summary-expand' symbol={OcticonSymbol.unfold} />
+        <a onClick={this.toggleExpander}>
+          <Octicon className={this.state.style} symbol={this.state.symbol} />
+        </a>
 
         <RichText
           className='commit-summary-description'
