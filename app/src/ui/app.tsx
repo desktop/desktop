@@ -592,7 +592,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       ? <WindowControls />
       : null
 
-    // On windows it's not possible to resize a frameless window if the
+    // On Windows it's not possible to resize a frameless window if the
     // element that sits flush along the window edge has -webkit-app-region: drag.
     // The menu bar buttons all have no-drag but the area between menu buttons and
     // window controls need to disable dragging so we add a 3px tall element which
