@@ -83,8 +83,6 @@ export class AppStore {
 
   private selectedRepository: Repository | CloningRepository | null = null
 
-  private readonly refreshRequestsInFlight = new Set<string>()
-
   /** The background fetcher for the currently selected repository. */
   private currentBackgroundFetcher: BackgroundFetcher | null = null
 
@@ -876,11 +874,6 @@ export class AppStore {
   public async _refreshRepository(repository: Repository): Promise<void> {
     if (repository.missing) { return }
 
-    const key = repository.path
-    if (this.refreshRequestsInFlight.has(key)) { return }
-
-    this.refreshRequestsInFlight.add(key)
-
     const state = this.getRepositoryState(repository)
     const gitStore = this.getGitStore(repository)
 
@@ -902,14 +895,12 @@ export class AppStore {
 
     const section = state.selectedSection
     if (section === RepositorySection.History) {
-      await this.refreshHistorySection(repository)
+      return this.refreshHistorySection(repository)
     } else if (section === RepositorySection.Changes) {
-      await this.refreshChangesSection(repository, { includingStatus: false, clearPartialState: false })
+      return this.refreshChangesSection(repository, { includingStatus: false, clearPartialState: false })
     } else {
-      assertNever(section, `Unknown section: ${section}`)
+      return assertNever(section, `Unknown section: ${section}`)
     }
-
-    this.refreshRequestsInFlight.delete(key)
   }
 
   /**
