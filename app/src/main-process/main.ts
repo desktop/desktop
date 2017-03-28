@@ -262,9 +262,7 @@ app.on('ready', () => {
 })
 
 app.on('activate', () => {
-  if (!mainWindow) {
-    createWindow()
-  }
+  getMainWindow().show()
 })
 
 app.on('web-contents-created', (event, contents) => {

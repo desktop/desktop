@@ -93,6 +93,23 @@ export class AppWindow {
     this.window = new BrowserWindow(windowOptions)
     savedWindowState.manage(this.window)
 
+    // on macOS, when the user closes the window we really just hide it. This
+    // lets us activate quickly and keep all our interesting logic in the
+    // renderer.
+    if (__DARWIN__) {
+      let quitting = false
+      app.on('before-quit', () => {
+        quitting = true
+      })
+
+      this.window.on('close', e => {
+        if (!quitting) {
+          e.preventDefault()
+          this.window.hide()
+        }
+      })
+    }
+
     this.sharedProcess = sharedProcess
   }
 
