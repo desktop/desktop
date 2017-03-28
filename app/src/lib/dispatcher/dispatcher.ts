@@ -172,8 +172,8 @@ export class Dispatcher {
   /** Refresh the associated GitHub repository. */
   public async refreshGitHubRepositoryInfo(repository: Repository): Promise<Repository> {
     const refreshedRepository = await this.appStore._repositoryWithRefreshedGitHubRepository(repository)
-    const equals = structuralEquals(refreshedRepository, repository)
-    if (equals) {
+
+    if (structuralEquals(refreshedRepository, repository)) {
       return refreshedRepository
     }
 

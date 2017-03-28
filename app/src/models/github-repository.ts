@@ -52,8 +52,7 @@ export class GitHubRepository implements IGitHubRepository {
   public withAPI(apiRepository: IAPIRepository): GitHubRepository {
     const newRepository = new GitHubRepository(this.name, this.owner, this.dbID, apiRepository.private, apiRepository.fork, apiRepository.htmlUrl, apiRepository.defaultBranch, apiRepository.cloneUrl)
 
-    const equals = structuralEquals(newRepository, this)
-    return equals ? this : newRepository
+    return structuralEquals(newRepository, this) ? this : newRepository
   }
 
   public get endpoint(): string {
