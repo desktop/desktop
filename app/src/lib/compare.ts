@@ -30,6 +30,6 @@ export function compare<T>(x: T, y: T): number {
  * indicating whether one is greater than the other. When the return value is
  * used in a sort operation the comparands will be sorted in descending order.
  */
-export function caseInsenstiveCompare(x: string, y: string): number {
+export function caseInsensitiveCompare(x: string, y: string): number {
   return compare(x.toLowerCase(), y.toLocaleLowerCase())
 }
