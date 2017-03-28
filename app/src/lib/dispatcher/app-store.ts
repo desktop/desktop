@@ -21,7 +21,7 @@ import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
 import { API, getUserForEndpoint, IAPIUser } from '../../lib/api'
-import { caseInsenstiveCompare } from '../compare'
+import { caseInsensitiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
@@ -672,7 +672,7 @@ export class AppStore {
           return file
         }
       })
-      .sort((x, y) => caseInsenstiveCompare(x.path, y.path))
+      .sort((x, y) => caseInsensitiveCompare(x.path, y.path))
 
       const includeAll = this.getIncludeAllState(mergedFiles)
 
