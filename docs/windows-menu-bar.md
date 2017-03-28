@@ -25,49 +25,50 @@ should expand (or collapse if already open).
 
 ## Keyboard navigation
 
-When a user is holding down the `ALT` key the access-keys (which is separate from
+When a user is holding down the <kbd>Alt</kbd> key the access-keys (which is separate from
 accelerator or "shortcut" keys) in the top-level menu items should be underlined.
 
 ![underlined access keys](https://cloud.githubusercontent.com/assets/634063/24377826/02f7cb34-1341-11e7-9514-4b229372f985.png)
 
-Pressing, and holding down, `ALT` followed by one of the access keys in the top
+Pressing, and holding down, <kbd>Alt</kbd> followed by one of the access keys in the top
 level menu should expand that menu. The menu should now be put in such as state
 that menu items in sub menus have their access keys highlighted as well.
 
-If a menu is opened using `ALT+X` (where x is an access key for a top level menu
+If a menu is opened using <kbd>ALT</kbd>+<kbd>X</kbd> (where x is an access key for a top level menu
 item) a user should be able to activate (execute) its sub menu items should by
 pressing the corresponding access key. Note, however, that this key should *not*
-be used in conjunction with the `ALT` key. In other words, to execute the
-File -> New Branch item a user should be able to press `ALT+F` followed by `B`.
+be used in conjunction with the <kbd>Alt</kbd> key. In other words, to execute the
+File -> New Branch item a user should be able to press <kbd>ALT</kbd>+<kbd>F</kbd>
+followed by <kbd>B</kbd>.
 
-Pressing the `ALT` key and releasing it without pressing an access key should
+Pressing the <kbd>Alt</kbd> key and releasing it without pressing an access key should
 put focus on the first top level menu item if no menu is currently expanded. If
-any menus are expanded pressing `ALT` should immediately close any open menus.
+any menus are expanded pressing <kbd>Alt</kbd> should immediately close any open menus.
 
 ![focused menu item](https://cloud.githubusercontent.com/assets/634063/24378079/f6bff85e-1341-11e7-8d79-dbc8681fa9f0.png)
 
-Pressing and releasing the `ALT` key while a top level menu item is focused should
+Pressing and releasing the <kbd>Alt</kbd> key while a top level menu item is focused should
 remove keyboard focus from the item.
 
 ### Focused top-level menu items
 
 When a top-level menu item has keyboard focused (and its menu is collapsed) a
-user should be able to expand the menu by pressing `Enter` or `ArrowDown`.
+user should be able to expand the menu by pressing <kbd>Enter</kbd> or <kbd>↓</kbd>.
 
-Using the `ArrowLeft` and `ArrowRight` keys should move focus to the next
+Using the <kbd>←</kbd> and <kbd>→</kbd> keys should move focus to the next
 adjacent menu item in that direction, looping around if necessary.
 
 ### Expanded menus
 
-An expanded menu respond to `ArrowUp` and `ArrowDown`, moving the selection
+An expanded menu respond to <kbd>↑</kbd> and <kbd>↓</kbd>, moving the selection
 to the next adjacent menu item in that direction, looping around if necessary.
 
-Hitting `Enter` or `Space` should execute the currently selected menu item.
+Hitting <kbd>Enter</kbd> or <kbd>Space</kbd> should execute the currently selected menu item.
 
-`ArrowRight` should open a submenu if the currently selected item has one and
+<kbd>→</kbd> should open a submenu if the currently selected item has one and
 move selection (and focus) to the first item in that submenu. If the current
-item does not have a submenu `ArrowRight` should have no effect.
-Similarly `ArrowLeft` should close the currently open submenu and move focus
+item does not have a submenu <kbd>→</kbd> should have no effect.
+Similarly <kbd>←</kbd> should close the currently open submenu and move focus
 back to the sub-menu's parent item.
 
 #### Pointer device interactions
