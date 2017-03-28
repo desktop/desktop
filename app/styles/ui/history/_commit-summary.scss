@@ -34,22 +34,29 @@
   }
 
   &-description {
-    border-bottom: var(--base-border);
+    flex: 1;
     font-family: var(--font-family-monospace);
     font-size: var(--font-size-sm);
-    padding: var(--spacing);
     word-wrap: break-word;
     white-space: pre-line;
-
-    // Temporary workaround for long commit messages.
-    // The long term solution here will be a
-    // read-more/expand link.
-    max-height: 60px;
-    overflow: scroll;
 
     &:empty {
       display: none;
     }
+
+    &-container {
+      border-bottom: var(--base-border);
+      display: flex;
+      padding: var(--spacing);
+      // Temporary workaround for long commit messages.
+      // The long term solution here will be a
+      // read-more/expand link.
+      max-height: 60px;
+      // We want overflow hidden when the description is collapsed to prevent
+      // scrollbars from appearing
+      overflow: hidden;
+    }
+
   }
 
   &-meta {
@@ -74,5 +81,15 @@
 
   &-header {
     border-bottom: var(--base-border);
+  }
+}
+
+.commit-expand-button {
+  display: block;
+  text-align: right;
+
+  .octicon {
+    margin-right: var(--spacing-half);
+    vertical-align: middle;
   }
 }

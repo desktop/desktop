@@ -117,16 +117,18 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
           </ul>
         </div>
 
-        <a onClick={this.toggleExpander}>
-          <Octicon className={this.state.style} symbol={this.state.nextSymbol} />
-          {this.state.nextAction}
-        </a>
+        <div className='commit-summary-description-container'>
+          <RichText
+            className='commit-summary-description'
+            emoji={this.props.emoji}
+            repository={this.props.repository}
+            text={this.props.body} />
 
-        <RichText
-          className='commit-summary-description'
-          emoji={this.props.emoji}
-          repository={this.props.repository}
-          text={this.props.body} />
+          <a className='commit-expand-button' onClick={this.toggleExpander}>
+            <Octicon className={this.state.style} symbol={this.state.nextSymbol} />
+            {this.state.nextAction}
+          </a>
+        </div>
       </div>
     )
   }
