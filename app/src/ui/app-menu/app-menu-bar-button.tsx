@@ -144,6 +144,14 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   private innerDropDown: ToolbarDropdown | null = null
 
   /**
+   * Gets a value indicating whether or not the menu of this
+   * particular menu item is expanded or collapsed. 
+   */
+  private get isMenuOpen() {
+    return this.props.menuState.length !== 0
+  }
+
+  /**
    * Programmatically move keyboard focus to the button element.
    */
   public focusButton() {
@@ -174,16 +182,9 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   }
 
   public render() {
-    const openMenu = this.props.menuState.length
-      ? this.props.menuState[0]
-      : null
 
     const item = this.props.menuItem
-
-    const dropDownState = openMenu && openMenu.id === item.id
-      ? 'open'
-      : 'closed'
-
+    const dropDownState = this.isMenuOpen ? 'open' : 'closed'
     const disabled = !item.enabled
 
     return (
@@ -221,8 +222,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
 
-    // Are we currently collapsed?
-    if (!this.props.menuState.length) {
+    if (!this.isMenuOpen) {
       // Hitting Escape while focused on the menu button (while the menu
       // is collapsed) should remove focus. Ideally it should even restore
       // focus to whatever was selected previously but that's non-trivial
@@ -251,9 +251,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   }
 
   private onDropdownStateChanged = () => {
-    const open = this.props.menuState.length > 0
-
-    if (open) {
+    if (this.isMenuOpen) {
       this.props.onClose(this.props.menuItem)
     } else {
       this.props.onOpen(this.props.menuItem)
@@ -263,7 +261,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   private dropDownContentRenderer = () => {
     const menuState = this.props.menuState
 
-    if (!menuState.length) {
+    if (!this.isMenuOpen) {
       return null
     }
 
