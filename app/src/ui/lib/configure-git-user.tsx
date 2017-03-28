@@ -43,7 +43,9 @@ export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IC
 
     const user = this.props.users[0]
     if ((!name || !name.length) && user) {
-      name = user.login
+      name = user.name && user.name.length
+        ? user.name
+        : user.login
     }
 
     if ((!email || !email.length) && user) {
