@@ -72,6 +72,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       {
         label: __DARWIN__ ? 'New Branch…' : 'New &branch…',
+        id: 'create-branch',
         accelerator: 'CmdOrCtrl+Shift+N',
         click: emit('create-branch'),
       },
@@ -113,21 +114,25 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     submenu: [
       {
         label: __DARWIN__ ? 'Show Changes' : '&Changes',
+        id: 'show-changes',
         accelerator: 'CmdOrCtrl+1',
         click: emit('select-changes'),
       },
       {
         label: __DARWIN__ ? 'Show History' : '&History',
+        id: 'show-history',
         accelerator: 'CmdOrCtrl+2',
         click: emit('select-history'),
       },
       {
         label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
+        id: 'show-repository-list',
         accelerator: 'CmdOrCtrl+L',
         click: emit('choose-repository'),
       },
       {
         label: __DARWIN__ ? 'Show Branches List' : '&Branches list',
+        id: 'show-branches-list',
         accelerator: 'CmdOrCtrl+B',
         click: emit('show-branches'),
       },

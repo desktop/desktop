@@ -14,4 +14,9 @@ export type MenuIDs =
   'push' |
   'pull' |
   'branch' |
-  'repository'
+  'repository' |
+  'create-branch' |
+  'show-changes' |
+  'show-history' |
+  'show-repository-list' |
+  'show-branches-list'
