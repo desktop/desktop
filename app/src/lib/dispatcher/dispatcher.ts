@@ -18,7 +18,6 @@ import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
-
 import { structuralEquals } from '../equality'
 
 /**
