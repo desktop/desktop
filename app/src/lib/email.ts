@@ -9,7 +9,7 @@ import { IAPIEmail } from './api'
  * @param emails
  */
 export function filterAndSort(emails: ReadonlyArray<IAPIEmail>): ReadonlyArray<IAPIEmail> {
-  const visibleEmails = emails.filter(email => email.visibility === null)
+  const visibleEmails = emails.filter(email => email.visibility !== 'private')
   return visibleEmails.sort(sortByPrimaryThenAlphabetically)
 }
 

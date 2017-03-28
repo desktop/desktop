@@ -95,7 +95,7 @@ export interface IAPIEmail {
    * Defines the privacy settings for an email address provided by the user.
    * If 'private' is found, we should not use this email address anywhere.
    */
-  readonly visibility: string | null
+  readonly visibility: 'public' | 'private' | null
 }
 
 /** Information about an issue as returned by the GitHub API. */
