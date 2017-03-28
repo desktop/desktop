@@ -2,7 +2,6 @@ import * as React from 'react'
 import { MenuPane } from './menu-pane'
 import { Dispatcher } from '../../lib/dispatcher'
 import { IMenu, MenuItem, ISubmenuItem } from '../../models/app-menu'
-import { FoldoutType } from '../../lib/app-state'
 import { SelectionSource, ClickSource } from '../list'
 
 interface IAppMenuProps {
@@ -17,8 +16,13 @@ interface IAppMenuProps {
    * A required callback for when the app menu is closed. The menu is explicitly
    * closed when a menu item has been clicked (executed) or when the user
    * presses Escape on the top level menu pane.
+   * 
+   * @param closeSource An object describing the action that caused the menu
+   *                    to close. This can either be a keyboard event (hitting
+   *                    Escape) or the user executing one of the menu items by
+   *                    clicking on them or pressing enter.
    */
-  readonly onClose: () => void
+  readonly onClose: (closeSource: CloseSource) => void
 
   /**
    * Whether or not the application menu was opened with the Alt key, this
@@ -32,14 +36,31 @@ interface IAppMenuProps {
    * access key for one of the top level menu items). This is used as a
    * one-time signal to the AppMenu to use some special semantics for
    * selection and focus. Specifically it will ensure that the last opened
-   * menu will receieve focus.
-   * 
-   * If, true, the semantics outlined above will be applied after which
-   * the dispatcher will be called to clear the prop such that it's not
-   * applied for consecutive renders.
+   * menu will receive focus.
    */
   readonly openedWithAccessKey: boolean
+
+  /**
+   * If true the MenuPane only takes up as much vertical space needed to
+   * show all menu items. This does not affect maximum height, i.e. if the
+   * visible menu items takes up more space than what is available the menu
+   * will still overflow and be scrollable.
+   * 
+   * @default false
+   */
+  readonly autoHeight?: boolean
 }
+
+export interface IKeyboardCloseSource {
+  type: 'keyboard'
+  event: React.KeyboardEvent<HTMLElement>
+}
+
+export interface IItemExecutedCloseSource {
+  type: 'item-executed'
+}
+
+export type CloseSource = IKeyboardCloseSource | IItemExecutedCloseSource
 
 const expandCollapseTimeout = 300
 
@@ -72,20 +93,21 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   public constructor(props: IAppMenuProps) {
     super(props)
     this.focusPane = props.state.length - 1
-    this.receiveProps(props)
+    this.receiveProps(null, props)
   }
 
-  private receiveProps(nextProps: IAppMenuProps) {
+  private receiveProps(currentProps: IAppMenuProps | null, nextProps: IAppMenuProps) {
     if (nextProps.openedWithAccessKey) {
-      // Clear the openedWithAccessKey prop now that we've received it.
-      nextProps.dispatcher.showFoldout({
-        type: FoldoutType.AppMenu,
-        enableAccessKeyNavigation: nextProps.enableAccessKeyNavigation,
-      })
 
-      // Since we were opened with an access key we auto set focus to the
-      // last pane opened.
-      this.focusPane = nextProps.state.length - 1
+      // We only want to react to the openedWithAccessKey prop once, either
+      // when it goes from false to true or when we receive it as our first
+      // prop. By doing it this way we save ourselves having to go through
+      // the dispatcher and updating the value once we've received it.
+      if (!currentProps || !currentProps.openedWithAccessKey) {
+        // Since we were opened with an access key we auto set focus to the
+        // last pane opened.
+        this.focusPane = nextProps.state.length - 1
+      }
     }
   }
 
@@ -109,7 +131,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       }
     } else if (item.type !== 'separator') {
       this.props.dispatcher.executeMenuItem(item)
-      this.props.onClose()
+      this.props.onClose({ type: 'item-executed' })
     }
   }
 
@@ -120,16 +142,14 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       // Only actually close the foldout when hitting escape
       // on the root menu
       if (depth === 0 && event.key === 'Escape') {
-        this.props.onClose()
-      } else {
+        this.props.onClose({ type: 'keyboard', event })
+        event.preventDefault()
+      } else if (depth > 0) {
         this.props.dispatcher.setAppMenuState(menu => menu.withClosedMenu(this.props.state[depth]))
-      }
 
-      // Focus the previous menu, this might end up being -1 which is
-      // okay since ensurePaneFocus will ignore negative values and in
-      // this case the pane already has focus.
-      this.focusPane = depth - 1
-      event.preventDefault()
+        this.focusPane = depth - 1
+        event.preventDefault()
+      }
     } else if (event.key === 'ArrowRight') {
       this.clearExpandCollapseTimer()
 
@@ -186,7 +206,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     }
   }
 
-  private onMenuPaneRef = (pane: MenuPane) => {
+  private onMenuPaneRef = (pane: MenuPane | null) => {
     if (pane) {
       this.paneRefs[pane.props.depth] = pane
     }
@@ -208,10 +228,10 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
     this.focusPane = depth
   }
 
-  private onKeyDown = (event: React.KeyboardEvent<any>) => {
+  private onKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if (!event.defaultPrevented && event.key === 'Escape') {
       event.preventDefault()
-      this.props.onClose()
+      this.props.onClose({ type: 'keyboard', event })
     }
   }
 
@@ -229,6 +249,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
       <MenuPane
         key={key}
         ref={this.onMenuPaneRef}
+        autoHeight={this.props.autoHeight}
         depth={depth}
         items={menu.items}
         selectedItem={menu.selectedItem}
@@ -272,7 +293,7 @@ export class AppMenu extends React.Component<IAppMenuProps, void> {
   }
 
   public componentWillReceiveProps(nextProps: IAppMenuProps) {
-    this.receiveProps(nextProps)
+    this.receiveProps(this.props, nextProps)
   }
 
   public componentDidMount() {
