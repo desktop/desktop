@@ -182,6 +182,10 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       setMenuEnabled('branch', repositorySelected)
       setMenuEnabled('repository', repositorySelected)
+      setMenuEnabled('show-changes', true)
+      setMenuEnabled('show-history', true)
+      setMenuEnabled('show-repository-list', true)
+      setMenuEnabled('show-branches-list', true)
 
       setMenuEnabled('rename-branch', onNonDefaultBranch)
       setMenuEnabled('delete-branch', onNonDefaultBranch)
