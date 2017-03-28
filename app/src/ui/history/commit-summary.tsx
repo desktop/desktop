@@ -23,29 +23,38 @@ interface ICommitSummaryProps {
 interface ICommitSummaryState {
   readonly isExpanded: boolean
   readonly style: string
-  readonly symbol: OcticonSymbol
+  readonly nextSymbol: OcticonSymbol
+  readonly nextAction: string
 }
+
+const Expanded = {
+  isExpanded: true,
+  style: 'commit-summary-expanded',
+  nextSymbol: OcticonSymbol.fold,
+  nextAction: 'Collapse',
+}
+
+const Collapsed = {
+  isExpanded: false,
+  style: 'commit-summary-collapsed',
+  nextSymbol: OcticonSymbol.unfold,
+  nextAction: 'Expand',
+}
+
 
 export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitSummaryState> {
   public constructor(props: ICommitSummaryProps) {
     super(props)
 
-    this.state = {
-      isExpanded: false,
-      symbol: OcticonSymbol.unfold,
-      style: 'commit-summary-collapsed',
-    }
+    this.state = Collapsed
   }
 
   private toggleExpander = () => {
     if (this.state.isExpanded) {
-      this.setState({ symbol: OcticonSymbol.fold, isExpanded: true })
+      this.setState(Collapsed)
     } else {
-      this.setState({ symbol: OcticonSymbol.unfold, isExpanded: false })
+      this.setState(Expanded)
     }
-
-    this.forceUpdate()
-    alert('Toggled')
   }
 
   public render() {
@@ -109,7 +118,8 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
         </div>
 
         <a onClick={this.toggleExpander}>
-          <Octicon className={this.state.style} symbol={this.state.symbol} />
+          <Octicon className={this.state.style} symbol={this.state.nextSymbol} />
+          {this.state.nextAction}
         </a>
 
         <RichText
