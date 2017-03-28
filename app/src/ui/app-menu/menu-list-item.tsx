@@ -18,6 +18,8 @@ interface IMenuListItemProps {
   /**
    * Whether or not to render the accelerator (shortcut) next to the label.
    * This can be turned off when the menu item is used as a stand-alone item
+   *
+   * Defaults to true if not specified (i.e. undefined)
    */
   readonly renderAcceleratorText?: boolean
 
@@ -26,6 +28,8 @@ interface IMenuListItemProps {
    * menu item has a submenu. This can be turned off when the menu item is
    * used as a stand-alone item or when expanding the submenu doesn't follow
    * the default conventions (i.e. expanding to the right).
+   * 
+   * Defaults to true if not specified (i.e. undefined)
    */
   readonly renderSubMenuArrow?: boolean
 }
