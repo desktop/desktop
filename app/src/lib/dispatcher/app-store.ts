@@ -121,11 +121,10 @@ export class AppStore {
   private appMenu: AppMenu | null = null
 
   /**
-   * Used to add a highlight class to the app menu toolbar icon
-   * when the Alt key is pressed. Only applicable on non-macOS
-   * platforms.
+   * Used to highlight access keys throughout the app when the
+   * Alt key is pressed. Only applicable on non-macOS platforms.
    */
-  private highlightAppMenuToolbarButton: boolean = false
+  private highlightAccessKeys: boolean = false
 
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
@@ -330,7 +329,7 @@ export class AppStore {
       commitSummaryWidth: this.commitSummaryWidth,
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
-      highlightAppMenuToolbarButton: this.highlightAppMenuToolbarButton,
+      highlightAccessKeys: this.highlightAccessKeys,
     }
   }
 
@@ -1335,9 +1334,9 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public _setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
-    if (this.highlightAppMenuToolbarButton !== highlight) {
-      this.highlightAppMenuToolbarButton = highlight
+  public _setAccessKeyHighlightState(highlight: boolean): Promise<void> {
+    if (this.highlightAccessKeys !== highlight) {
+      this.highlightAccessKeys = highlight
       this.emitUpdate()
     }
 

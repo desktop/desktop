@@ -118,7 +118,7 @@ interface IDialogState {
  */
 export class Dialog extends React.Component<IDialogProps, IDialogState> {
 
-  private dialogElement?: HTMLElement
+  private dialogElement: HTMLElement | null = null
   private dismissGraceTimeoutId?: number
 
   public constructor(props: IDialogProps) {
@@ -195,7 +195,7 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     }
   }
 
-  private onDialogRef = (e: HTMLElement | undefined) => {
+  private onDialogRef = (e: HTMLElement | null) => {
     // We need to explicitly subscribe to and unsubscribe from the dialog
     // element as react doesn't yet understand the element and which events
     // it has.
