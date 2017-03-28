@@ -140,51 +140,68 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private updateMenu(state: IAppState) {
-    const selectedState = state.selectedState
-    const isHostedOnGitHub = this.getCurrentRepositoryGitHubURL() !== null
+    if (state.windowOpen) {
+      const selectedState = state.selectedState
+      const isHostedOnGitHub = this.getCurrentRepositoryGitHubURL() !== null
 
-    let onNonDefaultBranch = false
-    let onBranch = false
-    let hasDefaultBranch = false
-    let hasPublishedBranch = false
-    let networkActionInProgress = false
+      let repositorySelected = false
+      let onNonDefaultBranch = false
+      let onBranch = false
+      let hasDefaultBranch = false
+      let hasPublishedBranch = false
+      let networkActionInProgress = false
 
-    if (selectedState && selectedState.type === SelectionType.Repository) {
-      const branchesState = selectedState.state.branchesState
-      const tip = branchesState.tip
-      const defaultBranch = branchesState.defaultBranch
+      if (selectedState && selectedState.type === SelectionType.Repository) {
+        repositorySelected = true
 
-      hasDefaultBranch = Boolean(defaultBranch)
+        const branchesState = selectedState.state.branchesState
+        const tip = branchesState.tip
+        const defaultBranch = branchesState.defaultBranch
 
-      onBranch = tip.kind === TipState.Valid
+        hasDefaultBranch = Boolean(defaultBranch)
 
-      // If we are:
-      //  1. on the default branch, or
-      //  2. on an unborn branch, or
-      //  3. on a detached HEAD
-      // there's not much we can do.
-      if (tip.kind === TipState.Valid) {
-        if (defaultBranch !== null) {
-          onNonDefaultBranch = tip.branch.name !== defaultBranch.name
+        onBranch = tip.kind === TipState.Valid
+
+        // If we are:
+        //  1. on the default branch, or
+        //  2. on an unborn branch, or
+        //  3. on a detached HEAD
+        // there's not much we can do.
+        if (tip.kind === TipState.Valid) {
+          if (defaultBranch !== null) {
+            onNonDefaultBranch = tip.branch.name !== defaultBranch.name
+          }
+
+          hasPublishedBranch = !!tip.branch.upstream
+        } else {
+          onNonDefaultBranch = true
         }
 
-        hasPublishedBranch = !!tip.branch.upstream
-      } else {
-        onNonDefaultBranch = true
+        networkActionInProgress = selectedState.state.pushPullInProgress
       }
 
-      networkActionInProgress = selectedState.state.pushPullInProgress
-    }
+      setMenuEnabled('branch', repositorySelected)
+      setMenuEnabled('repository', repositorySelected)
 
-    setMenuEnabled('rename-branch', onNonDefaultBranch)
-    setMenuEnabled('delete-branch', onNonDefaultBranch)
-    setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
-    setMenuEnabled('merge-branch', onBranch)
-    setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
-    setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
-    setMenuEnabled('open-in-shell', onBranch)
-    setMenuEnabled('push', !networkActionInProgress)
-    setMenuEnabled('pull', !networkActionInProgress)
+      setMenuEnabled('rename-branch', onNonDefaultBranch)
+      setMenuEnabled('delete-branch', onNonDefaultBranch)
+      setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
+      setMenuEnabled('merge-branch', onBranch)
+      setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
+      setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
+      setMenuEnabled('open-in-shell', onBranch)
+      setMenuEnabled('push', repositorySelected && !networkActionInProgress)
+      setMenuEnabled('pull', repositorySelected && !networkActionInProgress)
+      setMenuEnabled('create-branch', repositorySelected)
+    } else {
+      setMenuEnabled('branch', false)
+      setMenuEnabled('repository', false)
+      setMenuEnabled('create-branch', false)
+      setMenuEnabled('show-changes', false)
+      setMenuEnabled('show-history', false)
+      setMenuEnabled('show-repository-list', false)
+      setMenuEnabled('show-branches-list', false)
+    }
   }
 
   private onMenuEvent(name: MenuEvent): any {
