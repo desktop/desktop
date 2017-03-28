@@ -726,4 +726,9 @@ export class Dispatcher {
   private async updateRepositoryPath(repository: Repository, path: string): Promise<void> {
     await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-path', repository, path })
   }
+
+  /** Set whether the window is open. */
+  public setWindowOpen(open: boolean) {
+    this.appStore._setWindowOpen(open)
+  }
 }

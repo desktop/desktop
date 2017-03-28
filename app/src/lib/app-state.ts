@@ -98,6 +98,9 @@ export interface IAppState {
    * platforms.
    */
   readonly highlightAppMenuToolbarButton: boolean
+
+  /** Is the window currently open? */
+  readonly windowOpen: boolean
 }
 
 export enum PopupType {

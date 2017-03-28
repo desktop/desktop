@@ -130,6 +130,8 @@ export class AppStore {
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
 
+  private windowOpen = true
+
   private readonly statsStore: StatsStore
 
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore, signInStore: SignInStore) {
@@ -331,6 +333,7 @@ export class AppStore {
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAppMenuToolbarButton: this.highlightAppMenuToolbarButton,
+      windowOpen: this.windowOpen,
     }
   }
 
@@ -1437,5 +1440,14 @@ export class AppStore {
 
   public _setSignInOTP(otp: string): Promise<void> {
     return this.signInStore.setTwoFactorOTP(otp)
+  }
+
+  public _setWindowOpen(open: boolean): Promise<void> {
+    if (this.windowOpen !== open) {
+      this.windowOpen = open
+      this.emitter.emit('did-update', this.getState())
+    }
+
+    return Promise.resolve()
   }
 }
