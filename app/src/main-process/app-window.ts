@@ -237,11 +237,15 @@ export class AppWindow {
 
   /** Send the menu event to the renderer. */
   public sendMenuEvent(name: MenuEvent) {
+    this.show()
+
     this.window.webContents.send('menu-event', { name })
   }
 
   /** Send the URL action to the renderer. */
   public sendURLAction(action: URLActionType) {
+    this.show()
+
     this.window.webContents.send('url-action', { action })
   }
 
