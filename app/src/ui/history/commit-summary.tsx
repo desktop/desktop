@@ -81,6 +81,8 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
           </ul>
         </div>
 
+        <Octicon className='commit-summary-expand' symbol={OcticonSymbol.unfold} />
+
         <RichText
           className='commit-summary-description'
           emoji={this.props.emoji}
