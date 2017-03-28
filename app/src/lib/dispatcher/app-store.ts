@@ -907,7 +907,7 @@ export class AppStore {
     } else if (section === RepositorySection.Changes) {
       await this.refreshChangesSection(repository, { includingStatus: false, clearPartialState: false })
     } else {
-      await assertNever(section, `Unknown section: ${section}`)
+      assertNever(section, `Unknown section: ${section}`)
     }
 
     this.refreshRequestsInFlight.delete(key)
