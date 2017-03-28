@@ -77,6 +77,40 @@ export interface IToolbarDropdownProps {
 
   /** Whether the button is disabled. Defaults to false. */
   readonly disabled?: boolean
+
+  /**
+   * The tab index of the button element.
+   *
+   * A value of 'undefined' means that whether or not the element participates
+   * in sequential keyboard navigation is left to the user agent's default
+   * settings.
+   * 
+   * A negative value means that the element can receive focus but not
+   * through sequential keyboard navigation (i.e. only via programmatic
+   * focus)
+   * 
+   * A value of zero means that the element can receive focus through
+   * sequential keyboard navigation and that the order should be determined
+   * by the element's position in the DOM.
+   * 
+   * A positive value means that the element can receive focus through
+   * sequential keyboard navigation and that it should have the explicit
+   * order provided and not have it be determined by its position in the DOM.
+   *
+   * Note: A positive value should be avoided if at all possible as it's
+   * detrimental to accessibility in most scenarios.
+   */
+  readonly tabIndex?: number
+
+  /**
+   * A function that's called when the button element receives keyboard focus.
+   */
+  readonly onButtonFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void
+
+  /**
+   * A function that's called when the button element looses keyboard focus.
+   */
+  readonly onButtonBlur?: (event: React.FocusEvent<HTMLButtonElement>) => void
 }
 
 interface IToolbarDropdownState {
@@ -125,9 +159,8 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
 
   private updateClientRectIfNecessary() {
     if (this.props.dropdownState  === 'open' && this.innerButton) {
-      const buttonElement = this.innerButton.buttonElement
-      if (buttonElement) {
-        const newRect = buttonElement.getBoundingClientRect()
+      const newRect = this.innerButton.getButtonBoundingClientRect()
+      if (newRect) {
         const currentRect = this.state.clientRect
 
         if (!currentRect || !rectEquals(currentRect, newRect)) {
@@ -206,6 +239,24 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     this.innerButton = ref
   }
 
+  /**
+   * Programmatically move keyboard focus to the button element.
+   */
+  public focusButton = () => {
+    if (this.innerButton) {
+      this.innerButton.focusButton()
+    }
+  }
+
+  /**
+   * Programmatically remove keyboard focus from the button element.
+   */
+  public blurButton() {
+    if (this.innerButton) {
+      this.innerButton.blurButton()
+    }
+  }
+
   public render() {
 
     const className = classNames(
@@ -228,6 +279,9 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         iconClassName={this.props.iconClassName}
         disabled={this.props.disabled}
         onKeyDown={this.props.onKeyDown}
+        tabIndex={this.props.tabIndex}
+        onButtonFocus={this.props.onButtonFocus}
+        onButtonBlur={this.props.onButtonBlur}
       >
         {this.props.children}
         {this.renderDropdownArrow()}

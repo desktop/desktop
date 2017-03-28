@@ -124,19 +124,24 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     label: __DARWIN__ ? 'View' : '&View',
     submenu: [
       {
-        label: '&Changes',
+        label: __DARWIN__ ? 'Show Changes' : '&Changes',
         accelerator: 'CmdOrCtrl+1',
         click: emit('select-changes'),
       },
       {
-        label: '&History',
+        label: __DARWIN__ ? 'Show History' : '&History',
         accelerator: 'CmdOrCtrl+2',
         click: emit('select-history'),
       },
       {
-        label: __DARWIN__ ? 'Repository List' : 'Repository &list',
+        label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
         accelerator: 'CmdOrCtrl+L',
         click: emit('choose-repository'),
+      },
+      {
+        label: __DARWIN__ ? 'Show Branches List' : '&Branches list',
+        accelerator: 'CmdOrCtrl+B',
+        click: emit('show-branches'),
       },
       { type: 'separator' },
       {
@@ -176,18 +181,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     label: __DARWIN__ ? 'Repository' : '&Repository',
     submenu: [
       {
-        label: __DARWIN__ ? 'Show Branches' : 'Show &branches',
-        accelerator: 'CmdOrCtrl+B',
-        click: emit('show-branches'),
-      },
-      { type: 'separator' },
-      {
-        label: __DARWIN__ ? 'Open Working Directory' : '&Open working directory',
-        accelerator: 'CmdOrCtrl+Shift+F',
-        click: emit('open-working-directory'),
-      },
-      { type: 'separator' },
-      {
         id: 'push',
         label: __DARWIN__ ? 'Push' : 'P&ush',
         accelerator: 'CmdOrCtrl+P',
@@ -211,9 +204,14 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         click: emit('view-repository-on-github'),
       },
       {
-        label: __DARWIN__ ? 'Open in Shell' : 'Op&en in shell',
+        label: __DARWIN__ ? 'Open in Terminal' : 'Op&en command prompt',
         id: 'open-in-shell',
         click: emit('open-in-shell'),
+      },
+      {
+        label: __DARWIN__ ? 'Open in Finder' : '&Open in Explorer',
+        accelerator: 'CmdOrCtrl+Shift+F',
+        click: emit('open-working-directory'),
       },
       { type: 'separator' },
       {

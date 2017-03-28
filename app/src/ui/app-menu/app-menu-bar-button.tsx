@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { IMenu, ISubmenuItem } from '../../models/app-menu'
 import { MenuListItem } from './menu-list-item'
-import { AppMenu } from './app-menu'
+import { AppMenu, CloseSource } from './app-menu'
 import { ToolbarDropdown } from '../toolbar'
 import { Dispatcher } from '../../lib/dispatcher'
 
@@ -56,10 +56,17 @@ interface IAppMenuBarButtonProps {
 
   /**
    * A function that's called when the menu item is opened by the user clicking
-   * on the button while it is collapsed. This is a specialized version
-   * of the onDropdownStateChanged prop of the ToolbarDropdown component
+   * on the button or pressing the down arrow key while it is collapsed.
+   * This is a specialized version of the onDropdownStateChanged prop of the
+   * ToolbarDropdown component.
+   * 
+   * @param selectFirstItem - Whether or not to automatically select
+   *                          the first item in the newly opened menu.
+   *                          This is set when the menu is opened by the
+   *                          user pressing the down arrow key while focused
+   *                          on the button.
    */
-  readonly onOpen: (menuItem: ISubmenuItem) => void
+  readonly onOpen: (menuItem: ISubmenuItem, selectFirstItem?: boolean) => void
 
   /**
    * A function that's called when the user hovers over the menu item with
@@ -81,6 +88,49 @@ interface IAppMenuBarButtonProps {
    */
   readonly onKeyDown: (menuItem: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => void
 
+  /**
+   * A function that's called when the button element receives keyboard focus.
+   */
+  readonly onButtonFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void
+
+  /**
+   * A function that's called when the button element looses keyboard focus.
+   */
+  readonly onButtonBlur?: (event: React.FocusEvent<HTMLButtonElement>) => void
+
+  /**
+   * A function that's called once the component has been mounted. This, and
+   * the onWillUnmount prop are essentially equivalent to the ref callback
+   * except these methods pass along the menuItem so that the parent component
+   * is able to keep track of them without having to resort to closing over id's
+   * in its render method which would cause the component to re-render on each
+   * pass.
+   * 
+   * Note that this method is unreliable if the component can receive a new
+   * MenuItem during its lifetime. As such it's important that
+   * consumers on this component uses a key prop that's equal to the id of
+   * the menu item such that it won't be re-used. It's also important that
+   * consumers of this not rely on reference equality when tracking components
+   * and instead use the id of the menuItem.
+   */
+  readonly onDidMount?: (menuItem: ISubmenuItem, button: AppMenuBarButton) => void
+
+  /**
+   * A function that's called directly before the component unmounts. This, and
+   * the onDidMount prop are essentially equivalent to the ref callback except
+   * these methods pass along the menuItem so that the parent component is able
+   * to keep track of them without having to resort to closing over id's in its
+   * render method which would cause the component to re-render on each pass.
+   * 
+   * Note that this method is unreliable if the component can receive a new
+   * MenuItem during its lifetime. As such it's important that
+   * consumers on this component uses a key prop that's equal to the id of
+   * the menu item such that it won't be re-used. It's also important that
+   * consumers of this not rely on reference equality when tracking components
+   * and instead use the id of the menuItem.
+   */
+  readonly onWillUnmount?: (menuItem: ISubmenuItem, button: AppMenuBarButton) => void
+
   readonly dispatcher: Dispatcher
 }
 
@@ -90,21 +140,56 @@ interface IAppMenuBarButtonProps {
  * submenu (if open).
  */
 export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, void> {
+
+  private innerDropDown: ToolbarDropdown | null = null
+
+  /**
+   * Gets a value indicating whether or not the menu of this
+   * particular menu item is expanded or collapsed. 
+   */
+  private get isMenuOpen() {
+    return this.props.menuState.length !== 0
+  }
+
+  /**
+   * Programmatically move keyboard focus to the button element.
+   */
+  public focusButton() {
+    if (this.innerDropDown) {
+      this.innerDropDown.focusButton()
+    }
+  }
+
+  /**
+   * Programmatically remove keyboard focus from the button element.
+   */
+  public blurButton() {
+    if (this.innerDropDown) {
+      this.innerDropDown.blurButton()
+    }
+  }
+
+  public componentDidMount() {
+    if (this.props.onDidMount) {
+      this.props.onDidMount(this.props.menuItem, this)
+    }
+  }
+
+  public componentWillUnmount() {
+    if (this.props.onWillUnmount) {
+      this.props.onWillUnmount(this.props.menuItem, this)
+    }
+  }
+
   public render() {
-    const openMenu = this.props.menuState.length
-      ? this.props.menuState[0]
-      : null
 
     const item = this.props.menuItem
-
-    const dropDownState = openMenu && openMenu.id === item.id
-      ? 'open'
-      : 'closed'
-
+    const dropDownState = this.isMenuOpen ? 'open' : 'closed'
     const disabled = !item.enabled
 
     return (
       <ToolbarDropdown
+        ref={this.onDropDownRef}
         key={item.id}
         dropdownState={dropDownState}
         onDropdownStateChanged={this.onDropdownStateChanged}
@@ -113,6 +198,9 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         onMouseEnter={this.onMouseEnter}
         onKeyDown={this.onKeyDown}
         disabled={disabled}
+        tabIndex={-1}
+        onButtonFocus={this.props.onButtonFocus}
+        onButtonBlur={this.props.onButtonBlur}
       >
         <MenuListItem
           item={item}
@@ -124,22 +212,46 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
     )
   }
 
+  private onDropDownRef = (dropdown: ToolbarDropdown | null) => {
+    this.innerDropDown = dropdown
+  }
+
   private onMouseEnter = (event: React.MouseEvent<HTMLButtonElement>) => {
     this.props.onMouseEnter(this.props.menuItem)
   }
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+
+    if (!this.isMenuOpen) {
+      // Hitting Escape while focused on the menu button (while the menu
+      // is collapsed) should remove focus. Ideally it should even restore
+      // focus to whatever was selected previously but that's non-trivial
+      // so we'll live with blurring for now.
+      if (event.key === 'Escape') {
+        this.blurButton()
+        event.preventDefault()
+      } else if (event.key === 'ArrowDown') {
+        this.props.onOpen(this.props.menuItem, true)
+        event.preventDefault()
+      }
+    }
+
     this.props.onKeyDown(this.props.menuItem, event)
   }
 
-  private onMenuClose = () => {
+  private onMenuClose = (closeSource: CloseSource) => {
+
+    // If the user closes the menu by hitting escape we explicitly move focus
+    // to the button so that it's highlighted and responds to Arrow keys.
+    if (closeSource.type === 'keyboard' && closeSource.event.key === 'Escape') {
+      this.focusButton()
+    }
+
     this.props.onClose(this.props.menuItem)
   }
 
   private onDropdownStateChanged = () => {
-    const open = this.props.menuState.length > 0
-
-    if (open) {
+    if (this.isMenuOpen) {
       this.props.onClose(this.props.menuItem)
     } else {
       this.props.onOpen(this.props.menuItem)
@@ -149,7 +261,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
   private dropDownContentRenderer = () => {
     const menuState = this.props.menuState
 
-    if (!menuState.length) {
+    if (!this.isMenuOpen) {
       return null
     }
 

@@ -1,21 +1,5 @@
 @import "../mixins";
 
-.toolbar-button.app-menu {
-  min-width: 57px;
-
-  .text, .dropdownArrow {
-    display: none;
-  }
-
-  .icon {
-    margin: 0 var(--spacing);
-  }
-
-  &.highlight {
-    background: var(--toolbar-button-hover-background-color);
-  }
-}
-
 #app-menu-foldout {
   height: 100%;
   display: flex;

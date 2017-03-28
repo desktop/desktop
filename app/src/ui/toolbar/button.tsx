@@ -51,6 +51,16 @@ export interface IToolbarButtonProps {
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void
 
   /**
+   * A function that's called when the button element receives keyboard focus.
+   */
+  readonly onButtonFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void
+
+  /**
+   * A function that's called when the button element looses keyboard focus.
+   */
+  readonly onButtonBlur?: (event: React.FocusEvent<HTMLButtonElement>) => void
+
+  /**
    * An optional classname that will be appended to the default
    * class name 'toolbar-button'
    */
@@ -68,6 +78,30 @@ export interface IToolbarButtonProps {
 
   /** Whether the button's disabled. Defaults to false. */
   readonly disabled?: boolean
+
+  /**
+   * The tab index of the button element.
+   *
+   * A value of 'undefined' means that whether or not the element participates
+   * in sequential keyboard navigation is left to the user agent's default
+   * settings.
+   * 
+   * A negative value means that the element can receive focus but not
+   * through sequential keyboard navigation (i.e. only via programmatic
+   * focus)
+   * 
+   * A value of zero means that the element can receive focus through
+   * sequential keyboard navigation and that the order should be determined
+   * by the element's position in the DOM.
+   * 
+   * A positive value means that the element can receive focus through
+   * sequential keyboard navigation and that it should have the explicit
+   * order provided and not have it be determined by its position in the DOM.
+   *
+   * Note: A positive value should be avoided if at all possible as it's
+   * detrimental to accessibility in most scenarios.
+   */
+  readonly tabIndex?: number
 }
 
 /**
@@ -75,7 +109,7 @@ export interface IToolbarButtonProps {
  */
 export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
 
-  public buttonElement: HTMLButtonElement | null = null
+  public innerButton: Button | null = null
 
   private onClick = () => {
     if (this.props.onClick) {
@@ -83,8 +117,36 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     }
   }
 
-  private onButtonRef = (ref: HTMLButtonElement) => {
-    this.buttonElement = ref
+  private onButtonRef = (ref: Button | null) => {
+    this.innerButton = ref
+  }
+
+  /**
+   * Programmatically move keyboard focus to the button element.
+   */
+  public focusButton = () => {
+    if (this.innerButton) {
+      this.innerButton.focus()
+    }
+  }
+
+  /**
+   * Programmatically remove keyboard focus from the button element.
+   */
+  public blurButton() {
+    if (this.innerButton) {
+      this.innerButton.blur()
+    }
+  }
+
+  /**
+   * Get the client bounding box for the button element.
+   * Returns undefined if the button hasn't been mounted yet.
+   */
+  public getButtonBoundingClientRect = (): ClientRect | undefined => {
+    return this.innerButton
+      ? this.innerButton.getBoundingClientRect()
+      : undefined
   }
 
   public render() {
@@ -102,9 +164,12 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
         {preContent}
         <Button
           onClick={this.onClick}
-          onButtonRef={this.onButtonRef}
+          ref={this.onButtonRef}
           disabled={this.props.disabled}
           onMouseEnter={this.props.onMouseEnter}
+          tabIndex={this.props.tabIndex}
+          onFocus={this.props.onButtonFocus}
+          onBlur={this.props.onButtonBlur}
         >
           {icon}
           {this.renderText()}

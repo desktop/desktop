@@ -60,6 +60,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   private lastKeyPressed: string | null = null
 
   /**
+   * The instance of the application menu bar or null if no menu bar
+   * is mounted. This will always be null when not on Windows since we
+   * only render a custom menu bar on Windows.
+   */
+  private appMenuBar: AppMenuBar | null = null
+
+  /**
    * Gets a value indicating whether or not we're currently showing a
    * modal dialog such as the preferences, or an error dialog.
    */
@@ -391,6 +398,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (shouldRenderApplicationMenu()) {
       if (event.key === 'Alt') {
+
+        // Immediately close the menu if open and the user hits Alt. This is
+        // a Windows convention.
+        if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+          this.props.dispatcher.setAppMenuState(menu => menu.withReset())
+          this.props.dispatcher.closeFoldout()
+        }
+
         this.props.dispatcher.setAccessKeyHighlightState(true)
       } else if (event.altKey && !event.ctrlKey && !event.metaKey) {
         if (this.state.appMenuState.length) {
@@ -435,9 +450,14 @@ export class App extends React.Component<IAppProps, IAppState> {
         if (this.lastKeyPressed === 'Alt') {
           if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
             this.props.dispatcher.closeFoldout()
-          } else {
-            this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-            this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation: true })
+          }
+
+          if (this.appMenuBar) {
+            if (this.appMenuBar.menuButtonHasFocus) {
+              this.appMenuBar.blurCurrentlyFocusedItem()
+            } else {
+              this.appMenuBar.focusFirstMenuItem()
+            }
           }
         }
       }
@@ -558,6 +578,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     return (
       <AppMenuBar
+        ref={this.onAppMenuBarRef}
         appMenu={this.state.appMenuState}
         dispatcher={this.props.dispatcher}
         highlightAppMenuAccessKeys={this.state.highlightAccessKeys}
@@ -566,12 +587,16 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
+  private onAppMenuBarRef = (menuBar: AppMenuBar | null) => {
+    this.appMenuBar = menuBar
+  }
+
   private renderTitlebar() {
     const winControls = __WIN32__
       ? <WindowControls />
       : null
 
-    // On windows it's not possible to resize a frameless window if the
+    // On Windows it's not possible to resize a frameless window if the
     // element that sits flush along the window edge has -webkit-app-region: drag.
     // The menu bar buttons all have no-drag but the area between menu buttons and
     // window controls need to disable dragging so we add a 3px tall element which
