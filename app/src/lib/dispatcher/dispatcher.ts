@@ -19,6 +19,8 @@ import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
 
+const deepEquals: (actual: object, expected: object, opts?: object) => boolean = require('deep-equal')
+
 /**
  * Extend Error so that we can create new Errors with a callstack different from
  * the callsite.
@@ -171,7 +173,10 @@ export class Dispatcher {
   /** Refresh the associated GitHub repository. */
   public async refreshGitHubRepositoryInfo(repository: Repository): Promise<Repository> {
     const refreshedRepository = await this.appStore._repositoryWithRefreshedGitHubRepository(repository)
-    if (refreshedRepository === repository) { return refreshedRepository }
+    const equals = deepEquals(refreshedRepository, repository)
+    if (equals) {
+      return refreshedRepository
+    }
 
     const repo = await this.dispatchToSharedProcess<IRepository>({ name: 'update-github-repository', repository: refreshedRepository })
     return Repository.fromJSON(repo)
