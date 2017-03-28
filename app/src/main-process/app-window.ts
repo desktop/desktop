@@ -153,6 +153,8 @@ export class AppWindow {
 
     this.window.on('focus', () => this.window.webContents.send('focus'))
     this.window.on('blur', () => this.window.webContents.send('blur'))
+    this.window.on('hide', () => this.window.webContents.send('hide'))
+    this.window.on('show', () => this.window.webContents.send('show'))
 
     this.registerWindowStateChangedEvents()
 
