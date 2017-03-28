@@ -11,7 +11,13 @@ import { compareDescending, caseInsensitiveCompare } from './compare'
  */
 export function filterAndSort(emails: ReadonlyArray<IAPIEmail>): ReadonlyArray<IAPIEmail> {
   const visibleEmails = emails.filter(email => email.visibility !== 'private')
-  return visibleEmails.sort(sortByPrimaryThenAlphabetically)
+  return visibleEmails.sort((a, b) => {
+    // Compare primary values first so that the primary email address is listed first.
+    // We only ever expect one primary email address.
+    //
+    // Otherwise sort the email addresses because we have nothing else to go by.
+    return compareDescending(a.primary, b.primary) || caseInsensitiveCompare(a.email, b.email)
+  })
 }
 
 /**
@@ -28,12 +34,4 @@ export function lookupEmail(emails: ReadonlyArray<string>): string | null {
   if (noReplyFound) { return noReplyFound }
 
   return emails[0] || null
-}
-
-function sortByPrimaryThenAlphabetically(a: IAPIEmail, b: IAPIEmail): number {
-  // Compare primary values first and favour whenever primary is found.
-  // We only ever expect one primary email address.
-  //
-  // Otherwise sort the email addresses because we have nothing else to go by
-  return compareDescending(a.primary, b.primary) || caseInsensitiveCompare(a.email, b.email)
 }
