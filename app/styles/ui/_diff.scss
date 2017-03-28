@@ -39,9 +39,9 @@
     }
   }
 
-  &-code > pre:last-child {
+  &-code > div:last-of-type {
     // Add a border to the end of the diff
-    border-top: var(--base-border);
+    border-bottom: var(--base-border);
   }
 
   &-focused &-selected, &-selected {
