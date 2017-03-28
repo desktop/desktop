@@ -117,7 +117,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
           </ul>
         </div>
 
-        <div className='commit-summary-description-container'>
+        <div className='commit-summary-description-container collapsed'>
           <RichText
             className='commit-summary-description'
             emoji={this.props.emoji}
