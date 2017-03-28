@@ -12,4 +12,6 @@ export type MenuIDs =
   'compare-branch' |
   'open-in-shell' |
   'push' |
-  'pull'
+  'pull' |
+  'branch' |
+  'repository'
