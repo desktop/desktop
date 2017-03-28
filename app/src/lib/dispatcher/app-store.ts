@@ -887,14 +887,14 @@ export class AppStore {
 
     await gitStore.loadCurrentAndDefaultBranch()
 
-    // We don't need to await this. The GitStore will notify when something
-    // changes.
+    // We don't need to await these.
+    // The GitStore will emit an update when something changes.
     gitStore.loadBranches()
     gitStore.loadCurrentRemote()
     gitStore.calculateAheadBehindForCurrentBranch()
     gitStore.updateLastFetched()
 
-    // When refreshing we *always* load Changes so that we can update the
+    // When refreshing we *always* check the status so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
     // selected.
     await this._loadStatus(repository)
