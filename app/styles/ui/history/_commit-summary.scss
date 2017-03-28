@@ -86,6 +86,8 @@
 
 .commit-expand-button {
   display: block;
+  font-size: var(--font-size-sm);
+  padding-left: var(--spacing-double);
   text-align: right;
 
   .octicon {
