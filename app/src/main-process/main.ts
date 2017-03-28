@@ -82,7 +82,11 @@ app.on('ready', () => {
     event.preventDefault()
 
     const action = parseURL(url)
-    getMainWindow().sendURLAction(action)
+    const window = getMainWindow()
+    // This manual focus call _shouldn't_ be necessary, but is for Chrome on
+    // macOS. See https://github.com/desktop/desktop/issues/973.
+    window.focus()
+    window.sendURLAction(action)
   })
 
   const menu = buildDefaultMenu(sharedProcess)
@@ -266,6 +270,14 @@ app.on('activate', () => {
   if (!mainWindow) {
     createWindow()
   }
+})
+
+app.on('web-contents-created', (event, contents) => {
+  contents.on('new-window', (event, url) => {
+    // Prevent links or window.open from opening new windows
+    event.preventDefault()
+    sharedProcess!.console.log(`Prevented new window to: ${url}`)
+  })
 })
 
 function createWindow() {
