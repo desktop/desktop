@@ -2,6 +2,9 @@
 
 /** A React component holding the selected commit's detailed information */
 #commit-summary {
+  display: flex;
+  flex-direction: column;
+
   .avatar {
     width: 16px;
     height: 16px;
@@ -34,9 +37,9 @@
   }
 
   &-description {
-    flex: 1;
     font-family: var(--font-family-monospace);
     font-size: var(--font-size-sm);
+    max-width: 80%;
     word-wrap: break-word;
     white-space: pre-line;
 
@@ -47,6 +50,7 @@
     &-container {
       border-bottom: var(--base-border);
       display: flex;
+      overflow: auto;
       padding: var(--spacing);
 
       &.collapsed {
@@ -91,6 +95,8 @@
   font-size: var(--font-size-sm);
   padding-left: var(--spacing-double);
   text-align: right;
+  position: absolute;
+  right: var(--spacing-double);
 
   .octicon {
     margin-right: var(--spacing-half);
