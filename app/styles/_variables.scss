@@ -216,6 +216,12 @@
   /** The highlight color used for focus rings and focus box shadows */
   --focus-color: $blue;
 
+
+  /**
+   * Variables for form elements
+   */
+  --text-field-height: 25px;
+
   /**
    * Diff view
    */

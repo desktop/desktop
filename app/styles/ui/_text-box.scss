@@ -30,6 +30,7 @@
     color: currentColor;
     font-size: var(--font-size);
     font-family: var(--font-family-sans-serif);
+    height: var(--text-field-height);
     padding: var(--spacing-half);
 
     &:focus {
