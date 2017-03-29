@@ -60,13 +60,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   private lastKeyPressed: string | null = null
 
   /**
-   * The instance of the application menu bar or null if no menu bar
-   * is mounted. This will always be null when not on Windows since we
-   * only render a custom menu bar on Windows.
-   */
-  private appMenuBar: AppMenuBar | null = null
-
-  /**
    * Gets a value indicating whether or not we're currently showing a
    * modal dialog such as the preferences, or an error dialog.
    */
@@ -398,8 +391,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         // Immediately close the menu if open and the user hits Alt. This is
         // a Windows convention.
         if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
-          this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-          this.props.dispatcher.closeFoldout()
+          // Only close it the menu when the key is pressed if there's an open
+          // menu. If there isn't we should close it when the key is released
+          // instead and that's taken care of in the onWindowKeyUp function.
+          if (this.state.appMenuState.length > 1) {
+            this.props.dispatcher.setAppMenuState(menu => menu.withReset())
+            this.props.dispatcher.closeFoldout()
+          }
         }
 
         this.props.dispatcher.setAccessKeyHighlightState(true)
@@ -445,15 +443,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         if (this.lastKeyPressed === 'Alt') {
           if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+            this.props.dispatcher.setAppMenuState(menu => menu.withReset())
             this.props.dispatcher.closeFoldout()
-          }
-
-          if (this.appMenuBar) {
-            if (this.appMenuBar.menuButtonHasFocus) {
-              this.appMenuBar.blurCurrentlyFocusedItem()
-            } else {
-              this.appMenuBar.focusFirstMenuItem()
-            }
+          } else {
+            this.props.dispatcher.showFoldout({
+              type: FoldoutType.AppMenu,
+              enableAccessKeyNavigation: true,
+              openedWithAccessKey: false,
+            })
           }
         }
       }
@@ -574,17 +571,20 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     return (
       <AppMenuBar
-        ref={this.onAppMenuBarRef}
         appMenu={this.state.appMenuState}
         dispatcher={this.props.dispatcher}
         highlightAppMenuAccessKeys={this.state.highlightAccessKeys}
         foldoutState={foldoutState}
+        onLostFocus={this.onMenuBarLostFocus}
       />
     )
   }
 
-  private onAppMenuBarRef = (menuBar: AppMenuBar | null) => {
-    this.appMenuBar = menuBar
+  private onMenuBarLostFocus = () => {
+    if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+      this.props.dispatcher.closeFoldout()
+      this.props.dispatcher.setAppMenuState(menu => menu.withReset())
+    }
   }
 
   private renderTitlebar() {
