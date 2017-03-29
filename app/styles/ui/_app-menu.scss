@@ -3,39 +3,33 @@
 #app-menu-foldout {
   height: 100%;
   display: flex;
+}
 
-  .menu-pane {
-    height: 100%;
-    width: 240px;
+.menu-pane {
+  height: 100%;
+  width: 240px;
 
-    // Open panes (except the first one) should have a border on their
-    // right hand side to create a divider between them and their parent
-    // menu.
-    &:not(:first-child) {
-      border-left: var(--base-border);
-    }
+  // Open panes (except the first one) should have a border on their
+  // right hand side to create a divider between them and their parent
+  // menu.
+  &:not(:first-child) {
+    border-left: var(--base-border);
+  }
 
-    &:not(:last-child) {
+  &:not(:last-child) {
 
-      // We want list items in previous menus to behave as if they have focus
-      // even though they don't, ie we want the selected+focus state
-      // to be in effect for all parent selected menu items as well as
-      // the current
-      .list-item {
-        &.selected {
-          --text-color: var(--box-selected-active-text-color);
-          --text-secondary-color: var(--box-selected-active-text-color);
+    // We want list items in previous menus to behave as if they have focus
+    // even though they don't, ie we want the selected+focus state
+    // to be in effect for all parent selected menu items as well as
+    // the current
+    .list-item {
+      &.selected {
+        --text-color: var(--box-selected-active-text-color);
+        --text-secondary-color: var(--box-selected-active-text-color);
 
-          color: var(--text-color);
-          background-color: var(--box-selected-active-background-color);
-        }
+        color: var(--text-color);
+        background-color: var(--box-selected-active-background-color);
       }
-    }
-
-    &.add-menu {
-      list-style-type: none;
-      padding: 0;
-      width: 100%;
     }
   }
 
@@ -47,7 +41,6 @@
   }
 
   .menu-item {
-
     display: flex;
     align-items: center;
 
@@ -104,20 +97,4 @@
     height: 1px;
     border-bottom: var(--base-border);
   }
-}
-
-.add-menu-item {
-  padding: var(--spacing-half) var(--spacing-double);
-
-  & + .add-menu-item-header {
-    margin-top: var(--spacing);
-  }
-
-  &:not(.add-menu-item-header):hover {
-    background-color: var(--box-alt-background-color);
-  }
-}
-
-.add-menu-item-header {
-  opacity: 0.6;
 }

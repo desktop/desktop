@@ -60,13 +60,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   private lastKeyPressed: string | null = null
 
   /**
-   * The instance of the application menu bar or null if no menu bar
-   * is mounted. This will always be null when not on Windows since we
-   * only render a custom menu bar on Windows.
-   */
-  private appMenuBar: AppMenuBar | null = null
-
-  /**
    * Gets a value indicating whether or not we're currently showing a
    * modal dialog such as the preferences, or an error dialog.
    */
@@ -327,6 +320,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
+  private showCloneRepo() {
+    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
+  }
+
   private showBranches() {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
@@ -398,8 +395,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         // Immediately close the menu if open and the user hits Alt. This is
         // a Windows convention.
         if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
-          this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-          this.props.dispatcher.closeFoldout()
+          // Only close it the menu when the key is pressed if there's an open
+          // menu. If there isn't we should close it when the key is released
+          // instead and that's taken care of in the onWindowKeyUp function.
+          if (this.state.appMenuState.length > 1) {
+            this.props.dispatcher.setAppMenuState(menu => menu.withReset())
+            this.props.dispatcher.closeFoldout()
+          }
         }
 
         this.props.dispatcher.setAccessKeyHighlightState(true)
@@ -445,15 +447,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         if (this.lastKeyPressed === 'Alt') {
           if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+            this.props.dispatcher.setAppMenuState(menu => menu.withReset())
             this.props.dispatcher.closeFoldout()
-          }
-
-          if (this.appMenuBar) {
-            if (this.appMenuBar.menuButtonHasFocus) {
-              this.appMenuBar.blurCurrentlyFocusedItem()
-            } else {
-              this.appMenuBar.focusFirstMenuItem()
-            }
+          } else {
+            this.props.dispatcher.showFoldout({
+              type: FoldoutType.AppMenu,
+              enableAccessKeyNavigation: true,
+              openedWithAccessKey: false,
+            })
           }
         }
       }
@@ -574,17 +575,20 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     return (
       <AppMenuBar
-        ref={this.onAppMenuBarRef}
         appMenu={this.state.appMenuState}
         dispatcher={this.props.dispatcher}
         highlightAppMenuAccessKeys={this.state.highlightAccessKeys}
         foldoutState={foldoutState}
+        onLostFocus={this.onMenuBarLostFocus}
       />
     )
   }
 
-  private onAppMenuBarRef = (menuBar: AppMenuBar | null) => {
-    this.appMenuBar = menuBar
+  private onMenuBarLostFocus = () => {
+    if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+      this.props.dispatcher.closeFoldout()
+      this.props.dispatcher.setAppMenuState(menu => menu.withReset())
+    }
   }
 
   private renderTitlebar() {
@@ -760,14 +764,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderAppError()}
       </div>
     )
-  }
-
-    private onAddMenuDropdownStateChanged = (newState: DropdownState) => {
-    if (newState === 'open') {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.AddMenu, enableAccessKeyNavigation: false })
-    } else {
-      this.props.dispatcher.closeFoldout()
-    }
   }
 
   private renderRepositoryList = (): JSX.Element => {
@@ -956,63 +952,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         <div
           className='sidebar-section'
           style={{ width: this.state.sidebarWidth }}>
-          {this.renderAddToolbarButton()}
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
       </Toolbar>
     )
-  }
-
-  private renderAddToolbarButton() {
-    const isOpen = this.state.currentFoldout
-      && this.state.currentFoldout.type === FoldoutType.AddMenu
-
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-
-    return (
-      <ToolbarDropdown
-        icon={OcticonSymbol.plus}
-        className='app-menu'
-        dropdownContentRenderer={this.renderAddMenu}
-        onDropdownStateChanged={this.onAddMenuDropdownStateChanged}
-        dropdownState={currentState} />
-    )
-  }
-
-  private renderAddMenu = (): JSX.Element | null => {
-    const foldoutStyle = {
-      width: this.state.sidebarWidth,
-    }
-
-    return (
-      <div id='app-menu-foldout' style={foldoutStyle}>
-        <ul className='menu-pane add-menu'>
-          <li className='add-menu-item add-menu-item-header'>Repository</li>
-          <li className='add-menu-item' onClick={this.showAddLocalRepo}>Add local repository</li>
-          <li className='add-menu-item' onClick={this.showCreateRepo}>Create new repository</li>
-          <li className='add-menu-item' onClick={this.showCloneRepo}>Clone repository</li>
-          <li className='add-menu-item add-menu-item-header'>Branches</li>
-          <li className='add-menu-item' onClick={this.showCreateBranch}>Create new branch</li>
-        </ul>
-      </div>
-    )
-  }
-
-  private showAddLocalRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
-  }
-
-  private showCreateRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
-  }
-
-  private showCloneRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
   }
 
   private renderRepository() {
