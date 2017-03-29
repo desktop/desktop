@@ -50,7 +50,8 @@
     // The long term solution here will be a
     // read-more/expand link.
     max-height: 60px;
-    overflow: scroll;
+    overflow: auto;
+    overflow-x: hidden;
 
     &:empty {
       display: none;
