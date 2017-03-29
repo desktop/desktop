@@ -6,6 +6,6 @@ export function hasShownWelcomeFlow(): boolean {
   return !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
 }
 
-export function showWelcomeFlowCompleted() {
+export function markWelcomeFlowComplete() {
   localStorage.setItem(HasShownWelcomeFlowKey, '1')
 }

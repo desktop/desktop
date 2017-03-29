@@ -41,7 +41,7 @@ import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
 import { SignInStore } from './sign-in-store'
-import { hasShownWelcomeFlow, showWelcomeFlowCompleted } from '../welcome'
+import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 
 import {
   getGitDir,
@@ -1258,7 +1258,7 @@ export class AppStore {
 
     this.emitUpdate()
 
-    showWelcomeFlowCompleted()
+    markWelcomeFlowComplete()
 
     return Promise.resolve()
   }
