@@ -51,16 +51,6 @@ export interface IToolbarButtonProps {
   readonly onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void
 
   /**
-   * A function that's called when the button element receives keyboard focus.
-   */
-  readonly onButtonFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void
-
-  /**
-   * A function that's called when the button element looses keyboard focus.
-   */
-  readonly onButtonBlur?: (event: React.FocusEvent<HTMLButtonElement>) => void
-
-  /**
    * An optional classname that will be appended to the default
    * class name 'toolbar-button'
    */
@@ -168,8 +158,6 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
           disabled={this.props.disabled}
           onMouseEnter={this.props.onMouseEnter}
           tabIndex={this.props.tabIndex}
-          onFocus={this.props.onButtonFocus}
-          onBlur={this.props.onButtonBlur}
         >
           {icon}
           {this.renderText()}

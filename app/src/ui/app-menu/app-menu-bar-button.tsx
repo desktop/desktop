@@ -90,16 +90,6 @@ interface IAppMenuBarButtonProps {
   readonly onKeyDown: (menuItem: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => void
 
   /**
-   * A function that's called when the button element receives keyboard focus.
-   */
-  readonly onButtonFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void
-
-  /**
-   * A function that's called when the button element looses keyboard focus.
-   */
-  readonly onButtonBlur?: (event: React.FocusEvent<HTMLButtonElement>) => void
-
-  /**
    * A function that's called once the component has been mounted. This, and
    * the onWillUnmount prop are essentially equivalent to the ref callback
    * except these methods pass along the menuItem so that the parent component
@@ -200,8 +190,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         onKeyDown={this.onKeyDown}
         disabled={disabled}
         tabIndex={-1}
-        onButtonFocus={this.props.onButtonFocus}
-        onButtonBlur={this.props.onButtonBlur}
       >
         <MenuListItem
           item={item}
