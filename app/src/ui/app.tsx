@@ -398,8 +398,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         // Immediately close the menu if open and the user hits Alt. This is
         // a Windows convention.
         if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
-          this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-          this.props.dispatcher.closeFoldout()
+          // Only close it the menu when the key is pressed if there's an open
+          // menu. If there isn't we should close it when the key is released
+          // instead and that's taken care of in the onWindowKeyUp function.
+          if (this.state.appMenuState.length > 1) {
+            this.props.dispatcher.setAppMenuState(menu => menu.withReset())
+            this.props.dispatcher.closeFoldout()
+          }
         }
 
         this.props.dispatcher.setAccessKeyHighlightState(true)
@@ -446,14 +451,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         if (this.lastKeyPressed === 'Alt') {
           if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
             this.props.dispatcher.closeFoldout()
-          }
-
-          if (this.appMenuBar) {
-            if (this.appMenuBar.menuButtonHasFocus) {
-              this.appMenuBar.blurCurrentlyFocusedItem()
-            } else {
-              this.appMenuBar.focusFirstMenuItem()
-            }
+          } else {
+            this.props.dispatcher.showFoldout({
+              type: FoldoutType.AppMenu,
+              enableAccessKeyNavigation: true,
+              openedWithAccessKey: false,
+            })
           }
         }
       }
