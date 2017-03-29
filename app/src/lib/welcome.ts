@@ -6,7 +6,12 @@ const HasShownWelcomeFlowKey = 'has-shown-welcome-flow'
  */
 export function hasShownWelcomeFlow(): boolean {
   const hasShownWelcomeFlow = localStorage.getItem(HasShownWelcomeFlowKey)
-  return !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
+  if (!hasShownWelcomeFlow) {
+    return false
+  }
+
+  const value = parseInt(hasShownWelcomeFlow, 10)
+  return value === 1
 }
 
 /**
