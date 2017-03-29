@@ -591,11 +591,22 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderTitlebar() {
 
-    if (!__WIN32__ && this.state.windowState === 'full-screen') {
-      return null
+    const inFullScreen = this.state.windowState === 'full-screen'
+
+    const menuBarActive = this.state.currentFoldout &&
+      this.state.currentFoldout.type === FoldoutType.AppMenu
+
+    // When we're in full-screen mode on Windows we only need to render
+    // the title bar when the menu bar is active. On other platforms we
+    // never render the title bar while in full-screen mode.
+    if (inFullScreen) {
+      if (!__WIN32__ || !menuBarActive) {
+        return null
+      }
     }
 
-    const winControls = __WIN32__
+    // No Windows controls when we're in full-screen mode.
+    const winControls = __WIN32__ && !inFullScreen
       ? <WindowControls />
       : null
 
