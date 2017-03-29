@@ -579,12 +579,22 @@ export class App extends React.Component<IAppProps, IAppState> {
         dispatcher={this.props.dispatcher}
         highlightAppMenuAccessKeys={this.state.highlightAccessKeys}
         foldoutState={foldoutState}
+        onLostFocus={this.onMenuBarLostFocus}
       />
     )
   }
 
   private onAppMenuBarRef = (menuBar: AppMenuBar | null) => {
     this.appMenuBar = menuBar
+  }
+
+  private onMenuBarLostFocus = () => {
+    if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+      this.props.dispatcher.closeFoldout()
+      this.props.dispatcher.setAppMenuState(menu => menu.withReset())
+
+      console.log('closing menu bar due to lost focus')
+    }
   }
 
   private renderTitlebar() {
