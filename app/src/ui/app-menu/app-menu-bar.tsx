@@ -332,8 +332,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     if (event.key === 'Escape' && (!openMenu || openMenu.id !== item.id)) {
       this.restoreFocusOrBlur()
       event.preventDefault()
-    }
-    if (event.key === 'ArrowLeft') {
+    } else  if (event.key === 'ArrowLeft') {
       this.moveToAdjacentMenu('previous', item)
       event.preventDefault()
     } else if (event.key === 'ArrowRight') {
