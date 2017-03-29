@@ -123,7 +123,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
         </a>
 
         <RichText
-          className='commit-summary-description'
+          className={this.state.style + ' commit-summary-description'}
           emoji={this.props.emoji}
           repository={this.props.repository}
           text={this.props.body} />
