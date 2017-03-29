@@ -109,7 +109,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
             <li className='commit-summary-meta-item'
               title={filesDescription}>
               <span aria-hidden='true'>
-                <Octicon className={this.state.style} symbol={OcticonSymbol.diff} />
+                <Octicon symbol={OcticonSymbol.diff} />
               </span>
 
               {filesDescription}
