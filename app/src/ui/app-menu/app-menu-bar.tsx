@@ -322,13 +322,20 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
       ? foldoutState.enableAccessKeyNavigation
       : false
 
+    // If told to highlight access keys we will do so. If access key navigation
+    // is enabled and no menu is open we'll highlight as well. This matches
+    // the behavior of Windows menus.
+    const highlightMenuAccessKey = this.props.highlightAppMenuAccessKeys
+      ? true
+      : openMenu === null && enableAccessKeyNavigation
+
     return (
       <AppMenuBarButton
         key={item.id}
         dispatcher={this.props.dispatcher}
         menuItem={item}
         menuState={menuState}
-        highlightMenuAccessKey={this.props.highlightAppMenuAccessKeys}
+        highlightMenuAccessKey={highlightMenuAccessKey}
         enableAccessKeyNavigation={enableAccessKeyNavigation}
         openedWithAccessKey={openedWithAccessKey}
         onClose={this.onMenuClose}
