@@ -372,7 +372,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     // the behavior of Windows menus.
     const highlightMenuAccessKey =
       this.props.highlightAppMenuAccessKeys ||
-      (this.isMenuItemOpen(item) && enableAccessKeyNavigation)
+      (!this.isMenuItemOpen(item) && enableAccessKeyNavigation)
 
     return (
       <AppMenuBarButton
