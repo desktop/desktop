@@ -3,7 +3,7 @@
 .path-text-component {
   width: 100%;
   @include ellipsis;
-  line-height: 19px;
+  line-height: var(--base-line-height);
 
   .dirname { color: var(--text-secondary-color); }
 }

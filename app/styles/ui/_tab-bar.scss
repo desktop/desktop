@@ -18,7 +18,7 @@
     border-right: 1px solid var(--box-border-color);
 
     // This helps vertically center the text in its 30px height container
-    line-height: 19px;
+    line-height: var(--base-line-height);
 
     // This makes it so that we never render a double-width item border.
     // It has the unintended consequence of making it impossible to have a tab
