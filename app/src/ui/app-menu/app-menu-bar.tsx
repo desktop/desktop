@@ -139,6 +139,9 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   }
 
   public componentWillUnmount() {
+    if (this.hasFocus) {
+      this.restoreFocusOrBlur()
+    }
     // This is perhaps being overly cautious but just in case we're unmounted
     // and someone else is still holding a reference to us we want to make sure
     // that we're not preventing GC from doing its job.
