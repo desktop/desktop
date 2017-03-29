@@ -1,5 +1,6 @@
 import { BrowserWindow, ipcMain, Menu, app } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
+import { v4 as guid } from 'uuid'
 
 import { SharedProcess } from '../shared-process/shared-process'
 import { WindowState, windowStateChannelName } from '../lib/window-state'
@@ -235,6 +236,16 @@ export class AppWindow {
   public sendAppMenu() {
     const menu = menuFromElectronMenu(Menu.getApplicationMenu())
     this.window.webContents.send('app-menu', { menu })
+  }
+
+  public sendCertificateError(error: string, url: string): Promise<boolean> {
+    return new Promise((resolve, reject) => {
+      const id = guid()
+      ipcMain.on(`certificate-error-response/${id}`, (event, allow: boolean) => {
+        resolve(allow)
+      })
+      this.window.webContents.send('certificate-error', { error, url, id })
+    })
   }
 
   /**
