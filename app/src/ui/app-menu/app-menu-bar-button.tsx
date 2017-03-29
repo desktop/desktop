@@ -82,9 +82,10 @@ interface IAppMenuBarButtonProps {
    * component or element within the foldout when that is open like, for
    * example, MenuItem components.
    * 
-   * Consumers of this event should not act on the event if the event has
-   * had its default action prevented by an earlier consumer that's called
-   * the preventDefault method on the event instance.
+   * This function is called before the menu bar button itself does any
+   * processing of the event so consumers should make sure to call
+   * event.preventDefault if they act on the event in order to make sure that
+   * the menu bar button component doesn't act on the same key.
    */
   readonly onKeyDown: (menuItem: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => void
 
@@ -222,7 +223,9 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
 
-    if (!this.isMenuOpen) {
+    this.props.onKeyDown(this.props.menuItem, event)
+
+    if (!this.isMenuOpen && !event.isDefaultPrevented) {
       // Hitting Escape while focused on the menu button (while the menu
       // is collapsed) should remove focus. Ideally it should even restore
       // focus to whatever was selected previously but that's non-trivial
@@ -235,8 +238,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         event.preventDefault()
       }
     }
-
-    this.props.onKeyDown(this.props.menuItem, event)
   }
 
   private onMenuClose = (closeSource: CloseSource) => {
