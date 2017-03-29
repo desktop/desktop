@@ -117,7 +117,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
           </ul>
         </div>
 
-        <a onClick={this.toggleExpander}>
+        <a onClick={this.toggleExpander} className='expander'>
           <Octicon symbol={this.state.nextSymbol} />
           {this.state.nextAction}
         </a>

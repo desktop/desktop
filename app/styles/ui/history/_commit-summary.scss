@@ -9,9 +9,17 @@
     border-radius: var(--border-radius);
   }
 
-  a {
+  .expander {
     position: absolute;
-    right: var(--spacing-double);
+    width: 75px;
+    right: var(--spacing);
+    margin-top: var(--spacing-half);
+    z-index: 29;
+
+    svg {
+      vertical-align: text-top;
+      margin-right: var(--spacing-half);
+    }
   }
 }
 
@@ -47,8 +55,9 @@
     white-space: pre-line;
     border-bottom: var(--base-border);
     padding-right: 150px;
-    overflow: auto;
+    overflow: hidden;
     overflow-x: hidden;
+    position: relative;
 
     &:empty {
       display: none;
@@ -61,6 +70,7 @@
 
   &-expanded {
     min-height: 100vh;
+    overflow: auto;
   }
 
   &-meta {
