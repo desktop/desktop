@@ -3,6 +3,7 @@ import { IMenu, ISubmenuItem } from '../../models/app-menu'
 import { AppMenuBarButton } from './app-menu-bar-button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { AppMenuFoldout, FoldoutType } from '../../lib/app-state'
+import { findItemByAccessKey, itemIsSelectable } from '../../models/app-menu'
 
 interface IAppMenuBarProps {
   readonly appMenu: ReadonlyArray<IMenu>
@@ -329,6 +330,12 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
       return
     }
 
+    const foldoutState = this.props.foldoutState
+
+    if (!foldoutState) {
+      return
+    }
+
     if (event.key === 'Escape' && this.isMenuItemOpen(item)) {
       this.restoreFocusOrBlur()
       event.preventDefault()
@@ -338,6 +345,26 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     } else if (event.key === 'ArrowRight') {
       this.moveToAdjacentMenu('next', item)
       event.preventDefault()
+    } else if (foldoutState.enableAccessKeyNavigation) {
+
+      if (event.altKey || event.ctrlKey || event.metaKey) {
+        return
+      }
+
+      const menuItemForAccessKey = findItemByAccessKey(event.key, this.state.menuItems)
+
+      if (menuItemForAccessKey && itemIsSelectable(menuItemForAccessKey)) {
+        if (menuItemForAccessKey.type === 'submenuItem') {
+          this.props.dispatcher.setAppMenuState(menu => menu
+            .withReset()
+            .withSelectedItem(menuItemForAccessKey)
+            .withOpenedMenu(menuItemForAccessKey, true))
+        } else {
+          this.props.dispatcher.executeMenuItem(menuItemForAccessKey)
+        }
+
+        event.preventDefault()
+      }
     }
   }
 
