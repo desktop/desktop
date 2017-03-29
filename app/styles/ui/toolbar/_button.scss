@@ -22,10 +22,10 @@
 
     &:active { box-shadow: none; }
 
-    // @TODO: Proper focus state
     &:focus {
       outline: none;
       border-color: var(--toolbar-button-border-color);
+      background-color: var(--toolbar-button-hover-background-color);
     }
 
     &:not(:disabled):hover {
