@@ -80,6 +80,10 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   private focusedButton: HTMLButtonElement | null = null
   private readonly menuButtonRefsByMenuItemId: { [id: string]: AppMenuBarButton} = { }
   private focusOutTimeout: number | null = null
+
+  /**
+   * Whether or not keyboard focus currently lies within the MenuBar component
+   */
   private hasFocus: boolean = false
 
   public get menuButtonHasFocus(): boolean {
