@@ -171,7 +171,6 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   private onMenuBarFocusIn = (event: FocusEvent) => {
     if (!this.hasFocus) {
       this.hasFocus = true
-      console.log('got focus')
     }
     this.clearFocusOutTimeout()
   }
