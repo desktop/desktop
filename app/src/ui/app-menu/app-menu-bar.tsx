@@ -101,10 +101,15 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     // Was the app menu foldout just opened or closed?
     if (this.props.foldoutState && !prevProps.foldoutState) {
       if (this.props.appMenu.length === 1 && !this.hasFocus) {
+        // It was just opened, no menus are open and we don't have focus,
+        // that's our cue to focus the first menu item so that users
+        // can move move around using arrow keys.
         this.focusFirstMenuItem()
       }
     } else if (!this.props.foldoutState && prevProps.foldoutState) {
       if  (this.hasFocus) {
+        // The foldout was just closed and we have focus, time to
+        // let go of focus.
         this.blurCurrentlyFocusedItem()
       }
     }
