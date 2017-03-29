@@ -182,7 +182,10 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   private onLostFocusWithin = () => {
     this.hasFocus = false
     this.focusOutTimeout = null
-    console.log('lost focus')
+
+    if (this.props.onLostFocus) {
+      this.props.onLostFocus()
+    }
   }
 
   private onMenuBarRef = (menuBar: HTMLDivElement | null) => {
