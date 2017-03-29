@@ -148,6 +148,7 @@ export class AppStore {
 
     ipcRenderer.on('window-state-changed', (_, args) => {
       this.windowState = args as WindowState
+      this.emitUpdate()
     })
 
     ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
