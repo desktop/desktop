@@ -26,7 +26,7 @@ interface IAppMenuBarProps {
   readonly foldoutState: AppMenuFoldout | null
 
   /**
-   * An optional function that's called when the menubar looses focus.
+   * An optional function that's called when the menubar loses focus.
    * 
    * Note that this function will only be called once no descendant element
    * of the menu bar has keyboard focus. In other words this differs
