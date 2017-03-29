@@ -222,9 +222,6 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   }
 
   private onMenuClose = (item: ISubmenuItem) => {
-    if (this.props.foldoutState) {
-      this.props.dispatcher.closeFoldout()
-    }
     this.props.dispatcher.setAppMenuState(m => m.withClosedMenu(item.menu))
   }
 
