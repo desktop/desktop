@@ -450,6 +450,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         if (this.lastKeyPressed === 'Alt') {
           if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+            this.props.dispatcher.setAppMenuState(menu => menu.withReset())
             this.props.dispatcher.closeFoldout()
           } else {
             this.props.dispatcher.showFoldout({
