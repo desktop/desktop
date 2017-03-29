@@ -58,6 +58,11 @@
   &-collapsed {
     max-height: 60px;
   }
+
+  &-expanded {
+    max-height: 100vh;
+  }
+
   &-meta {
     display: flex;
     list-style: none;
