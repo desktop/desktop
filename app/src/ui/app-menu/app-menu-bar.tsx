@@ -152,6 +152,14 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     )
   }
 
+  private isMenuItemOpen(item: ISubmenuItem) {
+    const openMenu = this.props.foldoutState && this.props.appMenu.length > 1
+      ? this.props.appMenu[1]
+      : null
+
+    return openMenu !== null && openMenu.id === item.id
+  }
+
   /**
    * Move keyboard focus to the first menu item button in the
    * menu bar. This has no effect when a menu is currently open.
@@ -304,9 +312,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     // Determine whether a top-level application menu is currently
     // open and use that if, and only if, the application menu foldout
     // is active.
-    const openMenu = foldoutState && this.props.appMenu.length > 1
-      ? true
-      : false
+    const openMenu = foldoutState !== null && this.props.appMenu.length > 1
 
     if (openMenu) {
       this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(nextItem, true))
@@ -325,11 +331,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
       return
     }
 
-    const openMenu = this.props.foldoutState && this.props.appMenu.length > 1
-      ? this.props.appMenu[1]
-      : null
-
-    if (event.key === 'Escape' && (!openMenu || openMenu.id !== item.id)) {
+    if (event.key === 'Escape' && this.isMenuItemOpen(item)) {
       this.restoreFocusOrBlur()
       event.preventDefault()
     } else  if (event.key === 'ArrowLeft') {
@@ -353,16 +355,9 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
 
     const foldoutState = this.props.foldoutState
 
-    // Determine whether a top-level application menu is currently
-    // open and use that if, and only if, the application menu foldout
-    // is active.
-    const openMenu = foldoutState && this.props.appMenu.length > 1
-      ? this.props.appMenu[1]
-      : null
-
     // Slice away the top menu so that each menu bar button receives
     // their menu item's menu and any open submenus.
-    const menuState = openMenu && openMenu.id === item.id
+    const menuState = this.isMenuItemOpen(item)
       ? this.props.appMenu.slice(1)
       : []
 
@@ -377,9 +372,9 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     // If told to highlight access keys we will do so. If access key navigation
     // is enabled and no menu is open we'll highlight as well. This matches
     // the behavior of Windows menus.
-    const highlightMenuAccessKey = this.props.highlightAppMenuAccessKeys
-      ? true
-      : menuState.length === 0 && enableAccessKeyNavigation
+    const highlightMenuAccessKey =
+      this.props.highlightAppMenuAccessKeys ||
+      (this.isMenuItemOpen(item) && enableAccessKeyNavigation)
 
     return (
       <AppMenuBarButton
