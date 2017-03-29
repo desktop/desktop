@@ -77,7 +77,6 @@ function createState(props: IAppMenuBarProps): IAppMenuBarState {
 export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarState> {
 
   private menuBar: HTMLDivElement | null = null
-  private focusedButton: HTMLButtonElement | null = null
   private readonly menuButtonRefsByMenuItemId: { [id: string]: AppMenuBarButton} = { }
   private focusOutTimeout: number | null = null
 
@@ -86,9 +85,22 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
    */
   private hasFocus: boolean = false
 
-  public get menuButtonHasFocus(): boolean {
-    return this.focusedButton !== null
-  }
+  /**
+   * Whenever the MenuBar component receives focus it attempts to store the
+   * element which had focus prior to the component receiving it. We do so in
+   * order to be able to restore focus to that element when we decide to
+   * _programmatically_ give up our focus.
+   * 
+   * A good example of this is when the user is focused on a text box and hits
+   * the Alt key. Focus will then move to the first menu item in the menu bar.
+   * If the user then hits Enter we relinquish our focus and return it back to
+   * the text box again.
+   * 
+   * As long as we hold on to this reference we might be preventing GC from
+   * collecting a potentially huge subtree of the DOM so we need to make sure
+   * to clear it out as soon as we're done with it.
+   */
+  private stolenFocusElement: HTMLElement | null = null
 
   public constructor(props: IAppMenuBarProps) {
     super(props)
@@ -111,11 +123,9 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
         this.focusFirstMenuItem()
       }
     } else if (!this.props.foldoutState && prevProps.foldoutState) {
-      if  (this.hasFocus) {
-        // The foldout was just closed and we have focus, time to
-        // let go of focus.
-        this.blurCurrentlyFocusedItem()
-      }
+      // The foldout was just closed and we still have focus, time to
+      // give it back to whoever had it before or remove focus entirely.
+      this.restoreFocusOrBlur()
     }
   }
 
@@ -125,6 +135,13 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
         this.focusFirstMenuItem()
       }
     }
+  }
+
+  public componentWillUnmount() {
+    // This is perhaps being overly cautious but just in case we're unmounted
+    // and someone else is still holding a reference to us we want to make sure
+    // that we're not preventing GC from doing its job.
+    this.stolenFocusElement = null
   }
 
   public render() {
@@ -160,18 +177,32 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     }
   }
 
-  /**
-   * Remove keyboard focus from the currently focused menu button.
-   * This has no effect if no menu button has focus.
-   */
-  private blurCurrentlyFocusedItem() {
-    if (this.focusedButton) {
-      this.focusedButton.blur()
+  private restoreFocusOrBlur() {
+
+    if (!this.hasFocus) {
+      return
     }
+
+    // Us having a reference to the previously focused element doesn't
+    // necessarily mean that that element is still in the DOM so we explicitly
+    // check to see if it is before we yield focus to it.
+    if (this.stolenFocusElement && document.contains(this.stolenFocusElement)) {
+      this.stolenFocusElement.focus()
+    } else if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+
+    // Don't want to hold on to this a moment longer than necessary.
+    this.stolenFocusElement = null
   }
 
   private onMenuBarFocusIn = (event: FocusEvent) => {
     if (!this.hasFocus) {
+      if (event.relatedTarget && event.relatedTarget instanceof HTMLElement) {
+        this.stolenFocusElement = event.relatedTarget
+      } else {
+        this.stolenFocusElement = null
+      }
       this.hasFocus = true
     }
     this.clearFocusOutTimeout()
@@ -204,6 +235,12 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     if (this.props.onLostFocus) {
       this.props.onLostFocus()
     }
+
+    // It's possible that the element which we are referencing here is no longer
+    // part of the DOM so it's important that we clear out our handle to prevent
+    // us from hanging on to a possibly huge DOM structure and preventing GC
+    // from collecting it. My kingdom for a weak reference.
+    this.stolenFocusElement = null
   }
 
   private onMenuBarRef = (menuBar: HTMLDivElement | null) => {
@@ -218,14 +255,6 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
       this.menuBar.addEventListener('focusin', this.onMenuBarFocusIn)
       this.menuBar.addEventListener('focusout', this.onMenuBarFocusOut)
     }
-  }
-
-  private onButtonFocus = (event: React.FocusEvent<HTMLButtonElement>) => {
-    this.focusedButton = event.currentTarget
-  }
-
-  private onButtonBlur = (event: React.FocusEvent<HTMLButtonElement>) => {
-    this.focusedButton = null
   }
 
   private onMenuClose = (item: ISubmenuItem) => {
@@ -246,8 +275,8 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
       this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item))
     }
 
-    if (this.focusedButton) {
-      this.focusedButton.blur()
+    if (this.hasFocus) {
+      this.restoreFocusOrBlur()
     }
   }
 
@@ -292,10 +321,14 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
 
   private onMenuButtonKeyDown = (item: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => {
 
-    if (event.defaultPrevented) {
-      return
-    }
+    const openMenu = this.props.foldoutState && this.props.appMenu.length > 1
+      ? this.props.appMenu[1]
+      : null
 
+    if (event.key === 'Escape' && (!openMenu || openMenu.id !== item.id)) {
+      this.restoreFocusOrBlur()
+      event.preventDefault()
+    }
     if (event.key === 'ArrowLeft') {
       this.moveToAdjacentMenu('previous', item)
       event.preventDefault()
@@ -358,8 +391,6 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
         onOpen={this.onMenuOpen}
         onMouseEnter={this.onMenuButtonMouseEnter}
         onKeyDown={this.onMenuButtonKeyDown}
-        onButtonFocus={this.onButtonFocus}
-        onButtonBlur={this.onButtonBlur}
         onDidMount={this.onMenuButtonDidMount}
         onWillUnmount={this.onMenuButtonWillUnmount}
       />
