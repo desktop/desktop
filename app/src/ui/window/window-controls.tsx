@@ -60,7 +60,7 @@ export class WindowControls extends React.Component<void, IWindowControlState> {
 
   public render() {
 
-    // We only know how to render fake windows-y controls
+    // We only know how to render fake Windows-y controls
     if (!__WIN32__) {
       return <span></span>
     }

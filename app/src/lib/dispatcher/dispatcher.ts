@@ -516,8 +516,8 @@ export class Dispatcher {
    *
    * Only applicable on non-macOS platforms.
    */
-  public setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
-    return this.appStore._setAppMenuToolbarButtonHighlightState(highlight)
+  public setAccessKeyHighlightState(highlight: boolean): Promise<void> {
+    return this.appStore._setAccessKeyHighlightState(highlight)
   }
 
   /** Merge the named branch into the current branch. */
