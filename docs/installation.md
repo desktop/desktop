@@ -4,7 +4,7 @@ GitHub Desktop currently supports Windows 7 (or higher) and macOS 10.9 (or highe
 
 ### macOS
 
-Download the `GitHub Desktop.zip`, unpack the application and add to your Applications list.
+Download the `GitHub Desktop.zip`, unpack the application and put it wherever you want.
 
 ### Windows
 
