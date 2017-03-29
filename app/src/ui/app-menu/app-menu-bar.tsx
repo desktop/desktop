@@ -211,6 +211,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
       this.menuBar.removeEventListener('focusin', this.onMenuBarFocusIn)
       this.menuBar.removeEventListener('focusout', this.onMenuBarFocusOut)
     }
+
     this.menuBar = menuBar
 
     if (this.menuBar) {
