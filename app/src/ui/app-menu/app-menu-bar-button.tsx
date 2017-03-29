@@ -211,13 +211,13 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
 
-    if (event.isDefaultPrevented) {
+    if (event.defaultPrevented) {
       return
     }
 
     this.props.onKeyDown(this.props.menuItem, event)
 
-    if (!this.isMenuOpen && !event.isDefaultPrevented) {
+    if (!this.isMenuOpen && !event.defaultPrevented) {
       // Hitting Escape while focused on the menu button (while the menu
       // is collapsed) should remove focus. Ideally it should even restore
       // focus to whatever was selected previously but that's non-trivial

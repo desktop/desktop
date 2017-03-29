@@ -321,7 +321,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
 
   private onMenuButtonKeyDown = (item: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => {
 
-    if (event.isDefaultPrevented) {
+    if (event.defaultPrevented) {
       return
     }
 
