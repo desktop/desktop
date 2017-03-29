@@ -590,6 +590,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderTitlebar() {
+
+    if (!__WIN32__ && this.state.windowState === 'full-screen') {
+      return null
+    }
+
     const winControls = __WIN32__
       ? <WindowControls />
       : null
