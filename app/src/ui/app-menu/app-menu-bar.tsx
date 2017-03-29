@@ -321,6 +321,10 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
 
   private onMenuButtonKeyDown = (item: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => {
 
+    if (event.isDefaultPrevented) {
+      return
+    }
+
     const openMenu = this.props.foldoutState && this.props.appMenu.length > 1
       ? this.props.appMenu[1]
       : null
