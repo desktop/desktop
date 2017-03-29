@@ -11,6 +11,7 @@ import { CloningRepository, ICloningRepositoryState, IGitHubUser, SignInState } 
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
+import { WindowState } from './window-state'
 
 export { ICloningRepositoryState }
 export { ICommitMessage }
@@ -42,6 +43,10 @@ export interface IAppState {
    */
   readonly signInState: SignInState | null
 
+  /**
+   * The current state of the Window, ie maximized, minimized full-screen etc.
+   */
+  readonly windowState: WindowState
   readonly showWelcomeFlow: boolean
   readonly loading: boolean
   readonly currentPopup: Popup | null

@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 import * as Path from 'path'
 import {
   IRepositoryState,
@@ -41,6 +41,7 @@ import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
 import { SignInStore } from './sign-in-store'
+import { WindowState, getWindowState } from '../window-state'
 
 import {
   getGitDir,
@@ -128,6 +129,7 @@ export class AppStore {
 
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
+  private windowState: WindowState
 
   private readonly statsStore: StatsStore
 
@@ -141,6 +143,12 @@ export class AppStore {
 
     const hasShownWelcomeFlow = localStorage.getItem(HasShownWelcomeFlowKey)
     this.showWelcomeFlow = !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
+
+    this.windowState = getWindowState(remote.getCurrentWindow())
+
+    ipcRenderer.on('window-state-changed', (_, args) => {
+      this.windowState = args as WindowState
+    })
 
     ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
       this.setAppMenu(menu)
@@ -317,6 +325,7 @@ export class AppStore {
         ...this.repositories,
         ...this.cloningRepositoriesStore.repositories,
       ],
+      windowState: this.windowState,
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
       currentPopup: this.currentPopup,
