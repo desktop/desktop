@@ -281,9 +281,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   private onMenuButtonMouseEnter = (item: ISubmenuItem) => {
     if (this.props.appMenu.length > 1) {
       this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item))
-    }
-
-    if (this.hasFocus) {
+    } else {
       this.restoreFocusOrBlur()
     }
   }
