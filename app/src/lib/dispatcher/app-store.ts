@@ -41,6 +41,7 @@ import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
 import { SignInStore } from './sign-in-store'
+import { hasShownWelcomeFlow, showWelcomeFlowCompleted } from '../welcome'
 
 import {
   getGitDir,
@@ -65,9 +66,6 @@ import {
 import { openShell } from '../open-shell'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
-
-/** The `localStorage` key for whether we've shown the Welcome flow yet. */
-const HasShownWelcomeFlowKey = 'has-shown-welcome-flow'
 
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
@@ -138,9 +136,7 @@ export class AppStore {
     this._issuesStore = issuesStore
     this.statsStore = statsStore
     this.signInStore = signInStore
-
-    const hasShownWelcomeFlow = localStorage.getItem(HasShownWelcomeFlowKey)
-    this.showWelcomeFlow = !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
+    this.showWelcomeFlow = hasShownWelcomeFlow()
 
     ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
       this.setAppMenu(menu)
@@ -1262,7 +1258,7 @@ export class AppStore {
 
     this.emitUpdate()
 
-    localStorage.setItem(HasShownWelcomeFlowKey, '1')
+    showWelcomeFlowCompleted()
 
     return Promise.resolve()
   }
