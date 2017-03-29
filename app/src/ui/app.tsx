@@ -60,13 +60,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   private lastKeyPressed: string | null = null
 
   /**
-   * The instance of the application menu bar or null if no menu bar
-   * is mounted. This will always be null when not on Windows since we
-   * only render a custom menu bar on Windows.
-   */
-  private appMenuBar: AppMenuBar | null = null
-
-  /**
    * Gets a value indicating whether or not we're currently showing a
    * modal dialog such as the preferences, or an error dialog.
    */
@@ -578,7 +571,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     return (
       <AppMenuBar
-        ref={this.onAppMenuBarRef}
         appMenu={this.state.appMenuState}
         dispatcher={this.props.dispatcher}
         highlightAppMenuAccessKeys={this.state.highlightAccessKeys}
@@ -586,10 +578,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         onLostFocus={this.onMenuBarLostFocus}
       />
     )
-  }
-
-  private onAppMenuBarRef = (menuBar: AppMenuBar | null) => {
-    this.appMenuBar = menuBar
   }
 
   private onMenuBarLostFocus = () => {
