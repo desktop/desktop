@@ -118,6 +118,14 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     }
   }
 
+  public render() {
+    return (
+      <div id='app-menu-bar' ref={this.onMenuBarRef}>
+        {this.state.menuItems.map(this.renderMenuItem, this)}
+      </div>
+    )
+  }
+
   /**
    * Move keyboard focus to the first menu item button in the
    * menu bar. This has no effect when a menu is currently open.
@@ -153,14 +161,6 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     if (this.focusedButton) {
       this.focusedButton.blur()
     }
-  }
-
-  public render() {
-    return (
-      <div id='app-menu-bar' ref={this.onMenuBarRef}>
-        {this.state.menuItems.map(this.renderMenuItem, this)}
-      </div>
-    )
   }
 
   private onMenuBarFocusIn = (event: FocusEvent) => {
