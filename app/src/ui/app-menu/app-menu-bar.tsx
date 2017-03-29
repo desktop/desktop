@@ -151,11 +151,9 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     const firstMenuItem = rootItems[0]
     const firstMenuItemComponent = this.menuButtonRefsByMenuItemId[firstMenuItem.id]
 
-    if (!firstMenuItemComponent) {
-      return
+    if (firstMenuItemComponent) {
+      firstMenuItemComponent.focusButton()
     }
-
-    firstMenuItemComponent.focusButton()
   }
 
   /**
