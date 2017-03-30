@@ -151,15 +151,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
     }
   }
 
-  /**
-   * Programmatically remove keyboard focus from the button element.
-   */
-  public blurButton() {
-    if (this.innerDropDown) {
-      this.innerDropDown.blurButton()
-    }
-  }
-
   public componentDidMount() {
     if (this.props.onDidMount) {
       this.props.onDidMount(this.props.menuItem, this)
@@ -218,14 +209,7 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
     this.props.onKeyDown(this.props.menuItem, event)
 
     if (!this.isMenuOpen && !event.defaultPrevented) {
-      // Hitting Escape while focused on the menu button (while the menu
-      // is collapsed) should remove focus. Ideally it should even restore
-      // focus to whatever was selected previously but that's non-trivial
-      // so we'll live with blurring for now.
-      if (event.key === 'Escape') {
-        this.blurButton()
-        event.preventDefault()
-      } else if (event.key === 'ArrowDown') {
+      if (event.key === 'ArrowDown') {
         this.props.onOpen(this.props.menuItem, true)
         event.preventDefault()
       }
