@@ -238,15 +238,6 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     }
   }
 
-  /**
-   * Programmatically remove keyboard focus from the button element.
-   */
-  public blurButton() {
-    if (this.innerButton) {
-      this.innerButton.blurButton()
-    }
-  }
-
   public render() {
 
     const className = classNames(
