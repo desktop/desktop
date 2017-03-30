@@ -15,9 +15,14 @@ interface IAboutProps {
   readonly onDismissed: () => void
 
   /**
+   * The name of the currently installed (and running) application
+   */
+  readonly applicationName: string
+
+  /**
    * The currently installed (and running) version of the app.
    */
-  readonly version: string
+  readonly applicationVersion: string
 }
 
 const releaseNotesUri = 'https://desktop.github.com/release-notes/tng/'
@@ -47,7 +52,8 @@ export class About extends React.Component<IAboutProps, void> {
 
   public render() {
 
-    const version = this.props.version
+    const name = this.props.applicationName
+    const version = this.props.applicationVersion
     const releaseNotesLink = <LinkButton uri={releaseNotesUri}>release notes</LinkButton>
 
     return (
@@ -59,7 +65,7 @@ export class About extends React.Component<IAboutProps, void> {
           <Row className='logo'>
             <Octicon symbol={OcticonSymbol.markGithub} />
           </Row>
-          <h2>GitHub Desktop</h2>
+          <h2>{name}</h2>
           <p>
             Version {version} ({releaseNotesLink})
           </p>

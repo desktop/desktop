@@ -37,7 +37,7 @@ import { AddExistingRepository, CreateRepository, CloneRepository } from './add-
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 import { About } from './about'
-import { getVersion } from './lib/app-proxy'
+import { getVersion, getName } from './lib/app-proxy'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -730,7 +730,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         return (
           <About
            onDismissed={this.onPopupDismissed}
-           version={getVersion()}
+           applicationName={getName()}
+           applicationVersion={getVersion()}
           />
         )
       default:
