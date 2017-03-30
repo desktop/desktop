@@ -188,7 +188,12 @@ function getDescriptionForError(error: DugiteError): string {
     case DugiteError.BranchAlreadyExists: return 'A branch with that name already exists'
     case DugiteError.BadRevision: return 'Bad revision'
     case DugiteError.NotAGitRepository: return 'This is not a git repository'
+    case DugiteError.ProtectedBranchForcePush: return 'This branch is protected from force-push operations.'
     case DugiteError.ProtectedBranchRequiresReview: return 'This branch is protected and any changes requires an approved review. Open a pull request with changes targeting this branch instead.'
+    case DugiteError.PushWithFileSizeExceedingLimit: return 'The push operation includes a file which exceeds GitHub\'s file size restriction of 100MB. Please remove the file from history and try again.'
+    case DugiteError.HexBranchNameRejected: return 'The branch name cannot be a 40-character string of hexadecimal characters, as this is the format that Git uses for representing objects.'
+    case DugiteError.ForcePushRejected: return 'The force push has been rejected for the current branch.'
+    case DugiteError.InvalidRefLength: return 'A ref cannot be longer than 255 characters.'
     default: return assertNever(error, `Unknown error: ${error}`)
   }
 }
