@@ -16,14 +16,12 @@
     flex-direction: column;
     font-size: var(--font-size-sm);
 
+    .summary,
     .ago {
-      color: var(--text-secondary-color);
       @include ellipsis;
     }
-
-    .summary {
-      font-weight: var(--font-weight-semibold);
-      @include ellipsis;
+    .ago {
+      color: var(--text-secondary-color);
     }
   }
 
