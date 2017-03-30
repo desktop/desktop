@@ -92,6 +92,40 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     updateStore.quitAndInstallUpdate()
   }
 
+  private renderUpdateButton() {
+
+    if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') {
+      return null
+    }
+
+    const updateStatus = this.state.updateState.status
+
+    switch (updateStatus) {
+      case UpdateStatus.UpdateReady:
+        return (
+          <Row>
+            <Button onClick={this.onQuitAndInstall}>
+              Install update
+            </Button>
+          </Row>
+        )
+      case UpdateStatus.UpdateNotAvailable:
+      case UpdateStatus.CheckingForUpdates:
+      case UpdateStatus.UpdateAvailable:
+        const disabled = updateStatus !== UpdateStatus.UpdateNotAvailable
+
+        return (
+          <Row>
+            <Button disabled={disabled} onClick={this.onCheckForUpdates} >
+              Check for updates
+            </Button>
+          </Row>
+        )
+      default:
+        return assertNever(updateStatus, `Unknown update status ${updateStatus}`)
+    }
+  }
+
   private renderCheckingForUpdate() {
     return (
       <Row className='update-status'>
@@ -175,33 +209,6 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     return null
   }
 
-  private renderButtonGroup() {
-    const updateStatus = this.state.updateState.status
-
-    switch (updateStatus) {
-      case UpdateStatus.UpdateReady:
-        return (
-          <ButtonGroup>
-            <Button type='submit' ref={this.onCloseButtonRef}>Close</Button>
-            <Button onClick={this.onQuitAndInstall}>Install update</Button>
-          </ButtonGroup>
-        )
-      case UpdateStatus.UpdateNotAvailable:
-      case UpdateStatus.CheckingForUpdates:
-      case UpdateStatus.UpdateAvailable:
-        const disabled = updateStatus !== UpdateStatus.UpdateNotAvailable
-
-        return (
-          <ButtonGroup>
-            <Button type='submit' ref={this.onCloseButtonRef}>Close</Button>
-            <Button disabled={disabled} onClick={this.onCheckForUpdates}>Check for updates</Button>
-          </ButtonGroup>
-        )
-      default:
-        return assertNever(updateStatus, `Unknown update status ${updateStatus}`)
-    }
-  }
-
   public render() {
 
     const name = this.props.applicationName
@@ -223,10 +230,13 @@ export class About extends React.Component<IAboutProps, IAboutState> {
             Version {version} ({releaseNotesLink})
           </p>
           {this.renderUpdateDetails()}
+          {this.renderUpdateButton()}
         </DialogContent>
 
         <DialogFooter>
-          {this.renderButtonGroup()}
+          <ButtonGroup>
+            <Button ref={this.onCloseButtonRef}>Close</Button>
+          </ButtonGroup>
         </DialogFooter>
       </Dialog>
     )
