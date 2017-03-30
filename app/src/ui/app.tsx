@@ -36,6 +36,8 @@ import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository, CloneRepository } from './add-repository'
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
+import { About } from './about'
+import { getVersion, getName } from './lib/app-proxy'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -217,6 +219,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'compare-branch': return this.compareBranch()
       case 'open-in-shell' : return this.openShell()
       case 'clone-repository': return this.showCloneRepo()
+      case 'show-about': return this.showAbout()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -329,6 +332,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!state || state.type !== SelectionType.Repository) { return }
 
     this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+  }
+
+  private showAbout() {
+    this.props.dispatcher.showPopup({ type: PopupType.About })
   }
 
   private selectChanges() {
@@ -592,7 +599,23 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderTitlebar() {
-    const winControls = __WIN32__
+
+    const inFullScreen = this.state.windowState === 'full-screen'
+
+    const menuBarActive = this.state.currentFoldout &&
+      this.state.currentFoldout.type === FoldoutType.AppMenu
+
+    // When we're in full-screen mode on Windows we only need to render
+    // the title bar when the menu bar is active. On other platforms we
+    // never render the title bar while in full-screen mode.
+    if (inFullScreen) {
+      if (!__WIN32__ || !menuBarActive) {
+        return null
+      }
+    }
+
+    // No Windows controls when we're in full-screen mode.
+    const winControls = __WIN32__ && !inFullScreen
       ? <WindowControls />
       : null
 
@@ -719,6 +742,14 @@ export class App extends React.Component<IAppProps, IAppState> {
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
       }
+      case PopupType.About:
+        return (
+          <About
+           onDismissed={this.onPopupDismissed}
+           applicationName={getName()}
+           applicationVersion={getVersion()}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }

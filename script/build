@@ -48,11 +48,11 @@ const options = {
     '/\\.git($|/)',
     '/node_modules/\\.bin($|/)'
   ],
-  'app-copyright': 'Copyright © 2017 GitHub, Inc.',
+  'appCopyright': 'Copyright © 2017 GitHub, Inc.',
 
   // macOS
-  'app-bundle-id': distInfo.getBundleID(),
-  'app-category-type': 'public.app-category.developer-tools',
+  'appBundleId': distInfo.getBundleID(),
+  'appCategoryType': 'public.app-category.developer-tools',
   'protocols': [
     {
       name: distInfo.getBundleID(),
@@ -62,7 +62,7 @@ const options = {
       ]
     }
   ],
-  'osx-sign': true,
+  'osxSign': true,
 
   // Windows
   win32metadata: {
