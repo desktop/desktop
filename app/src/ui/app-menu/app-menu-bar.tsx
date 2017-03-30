@@ -208,9 +208,7 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     if (this.stolenFocusElement && document.contains(this.stolenFocusElement)) {
       this.stolenFocusElement.focus()
     } else if (document.activeElement instanceof HTMLElement) {
-      // http://w3c.github.io/html/editing.html#focus-management-apis
-      // See section element.blur being discouraged.
-      document.documentElement.focus()
+      document.activeElement.blur()
     }
 
     // Don't want to hold on to this a moment longer than necessary.
