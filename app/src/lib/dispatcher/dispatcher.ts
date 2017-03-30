@@ -18,6 +18,7 @@ import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
+import { structuralEquals } from '../equality'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -171,7 +172,10 @@ export class Dispatcher {
   /** Refresh the associated GitHub repository. */
   public async refreshGitHubRepositoryInfo(repository: Repository): Promise<Repository> {
     const refreshedRepository = await this.appStore._repositoryWithRefreshedGitHubRepository(repository)
-    if (refreshedRepository === repository) { return refreshedRepository }
+
+    if (structuralEquals(refreshedRepository, repository)) {
+      return refreshedRepository
+    }
 
     const repo = await this.dispatchToSharedProcess<IRepository>({ name: 'update-github-repository', repository: refreshedRepository })
     return Repository.fromJSON(repo)

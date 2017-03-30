@@ -101,16 +101,6 @@ export interface IToolbarDropdownProps {
    * detrimental to accessibility in most scenarios.
    */
   readonly tabIndex?: number
-
-  /**
-   * A function that's called when the button element receives keyboard focus.
-   */
-  readonly onButtonFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void
-
-  /**
-   * A function that's called when the button element looses keyboard focus.
-   */
-  readonly onButtonBlur?: (event: React.FocusEvent<HTMLButtonElement>) => void
 }
 
 interface IToolbarDropdownState {
@@ -248,15 +238,6 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     }
   }
 
-  /**
-   * Programmatically remove keyboard focus from the button element.
-   */
-  public blurButton() {
-    if (this.innerButton) {
-      this.innerButton.blurButton()
-    }
-  }
-
   public render() {
 
     const className = classNames(
@@ -280,8 +261,6 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         disabled={this.props.disabled}
         onKeyDown={this.props.onKeyDown}
         tabIndex={this.props.tabIndex}
-        onButtonFocus={this.props.onButtonFocus}
-        onButtonBlur={this.props.onButtonBlur}
       >
         {this.props.children}
         {this.renderDropdownArrow()}

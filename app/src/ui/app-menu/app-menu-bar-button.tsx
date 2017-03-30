@@ -82,21 +82,12 @@ interface IAppMenuBarButtonProps {
    * component or element within the foldout when that is open like, for
    * example, MenuItem components.
    * 
-   * Consumers of this event should not act on the event if the event has
-   * had its default action prevented by an earlier consumer that's called
-   * the preventDefault method on the event instance.
+   * This function is called before the menu bar button itself does any
+   * processing of the event so consumers should make sure to call
+   * event.preventDefault if they act on the event in order to make sure that
+   * the menu bar button component doesn't act on the same key.
    */
   readonly onKeyDown: (menuItem: ISubmenuItem, event: React.KeyboardEvent<HTMLDivElement>) => void
-
-  /**
-   * A function that's called when the button element receives keyboard focus.
-   */
-  readonly onButtonFocus?: (event: React.FocusEvent<HTMLButtonElement>) => void
-
-  /**
-   * A function that's called when the button element looses keyboard focus.
-   */
-  readonly onButtonBlur?: (event: React.FocusEvent<HTMLButtonElement>) => void
 
   /**
    * A function that's called once the component has been mounted. This, and
@@ -160,15 +151,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
     }
   }
 
-  /**
-   * Programmatically remove keyboard focus from the button element.
-   */
-  public blurButton() {
-    if (this.innerDropDown) {
-      this.innerDropDown.blurButton()
-    }
-  }
-
   public componentDidMount() {
     if (this.props.onDidMount) {
       this.props.onDidMount(this.props.menuItem, this)
@@ -199,8 +181,6 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
         onKeyDown={this.onKeyDown}
         disabled={disabled}
         tabIndex={-1}
-        onButtonFocus={this.props.onButtonFocus}
-        onButtonBlur={this.props.onButtonBlur}
       >
         <MenuListItem
           item={item}
@@ -222,21 +202,18 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
 
   private onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
 
-    if (!this.isMenuOpen) {
-      // Hitting Escape while focused on the menu button (while the menu
-      // is collapsed) should remove focus. Ideally it should even restore
-      // focus to whatever was selected previously but that's non-trivial
-      // so we'll live with blurring for now.
-      if (event.key === 'Escape') {
-        this.blurButton()
-        event.preventDefault()
-      } else if (event.key === 'ArrowDown') {
+    if (event.defaultPrevented) {
+      return
+    }
+
+    this.props.onKeyDown(this.props.menuItem, event)
+
+    if (!this.isMenuOpen && !event.defaultPrevented) {
+      if (event.key === 'ArrowDown') {
         this.props.onOpen(this.props.menuItem, true)
         event.preventDefault()
       }
     }
-
-    this.props.onKeyDown(this.props.menuItem, event)
   }
 
   private onMenuClose = (closeSource: CloseSource) => {

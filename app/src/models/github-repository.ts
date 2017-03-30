@@ -1,5 +1,6 @@
 import { Owner, IOwner } from './owner'
 import { IAPIRepository } from '../lib/api'
+import { structuralEquals } from '../lib/equality'
 
 /** The data-only interface for GitHubRepository for transport across IPC. */
 export interface IGitHubRepository {
@@ -49,7 +50,9 @@ export class GitHubRepository implements IGitHubRepository {
 
   /** Create a new copy of the repository with the API information copied over. */
   public withAPI(apiRepository: IAPIRepository): GitHubRepository {
-    return new GitHubRepository(this.name, this.owner, this.dbID, apiRepository.private, apiRepository.fork, apiRepository.htmlUrl, apiRepository.defaultBranch, apiRepository.cloneUrl)
+    const newRepository = new GitHubRepository(this.name, this.owner, this.dbID, apiRepository.private, apiRepository.fork, apiRepository.htmlUrl, apiRepository.defaultBranch, apiRepository.cloneUrl)
+
+    return structuralEquals(newRepository, this) ? this : newRepository
   }
 
   public get endpoint(): string {

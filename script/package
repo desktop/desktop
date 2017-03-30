@@ -37,25 +37,28 @@ function packageWindows () {
     cp.execSync(`powershell ${setupCertificatePath}`)
   }
 
-  const iconLocation = path.join(__dirname, '..', 'app', 'static', 'icon.ico')
+  const iconSource = path.join(__dirname, '..', 'app', 'static', 'icon.ico')
 
-  if (!fs.existsSync(iconLocation)) {
-    console.error(`expected icon not found at location: ${iconLocation}`)
+  if (!fs.existsSync(iconSource)) {
+    console.error(`expected setup icon not found at location: ${iconSource}`)
     process.exit(1)
   }
 
-  const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
+  // TODO: change this when the repository is public
+  // 'https://raw.githubusercontent.com/desktop/desktop/master/app/static/icon.ico'
+  const iconUrl = 'https://www.dropbox.com/s/6n9wuyqhy9xhow4/icon.ico?dl=1'
 
   const options = {
     appDirectory: distPath,
     outputDirectory: outputDir,
     authors: distInfo.getCompanyName(),
-    iconUrl: iconLocation,
-    setupIcon: iconLocation,
+    iconUrl: iconUrl,
+    setupIcon: iconSource,
     exe: `${productName}.exe`
   }
 
   if (process.env.APPVEYOR) {
+    const certificatePath = path.join(__dirname, 'windows-certificate.pfx')
     options.signWithParams = `/f ${certificatePath} /p ${process.env.WINDOWS_CERT_PASSWORD} /tr http://timestamp.digicert.com /td sha256`
   }
 
