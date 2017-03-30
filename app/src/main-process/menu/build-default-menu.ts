@@ -37,7 +37,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     template.push({
       label: 'GitHub Desktop',
       submenu: [
-        { role: 'about' },
+        { role: 'about', click: emit('show-about') },
         { type: 'separator' },
         ...updateMenuItems,
         { type: 'separator' },
