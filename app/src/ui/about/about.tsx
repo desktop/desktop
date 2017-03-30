@@ -22,7 +22,10 @@ interface IAboutProps {
 
 const releaseNotesUri = 'https://desktop.github.com/release-notes/tng/'
 
-/** The Create Branch component. */
+/**
+ * A dialog that presents information about the
+ * running application such as name and version.
+ */
 export class About extends React.Component<IAboutProps, void> {
 
   private closeButton: Button | null = null
