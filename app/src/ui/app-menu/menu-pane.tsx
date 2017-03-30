@@ -37,7 +37,7 @@ interface IMenuPaneProps {
    * this only picks up on keyboard events received by a MenuItem and does
    * not cover keyboard events received on the MenuPane component itself.
    */
-  readonly onItemKeyDown: (depth: number, item: MenuItem, event: React.KeyboardEvent<any>) => void
+  readonly onItemKeyDown?: (depth: number, item: MenuItem, event: React.KeyboardEvent<any>) => void
 
   /**
    * A callback for when the MenuPane selection changes (i.e. a new menu item is selected).
@@ -45,7 +45,7 @@ interface IMenuPaneProps {
   readonly onSelectionChanged: (depth: number, item: MenuItem, source: SelectionSource) => void
 
   /** Callback for when the mouse enters the menu pane component */
-  readonly onMouseEnter: (depth: number) => void
+  readonly onMouseEnter?: (depth: number) => void
 
   /**
    * Whether or not the application menu was opened with the Alt key, this
@@ -183,8 +183,10 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
   }
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
-    const item = this.state.items[row]
-    this.props.onItemKeyDown(this.props.depth, item, event)
+    if (this.props.onItemKeyDown) {
+      const item = this.state.items[row]
+      this.props.onItemKeyDown(this.props.depth, item, event)
+    }
   }
 
   private canSelectRow = (row: number) => {
@@ -197,7 +199,9 @@ export class MenuPane extends React.Component<IMenuPaneProps, IMenuPaneState> {
   }
 
   private onMouseEnter = (event: React.MouseEvent<any>) => {
-    this.props.onMouseEnter(this.props.depth)
+    if (this.props.onMouseEnter) {
+      this.props.onMouseEnter(this.props.depth)
+    }
   }
 
   private renderMenuItem = (row: number) => {

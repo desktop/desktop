@@ -1,5 +1,16 @@
 {
   "releases": {
+    "0.0.31": [
+      "[New] Prompt user to login when authentication error occurs - #903",
+      "[New] Windows application has a new app menu, replaces previous hamburger menu - #991",
+      "[New] Refreshed colours to align with GitHub website scheme -  #1077",
+      "[Fixed] Improved error handling when probing for a GitHub Enterprise server - #1026",
+      "[Fixed] User can cancel 2FA flow - #1057",
+      "[Fixed] Tidy up current set of menu items - #1063",
+      "[Fixed] Manually focus the window when a URL action has been received - #1072",
+      "[Fixed] Disable middle-click event to prevent new windows being launched - #1074",
+      "[Fixed] Pre-fill the account name in the Welcome wizard, not login - #1078"
+    ],
     "0.0.30": [
       "[Fixed] Crash when invoking menu item due to incorrect method signature - #1041"
     ],

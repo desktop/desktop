@@ -320,6 +320,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
+  private showCloneRepo() {
+    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
+  }
+
   private showBranches() {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
@@ -778,14 +782,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     )
   }
 
-    private onAddMenuDropdownStateChanged = (newState: DropdownState) => {
-    if (newState === 'open') {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.AddMenu, enableAccessKeyNavigation: false })
-    } else {
-      this.props.dispatcher.closeFoldout()
-    }
-  }
-
   private renderRepositoryList = (): JSX.Element => {
     const selectedRepository = this.state.selectedState ? this.state.selectedState.repository : null
     return <RepositoriesList
@@ -972,63 +968,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         <div
           className='sidebar-section'
           style={{ width: this.state.sidebarWidth }}>
-          {this.renderAddToolbarButton()}
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
       </Toolbar>
     )
-  }
-
-  private renderAddToolbarButton() {
-    const isOpen = this.state.currentFoldout
-      && this.state.currentFoldout.type === FoldoutType.AddMenu
-
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-
-    return (
-      <ToolbarDropdown
-        icon={OcticonSymbol.plus}
-        className='app-menu'
-        dropdownContentRenderer={this.renderAddMenu}
-        onDropdownStateChanged={this.onAddMenuDropdownStateChanged}
-        dropdownState={currentState} />
-    )
-  }
-
-  private renderAddMenu = (): JSX.Element | null => {
-    const foldoutStyle = {
-      width: this.state.sidebarWidth,
-    }
-
-    return (
-      <div id='app-menu-foldout' style={foldoutStyle}>
-        <ul className='menu-pane add-menu'>
-          <li className='add-menu-item add-menu-item-header'>Repository</li>
-          <li className='add-menu-item' onClick={this.showAddLocalRepo}>Add local repository</li>
-          <li className='add-menu-item' onClick={this.showCreateRepo}>Create new repository</li>
-          <li className='add-menu-item' onClick={this.showCloneRepo}>Clone repository</li>
-          <li className='add-menu-item add-menu-item-header'>Branches</li>
-          <li className='add-menu-item' onClick={this.showCreateBranch}>Create new branch</li>
-        </ul>
-      </div>
-    )
-  }
-
-  private showAddLocalRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
-  }
-
-  private showCreateRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
-  }
-
-  private showCloneRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
   }
 
   private renderRepository() {
