@@ -13,7 +13,7 @@ import { IAutocompletionProvider } from '../autocompletion'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 
-const RowHeight = 30
+const RowHeight = 29
 
 interface IChangesListProps {
   readonly repository: Repository

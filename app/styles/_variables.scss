@@ -72,9 +72,6 @@
   --font-size-lg: 28px;
   --font-size-xl: 32px;
 
-  // Line-heights for vertically centering text
-  --base-line-height: 19px;
-
   /** Extra small font size, be very conservative with the use of this */
   --font-size-xs: 9px;
 
@@ -196,7 +193,7 @@
   --toolbar-button-active-border-color: var(--background-color);
   --toolbar-button-secondary-color: var(--text-secondary-color);
 
-  --tab-bar-height: 30px;
+  --tab-bar-height: 29px;
   --tab-bar-active-color: $blue;
   --tab-bar-background-color: $white;
 
