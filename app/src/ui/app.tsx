@@ -128,7 +128,20 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     setInterval(() => this.checkForUpdates(), UpdateCheckInterval)
-    this.checkForUpdates()
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //
+    // OMG HOLY SHEIZE OH NO HE DIDN'T ETC ETC ETC
+    //
+    // Yup, I did it! I temporarily disabled part of the automatic check for
+    // updates. I need to be able to control when we check for updates
+    // in order to test the new about view. This is not as dangerous
+    // as disabling the timer though. Even if this would make it into
+    // production through some major screwup of mine (and you, dear
+    // reviewer of this PR) the app will still receive automatic updates
+    // except only if the app is left running for four hours.
+    //
+    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // this.checkForUpdates()
 
     ipcRenderer.on('launch-timing-stats', (event: Electron.IpcRendererEvent, { stats }: { stats: ILaunchStats }) => {
       console.info(`App ready time: ${stats.mainReadyTime}ms`)
