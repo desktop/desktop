@@ -60,3 +60,9 @@
     margin-left: var(--spacing-half);
   }
 }
+
+.small-button {
+  font-size: var(--font-size-sm);
+  padding: 0 var(--spacing-half);
+  height: 21px;
+}
