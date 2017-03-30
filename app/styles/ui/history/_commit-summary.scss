@@ -55,7 +55,7 @@
     white-space: pre-line;
     border-bottom: var(--base-border);
     padding-right: 150px;
-    overflow: hidden;
+    overflow: auto;
     overflow-x: hidden;
     position: relative;
 
@@ -70,7 +70,6 @@
 
   &-expanded {
     min-height: 100vh;
-    overflow: auto;
   }
 
   &-meta {
