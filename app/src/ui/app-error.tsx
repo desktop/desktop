@@ -102,6 +102,18 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
+  private renderErrorMessage(error: Error) {
+    if (error instanceof GitError) {
+      const description = error.result.gitErrorDescription
+
+      if (description && description.length) {
+        return <p>{error.result.gitErrorDescription}</p>
+      }
+    }
+
+    return <p className='monospace'>{error.message}</p>
+  }
+
   private renderDialog() {
     const error = this.state.error
 
@@ -117,7 +129,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         onDismissed={this.onDismissed}
         disabled={this.state.disabled}>
         <DialogContent>
-          {error instanceof GitError ? error.result.gitErrorDescription : error.message}
+          {this.renderErrorMessage(error)}
         </DialogContent>
         <DialogFooter>
           {this.renderFooter(error)}
