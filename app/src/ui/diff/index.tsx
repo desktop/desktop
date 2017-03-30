@@ -32,6 +32,9 @@ if (__DARWIN__) {
   require('codemirror/addon/scroll/simplescrollbars')
 }
 
+// Required for us to be able to customize the foreground color of selected text
+require('codemirror/addon/selection/mark-selection')
+
 /** The props for the Diff component. */
 interface IDiffProps {
   readonly repository: Repository
