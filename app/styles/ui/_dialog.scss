@@ -245,10 +245,19 @@ dialog {
 
   &#app-error {
     .dialog-content {
-      font-family: var(--font-family-monospace);
-      -webkit-user-select: auto;
-      user-select: auto;
-      cursor: text;
+      p {
+        -webkit-user-select: auto;
+        user-select: auto;
+        cursor: text;
+
+        // Preserve newlines and other white space in error messages
+        // but make sure we wrap if necessary.
+        white-space: pre-wrap;
+
+        &.monospace {
+          font-family: var(--font-family-monospace);
+        }
+      }
 
       max-height: 400px;
       overflow-y: auto;
