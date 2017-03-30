@@ -139,6 +139,9 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   }
 
   public componentWillUnmount() {
+    if (this.hasFocus) {
+      this.restoreFocusOrBlur()
+    }
     // This is perhaps being overly cautious but just in case we're unmounted
     // and someone else is still holding a reference to us we want to make sure
     // that we're not preventing GC from doing its job.
@@ -179,10 +182,17 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     }
 
     const firstMenuItem = rootItems[0]
-    const firstMenuItemComponent = this.menuButtonRefsByMenuItemId[firstMenuItem.id]
 
-    if (firstMenuItemComponent) {
-      firstMenuItemComponent.focusButton()
+    if (firstMenuItem) {
+      this.focusMenuItem(firstMenuItem)
+    }
+  }
+
+  private focusMenuItem(item: ISubmenuItem) {
+    const itemComponent = this.menuButtonRefsByMenuItemId[item.id]
+
+    if (itemComponent) {
+      itemComponent.focusButton()
     }
   }
 
@@ -282,8 +292,8 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   private onMenuButtonMouseEnter = (item: ISubmenuItem) => {
     if (this.props.appMenu.length > 1) {
       this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item))
-    } else {
-      this.restoreFocusOrBlur()
+    } else if (this.hasFocus) {
+      this.focusMenuItem(item)
     }
   }
 
@@ -336,9 +346,11 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
       return
     }
 
-    if (event.key === 'Escape' && this.isMenuItemOpen(item)) {
-      this.restoreFocusOrBlur()
-      event.preventDefault()
+    if (event.key === 'Escape') {
+      if (!this.isMenuItemOpen(item)) {
+        this.restoreFocusOrBlur()
+        event.preventDefault()
+      }
     } else  if (event.key === 'ArrowLeft') {
       this.moveToAdjacentMenu('previous', item)
       event.preventDefault()
