@@ -27,14 +27,6 @@ import { fatalError } from '../../lib/fatal-error'
 
 import { RangeSelectionSizePixels } from './edge-detection'
 
-if (__DARWIN__) {
-  // This has to be required to support the `simple` scrollbar style.
-  require('codemirror/addon/scroll/simplescrollbars')
-}
-
-// Required for us to be able to customize the foreground color of selected text
-require('codemirror/addon/selection/mark-selection')
-
 /** The props for the Diff component. */
 interface IDiffProps {
   readonly repository: Repository
