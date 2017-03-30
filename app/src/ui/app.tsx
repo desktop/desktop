@@ -230,9 +230,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   private checkForUpdates() {
     if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') { return }
 
+    updateStore.checkForUpdates(this.getUsernameForUpdateCheck())
+  }
+
+  private getUsernameForUpdateCheck() {
     const dotComUser = this.getDotComUser()
-    const login = dotComUser ? dotComUser.login : ''
-    updateStore.checkForUpdates(login)
+    return dotComUser ? dotComUser.login : ''
   }
 
   private getDotComUser(): User | null {
@@ -734,6 +737,7 @@ export class App extends React.Component<IAppProps, IAppState> {
            onDismissed={this.onPopupDismissed}
            applicationName={getName()}
            applicationVersion={getVersion()}
+           usernameForUpdateCheck={this.getUsernameForUpdateCheck()}
           />
         )
       default:

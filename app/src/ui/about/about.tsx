@@ -23,6 +23,8 @@ interface IAboutProps {
    * The currently installed (and running) version of the app.
    */
   readonly applicationVersion: string
+
+  readonly usernameForUpdateCheck: string
 }
 
 const releaseNotesUri = 'https://desktop.github.com/release-notes/tng/'
