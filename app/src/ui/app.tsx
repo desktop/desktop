@@ -18,7 +18,7 @@ import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolb
 import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
 import { setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
-import { updateStore, UpdateState } from './lib/update-store'
+import { updateStore, UpdateStatus } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
@@ -88,15 +88,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     updateStore.onDidChange(state => {
+      const status = state.status
+
       const visibleItem = (function () {
-        switch (state) {
-          case UpdateState.CheckingForUpdates: return 'checking-for-updates'
-          case UpdateState.UpdateReady: return 'quit-and-install-update'
-          case UpdateState.UpdateNotAvailable: return 'check-for-updates'
-          case UpdateState.UpdateAvailable: return 'downloading-update'
+        switch (status) {
+          case UpdateStatus.CheckingForUpdates: return 'checking-for-updates'
+          case UpdateStatus.UpdateReady: return 'quit-and-install-update'
+          case UpdateStatus.UpdateNotAvailable: return 'check-for-updates'
+          case UpdateStatus.UpdateAvailable: return 'downloading-update'
         }
 
-        return assertNever(state, `Unknown update state: ${state}`)
+        return assertNever(status, `Unknown update state: ${status}`)
       })() as MenuIDs
 
       const menuItems = new Set([
@@ -113,7 +115,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       setMenuVisible(visibleItem, true)
 
-      if (state === UpdateState.UpdateReady) {
+      if (status === UpdateStatus.UpdateReady) {
         this.props.dispatcher.showPopup({ type: PopupType.UpdateAvailable })
       }
     })
@@ -250,9 +252,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   private checkForUpdates() {
     if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') { return }
 
+    updateStore.checkForUpdates(this.getUsernameForUpdateCheck())
+  }
+
+  private getUsernameForUpdateCheck() {
     const dotComUser = this.getDotComUser()
-    const login = dotComUser ? dotComUser.login : ''
-    updateStore.checkForUpdates(login)
+    return dotComUser ? dotComUser.login : ''
   }
 
   private getDotComUser(): User | null {
@@ -770,6 +775,7 @@ export class App extends React.Component<IAppProps, IAppState> {
            onDismissed={this.onPopupDismissed}
            applicationName={getName()}
            applicationVersion={getVersion()}
+           usernameForUpdateCheck={this.getUsernameForUpdateCheck()}
           />
         )
       default:
