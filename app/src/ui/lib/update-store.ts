@@ -9,7 +9,7 @@ import { Emitter, Disposable } from 'event-kit'
 import { getVersion } from './app-proxy'
 
 /** The states the auto updater can be in. */
-export enum UpdateState {
+export enum UpdateStatus {
   /** The auto updater is checking for updates. */
   CheckingForUpdates,
 
@@ -28,7 +28,7 @@ const UpdatesURLBase = 'https://central.github.com/api/deployments/desktop/deskt
 /** A store which contains the current state of the auto updater. */
 class UpdateStore {
   private emitter = new Emitter()
-  private _state = UpdateState.UpdateNotAvailable
+  private _state = UpdateStatus.UpdateNotAvailable
 
   public constructor() {
     autoUpdater.on('error', this.onAutoUpdaterError)
@@ -56,27 +56,27 @@ class UpdateStore {
   }
 
   private onCheckingForUpdate = () => {
-    this._state = UpdateState.CheckingForUpdates
+    this._state = UpdateStatus.CheckingForUpdates
     this.emitDidChange()
   }
 
   private onUpdateAvailable = () => {
-    this._state = UpdateState.UpdateAvailable
+    this._state = UpdateStatus.UpdateAvailable
     this.emitDidChange()
   }
 
   private onUpdateNotAvailable = () => {
-    this._state = UpdateState.UpdateNotAvailable
+    this._state = UpdateStatus.UpdateNotAvailable
     this.emitDidChange()
   }
 
   private onUpdateDownloaded = () => {
-    this._state = UpdateState.UpdateReady
+    this._state = UpdateStatus.UpdateReady
     this.emitDidChange()
   }
 
   /** Register a function to call when the auto updater state changes. */
-  public onDidChange(fn: (state: UpdateState) => void): Disposable {
+  public onDidChange(fn: (state: UpdateStatus) => void): Disposable {
     return this.emitter.on('did-change', fn)
   }
 
@@ -94,7 +94,7 @@ class UpdateStore {
   }
 
   /** The current auto updater state. */
-  public get state(): UpdateState {
+  public get state(): UpdateStatus {
     return this._state
   }
 

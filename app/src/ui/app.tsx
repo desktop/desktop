@@ -18,7 +18,7 @@ import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolb
 import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
 import { setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
-import { updateStore, UpdateState } from './lib/update-store'
+import { updateStore, UpdateStatus } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
@@ -90,10 +90,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     updateStore.onDidChange(state => {
       const visibleItem = (function () {
         switch (state) {
-          case UpdateState.CheckingForUpdates: return 'checking-for-updates'
-          case UpdateState.UpdateReady: return 'quit-and-install-update'
-          case UpdateState.UpdateNotAvailable: return 'check-for-updates'
-          case UpdateState.UpdateAvailable: return 'downloading-update'
+          case UpdateStatus.CheckingForUpdates: return 'checking-for-updates'
+          case UpdateStatus.UpdateReady: return 'quit-and-install-update'
+          case UpdateStatus.UpdateNotAvailable: return 'check-for-updates'
+          case UpdateStatus.UpdateAvailable: return 'downloading-update'
         }
 
         return assertNever(state, `Unknown update state: ${state}`)
@@ -113,7 +113,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       setMenuVisible(visibleItem, true)
 
-      if (state === UpdateState.UpdateReady) {
+      if (state === UpdateStatus.UpdateReady) {
         this.props.dispatcher.showPopup({ type: PopupType.UpdateAvailable })
       }
     })
