@@ -293,7 +293,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       submenu: helpItems,
     })
   } else {
-    // TODO: This needs a Window about item
     template.push({
       label: '&Help',
       submenu: [
