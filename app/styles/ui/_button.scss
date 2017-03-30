@@ -21,6 +21,7 @@
 
   &:focus {
     outline: none;
+    background-color: var(--secondary-button-hover-background);
     box-shadow: 0 0 0 1px var(--secondary-button-focus-shadow-color);
   }
 
