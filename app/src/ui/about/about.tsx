@@ -5,7 +5,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { LinkButton} from '../lib/link-button'
+import { LinkButton } from '../lib/link-button'
 
 interface IAboutProps {
   /**
