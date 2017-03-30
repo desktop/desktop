@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { FileChange } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
-import { EmojiText } from '../lib/emoji-text'
+import { RichText } from '../lib/rich-text'
 import { LinkButton } from '../lib/link-button'
 import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
@@ -45,9 +45,11 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
     return (
       <div id='commit-summary'>
         <div className='commit-summary-header'>
-          <EmojiText className='commit-summary-title' emoji={this.props.emoji}>
-            {this.props.summary}
-          </EmojiText>
+          <RichText
+            className='commit-summary-title'
+            emoji={this.props.emoji}
+            repository={this.props.repository}
+            text={this.props.summary} />
 
           <ul className='commit-summary-meta'>
             <li className='commit-summary-meta-item'
@@ -79,7 +81,11 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
           </ul>
         </div>
 
-        <EmojiText className='commit-summary-description' emoji={this.props.emoji}>{this.props.body}</EmojiText>
+        <RichText
+          className='commit-summary-description'
+          emoji={this.props.emoji}
+          repository={this.props.repository}
+          text={this.props.body} />
       </div>
     )
   }

@@ -82,7 +82,11 @@ app.on('ready', () => {
     event.preventDefault()
 
     const action = parseURL(url)
-    getMainWindow().sendURLAction(action)
+    const window = getMainWindow()
+    // This manual focus call _shouldn't_ be necessary, but is for Chrome on
+    // macOS. See https://github.com/desktop/desktop/issues/973.
+    window.focus()
+    window.sendURLAction(action)
   })
 
   const menu = buildDefaultMenu(sharedProcess)
@@ -104,7 +108,7 @@ app.on('ready', () => {
     if (menuItem) {
       const window = BrowserWindow.fromWebContents(event.sender)
       const fakeEvent = { preventDefault: () => {}, sender: event.sender }
-      menuItem.click(menuItem, window, fakeEvent)
+      menuItem.click(fakeEvent, window, event.sender)
     }
   })
 
@@ -158,7 +162,10 @@ app.on('ready', () => {
     }
 
     const window = BrowserWindow.fromWebContents(event.sender)
-    menu.popup(window)
+    // TODO: read https://github.com/desktop/desktop/issues/1003
+    // to clean up this sin against T Y P E S
+    const anyMenu: any = menu
+    anyMenu.popup(window, { async: true })
   })
 
   ipcMain.on('proxy/request', (event: Electron.IpcMainEvent, { id, options }: { id: string, options: IHTTPRequest }) => {
@@ -263,6 +270,14 @@ app.on('activate', () => {
   if (!mainWindow) {
     createWindow()
   }
+})
+
+app.on('web-contents-created', (event, contents) => {
+  contents.on('new-window', (event, url) => {
+    // Prevent links or window.open from opening new windows
+    event.preventDefault()
+    sharedProcess!.console.log(`Prevented new window to: ${url}`)
+  })
 })
 
 function createWindow() {

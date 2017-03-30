@@ -48,6 +48,14 @@
     }
   }
 
+  .sidebar-message {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
   .repository-group-label {
     opacity: 0.6;
     padding: 0 var(--spacing-half) 0 var(--spacing-double);

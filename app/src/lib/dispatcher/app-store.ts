@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 import * as Path from 'path'
 import {
   IRepositoryState,
@@ -20,8 +20,8 @@ import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
 import { DiffSelection, DiffSelectionType, DiffType } from '../../models/diff'
 import { matchGitHubRepository } from '../../lib/repository-matching'
-import { API,  getUserForEndpoint, IAPIUser } from '../../lib/api'
-import { caseInsenstiveCompare } from '../compare'
+import { API, getUserForEndpoint, IAPIUser } from '../../lib/api'
+import { caseInsensitiveCompare } from '../compare'
 import { Branch, BranchType } from '../../models/branch'
 import { TipState } from '../../models/tip'
 import { Commit } from '../../models/commit'
@@ -40,6 +40,8 @@ import { getAppMenu } from '../../ui/main-process-proxy'
 import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
+import { SignInStore } from './sign-in-store'
+import { WindowState, getWindowState } from '../window-state'
 
 import {
   getGitDir,
@@ -110,6 +112,8 @@ export class AppStore {
   /** GitStores keyed by their associated Repository ID. */
   private readonly gitStores = new Map<number, GitStore>()
 
+  private readonly signInStore: SignInStore
+
   /**
    * The Application menu as an AppMenu instance or null if
    * the main process has not yet provided the renderer with
@@ -118,26 +122,34 @@ export class AppStore {
   private appMenu: AppMenu | null = null
 
   /**
-   * Used to add a highlight class to the app menu toolbar icon
-   * when the Alt key is pressed. Only applicable on non-macOS
-   * platforms.
+   * Used to highlight access keys throughout the app when the
+   * Alt key is pressed. Only applicable on non-macOS platforms.
    */
-  private highlightAppMenuToolbarButton: boolean = false
+  private highlightAccessKeys: boolean = false
 
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
+  private windowState: WindowState
 
   private readonly statsStore: StatsStore
 
-  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore) {
+  public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore, signInStore: SignInStore) {
     this.gitHubUserStore = gitHubUserStore
     this.cloningRepositoriesStore = cloningRepositoriesStore
     this.emojiStore = emojiStore
     this._issuesStore = issuesStore
     this.statsStore = statsStore
+    this.signInStore = signInStore
 
     const hasShownWelcomeFlow = localStorage.getItem(HasShownWelcomeFlowKey)
     this.showWelcomeFlow = !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
+
+    this.windowState = getWindowState(remote.getCurrentWindow())
+
+    ipcRenderer.on('window-state-changed', (_, args) => {
+      this.windowState = args as WindowState
+      this.emitUpdate()
+    })
 
     ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
       this.setAppMenu(menu)
@@ -155,8 +167,16 @@ export class AppStore {
 
     this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
+    this.signInStore.onDidAuthenticate(user => this.emitAuthenticate(user))
+    this.signInStore.onDidUpdate(() => this.emitUpdate())
+    this.signInStore.onDidError(error => this.emitError(error))
+
     const rootDir = getAppPath()
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
+  }
+
+  private emitAuthenticate(user: User) {
+    this.emitter.emit('did-authenticate', user)
   }
 
   private emitUpdate() {
@@ -165,9 +185,17 @@ export class AppStore {
     this.emitQueued = true
 
     window.requestAnimationFrame(() => {
-      this.emitter.emit('did-update', this.getState())
       this.emitQueued = false
+      this.emitter.emit('did-update', this.getState())
     })
+  }
+
+  /**
+   * Registers an event handler which will be invoked whenever
+   * a user has successfully completed a sign-in process.
+   */
+  public onDidAuthenticate(fn: (user: User) => void): Disposable {
+    return this.emitter.on('did-authenticate', fn)
   }
 
   public onDidUpdate(fn: (state: IAppState) => void): Disposable {
@@ -266,13 +294,7 @@ export class AppStore {
     const repository = this.selectedRepository
     if (!repository) { return null }
 
-    if (repository instanceof Repository) {
-      return {
-        type: SelectionType.Repository,
-        repository,
-        state: this.getRepositoryState(repository),
-      }
-    } else {
+    if (repository instanceof CloningRepository) {
       const cloningState = this.cloningRepositoriesStore.getRepositoryState(repository)
       if (!cloningState) { return null }
 
@@ -281,6 +303,19 @@ export class AppStore {
         repository,
         state: cloningState,
       }
+    }
+
+    if (repository.missing) {
+      return {
+        type: SelectionType.MissingRepository,
+        repository,
+      }
+    }
+
+    return {
+      type: SelectionType.Repository,
+      repository,
+      state: this.getRepositoryState(repository),
     }
   }
 
@@ -291,7 +326,9 @@ export class AppStore {
         ...this.repositories,
         ...this.cloningRepositoriesStore.repositories,
       ],
+      windowState: this.windowState,
       selectedState: this.getSelectedState(),
+      signInState: this.signInStore.getState(),
       currentPopup: this.currentPopup,
       currentFoldout: this.currentFoldout,
       errors: this.errors,
@@ -300,9 +337,9 @@ export class AppStore {
       emoji: this.emojiStore.emoji,
       sidebarWidth: this.sidebarWidth,
       commitSummaryWidth: this.commitSummaryWidth,
-      appMenuState: this.appMenu ? this.appMenu.openMenus : [ ],
+      appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
-      highlightAppMenuToolbarButton: this.highlightAppMenuToolbarButton,
+      highlightAccessKeys: this.highlightAccessKeys,
     }
   }
 
@@ -343,6 +380,12 @@ export class AppStore {
   private onGitStoreLoadedCommits(repository: Repository, commits: ReadonlyArray<Commit>) {
     for (const commit of commits) {
       this.gitHubUserStore._loadAndCacheUser(this.users, repository, commit.sha, commit.author.email)
+    }
+  }
+
+  private removeGitStore(repository: Repository) {
+    if (this.gitStores.has(repository.id)) {
+      this.gitStores.delete(repository.id)
     }
   }
 
@@ -495,22 +538,27 @@ export class AppStore {
     this.stopBackgroundFetching()
 
     if (!repository) { return Promise.resolve() }
+    if (!(repository instanceof Repository)) { return Promise.resolve() }
 
-    if (repository instanceof Repository) {
-      localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
+    localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
 
-      const gitHubRepository = repository.gitHubRepository
-      if (gitHubRepository) {
-        this._updateIssues(gitHubRepository)
-      }
-
-      await this._refreshRepository(repository)
-
-      this.startBackgroundFetching(repository)
-      this.refreshMentionables(repository)
-    } else {
-      return Promise.resolve()
+    if (repository.missing) {
+      // as the repository is no longer found on disk, cleaning this up
+      // ensures we don't accidentally run any Git operations against the
+      // wrong location if the user then relocates the `.git` folder elsewhere
+      this.removeGitStore(repository)
+      return
     }
+
+    const gitHubRepository = repository.gitHubRepository
+    if (gitHubRepository) {
+      this._updateIssues(gitHubRepository)
+    }
+
+    await this._refreshRepository(repository)
+
+    this.startBackgroundFetching(repository)
+    this.refreshMentionables(repository)
   }
 
   public async _updateIssues(repository: GitHubRepository) {
@@ -520,8 +568,7 @@ export class AppStore {
     try {
       await this._issuesStore.fetchIssues(repository, user)
     } catch (e) {
-      console.log(`Error fetching issues for ${repository.name}:`)
-      console.error(e)
+      console.warn(`Unable to fetch issues for ${repository.fullName}: ${e}`)
     }
   }
 
@@ -578,15 +625,14 @@ export class AppStore {
     const selectedRepository = this.selectedRepository
     let newSelectedRepository: Repository | CloningRepository | null = this.selectedRepository
     if (selectedRepository) {
-      const i = this.repositories.findIndex(r => {
-        return selectedRepository.constructor === r.constructor && r.id === selectedRepository.id
-      })
-      if (i === -1) {
-        newSelectedRepository = null
-      }
+      const r = this.repositories.find(r =>
+        r.constructor === selectedRepository.constructor && r.id === selectedRepository.id
+      ) || null
+
+      newSelectedRepository = r
     }
 
-    if (!this.selectedRepository && this.repositories.length > 0) {
+    if (newSelectedRepository === null && this.repositories.length > 0) {
       const lastSelectedID = parseInt(localStorage.getItem(LastSelectedRepositoryIDKey) || '', 10)
       if (lastSelectedID && !isNaN(lastSelectedID)) {
         newSelectedRepository = this.repositories.find(r => r.id === lastSelectedID) || null
@@ -597,9 +643,7 @@ export class AppStore {
       }
     }
 
-    if (newSelectedRepository !== selectedRepository) {
-      this._selectRepository(newSelectedRepository)
-    }
+    this._selectRepository(newSelectedRepository)
 
     this.sidebarWidth = parseInt(localStorage.getItem(sidebarWidthConfigKey) || '', 10) || defaultSidebarWidth
     this.commitSummaryWidth = parseInt(localStorage.getItem(commitSummaryWidthConfigKey) || '', 10) || defaultCommitSummaryWidth
@@ -637,7 +681,7 @@ export class AppStore {
           return file
         }
       })
-      .sort((x, y) => caseInsenstiveCompare(x.path, y.path))
+      .sort((x, y) => caseInsensitiveCompare(x.path, y.path))
 
       const includeAll = this.getIncludeAllState(mergedFiles)
 
@@ -740,7 +784,7 @@ export class AppStore {
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
 
     const state = this.getRepositoryState(repository)
-    const files = state.changesState.workingDirectory.files.filter(function(file, index, array) {
+    const files = state.changesState.workingDirectory.files.filter((file, index, array) => {
       return file.selection.getSelectionType() !== DiffSelectionType.None
     })
 
@@ -838,19 +882,21 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _refreshRepository(repository: Repository): Promise<void> {
+    if (repository.missing) { return }
+
     const state = this.getRepositoryState(repository)
     const gitStore = this.getGitStore(repository)
 
     await gitStore.loadCurrentAndDefaultBranch()
 
-    // We don't need to await this. The GitStore will notify when something
-    // changes.
+    // We don't need to await these.
+    // The GitStore will emit an update when something changes.
     gitStore.loadBranches()
     gitStore.loadCurrentRemote()
     gitStore.calculateAheadBehindForCurrentBranch()
     gitStore.updateLastFetched()
 
-    // When refreshing we *always* load Changes so that we can update the
+    // When refreshing we *always* check the status so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
     // selected.
     await this._loadStatus(repository)
@@ -1178,7 +1224,10 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _clone(url: string, path: string, user: User | null): { promise: Promise<boolean>, repository: CloningRepository } {
     const promise = this.cloningRepositoriesStore.clone(url, path, user)
-    const repository = this.cloningRepositoriesStore.repositories.find(r => r.url === url && r.path === path)!
+    const repository = this.cloningRepositoriesStore
+                           .repositories
+                           .find(r => r.url === url && r.path === path) !
+
     return { promise, repository }
   }
 
@@ -1295,9 +1344,9 @@ export class AppStore {
     return Promise.resolve()
   }
 
-  public _setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
-    if (this.highlightAppMenuToolbarButton !== highlight) {
-      this.highlightAppMenuToolbarButton = highlight
+  public _setAccessKeyHighlightState(highlight: boolean): Promise<void> {
+    if (this.highlightAccessKeys !== highlight) {
+      this.highlightAccessKeys = highlight
       this.emitUpdate()
     }
 
@@ -1366,5 +1415,36 @@ export class AppStore {
     await gitStore.ignore(pattern)
 
     return this._refreshRepository(repository)
+  }
+
+  public _resetSignInState(): Promise<void> {
+    this.signInStore.reset()
+    return Promise.resolve()
+  }
+
+  public _beginDotComSignIn(): Promise<void> {
+    this.signInStore.beginDotComSignIn()
+    return Promise.resolve()
+  }
+
+  public _beginEnterpriseSignIn(): Promise<void> {
+    this.signInStore.beginEnterpriseSignIn()
+    return Promise.resolve()
+  }
+
+  public _setSignInEndpoint(url: string): Promise<void> {
+    return this.signInStore.setEndpoint(url)
+  }
+
+  public _setSignInCredentials(username: string, password: string): Promise<void> {
+    return this.signInStore.authenticateWithBasicAuth(username, password)
+  }
+
+  public _requestBrowserAuthentication(): Promise<void> {
+    return this.signInStore.authenticateWithBrowser()
+  }
+
+  public _setSignInOTP(otp: string): Promise<void> {
+    return this.signInStore.setTwoFactorOTP(otp)
   }
 }

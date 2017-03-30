@@ -2,8 +2,19 @@ import * as React from 'react'
 import * as classNames from 'classnames'
 
 export interface IButtonProps {
-  /** A function to call on click. */
-  readonly onClick?: () => void
+  /**
+   * A callback which is invoked when the button is clicked
+   * using a pointer device or keyboard. The source event is
+   * passed along and can be used to prevent the default action
+   * or stop the even from bubbling.
+   */
+  readonly onClick?: (event: React.FormEvent<HTMLButtonElement>) => void
+
+  /**
+   * A function that's called when the user moves over the button with
+   * a pointer device.
+   */
+  readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /** The title of the button. */
   readonly children?: string
@@ -24,11 +35,73 @@ export interface IButtonProps {
    * handling of the `ref` type into some ungodly monstrosity. Hopefully someday
    * this will be unnecessary.
    */
-  readonly onButtonRef?: (instance: HTMLButtonElement) => void
+  readonly onButtonRef?: (instance: HTMLButtonElement | null) => void
+
+  /**
+   * The tab index of the button element.
+   *
+   * A value of 'undefined' means that whether or not the element participates
+   * in sequential keyboard navigation is left to the user agent's default
+   * settings.
+   * 
+   * A negative value means that the element can receive focus but not
+   * through sequential keyboard navigation (i.e. only via programmatic
+   * focus)
+   * 
+   * A value of zero means that the element can receive focus through
+   * sequential keyboard navigation and that the order should be determined
+   * by the element's position in the DOM.
+   * 
+   * A positive value means that the element can receive focus through
+   * sequential keyboard navigation and that it should have the explicit
+   * order provided and not have it be determined by its position in the DOM.
+   *
+   * Note: A positive value should be avoided if at all possible as it's
+   * detrimental to accessibility in most scenarios.
+   */
+  readonly tabIndex?: number
 }
 
 /** A button component. */
 export class Button extends React.Component<IButtonProps, void> {
+
+  private innerButton: HTMLButtonElement | null = null
+
+  private onButtonRef = (button: HTMLButtonElement | null) => {
+    this.innerButton = button
+
+    if (this.props.onButtonRef) {
+      this.props.onButtonRef(button)
+    }
+  }
+
+  /**
+   * Programmatically move keyboard focus to the button element.
+   */
+  public focus = () => {
+    if (this.innerButton) {
+      this.innerButton.focus()
+    }
+  }
+
+  /**
+   * Programmatically remove keyboard focus from the button element.
+   */
+  public blur() {
+    if (this.innerButton) {
+      this.innerButton.blur()
+    }
+  }
+
+  /**
+   * Get the client bounding box for the button element
+   */
+  public getBoundingClientRect = (): ClientRect | undefined => {
+    return this.innerButton
+      ? this.innerButton.getBoundingClientRect()
+      : undefined
+  }
+
   public render() {
     const className = classNames('button-component', this.props.className)
 
@@ -38,7 +111,10 @@ export class Button extends React.Component<IButtonProps, void> {
         disabled={this.props.disabled}
         onClick={this.onClick}
         type={this.props.type || 'button'}
-        ref={this.props.onButtonRef}>
+        ref={this.onButtonRef}
+        tabIndex={this.props.tabIndex}
+        onMouseEnter={this.props.onMouseEnter}
+      >
         {this.props.children}
       </button>
     )
@@ -49,9 +125,8 @@ export class Button extends React.Component<IButtonProps, void> {
       event.preventDefault()
     }
 
-    const onClick = this.props.onClick
-    if (onClick) {
-      onClick()
+    if (this.props.onClick) {
+      this.props.onClick(event)
     }
   }
 }

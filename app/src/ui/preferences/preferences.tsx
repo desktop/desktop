@@ -84,11 +84,31 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     )
   }
 
+  private onDotComSignIn = () => {
+    this.props.onDismissed()
+    this.props.dispatcher.showDotComSignInDialog()
+  }
+
+  private onEnterpriseSignIn = () => {
+    this.props.onDismissed()
+    this.props.dispatcher.showEnterpriseSignInDialog()
+  }
+
+  private onLogout = (user: User) => {
+    this.props.dispatcher.removeUser(user)
+  }
+
   private renderActiveTab() {
     const index = this.state.selectedIndex
     switch (index) {
       case PreferencesTab.Accounts:
-        return <Accounts {...this.props}/>
+        return <Accounts
+          dotComUser={this.props.dotComUser}
+          enterpriseUser={this.props.enterpriseUser}
+          onDotComSignIn={this.onDotComSignIn}
+          onEnterpriseSignIn={this.onEnterpriseSignIn}
+          onLogout={this.onLogout}
+        />
       case PreferencesTab.Git: {
         return <Git
           name={this.state.committerName}

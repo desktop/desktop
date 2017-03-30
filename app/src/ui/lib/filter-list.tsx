@@ -100,10 +100,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
 
         <Row>
           <TextBox
-            labelClassName='filter-list-filter-field'
             type='search'
             autoFocus={true}
             placeholder='Filter'
+            className='filter-list-filter-field'
             onChange={this.onFilterChanged}
             onKeyDown={this.onKeyDown}
             onInputRef={this.onInputRef}/>
@@ -217,7 +217,14 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
 
       event.preventDefault()
     } else if (event.key === 'Enter') {
-      this.onRowClick(list.nextSelectableRow('down', 0))
+      // no repositories currently displayed, bail out
+      if (!this.state.rows.length) {
+        event.preventDefault()
+        return
+      }
+
+      const row = list.nextSelectableRow('down', 0)
+      this.onRowClick(row)
     }
   }
 }

@@ -16,7 +16,7 @@ import {
   getBlobImage,
 } from '../../../src/lib/git'
 
-import { GitProcess } from 'git-kitchen-sink'
+import { GitProcess } from 'dugite'
 
 async function getTextDiff(repo: Repository, file: WorkingDirectoryFileChange): Promise<ITextDiff> {
   const diff = await getWorkingDirectoryDiff(repo, file)
@@ -29,7 +29,7 @@ describe('git/diff', () => {
 
   beforeEach(() => {
     const testRepoPath = setupFixtureRepository('repo-with-image-changes')
-    repository = new Repository(testRepoPath, -1, null)
+    repository = new Repository(testRepoPath, -1, null, false)
   })
 
   describe('getWorkingDirectoryImage', () => {
@@ -88,7 +88,7 @@ describe('git/diff', () => {
 
     it('changes for text are not set', async () => {
       const testRepoPath = setupFixtureRepository('repo-with-changes')
-      repository = new Repository(testRepoPath, -1, null)
+      repository = new Repository(testRepoPath, -1, null, false)
 
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
       const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
@@ -101,7 +101,7 @@ describe('git/diff', () => {
   describe('getWorkingDirectoryDiff', () => {
     beforeEach(() => {
       const testRepoPath = setupFixtureRepository('repo-with-changes')
-      repository = new Repository(testRepoPath, -1, null)
+      repository = new Repository(testRepoPath, -1, null, false)
     })
 
     it('counts lines for new file', async () => {

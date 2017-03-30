@@ -1,5 +1,52 @@
 {
   "releases": {
+    "0.0.31": [
+      "[New] Prompt user to login when authentication error occurs - #903",
+      "[New] Windows application has a new app menu, replaces previous hamburger menu - #991",
+      "[New] Refreshed colours to align with GitHub website scheme -  #1077",
+      "[New] Custom about dialog on all platforms - #1102",
+      "[Fixed] Improved error handling when probing for a GitHub Enterprise server - #1026",
+      "[Fixed] User can cancel 2FA flow - #1057",
+      "[Fixed] Tidy up current set of menu items - #1063",
+      "[Fixed] Manually focus the window when a URL action has been received - #1072",
+      "[Fixed] Disable middle-click event to prevent new windows being launched - #1074",
+      "[Fixed] Pre-fill the account name in the Welcome wizard, not login - #1078"
+    ],
+    "0.0.30": [
+      "[Fixed] Crash when invoking menu item due to incorrect method signature - #1041"
+    ],
+    "0.0.29": [
+      "[New] Commit summary and description fields now display issues and mentions as links for GitHub repositories - #941",
+      "[New] Show placeholder when the repository cannot be found on disk - #946",
+      "[New] New Repository actions moved out of popover and into new menu - #1018",
+      "[Fixed] Display a helpful error message when an unverified user signs into GitHub Desktop - #1010",
+      "[Fixed] Fix kerning issue when access keys displayed - #1033",
+      "[Fixed] Protected branches show a descriptive error when the push is rejected - #1036",
+      "[Fixed] 'Open in shell' on Windows opens to repository location - #1037"
+    ],
+    "0.0.28": [
+      "[Fixed] Bumping release notes to test deployments again"
+    ],
+    "0.0.27": [
+      "[Fixed] 2FA dialog when authenticating has information for SMS authentication - #1009",
+      "[Fixed] Autocomplete for users handles accounts containing `-` - #1008"
+    ],
+    "0.0.26": [
+      "[Fixed] Address deployment issue by properly documenting release notes"
+    ],
+    "0.0.25": [
+      "[Added] Autocomplete displays user matches - #942",
+      "[Fixed] Handle Enter key in repository and branch list when no matches exist - #995",
+      "[Fixed] 'Add Repository' button displays in dropdown when repository list empty - #984",
+      "[Fixed] Correct icon displayed for non-GitHub repository - #964 #955",
+      "[Fixed] Enter key when inside dialog submits form - #956",
+      "[Fixed] Updated URL handler entry on macOS - #945",
+      "[Fixed] Commit button is disabled while commit in progress - #940",
+      "[Fixed] Handle index state change when gitginore change is discarded - #935",
+      "[Fixed] 'Create New Branch' view squashes branch list when expanded - #927",
+      "[Fixed] Application creates repository path if it doesn't exist on disk - #925",
+      "[Improved] Preferences sign-in flow updated to standalone dialogs - #961"
+    ],
     "0.0.24": [
       "Changed a thing",
       "Added another thing"

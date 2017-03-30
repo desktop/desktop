@@ -1,10 +1,10 @@
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 import { Disposable } from 'event-kit'
 import { User, IUser } from '../../models/user'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
-import { RepositorySection, Popup, Foldout, FoldoutType } from '../app-state'
+import { RepositorySection, Popup, PopupType, Foldout, FoldoutType } from '../app-state'
 import { Action } from './actions'
 import { AppStore } from './app-store'
 import { CloningRepository } from './cloning-repositories-store'
@@ -18,6 +18,7 @@ import { executeMenuItem } from '../../ui/main-process-proxy'
 import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
+import { structuralEquals } from '../equality'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -53,7 +54,7 @@ type IPCResponse<T> = IResult<T> | IError
  * If the returned {Promise} returns an error, it will be passed to the next
  * error handler. If it returns null, error propagation is halted.
  */
-type ErrorHandler = (error: Error, dispatcher: Dispatcher) => Promise<Error | null>
+export type ErrorHandler = (error: Error, dispatcher: Dispatcher) => Promise<Error | null>
 
 /**
  * The Dispatcher acts as the hub for state. The StateHub if you will. It
@@ -66,6 +67,10 @@ export class Dispatcher {
 
   public constructor(appStore: AppStore) {
     this.appStore = appStore
+
+    appStore.onDidAuthenticate((user) => {
+      this.addUser(user)
+    })
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
   }
@@ -161,15 +166,24 @@ export class Dispatcher {
     const repositoryIDs = localRepositories.map(r => r.id)
     await this.dispatchToSharedProcess<ReadonlyArray<number>>({ name: 'remove-repositories', repositoryIDs })
 
-    this.showFoldout({ type: FoldoutType.Repository, expandAddRepository: false })
+    this.showFoldout({ type: FoldoutType.Repository })
   }
 
   /** Refresh the associated GitHub repository. */
   public async refreshGitHubRepositoryInfo(repository: Repository): Promise<Repository> {
     const refreshedRepository = await this.appStore._repositoryWithRefreshedGitHubRepository(repository)
-    if (refreshedRepository === repository) { return refreshedRepository }
+
+    if (structuralEquals(refreshedRepository, repository)) {
+      return refreshedRepository
+    }
 
     const repo = await this.dispatchToSharedProcess<IRepository>({ name: 'update-github-repository', repository: refreshedRepository })
+    return Repository.fromJSON(repo)
+  }
+
+  /** Update the repository's `missing` flag. */
+  public async updateRepositoryMissing(repository: Repository, missing: boolean): Promise<Repository> {
+    const repo = await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-missing', repository, missing })
     return Repository.fromJSON(repo)
   }
 
@@ -340,6 +354,28 @@ export class Dispatcher {
     return this.appStore._clearError(error)
   }
 
+  /**
+   * Clone a missing repository to the previous path, and update it's
+   * state in the repository list if the clone completes without error.
+   */
+  public async cloneAgain(url: string, path: string, user: User | null): Promise<void> {
+    const { promise, repository } = this.appStore._clone(url, path, user)
+    await this.selectRepository(repository)
+    const success = await promise
+    if (!success) { return }
+
+    // In the background the shared process has updated the repository list.
+    // To ensure a smooth transition back, we should lookup the new repository
+    // and update it's state after the clone has completed
+    const repositories = await this.loadRepositories()
+    const found = repositories.find(r => r.path === path) || null
+
+    if (found) {
+      const updatedRepository = await this.updateRepositoryMissing(found, false)
+      await this.selectRepository(updatedRepository)
+    }
+ }
+
   /** Clone the repository to the path. */
   public async clone(url: string, path: string, user: User | null): Promise<void> {
     const { promise, repository } = this.appStore._clone(url, path, user)
@@ -484,8 +520,8 @@ export class Dispatcher {
    *
    * Only applicable on non-macOS platforms.
    */
-  public setAppMenuToolbarButtonHighlightState(highlight: boolean): Promise<void> {
-    return this.appStore._setAppMenuToolbarButtonHighlightState(highlight)
+  public setAccessKeyHighlightState(highlight: boolean): Promise<void> {
+    return this.appStore._setAccessKeyHighlightState(highlight)
   }
 
   /** Merge the named branch into the current branch. */
@@ -551,6 +587,113 @@ export class Dispatcher {
   }
 
   /**
+   * Clear any in-flight sign in state and return to the
+   * initial (no sign-in) state.
+   */
+  public resetSignInState(): Promise<void> {
+    return this.appStore._resetSignInState()
+  }
+
+  /**
+   * Initiate a sign in flow for github.com. This will put the store
+   * in the Authentication step ready to receive user credentials.
+   */
+  public beginDotComSignIn(): Promise<void> {
+    return this.appStore._beginDotComSignIn()
+  }
+
+  /**
+   * Initiate a sign in flow for a GitHub Enterprise instance. This will
+   * put the store in the EndpointEntry step ready to receive the url
+   * to the enterprise instance.
+   */
+  public beginEnterpriseSignIn(): Promise<void> {
+    return this.appStore._beginEnterpriseSignIn()
+  }
+
+  /**
+   * Attempt to advance from the EndpointEntry step with the given endpoint
+   * url. This method must only be called when the store is in the authentication
+   * step or an error will be thrown.
+   *
+   * The provided endpoint url will be validated for syntactic correctness as
+   * well as connectivity before the promise resolves. If the endpoint url is
+   * invalid or the host can't be reached the promise will be rejected and the
+   * sign in state updated with an error to be presented to the user.
+   *
+   * If validation is successful the store will advance to the authentication
+   * step.
+   */
+  public setSignInEndpoint(url: string): Promise<void> {
+    return this.appStore._setSignInEndpoint(url)
+  }
+
+  /**
+   * Attempt to advance from the authentication step using a username
+   * and password. This method must only be called when the store is
+   * in the authentication step or an error will be thrown. If the
+   * provided credentials are valid the store will either advance to
+   * the Success step or to the TwoFactorAuthentication step if the
+   * user has enabled two factor authentication.
+   *
+   * If an error occurs during sign in (such as invalid credentials)
+   * the authentication state will be updated with that error so that
+   * the responsible component can present it to the user.
+   */
+  public setSignInCredentials(username: string, password: string): Promise<void> {
+    return this.appStore._setSignInCredentials(username, password)
+  }
+
+  /**
+   * Initiate an OAuth sign in using the system configured browser.
+   * This method must only be called when the store is in the authentication
+   * step or an error will be thrown.
+   *
+   * The promise returned will only resolve once the user has successfully
+   * authenticated. If the user terminates the sign-in process by closing
+   * their browser before the protocol handler is invoked, by denying the
+   * protocol handler to execute or by providing the wrong credentials
+   * this promise will never complete.
+   */
+  public requestBrowserAuthentication(): Promise<void> {
+    return this.appStore._requestBrowserAuthentication()
+  }
+
+  /**
+   * Attempt to complete the sign in flow with the given OTP token.\
+   * This method must only be called when the store is in the
+   * TwoFactorAuthentication step or an error will be thrown.
+   *
+   * If the provided token is valid the store will advance to
+   * the Success step.
+   *
+   * If an error occurs during sign in (such as invalid credentials)
+   * the authentication state will be updated with that error so that
+   * the responsible component can present it to the user.
+   */
+  public setSignInOTP(otp: string): Promise<void> {
+    return this.appStore._setSignInOTP(otp)
+  }
+
+  /**
+   * Launch a sign in dialog for authenticating a user with
+   * GitHub.com.
+   */
+  public async showDotComSignInDialog(): Promise<void> {
+    await this.appStore._beginDotComSignIn()
+    await this.appStore._showPopup({ type: PopupType.SignIn })
+  }
+
+  /**
+   * Launch a sign in dialog for authenticating a user with
+   * a GitHub Enterprise instance.
+   */
+  public async showEnterpriseSignInDialog(): Promise<void> {
+    await this.appStore._beginEnterpriseSignIn()
+    await this.appStore._showPopup({ type: PopupType.SignIn })
+  }
+
+  /**
    * Register a new error handler.
    *
    * Error handlers are called in order starting with the most recently
@@ -567,5 +710,24 @@ export class Dispatcher {
         this.errorHandlers.splice(i, 1)
       }
     })
+  }
+
+  /**
+   * Update the location of an existing repository and clear the missing flag.
+   */
+  public async relocateRepository(repository: Repository): Promise<void> {
+    const directories = remote.dialog.showOpenDialog({
+      properties: [ 'openDirectory' ],
+    })
+
+    if (directories && directories.length > 0) {
+      const newPath = directories[0]
+      await this.updateRepositoryPath(repository, newPath)
+    }
+  }
+
+  /** Update the repository's path. */
+  private async updateRepositoryPath(repository: Repository, path: string): Promise<void> {
+    await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-path', repository, path })
   }
 }

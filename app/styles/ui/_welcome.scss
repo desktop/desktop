@@ -72,49 +72,12 @@
   width: 200px;
 }
 
-.password-container {
-  position: relative;
-}
-
-.forgot-password-link {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
-.horizontal-rule {
-  text-align: center;
-  position: relative;
-
-  &:after {
-    border-bottom: var(--base-border);
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0.6em;
-  }
-
-  .horizontal-rule-content {
-    display: inline-block;
-    background: var(--background-color);
-    padding: 0 0.5em;
-    position: relative;
-    z-index: 1;
-  }
-}
-
 .sign-in-field {
   width: 100%;
 }
 
 .sign-in-footer {
   text-align: center;
-}
-
-.link-with-icon svg {
-  margin-left: 0.25em;
-  vertical-align: middle;
 }
 
 .sign-in-form {

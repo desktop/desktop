@@ -275,8 +275,8 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
     this.resizeIfNecessary()
   }
 
-  private onPathElementRef = (element: HTMLDivElement | undefined) => {
-    this.pathElement = element || null
+  private onPathElementRef = (element: HTMLDivElement | null) => {
+    this.pathElement = element
 
     if (!element) {
       if (this.resizeObserver) {
@@ -293,8 +293,8 @@ export class PathText extends React.PureComponent<IPathTextProps, IPathTextState
     }
   }
 
-  private onPathInnerElementRef = (element: HTMLSpanElement | undefined) => {
-    this.pathInnerElement = element || null
+  private onPathInnerElementRef = (element: HTMLSpanElement | null) => {
+    this.pathInnerElement = element
   }
 
   public render() {

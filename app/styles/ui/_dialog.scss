@@ -26,7 +26,7 @@ dialog {
   // The modal class here is the transition name for the react css transition
   // group which allows us to apply an animation when the popup appears.
   &.modal {
-    
+
     &-enter {
       opacity: 1;
       transform: scale(0.75);
@@ -118,7 +118,7 @@ dialog {
       @include ellipsis;
     }
 
-    button.close {
+    .close {
       position: absolute;
       right: var(--spacing);
       top: var(--spacing);
@@ -166,13 +166,24 @@ dialog {
         margin-bottom: 0;
       }
     }
+
+    h2 {
+      font-weight: var(--font-weight-light);
+      font-size: var(--font-size-md);
+      margin-top: 0;
+      margin-bottom: var(--spacing-half);
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
   }
 
   .dialog-footer {
-    
+
     border-top: var(--base-border);
     padding: var(--spacing-double);
-    
+
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
@@ -212,6 +223,11 @@ dialog {
     padding: var(--spacing);
     align-items: center;
 
+    // Error messages may contains newlines which separates sections
+    // of the error of indicate nested errors. We want to preserve these
+    // while still forcing line breaks if necessary.
+    white-space: pre-wrap;
+
     background: var(--form-error-background);
     border-bottom: 1px solid var(--form-error-border-color);
     color: var(--error-color);
@@ -229,13 +245,47 @@ dialog {
 
   &#app-error {
     .dialog-content {
-      font-family: var(--font-family-monospace);
-      -webkit-user-select: auto;
-      user-select: auto;
-      cursor: text;
+      p {
+        -webkit-user-select: auto;
+        user-select: auto;
+        cursor: text;
+
+        // Preserve newlines and other white space in error messages
+        // but make sure we wrap if necessary.
+        white-space: pre-wrap;
+
+        &.monospace {
+          font-family: var(--font-family-monospace);
+        }
+      }
 
       max-height: 400px;
       overflow-y: auto;
     }
+  }
+
+  &#preferences { width: 450px; }
+  &#about { width: 450px; }
+
+  &#sign-in {
+    width: 400px;
+
+    .sign-in-with-browser {
+      justify-content: center;
+    }
+
+    .forgot-password-row, .what-is-this-row {
+      font-size: var(--font-size-sm);
+      justify-content: flex-end;
+    }
+  }
+}
+
+.warning-helper-text {
+  font-size: var(--font-size-sm);
+
+  .octicon {
+    fill: var(--dialog-warning-color);
+    margin-right: var(--spacing-half);
   }
 }

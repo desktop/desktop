@@ -15,7 +15,7 @@ import { setupFixtureRepository } from '../fixture-helper'
 async function parseDiff(diff: string): Promise<ITextDiff> {
   const parser = new DiffParser()
   const rawDiff =  parser.parse(diff)
-  const repository = new Repository('', -1)
+  const repository = new Repository('', -1, null, false)
   const fileChange = new FileChange('file.txt', FileStatus.Modified)
   const output = await convertDiff(repository, fileChange, rawDiff, 'HEAD')
   expect(output.kind === DiffType.Text)
@@ -29,7 +29,7 @@ describe('patch formatting', () => {
 
     beforeEach(() => {
       const testRepoPath = setupFixtureRepository('repo-with-changes')
-      repository = new Repository(testRepoPath, -1, null)
+      repository = new Repository(testRepoPath, -1, null, false)
     })
 
     it('creates right patch when first hunk is selected', async () => {

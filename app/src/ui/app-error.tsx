@@ -5,6 +5,9 @@ import { Button } from './lib/button'
 import { ButtonGroup } from './lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from './dialog'
 import { dialogTransitionEnterTimeout, dialogTransitionLeaveTimeout } from './app'
+import { GitError } from '../lib/git/core'
+import { GitError as GitErrorType } from 'dugite'
+import { Popup, PopupType } from '../lib/app-state'
 
 interface IAppErrorProps {
   /** The list of queued, app-wide, errors  */
@@ -15,6 +18,7 @@ interface IAppErrorProps {
    * has been shown to, and been dismissed by, the user.
    */
   readonly onClearError: (error: Error) => void
+  readonly onShowPopup: (popupType: Popup) => void | undefined
 }
 
 interface IAppErrorState {
@@ -34,7 +38,6 @@ interface IAppErrorState {
  * in the order they were queued.
  */
 export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
-
   public constructor(props: IAppErrorProps) {
     super(props)
     this.state = {
@@ -68,8 +71,56 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
-  private renderDialog() {
+  private showPreferencesDialog = () => {
+    this.onDismissed()
 
+    //This is a hacky solution to resolve multiple dialog windows
+    //being open at the same time.
+    setTimeout(() => {
+      this.props.onShowPopup({ type: PopupType.Preferences })
+    }, dialogTransitionLeaveTimeout)
+  }
+
+  private renderGitErrorFooter(error: GitError) {
+    const gitErrorType = error.result.gitError
+
+    switch (gitErrorType)  {
+      case GitErrorType.HTTPSAuthenticationFailed: {
+        return (
+          <ButtonGroup>
+            <Button type='submit'>Close</Button>
+            <Button onClick={this.showPreferencesDialog}>
+              {__DARWIN__ ? 'Open Preferences' : 'Open options'}
+            </Button>
+          </ButtonGroup>)
+      }
+      default:
+        return (
+          <ButtonGroup>
+            <Button type='submit'>Close</Button>
+          </ButtonGroup>)
+    }
+  }
+
+  private renderErrorMessage(error: Error) {
+
+    let monospace = false
+
+    if (error instanceof GitError) {
+      // See getResultMessage in core.ts
+      // If the error message is the same as stderr or stdout then we know
+      // it's output from git and we'll display it in fixed-width font
+      if (error.message === error.result.stderr || error.message === error.result.stdout) {
+        monospace = true
+      }
+    }
+
+    const className = monospace ? 'monospace' : undefined
+
+    return <p className={className}>{error.message}</p>
+  }
+
+  private renderDialog() {
     const error = this.state.error
 
     if (!error) {
@@ -82,18 +133,26 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         type='error'
         title='Error'
         onDismissed={this.onDismissed}
-        disabled={this.state.disabled}
-      >
+        disabled={this.state.disabled}>
         <DialogContent>
-          {error.message}
+          {this.renderErrorMessage(error)}
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type='submit'>Close</Button>
-          </ButtonGroup>
+          {this.renderFooter(error)}
         </DialogFooter>
       </Dialog>
     )
+  }
+
+  private renderFooter(error: Error) {
+    if (error instanceof GitError) {
+      return this.renderGitErrorFooter(error)
+    }
+
+    return (
+      <ButtonGroup>
+        <Button type='submit'>Close</Button>
+      </ButtonGroup>)
   }
 
   public render() {

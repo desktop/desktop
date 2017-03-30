@@ -5,6 +5,7 @@ import { v4 as guid } from 'uuid'
 import { User } from '../models/user'
 
 import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
+import { AuthenticationMode } from './2fa'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
@@ -103,6 +104,25 @@ interface IAPIAccessToken {
   readonly access_token: string
   readonly scope: string
   readonly token_type: string
+}
+
+/**
+ * The structure of error messages returned from the GitHub API.
+ *
+ * Details: https://developer.github.com/v3/#client-errors
+ */
+interface IError {
+  readonly resource: string
+  readonly field: string
+}
+
+/**
+ * The partial server response when an error has been returned.
+ *
+ * Details: https://developer.github.com/v3/#client-errors
+ */
+interface IAPIError {
+  readonly errors: IError[]
 }
 
 /** The partial server response when creating a new authorization on behalf of a user */
@@ -267,13 +287,15 @@ export enum AuthorizationResponseKind {
   Authorized,
   Failed,
   TwoFactorAuthenticationRequired,
+  UserRequiresVerification,
   Error,
 }
 
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
                                     { kind: AuthorizationResponseKind.Failed, response: IHTTPResponse } |
-                                    { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: string } |
-                                    { kind: AuthorizationResponseKind.Error, response: IHTTPResponse }
+                                    { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode } |
+                                    { kind: AuthorizationResponseKind.Error, response: IHTTPResponse } |
+                                    { kind: AuthorizationResponseKind.UserRequiresVerification }
 
 /**
  * Create an authorization with the given login, password, and one-time
@@ -301,11 +323,31 @@ export async function createAuthorization(endpoint: string, login: string, passw
       const pieces = otpResponse.split(';')
       if (pieces.length === 2) {
         const type = pieces[1].trim()
-        return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type }
+        switch (type) {
+          case 'app':
+            return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode.App }
+          case 'sms':
+            return { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode.Sms }
+          default:
+            return { kind: AuthorizationResponseKind.Failed, response }
+        }
       }
     }
 
     return { kind: AuthorizationResponseKind.Failed, response }
+  }
+
+  if (response.statusCode === 422) {
+    const apiError = deserialize<IAPIError>(response.body)
+    if (apiError) {
+      for (const error of apiError.errors) {
+        const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
+        const isExpectedField =  error.field.toLowerCase() === 'user'
+        if (isExpectedField && isExpectedResource) {
+          return { kind: AuthorizationResponseKind.UserRequiresVerification }
+        }
+      }
+    }
   }
 
   const body = deserialize<IAPIAuthorization>(response.body)
@@ -328,15 +370,30 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 
 /** Get metadata from the server. */
 export async function fetchMetadata(endpoint: string): Promise<IServerMetadata | null> {
-  const response = await request(endpoint, null, 'GET', 'meta')
-  if (response.statusCode === 200) {
-    const body = deserialize<IServerMetadata>(response.body)
-    // If the response doesn't include the field we need, then it's not a valid
-    // response.
-    if (!body || body.verifiable_password_authentication === undefined) { return null }
+
+  const url = `${endpoint}/meta`
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (response.status !== 200) {
+      return null
+    }
+
+    const text = await response.text()
+    const body = deserialize<IServerMetadata>(text)
+    if (!body || body.verifiable_password_authentication === undefined) {
+      return null
+    }
 
     return body
-  } else {
+  } catch (error) {
+    console.error(`Failed to load metadata from ${url}: ${error}`)
     return null
   }
 }

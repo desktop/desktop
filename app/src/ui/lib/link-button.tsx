@@ -14,6 +14,9 @@ interface ILinkButtonProps {
 
   /** CSS classes attached to the component */
   readonly className?: string
+
+  /** The tab index of the anchor element. */
+  readonly tabIndex?: number
 }
 
 /** A link component. */
@@ -23,7 +26,12 @@ export class LinkButton extends React.Component<ILinkButtonProps, void> {
     const className = classNames('link-button-component', this.props.className)
 
     return (
-      <a className={className} href={href} onClick={this.onClick}>
+      <a
+        className={className}
+        href={href}
+        onClick={this.onClick}
+        tabIndex={this.props.tabIndex}
+      >
         {this.props.children}
       </a>
     )

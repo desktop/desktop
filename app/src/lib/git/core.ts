@@ -8,7 +8,7 @@ import {
   IGitResult as GitKitchenSinkResult,
   GitError as GitKitchenSinkError,
   IGitExecutionOptions as GitKitchenSinkExecutionOptions,
-} from 'git-kitchen-sink'
+} from 'dugite'
 
 /**
  * An extension of the execution options in git-kitchen-sink that
@@ -46,6 +46,21 @@ export interface IGitResult extends GitKitchenSinkResult {
   readonly gitErrorDescription: string | null
 }
 
+function getResultMessage(result: IGitResult) {
+  const description = result.gitErrorDescription
+  if (description) {
+    return description
+  }
+
+  if (result.stderr.length) {
+    return result.stderr
+  } else if (result.stdout.length) {
+    return result.stdout
+  } else {
+    return 'Unknown error'
+  }
+}
+
 export class GitError extends Error {
   /** The result from the failed command. */
   public readonly result: IGitResult
@@ -54,25 +69,11 @@ export class GitError extends Error {
   public readonly args: ReadonlyArray<string>
 
   public constructor(result: IGitResult, args: ReadonlyArray<string>) {
-    super('GitError')
+    super(getResultMessage(result))
 
+    this.name = 'GitError'
     this.result = result
     this.args = args
-  }
-
-  public get message(): string {
-    const description = this.result.gitErrorDescription
-    if (description) {
-      return description
-    }
-
-    if (this.result.stderr.length) {
-      return this.result.stderr
-    } else if (this.result.stdout.length) {
-      return this.result.stdout
-    } else {
-      return `Unknown error`
-    }
   }
 }
 
@@ -159,11 +160,10 @@ export async function git(args: string[], path: string, name: string, options?: 
 
 function getDescriptionForError(error: GitKitchenSinkError): string {
   switch (error) {
-    case GitKitchenSinkError.GitNotFound: return 'Git could not be found.'
     case GitKitchenSinkError.SSHKeyAuditUnverified: return 'The SSH key is unverified.'
     case GitKitchenSinkError.SSHAuthenticationFailed:
     case GitKitchenSinkError.SSHPermissionDenied:
-    case GitKitchenSinkError.HTTPSAuthenticationFailed: return 'Authentication failed. You may not have permission to access the repository.'
+    case GitKitchenSinkError.HTTPSAuthenticationFailed: return `Authentication failed. You may not have permission to access the repository. Open ${__DARWIN__ ? 'preferences' : 'options'} and verify that you're signed in with an account that has permission to access this repository.`
     case GitKitchenSinkError.RemoteDisconnection: return 'The remote disconnected. Check your Internet connection and try again.'
     case GitKitchenSinkError.HostDown: return 'The host is down. Check your Internet connection and try again.'
     case GitKitchenSinkError.RebaseConflicts: return 'We found some conflicts while trying to rebase. Please resolve the conflicts before continuing.'
@@ -187,6 +187,8 @@ function getDescriptionForError(error: GitKitchenSinkError): string {
     case GitKitchenSinkError.PatchDoesNotApply: return 'The requested changes conflict with one or more files in the repository.'
     case GitKitchenSinkError.BranchAlreadyExists: return 'A branch with that name already exists'
     case GitKitchenSinkError.BadRevision: return 'Bad revision'
+    case GitKitchenSinkError.NotAGitRepository: return 'This is not a git repository'
+    case GitKitchenSinkError.ProtectedBranchRequiresReview: return 'This branch is protected and any changes requires an approved review. Open a pull request with changes targeting this branch instead.'
     default: return assertNever(error, `Unknown error: ${error}`)
   }
 }

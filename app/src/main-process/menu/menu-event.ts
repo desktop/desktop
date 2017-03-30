@@ -7,7 +7,7 @@ export type MenuEvent =
   'create-branch' |
   'show-branches' |
   'remove-repository' |
-  'add-repository' |
+  'create-repository' |
   'rename-branch' |
   'delete-branch' |
   'check-for-updates' |
@@ -20,4 +20,6 @@ export type MenuEvent =
   'show-repository-settings' |
   'open-in-shell' |
   'compare-branch' |
-  'view-repository-on-github'
+  'view-repository-on-github' |
+  'clone-repository' |
+  'show-about'

@@ -6,7 +6,6 @@ import * as Url from 'url'
 import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
-import { WindowState, getWindowState } from '../lib/window-state'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import { Repository } from '../models/repository'
@@ -16,9 +15,9 @@ import { sendReady } from './main-process-proxy'
 import { reportError } from '../lib/exception-reporting'
 import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
-import { IssuesDatabase, IssuesStore } from '../lib/dispatcher'
+import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
-import { defaultErrorHandler } from '../lib/dispatcher'
+import { defaultErrorHandler, createMissingRepositoryHandler } from '../lib/dispatcher'
 
 import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
@@ -45,9 +44,21 @@ const cloningRepositoriesStore = new CloningRepositoriesStore()
 const emojiStore = new EmojiStore()
 const issuesStore = new IssuesStore(new IssuesDatabase('IssuesDatabase'))
 const statsStore = new StatsStore(new StatsDatabase('StatsDatabase'))
-const appStore = new AppStore(gitHubUserStore, cloningRepositoriesStore, emojiStore, issuesStore, statsStore)
+const signInStore = new SignInStore()
+
+const appStore = new AppStore(
+  gitHubUserStore,
+  cloningRepositoriesStore,
+  emojiStore,
+  issuesStore,
+  statsStore,
+  signInStore,
+)
+
 const dispatcher = new Dispatcher(appStore)
+
 dispatcher.registerErrorHandler(defaultErrorHandler)
+dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
 
 dispatcher.loadInitialState().then(() => {
   const now = Date.now()
@@ -56,20 +67,9 @@ dispatcher.loadInitialState().then(() => {
 
 document.body.classList.add(`platform-${process.platform}`)
 
-function updateFullScreenBodyInfo(windowState: WindowState) {
-  if (windowState === 'full-screen') {
-    document.body.classList.add('fullscreen')
-  } else {
-    document.body.classList.remove('fullscreen')
-  }
-}
-
-updateFullScreenBodyInfo(getWindowState(remote.getCurrentWindow()))
-ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(args as WindowState))
-
 ipcRenderer.on('focus', () => {
   const state = appStore.getState().selectedState
-  if (!state || state.type === SelectionType.CloningRepository) { return }
+  if (!state || state.type !== SelectionType.Repository) { return }
 
   dispatcher.refreshRepository(state.repository)
 })
@@ -78,7 +78,7 @@ ipcRenderer.on('blur', () => {
   // Make sure we stop highlighting the menu button (on non-macOS)
   // when someone uses Alt+Tab to switch application since we won't
   // get the onKeyUp event for the Alt key in that case.
-  dispatcher.setAppMenuToolbarButtonHighlightState(false)
+  dispatcher.setAccessKeyHighlightState(false)
 })
 
 ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {

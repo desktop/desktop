@@ -2,13 +2,14 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { assertNever } from '../../lib/fatal-error'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
+import { rectEquals } from '../lib/rect'
 import * as classNames from 'classnames'
 
 export type DropdownState = 'open' | 'closed'
 
 export interface IToolbarDropdownProps {
   /** The primary button text, describing its function */
-  readonly title: string
+  readonly title?: string
 
   /** An optional description of the function of the button */
   readonly description?: string | JSX.Element
@@ -29,6 +30,23 @@ export interface IToolbarDropdownProps {
   readonly onDropdownStateChanged: (state: DropdownState) => void
 
   /**
+   * A function that's called when the user hovers over the button with
+   * a pointer device. Note that this only fires for mouse events inside
+   * the button and not when hovering content inside the foldout.
+   */
+  readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
+
+  /**
+   * A function that's called when a key event is received from the 
+   * ToolbarDropDown component or any of its descendants.
+   * 
+   * Consumers of this event should not act on the event if the event has
+   * had its default action prevented by an earlier consumer that's called
+   * the preventDefault method on the event instance.
+   */
+  readonly onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void
+
+  /**
    * An render callback for when the dropdown is open.
    * Use this to render the contents of the fold out.
    */
@@ -47,12 +65,42 @@ export interface IToolbarDropdownProps {
   readonly style?: ToolbarButtonStyle
 
   /**
+   * Sets the styles for the dropdown's foldout. Useful for custom positioning
+   * and sizes.
+   */
+  readonly foldoutStyle?: React.CSSProperties
+
+  /**
    * Whether the button should displays its disclosure arrow. Defaults to true.
    */
   readonly showDisclosureArrow?: boolean
 
   /** Whether the button is disabled. Defaults to false. */
   readonly disabled?: boolean
+
+  /**
+   * The tab index of the button element.
+   *
+   * A value of 'undefined' means that whether or not the element participates
+   * in sequential keyboard navigation is left to the user agent's default
+   * settings.
+   * 
+   * A negative value means that the element can receive focus but not
+   * through sequential keyboard navigation (i.e. only via programmatic
+   * focus)
+   * 
+   * A value of zero means that the element can receive focus through
+   * sequential keyboard navigation and that the order should be determined
+   * by the element's position in the DOM.
+   * 
+   * A positive value means that the element can receive focus through
+   * sequential keyboard navigation and that it should have the explicit
+   * order provided and not have it be determined by its position in the DOM.
+   *
+   * Note: A positive value should be avoided if at all possible as it's
+   * detrimental to accessibility in most scenarios.
+   */
+  readonly tabIndex?: number
 }
 
 interface IToolbarDropdownState {
@@ -99,25 +147,13 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     this.props.onDropdownStateChanged(newState)
   }
 
-  private rectEquals(x: ClientRect, y: ClientRect) {
-    return (
-      x.left === y.left &&
-      x.right === y.right &&
-      x.top === y.top &&
-      x.bottom === y.bottom &&
-      x.width === y.width &&
-      x.height === y.height
-    )
-  }
-
   private updateClientRectIfNecessary() {
     if (this.props.dropdownState  === 'open' && this.innerButton) {
-      const buttonElement = this.innerButton.buttonElement
-      if (buttonElement) {
-        const newRect = buttonElement.getBoundingClientRect()
+      const newRect = this.innerButton.getButtonBoundingClientRect()
+      if (newRect) {
         const currentRect = this.state.clientRect
 
-        if (!currentRect || !this.rectEquals(currentRect, newRect)) {
+        if (!currentRect || !rectEquals(currentRect, newRect)) {
           this.setState({ clientRect: newRect })
         }
       }
@@ -156,6 +192,10 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
   }
 
   private getFoldoutStyle(): React.CSSProperties | undefined {
+    if (this.props.foldoutStyle) {
+      return this.props.foldoutStyle
+    }
+
     const rect = this.state.clientRect
     if (!rect) {
       return undefined
@@ -189,6 +229,15 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     this.innerButton = ref
   }
 
+  /**
+   * Programmatically move keyboard focus to the button element.
+   */
+  public focusButton = () => {
+    if (this.innerButton) {
+      this.innerButton.focusButton()
+    }
+  }
+
   public render() {
 
     const className = classNames(
@@ -204,11 +253,14 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         title={this.props.title}
         description={this.props.description}
         onClick={this.onClick}
+        onMouseEnter={this.props.onMouseEnter}
         className={className}
         preContentRenderer={this.renderDropdownContents}
         style={this.props.style}
         iconClassName={this.props.iconClassName}
         disabled={this.props.disabled}
+        onKeyDown={this.props.onKeyDown}
+        tabIndex={this.props.tabIndex}
       >
         {this.props.children}
         {this.renderDropdownArrow()}
