@@ -235,7 +235,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
 
         <DialogFooter>
           <ButtonGroup>
-            <Button ref={this.onCloseButtonRef}>Close</Button>
+            <Button ref={this.onCloseButtonRef} onClick={this.props.onDismissed}>Close</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
