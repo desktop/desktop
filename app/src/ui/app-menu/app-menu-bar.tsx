@@ -182,10 +182,17 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     }
 
     const firstMenuItem = rootItems[0]
-    const firstMenuItemComponent = this.menuButtonRefsByMenuItemId[firstMenuItem.id]
 
-    if (firstMenuItemComponent) {
-      firstMenuItemComponent.focusButton()
+    if (firstMenuItem) {
+      this.focusMenuItem(firstMenuItem)
+    }
+  }
+
+  private focusMenuItem(item: ISubmenuItem) {
+    const itemComponent = this.menuButtonRefsByMenuItemId[item.id]
+
+    if (itemComponent) {
+      itemComponent.focusButton()
     }
   }
 
@@ -285,8 +292,8 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   private onMenuButtonMouseEnter = (item: ISubmenuItem) => {
     if (this.props.appMenu.length > 1) {
       this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item))
-    } else {
-      this.restoreFocusOrBlur()
+    } else if (this.hasFocus) {
+      this.focusMenuItem(item)
     }
   }
 
