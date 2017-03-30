@@ -59,7 +59,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     this.closeButton = button
   }
 
-  private onUpdateStateChanged(updateState: IUpdateState) {
+  private onUpdateStateChanged = (updateState: IUpdateState) => {
     this.setState({ updateState })
   }
 
