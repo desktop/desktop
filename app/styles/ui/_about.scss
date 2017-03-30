@@ -1,0 +1,20 @@
+dialog#about {
+
+  .dialog-content {
+    .row-component {
+      justify-content: center;
+    }
+
+    p, h2 {
+      text-align: center;
+    }
+  }
+
+  .logo {
+    justify-content: center;
+    svg {
+      width: 64px;
+      height: 64px;
+    }
+  }
+}

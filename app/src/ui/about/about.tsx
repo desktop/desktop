@@ -4,6 +4,7 @@ import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IAboutProps {
   readonly onDismissed: () => void
@@ -17,13 +18,15 @@ export class About extends React.Component<IAboutProps, void> {
 
     return (
       <Dialog
-        title='About GitHub Desktop'
+        id='about'
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}>
         <DialogContent>
-          <Row>
-            {this.props.version}
+          <Row className='logo'>
+            <Octicon symbol={OcticonSymbol.markGithub} />
           </Row>
+          <h2>GitHub Desktop</h2>
+          <p>Installed version {this.props.version}</p>
         </DialogContent>
 
         <DialogFooter>
