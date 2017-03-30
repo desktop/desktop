@@ -8,7 +8,15 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { LinkButton} from '../lib/link-button'
 
 interface IAboutProps {
+  /**
+   * Event triggered when the dialog is dismissed by the user in the
+   * ways described in the Dialog component's dismissable prop.
+   */
   readonly onDismissed: () => void
+
+  /**
+   * The currently installed (and running) version of the app.
+   */
   readonly version: string
 }
 
