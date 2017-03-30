@@ -88,15 +88,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     updateStore.onDidChange(state => {
+      const status = state.status
+
       const visibleItem = (function () {
-        switch (state) {
+        switch (status) {
           case UpdateStatus.CheckingForUpdates: return 'checking-for-updates'
           case UpdateStatus.UpdateReady: return 'quit-and-install-update'
           case UpdateStatus.UpdateNotAvailable: return 'check-for-updates'
           case UpdateStatus.UpdateAvailable: return 'downloading-update'
         }
 
-        return assertNever(state, `Unknown update state: ${state}`)
+        return assertNever(status, `Unknown update state: ${status}`)
       })() as MenuIDs
 
       const menuItems = new Set([
@@ -113,7 +115,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       setMenuVisible(visibleItem, true)
 
-      if (state === UpdateStatus.UpdateReady) {
+      if (status === UpdateStatus.UpdateReady) {
         this.props.dispatcher.showPopup({ type: PopupType.UpdateAvailable })
       }
     })

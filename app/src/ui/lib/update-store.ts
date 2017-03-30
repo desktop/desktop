@@ -23,12 +23,16 @@ export enum UpdateStatus {
   UpdateReady,
 }
 
+export interface IUpdateState {
+  status: UpdateStatus
+}
+
 const UpdatesURLBase = 'https://central.github.com/api/deployments/desktop/desktop/latest'
 
 /** A store which contains the current state of the auto updater. */
 class UpdateStore {
   private emitter = new Emitter()
-  private _state = UpdateStatus.UpdateNotAvailable
+  private status = UpdateStatus.UpdateNotAvailable
 
   public constructor() {
     autoUpdater.on('error', this.onAutoUpdaterError)
@@ -56,32 +60,32 @@ class UpdateStore {
   }
 
   private onCheckingForUpdate = () => {
-    this._state = UpdateStatus.CheckingForUpdates
+    this.status = UpdateStatus.CheckingForUpdates
     this.emitDidChange()
   }
 
   private onUpdateAvailable = () => {
-    this._state = UpdateStatus.UpdateAvailable
+    this.status = UpdateStatus.UpdateAvailable
     this.emitDidChange()
   }
 
   private onUpdateNotAvailable = () => {
-    this._state = UpdateStatus.UpdateNotAvailable
+    this.status = UpdateStatus.UpdateNotAvailable
     this.emitDidChange()
   }
 
   private onUpdateDownloaded = () => {
-    this._state = UpdateStatus.UpdateReady
+    this.status = UpdateStatus.UpdateReady
     this.emitDidChange()
   }
 
   /** Register a function to call when the auto updater state changes. */
-  public onDidChange(fn: (state: UpdateStatus) => void): Disposable {
+  public onDidChange(fn: (state: IUpdateState) => void): Disposable {
     return this.emitter.on('did-change', fn)
   }
 
   private emitDidChange() {
-    this.emitter.emit('did-change', this._state)
+    this.emitter.emit('did-change', this.state)
   }
 
   /** Register a function to call when the auto updater encounters an error. */
@@ -94,8 +98,8 @@ class UpdateStore {
   }
 
   /** The current auto updater state. */
-  public get state(): UpdateStatus {
-    return this._state
+  public get state(): IUpdateState {
+    return { status: this.status }
   }
 
   private getFeedURL(username: string): string {
