@@ -6,7 +6,6 @@ import * as Url from 'url'
 import { ipcRenderer, remote } from 'electron'
 
 import { App } from './app'
-import { WindowState, getWindowState } from '../lib/window-state'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
 import { URLActionType } from '../lib/parse-url'
 import { Repository } from '../models/repository'
@@ -67,17 +66,6 @@ dispatcher.loadInitialState().then(() => {
 })
 
 document.body.classList.add(`platform-${process.platform}`)
-
-function updateFullScreenBodyInfo(windowState: WindowState) {
-  if (windowState === 'full-screen') {
-    document.body.classList.add('fullscreen')
-  } else {
-    document.body.classList.remove('fullscreen')
-  }
-}
-
-updateFullScreenBodyInfo(getWindowState(remote.getCurrentWindow()))
-ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(args as WindowState))
 
 ipcRenderer.on('focus', () => {
   const state = appStore.getState().selectedState

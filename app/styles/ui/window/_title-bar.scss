@@ -33,9 +33,6 @@
     -webkit-app-region: no-drag;
   }
 
-  // Don't ever show the title bar when we're in full screen mode.
-  @include in-fullscreen { display: none; }
-
   // Window controls is the container for the three buttons minimize,
   // maximize/restore and close. On macOS the controls are added
   // automatically even for borderless window so we only render

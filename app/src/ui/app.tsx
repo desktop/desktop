@@ -18,7 +18,7 @@ import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolb
 import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
 import { setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
-import { updateStore, UpdateState } from './lib/update-store'
+import { updateStore, UpdateStatus } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
@@ -36,6 +36,8 @@ import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository, CloneRepository } from './add-repository'
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
+import { About } from './about'
+import { getVersion, getName } from './lib/app-proxy'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -58,13 +60,6 @@ export class App extends React.Component<IAppProps, IAppState> {
    * keyup and keydown.
    */
   private lastKeyPressed: string | null = null
-
-  /**
-   * The instance of the application menu bar or null if no menu bar
-   * is mounted. This will always be null when not on Windows since we
-   * only render a custom menu bar on Windows.
-   */
-  private appMenuBar: AppMenuBar | null = null
 
   /**
    * Gets a value indicating whether or not we're currently showing a
@@ -93,15 +88,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     updateStore.onDidChange(state => {
+      const status = state.status
+
       const visibleItem = (function () {
-        switch (state) {
-          case UpdateState.CheckingForUpdates: return 'checking-for-updates'
-          case UpdateState.UpdateReady: return 'quit-and-install-update'
-          case UpdateState.UpdateNotAvailable: return 'check-for-updates'
-          case UpdateState.UpdateAvailable: return 'downloading-update'
+        switch (status) {
+          case UpdateStatus.CheckingForUpdates: return 'checking-for-updates'
+          case UpdateStatus.UpdateReady: return 'quit-and-install-update'
+          case UpdateStatus.UpdateNotAvailable: return 'check-for-updates'
+          case UpdateStatus.UpdateAvailable: return 'downloading-update'
         }
 
-        return assertNever(state, `Unknown update state: ${state}`)
+        return assertNever(status, `Unknown update state: ${status}`)
       })() as MenuIDs
 
       const menuItems = new Set([
@@ -118,7 +115,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       setMenuVisible(visibleItem, true)
 
-      if (state === UpdateState.UpdateReady) {
+      if (status === UpdateStatus.UpdateReady) {
         this.props.dispatcher.showPopup({ type: PopupType.UpdateAvailable })
       }
     })
@@ -224,6 +221,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'compare-branch': return this.compareBranch()
       case 'open-in-shell' : return this.openShell()
       case 'clone-repository': return this.showCloneRepo()
+      case 'show-about': return this.showAbout()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -232,9 +230,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   private checkForUpdates() {
     if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') { return }
 
+    updateStore.checkForUpdates(this.getUsernameForUpdateCheck())
+  }
+
+  private getUsernameForUpdateCheck() {
     const dotComUser = this.getDotComUser()
-    const login = dotComUser ? dotComUser.login : ''
-    updateStore.checkForUpdates(login)
+    return dotComUser ? dotComUser.login : ''
   }
 
   private getDotComUser(): User | null {
@@ -327,11 +328,19 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
   }
 
+  private showCloneRepo() {
+    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
+  }
+
   private showBranches() {
     const state = this.state.selectedState
     if (!state || state.type !== SelectionType.Repository) { return }
 
     this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+  }
+
+  private showAbout() {
+    this.props.dispatcher.showPopup({ type: PopupType.About })
   }
 
   private selectChanges() {
@@ -398,8 +407,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         // Immediately close the menu if open and the user hits Alt. This is
         // a Windows convention.
         if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
-          this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-          this.props.dispatcher.closeFoldout()
+          // Only close it the menu when the key is pressed if there's an open
+          // menu. If there isn't we should close it when the key is released
+          // instead and that's taken care of in the onWindowKeyUp function.
+          if (this.state.appMenuState.length > 1) {
+            this.props.dispatcher.setAppMenuState(menu => menu.withReset())
+            this.props.dispatcher.closeFoldout()
+          }
         }
 
         this.props.dispatcher.setAccessKeyHighlightState(true)
@@ -445,15 +459,14 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         if (this.lastKeyPressed === 'Alt') {
           if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+            this.props.dispatcher.setAppMenuState(menu => menu.withReset())
             this.props.dispatcher.closeFoldout()
-          }
-
-          if (this.appMenuBar) {
-            if (this.appMenuBar.menuButtonHasFocus) {
-              this.appMenuBar.blurCurrentlyFocusedItem()
-            } else {
-              this.appMenuBar.focusFirstMenuItem()
-            }
+          } else {
+            this.props.dispatcher.showFoldout({
+              type: FoldoutType.AppMenu,
+              enableAccessKeyNavigation: true,
+              openedWithAccessKey: false,
+            })
           }
         }
       }
@@ -574,21 +587,40 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     return (
       <AppMenuBar
-        ref={this.onAppMenuBarRef}
         appMenu={this.state.appMenuState}
         dispatcher={this.props.dispatcher}
         highlightAppMenuAccessKeys={this.state.highlightAccessKeys}
         foldoutState={foldoutState}
+        onLostFocus={this.onMenuBarLostFocus}
       />
     )
   }
 
-  private onAppMenuBarRef = (menuBar: AppMenuBar | null) => {
-    this.appMenuBar = menuBar
+  private onMenuBarLostFocus = () => {
+    if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+      this.props.dispatcher.closeFoldout()
+      this.props.dispatcher.setAppMenuState(menu => menu.withReset())
+    }
   }
 
   private renderTitlebar() {
-    const winControls = __WIN32__
+
+    const inFullScreen = this.state.windowState === 'full-screen'
+
+    const menuBarActive = this.state.currentFoldout &&
+      this.state.currentFoldout.type === FoldoutType.AppMenu
+
+    // When we're in full-screen mode on Windows we only need to render
+    // the title bar when the menu bar is active. On other platforms we
+    // never render the title bar while in full-screen mode.
+    if (inFullScreen) {
+      if (!__WIN32__ || !menuBarActive) {
+        return null
+      }
+    }
+
+    // No Windows controls when we're in full-screen mode.
+    const winControls = __WIN32__ && !inFullScreen
       ? <WindowControls />
       : null
 
@@ -715,6 +747,15 @@ export class App extends React.Component<IAppProps, IAppState> {
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
       }
+      case PopupType.About:
+        return (
+          <About
+           onDismissed={this.onPopupDismissed}
+           applicationName={getName()}
+           applicationVersion={getVersion()}
+           usernameForUpdateCheck={this.getUsernameForUpdateCheck()}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -760,14 +801,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderAppError()}
       </div>
     )
-  }
-
-    private onAddMenuDropdownStateChanged = (newState: DropdownState) => {
-    if (newState === 'open') {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.AddMenu, enableAccessKeyNavigation: false })
-    } else {
-      this.props.dispatcher.closeFoldout()
-    }
   }
 
   private renderRepositoryList = (): JSX.Element => {
@@ -956,63 +989,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         <div
           className='sidebar-section'
           style={{ width: this.state.sidebarWidth }}>
-          {this.renderAddToolbarButton()}
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
       </Toolbar>
     )
-  }
-
-  private renderAddToolbarButton() {
-    const isOpen = this.state.currentFoldout
-      && this.state.currentFoldout.type === FoldoutType.AddMenu
-
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-
-    return (
-      <ToolbarDropdown
-        icon={OcticonSymbol.plus}
-        className='app-menu'
-        dropdownContentRenderer={this.renderAddMenu}
-        onDropdownStateChanged={this.onAddMenuDropdownStateChanged}
-        dropdownState={currentState} />
-    )
-  }
-
-  private renderAddMenu = (): JSX.Element | null => {
-    const foldoutStyle = {
-      width: this.state.sidebarWidth,
-    }
-
-    return (
-      <div id='app-menu-foldout' style={foldoutStyle}>
-        <ul className='menu-pane add-menu'>
-          <li className='add-menu-item add-menu-item-header'>Repository</li>
-          <li className='add-menu-item' onClick={this.showAddLocalRepo}>Add local repository</li>
-          <li className='add-menu-item' onClick={this.showCreateRepo}>Create new repository</li>
-          <li className='add-menu-item' onClick={this.showCloneRepo}>Clone repository</li>
-          <li className='add-menu-item add-menu-item-header'>Branches</li>
-          <li className='add-menu-item' onClick={this.showCreateBranch}>Create new branch</li>
-        </ul>
-      </div>
-    )
-  }
-
-  private showAddLocalRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
-  }
-
-  private showCreateRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
-  }
-
-  private showCloneRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
   }
 
   private renderRepository() {

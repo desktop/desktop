@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { ipcRenderer } from 'electron'
+import { ipcRenderer, remote } from 'electron'
 import * as Path from 'path'
 import {
   IRepositoryState,
@@ -42,6 +42,7 @@ import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
 import { SignInStore } from './sign-in-store'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
+import { WindowState, getWindowState } from '../window-state'
 
 import {
   getGitDir,
@@ -126,6 +127,7 @@ export class AppStore {
 
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
+  private windowState: WindowState
 
   private readonly statsStore: StatsStore
 
@@ -137,6 +139,13 @@ export class AppStore {
     this.statsStore = statsStore
     this.signInStore = signInStore
     this.showWelcomeFlow = hasShownWelcomeFlow()
+
+    this.windowState = getWindowState(remote.getCurrentWindow())
+
+    ipcRenderer.on('window-state-changed', (_, args) => {
+      this.windowState = args as WindowState
+      this.emitUpdate()
+    })
 
     ipcRenderer.on('app-menu', (event: Electron.IpcRendererEvent, { menu }: { menu: IMenu }) => {
       this.setAppMenu(menu)
@@ -313,6 +322,7 @@ export class AppStore {
         ...this.repositories,
         ...this.cloningRepositoriesStore.repositories,
       ],
+      windowState: this.windowState,
       selectedState: this.getSelectedState(),
       signInState: this.signInStore.getState(),
       currentPopup: this.currentPopup,
@@ -875,14 +885,14 @@ export class AppStore {
 
     await gitStore.loadCurrentAndDefaultBranch()
 
-    // We don't need to await this. The GitStore will notify when something
-    // changes.
+    // We don't need to await these.
+    // The GitStore will emit an update when something changes.
     gitStore.loadBranches()
     gitStore.loadCurrentRemote()
     gitStore.calculateAheadBehindForCurrentBranch()
     gitStore.updateLastFetched()
 
-    // When refreshing we *always* load Changes so that we can update the
+    // When refreshing we *always* check the status so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
     // selected.
     await this._loadStatus(repository)
