@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
-import { ipcRenderer, remote, shell } from 'electron'
+import { ipcRenderer, shell } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
@@ -202,7 +202,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'pull': return this.pull()
       case 'select-changes': return this.selectChanges()
       case 'select-history': return this.selectHistory()
-      case 'add-local-repository': return this.showFileBrowser()
+      case 'add-local-repository': return this.showAddLocalRepo()
       case 'create-branch': return this.showCreateBranch()
       case 'show-branches': return this.showBranches()
       case 'remove-repository': return this.removeRepository()
@@ -320,6 +320,11 @@ export class App extends React.Component<IAppProps, IAppState> {
         branch: tip.branch,
       })
     }
+  }
+
+  private showAddLocalRepo = () => {
+    this.props.dispatcher.closeFoldout()
+    return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
   }
 
   private createRepository() {
@@ -481,14 +486,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.addRepositories(paths)
-  }
-
-  private showFileBrowser() {
-    const directories = remote.dialog.
-        showOpenDialog({ properties: [ 'openDirectory', 'multiSelections' ] })
-    if (directories && directories.length > 0) {
-      this.addRepositories(directories)
-    }
   }
 
   private removeRepository() {
