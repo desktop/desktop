@@ -17,4 +17,17 @@ dialog#about {
       height: 64px;
     }
   }
+
+  .update-status {
+    
+    .octicon.spin {
+      // Make sure the spinner is aligned with the text.
+      align-self: center;
+
+      // Tighten up the spacing between the spinner and the text
+      &:not(:last-child) {
+        margin-right: 3px;
+      }
+    }
+  }
 }
