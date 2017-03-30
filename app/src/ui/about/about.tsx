@@ -105,7 +105,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
         return (
           <Row>
             <Button onClick={this.onQuitAndInstall}>
-              Install update
+              Install Update
             </Button>
           </Row>
         )
@@ -117,7 +117,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
         return (
           <Row>
             <Button disabled={disabled} onClick={this.onCheckForUpdates} >
-              Check for updates
+              Check for Updates
             </Button>
           </Row>
         )
