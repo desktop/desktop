@@ -57,6 +57,19 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     }
   }
 
+  private RenderExpander() {
+    if (this.props.body.length) {
+      return (
+        <a onClick={this.toggleExpander} className='expander'>
+          <Octicon symbol={this.state.nextSymbol} />
+          {this.state.nextAction}
+        </a>
+      )
+    }
+
+    return null
+  }
+
   public render() {
     const fileCount = this.props.files.length
     const filesPlural = fileCount === 1 ? 'file' : 'files'
@@ -117,10 +130,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
           </ul>
         </div>
 
-        <a onClick={this.toggleExpander} className='expander'>
-          <Octicon symbol={this.state.nextSymbol} />
-          {this.state.nextAction}
-        </a>
+        {this.RenderExpander() }
 
         <RichText
           className={this.state.style + ' commit-summary-description'}
