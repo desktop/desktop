@@ -130,7 +130,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     return (
       <Row className='update-status'>
         <Loading />
-        <span>Checking for updates</span>
+        <span>Checking for updates…</span>
       </Row>
     )
   }
@@ -139,7 +139,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
     return (
       <Row className='update-status'>
         <Loading />
-        <span>Downloading update</span>
+        <span>Downloading update…</span>
       </Row>
     )
   }
