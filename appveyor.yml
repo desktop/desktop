@@ -26,7 +26,6 @@ install:
   - ps: $fileContent += $env:PRIVATE_KEY.Replace(' ', "`n")
   - ps: $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
   - ps: Set-Content c:\users\appveyor\.ssh\id_rsa $fileContent
-  - set NODE_ENV=production
   - git submodule update --init --recursive
   - npm prune
   - cd app && npm prune && cd ..

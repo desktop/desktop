@@ -6,9 +6,6 @@ notifications:
 os:
   - osx
 
-env:
-  - NODE_ENV=production
-
 branches:
   only:
     - master
