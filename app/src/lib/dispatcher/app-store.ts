@@ -131,8 +131,6 @@ export class AppStore {
   private commitSummaryWidth: number = defaultCommitSummaryWidth
   private windowState: WindowState
 
-  private windowOpen = true
-
   private readonly statsStore: StatsStore
 
   public constructor(gitHubUserStore: GitHubUserStore, cloningRepositoriesStore: CloningRepositoriesStore, emojiStore: EmojiStore, issuesStore: IssuesStore, statsStore: StatsStore, signInStore: SignInStore) {
@@ -185,7 +183,7 @@ export class AppStore {
     // If the window is hidden then we won't get an animation frame, but there
     // may still be work we wanna do in response to the state change. So
     // immediately emit the update.
-    if (!this.windowOpen) {
+    if (this.windowState === 'hidden') {
       this.emitUpdateNow()
       return
     }
@@ -354,7 +352,6 @@ export class AppStore {
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
-      windowOpen: this.windowOpen,
     }
   }
 
@@ -1461,14 +1458,5 @@ export class AppStore {
 
   public _setSignInOTP(otp: string): Promise<void> {
     return this.signInStore.setTwoFactorOTP(otp)
-  }
-
-  public _setWindowOpen(open: boolean): Promise<void> {
-    if (this.windowOpen !== open) {
-      this.windowOpen = open
-      this.emitUpdate()
-    }
-
-    return Promise.resolve()
   }
 }

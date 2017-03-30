@@ -81,14 +81,6 @@ ipcRenderer.on('blur', () => {
   dispatcher.setAccessKeyHighlightState(false)
 })
 
-ipcRenderer.on('hide', () => {
-  dispatcher.setWindowOpen(false)
-})
-
-ipcRenderer.on('show', () => {
-  dispatcher.setWindowOpen(true)
-})
-
 ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
   if (action.name === 'oauth') {
     try {

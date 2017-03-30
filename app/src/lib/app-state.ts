@@ -102,9 +102,6 @@ export interface IAppState {
    * Alt key is pressed. Only applicable on non-macOS platforms.
    */
   readonly highlightAccessKeys: boolean
-
-  /** Is the window currently open? */
-  readonly windowOpen: boolean
 }
 
 export enum PopupType {

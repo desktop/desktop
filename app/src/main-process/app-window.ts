@@ -153,8 +153,6 @@ export class AppWindow {
 
     this.window.on('focus', () => this.window.webContents.send('focus'))
     this.window.on('blur', () => this.window.webContents.send('blur'))
-    this.window.on('hide', () => this.window.webContents.send('hide'))
-    this.window.on('show', () => this.window.webContents.send('show'))
 
     this.registerWindowStateChangedEvents()
 
@@ -196,6 +194,8 @@ export class AppWindow {
     this.window.on('minimize', () => this.sendWindowStateEvent('minimized'))
     this.window.on('unmaximize', () => this.sendWindowStateEvent('normal'))
     this.window.on('restore', () => this.sendWindowStateEvent('normal'))
+    this.window.on('hide', () => this.sendWindowStateEvent('hidden'))
+    this.window.on('show', () => this.sendWindowStateEvent('normal'))
   }
 
   /**

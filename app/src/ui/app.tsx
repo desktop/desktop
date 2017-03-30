@@ -141,7 +141,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private updateMenu(state: IAppState) {
-    if (state.windowOpen) {
+    const windowOpen = state.windowState !== 'hidden'
+    if (windowOpen) {
       const selectedState = state.selectedState
       const isHostedOnGitHub = this.getCurrentRepositoryGitHubURL() !== null
 
