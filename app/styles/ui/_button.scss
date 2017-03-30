@@ -16,12 +16,14 @@
   border-radius: var(--button-border-radius);
 
   &:not(:disabled):hover {
+    border-color: var(--secondary-button-focus-border-color);
     background-color: var(--secondary-button-hover-background);
   }
 
   &:focus {
     outline: none;
     background-color: var(--secondary-button-hover-background);
+    border-color: var(--secondary-button-focus-border-color);
     box-shadow: 0 0 0 1px var(--secondary-button-focus-shadow-color);
   }
 
@@ -34,6 +36,7 @@
   border: 1px solid var(--button-background);
 
   &:not(:disabled):hover {
+    border-color: var(--button-background);
     background-color: var(--button-hover-background);
   }
 

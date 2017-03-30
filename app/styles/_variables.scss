@@ -49,7 +49,9 @@
   --secondary-button-background: $lighterGray;
   --secondary-button-hover-background: $white;
   --secondary-button-text-color: var(--text-color);
-  --secondary-button-focus-shadow-color: rgba($gray, 0.5);
+  --secondary-button-focus-shadow-color: rgba($gray, 0.75);
+  --secondary-button-focus-border-color: #D1D5DA;
+
   // Typography
   //
   // Font, line-height, and color for body text, headings, and more.
