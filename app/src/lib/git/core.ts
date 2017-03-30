@@ -11,7 +11,7 @@ import {
 } from 'dugite'
 
 /**
- * An extension of the execution options in git-kitchen-sink that
+ * An extension of the execution options in dugite that
  * allows us to piggy-back our own configuration options in the
  * same object.
  */
@@ -31,13 +31,13 @@ export interface IGitExecutionOptions extends DugiteExecutionOptions {
 }
 
 /**
- * The result of using `git`. This wraps git-kitchen-sink's results to provide
+ * The result of using `git`. This wraps dugite's results to provide
  * the parsed error if one occurs.
  */
 export interface IGitResult extends DugiteResult {
   /**
    * The parsed git error. This will be null when the exit code is include in
-   * the `successExitCodes`, or when git-kitchen-sink was unable to parse the
+   * the `successExitCodes`, or when dugite was unable to parse the
    * error.
    */
   readonly gitError: DugiteError | null
