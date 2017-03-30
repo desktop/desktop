@@ -3,6 +3,7 @@ import { remote } from 'electron'
 // Given that `autoUpdater` is entirely async anyways, I *think* it's safe to
 // use with `remote`.
 const autoUpdater = remote.autoUpdater
+const lastSuccessfulCheckKey = 'last-successful-update-check'
 
 import { Emitter, Disposable } from 'event-kit'
 
@@ -25,6 +26,7 @@ export enum UpdateStatus {
 
 export interface IUpdateState {
   status: UpdateStatus
+  lastSuccessfulCheck: Date | null
 }
 
 const UpdatesURLBase = 'https://central.github.com/api/deployments/desktop/desktop/latest'
@@ -33,8 +35,20 @@ const UpdatesURLBase = 'https://central.github.com/api/deployments/desktop/deskt
 class UpdateStore {
   private emitter = new Emitter()
   private status = UpdateStatus.UpdateNotAvailable
+  private lastSuccessfulCheck: Date | null = null
 
   public constructor() {
+
+    const lastSuccessfulCheckValue = localStorage.getItem(lastSuccessfulCheckKey)
+
+    if (lastSuccessfulCheckValue) {
+      const lastSuccessfulCheckTime = parseInt(lastSuccessfulCheckValue, 10)
+
+      if (!isNaN(lastSuccessfulCheckTime)) {
+        this.lastSuccessfulCheck = new Date(lastSuccessfulCheckTime)
+      }
+    }
+
     autoUpdater.on('error', this.onAutoUpdaterError)
     autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
     autoUpdater.on('update-available', this.onUpdateAvailable)
@@ -55,7 +69,17 @@ class UpdateStore {
     }
   }
 
+  private touchLastChecked() {
+    const now = new Date()
+    const persistedValue = now.getTime().toString()
+
+    this.lastSuccessfulCheck = now
+    localStorage.setItem(lastSuccessfulCheckKey, persistedValue)
+  }
+
   private onAutoUpdaterError = (error: Error) => {
+    // If we get an error during any stage of the update process we'll
+    this.status = UpdateStatus.UpdateNotAvailable
     this.emitError(error)
   }
 
@@ -65,11 +89,13 @@ class UpdateStore {
   }
 
   private onUpdateAvailable = () => {
+    this.touchLastChecked()
     this.status = UpdateStatus.UpdateAvailable
     this.emitDidChange()
   }
 
   private onUpdateNotAvailable = () => {
+    this.touchLastChecked()
     this.status = UpdateStatus.UpdateNotAvailable
     this.emitDidChange()
   }
@@ -99,7 +125,10 @@ class UpdateStore {
 
   /** The current auto updater state. */
   public get state(): IUpdateState {
-    return { status: this.status }
+    return {
+      status: this.status,
+      lastSuccessfulCheck: this.lastSuccessfulCheck,
+    }
   }
 
   private getFeedURL(username: string): string {
