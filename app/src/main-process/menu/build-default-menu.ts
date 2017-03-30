@@ -300,6 +300,8 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         ...updateMenuItems,
         { type: 'separator' },
         ...helpItems,
+        { type: 'separator' },
+        { label: '&About GitHub Desktop', click: emit('show-about') },
       ],
     })
   }

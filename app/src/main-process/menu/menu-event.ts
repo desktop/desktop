@@ -21,4 +21,5 @@ export type MenuEvent =
   'open-in-shell' |
   'compare-branch' |
   'view-repository-on-github' |
-  'clone-repository'
+  'clone-repository' |
+  'show-about'
