@@ -3,7 +3,7 @@ import * as http from 'http'
 
 import { decode } from 'iconv-lite'
 import { AppWindow } from './app-window'
-import { buildDefaultMenu, MenuEvent, findMenuItemByID, setMenuItemEnabled } from './menu'
+import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
@@ -113,14 +113,19 @@ app.on('ready', () => {
   })
 
   ipcMain.on('set-menu-enabled', (event: Electron.IpcMainEvent, { id, enabled }: { id: string, enabled: boolean }) => {
-    const changed = setMenuItemEnabled(menu, id, enabled)
-    if (changed) {
+    const menuItem = findMenuItemByID(menu, id)
+    if (menuItem) {
       // Only send the updated app menu when the state actually changes
       // or we might end up introducing a never ending loop between
       // the renderer and the main process
-      if (mainWindow) {
-        mainWindow.sendAppMenu()
+      if (menuItem.enabled !== enabled) {
+        menuItem.enabled = enabled
+        if (mainWindow) {
+          mainWindow.sendAppMenu()
+        }
       }
+    } else {
+      fatalError(`Unknown menu id: ${id}`)
     }
   })
 
