@@ -41,6 +41,7 @@ import { merge } from '../merge'
 import { getAppPath } from '../../ui/lib/app-proxy'
 import { StatsStore, ILaunchStats } from '../stats'
 import { SignInStore } from './sign-in-store'
+import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
 
 import {
@@ -66,9 +67,6 @@ import {
 import { openShell } from '../open-shell'
 
 const LastSelectedRepositoryIDKey = 'last-selected-repository-id'
-
-/** The `localStorage` key for whether we've shown the Welcome flow yet. */
-const HasShownWelcomeFlowKey = 'has-shown-welcome-flow'
 
 const defaultSidebarWidth: number = 250
 const sidebarWidthConfigKey: string = 'sidebar-width'
@@ -140,9 +138,7 @@ export class AppStore {
     this._issuesStore = issuesStore
     this.statsStore = statsStore
     this.signInStore = signInStore
-
-    const hasShownWelcomeFlow = localStorage.getItem(HasShownWelcomeFlowKey)
-    this.showWelcomeFlow = !hasShownWelcomeFlow || !parseInt(hasShownWelcomeFlow, 10)
+    this.showWelcomeFlow = hasShownWelcomeFlow()
 
     this.windowState = getWindowState(remote.getCurrentWindow())
 
@@ -1272,7 +1268,7 @@ export class AppStore {
 
     this.emitUpdate()
 
-    localStorage.setItem(HasShownWelcomeFlowKey, '1')
+    markWelcomeFlowComplete()
 
     return Promise.resolve()
   }
