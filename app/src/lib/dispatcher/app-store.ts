@@ -138,7 +138,7 @@ export class AppStore {
     this._issuesStore = issuesStore
     this.statsStore = statsStore
     this.signInStore = signInStore
-    this.showWelcomeFlow = hasShownWelcomeFlow()
+    this.showWelcomeFlow = !hasShownWelcomeFlow()
 
     this.windowState = getWindowState(remote.getCurrentWindow())
 
