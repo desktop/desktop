@@ -143,72 +143,92 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private updateMenu(state: IAppState) {
-    const windowOpen = state.windowState !== 'hidden'
-    if (windowOpen) {
-      const selectedState = state.selectedState
-      const isHostedOnGitHub = this.getCurrentRepositoryGitHubURL() !== null
+    const selectedState = state.selectedState
+    const isHostedOnGitHub = this.getCurrentRepositoryGitHubURL() !== null
 
-      let repositorySelected = false
-      let onNonDefaultBranch = false
-      let onBranch = false
-      let hasDefaultBranch = false
-      let hasPublishedBranch = false
-      let networkActionInProgress = false
+    let repositorySelected = false
+    let onNonDefaultBranch = false
+    let onBranch = false
+    let hasDefaultBranch = false
+    let hasPublishedBranch = false
+    let networkActionInProgress = false
 
-      if (selectedState && selectedState.type === SelectionType.Repository) {
-        repositorySelected = true
+    if (selectedState && selectedState.type === SelectionType.Repository) {
+      repositorySelected = true
 
-        const branchesState = selectedState.state.branchesState
-        const tip = branchesState.tip
-        const defaultBranch = branchesState.defaultBranch
+      const branchesState = selectedState.state.branchesState
+      const tip = branchesState.tip
+      const defaultBranch = branchesState.defaultBranch
 
-        hasDefaultBranch = Boolean(defaultBranch)
+      hasDefaultBranch = Boolean(defaultBranch)
 
-        onBranch = tip.kind === TipState.Valid
+      onBranch = tip.kind === TipState.Valid
 
-        // If we are:
-        //  1. on the default branch, or
-        //  2. on an unborn branch, or
-        //  3. on a detached HEAD
-        // there's not much we can do.
-        if (tip.kind === TipState.Valid) {
-          if (defaultBranch !== null) {
-            onNonDefaultBranch = tip.branch.name !== defaultBranch.name
-          }
-
-          hasPublishedBranch = !!tip.branch.upstream
-        } else {
-          onNonDefaultBranch = true
+      // If we are:
+      //  1. on the default branch, or
+      //  2. on an unborn branch, or
+      //  3. on a detached HEAD
+      // there's not much we can do.
+      if (tip.kind === TipState.Valid) {
+        if (defaultBranch !== null) {
+          onNonDefaultBranch = tip.branch.name !== defaultBranch.name
         }
 
-        networkActionInProgress = selectedState.state.pushPullInProgress
+        hasPublishedBranch = !!tip.branch.upstream
+      } else {
+        onNonDefaultBranch = true
       }
 
-      setMenuEnabled('branch', repositorySelected)
-      setMenuEnabled('repository', repositorySelected)
-      setMenuEnabled('show-changes', true)
-      setMenuEnabled('show-history', true)
-      setMenuEnabled('show-repository-list', true)
-      setMenuEnabled('show-branches-list', true)
+      networkActionInProgress = selectedState.state.pushPullInProgress
+    }
+
+    // These are IDs for menu items that are entirely _and only_
+    // repository-scoped. They're always enabled if we're in a repository and
+    // always disabled if we're not.
+    const repositoryScopedIDs: ReadonlyArray<MenuIDs> = [
+      'branch',
+      'repository',
+      'remove-repository',
+      'open-in-shell',
+      'open-working-directory',
+      'show-repository-settings',
+      'create-branch',
+      'show-changes',
+      'show-history',
+      'show-repository-list',
+      'show-branches-list',
+    ]
+
+    const windowOpen = state.windowState !== 'hidden'
+    const repositoryActive = windowOpen && repositorySelected
+    if (repositoryActive) {
+      for (const id of repositoryScopedIDs) {
+        setMenuEnabled(id, true)
+      }
 
       setMenuEnabled('rename-branch', onNonDefaultBranch)
       setMenuEnabled('delete-branch', onNonDefaultBranch)
       setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
       setMenuEnabled('merge-branch', onBranch)
-      setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
       setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
-      setMenuEnabled('open-in-shell', onBranch)
-      setMenuEnabled('push', repositorySelected && !networkActionInProgress)
-      setMenuEnabled('pull', repositorySelected && !networkActionInProgress)
-      setMenuEnabled('create-branch', repositorySelected)
+
+      setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
+      setMenuEnabled('push', !networkActionInProgress)
+      setMenuEnabled('pull', !networkActionInProgress)
     } else {
-      setMenuEnabled('branch', false)
-      setMenuEnabled('repository', false)
-      setMenuEnabled('create-branch', false)
-      setMenuEnabled('show-changes', false)
-      setMenuEnabled('show-history', false)
-      setMenuEnabled('show-repository-list', false)
-      setMenuEnabled('show-branches-list', false)
+      for (const id of repositoryScopedIDs) {
+        setMenuEnabled(id, false)
+      }
+
+      setMenuEnabled('rename-branch', false)
+      setMenuEnabled('delete-branch', false)
+      setMenuEnabled('update-branch', false)
+      setMenuEnabled('merge-branch', false)
+      setMenuEnabled('compare-branch', false)
+
+      setMenuEnabled('view-repository-on-github', false)
+      setMenuEnabled('push', false)
+      setMenuEnabled('pull', false)
     }
   }
 
