@@ -21,6 +21,11 @@ interface IRichTextProps {
    * no link highlighting is performed.
    */
   readonly repository?: Repository
+
+  /**
+   * An optional id that can be used to access component in the DOM
+   */
+  readonly id?: string
 }
 
 /**
@@ -52,7 +57,7 @@ export class RichText extends React.Component<IRichTextProps, void> {
     })
 
     return (
-      <div className={this.props.className}>{ elements }</div>
+      <div id={this.props.id} className={this.props.className}>{ elements }</div>
     )
   }
 }
