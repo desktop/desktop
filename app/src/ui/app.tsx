@@ -146,6 +146,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const selectedState = state.selectedState
     const isHostedOnGitHub = this.getCurrentRepositoryGitHubURL() !== null
 
+    let repositorySelected = false
     let onNonDefaultBranch = false
     let onBranch = false
     let hasDefaultBranch = false
@@ -153,6 +154,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     let networkActionInProgress = false
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
+      repositorySelected = true
+
       const branchesState = selectedState.state.branchesState
       const tip = branchesState.tip
       const defaultBranch = branchesState.defaultBranch
@@ -179,15 +182,54 @@ export class App extends React.Component<IAppProps, IAppState> {
       networkActionInProgress = selectedState.state.pushPullInProgress
     }
 
-    setMenuEnabled('rename-branch', onNonDefaultBranch)
-    setMenuEnabled('delete-branch', onNonDefaultBranch)
-    setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
-    setMenuEnabled('merge-branch', onBranch)
-    setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
-    setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
-    setMenuEnabled('open-in-shell', onBranch)
-    setMenuEnabled('push', !networkActionInProgress)
-    setMenuEnabled('pull', !networkActionInProgress)
+    // These are IDs for menu items that are entirely _and only_
+    // repository-scoped. They're always enabled if we're in a repository and
+    // always disabled if we're not.
+    const repositoryScopedIDs: ReadonlyArray<MenuIDs> = [
+      'branch',
+      'repository',
+      'remove-repository',
+      'open-in-shell',
+      'open-working-directory',
+      'show-repository-settings',
+      'create-branch',
+      'show-changes',
+      'show-history',
+      'show-repository-list',
+      'show-branches-list',
+    ]
+
+    const windowOpen = state.windowState !== 'hidden'
+    const repositoryActive = windowOpen && repositorySelected
+    if (repositoryActive) {
+      for (const id of repositoryScopedIDs) {
+        setMenuEnabled(id, true)
+      }
+
+      setMenuEnabled('rename-branch', onNonDefaultBranch)
+      setMenuEnabled('delete-branch', onNonDefaultBranch)
+      setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
+      setMenuEnabled('merge-branch', onBranch)
+      setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
+
+      setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
+      setMenuEnabled('push', !networkActionInProgress)
+      setMenuEnabled('pull', !networkActionInProgress)
+    } else {
+      for (const id of repositoryScopedIDs) {
+        setMenuEnabled(id, false)
+      }
+
+      setMenuEnabled('rename-branch', false)
+      setMenuEnabled('delete-branch', false)
+      setMenuEnabled('update-branch', false)
+      setMenuEnabled('merge-branch', false)
+      setMenuEnabled('compare-branch', false)
+
+      setMenuEnabled('view-repository-on-github', false)
+      setMenuEnabled('push', false)
+      setMenuEnabled('pull', false)
+    }
   }
 
   private onMenuEvent(name: MenuEvent): any {
