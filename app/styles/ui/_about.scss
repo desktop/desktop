@@ -8,6 +8,13 @@ dialog#about {
     p, h2 {
       text-align: center;
     }
+
+    // The version and the EULA link are conceptually two lines in
+    // a paragraph but we don't have a great way of modelling that now
+    // (and don't you say <br/>) so we'll just kill off the bottom margin. 
+    p.version {
+      margin-bottom: 0;
+    }
   }
 
   .logo {
