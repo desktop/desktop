@@ -226,7 +226,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
             <Octicon symbol={OcticonSymbol.markGithub} />
           </Row>
           <h2>{name}</h2>
-          <p>
+          <p className='version'>
             Version {version} ({releaseNotesLink})
           </p>
           <p>
