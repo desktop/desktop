@@ -3,6 +3,7 @@ import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { proxyRequest } from '../../ui/main-process-proxy'
 import { IHTTPRequest } from '../http'
+import { hasShownWelcomeFlow } from '../welcome'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -53,6 +54,12 @@ export class StatsStore {
 
     // Never report stats while in dev or test. They could be pretty crazy.
     if (__DEV__ || process.env.TEST_ENV) {
+      return
+    }
+
+    // don't report until the user has had a chance to view and opt-in for
+    // sharing their stats with us
+    if (!hasShownWelcomeFlow()) {
       return
     }
 
