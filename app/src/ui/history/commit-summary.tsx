@@ -43,6 +43,8 @@ const Collapsed = {
 
 
 export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitSummaryState> {
+  private commitSummaryDescriptionRichText: RichText
+
   public constructor(props: ICommitSummaryProps) {
     super(props)
 
@@ -57,8 +59,18 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     }
   }
 
+  private commitSummaryDescriptionRef = (ref: RichText) => {
+    this.commitSummaryDescriptionRichText = ref
+  }
+
   private RenderExpander() {
-    if (this.props.body.length) {
+    const commitSummaryDescription = document.getElementById('CommitSummaryDescription')
+
+    if (!this.props.body.length) {
+      return null
+    }
+
+    if (commitSummaryDescription) {
       return (
         <a onClick={this.toggleExpander} className='expander'>
           <Octicon symbol={this.state.nextSymbol} />
@@ -130,14 +142,16 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
           </ul>
         </div>
 
-        {this.RenderExpander() }
+        {this.RenderExpander()}
 
         <RichText
+          id='CommitSummaryDescription'
           className={this.state.style + ' commit-summary-description'}
           emoji={this.props.emoji}
           repository={this.props.repository}
-          text={this.props.body} />
-      </div>
+          text={this.props.body}
+          ref={this.commitSummaryDescriptionRef}/>
+        </div>
     )
   }
 }
