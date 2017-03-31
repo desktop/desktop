@@ -200,6 +200,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       {
         label: __DARWIN__ ? 'Remove' : '&Remove',
+        id: 'remove-repository',
         click: emit('remove-repository'),
       },
       { type: 'separator' },
@@ -216,12 +217,14 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       {
         label: __DARWIN__ ? 'Open in Finder' : '&Open in Explorer',
+        id: 'open-working-directory',
         accelerator: 'CmdOrCtrl+Shift+F',
         click: emit('open-working-directory'),
       },
       { type: 'separator' },
       {
         label: __DARWIN__ ? 'Repository Settings…' : 'Repository &settings…',
+        id: 'show-repository-settings',
         click: emit('show-repository-settings'),
       },
     ],
