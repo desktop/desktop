@@ -423,6 +423,10 @@ export class GitStore {
    * Fetch a given refspec, using the given user for authentication.
    *
    * @param user - The user to use for authentication if needed.
+   * @param refspec - The association between a remote and local ref to use as
+   *                  part of this action. Refer to git-scm for more
+   *                  information on refspecs: https://www.git-scm.com/book/tr/v2/Git-Internals-The-Refspec
+   *
    */
   public async fetchRefspec(user: User | null, refspec: string): Promise<void> {
 
