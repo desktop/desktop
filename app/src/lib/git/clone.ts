@@ -8,7 +8,7 @@ const byline = require('byline')
 export type CloneOptions = {
   /** The optional identity to provide when cloning. */
   readonly user: User | null
-  /** The default branch to checkout after the clone has completed. */
+  /** The branch to checkout after the clone has completed. */
   readonly branch?: string
 }
 
