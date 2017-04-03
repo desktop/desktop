@@ -1,11 +1,6 @@
 import * as React from 'react'
 import * as classNames from 'classnames'
 
-export enum ButtonSize {
-  Normal,
-  Small
-}
-
 export interface IButtonProps {
   /**
    * A callback which is invoked when the button is clicked
@@ -34,7 +29,7 @@ export interface IButtonProps {
   readonly className?: string
 
   /** The type of button size, e.g., normal or small. */
-  readonly size?: ButtonSize
+  readonly size?: 'normal' | 'small'
 
   /**
    * The `ref` for the underlying <button> element.
@@ -111,14 +106,10 @@ export class Button extends React.Component<IButtonProps, void> {
   }
 
   public render() {
-    let buttonSizeClass = ''
-
-    if (this.props.size === ButtonSize.Small) {
-      buttonSizeClass = 'small-button'
-    }
-
     const className = classNames(
-      'button-component', buttonSizeClass, this.props.className
+      'button-component',
+       { 'small-button': this.props.size === 'small' },
+       this.props.className
     )
 
     return (

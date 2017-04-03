@@ -3,7 +3,7 @@ import * as React from 'react'
 import { Commit } from '../../models/commit'
 import { RichText } from '../lib/rich-text'
 import { RelativeTime } from '../relative-time'
-import { Button, ButtonSize } from '../lib/button'
+import { Button } from '../lib/button'
 
 interface IUndoCommitProps {
   /** The function to call when the Undo button is clicked. */
@@ -29,7 +29,7 @@ export class UndoCommit extends React.Component<IUndoCommitProps, void> {
             text={this.props.commit.summary} />
         </div>
         <div className='actions'>
-          <Button size={ButtonSize.Small} onClick={this.props.onUndo}>Undo</Button>
+          <Button size='small' onClick={this.props.onUndo}>Undo</Button>
         </div>
       </div>
     )
