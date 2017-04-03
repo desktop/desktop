@@ -28,10 +28,11 @@ export async function fetchRefspec(repository: Repository, user: User | null, re
     expectedErrors: expectedAuthenticationErrors(),
   }
 
-  const result = await git([ 'fetch', remote, refspec ], repository.path, 'fetchRefspec', options)
+  const args = [ 'fetch', remote, refspec ]
+  const result = await git(args, repository.path, 'fetchRefspec', options)
 
   if (result.gitErrorDescription) {
-    return Promise.reject(new Error(result.gitErrorDescription))
+    return Promise.reject(new GitError(result, args))
   }
 
   return Promise.resolve()
