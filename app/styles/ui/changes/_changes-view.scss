@@ -5,7 +5,7 @@
   min-width: 0;
 
   .header {
-    background: var(--diff-hunk-background-color);
+    background: var(--box-alt-background-color);
     border-bottom: 1px solid var(--diff-border-color);
 
     display: flex;
@@ -13,7 +13,7 @@
     flex-shrink: 0;
     flex-grow: 0;
 
-    padding: var(--spacing-half);
+    padding: var(--spacing-half) var(--spacing);
 
     .path {
       flex-grow: 1;
@@ -24,6 +24,8 @@
     .octicon {
       flex-shrink:0;
       vertical-align: text-bottom;
+      position: relative;
+      top: 1px;
     }
   }
 }
