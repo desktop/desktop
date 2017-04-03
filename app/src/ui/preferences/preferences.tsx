@@ -3,6 +3,7 @@ import { User } from '../../models/user'
 import { Dispatcher } from '../../lib/dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
+import { Advanced } from './advanced'
 import { Git } from './git'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
@@ -19,13 +20,15 @@ interface IPreferencesProps {
 
 enum PreferencesTab {
   Accounts = 0,
-  Git
+  Git,
+  Advanced
 }
 
 interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
   readonly committerName: string,
-  readonly committerEmail: string
+  readonly committerEmail: string,
+  readonly optOutOfUsageTracking: boolean
 }
 
 /** The app-level preferences component. */
@@ -37,6 +40,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       selectedIndex: PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
+      optOutOfUsageTracking: false,
     }
   }
 
@@ -76,6 +80,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedIndex}>
           <span>Accounts</span>
           <span>Git</span>
+          <span>Advance</span>
         </TabBar>
 
         {this.renderActiveTab()}
@@ -117,6 +122,12 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
           onEmailChanged={this.onCommitterEmailChanged}
         />
       }
+      case PreferencesTab.Advanced: {
+        return <Advanced
+          reportingOptOut={this.state.optOutOfUsageTracking}
+          user={this.props.dotComUser}
+        />
+      }
       default: return assertNever(index, `Unknown tab index: ${index}`)
     }
   }
@@ -134,6 +145,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     const index = this.state.selectedIndex
     switch (index) {
       case PreferencesTab.Accounts: return null
+      case PreferencesTab.Advanced:
       case PreferencesTab.Git: {
         return (
           <DialogFooter>
