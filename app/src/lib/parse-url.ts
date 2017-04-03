@@ -1,4 +1,5 @@
 import * as URL from 'url'
+import { testForInvalidChars } from './sanitize-branch'
 
 interface IURLAction<T> {
   name: string
@@ -77,11 +78,7 @@ export function parseURL(url: string): URLActionType {
     }
 
     if (branch) {
-      // See https://www.kernel.org/pub/software/scm/git/docs/git-check-ref-format.html
-      // ASCII Control chars and space, DEL, ~ ^ : ? * [ \
-      // | " < and > is technically a valid refname but not on Windows
-      // the magic sequence @{, consecutive dots, leading and trailing dot, ref ending in .lock
-      if (/[\x00-\x20\x7F~^:?*\[\\|""<>]|@{|\.\.+|^\.|\.$|\.lock$/.test(branch)) { return unknown }
+      if (testForInvalidChars(branch)) { return unknown }
     }
 
     return {
