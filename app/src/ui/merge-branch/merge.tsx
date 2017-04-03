@@ -61,6 +61,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     const countPlural = this.state.commitCount === 1 ? 'commit' : 'commits'
     return (
       <Dialog
+        id='merge'
         title={__DARWIN__ ? 'Merge Branch' : 'Merge branch'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.merge}
