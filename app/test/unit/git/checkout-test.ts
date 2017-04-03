@@ -15,7 +15,7 @@ describe('git/checkout', () => {
       await checkoutBranch(repository, '..')
     } catch (error) {
       errorRaised = true
-      expect(error.message).to.equal('The provided name \'..\' is not a valid ref.')
+      expect(error.message).to.equal('fatal: invalid reference: ..\n')
     }
 
     expect(errorRaised).to.be.true
