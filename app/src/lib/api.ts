@@ -370,15 +370,30 @@ export async function fetchUser(endpoint: string, token: string): Promise<User> 
 
 /** Get metadata from the server. */
 export async function fetchMetadata(endpoint: string): Promise<IServerMetadata | null> {
-  const response = await request(endpoint, null, 'GET', 'meta')
-  if (response.statusCode === 200) {
-    const body = deserialize<IServerMetadata>(response.body)
-    // If the response doesn't include the field we need, then it's not a valid
-    // response.
-    if (!body || body.verifiable_password_authentication === undefined) { return null }
+
+  const url = `${endpoint}/meta`
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (response.status !== 200) {
+      return null
+    }
+
+    const text = await response.text()
+    const body = deserialize<IServerMetadata>(text)
+    if (!body || body.verifiable_password_authentication === undefined) {
+      return null
+    }
 
     return body
-  } else {
+  } catch (error) {
+    console.error(`Failed to load metadata from ${url}: ${error}`)
     return null
   }
 }

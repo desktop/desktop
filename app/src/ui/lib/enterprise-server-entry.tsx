@@ -45,14 +45,16 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
 
   public render() {
     const disableEntry = this.props.loading
-    const disableSubmission = !this.state.serverAddress.length || this.props.loading
+    const disableSubmission = this.state.serverAddress.length === 0 || this.props.loading
+
     return (
       <Form onSubmit={this.onSubmit}>
         <TextBox
           label='Enterprise server address'
           autoFocus={true}
           disabled={disableEntry}
-          onChange={this.onServerAddressChanged}/>
+          onValueChanged={this.onServerAddressChanged}
+          placeholder='https://github.example.com' />
 
         <Button type='submit' disabled={disableSubmission}>Continue</Button>
 
@@ -65,8 +67,8 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
     )
   }
 
-  private onServerAddressChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({ serverAddress: event.currentTarget.value })
+  private onServerAddressChanged = (serverAddress: string) => {
+    this.setState({ serverAddress })
   }
 
   private onSubmit = () => {

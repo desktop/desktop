@@ -7,7 +7,31 @@ import { AccessText } from '../lib/access-text'
 
 interface IMenuListItemProps {
   readonly item: MenuItem
+
+  /**
+   * Whether or not to highlight the access key of a menu item (if one exists).
+   * 
+   * See the highlight prop of AccessText component for more details.
+   */
   readonly highlightAccessKey: boolean
+
+  /**
+   * Whether or not to render the accelerator (shortcut) next to the label.
+   * This can be turned off when the menu item is used as a stand-alone item
+   *
+   * Defaults to true if not specified (i.e. undefined)
+   */
+  readonly renderAcceleratorText?: boolean
+
+  /**
+   * Whether or not to render an arrow to the right of the label when the
+   * menu item has a submenu. This can be turned off when the menu item is
+   * used as a stand-alone item or when expanding the submenu doesn't follow
+   * the default conventions (i.e. expanding to the right).
+   * 
+   * Defaults to true if not specified (i.e. undefined)
+   */
+  readonly renderSubMenuArrow?: boolean
 }
 
 /**
@@ -36,7 +60,6 @@ function getPlatformSpecificNameOrSymbolForModifier(modifier: string): string {
 
     // Special case space because no one would be able to see it
     case ' ': return 'Space'
-    case ',': return 'Comma'
   }
 
   // Not a known modifier, likely a normal key
@@ -57,7 +80,6 @@ export function friendlyAcceleratorText(accelerator: string): string {
 export class MenuListItem extends React.Component<IMenuListItemProps, void> {
 
   private getIcon(item: MenuItem): JSX.Element | null {
-
     if (item.type === 'checkbox' && item.checked) {
       return <Octicon className='icon' symbol={OcticonSymbol.check} />
     } else if (item.type === 'radio' && item.checked) {
@@ -74,11 +96,11 @@ export class MenuListItem extends React.Component<IMenuListItemProps, void> {
       return <hr />
     }
 
-    const arrow = item.type === 'submenuItem'
+    const arrow = item.type === 'submenuItem' && this.props.renderSubMenuArrow !== false
       ? <Octicon className='submenu-arrow' symbol={OcticonSymbol.triangleRight} />
       : null
 
-    const accelerator = item.type !== 'submenuItem' && item.accelerator
+    const accelerator = item.type !== 'submenuItem' && item.accelerator && this.props.renderAcceleratorText !== false
       ? <div className='accelerator'>{friendlyAcceleratorText(item.accelerator)}</div>
       : null
 

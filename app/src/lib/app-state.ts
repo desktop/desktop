@@ -11,6 +11,7 @@ import { CloningRepository, ICloningRepositoryState, IGitHubUser, SignInState } 
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
+import { WindowState } from './window-state'
 
 export { ICloningRepositoryState }
 export { ICommitMessage }
@@ -42,6 +43,10 @@ export interface IAppState {
    */
   readonly signInState: SignInState | null
 
+  /**
+   * The current state of the Window, ie maximized, minimized full-screen etc.
+   */
+  readonly windowState: WindowState
   readonly showWelcomeFlow: boolean
   readonly loading: boolean
   readonly currentPopup: Popup | null
@@ -93,11 +98,10 @@ export interface IAppState {
   readonly titleBarStyle: 'light' | 'dark'
 
   /**
-   * Used to add a highlight class to the app menu toolbar icon
-   * when the Alt key is pressed. Only applicable on non-macOS
-   * platforms.
+   * Used to highlight access keys throughout the app when the
+   * Alt key is pressed. Only applicable on non-macOS platforms.
    */
-  readonly highlightAppMenuToolbarButton: boolean
+  readonly highlightAccessKeys: boolean
 }
 
 export enum PopupType {
@@ -112,7 +116,8 @@ export enum PopupType {
   CreateRepository,
   CloneRepository,
   CreateBranch,
-  SignIn
+  SignIn,
+  About
 }
 
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
@@ -126,7 +131,8 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.CreateRepository } |
                     { type: PopupType.CloneRepository } |
                     { type: PopupType.CreateBranch, repository: Repository } |
-                    { type: PopupType.SignIn }
+                    { type: PopupType.SignIn } |
+                    { type: PopupType.About }
 
 export enum FoldoutType {
   Repository,
@@ -136,12 +142,32 @@ export enum FoldoutType {
   AddMenu,
 }
 
+export type AppMenuFoldout = {
+  type: FoldoutType.AppMenu,
+
+  /**
+   * Whether or not the application menu was opened with the Alt key, this
+   * enables access key highlighting for applicable menu items as well as
+   * keyboard navigation by pressing access keys.
+   */
+  enableAccessKeyNavigation: boolean,
+
+  /**
+   * Whether the menu was opened by pressing Alt (or Alt+X where X is an
+   * access key for one of the top level menu items). This is used as a
+   * one-time signal to the AppMenu to use some special semantics for
+   * selection and focus. Specifically it will ensure that the last opened
+   * menu will receive focus.
+   */
+  openedWithAccessKey?: boolean,
+}
+
 export type Foldout =
   { type: FoldoutType.Repository } |
   { type: FoldoutType.Branch } |
-  { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } |
   { type: FoldoutType.Publish } |
-  { type: FoldoutType.AddMenu }
+  { type: FoldoutType.AddMenu } |
+  AppMenuFoldout
 
 export enum RepositorySection {
   Changes,

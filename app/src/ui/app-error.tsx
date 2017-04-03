@@ -102,6 +102,24 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
+  private renderErrorMessage(error: Error) {
+
+    let monospace = false
+
+    if (error instanceof GitError) {
+      // See getResultMessage in core.ts
+      // If the error message is the same as stderr or stdout then we know
+      // it's output from git and we'll display it in fixed-width font
+      if (error.message === error.result.stderr || error.message === error.result.stdout) {
+        monospace = true
+      }
+    }
+
+    const className = monospace ? 'monospace' : undefined
+
+    return <p className={className}>{error.message}</p>
+  }
+
   private renderDialog() {
     const error = this.state.error
 
@@ -117,7 +135,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         onDismissed={this.onDismissed}
         disabled={this.state.disabled}>
         <DialogContent>
-          {error instanceof GitError ? error.result.gitErrorDescription : error.message}
+          {this.renderErrorMessage(error)}
         </DialogContent>
         <DialogFooter>
           {this.renderFooter(error)}

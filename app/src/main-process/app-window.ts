@@ -77,6 +77,11 @@ export class AppWindow {
       // This fixes subpixel aliasing on Windows
       // See https://github.com/atom/atom/commit/683bef5b9d133cb194b476938c77cc07fd05b972
       backgroundColor: '#fff',
+      webPreferences: {
+        // Disable auxclick event
+        // See https://developers.google.com/web/updates/2016/10/auxclick
+        disableBlinkFeatures: 'Auxclick',
+      },
     }
 
     if (__DARWIN__) {
@@ -87,6 +92,23 @@ export class AppWindow {
 
     this.window = new BrowserWindow(windowOptions)
     savedWindowState.manage(this.window)
+
+    // on macOS, when the user closes the window we really just hide it. This
+    // lets us activate quickly and keep all our interesting logic in the
+    // renderer.
+    if (__DARWIN__) {
+      let quitting = false
+      app.on('before-quit', () => {
+        quitting = true
+      })
+
+      this.window.on('close', e => {
+        if (!quitting) {
+          e.preventDefault()
+          this.window.hide()
+        }
+      })
+    }
 
     this.sharedProcess = sharedProcess
   }
@@ -172,6 +194,8 @@ export class AppWindow {
     this.window.on('minimize', () => this.sendWindowStateEvent('minimized'))
     this.window.on('unmaximize', () => this.sendWindowStateEvent('normal'))
     this.window.on('restore', () => this.sendWindowStateEvent('normal'))
+    this.window.on('hide', () => this.sendWindowStateEvent('hidden'))
+    this.window.on('show', () => this.sendWindowStateEvent('normal'))
   }
 
   /**
@@ -213,11 +237,15 @@ export class AppWindow {
 
   /** Send the menu event to the renderer. */
   public sendMenuEvent(name: MenuEvent) {
+    this.show()
+
     this.window.webContents.send('menu-event', { name })
   }
 
   /** Send the URL action to the renderer. */
   public sendURLAction(action: URLActionType) {
+    this.show()
+
     this.window.webContents.send('url-action', { action })
   }
 

@@ -1,7 +1,6 @@
 import * as React from 'react'
-import * as classNames from 'classnames'
 import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
-import { ipcRenderer, remote, shell } from 'electron'
+import { ipcRenderer, shell } from 'electron'
 
 import { RepositoriesList } from './repositories-list'
 import { RepositoryView } from './repository'
@@ -16,14 +15,14 @@ import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
-import { OcticonSymbol, iconForRepository } from './octicons'
+import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
 import { setMenuEnabled, setMenuVisible } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
-import { updateStore, UpdateState } from './lib/update-store'
+import { updateStore, UpdateStatus } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
 import { ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
-import { AppMenu } from './app-menu'
+import { AppMenuBar } from './app-menu'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
@@ -37,6 +36,8 @@ import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository, CloneRepository } from './add-repository'
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
+import { About } from './about'
+import { getVersion, getName } from './lib/app-proxy'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -87,15 +88,17 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     updateStore.onDidChange(state => {
+      const status = state.status
+
       const visibleItem = (function () {
-        switch (state) {
-          case UpdateState.CheckingForUpdates: return 'checking-for-updates'
-          case UpdateState.UpdateReady: return 'quit-and-install-update'
-          case UpdateState.UpdateNotAvailable: return 'check-for-updates'
-          case UpdateState.UpdateAvailable: return 'downloading-update'
+        switch (status) {
+          case UpdateStatus.CheckingForUpdates: return 'checking-for-updates'
+          case UpdateStatus.UpdateReady: return 'quit-and-install-update'
+          case UpdateStatus.UpdateNotAvailable: return 'check-for-updates'
+          case UpdateStatus.UpdateAvailable: return 'downloading-update'
         }
 
-        return assertNever(state, `Unknown update state: ${state}`)
+        return assertNever(status, `Unknown update state: ${status}`)
       })() as MenuIDs
 
       const menuItems = new Set([
@@ -112,7 +115,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       setMenuVisible(visibleItem, true)
 
-      if (state === UpdateState.UpdateReady) {
+      if (status === UpdateStatus.UpdateReady) {
         this.props.dispatcher.showPopup({ type: PopupType.UpdateAvailable })
       }
     })
@@ -143,6 +146,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     const selectedState = state.selectedState
     const isHostedOnGitHub = this.getCurrentRepositoryGitHubURL() !== null
 
+    let repositorySelected = false
     let onNonDefaultBranch = false
     let onBranch = false
     let hasDefaultBranch = false
@@ -150,6 +154,8 @@ export class App extends React.Component<IAppProps, IAppState> {
     let networkActionInProgress = false
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
+      repositorySelected = true
+
       const branchesState = selectedState.state.branchesState
       const tip = branchesState.tip
       const defaultBranch = branchesState.defaultBranch
@@ -176,15 +182,54 @@ export class App extends React.Component<IAppProps, IAppState> {
       networkActionInProgress = selectedState.state.pushPullInProgress
     }
 
-    setMenuEnabled('rename-branch', onNonDefaultBranch)
-    setMenuEnabled('delete-branch', onNonDefaultBranch)
-    setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
-    setMenuEnabled('merge-branch', onBranch)
-    setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
-    setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
-    setMenuEnabled('open-in-shell', onBranch)
-    setMenuEnabled('push', !networkActionInProgress)
-    setMenuEnabled('pull', !networkActionInProgress)
+    // These are IDs for menu items that are entirely _and only_
+    // repository-scoped. They're always enabled if we're in a repository and
+    // always disabled if we're not.
+    const repositoryScopedIDs: ReadonlyArray<MenuIDs> = [
+      'branch',
+      'repository',
+      'remove-repository',
+      'open-in-shell',
+      'open-working-directory',
+      'show-repository-settings',
+      'create-branch',
+      'show-changes',
+      'show-history',
+      'show-repository-list',
+      'show-branches-list',
+    ]
+
+    const windowOpen = state.windowState !== 'hidden'
+    const repositoryActive = windowOpen && repositorySelected
+    if (repositoryActive) {
+      for (const id of repositoryScopedIDs) {
+        setMenuEnabled(id, true)
+      }
+
+      setMenuEnabled('rename-branch', onNonDefaultBranch)
+      setMenuEnabled('delete-branch', onNonDefaultBranch)
+      setMenuEnabled('update-branch', onNonDefaultBranch && hasDefaultBranch)
+      setMenuEnabled('merge-branch', onBranch)
+      setMenuEnabled('compare-branch', isHostedOnGitHub && hasPublishedBranch)
+
+      setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
+      setMenuEnabled('push', !networkActionInProgress)
+      setMenuEnabled('pull', !networkActionInProgress)
+    } else {
+      for (const id of repositoryScopedIDs) {
+        setMenuEnabled(id, false)
+      }
+
+      setMenuEnabled('rename-branch', false)
+      setMenuEnabled('delete-branch', false)
+      setMenuEnabled('update-branch', false)
+      setMenuEnabled('merge-branch', false)
+      setMenuEnabled('compare-branch', false)
+
+      setMenuEnabled('view-repository-on-github', false)
+      setMenuEnabled('push', false)
+      setMenuEnabled('pull', false)
+    }
   }
 
   private onMenuEvent(name: MenuEvent): any {
@@ -199,7 +244,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'pull': return this.pull()
       case 'select-changes': return this.selectChanges()
       case 'select-history': return this.selectHistory()
-      case 'add-local-repository': return this.showFileBrowser()
+      case 'add-local-repository': return this.showAddLocalRepo()
       case 'create-branch': return this.showCreateBranch()
       case 'show-branches': return this.showBranches()
       case 'remove-repository': return this.removeRepository()
@@ -217,6 +262,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       case 'view-repository-on-github' : return this.viewRepositoryOnGitHub()
       case 'compare-branch': return this.compareBranch()
       case 'open-in-shell' : return this.openShell()
+      case 'clone-repository': return this.showCloneRepo()
+      case 'show-about': return this.showAbout()
     }
 
     return assertNever(name, `Unknown menu event name: ${name}`)
@@ -225,9 +272,12 @@ export class App extends React.Component<IAppProps, IAppState> {
   private checkForUpdates() {
     if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') { return }
 
+    updateStore.checkForUpdates(this.getUsernameForUpdateCheck())
+  }
+
+  private getUsernameForUpdateCheck() {
     const dotComUser = this.getDotComUser()
-    const login = dotComUser ? dotComUser.login : ''
-    updateStore.checkForUpdates(login)
+    return dotComUser ? dotComUser.login : ''
   }
 
   private getDotComUser(): User | null {
@@ -314,10 +364,19 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
   }
 
+  private showAddLocalRepo = () => {
+    this.props.dispatcher.closeFoldout()
+    return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
+  }
+
   private createRepository() {
     this.props.dispatcher.showPopup({
       type: PopupType.CreateRepository,
     })
+  }
+
+  private showCloneRepo() {
+    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
   }
 
   private showBranches() {
@@ -325,6 +384,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     if (!state || state.type !== SelectionType.Repository) { return }
 
     this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
+  }
+
+  private showAbout() {
+    this.props.dispatcher.showPopup({ type: PopupType.About })
   }
 
   private selectChanges() {
@@ -387,7 +450,20 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (shouldRenderApplicationMenu()) {
       if (event.key === 'Alt') {
-        this.props.dispatcher.setAppMenuToolbarButtonHighlightState(true)
+
+        // Immediately close the menu if open and the user hits Alt. This is
+        // a Windows convention.
+        if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+          // Only close it the menu when the key is pressed if there's an open
+          // menu. If there isn't we should close it when the key is released
+          // instead and that's taken care of in the onWindowKeyUp function.
+          if (this.state.appMenuState.length > 1) {
+            this.props.dispatcher.setAppMenuState(menu => menu.withReset())
+            this.props.dispatcher.closeFoldout()
+          }
+        }
+
+        this.props.dispatcher.setAccessKeyHighlightState(true)
       } else if (event.altKey && !event.ctrlKey && !event.metaKey) {
         if (this.state.appMenuState.length) {
           const candidates = this.state.appMenuState[0].items
@@ -409,7 +485,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           }
         }
       } else if (!event.altKey) {
-        this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
+        this.props.dispatcher.setAccessKeyHighlightState(false)
       }
     }
 
@@ -426,14 +502,18 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     if (shouldRenderApplicationMenu()) {
       if (event.key === 'Alt') {
-        this.props.dispatcher.setAppMenuToolbarButtonHighlightState(false)
+        this.props.dispatcher.setAccessKeyHighlightState(false)
 
         if (this.lastKeyPressed === 'Alt') {
           if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+            this.props.dispatcher.setAppMenuState(menu => menu.withReset())
             this.props.dispatcher.closeFoldout()
           } else {
-            this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-            this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation: true })
+            this.props.dispatcher.showFoldout({
+              type: FoldoutType.AppMenu,
+              enableAccessKeyNavigation: true,
+              openedWithAccessKey: false,
+            })
           }
         }
       }
@@ -448,14 +528,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     this.addRepositories(paths)
-  }
-
-  private showFileBrowser() {
-    const directories = remote.dialog.
-        showOpenDialog({ properties: [ 'openDirectory', 'multiSelections' ] })
-    if (directories && directories.length > 0) {
-      this.addRepositories(directories)
-    }
   }
 
   private removeRepository() {
@@ -523,16 +595,95 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.props.dispatcher.openShell(repoFilePath)
   }
 
+  /**
+   * Conditionally renders a menu bar. The menu bar is currently only rendered
+   * on Windows.
+   */
+  private renderAppMenuBar() {
+
+    // We only render the app menu bar on Windows
+    if (!__WIN32__) {
+      return null
+    }
+
+    // Have we received an app menu from the main process yet?
+    if (!this.state.appMenuState.length) {
+      return null
+    }
+
+    // Don't render the menu bar during the welcome flow
+    if (this.state.showWelcomeFlow) {
+      return null
+    }
+
+    const currentFoldout = this.state.currentFoldout
+
+    // AppMenuBar requires us to pass a strongly typed AppMenuFoldout state or
+    // null if the AppMenu foldout is not currently active.
+    const foldoutState = currentFoldout && currentFoldout.type === FoldoutType.AppMenu
+      ? currentFoldout
+      : null
+
+    return (
+      <AppMenuBar
+        appMenu={this.state.appMenuState}
+        dispatcher={this.props.dispatcher}
+        highlightAppMenuAccessKeys={this.state.highlightAccessKeys}
+        foldoutState={foldoutState}
+        onLostFocus={this.onMenuBarLostFocus}
+      />
+    )
+  }
+
+  private onMenuBarLostFocus = () => {
+    if (this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.AppMenu) {
+      this.props.dispatcher.closeFoldout()
+      this.props.dispatcher.setAppMenuState(menu => menu.withReset())
+    }
+  }
+
   private renderTitlebar() {
-    const winControls = __WIN32__
+
+    const inFullScreen = this.state.windowState === 'full-screen'
+
+    const menuBarActive = this.state.currentFoldout &&
+      this.state.currentFoldout.type === FoldoutType.AppMenu
+
+    // When we're in full-screen mode on Windows we only need to render
+    // the title bar when the menu bar is active. On other platforms we
+    // never render the title bar while in full-screen mode.
+    if (inFullScreen) {
+      if (!__WIN32__ || !menuBarActive) {
+        return null
+      }
+    }
+
+    // No Windows controls when we're in full-screen mode.
+    const winControls = __WIN32__ && !inFullScreen
       ? <WindowControls />
+      : null
+
+    // On Windows it's not possible to resize a frameless window if the
+    // element that sits flush along the window edge has -webkit-app-region: drag.
+    // The menu bar buttons all have no-drag but the area between menu buttons and
+    // window controls need to disable dragging so we add a 3px tall element which
+    // disables drag while still letting users drag the app by the titlebar below
+    // those 3px.
+    const resizeHandle = __WIN32__
+      ? <div className='resize-handle' />
       : null
 
     const titleBarClass = this.state.titleBarStyle === 'light' ? 'light-title-bar' : ''
 
+    const appIcon = __WIN32__ && !this.state.showWelcomeFlow
+      ? <Octicon className='app-icon' symbol={OcticonSymbol.markGithub} />
+      : null
+
     return (
       <div className={titleBarClass} id='desktop-app-title-bar'>
-        <span className='app-title'>GitHub Desktop</span>
+        {appIcon}
+        {this.renderAppMenuBar()}
+        {resizeHandle}
         {winControls}
       </div>
     )
@@ -635,6 +786,15 @@ export class App extends React.Component<IAppProps, IAppState> {
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
       }
+      case PopupType.About:
+        return (
+          <About
+           onDismissed={this.onPopupDismissed}
+           applicationName={getName()}
+           applicationVersion={getVersion()}
+           usernameForUpdateCheck={this.getUsernameForUpdateCheck()}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -680,72 +840,6 @@ export class App extends React.Component<IAppProps, IAppState> {
         {this.renderAppError()}
       </div>
     )
-  }
-
-  private closeAppMenu = () => {
-    this.props.dispatcher.closeFoldout()
-  }
-
-  private renderAppMenu = (): JSX.Element | null => {
-    if (!this.state.appMenuState || !shouldRenderApplicationMenu()) {
-      return null
-    }
-
-    const foldoutState = this.state.currentFoldout
-
-    if (!foldoutState || foldoutState.type !== FoldoutType.AppMenu) {
-      return null
-    }
-
-    return (
-      <AppMenu
-        state={this.state.appMenuState}
-        dispatcher={this.props.dispatcher}
-        onClose={this.closeAppMenu}
-        enableAccessKeyNavigation={foldoutState.enableAccessKeyNavigation}
-        openedWithAccessKey={foldoutState.openedWithAccessKey || false}
-      />
-    )
-  }
-
-    private onAddMenuDropdownStateChanged = (newState: DropdownState) => {
-    if (newState === 'open') {
-      this.props.dispatcher.showFoldout({ type: FoldoutType.AddMenu, enableAccessKeyNavigation: false })
-    } else {
-      this.props.dispatcher.closeFoldout()
-    }
-  }
-
-  private onAppMenuDropdownStateChanged = (newState: DropdownState) => {
-    if (newState === 'open') {
-      this.props.dispatcher.setAppMenuState(menu => menu.withReset())
-      this.props.dispatcher.showFoldout({ type: FoldoutType.AppMenu, enableAccessKeyNavigation: false })
-    } else {
-      this.props.dispatcher.closeFoldout()
-    }
-  }
-
-  private renderAppMenuToolbarButton() {
-    if (!this.state.appMenuState || !shouldRenderApplicationMenu()) {
-      return null
-    }
-
-    const isOpen = this.state.currentFoldout
-      && this.state.currentFoldout.type === FoldoutType.AppMenu
-
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-    const className = classNames(
-      'app-menu',
-      { 'highlight': this.state.highlightAppMenuToolbarButton },
-    )
-
-    return <ToolbarDropdown
-      className={className}
-      icon={OcticonSymbol.threeBars}
-      title='Menu'
-      onDropdownStateChanged={this.onAppMenuDropdownStateChanged}
-      dropdownContentRenderer={this.renderAppMenu}
-      dropdownState={currentState} />
   }
 
   private renderRepositoryList = (): JSX.Element => {
@@ -934,64 +1028,12 @@ export class App extends React.Component<IAppProps, IAppState> {
         <div
           className='sidebar-section'
           style={{ width: this.state.sidebarWidth }}>
-          {this.renderAddToolbarButton()}
-          {this.renderAppMenuToolbarButton()}
           {this.renderRepositoryToolbarButton()}
         </div>
         {this.renderBranchToolbarButton()}
         {this.renderPushPullToolbarButton()}
       </Toolbar>
     )
-  }
-
-  private renderAddToolbarButton() {
-    const isOpen = this.state.currentFoldout
-      && this.state.currentFoldout.type === FoldoutType.AddMenu
-
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-
-    return (
-      <ToolbarDropdown
-        icon={OcticonSymbol.plus}
-        className='app-menu'
-        dropdownContentRenderer={this.renderAddMenu}
-        onDropdownStateChanged={this.onAddMenuDropdownStateChanged}
-        dropdownState={currentState} />
-    )
-  }
-
-  private renderAddMenu = (): JSX.Element | null => {
-    const foldoutStyle = {
-      width: this.state.sidebarWidth,
-    }
-
-    return (
-      <div id='app-menu-foldout' style={foldoutStyle}>
-        <ul className='menu-pane add-menu'>
-          <li className='add-menu-item add-menu-item-header'>Repository</li>
-          <li className='add-menu-item' onClick={this.showAddLocalRepo}>Add local repository</li>
-          <li className='add-menu-item' onClick={this.showCreateRepo}>Create new repository</li>
-          <li className='add-menu-item' onClick={this.showCloneRepo}>Clone repository</li>
-          <li className='add-menu-item add-menu-item-header'>Branches</li>
-          <li className='add-menu-item' onClick={this.showCreateBranch}>Create new branch</li>
-        </ul>
-      </div>
-    )
-  }
-
-  private showAddLocalRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.AddRepository })
-  }
-
-  private showCreateRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.CreateRepository })
-  }
-
-  private showCloneRepo = () => {
-    this.props.dispatcher.closeFoldout()
-    return this.props.dispatcher.showPopup({ type: PopupType.CloneRepository })
   }
 
   private renderRepository() {

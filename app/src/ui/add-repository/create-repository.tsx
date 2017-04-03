@@ -15,6 +15,7 @@ import { writeDefaultReadme } from './write-default-readme'
 import { Select } from '../lib/select'
 import { getGitIgnoreNames, writeGitIgnore } from './gitignores'
 import { ILicense, getLicenses, writeLicense } from './licenses'
+import { writeGitAttributes } from './git-attributes'
 import { getDefaultDir } from '../lib/default-dir'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
@@ -138,10 +139,7 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
     const repository = repositories[0]
 
-    let createInitialCommit = false
     if (this.state.createWithReadme) {
-      createInitialCommit = true
-
       try {
         await writeDefaultReadme(fullPath, this.state.name)
       } catch (e) {
@@ -153,8 +151,6 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
 
     const gitIgnore = this.state.gitIgnore
     if (gitIgnore !== NoGitIgnoreValue) {
-      createInitialCommit = true
-
       try {
         await writeGitIgnore(fullPath, gitIgnore)
       } catch (e) {
@@ -168,8 +164,6 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     const license = (this.state.licenses || []).find(l => l.name === licenseName)
 
     if (license) {
-      createInitialCommit = true
-
       try {
         const author = await getAuthorIdentity(repository)
 
@@ -187,19 +181,25 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
       }
     }
 
-    if (createInitialCommit) {
-      try {
-        const status = await getStatus(repository)
-        const wd = status.workingDirectory
-        const files = wd.files
-        if (files.length > 0) {
-          await createCommit(repository, 'Initial commit', files)
-        }
-      } catch (e) {
-        console.error(e)
+    try {
+      await writeGitAttributes(fullPath)
+    } catch (e) {
+      console.error(e)
 
-        this.props.dispatcher.postError(e)
+      this.props.dispatcher.postError(e)
+    }
+
+    try {
+      const status = await getStatus(repository)
+      const wd = status.workingDirectory
+      const files = wd.files
+      if (files.length > 0) {
+        await createCommit(repository, 'Initial commit', files)
       }
+    } catch (e) {
+      console.error(e)
+
+      this.props.dispatcher.postError(e)
     }
 
     this.setState({ ...this.state, creating: false })
@@ -207,7 +207,6 @@ export class CreateRepository extends React.Component<ICreateRepositoryProps, IC
     this.props.dispatcher.selectRepository(repository)
     this.props.onDismissed()
   }
-
 
   private onCreateWithReadmeChange = (event: React.FormEvent<HTMLInputElement>) => {
     this.setState({ ...this.state, createWithReadme: event.currentTarget.checked })

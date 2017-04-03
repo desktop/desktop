@@ -6,7 +6,6 @@ import * as Url from 'url'
 import { ipcRenderer, remote, shell } from 'electron'
 
 import { App } from './app'
-import { WindowState, getWindowState } from '../lib/window-state'
 import { Dispatcher, AppStore, GitHubUserStore, GitHubUserDatabase, CloningRepositoriesStore, EmojiStore } from '../lib/dispatcher'
 import { URLActionType, IOpenRepositoryArgs } from '../lib/parse-url'
 import { Repository } from '../models/repository'
@@ -68,17 +67,6 @@ dispatcher.loadInitialState().then(() => {
 
 document.body.classList.add(`platform-${process.platform}`)
 
-function updateFullScreenBodyInfo(windowState: WindowState) {
-  if (windowState === 'full-screen') {
-    document.body.classList.add('fullscreen')
-  } else {
-    document.body.classList.remove('fullscreen')
-  }
-}
-
-updateFullScreenBodyInfo(getWindowState(remote.getCurrentWindow()))
-ipcRenderer.on('window-state-changed', (_, args) => updateFullScreenBodyInfo(args as WindowState))
-
 ipcRenderer.on('focus', () => {
   const state = appStore.getState().selectedState
   if (!state || state.type !== SelectionType.Repository) { return }
@@ -90,7 +78,7 @@ ipcRenderer.on('blur', () => {
   // Make sure we stop highlighting the menu button (on non-macOS)
   // when someone uses Alt+Tab to switch application since we won't
   // get the onKeyUp event for the Alt key in that case.
-  dispatcher.setAppMenuToolbarButtonHighlightState(false)
+  dispatcher.setAccessKeyHighlightState(false)
 })
 
 ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {
