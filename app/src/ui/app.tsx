@@ -691,11 +691,20 @@ export class App extends React.Component<IAppProps, IAppState> {
         const repository = popup.repository
         const state = this.props.appStore.getRepositoryState(repository)
 
+        const tip = state.branchesState.tip
+        const currentBranch = tip.kind === TipState.Valid
+          ? tip.branch
+          : null
+
         return <Merge
                 dispatcher={this.props.dispatcher}
                 repository={repository}
-                branches={state.branchesState.allBranches}
-                onDismissed={this.onPopupDismissed}/>
+                allBranches={state.branchesState.allBranches}
+                defaultBranch={state.branchesState.defaultBranch}
+                recentBranches={state.branchesState.recentBranches}
+                currentBranch={currentBranch}
+                onDismissed={this.onPopupDismissed}
+              />
       }
       case PopupType.RepositorySettings: {
         const repository = popup.repository

@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { Select } from '../lib/select'
 import { Button } from '../lib/button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Branch } from '../../models/branch'
@@ -7,12 +6,17 @@ import { Repository } from '../../models/repository'
 import { getAheadBehind } from '../../lib/git'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
-import { Row } from '../lib/row'
+import { BranchList } from '../branches/branch-list'
 
 interface IMergeProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly branches: ReadonlyArray<Branch>
+
+  readonly defaultBranch: Branch | null
+  readonly currentBranch: Branch | null
+  readonly allBranches: ReadonlyArray<Branch>
+  readonly recentBranches: ReadonlyArray<Branch>
+
   readonly onDismissed: () => void
 }
 
@@ -29,7 +33,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   public constructor(props: IMergeProps) {
     super(props)
 
-    const firstBranch = props.branches[0]
+    const firstBranch = props.allBranches[0]
     this.state = {
       selectedBranch: firstBranch || null,
       commitCount: 0,
@@ -43,9 +47,16 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     this.updateCommitCount(branch)
   }
 
+  private onFilterKeyDown = (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => {
+
+  }
+
+  private onItemClick = (item: Branch) => {
+  }
+
   public render() {
     const selectedBranch = this.state.selectedBranch
-    const selectedValue = selectedBranch ? selectedBranch.name : null
+    // const selectedValue = selectedBranch ? selectedBranch.name : null
     const disabled = !selectedBranch
     const countPlural = this.state.commitCount === 1 ? 'commit' : 'commits'
     return (
@@ -55,19 +66,21 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
         onSubmit={this.merge}
       >
         <DialogContent>
-          <Row>
-            <Select label='From' onChange={this.onBranchChange} value={selectedValue || undefined}>
-              {this.props.branches.map(b => <option key={b.name} value={b.name}>{b.name}</option>)}
-            </Select>
-          </Row>
-
-          <p>This will bring in {this.state.commitCount} {countPlural}.</p>
+          <BranchList
+            allBranches={this.props.allBranches}
+            currentBranch={this.props.currentBranch}
+            defaultBranch={this.props.defaultBranch}
+            recentBranches={this.props.recentBranches}
+            onFilterKeyDown={this.onFilterKeyDown}
+            onItemClick={this.onItemClick}
+          />
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
             <Button type='submit' disabled={disabled}>Merge</Button>
             <Button onClick={this.cancel}>Cancel</Button>
           </ButtonGroup>
+          <p>This will bring in {this.state.commitCount} {countPlural}.</p>
         </DialogFooter>
       </Dialog>
     )
@@ -97,12 +110,12 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     this.props.dispatcher.closePopup()
   }
 
-  private onBranchChange = (event: React.FormEvent<HTMLSelectElement>) => {
-    const index = event.currentTarget.selectedIndex
-    const branch = this.props.branches[index]
+  // private onBranchChange = (event: React.FormEvent<HTMLSelectElement>) => {
+  //   const index = event.currentTarget.selectedIndex
+  //   const branch = this.props.branches[index]
 
-    this.setState({ ...this.state, selectedBranch: branch })
+  //   this.setState({ ...this.state, selectedBranch: branch })
 
-    this.updateCommitCount(branch)
-  }
+  //   this.updateCommitCount(branch)
+  // }
 }
