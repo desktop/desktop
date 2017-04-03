@@ -4,8 +4,11 @@ import { ChildProcess } from 'child_process'
 
 const byline = require('byline')
 
+/** Additional arguments to provide when cloning a repository */
 export type CloneOptions = {
+  /** The optional identity to provide when cloning. */
   readonly user: User | null
+  /** The default branch to checkout after the clone has completed. */
   readonly branch?: string
 }
 
