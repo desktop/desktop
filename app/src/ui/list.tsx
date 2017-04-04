@@ -447,7 +447,7 @@ export class List extends React.Component<IListProps, IListState> {
    * @param {height} - The height of the Grid as given by AutoSizer
    *
    */
-  private renderContents (width: number, height: number) {
+  private renderContents(width: number, height: number) {
 
     if (__WIN32__) {
       return [
