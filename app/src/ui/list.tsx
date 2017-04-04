@@ -473,7 +473,7 @@ export class List extends React.Component<IListProps, IListState> {
    * @param {width} - The width of the Grid as given by AutoSizer
    * @param {height} - The height of the Grid as given by AutoSizer
    */
-  public renderGrid(width: number, height: number) {
+  private renderGrid(width: number, height: number) {
     let scrollToRow = this.props.scrollToRow
     if (scrollToRow === undefined) {
       scrollToRow = this.scrollToRow
