@@ -165,8 +165,11 @@ interface IListProps {
 }
 
 interface IListState {
-  height?: number
-  width?: number
+  /** The available height for the list as determined by ResizeObserver */
+  readonly height?: number
+
+  /** The available width for the list as determined by ResizeObserver */
+  readonly width?: number
 }
 
 // https://wicg.github.io/ResizeObserver/#resizeobserverentry
