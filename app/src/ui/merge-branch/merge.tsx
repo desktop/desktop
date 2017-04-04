@@ -51,7 +51,12 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   }
 
   private onFilterKeyDown = (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => {
-
+    if (event.key === 'Escape') {
+      if (filter.length === 0) {
+        this.props.onDismissed()
+        event.preventDefault()
+      }
+    }
   }
 
   private onItemClick = (item: Branch) => {
