@@ -37,7 +37,7 @@ dialog#merge {
     button[type=submit] {
       height: auto;
       width: 100%;
-      padding: 0.5em;
+      padding: var(--spacing-half);
     }
 
     p {
