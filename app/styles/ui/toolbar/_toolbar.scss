@@ -36,7 +36,7 @@
   }
 
   .filter-list {
-    border: none;  
+    border: none;
   }
 }
 
@@ -54,11 +54,12 @@
 
   // Perfectly round semi circle ends with real tight
   // padding on either side
-  height: 16px;
+  height: 13px;
   border-radius: 8px;
   padding: 0 6px;
 
   font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
 
   span {
     display: flex;
@@ -73,7 +74,7 @@
     // gets easier to reason about.
     .octicon {
       width: 6px;
-      margin-left: var(--spacing-third);
+      margin-left: 2px;
     }
   }
 }
