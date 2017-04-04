@@ -164,7 +164,18 @@ interface IListProps {
   readonly selectOnHover?: boolean
 }
 
-export class List extends React.Component<IListProps, void> {
+interface IListState {
+  height?: number
+  width?: number
+}
+
+// https://wicg.github.io/ResizeObserver/#resizeobserverentry
+interface IResizeObserverEntry {
+  readonly target: Element
+  readonly contentRect: ClientRect
+};
+
+export class List extends React.Component<IListProps, IListState> {
   private focusItem: HTMLDivElement | null = null
   private fakeScroll: HTMLDivElement | null = null
 
@@ -181,7 +192,58 @@ export class List extends React.Component<IListProps, void> {
    */
   private lastScroll: 'grid' | 'fake' | null = null
 
+  private list: HTMLDivElement | null = null
   private grid: React.Component<any, any> | null
+  private readonly resizeObserver: any | null = null
+  private updateSizeTimeoutId: number | null = null
+
+  public constructor(props: IListProps) {
+    super(props)
+
+    this.state = { }
+
+    const ResizeObserver = (window as any).ResizeObserver
+
+    if (ResizeObserver || false) {
+      this.resizeObserver = new ResizeObserver((entries: ReadonlyArray<IResizeObserverEntry>) => {
+        for (const entry of entries) {
+          if (entry.target === this.list) {
+            // We might end up causing a recursive update by updating the state
+            // when we're reacting to a resize so we'll defer it until after
+            // react is done with this frame.
+            if (this.updateSizeTimeoutId !== null) {
+              clearImmediate(this.updateSizeTimeoutId)
+            }
+            this.updateSizeTimeoutId = setImmediate(this.onResized, entry.contentRect)
+          }
+        }
+      })
+    }
+  }
+
+  private onResized = (contentRect: ClientRect) => {
+    this.updateSizeTimeoutId = null
+
+    const { width, height } = contentRect
+    if (this.state.width !== width || this.state.height !== height) {
+      this.setState({ width, height })
+    }
+  }
+
+  private onRef = (element: HTMLDivElement | null) => {
+
+    this.list = element
+
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+
+      if (element) {
+        this.resizeObserver.observe(element)
+      } else {
+        this.setState({ width: undefined, height: undefined })
+      }
+    }
+  }
 
   private handleKeyDown = (event: React.KeyboardEvent<any>) => {
     const row = this.props.selectedRow
@@ -293,6 +355,12 @@ export class List extends React.Component<IListProps, void> {
     }
   }
 
+  public componentWillUnmount() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+    }
+  }
+
   private renderRow = (params: IRowRendererParams) => {
     const rowIndex = params.rowIndex
     const selectable = this.canSelectRow(rowIndex)
@@ -341,13 +409,29 @@ export class List extends React.Component<IListProps, void> {
   }
 
   public render() {
-    return (
-      <div id={this.props.id}
-           className='list'
-           onKeyDown={this.handleKeyDown}>
+
+    let content: JSX.Element | null
+
+    if (this.resizeObserver) {
+      content = this.state.width && this.state.height
+        ? this.renderContents(this.state.width, this.state.height)
+        : null
+    } else {
+      // Legacy in the event that we don't have ResizeObserver
+      content =
         <AutoSizer disableWidth disableHeight>
           {({ width, height }: { width: number, height: number }) => this.renderContents(width, height)}
         </AutoSizer>
+    }
+
+    return (
+      <div
+        ref={this.onRef}
+        id={this.props.id}
+        className='list'
+        onKeyDown={this.handleKeyDown}
+      >
+        {content}
       </div>
     )
   }
@@ -360,7 +444,8 @@ export class List extends React.Component<IListProps, void> {
    * @param {height} - The height of the Grid as given by AutoSizer
    *
    */
-  private renderContents(width: number, height: number) {
+  private renderContents (width: number, height: number) {
+
     if (__WIN32__) {
       return (
         <div>
@@ -387,7 +472,7 @@ export class List extends React.Component<IListProps, void> {
    * @param {width} - The width of the Grid as given by AutoSizer
    * @param {height} - The height of the Grid as given by AutoSizer
    */
-  private renderGrid(width: number, height: number) {
+  public renderGrid(width: number, height: number) {
     let scrollToRow = this.props.scrollToRow
     if (scrollToRow === undefined) {
       scrollToRow = this.scrollToRow
