@@ -1,3 +1,5 @@
+@import '../../mixins';
+
 dialog#merge {
   width: 450px;
 
@@ -40,11 +42,17 @@ dialog#merge {
       padding: var(--spacing-half);
     }
 
-    p {
+    p.merge-info {
       margin-bottom: 0;
       margin-top: var(--spacing-half);
       text-align: center;
       color: var(--text-secondary-color);
+      @include ellipsis;
+
+      strong {
+        font-weight: normal;
+        color: var(--text-color);
+      }
     }
   }
 }

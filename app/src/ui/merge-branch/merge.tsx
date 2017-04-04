@@ -98,10 +98,10 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
         <DialogFooter>
           <ButtonGroup>
             <Button type='submit' disabled={disabled}>
-              Merge <strong>{this.state.selectedBranch ? this.state.selectedBranch.name : ''}</strong> into <strong>{this.props.currentBranch ? this.props.currentBranch.name : ''}</strong>
+              Merge into <strong>{this.props.currentBranch ? this.props.currentBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
-          <p>This will bring in {this.state.commitCount} {countPlural}.</p>
+          <p className='merge-info'>This will bring in <strong>{this.state.commitCount} {countPlural}</strong> from <strong>{this.state.selectedBranch ? this.state.selectedBranch.name : ''}</strong></p>
         </DialogFooter>
       </Dialog>
     )
