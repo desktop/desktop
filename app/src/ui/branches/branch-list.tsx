@@ -2,8 +2,8 @@ import * as React from 'react'
 import { Branch } from '../../models/branch'
 import { groupBranches, IBranchListItem, BranchGroupIdentifier } from './group-branches'
 import { BranchListItem } from './branch'
-import { FilterList, IFilterListGroup } from '../lib/filter-list'
-import { SelectionSource } from '../list'
+import { FilterList, IFilterListGroup, SelectionSource } from '../lib/filter-list'
+import { SelectionSource as ListSelectionSource } from '../list'
 import { assertNever } from '../../lib/fatal-error'
 
 /**
@@ -41,7 +41,7 @@ interface IBranchListProps {
    *                       either a pointer device press, or a keyboard event
    *                       (arrow up/down)
    */
-  readonly onSelectionChanged?: (selectedItem: Branch, source: SelectionSource) => void
+  readonly onSelectionChanged?: (selectedItem: Branch | null, source: SelectionSource) => void
 }
 
 interface IBranchListState {
@@ -107,9 +107,9 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
     this.props.onItemClick(branch)
   }
 
-  private onSelectionChanged = (selectedItem: IBranchListItem, source: SelectionSource) => {
+  private onSelectionChanged = (selectedItem: IBranchListItem, source: ListSelectionSource) => {
     if (this.props.onSelectionChanged) {
-      this.props.onSelectionChanged(selectedItem.branch, source)
+      this.props.onSelectionChanged(selectedItem ? selectedItem.branch : null, source)
     }
   }
 
