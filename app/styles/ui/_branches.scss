@@ -13,12 +13,10 @@
       padding: 0 var(--spacing);
     }
 
-    &-label {
+    .filter-list-group-header {
       display: flex;
       flex: 1;
       flex-grow: 1;
-
-      color: var(--text-secondary-color);
     }
 
     &-item {

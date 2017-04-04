@@ -49,7 +49,7 @@ export class Branches extends React.Component<IBranchesProps, void> {
   }
 
   private renderGroupHeader = (identifier: BranchGroupIdentifier) => {
-    return <div className='branches-list-content branches-list-label'>{this.getGroupLabel(identifier)}</div>
+    return <div className='branches-list-content filter-list-group-header'>{this.getGroupLabel(identifier)}</div>
   }
 
   private onItemClick = (item: IBranchListItem) => {

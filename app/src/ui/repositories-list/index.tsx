@@ -47,7 +47,7 @@ export class RepositoriesList extends React.Component<IRepositoriesListProps, vo
 
   private renderGroupHeader = (identifier: RepositoryGroupIdentifier) => {
     const label = this.getGroupLabel(identifier)
-    return <div key={identifier} className='repository-group-label'>{label}</div>
+    return <div key={identifier} className='filter-list-group-header'>{label}</div>
   }
 
   private onItemClick = (item: IRepositoryListItem) => {
