@@ -13,13 +13,23 @@ dialog#merge {
 
     margin: 0;
 
+    // The filter list row
     .row-component:first-child {
       padding: 0 var(--spacing-double);
       border-bottom: var(--base-border);
+
+      .filter-list-filter-field {
+        padding: 0;
+        padding-bottom: var(--spacing);
+      }
     }
 
     .list-item {
       padding: 0 var(--spacing-double);
+
+      .branches-list-label, .branches-list-item {
+        padding: 0;
+      }
     }
   }
 
