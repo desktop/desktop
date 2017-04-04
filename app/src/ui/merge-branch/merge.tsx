@@ -62,9 +62,13 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   private onItemClick = (item: Branch) => {
   }
 
-  private onSelectionChanged = (selectedBranch: Branch) => {
-    this.setState({ selectedBranch })
-    this.updateCommitCount(selectedBranch)
+  private onSelectionChanged = (selectedBranch: Branch | null) => {
+    if (selectedBranch) {
+      this.setState({ selectedBranch })
+      this.updateCommitCount(selectedBranch)
+    } else {
+      this.setState({ selectedBranch, commitCount: 0 })
+    }
   }
 
   public render() {
