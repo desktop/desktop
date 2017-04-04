@@ -21,7 +21,7 @@
    * and one <div class='name'> holding the repository name.
    */
   .repository-list-item {
-    padding: 0 var(--spacing-half) 0 var(--spacing-double);
+    padding: 0 var(--spacing);
 
     // Layout the icon and repository name horizontally
     display: flex;
@@ -58,7 +58,6 @@
 
   .repository-group-label {
     opacity: 0.6;
-    padding: 0 var(--spacing-half) 0 var(--spacing-double);
-    margin-top: var(--spacing);
+    padding: 0 var(--spacing);
   }
 }
