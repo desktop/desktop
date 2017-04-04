@@ -33,7 +33,7 @@
   --color-conflicted: $orange;
 
   --text-color: $black;
-  --text-secondary-color: $darkGray;
+  --text-secondary-color: $darkerGray;
   --background-color: $white;
 
   --button-height: 25px;
@@ -188,12 +188,10 @@
   --toolbar-button-hover-color: $white;
   --toolbar-button-hover-background-color: lighten($black, 5%);
   --toolbar-button-hover-border-color: var(--toolbar-button-border-color);
-  --toolbar-button-secondary-color: #9D9FA2;
 
   --toolbar-button-active-color: var(--text-color);
   --toolbar-button-active-background-color: var(--background-color);
   --toolbar-button-active-border-color: var(--background-color);
-  --toolbar-button-secondary-color: var(--text-secondary-color);
 
   --tab-bar-height: 29px;
   --tab-bar-active-color: $blue;
