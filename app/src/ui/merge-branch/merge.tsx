@@ -57,6 +57,11 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   private onItemClick = (item: Branch) => {
   }
 
+  private onSelectionChanged = (selectedBranch: Branch) => {
+    this.setState({ selectedBranch })
+    this.updateCommitCount(selectedBranch)
+  }
+
   public render() {
     const selectedBranch = this.state.selectedBranch
     // const selectedValue = selectedBranch ? selectedBranch.name : null
@@ -77,6 +82,8 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
             recentBranches={this.props.recentBranches}
             onFilterKeyDown={this.onFilterKeyDown}
             onItemClick={this.onItemClick}
+            selectedBranch={this.state.selectedBranch}
+            onSelectionChanged={this.onSelectionChanged}
           />
         </DialogContent>
         <DialogFooter>
