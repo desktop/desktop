@@ -18,7 +18,12 @@ export class Branches extends React.Component<IBranchesProps, void> {
 
   private onItemClick = (item: Branch) => {
     this.props.dispatcher.closeFoldout()
-    this.props.dispatcher.checkoutBranch(this.props.repository, item.nameWithoutRemote)
+
+    const currentBranch = this.props.currentBranch
+
+    if (!currentBranch || currentBranch.name !== item.name) {
+      this.props.dispatcher.checkoutBranch(this.props.repository, item.nameWithoutRemote)
+    }
   }
 
   private onFilterKeyDown = (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => {
