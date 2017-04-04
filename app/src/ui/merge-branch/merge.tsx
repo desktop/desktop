@@ -126,13 +126,4 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
     this.props.dispatcher.closePopup()
   }
-
-  // private onBranchChange = (event: React.FormEvent<HTMLSelectElement>) => {
-  //   const index = event.currentTarget.selectedIndex
-  //   const branch = this.props.branches[index]
-
-  //   this.setState({ ...this.state, selectedBranch: branch })
-
-  //   this.updateCommitCount(branch)
-  // }
 }
