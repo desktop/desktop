@@ -2,7 +2,8 @@ import * as React from 'react'
 import { Branch } from '../../models/branch'
 import { groupBranches, IBranchListItem, BranchGroupIdentifier } from './group-branches'
 import { BranchListItem } from './branch'
-import { FilterList } from '../lib/filter-list'
+import { FilterList, IFilterListGroup } from '../lib/filter-list'
+import { SelectionSource } from '../list'
 import { assertNever } from '../../lib/fatal-error'
 
 /**
@@ -18,6 +19,7 @@ interface IBranchListProps {
   readonly currentBranch: Branch | null
   readonly allBranches: ReadonlyArray<Branch>
   readonly recentBranches: ReadonlyArray<Branch>
+  readonly selectedBranch: Branch | null
 
   /**
    * Called when a key down happens in the filter field. Users have a chance to
@@ -27,10 +29,53 @@ interface IBranchListProps {
 
   /** Called when an item is clicked. */
   readonly onItemClick: (item: Branch) => void
+
+  /**
+   * This function will be called when the selection changes as a result of a
+   * user keyboard or mouse action (i.e. not when props change). Note that this
+   * differs from `onRowSelected`. For example, it won't be called if an already
+   * selected row is clicked on.
+   *
+   * @param selectedItem - The Branch that was just selected
+   * @param source       - The kind of user action that provoced the change,
+   *                       either a pointer device press, or a keyboard event
+   *                       (arrow up/down)
+   */
+  readonly onSelectionChanged?: (selectedItem: Branch, source: SelectionSource) => void
+}
+
+interface IBranchListState {
+  readonly groups: ReadonlyArray<IFilterListGroup<IBranchListItem>>
+  readonly selectedItem: IBranchListItem | null
+}
+
+function createState(props: IBranchListProps): IBranchListState {
+  const groups = groupBranches(props.defaultBranch, props.currentBranch, props.allBranches, props.recentBranches)
+
+  let selectedItem: IBranchListItem | null = null
+  const selectedBranch = props.selectedBranch
+  if (selectedBranch) {
+    for (const group of groups) {
+      selectedItem = group.items.find(i => {
+        const branch = i.branch
+        return branch.name === selectedBranch.name
+      }) || null
+
+      if (selectedItem) { break }
+    }
+  }
+
+  return { groups, selectedItem }
 }
 
 /** The Branches list component. */
-export class BranchList extends React.Component<IBranchListProps, void> {
+export class BranchList extends React.Component<IBranchListProps, IBranchListState> {
+
+  public constructor(props: IBranchListProps) {
+    super(props)
+    this.state = createState(props)
+  }
+
   private renderItem = (item: IBranchListItem) => {
     const branch = item.branch
     const commit = branch.tip
@@ -62,32 +107,28 @@ export class BranchList extends React.Component<IBranchListProps, void> {
     this.props.onItemClick(branch)
   }
 
-  public render() {
-    const groups = groupBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches)
-
-    let selectedItem: IBranchListItem | null = null
-    const currentBranch = this.props.currentBranch
-    if (currentBranch) {
-      for (const group of groups) {
-        selectedItem = group.items.find(i => {
-          const branch = i.branch
-          return branch.name === currentBranch.name
-        }) || null
-
-        if (selectedItem) { break }
-      }
+  private onSelectionChanged = (selectedItem: IBranchListItem, source: SelectionSource) => {
+    if (this.props.onSelectionChanged) {
+      this.props.onSelectionChanged(selectedItem.branch, source)
     }
+  }
 
+  public componentWillReceiveProps(nextProps: IBranchListProps) {
+    this.setState(createState(nextProps))
+  }
+
+  public render() {
     return (
       <BranchesFilterList
         className='branches-list'
         rowHeight={RowHeight}
-        selectedItem={selectedItem}
+        selectedItem={this.state.selectedItem}
         renderItem={this.renderItem}
         renderGroupHeader={this.renderGroupHeader}
         onItemClick={this.onItemClick}
         onFilterKeyDown={this.props.onFilterKeyDown}
-        groups={groups}
+        onSelectionChanged={this.onSelectionChanged}
+        groups={this.state.groups}
         invalidationProps={this.props.allBranches}/>
     )
   }
