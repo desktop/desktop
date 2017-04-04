@@ -97,8 +97,9 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type='submit' disabled={disabled}>Merge</Button>
-            <Button onClick={this.cancel}>Cancel</Button>
+            <Button type='submit' disabled={disabled}>
+              Merge <strong>{this.state.selectedBranch ? this.state.selectedBranch.name : ''}</strong> into <strong>{this.props.currentBranch ? this.props.currentBranch.name : ''}</strong>
+            </Button>
           </ButtonGroup>
           <p>This will bring in {this.state.commitCount} {countPlural}.</p>
         </DialogFooter>
@@ -123,10 +124,6 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     if (!branch) { return }
 
     this.props.dispatcher.mergeBranch(this.props.repository, branch.name)
-    this.props.dispatcher.closePopup()
-  }
-
-  private cancel = () => {
     this.props.dispatcher.closePopup()
   }
 
