@@ -26,6 +26,7 @@
       outline: none;
       border-color: var(--toolbar-button-border-color);
       background-color: var(--toolbar-button-hover-background-color);
+      box-shadow: none;
     }
 
     &:not(:disabled):hover {
