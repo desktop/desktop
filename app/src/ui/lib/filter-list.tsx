@@ -95,8 +95,14 @@ interface IFilterListState<T extends IFilterListItem> {
   readonly selectedRow: number
 }
 
+/**
+ * Interface describing a user initiated selection change event
+ * originating from changing the filter text.
+ */
 export interface IFilterSelectionSource {
   kind: 'filter'
+
+  /** The filter text at the time the selection event was raised.  */
   filterText: string
 }
 
