@@ -103,7 +103,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
   public constructor(props: IFilterListProps<T>) {
     super(props)
 
-    this.state = createStateUpdate('', -1, props)
+    this.state = createStateUpdate('', props)
   }
 
   public render() {
@@ -140,10 +140,10 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
   }
 
   public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
-    this.setState(createStateUpdate(this.state.filter, this.state.selectedRow, nextProps))
+    this.setState(createStateUpdate(this.state.filter, nextProps))
   }
 
-  private onSelectionChanged = (index: number) => {
+  private onSelectionChanged = (index: number, source: SelectionSource) => {
     this.setState({ selectedRow: index })
 
     if (this.props.onSelectionChanged) {
@@ -173,7 +173,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
 
   private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const text = event.currentTarget.value
-    this.setState(createStateUpdate(text, this.state.selectedRow, this.props))
+    this.setState(createStateUpdate(text, this.props))
   }
 
   private canSelectRow = (index: number) => {
@@ -249,7 +249,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
   }
 }
 
-function createStateUpdate<T extends IFilterListItem>(filter: string, selectedRow: number, props: IFilterListProps<T>) {
+function createStateUpdate<T extends IFilterListItem>(filter: string, props: IFilterListProps<T>) {
   const flattenedRows = new Array<IFilterListRow<T>>()
   for (const group of props.groups) {
     const items = group.items.filter(i => {
@@ -265,14 +265,14 @@ function createStateUpdate<T extends IFilterListItem>(filter: string, selectedRo
   }
 
 
-  let newSelectedRow = selectedRow
+  let selectedRow = -1
   const selectedItem = props.selectedItem
-  if (selectedItem && newSelectedRow < 0) {
+  if (selectedItem) {
     const index = flattenedRows.findIndex(i => i.kind === 'item' && i.item.id === selectedItem.id)
     // If the selected item isn't in the list (e.g., filtered out), then
     // select the first visible item.
-    newSelectedRow = index < 0 ? flattenedRows.findIndex(i => i.kind === 'item') : index
+    selectedRow = index < 0 ? flattenedRows.findIndex(i => i.kind === 'item') : index
   }
 
-  return { filter, rows: flattenedRows, selectedRow: newSelectedRow }
+  return { filter, rows: flattenedRows, selectedRow }
 }
