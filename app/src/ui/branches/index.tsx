@@ -45,6 +45,10 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
     }
   }
 
+  private onSelectionChanged = (selectedBranch: Branch) => {
+    this.setState({ selectedBranch })
+  }
+
   public render() {
     return (
       <div className='branches-list-container'>
