@@ -311,14 +311,43 @@ export class Dispatcher {
     return this.appStore._checkoutBranch(repository, name)
   }
 
+  /**
+   * Perform a function which may need authentication on a repository. This may
+   * first update the repository's GitHub repository association.
+   */
+  private async withAuthenticatingUser<T>(repository: Repository, fn: (repository: Repository, user: User | null) => Promise<T>): Promise<T> {
+    let updatedRepository = repository
+    const user = this.appStore.getUserForRepository(updatedRepository)
+    // If we don't have a user association, it might be because we haven't yet
+    // tried to associate the repository with a GitHub repository, or that
+    // association is out of date. So try again before we bail on providing an
+    // authenticating user.
+    if (!user) {
+      updatedRepository = await this.refreshGitHubRepositoryInfo(repository)
+    }
+
+    return fn(updatedRepository, this.appStore.getUserForRepository(updatedRepository))
+  }
+
   /** Push the current branch. */
-  public push(repository: Repository): Promise<void> {
-    return this.appStore._push(repository)
+  public async push(repository: Repository): Promise<void> {
+    return this.withAuthenticatingUser(repository, (repo, user) =>
+      this.appStore._push(repo, user)
+    )
   }
 
   /** Pull the current branch. */
-  public pull(repository: Repository): Promise<void> {
-    return this.appStore._pull(repository)
+  public async pull(repository: Repository): Promise<void> {
+    return this.withAuthenticatingUser(repository, (repo, user) =>
+      this.appStore._pull(repo, user)
+    )
+  }
+
+  /** Fetch the repository. */
+  public async fetch(repository: Repository): Promise<void> {
+    return this.withAuthenticatingUser(repository, (repo, user) =>
+      this.appStore.fetch(repo, user)
+    )
   }
 
   /** Publish the repository to GitHub with the given properties. */
@@ -401,7 +430,9 @@ export class Dispatcher {
    * branch, and then check out the default branch.
    */
   public deleteBranch(repository: Repository, branch: Branch): Promise<void> {
-    return this.appStore._deleteBranch(repository, branch)
+    return this.withAuthenticatingUser(repository, (repo, user) =>
+      this.appStore._deleteBranch(repo, branch, user)
+    )
   }
 
   /** Discard the changes to the given files. */
@@ -460,11 +491,6 @@ export class Dispatcher {
   /** Update the repository's issues from GitHub. */
   public updateIssues(repository: GitHubRepository): Promise<void> {
     return this.appStore._updateIssues(repository)
-  }
-
-  /** Fetch the repository. */
-  public fetch(repository: Repository): Promise<void> {
-    return this.appStore.fetch(repository)
   }
 
   /** End the Welcome flow. */
