@@ -410,7 +410,7 @@ export class List extends React.Component<IListProps, IListState> {
 
   public render() {
 
-    let content: JSX.Element | null
+    let content: JSX.Element[] | JSX.Element | null
 
     if (this.resizeObserver) {
       content = this.state.width && this.state.height
@@ -447,12 +447,10 @@ export class List extends React.Component<IListProps, IListState> {
   private renderContents (width: number, height: number) {
 
     if (__WIN32__) {
-      return (
-        <div>
-          {this.renderGrid(width, height)}
-          {this.renderFakeScroll(height)}
-        </div>
-      )
+      return [
+        this.renderGrid(width, height),
+        this.renderFakeScroll(height),
+      ]
     }
 
     return this.renderGrid(width, height)
@@ -487,6 +485,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     return (
       <Grid
+        key='grid'
         ref={this.onGridRef}
         autoContainerWidth
         width={width}
@@ -537,6 +536,7 @@ export class List extends React.Component<IListProps, IListState> {
 
     return (
       <div
+        key='fake-scroll'
         className='fake-scroll'
         ref={this.onFakeScrollRef}
         style={{ height }}
