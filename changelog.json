@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.0.32": [
+
+    ],
     "0.0.31": [
       "[New] Prompt user to login when authentication error occurs - #903",
       "[New] Windows application has a new app menu, replaces previous hamburger menu - #991",
