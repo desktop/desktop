@@ -124,7 +124,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
       <div className={classnames('filter-list', this.props.className)}>
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
-        <Row>
+        <Row className='filter-field-row'>
           <TextBox
             type='search'
             autoFocus={true}

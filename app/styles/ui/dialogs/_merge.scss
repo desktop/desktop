@@ -7,6 +7,9 @@ dialog#merge {
     height: 300px;
   }
 
+  // We're faking it so that the filter text box appears to reside
+  // withing the header even though our current component structure
+  // make it extremely hard to do so.
   .dialog-header {
     border-bottom: none;
   }
@@ -15,8 +18,7 @@ dialog#merge {
 
     margin: 0;
 
-    // The filter list row
-    .row-component:first-child {
+    .filter-field-row {
       padding: 0 var(--spacing-double);
       border-bottom: var(--base-border);
 
