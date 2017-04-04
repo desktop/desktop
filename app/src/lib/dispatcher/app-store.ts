@@ -43,7 +43,6 @@ import { StatsStore, ILaunchStats } from '../stats'
 import { SignInStore } from './sign-in-store'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
-import { structuralEquals } from '../equality'
 
 import {
   getGitDir,
@@ -1004,27 +1003,20 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _repositoryWithRefreshedGitHubRepository(repository: Repository): Promise<Repository> {
-    const updatedRepository = await this.updateGitHubRepositoryAssociation(repository)
-    const gitHubRepository = updatedRepository.gitHubRepository
-    if (!gitHubRepository) { return updatedRepository }
+    let gitHubRepository = repository.gitHubRepository
+    if (!gitHubRepository) {
+      gitHubRepository = await this.guessGitHubRepository(repository)
+    }
 
-    const user = this.getUserForRepository(repository)
-    if (!user) { return updatedRepository }
+    if (!gitHubRepository) { return repository }
+
+    const users = this.users
+    const user = getUserForEndpoint(users, gitHubRepository.endpoint)
+    if (!user) { return repository }
 
     const api = new API(user)
     const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
-    return updatedRepository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
-  }
-
-  private async updateGitHubRepositoryAssociation(repository: Repository): Promise<Repository> {
-    const gitHubRepository = await this.guessGitHubRepository(repository)
-    if (gitHubRepository === repository.gitHubRepository || !gitHubRepository) { return repository }
-
-    if (repository.gitHubRepository && gitHubRepository && structuralEquals(repository.gitHubRepository, gitHubRepository)) {
-      return repository
-    }
-
-    return repository.withGitHubRepository(gitHubRepository)
+    return repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
