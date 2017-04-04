@@ -95,7 +95,12 @@ interface IFilterListState<T extends IFilterListItem> {
   readonly selectedRow: number
 }
 
-export type SelectionSource = ListSelectionSource | { kind: 'filter' }
+export interface IFilterSelectionSource {
+  kind: 'filter'
+  filterText: string
+}
+
+export type SelectionSource = ListSelectionSource | IFilterSelectionSource
 
 /** A List which includes the ability to filter based on its contents. */
 export class FilterList<T extends IFilterListItem> extends React.Component<IFilterListProps<T>, IFilterListState<T>> {
@@ -189,7 +194,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
 
         if (propSelectionId !== newSelectedItemId) {
           const newSelectedItem = getItemFromRowIndex(this.state.rows, this.state.selectedRow)
-          this.props.onSelectionChanged(newSelectedItem, { kind: 'filter' })
+          this.props.onSelectionChanged(newSelectedItem, { kind: 'filter', filterText: this.state.filter })
         }
       }
     }
