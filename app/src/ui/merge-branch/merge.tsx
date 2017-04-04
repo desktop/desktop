@@ -12,11 +12,31 @@ interface IMergeProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 
+
+  /**
+   * See IBranchesState.defaultBranch
+   */
   readonly defaultBranch: Branch | null
+
+  /**
+   * The currently checked out branch or null if HEAD is detached
+   */
   readonly currentBranch: Branch | null
+
+  /**
+   * See IBranchesState.allBranches
+   */
   readonly allBranches: ReadonlyArray<Branch>
+
+  /**
+   * See IBranchesState.recentBranches
+   */
   readonly recentBranches: ReadonlyArray<Branch>
 
+  /**
+   * A function that's called when the dialog is dismissed by the user in the
+   * ways described in the Dialog component's dismissable prop.
+   */
   readonly onDismissed: () => void
 }
 
