@@ -24,8 +24,12 @@ interface IMergeState {
   /** The currently selected branch. */
   readonly selectedBranch: Branch | null
 
-  /** The number of commits that would be brought in by the merge. */
-  readonly commitCount: number
+  /**
+   * The number of commits that would be brought in by the merge.
+   * undefined if no branch is selected or still calculating the
+   * number of commits.
+   */
+  readonly commitCount?: number
 }
 
 /** A component for merging a branch into the current branch. */
@@ -39,7 +43,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     this.state = {
       // Select the default branch unless that's currently checked out
       selectedBranch: currentBranch === defaultBranch ? null : defaultBranch,
-      commitCount: 0,
+      commitCount: undefined,
     }
   }
 
@@ -71,11 +75,33 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     }
   }
 
+  private renderMergeInfo() {
+
+    const commitCount = this.state.commitCount
+    const countPlural = commitCount === 1 ? 'commit' : 'commits'
+    const countText = commitCount === undefined
+      ? 'commits'
+      : <strong>{commitCount} {countPlural}</strong>
+
+    const selectedBranch = this.state.selectedBranch
+
+    return (
+      <p className='merge-info'>
+        This will bring in {countText}
+        {' from '}
+        <strong>{selectedBranch ? selectedBranch.name : 'HEAD'}</strong>
+      </p>
+    )
+  }
+
   public render() {
     const selectedBranch = this.state.selectedBranch
-    // const selectedValue = selectedBranch ? selectedBranch.name : null
-    const disabled = !selectedBranch
-    const countPlural = this.state.commitCount === 1 ? 'commit' : 'commits'
+    const currentBranch = this.props.currentBranch
+
+    const disabled = (selectedBranch === null || currentBranch === null) || currentBranch.name === selectedBranch.name
+
+    const mergeInfo = disabled ? null : this.renderMergeInfo()
+
     return (
       <Dialog
         id='merge'
@@ -86,28 +112,30 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
         <DialogContent>
           <BranchList
             allBranches={this.props.allBranches}
-            currentBranch={this.props.currentBranch}
+            currentBranch={currentBranch}
             defaultBranch={this.props.defaultBranch}
             recentBranches={this.props.recentBranches}
             onFilterKeyDown={this.onFilterKeyDown}
             onItemClick={this.onItemClick}
-            selectedBranch={this.state.selectedBranch}
+            selectedBranch={selectedBranch}
             onSelectionChanged={this.onSelectionChanged}
           />
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
             <Button type='submit' disabled={disabled}>
-              Merge into <strong>{this.props.currentBranch ? this.props.currentBranch.name : ''}</strong>
+              Merge into <strong>{currentBranch ? currentBranch.name : ''}</strong>
             </Button>
           </ButtonGroup>
-          <p className='merge-info'>This will bring in <strong>{this.state.commitCount} {countPlural}</strong> from <strong>{this.state.selectedBranch ? this.state.selectedBranch.name : ''}</strong></p>
+          {mergeInfo}
         </DialogFooter>
       </Dialog>
     )
   }
 
   private async updateCommitCount(branch: Branch) {
+    this.setState({ commitCount: undefined })
+
     const range = `...${branch.name}`
     const aheadBehind = await getAheadBehind(this.props.repository, range)
     const commitCount = aheadBehind ? aheadBehind.behind : 0
@@ -116,7 +144,7 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
     // `getAheadBehind`.
     if (this.state.selectedBranch !== branch) { return }
 
-    this.setState({ ...this.state, commitCount })
+    this.setState({ commitCount })
   }
 
   private merge = () => {
