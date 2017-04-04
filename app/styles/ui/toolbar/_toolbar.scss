@@ -34,6 +34,10 @@
     &.branch-button { width: 220px; }
     &.push-pull-button { min-width: 200px; }
   }
+
+  .filter-list {
+    border: none;  
+  }
 }
 
 @keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
