@@ -228,8 +228,12 @@ export class Dispatcher {
   }
 
   /** Select the repository. */
-  public selectRepository(repository: Repository | CloningRepository): Promise<void> {
-    return this.appStore._selectRepository(repository)
+  public async selectRepository(repository: Repository | CloningRepository): Promise<void> {
+    this.appStore._selectRepository(repository)
+
+    if (repository instanceof Repository) {
+      await this.refreshGitHubRepositoryInfo(repository)
+    }
   }
 
   /** Load the working directory status. */
