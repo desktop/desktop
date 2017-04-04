@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as classnames from 'classnames'
 
-import { List, SelectionSource } from '../list'
+import { List, SelectionSource as ListSelectionSource } from '../list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
@@ -75,7 +75,7 @@ interface IFilterListProps<T extends IFilterListItem> {
    *                       either a pointer device press, or a keyboard event
    *                       (arrow up/down)
    */
-  readonly onSelectionChanged?: (selectedItem: T, source: SelectionSource) => void
+  readonly onSelectionChanged?: (selectedItem: T | null, source: SelectionSource) => void
 
   /**
    * Called when a key down happens in the filter field. Users have a chance to
@@ -94,6 +94,8 @@ interface IFilterListState<T extends IFilterListItem> {
 
   readonly selectedRow: number
 }
+
+export type SelectionSource = ListSelectionSource | { kind: 'filter' }
 
 /** A List which includes the ability to filter based on its contents. */
 export class FilterList<T extends IFilterListItem> extends React.Component<IFilterListProps<T>, IFilterListState<T>> {
@@ -174,6 +176,23 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
   private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const text = event.currentTarget.value
     this.setState(createStateUpdate(text, this.props))
+  }
+
+  public componentDidUpdate(prevProps: IFilterListProps<T>, prevState: IFilterListState<T>) {
+    if (this.props.onSelectionChanged) {
+      const oldSelectedItemId = getItemIdFromRowIndex(prevState.rows, prevState.selectedRow)
+      const newSelectedItemId = getItemIdFromRowIndex(this.state.rows, this.state.selectedRow)
+
+      if (oldSelectedItemId !== newSelectedItemId) {
+
+        const propSelectionId = this.props.selectedItem ? this.props.selectedItem.id : null
+
+        if (propSelectionId !== newSelectedItemId) {
+          const newSelectedItem = getItemFromRowIndex(this.state.rows, this.state.selectedRow)
+          this.props.onSelectionChanged(newSelectedItem, { kind: 'filter' })
+        }
+      }
+    }
   }
 
   private canSelectRow = (index: number) => {
@@ -268,11 +287,32 @@ function createStateUpdate<T extends IFilterListItem>(filter: string, props: IFi
   let selectedRow = -1
   const selectedItem = props.selectedItem
   if (selectedItem) {
-    const index = flattenedRows.findIndex(i => i.kind === 'item' && i.item.id === selectedItem.id)
+    selectedRow = flattenedRows.findIndex(i => i.kind === 'item' && i.item.id === selectedItem.id)
+  }
+
+  if (selectedRow < 0 && filter.length) {
     // If the selected item isn't in the list (e.g., filtered out), then
     // select the first visible item.
-    selectedRow = index < 0 ? flattenedRows.findIndex(i => i.kind === 'item') : index
+    selectedRow = flattenedRows.findIndex(i => i.kind === 'item')
   }
 
   return { filter, rows: flattenedRows, selectedRow }
+}
+
+
+function getItemFromRowIndex<T extends IFilterListItem>(items: ReadonlyArray<IFilterListRow<T>>, index: number): T | null {
+  if (index >= 0 && index < items.length) {
+    const row = items[index]
+
+    if (row.kind === 'item') {
+      return row.item
+    }
+  }
+
+  return null
+}
+
+function getItemIdFromRowIndex<T extends IFilterListItem>(items: ReadonlyArray<IFilterListRow<T>>, index: number): string | null {
+  const item = getItemFromRowIndex(items, index)
+  return item ? item.id : null
 }
