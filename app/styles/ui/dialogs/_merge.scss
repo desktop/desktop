@@ -4,4 +4,35 @@ dialog#merge {
   .branches-list {
     height: 300px;
   }
+
+  .dialog-header {
+    border-bottom: none;
+  }
+
+  .dialog-content {
+
+    margin: 0;
+
+    .row-component:first-child {
+      padding: 0 var(--spacing-double);
+      border-bottom: var(--base-border);
+    }
+
+    .list-item {
+      padding: 0 var(--spacing-double);
+    }
+  }
+
+  .dialog-footer {
+    button[type=submit] {
+      height: auto;
+      width: 100%;
+      padding: 0.5em;
+    }
+
+    p {
+      margin-bottom: 0;
+      margin-top: var(--spacing-half);
+    }
+  }
 }
