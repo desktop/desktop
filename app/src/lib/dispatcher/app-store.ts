@@ -47,7 +47,6 @@ import { WindowState, getWindowState } from '../window-state'
 import {
   getGitDir,
   getStatus,
-  getConfigValue,
   getAuthorIdentity,
   pull as pullRepo,
   push as pushRepo,
@@ -1022,13 +1021,9 @@ export class AppStore {
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
     const gitStore = this.getGitStore(repository)
-    // TODO: This is all kinds of wrong.
-    // We shouldn't assume the remote is named `origin`.
-    const remote = await gitStore.performFailableOperation(() =>
-      getConfigValue(repository, 'remote.origin.url')
-    )
+    const remote = gitStore.remote
 
-    return remote ? matchGitHubRepository(this.users, remote) : null
+    return remote ? matchGitHubRepository(this.users, remote.url) : null
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
