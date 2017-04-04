@@ -14,10 +14,30 @@ const BranchesFilterList: new() => FilterList<IBranchListItem> = FilterList as a
 const RowHeight = 30
 
 interface IBranchListProps {
+
+  /**
+   * See IBranchesState.defaultBranch
+   */
   readonly defaultBranch: Branch | null
+
+  /**
+   * The currently checked out branch or null if HEAD is detached
+   */
   readonly currentBranch: Branch | null
+
+  /**
+   * See IBranchesState.allBranches
+   */
   readonly allBranches: ReadonlyArray<Branch>
+
+  /**
+   * See IBranchesState.recentBranches
+   */
   readonly recentBranches: ReadonlyArray<Branch>
+
+  /**
+   * The currently selected branch in the list, see the onSelectionChanged prop.
+   */
   readonly selectedBranch: Branch | null
 
   /**
