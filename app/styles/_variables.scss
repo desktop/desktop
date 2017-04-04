@@ -20,7 +20,7 @@
   $orange: #f66a0a;
   $black: #24292e;
   $darkerGray: #6a737d;
-  $darkGray: #838B94;
+  $darkGray: #959da5;
   $gray: #E1E4E8;
   $lightGray: #F6F8FA;
   $lighterGray: #fafbfc;
@@ -157,7 +157,7 @@
 
   /** The height of the title bar area on Win32 platforms */
   --win32-title-bar-height: 28px;
-  --win32-title-bar-background-color: darken($darkerGray, 10%);
+  --win32-title-bar-background-color: darken($black, 10%);
 
   /** The height of the title bar area on darwin platforms */
   --darwin-title-bar-height: 22px;
@@ -178,15 +178,15 @@
 
   --toolbar-background-color: $black;
   --toolbar-text-color: $white;
-  --toolbar-text-secondary-color: #9D9FA2;
+  --toolbar-text-secondary-color: $darkGray;
 
   --toolbar-button-color: var(--toolbar-text-color);
   --toolbar-button-background-color: transparent;
-  --toolbar-button-border-color: darken($darkerGray, 20%);
+  --toolbar-button-border-color: darken($black, 20%);
   --toolbar-button-secondary-color: var(--toolbar-text-secondary-color);
 
   --toolbar-button-hover-color: $white;
-  --toolbar-button-hover-background-color: lighten($darkerGray, 5%);
+  --toolbar-button-hover-background-color: lighten($black, 5%);
   --toolbar-button-hover-border-color: var(--toolbar-button-border-color);
   --toolbar-button-secondary-color: #9D9FA2;
 
