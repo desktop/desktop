@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as classnames from 'classnames'
 
-import { List } from '../list'
+import { List, SelectionSource } from '../list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
@@ -63,6 +63,19 @@ interface IFilterListProps<T extends IFilterListItem> {
 
   /** Called when an item is clicked. */
   readonly onItemClick: (item: T) => void
+
+  /**
+   * This function will be called when the selection changes as a result of a
+   * user keyboard or mouse action (i.e. not when props change). Note that this
+   * differs from `onRowSelected`. For example, it won't be called if an already
+   * selected row is clicked on.
+   *
+   * @param selectedItem - The item that was just selected
+   * @param source       - The kind of user action that provoced the change,
+   *                       either a pointer device press, or a keyboard event
+   *                       (arrow up/down)
+   */
+  readonly onSelectionChanged?: (selectedItem: T, source: SelectionSource) => void
 
   /**
    * Called when a key down happens in the filter field. Users have a chance to
@@ -132,6 +145,13 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
 
   private onSelectionChanged = (index: number) => {
     this.setState({ selectedRow: index })
+
+    if (this.props.onSelectionChanged) {
+      const row = this.state.rows[index]
+      if (row.kind === 'item') {
+        this.props.onSelectionChanged(row.item, source)
+      }
+    }
   }
 
   private renderRow = (index: number) => {
