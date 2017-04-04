@@ -33,9 +33,12 @@ export class Merge extends React.Component<IMergeProps, IMergeState> {
   public constructor(props: IMergeProps) {
     super(props)
 
-    const firstBranch = props.allBranches[0]
+    const currentBranch = props.currentBranch
+    const defaultBranch = props.defaultBranch
+
     this.state = {
-      selectedBranch: firstBranch || null,
+      // Select the default branch unless that's currently checked out
+      selectedBranch: currentBranch === defaultBranch ? null : defaultBranch,
       commitCount: 0,
     }
   }
