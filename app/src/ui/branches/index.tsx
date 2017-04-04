@@ -13,7 +13,7 @@ import { assertNever } from '../../lib/fatal-error'
  */
 const BranchesFilterList: new() => FilterList<IBranchListItem> = FilterList as any
 
-const RowHeight = 30
+const RowHeight = 25
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
