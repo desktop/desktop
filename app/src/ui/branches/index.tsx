@@ -13,8 +13,18 @@ interface IBranchesProps {
   readonly repository: Repository
 }
 
+interface IBranchesState {
+  readonly selectedBranch: Branch | null
+}
+
 /** The Branches list component. */
-export class Branches extends React.Component<IBranchesProps, void> {
+export class Branches extends React.Component<IBranchesProps, IBranchesState> {
+
+  public constructor(props: IBranchesProps) {
+    super(props)
+
+    this.state = { selectedBranch: props.currentBranch }
+  }
 
   private onItemClick = (item: Branch) => {
     this.props.dispatcher.closeFoldout()
@@ -45,6 +55,8 @@ export class Branches extends React.Component<IBranchesProps, void> {
           recentBranches={this.props.recentBranches}
           onItemClick={this.onItemClick}
           onFilterKeyDown={this.onFilterKeyDown}
+          selectedBranch={this.state.selectedBranch}
+          onSelectionChanged={this.onSelectionChanged}
         />
       </div>
     )
