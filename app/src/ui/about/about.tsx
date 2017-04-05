@@ -30,6 +30,8 @@ interface IAboutProps {
   readonly applicationVersion: string
 
   readonly usernameForUpdateCheck: string
+
+  readonly onShowAcknowledgements: () => void
 }
 
 interface IAboutState {
@@ -231,6 +233,9 @@ export class About extends React.Component<IAboutProps, IAboutState> {
           </p>
           <p>
             <LinkButton uri='https://desktop.github.com/eula/'>End-User License Agreement</LinkButton>
+          </p>
+          <p>
+            <LinkButton onClick={this.props.onShowAcknowledgements}>Acknowledgements</LinkButton>
           </p>
           {this.renderUpdateDetails()}
           {this.renderUpdateButton()}
