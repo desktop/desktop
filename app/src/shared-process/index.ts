@@ -1,5 +1,5 @@
 import * as TokenStore from '../shared-process/token-store'
-import { UsersStore } from './users-store'
+import { AccountsStore } from './users-store'
 import { Account } from '../models/account'
 import { Database } from './database'
 import { RepositoriesStore } from './repositories-store'
@@ -26,7 +26,7 @@ process.on('uncaughtException', (error: Error) => {
   reportError(error, getVersion())
 })
 
-const usersStore = new UsersStore(localStorage, TokenStore)
+const usersStore = new AccountsStore(localStorage, TokenStore)
 usersStore.loadFromStore()
 
 const database = new Database('Database')

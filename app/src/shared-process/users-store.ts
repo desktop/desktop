@@ -2,48 +2,48 @@ import { IDataStore, ISecureStore } from './stores'
 import { getKeyForAccount } from '../lib/auth'
 import { Account, IAccount } from '../models/account'
 
-export class UsersStore {
+export class AccountsStore {
   private dataStore: IDataStore
   private secureStore: ISecureStore
 
-  private users: Account[]
+  private accounts: Account[]
 
   public constructor(dataStore: IDataStore, secureStore: ISecureStore) {
     this.dataStore = dataStore
     this.secureStore = secureStore
-    this.users = []
+    this.accounts = []
   }
 
   public getUsers(): ReadonlyArray<Account> {
-    return this.users.slice()
+    return this.accounts.slice()
   }
 
-  public addUser(user: Account) {
-    this.secureStore.setItem(getKeyForAccount(user), user.login, user.token)
+  public addUser(account: Account) {
+    this.secureStore.setItem(getKeyForAccount(account), account.login, account.token)
 
-    this.users.push(user)
+    this.accounts.push(account)
 
     this.save()
   }
 
   /** Remove the user from the store. */
-  public removeUser(user: Account) {
-    this.secureStore.deleteItem(getKeyForAccount(user), user.login)
+  public removeUser(account: Account) {
+    this.secureStore.deleteItem(getKeyForAccount(account), account.login)
 
-    this.users = this.users.filter(u => u.id !== user.id)
+    this.accounts = this.accounts.filter(account => account.id !== account.id)
 
     this.save()
   }
 
   /** Change the users in the store by mapping over them. */
-  public async map(fn: (user: Account) => Promise<Account>) {
-    const users = new Array<Account>()
-    for (const user of this.users) {
-      const newUser = await fn(user)
-      users.push(newUser)
+  public async map(fn: (account: Account) => Promise<Account>) {
+    const accounts = new Array<Account>()
+    for (const account of this.accounts) {
+      const newUser = await fn(account)
+      accounts.push(newUser)
     }
 
-    this.users = users
+    this.accounts = accounts
     this.save()
   }
 
@@ -53,17 +53,17 @@ export class UsersStore {
       return
     }
 
-    const rawUsers: ReadonlyArray<IAccount> = JSON.parse(raw)
-    const usersWithTokens = rawUsers.map(user => {
-      const userWithoutToken = new Account(user.login, user.endpoint, '', user.emails, user.avatarURL, user.id, user.name)
-      const token = this.secureStore.getItem(getKeyForAccount(userWithoutToken), user.login)
+    const rawAccounts: ReadonlyArray<IAccount> = JSON.parse(raw)
+    const accountsWithTokens = rawAccounts.map(account => {
+      const userWithoutToken = new Account(account.login, account.endpoint, '', account.emails, account.avatarURL, account.id, account.name)
+      const token = this.secureStore.getItem(getKeyForAccount(userWithoutToken), account.login)
       return userWithoutToken.withToken(token || '')
     })
-    this.users = usersWithTokens
+    this.accounts = accountsWithTokens
   }
 
   private save() {
-    const usersWithoutTokens = this.users.map(user => user.withToken(''))
+    const usersWithoutTokens = this.accounts.map(account => account.withToken(''))
     this.dataStore.setItem('users', JSON.stringify(usersWithoutTokens))
   }
 }
