@@ -178,6 +178,13 @@ dialog {
         margin-bottom: 0;
       }
     }
+
+    hr {
+      width: 100%;
+      border: none;
+      height: 1px;
+      border-bottom: var(--base-border);
+    }
   }
 
   .dialog-footer {
