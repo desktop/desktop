@@ -2,7 +2,8 @@ import * as OS from 'os'
 import * as URL from 'url'
 import * as Querystring from 'querystring'
 import { v4 as guid } from 'uuid'
-import { User } from '../models/user'
+import { Account } from '../models/account'
+import { IEmail } from '../models/email'
 
 import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
 import { AuthenticationMode } from './2fa'
@@ -81,6 +82,14 @@ export interface IAPIEmail {
   readonly email: string
   readonly verified: boolean
   readonly primary: boolean
+  readonly visibility: 'public' | 'private' | null
+}
+
+function mapEmailAddress(email: IAPIEmail): IEmail {
+  return {
+    ...email,
+    visibility: email.visibility || 'public',
+  }
 }
 
 /** Information about an issue as returned by the GitHub API. */
@@ -141,9 +150,9 @@ interface IAPIMentionablesResponse {
  */
 export class API {
   private client: any
-  private user: User
+  private user: Account
 
-  public constructor(user: User) {
+  public constructor(user: Account) {
     this.user = user
     this.client = new Octokat({ token: user.token, rootURL: user.endpoint })
   }
@@ -179,9 +188,10 @@ export class API {
   }
 
   /** Fetch the user's emails. */
-  public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
+  public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
     const result = await this.client.user.emails.fetch()
-    return result.items
+    const emails: ReadonlyArray<IAPIEmail> = result.items
+    return emails.map(mapEmailAddress)
   }
 
   /** Fetch a commit from the repository. */
@@ -362,10 +372,15 @@ export async function createAuthorization(endpoint: string, login: string, passw
 }
 
 /** Fetch the user authenticated by the token. */
-export async function fetchUser(endpoint: string, token: string): Promise<User> {
+export async function fetchUser(endpoint: string, token: string): Promise<Account> {
   const octo = new Octokat({ token, rootURL: endpoint })
   const user = await octo.user.fetch()
-  return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id, user.name)
+
+  // TODO: additional JSON parsing?
+  const response =  await octo.user.emails.fetch()
+  const emails: ReadonlyArray<IAPIEmail> = response.items
+
+  return new Account(user.login, endpoint, token, emails.map(mapEmailAddress), user.avatarUrl, user.id, user.name)
 }
 
 /** Get metadata from the server. */
@@ -456,7 +471,7 @@ export function getDotComAPIEndpoint(): string {
 }
 
 /** Get the user for the endpoint. */
-export function getUserForEndpoint(users: ReadonlyArray<User>, endpoint: string): User {
+export function getUserForEndpoint(users: ReadonlyArray<Account>, endpoint: string): Account {
   return users.filter(u => u.endpoint === endpoint)[0]
 }
 
