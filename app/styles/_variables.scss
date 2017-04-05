@@ -157,7 +157,7 @@
 
   /** The height of the title bar area on Win32 platforms */
   --win32-title-bar-height: 28px;
-  --win32-title-bar-background-color: darken($black, 10%);
+  --win32-title-bar-background-color: $black;
 
   /** The height of the title bar area on darwin platforms */
   --darwin-title-bar-height: 22px;
