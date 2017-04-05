@@ -176,14 +176,26 @@ export class AppStore {
   }
 
   private emitUpdate() {
+    // If the window is hidden then we won't get an animation frame, but there
+    // may still be work we wanna do in response to the state change. So
+    // immediately emit the update.
+    if (this.windowState === 'hidden') {
+      this.emitUpdateNow()
+      return
+    }
+
     if (this.emitQueued) { return }
 
     this.emitQueued = true
 
     window.requestAnimationFrame(() => {
-      this.emitQueued = false
-      this.emitter.emit('did-update', this.getState())
+      this.emitUpdateNow()
     })
+  }
+
+  private emitUpdateNow() {
+    this.emitQueued = false
+    this.emitter.emit('did-update', this.getState())
   }
 
   /**

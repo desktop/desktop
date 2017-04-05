@@ -23,6 +23,7 @@
   $darkerGray: #3b3f46;
   $gray: #E1E4E8;
   $lightGray: #F6F8FA;
+  $lighterGray: #fafbfc;
   $white: #fff;
 
   --color-new: $green;
@@ -45,9 +46,11 @@
 
   --link-button-color: $blue;
 
-  --secondary-button-background: #f0f0f0;
-  --secondary-button-hover-background: darken(#f0f0f0, 5%);
+  --secondary-button-background: $lighterGray;
+  --secondary-button-hover-background: $white;
   --secondary-button-text-color: var(--text-color);
+  --secondary-button-focus-shadow-color: rgba($gray, 0.75);
+  --secondary-button-focus-border-color: #D1D5DA;
 
   // Typography
   //
