@@ -8,6 +8,8 @@ import { LinkButton } from '../lib/link-button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
+const RepositoryURL = 'https://github.com/desktop/desktop'
+
 interface IAcknowledgementsProps {
   readonly onDismissed: () => void
 }
@@ -55,16 +57,16 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
     for (const key in licenses) {
       const license = licenses[key]
       const url = license.repository
-      let content
+      let licenseElement: JSX.Element
       if (url && url.length) {
-        content = <LinkButton uri={url}>{key}: {license.license}</LinkButton>
+        licenseElement = <LinkButton uri={url}>{key}</LinkButton>
       } else {
-        content = <span>{key}: {license.license}</span>
+        licenseElement = <span>{key}</span>
       }
 
       elements.push(
         <div key={key}>
-          {content}
+          {licenseElement} <span>({license.license})</span>
         </div>
       )
     }
@@ -76,11 +78,16 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
     const licenses = this.state.licenses
     return (
       <Dialog
-        id='licenses'
+        id='acknowledgements'
+        title='Acknowledgements'
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}>
         <DialogContent>
-          {licenses ? this.renderLicenses(licenses) : <Loading/>}
+          <p>GitHub Desktop stands on the shoulders of giants and is better for it! Check out <LinkButton uri={RepositoryURL}>our repository</LinkButton> for more of the nitty gritty.</p>
+
+          <div id='licenses'>
+            {licenses ? this.renderLicenses(licenses) : <Loading/>}
+          </div>
         </DialogContent>
 
         <DialogFooter>
