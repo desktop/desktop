@@ -22,64 +22,105 @@ interface ICommitSummaryProps {
 
 interface ICommitSummaryState {
   readonly isExpanded: boolean
-  readonly style: string
-  readonly nextSymbol: OcticonSymbol
-  readonly nextAction: string
+  readonly isOverflowed: boolean
 }
 
-const Expanded = {
-  isExpanded: true,
-  style: 'commit-summary-expanded',
-  nextSymbol: OcticonSymbol.fold,
-  nextAction: 'Collapse',
-}
+// const Expanded: ICommitSummaryState = {
+//   isExpanded: true,
+//   style: 'commit-summary-expanded',
+//   nextSymbol: OcticonSymbol.fold,
+//   nextAction: 'Collapse',
+// }
 
-const Collapsed = {
-  isExpanded: false,
-  style: 'commit-summary-collapsed',
-  nextSymbol: OcticonSymbol.unfold,
-  nextAction: 'Expand',
-}
-
+// const Collapsed: ICommitSummaryState = {
+//   isExpanded: false,
+//   style: 'commit-summary-collapsed',
+//   nextSymbol: OcticonSymbol.unfold,
+//   nextAction: 'Expand',
+// }
 
 export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitSummaryState> {
-  private commitSummaryDescriptionRichText: RichText
+  private commitSummaryDescriptionDiv: HTMLDivElement | null
 
   public constructor(props: ICommitSummaryProps) {
     super(props)
 
-    this.state = Collapsed
-  }
-
-  private toggleExpander = () => {
-    if (this.state.isExpanded) {
-      this.setState(Collapsed)
-    } else {
-      this.setState(Expanded)
+    this.state = {
+      isExpanded: false,
+      isOverflowed: false,
     }
   }
 
-  private commitSummaryDescriptionRef = (ref: RichText) => {
-    this.commitSummaryDescriptionRichText = ref
+  private commitSummaryDescriptionRef = (ref: HTMLDivElement | null) => {
+    this.commitSummaryDescriptionDiv = ref
   }
 
-  private RenderExpander() {
-    const commitSummaryDescription = document.getElementById('CommitSummaryDescription')
-
+  private renderExpander() {
     if (!this.props.body.length) {
       return null
     }
 
-    if (commitSummaryDescription) {
+    if (!this.state.isExpanded && this.state.isOverflowed) {
       return (
-        <a onClick={this.toggleExpander} className='expander'>
-          <Octicon symbol={this.state.nextSymbol} />
-          {this.state.nextAction}
+        <a
+          onClick={this.onExpand}
+          className='expander'
+        >
+          <Octicon symbol={OcticonSymbol.unfold} />
+          Expand
+        </a>
+      )
+    }
+
+    if (this.state.isExpanded) {
+      return (
+        <a
+          onClick={this.onCollapse}
+          className='expander'
+        >
+          <Octicon symbol={OcticonSymbol.fold} />
+          Collapse
         </a>
       )
     }
 
     return null
+  }
+
+  private onExpand = () => {
+    this.setState({
+      isExpanded: true,
+    })
+  }
+
+  private onCollapse = () => {
+    this.setState({
+      isExpanded: false,
+    })
+  }
+
+  private updateOverflow() {
+    const div = this.commitSummaryDescriptionDiv
+
+    if (!div) {
+      return
+    }
+
+    const doesOverflow = div.scrollHeight > div.offsetHeight
+
+    this.setState({
+      isOverflowed: doesOverflow,
+    })
+  }
+
+  public componentDidMount() {
+    this.updateOverflow()
+  }
+
+  public componentDidUpdate(prevProps: ICommitSummaryProps) {
+    if (prevProps.summary !== this.props.summary) {
+      this.updateOverflow()
+    }
   }
 
   public render() {
@@ -103,6 +144,10 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
       avatarUser = { ...author, avatarURL: this.props.gitHubUser.avatarURL }
     }
 
+    const richTextClassName = this.state.isExpanded
+      ? 'commit-summary-expanded'
+      : 'commit-summary-collapsed'
+
     return (
       <div id='commit-summary'>
         <div className='commit-summary-header'>
@@ -116,7 +161,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
             <li className='commit-summary-meta-item'
               title={authorTitle} aria-label='Author'>
               <span aria-hidden='true'>
-                <Avatar user={avatarUser}/>
+                <Avatar user={avatarUser} />
               </span>
 
               {author.name}
@@ -142,16 +187,16 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
           </ul>
         </div>
 
-        {this.RenderExpander()}
+        {this.renderExpander()}
 
         <RichText
           id='CommitSummaryDescription'
-          className={this.state.style + ' commit-summary-description'}
+          className={richTextClassName + ' commit-summary-description'}
           emoji={this.props.emoji}
           repository={this.props.repository}
           text={this.props.body}
-          ref={this.commitSummaryDescriptionRef}/>
-        </div>
+          onContainerRef={this.commitSummaryDescriptionRef} />
+      </div>
     )
   }
 }

@@ -26,6 +26,11 @@ interface IRichTextProps {
    * An optional id that can be used to access component in the DOM
    */
   readonly id?: string
+
+  /**
+   * TODO document
+   */
+  readonly onContainerRef?: (container: HTMLDivElement | null) => void
 }
 
 /**
@@ -57,7 +62,13 @@ export class RichText extends React.Component<IRichTextProps, void> {
     })
 
     return (
-      <div id={this.props.id} className={this.props.className}>{ elements }</div>
+      <div
+        id={this.props.id}
+        className={this.props.className}
+        ref={this.props.onContainerRef}
+      >
+        { elements }
+      </div>
     )
   }
 }
