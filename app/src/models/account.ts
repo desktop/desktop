@@ -12,7 +12,7 @@ export interface IAccount {
 }
 
 /**
- * A GitHub user.
+ * A GitHub account.
  */
 export class Account implements IAccount {
   public readonly token: string
@@ -23,7 +23,7 @@ export class Account implements IAccount {
   public readonly id: number
   public readonly name: string
 
-  /** Create a new User from some JSON. */
+  /** Create a new Account from some JSON. */
   public static fromJSON(obj: IAccount): Account {
     return new Account(obj.login, obj.endpoint, obj.token, obj.emails, obj.avatarURL, obj.id, obj.name)
   }

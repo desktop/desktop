@@ -26,7 +26,7 @@ import { AppMenuBar } from './app-menu'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
-import { User } from '../models/user'
+import { Account } from '../models/account'
 import { TipState } from '../models/tip'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Merge } from './merge-branch'
@@ -280,14 +280,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     return dotComUser ? dotComUser.login : ''
   }
 
-  private getDotComUser(): User | null {
+  private getDotComUser(): Account | null {
     const state = this.props.appStore.getState()
     const users = state.users
     const dotComUser = users.find(u => u.endpoint === getDotComAPIEndpoint())
     return dotComUser || null
   }
 
-  private getEnterpriseUser(): User | null {
+  private getEnterpriseUser(): Account | null {
     const state = this.props.appStore.getState()
     const users = state.users
     const enterpriseUser = users.find(u => u.endpoint !== getDotComAPIEndpoint())

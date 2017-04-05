@@ -1,15 +1,14 @@
 import * as URL from 'url'
 import { getHTMLURL, API, getDotComAPIEndpoint } from './api'
 import { parseRemote, parseOwnerAndName } from './remote-parsing'
-import { User } from '../models/user'
-
+import { Account } from '../models/account'
 
 /**
  * Find the user whose endpoint has a repository with the given owner and
  * name. This will prefer dot com over other endpoints.
  */
-async function findRepositoryUser(users: ReadonlyArray<User>, owner: string, name: string): Promise<User | null> {
-  const hasRepository = async (user: User) => {
+async function findRepositoryUser(users: ReadonlyArray<Account>, owner: string, name: string): Promise<Account | null> {
+  const hasRepository = async (user: Account) => {
     const api = new API(user)
     try {
       const repository = await api.fetchRepository(owner, name)
@@ -53,7 +52,7 @@ async function findRepositoryUser(users: ReadonlyArray<User>, owner: string, nam
  * Will throw an error if the URL is not value or it is unable to resolve
  * the remote to an existing account
  */
-export async function findUserForRemote(url: string, users: ReadonlyArray<User>): Promise<User> {
+export async function findUserForRemote(url: string, users: ReadonlyArray<Account>): Promise<Account> {
 
     // First try parsing it as a full URL. If that doesn't work, try parsing it
     // as an owner/name shortcut. And if that fails then throw our hands in the

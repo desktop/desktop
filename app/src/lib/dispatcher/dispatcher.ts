@@ -1,6 +1,6 @@
 import { ipcRenderer, remote } from 'electron'
 import { Disposable } from 'event-kit'
-import { User, IUser } from '../../models/user'
+import { Account, IAccount } from '../../models/account'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
@@ -110,16 +110,16 @@ export class Dispatcher {
   }
 
   private onSharedDidUpdate(event: Electron.IpcRendererEvent, args: any[]) {
-    const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IUser>} = args[0].state
-    const inflatedUsers = state.users.map(User.fromJSON)
+    const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IAccount>} = args[0].state
+    const inflatedUsers = state.users.map(Account.fromJSON)
     const inflatedRepositories = state.repositories.map(Repository.fromJSON)
     this.appStore._loadFromSharedProcess(inflatedUsers, inflatedRepositories)
   }
 
   /** Get the users */
-  private async loadUsers(): Promise<ReadonlyArray<User>> {
-    const json = await this.dispatchToSharedProcess<ReadonlyArray<IUser>>({ name: 'get-users' })
-    return json.map(User.fromJSON)
+  private async loadUsers(): Promise<ReadonlyArray<Account>> {
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IAccount>>({ name: 'get-users' })
+    return json.map(Account.fromJSON)
   }
 
   /** Get the repositories the user has added to the app. */
@@ -318,7 +318,7 @@ export class Dispatcher {
   }
 
   /** Publish the repository to GitHub with the given properties. */
-  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<Repository> {
+  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<Repository> {
     await this.appStore._publishRepository(repository, name, description, private_, account, org)
     return this.refreshGitHubRepositoryInfo(repository)
   }
@@ -358,7 +358,7 @@ export class Dispatcher {
    * Clone a missing repository to the previous path, and update it's
    * state in the repository list if the clone completes without error.
    */
-  public async cloneAgain(url: string, path: string, user: User | null): Promise<void> {
+  public async cloneAgain(url: string, path: string, user: Account | null): Promise<void> {
     const { promise, repository } = this.appStore._clone(url, path, user)
     await this.selectRepository(repository)
     const success = await promise
@@ -377,7 +377,7 @@ export class Dispatcher {
  }
 
   /** Clone the repository to the path. */
-  public async clone(url: string, path: string, user: User | null): Promise<void> {
+  public async clone(url: string, path: string, user: Account | null): Promise<void> {
     const { promise, repository } = this.appStore._clone(url, path, user)
     await this.selectRepository(repository)
     const success = await promise
@@ -477,12 +477,12 @@ export class Dispatcher {
   }
 
   /** Add the user to the app. */
-  public async addUser(user: User): Promise<void> {
+  public async addUser(user: Account): Promise<void> {
     return this.dispatchToSharedProcess<void>({ name: 'add-user', user })
   }
 
   /** Remove the given user. */
-  public removeUser(user: User): Promise<void> {
+  public removeUser(user: Account): Promise<void> {
     return this.dispatchToSharedProcess<void>({ name: 'remove-user', user })
   }
 

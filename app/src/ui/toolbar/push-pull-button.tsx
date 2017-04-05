@@ -7,7 +7,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { RelativeTime } from '../relative-time'
 import { Publish } from '../publish-repository'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 
 interface IPushPullButtonProps {
   /**
@@ -29,7 +29,7 @@ interface IPushPullButtonProps {
   readonly isPublishing: boolean
 
   /** The logged in users. */
-  readonly users: ReadonlyArray<User>
+  readonly users: ReadonlyArray<Account>
 
   readonly dispatcher: Dispatcher
   readonly repository: Repository

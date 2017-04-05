@@ -3,7 +3,7 @@ import * as React from 'react'
 import { UiView } from './ui-view'
 import { Dispatcher } from '../lib/dispatcher'
 import { Repository } from '../models/repository'
-import { User } from '../models/user'
+import { Account } from '../models/account'
 import { findUserForRemote } from '../lib/find-account'
 
 import { Button } from './lib/button'
@@ -12,7 +12,7 @@ import { Row } from './lib/row'
 interface IMissingRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-  readonly users: ReadonlyArray<User>
+  readonly users: ReadonlyArray<Account>
 }
 
 /** The view displayed when a repository is missing. */

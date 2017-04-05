@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { assertNever } from '../../lib/fatal-error'
@@ -7,12 +7,12 @@ import { DialogContent } from '../dialog'
 import { Avatar, IAvatarUser } from '../lib/avatar'
 
 interface IAccountsProps {
-  readonly dotComUser: User | null
-  readonly enterpriseUser: User | null
+  readonly dotComUser: Account | null
+  readonly enterpriseUser: Account | null
 
   readonly onDotComSignIn: () => void
   readonly onEnterpriseSignIn: () => void
-  readonly onLogout: (user: User) => void
+  readonly onLogout: (user: Account) => void
 }
 
 enum SignInType {
@@ -93,7 +93,7 @@ export class Accounts extends React.Component<IAccountsProps, void> {
     }
   }
 
-  private logout = (user: User) => {
+  private logout = (user: Account) => {
     return () => {
       this.props.onLogout(user)
     }

@@ -8,7 +8,7 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../../lib/dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { parseOwnerAndName, IRepositoryIdentifier } from '../../lib/remote-parsing'
 import { findUserForRemote } from '../../lib/find-account'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
@@ -21,7 +21,7 @@ interface ICloneRepositoryProps {
   readonly onDismissed: () => void
 
   /** The logged in users. */
-  readonly users: ReadonlyArray<User>
+  readonly users: ReadonlyArray<Account>
 }
 
 interface ICloneRepositoryState {
@@ -178,7 +178,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     }
   }
 
-  private cloneImpl(url: string, path: string, user: User | null) {
+  private cloneImpl(url: string, path: string, user: Account | null) {
     this.props.dispatcher.clone(url, path, user)
     this.props.onDismissed()
 

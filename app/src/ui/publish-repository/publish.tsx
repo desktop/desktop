@@ -2,7 +2,7 @@ import * as React from 'react'
 import { SignIn } from './sign-in'
 import { PublishRepository } from './publish-repository'
 import { Dispatcher, SignInState } from '../../lib/dispatcher'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 
 interface IPublishProps {
@@ -12,7 +12,7 @@ interface IPublishProps {
   readonly repository: Repository
 
   /** The signed in users. */
-  readonly users: ReadonlyArray<User>
+  readonly users: ReadonlyArray<Account>
 
   readonly signInState: SignInState | null
 }

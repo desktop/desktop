@@ -1,5 +1,6 @@
 import { Emitter, Disposable } from 'event-kit'
 import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { assertNever, fatalError } from '../fatal-error'
 import { askUserToOAuth } from '../../lib/oauth'
 import { validateURL, InvalidURLErrorName, InvalidProtocolErrorName } from '../../ui/lib/enterprise-validate-url'
@@ -169,7 +170,7 @@ export class SignInStore {
     this.emitter.emit('did-update', this.getState())
   }
 
-  private emitAuthenticate(user: User) {
+  private emitAuthenticate(user: Account) {
     this.emitter.emit('did-authenticate', user)
   }
 
@@ -365,7 +366,7 @@ export class SignInStore {
 
     this.setState({ ...currentState, loading: true })
 
-    let user: User
+    let user: Account
     try {
       user = await askUserToOAuth(currentState.endpoint)
     } catch (e) {

@@ -4,7 +4,7 @@ import { Emitter, Disposable } from 'event-kit'
 
 import { clone as cloneRepo } from '../git'
 import { CloneProgressParser } from '../clone-progress-parser'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 
 let CloningRepositoryID = 1
 
@@ -68,7 +68,7 @@ export class CloningRepositoriesStore {
    *
    * Returns a {Promise} which resolves to whether the clone was successful.
    */
-  public async clone(url: string, path: string, user: User | null): Promise<boolean> {
+  public async clone(url: string, path: string, user: Account | null): Promise<boolean> {
     const repository = new CloningRepository(path, url)
     this._repositories.push(repository)
     this.stateByID.set(repository.id, { output: `Cloning into ${path}`, progressValue: null })

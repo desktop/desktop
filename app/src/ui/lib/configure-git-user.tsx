@@ -2,7 +2,7 @@ import * as React from 'react'
 import { Commit } from '../../models/commit'
 import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config'
 import { CommitListItem } from '../history/commit-list-item'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Form } from '../lib/form'
 import { Button } from '../lib/button'
@@ -11,7 +11,7 @@ import { Row } from '../lib/row'
 
 interface IConfigureGitUserProps {
   /** The logged-in users. */
-  readonly users: ReadonlyArray<User>
+  readonly users: ReadonlyArray<Account>
 
   /** Called after the user has chosen to save their config. */
   readonly onSave?: () => void

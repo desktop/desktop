@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { API,  IAPIUser, getDotComAPIEndpoint } from '../../lib/api'
 import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
@@ -15,14 +15,14 @@ interface IPublishRepositoryProps {
   readonly repository: Repository
 
   /** The signed in users. */
-  readonly users: ReadonlyArray<User>
+  readonly users: ReadonlyArray<Account>
 }
 
 interface IPublishRepositoryState {
   readonly name: string
   readonly description: string
   readonly private: boolean
-  readonly groupedUsers: Map<User, ReadonlyArray<IAPIUser>>
+  readonly groupedUsers: Map<Account, ReadonlyArray<IAPIUser>>
   readonly selectedUser: IAPIUser
 }
 
@@ -35,13 +35,13 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
       name: props.repository.name,
       description: '',
       private: true,
-      groupedUsers: new Map<User, ReadonlyArray<IAPIUser>>(),
+      groupedUsers: new Map<Account, ReadonlyArray<IAPIUser>>(),
       selectedUser: userToAPIUser(this.props.users[0]),
     }
   }
 
   public async componentWillMount() {
-    const orgsByUser = new Map<User, ReadonlyArray<IAPIUser>>()
+    const orgsByUser = new Map<Account, ReadonlyArray<IAPIUser>>()
     for (const user of this.props.users) {
       const api = new API(user)
       const orgs = await api.fetchOrgs()
@@ -87,7 +87,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
     })
   }
 
-  private findOwningUserForSelectedUser(): User | null {
+  private findOwningUserForSelectedUser(): Account | null {
     const selectedUser = this.state.selectedUser
     for (const [ user, orgs ] of this.state.groupedUsers) {
       const apiUser = userToAPIUser(user)
@@ -95,7 +95,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
         return user
       }
 
-      let owningAccount: User | null = null
+      let owningAccount: Account | null = null
       orgs.forEach(org => {
         if (org.id === selectedUser.id && org.url === selectedUser.url) {
           owningAccount = user
@@ -183,7 +183,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   }
 }
 
-function userToAPIUser(user: User): IAPIUser {
+function userToAPIUser(user: Account): IAPIUser {
   return {
     login: user.login,
     avatarUrl: user.avatarURL,

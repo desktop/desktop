@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { Dispatcher } from '../../lib/dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
@@ -12,8 +12,8 @@ import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
-  readonly dotComUser: User | null
-  readonly enterpriseUser: User | null
+  readonly dotComUser: Account | null
+  readonly enterpriseUser: Account | null
   readonly onDismissed: () => void
 }
 
@@ -94,7 +94,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     this.props.dispatcher.showEnterpriseSignInDialog()
   }
 
-  private onLogout = (user: User) => {
+  private onLogout = (user: Account) => {
     this.props.dispatcher.removeUser(user)
   }
 
