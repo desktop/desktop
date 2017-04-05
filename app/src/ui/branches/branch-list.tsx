@@ -47,7 +47,7 @@ interface IBranchListProps {
   readonly onFilterKeyDown?: (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => void
 
   /** Called when an item is clicked. */
-  readonly onItemClick: (item: Branch) => void
+  readonly onItemClick?: (item: Branch) => void
 
   /**
    * This function will be called when the selection changes as a result of a
@@ -122,8 +122,9 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
   }
 
   private onItemClick = (item: IBranchListItem) => {
-    const branch = item.branch
-    this.props.onItemClick(branch)
+    if (this.props.onItemClick) {
+        this.props.onItemClick(item.branch)
+    }
   }
 
   private onSelectionChanged = (selectedItem: IBranchListItem | null, source: SelectionSource) => {

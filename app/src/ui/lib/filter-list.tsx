@@ -62,7 +62,7 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly renderPreList?: () => JSX.Element | null
 
   /** Called when an item is clicked. */
-  readonly onItemClick: (item: T) => void
+  readonly onItemClick?: (item: T) => void
 
   /**
    * This function will be called when the selection changes as a result of a
@@ -212,10 +212,13 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
   }
 
   private onRowClick = (index: number) => {
-    const row = this.state.rows[index]
-    if (row.kind !== 'item') { return }
+    if (this.props.onItemClick) {
+      const row = this.state.rows[index]
 
-    this.props.onItemClick(row.item)
+      if (row.kind === 'item') {
+        this.props.onItemClick(row.item)
+      }
+    }
   }
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
