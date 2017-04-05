@@ -461,9 +461,13 @@ export class Dispatcher {
     return this.appStore._updateIssues(repository)
   }
 
-  /** Fetch the repository. */
+  /** Fetch the repository, with an optional refspec if only a specific fetchspec should be used. */
   public fetch(repository: Repository, fetchspec?: string): Promise<void> {
-    return this.appStore.fetch(repository, fetchspec)
+    if (fetchspec) {
+      return this.appStore.fetchRefspec(repository, fetchspec)
+    } else {
+      return this.appStore.fetch(repository)
+    }
   }
 
   /** End the Welcome flow. */
