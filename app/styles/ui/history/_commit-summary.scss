@@ -18,7 +18,8 @@
 
   &-title {
     font-size: var(--font-size-md);
-    font-weight: var(--font-weight-light);
+    font-weight: var(--font-weight-semibold);
+    line-height: 16px;
     padding: var(--spacing);
     word-wrap: break-word;
   }
