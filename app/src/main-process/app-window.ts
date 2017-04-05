@@ -81,6 +81,7 @@ export class AppWindow {
         // Disable auxclick event
         // See https://developers.google.com/web/updates/2016/10/auxclick
         disableBlinkFeatures: 'Auxclick',
+        experimentalFeatures: true,
       },
     }
 
