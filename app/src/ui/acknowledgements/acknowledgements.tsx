@@ -4,6 +4,7 @@ import * as React from 'react'
 import { getAppPath } from '../lib/app-proxy'
 import { Loading } from '../lib/loading'
 import { Button } from '../lib/button'
+import { LinkButton } from '../lib/link-button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
@@ -49,14 +50,38 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
     })
   }
 
+  private renderLicenses(licenses: Licenses) {
+    const elements = []
+    for (const key of Object.keys(licenses)) {
+      const license = licenses[key]
+      const url = license.repository
+      let content
+      if (url && url.length) {
+        console.log(`${key}: ${url}`)
+        content = <LinkButton uri={url}>{key}: {license.license}</LinkButton>
+      } else {
+        content = <span>{key}: {license.license}</span>
+      }
+
+      elements.push(
+        <div key={key}>
+          {content}
+        </div>
+      )
+    }
+
+    return elements
+  }
+
   public render() {
     const licenses = this.state.licenses
     return (
       <Dialog
+        id='licenses'
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}>
         <DialogContent>
-          {licenses ? licenses.size : <Loading/>}
+          {licenses ? this.renderLicenses(licenses) : <Loading/>}
         </DialogContent>
 
         <DialogFooter>
