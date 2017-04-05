@@ -329,7 +329,8 @@ export class Dispatcher {
    */
   public async postError(error: Error): Promise<void> {
     let currentError: Error | null = error
-    for (const handler of this.errorHandlers.reverse()) {
+    for (let i = this.errorHandlers.length - 1; i >= 0; i--) {
+      const handler = this.errorHandlers[i]
       currentError = await handler(currentError, this)
 
       if (!currentError) { break }
