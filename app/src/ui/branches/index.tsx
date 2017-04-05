@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
+<<<<<<< HEAD
 import { groupBranches, IBranchListItem, BranchGroupIdentifier } from './group-branches'
 import { BranchListItem } from './branch'
 import { FilterList } from '../lib/filter-list'
@@ -14,6 +15,9 @@ import { assertNever } from '../../lib/fatal-error'
 const BranchesFilterList: new() => FilterList<IBranchListItem> = FilterList as any
 
 const RowHeight = 29
+=======
+import { BranchList } from './branch-list'
+>>>>>>> master
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -24,38 +28,32 @@ interface IBranchesProps {
   readonly repository: Repository
 }
 
+interface IBranchesState {
+  readonly selectedBranch: Branch | null
+}
+
 /** The Branches list component. */
-export class Branches extends React.Component<IBranchesProps, void> {
-  private renderItem = (item: IBranchListItem) => {
-    const branch = item.branch
-    const commit = branch.tip
-    const currentBranchName = this.props.currentBranch ? this.props.currentBranch.name : null
-    return <BranchListItem
-      name={branch.name}
-      isCurrentBranch={branch.name === currentBranchName}
-      lastCommitDate={commit ? commit.author.date : null}/>
-  }
+export class Branches extends React.Component<IBranchesProps, IBranchesState> {
 
-  private getGroupLabel(identifier: BranchGroupIdentifier) {
-    if (identifier === 'default') {
-      return 'Default Branch'
-    } else if (identifier === 'recent') {
-      return 'Recent Branches'
-    } else if (identifier === 'other') {
-      return 'Other Branches'
-    } else {
-      return assertNever(identifier, `Unknown identifier: ${identifier}`)
-    }
-  }
+  public constructor(props: IBranchesProps) {
+    super(props)
 
+<<<<<<< HEAD
   private renderGroupHeader = (identifier: BranchGroupIdentifier) => {
     return <div className='branches-list-content filter-list-group-header'>{this.getGroupLabel(identifier)}</div>
+=======
+    this.state = { selectedBranch: props.currentBranch }
+>>>>>>> master
   }
 
-  private onItemClick = (item: IBranchListItem) => {
-    const branch = item.branch
+  private onItemClick = (item: Branch) => {
     this.props.dispatcher.closeFoldout()
-    this.props.dispatcher.checkoutBranch(this.props.repository, branch.nameWithoutRemote)
+
+    const currentBranch = this.props.currentBranch
+
+    if (!currentBranch || currentBranch.name !== item.name) {
+      this.props.dispatcher.checkoutBranch(this.props.repository, item.nameWithoutRemote)
+    }
   }
 
   private onFilterKeyDown = (filter: string, event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -67,34 +65,23 @@ export class Branches extends React.Component<IBranchesProps, void> {
     }
   }
 
+  private onSelectionChanged = (selectedBranch: Branch) => {
+    this.setState({ selectedBranch })
+  }
+
   public render() {
-    const groups = groupBranches(this.props.defaultBranch, this.props.currentBranch, this.props.allBranches, this.props.recentBranches)
-
-    let selectedItem: IBranchListItem | null = null
-    const currentBranch = this.props.currentBranch
-    if (currentBranch) {
-      for (const group of groups) {
-        selectedItem = group.items.find(i => {
-          const branch = i.branch
-          return branch.name === currentBranch.name
-        }) || null
-
-        if (selectedItem) { break }
-      }
-    }
-
     return (
       <div className='branches-list-container'>
-        <BranchesFilterList
-          className='branches-list'
-          rowHeight={RowHeight}
-          selectedItem={selectedItem}
-          renderItem={this.renderItem}
-          renderGroupHeader={this.renderGroupHeader}
+        <BranchList
+          defaultBranch={this.props.defaultBranch}
+          currentBranch={this.props.currentBranch}
+          allBranches={this.props.allBranches}
+          recentBranches={this.props.recentBranches}
           onItemClick={this.onItemClick}
           onFilterKeyDown={this.onFilterKeyDown}
-          groups={groups}
-          invalidationProps={this.props.allBranches}/>
+          selectedBranch={this.state.selectedBranch}
+          onSelectionChanged={this.onSelectionChanged}
+        />
       </div>
     )
   }
