@@ -6,7 +6,7 @@ import { Repository } from '../../models/repository'
 import { FileChange } from '../../models/status'
 import { Commit } from '../../models/commit'
 import { Dispatcher } from '../../lib/dispatcher'
-import { IHistoryState } from '../../lib/app-state'
+import { IHistoryState as IAppHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
@@ -18,7 +18,7 @@ export { HistorySidebar } from './sidebar'
 interface IHistoryProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
-  readonly history: IHistoryState
+  readonly history: IAppHistoryState
   readonly emoji: Map<string, string>
   readonly commits: Map<string, Commit>
   readonly localCommitSHAs: ReadonlyArray<string>
