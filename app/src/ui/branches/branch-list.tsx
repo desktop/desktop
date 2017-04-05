@@ -107,11 +107,11 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
 
   private getGroupLabel(identifier: BranchGroupIdentifier) {
     if (identifier === 'default') {
-      return 'Default Branch'
+      return __DARWIN__ ? 'Default Branch' : 'Default branch'
     } else if (identifier === 'recent') {
-      return 'Recent Branches'
+      return __DARWIN__ ? 'Recent Branches' : 'Recent branches'
     } else if (identifier === 'other') {
-      return 'Other Branches'
+      return __DARWIN__ ? 'Other Branches' : 'Other branches'
     } else {
       return assertNever(identifier, `Unknown identifier: ${identifier}`)
     }
