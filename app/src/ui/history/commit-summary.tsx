@@ -26,7 +26,6 @@ interface ICommitSummaryState {
   readonly isOverflowed: boolean
 }
 
-
 export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitSummaryState> {
   private commitSummaryDescriptionDiv: HTMLDivElement | null
 
@@ -79,12 +78,16 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     this.setState({
       isExpanded: true,
     })
+
+    this.props.onExpandChanged(true)
   }
 
   private onCollapse = () => {
     this.setState({
       isExpanded: false,
     })
+
+    this.props.onExpandChanged(false)
   }
 
   private updateOverflow() {
