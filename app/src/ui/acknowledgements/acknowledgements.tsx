@@ -12,12 +12,14 @@ interface IAcknowledgementsProps {
 }
 
 interface ILicense {
-  readonly repository: string
-  readonly licenseName: string
+  readonly repository?: string
+  readonly license: string
 }
 
+type Licenses = { [key: string]: ILicense }
+
 interface IAcknowledgementsState {
-  readonly licenses: Map<string, ILicense> | null
+  readonly licenses: Licenses | null
 }
 
 /** The component which displays the licenses for packages used in the app. */
