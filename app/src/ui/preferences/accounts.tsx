@@ -34,7 +34,7 @@ export class Accounts extends React.Component<IAccountsProps, void> {
   }
 
   private renderUser(user: Account) {
-    const email = user.emails[0] || ''
+    const email = user.emails.length ? user.emails[0].email : ''
 
     const avatarUser: IAvatarUser = {
       name: user.name,

@@ -49,7 +49,7 @@ export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IC
     }
 
     if ((!email || !email.length) && user) {
-      email = user.emails[0]
+      email = user.emails[0].email
     }
 
     const avatarURL = email ? this.avatarURLForEmail(email) : null
@@ -130,7 +130,7 @@ export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IC
   }
 
   private avatarURLForEmail(email: string): string | null {
-    const matchingUser = this.props.users.find(u => u.emails.indexOf(email) > -1)
+    const matchingUser = this.props.users.find(u => u.emails.findIndex(e => e.email === email) > -1)
     return matchingUser ? matchingUser.avatarURL : null
   }
 

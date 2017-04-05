@@ -54,7 +54,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
         }
 
         if (!committerEmail && user.emails.length) {
-          committerEmail = user.emails[0]
+          committerEmail = user.emails[0].email
         }
       }
     }
