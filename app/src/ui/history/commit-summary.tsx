@@ -181,8 +181,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
         {this.renderExpander()}
 
         <RichText
-          id='CommitSummaryDescription'
-          className={richTextClassName + ' commit-summary-description'}
+          className='commit-summary-description'
           emoji={this.props.emoji}
           repository={this.props.repository}
           text={this.props.body}
