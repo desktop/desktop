@@ -1,4 +1,5 @@
 @import "../mixins";
+@import "dialogs/merge";
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -181,12 +182,17 @@ dialog {
 
   .dialog-footer {
 
+    display: flex;
+    flex-direction: column;
+
     border-top: var(--base-border);
     padding: var(--spacing-double);
 
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
+    .button-group {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
+    }
 
     button {
       margin-right: var(--spacing-half);
