@@ -317,16 +317,17 @@ export class Dispatcher {
    */
   private async withAuthenticatingUser<T>(repository: Repository, fn: (repository: Repository, user: User | null) => Promise<T>): Promise<T> {
     let updatedRepository = repository
-    const user = this.appStore.getUserForRepository(updatedRepository)
+    let user = this.appStore.getUserForRepository(updatedRepository)
     // If we don't have a user association, it might be because we haven't yet
     // tried to associate the repository with a GitHub repository, or that
     // association is out of date. So try again before we bail on providing an
     // authenticating user.
     if (!user) {
       updatedRepository = await this.refreshGitHubRepositoryInfo(repository)
+      user = this.appStore.getUserForRepository(updatedRepository)
     }
 
-    return fn(updatedRepository, this.appStore.getUserForRepository(updatedRepository))
+    return fn(updatedRepository, user)
   }
 
   /** Push the current branch. */
