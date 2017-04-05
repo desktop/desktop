@@ -71,7 +71,7 @@ interface IFilterListProps<T extends IFilterListItem> {
    * selected row is clicked on.
    *
    * @param selectedItem - The item that was just selected
-   * @param source       - The kind of user action that provoced the change,
+   * @param source       - The kind of user action that provoked the change,
    *                       either a pointer device press, or a keyboard event
    *                       (arrow up/down)
    */

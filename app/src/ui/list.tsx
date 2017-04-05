@@ -121,7 +121,7 @@ interface IListProps {
    * selected row is clicked on.
    *
    * @param row    - The index of the row that was just selected
-   * @param source - The kind of user action that provoced the change, either
+   * @param source - The kind of user action that provoked the change, either
    *                 a pointer device press, hover (if selectOnHover is set) or
    *                 a keyboard event (arrow up/down)
    */
