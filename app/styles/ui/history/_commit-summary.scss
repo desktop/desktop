@@ -58,18 +58,11 @@
     overflow: hidden;
     overflow-x: hidden;
     position: relative;
+    max-height: 60px;
 
     &:empty {
       display: none;
     }
-  }
-
-  &-collapsed {
-    max-height: 60px;
-  }
-
-  &-expanded {
-    min-height: 100vh;
   }
 
   &-meta {
