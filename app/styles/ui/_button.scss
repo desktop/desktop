@@ -55,9 +55,7 @@
   display: inline-flex;
   align-items: center;
 
-  &:hover,
-  &:focus {
-    outline: none;
+  &:hover {
     text-decoration: underline;
   }
 
