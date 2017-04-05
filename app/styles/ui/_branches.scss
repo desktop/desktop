@@ -16,12 +16,6 @@
     padding: 0 var(--spacing);
   }
 
-  &-label {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary-color);
-    align-self: flex-end;
-  }
-
   &-item {
     display: flex;
     flex-direction: row;
