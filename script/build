@@ -6,6 +6,7 @@ const path = require('path')
 const cp = require('child_process')
 const fs = require('fs-extra')
 const packager = require('electron-packager')
+const legalEagle = require('legal-eagle')
 
 const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
@@ -134,4 +135,19 @@ function copyDependencies () {
     console.log('Pruning dev dependencies…')
     cp.execSync('npm prune --production', {cwd: outRoot, env: process.env})
   }
+}
+
+function updateLicenseDump (callback) {
+  const appRoot = path.join(projectRoot, 'app')
+  const outPath = path.join(outRoot, 'static', 'licenses.json')
+
+  legalEagle({ path: appRoot }, (err, summary) => {
+    if (err) {
+      callback(err)
+      return
+    }
+
+    fs.writeFileSync(outPath, JSON.stringify(summary), 'utf8')
+    callback(null)
+  })
 }
