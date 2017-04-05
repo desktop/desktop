@@ -1,4 +1,4 @@
-import * as OS from 'os'
+import { UAParser } from 'ua-parser-js'
 import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { proxyRequest } from '../../ui/main-process-proxy'
@@ -105,9 +105,14 @@ export class StatsStore {
   private async getDailyStats(): Promise<DailyStats> {
     const launchStats = await this.getAverageLaunchStats()
     const dailyMeasures = await this.getDailyMeasures()
+
+    const parser = new UAParser()
+    const os = parser.getOS()
+    const osVersion = `${os.name} ${os.version}`
+
     return {
       version: getVersion(),
-      osVersion: OS.release(),
+      osVersion,
       platform: process.platform,
       ...launchStats,
       ...dailyMeasures,
