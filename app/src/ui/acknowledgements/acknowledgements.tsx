@@ -34,11 +34,14 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
     const path = Path.join(getAppPath(), 'static', 'licenses.json')
     Fs.readFile(path, 'utf8', (err, data) => {
       if (err) {
+        console.error('Error loading licenses')
+        console.error(err)
         return
       }
 
       const parsed = JSON.parse(data)
       if (!parsed) {
+        console.error(`Couldn't parse licenses!`)
         return
       }
 
