@@ -62,17 +62,17 @@ register('ping', () => {
 })
 
 register('get-accounts', () => {
-  return Promise.resolve(usersStore.getUsers())
+  return Promise.resolve(usersStore.getAll())
 })
 
 register('add-account', async ({ user }: IAddAccountAction) => {
-  usersStore.addUser(Account.fromJSON(user))
+  usersStore.addAccount(Account.fromJSON(user))
   await updateUsers()
   return Promise.resolve()
 })
 
 register('remove-account', async ({ user }: IRemoveAccountAction) => {
-  usersStore.removeUser(Account.fromJSON(user))
+  usersStore.removeAccount(Account.fromJSON(user))
   broadcastUpdate()
   return Promise.resolve()
 })

@@ -14,11 +14,11 @@ describe('UsersStore', () => {
 
   describe('adding a new user', () => {
     it('contains the added user', () => {
-      const newUserLogin = 'tonald-drump'
-      usersStore!.addUser(new Account(newUserLogin, '', '', new Array<Email>(), '', 1, ''))
+      const newAccountLogin = 'tonald-drump'
+      usersStore!.addAccount(new Account(newAccountLogin, '', '', new Array<Email>(), '', 1, ''))
 
-      const users = usersStore!.getUsers()
-      expect(users[0].login).to.equal(newUserLogin)
+      const users = usersStore!.getAll()
+      expect(users[0].login).to.equal(newAccountLogin)
     })
   })
 })

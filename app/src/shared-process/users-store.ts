@@ -14,11 +14,17 @@ export class AccountsStore {
     this.accounts = []
   }
 
-  public getUsers(): ReadonlyArray<Account> {
+  /**
+   * Get the list of accounts in the cache.
+   */
+  public getAll(): ReadonlyArray<Account> {
     return this.accounts.slice()
   }
 
-  public addUser(account: Account) {
+  /**
+   * Add the account to the store.
+   */
+  public addAccount(account: Account) {
     this.secureStore.setItem(getKeyForAccount(account), account.login, account.token)
 
     this.accounts.push(account)
@@ -26,8 +32,10 @@ export class AccountsStore {
     this.save()
   }
 
-  /** Remove the user from the store. */
-  public removeUser(account: Account) {
+  /**
+   * Remove the account from the store.
+   */
+  public removeAccount(account: Account) {
     this.secureStore.deleteItem(getKeyForAccount(account), account.login)
 
     this.accounts = this.accounts.filter(account => account.id !== account.id)
@@ -35,18 +43,23 @@ export class AccountsStore {
     this.save()
   }
 
-  /** Change the users in the store by mapping over them. */
+  /**
+   * Update the users in the store by mapping over them.
+   */
   public async map(fn: (account: Account) => Promise<Account>) {
     const accounts = new Array<Account>()
     for (const account of this.accounts) {
-      const newUser = await fn(account)
-      accounts.push(newUser)
+      const newAccount = await fn(account)
+      accounts.push(newAccount)
     }
 
     this.accounts = accounts
     this.save()
   }
 
+  /**
+   * Load the users into memory from storage.
+   */
   public loadFromStore() {
     const raw = this.dataStore.getItem('users')
     if (!raw || !raw.length) {

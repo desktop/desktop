@@ -56,7 +56,7 @@ export function register(name: string, fn: SharedProcessFunction) {
 export function broadcastUpdate(accountsStore: AccountsStore, repositoriesStore: RepositoriesStore) {
   BrowserWindow.getAllWindows().forEach(async (window) => {
     const repositories = await repositoriesStore.getRepositories()
-    const state = { users: accountsStore.getUsers(), repositories }
+    const state = { users: accountsStore.getAll(), repositories }
     window.webContents.send('shared/did-update', [ { state } ])
   })
 }
