@@ -57,7 +57,6 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
       const url = license.repository
       let content
       if (url && url.length) {
-        console.log(`${key}: ${url}`)
         content = <LinkButton uri={url}>{key}: {license.license}</LinkButton>
       } else {
         content = <span>{key}: {license.license}</span>
