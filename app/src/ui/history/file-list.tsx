@@ -56,7 +56,7 @@ export class FileList extends React.Component<IFileListProps, void> {
       <div className='file-list'>
         <List rowRenderer={this.renderFile}
               rowCount={this.props.files.length}
-              rowHeight={30}
+              rowHeight={29}
               selectedRow={this.rowForFile(this.props.selectedFile)}
               onSelectionChanged={this.onSelectionChanged}/>
       </div>
