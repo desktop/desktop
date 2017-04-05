@@ -109,7 +109,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   public componentDidUpdate(prevProps: ICommitSummaryProps) {
-    if (prevProps.summary !== this.props.summary) {
+    if (prevProps.body !== this.props.body) {
       this.updateOverflow()
     }
   }
