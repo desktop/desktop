@@ -141,12 +141,11 @@ export class App extends React.Component<IAppProps, IAppState> {
       setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
     })
 
-    ipcRenderer.on('certificate-error', (event: Electron.IpcRendererEvent, { error, url, id }: { error: string, url: string, id: string }) => {
+    ipcRenderer.on('certificate-error', (event: Electron.IpcRendererEvent, { certificate, error, url }: { certificate: Electron.Certificate, error: string, url: string }) => {
       console.log('yoooooooo')
       console.log(error)
       console.log(url)
-      console.log(id)
-      ipcRenderer.send(`certificate-error-response/${id}`, true)
+      console.log(certificate)
     })
   }
 

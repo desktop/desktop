@@ -279,13 +279,9 @@ app.on('web-contents-created', (event, contents) => {
 })
 
 app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
-  // Prevent the default action, which means we'll control whether the
-  // certificate is allowed via `callback`.
-  event.preventDefault()
+  callback(false)
 
-  getMainWindow()
-    .sendCertificateError(error, url)
-    .then(callback)
+  getMainWindow().sendCertificateError(certificate, error, url)
 })
 
 function createWindow() {
