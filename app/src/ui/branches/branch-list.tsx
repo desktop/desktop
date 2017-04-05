@@ -123,7 +123,7 @@ export class BranchList extends React.Component<IBranchListProps, IBranchListSta
 
   private onItemClick = (item: IBranchListItem) => {
     if (this.props.onItemClick) {
-        this.props.onItemClick(item.branch)
+      this.props.onItemClick(item.branch)
     }
   }
 
