@@ -26,19 +26,6 @@ interface ICommitSummaryState {
   readonly isOverflowed: boolean
 }
 
-// const Expanded: ICommitSummaryState = {
-//   isExpanded: true,
-//   style: 'commit-summary-expanded',
-//   nextSymbol: OcticonSymbol.fold,
-//   nextAction: 'Collapse',
-// }
-
-// const Collapsed: ICommitSummaryState = {
-//   isExpanded: false,
-//   style: 'commit-summary-collapsed',
-//   nextSymbol: OcticonSymbol.unfold,
-//   nextAction: 'Expand',
-// }
 
 export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitSummaryState> {
   private commitSummaryDescriptionDiv: HTMLDivElement | null
