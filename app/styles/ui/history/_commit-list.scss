@@ -16,7 +16,7 @@
 
     border-bottom: var(--base-border);
 
-    padding: 0 var(--spacing);
+    padding: 8px;
 
 
     &.facade {
@@ -42,9 +42,18 @@
       }
     }
 
+    // This targets the <span> container that holds the avatar
+    & > span {
+      /**
+       * The line-height needs to be reset or else there's extra space
+       * under the avatar
+       */
+      line-height: 0;
+    }
+
     .avatar {
-      width: 32px;
-      height: 32px;
+      width: 24px;
+      height: 24px;
       flex-shrink: 0;
 
       border-radius: var(--border-radius);
@@ -54,9 +63,12 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      margin-left: var(--spacing);
+      margin-left: 8px;
 
-      .summary, .byline { @include ellipsis }
+      .summary, .byline {
+        @include ellipsis
+        line-height: 14px;
+      }
     }
   }
 }
