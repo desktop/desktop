@@ -330,7 +330,7 @@ export class AppStore {
 
   public getState(): IAppState {
     return {
-      users: this.accounts,
+      accounts: this.accounts,
       repositories: [
         ...this.repositories,
         ...this.cloningRepositoriesStore.repositories,

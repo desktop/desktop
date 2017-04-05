@@ -29,7 +29,7 @@ export type PossibleSelections = { type: SelectionType.Repository, repository: R
 
 /** All of the shared app state. */
 export interface IAppState {
-  readonly users: ReadonlyArray<Account>
+  readonly accounts: ReadonlyArray<Account>
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
 
   readonly selectedState: PossibleSelections | null

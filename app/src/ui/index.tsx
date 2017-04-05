@@ -129,7 +129,7 @@ function openRepository(url: string) {
 
     // TODO: This isn't quite right. We should probably get the user from the
     // context or URL or something.
-    const user = state.users[0]
+    const user = state.accounts[0]
     return dispatcher.clone(url, path, user)
   }
 }

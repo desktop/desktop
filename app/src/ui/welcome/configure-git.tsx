@@ -5,7 +5,7 @@ import { ConfigureGitUser } from '../lib/configure-git-user'
 import { Button } from '../lib/button'
 
 interface IConfigureGitProps {
-  readonly users: ReadonlyArray<Account>
+  readonly accounts: ReadonlyArray<Account>
   readonly advance: (step: WelcomeStep) => void
 }
 
@@ -19,7 +19,7 @@ export class ConfigureGit extends React.Component<IConfigureGitProps, void> {
           This is used to identify the commits you create. Anyone will be able to see this information if you publish commits.
         </p>
 
-        <ConfigureGitUser users={this.props.users} onSave={this.continue} saveLabel='Continue'>
+        <ConfigureGitUser users={this.props.accounts} onSave={this.continue} saveLabel='Continue'>
           <Button onClick={this.cancel}>Cancel</Button>
         </ConfigureGitUser>
       </div>

@@ -11,8 +11,8 @@ interface IPublishProps {
   /** The repository being published. */
   readonly repository: Repository
 
-  /** The signed in users. */
-  readonly users: ReadonlyArray<Account>
+  /** The signed in accounts. */
+  readonly accounts: ReadonlyArray<Account>
 
   readonly signInState: SignInState | null
 }
@@ -24,11 +24,11 @@ interface IPublishProps {
 export class Publish extends React.Component<IPublishProps, void> {
 
   public render() {
-    if (this.props.users.length > 0) {
+    if (this.props.accounts.length > 0) {
       return <PublishRepository
         dispatcher={this.props.dispatcher}
         repository={this.props.repository}
-        users={this.props.users}/>
+        users={this.props.accounts}/>
     } else {
       return (
         <SignIn

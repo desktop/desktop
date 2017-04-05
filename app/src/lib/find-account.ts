@@ -7,7 +7,7 @@ import { Account } from '../models/account'
  * Find the user whose endpoint has a repository with the given owner and
  * name. This will prefer dot com over other endpoints.
  */
-async function findRepositoryUser(users: ReadonlyArray<Account>, owner: string, name: string): Promise<Account | null> {
+async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: string, name: string): Promise<Account | null> {
   const hasRepository = async (user: Account) => {
     const api = new API(user)
     try {
@@ -23,10 +23,10 @@ async function findRepositoryUser(users: ReadonlyArray<Account>, owner: string, 
   }
 
   // Prefer .com, then try all the others.
-  const sortedUsers = Array.from(users).sort((u1, u2) => {
-    if (u1.endpoint === getDotComAPIEndpoint()) {
+  const sortedUsers = Array.from(accounts).sort((a1, a2) => {
+    if (a1.endpoint === getDotComAPIEndpoint()) {
       return -1
-    } else if (u2.endpoint === getDotComAPIEndpoint()) {
+    } else if (a2.endpoint === getDotComAPIEndpoint()) {
       return 1
     } else {
       return 0
@@ -52,15 +52,15 @@ async function findRepositoryUser(users: ReadonlyArray<Account>, owner: string, 
  * Will throw an error if the URL is not value or it is unable to resolve
  * the remote to an existing account
  */
-export async function findUserForRemote(url: string, users: ReadonlyArray<Account>): Promise<Account> {
+export async function findAccountForRemote(url: string, accounts: ReadonlyArray<Account>): Promise<Account> {
 
     // First try parsing it as a full URL. If that doesn't work, try parsing it
     // as an owner/name shortcut. And if that fails then throw our hands in the
     // air because we truly don't care.
     const parsedURL = parseRemote(url)
     if (parsedURL) {
-      const dotComUser = users.find(u => {
-        const htmlURL = getHTMLURL(u.endpoint)
+      const dotComUser = accounts.find(a => {
+        const htmlURL = getHTMLURL(a.endpoint)
         const parsedEndpoint = URL.parse(htmlURL)
         return parsedURL.hostname === parsedEndpoint.hostname
       }) || null
@@ -74,9 +74,9 @@ export async function findUserForRemote(url: string, users: ReadonlyArray<Accoun
     if (parsedOwnerAndName) {
       const owner = parsedOwnerAndName.owner
       const name = parsedOwnerAndName.name
-      const user = await findRepositoryUser(users, owner, name)
-      if (user) {
-        return user
+      const account = await findRepositoryAccount(accounts, owner, name)
+      if (account) {
+        return account
       }
       throw new Error(`Couldn't find a repository with that owner and name.`)
     }

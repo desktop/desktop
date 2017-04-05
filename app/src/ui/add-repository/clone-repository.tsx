@@ -10,7 +10,7 @@ import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
 import { Account } from '../../models/account'
 import { parseOwnerAndName, IRepositoryIdentifier } from '../../lib/remote-parsing'
-import { findUserForRemote } from '../../lib/find-account'
+import { findAccountForRemote } from '../../lib/find-account'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 
 /** The name for the error when the destination already exists. */
@@ -20,8 +20,8 @@ interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
 
-  /** The logged in users. */
-  readonly users: ReadonlyArray<Account>
+  /** The logged in accounts. */
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface ICloneRepositoryState {
@@ -167,8 +167,8 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     const path = this.state.path
 
     try {
-      const user = await findUserForRemote(url, this.props.users)
-      this.cloneImpl(url, path, user)
+      const account = await findAccountForRemote(url, this.props.accounts)
+      this.cloneImpl(url, path, account)
     } catch (error) {
       this.setState({
         ...this.state,

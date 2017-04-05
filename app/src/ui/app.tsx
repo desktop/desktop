@@ -282,15 +282,15 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private getDotComUser(): Account | null {
     const state = this.props.appStore.getState()
-    const users = state.users
-    const dotComUser = users.find(u => u.endpoint === getDotComAPIEndpoint())
+    const accounts = state.accounts
+    const dotComUser = accounts.find(a => a.endpoint === getDotComAPIEndpoint())
     return dotComUser || null
   }
 
   private getEnterpriseUser(): Account | null {
     const state = this.props.appStore.getState()
-    const users = state.users
-    const enterpriseUser = users.find(u => u.endpoint !== getDotComAPIEndpoint())
+    const accounts = state.accounts
+    const enterpriseUser = accounts.find(a => a.endpoint !== getDotComAPIEndpoint())
     return enterpriseUser || null
   }
 
@@ -766,7 +766,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.CloneRepository:
         return <CloneRepository
-                users={this.state.users}
+                accounts={this.state.accounts}
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
       case PopupType.CreateBranch: {
@@ -914,7 +914,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
       isPublishing={isPublishing}
-      users={this.state.users}
+      accounts={this.state.accounts}
       signInState={this.state.signInState}/>
   }
 
@@ -1057,7 +1057,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <CloningRepositoryView repository={selectedState.repository}
                                     state={selectedState.state}/>
     } else if (selectedState.type === SelectionType.MissingRepository) {
-      return <MissingRepository repository={selectedState.repository} dispatcher={this.props.dispatcher} users={this.state.users} />
+      return <MissingRepository repository={selectedState.repository} dispatcher={this.props.dispatcher} accounts={this.state.accounts} />
     } else {
       return assertNever(selectedState, `Unknown state: ${selectedState}`)
     }

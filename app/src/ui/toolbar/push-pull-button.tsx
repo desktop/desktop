@@ -28,8 +28,8 @@ interface IPushPullButtonProps {
   /** Is the user currently publishing? */
   readonly isPublishing: boolean
 
-  /** The logged in users. */
-  readonly users: ReadonlyArray<Account>
+  /** The logged in accounts. */
+  readonly accounts: ReadonlyArray<Account>
 
   readonly dispatcher: Dispatcher
   readonly repository: Repository
@@ -66,7 +66,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
       repository={this.props.repository}
       dispatcher={this.props.dispatcher}
       signInState={this.props.signInState}
-      users={this.props.users}/>
+      accounts={this.props.accounts}/>
   }
 
   private renderAheadBehind() {
