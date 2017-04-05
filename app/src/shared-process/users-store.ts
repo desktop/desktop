@@ -1,12 +1,12 @@
 import { IDataStore, ISecureStore } from './stores'
-import { getKeyForUser } from '../lib/auth'
-import { User, IUser } from '../models/user'
+import { getKeyForAccount } from '../lib/auth'
+import { Account, IAccount } from '../models/account'
 
 export class UsersStore {
   private dataStore: IDataStore
   private secureStore: ISecureStore
 
-  private users: User[]
+  private users: Account[]
 
   public constructor(dataStore: IDataStore, secureStore: ISecureStore) {
     this.dataStore = dataStore
@@ -14,12 +14,12 @@ export class UsersStore {
     this.users = []
   }
 
-  public getUsers(): ReadonlyArray<User> {
+  public getUsers(): ReadonlyArray<Account> {
     return this.users.slice()
   }
 
-  public addUser(user: User) {
-    this.secureStore.setItem(getKeyForUser(user), user.login, user.token)
+  public addUser(user: Account) {
+    this.secureStore.setItem(getKeyForAccount(user), user.login, user.token)
 
     this.users.push(user)
 
@@ -27,8 +27,8 @@ export class UsersStore {
   }
 
   /** Remove the user from the store. */
-  public removeUser(user: User) {
-    this.secureStore.deleteItem(getKeyForUser(user), user.login)
+  public removeUser(user: Account) {
+    this.secureStore.deleteItem(getKeyForAccount(user), user.login)
 
     this.users = this.users.filter(u => u.id !== user.id)
 
@@ -36,8 +36,8 @@ export class UsersStore {
   }
 
   /** Change the users in the store by mapping over them. */
-  public async map(fn: (user: User) => Promise<User>) {
-    const users = new Array<User>()
+  public async map(fn: (user: Account) => Promise<Account>) {
+    const users = new Array<Account>()
     for (const user of this.users) {
       const newUser = await fn(user)
       users.push(newUser)
@@ -53,10 +53,10 @@ export class UsersStore {
       return
     }
 
-    const rawUsers: ReadonlyArray<IUser> = JSON.parse(raw)
+    const rawUsers: ReadonlyArray<IAccount> = JSON.parse(raw)
     const usersWithTokens = rawUsers.map(user => {
-      const userWithoutToken = new User(user.login, user.endpoint, '', user.emails, user.avatarURL, user.id, user.name)
-      const token = this.secureStore.getItem(getKeyForUser(userWithoutToken), user.login)
+      const userWithoutToken = new Account(user.login, user.endpoint, '', user.emails, user.avatarURL, user.id, user.name)
+      const token = this.secureStore.getItem(getKeyForAccount(userWithoutToken), user.login)
       return userWithoutToken.withToken(token || '')
     })
     this.users = usersWithTokens

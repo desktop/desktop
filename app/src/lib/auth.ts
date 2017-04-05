@@ -1,7 +1,7 @@
-import { User } from '../models/user'
+import { Account } from '../models/account'
 
 /** Get the auth key for the user. */
-export function getKeyForUser(user: User): string {
+export function getKeyForAccount(user: Account): string {
   return getKeyForEndpoint(user.endpoint)
 }
 

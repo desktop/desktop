@@ -1,6 +1,7 @@
 import * as TokenStore from '../shared-process/token-store'
 import { UsersStore } from './users-store'
 import { User } from '../models/user'
+import { Account } from '../models/account'
 import { Database } from './database'
 import { RepositoriesStore } from './repositories-store'
 import { Repository, IRepository } from '../models/repository'
@@ -37,12 +38,11 @@ const broadcastUpdate = () => broadcastUpdate_(usersStore, repositoriesStore)
 updateUsers()
 
 async function updateUsers() {
-  await usersStore.map(async (user: User) => {
+  await usersStore.map(async (user: Account) => {
     const api = new API(user)
     const updatedUser = await api.fetchUser()
     const emails = await api.fetchEmails()
-    const justTheEmails = emails.map(e => e.email)
-    return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl, updatedUser.id, updatedUser.name)
+    return new Account(updatedUser.login, user.endpoint, user.token, emails, updatedUser.avatarUrl, updatedUser.id, updatedUser.name)
   })
   broadcastUpdate()
 }
@@ -66,13 +66,13 @@ register('get-users', () => {
 })
 
 register('add-user', async ({ user }: IAddUserAction) => {
-  usersStore.addUser(User.fromJSON(user))
+  usersStore.addUser(Account.fromJSON(user))
   await updateUsers()
   return Promise.resolve()
 })
 
 register('remove-user', async ({ user }: IAddUserAction) => {
-  usersStore.removeUser(User.fromJSON(user))
+  usersStore.removeUser(Account.fromJSON(user))
   broadcastUpdate()
   return Promise.resolve()
 })
