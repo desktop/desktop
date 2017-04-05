@@ -21,6 +21,14 @@
       margin-right: var(--spacing-half);
     }
   }
+
+  &.expanded {
+    .commit-summary-description {
+      max-height: none;
+      flex-grow: 1;
+       overflow: auto;
+    }
+  }
 }
 
 .commit-summary {
