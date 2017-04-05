@@ -90,6 +90,7 @@
     "@types/react-dom": "^0.14.23",
     "@types/react-virtualized": "0.0.3",
     "@types/uuid": "^2.0.29",
-    "@types/winston": "^2.2.0"
+    "@types/winston": "^2.2.0",
+    "legal-eagle": "^0.14.0"
   }
 }
