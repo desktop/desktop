@@ -40,9 +40,9 @@ updateUsers()
 async function updateUsers() {
   await usersStore.map(async (user: Account) => {
     const api = new API(user)
-    const updatedUser = await api.fetchUser()
+    const account = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    return new Account(updatedUser.login, user.endpoint, user.token, emails, updatedUser.avatarUrl, updatedUser.id, updatedUser.name)
+    return new Account(account.login, user.endpoint, user.token, emails, account.avatarUrl, account.id, account.name)
   })
   broadcastUpdate()
 }

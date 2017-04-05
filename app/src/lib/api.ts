@@ -182,12 +182,12 @@ export class API {
     return this.client.repos(owner, name).fetch()
   }
 
-  /** Fetch the logged in user. */
-  public fetchUser(): Promise<IAPIUser> {
+  /** Fetch the logged in account. */
+  public fetchAccount(): Promise<IAPIUser> {
     return this.client.user.fetch()
   }
 
-  /** Fetch the user's emails. */
+  /** Fetch the current user's emails. */
   public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
     const result = await this.client.user.emails.fetch()
     const emails: ReadonlyArray<IAPIEmail> = result.items
