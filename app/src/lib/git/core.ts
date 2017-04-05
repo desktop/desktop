@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { assertNever } from '../fatal-error'
 import * as GitPerf from '../../ui/lib/git-perf'
 
@@ -203,7 +203,7 @@ function getAskPassScriptPath(): string {
 }
 
 /** Get the environment for authenticating remote operations. */
-export function envForAuthentication(user: User | null): Object {
+export function envForAuthentication(user: Account | null): Object {
   const env = {
     'DESKTOP_PATH': process.execPath,
     'DESKTOP_ASKPASS_SCRIPT': getAskPassScriptPath(),

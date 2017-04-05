@@ -1,9 +1,9 @@
 import { git, envForAuthentication, expectedAuthenticationErrors, GitError } from './core'
 import { Repository } from '../../models/repository'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 
 /** Fetch from the given remote. */
-export async function fetch(repository: Repository, user: User | null, remote: string): Promise<void> {
+export async function fetch(repository: Repository, user: Account | null, remote: string): Promise<void> {
   const options = {
     successExitCodes: new Set([ 0 ]),
     env: envForAuthentication(user),
