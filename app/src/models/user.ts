@@ -10,7 +10,9 @@ export interface IUser {
 }
 
 /**
- * A GitHub user.
+ * A GitHub user, representing an entity that has interacted with a repository used by GitHub Desktop.
+ *
+ * These are read-only entities, and are typically associated with commits.
  */
 export class User implements IUser {
   public readonly token: string

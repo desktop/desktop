@@ -1,6 +1,6 @@
 import { IEmail } from './email'
 
-/** The data-only interface for User for transport across IPC. */
+/** The data-only interface for Account for transport across IPC. */
 export interface IAccount {
   readonly token: string
   readonly login: string
@@ -12,7 +12,9 @@ export interface IAccount {
 }
 
 /**
- * A GitHub account.
+ * A GitHub account, representing the user found on GitHub The Website or GitHub Enterprise.
+ *
+ * This contains a token that will be used for operations that require authentication.
  */
 export class Account implements IAccount {
   public readonly token: string
