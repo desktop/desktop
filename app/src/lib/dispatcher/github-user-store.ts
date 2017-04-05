@@ -1,6 +1,6 @@
 import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
 import { API,  getUserForEndpoint, getDotComAPIEndpoint } from '../api'
 import { GitHubUserDatabase, IGitHubUser, IMentionableAssociation } from './github-user-database'
@@ -50,7 +50,7 @@ export class GitHubUserStore {
   }
 
   /** Update the mentionable users for the repository. */
-  public async updateMentionables(repository: GitHubRepository, user: User): Promise<void> {
+  public async updateMentionables(repository: GitHubRepository, user: Account): Promise<void> {
     const api = new API(user)
 
     const repositoryID = repository.dbID
@@ -95,7 +95,7 @@ export class GitHubUserStore {
   }
 
   /** Not to be called externally. See `Dispatcher`. */
-  public async _loadAndCacheUser(users: ReadonlyArray<User>, repository: Repository, sha: string | null, email: string) {
+  public async _loadAndCacheUser(users: ReadonlyArray<Account>, repository: Repository, sha: string | null, email: string) {
     const endpoint = repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint()
     const key = `${endpoint}+${email.toLowerCase()}`
     if (this.requestsInFlight.has(key)) { return }
@@ -131,7 +131,7 @@ export class GitHubUserStore {
     this.emitUpdate()
   }
 
-  private async findUserWithAPI(user: User, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitHubUser | null> {
+  private async findUserWithAPI(user: Account, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitHubUser | null> {
     const api = new API(user)
     if (sha) {
       const apiCommit = await api.fetchCommit(repository.owner.login, repository.name, sha)

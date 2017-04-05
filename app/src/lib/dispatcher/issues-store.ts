@@ -1,6 +1,6 @@
 import { IssuesDatabase, IIssue } from './issues-database'
 import { API, IAPIIssue } from '../api'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
 import { fatalError } from '../fatal-error'
 
@@ -38,7 +38,7 @@ export class IssuesStore {
    * Fetch the issues for the repository. This will delete any issues that have
    * been closed and update or add any issues that have changed or been added.
    */
-  public async fetchIssues(repository: GitHubRepository, user: User) {
+  public async fetchIssues(repository: GitHubRepository, user: Account) {
     const api = new API(user)
     const lastFetchDate = this.getLastFetchDate(repository)
     const now = new Date()

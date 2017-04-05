@@ -5,7 +5,7 @@ import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileStatus } from '../../models/status'
 import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
 
@@ -410,7 +410,7 @@ export class GitStore {
    *
    * @param user - The user to use for authentication if needed.
    */
-  public async fetch(user: User | null): Promise<void> {
+  public async fetch(user: Account | null): Promise<void> {
     const remotes = await getRemotes(this.repository)
 
     for (const remote of remotes) {

@@ -15,6 +15,7 @@ import {
   SelectionType,
 } from '../app-state'
 import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../../models/status'
@@ -77,7 +78,7 @@ const commitSummaryWidthConfigKey: string = 'commit-summary-width'
 export class AppStore {
   private emitter = new Emitter()
 
-  private users: ReadonlyArray<User> = new Array<User>()
+  private users: ReadonlyArray<Account> = new Array<Account>()
   private repositories: ReadonlyArray<Repository> = new Array<Repository>()
 
   private selectedRepository: Repository | CloningRepository | null = null
@@ -610,7 +611,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _loadFromSharedProcess(users: ReadonlyArray<User>, repositories: ReadonlyArray<Repository>) {
+  public _loadFromSharedProcess(users: ReadonlyArray<Account>, repositories: ReadonlyArray<Repository>) {
     this.users = users
     this.repositories = repositories
     this.loading = this.repositories.length === 0 && this.users.length === 0
@@ -623,7 +624,7 @@ export class AppStore {
       // @joshaber (August 10, 2016)
       if (!user.emails) { break }
 
-      const gitUsers = user.emails.map(email => ({ ...user, email }))
+      const gitUsers = user.emails.map(email => ({ ...user, email: email.email }))
 
       for (const user of gitUsers) {
         this.gitHubUserStore.cacheUser(user)
@@ -1211,7 +1212,7 @@ export class AppStore {
     }
   }
 
-  private getUserForRepository(repository: Repository): User | null {
+  private getUserForRepository(repository: Repository): Account | null {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) { return null }
 
@@ -1219,7 +1220,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<void> {
+  public async _publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<void> {
     const api = new API(account)
     const apiRepository = await api.createRepository(org, name, description, private_)
 
