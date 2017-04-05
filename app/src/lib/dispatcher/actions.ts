@@ -1,5 +1,5 @@
 import { IRepository } from '../../models/repository'
-import { IUser } from '../../models/user'
+import { IAccount } from '../../models/account'
 
 export interface IGetUsersAction {
   name: 'get-users'
@@ -27,13 +27,13 @@ export interface IUpdateGitHubRepositoryAction {
 /** Add a user to the app. */
 export interface IAddUserAction {
   readonly name: 'add-user'
-  readonly user: IUser
+  readonly user: IAccount
 }
 
 /** Remove a user from the app. */
 export interface IRemoveUserAction {
   readonly name: 'remove-user'
-  readonly user: IUser
+  readonly user: IAccount
 }
 
 /** Change a repository's `missing` status. */
