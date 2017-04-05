@@ -1,6 +1,5 @@
 import * as TokenStore from '../shared-process/token-store'
 import { UsersStore } from './users-store'
-import { User } from '../models/user'
 import { Account } from '../models/account'
 import { Database } from './database'
 import { RepositoriesStore } from './repositories-store'
