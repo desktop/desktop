@@ -48,43 +48,19 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
       orgsByUser.set(user, orgs)
     }
 
-    this.setState({
-      name: this.state.name,
-      description: this.state.description,
-      private: this.state.private,
-      groupedUsers: orgsByUser,
-      selectedUser: this.state.selectedUser,
-    })
+    this.setState({ groupedUsers: orgsByUser })
   }
 
   private onNameChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      name: event.currentTarget.value,
-      description: this.state.description,
-      private: this.state.private,
-      groupedUsers: this.state.groupedUsers,
-      selectedUser: this.state.selectedUser,
-    })
+    this.setState({ name: event.currentTarget.value })
   }
 
   private onDescriptionChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      name: this.state.name,
-      description: event.currentTarget.value,
-      private: this.state.private,
-      groupedUsers: this.state.groupedUsers,
-      selectedUser: this.state.selectedUser,
-    })
+    this.setState({ description: event.currentTarget.value })
   }
 
   private onPrivateChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      name: this.state.name,
-      description: this.state.description,
-      private: event.currentTarget.checked,
-      groupedUsers: this.state.groupedUsers,
-      selectedUser: this.state.selectedUser,
-    })
+    this.setState({ private: event.currentTarget.checked })
   }
 
   private findOwningUserForSelectedUser(): User | null {
@@ -126,13 +102,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
     const value = event.currentTarget.value
     const selectedUser = JSON.parse(value)
 
-    this.setState({
-      name: this.state.name,
-      description: this.state.description,
-      private: this.state.private,
-      groupedUsers: this.state.groupedUsers,
-      selectedUser,
-    })
+    this.setState({ selectedUser })
   }
 
   private renderAccounts() {
