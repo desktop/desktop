@@ -1,4 +1,4 @@
-import { git, envForAuthentication } from './core'
+import { git, envForAuthentication, expectedAuthenticationErrors } from './core'
 import { Repository } from '../../models/repository'
 import { User } from '../../models/user'
 
@@ -7,6 +7,7 @@ export async function fetch(repository: Repository, user: User | null, remote: s
   const options = {
     successExitCodes: new Set([ 0 ]),
     env: envForAuthentication(user),
+    expectedErrors: expectedAuthenticationErrors(),
   }
 
   await git([ 'fetch', '--prune', remote ], repository.path, 'fetch', options)
@@ -17,6 +18,7 @@ export async function fetchRefspec(repository: Repository, user: User | null, re
   const options = {
     successExitCodes: new Set([ 0, 128 ]),
     env: envForAuthentication(user),
+    expectedErrors: expectedAuthenticationErrors(),
   }
 
   await git([ 'fetch', remote, refspec ], repository.path, 'fetchRefspec', options)
