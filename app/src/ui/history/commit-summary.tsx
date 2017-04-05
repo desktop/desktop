@@ -135,12 +135,12 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
       avatarUser = { ...author, avatarURL: this.props.gitHubUser.avatarURL }
     }
 
-    const richTextClassName = this.state.isExpanded
-      ? 'commit-summary-expanded'
-      : 'commit-summary-collapsed'
+    const className = this.state.isExpanded
+      ? 'expanded'
+      : 'collapsed'
 
     return (
-      <div id='commit-summary'>
+      <div id='commit-summary' className={className}>
         <div className='commit-summary-header'>
           <RichText
             className='commit-summary-title'
