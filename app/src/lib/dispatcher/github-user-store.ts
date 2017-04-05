@@ -2,7 +2,7 @@ import { Emitter, Disposable } from 'event-kit'
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { GitHubRepository } from '../../models/github-repository'
-import { API,  getUserForEndpoint, getDotComAPIEndpoint } from '../api'
+import { API,  getAccountForEndpoint, getDotComAPIEndpoint } from '../api'
 import { GitHubUserDatabase, IGitHubUser, IMentionableAssociation } from './github-user-database'
 import { fatalError } from '../fatal-error'
 
@@ -95,7 +95,7 @@ export class GitHubUserStore {
   }
 
   /** Not to be called externally. See `Dispatcher`. */
-  public async _loadAndCacheUser(users: ReadonlyArray<Account>, repository: Repository, sha: string | null, email: string) {
+  public async _loadAndCacheUser(accounts: ReadonlyArray<Account>, repository: Repository, sha: string | null, email: string) {
     const endpoint = repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint()
     const key = `${endpoint}+${email.toLowerCase()}`
     if (this.requestsInFlight.has(key)) { return }
@@ -105,22 +105,22 @@ export class GitHubUserStore {
       return
     }
 
-    const user = getUserForEndpoint(users, gitHubRepository.endpoint)
-    if (!user) {
+    const account = getAccountForEndpoint(accounts, gitHubRepository.endpoint)
+    if (!account) {
       return
     }
 
     this.requestsInFlight.add(key)
 
     let gitUser: IGitHubUser | null = await this.database.users.where('[endpoint+email]')
-      .equals([ user.endpoint, email.toLowerCase() ])
+      .equals([ account.endpoint, email.toLowerCase() ])
       .limit(1)
       .first()
 
     // TODO: Invalidate the stored user in the db after ... some reasonable time
     // period.
     if (!gitUser) {
-      gitUser = await this.findUserWithAPI(user, gitHubRepository, sha, email)
+      gitUser = await this.findUserWithAPI(account, gitHubRepository, sha, email)
     }
 
     if (gitUser) {
