@@ -150,11 +150,11 @@ interface IAPIMentionablesResponse {
  */
 export class API {
   private client: any
-  private user: Account
+  private account: Account
 
-  public constructor(user: Account) {
-    this.user = user
-    this.client = new Octokat({ token: user.token, rootURL: user.endpoint })
+  public constructor(account: Account) {
+    this.account = account
+    this.client = new Octokat({ token: account.token, rootURL: account.endpoint })
   }
 
   /**
@@ -259,7 +259,7 @@ export class API {
   }
 
   private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<IHTTPResponse> {
-    return request(this.user.endpoint, `token ${this.user.token}`, method, path, body, customHeaders)
+    return request(this.account.endpoint, `token ${this.account.token}`, method, path, body, customHeaders)
   }
 
   /** Get the allowed poll interval for fetching. */
