@@ -1,4 +1,4 @@
-import { git, envForAuthentication, expectedAuthenticationErrors } from './core'
+import { git, envForAuthentication, expectedAuthenticationErrors, GitError } from './core'
 import { Repository } from '../../models/repository'
 import { User } from '../../models/user'
 
@@ -10,7 +10,14 @@ export async function fetch(repository: Repository, user: User | null, remote: s
     expectedErrors: expectedAuthenticationErrors(),
   }
 
-  await git([ 'fetch', '--prune', remote ], repository.path, 'fetch', options)
+  const args = [ 'fetch', '--prune', remote ]
+  const result = await git(args, repository.path, 'fetch', options)
+
+  if (result.gitErrorDescription) {
+    return Promise.reject(new GitError(result, args))
+  }
+
+  return Promise.resolve()
 }
 
 /** Fetch a given refspec from the given remote. */
@@ -21,6 +28,13 @@ export async function fetchRefspec(repository: Repository, user: User | null, re
     expectedErrors: expectedAuthenticationErrors(),
   }
 
-  await git([ 'fetch', remote, refspec ], repository.path, 'fetchRefspec', options)
+  const args = [ 'fetch', remote, refspec ]
+  const result = await git(args, repository.path, 'fetchRefspec', options)
+
+  if (result.gitErrorDescription) {
+    return Promise.reject(new GitError(result, args))
+  }
+
+  return Promise.resolve()
 }
 
