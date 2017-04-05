@@ -2,22 +2,7 @@ import * as React from 'react'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Branch } from '../../models/branch'
-<<<<<<< HEAD
-import { groupBranches, IBranchListItem, BranchGroupIdentifier } from './group-branches'
-import { BranchListItem } from './branch'
-import { FilterList } from '../lib/filter-list'
-import { assertNever } from '../../lib/fatal-error'
-
-/**
- * TS can't parse generic specialization in JSX, so we have to alias it here
- * with the generic type. See https://github.com/Microsoft/TypeScript/issues/6395.
- */
-const BranchesFilterList: new() => FilterList<IBranchListItem> = FilterList as any
-
-const RowHeight = 29
-=======
 import { BranchList } from './branch-list'
->>>>>>> master
 
 interface IBranchesProps {
   readonly defaultBranch: Branch | null
@@ -38,12 +23,7 @@ export class Branches extends React.Component<IBranchesProps, IBranchesState> {
   public constructor(props: IBranchesProps) {
     super(props)
 
-<<<<<<< HEAD
-  private renderGroupHeader = (identifier: BranchGroupIdentifier) => {
-    return <div className='branches-list-content filter-list-group-header'>{this.getGroupLabel(identifier)}</div>
-=======
     this.state = { selectedBranch: props.currentBranch }
->>>>>>> master
   }
 
   private onItemClick = (item: Branch) => {
