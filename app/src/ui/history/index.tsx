@@ -26,9 +26,21 @@ interface IHistoryProps {
   readonly gitHubUsers: Map<string, IGitHubUser>
 }
 
+interface IHistoryState {
+  readonly isExpanded: boolean,
+}
+
 /** The History component. Contains the commit list, commit summary, and diff. */
-export class History extends React.Component<IHistoryProps, void> {
+export class History extends React.Component<IHistoryProps, IHistoryState> {
   private readonly loadChangedFilesScheduler = new ThrottledScheduler(200)
+
+  public constructor(props: IHistoryProps) {
+    super(props)
+
+    this.state = {
+      isExpanded: false,
+    }
+  }
 
   private onFileSelected = (file: FileChange) => {
     this.props.dispatcher.changeHistoryFileSelection(this.props.repository, file)
