@@ -228,10 +228,10 @@ export class About extends React.Component<IAboutProps, IAboutState> {
             <Octicon symbol={OcticonSymbol.markGithub} />
           </Row>
           <h2>{name}</h2>
-          <p className='version'>
+          <p className='no-padding'>
             Version {version} ({releaseNotesLink})
           </p>
-          <p>
+          <p className='no-padding'>
             <LinkButton uri='https://desktop.github.com/eula/'>End-User License Agreement</LinkButton>
           </p>
           <p>
