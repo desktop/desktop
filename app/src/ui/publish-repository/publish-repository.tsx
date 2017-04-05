@@ -3,10 +3,11 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { User } from '../../models/user'
 import { API,  IAPIUser, getDotComAPIEndpoint } from '../../lib/api'
-import { Form } from '../lib/form'
 import { TextBox } from '../lib/text-box'
 import { Button } from '../lib/button'
 import { Select } from '../lib/select'
+import { ButtonGroup } from '../lib/button-group'
+import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 interface IPublishRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -95,7 +96,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   private publishRepository = () => {
     const owningAccount = this.findOwningUserForSelectedUser()!
     this.props.dispatcher.publishRepository(this.props.repository, this.state.name, this.state.description, this.state.private, owningAccount, this.selectedOrg)
-    this.props.dispatcher.closeFoldout()
+    this.props.dispatcher.closePopup()
   }
 
   private onAccountChange = (event: React.FormEvent<HTMLSelectElement>) => {
@@ -130,25 +131,41 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
     )
   }
 
+  private cancel = () => {
+    this.props.dispatcher.closePopup()
+  }
+
   public render() {
     const disabled = !this.state.name.length
     return (
-      <Form className='publish-repository' onSubmit={this.publishRepository}>
-        <TextBox label='Name' value={this.state.name} autoFocus={true} onChange={this.onNameChange}/>
+      <Dialog
+        id='publish-repository'
+        title={ __DARWIN__ ? 'Publish Repository' : 'Publish repository'}
+        onDismissed={this.cancel}
+        onSubmit={this.publishRepository}
+      >
+        <DialogContent>
+          <TextBox label='Name' value={this.state.name} autoFocus={true} onChange={this.onNameChange}/>
 
-        <TextBox label='Description' value={this.state.description} onChange={this.onDescriptionChange}/>
+          <TextBox label='Description' value={this.state.description} onChange={this.onDescriptionChange}/>
 
-        <hr/>
+          <hr/>
 
-        <label>
-          Keep this code private
-          <input type='checkbox' checked={this.state.private} onChange={this.onPrivateChange}/>
-        </label>
+          <label>
+            Keep this code private
+            <input type='checkbox' checked={this.state.private} onChange={this.onPrivateChange}/>
+          </label>
 
-        {this.renderAccounts()}
+          {this.renderAccounts()}
+        </DialogContent>
 
-        <Button type='submit' disabled={disabled}>Publish Repository</Button>
-      </Form>
+        <DialogFooter>
+          <ButtonGroup>
+            <Button type='submit' disabled={disabled}>Publish Repository</Button>
+            <Button onClick={this.cancel}>Cancel</Button>
+          </ButtonGroup>
+        </DialogFooter>
+      </Dialog>
     )
   }
 }
