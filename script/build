@@ -11,6 +11,8 @@ const projectRoot = path.join(__dirname, '..')
 const outRoot = path.join(projectRoot, 'out')
 const distInfo = require('./dist-info')
 
+const isProductionBuild = process.env.NODE_ENV === 'production'
+
 console.log(`Building for ${process.env.NODE_ENV}…`)
 
 console.log('Removing old distribution…')
@@ -128,7 +130,6 @@ function copyDependencies () {
   fs.removeSync(destination)
   fs.copySync(path.join(projectRoot, 'app', 'node_modules'), destination)
 
-  const isProductionBuild = process.env.NODE_ENV === 'production'
   if (isProductionBuild) {
     console.log('Pruning dev dependencies…')
     cp.execSync('npm prune --production', {cwd: outRoot, env: process.env})
