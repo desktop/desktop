@@ -52,7 +52,7 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
 
   private renderLicenses(licenses: Licenses) {
     const elements = []
-    for (const key of Object.keys(licenses)) {
+    for (const key in licenses) {
       const license = licenses[key]
       const url = license.repository
       let content
