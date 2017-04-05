@@ -39,6 +39,10 @@ process.on('uncaughtException', (error: Error) => {
   reportError(error, getVersion())
 })
 
+window.onerror = (...args: any[]) => {
+  console.log(args)
+}
+
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
 const cloningRepositoriesStore = new CloningRepositoriesStore()
 const emojiStore = new EmojiStore()

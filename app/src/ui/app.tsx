@@ -38,6 +38,7 @@ import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
+import { UntrustedCertificate } from './untrusted-certificate'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -146,6 +147,12 @@ export class App extends React.Component<IAppProps, IAppState> {
       console.log(error)
       console.log(url)
       console.log(certificate)
+
+      this.props.dispatcher.showPopup({
+        type: PopupType.UntrustedCertificate,
+        certificate,
+        url,
+      })
     })
   }
 
@@ -705,6 +712,14 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onPopupDismissed()
   }
 
+  private onContinueWithUntrustedCertificate = (certificate: Electron.Certificate) => {
+    console.log(`Ask the user to trust ${certificate.subjectName}`)
+
+    this.props.dispatcher.closePopup()
+    // TODO:
+    // remote.dialog.showCertificateTrustDialog(remote.getCurentWindow(), { certificate, message: 'Check this shit out' }, () => {})
+  }
+
   private currentPopupContent(): JSX.Element | null {
     // Hide any dialogs while we're displaying an error
     if (this.state.errors.length) { return null }
@@ -809,6 +824,15 @@ export class App extends React.Component<IAppProps, IAppState> {
            applicationName={getName()}
            applicationVersion={getVersion()}
            usernameForUpdateCheck={this.getUsernameForUpdateCheck()}
+          />
+        )
+      case PopupType.UntrustedCertificate:
+        return (
+          <UntrustedCertificate
+            certificate={popup.certificate}
+            url={popup.url}
+            onDismissed={this.onPopupDismissed}
+            onContinue={this.onContinueWithUntrustedCertificate}
           />
         )
       default:
