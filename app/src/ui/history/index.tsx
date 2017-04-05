@@ -91,7 +91,12 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
       repository={this.props.repository}
       isLocal={isLocal}
       gitHubUser={gitHubUser}
+      onExpandChanged={this.onExpandChanged}
     />
+  }
+
+  private onExpandChanged = (isExpanded: boolean) => {
+    this.setState({ isExpanded })
   }
 
   private onCommitSummaryReset = () => {

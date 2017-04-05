@@ -18,6 +18,7 @@ interface ICommitSummaryProps {
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
   readonly gitHubUser: IGitHubUser | null
+  readonly onExpandChanged: (isExpanded: boolean) => void
 }
 
 interface ICommitSummaryState {
