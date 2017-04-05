@@ -819,7 +819,7 @@
     },
     "ua-parser-js": {
       "version": "0.7.12",
-      "from": "https://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.12.tgz",
+      "from": "ua-parser-js@latest",
       "resolved": "https://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.12.tgz"
     },
     "untildify": {
