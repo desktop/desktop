@@ -49,8 +49,15 @@
   background: var(--ahead-behind-background-color);
 
   // Perfectly round semi circle ends with real tight
-  // padding on either side
-  height: 13px;
+  // padding on either side. Now in two flavors!
+  @include darwin {
+    height: 13px;
+  }
+
+  @include win32 {
+    height: 14px;
+  }
+
   border-radius: 8px;
   padding: 0 6px;
 
