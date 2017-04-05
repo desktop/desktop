@@ -137,8 +137,10 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
       return <NoCommitSelected/>
     }
 
+    const className = this.state.isExpanded ? 'expanded' : 'collapsed'
+
     return (
-      <div id='history'>
+      <div id='history' className={className}>
         {this.renderCommitSummary(commit)}
         <div id='commit-details'>
           <Resizable
