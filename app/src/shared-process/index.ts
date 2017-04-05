@@ -9,7 +9,8 @@ import {
   IAddRepositoriesAction,
   IUpdateGitHubRepositoryAction,
   IRemoveRepositoriesAction,
-  IAddUserAction,
+  IAddAccountAction,
+  IRemoveAccountAction,
   IUpdateRepositoryMissingAction,
   IUpdateRepositoryPathAction,
 } from '../lib/dispatcher'
@@ -60,17 +61,17 @@ register('ping', () => {
   return Promise.resolve('pong')
 })
 
-register('get-users', () => {
+register('get-accounts', () => {
   return Promise.resolve(usersStore.getUsers())
 })
 
-register('add-user', async ({ user }: IAddUserAction) => {
+register('add-account', async ({ user }: IAddAccountAction) => {
   usersStore.addUser(Account.fromJSON(user))
   await updateUsers()
   return Promise.resolve()
 })
 
-register('remove-user', async ({ user }: IAddUserAction) => {
+register('remove-account', async ({ user }: IRemoveAccountAction) => {
   usersStore.removeUser(Account.fromJSON(user))
   broadcastUpdate()
   return Promise.resolve()

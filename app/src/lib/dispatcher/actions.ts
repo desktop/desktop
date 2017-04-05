@@ -1,8 +1,8 @@
 import { IRepository } from '../../models/repository'
 import { IAccount } from '../../models/account'
 
-export interface IGetUsersAction {
-  name: 'get-users'
+export interface IGetAccountsAction {
+  name: 'get-accounts'
 }
 
 export interface IGetRepositoriesAction {
@@ -25,14 +25,14 @@ export interface IUpdateGitHubRepositoryAction {
 }
 
 /** Add a user to the app. */
-export interface IAddUserAction {
-  readonly name: 'add-user'
+export interface IAddAccountAction {
+  readonly name: 'add-account'
   readonly user: IAccount
 }
 
 /** Remove a user from the app. */
-export interface IRemoveUserAction {
-  readonly name: 'remove-user'
+export interface IRemoveAccountAction {
+  readonly name: 'remove-account'
   readonly user: IAccount
 }
 
@@ -50,7 +50,7 @@ export interface IUpdateRepositoryPathAction {
   readonly path: string
 }
 
-export type Action = IGetUsersAction | IGetRepositoriesAction |
+export type Action = IGetAccountsAction | IGetRepositoriesAction |
                      IAddRepositoriesAction | IUpdateGitHubRepositoryAction |
-                     IRemoveRepositoriesAction | IAddUserAction | IRemoveUserAction |
+                     IRemoveRepositoriesAction | IAddAccountAction | IRemoveAccountAction |
                      IUpdateRepositoryMissingAction | IUpdateRepositoryPathAction

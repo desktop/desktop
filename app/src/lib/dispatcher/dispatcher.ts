@@ -118,7 +118,7 @@ export class Dispatcher {
 
   /** Get the users */
   private async loadUsers(): Promise<ReadonlyArray<Account>> {
-    const json = await this.dispatchToSharedProcess<ReadonlyArray<IAccount>>({ name: 'get-users' })
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IAccount>>({ name: 'get-accounts' })
     return json.map(Account.fromJSON)
   }
 
@@ -478,12 +478,12 @@ export class Dispatcher {
 
   /** Add the user to the app. */
   public async addUser(user: Account): Promise<void> {
-    return this.dispatchToSharedProcess<void>({ name: 'add-user', user })
+    return this.dispatchToSharedProcess<void>({ name: 'add-account', user })
   }
 
   /** Remove the given user. */
   public removeUser(user: Account): Promise<void> {
-    return this.dispatchToSharedProcess<void>({ name: 'remove-user', user })
+    return this.dispatchToSharedProcess<void>({ name: 'remove-account', user })
   }
 
   /**
