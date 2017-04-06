@@ -17,6 +17,9 @@ interface IPublishRepositoryProps {
 
   /** The signed in users. */
   readonly users: ReadonlyArray<User>
+
+  /** The function to call when the dialog should be dismissed. */
+  readonly onDismissed: () => void
 }
 
 interface IPublishRepositoryState {
@@ -96,7 +99,8 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   private publishRepository = () => {
     const owningAccount = this.findOwningUserForSelectedUser()!
     this.props.dispatcher.publishRepository(this.props.repository, this.state.name, this.state.description, this.state.private, owningAccount, this.selectedOrg)
-    this.props.dispatcher.closePopup()
+
+    this.props.onDismissed()
   }
 
   private onAccountChange = (event: React.FormEvent<HTMLSelectElement>) => {
@@ -131,16 +135,12 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
     )
   }
 
-  private cancel = () => {
-    this.props.dispatcher.closePopup()
-  }
-
   public render() {
     const disabled = !this.state.name.length
     return (
       <Dialog
         title={ __DARWIN__ ? 'Publish Repository' : 'Publish repository'}
-        onDismissed={this.cancel}
+        onDismissed={this.props.onDismissed}
         onSubmit={this.publishRepository}
       >
         <DialogContent>
@@ -161,7 +161,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
         <DialogFooter>
           <ButtonGroup>
             <Button type='submit' disabled={disabled}>Publish Repository</Button>
-            <Button onClick={this.cancel}>Cancel</Button>
+            <Button onClick={this.props.onDismissed}>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>

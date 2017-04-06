@@ -14,7 +14,14 @@ interface IPublishProps {
   /** The signed in users. */
   readonly users: ReadonlyArray<User>
 
+  /**
+   * The current sign in state. This controls whether the user must first sign
+   * in.
+   */
   readonly signInState: SignInState | null
+
+  /** The function to call when the dialog should be dismissed. */
+  readonly onDismissed: () => void
 }
 
 /**
@@ -28,7 +35,8 @@ export class Publish extends React.Component<IPublishProps, void> {
       return <PublishRepository
         dispatcher={this.props.dispatcher}
         repository={this.props.repository}
-        users={this.props.users}/>
+        users={this.props.users}
+        onDismissed={this.props.onDismissed}/>
     } else {
       return (
         <SignIn
