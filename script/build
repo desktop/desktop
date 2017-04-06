@@ -38,10 +38,10 @@ updateLicenseDump(err => {
   if (err) {
     console.error('Error updating the license dump. This is fatal for a production build.')
     console.error(err)
-  }
 
-  if (isProductionBuild) {
-    process.exit(1)
+    if (isProductionBuild) {
+      process.exit(1)
+    }
   }
 
   console.log('Packaging…')
