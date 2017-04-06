@@ -54,7 +54,10 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
 
   private renderLicenses(licenses: Licenses) {
     const elements = []
-    for (const key in licenses) {
+    for (const [ index, key ] of Object.keys(licenses).entries()) {
+      // The first entry is Desktop itself. We don't need to thank us.
+      if (index === 0) { continue }
+
       const license = licenses[key]
       const url = license.repository
       let licenseElement: JSX.Element
