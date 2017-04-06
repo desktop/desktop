@@ -276,7 +276,12 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     }
   }
 
-  private onMenuClose = (item: ISubmenuItem) => {
+  private onMenuClose = (item: ISubmenuItem, source: 'keyboard' | 'pointer' | 'item-executed') => {
+
+    if (source === 'pointer') {
+      this.restoreFocusOrBlur()
+    }
+
     this.props.dispatcher.setAppMenuState(m => m.withClosedMenu(item.menu))
   }
 
