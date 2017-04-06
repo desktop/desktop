@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogFooter } from '../dialog'
 const RepositoryURL = 'https://github.com/desktop/desktop'
 
 interface IAcknowledgementsProps {
+  /** The function to call when the dialog should be dismissed. */
   readonly onDismissed: () => void
 }
 
@@ -103,6 +104,7 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
   }
 }
 
+/** Normalize a package URL to a GitHub URL. */
 function normalizedGitHubURL(url: string): string {
   let newURL = url
   newURL = newURL.replace('git+https://github.com', 'https://github.com')
