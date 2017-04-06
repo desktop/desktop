@@ -71,7 +71,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         onSubmit={this.publishRepository}
       >
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.currentTab}>
-          <span>GitHub</span>
+          <span>GitHub.com</span>
           <span>Enterprise</span>
         </TabBar>
 
