@@ -44,6 +44,7 @@ import { SignInStore } from './sign-in-store'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
 import { structuralEquals } from '../equality'
+import { fatalError } from '../fatal-error'
 
 import {
   getGitDir,
@@ -599,6 +600,11 @@ export class AppStore {
   }
 
   private startBackgroundFetching(repository: Repository) {
+    if (this.currentBackgroundFetcher) {
+      fatalError(`We should only have on background fetcher active at once, but we're trying to start background fetching on ${repository.name} while another background fetcher is still active!`)
+      return
+    }
+
     const user = this.getUserForRepository(repository)
     if (!user) { return }
 
