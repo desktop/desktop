@@ -2,7 +2,7 @@ import * as React from 'react'
 import { IMenu, ISubmenuItem } from '../../models/app-menu'
 import { MenuListItem } from './menu-list-item'
 import { AppMenu, CloseSource } from './app-menu'
-import { ToolbarDropdown, DropDownStateChangeSource } from '../toolbar'
+import { ToolbarDropdown } from '../toolbar'
 import { Dispatcher } from '../../lib/dispatcher'
 
 interface IAppMenuBarButtonProps {
@@ -232,9 +232,9 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
     this.props.onClose(this.props.menuItem, closeSource.type)
   }
 
-  private onDropdownStateChanged = (state: 'closed' | 'open', source: DropDownStateChangeSource) => {
+  private onDropdownStateChanged = (state: 'closed' | 'open', source: 'keyboard' | 'pointer') => {
     if (this.isMenuOpen) {
-      this.props.onClose(this.props.menuItem, source.type)
+      this.props.onClose(this.props.menuItem, source)
     } else {
       this.props.onOpen(this.props.menuItem)
     }

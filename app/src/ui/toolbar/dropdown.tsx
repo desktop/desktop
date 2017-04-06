@@ -23,11 +23,14 @@ export interface IToolbarDropdownProps {
   readonly dropdownState: DropdownState
 
   /**
-   * An event handler for when the drop down is opened
-   * or closed by a pointer event or by hitting
-   * space/enter while focused.
+   * An event handler for when the drop down is opened, or closed, by a pointer
+   * event or by pressing the space or enter key while focused.
+   * 
+   * @param state    - The new state of the drop down
+   * @param source   - Whether the state change was caused by a keyboard or
+   *                   pointer interaction.
    */
-  readonly onDropdownStateChanged: (state: DropdownState, source: DropDownStateChangeSource) => void
+  readonly onDropdownStateChanged: (state: DropdownState, source: 'keyboard' | 'pointer') => void
 
   /**
    * A function that's called when the user hovers over the button with
@@ -107,16 +110,6 @@ interface IToolbarDropdownState {
   readonly clientRect: ClientRect | null
 }
 
-interface IKeyboardSource {
-  type: 'keyboard'
-}
-
-interface IPointerDeviceSource {
-  type: 'pointer'
-}
-
-export type DropDownStateChangeSource = IKeyboardSource | IPointerDeviceSource
-
 /**
  * A toolbar dropdown button
  */
@@ -162,9 +155,9 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     // pointer device. So far, the only way I've been able to tell the
     // two apart is that keyboard derived clicks don't have a pointer
     // position.
-    const source: DropDownStateChangeSource = !event.clientX && !event.clientY
-      ? { type: 'keyboard' }
-      : { type: 'pointer' }
+    const source = !event.clientX && !event.clientY
+      ? 'keyboard'
+      : 'pointer'
 
     this.props.onDropdownStateChanged(newState, source)
   }
@@ -195,7 +188,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
   }
 
   private handleOverlayClick = () => {
-    this.props.onDropdownStateChanged('closed', { type: 'pointer' })
+    this.props.onDropdownStateChanged('closed', 'pointer')
   }
 
   private getFoldoutContainerStyle(): React.CSSProperties | undefined {
