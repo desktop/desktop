@@ -69,7 +69,7 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
 
       elements.push(
         <div key={key}>
-          {licenseElement} <span>({license.license})</span>
+          {licenseElement}
         </div>
       )
     }
