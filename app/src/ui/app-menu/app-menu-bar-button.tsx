@@ -50,9 +50,14 @@ interface IAppMenuBarButtonProps {
   /**
    * A function that's called when the menu item is closed by the user clicking
    * on the button while it is expanded. This is a specialized version
-   * of the onDropdownStateChanged prop of the ToolbarDropdown component
+   * of the onDropdownStateChanged prop of the ToolbarDropdown component.
+   * 
+   * @param menuItem - The top-level menu item rendered by this menu bar button.
+   * @param source   - Whether closing the menu was caused by a keyboard or
+   *                   pointer interaction, or if it was closed due to an
+   *                   item being activated (executed).
    */
-  readonly onClose: (menuItem: ISubmenuItem) => void
+  readonly onClose: (menuItem: ISubmenuItem, source: 'keyboard' | 'pointer' | 'item-executed') => void
 
   /**
    * A function that's called when the menu item is opened by the user clicking
@@ -224,12 +229,12 @@ export class AppMenuBarButton extends React.Component<IAppMenuBarButtonProps, vo
       this.focusButton()
     }
 
-    this.props.onClose(this.props.menuItem)
+    this.props.onClose(this.props.menuItem, closeSource.type)
   }
 
-  private onDropdownStateChanged = () => {
+  private onDropdownStateChanged = (state: 'closed' | 'open', source: 'keyboard' | 'pointer') => {
     if (this.isMenuOpen) {
-      this.props.onClose(this.props.menuItem)
+      this.props.onClose(this.props.menuItem, source)
     } else {
       this.props.onOpen(this.props.menuItem)
     }

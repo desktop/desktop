@@ -276,7 +276,12 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     }
   }
 
-  private onMenuClose = (item: ISubmenuItem) => {
+  private onMenuClose = (item: ISubmenuItem, source: 'keyboard' | 'pointer' | 'item-executed') => {
+
+    if (source === 'pointer') {
+      this.restoreFocusOrBlur()
+    }
+
     this.props.dispatcher.setAppMenuState(m => m.withClosedMenu(item.menu))
   }
 
@@ -290,10 +295,12 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   }
 
   private onMenuButtonMouseEnter = (item: ISubmenuItem) => {
+    if (this.hasFocus) {
+      this.focusMenuItem(item)
+    }
+
     if (this.props.appMenu.length > 1) {
       this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item))
-    } else if (this.hasFocus) {
-      this.focusMenuItem(item)
     }
   }
 
