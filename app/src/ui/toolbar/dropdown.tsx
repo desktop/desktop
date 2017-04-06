@@ -237,9 +237,13 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
       return null
     }
 
+    // The overlay has a -1 tab index because if it doesn't then focus will be put
+    // on the body element when someone clicks on it and that causes the app menu
+    // bar to instantly close before even receiving the onDropdownStateChanged
+    // event from us.
     return (
       <div id='foldout-container' style={this.getFoldoutContainerStyle()}>
-        <div className='overlay' onClick={this.handleOverlayClick}></div>
+        <div className='overlay' tabIndex={-1} onClick={this.handleOverlayClick}></div>
         <div className='foldout' style={this.getFoldoutStyle()}>
           {this.props.dropdownContentRenderer()}
         </div>
