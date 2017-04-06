@@ -313,7 +313,7 @@ export class Dispatcher {
 
   /**
    * Perform a function which may need authentication on a repository. This may
-   * first update the repository's GitHub repository association.
+   * first update the GitHub association for the repository.
    */
   private async withAuthenticatingUser<T>(repository: Repository, fn: (repository: Repository, user: User | null) => Promise<T>): Promise<T> {
     let updatedRepository = repository
