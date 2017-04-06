@@ -1270,10 +1270,8 @@ export class AppStore {
 
   /** Fetch a specific refspec for the repository. */
   public async fetchRefspec(repository: Repository, refspec: string, user: User | null): Promise<void> {
-    await this.withPushPull(repository, async () => {
-      const gitStore = this.getGitStore(repository)
-      await gitStore.fetchRefspec(user, refspec)
-    })
+    const gitStore = this.getGitStore(repository)
+    await gitStore.fetchRefspec(user, refspec)
 
     return this._refreshRepository(repository)
   }

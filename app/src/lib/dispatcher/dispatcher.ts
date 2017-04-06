@@ -346,17 +346,18 @@ export class Dispatcher {
     )
   }
 
-  /** Fetch the repository, with an optional refspec if only a specific fetchspec should be used. */
-  public fetch(repository: Repository, fetchspec?: string): Promise<void> {
-    if (fetchspec) {
-      return this.withAuthenticatingUser(repository, (repo, user) =>
-        this.appStore.fetchRefspec(repo, fetchspec, user)
-      )
-    } else {
-      return this.withAuthenticatingUser(repository, (repo, user) =>
-        this.appStore.fetch(repo, user)
-      )
-    }
+  /** Fetch a specific refspec for the repository. */
+  public fetchRefspec(repository: Repository, fetchspec: string): Promise<void> {
+    return this.withAuthenticatingUser(repository, (repo, user) => {
+      return this.appStore.fetchRefspec(repo, fetchspec, user)
+    })
+  }
+
+  /** Fetch all refs for the repository */
+  public fetch(repository: Repository): Promise<void> {
+    return this.withAuthenticatingUser(repository, (repo, user) =>
+      this.appStore.fetch(repo, user)
+    )
   }
 
   /** Publish the repository to GitHub with the given properties. */

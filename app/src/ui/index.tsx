@@ -137,7 +137,7 @@ async function handleCloneInDesktopOptions(repository: Repository | null, args: 
 
   // we need to refetch for a forked PR and check that out
   if (pr && branch) {
-    await dispatcher.fetch(repository, `pull/${pr}/head:${branch}`)
+    await dispatcher.fetchRefspec(repository, `pull/${pr}/head:${branch}`)
     await dispatcher.checkoutBranch(repository, branch)
   }
 
