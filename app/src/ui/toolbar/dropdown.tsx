@@ -27,7 +27,7 @@ export interface IToolbarDropdownProps {
    * or closed by a pointer event or by hitting
    * space/enter while focused.
    */
-  readonly onDropdownStateChanged: (state: DropdownState) => void
+  readonly onDropdownStateChanged: (state: DropdownState, source: DropDownStateChangeSource) => void
 
   /**
    * A function that's called when the user hovers over the button with
@@ -107,6 +107,16 @@ interface IToolbarDropdownState {
   readonly clientRect: ClientRect | null
 }
 
+interface IKeyboardSource {
+  type: 'keyboard'
+}
+
+interface IPointerDeviceSource {
+  type: 'pointer'
+}
+
+export type DropDownStateChangeSource = IKeyboardSource | IPointerDeviceSource
+
 /**
  * A toolbar dropdown button
  */
@@ -139,12 +149,24 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     return <Octicon symbol={this.dropdownIcon(state)} className='dropdownArrow' />
   }
 
-  private onClick = () => {
+  private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const newState: DropdownState = this.props.dropdownState === 'open'
       ? 'closed'
       : 'open'
 
-    this.props.onDropdownStateChanged(newState)
+    // This is probably one of the hackiest things I've ever done.
+    // We need to be able to determine whether the button was clicked
+    // using a pointer device or activated by pressing Enter or Space.
+    // The problem is that button onClick events fire with a mouse event
+    // regardless of whether they were activated with a key press or a
+    // pointer device. So far, the only way I've been able to tell the
+    // two apart is that keyboard derived clicks don't have a pointer
+    // position.
+    const source: DropDownStateChangeSource = !event.clientX && !event.clientY
+      ? { type: 'keyboard' }
+      : { type: 'pointer' }
+
+    this.props.onDropdownStateChanged(newState, source)
   }
 
   private updateClientRectIfNecessary() {
@@ -173,7 +195,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
   }
 
   private handleOverlayClick = () => {
-    this.props.onDropdownStateChanged('closed')
+    this.props.onDropdownStateChanged('closed', { type: 'pointer' })
   }
 
   private getFoldoutContainerStyle(): React.CSSProperties | undefined {
