@@ -62,7 +62,7 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
       const url = license.repository
       let licenseElement: JSX.Element
       if (url && url.length) {
-        licenseElement = <LinkButton uri={url}>{key}</LinkButton>
+        licenseElement = <LinkButton uri={normalizedGitHubURL(url)}>{key}</LinkButton>
       } else {
         licenseElement = <span>{key}</span>
       }
@@ -101,4 +101,11 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
       </Dialog>
     )
   }
+}
+
+function normalizedGitHubURL(url: string): string {
+  let newURL = url
+  newURL = newURL.replace('git+https://github.com', 'https://github.com')
+  newURL = newURL.replace('git+ssh://git@github.com', 'https://github.com')
+  return newURL
 }
