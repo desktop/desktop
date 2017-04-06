@@ -811,7 +811,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
             users={this.state.users}
-            signInState={this.state.signInState}
             onDismissed={this.onPopupDismissed}
           />
         )
