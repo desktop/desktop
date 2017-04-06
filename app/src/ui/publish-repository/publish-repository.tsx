@@ -139,7 +139,6 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
     const disabled = !this.state.name.length
     return (
       <Dialog
-        id='publish-repository'
         title={ __DARWIN__ ? 'Publish Repository' : 'Publish repository'}
         onDismissed={this.cancel}
         onSubmit={this.publishRepository}

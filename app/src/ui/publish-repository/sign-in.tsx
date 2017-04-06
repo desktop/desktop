@@ -41,7 +41,7 @@ export class SignIn extends React.Component<ISignInProps, ISignInState> {
           <span>Enterprise</span>
         </TabBar>
 
-        <div className='publish-repository'>
+        <div>
           {this.renderActiveTab()}
         </div>
       </div>
