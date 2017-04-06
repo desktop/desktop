@@ -2,7 +2,6 @@ import * as React from 'react'
 import { TabBar } from '../tab-bar'
 import { Remote } from './remote'
 import { GitIgnore } from './git-ignore'
-import { GitLFS } from './git-lfs'
 import { assertNever } from '../../lib/fatal-error'
 import { IRemote } from '../../models/remote'
 import { Dispatcher } from '../../lib/dispatcher'
@@ -21,7 +20,6 @@ interface IRepositorySettingsProps {
 enum RepositorySettingsTab {
   Remote = 0,
   IgnoredFiles,
-  GitLFS,
 }
 
 interface IRepositorySettingsState {
@@ -82,7 +80,6 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedTab}>
           <span>Remote</span>
           <span>Ignored Files</span>
-          <span>Git LFS</span>
         </TabBar>
 
         {this.renderActiveTab()}
@@ -113,9 +110,6 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
           onIgnoreTextChanged={this.onIgnoreTextChanged}
           onShowExamples={this.onShowGitIgnoreExamples}
         />
-      }
-      case RepositorySettingsTab.GitLFS: {
-        return <GitLFS/>
       }
     }
 
