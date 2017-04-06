@@ -4,7 +4,7 @@ import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 import { openShell } from '../../lib/open-shell'
-
+import { shell } from '../../lib/dispatcher/app-shell'
 
 interface IInstallGitProps {
   /**
@@ -32,10 +32,11 @@ export class InstallGit extends React.Component<IInstallGitProps, void> {
 
   private onContinue = () => {
     openShell(this.props.path)
+    this.props.onDismissed()
   }
 
   private onExternalLink = () => {
-
+    shell.openExternal('https://help.github.com/')
   }
 
   public render() {
