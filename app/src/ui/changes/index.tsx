@@ -16,8 +16,6 @@ interface IChangesProps {
   readonly dispatcher: Dispatcher
 }
 
-/** TODO: handle "repository not found" scenario */
-
 export class Changes extends React.Component<IChangesProps, void> {
 
   private onDiffLineIncludeChanged = (diffSelection: DiffSelection) => {
