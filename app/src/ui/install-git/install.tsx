@@ -40,18 +40,14 @@ export class InstallGit extends React.Component<IInstallGitProps, void> {
   }
 
   public render() {
-
-    const header = __DARWIN__ ? 'Open in Terminal' : 'Op&en command prompt'
-
     return (
       <Dialog
         id='install-git'
+        type='warning'
+        title={__DARWIN__ ? 'Open in Terminal' : 'Op&en command prompt'}
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}>
         <DialogContent>
-          <p>
-            {header}
-          </p>
           <p>
             It looks like you don't have Git on your <code>PATH</code>. This means the shell won't be able to execute any Git command.
           </p>
@@ -62,8 +58,8 @@ export class InstallGit extends React.Component<IInstallGitProps, void> {
 
         <DialogFooter>
           <ButtonGroup>
+            <Button type='submit' onClick={this.onContinue}>Continue</Button>
             <Button onClick={this.onExternalLink}>More information</Button>
-            <Button onClick={this.onContinue}>Continue</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
