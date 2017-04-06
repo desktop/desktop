@@ -43,11 +43,11 @@ import { StatsStore, ILaunchStats } from '../stats'
 import { SignInStore } from './sign-in-store'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
+import { structuralEquals } from '../equality'
 
 import {
   getGitDir,
   getStatus,
-  getConfigValue,
   getAuthorIdentity,
   pull as pullRepo,
   push as pushRepo,
@@ -573,7 +573,7 @@ export class AppStore {
   }
 
   public async _updateIssues(repository: GitHubRepository) {
-    const user = this.users.find(u => u.endpoint === repository.endpoint)
+    const user = getUserForEndpoint(this.users, repository.endpoint)
     if (!user) { return }
 
     try {
@@ -607,7 +607,7 @@ export class AppStore {
 
     if (!repository.gitHubRepository) { return }
 
-    const fetcher = new BackgroundFetcher(repository, user, r => this.fetch(r))
+    const fetcher = new BackgroundFetcher(repository, user, r => this.fetch(r, user))
     fetcher.start()
     this.currentBackgroundFetcher = fetcher
   }
@@ -1008,31 +1008,34 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _repositoryWithRefreshedGitHubRepository(repository: Repository): Promise<Repository> {
-    let gitHubRepository = repository.gitHubRepository
-    if (!gitHubRepository) {
-      gitHubRepository = await this.guessGitHubRepository(repository)
-    }
+    const updatedRepository = await this.updateGitHubRepositoryAssociation(repository)
+    const gitHubRepository = updatedRepository.gitHubRepository
+    if (!gitHubRepository) { return updatedRepository }
 
-    if (!gitHubRepository) { return repository }
-
-    const users = this.users
-    const user = getUserForEndpoint(users, gitHubRepository.endpoint)
-    if (!user) { return repository }
+    const user = this.getUserForRepository(repository)
+    if (!user) { return updatedRepository }
 
     const api = new API(user)
     const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
-    return repository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
+    return updatedRepository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
+  }
+
+  private async updateGitHubRepositoryAssociation(repository: Repository): Promise<Repository> {
+    const gitHubRepository = await this.guessGitHubRepository(repository)
+    if (gitHubRepository === repository.gitHubRepository || !gitHubRepository) { return repository }
+
+    if (repository.gitHubRepository && gitHubRepository && structuralEquals(repository.gitHubRepository, gitHubRepository)) {
+      return repository
+    }
+
+    return repository.withGitHubRepository(gitHubRepository)
   }
 
   private async guessGitHubRepository(repository: Repository): Promise<GitHubRepository | null> {
     const gitStore = this.getGitStore(repository)
-    // TODO: This is all kinds of wrong.
-    // We shouldn't assume the remote is named `origin`.
-    const remote = await gitStore.performFailableOperation(() =>
-      getConfigValue(repository, 'remote.origin.url')
-    )
+    const remote = gitStore.remote
 
-    return remote ? matchGitHubRepository(this.users, remote) : null
+    return remote ? matchGitHubRepository(this.users, remote.url) : null
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1073,13 +1076,12 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _deleteBranch(repository: Repository, branch: Branch): Promise<void> {
+  public async _deleteBranch(repository: Repository, branch: Branch, user: User | null): Promise<void> {
     const defaultBranch = this.getRepositoryState(repository).branchesState.defaultBranch
     if (!defaultBranch) {
       return Promise.reject(new Error(`No default branch!`))
     }
 
-    const user = this.getUserForRepository(repository)
     const gitStore = this.getGitStore(repository)
 
     await gitStore.performFailableOperation(() => checkoutBranch(repository, defaultBranch.name))
@@ -1088,7 +1090,7 @@ export class AppStore {
     return this._refreshRepository(repository)
   }
 
-  public async _push(repository: Repository): Promise<void> {
+  public async _push(repository: Repository, user: User | null): Promise<void> {
     return this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remote
@@ -1110,12 +1112,11 @@ export class AppStore {
 
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
-        const user = this.getUserForRepository(repository)
         return gitStore.performFailableOperation(() => {
           const setUpstream = branch.upstream ? false : true
           return pushRepo(repository, user, remote.name, branch.name, setUpstream)
             .then(() => this._refreshRepository(repository))
-            .then(() => this.fetch(repository))
+            .then(() => this.fetch(repository, user))
         })
       }
     })
@@ -1154,7 +1155,7 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _pull(repository: Repository): Promise<void> {
+  public async _pull(repository: Repository, user: User | null): Promise<void> {
     return this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remote
@@ -1174,10 +1175,9 @@ export class AppStore {
 
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
-        const user = this.getUserForRepository(repository)
         return gitStore.performFailableOperation(() => pullRepo(repository, user, remote.name, branch.name))
           .then(() => this._refreshRepository(repository))
-          .then(() => this.fetch(repository))
+          .then(() => this.fetch(repository, user))
       }
     })
   }
@@ -1215,7 +1215,8 @@ export class AppStore {
     }
   }
 
-  private getUserForRepository(repository: Repository): User | null {
+  /** Get the authenticated user for the repository. */
+  public getUserForRepository(repository: Repository): User | null {
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) { return null }
 
@@ -1230,7 +1231,7 @@ export class AppStore {
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => addRemote(repository, 'origin', apiRepository.cloneUrl))
     await gitStore.loadCurrentRemote()
-    return this._push(repository)
+    return this._push(repository, account)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1268,11 +1269,9 @@ export class AppStore {
   }
 
   /** Fetch a specific refspec for the repository. */
-  public async fetchRefspec(repository: Repository, refspec: string): Promise<void> {
+  public async fetchRefspec(repository: Repository, refspec: string, user: User | null): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
-      const user = this.getUserForRepository(repository)
-
       await gitStore.fetchRefspec(user, refspec)
     })
 
@@ -1280,11 +1279,9 @@ export class AppStore {
   }
 
   /** Fetch the repository. */
-  public async fetch(repository: Repository): Promise<void> {
+  public async fetch(repository: Repository, user: User | null): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
-      const user = this.getUserForRepository(repository)
-
       await gitStore.fetch(user)
       await this.fastForwardBranches(repository)
     })
