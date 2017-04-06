@@ -8,6 +8,7 @@ import { Button } from '../lib/button'
 import { Select } from '../lib/select'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Row } from '../lib/row'
 
 interface IPublishRepositoryProps {
   readonly dispatcher: Dispatcher
@@ -144,16 +145,20 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
         onSubmit={this.publishRepository}
       >
         <DialogContent>
-          <TextBox label='Name' value={this.state.name} autoFocus={true} onChange={this.onNameChange}/>
+          <Row>
+            <TextBox label='Name' value={this.state.name} autoFocus={true} onChange={this.onNameChange}/>
+          </Row>
 
-          <TextBox label='Description' value={this.state.description} onChange={this.onDescriptionChange}/>
+          <Row>
+            <TextBox label='Description' value={this.state.description} onChange={this.onDescriptionChange}/>
+          </Row>
 
-          <hr/>
-
-          <label>
-            Keep this code private
-            <input type='checkbox' checked={this.state.private} onChange={this.onPrivateChange}/>
-          </label>
+          <Row>
+            <label>
+              <input type='checkbox' checked={this.state.private} onChange={this.onPrivateChange}/>
+              Keep this code private
+            </label>
+          </Row>
 
           {this.renderAccounts()}
         </DialogContent>
