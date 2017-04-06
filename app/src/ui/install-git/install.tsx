@@ -36,7 +36,10 @@ export class InstallGit extends React.Component<IInstallGitProps, void> {
   }
 
   private onExternalLink = () => {
-    shell.openExternal('https://help.github.com/')
+    // TODO: update this URL once the docs team has a better resource to reference
+    const platform = __DARWIN__ ? 'mac' : 'windows'
+    const url = `https://help.github.com/articles/set-up-git/#platform-${platform}`
+    shell.openExternal(url)
   }
 
   public render() {
@@ -49,13 +52,12 @@ export class InstallGit extends React.Component<IInstallGitProps, void> {
         onDismissed={this.props.onDismissed}>
         <DialogContent>
           <p>
-            It looks like you don't have Git on your <code>PATH</code>. This means the shell won't be able to execute any Git command.
+            It looks like you don't have Git on your <code>PATH</code>. This means the shell won't be able to execute any Git commands.
           </p>
           <p>
-            To install and configure Git in your shell, read over the instructions for your operating system in the external link.
+            Click <strong>More information</strong> to learn how to install and add Git to your shell for your operating system.
           </p>
         </DialogContent>
-
         <DialogFooter>
           <ButtonGroup>
             <Button type='submit' onClick={this.onContinue}>Continue</Button>
