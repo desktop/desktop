@@ -24,7 +24,7 @@ export function isGitOnPath(): Promise<boolean> {
 
   return new Promise<boolean>((resolve, reject) => {
     const options = { encoding: 'utf8' }
-    const process = spawn(command, [ 'foo' ], options)
+    const process = spawn(command, [ 'git' ], options)
 
     if (__WIN32__) {
       // `where` will return 0 when the executable
