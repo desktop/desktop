@@ -19,6 +19,7 @@ import { AppMenu, ExecutableMenuItem } from '../../models/app-menu'
 import { ILaunchStats } from '../stats'
 import { fatalError } from '../fatal-error'
 import { structuralEquals } from '../equality'
+import { isGitOnPath } from '../open-shell'
 
 /**
  * Extend Error so that we can create new Errors with a callstack different from
@@ -556,8 +557,15 @@ export class Dispatcher {
   }
 
   /** Opens a terminal window with path as the working directory */
-  public openShell(path: string) {
-    return this.appStore._openShell(path)
+  public async openShell(path: string): Promise<void> {
+
+    const gitFound = await isGitOnPath()
+
+    if (gitFound) {
+      this.appStore._openShell(path)
+    } else {
+      this.appStore._showPopup({ type: PopupType.InstallGit, path })
+    }
   }
 
   /**

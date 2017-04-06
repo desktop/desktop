@@ -117,6 +117,7 @@ export enum PopupType {
   CloneRepository,
   CreateBranch,
   SignIn,
+  InstallGit,
   About
 }
 
@@ -132,7 +133,8 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.CloneRepository } |
                     { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.SignIn } |
-                    { type: PopupType.About }
+                    { type: PopupType.About } |
+                    { type: PopupType.InstallGit, path: string }
 
 export enum FoldoutType {
   Repository,
