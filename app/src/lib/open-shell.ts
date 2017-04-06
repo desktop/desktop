@@ -1,6 +1,5 @@
 import { spawn } from 'child_process'
 import { fatalError } from './fatal-error'
-import { platform } from 'os'
 
 /** Opens a shell setting the working directory to fullpath. If a shell is not specified, OS defaults are used. */
 export function openShell(fullPath: string, shell?: string) {
@@ -21,16 +20,33 @@ export function openShell(fullPath: string, shell?: string) {
 
 export function isGitOnPath(): Promise<boolean> {
   // adapted from http://stackoverflow.com/a/34953561/1363815
-  const isWindows = platform().indexOf('win') > -1
-
-  const command = isWindows ? 'where' : 'whereis'
+  const command = __WIN32__ ? 'where' : 'whereis'
 
   return new Promise<boolean>((resolve, reject) => {
-    const options = { encoding: 'utf8', shell: true }
-    const out = spawn(command + ' git', [ '/?' ], options)
+    const options = { encoding: 'utf8' }
+    const process = spawn(command, [ 'git' ], options)
 
-    out.on('close', function (code) {
-      resolve(code === 0)
+    if (__WIN32__) {
+      // `where` will return 0 when the executable
+      // is found under PATH, or 1 if it cannot be found
+      process.on('close', function (code) {
+        resolve(code === 0)
+      })
+      return
+    }
+
+    // `whereis` always returns an exit code of 0 but when
+    // successful it will write the path to stdout
+    let outputReceived = false
+    process.stdout.on('data', data => {
+      outputReceived = true
+      resolve(data.length > 0)
+    })
+
+    process.on('close', code => {
+      if (!outputReceived) {
+        resolve(false)
+      }
     })
   })
 }
