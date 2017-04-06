@@ -1268,7 +1268,13 @@ export class AppStore {
     return gitStore.clearContextualCommitMessage()
   }
 
-  /** Fetch a specific refspec for the repository. */
+  /**
+   * Fetch a specific refspec for the repository.
+   *
+   * As this is requried to complete, it does not opt-in for checks to prevent
+   * multiple concurrent connections. This might require some rework.
+   *
+   */
   public async fetchRefspec(repository: Repository, refspec: string, user: User | null): Promise<void> {
     const gitStore = this.getGitStore(repository)
     await gitStore.fetchRefspec(user, refspec)
