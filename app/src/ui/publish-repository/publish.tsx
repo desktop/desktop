@@ -5,8 +5,9 @@ import { User } from '../../models/user'
 import { Repository } from '../../models/repository'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
-import { Dialog, DialogFooter } from '../dialog'
+import { Dialog, DialogFooter, DialogContent } from '../dialog'
 import { TabBar } from '../tab-bar'
+import { Row } from '../lib/row'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { assertNever, fatalError } from '../../lib/fatal-error'
 
@@ -66,6 +67,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   public render() {
     return (
       <Dialog
+        id='publish-repository'
         title={ __DARWIN__ ? 'Publish Repository' : 'Publish repository'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.publishRepository}
@@ -90,7 +92,11 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         settings={this.state.publishSettings}
         onSettingsChanged={this.onSettingsChanged}/>
     } else {
-      return <div>Sign in ya big dummy</div>
+      return (
+        <DialogContent className='account-sign-in'>
+          {this.renderSignInTab(tab)}
+        </DialogContent>
+      )
     }
   }
 
@@ -105,6 +111,27 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         return users.find(u => u.endpoint === getDotComAPIEndpoint()) || null
       case PublishTab.Enterprise:
         return users.find(u => u.endpoint !== getDotComAPIEndpoint()) || null
+      default:
+        return assertNever(tab, `Unknown tab: ${tab}`)
+    }
+  }
+
+  private renderSignInTab(tab: PublishTab) {
+    switch (tab) {
+      case PublishTab.DotCom:
+        return (
+          <Row>
+            <div>If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.</div>
+            <Button type='submit' onClick={this.signInDotCom}>Sign In</Button>
+          </Row>
+        )
+      case PublishTab.Enterprise:
+        return (
+          <Row>
+            <div>Sign in to your GitHub.com account to access your repositories.</div>
+            <Button type='submit' onClick={this.signInEnterprise}>Sign In</Button>
+          </Row>
+        )
       default:
         return assertNever(tab, `Unknown tab: ${tab}`)
     }
@@ -126,6 +153,18 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     } else {
       return null
     }
+  }
+
+  private signInDotCom = (event: React.FormEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+
+    this.props.dispatcher.showDotComSignInDialog()
+  }
+
+  private signInEnterprise = (event: React.FormEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+
+    this.props.dispatcher.showEnterpriseSignInDialog()
   }
 
   private publishRepository = () => {
