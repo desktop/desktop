@@ -566,6 +566,9 @@ export class AppStore {
 
     await this._refreshRepository(repository)
 
+    // The selected repository could have changed while we were refreshing.
+    if (this.selectedRepository !== repository) { return }
+
     this.startBackgroundFetching(repository)
     this.refreshMentionables(repository)
   }
