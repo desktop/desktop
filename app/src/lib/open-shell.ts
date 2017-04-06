@@ -20,6 +20,7 @@ export function openShell(fullPath: string, shell?: string) {
 }
 
 export function isGitOnPath(): Promise<boolean> {
+  // adapted from http://stackoverflow.com/a/34953561/1363815
   const isWindows = platform().indexOf('win') > -1
 
   const command = isWindows ? 'where' : 'whereis'
