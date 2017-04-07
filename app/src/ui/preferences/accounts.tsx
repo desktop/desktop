@@ -7,8 +7,8 @@ import { DialogContent } from '../dialog'
 import { Avatar, IAvatarUser } from '../lib/avatar'
 
 interface IAccountsProps {
-  readonly dotComUser: Account | null
-  readonly enterpriseUser: Account | null
+  readonly dotComAccount: Account | null
+  readonly enterpriseAccount: Account | null
 
   readonly onDotComSignIn: () => void
   readonly onEnterpriseSignIn: () => void
@@ -25,10 +25,10 @@ export class Accounts extends React.Component<IAccountsProps, void> {
     return (
       <DialogContent className='accounts-tab'>
         <h2>GitHub.com</h2>
-        {this.props.dotComUser ? this.renderAccount(this.props.dotComUser) : this.renderSignIn(SignInType.DotCom)}
+        {this.props.dotComAccount ? this.renderAccount(this.props.dotComAccount) : this.renderSignIn(SignInType.DotCom)}
 
         <h2>Enterprise</h2>
-        {this.props.enterpriseUser ? this.renderAccount(this.props.enterpriseUser) : this.renderSignIn(SignInType.Enterprise)}
+        {this.props.enterpriseAccount ? this.renderAccount(this.props.enterpriseAccount) : this.renderSignIn(SignInType.Enterprise)}
       </DialogContent>
     )
   }

@@ -276,22 +276,22 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private getUsernameForUpdateCheck() {
-    const dotComUser = this.getDotComUser()
+    const dotComUser = this.getDotComAccount()
     return dotComUser ? dotComUser.login : ''
   }
 
-  private getDotComUser(): Account | null {
+  private getDotComAccount(): Account | null {
     const state = this.props.appStore.getState()
     const accounts = state.accounts
-    const dotComUser = accounts.find(a => a.endpoint === getDotComAPIEndpoint())
-    return dotComUser || null
+    const dotComAccount = accounts.find(a => a.endpoint === getDotComAPIEndpoint())
+    return dotComAccount || null
   }
 
-  private getEnterpriseUser(): Account | null {
+  private getEnterpriseAccount(): Account | null {
     const state = this.props.appStore.getState()
     const accounts = state.accounts
-    const enterpriseUser = accounts.find(a => a.endpoint !== getDotComAPIEndpoint())
-    return enterpriseUser || null
+    const enterpriseAccount = accounts.find(a => a.endpoint !== getDotComAPIEndpoint())
+    return enterpriseAccount || null
   }
 
   private updateBranch() {
@@ -726,8 +726,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.Preferences:
         return <Preferences
                 dispatcher={this.props.dispatcher}
-                dotComUser={this.getDotComUser()}
-                enterpriseUser={this.getEnterpriseUser()}
+                dotComAccount={this.getDotComAccount()}
+                enterpriseAccount={this.getEnterpriseAccount()}
                 onDismissed={this.onPopupDismissed}/>
       case PopupType.MergeBranch: {
         const repository = popup.repository
