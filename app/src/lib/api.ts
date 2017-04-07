@@ -376,11 +376,11 @@ export async function fetchUser(endpoint: string, token: string): Promise<Accoun
   const octo = new Octokat({ token, rootURL: endpoint })
   const user = await octo.user.fetch()
 
-  // TODO: additional JSON parsing?
   const response =  await octo.user.emails.fetch()
   const emails: ReadonlyArray<IAPIEmail> = response.items
+  const formattedEmails = emails.map(mapEmailAddress)
 
-  return new Account(user.login, endpoint, token, emails.map(mapEmailAddress), user.avatarUrl, user.id, user.name)
+  return new Account(user.login, endpoint, token, formattedEmails, user.avatarUrl, user.id, user.name)
 }
 
 /** Get metadata from the server. */
