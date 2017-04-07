@@ -8,7 +8,7 @@
   height: 100%;
 
   .list-item {
-    padding: var(--spacing-half);
+    padding: 0 var(--spacing);
     border-bottom: var(--base-border);
   }
 
@@ -33,7 +33,6 @@
       align-items: center;
       width: 20px;
       margin: 0;
-      margin-left: var(--spacing-half);
 
       input {
         margin: 0;

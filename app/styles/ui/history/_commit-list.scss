@@ -18,11 +18,9 @@
 
     padding: 0 var(--spacing);
 
-
     &.facade {
       .avatar {
         background-color: lightGray;
-        border-radius: 4px;
       }
 
       .info {
@@ -43,18 +41,16 @@
     }
 
     .avatar {
-      width: 32px;
-      height: 32px;
+      width: 28px;
+      height: 28px;
       flex-shrink: 0;
-
-      border-radius: var(--border-radius);
     }
 
     .info {
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      margin-left: var(--spacing);
+      margin-left: var(--spacing-half);
 
       .summary, .byline { @include ellipsis }
     }
