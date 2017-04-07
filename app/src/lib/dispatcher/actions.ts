@@ -27,13 +27,13 @@ export interface IUpdateGitHubRepositoryAction {
 /** Add a user to the app. */
 export interface IAddAccountAction {
   readonly name: 'add-account'
-  readonly user: IAccount
+  readonly account: IAccount
 }
 
 /** Remove a user from the app. */
 export interface IRemoveAccountAction {
   readonly name: 'remove-account'
-  readonly user: IAccount
+  readonly account: IAccount
 }
 
 /** Change a repository's `missing` status. */

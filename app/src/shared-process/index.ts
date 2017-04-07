@@ -65,14 +65,14 @@ register('get-accounts', () => {
   return Promise.resolve(usersStore.getAll())
 })
 
-register('add-account', async ({ user }: IAddAccountAction) => {
-  usersStore.addAccount(Account.fromJSON(user))
+register('add-account', async ({ account }: IAddAccountAction) => {
+  usersStore.addAccount(Account.fromJSON(account))
   await updateUsers()
   return Promise.resolve()
 })
 
-register('remove-account', async ({ user }: IRemoveAccountAction) => {
-  usersStore.removeAccount(Account.fromJSON(user))
+register('remove-account', async ({ account }: IRemoveAccountAction) => {
+  usersStore.removeAccount(Account.fromJSON(account))
   broadcastUpdate()
   return Promise.resolve()
 })

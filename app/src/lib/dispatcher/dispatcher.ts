@@ -110,10 +110,10 @@ export class Dispatcher {
   }
 
   private onSharedDidUpdate(event: Electron.IpcRendererEvent, args: any[]) {
-    const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IAccount>} = args[0].state
-    const inflatedUsers = state.users.map(Account.fromJSON)
+    const state: { repositories: ReadonlyArray<IRepository>, account: ReadonlyArray<IAccount> } = args[0].state
+    const inflatedAccounts = state.account.map(Account.fromJSON)
     const inflatedRepositories = state.repositories.map(Repository.fromJSON)
-    this.appStore._loadFromSharedProcess(inflatedUsers, inflatedRepositories)
+    this.appStore._loadFromSharedProcess(inflatedAccounts, inflatedRepositories)
   }
 
   /** Get the users */
@@ -508,14 +508,14 @@ export class Dispatcher {
     return this.appStore._setCommitMessage(repository, message)
   }
 
-  /** Add the user to the app. */
-  public async addUser(user: Account): Promise<void> {
-    return this.dispatchToSharedProcess<void>({ name: 'add-account', user })
+  /** Add the account to the app. */
+  public async addUser(account: Account): Promise<void> {
+    return this.dispatchToSharedProcess<void>({ name: 'add-account', account })
   }
 
   /** Remove the given user. */
-  public removeUser(user: Account): Promise<void> {
-    return this.dispatchToSharedProcess<void>({ name: 'remove-account', user })
+  public removeUser(account: Account): Promise<void> {
+    return this.dispatchToSharedProcess<void>({ name: 'remove-account', account })
   }
 
   /**
