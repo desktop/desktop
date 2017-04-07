@@ -4,14 +4,13 @@
   width: 400px;
 
   .no-remote {
-    align-items: center;
     justify-content: space-between;
 
     button {
       flex-shrink: 0;
       flex-grow: 0;
-      align-self: flex-end;
       min-width: 90px;
+      align-self: center;
     }
   }
 }
