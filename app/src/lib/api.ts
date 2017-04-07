@@ -85,7 +85,7 @@ export interface IAPIEmail {
   readonly visibility: 'public' | 'private' | null
 }
 
-function mapEmailAddress(email: IAPIEmail): IEmail {
+function convertEmailAddress(email: IAPIEmail): IEmail {
   return {
     ...email,
     visibility: email.visibility || 'public',
@@ -191,7 +191,7 @@ export class API {
   public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
     const result = await this.client.user.emails.fetch()
     const emails: ReadonlyArray<IAPIEmail> = result.items
-    return emails.map(mapEmailAddress)
+    return emails.map(convertEmailAddress)
   }
 
   /** Fetch a commit from the repository. */
@@ -378,7 +378,7 @@ export async function fetchUser(endpoint: string, token: string): Promise<Accoun
 
   const response =  await octo.user.emails.fetch()
   const emails: ReadonlyArray<IAPIEmail> = response.items
-  const formattedEmails = emails.map(mapEmailAddress)
+  const formattedEmails = emails.map(convertEmailAddress)
 
   return new Account(user.login, endpoint, token, formattedEmails, user.avatarUrl, user.id, user.name)
 }
