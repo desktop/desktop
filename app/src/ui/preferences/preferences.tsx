@@ -94,8 +94,8 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     this.props.dispatcher.showEnterpriseSignInDialog()
   }
 
-  private onLogout = (user: Account) => {
-    this.props.dispatcher.removeUser(user)
+  private onLogout = (account: Account) => {
+    this.props.dispatcher.removeUser(account)
   }
 
   private renderActiveTab() {

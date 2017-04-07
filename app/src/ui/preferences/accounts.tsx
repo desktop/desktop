@@ -93,9 +93,9 @@ export class Accounts extends React.Component<IAccountsProps, void> {
     }
   }
 
-  private logout = (user: Account) => {
+  private logout = (account: Account) => {
     return () => {
-      this.props.onLogout(user)
+      this.props.onLogout(account)
     }
   }
 }
