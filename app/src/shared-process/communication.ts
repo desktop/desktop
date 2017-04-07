@@ -1,6 +1,6 @@
 import { remote, ipcRenderer } from 'electron'
 import { IMessage } from './message'
-import { AccountsStore } from './users-store'
+import { AccountsStore } from './accounts-store'
 import { RepositoriesStore } from './repositories-store'
 
 const { BrowserWindow } = remote
