@@ -36,7 +36,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
       description: '',
       private: true,
       groupedUsers: new Map<Account, ReadonlyArray<IAPIUser>>(),
-      selectedUser: userToAPIUser(this.props.users[0]),
+      selectedUser: accountToAPIUser(this.props.users[0]),
     }
   }
 
@@ -90,7 +90,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   private findOwningUserForSelectedUser(): Account | null {
     const selectedUser = this.state.selectedUser
     for (const [ user, orgs ] of this.state.groupedUsers) {
-      const apiUser = userToAPIUser(user)
+      const apiUser = accountToAPIUser(user)
       if (apiUser.id === selectedUser.id && apiUser.url === selectedUser.url) {
         return user
       }
@@ -141,7 +141,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
       const orgs = this.state.groupedUsers.get(user)!
       const label = user.endpoint === getDotComAPIEndpoint() ? 'GitHub.com' : user.endpoint
       const options = [
-        <option value={JSON.stringify(userToAPIUser(user))} key={user.login}>{user.login}</option>,
+        <option value={JSON.stringify(accountToAPIUser(user))} key={user.login}>{user.login}</option>,
         ...orgs.map((u, i) => <option value={JSON.stringify(u)} key={u.login}>{u.login}</option>),
       ]
       optionGroups.push(
@@ -183,13 +183,13 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   }
 }
 
-function userToAPIUser(user: Account): IAPIUser {
+function accountToAPIUser(account: Account): IAPIUser {
   return {
-    login: user.login,
-    avatarUrl: user.avatarURL,
+    login: account.login,
+    avatarUrl: account.avatarURL,
     type: 'user',
-    id: user.id,
-    url: user.endpoint,
-    name: user.name,
+    id: account.id,
+    url: account.endpoint,
+    name: account.name,
   }
 }

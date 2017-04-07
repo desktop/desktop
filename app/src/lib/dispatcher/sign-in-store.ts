@@ -1,5 +1,4 @@
 import { Emitter, Disposable } from 'event-kit'
-import { User } from '../../models/user'
 import { Account } from '../../models/account'
 import { assertNever, fatalError } from '../fatal-error'
 import { askUserToOAuth } from '../../lib/oauth'
@@ -187,7 +186,7 @@ export class SignInStore {
    * Registers an event handler which will be invoked whenever
    * a user has successfully completed a sign-in process.
    */
-  public onDidAuthenticate(fn: (user: User) => void): Disposable {
+  public onDidAuthenticate(fn: (account: Account) => void): Disposable {
     return this.emitter.on('did-authenticate', fn)
   }
 

@@ -14,7 +14,6 @@ import {
   PossibleSelections,
   SelectionType,
 } from '../app-state'
-import { User } from '../../models/user'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import { GitHubRepository } from '../../models/github-repository'
@@ -164,7 +163,7 @@ export class AppStore {
 
     this.cloningRepositoriesStore.onDidError(e => this.emitError(e))
 
-    this.signInStore.onDidAuthenticate(user => this.emitAuthenticate(user))
+    this.signInStore.onDidAuthenticate(account => this.emitAuthenticate(account))
     this.signInStore.onDidUpdate(() => this.emitUpdate())
     this.signInStore.onDidError(error => this.emitError(error))
 
@@ -172,8 +171,8 @@ export class AppStore {
     this.emojiStore.read(rootDir).then(() => this.emitUpdate())
   }
 
-  private emitAuthenticate(user: User) {
-    this.emitter.emit('did-authenticate', user)
+  private emitAuthenticate(account: Account) {
+    this.emitter.emit('did-authenticate', account)
   }
 
   private emitUpdate() {
