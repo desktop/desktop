@@ -1,6 +1,6 @@
 {
   "name": "desktop",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "dependencies": {
     "7zip": {
       "version": "0.0.6",
@@ -819,7 +819,7 @@
     },
     "ua-parser-js": {
       "version": "0.7.12",
-      "from": "ua-parser-js@>=0.7.9 <0.8.0",
+      "from": "ua-parser-js@latest",
       "resolved": "https://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.12.tgz"
     },
     "untildify": {
