@@ -21,7 +21,6 @@
     &.facade {
       .avatar {
         background-color: lightGray;
-        border-radius: var(--border-radius);
       }
 
       .info {
@@ -41,21 +40,10 @@
       }
     }
 
-    // This targets the <span> container that holds the avatar
-    & > span {
-      /**
-       * The line-height needs to be reset or else there's extra space
-       * under the avatar
-       */
-      line-height: 0;
-    }
-
     .avatar {
       width: 28px;
       height: 28px;
       flex-shrink: 0;
-
-      border-radius: var(--border-radius);
     }
 
     .info {
