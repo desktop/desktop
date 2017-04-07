@@ -38,11 +38,11 @@ const broadcastUpdate = () => broadcastUpdate_(accountsStore, repositoriesStore)
 updateAccounts()
 
 async function updateAccounts() {
-  await accountsStore.map(async (user: Account) => {
-    const api = new API(user)
-    const account = await api.fetchAccount()
+  await accountsStore.map(async (account: Account) => {
+    const api = new API(account)
+    const newAccount = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    return new Account(account.login, user.endpoint, user.token, emails, account.avatarUrl, account.id, account.name)
+    return new Account(account.login, account.endpoint, account.token, emails, newAccount.avatarUrl, newAccount.id, newAccount.name)
   })
   broadcastUpdate()
 }

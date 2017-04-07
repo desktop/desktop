@@ -50,8 +50,8 @@ export class GitHubUserStore {
   }
 
   /** Update the mentionable users for the repository. */
-  public async updateMentionables(repository: GitHubRepository, user: Account): Promise<void> {
-    const api = new API(user)
+  public async updateMentionables(repository: GitHubRepository, account: Account): Promise<void> {
+    const api = new API(account)
 
     const repositoryID = repository.dbID
     if (!repositoryID) {
@@ -70,7 +70,7 @@ export class GitHubUserStore {
     const gitHubUsers: ReadonlyArray<IGitHubUser> = response.users.map(m => ({
       ...m,
       email: m.email || '',
-      endpoint: user.endpoint,
+      endpoint: account.endpoint,
       avatarURL: m.avatar_url,
     }))
 
