@@ -68,7 +68,7 @@ export class CloningRepositoriesStore {
    *
    * Returns a {Promise} which resolves to whether the clone was successful.
    */
-  public async clone(url: string, path: string, user: Account | null): Promise<boolean> {
+  public async clone(url: string, path: string, account: Account | null): Promise<boolean> {
     const repository = new CloningRepository(path, url)
     this._repositories.push(repository)
     this.stateByID.set(repository.id, { output: `Cloning into ${path}`, progressValue: null })
@@ -77,7 +77,7 @@ export class CloningRepositoriesStore {
     let success = true
     const progressParser = new CloneProgressParser()
     try {
-      await cloneRepo(url, path, user, progress => {
+      await cloneRepo(url, path, account, progress => {
         this.stateByID.set(repository.id, {
           output: progress,
           progressValue: progressParser.parse(progress),

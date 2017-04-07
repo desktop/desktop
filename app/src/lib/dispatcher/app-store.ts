@@ -203,7 +203,7 @@ export class AppStore {
    * Registers an event handler which will be invoked whenever
    * a user has successfully completed a sign-in process.
    */
-  public onDidAuthenticate(fn: (user: Account) => void): Disposable {
+  public onDidAuthenticate(fn: (account: Account) => void): Disposable {
     return this.emitter.on('did-authenticate', fn)
   }
 
@@ -1232,8 +1232,8 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clone(url: string, path: string, user: Account | null): { promise: Promise<boolean>, repository: CloningRepository } {
-    const promise = this.cloningRepositoriesStore.clone(url, path, user)
+  public _clone(url: string, path: string, account: Account | null): { promise: Promise<boolean>, repository: CloningRepository } {
+    const promise = this.cloningRepositoriesStore.clone(url, path, account)
     const repository = this.cloningRepositoriesStore
                            .repositories
                            .find(r => r.url === url && r.path === path) !
