@@ -9,6 +9,8 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 const RepositoryURL = 'https://github.com/desktop/desktop'
+const ElectronURL = 'https://electron.atom.io'
+const TypeScriptURL = 'http://www.typescriptlang.org'
 
 interface IAcknowledgementsProps {
   /** The function to call when the dialog should be dismissed. */
@@ -87,7 +89,7 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}>
         <DialogContent>
-          <p>GitHub Desktop stands on the shoulders of giants and is better for it! Check out <LinkButton uri={RepositoryURL}>our repository</LinkButton> for more of the nitty gritty.</p>
+          <p>GitHub Desktop stands on the shoulders of giants! We're <LinkButton uri={RepositoryURL}>open source</LinkButton>, built on <LinkButton uri={ElectronURL}>Electron</LinkButton> and written in <LinkButton uri={TypeScriptURL}>TypeScript</LinkButton>. Check out <LinkButton uri={RepositoryURL}>our repository</LinkButton> for more details.</p>
 
           <div id='licenses'>
             {licenses ? this.renderLicenses(licenses) : <Loading/>}
