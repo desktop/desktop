@@ -9,7 +9,7 @@ _insert pretty screenshot_
 We're calling the initial release a beta. This is for a few reasons:
 
 1. It's gonna be buggy. @tierninho has been doing a great job doing QA for us, but this is a brand new application. There will be bugs.
-1. It's incomplete. We've opted to get this into the hands of users sooner than later and in order to do that we've [punted on some issues](https://github.com/desktop/desktop/milestone/7).
+1. It's incomplete. We've opted to get this into the hands of users sooner than later, and in order to do that we've [punted on some issues](https://github.com/desktop/desktop/milestone/7).
 1. We're open to feedback. What do users miss from the Desktop Classic apps? What features were unnecessary?
 
 ### Open Source
