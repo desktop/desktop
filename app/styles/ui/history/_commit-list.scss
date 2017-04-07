@@ -64,10 +64,7 @@
       overflow: hidden;
       margin-left: var(--spacing-half);
 
-      .summary, .byline {
-        @include ellipsis
-        line-height: 14px;
-      }
+      .summary, .byline { @include ellipsis }
     }
   }
 }
