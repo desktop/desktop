@@ -2,8 +2,18 @@
   max-width: 300px;
 
   #licenses {
-    height: 200px;
+    height: 270px;
 
     overflow: scroll;
+
+    .license-name {
+      font-weight: bold;
+      margin-bottom: var(--spacing-third);
+    }
+
+    .license-text {
+      font-family: var(--font-family-monospace);
+      margin-bottom: var(--spacing-double);
+    }
   }
 }

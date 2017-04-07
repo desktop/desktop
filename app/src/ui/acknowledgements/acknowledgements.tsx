@@ -19,7 +19,7 @@ interface IAcknowledgementsProps {
 
 interface ILicense {
   readonly repository?: string
-  readonly license: string
+  readonly sourceText?: string
 }
 
 type Licenses = { [key: string]: ILicense }
@@ -62,17 +62,22 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
       if (index === 0) { continue }
 
       const license = licenses[key]
-      const url = license.repository
-      let licenseElement: JSX.Element
-      if (url && url.length) {
-        licenseElement = <LinkButton uri={normalizedGitHubURL(url)}>{key}</LinkButton>
+      const repository = license.repository
+      let nameElement: JSX.Element
+      if (repository) {
+        nameElement = (
+          <p className='license-name'>
+            <LinkButton uri={normalizedGitHubURL(repository)}>{key}</LinkButton>
+          </p>
+        )
       } else {
-        licenseElement = <span>{key}</span>
+        nameElement = <p className='license-name'>{key}</p>
       }
 
       elements.push(
         <div key={key}>
-          {licenseElement}
+          {nameElement}
+          <p className='license-text'>{license.sourceText}</p>
         </div>
       )
     }
