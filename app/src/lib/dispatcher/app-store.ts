@@ -617,13 +617,6 @@ export class AppStore {
     this.loading = this.repositories.length === 0 && this.accounts.length === 0
 
     for (const account of accounts) {
-      // In theory a user should _always_ have an array of emails (even if it's
-      // empty). But in practice, if the user had run old dev builds this may
-      // not be the case. So for now we need to guard this. We should remove
-      // this check in the not too distant future.
-      // @joshaber (August 10, 2016)
-      if (!account.emails) { break }
-
       // for each email addresses associated with the account, map it to a new
       // User, so that the user can be found by any of their email addresses
       const userAssociations: ReadonlyArray<IGitHubUser> = account.emails.map(email => ({ ...account, email: email.email }))
