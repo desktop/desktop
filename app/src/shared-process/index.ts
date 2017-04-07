@@ -27,18 +27,18 @@ process.on('uncaughtException', (error: Error) => {
   reportError(error, getVersion())
 })
 
-const usersStore = new AccountsStore(localStorage, TokenStore)
-usersStore.loadFromStore()
+const accountsStore = new AccountsStore(localStorage, TokenStore)
+accountsStore.loadFromStore()
 
 const database = new Database('Database')
 const repositoriesStore = new RepositoriesStore(database)
 
-const broadcastUpdate = () => broadcastUpdate_(usersStore, repositoriesStore)
+const broadcastUpdate = () => broadcastUpdate_(accountsStore, repositoriesStore)
 
-updateUsers()
+updateAccounts()
 
-async function updateUsers() {
-  await usersStore.map(async (user: Account) => {
+async function updateAccounts() {
+  await accountsStore.map(async (user: Account) => {
     const api = new API(user)
     const account = await api.fetchAccount()
     const emails = await api.fetchEmails()
@@ -62,17 +62,17 @@ register('ping', () => {
 })
 
 register('get-accounts', () => {
-  return Promise.resolve(usersStore.getAll())
+  return Promise.resolve(accountsStore.getAll())
 })
 
 register('add-account', async ({ account }: IAddAccountAction) => {
-  usersStore.addAccount(Account.fromJSON(account))
-  await updateUsers()
+  accountsStore.addAccount(Account.fromJSON(account))
+  await updateAccounts()
   return Promise.resolve()
 })
 
 register('remove-account', async ({ account }: IRemoveAccountAction) => {
-  usersStore.removeAccount(Account.fromJSON(account))
+  accountsStore.removeAccount(Account.fromJSON(account))
   broadcastUpdate()
   return Promise.resolve()
 })
