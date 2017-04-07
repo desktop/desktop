@@ -17,13 +17,21 @@ export interface IAccount {
  * This contains a token that will be used for operations that require authentication.
  */
 export class Account implements IAccount {
+  /** The access token used to perform operations on behalf of this account */
   public readonly token: string
+  /** The login name for this account  */
   public readonly login: string
+  /** The server for this account - GitHub or a GitHub Enterprise instance */
   public readonly endpoint: string
+  /** The current list of email addresses associated with the account */
   public readonly emails: ReadonlyArray<IEmail>
+  /** The profile URL to render for this account */
   public readonly avatarURL: string
+  /** The database id for this account */
   public readonly id: number
+  /** The friendly name associated with this account */
   public readonly name: string
+
 
   /** Create a new Account from some JSON. */
   public static fromJSON(obj: IAccount): Account {

@@ -13,9 +13,9 @@ export interface IUser {
 export class User implements IUser {
   /** The account name associated with the user */
   public readonly login: string
-  /** The avatar URL to render for this user */
+  /** The profile URL to render for this user */
   public readonly avatarURL: string
-  /** The name associated with the user */
+  /** The friendly name associated with the user */
   public readonly name: string
 
   /** Create a new User from some JSON. */
