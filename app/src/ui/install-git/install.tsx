@@ -52,7 +52,7 @@ export class InstallGit extends React.Component<IInstallGitProps, void> {
         onDismissed={this.props.onDismissed}>
         <DialogContent>
           <p>
-            It looks like you don't have Git on your <code>PATH</code>. This means the shell won't be able to execute any Git commands.
+            We were unable to locate Git on your system. This means the shell won't be able to execute any Git commands.
           </p>
           <p>
             Click <strong>More information</strong> to learn how to install and add Git to your shell for your operating system.
