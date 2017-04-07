@@ -3,10 +3,10 @@ import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 
 /** Fetch from the given remote. */
-export async function fetch(repository: Repository, user: Account | null, remote: string): Promise<void> {
+export async function fetch(repository: Repository, account: Account | null, remote: string): Promise<void> {
   const options = {
     successExitCodes: new Set([ 0 ]),
-    env: envForAuthentication(user),
+    env: envForAuthentication(account),
     expectedErrors: expectedAuthenticationErrors(),
   }
 

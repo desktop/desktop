@@ -406,15 +406,15 @@ export class GitStore {
   }
 
   /**
-   * Fetch, using the given user for authentication.
+   * Fetch, using the given account for authentication.
    *
-   * @param user - The user to use for authentication if needed.
+   * @param account - The account to use for authentication if needed.
    */
-  public async fetch(user: Account | null): Promise<void> {
+  public async fetch(account: Account | null): Promise<void> {
     const remotes = await getRemotes(this.repository)
 
     for (const remote of remotes) {
-      await this.performFailableOperation(() => fetchRepo(this.repository, user, remote.name))
+      await this.performFailableOperation(() => fetchRepo(this.repository, account, remote.name))
     }
   }
 

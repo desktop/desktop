@@ -4,12 +4,12 @@ import { parseRemote, parseOwnerAndName } from './remote-parsing'
 import { Account } from '../models/account'
 
 /**
- * Find the user whose endpoint has a repository with the given owner and
+ * Find the account whose endpoint has a repository with the given owner and
  * name. This will prefer dot com over other endpoints.
  */
 async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: string, name: string): Promise<Account | null> {
-  const hasRepository = async (user: Account) => {
-    const api = new API(user)
+  const hasRepository = async (account: Account) => {
+    const api = new API(account)
     try {
       const repository = await api.fetchRepository(owner, name)
       if (repository) {

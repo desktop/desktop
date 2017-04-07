@@ -131,8 +131,8 @@ export class GitHubUserStore {
     this.emitUpdate()
   }
 
-  private async findUserWithAPI(user: Account, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitHubUser | null> {
-    const api = new API(user)
+  private async findUserWithAPI(account: Account, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitHubUser | null> {
+    const api = new API(account)
     if (sha) {
       const apiCommit = await api.fetchCommit(repository.owner.login, repository.name, sha)
       if (apiCommit && apiCommit.author) {
@@ -140,7 +140,7 @@ export class GitHubUserStore {
           email,
           login: apiCommit.author.login,
           avatarURL: apiCommit.author.avatarUrl,
-          endpoint: user.endpoint,
+          endpoint: account.endpoint,
           name: apiCommit.author.name,
         }
       }
@@ -152,7 +152,7 @@ export class GitHubUserStore {
         email,
         login: matchingUser.login,
         avatarURL: matchingUser.avatarUrl,
-        endpoint: user.endpoint,
+        endpoint: account.endpoint,
         name: matchingUser.name,
       }
     }

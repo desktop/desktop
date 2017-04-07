@@ -1266,10 +1266,10 @@ export class AppStore {
   }
 
   /** Fetch the repository. */
-  public async fetch(repository: Repository, user: Account | null): Promise<void> {
+  public async fetch(repository: Repository, account: Account | null): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
-      await gitStore.fetch(user)
+      await gitStore.fetch(account)
       await this.fastForwardBranches(repository)
     })
 

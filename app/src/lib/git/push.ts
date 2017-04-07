@@ -3,14 +3,14 @@ import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 
 /** Push from the remote to the branch, optionally setting the upstream. */
-export async function push(repository: Repository, user: Account | null, remote: string, branch: string, setUpstream: boolean): Promise<void> {
+export async function push(repository: Repository, account: Account | null, remote: string, branch: string, setUpstream: boolean): Promise<void> {
   const args = [ 'push', remote, branch ]
   if (setUpstream) {
     args.push('--set-upstream')
   }
 
   const options = {
-    env: envForAuthentication(user),
+    env: envForAuthentication(account),
     expectedErrors: expectedAuthenticationErrors(),
   }
 

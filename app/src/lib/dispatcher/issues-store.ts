@@ -38,8 +38,8 @@ export class IssuesStore {
    * Fetch the issues for the repository. This will delete any issues that have
    * been closed and update or add any issues that have changed or been added.
    */
-  public async fetchIssues(repository: GitHubRepository, user: Account) {
-    const api = new API(user)
+  public async fetchIssues(repository: GitHubRepository, account: Account) {
+    const api = new API(account)
     const lastFetchDate = this.getLastFetchDate(repository)
     const now = new Date()
 

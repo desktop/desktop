@@ -56,17 +56,17 @@ export async function requestAuthenticatedUser(code: string): Promise<Account | 
 }
 
 /**
- * Resolve the current OAuth request with the given user.
+ * Resolve the current OAuth request with the given account.
  *
  * Note that this can only be called after `askUserToOAuth` has been called and
  * must only be called once.
  */
-export function resolveOAuthRequest(user: Account) {
+export function resolveOAuthRequest(account: Account) {
   if (!oauthState) {
     return fatalError('`askUserToOAuth` must be called before resolving an auth request.')
   }
 
-  oauthState.resolve(user)
+  oauthState.resolve(account)
 
   oauthState = null
 }

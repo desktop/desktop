@@ -5,8 +5,8 @@ import { ChildProcess } from 'child_process'
 const byline = require('byline')
 
 /** Clone the repository to the path. */
-export async function clone(url: string, path: string, user: Account | null, progress: (progress: string) => void): Promise<void> {
-  const env = envForAuthentication(user)
+export async function clone(url: string, path: string, account: Account | null, progress: (progress: string) => void): Promise<void> {
+  const env = envForAuthentication(account)
   const processCallback = (process: ChildProcess) => {
     byline(process.stderr).on('data', (chunk: string) => {
       progress(chunk)

@@ -170,8 +170,8 @@ export class SignInStore {
     this.emitter.emit('did-update', this.getState())
   }
 
-  private emitAuthenticate(user: Account) {
-    this.emitter.emit('did-authenticate', user)
+  private emitAuthenticate(account: Account) {
+    this.emitter.emit('did-authenticate', account)
   }
 
   private emitError(error: Error) {
@@ -366,9 +366,9 @@ export class SignInStore {
 
     this.setState({ ...currentState, loading: true })
 
-    let user: Account
+    let account: Account
     try {
-      user = await askUserToOAuth(currentState.endpoint)
+      account = await askUserToOAuth(currentState.endpoint)
     } catch (e) {
       this.setState({ ...currentState, error: e, loading: false })
       return
@@ -379,7 +379,7 @@ export class SignInStore {
       return
     }
 
-    this.emitAuthenticate(user)
+    this.emitAuthenticate(account)
     this.setState({ kind: SignInStep.Success })
   }
 
