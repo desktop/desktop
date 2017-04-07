@@ -121,14 +121,14 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       case PublishTab.DotCom:
         return (
           <Row>
-            <div>If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.</div>
+            <div>Sign in to your GitHub.com account to access your repositories.</div>
             <Button type='submit' onClick={this.signInDotCom}>Sign In</Button>
           </Row>
         )
       case PublishTab.Enterprise:
         return (
           <Row>
-            <div>Sign in to your GitHub.com account to access your repositories.</div>
+            <div>If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.</div>
             <Button type='submit' onClick={this.signInEnterprise}>Sign In</Button>
           </Row>
         )
