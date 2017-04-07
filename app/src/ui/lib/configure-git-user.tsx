@@ -10,8 +10,8 @@ import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
 interface IConfigureGitUserProps {
-  /** The logged-in users. */
-  readonly users: ReadonlyArray<Account>
+  /** The logged-in accounts. */
+  readonly accounts: ReadonlyArray<Account>
 
   /** Called after the user has chosen to save their config. */
   readonly onSave?: () => void
@@ -41,7 +41,7 @@ export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IC
     let name = await getGlobalConfigValue('user.name')
     let email = await getGlobalConfigValue('user.email')
 
-    const user = this.props.users[0]
+    const user = this.props.accounts[0]
     if ((!name || !name.length) && user) {
       name = user.name && user.name.length
         ? user.name
@@ -130,8 +130,8 @@ export class ConfigureGitUser extends React.Component<IConfigureGitUserProps, IC
   }
 
   private avatarURLForEmail(email: string): string | null {
-    const matchingUser = this.props.users.find(u => u.emails.findIndex(e => e.email === email) > -1)
-    return matchingUser ? matchingUser.avatarURL : null
+    const matchingAccount = this.props.accounts.find(a => a.emails.findIndex(e => e.email === email) > -1)
+    return matchingAccount ? matchingAccount.avatarURL : null
   }
 
   private save = async () => {

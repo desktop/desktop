@@ -11,7 +11,7 @@ import {
 interface IOAuthState {
   readonly state: string
   readonly endpoint: string
-  readonly resolve: (user: Account) => void
+  readonly resolve: (account: Account) => void
   readonly reject: (error: Error) => void
 }
 

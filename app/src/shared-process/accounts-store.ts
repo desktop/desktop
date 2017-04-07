@@ -68,9 +68,9 @@ export class AccountsStore {
 
     const rawAccounts: ReadonlyArray<IAccount> = JSON.parse(raw)
     const accountsWithTokens = rawAccounts.map(account => {
-      const userWithoutToken = new Account(account.login, account.endpoint, '', account.emails, account.avatarURL, account.id, account.name)
-      const token = this.secureStore.getItem(getKeyForAccount(userWithoutToken), account.login)
-      return userWithoutToken.withToken(token || '')
+      const accountWithoutToken = new Account(account.login, account.endpoint, '', account.emails, account.avatarURL, account.id, account.name)
+      const token = this.secureStore.getItem(getKeyForAccount(accountWithoutToken), account.login)
+      return accountWithoutToken.withToken(token || '')
     })
     this.accounts = accountsWithTokens
   }
