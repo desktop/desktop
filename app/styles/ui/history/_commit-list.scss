@@ -16,8 +16,7 @@
 
     border-bottom: var(--base-border);
 
-    padding: 8px;
-
+    padding: 0 var(--spacing);
 
     &.facade {
       .avatar {
@@ -63,7 +62,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      margin-left: 8px;
+      margin-left: var(--spacing-half);
 
       .summary, .byline {
         @include ellipsis
