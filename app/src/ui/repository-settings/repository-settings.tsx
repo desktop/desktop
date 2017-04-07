@@ -83,13 +83,25 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
         </TabBar>
 
         {this.renderActiveTab()}
-        <DialogFooter>
-          <ButtonGroup>
-            <Button type='submit'>Save</Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-          </ButtonGroup>
-        </DialogFooter>
+        {this.renderFooter()}
       </Dialog>
+    )
+  }
+
+  private renderFooter() {
+    const tab = this.state.selectedTab
+    const remote = this.state.remote
+    if (tab === RepositorySettingsTab.Remote && !remote) {
+      return null
+    }
+
+    return (
+      <DialogFooter>
+        <ButtonGroup>
+          <Button type='submit'>Save</Button>
+          <Button onClick={this.props.onDismissed}>Cancel</Button>
+        </ButtonGroup>
+      </DialogFooter>
     )
   }
 
