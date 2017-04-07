@@ -38,6 +38,7 @@ import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
+import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
 
 /** The interval at which we should check for updates. */
@@ -806,6 +807,15 @@ export class App extends React.Component<IAppProps, IAppState> {
            onShowAcknowledgements={this.showAcknowledgements}
           />
         )
+      case PopupType.PublishRepository:
+        return (
+          <Publish
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            users={this.state.users}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       case PopupType.Acknowledgements:
         return (
           <Acknowledgements onDismissed={this.onPopupDismissed}/>
@@ -921,7 +931,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const isPublishing = Boolean(this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Publish)
+    const isPublishing = !!this.state.currentPopup && this.state.currentPopup.type === PopupType.PublishRepository
 
     const state = selection.state
     const remoteName = state.remote ? state.remote.name : null
@@ -932,9 +942,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       remoteName={remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
-      isPublishing={isPublishing}
-      users={this.state.users}
-      signInState={this.state.signInState}/>
+      isPublishing={isPublishing}/>
   }
 
   private showCreateBranch = () => {

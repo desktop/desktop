@@ -118,6 +118,7 @@ export enum PopupType {
   CreateBranch,
   SignIn,
   About,
+  PublishRepository,
   Acknowledgements,
 }
 
@@ -134,13 +135,13 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.SignIn } |
                     { type: PopupType.About } |
+                    { type: PopupType.PublishRepository, repository: Repository } |
                     { type: PopupType.Acknowledgements }
 
 export enum FoldoutType {
   Repository,
   Branch,
   AppMenu,
-  Publish,
   AddMenu,
 }
 
@@ -167,7 +168,6 @@ export type AppMenuFoldout = {
 export type Foldout =
   { type: FoldoutType.Repository } |
   { type: FoldoutType.Branch } |
-  { type: FoldoutType.Publish } |
   { type: FoldoutType.AddMenu } |
   AppMenuFoldout
 
