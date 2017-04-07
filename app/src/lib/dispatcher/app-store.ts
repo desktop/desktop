@@ -8,7 +8,7 @@ import {
   RepositorySection,
   IChangesState,
   Popup,
-  FoldoutType,
+  PopupType,
   Foldout,
   IBranchesState,
   PossibleSelections,
@@ -1100,8 +1100,9 @@ export class AppStore {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remote
       if (!remote) {
-        this._showFoldout({
-          type: FoldoutType.Publish,
+        this._showPopup({
+          type: PopupType.PublishRepository,
+          repository,
         })
         return
       }
