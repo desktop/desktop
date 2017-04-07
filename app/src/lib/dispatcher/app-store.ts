@@ -616,8 +616,7 @@ export class AppStore {
     this.repositories = repositories
     this.loading = this.repositories.length === 0 && this.accounts.length === 0
 
-    // for each email addresses associated with the account, map it to a new
-    // User, so that the user can be found by any of their email addresses
+    // doing this that the current user can be found by any of their email addresses
     for (const account of accounts) {
       const userAssociations: ReadonlyArray<IGitHubUser> = account.emails.map(email => ({ ...account, email: email.email }))
 
