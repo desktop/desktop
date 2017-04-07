@@ -8,7 +8,7 @@ export interface IButtonProps {
    * passed along and can be used to prevent the default action
    * or stop the even from bubbling.
    */
-  readonly onClick?: (event: React.FormEvent<HTMLButtonElement>) => void
+  readonly onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /**
    * A function that's called when the user moves over the button with
