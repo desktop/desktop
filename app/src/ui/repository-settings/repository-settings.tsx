@@ -97,12 +97,17 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     const tab = this.state.selectedTab
     switch (tab) {
       case RepositorySettingsTab.Remote: {
-        return (
-          <Remote
-            remote={this.state.remote}
-            onRemoteUrlChanged={this.onRemoteUrlChanged}
-          />
-        )
+        const remote = this.state.remote
+        if (remote) {
+          return (
+            <Remote
+              remote={remote}
+              onRemoteUrlChanged={this.onRemoteUrlChanged}
+            />
+          )
+        } else {
+          return null
+        }
       }
       case RepositorySettingsTab.IgnoredFiles: {
         return <GitIgnore
