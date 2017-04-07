@@ -19,8 +19,8 @@
   $green: #28a745;
   $orange: #f66a0a;
   $black: #24292e;
-  $darkGray: #838B94;
-  $darkerGray: #3b3f46;
+  $darkerGray: #6a737d;
+  $darkGray: #959da5;
   $gray: #E1E4E8;
   $lightGray: #F6F8FA;
   $lighterGray: #fafbfc;
@@ -33,7 +33,7 @@
   --color-conflicted: $orange;
 
   --text-color: $black;
-  --text-secondary-color: $darkGray;
+  --text-secondary-color: $darkerGray;
   --background-color: $white;
 
   --button-height: 25px;
@@ -157,7 +157,7 @@
 
   /** The height of the title bar area on Win32 platforms */
   --win32-title-bar-height: 28px;
-  --win32-title-bar-background-color: darken($darkerGray, 10%);
+  --win32-title-bar-background-color: $black;
 
   /** The height of the title bar area on darwin platforms */
   --darwin-title-bar-height: 22px;
@@ -174,27 +174,24 @@
   --shadow-color: rgba(71,83,95,0.19);
   --base-box-shadow: 0 2px 7px var(--shadow-color);
 
-  --toolbar-height: 52px;
+  --toolbar-height: 50px;
 
-  --toolbar-background-color: $darkerGray;
-  --toolbar-sidebar-background-color: darken($darkerGray, 10%);
+  --toolbar-background-color: $black;
   --toolbar-text-color: $white;
-  --toolbar-text-secondary-color: #9D9FA2;
+  --toolbar-text-secondary-color: $darkGray;
 
   --toolbar-button-color: var(--toolbar-text-color);
   --toolbar-button-background-color: transparent;
-  --toolbar-button-border-color: darken($darkerGray, 20%);
+  --toolbar-button-border-color: darken($black, 20%);
   --toolbar-button-secondary-color: var(--toolbar-text-secondary-color);
 
   --toolbar-button-hover-color: $white;
-  --toolbar-button-hover-background-color: lighten($darkerGray, 5%);
+  --toolbar-button-hover-background-color: lighten($black, 5%);
   --toolbar-button-hover-border-color: var(--toolbar-button-border-color);
-  --toolbar-button-secondary-color: #9D9FA2;
 
   --toolbar-button-active-color: var(--text-color);
   --toolbar-button-active-background-color: var(--background-color);
   --toolbar-button-active-border-color: var(--background-color);
-  --toolbar-button-secondary-color: var(--text-secondary-color);
 
   --tab-bar-height: 29px;
   --tab-bar-active-color: $blue;
@@ -262,7 +259,7 @@
   /**
    * Ahead/behind view
    */
-  --ahead-behind-background-color: #202020;
+  --ahead-behind-background-color: $darkerGray;
 
   // Colors for form errors
   --error-color: $red;
