@@ -28,7 +28,6 @@ interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
   readonly committerName: string,
   readonly committerEmail: string,
-  readonly optOutOfUsageTracking: boolean
 }
 
 /** The app-level preferences component. */
@@ -40,7 +39,6 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       selectedIndex: PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
-      optOutOfUsageTracking: false,
     }
   }
 
@@ -124,7 +122,6 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       }
       case PreferencesTab.Advanced: {
         return <Advanced
-          reportingOptOut={this.state.optOutOfUsageTracking}
           user={this.props.dotComUser}
         />
       }
