@@ -276,8 +276,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private getUsernameForUpdateCheck() {
-    const dotComUser = this.getDotComAccount()
-    return dotComUser ? dotComUser.login : ''
+    const dotComAccount = this.getDotComAccount()
+    return dotComAccount ? dotComAccount.login : ''
   }
 
   private getDotComAccount(): Account | null {
