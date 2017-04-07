@@ -3,7 +3,6 @@ export interface IUser {
   readonly login: string
   readonly endpoint: string
   readonly avatarURL: string
-  readonly id: number
   readonly name: string
 }
 
@@ -13,22 +12,24 @@ export interface IUser {
  * These are read-only entities, and are typically associated with commits or mentions.
  */
 export class User implements IUser {
+  /** The account name associated with the user */
   public readonly login: string
+  /** The server associated with this user - may be GitHub or a GitHub Enterprise instance */
   public readonly endpoint: string
+  /** The avatar URL to render for this user */
   public readonly avatarURL: string
-  public readonly id: number
+  /** The name associated with the user */
   public readonly name: string
 
   /** Create a new User from some JSON. */
   public static fromJSON(obj: IUser): User {
-    return new User(obj.login, obj.endpoint, obj.avatarURL, obj.id, obj.name)
+    return new User(obj.login, obj.endpoint, obj.avatarURL, obj.name)
   }
 
-  public constructor(login: string, endpoint: string, avatarURL: string, id: number, name: string) {
+  public constructor(login: string, endpoint: string, avatarURL: string, name: string) {
     this.login = login
     this.endpoint = endpoint
     this.avatarURL = avatarURL
-    this.id = id
     this.name = name
   }
 }
