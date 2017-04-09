@@ -1281,8 +1281,10 @@ export class AppStore {
   /**
    * Fetch a specific refspec for the repository.
    *
-   * As this is requried to complete, it does not opt-in for checks to prevent
-   * multiple concurrent connections. This might require some rework.
+   * As this action is required to complete when viewing a Pull Request from
+   * a fork, it does not opt-in to checks that prevent multiple concurrent
+   * network actions. This might require some rework in the future to chain
+   * these actions.
    *
    */
   public async fetchRefspec(repository: Repository, refspec: string, user: User | null): Promise<void> {
