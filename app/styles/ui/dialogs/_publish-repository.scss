@@ -1,0 +1,12 @@
+#publish-repository {
+  width: 450px;
+
+  .account-sign-in {
+    button {
+      flex-shrink: 0;
+      flex-grow: 0;
+      align-self: flex-start;
+      min-width: 120px;
+    }
+  }
+}
