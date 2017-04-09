@@ -83,7 +83,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
             <TextBox
               placeholder='URL or username/repository'
               value={this.state.url}
-              onChange={this.onURLChanged}
+              onValueChanged={this.onURLChanged}
               autoFocus/>
           </Row>
 
@@ -117,8 +117,8 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     this.setState({ ...this.state, path })
   }
 
-  private onURLChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const url = event.currentTarget.value
+  private onURLChanged = (input: string) => {
+    const url = input
     const parsed = parseOwnerAndName(url)
     const lastParsedIdentifier = this.state.lastParsedIdentifier
     let newPath: string
