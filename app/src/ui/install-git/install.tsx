@@ -47,7 +47,7 @@ export class InstallGit extends React.Component<IInstallGitProps, void> {
       <Dialog
         id='install-git'
         type='warning'
-        title={__DARWIN__ ? 'Open in Terminal' : 'Op&en command prompt'}
+        title={__DARWIN__ ? 'Open in Terminal' : 'Open command prompt'}
         onSubmit={this.props.onDismissed}
         onDismissed={this.props.onDismissed}>
         <DialogContent>
