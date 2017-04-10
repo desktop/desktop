@@ -24,14 +24,6 @@ node-gyp is required to build some of our native npm packages (such as [keytar](
 
 *Windows only*: Let python install into the default suggested path (`c:\Python27`), don't try to move it into Program Files or else you'll have to configure node-gyp manually with the path.
 
-### Certificates
-
-#### macOS
-
-1. Download the [`developer-id-cert.p12`](https://github.com/desktop/desktop-secrets/blob/master/developer-id-cert.p12) and then open it.
-1. Ask a member of the Desktop team for the password.
-1. Add it to your Keychain.
-
 ### OAuth Secret
 
 The OAuth secret is embedded in the app at build time using the `DESKTOP_OAUTH_CLIENT_SECRET` environment variable. The secret is needed only if you want to log in a new user using dev builds of the app. For day to day development it shouldn't be necessary. If you do need it, ask a member of the Desktop team.
