@@ -4,17 +4,17 @@ import { TextBox } from '../lib/text-box'
 import { DialogContent } from '../dialog'
 
 interface IRemoteProps {
-  readonly remote: IRemote | null
+  /** The remote being shown. */
+  readonly remote: IRemote
+
+  /** The function to call when the remote URL is changed by the user. */
   readonly onRemoteUrlChanged: (url: string) => void
 }
 
+/** The Remote component. */
 export class Remote extends React.Component<IRemoteProps, void> {
   public render() {
     const remote = this.props.remote
-    if (!remote) {
-      return <div>Nope</div>
-    }
-
     return (
       <DialogContent>
         <div>Primary remote repository ({remote.name})</div>
