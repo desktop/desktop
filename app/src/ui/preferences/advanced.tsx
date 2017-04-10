@@ -1,9 +1,10 @@
 import * as React from 'react'
-import { User } from '../../models/user'
+import { Dispatcher } from '../../lib/dispatcher'
 import { DialogContent } from '../dialog'
+import { Checkbox, CheckboxValue } from '../lib/checkbox'
 
 interface IAdvancedPreferencesProps {
-  readonly user: User | null
+  readonly dispatcher: Dispatcher
 }
 
 interface IAdvancedPreferencesState {
@@ -19,28 +20,31 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
     }
   }
 
-  private toggle = () => {
-    const optOut = this.state.reportingOptOut
+  public componentDidMount() {
+    const optOut = this.props.dispatcher.getStatsOptOut()
 
-    if (optOut) {
-      return this.setState({
-        reportingOptOut: false,
-      })
-    }
+    this.setState({
+      reportingOptOut: optOut,
+    })
+  }
 
-    return this.setState({
-      reportingOptOut: true,
+  private onChange = (event: React.FormEvent<HTMLInputElement>) => {
+    const value = event.currentTarget.checked
+
+    this.props.dispatcher.setStatsOptOut(!value)
+
+    this.setState({
+      reportingOptOut: !value,
     })
   }
 
   public render() {
     return (
       <DialogContent>
-        <label>Opt-out of usage reporting</label>
-        <input
-          type='checkbox'
-          checked={this.state.reportingOptOut}
-          onChange={this.toggle} />
+        <Checkbox
+          label='Opt-out of usage reporting'
+          value={this.state.reportingOptOut ? CheckboxValue.Off : CheckboxValue.On}
+          onChange={this.onChange} />
       </DialogContent>
     )
   }
