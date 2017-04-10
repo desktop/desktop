@@ -169,14 +169,14 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
   private publishRepository = () => {
     const tab = this.state.currentTab
-    const user = this.getAccountForTab(tab)
-    if (!user) {
+    const account = this.getAccountForTab(tab)
+    if (!account) {
       fatalError(`Tried to publish with no user. That seems impossible!`)
       return
     }
 
     const settings = this.state.publishSettings
-    this.props.dispatcher.publishRepository(this.props.repository, settings.name, settings.description, settings.private, user, settings.org)
+    this.props.dispatcher.publishRepository(this.props.repository, settings.name, settings.description, settings.private, account, settings.org)
     this.props.onDismissed()
   }
 
