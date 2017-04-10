@@ -122,7 +122,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       }
       case PreferencesTab.Advanced: {
         return <Advanced
-          user={this.props.dotComUser}
+          dispatcher={this.props.dispatcher}
         />
       }
       default: return assertNever(index, `Unknown tab index: ${index}`)
