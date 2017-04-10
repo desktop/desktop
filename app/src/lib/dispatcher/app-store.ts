@@ -1397,7 +1397,7 @@ export class AppStore {
   }
 
   /** Has the user opted out of stats reporting? */
-  public getStatsOptOut(): boolean {
+  public _getStatsOptOut(): boolean {
     return this.statsStore.getOptOut()
   }
 
