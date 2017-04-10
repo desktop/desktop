@@ -11,6 +11,7 @@ import { Row } from '../lib/row'
 import { User } from '../../models/user'
 import { parseOwnerAndName, IRepositoryIdentifier } from '../../lib/remote-parsing'
 import { findUserForRemote } from '../../lib/find-account'
+import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 
 /** The name for the error when the destination already exists. */
@@ -121,6 +122,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     const url = input
     const parsed = parseOwnerAndName(url)
     const lastParsedIdentifier = this.state.lastParsedIdentifier
+
     let newPath: string
     if (lastParsedIdentifier) {
       if (parsed) {
@@ -160,14 +162,35 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     this.setState({ ...this.state, path })
   }
 
+  /**
+   * Lookup the account associated with the clone (if applicable) and resolve
+   * the repository alias to the clone URL. Will throw if neither of these
+   * conditions are satisfied.
+   */
+  private async resolveCloneDetails(): Promise<{ url: string, user: User }> {
+    const identifier = this.state.lastParsedIdentifier
+    let url = this.state.url
+
+    const user = await findUserForRemote(url, this.props.users)
+
+    if (identifier) {
+      const api = new API(user)
+      const repo = await api.fetchRepository(identifier.owner, identifier.name)
+      if (repo) {
+        url =  repo.cloneUrl
+      }
+    }
+
+    return { url, user }
+  }
+
   private clone = async () => {
     this.setState({ ...this.state, loading: true })
 
-    const url = this.state.url
     const path = this.state.path
 
     try {
-      const user = await findUserForRemote(url, this.props.users)
+      const { url, user } = await this.resolveCloneDetails()
       this.cloneImpl(url, path, user)
     } catch (error) {
       this.setState({
