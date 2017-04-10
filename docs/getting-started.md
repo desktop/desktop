@@ -1,13 +1,13 @@
 # Getting started
 
-## I just want to check it out! 
+## I just want to check it out!
 
-Download the either the [installer for macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin) or [for Windows](https://central.github.com/deployments/desktop/desktop/latest/win32). You'll be starting with a fresh installation, as there is no migration path from Desktop classic to Desktop TNG:9000. 
+Download the either the [installer for macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin) or [for Windows](https://central.github.com/deployments/desktop/desktop/latest/win32). You'll be starting with a fresh installation, as there is no migration path from Desktop Classic to Desktop TNG:9000.
 
 ## I want to work on it!
 ## Prerequisites
 
-### Node.js
+### Node 6+
 
 We use some ES6+ language constructs in our build scripts so you need [Node.js](https://nodejs.org) 6+ (just pick whatever the 'current' release is at the moment). Node 6 comes with npm 3 out of the box and while npm 3 isn't strictly necessary to build it does make things more efficient, especially on Windows where deep folder hierarchies can be detrimental to build speed.
 
@@ -26,7 +26,7 @@ node-gyp is required to build some of our native npm packages (such as [keytar](
 
 ### OAuth Secret
 
-The OAuth secret is embedded in the app at build time using the `DESKTOP_OAUTH_CLIENT_SECRET` environment variable. The secret is needed only if you want to log in a new user using dev builds of the app. For day to day development it shouldn't be necessary. If you do need it, ask a member of the Desktop team.
+The OAuth secret is embedded in the app at build time using the `DESKTOP_OAUTH_CLIENT_SECRET` environment variable. That secret is required to log in with a user using dev builds of the app. We recommend you [create a new OAuth](https://github.com/settings/applications/new) to use for development.
 
 ## Building
 
