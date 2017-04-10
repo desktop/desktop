@@ -6,20 +6,13 @@
   flex-direction: row;
 
   .branches-list {
-    width: 350px;
+    width: 300px;
   }
 }
 
 .branches-list {
-  &-label,
   &-item {
     padding: 0 var(--spacing);
-  }
-
-  &-label {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary-color);
-    align-self: flex-end;
   }
 
   &-item {

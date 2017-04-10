@@ -8,7 +8,7 @@ import {
   RepositorySection,
   IChangesState,
   Popup,
-  FoldoutType,
+  PopupType,
   Foldout,
   IBranchesState,
   PossibleSelections,
@@ -44,6 +44,7 @@ import { SignInStore } from './sign-in-store'
 import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
 import { structuralEquals } from '../equality'
+import { fatalError } from '../fatal-error'
 
 import {
   getGitDir,
@@ -565,6 +566,9 @@ export class AppStore {
 
     await this._refreshRepository(repository)
 
+    // The selected repository could have changed while we were refreshing.
+    if (this.selectedRepository !== repository) { return }
+
     this.startBackgroundFetching(repository)
     this.refreshMentionables(repository)
   }
@@ -599,6 +603,11 @@ export class AppStore {
   }
 
   private startBackgroundFetching(repository: Repository) {
+    if (this.currentBackgroundFetcher) {
+      fatalError(`We should only have on background fetcher active at once, but we're trying to start background fetching on ${repository.name} while another background fetcher is still active!`)
+      return
+    }
+
     const account = this.getAccountForRepository(repository)
     if (!account) { return }
 
@@ -1085,8 +1094,9 @@ export class AppStore {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remote
       if (!remote) {
-        this._showFoldout({
-          type: FoldoutType.Publish,
+        this._showPopup({
+          type: PopupType.PublishRepository,
+          repository,
         })
         return
       }

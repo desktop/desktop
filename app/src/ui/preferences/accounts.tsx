@@ -54,12 +54,12 @@ export class Accounts extends React.Component<IAccountsProps, void> {
     )
   }
 
-  private onDotComSignIn = (event: React.FormEvent<HTMLButtonElement>) => {
+  private onDotComSignIn = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     this.props.onDotComSignIn()
   }
 
-  private onEnterpriseSignIn = (event: React.FormEvent<HTMLButtonElement>) => {
+  private onEnterpriseSignIn = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
     this.props.onEnterpriseSignIn()
   }

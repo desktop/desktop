@@ -1,29 +1,42 @@
 import * as React from 'react'
-import { Dispatcher } from '../../lib/dispatcher'
-import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
-import { API,  IAPIUser, getDotComAPIEndpoint } from '../../lib/api'
-import { Form } from '../lib/form'
+import { API, IAPIUser } from '../../lib/api'
 import { TextBox } from '../lib/text-box'
-import { Button } from '../lib/button'
 import { Select } from '../lib/select'
+import { DialogContent } from '../dialog'
+import { Row } from '../lib/row'
+import { merge } from '../../lib/merge'
 
 interface IPublishRepositoryProps {
-  readonly dispatcher: Dispatcher
+  /** The user to use for publishing. */
+  readonly account: Account
 
-  /** The repository to publish. */
-  readonly repository: Repository
+  /** The settings to use when publishing the repository. */
+  readonly settings: IPublishRepositorySettings
 
-  /** The signed in users. */
-  readonly users: ReadonlyArray<Account>
+  /** The function called when any of the publish settings are changed. */
+  readonly onSettingsChanged: (settings: IPublishRepositorySettings) => void
+}
+
+export interface IPublishRepositorySettings {
+  /** The name to use when publishing the repository. */
+  readonly name: string
+
+  /** The repository's description. */
+  readonly description: string
+
+  /** Should the repository be private? */
+  readonly private: boolean
+
+  /**
+   * The org to which this repository belongs. If null, the repository should be
+   * published as a personal repository.
+   */
+  readonly org: IAPIUser | null
 }
 
 interface IPublishRepositoryState {
-  readonly name: string
-  readonly description: string
-  readonly private: boolean
-  readonly groupedUsers: Map<Account, ReadonlyArray<IAPIUser>>
-  readonly selectedUser: IAPIUser
+  readonly orgs: ReadonlyArray<IAPIUser>
 }
 
 /** The Publish Repository component. */
@@ -31,165 +44,89 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   public constructor(props: IPublishRepositoryProps) {
     super(props)
 
-    this.state = {
-      name: props.repository.name,
-      description: '',
-      private: true,
-      groupedUsers: new Map<Account, ReadonlyArray<IAPIUser>>(),
-      selectedUser: accountToAPIUser(this.props.users[0]),
-    }
+    this.state = { orgs: [] }
   }
 
   public async componentWillMount() {
-    const orgsByUser = new Map<Account, ReadonlyArray<IAPIUser>>()
-    for (const user of this.props.users) {
-      const api = new API(user)
-      const orgs = await api.fetchOrgs()
-      orgsByUser.set(user, orgs)
-    }
+    const api = new API(this.props.account)
+    const orgs = await api.fetchOrgs()
+    this.setState({ orgs })
+  }
 
-    this.setState({
-      name: this.state.name,
-      description: this.state.description,
-      private: this.state.private,
-      groupedUsers: orgsByUser,
-      selectedUser: this.state.selectedUser,
-    })
+  private updateSettings<K extends keyof IPublishRepositorySettings>(subset: Pick<IPublishRepositorySettings, K>) {
+    const existingSettings = this.props.settings
+    const newSettings = merge(existingSettings, subset)
+    this.props.onSettingsChanged(newSettings)
   }
 
   private onNameChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      name: event.currentTarget.value,
-      description: this.state.description,
-      private: this.state.private,
-      groupedUsers: this.state.groupedUsers,
-      selectedUser: this.state.selectedUser,
-    })
+    this.updateSettings({ name: event.currentTarget.value })
   }
 
   private onDescriptionChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      name: this.state.name,
-      description: event.currentTarget.value,
-      private: this.state.private,
-      groupedUsers: this.state.groupedUsers,
-      selectedUser: this.state.selectedUser,
-    })
+    this.updateSettings({ description: event.currentTarget.value })
   }
 
   private onPrivateChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({
-      name: this.state.name,
-      description: this.state.description,
-      private: event.currentTarget.checked,
-      groupedUsers: this.state.groupedUsers,
-      selectedUser: this.state.selectedUser,
-    })
+    this.updateSettings({ private: event.currentTarget.checked })
   }
 
-  private findOwningUserForSelectedUser(): Account | null {
-    const selectedUser = this.state.selectedUser
-    for (const [ user, orgs ] of this.state.groupedUsers) {
-      const apiUser = accountToAPIUser(user)
-      if (apiUser.id === selectedUser.id && apiUser.url === selectedUser.url) {
-        return user
-      }
-
-      let owningAccount: Account | null = null
-      orgs.forEach(org => {
-        if (org.id === selectedUser.id && org.url === selectedUser.url) {
-          owningAccount = user
-        }
-      })
-
-      if (owningAccount) {
-        return owningAccount
-      }
-    }
-
-    return null
-  }
-
-  private get selectedOrg(): IAPIUser | null {
-    if (this.state.selectedUser.type === 'user') { return null }
-
-    return this.state.selectedUser
-  }
-
-  private publishRepository = () => {
-    const owningAccount = this.findOwningUserForSelectedUser()!
-    this.props.dispatcher.publishRepository(this.props.repository, this.state.name, this.state.description, this.state.private, owningAccount, this.selectedOrg)
-    this.props.dispatcher.closeFoldout()
-  }
-
-  private onAccountChange = (event: React.FormEvent<HTMLSelectElement>) => {
+  private onOrgChange = (event: React.FormEvent<HTMLSelectElement>) => {
     const value = event.currentTarget.value
-    const selectedUser = JSON.parse(value)
-
-    this.setState({
-      name: this.state.name,
-      description: this.state.description,
-      private: this.state.private,
-      groupedUsers: this.state.groupedUsers,
-      selectedUser,
-    })
+    const index = parseInt(value, 10)
+    if (index < 0 || isNaN(index)) {
+      this.updateSettings({ org: null })
+    } else {
+      const org = this.state.orgs[index]
+      this.updateSettings({ org })
+    }
   }
 
-  private renderAccounts() {
-    const optionGroups = new Array<JSX.Element>()
-    for (const user of this.state.groupedUsers.keys()) {
-      const orgs = this.state.groupedUsers.get(user)!
-      const label = user.endpoint === getDotComAPIEndpoint() ? 'GitHub.com' : user.endpoint
-      const options = [
-        <option value={JSON.stringify(accountToAPIUser(user))} key={user.login}>{user.login}</option>,
-        ...orgs.map((u, i) => <option value={JSON.stringify(u)} key={u.login}>{u.login}</option>),
-      ]
-      optionGroups.push(
-        <optgroup key={user.endpoint} label={label}>
-          {options}
-        </optgroup>
+  private renderOrgs() {
+    const options = new Array<JSX.Element>()
+    options.push(
+      <option value={-1} key={-1}>None</option>
+    )
+
+    let selectedIndex = -1
+    const selectedOrg = this.props.settings.org
+    for (const [ index, org ] of this.state.orgs.entries()) {
+      if (selectedOrg && selectedOrg.id === org.id) {
+        selectedIndex = index
+      }
+
+      options.push(
+        <option value={index} key={index}>{org.login}</option>
       )
     }
 
-    const value = JSON.stringify(this.state.selectedUser)
-
     return (
-      <Select label='Account' value={value} onChange={this.onAccountChange}>
-        {optionGroups}
+      <Select label='Organization' value={selectedIndex.toString()} onChange={this.onOrgChange} >
+        {options}
       </Select>
     )
   }
 
   public render() {
-    const disabled = !this.state.name.length
     return (
-      <Form className='publish-repository' onSubmit={this.publishRepository}>
-        <TextBox label='Name' value={this.state.name} autoFocus={true} onChange={this.onNameChange}/>
+      <DialogContent>
+        <Row>
+          <TextBox label='Name' value={this.props.settings.name} autoFocus={true} onChange={this.onNameChange}/>
+        </Row>
 
-        <TextBox label='Description' value={this.state.description} onChange={this.onDescriptionChange}/>
+        <Row>
+          <TextBox label='Description' value={this.props.settings.description} onChange={this.onDescriptionChange}/>
+        </Row>
 
-        <hr/>
+        <Row>
+          <label>
+            <input type='checkbox' checked={this.props.settings.private} onChange={this.onPrivateChange}/>
+            Keep this code private
+          </label>
+        </Row>
 
-        <label>
-          Keep this code private
-          <input type='checkbox' checked={this.state.private} onChange={this.onPrivateChange}/>
-        </label>
-
-        {this.renderAccounts()}
-
-        <Button type='submit' disabled={disabled}>Publish Repository</Button>
-      </Form>
+        {this.renderOrgs()}
+      </DialogContent>
     )
-  }
-}
-
-function accountToAPIUser(account: Account): IAPIUser {
-  return {
-    login: account.login,
-    avatarUrl: account.avatarURL,
-    type: 'user',
-    id: account.id,
-    url: account.endpoint,
-    name: account.name,
   }
 }

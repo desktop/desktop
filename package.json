@@ -43,7 +43,7 @@
     "chai-datetime": "^1.4.1",
     "cross-env": "^3.2.3",
     "css-loader": "^0.26.2",
-    "electron": "1.6.5",
+    "electron": "1.6.6",
     "electron-mocha": "3.3.0",
     "electron-packager": "8.6.0",
     "electron-winstaller": "2.5.2",
@@ -89,6 +89,7 @@
     "@types/react-addons-test-utils": "^0.14.17",
     "@types/react-dom": "^0.14.23",
     "@types/react-virtualized": "0.0.3",
+    "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
     "@types/winston": "^2.2.0"
   }

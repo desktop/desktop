@@ -1,13 +1,11 @@
 import * as React from 'react'
-import { ToolbarDropdown } from './dropdown'
+import { ToolbarButton } from './button'
 import { ToolbarButtonStyle } from './button'
 import { IAheadBehind } from '../../lib/app-state'
-import { Dispatcher, SignInState } from '../../lib/dispatcher'
+import { Dispatcher } from '../../lib/dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { RelativeTime } from '../relative-time'
-import { Publish } from '../publish-repository'
-import { Account } from '../../models/account'
 
 interface IPushPullButtonProps {
   /**
@@ -28,13 +26,8 @@ interface IPushPullButtonProps {
   /** Is the user currently publishing? */
   readonly isPublishing: boolean
 
-  /** The logged in accounts. */
-  readonly accounts: ReadonlyArray<Account>
-
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-
-  readonly signInState: SignInState | null
 }
 
 /**
@@ -44,29 +37,18 @@ interface IPushPullButtonProps {
 export class PushPullButton extends React.Component<IPushPullButtonProps, void> {
   public render() {
     return (
-      <ToolbarDropdown
+      <ToolbarButton
         title={this.getTitle()}
         description={this.getDescription()}
         className='push-pull-button'
         icon={this.getIcon()}
         iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
         style={ToolbarButtonStyle.Subtitle}
-        dropdownState={this.props.isPublishing ? 'open' : 'closed'}
-        dropdownContentRenderer={this.renderFoldout}
-        onDropdownStateChanged={this.performAction}
-        showDisclosureArrow={false}
+        onClick={this.performAction}
         disabled={this.props.networkActionInProgress}>
         {this.renderAheadBehind()}
-      </ToolbarDropdown>
+      </ToolbarButton>
     )
-  }
-
-  private renderFoldout = () => {
-    return <Publish
-      repository={this.props.repository}
-      dispatcher={this.props.dispatcher}
-      signInState={this.props.signInState}
-      accounts={this.props.accounts}/>
   }
 
   private renderAheadBehind() {

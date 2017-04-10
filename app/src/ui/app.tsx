@@ -38,6 +38,7 @@ import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
+import { Publish } from './publish-repository'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -804,6 +805,15 @@ export class App extends React.Component<IAppProps, IAppState> {
            usernameForUpdateCheck={this.getUsernameForUpdateCheck()}
           />
         )
+      case PopupType.PublishRepository:
+        return (
+          <Publish
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            accounts={this.state.accounts}
+            onDismissed={this.onPopupDismissed}
+          />
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
@@ -911,7 +921,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const isPublishing = Boolean(this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Publish)
+    const isPublishing = !!this.state.currentPopup && this.state.currentPopup.type === PopupType.PublishRepository
 
     const state = selection.state
     const remoteName = state.remote ? state.remote.name : null
@@ -922,9 +932,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       remoteName={remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
-      isPublishing={isPublishing}
-      accounts={this.state.accounts}
-      signInState={this.state.signInState}/>
+      isPublishing={isPublishing}/>
   }
 
   private showCreateBranch = () => {
