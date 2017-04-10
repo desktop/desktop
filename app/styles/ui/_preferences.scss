@@ -1,15 +1,6 @@
 #preferences {
   .accounts-tab {
 
-    .account-info, .account-sign-in {
-      button {
-        flex-shrink: 0;
-        flex-grow: 0;
-        align-self: flex-start;
-        min-width: 120px;
-      }
-    }
-
     .account-info {
       .avatar {
         // 32px for the image + 2 on each side for the base border.
