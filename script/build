@@ -41,6 +41,7 @@ updateLicenseDump(err => {
 
     if (isProductionBuild) {
       process.exit(1)
+      return
     }
   }
 
@@ -162,14 +163,34 @@ function copyDependencies () {
 function updateLicenseDump (callback) {
   const appRoot = path.join(projectRoot, 'app')
   const outPath = path.join(outRoot, 'static', 'licenses.json')
+  const licenseOverrides = require('./license-overrides')
 
-  legalEagle({ path: appRoot }, (err, summary) => {
+  legalEagle({ path: appRoot, overrides: licenseOverrides, omitPermissive: true }, (err, summary) => {
     if (err) {
       callback(err)
       return
     }
 
-    fs.writeFileSync(outPath, JSON.stringify(summary), 'utf8')
-    callback(null)
+    if (Object.keys(summary).length > 0) {
+      const overridesPath = path.join(__dirname, 'license-overrides.js')
+      let licensesMessage = ''
+      for (const key in summary) {
+        const license = summary[key]
+        licensesMessage += `${key} (${license.repository}): ${license.license}\n`
+      }
+
+      const message = `The following dependencies have unknown or non-permissive licenses. Check it out and update ${overridesPath} if appropriate:\n${licensesMessage}`
+      callback(new Error(message))
+    } else {
+      legalEagle({ path: appRoot, overrides: licenseOverrides }, (err, summary) => {
+        if (err) {
+          callback(err)
+          return
+        }
+
+        fs.writeFileSync(outPath, JSON.stringify(summary), 'utf8')
+        callback(null)
+      })
+    }
   })
 }
