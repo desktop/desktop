@@ -69,7 +69,7 @@ export class Dispatcher {
     this.appStore = appStore
 
     appStore.onDidAuthenticate((user) => {
-      this.addUser(user)
+      this.addAccount(user)
     })
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
@@ -509,12 +509,12 @@ export class Dispatcher {
   }
 
   /** Add the account to the app. */
-  public async addUser(account: Account): Promise<void> {
+  public async addAccount(account: Account): Promise<void> {
     return this.dispatchToSharedProcess<void>({ name: 'add-account', account })
   }
 
-  /** Remove the given user. */
-  public removeUser(account: Account): Promise<void> {
+  /** Remove the given account from the app. */
+  public removeAccount(account: Account): Promise<void> {
     return this.dispatchToSharedProcess<void>({ name: 'remove-account', account })
   }
 
