@@ -433,6 +433,21 @@ async function getNote(): Promise<string> {
 }
 
 /**
+ * Map a repository's URL to the endpoint associated with it. For example:
+ *
+ * https://github.com/desktop/desktop -> https://api.github.com
+ * http://github.mycompany.com/my-team/my-project -> http://github.mycompany.com/api
+ */
+export function getEndpointForRepository(url: string): string {
+  const parsed = URL.parse(url)
+  if (parsed.hostname === 'github.com') {
+    return getDotComAPIEndpoint()
+  } else {
+    return `${parsed.protocol}//${parsed.hostname}/api`
+  }
+}
+
+/**
  * Get the URL for the HTML site. For example:
  *
  * https://api.github.com -> https://github.com
@@ -475,9 +490,13 @@ export function getDotComAPIEndpoint(): string {
   return 'https://api.github.com'
 }
 
-/** Get the user for the endpoint. */
-export function getAccountForEndpoint(accounts: ReadonlyArray<Account>, endpoint: string): Account {
-  return accounts.filter(a => a.endpoint === endpoint)[0]
+/** Get the account for the endpoint. */
+export function getAccountForEndpoint(accounts: ReadonlyArray<Account>, endpoint: string): Account | null {
+  const filteredAccounts = accounts.filter(a => a.endpoint === endpoint)
+  if (filteredAccounts.length) {
+    return filteredAccounts[0]
+  }
+  return null
 }
 
 export function getOAuthAuthorizationURL(endpoint: string, state: string): string {

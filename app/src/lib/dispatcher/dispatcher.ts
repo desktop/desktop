@@ -228,12 +228,14 @@ export class Dispatcher {
   }
 
   /** Select the repository. */
-  public async selectRepository(repository: Repository | CloningRepository): Promise<void> {
-    this.appStore._selectRepository(repository)
+  public async selectRepository(repository: Repository | CloningRepository): Promise<Repository | null> {
+    const repo = this.appStore._selectRepository(repository)
 
     if (repository instanceof Repository) {
       await this.refreshGitHubRepositoryInfo(repository)
     }
+
+    return repo
   }
 
   /** Load the working directory status. */
@@ -302,12 +304,12 @@ export class Dispatcher {
   }
 
   /** Create a new branch from the given starting point and check it out. */
-  public createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
+  public createBranch(repository: Repository, name: string, startPoint: string): Promise<Repository> {
     return this.appStore._createBranch(repository, name, startPoint)
   }
 
   /** Check out the given branch. */
-  public checkoutBranch(repository: Repository, name: string): Promise<void> {
+  public checkoutBranch(repository: Repository, name: string): Promise<Repository> {
     return this.appStore._checkoutBranch(repository, name)
   }
 
@@ -344,8 +346,15 @@ export class Dispatcher {
     )
   }
 
-  /** Fetch the repository. */
-  public async fetch(repository: Repository): Promise<void> {
+  /** Fetch a specific refspec for the repository. */
+  public fetchRefspec(repository: Repository, fetchspec: string): Promise<void> {
+    return this.withAuthenticatingUser(repository, (repo, user) => {
+      return this.appStore.fetchRefspec(repo, fetchspec, user)
+    })
+  }
+
+  /** Fetch all refs for the repository */
+  public fetch(repository: Repository): Promise<void> {
     return this.withAuthenticatingUser(repository, (repo, user) =>
       this.appStore.fetch(repo, user)
     )
@@ -394,7 +403,7 @@ export class Dispatcher {
    * state in the repository list if the clone completes without error.
    */
   public async cloneAgain(url: string, path: string, account: Account | null): Promise<void> {
-    const { promise, repository } = this.appStore._clone(url, path, account)
+    const { promise, repository } = this.appStore._clone(url, path, { account })
     await this.selectRepository(repository)
     const success = await promise
     if (!success) { return }
@@ -412,14 +421,17 @@ export class Dispatcher {
  }
 
   /** Clone the repository to the path. */
-  public async clone(url: string, path: string, account: Account | null): Promise<void> {
-    const { promise, repository } = this.appStore._clone(url, path, account)
+  public async clone(url: string, path: string, options: { account: Account | null, branch?: string }): Promise<Repository | null> {
+    const { promise, repository } = this.appStore._clone(url, path, options)
     await this.selectRepository(repository)
     const success = await promise
-    if (!success) { return }
+    // TODO: this exit condition is not great, bob
+    if (!success) { return Promise.resolve(null) }
 
     const addedRepositories = await this.addRepositories([ path ])
-    await this.selectRepository(addedRepositories[0])
+    const addedRepository = addedRepositories[0]
+    await this.selectRepository(addedRepository)
+    return addedRepository
   }
 
   /** Rename the branch to a new name. */

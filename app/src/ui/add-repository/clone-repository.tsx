@@ -179,7 +179,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
   }
 
   private cloneImpl(url: string, path: string, account: Account | null) {
-    this.props.dispatcher.clone(url, path, account)
+    this.props.dispatcher.clone(url, path, { account })
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))
