@@ -1,10 +1,11 @@
 import * as React from 'react'
 import { Account } from '../../models/account'
+import { IAvatarUser } from '../../models/avatar'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { assertNever } from '../../lib/fatal-error'
 import { DialogContent } from '../dialog'
-import { Avatar, IAvatarUser } from '../lib/avatar'
+import { Avatar } from '../lib/avatar'
 
 interface IAccountsProps {
   readonly dotComAccount: Account | null
