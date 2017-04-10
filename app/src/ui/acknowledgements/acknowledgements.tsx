@@ -74,10 +74,11 @@ export class Acknowledgements extends React.Component<IAcknowledgementsProps, IA
         nameElement = <p className='license-name'>{key}</p>
       }
 
+      const licenseText = license.sourceText ? license.sourceText : `License: ${key}`
       elements.push(
         <div key={key}>
           {nameElement}
-          <p className='license-text'>{license.sourceText}</p>
+          <p className='license-text'>{licenseText}</p>
         </div>
       )
     }
