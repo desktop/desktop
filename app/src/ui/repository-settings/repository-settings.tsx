@@ -5,10 +5,12 @@ import { GitIgnore } from './git-ignore'
 import { assertNever } from '../../lib/fatal-error'
 import { IRemote } from '../../models/remote'
 import { Dispatcher } from '../../lib/dispatcher'
+import { PopupType } from '../../lib/app-state'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
 import { Dialog, DialogError, DialogFooter } from '../dialog'
+import { NoRemote } from './no-remote'
 
 interface IRepositorySettingsProps {
   readonly dispatcher: Dispatcher
@@ -83,13 +85,25 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
         </TabBar>
 
         {this.renderActiveTab()}
-        <DialogFooter>
-          <ButtonGroup>
-            <Button type='submit'>Save</Button>
-            <Button onClick={this.props.onDismissed}>Cancel</Button>
-          </ButtonGroup>
-        </DialogFooter>
+        {this.renderFooter()}
       </Dialog>
+    )
+  }
+
+  private renderFooter() {
+    const tab = this.state.selectedTab
+    const remote = this.state.remote
+    if (tab === RepositorySettingsTab.Remote && !remote) {
+      return null
+    }
+
+    return (
+      <DialogFooter>
+        <ButtonGroup>
+          <Button type='submit'>Save</Button>
+          <Button onClick={this.props.onDismissed}>Cancel</Button>
+        </ButtonGroup>
+      </DialogFooter>
     )
   }
 
@@ -97,12 +111,17 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     const tab = this.state.selectedTab
     switch (tab) {
       case RepositorySettingsTab.Remote: {
-        return (
-          <Remote
-            remote={this.state.remote}
-            onRemoteUrlChanged={this.onRemoteUrlChanged}
-          />
-        )
+        const remote = this.state.remote
+        if (remote) {
+          return (
+            <Remote
+              remote={remote}
+              onRemoteUrlChanged={this.onRemoteUrlChanged}
+            />
+          )
+        } else {
+          return <NoRemote onPublish={this.onPublish}/>
+        }
       }
       case RepositorySettingsTab.IgnoredFiles: {
         return <GitIgnore
@@ -114,6 +133,10 @@ export class RepositorySettings extends React.Component<IRepositorySettingsProps
     }
 
     return assertNever(tab, `Unknown tab type: ${tab}`)
+  }
+
+  private onPublish = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.PublishRepository, repository: this.props.repository })
   }
 
   private onShowGitIgnoreExamples = () => {

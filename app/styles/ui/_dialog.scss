@@ -1,5 +1,7 @@
 @import "../mixins";
 @import "dialogs/merge";
+@import "dialogs/publish-repository";
+@import "dialogs/repository-settings";
 
 // The styles herein attempt to follow a flow where margins are only applied
 // to the bottom of elements (with the exception of the last child). This to
@@ -244,10 +246,6 @@ dialog {
       margin-right: var(--spacing);
     }
   }
-
-  // Repository settings has long phrasing content in the gitignore
-  // tab so we'll constrain it to 400px.
-  &#repository-settings { width: 400px; }
 
   &#app-error {
     .dialog-content {

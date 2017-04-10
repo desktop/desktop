@@ -8,7 +8,7 @@ import {
   RepositorySection,
   IChangesState,
   Popup,
-  FoldoutType,
+  PopupType,
   Foldout,
   IBranchesState,
   PossibleSelections,
@@ -540,14 +540,15 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _selectRepository(repository: Repository | CloningRepository | null): Promise<void> {
+  public async _selectRepository(repository: Repository | CloningRepository | null): Promise<Repository | null> {
+
     this.selectedRepository = repository
     this.emitUpdate()
 
     this.stopBackgroundFetching()
 
-    if (!repository) { return Promise.resolve() }
-    if (!(repository instanceof Repository)) { return Promise.resolve() }
+    if (!repository) { return Promise.resolve(null) }
+    if (!(repository instanceof Repository)) { return Promise.resolve(null) }
 
     localStorage.setItem(LastSelectedRepositoryIDKey, repository.id.toString())
 
@@ -556,7 +557,7 @@ export class AppStore {
       // ensures we don't accidentally run any Git operations against the
       // wrong location if the user then relocates the `.git` folder elsewhere
       this.removeGitStore(repository)
-      return
+      return Promise.resolve(null)
     }
 
     const gitHubRepository = repository.gitHubRepository
@@ -567,10 +568,12 @@ export class AppStore {
     await this._refreshRepository(repository)
 
     // The selected repository could have changed while we were refreshing.
-    if (this.selectedRepository !== repository) { return }
+    if (this.selectedRepository !== repository) { return null }
 
     this.startBackgroundFetching(repository)
     this.refreshMentionables(repository)
+
+    return repository
   }
 
   public async _updateIssues(repository: GitHubRepository) {
@@ -997,18 +1000,19 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
+  public async _createBranch(repository: Repository, name: string, startPoint: string): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => createBranch(repository, name, startPoint))
     return this._checkoutBranch(repository, name)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _checkoutBranch(repository: Repository, name: string): Promise<void> {
+  public async _checkoutBranch(repository: Repository, name: string): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
     await gitStore.performFailableOperation(() => checkoutBranch(repository, name))
 
-    return this._refreshRepository(repository)
+    await this._refreshRepository(repository)
+    return repository
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1100,8 +1104,9 @@ export class AppStore {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remote
       if (!remote) {
-        this._showFoldout({
-          type: FoldoutType.Publish,
+        this._showPopup({
+          type: PopupType.PublishRepository,
+          repository,
         })
         return
       }
@@ -1240,8 +1245,8 @@ export class AppStore {
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
-  public _clone(url: string, path: string, user: User | null): { promise: Promise<boolean>, repository: CloningRepository } {
-    const promise = this.cloningRepositoriesStore.clone(url, path, user)
+  public _clone(url: string, path: string, options: { user: User | null, branch?: string }): { promise: Promise<boolean>, repository: CloningRepository } {
+    const promise = this.cloningRepositoriesStore.clone(url, path, options)
     const repository = this.cloningRepositoriesStore
                            .repositories
                            .find(r => r.url === url && r.path === path) !
@@ -1271,6 +1276,22 @@ export class AppStore {
   public _clearContextualCommitMessage(repository: Repository): Promise<void> {
     const gitStore = this.getGitStore(repository)
     return gitStore.clearContextualCommitMessage()
+  }
+
+  /**
+   * Fetch a specific refspec for the repository.
+   *
+   * As this action is required to complete when viewing a Pull Request from
+   * a fork, it does not opt-in to checks that prevent multiple concurrent
+   * network actions. This might require some rework in the future to chain
+   * these actions.
+   *
+   */
+  public async fetchRefspec(repository: Repository, refspec: string, user: User | null): Promise<void> {
+    const gitStore = this.getGitStore(repository)
+    await gitStore.fetchRefspec(user, refspec)
+
+    return this._refreshRepository(repository)
   }
 
   /** Fetch the repository. */
