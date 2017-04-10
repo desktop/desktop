@@ -7,9 +7,9 @@ import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
 import { Dialog, DialogFooter, DialogContent } from '../dialog'
 import { TabBar } from '../tab-bar'
-import { Row } from '../lib/row'
 import { getDotComAPIEndpoint } from '../../lib/api'
 import { assertNever, fatalError } from '../../lib/fatal-error'
+import { CallToAction } from '../lib/call-to-action'
 
 enum PublishTab {
   DotCom = 0,
@@ -93,7 +93,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
         onSettingsChanged={this.onSettingsChanged}/>
     } else {
       return (
-        <DialogContent className='account-sign-in'>
+        <DialogContent>
           {this.renderSignInTab(tab)}
         </DialogContent>
       )
@@ -120,17 +120,15 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     switch (tab) {
       case PublishTab.DotCom:
         return (
-          <Row>
-            <div>Sign in to your GitHub.com account to access your repositories.</div>
-            <Button type='submit' onClick={this.signInDotCom}>Sign In</Button>
-          </Row>
+          <CallToAction actionTitle='Sign In' onAction={this.signInDotCom}>
+            Sign in to your GitHub.com account to access your repositories.
+          </CallToAction>
         )
       case PublishTab.Enterprise:
         return (
-          <Row>
-            <div>If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.</div>
-            <Button type='submit' onClick={this.signInEnterprise}>Sign In</Button>
-          </Row>
+          <CallToAction actionTitle='Sign In' onAction={this.signInEnterprise}>
+            If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.
+          </CallToAction>
         )
       default:
         return assertNever(tab, `Unknown tab: ${tab}`)
@@ -155,15 +153,11 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     }
   }
 
-  private signInDotCom = (event: React.FormEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-
+  private signInDotCom = () => {
     this.props.dispatcher.showDotComSignInDialog()
   }
 
-  private signInEnterprise = (event: React.FormEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-
+  private signInEnterprise = () => {
     this.props.dispatcher.showEnterpriseSignInDialog()
   }
 
