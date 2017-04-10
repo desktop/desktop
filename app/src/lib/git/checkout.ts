@@ -6,7 +6,6 @@ export async function checkoutBranch(repository: Repository, name: string): Prom
   await git([ 'checkout', name, '--' ], repository.path, 'checkoutBranch')
 }
 
-
 /** Check out the paths at HEAD. */
 export async function checkoutPaths(repository: Repository, paths: ReadonlyArray<string>): Promise<void> {
   await git([ 'checkout', 'HEAD', '--', ...paths ], repository.path, 'checkoutPaths')

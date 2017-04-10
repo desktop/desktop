@@ -2,7 +2,7 @@ import * as React from 'react'
 
 import { Repository } from '../../models/repository'
 import { Dispatcher } from '../../lib/dispatcher'
-import { sanitizedBranchName } from './sanitized-branch-name'
+import { sanitizedBranchName } from '../../lib/sanitize-branch'
 import { Branch } from '../../models/branch'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
