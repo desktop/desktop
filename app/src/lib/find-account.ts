@@ -59,14 +59,14 @@ export async function findAccountForRemote(url: string, accounts: ReadonlyArray<
     // air because we truly don't care.
     const parsedURL = parseRemote(url)
     if (parsedURL) {
-      const dotComUser = accounts.find(a => {
+      const dotComAccount = accounts.find(a => {
         const htmlURL = getHTMLURL(a.endpoint)
         const parsedEndpoint = URL.parse(htmlURL)
         return parsedURL.hostname === parsedEndpoint.hostname
       }) || null
 
-      if (dotComUser) {
-        return dotComUser
+      if (dotComAccount) {
+        return dotComAccount
       }
     }
 
