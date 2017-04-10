@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, Menu, app } from 'electron'
+import { BrowserWindow, ipcMain, Menu, app, dialog } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 
 import { SharedProcess } from '../shared-process/shared-process'
@@ -262,8 +262,16 @@ export class AppWindow {
     this.window.webContents.send('app-menu', { menu })
   }
 
+  /** Send a certificate error to the renderer. */
   public sendCertificateError(certificate: Electron.Certificate, error: string, url: string) {
     this.window.webContents.send('certificate-error', { certificate, error, url })
+  }
+
+  public showCertificateTrustDialog(certificate: Electron.Certificate, message: string) {
+    // The Electron type definitions don't include `showCertificateTrustDialog`
+    // yet.
+    const d = dialog as any
+    d.showCertificateTrustDialog(this.window, { certificate, message }, () => {})
   }
 
   /**

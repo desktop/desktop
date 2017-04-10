@@ -16,7 +16,7 @@ import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
 import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
-import { setMenuEnabled, setMenuVisible } from './main-process-proxy'
+import { setMenuEnabled, setMenuVisible, showCertificateTrustDialog } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateStatus } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
@@ -144,11 +144,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     })
 
     ipcRenderer.on('certificate-error', (event: Electron.IpcRendererEvent, { certificate, error, url }: { certificate: Electron.Certificate, error: string, url: string }) => {
-      console.log('yoooooooo')
-      console.log(error)
-      console.log(url)
-      console.log(certificate)
-
       this.props.dispatcher.showPopup({
         type: PopupType.UntrustedCertificate,
         certificate,
@@ -714,11 +709,8 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private onContinueWithUntrustedCertificate = (certificate: Electron.Certificate) => {
-    console.log(`Ask the user to trust ${certificate.subjectName}`)
-
     this.props.dispatcher.closePopup()
-    // TODO:
-    // remote.dialog.showCertificateTrustDialog(remote.getCurentWindow(), { certificate, message: 'Check this shit out' }, () => {})
+    showCertificateTrustDialog(certificate, 'Noooooooo')
   }
 
   private currentPopupContent(): JSX.Element | null {

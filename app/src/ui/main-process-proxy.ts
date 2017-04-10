@@ -25,6 +25,14 @@ export function executeMenuItem(item: ExecutableMenuItem) {
 }
 
 /**
+ * Show the OS-provided certificate trust dialog for the certificate, using the
+ * given message.
+ */
+export function showCertificateTrustDialog(certificate: Electron.Certificate, message: string) {
+  ipcRenderer.send('show-certificate-trust-dialog', { certificate, message })
+}
+
+/**
  * Ask the main-process to send over a copy of the application menu.
  * The response will be send as a separate event with the name 'app-menu' and
  * will be received by the dispatcher.

@@ -264,6 +264,10 @@ app.on('ready', () => {
       mainWindow.sendAppMenu()
     }
   })
+
+  ipcMain.on('show-certificate-trust-dialog', (event: Electron.IpcMainEvent, { certificate, message }: { certificate: Electron.Certificate, message: string }) => {
+    getMainWindow().showCertificateTrustDialog(certificate, message)
+  })
 })
 
 app.on('activate', () => {
