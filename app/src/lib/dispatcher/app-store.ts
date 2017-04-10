@@ -1022,6 +1022,10 @@ export class AppStore {
 
     const api = new API(user)
     const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
+    if (!apiRepo) {
+      return updatedRepository
+    }
+
     return updatedRepository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
   }
 
