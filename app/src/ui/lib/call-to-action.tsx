@@ -3,12 +3,6 @@ import { Row } from './row'
 import { Button } from './button'
 
 interface ICallToActionProps {
-  /**
-   * The call-to-action message. If not provided, the component's children are
-   * used instead.
-   */
-  readonly message?: string
-
   /** The action title. */
   readonly actionTitle: string
 
@@ -16,12 +10,15 @@ interface ICallToActionProps {
   readonly onAction: () => void
 }
 
-/** A call-to-action component which displays a message and a button. */
+/** 
+ * A call-to-action component which displays its children as the message
+ * followed by an action button.
+ */
 export class CallToAction extends React.Component<ICallToActionProps, void> {
   public render() {
     return (
       <Row className='call-to-action'>
-        {this.props.message || this.props.children}
+        {this.props.children}
         <Button className='action-button' type='submit' onClick={this.onClick}>{this.props.actionTitle}</Button>
       </Row>
     )
