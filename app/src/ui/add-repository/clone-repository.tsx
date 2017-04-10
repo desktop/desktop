@@ -118,6 +118,21 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     this.setState({ ...this.state, path })
   }
 
+  private checkPathValid(newPath: string) {
+    FS.exists(newPath, exists => {
+      // If the path changed while we were checking, we don't care anymore.
+      if (this.state.path !== newPath) { return }
+
+      let error: Error | null = null
+      if (exists) {
+        error = new Error('The destination already exists.')
+        error.name = DestinationExistsErrorName
+      }
+
+      this.setState({ ...this.state, error })
+    })
+  }
+
   private onURLChanged = (input: string) => {
     const url = input
     const parsed = parseOwnerAndName(url)
@@ -143,23 +158,13 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       lastParsedIdentifier: parsed,
     })
 
-    FS.exists(newPath, exists => {
-      // If the path changed while we were checking, we don't care anymore.
-      if (this.state.path !== newPath) { return }
-
-      let error: Error | null = null
-      if (exists) {
-        error = new Error('The destination already exists.')
-        error.name = DestinationExistsErrorName
-      }
-
-      this.setState({ ...this.state, error })
-    })
+    this.checkPathValid(newPath)
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
     this.setState({ ...this.state, path })
+    this.checkPathValid(path)
   }
 
   /**
