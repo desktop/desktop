@@ -1,18 +1,22 @@
 #acknowledgements {
-  max-width: 300px;
+  width: 550px;
 
   #licenses {
-    height: 270px;
+    height: 250px;
 
     overflow: scroll;
 
     .license-name {
-      font-weight: bold;
+      font-weight: var(--font-weight-semibold);
+
       margin-bottom: var(--spacing-third);
     }
 
     .license-text {
       font-family: var(--font-family-monospace);
+      font-size: var(--font-size-sm);
+      white-space: pre-wrap;
+
       margin-bottom: var(--spacing-double);
     }
   }
