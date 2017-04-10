@@ -79,6 +79,16 @@ export async function findUserForRemote(url: string, users: ReadonlyArray<User>)
       if (user) {
         return user
       }
+
+      // as a fallback, let's test that this is a public GitHub repository
+      // because we are still allowed to clone this repository
+      const userWithoutToken = new User('', getDotComAPIEndpoint(), '', [ ], '', -1, '')
+      const api = new API(userWithoutToken)
+      const repo = await api.fetchRepository(owner, name)
+      if (repo) {
+        return userWithoutToken
+      }
+
       throw new Error(`Couldn't find a repository with that owner and name.`)
     }
 
