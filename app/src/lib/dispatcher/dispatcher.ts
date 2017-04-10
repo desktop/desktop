@@ -586,6 +586,11 @@ export class Dispatcher {
     return this.appStore._setStatsOptOut(optOut)
   }
 
+  /** Get whether the user has opted out of stats reporting. */
+  public getStatsOptOut(): boolean {
+    return this.appStore._getStatsOptOut()
+  }
+
   /**
    * Clear any in-flight sign in state and return to the
    * initial (no sign-in) state.
