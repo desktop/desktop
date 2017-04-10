@@ -23,7 +23,7 @@ async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: st
   }
 
   // Prefer .com, then try all the others.
-  const sortedUsers = Array.from(accounts).sort((a1, a2) => {
+  const sortedAccounts = Array.from(accounts).sort((a1, a2) => {
     if (a1.endpoint === getDotComAPIEndpoint()) {
       return -1
     } else if (a2.endpoint === getDotComAPIEndpoint()) {
@@ -33,10 +33,10 @@ async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: st
     }
   })
 
-  for (const user of sortedUsers) {
-    const has = await hasRepository(user)
+  for (const account of sortedAccounts) {
+    const has = await hasRepository(account)
     if (has) {
-      return user
+      return account
     }
   }
 
