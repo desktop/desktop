@@ -50,7 +50,7 @@ npm run test:unit -- --grep CloneProgressParser
 
 Will run all tests matching `CloneProgressParser`.
 
-## Using Atom?
+## Using Atom
 
 If you're using [Atom](https://atom.io/) there's some plugins that you might want to install
 
@@ -58,26 +58,8 @@ If you're using [Atom](https://atom.io/) there's some plugins that you might wan
 * [atom-build-npm-apm](https://atom.io/packages/build-npm-apm) - Lets you invoke all npm scripts straight from the editor by pressing F7 (requires [atom-build](https://atom.io/packages/build))
 * [linter](https://atom.io/packages/linter) and [linter-tslint](https://atom.io/packages/linter-tslint) - Shows linter errors and warning in the editor
 
-### Using Atom with Typescript 2.1
+## Using Visual Studio Code
 
-Atom-typescript doesn't support TS 2.1 out of the box right now so you have to [manually specify the path to typescriptServices.js](https://github.com/TypeStrong/atom-typescript/issues/1003#issuecomment-231793772).
-
-Start by installing Typescript 2.1 globally
-
-`npm install -g typescript@latest`
-
-Then switch to atom and follow these steps
-
-1. Open Settings
-2. Go to Packages
-3. Locate the atom-typescript package and select settings
-4. Under settings, locate the textbox with the label 'Full path to a custom 'typescriptServices.js'
-5. Provide the path
- * For Mac: `/usr/local/lib/node_modules/typescript/lib/typescriptServices.js`
- * For Windows: `C:\Users\[YOUR USERNAME]\AppData\Roaming\npm\node_modules\typescript\lib\typescriptServices.js`
- 
-## Prefer Visual Studio Code?
- 
 If you choose to use [Visual Studio Code](https://code.visualstudio.com/) there are some plugins that we recommend installing.
 
 1. While in the _Extension_ view, select *Show Workspace Recommended Extensions* from the dropdown menu
@@ -85,7 +67,7 @@ If you choose to use [Visual Studio Code](https://code.visualstudio.com/) there 
 
 ## Debugging
 
-### Chrome 
+### Chrome
 
 1. Run the command `npm run start`
 2. Open _Chrome Dev Tools_
