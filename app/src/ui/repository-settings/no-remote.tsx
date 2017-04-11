@@ -1,8 +1,7 @@
 import * as React from 'react'
 import { DialogContent } from '../dialog'
-import { Button } from '../lib/button'
-import { Row } from '../lib/row'
 import { LinkButton } from '../lib/link-button'
+import { CallToAction } from '../lib/call-to-action'
 
 const HelpURL = 'https://help.github.com/articles/about-remote-repositories/'
 
@@ -16,17 +15,10 @@ export class NoRemote extends React.Component<INoRemoteProps, void> {
   public render() {
     return (
       <DialogContent>
-        <Row className='no-remote'>
+        <CallToAction actionTitle='Publish' onAction={this.props.onPublish}>
           <div>Publish your repository to GitHub. Need help? <LinkButton uri={HelpURL}>Learn more</LinkButton> about remote repositories.</div>
-          <Button type='submit' onClick={this.onPublish}>Publish</Button>
-        </Row>
+        </CallToAction>
       </DialogContent>
     )
-  }
-
-  private onPublish = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-
-    this.props.onPublish()
   }
 }
