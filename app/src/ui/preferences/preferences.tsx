@@ -78,7 +78,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
         <TabBar onTabClicked={this.onTabClicked} selectedIndex={this.state.selectedIndex}>
           <span>Accounts</span>
           <span>Git</span>
-          <span>Advance</span>
+          <span>Advanced</span>
         </TabBar>
 
         {this.renderActiveTab()}
