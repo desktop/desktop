@@ -169,8 +169,9 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   /**
    * Lookup the account associated with the clone (if applicable) and resolve
-   * the repository alias to the clone URL. Will throw if neither of these
-   * conditions are satisfied.
+   * the repository alias to the clone URL. findAccountForRemote will throw
+   * if neither of these conditions are satisfied, so let this bubble up and
+   * display a relevant message to the user.
    */
   private async resolveCloneDetails(): Promise<{ url: string, account: Account }> {
     const identifier = this.state.lastParsedIdentifier
