@@ -26,8 +26,8 @@ enum PreferencesTab {
 
 interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
-  readonly committerName: string,
-  readonly committerEmail: string,
+  readonly committerName: string
+  readonly committerEmail: string
 }
 
 /** The app-level preferences component. */
