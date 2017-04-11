@@ -9,4 +9,22 @@
     @include ellipsis;
     margin-bottom: var(--spacing-third);
   }
+
+  @include win32 {
+    select {
+      // Get rid of all default UA styling, we can do better
+      -webkit-appearance: none;
+
+      // Make the select look like a text box. Almost all of these
+      // are copy-pasted from _text-box.scss.
+      border: 1px solid var(--box-border-color);
+      border-radius: var(--border-radius);
+      color: currentColor;
+      background: transparent;
+      font-size: var(--font-size);
+      font-family: var(--font-family-sans-serif);
+      height: var(--text-field-height);
+      padding: 0 var(--spacing-half);
+    }
+  }
 }
