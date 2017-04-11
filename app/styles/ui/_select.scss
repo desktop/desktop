@@ -10,6 +10,9 @@
     margin-bottom: var(--spacing-third);
   }
 
+  // Select boxes look absolutely horrible on Windows so we'll make them
+  // look as good as we possibly can. There's nothing we can do about the
+  // drop down itself but at least we can style the base element a bit.
   @include win32 {
     select {
       // Get rid of all default UA styling, we can do better
