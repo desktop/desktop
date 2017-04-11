@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { Dispatcher, AppStore } from '../../lib/dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
@@ -14,8 +15,8 @@ import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
   readonly appStore: AppStore
-  readonly dotComUser: User | null
-  readonly enterpriseUser: User | null
+  readonly dotComAccount: Account | null
+  readonly enterpriseAccount: Account | null
   readonly onDismissed: () => void
 }
 
@@ -48,16 +49,16 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     let committerEmail = await getGlobalConfigValue('user.email')
 
     if (!committerName || !committerEmail) {
-      const user = this.props.dotComUser || this.props.enterpriseUser
+      const account = this.props.dotComAccount || this.props.enterpriseAccount
 
-      if (user) {
+      if (account) {
 
         if (!committerName) {
-          committerName = user.login
+          committerName = account.login
         }
 
-        if (!committerEmail && user.emails.length) {
-          committerEmail = user.emails[0]
+        if (!committerEmail && account.emails.length) {
+          committerEmail = account.emails[0].email
         }
       }
     }
@@ -98,8 +99,8 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     this.props.dispatcher.showEnterpriseSignInDialog()
   }
 
-  private onLogout = (user: User) => {
-    this.props.dispatcher.removeUser(user)
+  private onLogout = (account: Account) => {
+    this.props.dispatcher.removeAccount(account)
   }
 
   private renderActiveTab() {
@@ -107,8 +108,8 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     switch (index) {
       case PreferencesTab.Accounts:
         return <Accounts
-          dotComUser={this.props.dotComUser}
-          enterpriseUser={this.props.enterpriseUser}
+          dotComAccount={this.props.dotComAccount}
+          enterpriseAccount={this.props.enterpriseAccount}
           onDotComSignIn={this.onDotComSignIn}
           onEnterpriseSignIn={this.onEnterpriseSignIn}
           onLogout={this.onLogout}

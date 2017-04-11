@@ -1,4 +1,4 @@
-import { User } from '../models/user'
+import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff } from '../models/diff'
 import { Repository } from '../models/repository'
@@ -29,7 +29,7 @@ export type PossibleSelections = { type: SelectionType.Repository, repository: R
 
 /** All of the shared app state. */
 export interface IAppState {
-  readonly users: ReadonlyArray<User>
+  readonly accounts: ReadonlyArray<Account>
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
 
   readonly selectedState: PossibleSelections | null
@@ -117,7 +117,8 @@ export enum PopupType {
   CloneRepository,
   CreateBranch,
   SignIn,
-  About
+  About,
+  PublishRepository,
 }
 
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
@@ -132,13 +133,13 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.CloneRepository } |
                     { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.SignIn } |
-                    { type: PopupType.About }
+                    { type: PopupType.About } |
+                    { type: PopupType.PublishRepository, repository: Repository }
 
 export enum FoldoutType {
   Repository,
   Branch,
   AppMenu,
-  Publish,
   AddMenu,
 }
 
@@ -165,7 +166,6 @@ export type AppMenuFoldout = {
 export type Foldout =
   { type: FoldoutType.Repository } |
   { type: FoldoutType.Branch } |
-  { type: FoldoutType.Publish } |
   { type: FoldoutType.AddMenu } |
   AppMenuFoldout
 
@@ -222,9 +222,31 @@ export interface IRepositoryState {
 }
 
 export interface IBranchesState {
+  /**
+   * The current tip of HEAD, either a branch, a commit (if HEAD is
+   * detached) or an unborn branch (a branch with no commits).
+   */
   readonly tip: Tip
+
+  /**
+   * The default branch for a given repository. Most commonly this
+   * will be the 'master' branch but GitHub users are able to change
+   * their default branch in the web UI.
+   */
   readonly defaultBranch: Branch | null
+
+  /**
+   * A list of all branches (remote and local) that's currently in
+   * the repository.
+   */
   readonly allBranches: ReadonlyArray<Branch>
+
+  /**
+   * A list of zero to a few (at time of writing 5 but check loadRecentBranches
+   * in git-store for definitive answer) branches that have been checked out
+   * recently. This list is compiled by reading the reflog and tracking branch
+   * switches over the last couple of thousand reflog entries.
+   */
   readonly recentBranches: ReadonlyArray<Branch>
 }
 

@@ -26,7 +26,7 @@ import { AppMenuBar } from './app-menu'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
-import { User } from '../models/user'
+import { Account } from '../models/account'
 import { TipState } from '../models/tip'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Merge } from './merge-branch'
@@ -38,6 +38,7 @@ import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
+import { Publish } from './publish-repository'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -276,22 +277,22 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private getUsernameForUpdateCheck() {
-    const dotComUser = this.getDotComUser()
-    return dotComUser ? dotComUser.login : ''
+    const dotComAccount = this.getDotComAccount()
+    return dotComAccount ? dotComAccount.login : ''
   }
 
-  private getDotComUser(): User | null {
+  private getDotComAccount(): Account | null {
     const state = this.props.appStore.getState()
-    const users = state.users
-    const dotComUser = users.find(u => u.endpoint === getDotComAPIEndpoint())
-    return dotComUser || null
+    const accounts = state.accounts
+    const dotComAccount = accounts.find(a => a.endpoint === getDotComAPIEndpoint())
+    return dotComAccount || null
   }
 
-  private getEnterpriseUser(): User | null {
+  private getEnterpriseAccount(): Account | null {
     const state = this.props.appStore.getState()
-    const users = state.users
-    const enterpriseUser = users.find(u => u.endpoint !== getDotComAPIEndpoint())
-    return enterpriseUser || null
+    const accounts = state.accounts
+    const enterpriseAccount = accounts.find(a => a.endpoint !== getDotComAPIEndpoint())
+    return enterpriseAccount || null
   }
 
   private updateBranch() {
@@ -727,18 +728,27 @@ export class App extends React.Component<IAppProps, IAppState> {
         return <Preferences
                 dispatcher={this.props.dispatcher}
                 appStore={this.props.appStore}
-                dotComUser={this.getDotComUser()}
-                enterpriseUser={this.getEnterpriseUser()}
+                dotComAccount={this.getDotComAccount()}
+                enterpriseAccount={this.getEnterpriseAccount()}
                 onDismissed={this.onPopupDismissed}/>
       case PopupType.MergeBranch: {
         const repository = popup.repository
         const state = this.props.appStore.getRepositoryState(repository)
 
+        const tip = state.branchesState.tip
+        const currentBranch = tip.kind === TipState.Valid
+          ? tip.branch
+          : null
+
         return <Merge
                 dispatcher={this.props.dispatcher}
                 repository={repository}
-                branches={state.branchesState.allBranches}
-                onDismissed={this.onPopupDismissed}/>
+                allBranches={state.branchesState.allBranches}
+                defaultBranch={state.branchesState.defaultBranch}
+                recentBranches={state.branchesState.recentBranches}
+                currentBranch={currentBranch}
+                onDismissed={this.onPopupDismissed}
+              />
       }
       case PopupType.RepositorySettings: {
         const repository = popup.repository
@@ -767,7 +777,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.CloneRepository:
         return <CloneRepository
-                users={this.state.users}
+                accounts={this.state.accounts}
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
       case PopupType.CreateBranch: {
@@ -794,6 +804,15 @@ export class App extends React.Component<IAppProps, IAppState> {
            applicationName={getName()}
            applicationVersion={getVersion()}
            usernameForUpdateCheck={this.getUsernameForUpdateCheck()}
+          />
+        )
+      case PopupType.PublishRepository:
+        return (
+          <Publish
+            dispatcher={this.props.dispatcher}
+            repository={popup.repository}
+            accounts={this.state.accounts}
+            onDismissed={this.onPopupDismissed}
           />
         )
       default:
@@ -903,7 +922,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const isPublishing = Boolean(this.state.currentFoldout && this.state.currentFoldout.type === FoldoutType.Publish)
+    const isPublishing = !!this.state.currentPopup && this.state.currentPopup.type === PopupType.PublishRepository
 
     const state = selection.state
     const remoteName = state.remote ? state.remote.name : null
@@ -914,9 +933,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       remoteName={remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
-      isPublishing={isPublishing}
-      users={this.state.users}
-      signInState={this.state.signInState}/>
+      isPublishing={isPublishing}/>
   }
 
   private showCreateBranch = () => {
@@ -1058,7 +1075,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <CloningRepositoryView repository={selectedState.repository}
                                     state={selectedState.state}/>
     } else if (selectedState.type === SelectionType.MissingRepository) {
-      return <MissingRepository repository={selectedState.repository} dispatcher={this.props.dispatcher} users={this.state.users} />
+      return <MissingRepository repository={selectedState.repository} dispatcher={this.props.dispatcher} accounts={this.state.accounts} />
     } else {
       return assertNever(selectedState, `Unknown state: ${selectedState}`)
     }
@@ -1086,10 +1103,6 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onSelectionChanged = (repository: Repository | CloningRepository) => {
     this.props.dispatcher.selectRepository(repository)
     this.props.dispatcher.closeFoldout()
-
-    if (repository instanceof Repository) {
-      this.props.dispatcher.refreshGitHubRepositoryInfo(repository)
-    }
   }
 }
 

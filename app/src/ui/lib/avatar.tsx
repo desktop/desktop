@@ -1,18 +1,8 @@
 import * as React from 'react'
+import { IAvatarUser } from '../../models/avatar'
 
 const DefaultAvatarURL = 'https://github.com/hubot.png'
 
-/** The minimum properties we need in order to display a user's avatar. */
-export interface IAvatarUser {
-  /** The user's email. */
-  readonly email: string
-
-  /** The user's avatar URL. */
-  readonly avatarURL: string
-
-  /** The user's name. */
-  readonly name: string
-}
 
 interface IAvatarProps {
   /** The user whose avatar should be displayed. */
@@ -47,7 +37,7 @@ export class Avatar extends React.Component<IAvatarProps, void> {
     const title = this.getTitle()
 
     return (
-      <span title={title}>
+      <span title={title} className='avatar-container'>
         <img className='avatar' title={title} src={url} alt={title}/>
       </span>
     )

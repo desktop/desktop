@@ -30,11 +30,13 @@
     color: currentColor;
     font-size: var(--font-size);
     font-family: var(--font-family-sans-serif);
+    height: var(--text-field-height);
     padding: var(--spacing-half);
 
     &:focus {
       outline: none;
       border-color: var(--focus-color);
+      box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
     }
   }
 }

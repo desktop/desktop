@@ -230,19 +230,19 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   private onMenuBarFocusOut = (event: FocusEvent) => {
     // When keyboard focus moves from one descendant within the
     // menu bar to another we will receive one 'focusout' event
-    // followed immediately by a 'focusin' event. As such we
+    // followed quickly by a 'focusin' event. As such we
     // can't tell whether we've lost focus until we're certain
     // that we've only gotten the 'focusout' event.
     //
     // In order to achieve this we schedule our call to onLostFocusWithin
     // and clear that timeout if we receive a 'focusin' event.
     this.clearFocusOutTimeout()
-    this.focusOutTimeout = setImmediate(this.onLostFocusWithin)
+    this.focusOutTimeout = requestAnimationFrame(this.onLostFocusWithin)
   }
 
   private clearFocusOutTimeout() {
     if (this.focusOutTimeout !== null) {
-      clearImmediate(this.focusOutTimeout)
+      cancelAnimationFrame(this.focusOutTimeout)
       this.focusOutTimeout = null
     }
   }
@@ -276,7 +276,12 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
     }
   }
 
-  private onMenuClose = (item: ISubmenuItem) => {
+  private onMenuClose = (item: ISubmenuItem, source: 'keyboard' | 'pointer' | 'item-executed') => {
+
+    if (source === 'pointer') {
+      this.restoreFocusOrBlur()
+    }
+
     this.props.dispatcher.setAppMenuState(m => m.withClosedMenu(item.menu))
   }
 
@@ -290,10 +295,12 @@ export class AppMenuBar extends React.Component<IAppMenuBarProps, IAppMenuBarSta
   }
 
   private onMenuButtonMouseEnter = (item: ISubmenuItem) => {
+    if (this.hasFocus) {
+      this.focusMenuItem(item)
+    }
+
     if (this.props.appMenu.length > 1) {
       this.props.dispatcher.setAppMenuState(m => m.withOpenedMenu(item))
-    } else if (this.hasFocus) {
-      this.focusMenuItem(item)
     }
   }
 

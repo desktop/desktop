@@ -36,7 +36,7 @@ const options = {
   arch: 'x64',
   asar: false, // TODO: Probably wanna enable this down the road.
   out: path.join(projectRoot, 'dist'),
-  icon: path.join(projectRoot, 'app', 'static', 'icon'),
+  icon: path.join(projectRoot, 'app', 'static', 'logos', 'icon-logo'),
   dir: outRoot,
   overwrite: true,
   tmpdir: false,
