@@ -7,9 +7,9 @@ Download the either the [installer for macOS](https://central.github.com/deploym
 ## I want to work on it!
 ## Prerequisites
 
-### Node 6+
+### Node 7+
 
-We use some ES6+ language constructs in our build scripts so you need [Node.js](https://nodejs.org) 6+ (just pick whatever the 'current' release is at the moment). Node 6 comes with npm 3 out of the box and while npm 3 isn't strictly necessary to build it does make things more efficient, especially on Windows where deep folder hierarchies can be detrimental to build speed.
+We use some ES6+ language constructs in our build scripts so you need [Node.js](https://nodejs.org) 7+ (just pick whatever the 'current' release is at the moment). Node 7 comes with npm 4 out of the box and while npm 4 isn't strictly necessary to build it does make things more efficient, especially on Windows where deep folder hierarchies can be detrimental to build speed.
 
 *Windows only: Make sure you allow the Node.js installer to add node to the PATH, it'll make life much easier for you. Also, make sure you're on NPM 3.10.4 or higher. You can check via `npm -v`. If not, run `npm install -g npm`*
 
