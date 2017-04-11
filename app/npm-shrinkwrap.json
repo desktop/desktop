@@ -15,9 +15,9 @@
       "dev": true
     },
     "ajv": {
-      "version": "4.11.5",
+      "version": "4.11.6",
       "from": "ajv@>=4.9.1 <5.0.0",
-      "resolved": "https://registry.npmjs.org/ajv/-/ajv-4.11.5.tgz"
+      "resolved": "https://registry.npmjs.org/ajv/-/ajv-4.11.6.tgz"
     },
     "ansi-html": {
       "version": "0.0.6",
@@ -218,9 +218,9 @@
       "resolved": "https://registry.npmjs.org/dom-helpers/-/dom-helpers-2.4.0.tgz"
     },
     "dugite": {
-      "version": "1.23.0",
-      "from": "https://registry.npmjs.org/dugite/-/dugite-1.23.0.tgz",
-      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.23.0.tgz"
+      "version": "1.24.0",
+      "from": "dugite@1.24.0",
+      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.24.0.tgz"
     },
     "ecc-jsbn": {
       "version": "0.1.1",
@@ -316,9 +316,9 @@
       "resolved": "https://registry.npmjs.org/forever-agent/-/forever-agent-0.6.1.tgz"
     },
     "form-data": {
-      "version": "2.1.2",
+      "version": "2.1.4",
       "from": "form-data@>=2.1.1 <2.2.0",
-      "resolved": "https://registry.npmjs.org/form-data/-/form-data-2.1.2.tgz"
+      "resolved": "https://registry.npmjs.org/form-data/-/form-data-2.1.4.tgz"
     },
     "front-matter": {
       "version": "2.1.2",
@@ -819,7 +819,7 @@
     },
     "ua-parser-js": {
       "version": "0.7.12",
-      "from": "ua-parser-js@latest",
+      "from": "ua-parser-js@>=0.7.9 <0.8.0",
       "resolved": "https://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.12.tgz"
     },
     "untildify": {

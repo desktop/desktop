@@ -1,5 +1,5 @@
 import * as Path from 'path'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { assertNever } from '../fatal-error'
 import * as GitPerf from '../../ui/lib/git-perf'
 
@@ -208,7 +208,7 @@ function getAskPassScriptPath(): string {
 }
 
 /** Get the environment for authenticating remote operations. */
-export function envForAuthentication(user: User | null): Object {
+export function envForAuthentication(account: Account | null): Object {
   const env = {
     'DESKTOP_PATH': process.execPath,
     'DESKTOP_ASKPASS_SCRIPT': getAskPassScriptPath(),
@@ -218,17 +218,17 @@ export function envForAuthentication(user: User | null): Object {
     'GIT_TERMINAL_PROMPT': '0',
     // by setting HOME to an empty value Git won't look at ~ for any global
     // configuration values. This means we won't accidentally use a
-    // credential.helper value if it's been set by the current user
+    // credential.helper value if it's been set by the current account
     'HOME': '',
   }
 
-  if (!user) {
+  if (!account) {
     return env
   }
 
   return Object.assign(env, {
-    'DESKTOP_USERNAME': user.login,
-    'DESKTOP_ENDPOINT': user.endpoint,
+    'DESKTOP_USERNAME': account.login,
+    'DESKTOP_ENDPOINT': account.endpoint,
   })
 }
 

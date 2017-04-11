@@ -1,4 +1,4 @@
-import { User } from '../models/user'
+import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff } from '../models/diff'
 import { Repository } from '../models/repository'
@@ -29,7 +29,7 @@ export type PossibleSelections = { type: SelectionType.Repository, repository: R
 
 /** All of the shared app state. */
 export interface IAppState {
-  readonly users: ReadonlyArray<User>
+  readonly accounts: ReadonlyArray<Account>
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
 
   readonly selectedState: PossibleSelections | null
