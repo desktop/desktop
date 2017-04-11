@@ -1,6 +1,6 @@
 import { remote, ipcRenderer } from 'electron'
 import { IMessage } from './message'
-import { UsersStore } from './users-store'
+import { AccountsStore } from './accounts-store'
 import { RepositoriesStore } from './repositories-store'
 
 const { BrowserWindow } = remote
@@ -53,10 +53,10 @@ export function register(name: string, fn: SharedProcessFunction) {
 }
 
 /** Tell all the windows that something was updated. */
-export function broadcastUpdate(usersStore: UsersStore, repositoriesStore: RepositoriesStore) {
+export function broadcastUpdate(accountsStore: AccountsStore, repositoriesStore: RepositoriesStore) {
   BrowserWindow.getAllWindows().forEach(async (window) => {
     const repositories = await repositoriesStore.getRepositories()
-    const state = { users: usersStore.getUsers(), repositories }
+    const state = { account: accountsStore.getAll(), repositories }
     window.webContents.send('shared/did-update', [ { state } ])
   })
 }

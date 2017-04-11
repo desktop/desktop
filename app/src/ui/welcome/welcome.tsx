@@ -99,7 +99,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
       case WelcomeStep.Start: return <Start {...props}/>
       case WelcomeStep.SignInToDotCom: return <SignInDotCom {...props} signInState={signInState} />
       case WelcomeStep.SignInToEnterprise: return <SignInEnterprise {...props} signInState={signInState} />
-      case WelcomeStep.ConfigureGit: return <ConfigureGit {...props} users={this.props.appStore.getState().users}/>
+      case WelcomeStep.ConfigureGit: return <ConfigureGit {...props} accounts={this.props.appStore.getState().accounts}/>
       case WelcomeStep.UsageOptOut: return <UsageOptOut {...props} optOut={this.props.appStore.getStatsOptOut()}/>
       default: return assertNever(step, `Unknown welcome step: ${step}`)
     }

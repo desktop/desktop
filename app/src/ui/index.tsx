@@ -18,7 +18,7 @@ import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
 import { defaultErrorHandler, createMissingRepositoryHandler } from '../lib/dispatcher'
-import { getEndpointForRepository, getUserForEndpoint } from '../lib/api'
+import { getEndpointForRepository, getAccountForEndpoint } from '../lib/api'
 import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
 
@@ -124,9 +124,9 @@ function cloneRepository(url: string, branch?: string): Promise<Repository | nul
   setDefaultDir(Path.resolve(path, '..'))
 
   const state = appStore.getState()
-  const user = getUserForEndpoint(state.users, getEndpointForRepository(url)) || null
+  const account = getAccountForEndpoint(state.accounts, getEndpointForRepository(url))
 
-  return dispatcher.clone(url, path, { user, branch })
+  return dispatcher.clone(url, path, { account, branch })
 }
 
 async function handleCloneInDesktopOptions(repository: Repository | null, args: IOpenRepositoryArgs): Promise<void> {
