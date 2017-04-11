@@ -1,5 +1,4 @@
 import * as React from 'react'
-import { User } from '../../models/user'
 import { Account } from '../../models/account'
 import { Dispatcher, AppStore } from '../../lib/dispatcher'
 import { TabBar } from '../tab-bar'
