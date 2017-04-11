@@ -32,12 +32,12 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
   }
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
-    const value = event.currentTarget.checked
+    const value = !event.currentTarget.checked
 
-    this.props.dispatcher.setStatsOptOut(!value)
+    this.props.dispatcher.setStatsOptOut(value)
 
     this.setState({
-      reportingOptOut: !value,
+      reportingOptOut: value,
     })
   }
 
