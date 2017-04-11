@@ -1,8 +1,10 @@
 .select-component {
   display: flex;
   flex-direction: column;
+  flex-grow: 1;
 
-  select {
-    flex: 1;
+  label {
+    @include ellipsis;
+    margin-bottom: var(--spacing-third);
   }
 }
