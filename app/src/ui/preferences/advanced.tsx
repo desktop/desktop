@@ -25,7 +25,7 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
   }
 
   public componentDidMount() {
-    const optOut = this.props.appStore._getStatsOptOut()
+    const optOut = this.props.appStore.getStatsOptOut()
 
     this.setState({
       reportingOptOut: optOut,

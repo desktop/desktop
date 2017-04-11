@@ -1425,12 +1425,12 @@ export class AppStore {
   }
 
   /** Has the user opted out of stats reporting? */
-  public _getStatsOptOut(): boolean {
+  public getStatsOptOut(): boolean {
     return this.statsStore.getOptOut()
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public _setStatsOptOut(optOut: boolean): Promise<void> {
+  public setStatsOptOut(optOut: boolean): Promise<void> {
     this.statsStore.setOptOut(optOut)
 
     this.emitUpdate()
