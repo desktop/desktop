@@ -26,6 +26,8 @@ if (__DEV__) {
   installDevGlobals()
 }
 
+require('wicg-focus-ring')
+
 const startTime = Date.now()
 
 if (!process.env.TEST_ENV) {
