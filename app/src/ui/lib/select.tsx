@@ -32,7 +32,7 @@ export class Select extends React.Component<ISelectProps, ISelectState> {
 
   public componentWillMount() {
     const friendlyName = this.props.label || 'unknown'
-    const inputId = createUniqueId(`TextBox_${friendlyName}`)
+    const inputId = createUniqueId(`Select_${friendlyName}`)
 
     this.setState({ inputId })
   }
