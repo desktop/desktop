@@ -1,6 +1,6 @@
 import { ipcRenderer, remote } from 'electron'
 import { Disposable } from 'event-kit'
-import { User, IUser } from '../../models/user'
+import { Account, IAccount } from '../../models/account'
 import { Repository, IRepository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileChange } from '../../models/status'
 import { DiffSelection } from '../../models/diff'
@@ -69,7 +69,7 @@ export class Dispatcher {
     this.appStore = appStore
 
     appStore.onDidAuthenticate((user) => {
-      this.addUser(user)
+      this.addAccount(user)
     })
 
     ipcRenderer.on('shared/did-update', (event, args) => this.onSharedDidUpdate(event, args))
@@ -110,16 +110,16 @@ export class Dispatcher {
   }
 
   private onSharedDidUpdate(event: Electron.IpcRendererEvent, args: any[]) {
-    const state: {repositories: ReadonlyArray<IRepository>, users: ReadonlyArray<IUser>} = args[0].state
-    const inflatedUsers = state.users.map(User.fromJSON)
+    const state: { repositories: ReadonlyArray<IRepository>, account: ReadonlyArray<IAccount> } = args[0].state
+    const inflatedAccounts = state.account.map(Account.fromJSON)
     const inflatedRepositories = state.repositories.map(Repository.fromJSON)
-    this.appStore._loadFromSharedProcess(inflatedUsers, inflatedRepositories)
+    this.appStore._loadFromSharedProcess(inflatedAccounts, inflatedRepositories)
   }
 
   /** Get the users */
-  private async loadUsers(): Promise<ReadonlyArray<User>> {
-    const json = await this.dispatchToSharedProcess<ReadonlyArray<IUser>>({ name: 'get-users' })
-    return json.map(User.fromJSON)
+  private async loadUsers(): Promise<ReadonlyArray<Account>> {
+    const json = await this.dispatchToSharedProcess<ReadonlyArray<IAccount>>({ name: 'get-accounts' })
+    return json.map(Account.fromJSON)
   }
 
   /** Get the repositories the user has added to the app. */
@@ -228,12 +228,14 @@ export class Dispatcher {
   }
 
   /** Select the repository. */
-  public async selectRepository(repository: Repository | CloningRepository): Promise<void> {
-    this.appStore._selectRepository(repository)
+  public async selectRepository(repository: Repository | CloningRepository): Promise<Repository | null> {
+    const repo = this.appStore._selectRepository(repository)
 
     if (repository instanceof Repository) {
       await this.refreshGitHubRepositoryInfo(repository)
     }
+
+    return repo
   }
 
   /** Load the working directory status. */
@@ -302,12 +304,12 @@ export class Dispatcher {
   }
 
   /** Create a new branch from the given starting point and check it out. */
-  public createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
+  public createBranch(repository: Repository, name: string, startPoint: string): Promise<Repository> {
     return this.appStore._createBranch(repository, name, startPoint)
   }
 
   /** Check out the given branch. */
-  public checkoutBranch(repository: Repository, name: string): Promise<void> {
+  public checkoutBranch(repository: Repository, name: string): Promise<Repository> {
     return this.appStore._checkoutBranch(repository, name)
   }
 
@@ -315,19 +317,19 @@ export class Dispatcher {
    * Perform a function which may need authentication on a repository. This may
    * first update the GitHub association for the repository.
    */
-  private async withAuthenticatingUser<T>(repository: Repository, fn: (repository: Repository, user: User | null) => Promise<T>): Promise<T> {
+  private async withAuthenticatingUser<T>(repository: Repository, fn: (repository: Repository, account: Account | null) => Promise<T>): Promise<T> {
     let updatedRepository = repository
-    let user = this.appStore.getUserForRepository(updatedRepository)
+    let account = this.appStore.getAccountForRepository(updatedRepository)
     // If we don't have a user association, it might be because we haven't yet
     // tried to associate the repository with a GitHub repository, or that
     // association is out of date. So try again before we bail on providing an
     // authenticating user.
-    if (!user) {
+    if (!account) {
       updatedRepository = await this.refreshGitHubRepositoryInfo(repository)
-      user = this.appStore.getUserForRepository(updatedRepository)
+      account = this.appStore.getAccountForRepository(updatedRepository)
     }
 
-    return fn(updatedRepository, user)
+    return fn(updatedRepository, account)
   }
 
   /** Push the current branch. */
@@ -344,15 +346,22 @@ export class Dispatcher {
     )
   }
 
-  /** Fetch the repository. */
-  public async fetch(repository: Repository): Promise<void> {
+  /** Fetch a specific refspec for the repository. */
+  public fetchRefspec(repository: Repository, fetchspec: string): Promise<void> {
+    return this.withAuthenticatingUser(repository, (repo, user) => {
+      return this.appStore.fetchRefspec(repo, fetchspec, user)
+    })
+  }
+
+  /** Fetch all refs for the repository */
+  public fetch(repository: Repository): Promise<void> {
     return this.withAuthenticatingUser(repository, (repo, user) =>
       this.appStore.fetch(repo, user)
     )
   }
 
   /** Publish the repository to GitHub with the given properties. */
-  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: User, org: IAPIUser | null): Promise<Repository> {
+  public async publishRepository(repository: Repository, name: string, description: string, private_: boolean, account: Account, org: IAPIUser | null): Promise<Repository> {
     await this.appStore._publishRepository(repository, name, description, private_, account, org)
     return this.refreshGitHubRepositoryInfo(repository)
   }
@@ -393,8 +402,8 @@ export class Dispatcher {
    * Clone a missing repository to the previous path, and update it's
    * state in the repository list if the clone completes without error.
    */
-  public async cloneAgain(url: string, path: string, user: User | null): Promise<void> {
-    const { promise, repository } = this.appStore._clone(url, path, user)
+  public async cloneAgain(url: string, path: string, account: Account | null): Promise<void> {
+    const { promise, repository } = this.appStore._clone(url, path, { account })
     await this.selectRepository(repository)
     const success = await promise
     if (!success) { return }
@@ -412,14 +421,17 @@ export class Dispatcher {
  }
 
   /** Clone the repository to the path. */
-  public async clone(url: string, path: string, user: User | null): Promise<void> {
-    const { promise, repository } = this.appStore._clone(url, path, user)
+  public async clone(url: string, path: string, options: { account: Account | null, branch?: string }): Promise<Repository | null> {
+    const { promise, repository } = this.appStore._clone(url, path, options)
     await this.selectRepository(repository)
     const success = await promise
-    if (!success) { return }
+    // TODO: this exit condition is not great, bob
+    if (!success) { return Promise.resolve(null) }
 
     const addedRepositories = await this.addRepositories([ path ])
-    await this.selectRepository(addedRepositories[0])
+    const addedRepository = addedRepositories[0]
+    await this.selectRepository(addedRepository)
+    return addedRepository
   }
 
   /** Rename the branch to a new name. */
@@ -508,14 +520,14 @@ export class Dispatcher {
     return this.appStore._setCommitMessage(repository, message)
   }
 
-  /** Add the user to the app. */
-  public async addUser(user: User): Promise<void> {
-    return this.dispatchToSharedProcess<void>({ name: 'add-user', user })
+  /** Add the account to the app. */
+  public async addAccount(account: Account): Promise<void> {
+    return this.dispatchToSharedProcess<void>({ name: 'add-account', account })
   }
 
-  /** Remove the given user. */
-  public removeUser(user: User): Promise<void> {
-    return this.dispatchToSharedProcess<void>({ name: 'remove-user', user })
+  /** Remove the given account from the app. */
+  public removeAccount(account: Account): Promise<void> {
+    return this.dispatchToSharedProcess<void>({ name: 'remove-account', account })
   }
 
   /**

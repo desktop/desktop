@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { User } from '../../models/user'
-import { API,  IAPIUser } from '../../lib/api'
+import { Account } from '../../models/account'
+import { API, IAPIUser } from '../../lib/api'
 import { TextBox } from '../lib/text-box'
 import { Select } from '../lib/select'
 import { DialogContent } from '../dialog'
@@ -9,7 +9,7 @@ import { merge } from '../../lib/merge'
 
 interface IPublishRepositoryProps {
   /** The user to use for publishing. */
-  readonly user: User
+  readonly account: Account
 
   /** The settings to use when publishing the repository. */
   readonly settings: IPublishRepositorySettings
@@ -48,7 +48,7 @@ export class PublishRepository extends React.Component<IPublishRepositoryProps, 
   }
 
   public async componentWillMount() {
-    const api = new API(this.props.user)
+    const api = new API(this.props.account)
     const orgs = await api.fetchOrgs()
     this.setState({ orgs })
   }

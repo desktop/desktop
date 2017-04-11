@@ -8,9 +8,9 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../../lib/dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { parseOwnerAndName, IRepositoryIdentifier } from '../../lib/remote-parsing'
-import { findUserForRemote } from '../../lib/find-account'
+import { findAccountForRemote } from '../../lib/find-account'
 import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 
@@ -21,8 +21,8 @@ interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
 
-  /** The logged in users. */
-  readonly users: ReadonlyArray<User>
+  /** The logged in accounts. */
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface ICloneRepositoryState {
@@ -172,21 +172,21 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
    * the repository alias to the clone URL. Will throw if neither of these
    * conditions are satisfied.
    */
-  private async resolveCloneDetails(): Promise<{ url: string, user: User }> {
+  private async resolveCloneDetails(): Promise<{ url: string, account: Account }> {
     const identifier = this.state.lastParsedIdentifier
     let url = this.state.url
 
-    const user = await findUserForRemote(url, this.props.users)
+    const account = await findAccountForRemote(url, this.props.accounts)
 
     if (identifier) {
-      const api = new API(user)
+      const api = new API(account)
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
       if (repo) {
         url =  repo.cloneUrl
       }
     }
 
-    return { url, user }
+    return { url, account }
   }
 
   private clone = async () => {
@@ -195,8 +195,8 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     const path = this.state.path
 
     try {
-      const { url, user } = await this.resolveCloneDetails()
-      this.cloneImpl(url, path, user)
+      const { url, account } = await this.resolveCloneDetails()
+      this.cloneImpl(url, path, account)
     } catch (error) {
       this.setState({
         ...this.state,
@@ -206,8 +206,8 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     }
   }
 
-  private cloneImpl(url: string, path: string, user: User | null) {
-    this.props.dispatcher.clone(url, path, user)
+  private cloneImpl(url: string, path: string, account: Account | null) {
+    this.props.dispatcher.clone(url, path, { account })
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))
