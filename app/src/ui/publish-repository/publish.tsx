@@ -121,13 +121,13 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
       case PublishTab.DotCom:
         return (
           <CallToAction actionTitle='Sign In' onAction={this.signInDotCom}>
-            Sign in to your GitHub.com account to access your repositories.
+            <div>Sign in to your GitHub.com account to access your repositories.</div>
           </CallToAction>
         )
       case PublishTab.Enterprise:
         return (
           <CallToAction actionTitle='Sign In' onAction={this.signInEnterprise}>
-            If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.
+            <div>If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.</div>
           </CallToAction>
         )
       default:

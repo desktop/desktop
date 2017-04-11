@@ -70,14 +70,14 @@ export class Accounts extends React.Component<IAccountsProps, void> {
 
         return (
           <CallToAction actionTitle='Sign In' onAction={this.onDotComSignIn}>
-            Sign in to your GitHub.com account to access your repositories
+            <div>Sign in to your GitHub.com account to access your repositories.</div>
           </CallToAction>
         )
       }
       case SignInType.Enterprise:
         return (
           <CallToAction actionTitle='Sign In' onAction={this.onEnterpriseSignIn}>
-            If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.
+            <div>If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.</div>
           </CallToAction>
         )
       default:
