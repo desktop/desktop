@@ -10,7 +10,7 @@ written in [TypeScript](http://www.typescriptlang.org) and uses [React](https://
 
 ## I want to use it!
 
-Download the either the [installer for macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin) or [for Windows](https://central.github.com/deployments/desktop/desktop/latest/win32). You'll be starting with a fresh installation, as there is no migration path from Desktop Classic to Desktop TNG:9000.
+Download it [for macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin) or [for Windows](https://central.github.com/deployments/desktop/desktop/latest/win32). You'll be starting with a fresh installation, as there is no migration path from Desktop Classic to Desktop TNG:9000.
 
 ## I want to work on it!
 
@@ -61,7 +61,7 @@ Will run all tests matching `CloneProgressParser`.
 
 ### Using Atom
 
-If you're using [Atom](https://atom.io/) there's some plugins that you might want to install
+If you're using [Atom](https://atom.io/) there are some plugins you might want to install:
 
 * [atom-typescript](https://atom.io/packages/atom-typescript) - Syntax highlighting and intellisense for TypeScript
 * [atom-build-npm-apm](https://atom.io/packages/build-npm-apm) - Lets you invoke all npm scripts straight from the editor by pressing F7 (requires [atom-build](https://atom.io/packages/build))
@@ -69,7 +69,7 @@ If you're using [Atom](https://atom.io/) there's some plugins that you might wan
 
 ### Using Visual Studio Code
 
-If you choose to use [Visual Studio Code](https://code.visualstudio.com/) there are some plugins that we recommend installing.
+If you choose to use [Visual Studio Code](https://code.visualstudio.com/) there are some plugins that we recommend installing:
 
 1. While in the _Extension_ view, select *Show Workspace Recommended Extensions* from the dropdown menu
 2. Install all the extensions
