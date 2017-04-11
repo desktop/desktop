@@ -19,12 +19,18 @@ export function openShell(fullPath: string, shell?: string) {
 }
 
 export function isGitOnPath(): Promise<boolean> {
-  // adapted from http://stackoverflow.com/a/34953561/1363815
-  const command = __WIN32__ ? 'where' : 'whereis'
+  // Modern versions of macOS ship with a Git shim that guides you through
+  // the process of setting everything up. We trust this is available, so
+  // don't worry about looking for it here.
+  // for it.
+  if (__DARWIN__) {
+    return Promise.resolve(true)
+  }
 
+  // adapted from http://stackoverflow.com/a/34953561/1363815
   return new Promise<boolean>((resolve, reject) => {
     const options = { encoding: 'utf8' }
-    const process = spawn(command, [ 'git' ], options)
+    const process = spawn('where', [ 'git' ], options)
 
     if (__WIN32__) {
       // `where` will return 0 when the executable
@@ -35,18 +41,7 @@ export function isGitOnPath(): Promise<boolean> {
       return
     }
 
-    // `whereis` always returns an exit code of 0 but when
-    // successful it will write the path to stdout
-    let outputReceived = false
-    process.stdout.on('data', data => {
-      outputReceived = true
-      resolve(data.length > 0)
-    })
-
-    process.on('close', code => {
-      if (!outputReceived) {
-        resolve(false)
-      }
-    })
+    // in case you're on a non-Windows/non-macOS platform
+    resolve(false)
   })
 }
