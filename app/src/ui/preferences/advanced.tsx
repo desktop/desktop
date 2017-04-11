@@ -48,6 +48,8 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
           Would you like to help us improve GitHub Desktop by periodically submitting <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>?
         </div>
 
+        <br />
+
         <Checkbox
           label='Yes, submit anonymized usage data'
           value={this.state.reportingOptOut ? CheckboxValue.Off : CheckboxValue.On}
