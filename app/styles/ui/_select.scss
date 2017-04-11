@@ -34,7 +34,7 @@
       // This is a custom version of the triangle-down octicon that was
       // adapted to be 8 by 5px. The gif is in 2x and the background-size
       // scales it back down so that we can have crisp arrows on high-dpi
-      // displays.
+      // displays. The path is M 0,0 4,5 8,0 Z and the color is #6a737d.
       background-image: url('data:image/gif;base64,R0lGODlhEAAKAMQAAGpzff///8PHy6arsXqCi46UnN7g4vHy8/v7+253gYuSmm12gO/w8dve4Pz8/KassniAicfLzwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAAAAAAALAAAAAAQAAoAAAUw4ACMZFk+TmGugIIEB8GSEBPcRjIvze1HM4FvKDI9hsNUyYUcxka1JjLHkzYFwmYIADs=');
       background-size: 8px 5px;
       background-repeat: no-repeat;
