@@ -73,6 +73,8 @@ export class BackgroundFetcher {
 
   /** Perform a fetch and schedule the next one. */
   private async performAndScheduleFetch(repository: GitHubRepository): Promise<void> {
+    if (this.stopped) { return }
+
     try {
       await this.fetch(this.repository)
     } catch (e) {
