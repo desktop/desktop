@@ -183,8 +183,12 @@ export class API {
   }
 
   /** Fetch a repo by its owner and name. */
-  public async fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
-    return this.client.repos(owner, name).fetch()
+  public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
+    try {
+      return await this.client.repos(owner, name).fetch()
+    } catch (e) {
+      return null
+    }
   }
 
   /** Fetch the logged in account. */
