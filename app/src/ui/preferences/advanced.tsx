@@ -1,15 +1,16 @@
 import * as React from 'react'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher, AppStore } from '../../lib/dispatcher'
 import { DialogContent } from '../dialog'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { LinkButton } from '../lib/link-button'
 
 interface IAdvancedPreferencesProps {
+  readonly appStore: AppStore
   readonly dispatcher: Dispatcher
 }
 
 interface IAdvancedPreferencesState {
-  readonly reportingOptOut: boolean,
+  readonly reportingOptOut: boolean
 }
 
 const SamplesURL = 'https://desktop.github.com/samples/'
@@ -24,7 +25,7 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
   }
 
   public componentDidMount() {
-    const optOut = this.props.dispatcher.getStatsOptOut()
+    const optOut = this.props.appStore._getStatsOptOut()
 
     this.setState({
       reportingOptOut: optOut,

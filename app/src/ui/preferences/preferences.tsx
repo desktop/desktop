@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { User } from '../../models/user'
-import { Dispatcher } from '../../lib/dispatcher'
+import { Dispatcher, AppStore } from '../../lib/dispatcher'
 import { TabBar } from '../tab-bar'
 import { Accounts } from './accounts'
 import { Advanced } from './advanced'
@@ -13,6 +13,7 @@ import { getGlobalConfigValue, setGlobalConfigValue } from '../../lib/git/config
 
 interface IPreferencesProps {
   readonly dispatcher: Dispatcher
+  readonly appStore: AppStore
   readonly dotComUser: User | null
   readonly enterpriseUser: User | null
   readonly onDismissed: () => void
@@ -122,6 +123,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       }
       case PreferencesTab.Advanced: {
         return <Advanced
+          appStore={this.props.appStore}
           dispatcher={this.props.dispatcher}
         />
       }
