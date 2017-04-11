@@ -10,7 +10,11 @@
     "url": "https://github.com/desktop/desktop.git"
   },
   "description": "The People's Glorious GitHub Client",
-  "author": "",
+  "author": {
+    "name": "GitHub, Inc.",
+    "email": "opensource+desktop@github.com",
+    "url": "https://desktop.github.com/"
+  },
   "license": "MIT",
   "dependencies": {
     "byline": "^4.2.2",
