@@ -1,7 +1,8 @@
 import * as React from 'react'
 import { Commit } from '../../models/commit'
+import { IAvatarUser } from '../../models/avatar'
 import { RichText } from '../lib/rich-text'
-import { Avatar, IAvatarUser } from '../lib/avatar'
+import { Avatar } from '../lib/avatar'
 import { RelativeTime } from '../relative-time'
 
 interface ICommitProps {

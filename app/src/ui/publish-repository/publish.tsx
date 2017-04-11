@@ -1,7 +1,7 @@
 import * as React from 'react'
 import { PublishRepository, IPublishRepositorySettings } from './publish-repository'
 import { Dispatcher } from '../../lib/dispatcher'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
 import { ButtonGroup } from '../lib/button-group'
 import { Button } from '../lib/button'
@@ -22,8 +22,8 @@ interface IPublishProps {
   /** The repository being published. */
   readonly repository: Repository
 
-  /** The signed in users. */
-  readonly users: ReadonlyArray<User>
+  /** The signed in accounts. */
+  readonly accounts: ReadonlyArray<Account>
 
   /** The function to call when the dialog should be dismissed. */
   readonly onDismissed: () => void
@@ -44,10 +44,10 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   public constructor(props: IPublishProps) {
     super(props)
 
-    const dotComUser = this.getUserForTab(PublishTab.DotCom)
-    const enterpriseUser = this.getUserForTab(PublishTab.Enterprise)
+    const dotComAccount = this.getAccountForTab(PublishTab.DotCom)
+    const enterpriseAccount = this.getAccountForTab(PublishTab.Enterprise)
     let startingTab = PublishTab.DotCom
-    if (!dotComUser && enterpriseUser) {
+    if (!dotComAccount && enterpriseAccount) {
       startingTab = PublishTab.Enterprise
     }
 
@@ -85,10 +85,10 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
   private renderContent() {
     const tab = this.state.currentTab
-    const user = this.getUserForTab(tab)
-    if (user) {
+    const account = this.getAccountForTab(tab)
+    if (account) {
       return <PublishRepository
-        user={user}
+        account={account}
         settings={this.state.publishSettings}
         onSettingsChanged={this.onSettingsChanged}/>
     } else {
@@ -104,13 +104,13 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
     this.setState({ publishSettings: settings })
   }
 
-  private getUserForTab(tab: PublishTab): User | null {
-    const users = this.props.users
+  private getAccountForTab(tab: PublishTab): Account | null {
+    const accounts = this.props.accounts
     switch (tab) {
       case PublishTab.DotCom:
-        return users.find(u => u.endpoint === getDotComAPIEndpoint()) || null
+        return accounts.find(a => a.endpoint === getDotComAPIEndpoint()) || null
       case PublishTab.Enterprise:
-        return users.find(u => u.endpoint !== getDotComAPIEndpoint()) || null
+        return accounts.find(a => a.endpoint !== getDotComAPIEndpoint()) || null
       default:
         return assertNever(tab, `Unknown tab: ${tab}`)
     }
@@ -138,7 +138,7 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
   private renderFooter() {
     const disabled = !this.state.publishSettings.name.length
     const tab = this.state.currentTab
-    const user = this.getUserForTab(tab)
+    const user = this.getAccountForTab(tab)
     if (user) {
       return (
         <DialogFooter>
@@ -163,14 +163,14 @@ export class Publish extends React.Component<IPublishProps, IPublishState> {
 
   private publishRepository = () => {
     const tab = this.state.currentTab
-    const user = this.getUserForTab(tab)
-    if (!user) {
+    const account = this.getAccountForTab(tab)
+    if (!account) {
       fatalError(`Tried to publish with no user. That seems impossible!`)
       return
     }
 
     const settings = this.state.publishSettings
-    this.props.dispatcher.publishRepository(this.props.repository, settings.name, settings.description, settings.private, user, settings.org)
+    this.props.dispatcher.publishRepository(this.props.repository, settings.name, settings.description, settings.private, account, settings.org)
     this.props.onDismissed()
   }
 

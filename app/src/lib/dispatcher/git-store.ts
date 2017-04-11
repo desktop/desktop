@@ -5,7 +5,7 @@ import { Repository } from '../../models/repository'
 import { WorkingDirectoryFileChange, FileStatus } from '../../models/status'
 import { Branch, BranchType } from '../../models/branch'
 import { Tip, TipState } from '../../models/tip'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
 
@@ -407,20 +407,20 @@ export class GitStore {
   }
 
   /**
-   * Fetch, using the given user for authentication.
+   * Fetch, using the given account for authentication.
    *
-   * @param user - The user to use for authentication if needed.
+   * @param account - The account to use for authentication if needed.
    */
-  public async fetch(user: User | null): Promise<void> {
+  public async fetch(account: Account | null): Promise<void> {
     const remotes = await getRemotes(this.repository)
 
     for (const remote of remotes) {
-      await this.performFailableOperation(() => fetchRepo(this.repository, user, remote.name))
+      await this.performFailableOperation(() => fetchRepo(this.repository, account, remote.name))
     }
   }
 
   /**
-   * Fetch a given refspec, using the given user for authentication.
+   * Fetch a given refspec, using the given account for authentication.
    *
    * @param user - The user to use for authentication if needed.
    * @param refspec - The association between a remote and local ref to use as
@@ -428,13 +428,13 @@ export class GitStore {
    *                  information on refspecs: https://www.git-scm.com/book/tr/v2/Git-Internals-The-Refspec
    *
    */
-  public async fetchRefspec(user: User | null, refspec: string): Promise<void> {
+  public async fetchRefspec(account: Account | null, refspec: string): Promise<void> {
 
     // TODO: we should favour origin here
     const remotes = await getRemotes(this.repository)
 
     for (const remote of remotes) {
-      await this.performFailableOperation(() => fetchRefspec(this.repository, user, remote.name, refspec))
+      await this.performFailableOperation(() => fetchRefspec(this.repository, account, remote.name, refspec))
     }
   }
 
