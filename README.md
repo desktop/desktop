@@ -8,23 +8,21 @@ information.
 GitHub Desktop is an [Electron](https://electron.atom.io)-based GitHub app. It is
 written in [TypeScript](http://www.typescriptlang.org) and uses [React](https://facebook.github.io/react/).
 
-## Getting Started
-
-### I just want to use it!
+## I want to use it!
 
 Download the either the [installer for macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin) or [for Windows](https://central.github.com/deployments/desktop/desktop/latest/win32). You'll be starting with a fresh installation, as there is no migration path from Desktop Classic to Desktop TNG:9000.
 
-### I want to work on it!
+## I want to work on it!
 
-#### Prerequisites
+### Prerequisites
 
-##### Node 7+
+#### Node 7+
 
 We use some ES6+ language constructs in our build scripts so you need [Node.js](https://nodejs.org) 7+ (just pick whatever the 'current' release is at the moment). Node 7 comes with npm 4 out of the box and while npm 4 isn't strictly necessary to build it does make things more efficient, especially on Windows where deep folder hierarchies can be detrimental to build speed.
 
 *Windows only: Make sure you allow the Node.js installer to add node to the PATH, it'll make life much easier for you. Also, make sure you're on NPM 3.10.4 or higher. You can check via `npm -v`. If not, run `npm install -g npm`*
 
-##### node-gyp
+#### node-gyp
 
 node-gyp is required to build some of our native npm packages (such as [keytar](https://github.com/atom/node-keytar))
 
@@ -35,11 +33,11 @@ node-gyp is required to build some of our native npm packages (such as [keytar](
 
 *Windows only*: Let python install into the default suggested path (`c:\Python27`), don't try to move it into Program Files or else you'll have to configure node-gyp manually with the path.
 
-##### OAuth Secret
+#### OAuth Secret
 
 The OAuth secret is embedded in the app at build time using the `DESKTOP_OAUTH_CLIENT_SECRET` environment variable. That secret is required to log in with a user using dev builds of the app. We recommend you [create a new OAuth](https://github.com/settings/applications/new) to use for development.
 
-#### Building
+### Building
 
 * Run `npm install` to get all required dependencies on your machine.
 * Run `npm run build:dev` to make a development build of the app.
@@ -61,7 +59,7 @@ npm run test:unit -- --grep CloneProgressParser
 
 Will run all tests matching `CloneProgressParser`.
 
-#### Using Atom
+### Using Atom
 
 If you're using [Atom](https://atom.io/) there's some plugins that you might want to install
 
@@ -69,7 +67,7 @@ If you're using [Atom](https://atom.io/) there's some plugins that you might wan
 * [atom-build-npm-apm](https://atom.io/packages/build-npm-apm) - Lets you invoke all npm scripts straight from the editor by pressing F7 (requires [atom-build](https://atom.io/packages/build))
 * [linter](https://atom.io/packages/linter) and [linter-tslint](https://atom.io/packages/linter-tslint) - Shows linter errors and warning in the editor
 
-#### Using Visual Studio Code
+### Using Visual Studio Code
 
 If you choose to use [Visual Studio Code](https://code.visualstudio.com/) there are some plugins that we recommend installing.
 
