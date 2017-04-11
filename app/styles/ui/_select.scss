@@ -36,6 +36,11 @@
       background-size: 8px 5px;
       background-repeat: no-repeat;
       background-position: right var(--spacing-half) center;
+
+      &:focus {
+        outline: none;
+        border-color: var(--focus-color);
+      }
     }
   }
 }
