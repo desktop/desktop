@@ -43,6 +43,10 @@ More closely matches dot com by allowing users to create a repo with a README, g
 
 No LFS functionality exposed in the UI.
 
+### Git Shell
+
+No longer provide a shell for the user. When the user chooses to open a shell, we check if they have git installed yet. If not, we send them to help docs.
+
 ## Remaining UI Design
 
 These are views that we plan to redesign before the beta launch:
