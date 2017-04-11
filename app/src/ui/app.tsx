@@ -26,7 +26,7 @@ import { AppMenuBar } from './app-menu'
 import { findItemByAccessKey, itemIsSelectable } from '../models/app-menu'
 import { UpdateAvailable } from './updates'
 import { Preferences } from './preferences'
-import { User } from '../models/user'
+import { Account } from '../models/account'
 import { TipState } from '../models/tip'
 import { shouldRenderApplicationMenu } from './lib/features'
 import { Merge } from './merge-branch'
@@ -286,22 +286,22 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private getUsernameForUpdateCheck() {
-    const dotComUser = this.getDotComUser()
-    return dotComUser ? dotComUser.login : ''
+    const dotComAccount = this.getDotComAccount()
+    return dotComAccount ? dotComAccount.login : ''
   }
 
-  private getDotComUser(): User | null {
+  private getDotComAccount(): Account | null {
     const state = this.props.appStore.getState()
-    const users = state.users
-    const dotComUser = users.find(u => u.endpoint === getDotComAPIEndpoint())
-    return dotComUser || null
+    const accounts = state.accounts
+    const dotComAccount = accounts.find(a => a.endpoint === getDotComAPIEndpoint())
+    return dotComAccount || null
   }
 
-  private getEnterpriseUser(): User | null {
+  private getEnterpriseAccount(): Account | null {
     const state = this.props.appStore.getState()
-    const users = state.users
-    const enterpriseUser = users.find(u => u.endpoint !== getDotComAPIEndpoint())
-    return enterpriseUser || null
+    const accounts = state.accounts
+    const enterpriseAccount = accounts.find(a => a.endpoint !== getDotComAPIEndpoint())
+    return enterpriseAccount || null
   }
 
   private updateBranch() {
@@ -741,8 +741,8 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.Preferences:
         return <Preferences
                 dispatcher={this.props.dispatcher}
-                dotComUser={this.getDotComUser()}
-                enterpriseUser={this.getEnterpriseUser()}
+                dotComAccount={this.getDotComAccount()}
+                enterpriseAccount={this.getEnterpriseAccount()}
                 onDismissed={this.onPopupDismissed}/>
       case PopupType.MergeBranch: {
         const repository = popup.repository
@@ -790,7 +790,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         )
       case PopupType.CloneRepository:
         return <CloneRepository
-                users={this.state.users}
+                accounts={this.state.accounts}
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
       case PopupType.CreateBranch: {
@@ -824,7 +824,7 @@ export class App extends React.Component<IAppProps, IAppState> {
           <Publish
             dispatcher={this.props.dispatcher}
             repository={popup.repository}
-            users={this.state.users}
+            accounts={this.state.accounts}
             onDismissed={this.onPopupDismissed}
         />
       )
@@ -1097,7 +1097,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       return <CloningRepositoryView repository={selectedState.repository}
                                     state={selectedState.state}/>
     } else if (selectedState.type === SelectionType.MissingRepository) {
-      return <MissingRepository repository={selectedState.repository} dispatcher={this.props.dispatcher} users={this.state.users} />
+      return <MissingRepository repository={selectedState.repository} dispatcher={this.props.dispatcher} accounts={this.state.accounts} />
     } else {
       return assertNever(selectedState, `Unknown state: ${selectedState}`)
     }

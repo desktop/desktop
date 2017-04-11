@@ -1,6 +1,6 @@
 [submodule "gemoji"]
 	path = gemoji
-	url = git@github.com:github/gemoji.git
+	url = https://github.com/github/gemoji.git
 [submodule "app/static/common/gitignore"]
 	path = app/static/common/gitignore
 	url = https://github.com/github/gitignore.git
