@@ -23,13 +23,13 @@ const launchTime = Date.now()
 let readyTime: number | null = null
 
 process.on('uncaughtException', (error: Error) => {
+  getLogger().error('Uncaught exception on main process', error)
+
   if (sharedProcess) {
     sharedProcess.console.error('Uncaught exception:')
     sharedProcess.console.error(error.name)
     sharedProcess.console.error(error.message)
   }
-
-  getLogger().error('Uncaught exception on main process', error)
 
   reportError(error, app.getVersion())
 })
