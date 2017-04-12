@@ -61,7 +61,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     //
     // Our dispatcher is asynchronous and only emits and update on animation
     // frames. This is a great thing for performance but it gets real messy
-    // when you throw textboxes into the mix. If we went for a traditional
+    // when you throw text boxes into the mix. If we went for a traditional
     // approach of persisting the textbox values in the dispatcher and updating
     // the virtual dom when we get new props there's an interim state which
     // means that the browser can't keep track of the cursor for us, see:
@@ -78,7 +78,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     // dispatcher since we don't have any state of our own.
 
     // If we receive a contextual commit message we'll take that and disregard
-    // anything currently in the textboxes (this might not be what we want).
+    // anything currently in the text boxes (this might not be what we want).
     if (nextProps.contextualCommitMessage) {
       this.setState(nextProps.contextualCommitMessage)
       // Once we receive the contextual commit message we can clear it. We don't
@@ -86,7 +86,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
       this.props.dispatcher.clearContextualCommitMessage(this.props.repository)
     } else if (initializing || this.props.repository.id !== nextProps.repository.id) {
       // We're either initializing (ie being mounted) or someone has switched
-      // repositories. If we receieve a message we'll take it
+      // repositories. If we receive a message we'll take it
       if (nextProps.commitMessage) {
         // Don't update dispatcher here, we're receiving it, could cause never-
         // ending loop.
