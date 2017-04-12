@@ -69,12 +69,9 @@ describe('GitStore', () => {
 
     Fs.writeFileSync(filePath, 'SOME WORDS GO HERE\n')
 
-    // commit the file
+    // commit the file, and then rename it
     await GitProcess.exec([ 'add', file ], repo.path)
     await GitProcess.exec([ 'commit', '-m', 'added file' ], repo.path)
-
-    Fs.writeFileSync(filePath, 'WRITING SOME NEW WORDS\n')
-
     await GitProcess.exec([ 'mv', file, renamedFile ], repo.path)
 
     const statusBeforeDiscard = await getStatus(repo)
