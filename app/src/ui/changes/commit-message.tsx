@@ -167,22 +167,31 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
         <div className='summary'>
           {this.renderAvatar()}
 
-          <AutocompletingInput className='summary-field'
+          <AutocompletingInput
+            className='summary-field'
             placeholder='Summary'
             value={this.state.summary}
             onValueChanged={this.onSummaryChanged}
             onKeyDown={this.onKeyDown}
-            autocompletionProviders={this.props.autocompletionProviders}/>
+            autocompletionProviders={this.props.autocompletionProviders}
+          />
         </div>
 
-        <AutocompletingTextArea className='description-field'
+        <AutocompletingTextArea
+          className='description-field'
           placeholder='Description'
           value={this.state.description || ''}
           onValueChanged={this.onDescriptionChanged}
           onKeyDown={this.onKeyDown}
-          autocompletionProviders={this.props.autocompletionProviders}/>
+          autocompletionProviders={this.props.autocompletionProviders}
+        />
 
-        <Button type='submit' className='commit-button' onClick={this.onSubmit} disabled={!buttonEnabled}>
+        <Button
+          type='submit'
+          className='commit-button'
+          onClick={this.onSubmit}
+          disabled={!buttonEnabled}
+        >
           <div>Commit to <strong>{branchName}</strong></div>
         </Button>
       </div>
