@@ -60,7 +60,8 @@ export class Select extends React.Component<ISelectProps, ISelectState> {
           id={this.state.inputId}
           onChange={this.props.onChange}
           value={this.props.value}
-          defaultValue={this.props.defaultValue}>
+          defaultValue={this.props.defaultValue}
+        >
           {this.props.children}
         </select>
       </div>
