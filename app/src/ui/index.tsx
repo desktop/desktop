@@ -45,7 +45,6 @@ if (!process.env.TEST_ENV) {
 }
 
 process.on('uncaughtException', (error: Error) => {
-  debugger
   getLogger().error('Uncaught exception on UI', error)
   reportError(error, getVersion())
 })

@@ -13,7 +13,6 @@ export async function reportError(error: Error, version: string) {
   data.append('stack', error.stack)
   data.append('version', version)
 
-  debugger
   const options = {
     method: 'POST',
     body: data,
