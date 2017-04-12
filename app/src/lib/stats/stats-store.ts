@@ -77,7 +77,11 @@ export class StatsStore {
     }
 
     try {
-      await fetch(StatsEndpoint, options)
+      const response = await fetch(StatsEndpoint, options)
+      if (!response.ok) {
+        throw new Error(`Unexpected status: ${response.statusText} (${response.status})`)
+      }
+
       console.log('Stats reported.')
 
       await this.clearDailyStats()
