@@ -30,6 +30,8 @@ interface IAboutProps {
   readonly applicationVersion: string
 
   readonly usernameForUpdateCheck: string
+
+  readonly onShowAcknowledgements: () => void
 }
 
 interface IAboutState {
@@ -226,11 +228,14 @@ export class About extends React.Component<IAboutProps, IAboutState> {
             <Octicon symbol={OcticonSymbol.markGithub} />
           </Row>
           <h2>{name}</h2>
-          <p className='version'>
+          <p className='no-padding'>
             Version {version} ({releaseNotesLink})
           </p>
-          <p>
+          <p className='no-padding'>
             <LinkButton uri='https://desktop.github.com/eula/'>End-User License Agreement</LinkButton>
+          </p>
+          <p>
+            <LinkButton onClick={this.props.onShowAcknowledgements}>Acknowledgements</LinkButton>
           </p>
           {this.renderUpdateDetails()}
           {this.renderUpdateButton()}

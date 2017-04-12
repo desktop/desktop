@@ -39,6 +39,7 @@ import { SignIn } from './sign-in'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
 import { Publish } from './publish-repository'
+import { Acknowledgements } from './acknowledgements'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -803,6 +804,7 @@ export class App extends React.Component<IAppProps, IAppState> {
            applicationName={getName()}
            applicationVersion={getVersion()}
            usernameForUpdateCheck={this.getUsernameForUpdateCheck()}
+           onShowAcknowledgements={this.showAcknowledgements}
           />
         )
       case PopupType.PublishRepository:
@@ -814,9 +816,17 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
           />
         )
+      case PopupType.Acknowledgements:
+        return (
+          <Acknowledgements onDismissed={this.onPopupDismissed}/>
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private showAcknowledgements = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.Acknowledgements })
   }
 
   private renderPopup() {
