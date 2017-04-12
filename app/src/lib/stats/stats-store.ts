@@ -69,7 +69,6 @@ export class StatsStore {
     const now = Date.now()
     const stats = await this.getDailyStats()
     const options = {
-      url: StatsEndpoint,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
