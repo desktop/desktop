@@ -7,23 +7,18 @@ export async function reportError(error: Error, version: string) {
     // return
   }
 
-  const body = {
-    name: error.name,
-    message: error.message,
-    stack: error.stack,
-    version,
-  }
-
-const data = new FormData()
-data.append('json', JSON.stringify(body))
+  const data = new FormData()
+  data.append('name', error.name)
+  data.append('message', error.message)
+  data.append('stack', error.stack)
+  data.append('version', version)
 
   debugger
 
   try {
-    await fetch(ErrorEndpoint,
-    {
-        method: 'POST',
-        body: data,
+    await fetch(ErrorEndpoint, {
+      method: 'POST',
+      body: data,
     })
     console.log('Exception reported.')
   } catch (e) {
