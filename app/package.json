@@ -10,7 +10,11 @@
     "url": "https://github.com/desktop/desktop.git"
   },
   "description": "The People's Glorious GitHub Client",
-  "author": "",
+  "author": {
+    "name": "GitHub, Inc.",
+    "email": "opensource+desktop@github.com",
+    "url": "https://desktop.github.com/"
+  },
   "license": "MIT",
   "dependencies": {
     "byline": "^4.2.2",
@@ -37,6 +41,7 @@
     "untildify": "^3.0.2",
     "username": "^2.3.0",
     "uuid": "^3.0.1",
+    "wicg-focus-ring": "^1.0.1",
     "winston": "^2.3.1",
     "winston-daily-rotate-file": "^1.4.5"
   },

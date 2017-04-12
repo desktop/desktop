@@ -29,7 +29,11 @@
     "rebuild-hard:dev": "npm run clean-slate && npm run rebuild:dev",
     "rebuild-hard:prod": "npm run clean-slate && npm run rebuild:prod"
   },
-  "author": "",
+  "author": {
+    "name": "GitHub, Inc.",
+    "email": "opensource+desktop@github.com",
+    "url": "https://desktop.github.com/"
+  },
   "license": "MIT",
   "engines": {
     "node": ">= 6",
@@ -91,6 +95,7 @@
     "@types/react-virtualized": "0.0.3",
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
-    "@types/winston": "^2.2.0"
+    "@types/winston": "^2.2.0",
+    "legal-eagle": "^0.14.0"
   }
 }
