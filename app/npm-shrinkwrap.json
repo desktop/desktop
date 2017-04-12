@@ -212,10 +212,20 @@
       "from": "dexie@>=1.4.1 <2.0.0",
       "resolved": "https://registry.npmjs.org/dexie/-/dexie-1.4.1.tgz"
     },
+    "dom-classlist": {
+      "version": "1.0.1",
+      "from": "dom-classlist@>=1.0.1 <2.0.0",
+      "resolved": "https://registry.npmjs.org/dom-classlist/-/dom-classlist-1.0.1.tgz"
+    },
     "dom-helpers": {
       "version": "2.4.0",
       "from": "dom-helpers@>=2.4.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/dom-helpers/-/dom-helpers-2.4.0.tgz"
+    },
+    "dom-matches": {
+      "version": "2.0.0",
+      "from": "dom-matches@>=2.0.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/dom-matches/-/dom-matches-2.0.0.tgz"
     },
     "dugite": {
       "version": "1.24.0",
@@ -857,6 +867,11 @@
       "version": "1.2.12",
       "from": "which@>=1.2.8 <2.0.0",
       "resolved": "https://registry.npmjs.org/which/-/which-1.2.12.tgz"
+    },
+    "wicg-focus-ring": {
+      "version": "1.0.1",
+      "from": "wicg-focus-ring@latest",
+      "resolved": "https://registry.npmjs.org/wicg-focus-ring/-/wicg-focus-ring-1.0.1.tgz"
     },
     "winston": {
       "version": "2.3.1",
