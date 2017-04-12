@@ -254,6 +254,10 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
       this.props.onKeyDown(event)
     }
 
+    if (event.isDefaultPrevented) {
+      return
+    }
+
     const state = this.state.autocompletionState
     if (!state) { return }
 
@@ -313,6 +317,10 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
   private onChange = async (event: React.FormEvent<ElementType>) => {
     if (this.props.onChange) {
       this.props.onChange(event)
+    }
+
+    if (event.defaultPrevented) {
+      return
     }
 
     const str = event.currentTarget.value
