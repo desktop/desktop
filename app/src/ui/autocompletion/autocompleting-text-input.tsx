@@ -17,9 +17,19 @@ interface IRange {
 const getCaretCoordinates: (element: HTMLElement, position: number) => IPosition = require('textarea-caret')
 
 interface IAutocompletingTextInputProps<ElementType> {
+  /**
+   * An optional className to be applied to the rendered
+   * top level element of the component.
+   */
   readonly className?: string
+
+  /** The placeholder for the input field. */
   readonly placeholder?: string
+
+  /** The current value of the input field. */
   readonly value?: string
+
+  /** Called when the user changes the value in the input field. */
   readonly onChange?: (event: React.FormEvent<ElementType>) => void
 
   /**
@@ -34,7 +44,13 @@ interface IAutocompletingTextInputProps<ElementType> {
    */
   readonly onValueChanged?: (value: string) => void
 
+  /** Called on key down. */
   readonly onKeyDown?: (event: React.KeyboardEvent<ElementType>) => void
+
+  /**
+   * A list of autocompletion providers that should be enabled for this
+   * input.
+   */
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 }
 
