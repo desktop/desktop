@@ -43,10 +43,19 @@ export class Select extends React.Component<ISelectProps, ISelectState> {
     }
   }
 
+  private renderLabel() {
+    const label = this.props.label
+    const inputId = this.state.inputId
+
+    return !!label
+      ? <label htmlFor={inputId}>{label}</label>
+      : null
+  }
+
   public render() {
     return (
       <div className='select-component'>
-        <label htmlFor={this.state.inputId}>{this.props.label}</label>
+        {this.renderLabel()}
         <select
           onChange={this.props.onChange}
           value={this.props.value}
