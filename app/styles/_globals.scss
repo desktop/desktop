@@ -132,3 +132,8 @@ button {
 :focus:not(.focus-ring) {
   outline: none;
 }
+
+// http://stackoverflow.com/questions/7538771/what-is-webkit-focus-ring-color
+:focus {
+  outline: auto 5px var(--focus-color);
+}
