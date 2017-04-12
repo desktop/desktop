@@ -264,7 +264,14 @@ export class AppWindow {
 
   /** Report the exception to the renderer. */
   public sendException(error: Error) {
-    this.window.webContents.send('main-process-exception', error)
+    // `Error` can't be JSONified so it doesn't transport nicely over IPC. So
+    // we'll just manually copy the properties we care about.
+    const friendlyError = {
+      stack: error.stack,
+      message: error.message,
+      name: error.name,
+    }
+    this.window.webContents.send('main-process-exception', friendlyError)
   }
 
   /**
