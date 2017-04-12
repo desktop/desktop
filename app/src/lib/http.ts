@@ -44,7 +44,7 @@ export function request(endpoint: string, authorization: string | null, method: 
   const options = {
     headers,
     method,
-    body,
+    body: JSON.stringify(body),
   }
 
   return fetch(url, options)
