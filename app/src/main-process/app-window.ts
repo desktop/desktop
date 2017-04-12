@@ -262,6 +262,18 @@ export class AppWindow {
     this.window.webContents.send('app-menu', { menu })
   }
 
+  /** Report the exception to the renderer. */
+  public sendException(error: Error) {
+    // `Error` can't be JSONified so it doesn't transport nicely over IPC. So
+    // we'll just manually copy the properties we care about.
+    const friendlyError = {
+      stack: error.stack,
+      message: error.message,
+      name: error.name,
+    }
+    this.window.webContents.send('main-process-exception', friendlyError)
+  }
+
   /**
    * Get the time (in milliseconds) spent loading the page.
    *
