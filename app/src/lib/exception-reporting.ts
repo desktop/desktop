@@ -1,15 +1,10 @@
-import { proxyRequest } from '../ui/main-process-proxy'
-import { IHTTPRequest } from './http'
-
 const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
 
 /** Report the error to Central. */
 export async function reportError(error: Error, version: string) {
-  console.error(error)
-
   if (__DEV__ || process.env.TEST_ENV) {
     console.error(`An uncaught exception was thrown. If this were a production build it would be reported to Central. Instead, maybe give it a lil lookyloo.`)
-    return
+    // return
   }
 
   const body = {
@@ -19,14 +14,17 @@ export async function reportError(error: Error, version: string) {
     version,
   }
 
-  const options: IHTTPRequest = {
-    method: 'POST',
-    url: ErrorEndpoint,
-    body,
-  }
+const data = new FormData()
+data.append('json', JSON.stringify(body))
+
+  debugger
 
   try {
-    await proxyRequest(options)
+    await fetch(ErrorEndpoint,
+    {
+        method: 'POST',
+        body: data,
+    })
     console.log('Exception reported.')
   } catch (e) {
     console.error('Error submitting exception report:')
