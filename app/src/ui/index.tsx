@@ -26,6 +26,16 @@ if (__DEV__) {
   installDevGlobals()
 }
 
+// We're using a polyfill for the upcoming CSS4 `:focus-ring` pseudo-selector.
+// This allows us to not have to override default accessibility driven focus
+// styles for buttons in the case when a user clicks on a button. This also
+// gives better visiblity to individuals who navigate with the keyboard.
+//
+// See:
+//   https://github.com/WICG/focus-ring
+//   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
+require('wicg-focus-ring')
+
 const startTime = Date.now()
 
 if (!process.env.TEST_ENV) {

@@ -6,6 +6,7 @@ import { Row } from '../lib/row'
 import { assertNever } from '../../lib/fatal-error'
 import { DialogContent } from '../dialog'
 import { Avatar } from '../lib/avatar'
+import { CallToAction } from '../lib/call-to-action'
 
 interface IAccountsProps {
   readonly dotComAccount: Account | null
@@ -55,13 +56,11 @@ export class Accounts extends React.Component<IAccountsProps, void> {
     )
   }
 
-  private onDotComSignIn = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault()
+  private onDotComSignIn = () => {
     this.props.onDotComSignIn()
   }
 
-  private onEnterpriseSignIn = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault()
+  private onEnterpriseSignIn = () => {
     this.props.onEnterpriseSignIn()
   }
 
@@ -70,24 +69,16 @@ export class Accounts extends React.Component<IAccountsProps, void> {
       case SignInType.DotCom: {
 
         return (
-          <Row className='account-sign-in'>
-            <div>
-              Sign in to your GitHub.com account to access your
-              repositories
-            </div>
-            <Button type='submit' onClick={this.onDotComSignIn}>Sign in</Button>
-          </Row>
+          <CallToAction actionTitle='Sign In' onAction={this.onDotComSignIn}>
+            <div>Sign in to your GitHub.com account to access your repositories.</div>
+          </CallToAction>
         )
       }
       case SignInType.Enterprise:
         return (
-          <Row className='account-sign-in'>
-            <div>
-              If you have a GitHub Enterprise account at work, sign in to it
-              to get access to your repositories.
-            </div>
-            <Button type='submit' onClick={this.onEnterpriseSignIn}>Sign in</Button>
-          </Row>
+          <CallToAction actionTitle='Sign In' onAction={this.onEnterpriseSignIn}>
+            <div>If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.</div>
+          </CallToAction>
         )
       default:
         return assertNever(type, `Unknown sign in type: ${type}`)
