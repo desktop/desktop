@@ -1,3 +1,7 @@
+// Essentially all the styles needed to transform a text box
+// input element into something that doesn't look horrendous.
+// It's a mix in because the styles are shared between inputs
+// and select components.
 @mixin textboxish {
   border: 1px solid var(--box-border-color);
   border-radius: var(--border-radius);
