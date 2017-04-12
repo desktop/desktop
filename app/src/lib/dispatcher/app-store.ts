@@ -541,7 +541,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _selectRepository(repository: Repository | CloningRepository | null): Promise<Repository | null> {
-
+    const previouslySelectedRepository = this.selectedRepository
     this.selectedRepository = repository
     this.emitUpdate()
 
@@ -570,7 +570,7 @@ export class AppStore {
     // The selected repository could have changed while we were refreshing.
     if (this.selectedRepository !== repository) { return null }
 
-    this.startBackgroundFetching(repository)
+    this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.refreshMentionables(repository)
 
     return repository
@@ -605,7 +605,7 @@ export class AppStore {
     this.gitHubUserStore.updateMentionables(gitHubRepository, account)
   }
 
-  private startBackgroundFetching(repository: Repository) {
+  private startBackgroundFetching(repository: Repository, withInitialSkew: boolean) {
     if (this.currentBackgroundFetcher) {
       fatalError(`We should only have on background fetcher active at once, but we're trying to start background fetching on ${repository.name} while another background fetcher is still active!`)
       return
@@ -617,7 +617,7 @@ export class AppStore {
     if (!repository.gitHubRepository) { return }
 
     const fetcher = new BackgroundFetcher(repository, account, r => this.fetch(r, account))
-    fetcher.start()
+    fetcher.start(withInitialSkew)
     this.currentBackgroundFetcher = fetcher
   }
 
