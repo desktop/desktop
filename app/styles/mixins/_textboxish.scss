@@ -16,4 +16,9 @@
     border-color: var(--focus-color);
     box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
   }
+
+  &:disabled {
+    background: --box-alt-background-color;
+    color: var(--text-secondary-color);
+  }
 }
