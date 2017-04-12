@@ -26,6 +26,7 @@
       outline: none;
       border-color: var(--toolbar-button-border-color);
       background-color: var(--toolbar-button-hover-background-color);
+      box-shadow: none;
     }
 
     &:not(:disabled):hover {
@@ -96,6 +97,10 @@
       // color ours or remove it entirely for us to match the
       // min-width of the foldout.
       border-color: var(--toolbar-button-active-border-color);
+
+      .description {
+        color: var(--text-secondary-color);
+      }
     }
   }
 }

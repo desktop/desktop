@@ -30,7 +30,7 @@ export interface IToolbarButtonProps {
    * An optional event handler for when the button is activated
    * by a pointer event or by hitting space/enter while focused.
    */
-  readonly onClick?: () => void
+  readonly onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /**
    * A function that's called when the user hovers over the button with
@@ -101,9 +101,9 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
 
   public innerButton: Button | null = null
 
-  private onClick = () => {
+  private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     if (this.props.onClick) {
-      this.props.onClick()
+      this.props.onClick(event)
     }
   }
 
@@ -117,15 +117,6 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
   public focusButton = () => {
     if (this.innerButton) {
       this.innerButton.focus()
-    }
-  }
-
-  /**
-   * Programmatically remove keyboard focus from the button element.
-   */
-  public blurButton() {
-    if (this.innerButton) {
-      this.innerButton.blur()
     }
   }
 

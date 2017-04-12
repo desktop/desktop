@@ -24,10 +24,9 @@
 
     .avatar {
       flex-shrink: 0;
-      width: 28px;
-      height: 28px;
+      width: var(--text-field-height);
+      height:var(--text-field-height);
       border: var(--base-border);
-      border-radius: var(--border-radius);
       margin-right: var(--spacing-half);
     }
   }

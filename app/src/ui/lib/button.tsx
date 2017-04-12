@@ -8,7 +8,7 @@ export interface IButtonProps {
    * passed along and can be used to prevent the default action
    * or stop the even from bubbling.
    */
-  readonly onClick?: (event: React.FormEvent<HTMLButtonElement>) => void
+  readonly onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /**
    * A function that's called when the user moves over the button with
@@ -28,6 +28,9 @@ export interface IButtonProps {
   /** CSS class names */
   readonly className?: string
 
+  /** The type of button size, e.g., normal or small. */
+  readonly size?: 'normal' | 'small'
+
   /**
    * The `ref` for the underlying <button> element.
    *
@@ -43,15 +46,15 @@ export interface IButtonProps {
    * A value of 'undefined' means that whether or not the element participates
    * in sequential keyboard navigation is left to the user agent's default
    * settings.
-   * 
+   *
    * A negative value means that the element can receive focus but not
    * through sequential keyboard navigation (i.e. only via programmatic
    * focus)
-   * 
+   *
    * A value of zero means that the element can receive focus through
    * sequential keyboard navigation and that the order should be determined
    * by the element's position in the DOM.
-   * 
+   *
    * A positive value means that the element can receive focus through
    * sequential keyboard navigation and that it should have the explicit
    * order provided and not have it be determined by its position in the DOM.
@@ -103,7 +106,11 @@ export class Button extends React.Component<IButtonProps, void> {
   }
 
   public render() {
-    const className = classNames('button-component', this.props.className)
+    const className = classNames(
+      'button-component',
+       { 'small-button': this.props.size === 'small' },
+       this.props.className
+    )
 
     return (
       <button
