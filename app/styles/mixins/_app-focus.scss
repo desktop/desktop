@@ -1,0 +1,11 @@
+@mixin app-focused {
+  #desktop-app-chrome.focused & {
+    @content;
+  }
+}
+
+@mixin app-blurred {
+  #desktop-app-chrome.blurred & {
+    @content;
+  }
+}
