@@ -26,7 +26,7 @@
     box-shadow: 0 0 0 1px var(--secondary-button-focus-shadow-color);
   }
 
-  &:disabled { opacity: 0.3; }
+  &:disabled { opacity: 0.6; }
 }
 
 .button-component[type='submit'] {
