@@ -105,12 +105,12 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     this.setState({ summary: '', description: null })
   }
 
-  private handleSummaryChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.setState({ summary: event.currentTarget.value })
+  private onSummaryChanged = (summary: string) => {
+    this.setState({ summary })
   }
 
-  private handleDescriptionChange = (event: React.FormEvent<HTMLTextAreaElement>) => {
-    this.setState({ description: event.currentTarget.value })
+  private onDescriptionChanged = (description: string) => {
+    this.setState({ description })
   }
 
   private handleSubmit = () => {
@@ -170,7 +170,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
           <AutocompletingInput className='summary-field'
             placeholder='Summary'
             value={this.state.summary}
-            onChange={this.handleSummaryChange}
+            onValueChanged={this.onSummaryChanged}
             onKeyDown={this.onKeyDown}
             autocompletionProviders={this.props.autocompletionProviders}/>
         </div>
@@ -178,7 +178,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
         <AutocompletingTextArea className='description-field'
           placeholder='Description'
           value={this.state.description || ''}
-          onChange={this.handleDescriptionChange}
+          onValueChanged={this.onDescriptionChanged}
           onKeyDown={this.onKeyDown}
           autocompletionProviders={this.props.autocompletionProviders}/>
 
