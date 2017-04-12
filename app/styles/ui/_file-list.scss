@@ -30,13 +30,7 @@
 
     .checkbox-component {
       flex-shrink: 0;
-      align-items: center;
       width: 20px;
-      margin: 0;
-
-      input {
-        margin: 0;
-      }
     }
 
     input, .status { flex-shrink: 0; }
