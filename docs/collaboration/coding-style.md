@@ -1,3 +1,5 @@
+**TODO: merge this into `docs/styleguide.md`**
+
 # Coding Style
 
 For the most part we're just sticking to vanilla TypeScript and using TSLint to

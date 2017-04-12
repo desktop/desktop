@@ -1,4 +1,4 @@
-# Typescript styleguide
+# Typescript Style Guide
 
 Most of our preferred style when writing typescript is configured in our [tslint.json](../tslint.json) file.
 
@@ -16,7 +16,7 @@ While there doesn't appear to be any well-used typescript documentation export u
 moment we hope that it's only a matter of time. JSDoc uses a lot of metadata that is already self-documented
 in the typescript type system such as visibility, inheritance, membership.
 
-For now all you need to know is that you can document classes, methods, properties and fields by using the 
+For now all you need to know is that you can document classes, methods, properties and fields by using the
 following formatted comment on the line above whatever you're trying to document.
 
 ```
@@ -35,3 +35,4 @@ and leave a blank line before you go into detail, similar to a git commit messag
  * Go nuts with documentation here and in more paragraphs if you need to.
  */
 ```
+
