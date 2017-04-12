@@ -616,7 +616,7 @@ export class AppStore {
 
     if (!repository.gitHubRepository) { return }
 
-    const fetcher = new BackgroundFetcher(repository, account, r => this.fetch(r, account))
+    const fetcher = new BackgroundFetcher(repository, account, r => this.performFetch(r, account, true))
     fetcher.start(withInitialSkew)
     this.currentBackgroundFetcher = fetcher
   }
@@ -1298,10 +1298,14 @@ export class AppStore {
   }
 
   /** Fetch the repository. */
-  public async fetch(repository: Repository, account: Account | null): Promise<void> {
+  public fetch(repository: Repository, account: Account | null): Promise<void> {
+    return this.performFetch(repository, account, false)
+  }
+
+  private async performFetch(repository: Repository, account: Account | null, userInitiated: boolean): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
-      await gitStore.fetch(account)
+      await gitStore.fetch(account, userInitiated)
       await this.fastForwardBranches(repository)
     })
 
