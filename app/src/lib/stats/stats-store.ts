@@ -2,8 +2,6 @@ import * as OS from 'os'
 import { UAParser } from 'ua-parser-js'
 import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
 import { getVersion } from '../../ui/lib/app-proxy'
-import { proxyRequest } from '../../ui/main-process-proxy'
-import { IHTTPRequest } from '../http'
 import { hasShownWelcomeFlow } from '../welcome'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
@@ -70,17 +68,17 @@ export class StatsStore {
 
     const now = Date.now()
     const stats = await this.getDailyStats()
-    const options: IHTTPRequest = {
+    const options = {
       url: StatsEndpoint,
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: stats,
+      body: JSON.stringify(stats),
     }
 
     try {
-      await proxyRequest(options)
+      await fetch(StatsEndpoint, options)
       console.log('Stats reported.')
 
       await this.clearDailyStats()
