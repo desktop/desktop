@@ -133,7 +133,9 @@ button {
   outline: none;
 }
 
-// http://stackoverflow.com/questions/7538771/what-is-webkit-focus-ring-color
-:focus {
-  outline: auto 5px var(--focus-color);
+@include win32-context {
+  // http://stackoverflow.com/questions/7538771/what-is-webkit-focus-ring-color
+  :focus {
+    outline: auto 5px var(--focus-color);
+  }
 }
