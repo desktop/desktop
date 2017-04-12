@@ -8,7 +8,6 @@ import { parseURL } from '../lib/parse-url'
 import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
-import { reportError } from '../lib/exception-reporting'
 import { IHTTPRequest, IHTTPResponse, getEncoding } from '../lib/http'
 
 import { getLogger } from '../lib/logging/main'
@@ -31,7 +30,9 @@ process.on('uncaughtException', (error: Error) => {
     sharedProcess.console.error(error.message)
   }
 
-  reportError(error, app.getVersion())
+  if (mainWindow) {
+    mainWindow.sendException(error)
+  }
 })
 
 if (__WIN32__ && process.argv.length > 1) {

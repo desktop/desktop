@@ -262,6 +262,11 @@ export class AppWindow {
     this.window.webContents.send('app-menu', { menu })
   }
 
+  /** Report the exception to the renderer. */
+  public sendException(error: Error) {
+    this.window.webContents.send('main-process-exception', error)
+  }
+
   /**
    * Get the time (in milliseconds) spent loading the page.
    *

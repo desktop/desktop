@@ -49,6 +49,10 @@ process.on('uncaughtException', (error: Error) => {
   reportError(error, getVersion())
 })
 
+ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
+  reportError(error, getVersion())
+})
+
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
 const cloningRepositoriesStore = new CloningRepositoriesStore()
 const emojiStore = new EmojiStore()
