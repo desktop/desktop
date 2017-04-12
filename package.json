@@ -95,6 +95,7 @@
     "@types/react-virtualized": "0.0.3",
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
-    "@types/winston": "^2.2.0"
+    "@types/winston": "^2.2.0",
+    "legal-eagle": "^0.14.0"
   }
 }
