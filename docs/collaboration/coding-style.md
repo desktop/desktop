@@ -1,6 +1,7 @@
 # Coding Style
 
-For the most part we're just sticking to vanilla TypeScript and using TSLint to enforce this standard, but here's a couple of additional things to look for:
+For the most part we're just sticking to vanilla TypeScript and using TSLint to
+enforce this standard, but here's a couple of additional things to look for.
 
 ## Visibility of AppStore Methods
 
@@ -21,3 +22,17 @@ We do this by making the methods look unappealing:
     ...
   }
 ```
+
+## Asynchronous and Synchronous Node APIs
+
+### Application Code
+
+We should be using asynchronous core APIs throughout the application, unless
+there's a compelling reason and no asynchronous alternative. And in those cases
+the method should be suffixed with `Sync` to make it clear to the caller what's
+happening.
+
+### Scripts
+
+For scripts we should favour synchronous APIs as the asynchronous benefits are
+not so important there, and  it makes the code easier to read.
