@@ -599,6 +599,7 @@ export class GitStore {
       const ref = await this.tip.branch.name
       await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, ref))
     }
+
     const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
 
     if (modifiedFiles.length) {
