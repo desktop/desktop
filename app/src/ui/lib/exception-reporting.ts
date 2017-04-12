@@ -4,7 +4,7 @@ const ErrorEndpoint = 'https://central.github.com/api/desktop/exception'
 export async function reportError(error: Error, version: string) {
   if (__DEV__ || process.env.TEST_ENV) {
     console.error(`An uncaught exception was thrown. If this were a production build it would be reported to Central. Instead, maybe give it a lil lookyloo.`)
-    // return
+    return
   }
 
   const data = new FormData()
