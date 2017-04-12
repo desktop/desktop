@@ -57,6 +57,7 @@ export class Select extends React.Component<ISelectProps, ISelectState> {
       <div className='select-component'>
         {this.renderLabel()}
         <select
+          id={this.state.inputId}
           onChange={this.props.onChange}
           value={this.props.value}
           defaultValue={this.props.defaultValue}>
