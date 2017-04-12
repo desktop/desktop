@@ -187,8 +187,8 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
       type: 'text',
       placeholder: this.props.placeholder,
       value: this.props.value,
-      onChange: (event: React.FormEvent<ElementType>) => this.onChange(event),
-      onKeyDown: (event: React.KeyboardEvent<ElementType>) => this.onKeyDown(event),
+      onChange: this.onChange,
+      onKeyDown: this.onKeyDown,
     })
   }
 
@@ -249,7 +249,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     return null
   }
 
-  private onKeyDown(event: React.KeyboardEvent<ElementType>) {
+  private onKeyDown = (event: React.KeyboardEvent<ElementType>) => {
     if (this.props.onKeyDown) {
       this.props.onKeyDown(event)
     }
@@ -310,7 +310,7 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     return null
   }
 
-  private async onChange(event: React.FormEvent<ElementType>) {
+  private onChange = async (event: React.FormEvent<ElementType>) => {
     if (this.props.onChange) {
       this.props.onChange(event)
     }
