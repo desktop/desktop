@@ -11,6 +11,7 @@ import { Row } from '../lib/row'
 import { Account } from '../../models/account'
 import { parseOwnerAndName, IRepositoryIdentifier } from '../../lib/remote-parsing'
 import { findAccountForRemote } from '../../lib/find-account'
+import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 
 /** The name for the error when the destination already exists. */
@@ -83,7 +84,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
             <TextBox
               placeholder='URL or username/repository'
               value={this.state.url}
-              onChange={this.onURLChanged}
+              onValueChanged={this.onURLChanged}
               autoFocus/>
           </Row>
 
@@ -117,10 +118,26 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     this.setState({ ...this.state, path })
   }
 
-  private onURLChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const url = event.currentTarget.value
+  private checkPathValid(newPath: string) {
+    FS.exists(newPath, exists => {
+      // If the path changed while we were checking, we don't care anymore.
+      if (this.state.path !== newPath) { return }
+
+      let error: Error | null = null
+      if (exists) {
+        error = new Error('The destination already exists.')
+        error.name = DestinationExistsErrorName
+      }
+
+      this.setState({ ...this.state, error })
+    })
+  }
+
+  private onURLChanged = (input: string) => {
+    const url = input
     const parsed = parseOwnerAndName(url)
     const lastParsedIdentifier = this.state.lastParsedIdentifier
+
     let newPath: string
     if (lastParsedIdentifier) {
       if (parsed) {
@@ -141,33 +158,45 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       lastParsedIdentifier: parsed,
     })
 
-    FS.exists(newPath, exists => {
-      // If the path changed while we were checking, we don't care anymore.
-      if (this.state.path !== newPath) { return }
-
-      let error: Error | null = null
-      if (exists) {
-        error = new Error('The destination already exists.')
-        error.name = DestinationExistsErrorName
-      }
-
-      this.setState({ ...this.state, error })
-    })
+    this.checkPathValid(newPath)
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
     this.setState({ ...this.state, path })
+    this.checkPathValid(path)
+  }
+
+  /**
+   * Lookup the account associated with the clone (if applicable) and resolve
+   * the repository alias to the clone URL. findAccountForRemote will throw
+   * if neither of these conditions are satisfied, so let this bubble up and
+   * display a relevant message to the user.
+   */
+  private async resolveCloneDetails(): Promise<{ url: string, account: Account }> {
+    const identifier = this.state.lastParsedIdentifier
+    let url = this.state.url
+
+    const account = await findAccountForRemote(url, this.props.accounts)
+
+    if (identifier) {
+      const api = new API(account)
+      const repo = await api.fetchRepository(identifier.owner, identifier.name)
+      if (repo) {
+        url =  repo.cloneUrl
+      }
+    }
+
+    return { url, account }
   }
 
   private clone = async () => {
     this.setState({ ...this.state, loading: true })
 
-    const url = this.state.url
     const path = this.state.path
 
     try {
-      const account = await findAccountForRemote(url, this.props.accounts)
+      const { url, account } = await this.resolveCloneDetails()
       this.cloneImpl(url, path, account)
     } catch (error) {
       this.setState({

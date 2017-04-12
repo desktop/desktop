@@ -1,4 +1,5 @@
 import { IEmail } from './email'
+import { getDotComAPIEndpoint } from '../lib/api'
 
 /** The data-only interface for Account for transport across IPC. */
 export interface IAccount {
@@ -32,10 +33,14 @@ export class Account implements IAccount {
   /** The friendly name associated with this account */
   public readonly name: string
 
-
   /** Create a new Account from some JSON. */
   public static fromJSON(obj: IAccount): Account {
     return new Account(obj.login, obj.endpoint, obj.token, obj.emails, obj.avatarURL, obj.id, obj.name)
+  }
+
+  /** Create an account which can be used to perform unauthenticated API actions */
+  public static anonymous(): Account {
+    return new Account('', getDotComAPIEndpoint(), '', [ ], '', -1, '')
   }
 
   public constructor(login: string, endpoint: string, token: string, emails: ReadonlyArray<IEmail>, avatarURL: string, id: number, name: string) {

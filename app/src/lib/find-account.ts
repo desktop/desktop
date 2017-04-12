@@ -78,6 +78,16 @@ export async function findAccountForRemote(url: string, accounts: ReadonlyArray<
       if (account) {
         return account
       }
+
+      // as a fallback, let's test that this is a public GitHub repository
+      // because we are still allowed to clone this repository
+      const accountWithoutToken = Account.anonymous()
+      const api = new API(accountWithoutToken)
+      const repo = await api.fetchRepository(owner, name)
+      if (repo) {
+        return accountWithoutToken
+      }
+
       throw new Error(`Couldn't find a repository with that owner and name.`)
     }
 

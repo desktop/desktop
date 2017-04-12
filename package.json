@@ -29,7 +29,11 @@
     "rebuild-hard:dev": "npm run clean-slate && npm run rebuild:dev",
     "rebuild-hard:prod": "npm run clean-slate && npm run rebuild:prod"
   },
-  "author": "",
+  "author": {
+    "name": "GitHub, Inc.",
+    "email": "opensource+desktop@github.com",
+    "url": "https://desktop.github.com/"
+  },
   "license": "MIT",
   "engines": {
     "node": ">= 6",
