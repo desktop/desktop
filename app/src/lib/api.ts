@@ -5,7 +5,7 @@ import { v4 as guid } from 'uuid'
 import { Account } from '../models/account'
 import { IEmail } from '../models/email'
 
-import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
+import { HTTPMethod, request, deserialize } from './http'
 import { AuthenticationMode } from './2fa'
 
 const Octokat = require('octokat')
@@ -267,7 +267,7 @@ export class API {
     return allItems.filter((i: any) => !i.pullRequest)
   }
 
-  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<IHTTPResponse> {
+  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<Response> {
     return request(this.account.endpoint, `token ${this.account.token}`, method, path, body, customHeaders)
   }
 
@@ -275,9 +275,10 @@ export class API {
   public async getFetchPollInterval(owner: string, name: string): Promise<number> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
     const response = await this.authenticatedRequest('HEAD', path)
-    const interval = getHeader(response, 'x-poll-interval')
+    const interval = response.headers.get('x-poll-interval')
     if (interval) {
-      return parseInt(interval, 10)
+      const parsed = parseInt(interval, 10)
+      return isNaN(parsed) ? 0 : parsed
     }
     return 0
   }
@@ -294,10 +295,10 @@ export class API {
     }
 
     const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
-    const users = deserialize<ReadonlyArray<IAPIMentionableUser>>(response.body)
+    const users = await deserialize<ReadonlyArray<IAPIMentionableUser>>(response)
     if (!users) { return null }
 
-    const responseEtag = getHeader(response, 'etag')
+    const responseEtag = response.headers.get('etag')
     return { users, etag: responseEtag || '' }
   }
 }
@@ -311,9 +312,9 @@ export enum AuthorizationResponseKind {
 }
 
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
-                                    { kind: AuthorizationResponseKind.Failed, response: IHTTPResponse } |
+                                    { kind: AuthorizationResponseKind.Failed, response: Response } |
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode } |
-                                    { kind: AuthorizationResponseKind.Error, response: IHTTPResponse } |
+                                    { kind: AuthorizationResponseKind.Error, response: Response } |
                                     { kind: AuthorizationResponseKind.UserRequiresVerification }
 
 /**
@@ -336,8 +337,8 @@ export async function createAuthorization(endpoint: string, login: string, passw
     'fingerprint': guid(),
   }, headers)
 
-  if (response.statusCode === 401) {
-    const otpResponse = getHeader(response, 'x-github-otp')
+  if (response.status === 401) {
+    const otpResponse = response.headers.get('x-github-otp')
     if (otpResponse) {
       const pieces = otpResponse.split(';')
       if (pieces.length === 2) {
@@ -356,8 +357,8 @@ export async function createAuthorization(endpoint: string, login: string, passw
     return { kind: AuthorizationResponseKind.Failed, response }
   }
 
-  if (response.statusCode === 422) {
-    const apiError = deserialize<IAPIError>(response.body)
+  if (response.status === 422) {
+    const apiError = await deserialize<IAPIError>(response)
     if (apiError) {
       for (const error of apiError.errors) {
         const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
@@ -369,7 +370,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
     }
   }
 
-  const body = deserialize<IAPIAuthorization>(response.body)
+  const body = await deserialize<IAPIAuthorization>(response)
   if (body) {
     const token = body.token
     if (token && typeof token === 'string' && token.length) {
@@ -409,8 +410,7 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
       return null
     }
 
-    const text = await response.text()
-    const body = deserialize<IServerMetadata>(text)
+    const body = await deserialize<IServerMetadata>(response)
     if (!body || body.verifiable_password_authentication === undefined) {
       return null
     }
@@ -518,7 +518,7 @@ export async function requestOAuthToken(endpoint: string, state: string, code: s
     'state': state,
   })
 
-  const body = deserialize<IAPIAccessToken>(response.body)
+  const body = await deserialize<IAPIAccessToken>(response)
   if (body) {
     return body.access_token
   }
