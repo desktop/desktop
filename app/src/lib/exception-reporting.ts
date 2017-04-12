@@ -14,13 +14,18 @@ export async function reportError(error: Error, version: string) {
   data.append('version', version)
 
   debugger
+  const options = {
+    method: 'POST',
+    body: data,
+  }
 
   try {
-    await fetch(ErrorEndpoint, {
-      method: 'POST',
-      body: data,
-    })
-    console.log('Exception reported.')
+    const response = await fetch(ErrorEndpoint, options)
+    if (response.ok) {
+      console.log('Exception reported.')
+    } else {
+      throw new Error(`Error submitting exception report: ${response.statusText} (${response.status})`)
+    }
   } catch (e) {
     console.error('Error submitting exception report:')
     console.error(e)
