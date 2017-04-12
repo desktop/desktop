@@ -287,25 +287,32 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
       return
     }
 
-    const state = this.state.autocompletionState
-    if (!state) { return }
+    const currentAutoCompletionState = this.state.autocompletionState
 
-    const selectedRow = state.selectedItem ? state.items.indexOf(state.selectedItem) : -1
+    if (!currentAutoCompletionState) {
+      return
+    }
+
+    const selectedRow = currentAutoCompletionState.selectedItem
+      ? currentAutoCompletionState.items.indexOf(currentAutoCompletionState.selectedItem)
+      : -1
+
     const direction = this.getMovementDirection(event)
     if (direction) {
       event.preventDefault()
 
       const nextRow = this.autocompletionList!.nextSelectableRow(direction, selectedRow)
       this.scrollToRow = nextRow
-      this.setState({ autocompletionState: {
-        provider: state.provider,
-        items: state.items,
-        range: state.range,
-        selectedItem: state.items[nextRow],
-        rangeText: state.rangeText,
-      } })
+      const newSelectedItem = currentAutoCompletionState.items[nextRow]
+
+      const newAutoCompletionState = {
+        ...currentAutoCompletionState,
+        selectedItem: newSelectedItem,
+      }
+
+      this.setState({ autocompletionState: newAutoCompletionState })
     } else if (event.key === 'Enter' || event.key === 'Tab') {
-      const item = state.selectedItem
+      const item = currentAutoCompletionState.selectedItem
       if (item) {
         event.preventDefault()
 
