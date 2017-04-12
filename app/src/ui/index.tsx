@@ -77,10 +77,13 @@ dispatcher.loadInitialState().then(() => {
 
 document.body.classList.add(`platform-${process.platform}`)
 
+dispatcher.setAppFocusState(remote.getCurrentWindow().isFocused())
+
 ipcRenderer.on('focus', () => {
   const state = appStore.getState().selectedState
   if (!state || state.type !== SelectionType.Repository) { return }
 
+  dispatcher.setAppFocusState(true)
   dispatcher.refreshRepository(state.repository)
 })
 
@@ -89,6 +92,7 @@ ipcRenderer.on('blur', () => {
   // when someone uses Alt+Tab to switch application since we won't
   // get the onKeyUp event for the Alt key in that case.
   dispatcher.setAccessKeyHighlightState(false)
+  dispatcher.setAppFocusState(false)
 })
 
 ipcRenderer.on('url-action', async (event: Electron.IpcRendererEvent, { action }: { action: URLActionType }) => {

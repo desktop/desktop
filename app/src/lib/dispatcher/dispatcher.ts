@@ -774,4 +774,8 @@ export class Dispatcher {
   private async updateRepositoryPath(repository: Repository, path: string): Promise<void> {
     await this.dispatchToSharedProcess<IRepository>({ name: 'update-repository-path', repository, path })
   }
+
+  public async setAppFocusState(isFocused: boolean): Promise<void> {
+    await this.appStore._setAppFocusState(isFocused);
+  }
 }
