@@ -603,7 +603,6 @@ export class GitStore {
     const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
 
     if (modifiedFiles.length) {
-
       // in case any files have been staged outside Desktop - renames and copies do this by default
       await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, 'HEAD'))
 
@@ -615,6 +614,7 @@ export class GitStore {
           return f.path
         }
       })
+
       await this.performFailableOperation(() => checkoutPaths(this.repository, pathsToCheckout))
     }
   }
