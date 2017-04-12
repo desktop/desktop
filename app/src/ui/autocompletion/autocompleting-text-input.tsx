@@ -21,6 +21,19 @@ interface IAutocompletingTextInputProps<ElementType> {
   readonly placeholder?: string
   readonly value?: string
   readonly onChange?: (event: React.FormEvent<ElementType>) => void
+
+  /**
+   * Called when the user changes the value in the input field.
+   *
+   * This differs from the onChange event in that it passes only the new
+   * value and not the event itself. Subscribe to the onChange event if you
+   * need the ability to prevent the action from occurring.
+   *
+   * This callback will not be invoked if the callback from onChange calls
+   * preventDefault.
+   */
+  readonly onValueChanged?: (value: string) => void
+
   readonly onKeyDown?: (event: React.KeyboardEvent<ElementType>) => void
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
 }
@@ -324,6 +337,11 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     }
 
     const str = event.currentTarget.value
+
+    if (this.props.onValueChanged) {
+      this.props.onValueChanged(str)
+    }
+
     const caretPosition = this.element!.selectionStart
     const requestID = ++this.autocompletionRequestID
     const autocompletionState = await this.attemptAutocompletion(str, caretPosition)
