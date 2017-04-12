@@ -4,8 +4,9 @@ import { Branch, BranchType } from '../../models/branch'
 import { Account } from '../../models/account'
 
 /** Create a new branch from the given start point. */
-export async function createBranch(repository: Repository, name: string, startPoint: string): Promise<void> {
+export async function createBranch(repository: Repository, name: string, startPoint: string): Promise<true> {
   await git([ 'branch', name, startPoint ], repository.path, 'createBranch')
+  return true
 }
 
 /** Rename the given branch to a new name. */
