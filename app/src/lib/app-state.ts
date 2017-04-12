@@ -1,4 +1,4 @@
-import { User } from '../models/user'
+import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff } from '../models/diff'
 import { Repository } from '../models/repository'
@@ -29,7 +29,7 @@ export type PossibleSelections = { type: SelectionType.Repository, repository: R
 
 /** All of the shared app state. */
 export interface IAppState {
-  readonly users: ReadonlyArray<User>
+  readonly accounts: ReadonlyArray<Account>
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
 
   readonly selectedState: PossibleSelections | null
@@ -120,6 +120,7 @@ export enum PopupType {
   About,
   InstallGit,
   PublishRepository,
+  Acknowledgements,
 }
 
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
@@ -136,7 +137,8 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.SignIn } |
                     { type: PopupType.About } |
                     { type: PopupType.InstallGit, path: string } |
-                    { type: PopupType.PublishRepository, repository: Repository }
+                    { type: PopupType.PublishRepository, repository: Repository } |
+                    { type: PopupType.Acknowledgements }
 
 export enum FoldoutType {
   Repository,

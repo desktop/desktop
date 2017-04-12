@@ -1,16 +1,15 @@
 import * as URL from 'url'
 import { getHTMLURL, API, getDotComAPIEndpoint } from './api'
 import { parseRemote, parseOwnerAndName } from './remote-parsing'
-import { User } from '../models/user'
-
+import { Account } from '../models/account'
 
 /**
- * Find the user whose endpoint has a repository with the given owner and
+ * Find the account whose endpoint has a repository with the given owner and
  * name. This will prefer dot com over other endpoints.
  */
-async function findRepositoryUser(users: ReadonlyArray<User>, owner: string, name: string): Promise<User | null> {
-  const hasRepository = async (user: User) => {
-    const api = new API(user)
+async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: string, name: string): Promise<Account | null> {
+  const hasRepository = async (account: Account) => {
+    const api = new API(account)
     try {
       const repository = await api.fetchRepository(owner, name)
       if (repository) {
@@ -24,20 +23,20 @@ async function findRepositoryUser(users: ReadonlyArray<User>, owner: string, nam
   }
 
   // Prefer .com, then try all the others.
-  const sortedUsers = Array.from(users).sort((u1, u2) => {
-    if (u1.endpoint === getDotComAPIEndpoint()) {
+  const sortedAccounts = Array.from(accounts).sort((a1, a2) => {
+    if (a1.endpoint === getDotComAPIEndpoint()) {
       return -1
-    } else if (u2.endpoint === getDotComAPIEndpoint()) {
+    } else if (a2.endpoint === getDotComAPIEndpoint()) {
       return 1
     } else {
       return 0
     }
   })
 
-  for (const user of sortedUsers) {
-    const has = await hasRepository(user)
+  for (const account of sortedAccounts) {
+    const has = await hasRepository(account)
     if (has) {
-      return user
+      return account
     }
   }
 
@@ -53,21 +52,21 @@ async function findRepositoryUser(users: ReadonlyArray<User>, owner: string, nam
  * Will throw an error if the URL is not value or it is unable to resolve
  * the remote to an existing account
  */
-export async function findUserForRemote(url: string, users: ReadonlyArray<User>): Promise<User> {
+export async function findAccountForRemote(url: string, accounts: ReadonlyArray<Account>): Promise<Account> {
 
     // First try parsing it as a full URL. If that doesn't work, try parsing it
     // as an owner/name shortcut. And if that fails then throw our hands in the
     // air because we truly don't care.
     const parsedURL = parseRemote(url)
     if (parsedURL) {
-      const dotComUser = users.find(u => {
-        const htmlURL = getHTMLURL(u.endpoint)
+      const dotComAccount = accounts.find(a => {
+        const htmlURL = getHTMLURL(a.endpoint)
         const parsedEndpoint = URL.parse(htmlURL)
         return parsedURL.hostname === parsedEndpoint.hostname
       }) || null
 
-      if (dotComUser) {
-        return dotComUser
+      if (dotComAccount) {
+        return dotComAccount
       }
     }
 
@@ -75,10 +74,20 @@ export async function findUserForRemote(url: string, users: ReadonlyArray<User>)
     if (parsedOwnerAndName) {
       const owner = parsedOwnerAndName.owner
       const name = parsedOwnerAndName.name
-      const user = await findRepositoryUser(users, owner, name)
-      if (user) {
-        return user
+      const account = await findRepositoryAccount(accounts, owner, name)
+      if (account) {
+        return account
       }
+
+      // as a fallback, let's test that this is a public GitHub repository
+      // because we are still allowed to clone this repository
+      const accountWithoutToken = Account.anonymous()
+      const api = new API(accountWithoutToken)
+      const repo = await api.fetchRepository(owner, name)
+      if (repo) {
+        return accountWithoutToken
+      }
+
       throw new Error(`Couldn't find a repository with that owner and name.`)
     }
 

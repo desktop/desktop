@@ -2,7 +2,8 @@ import * as OS from 'os'
 import * as URL from 'url'
 import * as Querystring from 'querystring'
 import { v4 as guid } from 'uuid'
-import { User } from '../models/user'
+import { Account } from '../models/account'
+import { IEmail } from '../models/email'
 
 import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
 import { AuthenticationMode } from './2fa'
@@ -81,6 +82,19 @@ export interface IAPIEmail {
   readonly email: string
   readonly verified: boolean
   readonly primary: boolean
+  /**
+   * `null` can be returned by the API for legacy reasons. A non-null value is
+   * set for the primary email address currently, but in the future visibility
+   * may be defined for each email address.
+   */
+  readonly visibility: 'public' | 'private' | null
+}
+
+function convertEmailAddress(email: IAPIEmail): IEmail {
+  return {
+    ...email,
+    visibility: email.visibility || 'public',
+  }
 }
 
 /** Information about an issue as returned by the GitHub API. */
@@ -141,11 +155,11 @@ interface IAPIMentionablesResponse {
  */
 export class API {
   private client: any
-  private user: User
+  private account: Account
 
-  public constructor(user: User) {
-    this.user = user
-    this.client = new Octokat({ token: user.token, rootURL: user.endpoint })
+  public constructor(account: Account) {
+    this.account = account
+    this.client = new Octokat({ token: account.token, rootURL: account.endpoint })
   }
 
   /**
@@ -169,19 +183,24 @@ export class API {
   }
 
   /** Fetch a repo by its owner and name. */
-  public async fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
-    return this.client.repos(owner, name).fetch()
+  public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
+    try {
+      return await this.client.repos(owner, name).fetch()
+    } catch (e) {
+      return null
+    }
   }
 
-  /** Fetch the logged in user. */
-  public fetchUser(): Promise<IAPIUser> {
+  /** Fetch the logged in account. */
+  public fetchAccount(): Promise<IAPIUser> {
     return this.client.user.fetch()
   }
 
-  /** Fetch the user's emails. */
-  public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
+  /** Fetch the current user's emails. */
+  public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
     const result = await this.client.user.emails.fetch()
-    return result.items
+    const emails: ReadonlyArray<IAPIEmail> = result.items
+    return emails.map(convertEmailAddress)
   }
 
   /** Fetch a commit from the repository. */
@@ -249,7 +268,7 @@ export class API {
   }
 
   private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<IHTTPResponse> {
-    return request(this.user.endpoint, `token ${this.user.token}`, method, path, body, customHeaders)
+    return request(this.account.endpoint, `token ${this.account.token}`, method, path, body, customHeaders)
   }
 
   /** Get the allowed poll interval for fetching. */
@@ -362,10 +381,15 @@ export async function createAuthorization(endpoint: string, login: string, passw
 }
 
 /** Fetch the user authenticated by the token. */
-export async function fetchUser(endpoint: string, token: string): Promise<User> {
+export async function fetchUser(endpoint: string, token: string): Promise<Account> {
   const octo = new Octokat({ token, rootURL: endpoint })
   const user = await octo.user.fetch()
-  return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id, user.name)
+
+  const response =  await octo.user.emails.fetch()
+  const emails: ReadonlyArray<IAPIEmail> = response.items
+  const formattedEmails = emails.map(convertEmailAddress)
+
+  return new Account(user.login, endpoint, token, formattedEmails, user.avatarUrl, user.id, user.name)
 }
 
 /** Get metadata from the server. */
@@ -413,6 +437,21 @@ async function getNote(): Promise<string> {
 }
 
 /**
+ * Map a repository's URL to the endpoint associated with it. For example:
+ *
+ * https://github.com/desktop/desktop -> https://api.github.com
+ * http://github.mycompany.com/my-team/my-project -> http://github.mycompany.com/api
+ */
+export function getEndpointForRepository(url: string): string {
+  const parsed = URL.parse(url)
+  if (parsed.hostname === 'github.com') {
+    return getDotComAPIEndpoint()
+  } else {
+    return `${parsed.protocol}//${parsed.hostname}/api`
+  }
+}
+
+/**
  * Get the URL for the HTML site. For example:
  *
  * https://api.github.com -> https://github.com
@@ -455,9 +494,13 @@ export function getDotComAPIEndpoint(): string {
   return 'https://api.github.com'
 }
 
-/** Get the user for the endpoint. */
-export function getUserForEndpoint(users: ReadonlyArray<User>, endpoint: string): User {
-  return users.filter(u => u.endpoint === endpoint)[0]
+/** Get the account for the endpoint. */
+export function getAccountForEndpoint(accounts: ReadonlyArray<Account>, endpoint: string): Account | null {
+  const filteredAccounts = accounts.filter(a => a.endpoint === endpoint)
+  if (filteredAccounts.length) {
+    return filteredAccounts[0]
+  }
+  return null
 }
 
 export function getOAuthAuthorizationURL(endpoint: string, state: string): string {

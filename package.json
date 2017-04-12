@@ -29,7 +29,11 @@
     "rebuild-hard:dev": "npm run clean-slate && npm run rebuild:dev",
     "rebuild-hard:prod": "npm run clean-slate && npm run rebuild:prod"
   },
-  "author": "",
+  "author": {
+    "name": "GitHub, Inc.",
+    "email": "opensource+desktop@github.com",
+    "url": "https://desktop.github.com/"
+  },
   "license": "MIT",
   "engines": {
     "node": ">= 6",
@@ -43,7 +47,7 @@
     "chai-datetime": "^1.4.1",
     "cross-env": "^3.2.3",
     "css-loader": "^0.26.2",
-    "electron": "1.6.5",
+    "electron": "1.6.6",
     "electron-mocha": "3.3.0",
     "electron-packager": "8.6.0",
     "electron-winstaller": "2.5.2",
@@ -91,6 +95,7 @@
     "@types/react-virtualized": "0.0.3",
     "@types/ua-parser-js": "^0.7.30",
     "@types/uuid": "^2.0.29",
-    "@types/winston": "^2.2.0"
+    "@types/winston": "^2.2.0",
+    "legal-eagle": "^0.14.0"
   }
 }
