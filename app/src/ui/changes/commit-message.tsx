@@ -113,7 +113,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     this.setState({ description })
   }
 
-  private handleSubmit = () => {
+  private onSubmit = () => {
     this.createCommit()
   }
 
@@ -182,7 +182,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
           onKeyDown={this.onKeyDown}
           autocompletionProviders={this.props.autocompletionProviders}/>
 
-        <Button type='submit' className='commit-button' onClick={this.handleSubmit} disabled={!buttonEnabled}>
+        <Button type='submit' className='commit-button' onClick={this.onSubmit} disabled={!buttonEnabled}>
           <div>Commit to <strong>{branchName}</strong></div>
         </Button>
       </div>
