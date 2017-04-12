@@ -38,11 +38,24 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     this.receiveProps(this.props, true)
   }
 
+  public componentWillUnmount() {
+    // We're unmounting, likely due to the user switching to the history tab.
+    // Let's persist our commit message in the dispatcher.
+    this.props.dispatcher.setCommitMessage(this.props.repository, this.state)
+  }
+
   public componentWillReceiveProps(nextProps: ICommitMessageProps) {
     this.receiveProps(nextProps, false)
   }
 
   private receiveProps(nextProps: ICommitMessageProps, initializing: boolean) {
+
+    // If we're switching away from one repository to another we'll persist
+    // our commit message in the dispatcher.
+    if (nextProps.repository.id !== this.props.repository.id) {
+      this.props.dispatcher.setCommitMessage(this.props.repository, this.state)
+    }
+
     // This is rather gnarly. We want to persist the commit message (summary,
     // and description) in the dispatcher on a per-repository level (git-store).
     //
@@ -67,7 +80,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     // If we receive a contextual commit message we'll take that and disregard
     // anything currently in the textboxes (this might not be what we want).
     if (nextProps.contextualCommitMessage) {
-      this.updateState(nextProps.contextualCommitMessage)
+      this.setState(nextProps.contextualCommitMessage)
       // Once we receive the contextual commit message we can clear it. We don't
       // want to keep receiving it.
       this.props.dispatcher.clearContextualCommitMessage(this.props.repository)
@@ -90,30 +103,14 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
   private clearCommitMessage() {
     this.setState({ summary: '', description: null })
-    this.props.dispatcher.setCommitMessage(this.props.repository, null)
-  }
-
-  private updateState = (state: ICommitMessageState | ICommitMessage) => {
-    const newMessage = state.summary
-      ? { summary: state.summary, description: state.description }
-      : null
-
-    this.props.dispatcher.setCommitMessage(this.props.repository, newMessage)
-    this.setState(state)
   }
 
   private handleSummaryChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.updateState({
-      summary: event.currentTarget.value,
-      description: this.state.description,
-    })
+    this.setState({ summary: event.currentTarget.value })
   }
 
   private handleDescriptionChange = (event: React.FormEvent<HTMLTextAreaElement>) => {
-    this.updateState({
-      summary: this.state.summary,
-      description: event.currentTarget.value,
-    })
+    this.setState({ description: event.currentTarget.value })
   }
 
   private handleSubmit = () => {
