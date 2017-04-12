@@ -29,6 +29,7 @@ interface IPreferencesState {
   readonly selectedIndex: PreferencesTab
   readonly committerName: string
   readonly committerEmail: string
+  readonly isOptedOut: boolean
 }
 
 /** The app-level preferences component. */
@@ -40,12 +41,14 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       selectedIndex: PreferencesTab.Accounts,
       committerName: '',
       committerEmail: '',
+      isOptedOut: false,
     }
   }
 
   public async componentWillMount() {
     let committerName = await getGlobalConfigValue('user.name')
     let committerEmail = await getGlobalConfigValue('user.email')
+    const isOptedOut = this.props.appStore.getStatsOptOut()
 
     if (!committerName || !committerEmail) {
       const account = this.props.dotComAccount || this.props.enterpriseAccount
@@ -65,7 +68,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
     committerName = committerName || ''
     committerEmail = committerEmail || ''
 
-    this.setState({ committerName, committerEmail })
+    this.setState({ committerName, committerEmail, isOptedOut })
   }
 
   public render() {
@@ -123,18 +126,21 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
       }
       case PreferencesTab.Advanced: {
         return <Advanced
-          appStore={this.props.appStore}
-          dispatcher={this.props.dispatcher}
+          onOptOutSet={this.onOptOutSet}
+          isOptedOut={this.state.isOptedOut}
         />
       }
       default: return assertNever(index, `Unknown tab index: ${index}`)
     }
   }
 
+  private onOptOutSet = (isOptedOut: boolean) => {
+    this.setState({ isOptedOut })
+  }
+
   private onCommitterNameChanged = (committerName: string) => {
     this.setState({ committerName })
   }
-
 
   private onCommitterEmailChanged = (committerEmail: string) => {
     this.setState({ committerEmail })
@@ -162,6 +168,7 @@ export class Preferences extends React.Component<IPreferencesProps, IPreferences
   private onSave = async () => {
     await setGlobalConfigValue('user.name', this.state.committerName)
     await setGlobalConfigValue('user.email', this.state.committerEmail)
+    this.props.dispatcher.setStatsOptOut(this.state.isOptedOut)
 
     this.props.onDismissed()
   }

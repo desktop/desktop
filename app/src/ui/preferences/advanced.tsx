@@ -1,12 +1,11 @@
 import * as React from 'react'
-import { Dispatcher, AppStore } from '../../lib/dispatcher'
 import { DialogContent } from '../dialog'
 import { Checkbox, CheckboxValue } from '../lib/checkbox'
 import { LinkButton } from '../lib/link-button'
 
 interface IAdvancedPreferencesProps {
-  readonly appStore: AppStore
-  readonly dispatcher: Dispatcher
+  readonly isOptedOut: boolean,
+  readonly onOptOutSet: (checked: boolean) => void
 }
 
 interface IAdvancedPreferencesState {
@@ -20,26 +19,15 @@ export class Advanced extends React.Component<IAdvancedPreferencesProps, IAdvanc
     super(props)
 
     this.state = {
-      reportingOptOut: false,
+      reportingOptOut: this.props.isOptedOut,
     }
-  }
-
-  public componentDidMount() {
-    const optOut = this.props.appStore.getStatsOptOut()
-
-    this.setState({
-      reportingOptOut: optOut,
-    })
   }
 
   private onChange = (event: React.FormEvent<HTMLInputElement>) => {
     const value = !event.currentTarget.checked
 
-    this.props.dispatcher.setStatsOptOut(value)
-
-    this.setState({
-      reportingOptOut: value,
-    })
+    this.setState({ reportingOptOut: value })
+    this.props.onOptOutSet(value)
   }
 
   public render() {
