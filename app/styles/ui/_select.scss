@@ -18,17 +18,8 @@
       // Get rid of all default UA styling, we can do better
       -webkit-appearance: none;
 
-      // Make the select look like a text box. Almost all of these
-      // are copy-pasted from _text-box.scss.
-      border: 1px solid var(--box-border-color);
-      border-radius: var(--border-radius);
-      color: currentColor;
-      background: transparent;
-      font-size: var(--font-size);
-      font-family: var(--font-family-sans-serif);
-      height: var(--text-field-height);
-      padding: 0 var(--spacing-half);
-
+      // Make the select look like a text box.
+      @include textboxish;
 
       // Add back the arrow that got removed with appearance: none.
       // This is a custom version of the triangle-down octicon that was
@@ -39,11 +30,6 @@
       background-size: 8px 5px;
       background-repeat: no-repeat;
       background-position: right var(--spacing-half) center;
-
-      &:focus {
-        outline: none;
-        border-color: var(--focus-color);
-      }
     }
   }
 }
