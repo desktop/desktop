@@ -279,11 +279,12 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
   }
 
   private onKeyDown = (event: React.KeyboardEvent<ElementType>) => {
+
     if (this.props.onKeyDown) {
       this.props.onKeyDown(event)
     }
 
-    if (event.isDefaultPrevented) {
+    if (event.defaultPrevented) {
       return
     }
 
