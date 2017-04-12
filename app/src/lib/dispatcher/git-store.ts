@@ -10,6 +10,7 @@ import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
 
 import { IAppShell } from '../../lib/dispatcher/app-shell'
+import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
 
 import {
   reset,
@@ -375,12 +376,19 @@ export class GitStore {
   /**
    * Perform an operation that may fail by throwing an error. If an error is
    * thrown, catch it and emit it, and return `undefined`.
+   *
+   * @param errorMetadata - The metadata which should be attached to any errors
+   *                        that are thrown.
    */
-  public async performFailableOperation<T>(fn: () => Promise<T>): Promise<T | undefined> {
+  public async performFailableOperation<T>(fn: () => Promise<T>, errorMetadata?: IErrorMetadata): Promise<T | undefined> {
     try {
       const result = await fn()
       return result
     } catch (e) {
+      if (errorMetadata) {
+        e = new ErrorWithMetadata(e, errorMetadata)
+      }
+
       this.emitError(e)
       return undefined
     }
@@ -416,7 +424,7 @@ export class GitStore {
     const remotes = await getRemotes(this.repository)
 
     for (const remote of remotes) {
-      await this.performFailableOperation(() => fetchRepo(this.repository, account, remote.name))
+      await this.performFailableOperation(() => fetchRepo(this.repository, account, remote.name), { backgroundTask })
     }
   }
 
