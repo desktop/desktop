@@ -29,18 +29,8 @@ interface IAutocompletingTextInputProps<ElementType> {
   /** The current value of the input field. */
   readonly value?: string
 
-  /** Called when the user changes the value in the input field. */
-  readonly onChange?: (event: React.FormEvent<ElementType>) => void
-
   /**
    * Called when the user changes the value in the input field.
-   *
-   * This differs from the onChange event in that it passes only the new
-   * value and not the event itself. Subscribe to the onChange event if you
-   * need the ability to prevent the action from occurring.
-   *
-   * This callback will not be invoked if the callback from onChange calls
-   * preventDefault.
    */
   readonly onValueChanged?: (value: string) => void
 
@@ -245,27 +235,6 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
     const newText = originalText.substr(0, range.start - 1) + autoCompleteText + originalText.substr(range.start + range.length) + ' '
     element.value = newText
 
-    if (this.props.onChange) {
-      // This is gross, I feel gross, etc.
-      this.props.onChange({
-          bubbles: false,
-          currentTarget: element,
-          cancelable: false,
-          defaultPrevented: true,
-          eventPhase: 1,
-          isTrusted: true,
-          nativeEvent: new KeyboardEvent('keydown'),
-          preventDefault: () => {},
-          isDefaultPrevented: () => true,
-          stopPropagation: () => {},
-          isPropagationStopped: () => true,
-          persist: () => {},
-          target: element,
-          timeStamp: new Date(),
-          type: 'keydown',
-      })
-    }
-
     if (this.props.onValueChanged) {
       this.props.onValueChanged(newText)
     }
@@ -356,13 +325,6 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
   }
 
   private onChange = async (event: React.FormEvent<ElementType>) => {
-    if (this.props.onChange) {
-      this.props.onChange(event)
-    }
-
-    if (event.defaultPrevented) {
-      return
-    }
 
     const str = event.currentTarget.value
 
