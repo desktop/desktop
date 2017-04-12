@@ -266,6 +266,10 @@ export abstract class AutocompletingTextInput<ElementType extends HTMLInputEleme
       })
     }
 
+    if (this.props.onValueChanged) {
+      this.props.onValueChanged(newText)
+    }
+
     this.setState({ autocompletionState: null })
   }
 
