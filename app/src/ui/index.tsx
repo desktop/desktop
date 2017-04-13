@@ -44,10 +44,6 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
-process.on('uncaughtException', (error: Error) => {
-  getLogger().error('Uncaught exception on UI', error)
-  reportError(error, getVersion())
-})
 
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
 const cloningRepositoriesStore = new CloningRepositoriesStore()
@@ -66,6 +62,12 @@ const appStore = new AppStore(
 )
 
 const dispatcher = new Dispatcher(appStore)
+
+process.on('uncaughtException', (error: Error) => {
+  getLogger().error('Uncaught exception on UI', error)
+  dispatcher.postUnhandledError(error)
+  reportError(error, getVersion())
+})
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
