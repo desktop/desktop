@@ -71,7 +71,6 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
     }
 
     const isOpen = this.props.isOpen
-
     const currentState: DropdownState = isOpen && canOpen ? 'open' : 'closed'
 
     return <ToolbarDropdown
