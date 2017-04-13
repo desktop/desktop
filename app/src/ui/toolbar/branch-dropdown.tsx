@@ -72,6 +72,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
     }
 
     const checkoutProgress = repositoryState.checkoutProgress
+    let progressValue: number | undefined = undefined
 
     if (checkoutProgress) {
       title = checkoutProgress.targetBranch
@@ -82,6 +83,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
         description = `${description} (${friendlyProgress} %)`
       }
 
+      progressValue = checkoutProgress.progressValue
       icon = OcticonSymbol.sync
       iconClassName = 'spin'
     }
@@ -99,6 +101,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
       dropdownContentRenderer={this.renderBranchFoldout}
       dropdownState={currentState}
       showDisclosureArrow={canOpen}
+      progressValue={progressValue}
     />
   }
 }
