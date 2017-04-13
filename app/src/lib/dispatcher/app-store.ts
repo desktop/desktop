@@ -254,6 +254,7 @@ export class AppStore {
       pushPullInProgress: false,
       isCommitting: false,
       lastFetched: null,
+      checkoutProgress: null,
     }
   }
 

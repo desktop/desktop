@@ -176,6 +176,11 @@ export enum RepositorySection {
   History
 }
 
+export interface ICheckoutProgress {
+  readonly progressValue: number
+  readonly progressText: string
+}
+
 export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
@@ -221,6 +226,14 @@ export interface IRepositoryState {
 
   /** The date the repository was last fetched. */
   readonly lastFetched: Date | null
+
+  /**
+   * If we're currently working on switching to a new branch this
+   * provides insight into the progress of that operation.
+   * 
+   * null if no current branch switch operation is in flight.
+   */
+  readonly checkoutProgress: ICheckoutProgress | null
 }
 
 export interface IBranchesState {
