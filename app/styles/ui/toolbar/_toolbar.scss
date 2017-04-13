@@ -25,7 +25,7 @@
     flex-direction: row;
     flex-shrink: 0;
 
-    .toolbar-button:last-child {
+    &>:last-child {
       flex-grow: 1;
     }
   }
