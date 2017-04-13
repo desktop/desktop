@@ -104,6 +104,8 @@ export interface IToolbarDropdownProps {
    * detrimental to accessibility in most scenarios.
    */
   readonly tabIndex?: number
+
+  readonly progressValue?: number
 }
 
 interface IToolbarDropdownState {
