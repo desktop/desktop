@@ -266,7 +266,10 @@ app.on('ready', () => {
   })
 
   ipcMain.on('show-certificate-trust-dialog', (event: Electron.IpcMainEvent, { certificate, message }: { certificate: Electron.Certificate, message: string }) => {
-    getMainWindow().showCertificateTrustDialog(certificate, message)
+    // This API's only implemented on macOS right now.
+    if (__DARWIN__) {
+      getMainWindow().showCertificateTrustDialog(certificate, message)
+    }
   })
 })
 
