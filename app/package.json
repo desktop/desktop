@@ -3,7 +3,7 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "main": "./main.js",
   "repository": {
     "type": "git",
@@ -27,7 +27,6 @@
     "event-kit": "^2.0.0",
     "front-matter": "^2.1.2",
     "fs-extra": "^2.0.0",
-    "iconv-lite": "^0.4.15",
     "keytar": "^3.0.2",
     "moment": "^2.17.1",
     "octokat": "^0.6.4",

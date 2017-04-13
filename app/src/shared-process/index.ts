@@ -15,7 +15,7 @@ import {
   IUpdateRepositoryPathAction,
 } from '../lib/dispatcher'
 import { API } from '../lib/api'
-import { reportError } from '../lib/exception-reporting'
+import { reportError } from '../ui/lib/exception-reporting'
 import { getVersion } from '../ui/lib/app-proxy'
 
 import { getLogger } from '../lib/logging/renderer'
