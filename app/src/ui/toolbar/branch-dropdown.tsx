@@ -6,6 +6,7 @@ import { TipState } from '../../models/tip'
 import { ToolbarDropdown, DropdownState } from './dropdown'
 import { IRepositoryState } from '../../lib/app-state'
 import { Branches } from '../branches'
+import { assertNever } from '../../lib/fatal-error'
 
 interface IBranchDropdownProps {
   readonly repository: Repository
@@ -46,48 +47,41 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
     const branchesState = repositoryState.branchesState
 
     const tip = branchesState.tip
+    const tipKind = tip.kind
+
+    let icon = OcticonSymbol.gitBranch
+    let title: string
+    let description = __DARWIN__ ? 'Current Branch' : 'Current branch'
+    let canOpen = true
 
     if (tip.kind === TipState.Unknown) {
       // TODO: this is bad and I feel bad
       return null
-    }
-
-    console.log(repositoryState.checkoutProgress)
-
-    if (tip.kind === TipState.Unborn) {
-      return <ToolbarDropdown
-        className='branch-button'
-        icon={OcticonSymbol.gitBranch}
-        title='master'
-        description='Current branch'
-        onDropdownStateChanged={this.props.onDropDownStateChanged}
-        dropdownContentRenderer={this.renderBranchFoldout}
-        dropdownState='closed' />
+    } else if (tip.kind === TipState.Unborn) {
+      title = 'master'
+      canOpen = false
+    } else if (tip.kind === TipState.Detached) {
+      title = `On ${tip.currentSha.substr(0,7)}`
+      icon = OcticonSymbol.gitCommit
+      description = 'Detached HEAD'
+    } else if (tip.kind === TipState.Valid) {
+      title = tip.branch.name
+    } else {
+      return assertNever(tip, `Unknown tip state: ${tipKind}`)
     }
 
     const isOpen = this.props.isOpen
 
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-
-    if (tip.kind === TipState.Detached) {
-      const title = `On ${tip.currentSha.substr(0,7)}`
-      return <ToolbarDropdown
-        className='branch-button'
-        icon={OcticonSymbol.gitCommit}
-        title={title}
-        description='Detached HEAD'
-        onDropdownStateChanged={this.props.onDropDownStateChanged}
-        dropdownContentRenderer={this.renderBranchFoldout}
-        dropdownState={currentState} />
-    }
+    const currentState: DropdownState = isOpen && canOpen ? 'open' : 'closed'
 
     return <ToolbarDropdown
       className='branch-button'
-      icon={OcticonSymbol.gitBranch}
-      title={tip.branch.name}
+      icon={icon}
+      title={title}
       description='Current branch'
       onDropdownStateChanged={this.props.onDropDownStateChanged}
       dropdownContentRenderer={this.renderBranchFoldout}
-      dropdownState={currentState} />
+      dropdownState={currentState}
+    />
   }
 }
