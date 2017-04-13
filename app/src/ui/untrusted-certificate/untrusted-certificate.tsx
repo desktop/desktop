@@ -28,12 +28,13 @@ interface IUntrustedCertificateProps {
 export class UntrustedCertificate extends React.Component<IUntrustedCertificateProps, void> {
   public render() {
     const host = URL.parse(this.props.url).hostname
+    const type = __DARWIN__ ? 'warning' : 'error'
     return (
       <Dialog
         title={__DARWIN__ ? 'Untrusted Server' : 'Untrusted server'}
         onDismissed={this.props.onDismissed}
         onSubmit={this.onContinue}
-        type='warning'
+        type={type}
       >
         <DialogContent>
           <p>
