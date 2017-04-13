@@ -38,7 +38,7 @@ export class AccountsStore {
   public removeAccount(account: Account) {
     this.secureStore.deleteItem(getKeyForAccount(account), account.login)
 
-    this.accounts = this.accounts.filter(account => account.id !== account.id)
+    this.accounts = this.accounts.filter(a => a.id !== account.id)
 
     this.save()
   }
