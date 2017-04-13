@@ -50,6 +50,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
     const tipKind = tip.kind
 
     let icon = OcticonSymbol.gitBranch
+    let iconClassName: string | undefined = undefined
     let title: string
     let description = __DARWIN__ ? 'Current Branch' : 'Current branch'
     let canOpen = true
@@ -70,12 +71,28 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
       return assertNever(tip, `Unknown tip state: ${tipKind}`)
     }
 
+    const checkoutProgress = repositoryState.checkoutProgress
+
+    if (checkoutProgress) {
+      title = checkoutProgress.targetBranch
+      description = __DARWIN__ ? 'Switching to Branch' : 'Switching to branch'
+
+      if (checkoutProgress.progressValue > 0) {
+        const friendlyProgress = Math.round(checkoutProgress.progressValue * 100)
+        description = `${description} (${friendlyProgress} %)`
+      }
+
+      icon = OcticonSymbol.sync
+      iconClassName = 'spin'
+    }
+
     const isOpen = this.props.isOpen
     const currentState: DropdownState = isOpen && canOpen ? 'open' : 'closed'
 
     return <ToolbarDropdown
       className='branch-button'
       icon={icon}
+      iconClassName={iconClassName}
       title={title}
       description={description}
       onDropdownStateChanged={this.props.onDropDownStateChanged}
