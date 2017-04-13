@@ -81,6 +81,13 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }, dialogTransitionLeaveTimeout)
   }
 
+  private renderUnhandledErrorFooter() {
+    return (
+      <ButtonGroup>
+        <Button type='submit'>Exit</Button>
+      </ButtonGroup>)
+  }
+
   private renderGitErrorFooter(error: GitError) {
     const gitErrorType = error.result.gitError
 
@@ -113,7 +120,6 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       ? <p>The application will need to be relaunched.</p>
       : null
   }
-
 
   private renderErrorMessage(error: Error, unhandled: boolean) {
 
@@ -160,13 +166,17 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
           {this.renderErrorMessage(error, unhandled)}
         </DialogContent>
         <DialogFooter>
-          {this.renderFooter(error)}
+          {this.renderFooter(error, unhandled)}
         </DialogFooter>
       </Dialog>
     )
   }
 
-  private renderFooter(error: Error) {
+  private renderFooter(error: Error, unhandled: boolean) {
+    if (unhandled) {
+      return this.renderUnhandledErrorFooter()
+    }
+
     if (error instanceof GitError) {
       return this.renderGitErrorFooter(error)
     }
