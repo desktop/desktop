@@ -102,7 +102,7 @@ export class BackgroundFetcher {
       if (pollInterval) {
         interval = Math.max(pollInterval, MinimumInterval)
       } else {
-        interval = MinimumInterval
+        interval = DefaultFetchInterval
       }
     } catch (e) {
       console.error('Error fetching poll interval:')
