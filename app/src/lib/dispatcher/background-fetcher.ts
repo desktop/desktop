@@ -99,7 +99,11 @@ export class BackgroundFetcher {
     let interval = DefaultFetchInterval
     try {
       const pollInterval = await api.getFetchPollInterval(repository.owner.login, repository.name)
-      interval = Math.max(pollInterval, MinimumInterval)
+      if (pollInterval) {
+        interval = Math.max(pollInterval, MinimumInterval)
+      } else {
+        interval = MinimumInterval
+      }
     } catch (e) {
       console.error('Error fetching poll interval:')
       console.error(e)

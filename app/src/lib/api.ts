@@ -271,16 +271,19 @@ export class API {
     return request(this.account.endpoint, `token ${this.account.token}`, method, path, body, customHeaders)
   }
 
-  /** Get the allowed poll interval for fetching. */
-  public async getFetchPollInterval(owner: string, name: string): Promise<number> {
+  /**
+   * Get the allowed poll interval for fetching. If an error occurs it will
+   * return null.
+   */
+  public async getFetchPollInterval(owner: string, name: string): Promise<number | null> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
     const response = await this.authenticatedRequest('HEAD', path)
     const interval = response.headers.get('x-poll-interval')
     if (interval) {
       const parsed = parseInt(interval, 10)
-      return isNaN(parsed) ? 0 : parsed
+      return isNaN(parsed) ? null : parsed
     }
-    return 0
+    return null
   }
 
   /** Fetch the mentionable users for the repository. */
