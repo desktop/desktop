@@ -4,5 +4,19 @@
     height: 100%;
   }
 
+  &.open {
+    &>.toolbar-button > button {
+      color: var(--toolbar-button-active-color);
+      background-color: var(--toolbar-button-active-background-color);
 
+      // The foldout doesn't have a border so we have to either
+      // color ours or remove it entirely for us to match the
+      // min-width of the foldout.
+      border-color: var(--toolbar-button-active-border-color);
+
+      .description {
+        color: var(--text-secondary-color);
+      }
+    }
+  }
 }
