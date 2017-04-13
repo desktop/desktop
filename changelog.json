@@ -1,7 +1,7 @@
 {
   "releases": {
     "0.0.33": [
-
+      "[Fixed] Update Now wouldn't update now - #1209"
     ],
     "0.0.32": [
       "[New] You can now disable stats reporting from Preferences > Advanced - #1120",
