@@ -33,10 +33,6 @@ node-gyp is required to build some of our native npm packages (such as [keytar](
 
 *Windows only*: Let python install into the default suggested path (`c:\Python27`), don't try to move it into Program Files or else you'll have to configure node-gyp manually with the path.
 
-#### OAuth Secret
-
-The OAuth secret is embedded in the app at build time using the `DESKTOP_OAUTH_CLIENT_SECRET` environment variable. That secret is required to log in with a user using dev builds of the app. We recommend you [create a new OAuth](https://github.com/settings/applications/new) to use for development.
-
 ### Building
 
 * Run `npm install` to get all required dependencies on your machine.
