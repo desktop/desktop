@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.0.33": [
+
+    ],
     "0.0.32": [
       "[New] You can now disable stats reporting from Preferences > Advanced - #1120",
       "[New] Acknowledgements are now available from About - #810",
