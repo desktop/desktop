@@ -17,7 +17,7 @@ import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
-import { defaultErrorHandler, createMissingRepositoryHandler } from '../lib/dispatcher'
+import { defaultErrorHandler, createMissingRepositoryHandler, backgroundTaskHandler } from '../lib/dispatcher'
 import { getEndpointForRepository, getAccountForEndpoint } from '../lib/api'
 import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
@@ -68,6 +68,7 @@ const appStore = new AppStore(
 const dispatcher = new Dispatcher(appStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
+dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
 
 dispatcher.loadInitialState().then(() => {
