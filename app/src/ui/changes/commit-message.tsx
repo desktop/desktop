@@ -38,17 +38,30 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     this.receiveProps(this.props, true)
   }
 
+  public componentWillUnmount() {
+    // We're unmounting, likely due to the user switching to the history tab.
+    // Let's persist our commit message in the dispatcher.
+    this.props.dispatcher.setCommitMessage(this.props.repository, this.state)
+  }
+
   public componentWillReceiveProps(nextProps: ICommitMessageProps) {
     this.receiveProps(nextProps, false)
   }
 
   private receiveProps(nextProps: ICommitMessageProps, initializing: boolean) {
+
+    // If we're switching away from one repository to another we'll persist
+    // our commit message in the dispatcher.
+    if (nextProps.repository.id !== this.props.repository.id) {
+      this.props.dispatcher.setCommitMessage(this.props.repository, this.state)
+    }
+
     // This is rather gnarly. We want to persist the commit message (summary,
     // and description) in the dispatcher on a per-repository level (git-store).
     //
     // Our dispatcher is asynchronous and only emits and update on animation
     // frames. This is a great thing for performance but it gets real messy
-    // when you throw textboxes into the mix. If we went for a traditional
+    // when you throw text boxes into the mix. If we went for a traditional
     // approach of persisting the textbox values in the dispatcher and updating
     // the virtual dom when we get new props there's an interim state which
     // means that the browser can't keep track of the cursor for us, see:
@@ -65,15 +78,15 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     // dispatcher since we don't have any state of our own.
 
     // If we receive a contextual commit message we'll take that and disregard
-    // anything currently in the textboxes (this might not be what we want).
+    // anything currently in the text boxes (this might not be what we want).
     if (nextProps.contextualCommitMessage) {
-      this.updateState(nextProps.contextualCommitMessage)
+      this.setState(nextProps.contextualCommitMessage)
       // Once we receive the contextual commit message we can clear it. We don't
       // want to keep receiving it.
       this.props.dispatcher.clearContextualCommitMessage(this.props.repository)
     } else if (initializing || this.props.repository.id !== nextProps.repository.id) {
       // We're either initializing (ie being mounted) or someone has switched
-      // repositories. If we receieve a message we'll take it
+      // repositories. If we receive a message we'll take it
       if (nextProps.commitMessage) {
         // Don't update dispatcher here, we're receiving it, could cause never-
         // ending loop.
@@ -90,33 +103,17 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
 
   private clearCommitMessage() {
     this.setState({ summary: '', description: null })
-    this.props.dispatcher.setCommitMessage(this.props.repository, null)
   }
 
-  private updateState = (state: ICommitMessageState | ICommitMessage) => {
-    const newMessage = state.summary
-      ? { summary: state.summary, description: state.description }
-      : null
-
-    this.props.dispatcher.setCommitMessage(this.props.repository, newMessage)
-    this.setState(state)
+  private onSummaryChanged = (summary: string) => {
+    this.setState({ summary })
   }
 
-  private handleSummaryChange = (event: React.FormEvent<HTMLInputElement>) => {
-    this.updateState({
-      summary: event.currentTarget.value,
-      description: this.state.description,
-    })
+  private onDescriptionChanged = (description: string) => {
+    this.setState({ description })
   }
 
-  private handleDescriptionChange = (event: React.FormEvent<HTMLTextAreaElement>) => {
-    this.updateState({
-      summary: this.state.summary,
-      description: event.currentTarget.value,
-    })
-  }
-
-  private handleSubmit = () => {
+  private onSubmit = () => {
     this.createCommit()
   }
 
@@ -170,22 +167,31 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
         <div className='summary'>
           {this.renderAvatar()}
 
-          <AutocompletingInput className='summary-field'
+          <AutocompletingInput
+            className='summary-field'
             placeholder='Summary'
             value={this.state.summary}
-            onChange={this.handleSummaryChange}
+            onValueChanged={this.onSummaryChanged}
             onKeyDown={this.onKeyDown}
-            autocompletionProviders={this.props.autocompletionProviders}/>
+            autocompletionProviders={this.props.autocompletionProviders}
+          />
         </div>
 
-        <AutocompletingTextArea className='description-field'
+        <AutocompletingTextArea
+          className='description-field'
           placeholder='Description'
           value={this.state.description || ''}
-          onChange={this.handleDescriptionChange}
+          onValueChanged={this.onDescriptionChanged}
           onKeyDown={this.onKeyDown}
-          autocompletionProviders={this.props.autocompletionProviders}/>
+          autocompletionProviders={this.props.autocompletionProviders}
+        />
 
-        <Button type='submit' className='commit-button' onClick={this.handleSubmit} disabled={!buttonEnabled}>
+        <Button
+          type='submit'
+          className='commit-button'
+          onClick={this.onSubmit}
+          disabled={!buttonEnabled}
+        >
           <div>Commit to <strong>{branchName}</strong></div>
         </Button>
       </div>

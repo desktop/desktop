@@ -25,18 +25,11 @@
   }
 
   input {
-    border: 1px solid var(--box-border-color);
-    border-radius: var(--border-radius);
-    color: currentColor;
-    font-size: var(--font-size);
-    font-family: var(--font-family-sans-serif);
-    height: var(--text-field-height);
-    padding: var(--spacing-half);
+    @include textboxish;
 
-    &:focus {
-      outline: none;
-      border-color: var(--focus-color);
-      box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+    // Don't override disabled styles on darwin for text boxes.
+    @include win32 {
+      @include textboxish-disabled;
     }
   }
 }
