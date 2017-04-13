@@ -4,6 +4,9 @@ const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const webpack = require('webpack')
 
+const devClientId = '3a723b10ac5575cc5bb9'
+const devClientSecret = '22c34d87789a365981ed921352a7b9a8c3f69d54'
+
 module.exports = {
   entry: {
     main: ['./app/src/main-process/main'],
@@ -60,7 +63,8 @@ module.exports = {
     __filename: false
   },
   replacements: {
-    __OAUTH_SECRET__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_SECRET),
+    __OAUTH_SECRET__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_SECRET || devClientId),
+    __OAUTH_CLIENT_ID__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_ID || devClientSecret),
     __DARWIN__: process.platform === 'darwin',
     __WIN32__: process.platform === 'win32'
   }
