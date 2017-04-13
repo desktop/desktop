@@ -41,6 +41,15 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
     />
   }
 
+  private onDropDownStateChanged = (state: DropdownState) => {
+    // Don't allow opening the drop down when checkout is in progress
+    if (state === 'open' && this.props.repositoryState.checkoutProgress) {
+      return
+    }
+
+    this.props.onDropDownStateChanged(state)
+  }
+
   public render() {
 
     const repositoryState = this.props.repositoryState
@@ -86,6 +95,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
       progressValue = checkoutProgress.progressValue
       icon = OcticonSymbol.sync
       iconClassName = 'spin'
+      canOpen = false
     }
 
     const isOpen = this.props.isOpen
@@ -97,7 +107,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
       iconClassName={iconClassName}
       title={title}
       description={description}
-      onDropdownStateChanged={this.props.onDropDownStateChanged}
+      onDropdownStateChanged={this.onDropDownStateChanged}
       dropdownContentRenderer={this.renderBranchFoldout}
       dropdownState={currentState}
       showDisclosureArrow={canOpen}
