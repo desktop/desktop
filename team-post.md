@@ -20,4 +20,6 @@ Desktop will be open source from day one. We have no idea how involved the commu
 
 As always, feel free to [add yourself to the Desktop org](http://central.github.com/invite_to_desktop_org). If you find any bugs or have any questions, join us in #desktop or [open an issue](https://github.com/desktop/desktop/issues/new).
 
+If you wanna follow out progress, check out the [M4 milestone](https://github.com/desktop/desktop/milestone/8).
+
 [Download for macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin) | [Download for Windows](https://central.github.com/deployments/desktop/desktop/latest/win32)
