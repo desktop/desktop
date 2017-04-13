@@ -104,6 +104,10 @@ export class AppWindow {
         quitting = true
       })
 
+      ipcMain.on('will-quit', () => {
+        quitting = true
+      })
+
       this.window.on('close', e => {
         if (!quitting) {
           e.preventDefault()
