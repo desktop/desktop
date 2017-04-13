@@ -1037,7 +1037,14 @@ export class AppStore {
       }
     }
 
-    await gitStore.performFailableOperation(() => checkoutBranch(repository, name, progressCallback))
+    this.updateRepositoryState(repository, state => ({
+      checkoutProgress: {
+        progressText: `Checking out branch ${name}`,
+        progressValue: 0,
+        targetBranch: name,
+      },
+    }))
+    this.emitUpdate()
 
     this.updateRepositoryState(repository, state => ({ checkoutProgress: null }))
 
