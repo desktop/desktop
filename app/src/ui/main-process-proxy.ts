@@ -23,6 +23,17 @@ export function executeMenuItem(item: ExecutableMenuItem) {
 }
 
 /**
+ * Tell the main process that we're going to quit. This means it should allow
+ * the window to close.
+ *
+ * This event is sent synchronously to avoid any races with subsequent calls
+ * that would tell the app to quit.
+ */
+export function sendWillQuitSync() {
+  ipcRenderer.sendSync('will-quit')
+}
+
+/**
  * Ask the main-process to send over a copy of the application menu.
  * The response will be send as a separate event with the name 'app-menu' and
  * will be received by the dispatcher.

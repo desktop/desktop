@@ -104,6 +104,11 @@ export class AppWindow {
         quitting = true
       })
 
+      ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
+        quitting = true
+        event.returnValue = true
+      })
+
       this.window.on('close', e => {
         if (!quitting) {
           e.preventDefault()
