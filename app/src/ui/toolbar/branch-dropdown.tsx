@@ -77,7 +77,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
       className='branch-button'
       icon={icon}
       title={title}
-      description='Current branch'
+      description={description}
       onDropdownStateChanged={this.props.onDropDownStateChanged}
       dropdownContentRenderer={this.renderBranchFoldout}
       dropdownState={currentState}
