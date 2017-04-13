@@ -1,6 +1,6 @@
 # GitHub Desktop TNG Beta
 
-GitHub Desktop TNG will be launching the week before Satellite on May 15th.
+GitHub Desktop TNG will be launching the week before Satellite on May 16th.
 
 _insert pretty screenshot_
 
