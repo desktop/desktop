@@ -31,8 +31,11 @@
   }
 
   .toolbar-button {
-    &.branch-button { width: 220px; }
     &.push-pull-button { min-width: 200px; }
+  }
+
+  .toolbar-dropdown {
+    &.branch-button { width: 220px; }    
   }
 }
 
