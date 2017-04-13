@@ -18,8 +18,7 @@ interface IBranchDropdownProps {
 }
 
 /**
- * A button which pushes, pulls, or updates depending on the state of the
- * repository.
+ * A drop down for selecting the currently checked out branch.
  */
 export class BranchDropdown extends React.Component<IBranchDropdownProps, void> {
   private renderBranchFoldout = (): JSX.Element | null => {
