@@ -92,6 +92,8 @@ export interface IToolbarButtonProps {
    * detrimental to accessibility in most scenarios.
    */
   readonly tabIndex?: number
+
+  readonly progressValue?: number
 }
 
 /**
@@ -140,6 +142,10 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     const preContentRenderer = this.props.preContentRenderer
     const preContent = preContentRenderer && preContentRenderer()
 
+    const progress = this.props.progressValue !== undefined
+      ? <div className='progress' style={{ transform: `scaleX(${this.props.progressValue})` }} />
+      : undefined
+
     return (
       <div className={className} onKeyDown={this.props.onKeyDown}>
         {preContent}
@@ -150,6 +156,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
           onMouseEnter={this.props.onMouseEnter}
           tabIndex={this.props.tabIndex}
         >
+          {progress}
           {icon}
           {this.renderText()}
           {this.props.children}
