@@ -17,7 +17,7 @@ import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
-import { defaultErrorHandler, createMissingRepositoryHandler } from '../lib/dispatcher'
+import { defaultErrorHandler, createMissingRepositoryHandler, createUnhandledExceptionHandler } from '../lib/dispatcher'
 import { getEndpointForRepository, getAccountForEndpoint } from '../lib/api'
 import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
@@ -69,6 +69,8 @@ const dispatcher = new Dispatcher(appStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
+dispatcher.registerErrorHandler(createUnhandledExceptionHandler(appStore))
+
 
 dispatcher.loadInitialState().then(() => {
   const now = Date.now()

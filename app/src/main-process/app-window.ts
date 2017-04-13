@@ -262,6 +262,11 @@ export class AppWindow {
     this.window.webContents.send('app-menu', { menu })
   }
 
+  /** display details to the user about an uncaught exception */
+  public showUnhandledError(error: Error) {
+    this.window.webContents.send('uncaught-exception', { message: error.message, stack: error.stack, name: error.name })
+  }
+
   /**
    * Get the time (in milliseconds) spent loading the page.
    *

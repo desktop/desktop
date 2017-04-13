@@ -32,6 +32,9 @@ process.on('uncaughtException', (error: Error) => {
   getLogger().error('Uncaught exception on main process', error)
 
   reportError(error, app.getVersion())
+  if (mainWindow) {
+    mainWindow.showUnhandledError(error)
+  }
 })
 
 if (__WIN32__ && process.argv.length > 1) {

@@ -142,6 +142,17 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
     })
+
+    ipcRenderer.on('uncaught-exception', (event: Electron.IpcRendererEvent, { message, stack }: { name: string, message: string, stack: string | undefined }) => {
+      // rehydrate the error
+      const error = new Error(message)
+      error.name = name
+      error.stack = stack
+      // indicate it's unhandled
+      const anyError = error as any
+      anyError.unhandled = true
+      this.props.dispatcher.postError(anyError)
+    })
   }
 
   private updateMenu(state: IAppState) {

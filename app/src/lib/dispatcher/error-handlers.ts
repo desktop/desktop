@@ -21,6 +21,23 @@ function asErrorWithCode(error: Error): IErrorWithCode | null {
   }
 }
 
+/** An error which indicates that the application should be torn down */
+interface IUnhandledError extends Error {
+  readonly unhandled: boolean
+}
+
+/**
+ * Cast the error to an error containing the unhandled flag if it has a code.
+ * Otherwise return null.
+ */
+function asUnhandledError(error: Error): IUnhandledError | null {
+  const e = error as any
+  if (e.unhandled) {
+    return e
+  } else {
+    return null
+  }
+}
 
 /** Handle errors by presenting them. */
 export async function defaultErrorHandler(error: Error, dispatcher: Dispatcher): Promise<Error | null> {
@@ -60,4 +77,16 @@ export function createMissingRepositoryHandler(appStore: AppStore): ErrorHandler
 
     return error
   }
+}
+
+export function createUnhandledExceptionHandler(appStore: AppStore) {
+    return async (error: Error, dispatcher: Dispatcher) => {
+      const unhandledError = asUnhandledError(error)
+      if (unhandledError) {
+        await dispatcher.presentError(error)
+        return null
+      }
+
+      return error
+    }
 }
