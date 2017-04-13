@@ -22,9 +22,15 @@
 
     &:active { box-shadow: none; }
 
+    // Toolbar buttons show their focus state by changing their background
+    // in the same way as hovering.
     &:focus {
+      // Resets from the global button focus styles
       outline: none;
-      border-color: var(--toolbar-button-border-color);
+      border: none;
+      box-shadow: none;
+
+      // Our focus state
       background-color: var(--toolbar-button-hover-background-color);
       box-shadow: none;
     }
@@ -56,6 +62,14 @@
     color: var(--toolbar-button-color);
 
     border-right: 1px solid var(--toolbar-button-border-color);
+
+    &:focus {
+      // Our general button component styles sets a border on buttons
+      // when they have focus but we turn that off here so we need
+      // to reintroduce the right hand border from our general toolbar
+      // button styles.
+      border-right: 1px solid var(--toolbar-button-border-color);
+    }
 
     .icon {
       flex-shrink: 0;
