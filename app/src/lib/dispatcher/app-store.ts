@@ -1009,7 +1009,33 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(repository: Repository, name: string): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => checkoutBranch(repository, name))
+    const progressCallback = (line: string) => {
+
+      const match = /Checking out files:\s+(\d+)\s*% \((\d+)\/(\d+)\)/.exec(line)
+
+      if (!match) {
+        return
+      }
+
+      const filesCompleted = parseInt(match[2], 10)
+      const filesTotal = parseInt(match[3], 10)
+
+      if (isNaN(filesCompleted) || isNaN(filesTotal) || filesTotal === 0) {
+        return
+      }
+
+      const checkoutProgress = {
+        targetBranch: name,
+        progressText: line,
+        progressValue: filesCompleted / filesTotal,
+      }
+
+      this.updateRepositoryState(repository, state => ({ checkoutProgress }))
+    }
+
+    await gitStore.performFailableOperation(() => checkoutBranch(repository, name, progressCallback))
+
+    this.updateRepositoryState(repository, state => ({ checkoutProgress: null }))
 
     await this._refreshRepository(repository)
     return repository
