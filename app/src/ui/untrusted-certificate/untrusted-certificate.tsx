@@ -49,7 +49,7 @@ export class UntrustedCertificate extends React.Component<IUntrustedCertificateP
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
-            <Button type='submit'>Continue</Button>
+            <Button type='submit'>View Certificate</Button>
             <Button>Cancel</Button>
           </ButtonGroup>
         </DialogFooter>
