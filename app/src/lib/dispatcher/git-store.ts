@@ -603,7 +603,19 @@ export class GitStore {
     const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
 
     if (modifiedFiles.length) {
-      await this.performFailableOperation(() => checkoutPaths(this.repository, modifiedFiles.map(f => f.path)))
+      // in case any files have been staged outside Desktop - renames and copies do this by default
+      await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, 'HEAD'))
+
+      const pathsToCheckout = modifiedFiles.map(f => {
+        if (f.status === FileStatus.Copied || f.status === FileStatus.Renamed) {
+          // because of the above reset, we now need to discard the old path for these
+          return f.oldPath!
+        } else {
+          return f.path
+        }
+      })
+
+      await this.performFailableOperation(() => checkoutPaths(this.repository, pathsToCheckout))
     }
   }
 }
