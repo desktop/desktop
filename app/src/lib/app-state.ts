@@ -177,6 +177,7 @@ export enum RepositorySection {
 }
 
 export interface ICheckoutProgress {
+  readonly targetBranch: string
   readonly progressValue: number
   readonly progressText: string
 }
