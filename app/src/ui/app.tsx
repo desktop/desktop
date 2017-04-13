@@ -728,6 +728,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.Preferences:
         return <Preferences
                 dispatcher={this.props.dispatcher}
+                appStore={this.props.appStore}
                 dotComAccount={this.getDotComAccount()}
                 enterpriseAccount={this.getEnterpriseAccount()}
                 onDismissed={this.onPopupDismissed}/>

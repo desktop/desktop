@@ -26,7 +26,6 @@ export async function reportError(error: Error, version: string) {
       throw new Error(`Error submitting exception report: ${response.statusText} (${response.status})`)
     }
   } catch (e) {
-    console.error('Error submitting exception report:')
-    console.error(e)
+    console.error('Error submitting exception report:', e)
   }
 }
