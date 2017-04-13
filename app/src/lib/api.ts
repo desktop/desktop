@@ -11,10 +11,11 @@ import { AuthenticationMode } from './2fa'
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
 
-const ClientID = 'de0e3c7e9973e1c4dd77'
+const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
-if (!ClientSecret || !ClientSecret.length) {
-  console.warn(`DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
+
+if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
+  console.warn(`DESKTOP_OAUTH_CLIENT_ID and/or DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
 }
 
 /** The OAuth scopes we need. */
