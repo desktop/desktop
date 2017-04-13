@@ -81,6 +81,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
       onDropdownStateChanged={this.props.onDropDownStateChanged}
       dropdownContentRenderer={this.renderBranchFoldout}
       dropdownState={currentState}
+      showDisclosureArrow={canOpen}
     />
   }
 }
