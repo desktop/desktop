@@ -1,7 +1,5 @@
 import { ipcRenderer } from 'electron'
 import { MenuIDs } from '../main-process/menu'
-import { v4 as guid } from 'uuid'
-import { IHTTPRequest, IHTTPResponse } from '../lib/http'
 import { ExecutableMenuItem } from '../models/app-menu'
 
 /** Set the menu item's enabledness. */
@@ -22,6 +20,17 @@ export function sendReady(time: number) {
 /** Tell the main process to execute (i.e. simulate a click of) the menu item. */
 export function executeMenuItem(item: ExecutableMenuItem) {
   ipcRenderer.send('execute-menu-item', { id: item.id })
+}
+
+/**
+ * Tell the main process that we're going to quit. This means it should allow
+ * the window to close.
+ *
+ * This event is sent synchronously to avoid any races with subsequent calls
+ * that would tell the app to quit.
+ */
+export function sendWillQuitSync() {
+  ipcRenderer.sendSync('will-quit')
 }
 
 /**
@@ -58,37 +67,4 @@ export function showContextualMenu(items: ReadonlyArray<IMenuItem>) {
   })
 
   ipcRenderer.send('show-contextual-menu', items)
-}
-
-export function proxyRequest(options: IHTTPRequest): Promise<IHTTPResponse> {
-  return new Promise<IHTTPResponse>((resolve, reject) => {
-    const id = guid()
-
-    const startTime = (performance && performance.now) ? performance.now() : null
-
-    ipcRenderer.once(`proxy/response/${id}`, (event: any, { error, response }: { error?: Error, response?: IHTTPResponse }) => {
-
-      if (console.debug && startTime) {
-        const rawTime = performance.now() - startTime
-        if (rawTime > 500) {
-          const timeInSeconds = (rawTime / 1000).toFixed(3)
-          console.debug(`executing: ${options.url} (took ${timeInSeconds}s)`)
-        }
-      }
-
-      if (error) {
-        reject(error)
-        return
-      }
-
-      if (response === undefined) {
-        reject('no response received, and no error reported. should probably look into this')
-        return
-      }
-
-      resolve(response)
-    })
-
-    ipcRenderer.send('proxy/request', { id, options })
-  })
 }
