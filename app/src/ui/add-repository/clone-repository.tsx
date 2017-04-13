@@ -173,14 +173,19 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
    * if neither of these conditions are satisfied, so let this bubble up and
    * display a relevant message to the user.
    */
-  private async resolveCloneDetails(): Promise<{ url: string, account: Account }> {
+  private async resolveCloneDetails(): Promise<{ url: string, account: Account | null }> {
     const identifier = this.state.lastParsedIdentifier
     let url = this.state.url
 
-    const account = await findAccountForRemote(url, this.props.accounts)
+    let account: Account | null
+    try {
+      account = await findAccountForRemote(url, this.props.accounts)
+    } catch (e) {
+      account = null
+    }
 
     if (identifier) {
-      const api = new API(account)
+      const api = new API(account || Account.anonymous())
       const repo = await api.fetchRepository(identifier.owner, identifier.name)
       if (repo) {
         url =  repo.cloneUrl
