@@ -8,6 +8,7 @@ const lastSuccessfulCheckKey = 'last-successful-update-check'
 import { Emitter, Disposable } from 'event-kit'
 
 import { getVersion } from './app-proxy'
+import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -123,7 +124,8 @@ class UpdateStore {
   }
 
   private emitError(error: Error) {
-    this.emitter.emit('error', error)
+    const updatedError = new ErrorWithMetadata(error, { backgroundTask: this.checkingInBackground })
+    this.emitter.emit('error', updatedError)
   }
 
   /** The current auto updater state. */
