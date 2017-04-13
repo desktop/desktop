@@ -102,7 +102,20 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
-  private renderErrorMessage(error: Error) {
+  private renderUnhandledHeader(unhandled: boolean): JSX.Element | null {
+    return unhandled
+      ? <p>An unhandled error occurred with the application, leaving it in an invalid state:</p>
+      : null
+  }
+
+  private renderUnhandledFooter(unhandled: boolean): JSX.Element | null {
+    return unhandled
+      ? <p>The application will need to be relaunched.</p>
+      : null
+  }
+
+
+  private renderErrorMessage(error: Error, unhandled: boolean) {
 
     let monospace = false
 
@@ -117,7 +130,12 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
     const className = monospace ? 'monospace' : undefined
 
-    return <p className={className}>{error.message}</p>
+    return (<div>
+        {this.renderUnhandledHeader(unhandled)}
+        <p className={className}>{error.message}</p>
+        {this.renderUnhandledFooter(unhandled)}
+      </div>
+    )
   }
 
   private renderDialog() {
@@ -127,15 +145,19 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       return null
     }
 
+    const anyError = error as any
+    const unhandled: boolean = anyError.unhandled || false
+    const title = unhandled ? 'Unhandled Error' : 'Error'
+
     return (
       <Dialog
         id='app-error'
         type='error'
-        title='Error'
+        title={title}
         onDismissed={this.onDismissed}
         disabled={this.state.disabled}>
         <DialogContent>
-          {this.renderErrorMessage(error)}
+          {this.renderErrorMessage(error, unhandled)}
         </DialogContent>
         <DialogFooter>
           {this.renderFooter(error)}
