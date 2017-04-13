@@ -29,6 +29,18 @@ export class UntrustedCertificate extends React.Component<IUntrustedCertificateP
   public render() {
     const host = URL.parse(this.props.url).hostname
     const type = __DARWIN__ ? 'warning' : 'error'
+    const buttonGroup = __DARWIN__
+      ? (
+        <ButtonGroup>
+          <Button type='submit'>Cancel</Button>
+          <Button>View Certificate</Button>
+        </ButtonGroup>
+      )
+      : (
+        <ButtonGroup>
+          <Button type='submit'>Close</Button>
+        </ButtonGroup>
+      )
     return (
       <Dialog
         title={__DARWIN__ ? 'Untrusted Server' : 'Untrusted server'}
@@ -48,10 +60,7 @@ export class UntrustedCertificate extends React.Component<IUntrustedCertificateP
           <p>If you are unsure of what to do, cancel and contact your system administrator.</p>
         </DialogContent>
         <DialogFooter>
-          <ButtonGroup>
-            <Button type='submit'>Cancel</Button>
-            <Button>View Certificate</Button>
-          </ButtonGroup>
+          {buttonGroup}
         </DialogFooter>
       </Dialog>
     )
