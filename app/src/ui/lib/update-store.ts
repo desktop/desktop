@@ -37,6 +37,9 @@ class UpdateStore {
   private status = UpdateStatus.UpdateNotAvailable
   private lastSuccessfulCheck: Date | null = null
 
+  /** Are we checking for updates in the background or was it user-initiated? */
+  private checkingInBackground = false
+
   public constructor() {
 
     const lastSuccessfulCheckValue = localStorage.getItem(lastSuccessfulCheckKey)
@@ -135,8 +138,16 @@ class UpdateStore {
     return `${UpdatesURLBase}?version=${getVersion()}&username=${username}`
   }
 
-  /** Check for updates using the given username. */
-  public checkForUpdates(username: string) {
+  /**
+   * Check for updates using the given username.
+   *
+   * @param username     - The username used to check for updates.
+   * @param inBackground - Are we checking for updates in the background, or was
+   *                       this check user-initiated?
+   */
+  public checkForUpdates(username: string, inBackground: boolean) {
+    this.checkingInBackground = inBackground
+
     try {
       autoUpdater.setFeedURL(this.getFeedURL(username))
       autoUpdater.checkForUpdates()
