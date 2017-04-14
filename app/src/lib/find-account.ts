@@ -65,9 +65,18 @@ async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: st
 export async function findAccountForRemote(url: string, accounts: ReadonlyArray<Account>): Promise<Account | null> {
     const allAccounts = [ ...accounts, Account.anonymous() ]
 
-    // First try parsing it as a full URL. If that doesn't work, try parsing it
-    // as an owner/name shortcut. And if that fails then throw our hands in the
-    // air because we truly don't care.
+    // We have a couple strategies to try to figure out what account we should
+    // use to authenticate the URL:
+    //
+    //  1. Try to parse a remote out of the URL.
+    //    1. If that works, try to find an account for that host.
+    //      1. If we find account, check if we can access that repository.
+    //    2. If we don't find an account or we can't access the repository, move
+    //       on to our next strategy.
+    //  2. Try to parse an owner/name.
+    //    1. If that works, find the first account that can access it.
+    //  3. And if all that fails then throw our hands in the air because we
+    //     truly don't care.
     const parsedURL = parseRemote(url)
     if (parsedURL) {
       const account = allAccounts.find(a => {
