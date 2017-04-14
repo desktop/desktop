@@ -115,7 +115,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     if (!directory) { return }
 
     const path = directory[0]
-    this.setState({ ...this.state, path })
+    this.setState({ path })
   }
 
   private checkPathValid(newPath: string) {
@@ -129,7 +129,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
         error.name = DestinationExistsErrorName
       }
 
-      this.setState({ ...this.state, error })
+      this.setState({ error })
     })
   }
 
@@ -152,7 +152,6 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     }
 
     this.setState({
-      ...this.state,
       url,
       path: newPath,
       lastParsedIdentifier: parsed,
@@ -163,7 +162,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
-    this.setState({ ...this.state, path })
+    this.setState({ path })
     this.checkPathValid(path)
   }
 
@@ -196,7 +195,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
   }
 
   private clone = async () => {
-    this.setState({ ...this.state, loading: true })
+    this.setState({ loading: true })
 
     const path = this.state.path
 
@@ -204,11 +203,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
       const { url, account } = await this.resolveCloneDetails()
       this.cloneImpl(url, path, account)
     } catch (error) {
-      this.setState({
-        ...this.state,
-        loading: false,
-        error,
-      })
+      this.setState({ loading: false, error })
     }
   }
 
