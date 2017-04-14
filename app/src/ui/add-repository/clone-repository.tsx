@@ -194,7 +194,8 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     const path = this.state.path
     const cloneDetails = await this.resolveCloneDetails()
     if (!cloneDetails) {
-      this.setState({ loading: false, error: new Error(`We couldn't find that repository. Make sure it's spelled right and you're logged in.`) })
+      const error = new Error(`We couldn't find that repository. Make sure it's spelled right and you're logged in.`)
+      this.setState({ loading: false, error })
       return
     }
 
