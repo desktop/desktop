@@ -46,13 +46,10 @@ async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: st
 /**
  * Find the GitHub account associated with a given remote URL.
  *
- * @param url the remote URL to lookup
- * @param users the list of active GitHub and GitHub Enterprise accounts
- *
- * Will throw an error if the URL is not value or it is unable to resolve
- * the remote to an existing account
+ * @param url      - the remote URL to lookup
+ * @param accounts - the list of active GitHub and GitHub Enterprise accounts
  */
-export async function findAccountForRemote(url: string, accounts: ReadonlyArray<Account>): Promise<Account> {
+export async function findAccountForRemote(url: string, accounts: ReadonlyArray<Account>): Promise<Account | null> {
 
     // First try parsing it as a full URL. If that doesn't work, try parsing it
     // as an owner/name shortcut. And if that fails then throw our hands in the
@@ -87,9 +84,7 @@ export async function findAccountForRemote(url: string, accounts: ReadonlyArray<
       if (repo) {
         return accountWithoutToken
       }
-
-      throw new Error(`Couldn't find a repository with that owner and name.`)
     }
 
-    throw new Error(`Enter a URL or username/repository.`)
+    return null
 }
