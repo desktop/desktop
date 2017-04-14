@@ -1,10 +1,12 @@
 import * as OS from 'os'
 import { UAParser } from 'ua-parser-js'
 import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
+import { getDotComAPIEndpoint } from '../api'
 import { getVersion } from '../../ui/lib/app-proxy'
 import { proxyRequest } from '../../ui/main-process-proxy'
 import { IHTTPRequest } from '../http'
 import { hasShownWelcomeFlow } from '../welcome'
+import { Account } from '../../models/account'
 
 const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
@@ -50,7 +52,7 @@ export class StatsStore {
   }
 
   /** Report any stats which are eligible for reporting. */
-  public async reportStats() {
+  public async reportStats(accounts: ReadonlyArray<Account>) {
     if (this.optOut) { return }
 
     // Never report stats while in dev or test. They could be pretty crazy.
@@ -69,7 +71,7 @@ export class StatsStore {
     }
 
     const now = Date.now()
-    const stats = await this.getDailyStats()
+    const stats = await this.getDailyStats(accounts)
     const options: IHTTPRequest = {
       url: StatsEndpoint,
       method: 'POST',
@@ -103,9 +105,10 @@ export class StatsStore {
   }
 
   /** Get the daily stats. */
-  private async getDailyStats(): Promise<DailyStats> {
+  private async getDailyStats(accounts: ReadonlyArray<Account>): Promise<DailyStats> {
     const launchStats = await this.getAverageLaunchStats()
     const dailyMeasures = await this.getDailyMeasures()
+    const userType = this.determineUserType(accounts)
 
     return {
       version: getVersion(),
@@ -113,6 +116,7 @@ export class StatsStore {
       platform: process.platform,
       ...launchStats,
       ...dailyMeasures,
+      ...userType,
     }
   }
 
@@ -128,6 +132,17 @@ export class StatsStore {
       return `Windows ${OS.release()}`
     } else {
       return `${OS.type()} ${OS.release()}`
+    }
+  }
+
+  /** Determines if an account is a dotCom and/or enterprise user */
+  private determineUserType(accounts: ReadonlyArray<Account>) {
+    const dotComAccount = accounts.find(a => a.endpoint === getDotComAPIEndpoint()) !== undefined
+    const enterpriseAccount = accounts.find(a => a.endpoint !== getDotComAPIEndpoint()) !== undefined
+
+    return {
+      dotComAccount,
+      enterpriseAccount,
     }
   }
 
