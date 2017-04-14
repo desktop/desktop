@@ -4,24 +4,28 @@ import { parseRemote, parseOwnerAndName } from './remote-parsing'
 import { Account } from '../models/account'
 
 /**
+ * Check if the repository designated by the owner and name exists and can be
+ * accessed by the given account.
+ */
+async function canAccessRepository(account: Account, owner: string, name: string): Promise<boolean> {
+  const api = new API(account)
+  try {
+    const repository = await api.fetchRepository(owner, name)
+    if (repository) {
+      return true
+    } else {
+      return false
+    }
+  } catch (e) {
+    return false
+  }
+}
+
+/**
  * Find the account whose endpoint has a repository with the given owner and
  * name. This will prefer dot com over other endpoints.
  */
 async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: string, name: string): Promise<Account | null> {
-  const hasRepository = async (account: Account) => {
-    const api = new API(account)
-    try {
-      const repository = await api.fetchRepository(owner, name)
-      if (repository) {
-        return true
-      } else {
-        return false
-      }
-    } catch (e) {
-      return false
-    }
-  }
-
   // Prefer .com, then try all the others.
   const sortedAccounts = Array.from(accounts).sort((a1, a2) => {
     if (a1.endpoint === getDotComAPIEndpoint()) {
@@ -34,8 +38,8 @@ async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: st
   })
 
   for (const account of sortedAccounts) {
-    const has = await hasRepository(account)
-    if (has) {
+    const canAccess = await canAccessRepository(account, owner, name)
+    if (canAccess) {
       return account
     }
   }
