@@ -26,12 +26,21 @@ async function canAccessRepository(account: Account, owner: string, name: string
  * name. This will prefer dot com over other endpoints.
  */
 async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: string, name: string): Promise<Account | null> {
-  // Prefer .com, then try all the others.
+  // Prefer an authenticated dot com account, then Enterprise accounts, and
+  // finally the unauthenticated dot com account.
   const sortedAccounts = Array.from(accounts).sort((a1, a2) => {
     if (a1.endpoint === getDotComAPIEndpoint()) {
-      return -1
+      if (a1.token.length) {
+        return -1
+      } else {
+        return 1
+      }
     } else if (a2.endpoint === getDotComAPIEndpoint()) {
-      return 1
+      if (a2.token.length) {
+        return 1
+      } else {
+        return -1
+      }
     } else {
       return 0
     }
@@ -54,6 +63,7 @@ async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: st
  * @param accounts - the list of active GitHub and GitHub Enterprise accounts
  */
 export async function findAccountForRemote(url: string, accounts: ReadonlyArray<Account>): Promise<Account | null> {
+    const allAccounts = [ ...accounts, Account.anonymous() ]
 
     // First try parsing it as a full URL. If that doesn't work, try parsing it
     // as an owner/name shortcut. And if that fails then throw our hands in the
@@ -75,18 +85,9 @@ export async function findAccountForRemote(url: string, accounts: ReadonlyArray<
     if (parsedOwnerAndName) {
       const owner = parsedOwnerAndName.owner
       const name = parsedOwnerAndName.name
-      const account = await findRepositoryAccount(accounts, owner, name)
+      const account = await findRepositoryAccount(allAccounts, owner, name)
       if (account) {
         return account
-      }
-
-      // as a fallback, let's test that this is a public GitHub repository
-      // because we are still allowed to clone this repository
-      const accountWithoutToken = Account.anonymous()
-      const api = new API(accountWithoutToken)
-      const repo = await api.fetchRepository(owner, name)
-      if (repo) {
-        return accountWithoutToken
       }
     }
 
