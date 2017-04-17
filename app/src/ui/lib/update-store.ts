@@ -39,8 +39,8 @@ class UpdateStore {
   private status = UpdateStatus.UpdateNotAvailable
   private lastSuccessfulCheck: Date | null = null
 
-  /** Are we checking for updates in the background or was it user-initiated? */
-  private checkingInBackground = false
+  /** Is the most recent update check user initiated? */
+  private userInitiatedUpdate = true
 
   public constructor() {
 
@@ -125,7 +125,7 @@ class UpdateStore {
   }
 
   private emitError(error: Error) {
-    const updatedError = new ErrorWithMetadata(error, { backgroundTask: this.checkingInBackground })
+    const updatedError = new ErrorWithMetadata(error, { backgroundTask: !this.userInitiatedUpdate })
     this.emitter.emit('error', updatedError)
   }
 
@@ -149,7 +149,7 @@ class UpdateStore {
    *                       this check user-initiated?
    */
   public checkForUpdates(username: string, inBackground: boolean) {
-    this.checkingInBackground = inBackground
+    this.userInitiatedUpdate = !inBackground
 
     try {
       autoUpdater.setFeedURL(this.getFeedURL(username))
