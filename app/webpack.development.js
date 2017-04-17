@@ -51,4 +51,3 @@ const sharedConfig = merge({}, common.shared, config, {
 })
 
 module.exports = [ mainConfig, sharedConfig, rendererConfig, askPassConfig ]
-console.log(module.exports)
