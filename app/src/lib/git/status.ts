@@ -28,6 +28,7 @@ export class StatusResult {
   }
 }
 
+/** Map a raw status string to a well-known status and stagedness. */
 function mapStatus(rawStatus: string): { status: FileStatus, staged: boolean } {
   const status = fileStatusFromString(rawStatus)
   const indexStatus = rawStatus.charAt(0)
