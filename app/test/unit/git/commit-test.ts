@@ -123,7 +123,7 @@ describe('git/commit', () => {
         .fromInitialSelection(DiffSelectionType.None)
         .withRangeSelection(0, 5, true)
 
-      const file = new WorkingDirectoryFileChange(newFileName, FileStatus.New, selection)
+      const file = new WorkingDirectoryFileChange(newFileName, FileStatus.New, false, selection)
 
       // commit just this change, ignore everything else
       await createCommit(repository!, 'title', [ file ])
@@ -155,7 +155,7 @@ describe('git/commit', () => {
       const modifiedFile = 'modified-file.md'
 
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
-      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, false, unselectedFile)
 
       const diff = await getTextDiff(repository!, file)
 
@@ -194,7 +194,7 @@ describe('git/commit', () => {
       const fileName = 'modified-file.md'
 
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
-      const modifiedFile = new WorkingDirectoryFileChange(fileName, FileStatus.Modified, unselectedFile)
+      const modifiedFile = new WorkingDirectoryFileChange(fileName, FileStatus.Modified, false, unselectedFile)
 
       const diff = await getTextDiff(repository!, modifiedFile)
 
@@ -204,7 +204,7 @@ describe('git/commit', () => {
         .fromInitialSelection(DiffSelectionType.None)
         .withRangeSelection(secondRemovedLine, 1, true)
 
-      const file = new WorkingDirectoryFileChange(fileName, FileStatus.Modified, selection)
+      const file = new WorkingDirectoryFileChange(fileName, FileStatus.Modified, false, selection)
 
       // commit just this change, ignore everything else
       await createCommit(repository!, 'title', [ file ])
@@ -227,7 +227,7 @@ describe('git/commit', () => {
       const modifiedFile = 'modified-file.md'
 
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
-      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, false, unselectedFile)
 
       const diff = await getTextDiff(repository!, file)
 
@@ -235,7 +235,7 @@ describe('git/commit', () => {
         .fromInitialSelection(DiffSelectionType.All)
         .withRangeSelection(diff.hunks[1].unifiedDiffStart, diff.hunks[1].unifiedDiffEnd - diff.hunks[1].unifiedDiffStart, false)
 
-      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, false, selection)
 
       // commit just this change, ignore everything else
       await createCommit(repository!, 'title', [ updatedFile ])
@@ -269,7 +269,7 @@ describe('git/commit', () => {
         .fromInitialSelection(DiffSelectionType.None)
         .withRangeSelection(0, 5, true)
 
-      const file = new WorkingDirectoryFileChange(deletedFile, FileStatus.Deleted, selection)
+      const file = new WorkingDirectoryFileChange(deletedFile, FileStatus.Deleted, false, selection)
 
       // commit just this change, ignore everything else
       await createCommit(repository!, 'title', [ file ])
