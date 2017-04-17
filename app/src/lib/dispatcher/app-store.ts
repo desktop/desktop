@@ -1448,7 +1448,7 @@ export class AppStore {
   }
 
   public _reportStats() {
-    return this.statsStore.reportStats()
+    return this.statsStore.reportStats(this.accounts)
   }
 
   public _recordLaunchStats(stats: ILaunchStats): Promise<void> {
