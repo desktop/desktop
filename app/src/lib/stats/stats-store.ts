@@ -3,8 +3,6 @@ import { UAParser } from 'ua-parser-js'
 import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
 import { getDotComAPIEndpoint } from '../api'
 import { getVersion } from '../../ui/lib/app-proxy'
-import { proxyRequest } from '../../ui/main-process-proxy'
-import { IHTTPRequest } from '../http'
 import { hasShownWelcomeFlow } from '../welcome'
 import { Account } from '../../models/account'
 
@@ -71,18 +69,21 @@ export class StatsStore {
     }
 
     const now = Date.now()
-    const stats = await this.getDailyStats(accounts)
-    const options: IHTTPRequest = {
-      url: StatsEndpoint,
+    const stats = await this.getDailyStats()
+    const options = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: stats,
+      body: JSON.stringify(stats),
     }
 
     try {
-      await proxyRequest(options)
+      const response = await fetch(StatsEndpoint, options)
+      if (!response.ok) {
+        throw new Error(`Unexpected status: ${response.statusText} (${response.status})`)
+      }
+
       console.log('Stats reported.')
 
       await this.clearDailyStats()

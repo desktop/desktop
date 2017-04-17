@@ -8,6 +8,7 @@ const lastSuccessfulCheckKey = 'last-successful-update-check'
 import { Emitter, Disposable } from 'event-kit'
 
 import { getVersion } from './app-proxy'
+import { sendWillQuitSync } from '../main-process-proxy'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -147,6 +148,7 @@ class UpdateStore {
 
   /** Quit and install the update. */
   public quitAndInstallUpdate() {
+    sendWillQuitSync()
     autoUpdater.quitAndInstall()
   }
 }
