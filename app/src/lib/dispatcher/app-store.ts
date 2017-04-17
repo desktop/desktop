@@ -63,6 +63,7 @@ import {
   getBranchAheadBehind,
   createCommit,
   checkoutBranch,
+  unstage,
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -798,16 +799,22 @@ export class AppStore {
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
 
     const state = this.getRepositoryState(repository)
-    const files = state.changesState.workingDirectory.files.filter((file, index, array) => {
+    const filesToCommit = state.changesState.workingDirectory.files.filter(file => {
       return file.selection.getSelectionType() !== DiffSelectionType.None
+    })
+
+    const filesToUnstage = state.changesState.workingDirectory.files.filter(file => {
+      return file.selection.getSelectionType() !== DiffSelectionType.All
     })
 
     const gitStore = this.getGitStore(repository)
 
     const result = await this.isCommitting(repository, () => {
-      return gitStore.performFailableOperation(() => {
+      return gitStore.performFailableOperation(async () => {
+        await unstage(repository, filesToUnstage)
+
         const commitMessage = formatCommitMessage(message)
-        return createCommit(repository, commitMessage, files)
+        return createCommit(repository, commitMessage, filesToCommit)
       })
     })
 
