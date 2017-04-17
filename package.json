@@ -59,6 +59,7 @@
     "html-webpack-plugin": "^2.28.0",
     "klaw-sync": "^1.1.2",
     "mocha": "^3.0.2",
+    "node-native-loader": "^1.1.1",
     "node-sass": "^4.5.2",
     "request": "^2.72.0",
     "rimraf": "^2.5.2",
@@ -99,6 +100,5 @@
     "@types/uuid": "^2.0.29",
     "@types/winston": "^2.2.0",
     "legal-eagle": "^0.14.0"
-    "node-native-loader": "^1.1.1"
   }
 }
