@@ -807,6 +807,8 @@ export class AppStore {
 
     const result = await this.isCommitting(repository, () => {
       return gitStore.performFailableOperation(async () => {
+        // Unstage all files up front so that we're in a known state. This is
+        // less than ideal but it'll work for now.
         await unstage(repository, state.changesState.workingDirectory.files)
 
         const commitMessage = formatCommitMessage(message)
