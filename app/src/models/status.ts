@@ -81,9 +81,12 @@ export class WorkingDirectoryFileChange extends FileChange {
   /** contains the selection details for this file - all, nothing or partial */
   public readonly selection: DiffSelection
 
-  public constructor(path: string, status: FileStatus, selection: DiffSelection, oldPath?: string) {
+  public readonly staged: boolean
+
+  public constructor(path: string, status: FileStatus, staged: boolean, selection: DiffSelection, oldPath?: string) {
     super(path, status, oldPath)
 
+    this.staged = staged
     this.selection = selection
   }
 
@@ -98,7 +101,7 @@ export class WorkingDirectoryFileChange extends FileChange {
 
   /** Create a new WorkingDirectoryFileChange with the given diff selection. */
   public withSelection(selection: DiffSelection): WorkingDirectoryFileChange {
-    return new WorkingDirectoryFileChange(this.path, this.status, selection, this.oldPath)
+    return new WorkingDirectoryFileChange(this.path, this.status, this.staged, selection, this.oldPath)
   }
 }
 
