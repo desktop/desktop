@@ -361,7 +361,7 @@ describe('git/commit', () => {
     })
   })
 
-  describe.only('createCommit with a merge conflict', () => {
+  describe('createCommit with a merge conflict', () => {
     it('creates a merge commit', async () => {
       const repo = await setupEmptyRepository()
       const filePath = path.join(repo.path, 'foo')
