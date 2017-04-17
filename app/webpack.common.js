@@ -63,7 +63,6 @@ const mainConfig = merge({}, commonConfig, {
     rules: [
       {
         test: /\.ts$/,
-        include: path.resolve(__dirname, 'src'),
         use: 'ts-loader',
         exclude: /node_modules/,
       }
@@ -78,7 +77,6 @@ const rendererConfig = merge({}, commonConfig, {
     rules: [
       {
         test: /\.tsx?$/,
-        include: path.resolve(__dirname, 'src'),
         use: 'ts-loader',
         exclude: /node_modules/,
       },
@@ -103,7 +101,6 @@ const sharedConfig = merge({}, commonConfig, {
     rules: [
       {
         test: /\.ts$/,
-        include: path.resolve(__dirname, 'src'),
         use: 'ts-loader',
         exclude: /node_modules/,
       }
@@ -124,7 +121,6 @@ const askPassConfig = merge({}, commonConfig, {
     rules: [
       {
         test: /\.ts$/,
-        include: path.resolve(__dirname, 'src'),
         use: 'ts-loader',
         exclude: /node_modules/,
       }
