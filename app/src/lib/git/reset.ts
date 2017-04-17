@@ -28,6 +28,12 @@ export async function reset(repository: Repository, mode: GitResetMode, ref: str
 
 /** Unstage the given files. */
 export async function unstage(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<true> {
+  // If we don't pass any paths, it changes the semantics of the `git reset`. So
+  // don't do that.
+  if (!files.length) {
+    return true
+  }
+
   const paths = files.map(f => f.path)
   await git([ 'reset', '--', ...paths ], repository.path, 'unstage')
   return true
