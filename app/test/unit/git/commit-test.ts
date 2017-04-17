@@ -109,9 +109,11 @@ describe('git/commit', () => {
 
   describe('createCommit partials', () => {
 
-    beforeEach(() => {
+    beforeEach(async () => {
       const testRepoPath = setupFixtureRepository('repo-with-changes')
       repository = new Repository(testRepoPath, -1, null, false)
+
+      await await GitProcess.exec([ 'reset', '--mixed' ], testRepoPath)
     })
 
     it('can commit some lines from new file', async () => {
