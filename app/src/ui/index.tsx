@@ -187,17 +187,6 @@ function openRepository(url: string, branch?: string): Promise<Repository | null
   return cloneRepository(url, branch)
 }
 
-window.addEventListener('keydown', event => {
-  const shortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
-  if (shortcutKey && event.key === 'w') {
-    const state = appStore.getState()
-    if (state.currentPopup) {
-      dispatcher.closePopup()
-      event.preventDefault()
-    }
-  }
-})
-
 ReactDOM.render(
   <App dispatcher={dispatcher} appStore={appStore}/>,
   document.getElementById('desktop-app-container')!
