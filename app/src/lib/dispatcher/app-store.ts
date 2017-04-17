@@ -799,22 +799,18 @@ export class AppStore {
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
 
     const state = this.getRepositoryState(repository)
-    const filesToCommit = state.changesState.workingDirectory.files.filter(file => (
+    const files = state.changesState.workingDirectory.files.filter(file => (
       file.selection.getSelectionType() !== DiffSelectionType.None
-    ))
-
-    const filesToUnstage = state.changesState.workingDirectory.files.filter(file => (
-      file.selection.getSelectionType() !== DiffSelectionType.All
     ))
 
     const gitStore = this.getGitStore(repository)
 
     const result = await this.isCommitting(repository, () => {
       return gitStore.performFailableOperation(async () => {
-        await unstage(repository, filesToUnstage)
+        await unstage(repository, state.changesState.workingDirectory.files)
 
         const commitMessage = formatCommitMessage(message)
-        return createCommit(repository, commitMessage, filesToCommit)
+        return createCommit(repository, commitMessage, files)
       })
     })
 
