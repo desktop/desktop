@@ -37,7 +37,7 @@ describe('patch formatting', () => {
       const modifiedFile = 'modified-file.md'
 
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
-      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, false, unselectedFile)
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
       const diff = await getWorkingDirectoryDiff(repository!, file)
 
@@ -50,7 +50,7 @@ describe('patch formatting', () => {
         .fromInitialSelection(DiffSelectionType.All)
         .withRangeSelection(second.unifiedDiffStart, second.unifiedDiffEnd - second.unifiedDiffStart, false)
 
-      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, false, selection)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
       const patch = formatPatch(updatedFile, textDiff)
 
@@ -63,7 +63,7 @@ describe('patch formatting', () => {
 
       const modifiedFile = 'modified-file.md'
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
-      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, false, unselectedFile)
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
       const diff = await getWorkingDirectoryDiff(repository!, file)
 
@@ -76,7 +76,7 @@ describe('patch formatting', () => {
         .fromInitialSelection(DiffSelectionType.All)
         .withRangeSelection(first.unifiedDiffStart, first.unifiedDiffEnd - first.unifiedDiffStart, false)
 
-      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, false, selection)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
       const patch = formatPatch(updatedFile, textDiff)
 
@@ -90,7 +90,7 @@ describe('patch formatting', () => {
       const modifiedFile = 'modified-file.md'
 
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
-      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, false, unselectedFile)
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
       const diff = await getWorkingDirectoryDiff(repository!, file)
 
@@ -102,7 +102,7 @@ describe('patch formatting', () => {
       const selection = DiffSelection
         .fromInitialSelection(DiffSelectionType.All)
         .withRangeSelection(second.unifiedDiffStart, second.unifiedDiffEnd - second.unifiedDiffStart, false)
-      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, false, selection)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
       const patch = formatPatch(updatedFile, textDiff)
 
@@ -116,7 +116,7 @@ describe('patch formatting', () => {
       FS.writeFileSync(Path.join(repository!.path, modifiedFile), 'line 1\n')
 
       const unselectedFile = DiffSelection.fromInitialSelection(DiffSelectionType.None)
-      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, false, unselectedFile)
+      const file = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, unselectedFile)
 
       const diff = await getWorkingDirectoryDiff(repository!, file)
 
@@ -135,7 +135,7 @@ describe('patch formatting', () => {
         }
       })
 
-      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, false, selection)
+      const updatedFile = new WorkingDirectoryFileChange(modifiedFile, FileStatus.Modified, selection)
 
       const patch = formatPatch(updatedFile, textDiff)
       const expectedPatch = `--- a/modified-file.md
@@ -197,7 +197,7 @@ describe('patch formatting', () => {
         .fromInitialSelection(DiffSelectionType.None)
         .withLineSelection(3, true)
 
-      const file = new WorkingDirectoryFileChange('file.md', FileStatus.Modified, false, selection)
+      const file = new WorkingDirectoryFileChange('file.md', FileStatus.Modified, selection)
       const patch = formatPatch(file, diff)
 
       expect(patch).to.equal(`--- a/file.md
@@ -224,7 +224,7 @@ describe('patch formatting', () => {
         .fromInitialSelection(DiffSelectionType.None)
         .withLineSelection(2, true)
 
-      const file = new WorkingDirectoryFileChange('file.md', FileStatus.New, false, selection)
+      const file = new WorkingDirectoryFileChange('file.md', FileStatus.New, selection)
       const patch = formatPatch(file, diff)
 
       expect(patch).to.have.string('@@ -0,0 +1 @@')
@@ -246,7 +246,7 @@ describe('patch formatting', () => {
         .fromInitialSelection(DiffSelectionType.None)
         .withLineSelection(2, true)
 
-      const file = new WorkingDirectoryFileChange('file.md', FileStatus.Modified, false, selection)
+      const file = new WorkingDirectoryFileChange('file.md', FileStatus.Modified, selection)
       const patch = formatPatch(file, diff)
 
       expect(patch).to.have.string('@@ -1 +1,2 @@')

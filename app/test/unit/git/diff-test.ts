@@ -36,7 +36,7 @@ describe('git/diff', () => {
 
     it('retrieves valid image for new file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('new-image.png', FileStatus.New, false, diffSelection)
+      const file = new WorkingDirectoryFileChange('new-image.png', FileStatus.New, diffSelection)
       const current = await getWorkingDirectoryImage(repository!, file)
 
       expect(current.mediaType).to.equal('image/png')
@@ -45,7 +45,7 @@ describe('git/diff', () => {
 
     it('retrieves valid images for modified file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, false, diffSelection)
+      const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, diffSelection)
       const current = await getWorkingDirectoryImage(repository!, file)
       expect(current.mediaType).to.equal('image/jpg')
       expect(current.contents).to.match(/gdTTb6MClWJ3BU8T8PTtXoB88kFL\/9k=$/)
@@ -56,7 +56,7 @@ describe('git/diff', () => {
 
     it('retrieves valid image for modified file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, false, diffSelection)
+      const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, diffSelection)
       const current = await getBlobImage(repository!, file.path, 'HEAD')
 
       expect(current.mediaType).to.equal('image/jpg')
@@ -65,7 +65,7 @@ describe('git/diff', () => {
 
     it('retrieves valid images for deleted file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('new-animated-image.gif', FileStatus.Deleted, false, diffSelection)
+      const file = new WorkingDirectoryFileChange('new-animated-image.gif', FileStatus.Deleted, diffSelection)
       const previous = await getBlobImage(repository!, file.path, 'HEAD')
 
       expect(previous.mediaType).to.equal('image/gif')
@@ -76,7 +76,7 @@ describe('git/diff', () => {
   describe('imageDiff', () => {
     it('changes for images are set', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, false, diffSelection)
+      const file = new WorkingDirectoryFileChange('modified-image.jpg', FileStatus.Modified, diffSelection)
       const diff = await getWorkingDirectoryDiff(repository!, file)
 
       expect(diff.kind === DiffType.Image)
@@ -91,7 +91,7 @@ describe('git/diff', () => {
       repository = new Repository(testRepoPath, -1, null, false)
 
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, false, diffSelection)
+      const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
       const diff = await getTextDiff(repository!, file)
 
       expect(diff.hunks.length).is.greaterThan(0)
@@ -106,7 +106,7 @@ describe('git/diff', () => {
 
     it('counts lines for new file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, false, diffSelection)
+      const file = new WorkingDirectoryFileChange('new-file.md', FileStatus.New, diffSelection)
       const diff = await getTextDiff(repository!, file)
 
       const hunk = diff.hunks[0]
@@ -121,7 +121,7 @@ describe('git/diff', () => {
 
     it('counts lines for modified file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('modified-file.md', FileStatus.Modified, false, diffSelection)
+      const file = new WorkingDirectoryFileChange('modified-file.md', FileStatus.Modified, diffSelection)
       const diff = await getTextDiff(repository!, file)
 
       const first = diff.hunks[0]
@@ -143,7 +143,7 @@ describe('git/diff', () => {
 
     it('counts lines for staged file', async () => {
       const diffSelection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
-      const file = new WorkingDirectoryFileChange('staged-file.md', FileStatus.Modified, true, diffSelection)
+      const file = new WorkingDirectoryFileChange('staged-file.md', FileStatus.Modified, diffSelection)
       const diff = await getTextDiff(repository!, file)
 
       const first = diff.hunks[0]
