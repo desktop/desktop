@@ -3,65 +3,137 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const webpack = require('webpack')
+const merge = require('webpack-merge')
 
 const devClientId = '3a723b10ac5575cc5bb9'
 const devClientSecret = '22c34d87789a365981ed921352a7b9a8c3f69d54'
 
-module.exports = {
-  entry: {
-    main: ['./app/src/main-process/main'],
-    renderer: ['./app/src/ui/index'],
-    shared: ['./app/src/shared-process/index'],
-    'ask-pass': ['./app/src/ask-pass/main']
-  },
+const commonConfig = {
+  externals: [ 
+    'electron',
+    'net',
+    'remote',
+    'shell',
+    'app',
+    'ipc',
+    
+    'buffer',
+    'fs',
+    'crypto',
+    'os',
+    'path',
+    'http',
+    'https',
+    'child_process',
+    'querystring',
+    'url',
+    'util',
+    'zlib',
+
+    'keytar',
+    '7zip',
+    'dugite',
+  ],
   output: {
     filename: '[name].js',
-    path: path.join(__dirname, '..', 'out'),
+    path: path.resolve(__dirname, '..', 'out'),
     libraryTarget: 'commonjs2'
   },
-  module: {
-    loaders: [
-      {
-        test: /\.tsx?$/,
-        loaders: ['ts'],
-        include: path.join(__dirname, 'src')
-      },
-      {
-        test: /\.(jpe?g|png|gif|ico)$/,
-        loaders: ['file?name=[path][name].[ext]']
-      }
-    ]
-  },
-  resolve: {
-    extensions: ['', '.js', '.ts', '.tsx'],
-    packageMains: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main']
-  },
-  target: 'electron',
   plugins: [
-    new HtmlWebpackPlugin({
-      'template': path.join(__dirname, 'static', 'index.html'),
-      'chunks': ['renderer']
-    }),
-    new HtmlWebpackPlugin({
-      'filename': 'shared.html',
-      'chunks': ['shared']
-    }),
-    new webpack.NoErrorsPlugin()
+    new webpack.NoEmitOnErrorsPlugin()
   ],
-  externals: function (context, request, callback) {
-    try {
-      // Attempt to resolve the module via Node
-      require.resolve(request)
-      callback(null, request)
-    } catch (e) {
-      // Node couldn't find it, so it must be user-aliased
-      callback()
-    }
+  resolve: {
+    extensions: [ '.js', '.ts', '.tsx' ],
+    modules: [ path.resolve(__dirname, 'node_modules/') ],
+    mainFields: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main']    
   },
   node: {
     __dirname: false,
     __filename: false
   },
+}
+
+const mainConfig = merge({}, commonConfig, {
+  entry: { main: path.resolve(__dirname, 'src/main-process/main') },
+  target: 'electron-main',
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        include: path.resolve(__dirname, 'src'),
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      }
+    ]
+  },
+})
+
+const rendererConfig = merge({}, commonConfig, {
+  entry: { renderer: path.resolve(__dirname, 'src/ui/index') },
+  target: 'electron-renderer',
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        include: path.resolve(__dirname, 'src'),
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      },
+      {
+        test: /\.(jpe?g|png|gif|ico)$/,
+        use: ['file?name=[path][name].[ext]']
+      }
+    ]
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      'template': path.join(__dirname, 'static', 'index.html'),
+      'chunks': ['renderer']
+    }),
+  ],
+})
+
+const sharedConfig = merge({}, commonConfig, {
+  entry: { shared: path.resolve(__dirname, 'src/shared-process/index') },
+  target: 'electron-renderer',
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        include: path.resolve(__dirname, 'src'),
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      }
+    ]
+  },
+  plugins: [
+    new HtmlWebpackPlugin({
+      'filename': 'shared.html',
+      'chunks': ['shared']
+    }),
+  ],
+})
+
+const askPassConfig = merge({}, commonConfig, {
+  entry: { 'ask-pass': path.resolve(__dirname, 'src/ask-pass/main') },
+  target: 'node',
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        include: path.resolve(__dirname, 'src'),
+        use: 'ts-loader',
+        exclude: /node_modules/,
+      }
+    ]
+  },
+})
+
+module.exports = {
+  main: mainConfig,
+  shared: sharedConfig,
+  renderer: rendererConfig,
+  askPass: askPassConfig,
   replacements: {
     __OAUTH_CLIENT_ID__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId),
     __OAUTH_SECRET__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_SECRET || devClientSecret),
