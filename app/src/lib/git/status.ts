@@ -28,12 +28,18 @@ export class StatusResult {
   }
 }
 
+function mapStatus(rawStatus: string): { status: FileStatus, staged: boolean } {
+  const status = fileStatusFromString(rawStatus)
+  const indexStatus = rawStatus.charAt(0)
+  const staged = indexStatus !== ' ' && indexStatus !== '?'
+  return { status, staged }
+}
+
 /**
  * map the raw status text from Git to an app-friendly value
  * shamelessly borrowed from GitHub Desktop (Windows)
  */
-export function mapStatus(rawStatus: string): FileStatus {
-
+export function fileStatusFromString(rawStatus: string): FileStatus {
   const status = rawStatus.trim()
 
   if (status === 'M') { return FileStatus.Modified }      // modified
@@ -71,10 +77,10 @@ export async function getStatus(repository: Repository): Promise<StatusResult> {
   const entries = parsePorcelainStatus(result.stdout)
 
   const files = entries.map(({ path, statusCode, oldPath }) => {
-    const status = mapStatus(statusCode)
+    const { status, staged } = mapStatus(statusCode)
     const selection = DiffSelection.fromInitialSelection(DiffSelectionType.All)
 
-    return new WorkingDirectoryFileChange(path, status, selection, oldPath)
+    return new WorkingDirectoryFileChange(path, status, staged, selection, oldPath)
   })
 
   return StatusResult.FromStatus(new WorkingDirectoryStatus(files, true))
