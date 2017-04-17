@@ -63,7 +63,6 @@ import {
   getBranchAheadBehind,
   createCommit,
   checkoutBranch,
-  unstage,
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -799,18 +798,14 @@ export class AppStore {
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
 
     const state = this.getRepositoryState(repository)
-    const files = state.changesState.workingDirectory.files.filter(file => (
-      file.selection.getSelectionType() !== DiffSelectionType.None
-    ))
+    const files = state.changesState.workingDirectory.files.filter((file, index, array) => {
+      return file.selection.getSelectionType() !== DiffSelectionType.None
+    })
 
     const gitStore = this.getGitStore(repository)
 
     const result = await this.isCommitting(repository, () => {
       return gitStore.performFailableOperation(async () => {
-        // Unstage all files up front so that we're in a known state. This is
-        // less than ideal but it'll work for now.
-        await unstage(repository, state.changesState.workingDirectory.files)
-
         const commitMessage = formatCommitMessage(message)
         return createCommit(repository, commitMessage, files)
       })
