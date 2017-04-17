@@ -2,17 +2,29 @@
 
 'use strict'
 
+const run = require('./run')
+
+if (process.env.NODE_ENV === 'production') {
+  const runningApp = run()
+
+  if (!runningApp) {
+    console.error("Couldn't launch the app. You probably need to build it first. Run `npm run build:dev`.")
+    process.exit(1)
+  }
+
+  return
+}
+
 const express = require('express')
 const webpack = require('webpack')
 const config = require('../app/webpack.development')
-const run = require('./run')
 
 const server = express()
 const compiler = webpack(config)
 const port = process.env.PORT || 3000
 
 server.use(require('webpack-dev-middleware')(compiler, {
-  publicPath: config.output.publicPath,
+  publicPath: config[2].output.publicPath,
   noInfo: true
 }))
 
