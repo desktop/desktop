@@ -99,5 +99,6 @@
     "@types/uuid": "^2.0.29",
     "@types/winston": "^2.2.0",
     "legal-eagle": "^0.14.0"
+    "node-native-loader": "^1.1.1"
   }
 }

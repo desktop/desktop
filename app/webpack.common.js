@@ -17,7 +17,6 @@ const commonConfig = {
     'app',
     'ipc',
 
-    'keytar',
     '7zip',
     'dugite',
   ],
@@ -25,6 +24,16 @@ const commonConfig = {
     filename: '[name].js',
     path: path.resolve(__dirname, '..', 'out'),
     libraryTarget: 'commonjs2'
+  },
+  module: {
+    rules: [
+      {
+        test: /\.node$/,
+        use: [
+          { loader: 'node-native-loader', options: { name: "[name].[ext]" } }
+        ],
+      }
+    ],
   },
   plugins: [
     new webpack.NoEmitOnErrorsPlugin()
