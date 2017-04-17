@@ -3,7 +3,7 @@ import { FileStatus, FileChange } from '../../models/status'
 import { Repository } from '../../models/repository'
 import { Commit } from '../../models/commit'
 import { CommitIdentity } from '../../models/commit-identity'
-import { fileStatusFromString } from './status'
+import { mapStatus } from './status'
 
 /**
  * Get the repository's commits using `revisionRange` and limited to `limit`
@@ -79,7 +79,7 @@ export async function getChangedFiles(repository: Repository, sha: string): Prom
   for (let i = 0; i < lines.length; i++) {
     const statusText = lines[i]
 
-    const status = fileStatusFromString(statusText)
+    const status = mapStatus(statusText)
 
     let oldPath: string | undefined = undefined
 
