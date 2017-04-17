@@ -799,13 +799,13 @@ export class AppStore {
   public async _commitIncludedChanges(repository: Repository, message: ICommitMessage): Promise<boolean> {
 
     const state = this.getRepositoryState(repository)
-    const filesToCommit = state.changesState.workingDirectory.files.filter(file => {
-      return file.selection.getSelectionType() !== DiffSelectionType.None
-    })
+    const filesToCommit = state.changesState.workingDirectory.files.filter(file => (
+      file.selection.getSelectionType() !== DiffSelectionType.None
+    ))
 
-    const filesToUnstage = state.changesState.workingDirectory.files.filter(file => {
-      return file.selection.getSelectionType() !== DiffSelectionType.All
-    })
+    const filesToUnstage = state.changesState.workingDirectory.files.filter(file => (
+      file.selection.getSelectionType() !== DiffSelectionType.All
+    ))
 
     const gitStore = this.getGitStore(repository)
 
