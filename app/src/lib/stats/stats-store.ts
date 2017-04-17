@@ -1,5 +1,6 @@
 import * as OS from 'os'
 import * as Fs from 'fs'
+import * as Path from 'path'
 import { UAParser } from 'ua-parser-js'
 import { StatsDatabase, ILaunchStats, IDailyMeasures } from './stats-database'
 import { getVersion } from '../../ui/lib/app-proxy'
@@ -95,7 +96,7 @@ export class StatsStore {
 
   /** Record the given launch stats. */
   public async recordLaunchStats(stats: ILaunchStats) {
-    Fs.appendFile(`launch-stats`, { date: new Date().toJSON(), ...stats })
+    Fs.appendFileSync(Path.resolve(OS.homedir(), 'desktop-launch-stats'), JSON.stringify({ date: new Date().toJSON(), ...stats }))
     await this.db.launches.add(stats)
   }
 
