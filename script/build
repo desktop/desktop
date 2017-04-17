@@ -142,9 +142,28 @@ function copyStaticResources () {
 
 function copyDependencies () {
   const originalPackage = require(path.join(projectRoot, 'app', 'package.json'))
+
+  const commonConfig = require(path.resolve(__dirname, '../app/webpack.common'))
+  const externals = commonConfig.externals
+  const oldDependencies = originalPackage.dependencies
+  const newDependencies = { }
+
+  for (var [name, spec] of Object.entries(oldDependencies)) {
+    if (externals.indexOf(name) !== -1) {
+      newDependencies[name] = spec
+    }
+  }
+
   // The product name changes depending on whether it's a prod build or dev
   // build, so that we can have them running side by side.
-  const updatedPackage = Object.assign({}, originalPackage, { productName: distInfo.getProductName() })
+  const updatedPackage = Object.assign({}, originalPackage, {
+    productName: distInfo.getProductName(),
+    dependencies: newDependencies,
+  })
+
+  if (isProductionBuild) {
+    delete updatedPackage.devDependencies
+  }
 
   let destination = path.join(outRoot, 'package.json')
   fs.removeSync(destination)
@@ -152,12 +171,14 @@ function copyDependencies () {
 
   destination = path.join(outRoot, 'node_modules')
   fs.removeSync(destination)
-  fs.copySync(path.join(projectRoot, 'app', 'node_modules'), destination)
+  fs.mkdirpSync(destination)
 
-  if (isProductionBuild) {
-    console.log('Pruning dev dependencies…')
-    cp.execSync('npm prune --production', {cwd: outRoot, env: process.env})
-  }
+  fs.copySync(path.join(projectRoot, 'app', 'node_modules', 'dugite'), path.join(destination, 'dugite'))
+
+  // if (isProductionBuild) {
+  //   console.log('Pruning dev dependencies…')
+  //   cp.execSync('npm prune --production', {cwd: outRoot, env: process.env})
+  // }
 }
 
 function updateLicenseDump (callback) {
