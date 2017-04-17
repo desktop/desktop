@@ -1,7 +1,6 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { assertNever } from '../fatal-error'
-import { WorkingDirectoryFileChange } from '../../models/status'
 
 /** The reset modes which are supported. */
 export const enum GitResetMode {
@@ -26,15 +25,8 @@ export async function reset(repository: Repository, mode: GitResetMode, ref: str
   return true
 }
 
-/** Unstage the given files. */
-export async function unstage(repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange>): Promise<true> {
-  // If we don't pass any paths, it changes the semantics of the `git reset`. So
-  // don't do that.
-  if (!files.length) {
-    return true
-  }
-
-  const paths = files.map(f => f.path)
-  await git([ 'reset', '--', ...paths ], repository.path, 'unstage')
+/** Unstage all paths. */
+export async function unstageAll(repository: Repository): Promise<true> {
+  await git([ 'reset', '--', '.' ], repository.path, 'unstage')
   return true
 }
