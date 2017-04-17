@@ -18,9 +18,10 @@ function createAccounts(count: number) {
 
 describe('StatsStore', () => {
   let statsStore: StatsStore | null = null
+  const statsDatabase = new StatsDatabase('TestStatsDatabase')
 
   beforeEach(() => {
-    statsStore = new StatsStore(new StatsDatabase('TestStatsDatabase'))
+    statsStore = new StatsStore(statsDatabase)
   })
 
   describe('user opts out', () => {
@@ -32,6 +33,7 @@ describe('StatsStore', () => {
       statsStore!.reportStats(createAccounts(3))
 
       //Assert
+      expect(0).to.greaterThan(-1)
     })
   })
 })

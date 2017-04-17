@@ -69,7 +69,7 @@ export class StatsStore {
     }
 
     const now = Date.now()
-    const stats = await this.getDailyStats()
+    const stats = await this.getDailyStats(accounts)
     const options = {
       method: 'POST',
       headers: {
