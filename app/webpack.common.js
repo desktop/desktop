@@ -8,6 +8,13 @@ const merge = require('webpack-merge')
 const devClientId = '3a723b10ac5575cc5bb9'
 const devClientSecret = '22c34d87789a365981ed921352a7b9a8c3f69d54'
 
+const replacements = {
+  __OAUTH_CLIENT_ID__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId),
+  __OAUTH_SECRET__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_SECRET || devClientSecret),
+  __DARWIN__: process.platform === 'darwin',
+  __WIN32__: process.platform === 'win32'
+}
+
 const commonConfig = {
   externals: [ 
     'electron',
@@ -36,7 +43,7 @@ const commonConfig = {
     ],
   },
   plugins: [
-    new webpack.NoEmitOnErrorsPlugin()
+    new webpack.NoEmitOnErrorsPlugin(),
   ],
   resolve: {
     extensions: [ '.js', '.ts', '.tsx' ],
@@ -130,10 +137,6 @@ module.exports = {
   shared: sharedConfig,
   renderer: rendererConfig,
   askPass: askPassConfig,
-  replacements: {
-    __OAUTH_CLIENT_ID__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_ID || devClientId),
-    __OAUTH_SECRET__: JSON.stringify(process.env.DESKTOP_OAUTH_CLIENT_SECRET || devClientSecret),
-    __DARWIN__: process.platform === 'darwin',
-    __WIN32__: process.platform === 'win32'
-  }
+  replacements: replacements,
+  externals: commonConfig.externals,
 }
