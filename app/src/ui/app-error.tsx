@@ -9,6 +9,7 @@ import { GitError } from '../lib/git/core'
 import { GitError as GitErrorType } from 'dugite'
 import { Popup, PopupType } from '../lib/app-state'
 import { ErrorWithMetadata } from '../lib/error-with-metadata'
+import { remote } from 'electron'
 
 /**
  * Inspect the error metadata to see if this is an uncaught error
@@ -96,7 +97,12 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   private closeAndExit = () => {
     this.onDismissed()
 
-    // TODO: close the thing
+    // this gives a brief pause between dismissing the dialog and
+    // exiting the app completely - choosing 500ms but it can be
+    // relative to some other value
+    setTimeout(() => {
+      remote.app.exit()
+    }, 5 * dialogTransitionLeaveTimeout)
   }
 
   private renderUnhandledErrorFooter() {
