@@ -1,6 +1,9 @@
 #update-available {
   border-bottom: 1px solid var(--box-border-color);
+
   height: 0px;
+  transition: height 0.25s;
+
 
   &.active {
     height: 50px;
