@@ -106,13 +106,6 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }, 5 * dialogTransitionLeaveTimeout)
   }
 
-  private renderUnhandledErrorFooter() {
-    return (
-      <ButtonGroup>
-        <Button onClick={this.closeAndExit} type='submit'>Exit</Button>
-      </ButtonGroup>)
-  }
-
   private renderGitErrorFooter(error: GitError) {
     const gitErrorType = error.result.gitError
 
@@ -199,7 +192,11 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
   private renderFooter(error: Error, unhandled: boolean) {
     if (unhandled) {
-      return this.renderUnhandledErrorFooter()
+      return (
+        <ButtonGroup>
+          <Button onClick={this.closeAndExit} type='submit'>Exit</Button>
+        </ButtonGroup>
+      )
     }
 
     if (error instanceof GitError) {
