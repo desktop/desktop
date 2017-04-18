@@ -108,7 +108,6 @@ export enum PopupType {
   RenameBranch = 1,
   DeleteBranch,
   ConfirmDiscardChanges,
-  UpdateAvailable,
   Preferences,
   MergeBranch,
   RepositorySettings,
@@ -125,7 +124,6 @@ export enum PopupType {
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.DeleteBranch, repository: Repository, branch: Branch } |
                     { type: PopupType.ConfirmDiscardChanges, repository: Repository, files: ReadonlyArray<WorkingDirectoryFileChange> } |
-                    { type: PopupType.UpdateAvailable } |
                     { type: PopupType.Preferences } |
                     { type: PopupType.MergeBranch, repository: Repository } |
                     { type: PopupType.RepositorySettings, repository: Repository } |
