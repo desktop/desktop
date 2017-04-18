@@ -13,7 +13,6 @@
   .close {
       position: absolute;
       right: var(--spacing);
-
       border: 0;
       height: 16px;
       width: 16px;
@@ -22,6 +21,5 @@
       background: transparent;
 
       color: var(--text-secondary-color);
-      cursor: pointer;
   }
 }
