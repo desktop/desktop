@@ -48,7 +48,7 @@ const rendererConfig = merge({}, common.renderer, config, {
   },
   plugins: [
     // Necessary to be able to use ExtractTextPlugin as a loader.
-    new ExtractTextPlugin('styles.css')
+    new ExtractTextPlugin('styles.css'),
   ]
 })
 
