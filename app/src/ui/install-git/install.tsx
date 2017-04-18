@@ -52,16 +52,16 @@ export class InstallGit extends React.Component<IInstallGitProps, void> {
         onDismissed={this.props.onDismissed}>
         <DialogContent>
           <p>
-            We were unable to locate Git on your system. This means the shell won't be able to execute any Git commands.
+            We were unable to locate Git on your system. This means you won't be able to execute any Git commands in the {__DARWIN__ ? 'Terminal window' : 'command prompt'}.
           </p>
           <p>
-            Click <strong>More information</strong> to learn how to install and add Git to your shell for your operating system.
+            To help you get Git installed and configured for your operating system, we have some external resources available.
           </p>
         </DialogContent>
         <DialogFooter>
           <ButtonGroup>
             <Button type='submit' onClick={this.onContinue}>Continue</Button>
-            <Button onClick={this.onExternalLink}>More information</Button>
+            <Button onClick={this.onExternalLink}>{__DARWIN__ ? 'Read More' : 'Read more'}</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
