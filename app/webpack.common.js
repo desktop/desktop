@@ -16,7 +16,7 @@ const replacements = {
 }
 
 const commonConfig = {
-  externals: [ 
+  externals: [
     'electron',
     'net',
     'remote',
@@ -35,6 +35,20 @@ const commonConfig = {
   module: {
     rules: [
       {
+        test: /\.tsx?$/,
+        include: path.resolve(__dirname, 'src'),
+        use: [
+          {
+            loader: 'awesome-typescript-loader',
+            options: {
+              useBabel: true,
+              useCache: true,
+            },
+          }
+        ],
+        exclude: /node_modules/,
+      },
+      {
         test: /\.node$/,
         use: [
           { loader: 'node-native-loader', options: { name: "[name].[ext]" } }
@@ -48,7 +62,6 @@ const commonConfig = {
   resolve: {
     extensions: [ '.js', '.ts', '.tsx' ],
     modules: [ path.resolve(__dirname, 'node_modules/') ],
-    mainFields: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main']    
   },
   node: {
     __dirname: false,
@@ -59,16 +72,6 @@ const commonConfig = {
 const mainConfig = merge({}, commonConfig, {
   entry: { main: path.resolve(__dirname, 'src/main-process/main') },
   target: 'electron-main',
-  module: {
-    rules: [
-      {
-        test: /\.ts$/,
-        include: path.resolve(__dirname, 'src'),
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      }
-    ]
-  },
 })
 
 const rendererConfig = merge({}, commonConfig, {
@@ -76,12 +79,6 @@ const rendererConfig = merge({}, commonConfig, {
   target: 'electron-renderer',
   module: {
     rules: [
-      {
-        test: /\.tsx?$/,
-        include: path.resolve(__dirname, 'src'),
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      },
       {
         test: /\.(jpe?g|png|gif|ico)$/,
         use: ['file?name=[path][name].[ext]']
@@ -99,16 +96,6 @@ const rendererConfig = merge({}, commonConfig, {
 const sharedConfig = merge({}, commonConfig, {
   entry: { shared: path.resolve(__dirname, 'src/shared-process/index') },
   target: 'electron-renderer',
-  module: {
-    rules: [
-      {
-        test: /\.ts$/,
-        include: path.resolve(__dirname, 'src'),
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      }
-    ]
-  },
   plugins: [
     new HtmlWebpackPlugin({
       'filename': 'shared.html',
@@ -120,16 +107,6 @@ const sharedConfig = merge({}, commonConfig, {
 const askPassConfig = merge({}, commonConfig, {
   entry: { 'ask-pass': path.resolve(__dirname, 'src/ask-pass/main') },
   target: 'node',
-  module: {
-    rules: [
-      {
-        test: /\.ts$/,
-        include: path.resolve(__dirname, 'src'),
-        use: 'ts-loader',
-        exclude: /node_modules/,
-      }
-    ]
-  },
 })
 
 module.exports = {

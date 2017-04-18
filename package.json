@@ -42,7 +42,9 @@
   },
   "dependencies": {
     "@niik/tslint-microsoft-contrib": "^2.0.14",
+    "awesome-typescript-loader": "^3.1.2",
     "aws-sdk": "^2.23.0",
+    "babel-core": "^6.24.1",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",
     "chai-datetime": "^1.4.1",
