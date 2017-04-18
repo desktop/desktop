@@ -7,7 +7,19 @@ const byline = require('byline')
 type ProcessCallback = (process: ChildProcess) => void
 export type ProgressCallback = (line: string) => void
 
-/** Check out the given branch. */
+/**
+ * Check out the given branch.
+ * 
+ * @param repository - The repository in which the branch checkout should
+ *                     take place
+ * 
+ * @param name - The branch name that should be checked out
+ * 
+ * @param progressCallback - An optional function which will be invoked
+ *                           once per each line of output from Git. When
+ *                           provided this also enables the '--progress'
+ *                           command line flag for 'git checkout'.
+ */
 export async function checkoutBranch(repository: Repository, name: string, progressCallback?: ProgressCallback): Promise<void> {
 
   let processCallback: ProcessCallback | undefined = undefined
