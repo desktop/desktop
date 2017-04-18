@@ -77,7 +77,6 @@
     "webpack-dev-middleware": "^1.10.1",
     "webpack-hot-middleware": "^2.18.0",
     "webpack-merge": "^4.1.0",
-    "webpack-target-electron-renderer": "^0.4.0",
     "xml2js": "^0.4.16"
   },
   "devDependencies": {
