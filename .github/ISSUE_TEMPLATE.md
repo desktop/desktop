@@ -36,8 +36,8 @@ _your answer_
 
 #### Actual Behaviour
 
-*What actually happened? Attach any screenshots or error messages you think
-might be valuable here.*
+**What actually happened? Attach any screenshots or error messages you think
+might be valuable here.**
 
 _your answer_
 
