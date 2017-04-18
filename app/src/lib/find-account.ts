@@ -9,14 +9,10 @@ import { Account } from '../models/account'
  */
 async function canAccessRepository(account: Account, owner: string, name: string): Promise<boolean> {
   const api = new API(account)
-  try {
-    const repository = await api.fetchRepository(owner, name)
-    if (repository) {
-      return true
-    } else {
-      return false
-    }
-  } catch (e) {
+  const repository = await api.fetchRepository(owner, name)
+  if (repository) {
+    return true
+  } else {
     return false
   }
 }
