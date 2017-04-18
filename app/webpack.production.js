@@ -24,10 +24,6 @@ if (branchName && branchName.length > 0) {
 const config = {
   devtool: 'cheap-module-source-map',
   plugins: [
-    new webpack.DefinePlugin(Object.assign({}, {
-      __DEV__: false,
-      __RELEASE_ENV__: JSON.stringify(environment)
-    }, common.replacements))
   ],
 }
 

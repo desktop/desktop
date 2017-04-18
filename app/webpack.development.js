@@ -10,12 +10,6 @@ const config = {
   output: {
     publicPath: 'http://localhost:3000/build/'
   },
-  plugins: [
-    new webpack.DefinePlugin(Object.assign({}, {
-      __DEV__: true,
-      __RELEASE_ENV__: JSON.stringify('development')
-    }, common.replacements))
-  ],
 }
 
 const mainConfig = merge({}, common.main, config)
