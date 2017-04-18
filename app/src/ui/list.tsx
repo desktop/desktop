@@ -217,17 +217,36 @@ export class List extends React.Component<IListProps, IListState> {
             if (this.updateSizeTimeoutId !== null) {
               clearImmediate(this.updateSizeTimeoutId)
             }
-            this.updateSizeTimeoutId = setImmediate(this.onResized, entry.contentRect)
+
+            this.updateSizeTimeoutId = setImmediate(this.onResized, entry.target, entry.contentRect)
           }
         }
       })
     }
   }
 
-  private onResized = (contentRect: ClientRect) => {
+  private onResized = (target: Element, contentRect: ClientRect) => {
     this.updateSizeTimeoutId = null
 
-    const { width, height } = contentRect
+    // In a perfect world the contentRect would be enough. Unfortunately,
+    // as you already know, computers. In Electron 1.6.6 (with Chrome 56) which
+    // we're running at the time of writing the clientRect emitted from the
+    // resizeObserver returns native pixels instead of device independent pixels
+    // which means that the width and height will end up being 2x the expected
+    // size when running in 200% DPI scaling on Windows. On Mac this doesn't
+    // seem to be an issue. It's not clear to me whether this bug lies within
+    // Electron or Chromium and it's quite possible that it's solved already in
+    // newer versions of Chromium so we'll should revisit this as we upgrade.
+    //
+    // It's worth noting that the ResizeObserver is still behind the
+    // experimental flag so things like this should probably be expected.
+    //
+    // In order to work around this on Windows we'll explicitly ask for a
+    // bounding rectangle on Windows which we know will give us sane pixels.
+    const { width, height } = __DARWIN__
+      ? contentRect
+      : target.getBoundingClientRect()
+
     if (this.state.width !== width || this.state.height !== height) {
       this.setState({ width, height })
     }

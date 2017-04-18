@@ -142,14 +142,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
     })
-
-    ipcRenderer.on('uncaught-exception', (event: Electron.IpcRendererEvent, { message, stack }: { name: string, message: string, stack: string | undefined }) => {
-      // rehydrate the error
-      const error = new Error(message)
-      error.name = name
-      error.stack = stack
-      this.props.dispatcher.postUnhandledError(error)
-    })
   }
 
   private updateMenu(state: IAppState) {
@@ -282,7 +274,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private checkForUpdates() {
     if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') { return }
 
-    updateStore.checkForUpdates(this.getUsernameForUpdateCheck())
+    updateStore.checkForUpdates(this.getUsernameForUpdateCheck(), true)
   }
 
   private getUsernameForUpdateCheck() {

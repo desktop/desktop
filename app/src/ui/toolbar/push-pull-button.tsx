@@ -94,6 +94,11 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private getIcon(): OcticonSymbol {
+
+    if (this.props.networkActionInProgress) {
+      return OcticonSymbol.sync
+    }
+
     if (!this.props.remoteName) { return OcticonSymbol.cloudUpload }
     if (!this.props.aheadBehind) { return OcticonSymbol.cloudUpload }
 

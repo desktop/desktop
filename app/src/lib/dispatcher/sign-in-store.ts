@@ -320,11 +320,7 @@ export class SignInStore {
       })
     } else {
       if (response.kind === AuthorizationResponseKind.Error) {
-        if (response.response.error) {
-          this.emitError(response.response.error)
-        } else {
-          this.emitError(new Error(`The server responded with an error while attempting to authenticate (${response.response.statusCode})\n\n${response.response.body}`))
-        }
+        this.emitError(new Error(`The server responded with an error while attempting to authenticate (${response.response.status})\n\n${response.response.statusText}`))
         this.setState({ ...currentState, loading: false })
       } else if (response.kind === AuthorizationResponseKind.Failed) {
         this.setState({
@@ -521,12 +517,7 @@ export class SignInStore {
           })
           break
         case AuthorizationResponseKind.Error:
-          const error = response.response.error
-          if (error) {
-            this.emitError(error)
-          } else {
-            this.emitError(new Error(`The server responded with an error (${response.response.statusCode})\n\n${response.response.body}`))
-          }
+          this.emitError(new Error(`The server responded with an error (${response.response.status})\n\n${response.response.statusText}`))
           break
         case AuthorizationResponseKind.UserRequiresVerification:
           this.emitError(new Error(getUnverifiedUserErrorMessage(currentState.username)))

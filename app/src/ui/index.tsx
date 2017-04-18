@@ -12,12 +12,18 @@ import { Repository } from '../models/repository'
 import { getDefaultDir, setDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
 import { sendReady } from './main-process-proxy'
-import { reportError } from '../lib/exception-reporting'
+import { ErrorWithMetadata } from '../lib/error-with-metadata'
+import { reportError } from './lib/exception-reporting'
 import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
-import { defaultErrorHandler, createMissingRepositoryHandler, createUnhandledExceptionHandler } from '../lib/dispatcher'
+import {
+  defaultErrorHandler,
+  createMissingRepositoryHandler,
+  backgroundTaskHandler,
+  unhandledExceptionHandler,
+} from '../lib/dispatcher'
 import { getEndpointForRepository, getAccountForEndpoint } from '../lib/api'
 import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
@@ -44,6 +50,11 @@ if (!process.env.TEST_ENV) {
   require('../../styles/desktop.scss')
 }
 
+process.on('uncaughtException', (error: Error) => {
+  reportError(error, getVersion())
+  getLogger().error('Uncaught exception on UI', error)
+  postUnhandledError(error)
+})
 
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
 const cloningRepositoriesStore = new CloningRepositoriesStore()
@@ -63,16 +74,19 @@ const appStore = new AppStore(
 
 const dispatcher = new Dispatcher(appStore)
 
-process.on('uncaughtException', (error: Error) => {
-  getLogger().error('Uncaught exception on UI', error)
-  dispatcher.postUnhandledError(error)
+function postUnhandledError(error: Error) {
+  dispatcher.postError(new ErrorWithMetadata(error, { unhandledError: true }))
+}
+
+ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
   reportError(error, getVersion())
+  postUnhandledError(error)
 })
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
+dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
-dispatcher.registerErrorHandler(createUnhandledExceptionHandler(appStore))
-
+dispatcher.registerErrorHandler(unhandledExceptionHandler)
 
 dispatcher.loadInitialState().then(() => {
   const now = Date.now()

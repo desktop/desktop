@@ -104,6 +104,11 @@ export class AppWindow {
         quitting = true
       })
 
+      ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
+        quitting = true
+        event.returnValue = true
+      })
+
       this.window.on('close', e => {
         if (!quitting) {
           e.preventDefault()
@@ -262,9 +267,16 @@ export class AppWindow {
     this.window.webContents.send('app-menu', { menu })
   }
 
-  /** display details to the user about an uncaught exception */
-  public showUnhandledError(error: Error) {
-    this.window.webContents.send('uncaught-exception', { message: error.message, stack: error.stack, name: error.name })
+  /** Report the exception to the renderer. */
+  public sendException(error: Error) {
+    // `Error` can't be JSONified so it doesn't transport nicely over IPC. So
+    // we'll just manually copy the properties we care about.
+    const friendlyError = {
+      stack: error.stack,
+      message: error.message,
+      name: error.name,
+    }
+    this.window.webContents.send('main-process-exception', friendlyError)
   }
 
   /**

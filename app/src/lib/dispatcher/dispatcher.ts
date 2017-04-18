@@ -398,18 +398,6 @@ export class Dispatcher {
     return this.appStore._clearError(error)
   }
 
-
-  /**
-   * Post an unhandled error to the UI.
-   *
-   * This will be displayed slightly different in the app.
-   */
-  public postUnhandledError(error: Error): Promise<void> {
-    const anyError = error as any
-    anyError.unhandled = true
-    return this.postError(anyError)
-  }
-
   /**
    * Clone a missing repository to the previous path, and update it's
    * state in the repository list if the clone completes without error.
