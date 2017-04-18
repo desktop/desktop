@@ -1,11 +1,10 @@
 import * as React from 'react'
 import { LinkButton } from '../lib/link-button'
-import { Dispatcher } from '../../lib/dispatcher'
 import { updateStore } from '../lib/update-store'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IUpdateAvailableProps {
-  readonly dispatcher: Dispatcher
+  readonly onDismissed: () => void
 }
 
 /**
@@ -39,6 +38,6 @@ export class UpdateAvailable extends React.Component<IUpdateAvailableProps, void
   }
 
   private dismiss = () => {
-    this.props.dispatcher.closePopup()
+    this.props.onDismissed()
   }
 }
