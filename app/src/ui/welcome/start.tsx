@@ -5,9 +5,6 @@ import { Button } from '../lib/button'
 
 const CreateAccountURL = 'https://github.com/join?source=github-desktop'
 
-const WelcomeImageUri = `file:///${__dirname}/static/space.png`
-const WelcomeImageDimensions = { width: 552, height: 307 }
-
 interface IStartProps {
   readonly advance: (step: WelcomeStep) => void
 }
@@ -17,7 +14,6 @@ export class Start extends React.Component<IStartProps, void> {
   public render() {
     return (
       <div id='start'>
-        <img src={WelcomeImageUri} style={WelcomeImageDimensions}/>
 
         <h1 className='welcome-title'>Welcome to GitHub Desktop</h1>
         <h2 className='welcome-text'>Get started by signing into GitHub.com or your GitHub Enterprise server.</h2>

@@ -120,6 +120,11 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     this.props.dispatcher.endWelcomeFlow()
   }
 
+// Look some code:
+// const WelcomeImageUri = `file:///${__dirname}/static/space.png`
+// const WelcomeImageDimensions = { width: 552, height: 307 } // Put in render
+// <img src={WelcomeImageUri} style={WelcomeImageDimensions}/>
+
   public render() {
     return (
       <UiView id='welcome'>
