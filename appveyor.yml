@@ -22,10 +22,6 @@ version: "{build}"
 install:
   - ps: Install-Product node $env:nodejs_version x64
   - npm install -g npm
-  - ps: $fileContent = "-----BEGIN RSA PRIVATE KEY-----`n"
-  - ps: $fileContent += $env:PRIVATE_KEY.Replace(' ', "`n")
-  - ps: $fileContent += "`n-----END RSA PRIVATE KEY-----`n"
-  - ps: Set-Content c:\users\appveyor\.ssh\id_rsa $fileContent
   - git submodule update --init --recursive
   - npm prune
   - cd app && npm prune && cd ..
