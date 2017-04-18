@@ -63,6 +63,8 @@ export class App extends React.Component<IAppProps, IAppState> {
    */
   private lastKeyPressed: string | null = null
 
+  private updateReady: boolean = false
+
   /**
    * Gets a value indicating whether or not we're currently showing a
    * modal dialog such as the preferences, or an error dialog.
@@ -118,6 +120,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       setMenuVisible(visibleItem, true)
 
       if (status === UpdateStatus.UpdateReady) {
+        this.updateReady = true
       }
     })
 
