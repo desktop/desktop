@@ -18,7 +18,7 @@ Here's some details about how the team is organizing and shipping Desktop:
  - **[Issue Triage](./process/issue-triage.md)** - how we address issues reported by users
  - **[Up for Grabs](./process/up-for-grabs.md)** - how we identify tasks for external contribution
  - **[Review Process](./process/reviews.md)** - how we review contributions
- - **[Releasing updates](./process/releasing-updates.md)** -how we deploy things
+ - **[Releasing updates](./process/releasing-updates.md)** - how we deploy things
  - **[Roadmap](./process/roadmap.md)** - how we plan for the future
 
 ## Technical
