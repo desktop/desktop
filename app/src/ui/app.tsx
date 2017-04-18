@@ -1053,7 +1053,9 @@ export class App extends React.Component<IAppProps, IAppState> {
 
   private renderUpdateBanner() {
     return (
-      <UpdateAvailable updateAvailble={!this.updateReady}/>
+      <UpdateAvailable
+        updateAvailble={!this.updateReady}
+        releaseNotesLink='https://www.google.com'/>
     )
   }
 
