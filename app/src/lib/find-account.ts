@@ -47,10 +47,12 @@ async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: st
 /**
  * Find the GitHub account associated with a given remote URL.
  *
- * @param remote   - the remote URL whose account should be found
- * @param accounts - the list of active GitHub and GitHub Enterprise accounts
+ * @param urlOrRepositoryAlias - the URL or repository alias whose account
+ *                               should be found
+ * @param accounts             - the list of active GitHub and GitHub Enterprise
+ *                               accounts
  */
-export async function findAccountForRemote(remote: string, accounts: ReadonlyArray<Account>): Promise<Account | null> {
+export async function findAccountForRemote(urlOrRepositoryAlias: string, accounts: ReadonlyArray<Account>): Promise<Account | null> {
     const allAccounts = [ ...accounts, Account.anonymous() ]
 
     // We have a couple of strategies to try to figure out what account we
@@ -65,7 +67,7 @@ export async function findAccountForRemote(remote: string, accounts: ReadonlyArr
     //    1. If that works, find the first account that can access it.
     //  3. And if all that fails then throw our hands in the air because we
     //     truly don't care.
-    const parsedURL = parseRemote(remote)
+    const parsedURL = parseRemote(urlOrRepositoryAlias)
     if (parsedURL) {
       const account = allAccounts.find(a => {
         const htmlURL = getHTMLURL(a.endpoint)
@@ -87,7 +89,7 @@ export async function findAccountForRemote(remote: string, accounts: ReadonlyArr
       }
     }
 
-    const parsedOwnerAndName = parseOwnerAndName(remote)
+    const parsedOwnerAndName = parseOwnerAndName(urlOrRepositoryAlias)
     if (parsedOwnerAndName) {
       const owner = parsedOwnerAndName.owner
       const name = parsedOwnerAndName.name
