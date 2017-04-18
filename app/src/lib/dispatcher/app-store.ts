@@ -541,7 +541,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _selectRepository(repository: Repository | CloningRepository | null): Promise<Repository | null> {
-
+    const previouslySelectedRepository = this.selectedRepository
     this.selectedRepository = repository
     this.emitUpdate()
 
@@ -570,7 +570,7 @@ export class AppStore {
     // The selected repository could have changed while we were refreshing.
     if (this.selectedRepository !== repository) { return null }
 
-    this.startBackgroundFetching(repository)
+    this.startBackgroundFetching(repository, !previouslySelectedRepository)
     this.refreshMentionables(repository)
 
     return repository
@@ -605,7 +605,7 @@ export class AppStore {
     this.gitHubUserStore.updateMentionables(gitHubRepository, account)
   }
 
-  private startBackgroundFetching(repository: Repository) {
+  private startBackgroundFetching(repository: Repository, withInitialSkew: boolean) {
     if (this.currentBackgroundFetcher) {
       fatalError(`We should only have on background fetcher active at once, but we're trying to start background fetching on ${repository.name} while another background fetcher is still active!`)
       return
@@ -616,8 +616,8 @@ export class AppStore {
 
     if (!repository.gitHubRepository) { return }
 
-    const fetcher = new BackgroundFetcher(repository, account, r => this.fetch(r, account))
-    fetcher.start()
+    const fetcher = new BackgroundFetcher(repository, account, r => this.performFetch(r, account, true))
+    fetcher.start(withInitialSkew)
     this.currentBackgroundFetcher = fetcher
   }
 
@@ -996,8 +996,13 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _createBranch(repository: Repository, name: string, startPoint: string): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
-    await gitStore.performFailableOperation(() => createBranch(repository, name, startPoint))
-    return this._checkoutBranch(repository, name)
+    const createResult = await gitStore.performFailableOperation(() => createBranch(repository, name, startPoint))
+
+    if (createResult !== true) {
+      return repository
+    }
+
+    return await this._checkoutBranch(repository, name)
   }
 
   /** This shouldn't be called directly. See `Dispatcher`. */
@@ -1020,6 +1025,10 @@ export class AppStore {
 
     const api = new API(account)
     const apiRepo = await api.fetchRepository(gitHubRepository.owner.login, gitHubRepository.name)
+    if (!apiRepo) {
+      return updatedRepository
+    }
+
     return updatedRepository.withGitHubRepository(gitHubRepository.withAPI(apiRepo))
   }
 
@@ -1289,10 +1298,14 @@ export class AppStore {
   }
 
   /** Fetch the repository. */
-  public async fetch(repository: Repository, account: Account | null): Promise<void> {
+  public fetch(repository: Repository, account: Account | null): Promise<void> {
+    return this.performFetch(repository, account, false)
+  }
+
+  private async performFetch(repository: Repository, account: Account | null, backgroundTask: boolean): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
-      await gitStore.fetch(account)
+      await gitStore.fetch(account, backgroundTask)
       await this.fastForwardBranches(repository)
     })
 
@@ -1426,7 +1439,7 @@ export class AppStore {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public _setStatsOptOut(optOut: boolean): Promise<void> {
+  public setStatsOptOut(optOut: boolean): Promise<void> {
     this.statsStore.setOptOut(optOut)
 
     this.emitUpdate()
@@ -1435,7 +1448,7 @@ export class AppStore {
   }
 
   public _reportStats() {
-    return this.statsStore.reportStats()
+    return this.statsStore.reportStats(this.accounts)
   }
 
   public _recordLaunchStats(stats: ILaunchStats): Promise<void> {

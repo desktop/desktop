@@ -1,0 +1,31 @@
+@import "./platform";
+
+// Essentially all the styles needed to transform a text box
+// input element into something that doesn't look horrendous.
+// It's a mix in because the styles are shared between inputs
+// and select components.
+@mixin textboxish {
+  border: 1px solid var(--box-border-color);
+  border-radius: var(--border-radius);
+  color: currentColor;
+  font-size: var(--font-size);
+  font-family: var(--font-family-sans-serif);
+  height: var(--text-field-height);
+  padding: 0 var(--spacing-half);
+
+  &:focus {
+    outline: none;
+    border-color: var(--focus-color);
+    box-shadow: 0 0 0 1px var(--text-field-focus-shadow-color);
+  }
+}
+
+// This is kept separate from textboxish because we need to be able
+// to apply it conditionally when running on Windows, the disabled
+// styles on macOS are fine.
+@mixin textboxish-disabled {
+  &:disabled {
+    background: var(--box-alt-background-color);
+    color: var(--text-secondary-color);
+  }
+}

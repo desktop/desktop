@@ -10,6 +10,7 @@ import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
 
 import { IAppShell } from '../../lib/dispatcher/app-shell'
+import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
 
 import {
   reset,
@@ -375,12 +376,19 @@ export class GitStore {
   /**
    * Perform an operation that may fail by throwing an error. If an error is
    * thrown, catch it and emit it, and return `undefined`.
+   *
+   * @param errorMetadata - The metadata which should be attached to any errors
+   *                        that are thrown.
    */
-  public async performFailableOperation<T>(fn: () => Promise<T>): Promise<T | undefined> {
+  public async performFailableOperation<T>(fn: () => Promise<T>, errorMetadata?: IErrorMetadata): Promise<T | undefined> {
     try {
       const result = await fn()
       return result
     } catch (e) {
+      if (errorMetadata) {
+        e = new ErrorWithMetadata(e, errorMetadata)
+      }
+
       this.emitError(e)
       return undefined
     }
@@ -409,13 +417,14 @@ export class GitStore {
   /**
    * Fetch, using the given account for authentication.
    *
-   * @param account - The account to use for authentication if needed.
+   * @param account        - The account to use for authentication if needed.
+   * @param backgroundTask - Was the fetch done as part of a background task?
    */
-  public async fetch(account: Account | null): Promise<void> {
+  public async fetch(account: Account | null, backgroundTask: boolean): Promise<void> {
     const remotes = await getRemotes(this.repository)
 
     for (const remote of remotes) {
-      await this.performFailableOperation(() => fetchRepo(this.repository, account, remote.name))
+      await this.performFailableOperation(() => fetchRepo(this.repository, account, remote.name), { backgroundTask })
     }
   }
 
@@ -603,7 +612,19 @@ export class GitStore {
     const modifiedFiles = files.filter(f => CommittedStatuses.has(f.status))
 
     if (modifiedFiles.length) {
-      await this.performFailableOperation(() => checkoutPaths(this.repository, modifiedFiles.map(f => f.path)))
+      // in case any files have been staged outside Desktop - renames and copies do this by default
+      await this.performFailableOperation(() => reset(this.repository, GitResetMode.Mixed, 'HEAD'))
+
+      const pathsToCheckout = modifiedFiles.map(f => {
+        if (f.status === FileStatus.Copied || f.status === FileStatus.Renamed) {
+          // because of the above reset, we now need to discard the old path for these
+          return f.oldPath!
+        } else {
+          return f.path
+        }
+      })
+
+      await this.performFailableOperation(() => checkoutPaths(this.repository, pathsToCheckout))
     }
   }
 }

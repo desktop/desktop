@@ -41,7 +41,7 @@ export class BackgroundFetcher {
   }
 
   /** Start background fetching. */
-  public start() {
+  public start(withInitialSkew: boolean) {
     if (this.stopped) {
       fatalError('Cannot start a background fetcher that has been stopped.')
       return
@@ -50,7 +50,11 @@ export class BackgroundFetcher {
     const gitHubRepository = this.repository.gitHubRepository
     if (!gitHubRepository) { return }
 
-    this.performAndScheduleFetch(gitHubRepository)
+    if (withInitialSkew) {
+      this.timeoutHandle = window.setTimeout(() => this.performAndScheduleFetch(gitHubRepository), skewInterval())
+    } else {
+      this.performAndScheduleFetch(gitHubRepository)
+    }
   }
 
   /**
@@ -69,6 +73,8 @@ export class BackgroundFetcher {
 
   /** Perform a fetch and schedule the next one. */
   private async performAndScheduleFetch(repository: GitHubRepository): Promise<void> {
+    if (this.stopped) { return }
+
     try {
       await this.fetch(this.repository)
     } catch (e) {
@@ -93,7 +99,11 @@ export class BackgroundFetcher {
     let interval = DefaultFetchInterval
     try {
       const pollInterval = await api.getFetchPollInterval(repository.owner.login, repository.name)
-      interval = Math.max(pollInterval, MinimumInterval)
+      if (pollInterval) {
+        interval = Math.max(pollInterval, MinimumInterval)
+      } else {
+        interval = DefaultFetchInterval
+      }
     } catch (e) {
       console.error('Error fetching poll interval:')
       console.error(e)

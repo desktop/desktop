@@ -39,6 +39,7 @@ import { SignIn } from './sign-in'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
 import { Publish } from './publish-repository'
+import { Acknowledgements } from './acknowledgements'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -273,7 +274,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private checkForUpdates() {
     if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') { return }
 
-    updateStore.checkForUpdates(this.getUsernameForUpdateCheck())
+    updateStore.checkForUpdates(this.getUsernameForUpdateCheck(), true)
   }
 
   private getUsernameForUpdateCheck() {
@@ -727,6 +728,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       case PopupType.Preferences:
         return <Preferences
                 dispatcher={this.props.dispatcher}
+                appStore={this.props.appStore}
                 dotComAccount={this.getDotComAccount()}
                 enterpriseAccount={this.getEnterpriseAccount()}
                 onDismissed={this.onPopupDismissed}/>
@@ -803,6 +805,7 @@ export class App extends React.Component<IAppProps, IAppState> {
            applicationName={getName()}
            applicationVersion={getVersion()}
            usernameForUpdateCheck={this.getUsernameForUpdateCheck()}
+           onShowAcknowledgements={this.showAcknowledgements}
           />
         )
       case PopupType.PublishRepository:
@@ -814,9 +817,17 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={this.onPopupDismissed}
           />
         )
+      case PopupType.Acknowledgements:
+        return (
+          <Acknowledgements onDismissed={this.onPopupDismissed}/>
+        )
       default:
         return assertNever(popup, `Unknown popup type: ${popup}`)
     }
+  }
+
+  private showAcknowledgements = () => {
+    this.props.dispatcher.showPopup({ type: PopupType.Acknowledgements })
   }
 
   private renderPopup() {

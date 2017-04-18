@@ -15,9 +15,9 @@
       "dev": true
     },
     "ajv": {
-      "version": "4.11.5",
+      "version": "4.11.6",
       "from": "ajv@>=4.9.1 <5.0.0",
-      "resolved": "https://registry.npmjs.org/ajv/-/ajv-4.11.5.tgz"
+      "resolved": "https://registry.npmjs.org/ajv/-/ajv-4.11.6.tgz"
     },
     "ansi-html": {
       "version": "0.0.6",
@@ -212,15 +212,25 @@
       "from": "dexie@>=1.4.1 <2.0.0",
       "resolved": "https://registry.npmjs.org/dexie/-/dexie-1.4.1.tgz"
     },
+    "dom-classlist": {
+      "version": "1.0.1",
+      "from": "dom-classlist@>=1.0.1 <2.0.0",
+      "resolved": "https://registry.npmjs.org/dom-classlist/-/dom-classlist-1.0.1.tgz"
+    },
     "dom-helpers": {
       "version": "2.4.0",
       "from": "dom-helpers@>=2.4.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/dom-helpers/-/dom-helpers-2.4.0.tgz"
     },
+    "dom-matches": {
+      "version": "2.0.0",
+      "from": "dom-matches@>=2.0.0 <3.0.0",
+      "resolved": "https://registry.npmjs.org/dom-matches/-/dom-matches-2.0.0.tgz"
+    },
     "dugite": {
-      "version": "1.23.0",
-      "from": "https://registry.npmjs.org/dugite/-/dugite-1.23.0.tgz",
-      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.23.0.tgz"
+      "version": "1.24.0",
+      "from": "dugite@1.24.0",
+      "resolved": "https://registry.npmjs.org/dugite/-/dugite-1.24.0.tgz"
     },
     "ecc-jsbn": {
       "version": "0.1.1",
@@ -316,9 +326,9 @@
       "resolved": "https://registry.npmjs.org/forever-agent/-/forever-agent-0.6.1.tgz"
     },
     "form-data": {
-      "version": "2.1.2",
+      "version": "2.1.4",
       "from": "form-data@>=2.1.1 <2.2.0",
-      "resolved": "https://registry.npmjs.org/form-data/-/form-data-2.1.2.tgz"
+      "resolved": "https://registry.npmjs.org/form-data/-/form-data-2.1.4.tgz"
     },
     "front-matter": {
       "version": "2.1.2",
@@ -404,11 +414,6 @@
       "from": "humanize-plus@>=1.8.1 <2.0.0",
       "resolved": "https://registry.npmjs.org/humanize-plus/-/humanize-plus-1.8.2.tgz",
       "dev": true
-    },
-    "iconv-lite": {
-      "version": "0.4.15",
-      "from": "iconv-lite@latest",
-      "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.15.tgz"
     },
     "inflight": {
       "version": "1.0.6",
@@ -857,6 +862,11 @@
       "version": "1.2.12",
       "from": "which@>=1.2.8 <2.0.0",
       "resolved": "https://registry.npmjs.org/which/-/which-1.2.12.tgz"
+    },
+    "wicg-focus-ring": {
+      "version": "1.0.1",
+      "from": "wicg-focus-ring@latest",
+      "resolved": "https://registry.npmjs.org/wicg-focus-ring/-/wicg-focus-ring-1.0.1.tgz"
     },
     "winston": {
       "version": "2.3.1",

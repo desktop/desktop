@@ -8,6 +8,8 @@ const lastSuccessfulCheckKey = 'last-successful-update-check'
 import { Emitter, Disposable } from 'event-kit'
 
 import { getVersion } from './app-proxy'
+import { sendWillQuitSync } from '../main-process-proxy'
+import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 
 /** The states the auto updater can be in. */
 export enum UpdateStatus {
@@ -36,6 +38,9 @@ class UpdateStore {
   private emitter = new Emitter()
   private status = UpdateStatus.UpdateNotAvailable
   private lastSuccessfulCheck: Date | null = null
+
+  /** Is the most recent update check user initiated? */
+  private userInitiatedUpdate = true
 
   public constructor() {
 
@@ -120,7 +125,8 @@ class UpdateStore {
   }
 
   private emitError(error: Error) {
-    this.emitter.emit('error', error)
+    const updatedError = new ErrorWithMetadata(error, { backgroundTask: !this.userInitiatedUpdate })
+    this.emitter.emit('error', updatedError)
   }
 
   /** The current auto updater state. */
@@ -135,8 +141,16 @@ class UpdateStore {
     return `${UpdatesURLBase}?version=${getVersion()}&username=${username}`
   }
 
-  /** Check for updates using the given username. */
-  public checkForUpdates(username: string) {
+  /**
+   * Check for updates using the given username.
+   *
+   * @param username     - The username used to check for updates.
+   * @param inBackground - Are we checking for updates in the background, or was
+   *                       this check user-initiated?
+   */
+  public checkForUpdates(username: string, inBackground: boolean) {
+    this.userInitiatedUpdate = !inBackground
+
     try {
       autoUpdater.setFeedURL(this.getFeedURL(username))
       autoUpdater.checkForUpdates()
@@ -147,6 +161,7 @@ class UpdateStore {
 
   /** Quit and install the update. */
   public quitAndInstallUpdate() {
+    sendWillQuitSync()
     autoUpdater.quitAndInstall()
   }
 }

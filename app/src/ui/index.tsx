@@ -12,12 +12,12 @@ import { Repository } from '../models/repository'
 import { getDefaultDir, setDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
 import { sendReady } from './main-process-proxy'
-import { reportError } from '../lib/exception-reporting'
+import { reportError } from './lib/exception-reporting'
 import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
-import { defaultErrorHandler, createMissingRepositoryHandler } from '../lib/dispatcher'
+import { defaultErrorHandler, createMissingRepositoryHandler, backgroundTaskHandler } from '../lib/dispatcher'
 import { getEndpointForRepository, getAccountForEndpoint } from '../lib/api'
 import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
@@ -25,6 +25,16 @@ import { installDevGlobals } from './install-globals'
 if (__DEV__) {
   installDevGlobals()
 }
+
+// We're using a polyfill for the upcoming CSS4 `:focus-ring` pseudo-selector.
+// This allows us to not have to override default accessibility driven focus
+// styles for buttons in the case when a user clicks on a button. This also
+// gives better visiblity to individuals who navigate with the keyboard.
+//
+// See:
+//   https://github.com/WICG/focus-ring
+//   Focus Ring! -- A11ycasts #16: https://youtu.be/ilj2P5-5CjI
+require('wicg-focus-ring')
 
 const startTime = Date.now()
 
@@ -36,6 +46,10 @@ if (!process.env.TEST_ENV) {
 
 process.on('uncaughtException', (error: Error) => {
   getLogger().error('Uncaught exception on UI', error)
+  reportError(error, getVersion())
+})
+
+ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
   reportError(error, getVersion())
 })
 
@@ -58,6 +72,7 @@ const appStore = new AppStore(
 const dispatcher = new Dispatcher(appStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
+dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
 
 dispatcher.loadInitialState().then(() => {

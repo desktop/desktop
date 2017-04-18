@@ -25,6 +25,7 @@ interface ICreateBranchState {
   readonly proposedName: string
   readonly sanitizedName: string
   readonly baseBranch: Branch | null
+  readonly loading: boolean
 }
 
 /** The Create Branch component. */
@@ -37,6 +38,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
       proposedName: '',
       sanitizedName: '',
       baseBranch: this.props.currentBranch,
+      loading: false,
     }
   }
 
@@ -61,7 +63,10 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
       <Dialog
         title='Create a branch'
         onSubmit={this.createBranch}
-        onDismissed={this.props.onDismissed}>
+        onDismissed={this.props.onDismissed}
+        loading={this.state.loading}
+        disabled={this.state.loading}
+      >
         {error ? <DialogError>{error.message}</DialogError> : null}
 
         <DialogContent>
@@ -128,9 +133,9 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     const name = this.state.sanitizedName
     const baseBranch = this.state.baseBranch
     if (name.length > 0 && baseBranch) {
+      this.setState({ loading: true })
       await this.props.dispatcher.createBranch(this.props.repository, name, baseBranch.name)
+      this.props.onDismissed()
     }
-
-    this.props.onDismissed()
   }
 }

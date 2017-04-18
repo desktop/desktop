@@ -3,14 +3,18 @@
   "productName": "GitHub Desktop",
   "bundleID": "com.github.GitHubClient",
   "companyName": "GitHub, Inc.",
-  "version": "0.0.31",
+  "version": "0.0.33",
   "main": "./main.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/desktop/desktop.git"
   },
   "description": "The People's Glorious GitHub Client",
-  "author": "",
+  "author": {
+    "name": "GitHub, Inc.",
+    "email": "opensource+desktop@github.com",
+    "url": "https://desktop.github.com/"
+  },
   "license": "MIT",
   "dependencies": {
     "byline": "^4.2.2",
@@ -18,12 +22,11 @@
     "codemirror": "^5.24.2",
     "deep-equal": "^1.0.1",
     "dexie": "^1.4.1",
-    "dugite": "^1.23.0",
+    "dugite": "^1.24.0",
     "electron-window-state": "^4.0.2",
     "event-kit": "^2.0.0",
     "front-matter": "^2.1.2",
     "fs-extra": "^2.0.0",
-    "iconv-lite": "^0.4.15",
     "keytar": "^3.0.2",
     "moment": "^2.17.1",
     "octokat": "^0.6.4",
@@ -37,6 +40,7 @@
     "untildify": "^3.0.2",
     "username": "^2.3.0",
     "uuid": "^3.0.1",
+    "wicg-focus-ring": "^1.0.1",
     "winston": "^2.3.1",
     "winston-daily-rotate-file": "^1.4.5"
   },
