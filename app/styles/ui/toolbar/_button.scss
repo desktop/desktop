@@ -23,9 +23,17 @@
     &:active { box-shadow: none; }
 
     &:focus {
-      outline: none;
-      border-color: var(--toolbar-button-border-color);
       background-color: var(--toolbar-button-hover-background-color);
+      // Reset
+      border-color: var(--toolbar-button-border-color);
+      box-shadow: none;
+    }
+
+    &:focus:not(.focus-ring) {
+      outline: none;
+      // Reset
+      background-color: var(--toolbar-button-background-color);
+      border-color: var(--toolbar-button-border-color);
       box-shadow: none;
     }
 
