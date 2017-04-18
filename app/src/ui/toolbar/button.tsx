@@ -154,7 +154,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     const preContent = preContentRenderer && preContentRenderer()
 
     const progressValue = this.props.progressValue !== undefined
-      ? clamp(this.props.progressValue, 0, 1)
+      ? Math.round(clamp(this.props.progressValue, 0, 1) * 100) / 100
       : undefined
 
     const progress = progressValue !== undefined
