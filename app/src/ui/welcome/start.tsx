@@ -21,14 +21,19 @@ export class Start extends React.Component<IStartProps, void> {
           projects.
         </p>
 
+        <p className='welcome-text'>
+          New to GitHub?&nbsp;
+          <LinkButton uri={CreateAccountURL}>Create your free account.</LinkButton>
+        </p>
+
+        <hr className='short-rule' />
+
         <div>
           <Button type='submit' className='welcome-button' onClick={this.signInToDotCom}>GitHub.com</Button>
           <Button type='submit' className='welcome-button' onClick={this.signInToEnterprise}>GitHub Enterprise</Button>
         </div>
 
         <div>
-          <LinkButton uri={CreateAccountURL}>Create an account</LinkButton>
-          {' or '}
           <LinkButton onClick={this.skip}>skip this step</LinkButton>
         </div>
       </div>
