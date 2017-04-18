@@ -66,18 +66,6 @@ export interface ICommitMessage {
   readonly description: string | null
 }
 
-/**
- * A contextual commit message, e.g., when the repository is in the middle of a
- * merge.
- */
-interface IContextualCommitMessage {
-  /** The contextual message. */
-  readonly message: ICommitMessage
-
-  /** Has the message been cleared? */
-  readonly cleared: boolean
-}
-
 /** The store for a repository's git data. */
 export class GitStore {
   private readonly emitter = new Emitter()
@@ -105,7 +93,7 @@ export class GitStore {
 
   private _commitMessage: ICommitMessage | null
 
-  private _contextualCommitMessage: IContextualCommitMessage | null
+  private _contextualCommitMessage: ICommitMessage | null
 
   private _aheadBehind: IAheadBehind | null = null
 
@@ -378,11 +366,8 @@ export class GitStore {
 
     if (success) {
       this._contextualCommitMessage = {
-        message: {
-          summary: commit.summary,
-          description: commit.body,
-        },
-        cleared: false,
+        summary: commit.summary,
+        description: commit.body,
       }
     }
 
@@ -420,22 +405,7 @@ export class GitStore {
    * message from a recently undone commit.
    */
   public get contextualCommitMessage(): ICommitMessage | null {
-    const contextualCommitMessage = this._contextualCommitMessage
-    if (!contextualCommitMessage) { return null }
-    if (contextualCommitMessage.cleared) { return null }
-
-    return contextualCommitMessage.message
-  }
-
-  /** Clear the contextual commit message. */
-  public clearContextualCommitMessage(): Promise<void> {
-    const contextualCommitMessage = this._contextualCommitMessage
-    if (contextualCommitMessage) {
-      this._contextualCommitMessage = { ...contextualCommitMessage, cleared: true }
-    }
-
-    this.emitUpdate()
-    return Promise.resolve()
+    return this._contextualCommitMessage
   }
 
   /**
@@ -652,26 +622,16 @@ export class GitStore {
     }
   }
 
-  /** Load the contextual commit message if appropriate. */
+  /** Load the contextual commit message if there is one. */
   public async loadContextualCommitMessage(): Promise<void> {
     const message = await this.getMergeMessage()
-    if (message) {
-      const existingMessage = this._contextualCommitMessage ? this._contextualCommitMessage.message : null
-      // If it's a message that we already have, we don't need to update. This
-      // also means we won't unclear a message that has already been cleared.
-      if (existingMessage && existingMessage.description === message.description && existingMessage.summary === message.summary) {
-        return
-      }
-
-      this._contextualCommitMessage = { message, cleared: false }
-      this.emitUpdate()
-    } else {
-      // If we couldn't load a message and our existing message has been
-      // cleared, then it's safe to assume
-      if (this._contextualCommitMessage && this._contextualCommitMessage.cleared) {
-        this._contextualCommitMessage = null
-      }
+    const existingMessage = this._contextualCommitMessage
+    if (existingMessage && message && existingMessage.description === message.description && existingMessage.summary === message.summary) {
+      return
     }
+
+    this._contextualCommitMessage = message
+    this.emitUpdate()
   }
 
   /**
