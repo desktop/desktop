@@ -1,5 +1,4 @@
 import * as path from 'path'
-import * as FS from 'fs'
 import { expect } from 'chai'
 
 import { Repository } from '../../../src/models/repository'
@@ -384,7 +383,7 @@ describe('git/commit', () => {
 
       await GitProcess.exec([ 'merge', 'master' ], repo.path)
 
-      const inMerge = FS.existsSync(path.join(repo.path, '.git', 'MERGE_HEAD'))
+      const inMerge = fs.existsSync(path.join(repo.path, '.git', 'MERGE_HEAD'))
       expect(inMerge).to.equal(true)
 
       fs.writeFileSync(filePath, 'b1b2')
