@@ -931,8 +931,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const isPublishing = !!this.state.currentPopup && this.state.currentPopup.type === PopupType.PublishRepository
-
     const state = selection.state
     const remoteName = state.remote ? state.remote.name : null
     return <PushPullButton
@@ -942,7 +940,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       remoteName={remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
-      isPublishing={isPublishing}/>
+    />
   }
 
   private showCreateBranch = () => {

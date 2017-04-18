@@ -23,9 +23,6 @@ interface IPushPullButtonProps {
   /** The date of the last fetch. */
   readonly lastFetched: Date | null
 
-  /** Is the user currently publishing? */
-  readonly isPublishing: boolean
-
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 }
