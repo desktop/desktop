@@ -144,9 +144,8 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         <div>
           <p>GitHub Desktop encountered an uncaught exception, leaving it in an invalid state.</p>
           <p>
-            This has been reported to the team, but if you encounter this repeatedly please reach out to
-            <LinkButton uri='https://github.com/c' />
-            for more support.
+            This has been reported to the team, but if you encounter this repeatedly please contact
+            <LinkButton uri='https://github.com/c'>GitHub Support</LinkButton> for more details.
           </p>
           {errorDetails}
           <p>Due to this error, the application will now exit and need to be restarted.</p>
