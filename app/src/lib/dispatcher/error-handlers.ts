@@ -80,9 +80,8 @@ export async function unhandledExceptionHandler(error: Error, dispatcher: Dispat
   }
 
   const metadata = e.metadata
-  // Ignore errors from background tasks. We might want more nuance here in the
-  // future, but this'll do for now.
-  if (metadata.unhandledError) {
+  // catch and display unhandled errors in a slightly different way.
+  if (metadata.uncaught) {
       await dispatcher.presentError(error)
       return null
   }

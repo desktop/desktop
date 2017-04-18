@@ -8,6 +8,18 @@ import { dialogTransitionEnterTimeout, dialogTransitionLeaveTimeout } from './ap
 import { GitError } from '../lib/git/core'
 import { GitError as GitErrorType } from 'dugite'
 import { Popup, PopupType } from '../lib/app-state'
+import { ErrorWithMetadata } from '../lib/error-with-metadata'
+
+/**
+ * Inspect the error metadata to see if this is an uncaught error
+ */
+function isUncaughtError(error: Error): boolean {
+  if (error instanceof ErrorWithMetadata) {
+    return error.metadata.uncaught || false
+  } else {
+    return false
+  }
+}
 
 interface IAppErrorProps {
   /** The list of queued, app-wide, errors  */
@@ -151,8 +163,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
       return null
     }
 
-    const anyError = error as any
-    const unhandled: boolean = anyError.unhandled || false
+    const unhandled = isUncaughtError(error)
     const title = unhandled ? 'Unhandled Error' : 'Error'
 
     return (

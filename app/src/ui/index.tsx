@@ -75,7 +75,7 @@ const appStore = new AppStore(
 const dispatcher = new Dispatcher(appStore)
 
 function postUnhandledError(error: Error) {
-  dispatcher.postError(new ErrorWithMetadata(error, { unhandledError: true }))
+  dispatcher.postError(new ErrorWithMetadata(error, { uncaught: true }))
 }
 
 ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
