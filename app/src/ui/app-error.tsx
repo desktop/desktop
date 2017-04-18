@@ -166,10 +166,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
 
     const className = monospace ? 'monospace' : undefined
 
-    return (<div>
-        <p className={className}>{error.message}</p>
-      </div>
-    )
+    return (<p className={className}>{error.message}</p>)
   }
 
   private renderDialog() {
