@@ -47,6 +47,9 @@ const commonConfig = {
     ],
   },
   plugins: [
+    // This saves us a bunch of bytes by pruning locales (which we don't use)
+    // from moment.
+    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
     new webpack.NoEmitOnErrorsPlugin(),
   ],
   resolve: {
