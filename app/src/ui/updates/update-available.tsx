@@ -1,9 +1,9 @@
 import * as React from 'react'
-import { Button } from '../lib/button'
+import { LinkButton } from '../lib/link-button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { updateStore } from '../lib/update-store'
-import { ButtonGroup } from '../lib/button-group'
-import { Dialog, DialogContent, DialogFooter } from '../dialog'
+import { Octicon, OcticonSymbol } from '../octicons'
+// import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 interface IUpdateAvailableProps {
   readonly dispatcher: Dispatcher
@@ -16,23 +16,20 @@ interface IUpdateAvailableProps {
 export class UpdateAvailable extends React.Component<IUpdateAvailableProps, void> {
   public render() {
     return (
-      <Dialog
+      <div
         id='update-available'
         title={__DARWIN__ ? 'Update Available' : 'Update available'}
         onSubmit={this.updateNow}
-        onDismissed={this.dismiss}
       >
-        <DialogContent>
-          GitHub Desktop will be updated after it restarts!
-        </DialogContent>
+        <span>
+          <Octicon symbol={OcticonSymbol.desktopDownload} />
+          An updated version of GitHub Desktop is avalble and will be installed at the next launch. See what's new or <LinkButton onClick={this.updateNow}>restart now </LinkButton>.
 
-        <DialogFooter>
-          <ButtonGroup>
-            <Button type='submit'>{__DARWIN__ ? 'Update Now' : 'Update now'}</Button>
-            <Button onClick={this.dismiss}>Cancel</Button>
-          </ButtonGroup>
-        </DialogFooter>
-      </Dialog>
+          <a onClick={this.dismiss}>
+            <Octicon symbol={OcticonSymbol.x} />
+          </a>
+        </span>
+      </div>
     )
   }
 
