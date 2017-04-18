@@ -76,8 +76,7 @@ export async function findAccountForRemote(urlOrRepositoryAlias: string, account
       }) || null
 
       if (account) {
-        const owner = parsedURL.owner
-        const name = parsedURL.name
+        const { owner, name } = parsedURL
         if (owner && name) {
           const canAccess = await canAccessRepository(account, owner, name)
           if (canAccess) {
@@ -91,8 +90,7 @@ export async function findAccountForRemote(urlOrRepositoryAlias: string, account
 
     const parsedOwnerAndName = parseOwnerAndName(urlOrRepositoryAlias)
     if (parsedOwnerAndName) {
-      const owner = parsedOwnerAndName.owner
-      const name = parsedOwnerAndName.name
+      const { owner, name } = parsedOwnerAndName
       const account = await findRepositoryAccount(allAccounts, owner, name)
       if (account) {
         return account
