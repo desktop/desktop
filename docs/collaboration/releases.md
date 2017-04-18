@@ -2,15 +2,9 @@
 
 ## Iterations
 
-To keep things simple, we should be releasing stable updates every four weeks.
-This channel would be considered evergreen, like modern browsers, to keep
-maintenance simple.
-
-A preview channel would be available, for users who want to help test upcoming
-features and receive fixes sooner. This would be updated more frequently -
-somewhere between daily and weekly - based on code churn. These environments
-will be isolated due to how Electron is deployed, so preview builds will not
-affect stable clients.
+As part of the beta process, the team will be publishing updates as frequently
+as necessary. As things stabilize and we get feedback about the beta we'll
+update this process.
 
 ## Roadmap
 
