@@ -120,6 +120,7 @@
       background: var(--toolbar-button-progress-color);
       transform-origin: left;
       pointer-events: none;
+      transition: transform .3s var(--easing-ease-out-quint);
     }
   }
 }

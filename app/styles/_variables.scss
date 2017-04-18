@@ -284,4 +284,7 @@
 
   // http://easings.net/#easeInBack
   --easing-ease-in-back: cubic-bezier(0.6, -0.28, 0.735, 0.045);
+
+  // http://easings.net/#easeOutQuint
+  --easing-ease-out-quint: cubic-bezier(0.23, 1, 0.32, 1);
 }
