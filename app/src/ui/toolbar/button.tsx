@@ -3,6 +3,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import * as classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
+import { clamp } from '../../lib/clamp'
 
 /** The button style. */
 export enum ToolbarButtonStyle {
@@ -142,8 +143,12 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     const preContentRenderer = this.props.preContentRenderer
     const preContent = preContentRenderer && preContentRenderer()
 
-    const progress = this.props.progressValue !== undefined
-      ? <div className='progress' style={{ transform: `scaleX(${this.props.progressValue})` }} />
+    const progressValue = this.props.progressValue !== undefined
+      ? clamp(this.props.progressValue, 0, 1)
+      : undefined
+
+    const progress = progressValue !== undefined
+      ? <div className='progress' style={{ transform: `scaleX(${progressValue})` }} />
       : undefined
 
     return (
