@@ -93,10 +93,16 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }, dialogTransitionLeaveTimeout)
   }
 
+  private closeAndExit = () => {
+    this.onDismissed()
+
+    // TODO: close the thing
+  }
+
   private renderUnhandledErrorFooter() {
     return (
       <ButtonGroup>
-        <Button type='submit'>Exit</Button>
+        <Button onClick={this.closeAndExit} type='submit'>Exit</Button>
       </ButtonGroup>)
   }
 
@@ -121,19 +127,21 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     }
   }
 
-  private renderUnhandledHeader(unhandled: boolean): JSX.Element | null {
-    return unhandled
-      ? <p>An unhandled error occurred with the application, leaving it in an invalid state:</p>
-      : null
-  }
-
-  private renderUnhandledFooter(unhandled: boolean): JSX.Element | null {
-    return unhandled
-      ? <p>The application will need to be relaunched.</p>
-      : null
-  }
-
   private renderErrorMessage(error: Error, unhandled: boolean) {
+
+    const errorDetails = error.stack
+      ? <p className='monospace'>{error.stack}</p>
+      : <p>{error.message}</p>
+
+    if (unhandled) {
+      return (
+        <div>
+          <p>GitHub Desktop encountered and uncaught exception, leaving it in an invalid state:</p>
+          {errorDetails}
+          <p>The application will need to be relaunched.</p>
+        </div>
+      )
+    }
 
     let monospace = false
 
@@ -149,9 +157,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
     const className = monospace ? 'monospace' : undefined
 
     return (<div>
-        {this.renderUnhandledHeader(unhandled)}
         <p className={className}>{error.message}</p>
-        {this.renderUnhandledFooter(unhandled)}
       </div>
     )
   }
@@ -171,6 +177,7 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
         id='app-error'
         type='error'
         title={title}
+        dismissable={!unhandled}
         onDismissed={this.onDismissed}
         disabled={this.state.disabled}>
         <DialogContent>
