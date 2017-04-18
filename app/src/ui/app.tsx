@@ -273,6 +273,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     return assertNever(name, `Unknown menu event name: ${name}`)
   }
 
+  private onDismissUpdateBanner = () => {
+    alert('Todo')
+  }
+
   private checkForUpdates() {
     if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') { return }
 
@@ -1055,7 +1059,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     //if (!this.updateReady) { return null}
 
     return (
-      <UpdateAvailable dispatcher={this.props.dispatcher} />
+      <UpdateAvailable onDismissed={this.onDismissUpdateBanner} />
     )
   }
 
