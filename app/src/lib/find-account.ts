@@ -26,17 +26,9 @@ async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: st
   // finally the unauthenticated dot com account.
   const sortedAccounts = Array.from(accounts).sort((a1, a2) => {
     if (a1.endpoint === getDotComAPIEndpoint()) {
-      if (a1.token.length) {
-        return -1
-      } else {
-        return 1
-      }
+      return a1.token.length ? -1 : 1
     } else if (a2.endpoint === getDotComAPIEndpoint()) {
-      if (a2.token.length) {
-        return 1
-      } else {
-        return -1
-      }
+      return a2.token.length ? 1 : -1
     } else {
       return 0
     }
