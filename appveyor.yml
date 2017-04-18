@@ -32,6 +32,8 @@ build_script:
   - npm run build:prod
 
 test_script:
+  - node --version
+  - npm --version
   - npm run test:setup
   - ./script/test-appveyor.bat
 
