@@ -81,7 +81,7 @@
 }
 
 .welcome-left {
-  padding: calc(var(--spacing-double) * 2);
+  padding: var(--spacing-quad);
 }
 
 .welcome-right {
@@ -97,7 +97,7 @@
 
 .skip-action-container {
   position: absolute;
-  bottom: calc(var(--spacing-double) * 2);
+  bottom: var(--spacing-quad);
 
   .skip-button {
     color: var(--text-secondary-color);
