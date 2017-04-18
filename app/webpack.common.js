@@ -16,17 +16,7 @@ const replacements = {
 }
 
 const commonConfig = {
-  externals: [
-    'electron',
-    'net',
-    'remote',
-    'shell',
-    'app',
-    'ipc',
-
-    '7zip',
-    'dugite',
-  ],
+  externals: [ '7zip', 'dugite' ],
   output: {
     filename: '[name].js',
     path: path.resolve(__dirname, '..', 'out'),
