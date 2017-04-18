@@ -865,6 +865,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     return (
       <div id='desktop-app-contents'>
         {this.renderToolbar()}
+        {this.renderUpdateBanner()}
         {this.renderRepository()}
         {this.renderPopup()}
         {this.renderAppError()}
@@ -1048,6 +1049,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       onDropdownStateChanged={this.onBranchDropdownStateChanged}
       dropdownContentRenderer={this.renderBranchFoldout}
       dropdownState={currentState} />
+  }
+
+  private renderUpdateBanner() {
+    //if (!this.updateReady) { return null}
+
+    return (
+      <UpdateAvailable dispatcher={this.props.dispatcher} />
+    )
   }
 
   private renderToolbar() {
