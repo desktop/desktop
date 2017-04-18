@@ -616,7 +616,7 @@ export class AppStore {
 
     if (!repository.gitHubRepository) { return }
 
-    const fetcher = new BackgroundFetcher(repository, account, r => this.fetch(r, account))
+    const fetcher = new BackgroundFetcher(repository, account, r => this.performFetch(r, account, true))
     fetcher.start(withInitialSkew)
     this.currentBackgroundFetcher = fetcher
   }
@@ -1298,10 +1298,14 @@ export class AppStore {
   }
 
   /** Fetch the repository. */
-  public async fetch(repository: Repository, account: Account | null): Promise<void> {
+  public fetch(repository: Repository, account: Account | null): Promise<void> {
+    return this.performFetch(repository, account, false)
+  }
+
+  private async performFetch(repository: Repository, account: Account | null, backgroundTask: boolean): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
-      await gitStore.fetch(account)
+      await gitStore.fetch(account, backgroundTask)
       await this.fastForwardBranches(repository)
     })
 
@@ -1435,7 +1439,7 @@ export class AppStore {
   }
 
   /** Set whether the user has opted out of stats reporting. */
-  public _setStatsOptOut(optOut: boolean): Promise<void> {
+  public setStatsOptOut(optOut: boolean): Promise<void> {
     this.statsStore.setOptOut(optOut)
 
     this.emitUpdate()
@@ -1444,7 +1448,7 @@ export class AppStore {
   }
 
   public _reportStats() {
-    return this.statsStore.reportStats()
+    return this.statsStore.reportStats(this.accounts)
   }
 
   public _recordLaunchStats(stats: ILaunchStats): Promise<void> {

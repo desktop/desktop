@@ -415,11 +415,6 @@
       "resolved": "https://registry.npmjs.org/humanize-plus/-/humanize-plus-1.8.2.tgz",
       "dev": true
     },
-    "iconv-lite": {
-      "version": "0.4.15",
-      "from": "iconv-lite@latest",
-      "resolved": "https://registry.npmjs.org/iconv-lite/-/iconv-lite-0.4.15.tgz"
-    },
     "inflight": {
       "version": "1.0.6",
       "from": "inflight@>=1.0.4 <2.0.0",
@@ -829,7 +824,7 @@
     },
     "ua-parser-js": {
       "version": "0.7.12",
-      "from": "ua-parser-js@>=0.7.9 <0.8.0",
+      "from": "ua-parser-js@latest",
       "resolved": "https://registry.npmjs.org/ua-parser-js/-/ua-parser-js-0.7.12.tgz"
     },
     "untildify": {

@@ -87,7 +87,7 @@ export class About extends React.Component<IAboutProps, IAboutState> {
   }
 
   private onCheckForUpdates = () => {
-    updateStore.checkForUpdates(this.props.usernameForUpdateCheck)
+    updateStore.checkForUpdates(this.props.usernameForUpdateCheck, false)
   }
 
   private onQuitAndInstall = () => {

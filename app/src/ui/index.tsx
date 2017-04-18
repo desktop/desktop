@@ -12,12 +12,12 @@ import { Repository } from '../models/repository'
 import { getDefaultDir, setDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
 import { sendReady } from './main-process-proxy'
-import { reportError } from '../lib/exception-reporting'
+import { reportError } from './lib/exception-reporting'
 import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
 import { requestAuthenticatedUser, resolveOAuthRequest, rejectOAuthRequest } from '../lib/oauth'
-import { defaultErrorHandler, createMissingRepositoryHandler } from '../lib/dispatcher'
+import { defaultErrorHandler, createMissingRepositoryHandler, backgroundTaskHandler } from '../lib/dispatcher'
 import { getEndpointForRepository, getAccountForEndpoint } from '../lib/api'
 import { getLogger } from '../lib/logging/renderer'
 import { installDevGlobals } from './install-globals'
@@ -49,6 +49,10 @@ process.on('uncaughtException', (error: Error) => {
   reportError(error, getVersion())
 })
 
+ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
+  reportError(error, getVersion())
+})
+
 const gitHubUserStore = new GitHubUserStore(new GitHubUserDatabase('GitHubUserDatabase'))
 const cloningRepositoriesStore = new CloningRepositoriesStore()
 const emojiStore = new EmojiStore()
@@ -68,6 +72,7 @@ const appStore = new AppStore(
 const dispatcher = new Dispatcher(appStore)
 
 dispatcher.registerErrorHandler(defaultErrorHandler)
+dispatcher.registerErrorHandler(backgroundTaskHandler)
 dispatcher.registerErrorHandler(createMissingRepositoryHandler(appStore))
 
 dispatcher.loadInitialState().then(() => {

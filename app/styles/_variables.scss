@@ -189,6 +189,8 @@
   --toolbar-button-hover-background-color: lighten($black, 5%);
   --toolbar-button-hover-border-color: var(--toolbar-button-border-color);
 
+  --toolbar-button-focus-background-color: lighten($black, 5%);
+
   --toolbar-button-active-color: var(--text-color);
   --toolbar-button-active-background-color: var(--background-color);
   --toolbar-button-active-border-color: var(--background-color);

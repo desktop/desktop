@@ -20,6 +20,7 @@
 
       // Make the select look like a text box.
       @include textboxish;
+      @include textboxish-disabled;
 
       // Add back the arrow that got removed with appearance: none.
       // This is a custom version of the triangle-down octicon that was

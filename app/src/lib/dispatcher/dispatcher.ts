@@ -633,7 +633,7 @@ export class Dispatcher {
 
   /** Set whether the user has opted out of stats reporting. */
   public setStatsOptOut(optOut: boolean): Promise<void> {
-    return this.appStore._setStatsOptOut(optOut)
+    return this.appStore.setStatsOptOut(optOut)
   }
 
   /**
