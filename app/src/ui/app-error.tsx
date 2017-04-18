@@ -4,6 +4,7 @@ import * as  ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import { Button } from './lib/button'
 import { ButtonGroup } from './lib/button-group'
 import { Dialog, DialogContent, DialogFooter } from './dialog'
+import { LinkButton } from './lib/link-button'
 import { dialogTransitionEnterTimeout, dialogTransitionLeaveTimeout } from './app'
 import { GitError } from '../lib/git/core'
 import { GitError as GitErrorType } from 'dugite'
@@ -134,17 +135,21 @@ export class AppError extends React.Component<IAppErrorProps, IAppErrorState> {
   }
 
   private renderErrorMessage(error: Error, unhandled: boolean) {
-
-    const errorDetails = error.stack
-      ? <p className='monospace'>{error.stack}</p>
-      : <p>{error.message}</p>
-
     if (unhandled) {
+      const errorDetails = error.stack
+        ? <p className='monospace'>{error.stack}</p>
+        : <p>{error.message}</p>
+
       return (
         <div>
-          <p>GitHub Desktop encountered and uncaught exception, leaving it in an invalid state:</p>
+          <p>GitHub Desktop encountered an uncaught exception, leaving it in an invalid state.</p>
+          <p>
+            This has been reported to the team, but if you encounter this repeatedly please reach out to
+            <LinkButton uri='https://github.com/c' />
+            for more support.
+          </p>
           {errorDetails}
-          <p>The application will need to be relaunched.</p>
+          <p>Due to this error, the application will now exit and need to be restarted.</p>
         </div>
       )
     }
