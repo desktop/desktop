@@ -5,6 +5,7 @@ const common = require('./webpack.common')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
+const BabelPlugin = require('babel-webpack-plugin')
 
 let branchName = ''
 if (process.platform === 'darwin') {
@@ -22,8 +23,16 @@ if (branchName && branchName.length > 0) {
 }
 
 const config = {
-  devtool: 'cheap-module-source-map',
+  devtool: 'source-map',
   plugins: [
+    new BabelPlugin({
+      test: /\.js$/,
+      sourceMaps: true,
+      compact: true, 
+      minified: true,
+      comments: false,
+      presets: ['babili'],
+    })
   ],
 }
 
