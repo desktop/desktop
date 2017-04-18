@@ -627,6 +627,32 @@ export class GitStore {
       await this.performFailableOperation(() => checkoutPaths(this.repository, pathsToCheckout))
     }
   }
+
+  /**
+   * Get the merge message in the repository. This will resolve to null if the
+   * repository isn't in the middle of a merge.
+   */
+  private async getMergeMessage(): Promise<ICommitMessage | null> {
+    const messagePath = Path.join(this.repository.path, '.git', 'MERGE_MSG')
+    return new Promise<ICommitMessage | null>((resolve, reject) => {
+      Fs.readFile(messagePath, 'utf8', (err, data) => {
+        if (err || !data.length) {
+          resolve(null)
+        } else {
+          const pieces = data.match(/(.*)\n\n([\S\s]*)/m)
+          if (!pieces || pieces.length < 3) {
+            resolve(null)
+            return
+          }
+
+          resolve({
+            summary: pieces[1],
+            description: pieces[2],
+          })
+        }
+      })
+    })
+  }
 }
 
 function ensureTrailingNewline(text: string): string {
