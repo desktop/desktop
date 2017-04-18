@@ -23,6 +23,14 @@ export function executeMenuItem(item: ExecutableMenuItem) {
 }
 
 /**
+ * Show the OS-provided certificate trust dialog for the certificate, using the
+ * given message.
+ */
+export function showCertificateTrustDialog(certificate: Electron.Certificate, message: string) {
+  ipcRenderer.send('show-certificate-trust-dialog', { certificate, message })
+}
+
+/**
  * Tell the main process that we're going to quit. This means it should allow
  * the window to close.
  *
