@@ -392,14 +392,14 @@ describe('git/commit', () => {
       const files = status.workingDirectory.files
 
       expect(files.length).to.equal(1)
-      expect(files[0].path).to.contain('foo')
+      expect(files[0].path).to.equal('foo')
       expect(files[0].status).to.equal(FileStatus.Conflicted)
 
       const selection = files[0].selection.withSelectAll()
       const selectedFile = files[0].withSelection(selection)
       await createCommit(repo, 'Merge commit!', [ selectedFile ])
 
-      const commits = await getCommits(repo, 'HEAD', 100)
+      const commits = await getCommits(repo, 'HEAD', 5)
       expect(commits[0].parentSHAs.length).to.equal(2)
     })
   })
