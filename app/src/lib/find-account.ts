@@ -53,8 +53,8 @@ async function findRepositoryAccount(accounts: ReadonlyArray<Account>, owner: st
 export async function findAccountForRemote(url: string, accounts: ReadonlyArray<Account>): Promise<Account | null> {
     const allAccounts = [ ...accounts, Account.anonymous() ]
 
-    // We have a couple strategies to try to figure out what account we should
-    // use to authenticate the URL:
+    // We have a couple of strategies to try to figure out what account we
+    // should use to authenticate the URL:
     //
     //  1. Try to parse a remote out of the URL.
     //    1. If that works, try to find an account for that host.
