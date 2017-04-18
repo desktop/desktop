@@ -61,7 +61,7 @@ export class InstallGit extends React.Component<IInstallGitProps, void> {
         <DialogFooter>
           <ButtonGroup>
             <Button type='submit' onClick={this.onContinue}>Continue</Button>
-            <Button onClick={this.onExternalLink}>{__DARWIN__ ? 'Read More' : 'Read more'}</Button>
+            <Button onClick={this.onExternalLink}>Install Git</Button>
           </ButtonGroup>
         </DialogFooter>
       </Dialog>
