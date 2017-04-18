@@ -1,4 +1,11 @@
 #update-available {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  align-content: center;
+  align-items: center;
+  justify-content: left;
+  padding-left: var(--spacing);
   border-bottom: 1px solid var(--box-border-color);
 
   height: 0px;
