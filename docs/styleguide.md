@@ -5,6 +5,7 @@ Most of our preferred style when writing typescript is configured in our [tslint
 ## Do
  - Use camelCase for methods
  - Use PascalCase for class names
+ - Enable [tslint](https://palantir.github.io/tslint/usage/third-party-tools/) in your editor
 
 # Documenting your code
 
@@ -36,3 +37,36 @@ and leave a blank line before you go into detail, similar to a git commit messag
  */
 ```
 
+## Visibility of AppStore Methods
+
+The [`Dispatcher`](https://github.com/desktop/desktop/blob/master/app/src/lib/dispatcher/dispatcher.ts)
+is the entry point for most interactions with the application which update state,
+and for most usages this work is then delegated to the [`AppStore`](https://github.com/desktop/desktop/blob/master/app/src/lib/dispatcher/app-store.ts).
+Due to this coupling, we need to discourage callers directly manipulating
+specific methods in the `AppStore` unless there's a compelling reason.
+
+We do this by making the methods look unappealing:
+
+ - underscore prefix on method name
+ - comment indicating that you should be looking elsewhere
+
+```ts
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _repositoryWithRefreshedGitHubRepository(repository: Repository): Promise<Repository> {
+    ...
+  }
+```
+
+## Asynchronous and Synchronous Node APIs
+
+### Application Code
+
+We should be using asynchronous core APIs throughout the application, unless
+there's a compelling reason and no asynchronous alternative. And in those cases
+the method should be suffixed with `Sync` to make it clear to the caller what's
+happening.
+
+### Scripts
+
+For scripts we should favour synchronous APIs as the asynchronous benefits are
+not so important there, and  it makes the code easier to read.

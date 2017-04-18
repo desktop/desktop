@@ -10,7 +10,7 @@ What version of GitHub Desktop are you running? This is displayed under the
 
 #### Operating System
 
- - If you are on macOS, launch `About this Mac` and write down the OS version
+ - If you are on macOS, launch `About This Mac` and write down the OS version
    listed.
  - If you are on Windows, open `Command Prompt` and attach the output of this
    command*: `cmd /c ver`
