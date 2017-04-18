@@ -105,6 +105,16 @@ export interface IToolbarDropdownProps {
    */
   readonly tabIndex?: number
 
+  /**
+   * An optional progress value as a fraction between 0 and 1. Passing a number
+   * greater than zero will render a progress bar background in the toolbar
+   * button. Use this to communicate an ongoing operation.
+   * 
+   * Consumers should not rely solely on the visual progress bar, they should
+   * also implement alternative representation such as showing a percentage
+   * text in the description or title along with information about what
+   * operation is currently in flight.
+   */
   readonly progressValue?: number
 }
 
