@@ -1,0 +1,19 @@
+#update-available {
+  border-bottom: 1px solid var(--box-border-color);
+  height: 30px;
+
+  .close {
+      position: absolute;
+      right: var(--spacing);
+
+      border: 0;
+      height: 16px;
+      width: 16px;
+      margin: 0;
+      padding: 0;
+      background: transparent;
+
+      color: var(--text-secondary-color);
+      cursor: pointer;
+  }
+}
