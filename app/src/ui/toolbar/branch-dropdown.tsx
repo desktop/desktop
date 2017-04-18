@@ -9,13 +9,24 @@ import { Branches } from '../branches'
 import { assertNever } from '../../lib/fatal-error'
 
 interface IBranchDropdownProps {
+  readonly dispatcher: Dispatcher
+
+  /** The currently selected repository. */
   readonly repository: Repository
+
+  /** The current repository state as derived from AppState */
   readonly repositoryState: IRepositoryState
 
+  /** Whether or not the branch dropdown is currently open */
   readonly isOpen: boolean
-  readonly onDropDownStateChanged: (state: DropdownState) => void
 
-  readonly dispatcher: Dispatcher
+  /**
+   * An event handler for when the drop down is opened, or closed, by a pointer
+   * event or by pressing the space or enter key while focused.
+   * 
+   * @param state    - The new state of the drop down
+   */
+  readonly onDropDownStateChanged: (state: DropdownState) => void
 }
 
 /**
