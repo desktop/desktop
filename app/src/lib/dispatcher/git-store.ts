@@ -626,7 +626,12 @@ export class GitStore {
   public async loadContextualCommitMessage(): Promise<void> {
     const message = await this.getMergeMessage()
     const existingMessage = this._contextualCommitMessage
-    if (existingMessage && message && existingMessage.description === message.description && existingMessage.summary === message.summary) {
+    // In the case where we're in the middle of a merge, we're gonna keep
+    // finding the same merge message over and over. We don't need to keep
+    // telling the world.
+    if (existingMessage && message &&
+        existingMessage.description === message.description &&
+        existingMessage.summary === message.summary) {
       return
     }
 
