@@ -1,18 +1,20 @@
 import * as React from 'react'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
+import { IAvatarUser } from '../../models/avatar'
 import { Button } from '../lib/button'
 import { Row } from '../lib/row'
 import { assertNever } from '../../lib/fatal-error'
 import { DialogContent } from '../dialog'
-import { Avatar, IAvatarUser } from '../lib/avatar'
+import { Avatar } from '../lib/avatar'
+import { CallToAction } from '../lib/call-to-action'
 
 interface IAccountsProps {
-  readonly dotComUser: User | null
-  readonly enterpriseUser: User | null
+  readonly dotComAccount: Account | null
+  readonly enterpriseAccount: Account | null
 
   readonly onDotComSignIn: () => void
   readonly onEnterpriseSignIn: () => void
-  readonly onLogout: (user: User) => void
+  readonly onLogout: (account: Account) => void
 }
 
 enum SignInType {
@@ -25,42 +27,40 @@ export class Accounts extends React.Component<IAccountsProps, void> {
     return (
       <DialogContent className='accounts-tab'>
         <h2>GitHub.com</h2>
-        {this.props.dotComUser ? this.renderUser(this.props.dotComUser) : this.renderSignIn(SignInType.DotCom)}
+        {this.props.dotComAccount ? this.renderAccount(this.props.dotComAccount) : this.renderSignIn(SignInType.DotCom)}
 
         <h2>Enterprise</h2>
-        {this.props.enterpriseUser ? this.renderUser(this.props.enterpriseUser) : this.renderSignIn(SignInType.Enterprise)}
+        {this.props.enterpriseAccount ? this.renderAccount(this.props.enterpriseAccount) : this.renderSignIn(SignInType.Enterprise)}
       </DialogContent>
     )
   }
 
-  private renderUser(user: User) {
-    const email = user.emails[0] || ''
+  private renderAccount(account: Account) {
+    const email = account.emails.length ? account.emails[0].email : ''
 
     const avatarUser: IAvatarUser = {
-      name: user.name,
+      name: account.name,
       email: email,
-      avatarURL: user.avatarURL,
+      avatarURL: account.avatarURL,
     }
 
     return (
       <Row className='account-info'>
         <Avatar user={avatarUser} />
         <div className='user-info'>
-          <div className='name'>{user.name}</div>
-          <div className='login'>@{user.login}</div>
+          <div className='name'>{account.name}</div>
+          <div className='login'>@{account.login}</div>
         </div>
-        <Button onClick={this.logout(user)}>Log Out</Button>
+        <Button onClick={this.logout(account)}>Log Out</Button>
       </Row>
     )
   }
 
-  private onDotComSignIn = (event: React.FormEvent<HTMLButtonElement>) => {
-    event.preventDefault()
+  private onDotComSignIn = () => {
     this.props.onDotComSignIn()
   }
 
-  private onEnterpriseSignIn = (event: React.FormEvent<HTMLButtonElement>) => {
-    event.preventDefault()
+  private onEnterpriseSignIn = () => {
     this.props.onEnterpriseSignIn()
   }
 
@@ -69,33 +69,25 @@ export class Accounts extends React.Component<IAccountsProps, void> {
       case SignInType.DotCom: {
 
         return (
-          <Row className='account-sign-in'>
-            <div>
-              Sign in to your GitHub.com account to access your
-              repositories
-            </div>
-            <Button type='submit' onClick={this.onDotComSignIn}>Sign in</Button>
-          </Row>
+          <CallToAction actionTitle='Sign In' onAction={this.onDotComSignIn}>
+            <div>Sign in to your GitHub.com account to access your repositories.</div>
+          </CallToAction>
         )
       }
       case SignInType.Enterprise:
         return (
-          <Row className='account-sign-in'>
-            <div>
-              If you have a GitHub Enterprise account at work, sign in to it
-              to get access to your repositories.
-            </div>
-            <Button type='submit' onClick={this.onEnterpriseSignIn}>Sign in</Button>
-          </Row>
+          <CallToAction actionTitle='Sign In' onAction={this.onEnterpriseSignIn}>
+            <div>If you have a GitHub Enterprise account at work, sign in to it to get access to your repositories.</div>
+          </CallToAction>
         )
       default:
         return assertNever(type, `Unknown sign in type: ${type}`)
     }
   }
 
-  private logout = (user: User) => {
+  private logout = (account: Account) => {
     return () => {
-      this.props.onLogout(user)
+      this.props.onLogout(account)
     }
   }
 }

@@ -5,8 +5,6 @@
   .avatar {
     width: 16px;
     height: 16px;
-
-    border-radius: var(--border-radius);
   }
 
   .expander {
@@ -39,7 +37,8 @@
 
   &-title {
     font-size: var(--font-size-md);
-    font-weight: var(--font-weight-light);
+    font-weight: var(--font-weight-semibold);
+    line-height: 16px;
     padding: var(--spacing);
     word-wrap: break-word;
   }

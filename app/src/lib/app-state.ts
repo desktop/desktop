@@ -1,4 +1,4 @@
-import { User } from '../models/user'
+import { Account } from '../models/account'
 import { CommitIdentity } from '../models/commit-identity'
 import { IDiff } from '../models/diff'
 import { Repository } from '../models/repository'
@@ -11,6 +11,7 @@ import { CloningRepository, ICloningRepositoryState, IGitHubUser, SignInState } 
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
+import { WindowState } from './window-state'
 
 export { ICloningRepositoryState }
 export { ICommitMessage }
@@ -28,7 +29,7 @@ export type PossibleSelections = { type: SelectionType.Repository, repository: R
 
 /** All of the shared app state. */
 export interface IAppState {
-  readonly users: ReadonlyArray<User>
+  readonly accounts: ReadonlyArray<Account>
   readonly repositories: ReadonlyArray<Repository | CloningRepository>
 
   readonly selectedState: PossibleSelections | null
@@ -42,6 +43,10 @@ export interface IAppState {
    */
   readonly signInState: SignInState | null
 
+  /**
+   * The current state of the Window, ie maximized, minimized full-screen etc.
+   */
+  readonly windowState: WindowState
   readonly showWelcomeFlow: boolean
   readonly loading: boolean
   readonly currentPopup: Popup | null
@@ -93,11 +98,10 @@ export interface IAppState {
   readonly titleBarStyle: 'light' | 'dark'
 
   /**
-   * Used to add a highlight class to the app menu toolbar icon
-   * when the Alt key is pressed. Only applicable on non-macOS
-   * platforms.
+   * Used to highlight access keys throughout the app when the
+   * Alt key is pressed. Only applicable on non-macOS platforms.
    */
-  readonly highlightAppMenuToolbarButton: boolean
+  readonly highlightAccessKeys: boolean
 }
 
 export enum PopupType {
@@ -112,7 +116,10 @@ export enum PopupType {
   CreateRepository,
   CloneRepository,
   CreateBranch,
-  SignIn
+  SignIn,
+  About,
+  PublishRepository,
+  Acknowledgements,
 }
 
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
@@ -126,22 +133,43 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.CreateRepository } |
                     { type: PopupType.CloneRepository } |
                     { type: PopupType.CreateBranch, repository: Repository } |
-                    { type: PopupType.SignIn }
+                    { type: PopupType.SignIn } |
+                    { type: PopupType.About } |
+                    { type: PopupType.PublishRepository, repository: Repository } |
+                    { type: PopupType.Acknowledgements }
 
 export enum FoldoutType {
   Repository,
   Branch,
   AppMenu,
-  Publish,
   AddMenu,
+}
+
+export type AppMenuFoldout = {
+  type: FoldoutType.AppMenu,
+
+  /**
+   * Whether or not the application menu was opened with the Alt key, this
+   * enables access key highlighting for applicable menu items as well as
+   * keyboard navigation by pressing access keys.
+   */
+  enableAccessKeyNavigation: boolean,
+
+  /**
+   * Whether the menu was opened by pressing Alt (or Alt+X where X is an
+   * access key for one of the top level menu items). This is used as a
+   * one-time signal to the AppMenu to use some special semantics for
+   * selection and focus. Specifically it will ensure that the last opened
+   * menu will receive focus.
+   */
+  openedWithAccessKey?: boolean,
 }
 
 export type Foldout =
   { type: FoldoutType.Repository } |
   { type: FoldoutType.Branch } |
-  { type: FoldoutType.AppMenu, enableAccessKeyNavigation: boolean, openedWithAccessKey?: boolean } |
-  { type: FoldoutType.Publish } |
-  { type: FoldoutType.AddMenu }
+  { type: FoldoutType.AddMenu } |
+  AppMenuFoldout
 
 export enum RepositorySection {
   Changes,
@@ -196,9 +224,31 @@ export interface IRepositoryState {
 }
 
 export interface IBranchesState {
+  /**
+   * The current tip of HEAD, either a branch, a commit (if HEAD is
+   * detached) or an unborn branch (a branch with no commits).
+   */
   readonly tip: Tip
+
+  /**
+   * The default branch for a given repository. Most commonly this
+   * will be the 'master' branch but GitHub users are able to change
+   * their default branch in the web UI.
+   */
   readonly defaultBranch: Branch | null
+
+  /**
+   * A list of all branches (remote and local) that's currently in
+   * the repository.
+   */
   readonly allBranches: ReadonlyArray<Branch>
+
+  /**
+   * A list of zero to a few (at time of writing 5 but check loadRecentBranches
+   * in git-store for definitive answer) branches that have been checked out
+   * recently. This list is compiled by reading the reflog and tracking branch
+   * switches over the last couple of thousand reflog entries.
+   */
   readonly recentBranches: ReadonlyArray<Branch>
 }
 

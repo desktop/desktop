@@ -1,6 +1,6 @@
 import * as TokenStore from '../shared-process/token-store'
-import { UsersStore } from './users-store'
-import { User } from '../models/user'
+import { AccountsStore } from './accounts-store'
+import { Account } from '../models/account'
 import { Database } from './database'
 import { RepositoriesStore } from './repositories-store'
 import { Repository, IRepository } from '../models/repository'
@@ -9,12 +9,13 @@ import {
   IAddRepositoriesAction,
   IUpdateGitHubRepositoryAction,
   IRemoveRepositoriesAction,
-  IAddUserAction,
+  IAddAccountAction,
+  IRemoveAccountAction,
   IUpdateRepositoryMissingAction,
   IUpdateRepositoryPathAction,
 } from '../lib/dispatcher'
 import { API } from '../lib/api'
-import { reportError } from '../lib/exception-reporting'
+import { reportError } from '../ui/lib/exception-reporting'
 import { getVersion } from '../ui/lib/app-proxy'
 
 import { getLogger } from '../lib/logging/renderer'
@@ -26,23 +27,22 @@ process.on('uncaughtException', (error: Error) => {
   reportError(error, getVersion())
 })
 
-const usersStore = new UsersStore(localStorage, TokenStore)
-usersStore.loadFromStore()
+const accountsStore = new AccountsStore(localStorage, TokenStore)
+accountsStore.loadFromStore()
 
 const database = new Database('Database')
 const repositoriesStore = new RepositoriesStore(database)
 
-const broadcastUpdate = () => broadcastUpdate_(usersStore, repositoriesStore)
+const broadcastUpdate = () => broadcastUpdate_(accountsStore, repositoriesStore)
 
-updateUsers()
+updateAccounts()
 
-async function updateUsers() {
-  await usersStore.map(async (user: User) => {
-    const api = new API(user)
-    const updatedUser = await api.fetchUser()
+async function updateAccounts() {
+  await accountsStore.map(async (account: Account) => {
+    const api = new API(account)
+    const newAccount = await api.fetchAccount()
     const emails = await api.fetchEmails()
-    const justTheEmails = emails.map(e => e.email)
-    return new User(updatedUser.login, user.endpoint, user.token, justTheEmails, updatedUser.avatarUrl, updatedUser.id, updatedUser.name)
+    return new Account(account.login, account.endpoint, account.token, emails, newAccount.avatarUrl, newAccount.id, newAccount.name)
   })
   broadcastUpdate()
 }
@@ -61,18 +61,18 @@ register('ping', () => {
   return Promise.resolve('pong')
 })
 
-register('get-users', () => {
-  return Promise.resolve(usersStore.getUsers())
+register('get-accounts', () => {
+  return Promise.resolve(accountsStore.getAll())
 })
 
-register('add-user', async ({ user }: IAddUserAction) => {
-  usersStore.addUser(User.fromJSON(user))
-  await updateUsers()
+register('add-account', async ({ account }: IAddAccountAction) => {
+  accountsStore.addAccount(Account.fromJSON(account))
+  await updateAccounts()
   return Promise.resolve()
 })
 
-register('remove-user', async ({ user }: IAddUserAction) => {
-  usersStore.removeUser(User.fromJSON(user))
+register('remove-account', async ({ account }: IRemoveAccountAction) => {
+  accountsStore.removeAccount(Account.fromJSON(account))
   broadcastUpdate()
   return Promise.resolve()
 })

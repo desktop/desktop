@@ -1,7 +1,7 @@
 import * as React from 'react'
 import * as classnames from 'classnames'
 
-import { List } from '../list'
+import { List, SelectionSource as ListSelectionSource } from '../list'
 import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 
@@ -62,7 +62,20 @@ interface IFilterListProps<T extends IFilterListItem> {
   readonly renderPreList?: () => JSX.Element | null
 
   /** Called when an item is clicked. */
-  readonly onItemClick: (item: T) => void
+  readonly onItemClick?: (item: T) => void
+
+  /**
+   * This function will be called when the selection changes as a result of a
+   * user keyboard or mouse action (i.e. not when props change). Note that this
+   * differs from `onRowSelected`. For example, it won't be called if an already
+   * selected row is clicked on.
+   *
+   * @param selectedItem - The item that was just selected
+   * @param source       - The kind of user action that provoked the change,
+   *                       either a pointer device press, or a keyboard event
+   *                       (arrow up/down)
+   */
+  readonly onSelectionChanged?: (selectedItem: T | null, source: SelectionSource) => void
 
   /**
    * Called when a key down happens in the filter field. Users have a chance to
@@ -82,6 +95,19 @@ interface IFilterListState<T extends IFilterListItem> {
   readonly selectedRow: number
 }
 
+/**
+ * Interface describing a user initiated selection change event
+ * originating from changing the filter text.
+ */
+export interface IFilterSelectionSource {
+  kind: 'filter'
+
+  /** The filter text at the time the selection event was raised.  */
+  filterText: string
+}
+
+export type SelectionSource = ListSelectionSource | IFilterSelectionSource
+
 /** A List which includes the ability to filter based on its contents. */
 export class FilterList<T extends IFilterListItem> extends React.Component<IFilterListProps<T>, IFilterListState<T>> {
   private list: List | null = null
@@ -90,7 +116,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
   public constructor(props: IFilterListProps<T>) {
     super(props)
 
-    this.state = createStateUpdate('', -1, props)
+    this.state = createStateUpdate('', props)
   }
 
   public render() {
@@ -98,7 +124,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
       <div className={classnames('filter-list', this.props.className)}>
         {this.props.renderPreList ? this.props.renderPreList() : null}
 
-        <Row>
+        <Row className='filter-field-row'>
           <TextBox
             type='search'
             autoFocus={true}
@@ -127,11 +153,18 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
   }
 
   public componentWillReceiveProps(nextProps: IFilterListProps<T>) {
-    this.setState(createStateUpdate(this.state.filter, this.state.selectedRow, nextProps))
+    this.setState(createStateUpdate(this.state.filter, nextProps))
   }
 
-  private onSelectionChanged = (index: number) => {
+  private onSelectionChanged = (index: number, source: SelectionSource) => {
     this.setState({ selectedRow: index })
+
+    if (this.props.onSelectionChanged) {
+      const row = this.state.rows[index]
+      if (row.kind === 'item') {
+        this.props.onSelectionChanged(row.item, source)
+      }
+    }
   }
 
   private renderRow = (index: number) => {
@@ -153,7 +186,24 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
 
   private onFilterChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const text = event.currentTarget.value
-    this.setState(createStateUpdate(text, this.state.selectedRow, this.props))
+    this.setState(createStateUpdate(text, this.props))
+  }
+
+  public componentDidUpdate(prevProps: IFilterListProps<T>, prevState: IFilterListState<T>) {
+    if (this.props.onSelectionChanged) {
+      const oldSelectedItemId = getItemIdFromRowIndex(prevState.rows, prevState.selectedRow)
+      const newSelectedItemId = getItemIdFromRowIndex(this.state.rows, this.state.selectedRow)
+
+      if (oldSelectedItemId !== newSelectedItemId) {
+
+        const propSelectionId = this.props.selectedItem ? this.props.selectedItem.id : null
+
+        if (propSelectionId !== newSelectedItemId) {
+          const newSelectedItem = getItemFromRowIndex(this.state.rows, this.state.selectedRow)
+          this.props.onSelectionChanged(newSelectedItem, { kind: 'filter', filterText: this.state.filter })
+        }
+      }
+    }
   }
 
   private canSelectRow = (index: number) => {
@@ -162,10 +212,13 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
   }
 
   private onRowClick = (index: number) => {
-    const row = this.state.rows[index]
-    if (row.kind !== 'item') { return }
+    if (this.props.onItemClick) {
+      const row = this.state.rows[index]
 
-    this.props.onItemClick(row.item)
+      if (row.kind === 'item') {
+        this.props.onItemClick(row.item)
+      }
+    }
   }
 
   private onRowKeyDown = (row: number, event: React.KeyboardEvent<any>) => {
@@ -229,7 +282,7 @@ export class FilterList<T extends IFilterListItem> extends React.Component<IFilt
   }
 }
 
-function createStateUpdate<T extends IFilterListItem>(filter: string, selectedRow: number, props: IFilterListProps<T>) {
+function createStateUpdate<T extends IFilterListItem>(filter: string, props: IFilterListProps<T>) {
   const flattenedRows = new Array<IFilterListRow<T>>()
   for (const group of props.groups) {
     const items = group.items.filter(i => {
@@ -245,14 +298,35 @@ function createStateUpdate<T extends IFilterListItem>(filter: string, selectedRo
   }
 
 
-  let newSelectedRow = selectedRow
+  let selectedRow = -1
   const selectedItem = props.selectedItem
-  if (selectedItem && newSelectedRow < 0) {
-    const index = flattenedRows.findIndex(i => i.kind === 'item' && i.item.id === selectedItem.id)
-    // If the selected item isn't in the list (e.g., filtered out), then
-    // select the first visible item.
-    newSelectedRow = index < 0 ? flattenedRows.findIndex(i => i.kind === 'item') : index
+  if (selectedItem) {
+    selectedRow = flattenedRows.findIndex(i => i.kind === 'item' && i.item.id === selectedItem.id)
   }
 
-  return { filter, rows: flattenedRows, selectedRow: newSelectedRow }
+  if (selectedRow < 0 && filter.length) {
+    // If the selected item isn't in the list (e.g., filtered out), then
+    // select the first visible item.
+    selectedRow = flattenedRows.findIndex(i => i.kind === 'item')
+  }
+
+  return { filter, rows: flattenedRows, selectedRow }
+}
+
+
+function getItemFromRowIndex<T extends IFilterListItem>(items: ReadonlyArray<IFilterListRow<T>>, index: number): T | null {
+  if (index >= 0 && index < items.length) {
+    const row = items[index]
+
+    if (row.kind === 'item') {
+      return row.item
+    }
+  }
+
+  return null
+}
+
+function getItemIdFromRowIndex<T extends IFilterListItem>(items: ReadonlyArray<IFilterListRow<T>>, index: number): string | null {
+  const item = getItemFromRowIndex(items, index)
+  return item ? item.id : null
 }

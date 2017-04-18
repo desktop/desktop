@@ -8,9 +8,10 @@ import { ButtonGroup } from '../lib/button-group'
 import { Dispatcher } from '../../lib/dispatcher'
 import { getDefaultDir, setDefaultDir } from '../lib/default-dir'
 import { Row } from '../lib/row'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { parseOwnerAndName, IRepositoryIdentifier } from '../../lib/remote-parsing'
-import { findUserForRemote } from '../../lib/find-account'
+import { findAccountForRemote } from '../../lib/find-account'
+import { API } from '../../lib/api'
 import { Dialog, DialogContent, DialogError, DialogFooter } from '../dialog'
 
 /** The name for the error when the destination already exists. */
@@ -20,8 +21,8 @@ interface ICloneRepositoryProps {
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
 
-  /** The logged in users. */
-  readonly users: ReadonlyArray<User>
+  /** The logged in accounts. */
+  readonly accounts: ReadonlyArray<Account>
 }
 
 interface ICloneRepositoryState {
@@ -83,7 +84,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
             <TextBox
               placeholder='URL or username/repository'
               value={this.state.url}
-              onChange={this.onURLChanged}
+              onValueChanged={this.onURLChanged}
               autoFocus/>
           </Row>
 
@@ -114,13 +115,29 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     if (!directory) { return }
 
     const path = directory[0]
-    this.setState({ ...this.state, path })
+    this.setState({ path })
   }
 
-  private onURLChanged = (event: React.FormEvent<HTMLInputElement>) => {
-    const url = event.currentTarget.value
+  private checkPathValid(newPath: string) {
+    FS.exists(newPath, exists => {
+      // If the path changed while we were checking, we don't care anymore.
+      if (this.state.path !== newPath) { return }
+
+      let error: Error | null = null
+      if (exists) {
+        error = new Error('The destination already exists.')
+        error.name = DestinationExistsErrorName
+      }
+
+      this.setState({ error })
+    })
+  }
+
+  private onURLChanged = (input: string) => {
+    const url = input
     const parsed = parseOwnerAndName(url)
     const lastParsedIdentifier = this.state.lastParsedIdentifier
+
     let newPath: string
     if (lastParsedIdentifier) {
       if (parsed) {
@@ -135,51 +152,62 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     }
 
     this.setState({
-      ...this.state,
       url,
       path: newPath,
       lastParsedIdentifier: parsed,
     })
 
-    FS.exists(newPath, exists => {
-      // If the path changed while we were checking, we don't care anymore.
-      if (this.state.path !== newPath) { return }
-
-      let error: Error | null = null
-      if (exists) {
-        error = new Error('The destination already exists.')
-        error.name = DestinationExistsErrorName
-      }
-
-      this.setState({ ...this.state, error })
-    })
+    this.checkPathValid(newPath)
   }
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
-    this.setState({ ...this.state, path })
+    this.setState({ path })
+    this.checkPathValid(path)
+  }
+
+  /**
+   * Lookup the account associated with the clone (if applicable) and resolve
+   * the repository alias to the clone URL.
+   */
+  private async resolveCloneDetails(): Promise<{ url: string, account: Account | null } | null> {
+    const identifier = this.state.lastParsedIdentifier
+    let url = this.state.url
+
+    const account = await findAccountForRemote(url, this.props.accounts)
+    if (!account) { return null }
+
+    if (identifier) {
+      const api = new API(account)
+      const repo = await api.fetchRepository(identifier.owner, identifier.name)
+      if (repo) {
+        url =  repo.cloneUrl
+      }
+    }
+
+    return { url, account }
   }
 
   private clone = async () => {
-    this.setState({ ...this.state, loading: true })
+    this.setState({ loading: true })
 
-    const url = this.state.url
     const path = this.state.path
+    const cloneDetails = await this.resolveCloneDetails()
+    if (!cloneDetails) {
+      const error = new Error(`We couldn't find that repository. Check that you are logged in, and the URL or repository alias are spelled correctly.`)
+      this.setState({ loading: false, error })
+      return
+    }
 
     try {
-      const user = await findUserForRemote(url, this.props.users)
-      this.cloneImpl(url, path, user)
+      this.cloneImpl(cloneDetails.url, path, cloneDetails.account)
     } catch (error) {
-      this.setState({
-        ...this.state,
-        loading: false,
-        error,
-      })
+      this.setState({ loading: false, error })
     }
   }
 
-  private cloneImpl(url: string, path: string, user: User | null) {
-    this.props.dispatcher.clone(url, path, user)
+  private cloneImpl(url: string, path: string, account: Account | null) {
+    this.props.dispatcher.clone(url, path, { account })
     this.props.onDismissed()
 
     setDefaultDir(Path.resolve(path, '..'))

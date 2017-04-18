@@ -1,13 +1,11 @@
 import * as React from 'react'
-import { ToolbarDropdown } from './dropdown'
+import { ToolbarButton } from './button'
 import { ToolbarButtonStyle } from './button'
 import { IAheadBehind } from '../../lib/app-state'
-import { Dispatcher, SignInState } from '../../lib/dispatcher'
+import { Dispatcher } from '../../lib/dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { RelativeTime } from '../relative-time'
-import { Publish } from '../publish-repository'
-import { User } from '../../models/user'
 
 interface IPushPullButtonProps {
   /**
@@ -28,13 +26,8 @@ interface IPushPullButtonProps {
   /** Is the user currently publishing? */
   readonly isPublishing: boolean
 
-  /** The logged in users. */
-  readonly users: ReadonlyArray<User>
-
   readonly dispatcher: Dispatcher
   readonly repository: Repository
-
-  readonly signInState: SignInState | null
 }
 
 /**
@@ -44,29 +37,18 @@ interface IPushPullButtonProps {
 export class PushPullButton extends React.Component<IPushPullButtonProps, void> {
   public render() {
     return (
-      <ToolbarDropdown
+      <ToolbarButton
         title={this.getTitle()}
         description={this.getDescription()}
         className='push-pull-button'
         icon={this.getIcon()}
         iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
         style={ToolbarButtonStyle.Subtitle}
-        dropdownState={this.props.isPublishing ? 'open' : 'closed'}
-        dropdownContentRenderer={this.renderFoldout}
-        onDropdownStateChanged={this.performAction}
-        showDisclosureArrow={false}
+        onClick={this.performAction}
         disabled={this.props.networkActionInProgress}>
         {this.renderAheadBehind()}
-      </ToolbarDropdown>
+      </ToolbarButton>
     )
-  }
-
-  private renderFoldout = () => {
-    return <Publish
-      repository={this.props.repository}
-      dispatcher={this.props.dispatcher}
-      signInState={this.props.signInState}
-      users={this.props.users}/>
   }
 
   private renderAheadBehind() {
@@ -112,6 +94,11 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private getIcon(): OcticonSymbol {
+
+    if (this.props.networkActionInProgress) {
+      return OcticonSymbol.sync
+    }
+
     if (!this.props.remoteName) { return OcticonSymbol.cloudUpload }
     if (!this.props.aheadBehind) { return OcticonSymbol.cloudUpload }
 

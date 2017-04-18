@@ -121,7 +121,7 @@ interface IListProps {
    * selected row is clicked on.
    *
    * @param row    - The index of the row that was just selected
-   * @param source - The kind of user action that provoced the change, either
+   * @param source - The kind of user action that provoked the change, either
    *                 a pointer device press, hover (if selectOnHover is set) or
    *                 a keyboard event (arrow up/down)
    */
@@ -164,7 +164,21 @@ interface IListProps {
   readonly selectOnHover?: boolean
 }
 
-export class List extends React.Component<IListProps, void> {
+interface IListState {
+  /** The available height for the list as determined by ResizeObserver */
+  readonly height?: number
+
+  /** The available width for the list as determined by ResizeObserver */
+  readonly width?: number
+}
+
+// https://wicg.github.io/ResizeObserver/#resizeobserverentry
+interface IResizeObserverEntry {
+  readonly target: Element
+  readonly contentRect: ClientRect
+};
+
+export class List extends React.Component<IListProps, IListState> {
   private focusItem: HTMLDivElement | null = null
   private fakeScroll: HTMLDivElement | null = null
 
@@ -181,7 +195,77 @@ export class List extends React.Component<IListProps, void> {
    */
   private lastScroll: 'grid' | 'fake' | null = null
 
+  private list: HTMLDivElement | null = null
   private grid: React.Component<any, any> | null
+  private readonly resizeObserver: any | null = null
+  private updateSizeTimeoutId: number | null = null
+
+  public constructor(props: IListProps) {
+    super(props)
+
+    this.state = { }
+
+    const ResizeObserver = (window as any).ResizeObserver
+
+    if (ResizeObserver || false) {
+      this.resizeObserver = new ResizeObserver((entries: ReadonlyArray<IResizeObserverEntry>) => {
+        for (const entry of entries) {
+          if (entry.target === this.list) {
+            // We might end up causing a recursive update by updating the state
+            // when we're reacting to a resize so we'll defer it until after
+            // react is done with this frame.
+            if (this.updateSizeTimeoutId !== null) {
+              clearImmediate(this.updateSizeTimeoutId)
+            }
+
+            this.updateSizeTimeoutId = setImmediate(this.onResized, entry.target, entry.contentRect)
+          }
+        }
+      })
+    }
+  }
+
+  private onResized = (target: Element, contentRect: ClientRect) => {
+    this.updateSizeTimeoutId = null
+
+    // In a perfect world the contentRect would be enough. Unfortunately,
+    // as you already know, computers. In Electron 1.6.6 (with Chrome 56) which
+    // we're running at the time of writing the clientRect emitted from the
+    // resizeObserver returns native pixels instead of device independent pixels
+    // which means that the width and height will end up being 2x the expected
+    // size when running in 200% DPI scaling on Windows. On Mac this doesn't
+    // seem to be an issue. It's not clear to me whether this bug lies within
+    // Electron or Chromium and it's quite possible that it's solved already in
+    // newer versions of Chromium so we'll should revisit this as we upgrade.
+    //
+    // It's worth noting that the ResizeObserver is still behind the
+    // experimental flag so things like this should probably be expected.
+    //
+    // In order to work around this on Windows we'll explicitly ask for a
+    // bounding rectangle on Windows which we know will give us sane pixels.
+    const { width, height } = __DARWIN__
+      ? contentRect
+      : target.getBoundingClientRect()
+
+    if (this.state.width !== width || this.state.height !== height) {
+      this.setState({ width, height })
+    }
+  }
+
+  private onRef = (element: HTMLDivElement | null) => {
+
+    this.list = element
+
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+
+      if (element) {
+        this.resizeObserver.observe(element)
+      } else {
+        this.setState({ width: undefined, height: undefined })
+      }
+    }
+  }
 
   private handleKeyDown = (event: React.KeyboardEvent<any>) => {
     const row = this.props.selectedRow
@@ -293,6 +377,12 @@ export class List extends React.Component<IListProps, void> {
     }
   }
 
+  public componentWillUnmount() {
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+    }
+  }
+
   private renderRow = (params: IRowRendererParams) => {
     const rowIndex = params.rowIndex
     const selectable = this.canSelectRow(rowIndex)
@@ -341,13 +431,29 @@ export class List extends React.Component<IListProps, void> {
   }
 
   public render() {
-    return (
-      <div id={this.props.id}
-           className='list'
-           onKeyDown={this.handleKeyDown}>
+
+    let content: JSX.Element[] | JSX.Element | null
+
+    if (this.resizeObserver) {
+      content = this.state.width && this.state.height
+        ? this.renderContents(this.state.width, this.state.height)
+        : null
+    } else {
+      // Legacy in the event that we don't have ResizeObserver
+      content =
         <AutoSizer disableWidth disableHeight>
           {({ width, height }: { width: number, height: number }) => this.renderContents(width, height)}
         </AutoSizer>
+    }
+
+    return (
+      <div
+        ref={this.onRef}
+        id={this.props.id}
+        className='list'
+        onKeyDown={this.handleKeyDown}
+      >
+        {content}
       </div>
     )
   }
@@ -361,13 +467,12 @@ export class List extends React.Component<IListProps, void> {
    *
    */
   private renderContents(width: number, height: number) {
+
     if (__WIN32__) {
-      return (
-        <div>
-          {this.renderGrid(width, height)}
-          {this.renderFakeScroll(height)}
-        </div>
-      )
+      return [
+        this.renderGrid(width, height),
+        this.renderFakeScroll(height),
+      ]
     }
 
     return this.renderGrid(width, height)
@@ -402,6 +507,7 @@ export class List extends React.Component<IListProps, void> {
 
     return (
       <Grid
+        key='grid'
         ref={this.onGridRef}
         autoContainerWidth
         width={width}
@@ -452,6 +558,7 @@ export class List extends React.Component<IListProps, void> {
 
     return (
       <div
+        key='fake-scroll'
         className='fake-scroll'
         ref={this.onFakeScrollRef}
         style={{ height }}

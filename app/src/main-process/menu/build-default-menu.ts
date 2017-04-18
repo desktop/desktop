@@ -37,7 +37,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     template.push({
       label: 'GitHub Desktop',
       submenu: [
-        { role: 'about' },
+        { label: 'About GitHub Desktop', click: emit('show-about') },
         { type: 'separator' },
         ...updateMenuItems,
         { type: 'separator' },
@@ -72,6 +72,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       {
         label: __DARWIN__ ? 'New Branch…' : 'New &branch…',
+        id: 'create-branch',
         accelerator: 'CmdOrCtrl+Shift+N',
         click: emit('create-branch'),
       },
@@ -90,7 +91,19 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
   }
 
   if (!__DARWIN__) {
-    (fileMenu.submenu as Electron.MenuItemOptions[]).push({ type: 'separator' }, { role: 'quit' })
+    const fileItems = fileMenu.submenu as Electron.MenuItemOptions[]
+
+    fileItems.push(
+      { type: 'separator' },
+      {
+        label: '&Options…',
+        id: 'preferences',
+        accelerator: 'CmdOrCtrl+,',
+        click: emit('show-preferences'),
+      },
+      { type: 'separator' },
+      { role: 'quit' }
+    )
   }
 
   template.push(fileMenu)
@@ -113,21 +126,25 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
     submenu: [
       {
         label: __DARWIN__ ? 'Show Changes' : '&Changes',
+        id: 'show-changes',
         accelerator: 'CmdOrCtrl+1',
         click: emit('select-changes'),
       },
       {
         label: __DARWIN__ ? 'Show History' : '&History',
+        id: 'show-history',
         accelerator: 'CmdOrCtrl+2',
         click: emit('select-history'),
       },
       {
         label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
+        id: 'show-repository-list',
         accelerator: 'CmdOrCtrl+L',
         click: emit('choose-repository'),
       },
       {
         label: __DARWIN__ ? 'Show Branches List' : '&Branches list',
+        id: 'show-branches-list',
         accelerator: 'CmdOrCtrl+B',
         click: emit('show-branches'),
       },
@@ -167,6 +184,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
 
   template.push({
     label: __DARWIN__ ? 'Repository' : '&Repository',
+    id: 'repository',
     submenu: [
       {
         id: 'push',
@@ -182,6 +200,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       {
         label: __DARWIN__ ? 'Remove' : '&Remove',
+        id: 'remove-repository',
         click: emit('remove-repository'),
       },
       { type: 'separator' },
@@ -198,12 +217,14 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       {
         label: __DARWIN__ ? 'Open in Finder' : '&Open in Explorer',
+        id: 'open-working-directory',
         accelerator: 'CmdOrCtrl+Shift+F',
         click: emit('open-working-directory'),
       },
       { type: 'separator' },
       {
         label: __DARWIN__ ? 'Repository Settings…' : 'Repository &settings…',
+        id: 'show-repository-settings',
         click: emit('show-repository-settings'),
       },
     ],
@@ -211,6 +232,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
 
   template.push({
     label: __DARWIN__ ? 'Branch' : '&Branch',
+    id: 'branch',
     submenu: [
       {
         label: __DARWIN__ ? 'Rename…' : '&Rename…',
@@ -235,7 +257,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       },
       { type: 'separator' },
       {
-        label: __DARWIN__ ? 'Compare Branch on GitHub' : '&Compare branch on GitHub',
+        label: __DARWIN__ ? 'Compare on GitHub' : '&Compare on GitHub',
         id: 'compare-branch',
         accelerator: 'CmdOrCtrl+Shift+C',
         click: emit('compare-branch'),
@@ -253,17 +275,6 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
         { role: 'front' },
       ],
     })
-  } else {
-    template.push(
-      { type: 'separator' },
-      {
-        label: '&Options…',
-        id: 'preferences',
-        accelerator: 'CmdOrCtrl+,',
-        click: emit('show-preferences'),
-      },
-      { type: 'separator' },
-    )
   }
 
   const contactSupportItem: Electron.MenuItemOptions = {
@@ -292,13 +303,14 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       submenu: helpItems,
     })
   } else {
-    // TODO: This needs a Window about item
     template.push({
       label: '&Help',
       submenu: [
         ...updateMenuItems,
         { type: 'separator' },
         ...helpItems,
+        { type: 'separator' },
+        { label: '&About GitHub Desktop', click: emit('show-about') },
       ],
     })
   }

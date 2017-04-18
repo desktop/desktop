@@ -2,18 +2,20 @@ import * as OS from 'os'
 import * as URL from 'url'
 import * as Querystring from 'querystring'
 import { v4 as guid } from 'uuid'
-import { User } from '../models/user'
+import { Account } from '../models/account'
+import { IEmail } from '../models/email'
 
-import { IHTTPResponse, getHeader, HTTPMethod, request, deserialize } from './http'
+import { HTTPMethod, request, deserialize } from './http'
 import { AuthenticationMode } from './2fa'
 
 const Octokat = require('octokat')
 const username: () => Promise<string> = require('username')
 
-const ClientID = 'de0e3c7e9973e1c4dd77'
+const ClientID = process.env.TEST_ENV ? '' : __OAUTH_CLIENT_ID__
 const ClientSecret = process.env.TEST_ENV ? '' : __OAUTH_SECRET__
-if (!ClientSecret || !ClientSecret.length) {
-  console.warn(`DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
+
+if (!ClientID || !ClientID.length || !ClientSecret || !ClientSecret.length) {
+  console.warn(`DESKTOP_OAUTH_CLIENT_ID and/or DESKTOP_OAUTH_CLIENT_SECRET is undefined. You won't be able to authenticate new users.`)
 }
 
 /** The OAuth scopes we need. */
@@ -81,6 +83,19 @@ export interface IAPIEmail {
   readonly email: string
   readonly verified: boolean
   readonly primary: boolean
+  /**
+   * `null` can be returned by the API for legacy reasons. A non-null value is
+   * set for the primary email address currently, but in the future visibility
+   * may be defined for each email address.
+   */
+  readonly visibility: 'public' | 'private' | null
+}
+
+function convertEmailAddress(email: IAPIEmail): IEmail {
+  return {
+    ...email,
+    visibility: email.visibility || 'public',
+  }
 }
 
 /** Information about an issue as returned by the GitHub API. */
@@ -141,11 +156,11 @@ interface IAPIMentionablesResponse {
  */
 export class API {
   private client: any
-  private user: User
+  private account: Account
 
-  public constructor(user: User) {
-    this.user = user
-    this.client = new Octokat({ token: user.token, rootURL: user.endpoint })
+  public constructor(account: Account) {
+    this.account = account
+    this.client = new Octokat({ token: account.token, rootURL: account.endpoint })
   }
 
   /**
@@ -169,19 +184,24 @@ export class API {
   }
 
   /** Fetch a repo by its owner and name. */
-  public async fetchRepository(owner: string, name: string): Promise<IAPIRepository> {
-    return this.client.repos(owner, name).fetch()
+  public async fetchRepository(owner: string, name: string): Promise<IAPIRepository | null> {
+    try {
+      return await this.client.repos(owner, name).fetch()
+    } catch (e) {
+      return null
+    }
   }
 
-  /** Fetch the logged in user. */
-  public fetchUser(): Promise<IAPIUser> {
+  /** Fetch the logged in account. */
+  public fetchAccount(): Promise<IAPIUser> {
     return this.client.user.fetch()
   }
 
-  /** Fetch the user's emails. */
-  public async fetchEmails(): Promise<ReadonlyArray<IAPIEmail>> {
+  /** Fetch the current user's emails. */
+  public async fetchEmails(): Promise<ReadonlyArray<IEmail>> {
     const result = await this.client.user.emails.fetch()
-    return result.items
+    const emails: ReadonlyArray<IAPIEmail> = result.items
+    return emails.map(convertEmailAddress)
   }
 
   /** Fetch a commit from the repository. */
@@ -248,19 +268,23 @@ export class API {
     return allItems.filter((i: any) => !i.pullRequest)
   }
 
-  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<IHTTPResponse> {
-    return request(this.user.endpoint, `token ${this.user.token}`, method, path, body, customHeaders)
+  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<Response> {
+    return request(this.account.endpoint, `token ${this.account.token}`, method, path, body, customHeaders)
   }
 
-  /** Get the allowed poll interval for fetching. */
-  public async getFetchPollInterval(owner: string, name: string): Promise<number> {
+  /**
+   * Get the allowed poll interval for fetching. If an error occurs it will
+   * return null.
+   */
+  public async getFetchPollInterval(owner: string, name: string): Promise<number | null> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
     const response = await this.authenticatedRequest('HEAD', path)
-    const interval = getHeader(response, 'x-poll-interval')
+    const interval = response.headers.get('x-poll-interval')
     if (interval) {
-      return parseInt(interval, 10)
+      const parsed = parseInt(interval, 10)
+      return isNaN(parsed) ? null : parsed
     }
-    return 0
+    return null
   }
 
   /** Fetch the mentionable users for the repository. */
@@ -275,10 +299,10 @@ export class API {
     }
 
     const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
-    const users = deserialize<ReadonlyArray<IAPIMentionableUser>>(response.body)
+    const users = await deserialize<ReadonlyArray<IAPIMentionableUser>>(response)
     if (!users) { return null }
 
-    const responseEtag = getHeader(response, 'etag')
+    const responseEtag = response.headers.get('etag')
     return { users, etag: responseEtag || '' }
   }
 }
@@ -292,9 +316,9 @@ export enum AuthorizationResponseKind {
 }
 
 export type AuthorizationResponse = { kind: AuthorizationResponseKind.Authorized, token: string } |
-                                    { kind: AuthorizationResponseKind.Failed, response: IHTTPResponse } |
+                                    { kind: AuthorizationResponseKind.Failed, response: Response } |
                                     { kind: AuthorizationResponseKind.TwoFactorAuthenticationRequired, type: AuthenticationMode } |
-                                    { kind: AuthorizationResponseKind.Error, response: IHTTPResponse } |
+                                    { kind: AuthorizationResponseKind.Error, response: Response } |
                                     { kind: AuthorizationResponseKind.UserRequiresVerification }
 
 /**
@@ -317,8 +341,8 @@ export async function createAuthorization(endpoint: string, login: string, passw
     'fingerprint': guid(),
   }, headers)
 
-  if (response.statusCode === 401) {
-    const otpResponse = getHeader(response, 'x-github-otp')
+  if (response.status === 401) {
+    const otpResponse = response.headers.get('x-github-otp')
     if (otpResponse) {
       const pieces = otpResponse.split(';')
       if (pieces.length === 2) {
@@ -337,8 +361,8 @@ export async function createAuthorization(endpoint: string, login: string, passw
     return { kind: AuthorizationResponseKind.Failed, response }
   }
 
-  if (response.statusCode === 422) {
-    const apiError = deserialize<IAPIError>(response.body)
+  if (response.status === 422) {
+    const apiError = await deserialize<IAPIError>(response)
     if (apiError) {
       for (const error of apiError.errors) {
         const isExpectedResource = error.resource.toLowerCase() === 'oauthaccess'
@@ -350,7 +374,7 @@ export async function createAuthorization(endpoint: string, login: string, passw
     }
   }
 
-  const body = deserialize<IAPIAuthorization>(response.body)
+  const body = await deserialize<IAPIAuthorization>(response)
   if (body) {
     const token = body.token
     if (token && typeof token === 'string' && token.length) {
@@ -362,10 +386,15 @@ export async function createAuthorization(endpoint: string, login: string, passw
 }
 
 /** Fetch the user authenticated by the token. */
-export async function fetchUser(endpoint: string, token: string): Promise<User> {
+export async function fetchUser(endpoint: string, token: string): Promise<Account> {
   const octo = new Octokat({ token, rootURL: endpoint })
   const user = await octo.user.fetch()
-  return new User(user.login, endpoint, token, new Array<string>(), user.avatarUrl, user.id, user.name)
+
+  const response =  await octo.user.emails.fetch()
+  const emails: ReadonlyArray<IAPIEmail> = response.items
+  const formattedEmails = emails.map(convertEmailAddress)
+
+  return new Account(user.login, endpoint, token, formattedEmails, user.avatarUrl, user.id, user.name)
 }
 
 /** Get metadata from the server. */
@@ -385,8 +414,7 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
       return null
     }
 
-    const text = await response.text()
-    const body = deserialize<IServerMetadata>(text)
+    const body = await deserialize<IServerMetadata>(response)
     if (!body || body.verifiable_password_authentication === undefined) {
       return null
     }
@@ -410,6 +438,21 @@ async function getNote(): Promise<string> {
   }
 
   return `GitHub Desktop on ${localUsername}@${OS.hostname()}`
+}
+
+/**
+ * Map a repository's URL to the endpoint associated with it. For example:
+ *
+ * https://github.com/desktop/desktop -> https://api.github.com
+ * http://github.mycompany.com/my-team/my-project -> http://github.mycompany.com/api
+ */
+export function getEndpointForRepository(url: string): string {
+  const parsed = URL.parse(url)
+  if (parsed.hostname === 'github.com') {
+    return getDotComAPIEndpoint()
+  } else {
+    return `${parsed.protocol}//${parsed.hostname}/api`
+  }
 }
 
 /**
@@ -455,9 +498,13 @@ export function getDotComAPIEndpoint(): string {
   return 'https://api.github.com'
 }
 
-/** Get the user for the endpoint. */
-export function getUserForEndpoint(users: ReadonlyArray<User>, endpoint: string): User {
-  return users.filter(u => u.endpoint === endpoint)[0]
+/** Get the account for the endpoint. */
+export function getAccountForEndpoint(accounts: ReadonlyArray<Account>, endpoint: string): Account | null {
+  const filteredAccounts = accounts.filter(a => a.endpoint === endpoint)
+  if (filteredAccounts.length) {
+    return filteredAccounts[0]
+  }
+  return null
 }
 
 export function getOAuthAuthorizationURL(endpoint: string, state: string): string {
@@ -475,7 +522,7 @@ export async function requestOAuthToken(endpoint: string, state: string, code: s
     'state': state,
   })
 
-  const body = deserialize<IAPIAccessToken>(response.body)
+  const body = await deserialize<IAPIAccessToken>(response)
   if (body) {
     return body.access_token
   }

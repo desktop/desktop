@@ -13,7 +13,7 @@ branches:
 
 language: node_js
 node_js:
-  - "6"
+  - "7"
 
 cache:
   timeout: 600
@@ -22,6 +22,7 @@ cache:
     - $HOME/.electron
 
 install:
+  - npm install -g npm
   - npm prune
   - cd app && npm prune && cd ..
   - npm install

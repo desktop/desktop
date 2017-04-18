@@ -3,13 +3,16 @@ import { remote } from 'electron'
 // Given that `autoUpdater` is entirely async anyways, I *think* it's safe to
 // use with `remote`.
 const autoUpdater = remote.autoUpdater
+const lastSuccessfulCheckKey = 'last-successful-update-check'
 
 import { Emitter, Disposable } from 'event-kit'
 
 import { getVersion } from './app-proxy'
+import { sendWillQuitSync } from '../main-process-proxy'
+import { ErrorWithMetadata } from '../../lib/error-with-metadata'
 
 /** The states the auto updater can be in. */
-export enum UpdateState {
+export enum UpdateStatus {
   /** The auto updater is checking for updates. */
   CheckingForUpdates,
 
@@ -23,14 +26,34 @@ export enum UpdateState {
   UpdateReady,
 }
 
+export interface IUpdateState {
+  status: UpdateStatus
+  lastSuccessfulCheck: Date | null
+}
+
 const UpdatesURLBase = 'https://central.github.com/api/deployments/desktop/desktop/latest'
 
 /** A store which contains the current state of the auto updater. */
 class UpdateStore {
   private emitter = new Emitter()
-  private _state = UpdateState.UpdateNotAvailable
+  private status = UpdateStatus.UpdateNotAvailable
+  private lastSuccessfulCheck: Date | null = null
+
+  /** Is the most recent update check user initiated? */
+  private userInitiatedUpdate = true
 
   public constructor() {
+
+    const lastSuccessfulCheckValue = localStorage.getItem(lastSuccessfulCheckKey)
+
+    if (lastSuccessfulCheckValue) {
+      const lastSuccessfulCheckTime = parseInt(lastSuccessfulCheckValue, 10)
+
+      if (!isNaN(lastSuccessfulCheckTime)) {
+        this.lastSuccessfulCheck = new Date(lastSuccessfulCheckTime)
+      }
+    }
+
     autoUpdater.on('error', this.onAutoUpdaterError)
     autoUpdater.on('checking-for-update', this.onCheckingForUpdate)
     autoUpdater.on('update-available', this.onUpdateAvailable)
@@ -51,37 +74,49 @@ class UpdateStore {
     }
   }
 
+  private touchLastChecked() {
+    const now = new Date()
+    const persistedValue = now.getTime().toString()
+
+    this.lastSuccessfulCheck = now
+    localStorage.setItem(lastSuccessfulCheckKey, persistedValue)
+  }
+
   private onAutoUpdaterError = (error: Error) => {
+    // If we get an error during any stage of the update process we'll
+    this.status = UpdateStatus.UpdateNotAvailable
     this.emitError(error)
   }
 
   private onCheckingForUpdate = () => {
-    this._state = UpdateState.CheckingForUpdates
+    this.status = UpdateStatus.CheckingForUpdates
     this.emitDidChange()
   }
 
   private onUpdateAvailable = () => {
-    this._state = UpdateState.UpdateAvailable
+    this.touchLastChecked()
+    this.status = UpdateStatus.UpdateAvailable
     this.emitDidChange()
   }
 
   private onUpdateNotAvailable = () => {
-    this._state = UpdateState.UpdateNotAvailable
+    this.touchLastChecked()
+    this.status = UpdateStatus.UpdateNotAvailable
     this.emitDidChange()
   }
 
   private onUpdateDownloaded = () => {
-    this._state = UpdateState.UpdateReady
+    this.status = UpdateStatus.UpdateReady
     this.emitDidChange()
   }
 
   /** Register a function to call when the auto updater state changes. */
-  public onDidChange(fn: (state: UpdateState) => void): Disposable {
+  public onDidChange(fn: (state: IUpdateState) => void): Disposable {
     return this.emitter.on('did-change', fn)
   }
 
   private emitDidChange() {
-    this.emitter.emit('did-change', this._state)
+    this.emitter.emit('did-change', this.state)
   }
 
   /** Register a function to call when the auto updater encounters an error. */
@@ -90,20 +125,32 @@ class UpdateStore {
   }
 
   private emitError(error: Error) {
-    this.emitter.emit('error', error)
+    const updatedError = new ErrorWithMetadata(error, { backgroundTask: !this.userInitiatedUpdate })
+    this.emitter.emit('error', updatedError)
   }
 
   /** The current auto updater state. */
-  public get state(): UpdateState {
-    return this._state
+  public get state(): IUpdateState {
+    return {
+      status: this.status,
+      lastSuccessfulCheck: this.lastSuccessfulCheck,
+    }
   }
 
   private getFeedURL(username: string): string {
     return `${UpdatesURLBase}?version=${getVersion()}&username=${username}`
   }
 
-  /** Check for updates using the given username. */
-  public checkForUpdates(username: string) {
+  /**
+   * Check for updates using the given username.
+   *
+   * @param username     - The username used to check for updates.
+   * @param inBackground - Are we checking for updates in the background, or was
+   *                       this check user-initiated?
+   */
+  public checkForUpdates(username: string, inBackground: boolean) {
+    this.userInitiatedUpdate = !inBackground
+
     try {
       autoUpdater.setFeedURL(this.getFeedURL(username))
       autoUpdater.checkForUpdates()
@@ -114,6 +161,7 @@ class UpdateStore {
 
   /** Quit and install the update. */
   public quitAndInstallUpdate() {
+    sendWillQuitSync()
     autoUpdater.quitAndInstall()
   }
 }

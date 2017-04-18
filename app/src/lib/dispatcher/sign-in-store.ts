@@ -1,5 +1,5 @@
 import { Emitter, Disposable } from 'event-kit'
-import { User } from '../../models/user'
+import { Account } from '../../models/account'
 import { assertNever, fatalError } from '../fatal-error'
 import { askUserToOAuth } from '../../lib/oauth'
 import { validateURL, InvalidURLErrorName, InvalidProtocolErrorName } from '../../ui/lib/enterprise-validate-url'
@@ -169,8 +169,8 @@ export class SignInStore {
     this.emitter.emit('did-update', this.getState())
   }
 
-  private emitAuthenticate(user: User) {
-    this.emitter.emit('did-authenticate', user)
+  private emitAuthenticate(account: Account) {
+    this.emitter.emit('did-authenticate', account)
   }
 
   private emitError(error: Error) {
@@ -186,7 +186,7 @@ export class SignInStore {
    * Registers an event handler which will be invoked whenever
    * a user has successfully completed a sign-in process.
    */
-  public onDidAuthenticate(fn: (user: User) => void): Disposable {
+  public onDidAuthenticate(fn: (account: Account) => void): Disposable {
     return this.emitter.on('did-authenticate', fn)
   }
 
@@ -320,11 +320,7 @@ export class SignInStore {
       })
     } else {
       if (response.kind === AuthorizationResponseKind.Error) {
-        if (response.response.error) {
-          this.emitError(response.response.error)
-        } else {
-          this.emitError(new Error(`The server responded with an error while attempting to authenticate (${response.response.statusCode})\n\n${response.response.body}`))
-        }
+        this.emitError(new Error(`The server responded with an error while attempting to authenticate (${response.response.status})\n\n${response.response.statusText}`))
         this.setState({ ...currentState, loading: false })
       } else if (response.kind === AuthorizationResponseKind.Failed) {
         this.setState({
@@ -365,9 +361,9 @@ export class SignInStore {
 
     this.setState({ ...currentState, loading: true })
 
-    let user: User
+    let account: Account
     try {
-      user = await askUserToOAuth(currentState.endpoint)
+      account = await askUserToOAuth(currentState.endpoint)
     } catch (e) {
       this.setState({ ...currentState, error: e, loading: false })
       return
@@ -378,7 +374,7 @@ export class SignInStore {
       return
     }
 
-    this.emitAuthenticate(user)
+    this.emitAuthenticate(account)
     this.setState({ kind: SignInStep.Success })
   }
 
@@ -521,12 +517,7 @@ export class SignInStore {
           })
           break
         case AuthorizationResponseKind.Error:
-          const error = response.response.error
-          if (error) {
-            this.emitError(error)
-          } else {
-            this.emitError(new Error(`The server responded with an error (${response.response.statusCode})\n\n${response.response.body}`))
-          }
+          this.emitError(new Error(`The server responded with an error (${response.response.status})\n\n${response.response.statusText}`))
           break
         case AuthorizationResponseKind.UserRequiresVerification:
           this.emitError(new Error(getUnverifiedUserErrorMessage(currentState.username)))

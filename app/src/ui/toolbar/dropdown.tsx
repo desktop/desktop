@@ -2,6 +2,7 @@ import * as React from 'react'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { assertNever } from '../../lib/fatal-error'
 import { ToolbarButton, ToolbarButtonStyle } from './button'
+import { rectEquals } from '../lib/rect'
 import * as classNames from 'classnames'
 
 export type DropdownState = 'open' | 'closed'
@@ -22,11 +23,31 @@ export interface IToolbarDropdownProps {
   readonly dropdownState: DropdownState
 
   /**
-   * An event handler for when the drop down is opened
-   * or closed by a pointer event or by hitting
-   * space/enter while focused.
+   * An event handler for when the drop down is opened, or closed, by a pointer
+   * event or by pressing the space or enter key while focused.
+   * 
+   * @param state    - The new state of the drop down
+   * @param source   - Whether the state change was caused by a keyboard or
+   *                   pointer interaction.
    */
-  readonly onDropdownStateChanged: (state: DropdownState) => void
+  readonly onDropdownStateChanged: (state: DropdownState, source: 'keyboard' | 'pointer') => void
+
+  /**
+   * A function that's called when the user hovers over the button with
+   * a pointer device. Note that this only fires for mouse events inside
+   * the button and not when hovering content inside the foldout.
+   */
+  readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
+
+  /**
+   * A function that's called when a key event is received from the 
+   * ToolbarDropDown component or any of its descendants.
+   * 
+   * Consumers of this event should not act on the event if the event has
+   * had its default action prevented by an earlier consumer that's called
+   * the preventDefault method on the event instance.
+   */
+  readonly onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void
 
   /**
    * An render callback for when the dropdown is open.
@@ -59,6 +80,30 @@ export interface IToolbarDropdownProps {
 
   /** Whether the button is disabled. Defaults to false. */
   readonly disabled?: boolean
+
+  /**
+   * The tab index of the button element.
+   *
+   * A value of 'undefined' means that whether or not the element participates
+   * in sequential keyboard navigation is left to the user agent's default
+   * settings.
+   * 
+   * A negative value means that the element can receive focus but not
+   * through sequential keyboard navigation (i.e. only via programmatic
+   * focus)
+   * 
+   * A value of zero means that the element can receive focus through
+   * sequential keyboard navigation and that the order should be determined
+   * by the element's position in the DOM.
+   * 
+   * A positive value means that the element can receive focus through
+   * sequential keyboard navigation and that it should have the explicit
+   * order provided and not have it be determined by its position in the DOM.
+   *
+   * Note: A positive value should be avoided if at all possible as it's
+   * detrimental to accessibility in most scenarios.
+   */
+  readonly tabIndex?: number
 }
 
 interface IToolbarDropdownState {
@@ -97,33 +142,33 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
     return <Octicon symbol={this.dropdownIcon(state)} className='dropdownArrow' />
   }
 
-  private onClick = () => {
+  private onClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const newState: DropdownState = this.props.dropdownState === 'open'
       ? 'closed'
       : 'open'
 
-    this.props.onDropdownStateChanged(newState)
-  }
+    // This is probably one of the hackiest things I've ever done.
+    // We need to be able to determine whether the button was clicked
+    // using a pointer device or activated by pressing Enter or Space.
+    // The problem is that button onClick events fire with a mouse event
+    // regardless of whether they were activated with a key press or a
+    // pointer device. So far, the only way I've been able to tell the
+    // two apart is that keyboard derived clicks don't have a pointer
+    // position.
+    const source = !event.clientX && !event.clientY
+      ? 'keyboard'
+      : 'pointer'
 
-  private rectEquals(x: ClientRect, y: ClientRect) {
-    return (
-      x.left === y.left &&
-      x.right === y.right &&
-      x.top === y.top &&
-      x.bottom === y.bottom &&
-      x.width === y.width &&
-      x.height === y.height
-    )
+    this.props.onDropdownStateChanged(newState, source)
   }
 
   private updateClientRectIfNecessary() {
     if (this.props.dropdownState  === 'open' && this.innerButton) {
-      const buttonElement = this.innerButton.buttonElement
-      if (buttonElement) {
-        const newRect = buttonElement.getBoundingClientRect()
+      const newRect = this.innerButton.getButtonBoundingClientRect()
+      if (newRect) {
         const currentRect = this.state.clientRect
 
-        if (!currentRect || !this.rectEquals(currentRect, newRect)) {
+        if (!currentRect || !rectEquals(currentRect, newRect)) {
           this.setState({ clientRect: newRect })
         }
       }
@@ -143,7 +188,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
   }
 
   private handleOverlayClick = () => {
-    this.props.onDropdownStateChanged('closed')
+    this.props.onDropdownStateChanged('closed', 'pointer')
   }
 
   private getFoldoutContainerStyle(): React.CSSProperties | undefined {
@@ -185,9 +230,13 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
       return null
     }
 
+    // The overlay has a -1 tab index because if it doesn't then focus will be put
+    // on the body element when someone clicks on it and that causes the app menu
+    // bar to instantly close before even receiving the onDropdownStateChanged
+    // event from us.
     return (
       <div id='foldout-container' style={this.getFoldoutContainerStyle()}>
-        <div className='overlay' onClick={this.handleOverlayClick}></div>
+        <div className='overlay' tabIndex={-1} onClick={this.handleOverlayClick}></div>
         <div className='foldout' style={this.getFoldoutStyle()}>
           {this.props.dropdownContentRenderer()}
         </div>
@@ -197,6 +246,15 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
 
   private onRef = (ref: ToolbarButton) => {
     this.innerButton = ref
+  }
+
+  /**
+   * Programmatically move keyboard focus to the button element.
+   */
+  public focusButton = () => {
+    if (this.innerButton) {
+      this.innerButton.focusButton()
+    }
   }
 
   public render() {
@@ -214,11 +272,14 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
         title={this.props.title}
         description={this.props.description}
         onClick={this.onClick}
+        onMouseEnter={this.props.onMouseEnter}
         className={className}
         preContentRenderer={this.renderDropdownContents}
         style={this.props.style}
         iconClassName={this.props.iconClassName}
         disabled={this.props.disabled}
+        onKeyDown={this.props.onKeyDown}
+        tabIndex={this.props.tabIndex}
       >
         {this.props.children}
         {this.renderDropdownArrow()}
