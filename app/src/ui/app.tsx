@@ -118,7 +118,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       setMenuVisible(visibleItem, true)
 
       if (status === UpdateStatus.UpdateReady) {
-        this.props.dispatcher.showPopup({ type: PopupType.UpdateAvailable })
       }
     })
 
@@ -723,8 +722,6 @@ export class App extends React.Component<IAppProps, IAppState> {
                 dispatcher={this.props.dispatcher}
                 files={popup.files}
                 onDismissed={this.onPopupDismissed}/>
-      case PopupType.UpdateAvailable:
-        return <UpdateAvailable dispatcher={this.props.dispatcher}/>
       case PopupType.Preferences:
         return <Preferences
                 dispatcher={this.props.dispatcher}
