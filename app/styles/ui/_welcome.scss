@@ -2,6 +2,7 @@
   align-items: stretch;
   justify-content: center;
   flex-direction: row;
+  font-size: var(--font-size-md);
 
   #start {
     display: flex;
@@ -44,19 +45,18 @@
 }
 
 .welcome-title {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-xl);
+  line-height: 1.25;
+  margin-bottom: var(--spacing);
 }
 
 .welcome-text {
-  font-size: var(--font-size-md);
   margin: var(--spacing) 0;
 }
 
 .welcome-button {
-  font-size: var(--font-size);
   font-weight: var(--font-weight-semibold);
-  padding: var(--spacing) 0;
-  width: 200px;
+  margin: var(--spacing) 0;
 }
 
 .sign-in-field {
@@ -81,7 +81,7 @@
 }
 
 .welcome-left {
-  padding: var(--spacing-double);
+  padding: calc(var(--spacing-double) * 2);
 }
 
 .welcome-right {
@@ -91,6 +91,15 @@
 .short-rule {
   border: none;
   border-top: 1px solid #cccc;
-  margin: var(--spacing) 0 var(--spacing-double);
+  margin: var(--spacing-double) 0;
   width: 5em;
+}
+
+.skip-action-container {
+  position: absolute;
+  bottom: calc(var(--spacing-double) * 2);
+
+  .skip-button {
+    color: var(--text-secondary-color);
+  }
 }
