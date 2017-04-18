@@ -122,11 +122,6 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private performAction = () => {
-    if (this.props.isPublishing) {
-      this.props.dispatcher.closeFoldout()
-      return
-    }
-
     if (!this.props.aheadBehind) {
       this.props.dispatcher.push(this.props.repository)
       return
