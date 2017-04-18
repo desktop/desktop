@@ -92,7 +92,8 @@ export class GitStore {
   private _localCommitSHAs: ReadonlyArray<string> = []
 
   private _commitMessage: ICommitMessage | null
-  private _contextualCommitMessage: ICommitMessage | null
+
+  private _contextualCommitMessage: { readonly cleared: boolean, readonly message: ICommitMessage } | null
 
   private _aheadBehind: IAheadBehind | null = null
 
@@ -365,8 +366,11 @@ export class GitStore {
 
     if (success) {
       this._contextualCommitMessage = {
-        summary: commit.summary,
-        description: commit.body,
+        message: {
+          summary: commit.summary,
+          description: commit.body,
+        },
+        cleared: false,
       }
     }
 
@@ -404,12 +408,20 @@ export class GitStore {
    * message from a recently undone commit.
    */
   public get contextualCommitMessage(): ICommitMessage | null {
-    return this._contextualCommitMessage
+    const contextualCommitMessage = this._contextualCommitMessage
+    if (!contextualCommitMessage) { return null }
+    if (contextualCommitMessage.cleared) { return null }
+
+    return contextualCommitMessage.message
   }
 
   /** Clear the contextual commit message. */
   public clearContextualCommitMessage(): Promise<void> {
-    this._contextualCommitMessage = null
+    const contextualCommitMessage = this._contextualCommitMessage
+    if (contextualCommitMessage) {
+      this._contextualCommitMessage = { ...contextualCommitMessage, cleared: true }
+    }
+
     this.emitUpdate()
     return Promise.resolve()
   }
@@ -632,7 +644,13 @@ export class GitStore {
   public async loadMergeMessage(): Promise<void> {
     const message = await this.getMergeMessage()
     if (message) {
-      this._contextualCommitMessage = message
+      const existingMessage = this._contextualCommitMessage ? this._contextualCommitMessage.message : null
+      // If it's a message that we already have, we don't need to update.
+      if (existingMessage && existingMessage.description === message.description && existingMessage.summary === message.summary) {
+        return
+      }
+
+      this._contextualCommitMessage = { message, cleared: false }
       this.emitUpdate()
     } else {
       this.clearContextualCommitMessage()
