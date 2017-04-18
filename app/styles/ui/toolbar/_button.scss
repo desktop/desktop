@@ -37,7 +37,7 @@
       box-shadow: none;
 
       .progress {
-        background: #444D56;        
+        background: var(--toolbar-button-focus-progress-color);
       }
     }
 
@@ -51,7 +51,7 @@
       }
 
       .progress {
-        background: #444D56;        
+        background: var(--toolbar-button-hover-progress-color);
       }
     }
 
@@ -117,7 +117,7 @@
       left: 0px;
       width: 100%;
       height: 100%;
-      background: #2F363D;
+      background: var(--toolbar-button-progress-color);
       transform-origin: left;
       pointer-events: none;
     }
