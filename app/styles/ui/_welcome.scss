@@ -1,6 +1,7 @@
 #welcome {
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
+  flex-direction: row;
 
   #start {
     display: flex;
@@ -31,6 +32,15 @@
       margin: 0 var(--spacing-half);
       flex: 1;
     }
+  }
+
+  .welcome-left {
+    flex-grow: 1;
+  }
+
+  .welcome-right {
+    flex-grow: 1;
+    background-color: #32373c;
   }
 
   .usage-opt-out {

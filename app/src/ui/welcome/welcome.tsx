@@ -123,7 +123,13 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
   public render() {
     return (
       <UiView id='welcome'>
-        {this.getComponentForCurrentStep()}
+        <div className='welcome-left'>
+          {this.getComponentForCurrentStep()}
+        </div>
+
+        <div className='welcome-right'>
+          lol illustration
+        </div>
       </UiView>
     )
   }
