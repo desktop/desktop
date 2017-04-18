@@ -628,6 +628,7 @@ export class GitStore {
     }
   }
 
+  /** Load the merge message if one exists. */
   public async loadMergeMessage(): Promise<void> {
     const message = await this.getMergeMessage()
     if (message) {
