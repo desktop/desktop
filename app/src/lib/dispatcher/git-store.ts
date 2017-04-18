@@ -628,6 +628,16 @@ export class GitStore {
     }
   }
 
+  public async loadMergeMessage(): Promise<void> {
+    const message = await this.getMergeMessage()
+    if (message) {
+      this._contextualCommitMessage = message
+      this.emitUpdate()
+    } else {
+      this.clearContextualCommitMessage()
+    }
+  }
+
   /**
    * Get the merge message in the repository. This will resolve to null if the
    * repository isn't in the middle of a merge.
