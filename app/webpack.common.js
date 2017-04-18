@@ -20,10 +20,6 @@ const replacements = {
   'process.platform': JSON.stringify(process.platform),
   'process.env.NODE_ENV': JSON.stringify(environment),
   'process.env.TEST_ENV': JSON.stringify(process.env.TEST_ENV),
-  'process.env': {
-    'NODE_ENV': JSON.stringify(environment),
-    'TEST_ENV': JSON.stringify(process.env.TEST_ENV),
-  }
 }
 
 const commonConfig = {
