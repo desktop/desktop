@@ -66,6 +66,18 @@ export interface ICommitMessage {
   readonly description: string | null
 }
 
+/**
+ * A contextual commit message, e.g., when the repository is in the middle of a
+ * merge.
+ */
+interface IContextualCommitMessage {
+  /** The contextual message. */
+  readonly message: ICommitMessage
+
+  /** Has the message been cleared? */
+  readonly cleared: boolean
+}
+
 /** The store for a repository's git data. */
 export class GitStore {
   private readonly emitter = new Emitter()
@@ -93,7 +105,7 @@ export class GitStore {
 
   private _commitMessage: ICommitMessage | null
 
-  private _contextualCommitMessage: { readonly cleared: boolean, readonly message: ICommitMessage } | null
+  private _contextualCommitMessage: IContextualCommitMessage | null
 
   private _aheadBehind: IAheadBehind | null = null
 
