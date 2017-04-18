@@ -652,19 +652,26 @@ export class GitStore {
     }
   }
 
-  /** Load the merge message if one exists. */
-  public async loadMergeMessage(): Promise<void> {
+  /** Load the contextual commit message if appropriate. */
+  public async loadContextualCommitMessage(): Promise<void> {
     const message = await this.getMergeMessage()
-    if (!message) { return }
+    if (message) {
+      const existingMessage = this._contextualCommitMessage ? this._contextualCommitMessage.message : null
+      // If it's a message that we already have, we don't need to update. This
+      // also means we won't unclear a message that has already been cleared.
+      if (existingMessage && existingMessage.description === message.description && existingMessage.summary === message.summary) {
+        return
+      }
 
-    const existingMessage = this._contextualCommitMessage ? this._contextualCommitMessage.message : null
-    // If it's a message that we already have, we don't need to update.
-    if (existingMessage && existingMessage.description === message.description && existingMessage.summary === message.summary) {
-      return
+      this._contextualCommitMessage = { message, cleared: false }
+      this.emitUpdate()
+    } else {
+      // If we couldn't load a message and our existing message has been
+      // cleared, then it's safe to assume
+      if (this._contextualCommitMessage && this._contextualCommitMessage.cleared) {
+        this._contextualCommitMessage = null
+      }
     }
-
-    this._contextualCommitMessage = { message, cleared: false }
-    this.emitUpdate()
   }
 
   /**

@@ -917,7 +917,7 @@ export class AppStore {
 
     await this.refreshAuthor(repository)
 
-    await gitStore.loadMergeMessage()
+    await gitStore.loadContextualCommitMessage()
 
     const section = state.selectedSection
     if (section === RepositorySection.History) {
