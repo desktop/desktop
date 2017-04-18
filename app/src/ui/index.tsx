@@ -78,6 +78,7 @@ function postUnhandledError(error: Error) {
   dispatcher.postError(new ErrorWithMetadata(error, { uncaught: true }))
 }
 
+// NOTE: we consider all main-process-exceptions coming through here to be unhandled
 ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
   reportError(error, getVersion())
   postUnhandledError(error)
