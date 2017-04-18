@@ -19,14 +19,17 @@ export class UpdateAvailable extends React.Component<IUpdateAvailableProps, void
         id='update-available'
         onSubmit={this.updateNow}
       >
-        <span>
-          <Octicon symbol={OcticonSymbol.desktopDownload} />
-          An updated version of GitHub Desktop is avalble and will be installed at the next launch. See what's new or <LinkButton onClick={this.updateNow}>restart now </LinkButton>.
+        <Octicon symbol={OcticonSymbol.desktopDownload} />
 
-          <a onClick={this.dismiss}>
-            <Octicon symbol={OcticonSymbol.x} />
-          </a>
+        <span>
+          An updated version of GitHub Desktop is avalble and will be installed at the next launch. See what's new or <LinkButton onClick={this.updateNow}>restart now </LinkButton>.
         </span>
+
+        <a
+          className='close'
+          onClick={this.dismiss}>
+          <Octicon symbol={OcticonSymbol.x} />
+        </a>
       </div>
     )
   }
