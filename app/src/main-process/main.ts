@@ -1,5 +1,6 @@
 import { app, Menu, MenuItem, ipcMain, BrowserWindow } from 'electron'
 
+
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
 import { parseURL } from '../lib/parse-url'
@@ -7,6 +8,7 @@ import { handleSquirrelEvent } from './squirrel-updater'
 import { SharedProcess } from '../shared-process/shared-process'
 import { fatalError } from '../lib/fatal-error'
 
+import { showFallbackPage } from './error-page'
 import { getLogger } from '../lib/logging/main'
 
 let mainWindow: AppWindow | null = null
@@ -27,6 +29,8 @@ process.on('uncaughtException', (error: Error) => {
 
   if (mainWindow) {
     mainWindow.sendException(error)
+  } else {
+    showFallbackPage(error)
   }
 })
 
@@ -227,6 +231,8 @@ function createWindow() {
 
   mainWindow = window
 }
+
+
 
 /** Get the main window, creating it if necessary. */
 function getMainWindow(): AppWindow {
