@@ -18,7 +18,6 @@ export class UpdateAvailable extends React.Component<IUpdateAvailableProps, void
     return (
       <div
         id='update-available'
-        title={__DARWIN__ ? 'Update Available' : 'Update available'}
         onSubmit={this.updateNow}
       >
         <span>
