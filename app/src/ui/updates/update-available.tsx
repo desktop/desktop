@@ -3,7 +3,6 @@ import { LinkButton } from '../lib/link-button'
 import { Dispatcher } from '../../lib/dispatcher'
 import { updateStore } from '../lib/update-store'
 import { Octicon, OcticonSymbol } from '../octicons'
-// import { Dialog, DialogContent, DialogFooter } from '../dialog'
 
 interface IUpdateAvailableProps {
   readonly dispatcher: Dispatcher
