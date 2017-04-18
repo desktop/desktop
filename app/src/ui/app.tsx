@@ -274,7 +274,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private checkForUpdates() {
     if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') { return }
 
-    updateStore.checkForUpdates(this.getUsernameForUpdateCheck())
+    updateStore.checkForUpdates(this.getUsernameForUpdateCheck(), true)
   }
 
   private getUsernameForUpdateCheck() {
