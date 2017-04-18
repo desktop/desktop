@@ -228,8 +228,11 @@ export class AppWindow {
 
   /** Send the app menu to the renderer. */
   public sendAppMenu() {
-    const menu = menuFromElectronMenu(Menu.getApplicationMenu())
-    this.window.webContents.send('app-menu', { menu })
+    const appMenu = Menu.getApplicationMenu()
+    if (appMenu) {
+      const menu = menuFromElectronMenu(appMenu)
+      this.window.webContents.send('app-menu', { menu })
+    }
   }
 
   /** Report the exception to the renderer. */
