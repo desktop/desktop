@@ -6,13 +6,11 @@
   #start {
     display: flex;
     flex-direction: column;
-    align-items: center;
   }
 
   #sign-in-dot-com {
     display: flex;
     flex-direction: column;
-    align-items: center;
   }
 
   #configure-git {
@@ -21,26 +19,6 @@
     .description {
       text-align: center;
     }
-  }
-
-  .actions {
-    display: flex;
-    flex-direction: row;
-    margin: var(--spacing-double) 0;
-
-    button {
-      margin: 0 var(--spacing-half);
-      flex: 1;
-    }
-  }
-
-  .welcome-left {
-    flex-grow: 1;
-  }
-
-  .welcome-right {
-    flex-grow: 1;
-    background-color: #32373c;
   }
 
   .usage-opt-out {
@@ -63,7 +41,6 @@
 .welcome-text {
   font-weight: var(--font-weight-light);
   margin: 0;
-  text-align: center;
 }
 
 .welcome-title {
@@ -72,7 +49,6 @@
 
 .welcome-text {
   font-size: var(--font-size-md);
-  width: 430px;
 }
 
 .welcome-button {
@@ -95,4 +71,18 @@
   flex-direction: column;
   margin: var(--spacing-double) auto;
   width: 320px;
+}
+
+.welcome-left,
+.welcome-right {
+  flex-grow: 1;
+  width: 50%;
+}
+
+.welcome-left {
+  padding: var(--spacing-double);
+}
+
+.welcome-right {
+  background-color: #32373c;
 }
