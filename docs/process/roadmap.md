@@ -1,12 +1,4 @@
-# Releases
-
-## Iterations
-
-As part of the beta process, the team will be publishing updates as frequently
-as necessary. As things stabilize and we get feedback about the beta we'll
-update this process.
-
-## Roadmap
+# Roadmap
 
 Currently the team are focused on the 1.0 release, which should represent the
 set of features which enable users to replace the previous Classic Mac and
