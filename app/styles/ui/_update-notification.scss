@@ -1,6 +1,11 @@
 #update-available {
   border-bottom: 1px solid var(--box-border-color);
-  height: 30px;
+  height: 0px;
+
+  &.active {
+    height: 50px;
+  }
+
 
   .close {
       position: absolute;
