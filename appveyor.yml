@@ -20,6 +20,7 @@ skip_tags: true
 version: "{build}"
 
 install:
+  - ps: Get-Childitem -Path Env:* | Sort-Object Name
   - ps: Install-Product node 7 $env:platform
   - npm install -g npm
   - git submodule update --init --recursive
