@@ -4,21 +4,36 @@ import { updateStore } from '../lib/update-store'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IUpdateAvailableProps {
-  readonly onDismissed: () => void
+  readonly updateAvailble: boolean
+}
+
+interface IUpdateAvailableState {
+  readonly isActive: boolean,
 }
 
 /**
  * A component which tells the user an update is available and gives them the
  * option of moving into the future or being a luddite.
  */
-export class UpdateAvailable extends React.Component<IUpdateAvailableProps, void> {
+export class UpdateAvailable extends React.Component<IUpdateAvailableProps, IUpdateAvailableState> {
+  public constructor(props: IUpdateAvailableProps) {
+    super(props)
+
+    this.state = {
+      isActive: this.props.updateAvailble,
+    }
+  }
+
   public render() {
     return (
       <div
         id='update-available'
+        className={this.state.isActive ? 'active' : ''}
         onSubmit={this.updateNow}
       >
-        <Octicon symbol={OcticonSymbol.desktopDownload} />
+        <Octicon
+          className='icon'
+          symbol={OcticonSymbol.desktopDownload} />
 
         <span>
           An updated version of GitHub Desktop is avalble and will be installed at the next launch. See what's new or <LinkButton onClick={this.updateNow}>restart now </LinkButton>.
@@ -38,6 +53,8 @@ export class UpdateAvailable extends React.Component<IUpdateAvailableProps, void
   }
 
   private dismiss = () => {
-    this.props.onDismissed()
+    this.setState({
+      isActive: false,
+    })
   }
 }
