@@ -1173,7 +1173,7 @@ export class AppStore {
             this.updateRepositoryState(repository, state => ({
               pushProgress: {
                 progressText: pushText,
-                progressValue: pushWeight * progress.percent
+                progressValue: pushWeight * progress.percent,
               },
             }))
 
