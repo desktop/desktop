@@ -45,6 +45,7 @@ import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
 import { structuralEquals } from '../equality'
 import { fatalError } from '../fatal-error'
+import { ICheckoutProgress, CheckoutProgressParser } from '../progress'
 
 import {
   getGitDir,
@@ -1006,54 +1007,28 @@ export class AppStore {
     return await this._checkoutBranch(repository, name)
   }
 
-  /** This shouldn't be called directly. See `Dispatcher`. */
-  public async _checkoutBranch(repository: Repository, name: string): Promise<Repository> {
-    const gitStore = this.getGitStore(repository)
-    const progressCallback = (line: string) => {
-
-      const match = /Checking out files:\s+(\d+)\s*% \((\d+)\/(\d+)\)/.exec(line)
-
-      if (!match) {
-        return
-      }
-
-      const filesCompleted = parseInt(match[2], 10)
-      const filesTotal = parseInt(match[3], 10)
-
-      if (isNaN(filesCompleted) || isNaN(filesTotal) || filesTotal === 0) {
-        return
-      }
-
-      const checkoutProgress = {
-        targetBranch: name,
-        progressText: line,
-        progressValue: filesCompleted / filesTotal,
-      }
-
-      this.updateRepositoryState(repository, state => ({ checkoutProgress }))
-
-      if (this.selectedRepository === repository) {
-        this.emitUpdate()
-      }
-    }
-
-    this.updateRepositoryState(repository, state => ({
-      checkoutProgress: {
-        progressText: `Checking out branch ${name}`,
-        progressValue: 0,
-        targetBranch: name,
-      },
-    }))
-    this.emitUpdate()
-
-    await gitStore.performFailableOperation(() => checkoutBranch(repository, name, progressCallback))
+  private onCheckoutProgress = (repository: Repository, checkoutProgress: ICheckoutProgress | null) => {
+    this.updateRepositoryState(repository, state => ({ checkoutProgress }))
 
     if (this.selectedRepository === repository) {
       this.emitUpdate()
     }
+  }
+
+  /** This shouldn't be called directly. See `Dispatcher`. */
+  public async _checkoutBranch(repository: Repository, name: string): Promise<Repository> {
+    const gitStore = this.getGitStore(repository)
+
+    const progressParser = new CheckoutProgressParser(
+      repository, name, this.onCheckoutProgress
+    )
+
+    await gitStore.performFailableOperation(() => {
+      return checkoutBranch(repository, name, progressParser.parse)
+    })
 
     await this._refreshRepository(repository)
-    this.updateRepositoryState(repository, state => ({ checkoutProgress: null }))
+    progressParser.end()
 
     return repository
   }
