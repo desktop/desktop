@@ -1150,8 +1150,8 @@ export class AppStore {
 
           const progressParser = new PushProgressParser()
 
-          const pushWeight = 0.8
-          const fetchWeight = 0.2
+          const pushWeight = 0.7
+          const fetchWeight = 0.3
           const pushText = `Pushing ${branch.name} to ${remote.name}`
           const fetchText = `Fetching from ${remote.name}`
 
