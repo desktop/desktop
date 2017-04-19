@@ -1,6 +1,6 @@
 import { StepProgressParser } from './step-progress'
 
-/* Highly approximate (some would say outright innacurate) division
+/* Highly approximate (some would say outright inaccurate) division
  * of the individual progress reporting steps in a clone operation
  */
 const steps = [
