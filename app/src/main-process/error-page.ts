@@ -7,23 +7,43 @@ import * as url from 'url'
 
 import { getLogger } from '../lib/logging/main'
 
+function htmlEscape(input: string): string {
+    input = input.replace(/&/g, '&amp;')
+    input = input.replace(/</g, '&lt;')
+    input = input.replace(/>/g, '&gt;')
+    return input
+}
+
 export function showFallbackPage(error: Error) {
-  const source = Path.join(__dirname, 'error.html')
-  let data: Buffer | null = null
-
   const logger = getLogger()
+  const tmpdir = Os.tmpdir()
 
+  const stylesInput = Path.join(__dirname, 'styles.css')
+  const stylesOutput = Path.join(tmpdir, 'styles.css')
   try {
-    data = Fs.readFileSync(source)
+    const stylesheet = Fs.readFileSync(stylesInput, 'utf-8')
+    Fs.writeFileSync(stylesOutput, stylesheet)
   } catch (e) {
-    logger.error(`Unable to read file at path '${source}'`, e)
+    // in dev mode we don't have access to these styles, so there's no need
+    // to try and apply these here - just show _something_ in the dialog
+  }
+
+  const errorTemplate = Path.join(__dirname, 'error.html')
+  let data: Buffer | null = null
+  try {
+    data = Fs.readFileSync(errorTemplate)
+  } catch (e) {
+    logger.error(`Exiting, unable to read error template at '${errorTemplate}'`, e)
     return
   }
 
-  const text = data.toString()
-  const formattedBody = text.replace('<!--{{content}}-->', error.stack || error.message)
+  const source = data.toString()
+  const content = error.stack || error.message
+  const escapedContent = htmlEscape(content)
 
-  const outputFile = Path.join(Os.tmpdir(), 'desktop-error-page.html')
+  const formattedBody = source.replace('<!--{{content}}-->', escapedContent)
+
+  const outputFile = Path.join(tmpdir, 'desktop-error-page.html')
   try {
     Fs.writeFileSync(outputFile, formattedBody)
   } catch (e) {
