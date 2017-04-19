@@ -1,8 +1,8 @@
 export interface IGitProgress {
-  readonly title: string,
-  readonly value: number,
-  readonly total?: number,
-  readonly percent?: number,
+  readonly title: string
+  readonly value: number
+  readonly total?: number
+  readonly percent?: number
   readonly done: boolean
 }
 
