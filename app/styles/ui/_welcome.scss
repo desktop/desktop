@@ -40,12 +40,12 @@
 
 .welcome-title,
 .welcome-text {
-  font-weight: var(--font-weight-light);
   margin: 0;
 }
 
 .welcome-title {
-  font-size: var(--font-size-xl);
+  font-size: 48px;
+  font-weight: var(--font-weight-light);
   line-height: 1.25;
   margin-bottom: var(--spacing);
 }
