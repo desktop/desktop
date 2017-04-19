@@ -1149,7 +1149,8 @@ export class AppStore {
 
           await pushRepo(repository, account, remote.name, branch.name, setUpstream)
           await this._refreshRepository(repository)
-          await this.fetch(repository, account)
+          await gitStore.fetch(account, false)
+          await this.fastForwardBranches(repository)
         })
       }
     })
