@@ -86,7 +86,12 @@
 }
 
 .welcome-right {
-  background-color: #32373c;
+  background-color: #33383d;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  position: relative;
+  overflow: hidden;
 }
 
 .short-rule {
@@ -103,4 +108,8 @@
   .skip-button {
     color: var(--text-secondary-color);
   }
+}
+
+.welcome-graphic {
+  transform: scale(0.8);
 }

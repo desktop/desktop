@@ -120,12 +120,11 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
     this.props.dispatcher.endWelcomeFlow()
   }
 
-// Look some code:
-// const WelcomeImageUri = `file:///${__dirname}/static/space.png`
-// const WelcomeImageDimensions = { width: 552, height: 307 } // Put in render
-// <img src={WelcomeImageUri} style={WelcomeImageDimensions}/>
 
   public render() {
+   const WelcomeImageUri = `file:///${__dirname}/static/illustration.svg`
+   const WelcomeImageDimensions = { width: 564, height: 506 } // Put in render
+
     return (
       <UiView id='welcome'>
         <div className='welcome-left'>
@@ -133,7 +132,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
         </div>
 
         <div className='welcome-right'>
-          lol illustration
+         <img className='welcome-graphic' src={WelcomeImageUri} style={WelcomeImageDimensions}/>
         </div>
       </UiView>
     )
