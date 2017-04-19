@@ -15,7 +15,7 @@ import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
 import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton, BranchDropdown } from './toolbar'
 import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
-import { setMenuEnabled, setMenuVisible } from './main-process-proxy'
+import { setMenuEnabled, setMenuVisible, showCertificateTrustDialog } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateStatus } from './lib/update-store'
 import { getDotComAPIEndpoint } from '../lib/api'
@@ -39,6 +39,7 @@ import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
 import { Publish } from './publish-repository'
 import { Acknowledgements } from './acknowledgements'
+import { UntrustedCertificate } from './untrusted-certificate'
 
 /** The interval at which we should check for updates. */
 const UpdateCheckInterval = 1000 * 60 * 60 * 4
@@ -140,6 +141,14 @@ export class App extends React.Component<IAppProps, IAppState> {
       this.props.dispatcher.reportStats()
 
       setInterval(() => this.props.dispatcher.reportStats(), SendStatsInterval)
+    })
+
+    ipcRenderer.on('certificate-error', (event: Electron.IpcRendererEvent, { certificate, error, url }: { certificate: Electron.Certificate, error: string, url: string }) => {
+      this.props.dispatcher.showPopup({
+        type: PopupType.UntrustedCertificate,
+        certificate,
+        url,
+      })
     })
   }
 
@@ -699,6 +708,11 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onPopupDismissed()
   }
 
+  private onContinueWithUntrustedCertificate = (certificate: Electron.Certificate) => {
+    this.props.dispatcher.closePopup()
+    showCertificateTrustDialog(certificate, 'Could not securely connect to the server, because its certificate is not trusted. Attackers might be trying to steal your information.\n\nTo connect unsafely, which may put your data at risk, you can “Always trust” the certificate and try again.')
+  }
+
   private currentPopupContent(): JSX.Element | null {
     // Hide any dialogs while we're displaying an error
     if (this.state.errors.length) { return null }
@@ -814,6 +828,15 @@ export class App extends React.Component<IAppProps, IAppState> {
             repository={popup.repository}
             accounts={this.state.accounts}
             onDismissed={this.onPopupDismissed}
+        />
+      )
+      case PopupType.UntrustedCertificate:
+        return (
+          <UntrustedCertificate
+            certificate={popup.certificate}
+            url={popup.url}
+            onDismissed={this.onPopupDismissed}
+            onContinue={this.onContinueWithUntrustedCertificate}
           />
         )
       case PopupType.Acknowledgements:
