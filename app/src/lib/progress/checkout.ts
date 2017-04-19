@@ -1,4 +1,5 @@
 import { Repository } from '../../models/repository'
+import { parse } from './parser'
 
 /** 
  * An object describing the progression of a branch checkout operation
@@ -20,8 +21,6 @@ export interface ICheckoutProgress {
    */
   readonly progressText: string
 }
-
-const checkoutProgressRe = /Checking out files:\s+(\d+)\s*% \((\d+)\/(\d+)\)/
 
 export type CheckoutProgressEventHandler = (repository: Repository, progress: ICheckoutProgress | null) => void
 
@@ -80,20 +79,11 @@ export class CheckoutProgressParser {
   }
 
   public parse = (checkoutOutput: string) => {
-    const match = checkoutProgressRe.exec(checkoutOutput)
+    const progress = parse(checkoutOutput)
 
-    if (!match || match.length !== 4) {
-      return
+    if (progress && progress.title === 'Checking out files' && progress.total) {
+      this.notify(checkoutOutput, progress.value / progress.total)
     }
-
-    const filesCompleted = parseInt(match[2], 10)
-    const filesTotal = parseInt(match[3], 10)
-
-    if (isNaN(filesCompleted) || isNaN(filesTotal) || filesTotal === 0) {
-      return
-    }
-
-    this.notify(match[0], filesCompleted / filesTotal)
   }
 
   public end = () => {
