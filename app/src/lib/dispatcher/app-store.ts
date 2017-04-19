@@ -45,7 +45,7 @@ import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
 import { structuralEquals } from '../equality'
 import { fatalError } from '../fatal-error'
-import { ICheckoutProgress, CheckoutProgressParser } from '../progress'
+import { ICheckoutProgress, CheckoutProgressParser, PushProgressParser } from '../progress'
 
 import {
   getGitDir,
@@ -256,6 +256,7 @@ export class AppStore {
       isCommitting: false,
       lastFetched: null,
       checkoutProgress: null,
+      pushProgress: null,
     }
   }
 
@@ -1147,10 +1148,84 @@ export class AppStore {
         return gitStore.performFailableOperation(async () => {
           const setUpstream = branch.upstream ? false : true
 
-          await pushRepo(repository, account, remote.name, branch.name, setUpstream)
+          const progressParser = new PushProgressParser()
+
+          const pushWeight = 0.8
+          const fetchWeight = 0.2
+          const pushText = `Pushing ${branch.name} to ${remote.name}`
+          const fetchText = `Fetching from ${remote.name}`
+
+          this.updateRepositoryState(repository, state => ({
+            pushProgress: {
+              progressText: pushText,
+              progressValue: 0,
+            },
+          }))
+
+          this.emitUpdate()
+
+          await pushRepo(repository, account, remote.name, branch.name, setUpstream, (line) => {
+            const progress = progressParser.parse(line)
+            if (!progress) {
+              return
+            }
+
+            this.updateRepositoryState(repository, state => ({
+              pushProgress: {
+                progressText: pushText,
+                progressValue: pushWeight * progress.percent
+              },
+            }))
+
+            if (this.selectedRepository === repository) {
+              this.emitUpdate()
+            }
+          })
+
+          this.updateRepositoryState(repository, state => ({
+            pushProgress: {
+              progressText: 'Refreshing repository',
+              progressValue: pushWeight,
+            },
+          }))
+
+          if (this.selectedRepository === repository) {
+            this.emitUpdate()
+          }
+
           await this._refreshRepository(repository)
-          await gitStore.fetch(account, false)
+
+          await gitStore.fetch(account, false, (fetchProgress) => {
+            this.updateRepositoryState(repository, state => ({
+              pushProgress: {
+                progressText: fetchText,
+                progressValue: pushWeight + fetchProgress.progressValue * fetchWeight,
+              },
+            }))
+
+            if (this.selectedRepository === repository) {
+              this.emitUpdate()
+            }
+          })
+
+          this.updateRepositoryState(repository, state => ({
+            pushProgress: {
+              progressText: 'Fast forwarding branches',
+              progressValue: 1,
+            },
+          }))
+
+          if (this.selectedRepository === repository) {
+            this.emitUpdate()
+          }
+
           await this.fastForwardBranches(repository)
+
+          this.updateRepositoryState(repository, state => ({ pushProgress: null }))
+
+          if (this.selectedRepository === repository) {
+            this.emitUpdate()
+          }
         })
       }
     })
