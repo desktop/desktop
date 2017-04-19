@@ -12,6 +12,13 @@ export interface ICombinedProgress {
 
 export class StepProgressParser {
   private readonly steps: ReadonlyArray<IProgressStep>
+
+  /* The steps listed in should always occur in order but some
+   * might not happen at all (like remote compression of objects) so
+   * we keep track of the "highest" seen step so that we can fill in
+   * progress with the assumption that we've already seen the previous
+   * steps.
+   */
   private stepIndex = 0
 
   public constructor(steps: ReadonlyArray<IProgressStep>) {
