@@ -76,17 +76,14 @@ export class CloningRepositoriesStore {
     let success = true
     const progressParser = new CloneProgressParser()
     try {
-      await cloneRepo(url, path, options, progress => {
+      let lastProgress: number | null = null
 
-        const overallProgress = progressParser.parse(progress)
+      await cloneRepo(url, path, options, output => {
+        const progressValue = progressParser.parse(output) || lastProgress
+        lastProgress = progressValue
 
-        if (overallProgress) {
-          this.stateByID.set(repository.id, {
-            output: progress,
-            progressValue: overallProgress,
-          })
-          this.emitUpdate()
-        }
+        this.stateByID.set(repository.id, { output, progressValue })
+        this.emitUpdate()
       })
     } catch (e) {
       success = false
