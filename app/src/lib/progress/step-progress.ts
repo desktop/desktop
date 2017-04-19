@@ -39,10 +39,10 @@ export class StepProgressParser {
 
     let percent = 0
 
-    for (let i = this.stepIndex; i < this.steps.length; i++) {
+    for (let i = 0; i < this.steps.length; i++) {
       const step = this.steps[i]
 
-      if (progress.title === step.title) {
+      if (i >= this.stepIndex && progress.title === step.title) {
 
         if (progress.total) {
           percent += step.weight * (progress.value / progress.total)
