@@ -4,6 +4,7 @@ export interface IGitProgress {
   readonly total?: number
   readonly percent?: number
   readonly done: boolean
+  readonly text: string
 }
 
 const percentRe = /^(\d{1,3})% \((\d+)\/(\d+)\)$/
@@ -77,5 +78,5 @@ export function parse(line: string): IGitProgress | null {
     }
   }
 
-  return { title, value, percent, total, done }
+  return { title, value, percent, total, done, text: line }
 }
