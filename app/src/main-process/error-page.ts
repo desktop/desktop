@@ -14,6 +14,16 @@ function htmlEscape(input: string): string {
     return input
 }
 
+/**
+ * Display a static page embedded with the error information, so that
+ * a user can provide details to our support channels.
+ *
+ * Note: because of the dynamic error, we dump a generated file to the
+ * TEMP directory, and drop the existing styles file alongside so that
+ * the error dialog looks somewhat familiar.
+ *
+ * @param error The error to display on the page
+ */
 export function showFallbackPage(error: Error) {
   const logger = getLogger()
   const tmpdir = Os.tmpdir()
