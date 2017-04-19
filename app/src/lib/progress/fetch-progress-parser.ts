@@ -11,11 +11,11 @@ const steps = [
 ]
 
 /**
- * A utility class for interpreting the output from `git push --progress`
+ * A utility class for interpreting the output from `git fetch --progress`
  * and turning that into a percentage value estimating the overall progress
- * of the clone.
+ * of the fetch.
  */
-export class PushProgressParser extends StepProgressParser {
+export class FetchProgressParser extends StepProgressParser {
   public constructor() {
     super(steps)
   }
