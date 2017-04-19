@@ -14,14 +14,6 @@
     flex-direction: column;
   }
 
-  #configure-git {
-    width: 432px;
-
-    .description {
-      text-align: center;
-    }
-  }
-
   .usage-opt-out {
     width: 300px;
 
@@ -35,6 +27,25 @@
       height: 32px;
       margin: 10px;
     }
+  }
+
+  .sign-in-form {
+    & > div:last-child {
+      margin-top: var(--spacing);
+    }
+  }
+
+  input, button {
+    font-size: var(--font-size-md);
+    height: auto;
+  }
+
+  input {
+    padding: var(--spacing-half);
+  }
+
+  button {
+    padding: var(--spacing-half) var(--spacing);
   }
 }
 
