@@ -16,6 +16,10 @@ export class StepProgressParser {
 
   public constructor(steps: ReadonlyArray<IProgressStep>) {
 
+    if (!steps.length) {
+      throw new Error('must specify at least one step')
+    }
+
     // Scale the step weight so that they're all a percentage
     // adjusted to the total weight of all steps.
     const totalStepWeight = steps.reduce((sum, step) => sum + step.weight, 0)
