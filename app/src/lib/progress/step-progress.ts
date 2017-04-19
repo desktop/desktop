@@ -12,12 +12,11 @@ export interface ICombinedProgress {
 
 export class StepProgress {
   private readonly steps: ReadonlyArray<IProgressStep>
-  private readonly callback: (progress: ICombinedProgress) => void
 
   private stepIndex = 0
   private currentProgress: ICombinedProgress | null = null
 
-  public constructor(steps: ReadonlyArray<IProgressStep>, callback: (progress: ICombinedProgress) => void) {
+  public constructor(steps: ReadonlyArray<IProgressStep>) {
 
     // Scale the step weight so that they're all a percentage
     // adjusted to the total weight of all steps.
@@ -27,47 +26,38 @@ export class StepProgress {
       title: step.title,
       weight: step.weight / totalStepWeight,
     }))
-
-    this.callback = callback
   }
 
-  private updateStep(stepIndex: number, progress: IGitProgress) {
-    let percent = 0
-
-    for (let i = 0; i < this.stepIndex; i++) {
-      percent += this.steps[i].weight
-    }
-
-    const step = this.steps[stepIndex]
-
-    if (progress.total) {
-      const stepProgress = (progress.value / progress.total)
-      percent += step.weight * stepProgress
-    } else if (this.currentProgress) {
-      percent = this.currentProgress.percent
-    }
-
-    this.currentProgress = {
-      percent,
-      details: progress,
-    }
-
-    this.callback(this.currentProgress)
-    this.stepIndex = stepIndex
-  }
-
-  public parse(line: string) {
+  public parse(line: string): ICombinedProgress | null {
     const progress = parse(line)
 
     if (!progress) {
-      return
+      return null
     }
 
+    let percent = 0
+
     for (let i = this.stepIndex; i < this.steps.length; i++) {
-      if (progress.title === this.steps[i].title) {
-        this.updateStep(i, progress)
-        return
+      const step = this.steps[i]
+
+      if (progress.title === step.title) {
+
+        if (progress.total) {
+          percent += step.weight * (progress.value / progress.total)
+        } else if (this.currentProgress) {
+          percent = this.currentProgress.percent
+        }
+
+        this.currentProgress = { percent, details: progress }
+        this.stepIndex = i
+
+        return this.currentProgress
+
+      } else {
+        percent += step.weight
       }
     }
+
+    return null
   }
 }
