@@ -31,6 +31,7 @@ export class CheckoutProgressParser {
   private readonly targetBranch: string
 
   private currentProgress: ICheckoutProgress | null
+
   public constructor(repository: Repository, targetBranch: string, onCheckoutProgress: CheckoutProgressEventHandler) {
     this.repository = repository
     this.targetBranch = targetBranch
