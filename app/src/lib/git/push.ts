@@ -8,8 +8,7 @@ const byline = require('byline')
 /**
  * Push from the remote to the branch, optionally setting the upstream.
  * 
- * @param repository - The repository in which the branch checkout should
- *                     take place
+ * @param repository - The repository from which to push
  * 
  * @param account - The account to use when authenticating with the remote
  *
