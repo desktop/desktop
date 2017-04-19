@@ -10,7 +10,7 @@ export interface ICombinedProgress {
   details: IGitProgress
 }
 
-export class StepProgress {
+export class StepProgressParser {
   private readonly steps: ReadonlyArray<IProgressStep>
   private stepIndex = 0
 
