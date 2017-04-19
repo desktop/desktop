@@ -336,16 +336,16 @@ export class DiffParser {
     try {
       const headerInfo = this.parseDiffHeader()
 
-      const header = this.text.substring(0, this.le + 1)
-      const contents = this.text.substring(this.le + 1)
+      const headerEnd = this.le
+      const header = this.text.substring(0, this.le)
 
       // empty diff
       if (!headerInfo) {
-        return { header, contents, hunks: [], isBinary: false }
+        return { header, contents: '', hunks: [], isBinary: false }
       }
 
       if (headerInfo.isBinary) {
-        return { header, contents, hunks: [], isBinary: true }
+        return { header, contents: '', hunks: [], isBinary: true }
       }
 
       const hunks = new Array<DiffHunk>()
@@ -356,6 +356,8 @@ export class DiffParser {
         hunks.push(hunk)
         linesConsumed += hunk.lines.length
       } while (this.peek())
+
+      const contents = this.text.substring(headerEnd + 1, this.le)
 
       return { header, contents, hunks, isBinary: headerInfo.isBinary }
     } finally {
