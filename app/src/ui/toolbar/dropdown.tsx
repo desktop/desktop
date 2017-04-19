@@ -104,6 +104,18 @@ export interface IToolbarDropdownProps {
    * detrimental to accessibility in most scenarios.
    */
   readonly tabIndex?: number
+
+  /**
+   * An optional progress value as a fraction between 0 and 1. Passing a number
+   * greater than zero will render a progress bar background in the toolbar
+   * button. Use this to communicate an ongoing operation.
+   * 
+   * Consumers should not rely solely on the visual progress bar, they should
+   * also implement alternative representation such as showing a percentage
+   * text in the description or title along with information about what
+   * operation is currently in flight.
+   */
+  readonly progressValue?: number
 }
 
 interface IToolbarDropdownState {
@@ -260,30 +272,32 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
   public render() {
 
     const className = classNames(
-      'dropdown',
+      'toolbar-dropdown',
       this.props.dropdownState,
       this.props.className
     )
 
     return (
-      <ToolbarButton
-        ref={this.onRef}
-        icon={this.props.icon}
-        title={this.props.title}
-        description={this.props.description}
-        onClick={this.onClick}
-        onMouseEnter={this.props.onMouseEnter}
-        className={className}
-        preContentRenderer={this.renderDropdownContents}
-        style={this.props.style}
-        iconClassName={this.props.iconClassName}
-        disabled={this.props.disabled}
-        onKeyDown={this.props.onKeyDown}
-        tabIndex={this.props.tabIndex}
-      >
-        {this.props.children}
-        {this.renderDropdownArrow()}
-      </ToolbarButton>
+      <div className={className}>
+        {this.renderDropdownContents()}
+        <ToolbarButton
+          ref={this.onRef}
+          icon={this.props.icon}
+          title={this.props.title}
+          description={this.props.description}
+          onClick={this.onClick}
+          onMouseEnter={this.props.onMouseEnter}
+          style={this.props.style}
+          iconClassName={this.props.iconClassName}
+          disabled={this.props.disabled}
+          onKeyDown={this.props.onKeyDown}
+          tabIndex={this.props.tabIndex}
+          progressValue={this.props.progressValue}
+        >
+          {this.props.children}
+          {this.renderDropdownArrow()}
+        </ToolbarButton>
+      </div>
     )
   }
 }

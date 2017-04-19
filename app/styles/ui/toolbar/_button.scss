@@ -4,6 +4,14 @@
   // See https://css-tricks.com/flexbox-truncated-text/
   min-width: 0;
 
+  // This is necessary for our absolutely positioned progress bar to work.
+  // We position the toolbar button container relatively so that we can
+  // position the progress bar absolutely in relation to the container.
+  // We then explicitly position all child elements of the container
+  // relatively in order for the progress bar not to position itself
+  // above all the other content.
+  position: relative;
+
   // General button behavior, mostly resets.
   // For the button content styling see second button style. Note that we
   // explicitly use > here to only target the direct descendant button since
@@ -23,10 +31,24 @@
     &:active { box-shadow: none; }
 
     &:focus {
-      outline: none;
+      background-color: var(--toolbar-button-focus-background-color);
+      // Reset
       border-color: var(--toolbar-button-border-color);
-      background-color: var(--toolbar-button-hover-background-color);
       box-shadow: none;
+
+      .progress {
+        background: var(--toolbar-button-focus-progress-color);
+      }
+
+      // Focused but not through keyboard navigation
+      &:not(.focus-ring) {
+        outline: none;
+        background-color: var(--toolbar-button-background-color);
+
+        .progress {
+          background: var(--toolbar-button-progress-color);
+        }
+      }
     }
 
     &:not(:disabled):hover {
@@ -37,6 +59,10 @@
       .description {
         color: var(--toolbar-button-secondary-color);
       }
+
+      .progress {
+        background: var(--toolbar-button-hover-progress-color);
+      }
     }
 
     height: 100%;
@@ -44,6 +70,9 @@
   }
 
   &>button {
+
+    position: relative;
+
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -60,12 +89,14 @@
     .icon {
       flex-shrink: 0;
       margin-right: var(--spacing);
+      position: relative;
     }
 
     .dropdownArrow {
       width: 9px;
       height: 12px;
       flex-shrink: 0;
+      position: relative;      
     }
 
     .text {
@@ -74,33 +105,32 @@
       flex-grow: 1;
       min-width: 0;
       margin-right: var(--spacing);
+      position: relative;      
     }
 
     .title {
       font-weight: var(--font-weight-semibold);
+      position: relative;      
     }
 
     .description {
       color: var(--toolbar-button-secondary-color);
       font-size: var(--font-size-sm);
+      position: relative;      
     }
 
     .title, .description { @include ellipsis }
-  }
 
-  &.dropdown.open {
-    &>button {
-      color: var(--toolbar-button-active-color);
-      background-color: var(--toolbar-button-active-background-color);
-
-      // The foldout doesn't have a border so we have to either
-      // color ours or remove it entirely for us to match the
-      // min-width of the foldout.
-      border-color: var(--toolbar-button-active-border-color);
-
-      .description {
-        color: var(--text-secondary-color);
-      }
+    .progress {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 100%;
+      height: 100%;
+      background: var(--toolbar-button-progress-color);
+      transform-origin: left;
+      pointer-events: none;
+      transition: transform .3s var(--easing-ease-out-quint);
     }
   }
 }
