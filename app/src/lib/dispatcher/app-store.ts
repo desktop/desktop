@@ -1144,11 +1144,12 @@ export class AppStore {
 
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
-        return gitStore.performFailableOperation(() => {
+        return gitStore.performFailableOperation(async () => {
           const setUpstream = branch.upstream ? false : true
-          return pushRepo(repository, account, remote.name, branch.name, setUpstream)
-            .then(() => this._refreshRepository(repository))
-            .then(() => this.fetch(repository, account))
+
+          await pushRepo(repository, account, remote.name, branch.name, setUpstream)
+          await this._refreshRepository(repository)
+          await this.fetch(repository, account)
         })
       }
     })
