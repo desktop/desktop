@@ -18,6 +18,9 @@ export class StepProgress {
   private currentProgress: ICombinedProgress | null = null
 
   public constructor(steps: ReadonlyArray<IProgressStep>, callback: (progress: ICombinedProgress) => void) {
+
+    // Scale the step weight so that they're all a percentage
+    // adjusted to the total weight of all steps.
     const totalStepWeight = steps.reduce((sum, step) => sum + step.weight, 0)
 
     this.steps = steps.map(step => ({
