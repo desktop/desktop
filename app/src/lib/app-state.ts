@@ -232,7 +232,34 @@ export interface IRepositoryState {
    * null if no current branch switch operation is in flight.
    */
   readonly checkoutProgress: ICheckoutProgress | null
+
+  /**
+   * If we're currently working on push a branch this
+   * provides insight into the progress of that operation.
+   * 
+   * null if no push operation is in flight.
+   */
+  readonly pushProgress: IGenericProgress | null
 }
+
+/** 
+ * An object describing the progression of a branch checkout operation
+ */
+export interface IGenericProgress {
+  /** 
+   * The overall progress of the operation, represented as a fraction between
+   * 0 and 1.
+   */
+  readonly progressValue: number
+
+  /**
+   * 
+   * An informative text for user consumption indicating the current operation
+   * state.
+   */
+  readonly progressText: string
+}
+
 /** 
  * An object describing the progression of a fetch operation
  */
