@@ -6,7 +6,6 @@ export interface IProgressStep {
 }
 
 export interface ICombinedProgress {
-  text: string
   percent: number
   details: IGitProgress
 }
@@ -48,7 +47,6 @@ export class StepProgress {
     this.currentProgress = {
       percent,
       details: progress,
-      text: progress.text,
     }
 
     this.callback(this.currentProgress)
