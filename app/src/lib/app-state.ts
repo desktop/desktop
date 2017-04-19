@@ -233,6 +233,29 @@ export interface IRepositoryState {
    */
   readonly checkoutProgress: ICheckoutProgress | null
 }
+/** 
+ * An object describing the progression of a fetch operation
+ */
+export interface IFetchProgress {
+
+  /**
+   * The remote that's being fetched
+   */
+  readonly remote: string,
+
+  /** 
+   * The overall progress of the operation, represented as a fraction between
+   * 0 and 1.
+   */
+  readonly progressValue: number
+
+  /**
+   * 
+   * An informative text for user consumption indicating the current operation
+   * state.
+   */
+  readonly progressText: string
+}
 
 export interface IBranchesState {
   /**
