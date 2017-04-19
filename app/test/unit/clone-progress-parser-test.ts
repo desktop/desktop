@@ -33,7 +33,7 @@ describe('CloneProgressParser', () => {
         .to.be.closeTo(0.1 + (4808 / 28282 * 0.6), 0.01)
 
       expect(parser.parse('Resolving deltas:  89% (18063/20263)'))
-        .to.be.closeTo(0.6 + (18063 / 20263 * 0.1), 0.01)
+        .to.be.closeTo(0.7 + (18063 / 20263 * 0.1), 0.01)
 
       expect(parser.parse('Checking out files: 100% (579/579)'))
         .to.be.closeTo(0.8 + (579 / 579 * 0.2), 0.01)
