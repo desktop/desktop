@@ -77,9 +77,16 @@ export class CloningRepositoriesStore {
     const progressParser = new CloneProgressParser()
     try {
       await cloneRepo(url, path, options, progress => {
+
+        const overallProgress = progressParser.parse(progress)
+
+        if (!overallProgress) {
+          return
+        }
+
         this.stateByID.set(repository.id, {
           output: progress,
-          progressValue: progressParser.parse(progress),
+          progressValue: overallProgress,
         })
         this.emitUpdate()
       })

@@ -25,18 +25,12 @@ describe('CloneProgressParser', () => {
       const finalProgress = parser.parse('Checking out files: 100% (579/579)')
       const earlyProgress = parser.parse('Receiving objects:   1% (283/28282)')
 
-      expect(earlyProgress).to.equal(finalProgress)
+      expect(earlyProgress).to.be.null
+      expect(finalProgress).to.not.be.null
     })
 
     it('ignores lines it doesn\'t understand', () => {
       expect(parser.parse('Counting objects: 28282, done.')).to.be.null
-    })
-
-    it('keeps earlier progress for lines it doesn\'t understand', () => {
-      const x = parser.parse('Receiving objects:   1% (283/28282)')
-      const y = parser.parse('remote: O hai')
-
-      expect(x).to.equal(y)
     })
   })
 })
