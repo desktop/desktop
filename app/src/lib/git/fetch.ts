@@ -5,7 +5,20 @@ import { ChildProcess } from 'child_process'
 
 const byline = require('byline')
 
-/** Fetch from the given remote. */
+/**
+ * Fetch from the given remote.
+ * 
+ * @param repository - The repository to fetch into
+ * 
+ * @param account - The account to use when authenticating with the remote
+ *
+ * @param remote - The remote to fetch from
+ *
+ * @param progressCallback - An optional function which will be invoked
+ *                           once per each line of output from Git. When
+ *                           provided this also enables the '--progress'
+ *                           command line flag for 'git push'.
+ */
 export async function fetch(repository: Repository, account: Account | null, remote: string, progressCallback?: (line: string) => void): Promise<void> {
   let options: IGitExecutionOptions = {
     successExitCodes: new Set([ 0 ]),
