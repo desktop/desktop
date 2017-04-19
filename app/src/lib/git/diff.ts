@@ -134,14 +134,9 @@ export async function convertDiff(repository: Repository, file: FileChange, diff
     }
   }
 
-  let diffText = ''
-  diff.hunks.forEach(hunk => {
-    hunk.lines.forEach(l => diffText += `${l.text}\n`)
-  })
-
   return {
     kind: DiffType.Text,
-    text: diffText,
+    text: diff.contents,
     hunks: diff.hunks,
   }
 }
