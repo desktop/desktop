@@ -60,6 +60,7 @@ export class StepProgress {
     for (let i = this.stepIndex; i < this.steps.length; i++) {
       if (progress.title === this.steps[i].title) {
         this.updateStep(i, progress)
+        return
       }
     }
   }
