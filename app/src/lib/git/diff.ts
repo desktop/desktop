@@ -125,13 +125,11 @@ async function getImageDiff(repository: Repository, file: FileChange, commitish:
  * will display the unified diff correctly
  */
 function formatLineEnding(text: string): string {
-  if (text.endsWith('\n')) {
-    return text
-  } else if (text.endsWith('\r')) {
-    return text + '\n'
-  } else {
-    return text + '\r\n'
-  }
+  console.log(text.endsWith('\n'))
+
+  return text.endsWith('\n')
+    ? text
+    : text + '\n'
 }
 
 export async function convertDiff(repository: Repository, file: FileChange, diff: IRawDiff, commitish: string): Promise<IDiff> {
