@@ -5,9 +5,9 @@ import { StepProgressParser } from './step-progress'
  */
 const steps = [
   { title: 'remote: Compressing objects', weight: 0.1 },
-  { title: 'Receiving objects', weight: 0.7 },
+  { title: 'Receiving objects', weight: 0.6 },
   { title: 'Resolving deltas', weight: 0.1 },
-  { title: 'Checking out files', weight: 0.1 },
+  { title: 'Checking out files', weight: 0.2 },
 ]
 
 /**
