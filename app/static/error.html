@@ -5,13 +5,35 @@
     <link href="styles.css" rel="stylesheet">
   </head>
   <body>
-    <div id='desktop-app-container'>
-      <div class='error-page'>
-        <h1>An error occurred</h1>
-        <div class='stack'>
-          <!--{{content}}-->
-        </div>
-      </div>
-  </div>
+    <div id='error-page'>
+      <h1>GitHub Desktop failed to launch 💥</h1>
+
+      <p>
+        We encountered a catastrophic error that prevents GitHub Desktop from
+        starting succesfully.
+      </p>
+
+      <p>
+        Unfortunately this isn't something we can forward to the development
+        team to review.
+      </p>
+
+      <p>
+        Would you mind opening an issue on the project's <a onclick='return onClick(event);' href='https://github.com/desktop/desktop/issues/new'>issue tracker</a>?
+        The details you need are included below:
+      </p>
+
+      <p class='stack'>
+        <!--{{content}}-->
+      </p>
+    </div>
+    <script>
+      function onClick(e) {
+        e.preventDefault()
+        const { shell } = require('electron')
+        const url = 'https://github.com/desktop/desktop/issues/new'
+        shell.openExternal(url)
+      }
+    </script>
   </body>
 </html>
