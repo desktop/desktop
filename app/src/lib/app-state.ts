@@ -178,6 +178,26 @@ export enum RepositorySection {
   History
 }
 
+/** 
+ * An object describing the progression of a branch checkout operation
+ */
+export interface ICheckoutProgress {
+  /** The branch that's currently being checked out */
+  readonly targetBranch: string
+
+  /** 
+   * The overall progress of the operation, represented as a fraction between
+   * 0 and 1.
+   */
+  readonly progressValue: number
+
+  /**
+   * An informative text for user consumption indicating the current operation
+   * state.
+   */
+  readonly progressText: string
+}
+
 export interface IRepositoryState {
   readonly historyState: IHistoryState
   readonly changesState: IChangesState
@@ -223,6 +243,14 @@ export interface IRepositoryState {
 
   /** The date the repository was last fetched. */
   readonly lastFetched: Date | null
+
+  /**
+   * If we're currently working on switching to a new branch this
+   * provides insight into the progress of that operation.
+   * 
+   * null if no current branch switch operation is in flight.
+   */
+  readonly checkoutProgress: ICheckoutProgress | null
 }
 
 export interface IBranchesState {

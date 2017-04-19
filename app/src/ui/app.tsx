@@ -10,11 +10,10 @@ import { Repository } from '../models/repository'
 import { MenuEvent, MenuIDs } from '../main-process/menu'
 import { assertNever } from '../lib/fatal-error'
 import { IAppState, RepositorySection, Popup, PopupType, FoldoutType, SelectionType } from '../lib/app-state'
-import { Branches } from './branches'
 import { RenameBranch } from './rename-branch'
 import { DeleteBranch } from './delete-branch'
 import { CloningRepositoryView } from './cloning-repository'
-import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton } from './toolbar'
+import { Toolbar, ToolbarDropdown, DropdownState, PushPullButton, BranchDropdown } from './toolbar'
 import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
 import { setMenuEnabled, setMenuVisible, showCertificateTrustDialog } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
@@ -955,8 +954,6 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const isPublishing = !!this.state.currentPopup && this.state.currentPopup.type === PopupType.PublishRepository
-
     const state = selection.state
     const remoteName = state.remote ? state.remote.name : null
     return <PushPullButton
@@ -966,7 +963,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       remoteName={remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
-      isPublishing={isPublishing}/>
+    />
   }
 
   private showCreateBranch = () => {
@@ -985,36 +982,6 @@ export class App extends React.Component<IAppProps, IAppState> {
     return this.props.dispatcher.showPopup({ type: PopupType.CreateBranch, repository })
   }
 
-
-  private renderBranchFoldout = (): JSX.Element | null => {
-    const selection = this.state.selectedState
-
-    // NB: This should never happen but in the case someone
-    // manages to delete the last repository while the drop down is
-    // open we'll just bail here.
-    if (!selection || selection.type !== SelectionType.Repository) {
-      return null
-    }
-
-    const repository = selection.repository
-
-    const state = this.props.appStore.getRepositoryState(repository)
-
-    const tip = state.branchesState.tip
-    const currentBranch = tip.kind === TipState.Valid
-      ? tip.branch
-      : null
-
-    return <Branches
-      allBranches={state.branchesState.allBranches}
-      recentBranches={state.branchesState.recentBranches}
-      currentBranch={currentBranch}
-      defaultBranch={state.branchesState.defaultBranch}
-      dispatcher={this.props.dispatcher}
-      repository={repository}
-    />
-  }
-
   private onBranchDropdownStateChanged = (newState: DropdownState) => {
     newState === 'open'
       ? this.props.dispatcher.showFoldout({ type: FoldoutType.Branch })
@@ -1028,49 +995,18 @@ export class App extends React.Component<IAppProps, IAppState> {
       return null
     }
 
-    const tip = selection.state.branchesState.tip
+    const currentFoldout = this.state.currentFoldout
+    const isOpen = !!currentFoldout && currentFoldout.type === FoldoutType.Branch
 
-    if (tip.kind === TipState.Unknown) {
-      // TODO: this is bad and I feel bad
-      return null
-    }
-
-    if (tip.kind === TipState.Unborn) {
-      return <ToolbarDropdown
-        className='branch-button'
-        icon={OcticonSymbol.gitBranch}
-        title='master'
-        description='Current branch'
-        onDropdownStateChanged={this.onBranchDropdownStateChanged}
-        dropdownContentRenderer={this.renderBranchFoldout}
-        dropdownState='closed' />
-    }
-
-    const isOpen = this.state.currentFoldout
-      && this.state.currentFoldout.type === FoldoutType.Branch
-
-    const currentState: DropdownState = isOpen ? 'open' : 'closed'
-
-    if (tip.kind === TipState.Detached) {
-      const title = `On ${tip.currentSha.substr(0,7)}`
-      return <ToolbarDropdown
-        className='branch-button'
-        icon={OcticonSymbol.gitCommit}
-        title={title}
-        description='Detached HEAD'
-        onDropdownStateChanged={this.onBranchDropdownStateChanged}
-        dropdownContentRenderer={this.renderBranchFoldout}
-        dropdownState={currentState} />
-    }
-
-    return <ToolbarDropdown
-      className='branch-button'
-      icon={OcticonSymbol.gitBranch}
-      title={tip.branch.name}
-      description='Current branch'
-      onDropdownStateChanged={this.onBranchDropdownStateChanged}
-      dropdownContentRenderer={this.renderBranchFoldout}
-      dropdownState={currentState} />
+    return (
+      <BranchDropdown
+        dispatcher={this.props.dispatcher}
+        isOpen={isOpen}
+        onDropDownStateChanged={this.onBranchDropdownStateChanged}
+        repository={selection.repository}
+        repositoryState={selection.state}
+      />
+    )
   }
 
   private renderToolbar() {
