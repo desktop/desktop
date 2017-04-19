@@ -29,30 +29,35 @@ export class CheckoutProgressParser {
   private readonly onCheckoutProgress: CheckoutProgressEventHandler
   private readonly repository: Repository
   private readonly targetBranch: string
-  private stopped: boolean = false
-  private currentProgress: ICheckoutProgress | null = null
 
+  private currentProgress: ICheckoutProgress | null
   public constructor(repository: Repository, targetBranch: string, onCheckoutProgress: CheckoutProgressEventHandler) {
     this.repository = repository
     this.targetBranch = targetBranch
     this.onCheckoutProgress = onCheckoutProgress
+
+    this.currentProgress = {
+      progressText: `Checking out branch ${targetBranch}`,
+      progressValue: 0,
+      targetBranch,
+    }
+
+    this.onCheckoutProgress(repository, this.currentProgress)
   }
 
   private notify(progressText: string, progressValue?: number) {
 
-    if (this.stopped) {
+    const currentProgress = this.currentProgress
+
+    if (!currentProgress) {
       return
     }
-
-    const currentProgressValue = this.currentProgress
-      ? this.currentProgress.progressValue
-      : 0
 
     const newProgress = {
       targetBranch: this.targetBranch,
       progressText,
       progressValue: progressValue === undefined
-        ? currentProgressValue
+        ? currentProgress.progressValue
         : progressValue,
     }
 
@@ -78,11 +83,9 @@ export class CheckoutProgressParser {
   }
 
   public end = () => {
-    if (this.stopped) {
+    if (!this.currentProgress) {
       return
     }
-
-    this.stopped = true
 
     this.onCheckoutProgress(this.repository, null)
     this.currentProgress = null
