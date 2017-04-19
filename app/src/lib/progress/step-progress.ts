@@ -35,7 +35,9 @@ export class StepProgress {
     const step = this.steps[stepIndex]
 
     if (progress.total) {
-      percent += (step.weight / this.stepTotalWeight) + (progress.value / progress.total)
+      const stepWeight = (step.weight / this.stepTotalWeight)
+      const stepProgress = (progress.value / progress.total)
+      percent += stepWeight * stepProgress
     } else if (this.currentProgress) {
       percent = this.currentProgress.percent
     }
