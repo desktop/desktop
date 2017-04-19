@@ -6,6 +6,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { RelativeTime } from '../relative-time'
+import { IGenericProgress } from '../../lib/app-state'
 
 interface IPushPullButtonProps {
   /**
@@ -23,6 +24,8 @@ interface IPushPullButtonProps {
   /** The date of the last fetch. */
   readonly lastFetched: Date | null
 
+  readonly progress: IGenericProgress | null
+
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 }
@@ -33,16 +36,30 @@ interface IPushPullButtonProps {
  */
 export class PushPullButton extends React.Component<IPushPullButtonProps, void> {
   public render() {
+
+    let description
+    let progressValue: number | undefined = undefined
+
+    if (this.props.progress) {
+      description = this.props.progress.progressText
+      progressValue = this.props.progress.progressValue
+    } else {
+      description = this.getDescription()
+    }
+
+    const disabled = this.props.networkActionInProgress || !!this.props.progress
+
     return (
       <ToolbarButton
         title={this.getTitle()}
-        description={this.getDescription()}
+        description={description}
+        progressValue={progressValue}
         className='push-pull-button'
         icon={this.getIcon()}
         iconClassName={this.props.networkActionInProgress ? 'spin' : ''}
         style={ToolbarButtonStyle.Subtitle}
         onClick={this.performAction}
-        disabled={this.props.networkActionInProgress}>
+        disabled={disabled}>
         {this.renderAheadBehind()}
       </ToolbarButton>
     )

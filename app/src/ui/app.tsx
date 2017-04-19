@@ -963,6 +963,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       remoteName={remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
+      progress={state.pushProgress}
     />
   }
 
