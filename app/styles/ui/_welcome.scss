@@ -29,12 +29,6 @@
     }
   }
 
-  .sign-in-form {
-    & > div:last-child {
-      margin-top: var(--spacing);
-    }
-  }
-
   input, button {
     font-size: var(--font-size-md);
     height: auto;
@@ -45,7 +39,12 @@
   }
 
   button {
+    margin-right: var(--spacing);
     padding: var(--spacing-half) var(--spacing);
+  }
+
+  .sign-in-footer {
+    text-align: left;
   }
 }
 
@@ -79,10 +78,15 @@
 }
 
 .sign-in-form {
-  display: flex;
-  flex-direction: column;
-  margin: var(--spacing-double) auto;
   width: 320px;
+
+  & > div:last-child {
+    margin-top: var(--spacing);
+  }
+
+  .text-box-component {
+    margin-bottom: var(--spacing-double);
+  }
 }
 
 .welcome-left,
