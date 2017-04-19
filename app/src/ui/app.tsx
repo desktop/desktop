@@ -1052,6 +1052,10 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderUpdateBanner() {
+    if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') {
+      return null
+    }
+
     return (
       <UpdateAvailable
         updateAvailble={this.isUpdateAvailbale}
