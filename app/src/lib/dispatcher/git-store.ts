@@ -8,6 +8,8 @@ import { Tip, TipState } from '../../models/tip'
 import { Account } from '../../models/account'
 import { Commit } from '../../models/commit'
 import { IRemote } from '../../models/remote'
+import { FetchProgressParser } from '../progress'
+import { IFetchProgress } from '../app-state'
 
 import { IAppShell } from '../../lib/dispatcher/app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
@@ -420,11 +422,42 @@ export class GitStore {
    * @param account        - The account to use for authentication if needed.
    * @param backgroundTask - Was the fetch done as part of a background task?
    */
-  public async fetch(account: Account | null, backgroundTask: boolean): Promise<void> {
+  public async fetch(account: Account | null, backgroundTask: boolean, progressCallback?: (fetchProgress: IFetchProgress) => void): Promise<void> {
     const remotes = await getRemotes(this.repository)
 
-    for (const remote of remotes) {
-      await this.performFailableOperation(() => fetchRepo(this.repository, account, remote.name), { backgroundTask })
+    if (!remotes.length) {
+      return
+    }
+
+    const weight = 1 / remotes.length
+    const parser = new FetchProgressParser()
+
+    for (let i = 0; i < remotes.length; i++) {
+      const remote = remotes[i]
+      const startProgressValue = i * weight
+
+      const progressText = `Fetching from ${remote.name}`
+
+      if (progressCallback) {
+        progressCallback({ progressText, progressValue: startProgressValue, remote: remote.name })
+      }
+
+      await this.performFailableOperation(() => {
+        return fetchRepo(this.repository, account, remote.name, (line) => {
+          if (!progressCallback) {
+            return
+          }
+
+          const progress = parser.parse(line)
+          if (progress) {
+            progressCallback({
+              progressText,
+              progressValue: startProgressValue + (progress.percent * weight),
+              remote: remote.name,
+            })
+          }
+        })
+      }, { backgroundTask })
     }
   }
 
