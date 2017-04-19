@@ -14,30 +14,33 @@ export interface ICombinedProgress {
 export class StepProgress {
   private readonly steps: ReadonlyArray<IProgressStep>
   private readonly callback: (progress: ICombinedProgress) => void
-  private readonly stepTotalWeight: number
 
   private stepIndex = 0
   private currentProgress: ICombinedProgress | null = null
 
   public constructor(steps: ReadonlyArray<IProgressStep>, callback: (progress: ICombinedProgress) => void) {
-    this.steps = steps
+    const totalStepWeight = steps.reduce((sum, step) => sum + step.weight, 0)
+
+    this.steps = steps.map(step => ({
+      title: step.title,
+      weight: step.weight / totalStepWeight,
+    }))
+
     this.callback = callback
-    this.stepTotalWeight = steps.reduce((weight, step) => weight += step.weight, 0)
   }
 
   private updateStep(stepIndex: number, progress: IGitProgress) {
     let percent = 0
 
     for (let i = 0; i < this.stepIndex; i++) {
-      percent += this.steps[i].weight / this.stepTotalWeight
+      percent += this.steps[i].weight
     }
 
     const step = this.steps[stepIndex]
 
     if (progress.total) {
-      const stepWeight = (step.weight / this.stepTotalWeight)
       const stepProgress = (progress.value / progress.total)
-      percent += stepWeight * stepProgress
+      percent += step.weight * stepProgress
     } else if (this.currentProgress) {
       percent = this.currentProgress.percent
     }
