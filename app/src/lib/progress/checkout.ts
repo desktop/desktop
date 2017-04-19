@@ -30,6 +30,10 @@ export class CheckoutProgressParser {
   private readonly repository: Repository
   private readonly targetBranch: string
 
+  /**
+   * The last send progress event, or null if the parser has been stopped
+   * and no more events are to be sent.
+   */
   private currentProgress: ICheckoutProgress | null
 
   public constructor(repository: Repository, targetBranch: string, onCheckoutProgress: CheckoutProgressEventHandler) {
