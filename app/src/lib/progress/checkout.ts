@@ -25,6 +25,10 @@ const checkoutProgressRe = /Checking out files:\s+(\d+)\s*% \((\d+)\/(\d+)\)/
 
 export type CheckoutProgressEventHandler = (repository: Repository, progress: ICheckoutProgress | null) => void
 
+/**
+ * A class that parses output from `git checkout --progress` and provides
+ * structured progress events.
+ */
 export class CheckoutProgressParser {
   private readonly onCheckoutProgress: CheckoutProgressEventHandler
   private readonly repository: Repository
@@ -36,6 +40,11 @@ export class CheckoutProgressParser {
    */
   private currentProgress: ICheckoutProgress | null
 
+  /**
+   * Initialize a new progress parser. A parser should not be reused between
+   * different git checkout invocations and should always be terminated when
+   * the Git command terminates by calling the end() instance method.
+   */
   public constructor(repository: Repository, targetBranch: string, onCheckoutProgress: CheckoutProgressEventHandler) {
     this.repository = repository
     this.targetBranch = targetBranch
