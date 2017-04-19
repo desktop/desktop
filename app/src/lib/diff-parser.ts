@@ -337,7 +337,7 @@ export class DiffParser {
       const headerInfo = this.parseDiffHeader()
 
       const headerEnd = this.le
-      const header = this.text.substring(0, this.le)
+      const header = this.text.substring(0, headerEnd)
 
       // empty diff
       if (!headerInfo) {
