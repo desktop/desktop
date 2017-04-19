@@ -6,8 +6,8 @@ export interface IGitProgress {
   readonly done: boolean
 }
 
-const percentRe = /^(\d\d?)% \((\d+)\/(\d+))$/
 const valueOnlyRe = /^\d+/
+const percentRe = /^(\d{1,3})% \((\d+)\/(\d+)\)$/
 
 // Receiving objects:  99% (166741/167587), 279.42 MiB | 2.43 MiB/s  
 export function parse(line: string): IGitProgress | null {
