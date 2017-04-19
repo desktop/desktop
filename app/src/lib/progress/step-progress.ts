@@ -12,9 +12,7 @@ export interface ICombinedProgress {
 
 export class StepProgress {
   private readonly steps: ReadonlyArray<IProgressStep>
-
   private stepIndex = 0
-  private currentProgress: ICombinedProgress | null = null
 
   public constructor(steps: ReadonlyArray<IProgressStep>) {
 
@@ -44,15 +42,11 @@ export class StepProgress {
 
         if (progress.total) {
           percent += step.weight * (progress.value / progress.total)
-        } else if (this.currentProgress) {
-          percent = this.currentProgress.percent
         }
 
-        this.currentProgress = { percent, details: progress }
         this.stepIndex = i
 
-        return this.currentProgress
-
+        return { percent, details: progress }
       } else {
         percent += step.weight
       }
