@@ -21,6 +21,24 @@ describe('CloneProgressParser', () => {
       expect(parser.parse('Checking out files: 100% (579/579)')).not.to.be.null
     })
 
+    it('understands remote compression', () => {
+      expect(parser.parse('remote: Compressing objects:  45% (10/22)')).not.to.be.null
+    })
+
+    it('understands relative weights', () => {
+      expect(parser.parse('remote: Compressing objects:  45% (10/22)'))
+        .to.be.closeTo(10 / 22 * 0.1, 0.01)
+
+      expect(parser.parse('Receiving objects:  17% (4808/28282), 3.30 MiB | 1.29 MiB/s'))
+        .to.be.closeTo(0.1 + (4808 / 28282 * 0.7), 0.01)
+
+      expect(parser.parse('Resolving deltas:  89% (18063/20263)'))
+        .to.be.closeTo(0.8 + (18063 / 20263 * 0.1), 0.01)
+
+      expect(parser.parse('Checking out files: 100% (579/579)'))
+        .to.be.closeTo(0.9 + (579 / 579 * 0.1), 0.01)
+    })
+
     it('ignores wrong order', () => {
       const finalProgress = parser.parse('Checking out files: 100% (579/579)')
       const earlyProgress = parser.parse('Receiving objects:   1% (283/28282)')
