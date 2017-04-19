@@ -6,3 +6,9 @@
   font-size: var(--font-size-sm);
   padding: var(--spacing-half);
 }
+
+.error-page {
+  .stack {
+    font-family: var(--font-family-monospace);
+  }
+}

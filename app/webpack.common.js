@@ -44,7 +44,10 @@ module.exports = {
     }),
     new HtmlWebpackPlugin({
       'template': path.join(__dirname, 'static', 'error.html'),
-      'filename': 'error.html'
+      // without this we overwrite index.html
+      'filename': 'error.html',
+      // we don't need any scripts to run on this page
+      'excludeChunks': [ 'main', 'renderer', 'shared', 'ask-pass' ]
     }),
     new HtmlWebpackPlugin({
       'filename': 'shared.html',
