@@ -3,7 +3,7 @@ import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 
 import { clone as cloneRepo, CloneOptions } from '../git'
-import { CloneProgressParser } from '../clone-progress-parser'
+import { CloneProgressParser } from '../progress'
 
 let CloningRepositoryID = 1
 

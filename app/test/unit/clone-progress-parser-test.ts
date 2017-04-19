@@ -1,7 +1,7 @@
 import * as chai from 'chai'
 const expect = chai.expect
 
-import { CloneProgressParser } from '../../src/lib/clone-progress-parser'
+import { CloneProgressParser } from '../../src/lib/progress'
 
 describe('CloneProgressParser', () => {
   describe('#parse', () => {
