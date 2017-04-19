@@ -43,6 +43,10 @@ module.exports = {
       'chunks': ['renderer']
     }),
     new HtmlWebpackPlugin({
+      'template': path.join(__dirname, 'static', 'error.html'),
+      'filename': 'error.html'
+    }),
+    new HtmlWebpackPlugin({
       'filename': 'shared.html',
       'chunks': ['shared']
     }),
