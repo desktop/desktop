@@ -1184,7 +1184,7 @@ export class AppStore {
 
           await this._refreshRepository(repository)
 
-          await gitStore.fetch(account, false, (fetchProgress) => {
+          await gitStore.fetchAll(account, false, (fetchProgress) => {
             this.updatePushProgress(repository, {
               progressText: fetchText,
               progressValue: pushWeight + fetchProgress.progressValue * fetchWeight,
@@ -1375,7 +1375,7 @@ export class AppStore {
   private async performFetch(repository: Repository, account: Account | null, backgroundTask: boolean): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
-      await gitStore.fetch(account, backgroundTask)
+      await gitStore.fetchAll(account, backgroundTask)
       await this.fastForwardBranches(repository)
     })
 
