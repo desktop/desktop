@@ -1248,11 +1248,11 @@ export class AppStore {
       const state = this.getRepositoryState(repository)
 
       if (state.branchesState.tip.kind === TipState.Unborn) {
-        return Promise.reject(new Error('The current branch is unborn.'))
+        throw new Error('The current branch is unborn.')
       }
 
       if (state.branchesState.tip.kind === TipState.Detached) {
-        return Promise.reject(new Error('The current repository is in a detached HEAD state.'))
+        throw new Error('The current repository is in a detached HEAD state.')
       }
 
       if (state.branchesState.tip.kind === TipState.Valid) {
