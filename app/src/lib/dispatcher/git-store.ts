@@ -473,7 +473,7 @@ export class GitStore {
    */
   public async fetchRemote(account: Account | null, remote: string, backgroundTask: boolean, progressCallback?: (fetchProgress: IFetchProgress) => void): Promise<void> {
     const parser = new FetchProgressParser()
-    const title = `Fetching from ${remote}`
+    const title = `Fetching ${remote}`
 
     if (progressCallback) {
       progressCallback({ title, value: 0, remote })
