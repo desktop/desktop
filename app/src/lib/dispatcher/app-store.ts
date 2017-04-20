@@ -1187,9 +1187,13 @@ export class AppStore {
 
           await gitStore.fetchAll(account, false, (fetchProgress) => {
             const progressValue = pushWeight + fetchProgress.progressValue * fetchWeight
-            const progressTitle = `Fetching from ${fetchProgress.remote}`
-            const progressDescription = fetchProgress.progressText
-            this.updatePushProgress(repository, progressTitle, progressDescription, progressValue)
+
+            this.updatePushProgress(
+              repository,
+              fetchProgress.progressTitle,
+              fetchProgress.progressDescription,
+              progressValue
+            )
           })
 
           await this._refreshRepository(repository)

@@ -252,7 +252,6 @@ export interface IGenericProgress {
   readonly progressValue: number
 
   /**
-   * 
    * An informative text for user consumption indicating the current operation
    * state. This will be high level such as 'Pushing origin' or 
    * 'Fetching upstream' and will typically persist over a number of progress
@@ -306,11 +305,19 @@ export interface IFetchProgress {
   readonly progressValue: number
 
   /**
-   * 
    * An informative text for user consumption indicating the current operation
-   * state.
+   * state. This will be high level such as 'Fetching origin' or 
+   * 'Fetching upstream' and will typically persist over a number of progress
+   * events. For more detailed information about the progress see
+   * progressDescription
    */
-  readonly progressText: string
+  readonly progressTitle: string
+
+  /**
+   * An informative text for user consumption. For fetch progress this will
+   * be the last line output from Git.
+   */
+  readonly progressDescription: string
 }
 
 export interface IBranchesState {
