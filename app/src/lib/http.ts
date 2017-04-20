@@ -20,17 +20,16 @@ export async function deserialize<T>(response: Response): Promise<T | null> {
 }
 
 /**
- * Make an API request.
+ * Make a Request object.
  *
- * @param endpoint      - The API endpoint.
+ * @param url           - The URL to access.
  * @param authorization - The value to pass in the `Authorization` header.
  * @param method        - The HTTP method.
  * @param path          - The path without a leading /.
  * @param body          - The body to send.
  * @param customHeaders - Any optional additional headers to send.
  */
-export function request(endpoint: string, authorization: string | null, method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<Response> {
-  const url = `${endpoint}/${path}`
+export function makeRequest(url: string, authorization: string | null, method: HTTPMethod, body?: Object, customHeaders?: Object): Request {
   const headers: any = Object.assign({}, {
     'Accept': 'application/vnd.github.v3+json, application/json',
     'Content-Type': 'application/json',
@@ -47,5 +46,5 @@ export function request(endpoint: string, authorization: string | null, method: 
     body: JSON.stringify(body),
   }
 
-  return fetch(url, options)
+  return new Request(url, options)
 }

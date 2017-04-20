@@ -5,7 +5,7 @@ import { v4 as guid } from 'uuid'
 import { Account } from '../models/account'
 import { IEmail } from '../models/email'
 
-import { HTTPMethod, request, deserialize } from './http'
+import { HTTPMethod, makeRequest, deserialize } from './http'
 import { AuthenticationMode } from './2fa'
 
 const Octokat = require('octokat')
@@ -268,8 +268,12 @@ export class API {
     return allItems.filter((i: any) => !i.pullRequest)
   }
 
-  private authenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Promise<Response> {
-    return request(this.account.endpoint, `token ${this.account.token}`, method, path, body, customHeaders)
+  private makeAuthenticatedRequestWithURL(method: HTTPMethod, url: string, body?: Object, customHeaders?: Object): Request {
+    return makeRequest(url, `token ${this.account.token}`, method, body, customHeaders)
+  }
+
+  private makeAuthenticatedRequest(method: HTTPMethod, path: string, body?: Object, customHeaders?: Object): Request {
+    return this.makeAuthenticatedRequestWithURL(method, `${this.account.endpoint}/${path}`, body, customHeaders)
   }
 
   /**
@@ -278,7 +282,7 @@ export class API {
    */
   public async getFetchPollInterval(owner: string, name: string): Promise<number | null> {
     const path = `repos/${Querystring.escape(owner)}/${Querystring.escape(name)}/git`
-    const response = await this.authenticatedRequest('HEAD', path)
+    const response = await fetch(this.makeAuthenticatedRequest('HEAD', path))
     const interval = response.headers.get('x-poll-interval')
     if (interval) {
       const parsed = parseInt(interval, 10)
@@ -298,7 +302,7 @@ export class API {
       headers['If-None-Match'] = etag
     }
 
-    const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
+    const response = await fetch(this.makeAuthenticatedRequest('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers))
     const users = await deserialize<ReadonlyArray<IAPIMentionableUser>>(response)
     if (!users) { return null }
 
@@ -332,14 +336,15 @@ export async function createAuthorization(endpoint: string, login: string, passw
 
   const note = await getNote()
 
-  const response = await request(endpoint, authorization, 'POST', 'authorizations', {
+  const url = `${endpoint}/authorizations`
+  const response = await fetch(makeRequest(url, authorization, 'POST', {
     'scopes': Scopes,
     'client_id': ClientID,
     'client_secret': ClientSecret,
     'note': note,
     'note_url': NoteURL,
     'fingerprint': guid(),
-  }, headers)
+  }, headers))
 
   if (response.status === 401) {
     const otpResponse = response.headers.get('x-github-otp')
@@ -514,13 +519,13 @@ export function getOAuthAuthorizationURL(endpoint: string, state: string): strin
 }
 
 export async function requestOAuthToken(endpoint: string, state: string, code: string): Promise<string | null> {
-  const urlBase = getHTMLURL(endpoint)
-  const response = await request(urlBase, null, 'POST', 'login/oauth/access_token', {
+  const url = `${getHTMLURL(endpoint)}/login/oauth/access_token`
+  const response = await fetch(makeRequest(url, null, 'POST', {
     'client_id': ClientID,
     'client_secret': ClientSecret,
     'code': code,
     'state': state,
-  })
+  }))
 
   const body = await deserialize<IAPIAccessToken>(response)
   if (body) {
