@@ -3,6 +3,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import * as classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
+import { clamp } from '../../lib/clamp'
 
 /** The button style. */
 export enum ToolbarButtonStyle {
@@ -92,6 +93,18 @@ export interface IToolbarButtonProps {
    * detrimental to accessibility in most scenarios.
    */
   readonly tabIndex?: number
+
+  /**
+   * An optional progress value as a fraction between 0 and 1. Passing a number
+   * greater than zero will render a progress bar background in the toolbar
+   * button. Use this to communicate an ongoing operation.
+   * 
+   * Consumers should not rely solely on the visual progress bar, they should
+   * also implement alternative representation such as showing a percentage
+   * text in the description or title along with information about what
+   * operation is currently in flight.
+   */
+  readonly progressValue?: number
 }
 
 /**
@@ -140,6 +153,14 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     const preContentRenderer = this.props.preContentRenderer
     const preContent = preContentRenderer && preContentRenderer()
 
+    const progressValue = this.props.progressValue !== undefined
+      ? Math.round(clamp(this.props.progressValue, 0, 1) * 100) / 100
+      : undefined
+
+    const progress = progressValue !== undefined
+      ? <div className='progress' style={{ transform: `scaleX(${progressValue})` }} />
+      : undefined
+
     return (
       <div className={className} onKeyDown={this.props.onKeyDown}>
         {preContent}
@@ -150,6 +171,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
           onMouseEnter={this.props.onMouseEnter}
           tabIndex={this.props.tabIndex}
         >
+          {progress}
           {icon}
           {this.renderText()}
           {this.props.children}

@@ -115,7 +115,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     if (!directory) { return }
 
     const path = directory[0]
-    this.setState({ ...this.state, path })
+    this.setState({ path })
   }
 
   private checkPathValid(newPath: string) {
@@ -129,7 +129,7 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
         error.name = DestinationExistsErrorName
       }
 
-      this.setState({ ...this.state, error })
+      this.setState({ error })
     })
   }
 
@@ -152,7 +152,6 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
     }
 
     this.setState({
-      ...this.state,
       url,
       path: newPath,
       lastParsedIdentifier: parsed,
@@ -163,21 +162,20 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
 
   private onPathChanged = (event: React.FormEvent<HTMLInputElement>) => {
     const path = event.currentTarget.value
-    this.setState({ ...this.state, path })
+    this.setState({ path })
     this.checkPathValid(path)
   }
 
   /**
    * Lookup the account associated with the clone (if applicable) and resolve
-   * the repository alias to the clone URL. findAccountForRemote will throw
-   * if neither of these conditions are satisfied, so let this bubble up and
-   * display a relevant message to the user.
+   * the repository alias to the clone URL.
    */
-  private async resolveCloneDetails(): Promise<{ url: string, account: Account }> {
+  private async resolveCloneDetails(): Promise<{ url: string, account: Account | null } | null> {
     const identifier = this.state.lastParsedIdentifier
     let url = this.state.url
 
     const account = await findAccountForRemote(url, this.props.accounts)
+    if (!account) { return null }
 
     if (identifier) {
       const api = new API(account)
@@ -191,19 +189,20 @@ export class CloneRepository extends React.Component<ICloneRepositoryProps, IClo
   }
 
   private clone = async () => {
-    this.setState({ ...this.state, loading: true })
+    this.setState({ loading: true })
 
     const path = this.state.path
+    const cloneDetails = await this.resolveCloneDetails()
+    if (!cloneDetails) {
+      const error = new Error(`We couldn't find that repository. Check that you are logged in, and the URL or repository alias are spelled correctly.`)
+      this.setState({ loading: false, error })
+      return
+    }
 
     try {
-      const { url, account } = await this.resolveCloneDetails()
-      this.cloneImpl(url, path, account)
+      this.cloneImpl(cloneDetails.url, path, cloneDetails.account)
     } catch (error) {
-      this.setState({
-        ...this.state,
-        loading: false,
-        error,
-      })
+      this.setState({ loading: false, error })
     }
   }
 
