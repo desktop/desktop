@@ -14,6 +14,7 @@ import {
   PossibleSelections,
   SelectionType,
   ICheckoutProgress,
+  IGenericProgress,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -258,6 +259,7 @@ export class AppStore {
       lastFetched: null,
       checkoutProgress: null,
       pushProgress: null,
+      pullProgress: null,
     }
   }
 
@@ -1242,6 +1244,14 @@ export class AppStore {
     }
   }
 
+  private updatePullProgress(repository: Repository, pullProgress: IGenericProgress | null) {
+    this.updateRepositoryState(repository, state => ({ pullProgress }))
+
+    if (this.selectedRepository === repository) {
+      this.emitUpdate()
+    }
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _pull(repository: Repository, account: Account | null): Promise<void> {
     return this.withPushPull(repository, async () => {
@@ -1264,17 +1274,59 @@ export class AppStore {
 
       if (state.branchesState.tip.kind === TipState.Valid) {
 
-        const otherRemotes = (await getRemotes(repository))
-          .filter(r => r.name !== remote.name)
+        const title = `Pulling ${remote.name}`
+        this.updatePullProgress(repository, { title, value: 0 })
 
-        await gitStore.performFailableOperation(() =>
-          pullRepo(repository, account, remote.name))
+        try {
+          const otherRemotes = (await getRemotes(repository))
+            .filter(r => r.name !== remote.name)
 
-        await this._refreshRepository(repository)
+          let pullWeight = 0.6
+          let fetchWeight = 0.3 * otherRemotes.length
+          let refreshWeight = 0.1
 
-        await gitStore.fetchRemotes(account, otherRemotes, false)
+          const scale = 1 / (pullWeight + fetchWeight + refreshWeight)
 
-        await this.fastForwardBranches(repository)
+          pullWeight *= scale
+          fetchWeight *= scale
+          refreshWeight *= scale
+
+          await gitStore.performFailableOperation(() =>
+            pullRepo(repository, account, remote.name, progress => {
+              this.updatePullProgress(repository, {
+                ...progress,
+                value: progress.value * pullWeight
+              })
+            }))
+
+          const fetchStartProgress = fetchWeight
+
+          await gitStore.fetchRemotes(account, otherRemotes, false, progress => {
+            this.updatePullProgress(repository, {
+              ...progress,
+              value: fetchStartProgress + progress.value * fetchWeight,
+            })
+          })
+
+          const refreshStartProgress = pullWeight + fetchWeight
+
+          this.updatePullProgress(repository, {
+            title: 'Refreshing repository',
+            value: refreshStartProgress,
+          })
+
+          await this._refreshRepository(repository)
+
+          this.updatePullProgress(repository, {
+            title: 'Refreshing repository',
+            description: 'Fast-forwarding branches',
+            value: refreshStartProgress + refreshWeight * 0.5,
+          })
+
+          await this.fastForwardBranches(repository)
+        } finally {
+          this.updatePullProgress(repository, null)
+        }
       }
     })
   }
