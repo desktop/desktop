@@ -38,6 +38,7 @@ export function showCertificateTrustDialog(certificate: Electron.Certificate, me
  * that would tell the app to quit.
  */
 export function sendWillQuitSync() {
+  // tslint:disable-next-line:no-sync-functions
   ipcRenderer.sendSync('will-quit')
 }
 
