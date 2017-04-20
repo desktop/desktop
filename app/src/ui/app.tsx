@@ -956,6 +956,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const state = selection.state
     const remoteName = state.remote ? state.remote.name : null
+    const progress = state.pushProgress || state.pullProgress
+
     return <PushPullButton
       dispatcher={this.props.dispatcher}
       repository={selection.repository}
@@ -963,7 +965,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       remoteName={remoteName}
       lastFetched={state.lastFetched}
       networkActionInProgress={state.pushPullInProgress}
-      progress={state.pushProgress}
+      progress={progress}
     />
   }
 
