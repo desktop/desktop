@@ -2,11 +2,13 @@ import { git, envForAuthentication, expectedAuthenticationErrors, GitError, IGit
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { ChildProcess } from 'child_process'
+import { PullProgressParser } from '../progress'
+import { IGenericProgress } from '../app-state'
 
 const byline = require('byline')
 
 /** Pull from the remote to the branch. */
-export async function pull(repository: Repository, account: Account | null, remote: string, progressCallback?: (line: string) => void): Promise<void> {
+export async function pull(repository: Repository, account: Account | null, remote: string, progressCallback?: (progress: IGenericProgress) => void): Promise<void> {
 
   let options: IGitExecutionOptions = {
     env: envForAuthentication(account),
@@ -14,14 +16,27 @@ export async function pull(repository: Repository, account: Account | null, remo
   }
 
   if (progressCallback) {
+    const title = `Pulling ${remote}`
+
     options = {
       ...options,
       processCallback: (process: ChildProcess) => {
-        byline(process.stderr).on('data', (chunk: string) => {
-          progressCallback(chunk)
+        const parser = new PullProgressParser()
+        byline(process.stderr).on('data', (line: string) => {
+          const progress = parser.parse(line)
+
+          progressCallback({
+            title,
+            description: progress.kind === 'progress'
+              ? progress.details.text
+              : progress.text,
+            value: progress.percent,
+          })
         })
       },
     }
+
+    progressCallback({ title, value: 0 })
   }
 
   const args = progressCallback
