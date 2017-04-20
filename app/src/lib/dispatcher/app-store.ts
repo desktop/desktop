@@ -1262,7 +1262,7 @@ export class AppStore {
           pullRepo(repository, account, remote.name))
 
         await this._refreshRepository(repository)
-        await this.fetch(repository, account)
+        await this.fastForwardBranches(repository)
       }
     })
   }
