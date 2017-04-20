@@ -1154,20 +1154,21 @@ export class AppStore {
 
       if (state.branchesState.tip.kind === TipState.Valid) {
         const branch = state.branchesState.tip.branch
-        return gitStore.performFailableOperation(async () => {
-          const setUpstream = branch.upstream ? false : true
+        const setUpstream = branch.upstream ? false : true
 
-          const progressParser = new PushProgressParser()
+        const progressParser = new PushProgressParser()
 
-          const pushWeight = 0.7
-          const fetchWeight = 0.3
-          const pushText = `Pushing ${branch.name} to ${remote.name}`
-          const fetchText = `Fetching from ${remote.name}`
+        const pushWeight = 0.7
+        const fetchWeight = 0.3
+        const pushText = `Pushing ${branch.name} to ${remote.name}`
+        const fetchText = `Fetching from ${remote.name}`
 
-          this.updatePushProgress(repository, {
-            progressText: pushText,
-            progressValue: 0,
-          })
+        this.updatePushProgress(repository, {
+          progressText: pushText,
+          progressValue: 0,
+        })
+
+        await gitStore.performFailableOperation(async () => {
 
           await pushRepo(repository, account, remote.name, branch.name, setUpstream, (line) => {
             const progress = progressParser.parse(line)
@@ -1199,9 +1200,9 @@ export class AppStore {
           })
 
           await this.fastForwardBranches(repository)
-
-          this.updatePushProgress(repository, null)
         })
+
+        this.updatePushProgress(repository, null)
       }
     })
   }
