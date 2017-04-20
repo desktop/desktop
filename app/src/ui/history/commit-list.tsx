@@ -4,6 +4,7 @@ import { CommitListItem } from './commit-list-item'
 import { List } from '../list'
 import { CommitFacadeListItem } from './commit-facade-list-item'
 import { IGitHubUser } from '../../lib/dispatcher'
+import { Account } from '../../models/account'
 
 const RowHeight = 48
 
@@ -15,6 +16,7 @@ interface ICommitListProps {
   readonly selectedSHA: string | null
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
+  readonly account: Account
 }
 
 /** A component which displays the list of commits. */
@@ -31,7 +33,12 @@ export class CommitList extends React.Component<ICommitListProps, void> {
         avatarUser = { ...commit.author, avatarURL: gitHubUser.avatarURL }
       }
 
-      return <CommitListItem key={commit.sha} commit={commit} user={avatarUser} emoji={this.props.emoji}/>
+      return <CommitListItem
+        key={commit.sha}
+        commit={commit}
+        user={avatarUser}
+        emoji={this.props.emoji}
+        account={this.props.account}/>
     } else {
       return <CommitFacadeListItem key={row}/>
     }

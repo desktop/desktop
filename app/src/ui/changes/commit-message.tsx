@@ -11,7 +11,7 @@ import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
-
+import { Account } from '../../models/account'
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
@@ -25,6 +25,7 @@ interface ICommitMessageProps {
   readonly dispatcher: Dispatcher
   readonly autocompletionProviders: ReadonlyArray<IAutocompletionProvider<any>>
   readonly isCommitting: boolean
+  readonly account: Account
 }
 
 interface ICommitMessageState {
@@ -155,7 +156,7 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
       avatarUser = { ...commitAuthor, avatarURL: this.props.gitHubUser.avatarURL }
     }
 
-    return <Avatar user={avatarUser} title={avatarTitle}/>
+    return <Avatar user={avatarUser} title={avatarTitle} account={this.props.account}/>
   }
 
   public render() {

@@ -46,7 +46,7 @@ export class Accounts extends React.Component<IAccountsProps, void> {
 
     return (
       <Row className='account-info'>
-        <Avatar user={avatarUser} />
+        <Avatar user={avatarUser} account={account}/>
         <div className='user-info'>
           <div className='name'>{account.name}</div>
           <div className='login'>@{account.login}</div>

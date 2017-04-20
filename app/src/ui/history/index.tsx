@@ -10,6 +10,7 @@ import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
 import { IGitHubUser } from '../../lib/dispatcher'
 import { Resizable } from '../resizable'
+import { Account } from '../../models/account'
 
 // At some point we'll make index.tsx only be exports
 // see https://github.com/desktop/desktop/issues/383
@@ -24,6 +25,7 @@ interface IHistoryProps {
   readonly localCommitSHAs: ReadonlyArray<string>
   readonly commitSummaryWidth: number
   readonly gitHubUsers: Map<string, IGitHubUser>
+  readonly account: Account
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
@@ -79,6 +81,7 @@ export class History extends React.Component<IHistoryProps, void> {
       repository={this.props.repository}
       isLocal={isLocal}
       gitHubUser={gitHubUser}
+      account={this.props.account}
     />
   }
 

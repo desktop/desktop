@@ -12,6 +12,7 @@ import { IAutocompletionProvider, EmojiAutocompletionProvider, IssuesAutocomplet
 import { ICommitMessage } from '../../lib/app-state'
 import { ClickSource } from '../list'
 import { WorkingDirectoryFileChange } from '../../models/status'
+import { Account } from '../../models/account'
 
 /**
  * The timeout for the animation of the enter/leave animation for Undo.
@@ -34,6 +35,7 @@ interface IChangesSidebarProps {
   readonly availableWidth: number
   readonly isCommitting: boolean
   readonly gitHubUserStore: GitHubUserStore
+  readonly account: Account
 }
 
 export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> {
@@ -210,6 +212,7 @@ export class ChangesSidebar extends React.Component<IChangesSidebarProps, void> 
           availableWidth={this.props.availableWidth}
           onIgnore={this.onIgnore}
           isCommitting={this.props.isCommitting}
+          account={this.props.account}
         />
           {this.renderMostRecentLocalCommit()}
       </div>
