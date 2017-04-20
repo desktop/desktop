@@ -419,8 +419,10 @@ export class GitStore {
   /**
    * Fetch all remotes, using the given account for authentication.
    *
-   * @param account        - The account to use for authentication if needed.
-   * @param backgroundTask - Was the fetch done as part of a background task?
+   * @param account          - The account to use for authentication if needed.
+   * @param backgroundTask   - Was the fetch done as part of a background task?
+   * @param progressCallback - A function that's called with information about
+   *                           the overall fetch progress.
    */
   public async fetchAll(account: Account | null, backgroundTask: boolean, progressCallback?: (fetchProgress: IFetchProgress) => void): Promise<void> {
     const remotes = await getRemotes(this.repository)
