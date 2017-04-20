@@ -186,11 +186,11 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
       return null
     }
 
-    const title = this.props.title === undefined
+    const title = this.props.title !== undefined
       ? <div className='title'>{this.props.title}</div>
       : null
 
-    const description = this.props.description === undefined
+    const description = this.props.description !== undefined
       ? <div className='description'>{this.props.description}</div>
       : null
 
