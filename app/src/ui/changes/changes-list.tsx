@@ -12,6 +12,7 @@ import { IGitHubUser } from '../../lib/dispatcher'
 import { IAutocompletionProvider } from '../autocompletion'
 import { Dispatcher } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
+import { Account } from '../../models/account'
 
 const RowHeight = 29
 
@@ -46,6 +47,8 @@ interface IChangesListProps {
 
   /** Called when the given pattern should be ignored. */
   readonly onIgnore: (pattern: string) => void
+
+  readonly account: Account
 }
 
 export class ChangesList extends React.Component<IChangesListProps, void> {
@@ -142,7 +145,8 @@ export class ChangesList extends React.Component<IChangesListProps, void> {
                        commitMessage={this.props.commitMessage}
                        contextualCommitMessage={this.props.contextualCommitMessage}
                        autocompletionProviders={this.props.autocompletionProviders}
-                       isCommitting={this.props.isCommitting}/>
+                       isCommitting={this.props.isCommitting}
+                       account={this.props.account}/>
       </div>
     )
   }

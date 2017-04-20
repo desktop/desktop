@@ -7,6 +7,7 @@ import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { CommitIdentity } from '../../models/commit-identity'
 import { Avatar } from '../lib/avatar'
+import { Account } from '../../models/account'
 
 interface ICommitSummaryProps {
   readonly repository: Repository
@@ -18,6 +19,7 @@ interface ICommitSummaryProps {
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
   readonly gitHubUser: IGitHubUser | null
+  readonly account: Account
 }
 
 export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
@@ -55,7 +57,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, void> {
             <li className='commit-summary-meta-item'
               title={authorTitle} aria-label='Author'>
               <span aria-hidden='true'>
-                <Avatar user={avatarUser}/>
+                <Avatar user={avatarUser} account={this.props.account}/>
               </span>
 
               {author.name}

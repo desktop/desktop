@@ -18,7 +18,7 @@ import { Octicon, OcticonSymbol, iconForRepository } from './octicons'
 import { setMenuEnabled, setMenuVisible, showCertificateTrustDialog } from './main-process-proxy'
 import { DiscardChanges } from './discard-changes'
 import { updateStore, UpdateStatus } from './lib/update-store'
-import { getDotComAPIEndpoint } from '../lib/api'
+import { getDotComAPIEndpoint, getAccountForEndpoint } from '../lib/api'
 import { ILaunchStats } from '../lib/stats'
 import { Welcome } from './welcome'
 import { AppMenuBar } from './app-menu'
@@ -1030,15 +1030,21 @@ export class App extends React.Component<IAppProps, IAppState> {
     }
 
     if (selectedState.type === SelectionType.Repository) {
+      const repository = selectedState.repository
+      const gitHubRepository = repository.gitHubRepository
+      const account = gitHubRepository
+        ? (getAccountForEndpoint(this.state.accounts, gitHubRepository.endpoint) || Account.anonymous())
+        : Account.anonymous()
       return (
-        <RepositoryView repository={selectedState.repository}
+        <RepositoryView repository={repository}
                         state={selectedState.state}
                         dispatcher={this.props.dispatcher}
                         emoji={this.state.emoji}
                         sidebarWidth={this.state.sidebarWidth}
                         commitSummaryWidth={this.state.commitSummaryWidth}
                         issuesStore={this.props.appStore.issuesStore}
-                        gitHubUserStore={this.props.appStore.gitHubUserStore}/>
+                        gitHubUserStore={this.props.appStore.gitHubUserStore}
+                        account={account}/>
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
       return <CloningRepositoryView repository={selectedState.repository}

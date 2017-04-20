@@ -5,6 +5,7 @@ import { Commit } from '../../models/commit'
 import { Dispatcher, IGitHubUser } from '../../lib/dispatcher'
 import { IHistoryState } from '../../lib/app-state'
 import { ThrottledScheduler } from '../lib/throttled-scheduler'
+import { Account } from '../../models/account'
 
 /** If we're within this many rows from the bottom, load the next history batch. */
 const CloseToBottomThreshold = 10
@@ -16,6 +17,7 @@ interface IHistorySidebarProps {
   readonly gitHubUsers: Map<string, IGitHubUser>
   readonly emoji: Map<string, string>
   readonly commits: Map<string, Commit>
+  readonly account: Account
 }
 
 /** The History component. Contains the commit list, commit summary, and diff. */
@@ -51,6 +53,7 @@ export class HistorySidebar extends React.Component<IHistorySidebarProps, void> 
         onScroll={this.onScroll}
         gitHubUsers={this.props.gitHubUsers}
         emoji={this.props.emoji}
+        account={this.props.account}
       />
     )
   }

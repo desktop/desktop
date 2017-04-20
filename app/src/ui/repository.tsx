@@ -9,6 +9,7 @@ import { TabBar } from './tab-bar'
 import { IRepositoryState as IRepositoryModelState, RepositorySection } from '../lib/app-state'
 import { Dispatcher, IssuesStore, GitHubUserStore } from '../lib/dispatcher'
 import { assertNever } from '../lib/fatal-error'
+import { Account } from '../models/account'
 
 interface IRepositoryProps {
   readonly repository: Repo
@@ -19,6 +20,7 @@ interface IRepositoryProps {
   readonly commitSummaryWidth: number
   readonly issuesStore: IssuesStore
   readonly gitHubUserStore: GitHubUserStore
+  readonly account: Account
 }
 
 const enum Tab {
@@ -71,7 +73,9 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         issuesStore={this.props.issuesStore}
         availableWidth={availableWidth}
         gitHubUserStore={this.props.gitHubUserStore}
-        isCommitting={this.props.state.isCommitting} />
+        isCommitting={this.props.state.isCommitting}
+        account={this.props.account}
+      />
     )
   }
 
@@ -83,7 +87,9 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         history={this.props.state.historyState}
         gitHubUsers={this.props.state.gitHubUsers}
         emoji={this.props.emoji}
-        commits={this.props.state.commits}/>
+        commits={this.props.state.commits}
+        account={this.props.account}
+      />
     )
   }
 
@@ -136,6 +142,7 @@ export class RepositoryView extends React.Component<IRepositoryProps, void> {
         localCommitSHAs={this.props.state.localCommitSHAs}
         commitSummaryWidth={this.props.commitSummaryWidth}
         gitHubUsers={this.props.state.gitHubUsers}
+        account={this.props.account}
       />
     } else {
       return assertNever(selectedSection, 'Unknown repository section')

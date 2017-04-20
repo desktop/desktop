@@ -4,11 +4,13 @@ import { IAvatarUser } from '../../models/avatar'
 import { RichText } from '../lib/rich-text'
 import { Avatar } from '../lib/avatar'
 import { RelativeTime } from '../relative-time'
+import { Account } from '../../models/account'
 
 interface ICommitProps {
   readonly commit: Commit
   readonly user: IAvatarUser | null
   readonly emoji: Map<string, string>
+  readonly account: Account
 }
 
 /** A component which displays a single commit in a commit list. */
@@ -18,7 +20,7 @@ export class CommitListItem extends React.Component<ICommitProps, void> {
 
     return (
       <div className='commit'>
-        <Avatar user={this.props.user || undefined}/>
+        <Avatar user={this.props.user || undefined} account={this.props.account}/>
         <div className='info'>
           <RichText
             className='summary'
