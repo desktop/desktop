@@ -1,13 +1,13 @@
 import { parse, IGitProgress } from './parser'
 
 export interface IProgressStep {
-  title: string
-  weight: number
+  readonly title: string
+  readonly weight: number
 }
 
 export interface ICombinedProgress {
-  percent: number
-  details: IGitProgress
+  readonly percent: number
+  readonly details: IGitProgress
 }
 
 export class StepProgressParser {
