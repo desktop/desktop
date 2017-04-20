@@ -1444,14 +1444,48 @@ export class AppStore {
     return this.performFetch(repository, account, false)
   }
 
+  private updateFetchProgress(repository: Repository, fetchProgress: IGenericProgress | null) {
+    this.updateRepositoryState(repository, state => ({ fetchProgress }))
+
+    if (this.selectedRepository === repository) {
+      this.emitUpdate()
+    }
+  }
+
   private async performFetch(repository: Repository, account: Account | null, backgroundTask: boolean): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
-      await gitStore.fetchAll(account, backgroundTask)
-      await this.fastForwardBranches(repository)
-    })
 
-    return this._refreshRepository(repository)
+      try {
+        const fetchWeight = 0.9
+        const refreshWeight = 0.1
+
+        await gitStore.fetchAll(account, backgroundTask, (progress: IFetchProgress) => {
+          this.updateFetchProgress(repository, {
+            title: progress.title,
+            description: progress.description,
+            value: progress.value * fetchWeight,
+          })
+        })
+
+        this.updateFetchProgress(repository, {
+          title: 'Refreshing repository',
+          value: fetchWeight,
+        })
+
+        await this._refreshRepository(repository)
+
+        this.updateFetchProgress(repository, {
+          title: 'Refreshing repository',
+          description: 'Fast-forwarding branches',
+          value: fetchWeight + (refreshWeight * 0.5),
+        })
+
+        await this.fastForwardBranches(repository)
+      } finally {
+        this.updateFetchProgress(repository, null)
+      }
+    })
   }
 
   public _endWelcomeFlow(): Promise<void> {
