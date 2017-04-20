@@ -15,7 +15,7 @@
   }
 
   .actions {
-    margin-top: var(--spacing);  
+    margin-top: var(--spacing);
   }
 
   .usage-opt-out {
@@ -47,8 +47,24 @@
     padding: var(--spacing-half) var(--spacing);
   }
 
+  p {
+    max-width: 500px;
+  }
+
   .sign-in-footer {
     text-align: left;
+  }
+
+  .form-component {
+    width: 320px;
+
+    & > div:last-child {
+      margin-top: var(--spacing);
+    }
+
+    .text-box-component {
+      margin-bottom: var(--spacing-double);
+    }
   }
 }
 
@@ -79,18 +95,6 @@
 
 .sign-in-footer {
   text-align: center;
-}
-
-.sign-in-form {
-  width: 320px;
-
-  & > div:last-child {
-    margin-top: var(--spacing);
-  }
-
-  .text-box-component {
-    margin-bottom: var(--spacing-double);
-  }
 }
 
 .welcome-left,
