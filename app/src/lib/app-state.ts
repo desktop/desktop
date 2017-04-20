@@ -249,22 +249,22 @@ export interface IGenericProgress {
    * The overall progress of the operation, represented as a fraction between
    * 0 and 1.
    */
-  readonly progressValue: number
+  readonly value: number
 
   /**
    * An informative text for user consumption indicating the current operation
    * state. This will be high level such as 'Pushing origin' or 
    * 'Fetching upstream' and will typically persist over a number of progress
    * events. For more detailed information about the progress see
-   * progressDescription
+   * the description field
    */
-  readonly progressTitle: string
+  readonly title: string
 
   /**
    * An informative text for user consumption. In the case of git progress this
    * will usually be the last raw line of output from git.
    */
-  readonly progressDescription: string
+  readonly description?: string
 }
 
 /** 
@@ -278,14 +278,22 @@ export interface ICheckoutProgress {
    * The overall progress of the operation, represented as a fraction between
    * 0 and 1.
    */
-  readonly progressValue: number
+  readonly value: number
 
   /**
-   * 
    * An informative text for user consumption indicating the current operation
-   * state.
+   * state. This will be high level such as 'Fetching origin' or 
+   * 'Fetching upstream' and will typically persist over a number of progress
+   * events. For more detailed information about the progress see
+   * the description field
    */
-  readonly progressText: string
+  readonly title: string
+
+  /**
+   * An informative text for user consumption. For checkout progress this will
+   * be the last line output from Git.
+   */
+  readonly description?: string
 }
 
 /** 
@@ -302,22 +310,22 @@ export interface IFetchProgress {
    * The overall progress of the operation, represented as a fraction between
    * 0 and 1.
    */
-  readonly progressValue: number
+  readonly value: number
 
   /**
    * An informative text for user consumption indicating the current operation
    * state. This will be high level such as 'Fetching origin' or 
    * 'Fetching upstream' and will typically persist over a number of progress
    * events. For more detailed information about the progress see
-   * progressDescription
+   * the description field
    */
-  readonly progressTitle: string
+  readonly title: string
 
   /**
    * An informative text for user consumption. For fetch progress this will
    * be the last line output from Git.
    */
-  readonly progressDescription: string
+  readonly description?: string
 }
 
 export interface IBranchesState {

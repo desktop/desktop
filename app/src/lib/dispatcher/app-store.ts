@@ -1029,8 +1029,8 @@ export class AppStore {
 
     try {
       this.updateCheckoutProgress(repository, {
-        progressText: 'Refreshing repository',
-        progressValue: 1,
+        title: 'Refreshing repository',
+        value: 1,
         targetBranch: name,
       })
 
@@ -1130,9 +1130,9 @@ export class AppStore {
     return this._refreshRepository(repository)
   }
 
-  private updatePushProgress(repository: Repository, progressTitle: string, progressDescription: string, progressValue: number) {
+  private updatePushProgress(repository: Repository, title: string, description: string | undefined, value: number) {
     this.updateRepositoryState(repository, state => ({
-      pushProgress: { progressTitle, progressDescription, progressValue },
+      pushProgress: { title, description, value },
     }))
 
     if (this.selectedRepository === repository) {
@@ -1181,17 +1181,17 @@ export class AppStore {
         await gitStore.performFailableOperation(async () => {
 
           await pushRepo(repository, account, remote.name, branch.name, setUpstream, (progress) => {
-            const progressValue = pushWeight * progress.progressValue
-            this.updatePushProgress(repository, pushTitle, progress.progressDescription, progressValue)
+            const progressValue = pushWeight * progress.value
+            this.updatePushProgress(repository, pushTitle, progress.description, progressValue)
           })
 
           await gitStore.fetchAll(account, false, (fetchProgress) => {
-            const progressValue = pushWeight + fetchProgress.progressValue * fetchWeight
+            const progressValue = pushWeight + fetchProgress.value * fetchWeight
 
             this.updatePushProgress(
               repository,
-              fetchProgress.progressTitle,
-              fetchProgress.progressDescription,
+              fetchProgress.title,
+              fetchProgress.description,
               progressValue
             )
           })

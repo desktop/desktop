@@ -40,7 +40,7 @@ export async function push(repository: Repository, account: Account | null, remo
 
   if (progressCallback) {
     args.push('--progress')
-    const progressTitle = `Pushing to ${remote}`
+    const title = `Pushing to ${remote}`
 
     options = {
       ...options,
@@ -51,20 +51,20 @@ export async function push(repository: Repository, account: Account | null, remo
           const progress = parser.parse(line)
 
           progressCallback({
-            progressTitle,
-            progressDescription: progress.kind === 'progress'
+            title,
+            description: progress.kind === 'progress'
               ? progress.details.text
               : progress.text,
-            progressValue: progress.percent,
+            value: progress.percent,
           })
         })
       },
     }
 
     progressCallback({
-      progressTitle,
-      progressDescription: '',
-      progressValue: 0,
+      title,
+      description: '',
+      value: 0,
     })
   }
 

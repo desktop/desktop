@@ -455,7 +455,7 @@ export class GitStore {
         if (progress && progressCallback) {
           progressCallback({
             ...progress,
-            progressValue: startProgressValue + (progress.progressValue * weight),
+            value: startProgressValue + (progress.value * weight),
           })
         }
       })
@@ -473,10 +473,10 @@ export class GitStore {
    */
   public async fetchRemote(account: Account | null, remote: string, backgroundTask: boolean, progressCallback?: (fetchProgress: IFetchProgress) => void): Promise<void> {
     const parser = new FetchProgressParser()
-    const progressTitle = `Fetching from ${remote}`
+    const title = `Fetching from ${remote}`
 
     if (progressCallback) {
-      progressCallback({ progressTitle, progressDescription: '', progressValue: 0, remote })
+      progressCallback({ title, value: 0, remote })
     }
 
     await this.performFailableOperation(() => {
@@ -486,14 +486,14 @@ export class GitStore {
         }
 
         const progress = parser.parse(line)
-        const progressDescription = progress.kind === 'progress'
+        const description = progress.kind === 'progress'
           ? progress.details.text
           : progress.text
 
         progressCallback({
-          progressTitle,
-          progressDescription,
-          progressValue: progress.percent,
+          title,
+          description,
+          value: progress.percent,
           remote,
         })
       })

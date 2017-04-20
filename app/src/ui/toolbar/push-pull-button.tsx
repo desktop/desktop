@@ -39,13 +39,15 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
 
     const progress = this.props.progress
 
-    const title = progress ? progress.progressTitle : this.getTitle()
+    const title = progress ? progress.title : this.getTitle()
 
     const description = progress
-      ? progress.progressDescription || 'Hang on…'
+      ? progress.description || 'Hang on…'
       : this.getDescription()
 
-    const progressValue = progress ? progress.progressValue : undefined
+    const progressValue = progress
+      ? progress.value
+      : undefined
 
     const disabled = this.props.networkActionInProgress || !!this.props.progress
 
