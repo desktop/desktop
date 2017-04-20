@@ -122,7 +122,7 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
 
     return (
       <div>
-        {basicAuth ? <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div> : null}
+        {basicAuth ? <hr className='short-rule' /> : null}
 
         <p className='sign-in-footer'>
           {basicAuth ? browserSignInLink : browserSignInButton}

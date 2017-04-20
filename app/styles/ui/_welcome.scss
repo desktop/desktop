@@ -65,10 +65,6 @@
     max-width: 500px;
   }
 
-  .sign-in-footer {
-    text-align: left;
-  }
-
   .form-component {
     width: 320px;
 
@@ -107,10 +103,6 @@
   width: 100%;
 }
 
-.sign-in-footer {
-  text-align: center;
-}
-
 .welcome-left,
 .welcome-right {
   flex-grow: 1;
@@ -146,13 +138,6 @@
   padding: var(--spacing);
   position: relative;
   overflow: hidden;
-}
-
-.short-rule {
-  border: none;
-  border-top: var(--base-border);
-  margin: var(--spacing-double) 0;
-  width: 5em;
 }
 
 .skip-action-container {
