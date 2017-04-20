@@ -1132,17 +1132,14 @@ export class AppStore {
   }
 
   public async _push(repository: Repository, account: Account | null): Promise<void> {
-    return this.withPushPull(repository, async () => {
-      const gitStore = this.getGitStore(repository)
-      const remote = gitStore.remote
-      if (!remote) {
-        this._showPopup({
-          type: PopupType.PublishRepository,
-          repository,
-        })
-        return
-      }
+    const gitStore = this.getGitStore(repository)
+    const remote = gitStore.remote
+    if (!remote) {
+      this._showPopup({ type: PopupType.PublishRepository, repository })
+      return
+    }
 
+    return this.withPushPull(repository, async () => {
       const state = this.getRepositoryState(repository)
       if (state.branchesState.tip.kind === TipState.Unborn) {
         throw new Error('The current branch is unborn.')
