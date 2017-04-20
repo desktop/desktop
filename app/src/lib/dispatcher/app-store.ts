@@ -13,6 +13,7 @@ import {
   IBranchesState,
   PossibleSelections,
   SelectionType,
+  IGenericProgress,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -1122,6 +1123,14 @@ export class AppStore {
     return this._refreshRepository(repository)
   }
 
+  private updatePushProgress(repository: Repository, pushProgress: IGenericProgress | null) {
+    this.updateRepositoryState(repository, state => ({ pushProgress }))
+
+    if (this.selectedRepository === repository) {
+      this.emitUpdate()
+    }
+  }
+
   public async _push(repository: Repository, account: Account | null): Promise<void> {
     return this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
@@ -1155,77 +1164,43 @@ export class AppStore {
           const pushText = `Pushing ${branch.name} to ${remote.name}`
           const fetchText = `Fetching from ${remote.name}`
 
-          this.updateRepositoryState(repository, state => ({
-            pushProgress: {
-              progressText: pushText,
-              progressValue: 0,
-            },
-          }))
-
-          this.emitUpdate()
+          this.updatePushProgress(repository, {
+            progressText: pushText,
+            progressValue: 0,
+          })
 
           await pushRepo(repository, account, remote.name, branch.name, setUpstream, (line) => {
             const progress = progressParser.parse(line)
-            if (!progress) {
-              return
-            }
-
-            this.updateRepositoryState(repository, state => ({
-              pushProgress: {
+            if (progress) {
+              this.updatePushProgress(repository, {
                 progressText: pushText,
                 progressValue: pushWeight * progress.percent,
-              },
-            }))
-
-            if (this.selectedRepository === repository) {
-              this.emitUpdate()
+              })
             }
           })
 
-          this.updateRepositoryState(repository, state => ({
-            pushProgress: {
-              progressText: 'Refreshing repository',
-              progressValue: pushWeight,
-            },
-          }))
-
-          if (this.selectedRepository === repository) {
-            this.emitUpdate()
-          }
+          this.updatePushProgress(repository, {
+            progressText: 'Refreshing repository',
+            progressValue: pushWeight,
+          })
 
           await this._refreshRepository(repository)
 
           await gitStore.fetch(account, false, (fetchProgress) => {
-            this.updateRepositoryState(repository, state => ({
-              pushProgress: {
-                progressText: fetchText,
-                progressValue: pushWeight + fetchProgress.progressValue * fetchWeight,
-              },
-            }))
-
-            if (this.selectedRepository === repository) {
-              this.emitUpdate()
-            }
+            this.updatePushProgress(repository, {
+              progressText: fetchText,
+              progressValue: pushWeight + fetchProgress.progressValue * fetchWeight,
+            })
           })
 
-          this.updateRepositoryState(repository, state => ({
-            pushProgress: {
-              progressText: 'Fast forwarding branches',
+          this.updatePushProgress(repository, {
+              progressText: 'Fast-forwarding branches',
               progressValue: 1,
-            },
-          }))
-
-          if (this.selectedRepository === repository) {
-            this.emitUpdate()
-          }
+          })
 
           await this.fastForwardBranches(repository)
 
-          this.updateRepositoryState(repository, state => ({ pushProgress: null }))
-
-          if (this.selectedRepository === repository) {
-            this.emitUpdate()
-          }
+          this.updatePushProgress(repository, null)
         })
       }
     })
