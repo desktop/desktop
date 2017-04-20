@@ -6,8 +6,15 @@ export interface IProgressStep {
 }
 
 export interface ICombinedProgress {
+  readonly kind: 'progress'
   readonly percent: number
   readonly details: IGitProgress
+}
+
+export interface IContextOutput {
+  readonly kind: 'context'
+  readonly percent: number
+  readonly text: string
 }
 
 export class StepProgressParser {
@@ -20,6 +27,8 @@ export class StepProgressParser {
    * steps.
    */
   private stepIndex = 0
+
+  private lastPercent = 0
 
   public constructor(steps: ReadonlyArray<IProgressStep>) {
 
@@ -37,11 +46,11 @@ export class StepProgressParser {
     }))
   }
 
-  public parse(line: string): ICombinedProgress | null {
+  public parse(line: string): ICombinedProgress | IContextOutput {
     const progress = parse(line)
 
     if (!progress) {
-      return null
+      return { kind: 'context', text: line, percent: this.lastPercent }
     }
 
     let percent = 0
@@ -56,13 +65,14 @@ export class StepProgressParser {
         }
 
         this.stepIndex = i
+        this.lastPercent = percent
 
-        return { percent, details: progress }
+        return { kind: 'progress', percent, details: progress }
       } else {
         percent += step.weight
       }
     }
 
-    return null
+    return { kind: 'context', text: line, percent: this.lastPercent }
   }
 }
