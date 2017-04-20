@@ -105,7 +105,7 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
     const actionName = (function () {
       if (behind > 0) { return 'Pull' }
       if (ahead > 0) { return 'Push' }
-      return 'Update'
+      return 'Fetch'
     })()
 
     return `${actionName} ${this.props.remoteName}`
