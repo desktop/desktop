@@ -109,15 +109,23 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
 
   private renderSignInWithBrowser() {
     const basicAuth = this.props.supportsBasicAuth
+    const browserSignInLink =
+          <LinkButton className='welcome-link-button link-with-icon' onClick={this.signInWithBrowser}>
+            Sign in using your browser
+            <Octicon symbol={OcticonSymbol.linkExternal} />
+          </LinkButton>
+
+  const browserSignInButton =
+    <Button className='primary-button'  onClick={this.signInWithBrowser}>
+      Sign in using your browser
+    </Button>
+
     return (
       <div>
         {basicAuth ? <div className='horizontal-rule'><span className='horizontal-rule-content'>or</span></div> : null}
 
         <p className='sign-in-footer'>
-          <LinkButton className='welcome-link-button link-with-icon' onClick={this.signInWithBrowser}>
-            Sign in using your browser
-            <Octicon symbol={OcticonSymbol.linkExternal} />
-          </LinkButton>
+          {basicAuth ? browserSignInLink : browserSignInButton}
         </p>
 
         {basicAuth ? null : this.renderActions()}

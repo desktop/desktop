@@ -29,7 +29,8 @@
   &:disabled { opacity: 0.6; }
 }
 
-.button-component[type='submit'] {
+.button-component[type='submit'],
+.primary-button {
   background-color: var(--button-background);
   color: var(--button-text-color);
   border: 1px solid var(--button-background);
