@@ -1,6 +1,6 @@
 export * from './checkout'
 export * from './parser'
-export * from './step-progress'
+export * from './git'
 export * from './clone-progress-parser'
 export * from './push-progress-parser'
 export * from './fetch-progress-parser'

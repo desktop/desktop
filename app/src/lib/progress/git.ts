@@ -17,7 +17,7 @@ export interface IContextOutput {
   readonly text: string
 }
 
-export class StepProgressParser {
+export class GitProgressParser {
   private readonly steps: ReadonlyArray<IProgressStep>
 
   /* The steps listed in should always occur in order but some

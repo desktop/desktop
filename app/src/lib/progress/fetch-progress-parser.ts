@@ -1,4 +1,4 @@
-import { StepProgressParser } from './step-progress'
+import { GitProgressParser } from './git'
 
 /**
  * Highly approximate (some would say outright inaccurate) division
@@ -15,7 +15,7 @@ const steps = [
  * and turning that into a percentage value estimating the overall progress
  * of the fetch.
  */
-export class FetchProgressParser extends StepProgressParser {
+export class FetchProgressParser extends GitProgressParser {
   public constructor() {
     super(steps)
   }

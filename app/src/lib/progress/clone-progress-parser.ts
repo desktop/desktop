@@ -1,4 +1,4 @@
-import { StepProgressParser } from './step-progress'
+import { GitProgressParser } from './git'
 
 /**
  * Highly approximate (some would say outright inaccurate) division
@@ -18,10 +18,10 @@ const steps = [
  */
 export class CloneProgressParser {
 
-  private readonly parser: StepProgressParser
+  private readonly parser: GitProgressParser
 
   public constructor() {
-    this.parser = new StepProgressParser(steps)
+    this.parser = new GitProgressParser(steps)
   }
 
   /**

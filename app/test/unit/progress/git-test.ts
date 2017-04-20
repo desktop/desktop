@@ -1,16 +1,16 @@
 import { expect } from 'chai'
 
-import { StepProgressParser, ICombinedProgress } from '../../src/lib/progress'
+import { GitProgressParser, ICombinedProgress } from '../../../src/lib/progress'
 
-describe('StepProgressParser', () => {
+describe('GitProgressParser', () => {
 
   it('requires at least one step', () => {
-    expect(() => new StepProgressParser([])).to.throw()
+    expect(() => new GitProgressParser([])).to.throw()
   })
 
   it('parses progress with one step', () => {
 
-    const parser = new StepProgressParser([
+    const parser = new GitProgressParser([
       { title: 'remote: Compressing objects', weight: 1 },
     ])
 
@@ -20,7 +20,7 @@ describe('StepProgressParser', () => {
 
   it('parses progress with several steps', () => {
 
-    const parser = new StepProgressParser([
+    const parser = new GitProgressParser([
       { title: 'remote: Compressing objects', weight: 0.5 },
       { title: 'Receiving objects', weight: 0.5 },
     ])
@@ -40,7 +40,7 @@ describe('StepProgressParser', () => {
 
   it('enforces ordering of steps', () => {
 
-    const parser = new StepProgressParser([
+    const parser = new GitProgressParser([
       { title: 'remote: Compressing objects', weight: 0.5 },
       { title: 'Receiving objects', weight: 0.5 },
     ])
