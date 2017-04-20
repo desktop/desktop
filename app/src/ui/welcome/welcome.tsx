@@ -123,7 +123,6 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
 
   public render() {
    const WelcomeImageUri = `file:///${__dirname}/static/illustration.svg`
-   const WelcomeImageDimensions = { width: 564, height: 506 } // Put in render
 
     return (
       <UiView id='welcome'>
@@ -132,7 +131,7 @@ export class Welcome extends React.Component<IWelcomeProps, IWelcomeState> {
         </div>
 
         <div className='welcome-right'>
-         <img className='welcome-graphic' src={WelcomeImageUri} style={WelcomeImageDimensions}/>
+         <img className='welcome-graphic' src={WelcomeImageUri} />
         </div>
       </UiView>
     )

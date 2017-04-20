@@ -113,6 +113,7 @@
   justify-content: center;
   align-items: center;
   display: flex;
+  padding: var(--spacing);
   position: relative;
   overflow: hidden;
 }
@@ -134,5 +135,6 @@
 }
 
 .welcome-graphic {
-  transform: scale(0.8);
+  height: auto;
+  width: 100%;
 }
