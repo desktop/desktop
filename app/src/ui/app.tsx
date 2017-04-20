@@ -63,7 +63,7 @@ export class App extends React.Component<IAppProps, IAppState> {
    */
   private lastKeyPressed: string | null = null
 
-  private isUpdateAvailbale: boolean = false
+  private isUpdateAvailible: boolean = false
 
   /**
    * Gets a value indicating whether or not we're currently showing a
@@ -120,7 +120,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       setMenuVisible(visibleItem, true)
 
       if (status === UpdateStatus.UpdateReady) {
-        this.isUpdateAvailbale = true
+        this.isUpdateAvailible = true
       }
     })
 
@@ -1060,7 +1060,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     return (
       <UpdateAvailable
-        updateAvailble={this.isUpdateAvailbale}
+        updateAvailble={this.isUpdateAvailible}
         releaseNotesLink={releaseNotesUri}/>
     )
   }
