@@ -462,6 +462,39 @@ export class GitStore {
   }
 
   /**
+   * Fetch a remote, using the given account for authentication.
+   *
+   * @param account        - The account to use for authentication if needed.
+   * @param remote         - The name of the remote to fetch from.
+   * @param backgroundTask - Was the fetch done as part of a background task?
+   */
+  public async fetchRemote(account: Account | null, remote: string, backgroundTask: boolean, progressCallback?: (fetchProgress: IFetchProgress) => void): Promise<void> {
+    const parser = new FetchProgressParser()
+    const progressText = `Fetching from ${remote}`
+
+    if (progressCallback) {
+      progressCallback({ progressText, progressValue: 0, remote })
+    }
+
+    await this.performFailableOperation(() => {
+      return fetchRepo(this.repository, account, remote, (line) => {
+        if (!progressCallback) {
+          return
+        }
+
+        const progress = parser.parse(line)
+        if (progress) {
+          progressCallback({
+            progressText,
+            progressValue: progress.percent,
+            remote,
+          })
+        }
+      })
+    }, { backgroundTask })
+  }
+
+  /**
    * Fetch a given refspec, using the given account for authentication.
    *
    * @param user - The user to use for authentication if needed.
