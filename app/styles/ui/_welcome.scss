@@ -14,6 +14,10 @@
     flex-direction: column;
   }
 
+  .actions {
+    margin-top: var(--spacing);  
+  }
+
   .usage-opt-out {
     width: 300px;
 
