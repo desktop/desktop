@@ -120,7 +120,7 @@
 
 .short-rule {
   border: none;
-  border-top: 1px solid #cccc;
+  border-top: var(--base-border);
   margin: var(--spacing-double) 0;
   width: 5em;
 }
