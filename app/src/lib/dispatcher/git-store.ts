@@ -432,34 +432,19 @@ export class GitStore {
     }
 
     const weight = 1 / remotes.length
-    const parser = new FetchProgressParser()
 
     for (let i = 0; i < remotes.length; i++) {
       const remote = remotes[i]
       const startProgressValue = i * weight
 
-      const progressText = `Fetching from ${remote.name}`
-
-      if (progressCallback) {
-        progressCallback({ progressText, progressValue: startProgressValue, remote: remote.name })
-      }
-
-      await this.performFailableOperation(() => {
-        return fetchRepo(this.repository, account, remote.name, (line) => {
-          if (!progressCallback) {
-            return
-          }
-
-          const progress = parser.parse(line)
-          if (progress) {
-            progressCallback({
-              progressText,
-              progressValue: startProgressValue + (progress.percent * weight),
-              remote: remote.name,
-            })
-          }
-        })
-      }, { backgroundTask })
+      await this.fetchRemote(account, remote.name, backgroundTask, (progress) => {
+        if (progress && progressCallback) {
+          progressCallback({
+            ...progress,
+            progressValue: startProgressValue + (progress.progressValue * weight),
+          })
+        }
+      })
     }
   }
 
