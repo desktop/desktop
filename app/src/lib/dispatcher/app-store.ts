@@ -12,7 +12,8 @@ import {
   Foldout,
   IBranchesState,
   PossibleSelections,
-  SelectionType
+  SelectionType,
+  ICheckoutProgress,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -45,7 +46,7 @@ import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
 import { structuralEquals } from '../equality'
 import { fatalError } from '../fatal-error'
-import { ICheckoutProgress, CheckoutProgressParser, PushProgressParser } from '../progress'
+import { PushProgressParser } from '../progress'
 
 import {
   getGitDir,
@@ -1009,7 +1010,7 @@ export class AppStore {
     return await this._checkoutBranch(repository, name)
   }
 
-  private onCheckoutProgress = (repository: Repository, checkoutProgress: ICheckoutProgress | null) => {
+  private updateCheckoutProgress(repository: Repository, checkoutProgress: ICheckoutProgress | null) {
     this.updateRepositoryState(repository, state => ({ checkoutProgress }))
 
     if (this.selectedRepository === repository) {
@@ -1021,16 +1022,23 @@ export class AppStore {
   public async _checkoutBranch(repository: Repository, name: string): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
 
-    const progressParser = new CheckoutProgressParser(
-      repository, name, this.onCheckoutProgress
-    )
-
     await gitStore.performFailableOperation(() => {
-      return checkoutBranch(repository, name, progressParser.parse)
+      return checkoutBranch(repository, name, (progress) => {
+        this.updateCheckoutProgress(repository, progress)
+      })
     })
 
-    await this._refreshRepository(repository)
-    progressParser.end()
+    try {
+      this.updateCheckoutProgress(repository, {
+        progressText: 'Refreshing repository',
+        progressValue: 1,
+        targetBranch: name,
+      })
+
+      await this._refreshRepository(repository)
+    } finally {
+      this.updateCheckoutProgress(repository, null)
+    }
 
     return repository
   }
