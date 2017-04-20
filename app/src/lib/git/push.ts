@@ -51,8 +51,6 @@ export async function push(repository: Repository, account: Account | null, remo
   const result = await git(args, repository.path, 'push', options)
 
   if (result.gitErrorDescription) {
-    return Promise.reject(new Error(result.gitErrorDescription))
+    throw new Error(result.gitErrorDescription)
   }
-
-  return Promise.resolve()
 }
