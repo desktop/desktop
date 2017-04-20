@@ -35,6 +35,7 @@ import { MissingRepository } from './missing-repository'
 import { AddExistingRepository, CreateRepository, CloneRepository } from './add-repository'
 import { CreateBranch } from './create-branch'
 import { SignIn } from './sign-in'
+import { InstallGit } from './install-git'
 import { About } from './about'
 import { getVersion, getName } from './lib/app-proxy'
 import { Publish } from './publish-repository'
@@ -811,6 +812,12 @@ export class App extends React.Component<IAppProps, IAppState> {
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />
       }
+      case PopupType.InstallGit:
+        return (
+          <InstallGit
+           onDismissed={this.onPopupDismissed}
+           path={popup.path} />
+        )
       case PopupType.About:
         return (
           <About
