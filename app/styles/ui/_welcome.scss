@@ -12,16 +12,17 @@
   #sign-in-dot-com {
     display: flex;
     flex-direction: column;
+
+    .actions {
+      margin-top: var(--spacing-double);
+    }
   }
 
   #sign-in-enterprise {
     .actions {
-      display: inline;  
+      display: inline;
+      margin-top: var(--spacing);
     }
-  }
-
-  .actions {
-    margin-top: var(--spacing);
   }
 
   .usage-opt-out {
@@ -64,12 +65,12 @@
   .form-component {
     width: 320px;
 
-    & > div:last-child {
-      margin-top: var(--spacing);
+    .text-box-component {
+      margin-bottom: var(--spacing);
     }
 
-    .text-box-component {
-      margin-bottom: var(--spacing-double);
+    .actions {
+      margin-top: var(--spacing-double);
     }
   }
 }
