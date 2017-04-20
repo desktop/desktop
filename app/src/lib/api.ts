@@ -322,10 +322,9 @@ export class API {
     } else {
       response = await fetch(request)
       if (url === 'https://avatars.ghe.io/u/61?') {
-        // debugger
+        debugger
       }
       if (response.ok) {
-        debugger
         await cache.put(request, response)
         const r: Response | null = await cache.match(request)
         if (r) {
