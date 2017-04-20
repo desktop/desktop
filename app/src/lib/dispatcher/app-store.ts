@@ -1299,7 +1299,7 @@ export class AppStore {
             pullRepo(repository, account, remote.name, progress => {
               this.updatePullProgress(repository, {
                 ...progress,
-                value: progress.value * pullWeight
+                value: progress.value * pullWeight,
               })
             }))
 
