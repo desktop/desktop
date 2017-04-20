@@ -13,6 +13,10 @@
     display: flex;
     flex-direction: column;
 
+    .form-component {
+      display: block;
+    }
+
     .actions {
       margin-top: var(--spacing-double);
     }
