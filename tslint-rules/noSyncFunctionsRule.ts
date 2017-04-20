@@ -19,9 +19,9 @@ class NoSyncFunctionsWalker extends Lint.RuleWalker {
     const functionName = this.getFunctionName(node)
     if (functionName && functionName.endsWith('Sync')) {
       const start = node.getStart()
-      const widget = node.getWidth()
+      const width = node.getWidth()
       const error = `Synchronous functions shouldn't be used. Find an asynchronous alternative.`
-      this.addFailure(this.createFailure(start, widget, error))
+      this.addFailure(this.createFailure(start, width, error))
     } else {
       super.visitCallExpression(node)
     }
