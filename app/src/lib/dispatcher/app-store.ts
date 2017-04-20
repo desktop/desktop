@@ -1281,15 +1281,19 @@ export class AppStore {
           const otherRemotes = (await getRemotes(repository))
             .filter(r => r.name !== remote.name)
 
-          let pullWeight = 0.6
-          let fetchWeight = 0.3 * otherRemotes.length
-          let refreshWeight = 0.1
+          // Let's say that a pull takes twice as long as a fetch,
+          // this is of course highly inaccurate.
+          let pullWeight = 2
+          let fetchWeight = 1 * otherRemotes.length
 
-          const scale = 1 / (pullWeight + fetchWeight + refreshWeight)
+          // Let's leave 10% at the end for refreshing
+          const refreshWeight = 0.1
+
+          // Scale pull and fetch weights to be between 0 and 0.9.
+          const scale = (1 / ((pullWeight + fetchWeight)) * (1 - refreshWeight))
 
           pullWeight *= scale
           fetchWeight *= scale
-          refreshWeight *= scale
 
           await gitStore.performFailableOperation(() =>
             pullRepo(repository, account, remote.name, progress => {
