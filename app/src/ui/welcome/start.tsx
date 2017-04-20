@@ -14,9 +14,7 @@ export class Start extends React.Component<IStartProps, void> {
     return (
       <div id='start'>
         <h1 className='welcome-title'>
-          Welcome to
-          <br />
-          GitHub Desktop
+          Welcome to GitHub&nbsp;Desktop
         </h1>
         <p className='welcome-text'>
           GitHub Desktop is a seamless way to contribute to projects on GitHub
