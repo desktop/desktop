@@ -309,6 +309,37 @@ export class API {
     const responseEtag = response.headers.get('etag')
     return { users, etag: responseEtag || '' }
   }
+
+  public async fetchImage(url: string): Promise<Blob | null> {
+    const request = this.makeAuthenticatedRequestWithURL('GET', url, undefined, {
+      'Accept': '',
+      'Content-Type': 'image/*',
+    })
+    const cache = await caches.open('images-cache')
+    let response: Response | null = await cache.match(request)
+    if (response) {
+      return response.blob()
+    } else {
+      response = await fetch(request)
+      if (url === 'https://avatars.ghe.io/u/61?') {
+        // debugger
+      }
+      if (response.ok) {
+        debugger
+        await cache.put(request, response)
+        const r: Response | null = await cache.match(request)
+        if (r) {
+          return r.blob()
+        }
+      } else {
+        debugger
+      }
+    }
+
+    console.log('null image for', url)
+
+    return null
+  }
 }
 
 export enum AuthorizationResponseKind {
