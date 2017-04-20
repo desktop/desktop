@@ -956,7 +956,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const state = selection.state
     const remoteName = state.remote ? state.remote.name : null
-    const progress = state.pushProgress || state.pullProgress
+    const progress = state.pushProgress || state.pullProgress || state.fetchProgress
 
     return <PushPullButton
       dispatcher={this.props.dispatcher}
