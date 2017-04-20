@@ -1175,7 +1175,6 @@ export class AppStore {
         const pushWeight = 0.7
         const fetchWeight = 0.3
         const pushTitle = `Pushing to ${remote.name}`
-        const fetchTitle = `Fetching from ${remote.name}`
 
         this.updatePushProgress(repository, pushTitle, '', 0)
 
@@ -1186,14 +1185,14 @@ export class AppStore {
             this.updatePushProgress(repository, pushTitle, progress.progressDescription, progressValue)
           })
 
-          this.updatePushProgress(repository, 'Refreshing repository', '', pushWeight)
-
-          await this._refreshRepository(repository)
-
           await gitStore.fetchAll(account, false, (fetchProgress) => {
             const progressValue = pushWeight + fetchProgress.progressValue * fetchWeight
-            this.updatePushProgress(repository, fetchTitle, fetchProgress.progressText, progressValue)
+            const progressTitle = `Fetching from ${fetchProgress.remote}`
+            const progressDescription = fetchProgress.progressText
+            this.updatePushProgress(repository, progressTitle, progressDescription, progressValue)
           })
+
+          await this._refreshRepository(repository)
 
           this.updatePushProgress(repository, 'Refreshing repository', 'Fast-forwarding branches', 1)
 
