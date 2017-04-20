@@ -25,6 +25,12 @@
     }
   }
 
+  #configure-git-user .form-component {
+    div:last-child {
+      margin-top: var(--spacing);
+    }
+  }
+
   .usage-opt-out {
     width: 300px;
 
