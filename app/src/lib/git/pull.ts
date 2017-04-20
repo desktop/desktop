@@ -6,7 +6,7 @@ import { ChildProcess } from 'child_process'
 const byline = require('byline')
 
 /** Pull from the remote to the branch. */
-export async function pull(repository: Repository, account: Account | null, remote: string, branch: string, progressCallback?: (line: string) => void): Promise<void> {
+export async function pull(repository: Repository, account: Account | null, remote: string, progressCallback?: (line: string) => void): Promise<void> {
 
   let options: IGitExecutionOptions = {
     env: envForAuthentication(account),
@@ -25,8 +25,8 @@ export async function pull(repository: Repository, account: Account | null, remo
   }
 
   const args = progressCallback
-    ? [ 'pull', '--progress', remote, branch ]
-    : [ 'pull', remote, branch ]
+    ? [ 'pull', '--progress', remote ]
+    : [ 'pull', remote ]
 
   const result = await git(args, repository.path, 'pull', options)
 

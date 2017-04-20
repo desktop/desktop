@@ -1258,8 +1258,7 @@ export class AppStore {
       }
 
       if (state.branchesState.tip.kind === TipState.Valid) {
-        const branch = state.branchesState.tip.branch
-        return gitStore.performFailableOperation(() => pullRepo(repository, account, remote.name, branch.name))
+        return gitStore.performFailableOperation(() => pullRepo(repository, account, remote.name))
           .then(() => this._refreshRepository(repository))
           .then(() => this.fetch(repository, account))
       }
