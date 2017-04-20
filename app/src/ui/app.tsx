@@ -1043,7 +1043,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
       return <CloningRepositoryView repository={selectedState.repository}
-                                    state={selectedState.state}/>
+                                    progress={selectedState.progress}/>
     } else if (selectedState.type === SelectionType.MissingRepository) {
       return <MissingRepository repository={selectedState.repository} dispatcher={this.props.dispatcher} accounts={this.state.accounts} />
     } else {

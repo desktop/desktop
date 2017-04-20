@@ -16,22 +16,8 @@ const steps = [
  * and turning that into a percentage value estimating the overall progress
  * of the clone.
  */
-export class CloneProgressParser {
-
-  private readonly parser: GitProgressParser
-
+export class CloneProgressParser extends GitProgressParser {
   public constructor() {
-    this.parser = new GitProgressParser(steps)
-  }
-
-  /**
-   * Parses a single line of output from 'git clone --progress'.
-   * Returns a fractional value between 0 and 1 indicating the
-   * overall progress so far or null if progress is still
-   * indeterminate.
-   */
-  public parse(line: string): number | null {
-    const progress = this.parser.parse(line)
-    return progress.kind === 'progress' ? progress.percent : null
+    super(steps)
   }
 }

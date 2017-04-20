@@ -7,13 +7,12 @@ import { Branch } from '../models/branch'
 import { Tip } from '../models/tip'
 import { Commit } from '../models/commit'
 import { FileChange, WorkingDirectoryStatus, WorkingDirectoryFileChange } from '../models/status'
-import { CloningRepository, ICloningRepositoryState, IGitHubUser, SignInState } from './dispatcher'
+import { CloningRepository, IGitHubUser, SignInState } from './dispatcher'
 import { ICommitMessage } from './dispatcher/git-store'
 import { IMenu } from '../models/app-menu'
 import { IRemote } from '../models/remote'
 import { WindowState } from './window-state'
 
-export { ICloningRepositoryState }
 export { ICommitMessage }
 export { IAheadBehind }
 
@@ -24,7 +23,7 @@ export enum SelectionType {
 }
 
 export type PossibleSelections = { type: SelectionType.Repository, repository: Repository, state: IRepositoryState } |
-                                 { type: SelectionType.CloningRepository, repository: CloningRepository, state: ICloningRepositoryState } |
+                                 { type: SelectionType.CloningRepository, repository: CloningRepository, progress: ICloneProgress } |
                                  { type: SelectionType.MissingRepository, repository: Repository }
 
 /** All of the shared app state. */
@@ -328,6 +327,32 @@ export interface IFetchProgress {
   readonly description?: string
 }
 
+/** 
+ * An object describing the progression of a fetch operation
+ */
+export interface ICloneProgress {
+  /** 
+   * The overall progress of the operation, represented as a fraction between
+   * 0 and 1.
+   */
+  readonly value: number
+
+  /**
+   * An informative text for user consumption indicating the current operation
+   * state. This will be high level such as 'Fetching origin' or 
+   * 'Fetching upstream' and will typically persist over a number of progress
+   * events. For more detailed information about the progress see
+   * the description field
+   */
+  readonly title: string
+
+  /**
+   * An informative text for user consumption. For fetch progress this will
+   * be the last line output from Git.
+   */
+  readonly description?: string
+}
+
 export interface IBranchesState {
   /**
    * The current tip of HEAD, either a branch, a commit (if HEAD is
@@ -356,6 +381,8 @@ export interface IBranchesState {
    */
   readonly recentBranches: ReadonlyArray<Branch>
 }
+
+
 
 export interface IHistorySelection {
   readonly sha: string | null

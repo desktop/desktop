@@ -308,13 +308,13 @@ export class AppStore {
     if (!repository) { return null }
 
     if (repository instanceof CloningRepository) {
-      const cloningState = this.cloningRepositoriesStore.getRepositoryState(repository)
-      if (!cloningState) { return null }
+      const progress = this.cloningRepositoriesStore.getRepositoryState(repository)
+      if (!progress) { return null }
 
       return {
         type: SelectionType.CloningRepository,
         repository,
-        state: cloningState,
+        progress,
       }
     }
 
