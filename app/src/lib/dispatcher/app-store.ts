@@ -1196,6 +1196,8 @@ export class AppStore {
             )
           })
 
+          this.updatePushProgress(repository, 'Refreshing repository', '', 1)
+
           await this._refreshRepository(repository)
 
           this.updatePushProgress(repository, 'Refreshing repository', 'Fast-forwarding branches', 1)
