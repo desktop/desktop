@@ -11,6 +11,7 @@ import { IRemote } from '../../models/remote'
 
 import { IAppShell } from '../../lib/dispatcher/app-shell'
 import { ErrorWithMetadata, IErrorMetadata } from '../error-with-metadata'
+import { structuralEquals } from '../../lib/equality'
 
 import {
   reset,
@@ -629,9 +630,7 @@ export class GitStore {
     // In the case where we're in the middle of a merge, we're gonna keep
     // finding the same merge message over and over. We don't need to keep
     // telling the world.
-    if (existingMessage && message &&
-        existingMessage.description === message.description &&
-        existingMessage.summary === message.summary) {
+    if (existingMessage && message && structuralEquals(existingMessage, message)) {
       return
     }
 

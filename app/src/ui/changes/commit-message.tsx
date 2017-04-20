@@ -11,7 +11,7 @@ import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
-
+import { structuralEquals } from '../../lib/equality'
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
@@ -89,9 +89,8 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     const lastContextualCommitMessage = this.state.lastContextualCommitMessage
     // If the contextual commit message changed, we'll use it as our commit
     // message.
-    if (nextContextualCommitMessage && (!lastContextualCommitMessage ||
-        (nextContextualCommitMessage.description !== lastContextualCommitMessage.description &&
-         nextContextualCommitMessage.summary !== lastContextualCommitMessage.summary))) {
+    if (nextContextualCommitMessage &&
+        (!lastContextualCommitMessage || !structuralEquals(nextContextualCommitMessage, lastContextualCommitMessage))) {
       this.setState({
         summary: nextContextualCommitMessage.summary,
         description: nextContextualCommitMessage.description,
