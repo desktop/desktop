@@ -37,7 +37,7 @@ export class UpdateAvailable extends React.Component<IUpdateAvailableProps, IUpd
           symbol={OcticonSymbol.desktopDownload} />
 
         <span>
-          An updated version of GitHub Desktop is avalble and will be installed at the next launch. See <LinkButton uri={this.props.releaseNotesLink}>what's new</LinkButton> or <LinkButton onClick={this.updateNow}>restart now</LinkButton>.
+          An updated version of GitHub Desktop is available and will be installed at the next launch. See <LinkButton uri={this.props.releaseNotesLink}>what's new</LinkButton> or <LinkButton onClick={this.updateNow}>restart now</LinkButton>.
         </span>
 
         <a
