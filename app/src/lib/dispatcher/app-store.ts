@@ -1258,9 +1258,11 @@ export class AppStore {
       }
 
       if (state.branchesState.tip.kind === TipState.Valid) {
-        return gitStore.performFailableOperation(() => pullRepo(repository, account, remote.name))
-          .then(() => this._refreshRepository(repository))
-          .then(() => this.fetch(repository, account))
+        await gitStore.performFailableOperation(() =>
+          pullRepo(repository, account, remote.name))
+
+        await this._refreshRepository(repository)
+        await this.fetch(repository, account)
       }
     })
   }
