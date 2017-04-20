@@ -1054,7 +1054,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   private renderUpdateBanner() {
     const releaseNotesUri = 'https://desktop.github.com/release-notes/tng/'
 
-    if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') {
+    if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test' || !this.isUpdateAvailible) {
       return null
     }
 
