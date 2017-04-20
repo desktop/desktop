@@ -46,7 +46,6 @@ import { hasShownWelcomeFlow, markWelcomeFlowComplete } from '../welcome'
 import { WindowState, getWindowState } from '../window-state'
 import { structuralEquals } from '../equality'
 import { fatalError } from '../fatal-error'
-import { PushProgressParser } from '../progress'
 
 import {
   getGitDir,
@@ -1131,9 +1130,9 @@ export class AppStore {
     return this._refreshRepository(repository)
   }
 
-  private updatePushProgress(repository: Repository, progressText: string, progressValue: number) {
+  private updatePushProgress(repository: Repository, progressTitle: string, progressDescription: string, progressValue: number) {
     this.updateRepositoryState(repository, state => ({
-      pushProgress: { progressText, progressValue },
+      pushProgress: { progressTitle, progressDescription, progressValue },
     }))
 
     if (this.selectedRepository === repository) {
@@ -1173,35 +1172,30 @@ export class AppStore {
         const branch = state.branchesState.tip.branch
         const setUpstream = branch.upstream ? false : true
 
-        const progressParser = new PushProgressParser()
-
         const pushWeight = 0.7
         const fetchWeight = 0.3
-        const pushText = `Pushing ${branch.name} to ${remote.name}`
-        const fetchText = `Fetching from ${remote.name}`
+        const pushTitle = `Pushing to ${remote.name}`
+        const fetchTitle = `Fetching from ${remote.name}`
 
-        this.updatePushProgress(repository, pushText, 0)
+        this.updatePushProgress(repository, pushTitle, '', 0)
 
         await gitStore.performFailableOperation(async () => {
 
-          await pushRepo(repository, account, remote.name, branch.name, setUpstream, (line) => {
-            const progress = progressParser.parse(line)
-            if (progress.kind === 'progress') {
-              const progressValue = pushWeight * progress.percent
-              this.updatePushProgress(repository, pushText, progressValue)
-            }
+          await pushRepo(repository, account, remote.name, branch.name, setUpstream, (progress) => {
+            const progressValue = pushWeight * progress.progressValue
+            this.updatePushProgress(repository, pushTitle, progress.progressDescription, progressValue)
           })
 
-          this.updatePushProgress(repository, 'Refreshing repository', pushWeight)
+          this.updatePushProgress(repository, 'Refreshing repository', '', pushWeight)
 
           await this._refreshRepository(repository)
 
           await gitStore.fetchAll(account, false, (fetchProgress) => {
             const progressValue = pushWeight + fetchProgress.progressValue * fetchWeight
-            this.updatePushProgress(repository, fetchText, progressValue)
+            this.updatePushProgress(repository, fetchTitle, fetchProgress.progressText, progressValue)
           })
 
-          this.updatePushProgress(repository, 'Fast-forwarding branches', 1)
+          this.updatePushProgress(repository, 'Refreshing repository', 'Fast-forwarding branches', 1)
 
           await this.fastForwardBranches(repository)
         })

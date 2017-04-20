@@ -2,6 +2,8 @@ import { git, envForAuthentication, expectedAuthenticationErrors, IGitExecutionO
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { ChildProcess } from 'child_process'
+import { PushProgressParser } from '../progress'
+import { IGenericProgress } from '../app-state'
 
 const byline = require('byline')
 
@@ -20,11 +22,12 @@ const byline = require('byline')
  *                      of the specified branch to point to the remote.
  * 
  * @param progressCallback - An optional function which will be invoked
- *                           once per each line of output from Git. When
- *                           provided this also enables the '--progress'
- *                           command line flag for 'git push'.
+ *                           with information about the current progress
+ *                           of the push operation. When provided this enables
+ *                           the '--progress' command line flag for
+ *                           'git push'.
  */
-export async function push(repository: Repository, account: Account | null, remote: string, branch: string, setUpstream: boolean, progressCallback?: (line: string) => void): Promise<void> {
+export async function push(repository: Repository, account: Account | null, remote: string, branch: string, setUpstream: boolean, progressCallback?: (progress: IGenericProgress) => void): Promise<void> {
   const args = [ 'push', remote, branch ]
   if (setUpstream) {
     args.push('--set-upstream')
@@ -37,15 +40,32 @@ export async function push(repository: Repository, account: Account | null, remo
 
   if (progressCallback) {
     args.push('--progress')
+    const progressTitle = `Pushing to ${remote}`
 
     options = {
       ...options,
       processCallback: (process: ChildProcess) => {
-        byline(process.stderr).on('data', (chunk: string) => {
-          progressCallback(chunk)
+        const parser = new PushProgressParser()
+
+        byline(process.stderr).on('data', (line: string) => {
+          const progress = parser.parse(line)
+
+          progressCallback({
+            progressTitle,
+            progressDescription: progress.kind === 'progress'
+              ? progress.details.text
+              : progress.text,
+            progressValue: progress.percent,
+          })
         })
       },
     }
+
+    progressCallback({
+      progressTitle,
+      progressDescription: '',
+      progressValue: 0,
+    })
   }
 
   const result = await git(args, repository.path, 'push', options)

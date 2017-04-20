@@ -254,9 +254,18 @@ export interface IGenericProgress {
   /**
    * 
    * An informative text for user consumption indicating the current operation
-   * state.
+   * state. This will be high level such as 'Pushing origin' or 
+   * 'Fetching upstream' and will typically persist over a number of progress
+   * events. For more detailed information about the progress see
+   * progressDescription
    */
-  readonly progressText: string
+  readonly progressTitle: string
+
+  /**
+   * An informative text for user consumption. In the case of git progress this
+   * will usually be the last raw line of output from git.
+   */
+  readonly progressDescription: string
 }
 
 /** 

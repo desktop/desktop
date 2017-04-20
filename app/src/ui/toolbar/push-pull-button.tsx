@@ -37,21 +37,17 @@ interface IPushPullButtonProps {
 export class PushPullButton extends React.Component<IPushPullButtonProps, void> {
   public render() {
 
-    let description
-    let progressValue: number | undefined = undefined
+    const progress = this.props.progress
 
-    if (this.props.progress) {
-      description = this.props.progress.progressText
-      progressValue = this.props.progress.progressValue
-    } else {
-      description = this.getDescription()
-    }
+    const title = progress ? progress.progressTitle : this.getTitle()
+    const description = progress ? progress.progressDescription : this.getDescription()
+    const progressValue = progress ? progress.progressValue : undefined
 
     const disabled = this.props.networkActionInProgress || !!this.props.progress
 
     return (
       <ToolbarButton
-        title={this.getTitle()}
+        title={title}
         description={description}
         progressValue={progressValue}
         className='push-pull-button'
