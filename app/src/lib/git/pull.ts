@@ -31,8 +31,6 @@ export async function pull(repository: Repository, account: Account | null, remo
   const result = await git(args, repository.path, 'pull', options)
 
   if (result.gitErrorDescription) {
-    return Promise.reject(new GitError(result, args))
+    throw new GitError(result, args)
   }
-
-  return Promise.resolve()
 }
