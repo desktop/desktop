@@ -232,7 +232,7 @@ export interface IRepositoryState {
   readonly checkoutProgress: ICheckoutProgress | null
 
   /**
-   * If we're currently working on push a branch this
+   * If we're currently working on pushing a branch this
    * provides insight into the progress of that operation.
    * 
    * null if no push operation is in flight.
