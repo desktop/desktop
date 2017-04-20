@@ -1194,8 +1194,8 @@ export class AppStore {
           })
 
           this.updatePushProgress(repository, {
-              progressText: 'Fast-forwarding branches',
-              progressValue: 1,
+            progressText: 'Fast-forwarding branches',
+            progressValue: 1,
           })
 
           await this.fastForwardBranches(repository)
