@@ -126,9 +126,8 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
 
         <p className='sign-in-footer'>
           {basicAuth ? browserSignInLink : browserSignInButton}
+          {basicAuth ? null : this.renderActions()}
         </p>
-
-        {basicAuth ? null : this.renderActions()}
       </div>
     )
   }
