@@ -61,11 +61,7 @@ export async function push(repository: Repository, account: Account | null, remo
       },
     }
 
-    progressCallback({
-      title,
-      description: '',
-      value: 0,
-    })
+    progressCallback({ title, value: 0 })
   }
 
   const result = await git(args, repository.path, 'push', options)
