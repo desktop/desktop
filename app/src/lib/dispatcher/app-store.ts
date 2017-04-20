@@ -14,6 +14,7 @@ import {
   PossibleSelections,
   SelectionType,
   ICheckoutProgress,
+  IFetchProgress,
   IGenericProgress,
 } from '../app-state'
 import { Account } from '../../models/account'
@@ -260,6 +261,7 @@ export class AppStore {
       checkoutProgress: null,
       pushProgress: null,
       pullProgress: null,
+      fetchProgress: null,
     }
   }
 

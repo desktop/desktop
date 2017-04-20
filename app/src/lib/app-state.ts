@@ -246,6 +246,14 @@ export interface IRepositoryState {
    * null if no push operation is in flight.
    */
   readonly pullProgress: IGenericProgress | null
+
+  /**
+   * If we're currently working on fetching from a remote this
+   * provides insight into the progress of that operation.
+   * 
+   * null if no fetch operation is in flight.
+   */
+  readonly fetchProgress: IGenericProgress | null
 }
 
 /** 
