@@ -1,6 +1,6 @@
 import { expect } from 'chai'
 
-import { StepProgressParser } from '../../src/lib/progress'
+import { StepProgressParser, ICombinedProgress } from '../../src/lib/progress'
 
 describe('StepProgressParser', () => {
 
@@ -29,13 +29,13 @@ describe('StepProgressParser', () => {
 
     result = parser.parse('remote: Compressing objects:  72% (16/22)')
 
-    expect(result).to.not.be.null
-    expect(result!.percent).to.equal(16 / 22 / 2)
+    expect(result.kind).to.equal('progress')
+    expect((result as ICombinedProgress).percent).to.equal(16 / 22 / 2)
 
     result = parser.parse('Receiving objects:  99% (166741/167587), 267.24 MiB | 2.40 MiB/s')
 
-    expect(result).to.not.be.null
-    expect(result!.percent).to.equal(0.5 + (166741 / 167587 / 2))
+    expect(result.kind).to.equal('progress')
+    expect((result as ICombinedProgress).percent).to.equal(0.5 + (166741 / 167587 / 2))
   })
 
   it('enforces ordering of steps', () => {
@@ -49,16 +49,16 @@ describe('StepProgressParser', () => {
 
     result = parser.parse('remote: Compressing objects:  72% (16/22)')
 
-    expect(result).to.not.be.null
-    expect(result!.percent).to.equal(16 / 22 / 2)
+    expect(result.kind).to.equal('progress')
+    expect((result as ICombinedProgress).percent).to.equal(16 / 22 / 2)
 
     result = parser.parse('Receiving objects:  99% (166741/167587), 267.24 MiB | 2.40 MiB/s')
 
-    expect(result).to.not.be.null
-    expect(result!.percent).to.equal(0.5 + (166741 / 167587 / 2))
+    expect(result.kind).to.equal('progress')
+    expect((result as ICombinedProgress).percent).to.equal(0.5 + (166741 / 167587 / 2))
 
     result = parser.parse('remote: Compressing objects:  72% (16/22)')
 
-    expect(result).to.be.null
+    expect(result.kind).to.equal('context')
   })
 })

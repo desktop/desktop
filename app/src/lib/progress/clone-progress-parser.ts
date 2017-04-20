@@ -32,6 +32,6 @@ export class CloneProgressParser {
    */
   public parse(line: string): number | null {
     const progress = this.parser.parse(line)
-    return progress ? progress.percent : null
+    return progress.kind === 'progress' ? progress.percent : null
   }
 }

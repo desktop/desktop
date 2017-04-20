@@ -486,7 +486,7 @@ export class GitStore {
         }
 
         const progress = parser.parse(line)
-        if (progress) {
+        if (progress.kind === 'progress') {
           progressCallback({
             progressText,
             progressValue: progress.percent,

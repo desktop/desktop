@@ -1178,7 +1178,7 @@ export class AppStore {
 
           await pushRepo(repository, account, remote.name, branch.name, setUpstream, (line) => {
             const progress = progressParser.parse(line)
-            if (progress) {
+            if (progress.kind === 'progress') {
               const progressValue = pushWeight * progress.percent
               this.updatePushProgress(repository, pushText, progressValue)
             }
