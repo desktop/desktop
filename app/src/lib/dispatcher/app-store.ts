@@ -65,6 +65,7 @@ import {
   getBranchAheadBehind,
   createCommit,
   checkoutBranch,
+  getRemotes,
 } from '../git'
 
 import { openShell } from '../open-shell'
@@ -1241,6 +1242,7 @@ export class AppStore {
     return this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
       const remote = gitStore.remote
+
       if (!remote) {
         return Promise.reject(new Error('The repository has no remotes.'))
       }
@@ -1256,10 +1258,17 @@ export class AppStore {
       }
 
       if (state.branchesState.tip.kind === TipState.Valid) {
+
+        const otherRemotes = (await getRemotes(repository))
+          .filter(r => r.name !== remote.name)
+
         await gitStore.performFailableOperation(() =>
           pullRepo(repository, account, remote.name))
 
         await this._refreshRepository(repository)
+
+        await gitStore.fetchRemotes(account, otherRemotes, false)
+
         await this.fastForwardBranches(repository)
       }
     })
