@@ -217,7 +217,7 @@ export interface IRepositoryState {
   readonly aheadBehind: IAheadBehind | null
 
   /** Is a push/pull/update in progress? */
-  readonly pushPullInProgress: boolean
+  readonly isPushPullFetchInProgress: boolean
 
   /** Is a commit in progress? */
   readonly isCommitting: boolean

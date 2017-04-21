@@ -190,7 +190,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         onNonDefaultBranch = true
       }
 
-      networkActionInProgress = selectedState.state.pushPullInProgress
+      networkActionInProgress = selectedState.state.isPushPullFetchInProgress
     }
 
     // These are IDs for menu items that are entirely _and only_
@@ -971,7 +971,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       aheadBehind={state.aheadBehind}
       remoteName={remoteName}
       lastFetched={state.lastFetched}
-      networkActionInProgress={state.pushPullInProgress}
+      networkActionInProgress={state.isPushPullFetchInProgress}
       progress={progress}
     />
   }

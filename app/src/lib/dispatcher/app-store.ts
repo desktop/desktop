@@ -254,7 +254,7 @@ export class AppStore {
       localCommitSHAs: [],
       aheadBehind: null,
       remote: null,
-      pushPullInProgress: false,
+      isPushPullFetchInProgress: false,
       isCommitting: false,
       lastFetched: null,
       checkoutProgress: null,
@@ -1233,15 +1233,15 @@ export class AppStore {
   private async withPushPull(repository: Repository, fn: () => Promise<void>): Promise<void> {
     const state = this.getRepositoryState(repository)
     // Don't allow concurrent network operations.
-    if (state.pushPullInProgress) { return }
+    if (state.isPushPullFetchInProgress) { return }
 
-    this.updateRepositoryState(repository, state => ({ pushPullInProgress: true }))
+    this.updateRepositoryState(repository, state => ({ isPushPullFetchInProgress: true }))
     this.emitUpdate()
 
     try {
       await fn()
     } finally {
-      this.updateRepositoryState(repository, state => ({ pushPullInProgress: false }))
+      this.updateRepositoryState(repository, state => ({ isPushPullFetchInProgress: false }))
       this.emitUpdate()
     }
   }
