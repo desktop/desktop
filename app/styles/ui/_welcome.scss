@@ -110,8 +110,9 @@
 }
 
 .welcome-left {
+  display: flex;
+  align-items: center;
   padding: var(--spacing-quad);
-  padding-top: calc(var(--spacing-quad) * 1.5);
 
   @media screen and (width: 1366px) {
     zoom: 1.2;
