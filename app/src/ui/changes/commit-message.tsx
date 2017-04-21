@@ -11,7 +11,7 @@ import { IGitHubUser } from '../../lib/dispatcher'
 import { Repository } from '../../models/repository'
 import { Button } from '../lib/button'
 import { Avatar } from '../lib/avatar'
-
+import { structuralEquals } from '../../lib/equality'
 
 interface ICommitMessageProps {
   readonly onCreateCommit: (message: ICommitMessage) => Promise<boolean>
@@ -30,9 +30,17 @@ interface ICommitMessageProps {
 interface ICommitMessageState {
   readonly summary: string
   readonly description: string | null
+
+  /** The last contextual commit message we've received. */
+  readonly lastContextualCommitMessage: ICommitMessage | null
 }
 
 export class CommitMessage extends React.Component<ICommitMessageProps, ICommitMessageState> {
+  public constructor(props: ICommitMessageProps) {
+    super(props)
+
+    this.state = { summary: '', description: '', lastContextualCommitMessage: null }
+  }
 
   public componentWillMount() {
     this.receiveProps(this.props, true)
@@ -77,13 +85,17 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
     // history and changes tabs. In that case we have to rely on what's in the
     // dispatcher since we don't have any state of our own.
 
-    // If we receive a contextual commit message we'll take that and disregard
-    // anything currently in the text boxes (this might not be what we want).
-    if (nextProps.contextualCommitMessage) {
-      this.setState(nextProps.contextualCommitMessage)
-      // Once we receive the contextual commit message we can clear it. We don't
-      // want to keep receiving it.
-      this.props.dispatcher.clearContextualCommitMessage(this.props.repository)
+    const nextContextualCommitMessage = nextProps.contextualCommitMessage
+    const lastContextualCommitMessage = this.state.lastContextualCommitMessage
+    // If the contextual commit message changed, we'll use it as our commit
+    // message.
+    if (nextContextualCommitMessage &&
+        (!lastContextualCommitMessage || !structuralEquals(nextContextualCommitMessage, lastContextualCommitMessage))) {
+      this.setState({
+        summary: nextContextualCommitMessage.summary,
+        description: nextContextualCommitMessage.description,
+        lastContextualCommitMessage: nextContextualCommitMessage,
+      })
     } else if (initializing || this.props.repository.id !== nextProps.repository.id) {
       // We're either initializing (ie being mounted) or someone has switched
       // repositories. If we receive a message we'll take it
@@ -93,11 +105,18 @@ export class CommitMessage extends React.Component<ICommitMessageProps, ICommitM
         this.setState({
           summary: nextProps.commitMessage.summary,
           description: nextProps.commitMessage.description,
+          lastContextualCommitMessage: nextContextualCommitMessage,
         })
       } else {
         // No message, assume clean slate
-        this.setState({ summary: '', description: null })
+        this.setState({
+          summary: '',
+          description: null,
+          lastContextualCommitMessage: nextContextualCommitMessage,
+        })
       }
+    } else {
+      this.setState({ lastContextualCommitMessage: nextContextualCommitMessage })
     }
   }
 

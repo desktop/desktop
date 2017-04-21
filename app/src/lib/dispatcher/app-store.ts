@@ -922,6 +922,8 @@ export class AppStore {
 
     await this.refreshAuthor(repository)
 
+    await gitStore.loadContextualCommitMessage()
+
     const section = state.selectedSection
     if (section === RepositorySection.History) {
       return this.refreshHistorySection(repository)
@@ -1420,11 +1422,6 @@ export class AppStore {
     await gitStore.undoCommit(commit)
 
     return this._refreshRepository(repository)
-  }
-
-  public _clearContextualCommitMessage(repository: Repository): Promise<void> {
-    const gitStore = this.getGitStore(repository)
-    return gitStore.clearContextualCommitMessage()
   }
 
   /**
