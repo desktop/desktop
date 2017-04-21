@@ -1,4 +1,11 @@
-import { git, envForAuthentication, expectedAuthenticationErrors, GitError, IGitExecutionOptions } from './core'
+import {
+  git,
+  envForAuthentication,
+  expectedAuthenticationErrors,
+  GitError,
+  IGitExecutionOptions,
+  gitNetworkArguments,
+} from './core'
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 
@@ -11,10 +18,8 @@ export async function pull(repository: Repository, account: Account | null, remo
   }
 
   const args = [
-    // Explicitly unset any defined credential helper, we rely on our
-    // own askpass for authentication.
-      '-c' , 'credential.helper=',
-      'pull' , '--verbose', remote, branch,
+    ...gitNetworkArguments,
+    'pull' , '--verbose', remote, branch,
   ]
 
   const result = await git(args, repository.path, 'pull', options)

@@ -207,6 +207,21 @@ function getAskPassScriptPath(): string {
   return Path.resolve(__dirname, 'ask-pass.js')
 }
 
+/**
+ * An array of command line arguments for network operation that unset
+ * or hard-code git configuration values that should not be read from
+ * local, global, or system level git configs.
+ *
+ * These arguments should be inserted before the subcommand, i.e in
+ * the case of `git pull` these arguments needs to go before the `pull`
+ * argument.
+ */
+export const gitNetworkArguments: ReadonlyArray<string> = [
+  // Explicitly unset any defined credential helper, we rely on our
+  // own askpass for authentication.
+  '-c' , 'credential.helper=',
+]
+
 /** Get the environment for authenticating remote operations. */
 export function envForAuthentication(account: Account | null): Object {
   const env = {

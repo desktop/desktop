@@ -1,4 +1,4 @@
-import { git, envForAuthentication } from './core'
+import { git, envForAuthentication, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 
@@ -10,9 +10,7 @@ export async function fetch(repository: Repository, account: Account | null, rem
   }
 
   const args = [
-    // Explicitly unset any defined credential helper, we rely on our
-    // own askpass for authentication.
-    '-c' , 'credential.helper=',
+    ...gitNetworkArguments,
     'fetch', '--prune', remote,
   ]
 
@@ -27,9 +25,7 @@ export async function fetchRefspec(repository: Repository, account: Account | nu
   }
 
   const args = [
-    // Explicitly unset any defined credential helper, we rely on our
-    // own askpass for authentication.
-    '-c' , 'credential.helper=',
+    ...gitNetworkArguments,
     'fetch', remote, refspec,
   ]
 

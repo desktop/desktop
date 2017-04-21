@@ -1,4 +1,4 @@
-import { git, envForAuthentication } from './core'
+import { git, envForAuthentication, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 import { Account } from '../../models/account'
@@ -29,9 +29,7 @@ export async function deleteBranch(repository: Repository, branch: Branch, accou
   // Let this propagate and leave it to the caller to handle
   if (remote) {
     const args = [
-      // Explicitly unset any defined credential helper, we rely on our
-      // own askpass for authentication.
-      '-c' , 'credential.helper=',
+      ...gitNetworkArguments,
       'push', remote, `:${branch.nameWithoutRemote}`,
     ]
 

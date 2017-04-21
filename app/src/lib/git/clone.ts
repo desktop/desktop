@@ -1,4 +1,4 @@
-import { git, envForAuthentication } from './core'
+import { git, envForAuthentication, gitNetworkArguments } from './core'
 import { Account } from '../../models/account'
 import { ChildProcess } from 'child_process'
 
@@ -22,9 +22,7 @@ export async function clone(url: string, path: string, options: CloneOptions, pr
   }
 
   const args = [
-    // Explicitly unset any defined credential helper, we rely on our
-    // own askpass for authentication.
-      '-c' , 'credential.helper=',
+    ...gitNetworkArguments,
     'clone', '--recursive', '--progress',
   ]
 
