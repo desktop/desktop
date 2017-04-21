@@ -28,19 +28,19 @@ export interface IProgressStep {
   readonly weight: number
 }
 
-export interface ICombinedProgress {
+export interface IGitProgress {
   readonly kind: 'progress'
   readonly percent: number
-  readonly details: IGitProgress
+  readonly details: IGitProgressInfo
 }
 
-export interface IContextOutput {
+export interface IGitOutput {
   readonly kind: 'context'
   readonly percent: number
   readonly text: string
 }
 
-export interface IGitProgress {
+export interface IGitProgressInfo {
   readonly title: string
   readonly value: number
   readonly total?: number
@@ -85,7 +85,7 @@ export class GitProgressParser {
     }))
   }
 
-  public parse(line: string): ICombinedProgress | IContextOutput {
+  public parse(line: string): IGitProgress | IGitOutput {
     const progress = parse(line)
 
     if (!progress) {
@@ -136,7 +136,7 @@ const valueOnlyRe = /^\d+$/
  * @returns An object containing well-structured information about the progress
  *          or null if the line could not be parsed as a Git progress line.
  */
-export function parse(line: string): IGitProgress | null {
+export function parse(line: string): IGitProgressInfo | null {
 
   const titleLength = line.lastIndexOf(': ')
 
