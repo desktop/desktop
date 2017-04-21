@@ -1,479 +1,0 @@
-remote: Counting objects: 172486, done.        
-remote: Compressing objects:   0% (1/1133)           remote: Compressing objects:   1% (12/1133)           remote: Compressing objects:   2% (23/1133)           remote: Compressing objects:   3% (34/1133)           remote: Compressing objects:   4% (46/1133)           remote: Compressing objects:   5% (57/1133)           remote: Compressing objects:   6% (68/1133)           remote: Compressing objects:   7% (80/1133)           remote: Compressing objects:   8% (91/1133)           remote: Compressing objects:   9% (102/1133)           remote: Compressing objects:  10% (114/1133)           remote: Compressing objects:  11% (125/1133)           remote: Compressing objects:  12% (136/1133)           remote: Compressing objects:  13% (148/1133)           remote: Compressing objects:  14% (159/1133)           remote: Compressing objects:  15% (170/1133)           remote: Compressing objects:  16% (182/1133)           remote: Compressing objects:  17% (193/1133)           remote: Compressing objects:  18% (204/1133)           remote: Compressing objects:  19% (216/1133)           remote: Compressing objects:  20% (227/1133)           remote: Compressing objects:  21% (238/1133)           remote: Compressing objects:  22% (250/1133)           remote: Compressing objects:  23% (261/1133)           remote: Compressing objects:  24% (272/1133)           remote: Compressing objects:  25% (284/1133)           remote: Compressing objects:  26% (295/1133)           remote: Compressing objects:  27% (306/1133)           remote: Compressing objects:  28% (318/1133)           remote: Compressing objects:  29% (329/1133)           remote: Compressing objects:  30% (340/1133)           remote: Compressing objects:  31% (352/1133)           remote: Compressing objects:  32% (363/1133)           remote: Compressing objects:  33% (374/1133)           remote: Compressing objects:  34% (386/1133)           remote: Compressing objects:  35% (397/1133)           remote: Compressing objects:  36% (408/1133)           remote: Compressing objects:  37% (420/1133)           remote: Compressing objects:  38% (431/1133)           remote: Compressing objects:  39% (442/1133)           remote: Compressing objects:  40% (454/1133)           remote: Compressing objects:  41% (465/1133)           remote: Compressing objects:  42% (476/1133)           remote: Compressing objects:  43% (488/1133)           remote: Compressing objects:  44% (499/1133)           remote: Compressing objects:  45% (510/1133)           remote: Compressing objects:  46% (522/1133)           remote: Compressing objects:  47% (533/1133)           remote: Compressing objects:  48% (544/1133)           remote: Compressing objects:  49% (556/1133)           remote: Compressing objects:  50% (567/1133)           remote: Compressing objects:  51% (578/1133)           remote: Compressing objects:  52% (590/1133)           remote: Compressing objects:  53% (601/1133)           remote: Compressing objects:  54% (612/1133)           remote: Compressing objects:  55% (624/1133)           remote: Compressing objects:  56% (635/1133)           remote: Compressing objects:  57% (646/1133)           remote: Compressing objects:  58% (658/1133)           remote: Compressing objects:  59% (669/1133)           remote: Compressing objects:  60% (680/1133)           remote: Compressing objects:  61% (692/1133)           remote: Compressing objects:  62% (703/1133)           remote: Compressing objects:  63% (714/1133)           remote: Compressing objects:  64% (726/1133)           remote: Compressing objects:  65% (737/1133)           remote: Compressing objects:  66% (748/1133)           remote: Compressing objects:  67% (760/1133)           remote: Compressing objects:  68% (771/1133)           remote: Compressing objects:  69% (782/1133)           remote: Compressing objects:  70% (794/1133)           remote: Compressing objects:  71% (805/1133)           remote: Compressing objects:  72% (816/1133)           remote: Compressing objects:  73% (828/1133)           remote: Compressing objects:  74% (839/1133)           remote: Compressing objects:  75% (850/1133)           remote: Compressing objects:  76% (862/1133)           remote: Compressing objects:  77% (873/1133)           remote: Compressing objects:  78% (884/1133)           remote: Compressing objects:  79% (896/1133)           remote: Compressing objects:  80% (907/1133)           remote: Compressing objects:  81% (918/1133)           remote: Compressing objects:  82% (930/1133)           remote: Compressing objects:  83% (941/1133)           remote: Compressing objects:  84% (952/1133)           remote: Compressing objects:  85% (964/1133)           remote: Compressing objects:  86% (975/1133)           remote: Compressing objects:  87% (986/1133)           remote: Compressing objects:  88% (998/1133)           remote: Compressing objects:  89% (1009/1133)           remote: Compressing objects:  90% (1020/1133)           remote: Compressing objects:  91% (1032/1133)           remote: Compressing objects:  92% (1043/1133)           remote: Compressing objects:  93% (1054/1133)           remote: Compressing objects:  94% (1066/1133)           remote: Compressing objects:  95% (1077/1133)           remote: Compressing objects:  96% (1088/1133)           remote: Compressing objects:  97% (1100/1133)           remote: Compressing objects:  98% (1111/1133)           remote: Compressing objects:  99% (1122/1133)           remote: Compressing objects: 100% (1133/1133)           remote: Compressing objects: 100% (1133/1133), done.        
-Receiving objects:   0% (1/172486)   Receiving objects:   1% (1725/172486)   Receiving objects:   2% (3450/172486), 692.00 KiB | 1.07 MiB/s   Receiving objects:   3% (5175/172486), 692.00 KiB | 1.07 MiB/s   Receiving objects:   3% (6244/172486), 692.00 KiB | 1.07 MiB/s   Receiving objects:   4% (6900/172486), 692.00 KiB | 1.07 MiB/s   Receiving objects:   5% (8625/172486), 1.58 MiB | 1.40 MiB/s   Receiving objects:   6% (10350/172486), 1.58 MiB | 1.40 MiB/s   Receiving objects:   7% (12075/172486), 2.35 MiB | 1.44 MiB/s   Receiving objects:   8% (13799/172486), 2.35 MiB | 1.44 MiB/s   Receiving objects:   8% (14069/172486), 2.35 MiB | 1.44 MiB/s   Receiving objects:   9% (15524/172486), 3.12 MiB | 1.44 MiB/s   Receiving objects:  10% (17249/172486), 3.12 MiB | 1.44 MiB/s   Receiving objects:  11% (18974/172486), 3.12 MiB | 1.44 MiB/s   Receiving objects:  12% (20699/172486), 3.95 MiB | 1.48 MiB/s   Receiving objects:  13% (22424/172486), 3.95 MiB | 1.48 MiB/s   Receiving objects:  13% (23319/172486), 3.95 MiB | 1.48 MiB/s   Receiving objects:  14% (24149/172486), 3.95 MiB | 1.48 MiB/s   Receiving objects:  15% (25873/172486), 4.80 MiB | 1.51 MiB/s   Receiving objects:  16% (27598/172486), 4.80 MiB | 1.51 MiB/s   Receiving objects:  17% (29323/172486), 5.64 MiB | 1.54 MiB/s   Receiving objects:  18% (31048/172486), 5.64 MiB | 1.54 MiB/s   Receiving objects:  18% (32038/172486), 5.64 MiB | 1.54 MiB/s   Receiving objects:  18% (32566/172486), 7.29 MiB | 1.55 MiB/s   Receiving objects:  18% (32583/172486), 9.00 MiB | 1.62 MiB/s   Receiving objects:  18% (32592/172486), 10.67 MiB | 1.66 MiB/s   Receiving objects:  19% (32773/172486), 11.51 MiB | 1.67 MiB/s   Receiving objects:  19% (32972/172486), 13.26 MiB | 1.68 MiB/s   Receiving objects:  19% (33002/172486), 14.34 MiB | 1.56 MiB/s   Receiving objects:  19% (34070/172486), 15.96 MiB | 1.54 MiB/s   Receiving objects:  20% (34498/172486), 16.71 MiB | 1.51 MiB/s   Receiving objects:  20% (34913/172486), 16.71 MiB | 1.51 MiB/s   Receiving objects:  21% (36223/172486), 17.57 MiB | 1.52 MiB/s   Receiving objects:  21% (37364/172486), 18.46 MiB | 1.53 MiB/s   Receiving objects:  22% (37947/172486), 19.37 MiB | 1.53 MiB/s   Receiving objects:  22% (39441/172486), 20.30 MiB | 1.55 MiB/s   Receiving objects:  22% (39613/172486), 22.17 MiB | 1.72 MiB/s   Receiving objects:  22% (39616/172486), 24.05 MiB | 1.78 MiB/s   Receiving objects:  22% (39622/172486), 25.95 MiB | 1.85 MiB/s   Receiving objects:  23% (39672/172486), 25.95 MiB | 1.85 MiB/s   Receiving objects:  23% (41375/172486), 28.82 MiB | 1.89 MiB/s   Receiving objects:  24% (41397/172486), 29.79 MiB | 1.89 MiB/s   Receiving objects:  24% (41448/172486), 29.79 MiB | 1.89 MiB/s   Receiving objects:  24% (42813/172486), 31.82 MiB | 1.93 MiB/s   Receiving objects:  24% (42830/172486), 35.23 MiB | 2.05 MiB/s   Receiving objects:  24% (42830/172486), 37.67 MiB | 2.18 MiB/s   Receiving objects:  24% (42830/172486), 39.89 MiB | 2.18 MiB/s   Receiving objects:  24% (42830/172486), 42.71 MiB | 2.36 MiB/s   Receiving objects:  24% (42830/172486), 45.14 MiB | 2.40 MiB/s   Receiving objects:  24% (42830/172486), 47.58 MiB | 2.41 MiB/s   Receiving objects:  24% (42830/172486), 50.03 MiB | 2.41 MiB/s   Receiving objects:  24% (42830/172486), 52.41 MiB | 2.42 MiB/s   Receiving objects:  24% (42830/172486), 54.85 MiB | 2.42 MiB/s   Receiving objects:  24% (42830/172486), 57.29 MiB | 2.42 MiB/s   Receiving objects:  24% (42833/172486), 59.72 MiB | 2.42 MiB/s   Receiving objects:  24% (42833/172486), 62.17 MiB | 2.44 MiB/s   Receiving objects:  24% (42833/172486), 64.61 MiB | 2.44 MiB/s   Receiving objects:  24% (42833/172486), 67.04 MiB | 2.43 MiB/s   Receiving objects:  24% (42833/172486), 69.50 MiB | 2.44 MiB/s   Receiving objects:  24% (42833/172486), 71.94 MiB | 2.44 MiB/s   Receiving objects:  24% (42833/172486), 74.38 MiB | 2.44 MiB/s   Receiving objects:  24% (42833/172486), 77.09 MiB | 2.42 MiB/s   Receiving objects:  24% (42833/172486), 79.53 MiB | 2.42 MiB/s   Receiving objects:  24% (42833/172486), 81.96 MiB | 2.41 MiB/s   Receiving objects:  24% (42835/172486), 83.19 MiB | 2.42 MiB/s   Receiving objects:  24% (42855/172486), 85.64 MiB | 2.42 MiB/s   Receiving objects:  25% (43122/172486), 85.64 MiB | 2.42 MiB/s   Receiving objects:  26% (44847/172486), 88.00 MiB | 2.42 MiB/s   Receiving objects:  26% (44866/172486), 88.00 MiB | 2.42 MiB/s   Receiving objects:  27% (46572/172486), 89.22 MiB | 2.42 MiB/s   Receiving objects:  27% (47382/172486), 90.43 MiB | 2.42 MiB/s   Receiving objects:  28% (48297/172486), 90.43 MiB | 2.42 MiB/s   Receiving objects:  28% (49946/172486), 92.88 MiB | 2.42 MiB/s   Receiving objects:  29% (50021/172486), 92.88 MiB | 2.42 MiB/s   Receiving objects:  30% (51746/172486), 92.88 MiB | 2.42 MiB/s   Receiving objects:  31% (53471/172486), 92.88 MiB | 2.42 MiB/s   Receiving objects:  32% (55196/172486), 92.88 MiB | 2.42 MiB/s   Receiving objects:  33% (56921/172486), 94.11 MiB | 2.42 MiB/s   Receiving objects:  34% (58646/172486), 94.11 MiB | 2.42 MiB/s   Receiving objects:  35% (60371/172486), 94.11 MiB | 2.42 MiB/s   Receiving objects:  36% (62095/172486), 94.11 MiB | 2.42 MiB/s   Receiving objects:  36% (62835/172486), 95.32 MiB | 2.42 MiB/s   Receiving objects:  37% (63820/172486), 95.32 MiB | 2.42 MiB/s   Receiving objects:  38% (65545/172486), 95.32 MiB | 2.42 MiB/s   Receiving objects:  39% (67270/172486), 95.32 MiB | 2.42 MiB/s   Receiving objects:  40% (68995/172486), 95.32 MiB | 2.42 MiB/s   Receiving objects:  41% (70720/172486), 96.54 MiB | 2.42 MiB/s   Receiving objects:  42% (72445/172486), 96.54 MiB | 2.42 MiB/s   Receiving objects:  43% (74169/172486), 96.54 MiB | 2.42 MiB/s   Receiving objects:  43% (74369/172486), 98.59 MiB | 2.34 MiB/s   Receiving objects:  44% (75894/172486), 98.59 MiB | 2.34 MiB/s   Receiving objects:  44% (76302/172486), 99.58 MiB | 2.29 MiB/s   Receiving objects:  45% (77619/172486), 99.58 MiB | 2.29 MiB/s   Receiving objects:  46% (79344/172486), 100.59 MiB | 2.25 MiB/s   Receiving objects:  47% (81069/172486), 100.59 MiB | 2.25 MiB/s   Receiving objects:  47% (81729/172486), 101.61 MiB | 2.20 MiB/s   Receiving objects:  48% (82794/172486), 101.61 MiB | 2.20 MiB/s   Receiving objects:  49% (84519/172486), 101.61 MiB | 2.20 MiB/s   Receiving objects:  50% (86243/172486), 102.75 MiB | 2.18 MiB/s   Receiving objects:  51% (87968/172486), 102.75 MiB | 2.18 MiB/s   Receiving objects:  51% (88511/172486), 103.97 MiB | 2.18 MiB/s   Receiving objects:  52% (89693/172486), 103.97 MiB | 2.18 MiB/s   Receiving objects:  53% (91418/172486), 105.18 MiB | 2.18 MiB/s   Receiving objects:  54% (93143/172486), 105.18 MiB | 2.18 MiB/s   Receiving objects:  54% (94814/172486), 106.40 MiB | 2.18 MiB/s   Receiving objects:  55% (94868/172486), 106.40 MiB | 2.18 MiB/s   Receiving objects:  56% (96593/172486), 106.40 MiB | 2.18 MiB/s   Receiving objects:  56% (96834/172486), 108.85 MiB | 2.27 MiB/s   Receiving objects:  57% (98318/172486), 108.85 MiB | 2.27 MiB/s   Receiving objects:  58% (100042/172486), 108.85 MiB | 2.27 MiB/s   Receiving objects:  59% (101767/172486), 108.85 MiB | 2.27 MiB/s   Receiving objects:  60% (103492/172486), 110.07 MiB | 2.33 MiB/s   Receiving objects:  61% (105217/172486), 110.07 MiB | 2.33 MiB/s   Receiving objects:  62% (106942/172486), 110.07 MiB | 2.33 MiB/s   Receiving objects:  63% (108667/172486), 110.07 MiB | 2.33 MiB/s   Receiving objects:  63% (109993/172486), 111.29 MiB | 2.37 MiB/s   Receiving objects:  64% (110392/172486), 111.29 MiB | 2.37 MiB/s   Receiving objects:  65% (112116/172486), 111.29 MiB | 2.37 MiB/s   Receiving objects:  66% (113841/172486), 111.29 MiB | 2.37 MiB/s   Receiving objects:  67% (115566/172486), 111.29 MiB | 2.37 MiB/s   Receiving objects:  68% (117291/172486), 111.29 MiB | 2.37 MiB/s   Receiving objects:  69% (119016/172486), 112.50 MiB | 2.41 MiB/s   Receiving objects:  70% (120741/172486), 112.50 MiB | 2.41 MiB/s   Receiving objects:  71% (122466/172486), 112.50 MiB | 2.41 MiB/s   Receiving objects:  72% (124190/172486), 112.50 MiB | 2.41 MiB/s   Receiving objects:  72% (125515/172486), 113.72 MiB | 2.43 MiB/s   Receiving objects:  73% (125915/172486), 113.72 MiB | 2.43 MiB/s   Receiving objects:  73% (127283/172486), 116.15 MiB | 2.43 MiB/s   Receiving objects:  73% (127284/172486), 119.79 MiB | 2.43 MiB/s   Receiving objects:  73% (127284/172486), 120.65 MiB | 2.31 MiB/s   Receiving objects:  73% (127284/172486), 123.18 MiB | 2.33 MiB/s   Receiving objects:  73% (127284/172486), 125.46 MiB | 2.29 MiB/s   Receiving objects:  73% (127284/172486), 127.86 MiB | 2.28 MiB/s   Receiving objects:  73% (127284/172486), 130.29 MiB | 2.28 MiB/s   Receiving objects:  73% (127284/172486), 132.70 MiB | 2.35 MiB/s   Receiving objects:  73% (127284/172486), 135.11 MiB | 2.39 MiB/s   Receiving objects:  73% (127284/172486), 137.55 MiB | 2.42 MiB/s   Receiving objects:  73% (127285/172486), 139.93 MiB | 2.41 MiB/s   Receiving objects:  73% (127285/172486), 142.33 MiB | 2.40 MiB/s   Receiving objects:  73% (127285/172486), 144.77 MiB | 2.41 MiB/s   Receiving objects:  74% (127640/172486), 144.77 MiB | 2.41 MiB/s   Receiving objects:  75% (129365/172486), 144.77 MiB | 2.41 MiB/s   Receiving objects:  75% (130847/172486), 145.98 MiB | 2.41 MiB/s   Receiving objects:  76% (131090/172486), 145.98 MiB | 2.41 MiB/s   Receiving objects:  76% (132696/172486), 149.58 MiB | 2.40 MiB/s   Receiving objects:  77% (132815/172486), 150.79 MiB | 2.41 MiB/s   Receiving objects:  78% (134540/172486), 150.79 MiB | 2.41 MiB/s   Receiving objects:  78% (135101/172486), 152.03 MiB | 2.42 MiB/s   Receiving objects:  79% (136264/172486), 152.03 MiB | 2.42 MiB/s   Receiving objects:  80% (137989/172486), 152.03 MiB | 2.42 MiB/s   Receiving objects:  81% (139714/172486), 152.03 MiB | 2.42 MiB/s   Receiving objects:  82% (141439/172486), 153.25 MiB | 2.42 MiB/s   Receiving objects:  83% (143164/172486), 153.25 MiB | 2.42 MiB/s   Receiving objects:  83% (144672/172486), 153.25 MiB | 2.42 MiB/s   Receiving objects:  83% (144693/172486), 156.91 MiB | 2.42 MiB/s   Receiving objects:  83% (144693/172486), 159.35 MiB | 2.43 MiB/s   Receiving objects:  83% (144693/172486), 161.71 MiB | 2.42 MiB/s   Receiving objects:  83% (144693/172486), 164.14 MiB | 2.42 MiB/s   Receiving objects:  83% (144693/172486), 166.58 MiB | 2.42 MiB/s   Receiving objects:  83% (144693/172486), 169.02 MiB | 2.42 MiB/s   Receiving objects:  83% (144693/172486), 171.46 MiB | 2.43 MiB/s   Receiving objects:  83% (144694/172486), 173.90 MiB | 2.44 MiB/s   Receiving objects:  83% (144875/172486), 176.34 MiB | 2.44 MiB/s   Receiving objects:  83% (144875/172486), 178.79 MiB | 2.44 MiB/s   Receiving objects:  83% (144875/172486), 181.23 MiB | 2.44 MiB/s   Receiving objects:  83% (144875/172486), 183.68 MiB | 2.44 MiB/s   Receiving objects:  83% (144875/172486), 186.33 MiB | 2.42 MiB/s   Receiving objects:  83% (144875/172486), 188.77 MiB | 2.42 MiB/s   Receiving objects:  83% (144875/172486), 191.21 MiB | 2.42 MiB/s   Receiving objects:  84% (144889/172486), 192.43 MiB | 2.42 MiB/s   Receiving objects:  84% (145020/172486), 193.64 MiB | 2.42 MiB/s   Receiving objects:  84% (145020/172486), 195.82 MiB | 2.42 MiB/s   Receiving objects:  84% (145021/172486), 197.49 MiB | 2.42 MiB/s   Receiving objects:  84% (146405/172486), 199.94 MiB | 2.42 MiB/s   Receiving objects:  85% (146614/172486), 199.94 MiB | 2.42 MiB/s   Receiving objects:  85% (147019/172486), 203.61 MiB | 2.42 MiB/s   Receiving objects:  85% (147019/172486), 206.07 MiB | 2.42 MiB/s   Receiving objects:  85% (147019/172486), 208.52 MiB | 2.44 MiB/s   Receiving objects:  85% (147019/172486), 210.95 MiB | 2.43 MiB/s   Receiving objects:  85% (147019/172486), 213.39 MiB | 2.43 MiB/s   Receiving objects:  85% (147019/172486), 215.82 MiB | 2.43 MiB/s   Receiving objects:  85% (147020/172486), 218.28 MiB | 2.43 MiB/s   Receiving objects:  85% (147566/172486), 219.50 MiB | 2.44 MiB/s   Receiving objects:  86% (148338/172486), 219.50 MiB | 2.44 MiB/s   Receiving objects:  87% (150063/172486), 219.50 MiB | 2.44 MiB/s   Receiving objects:  87% (150319/172486), 223.13 MiB | 2.42 MiB/s   Receiving objects:  88% (151788/172486), 223.13 MiB | 2.42 MiB/s   Receiving objects:  89% (153513/172486), 224.35 MiB | 2.43 MiB/s   Receiving objects:  89% (154179/172486), 225.57 MiB | 2.42 MiB/s   Receiving objects:  89% (154179/172486), 228.01 MiB | 2.42 MiB/s   Receiving objects:  89% (154179/172486), 230.46 MiB | 2.42 MiB/s   Receiving objects:  90% (155238/172486), 230.46 MiB | 2.42 MiB/s   Receiving objects:  91% (156963/172486), 231.68 MiB | 2.43 MiB/s   Receiving objects:  91% (158410/172486), 232.89 MiB | 2.42 MiB/s   Receiving objects:  92% (158688/172486), 232.89 MiB | 2.42 MiB/s   Receiving objects:  92% (160015/172486), 234.08 MiB | 2.43 MiB/s   Receiving objects:  92% (160353/172486), 237.66 MiB | 2.41 MiB/s   Receiving objects:  92% (160353/172486), 240.11 MiB | 2.41 MiB/s   Receiving objects:  92% (160353/172486), 242.46 MiB | 2.39 MiB/s   Receiving objects:  93% (160412/172486), 242.46 MiB | 2.39 MiB/s   Receiving objects:  93% (161168/172486), 243.69 MiB | 2.39 MiB/s   Receiving objects:  94% (162137/172486), 243.69 MiB | 2.39 MiB/s   Receiving objects:  95% (163862/172486), 243.69 MiB | 2.39 MiB/s   Receiving objects:  96% (165587/172486), 243.69 MiB | 2.39 MiB/s   Receiving objects:  97% (167312/172486), 244.87 MiB | 2.39 MiB/s   Receiving objects:  97% (168756/172486), 246.10 MiB | 2.40 MiB/s   Receiving objects:  98% (169037/172486), 247.32 MiB | 2.41 MiB/s   Receiving objects:  98% (169204/172486), 249.75 MiB | 2.41 MiB/s   Receiving objects:  98% (169204/172486), 252.19 MiB | 2.42 MiB/s   Receiving objects:  98% (169204/172486), 254.60 MiB | 2.42 MiB/s   Receiving objects:  98% (169204/172486), 257.02 MiB | 2.42 MiB/s   Receiving objects:  98% (169204/172486), 259.10 MiB | 2.31 MiB/s   Receiving objects:  98% (169205/172486), 260.71 MiB | 2.40 MiB/s   Receiving objects:  98% (170530/172486), 264.37 MiB | 2.41 MiB/s   Receiving objects:  98% (170530/172486), 266.81 MiB | 2.41 MiB/s   Receiving objects:  98% (170530/172486), 269.25 MiB | 2.41 MiB/s   Receiving objects:  98% (170530/172486), 271.61 MiB | 2.41 MiB/s   Receiving objects:  98% (170530/172486), 274.05 MiB | 2.41 MiB/s   Receiving objects:  98% (170530/172486), 276.49 MiB | 2.41 MiB/s   Receiving objects:  98% (170530/172486), 278.47 MiB | 2.31 MiB/s   Receiving objects:  98% (170530/172486), 280.49 MiB | 2.21 MiB/s   Receiving objects:  98% (170530/172486), 282.71 MiB | 2.19 MiB/s   Receiving objects:  99% (170762/172486), 282.71 MiB | 2.19 MiB/s   remote: Total 172486 (delta 777), reused 32 (delta 10), pack-reused 171343        
-Receiving objects: 100% (172486/172486), 282.71 MiB | 2.19 MiB/s   Receiving objects: 100% (172486/172486), 283.68 MiB | 2.16 MiB/s, done.
-Resolving deltas:   0% (0/122832)   Resolving deltas:   1% (1244/122832)   Resolving deltas:   2% (2463/122832)   Resolving deltas:   3% (3847/122832)   Resolving deltas:   4% (4936/122832)   Resolving deltas:   5% (6667/122832)   Resolving deltas:   6% (7393/122832)   Resolving deltas:   7% (8628/122832)   Resolving deltas:   8% (9827/122832)   Resolving deltas:   9% (11064/122832)   Resolving deltas:  10% (12617/122832)   Resolving deltas:  11% (14236/122832)   Resolving deltas:  12% (14797/122832)   Resolving deltas:  13% (16031/122832)   Resolving deltas:  14% (17207/122832)   Resolving deltas:  15% (18466/122832)   Resolving deltas:  17% (21123/122832)   Resolving deltas:  18% (22160/122832)   Resolving deltas:  19% (23349/122832)   Resolving deltas:  20% (24876/122832)   Resolving deltas:  21% (25896/122832)   Resolving deltas:  22% (27109/122832)   Resolving deltas:  23% (28433/122832)   Resolving deltas:  24% (29562/122832)   Resolving deltas:  25% (30730/122832)   Resolving deltas:  26% (31938/122832)   Resolving deltas:  27% (33176/122832)   Resolving deltas:  28% (34404/122832)   Resolving deltas:  29% (35690/122832)   Resolving deltas:  30% (36888/122832)   Resolving deltas:  31% (38093/122832)   Resolving deltas:  32% (39310/122832)   Resolving deltas:  33% (40644/122832)   Resolving deltas:  34% (42707/122832)   Resolving deltas:  35% (43824/122832)   Resolving deltas:  36% (44260/122832)   Resolving deltas:  37% (45480/122832)   Resolving deltas:  38% (46814/122832)   Resolving deltas:  39% (48004/122832)   Resolving deltas:  40% (49137/122832)   Resolving deltas:  41% (50366/122832)   Resolving deltas:  42% (51601/122832)   Resolving deltas:  43% (52831/122832)   Resolving deltas:  44% (54054/122832)   Resolving deltas:  45% (55276/122832)   Resolving deltas:  46% (56524/122832)   Resolving deltas:  47% (57759/122832)   Resolving deltas:  48% (58975/122832)   Resolving deltas:  49% (60270/122832)   Resolving deltas:  50% (61417/122832)   Resolving deltas:  51% (62722/122832)   Resolving deltas:  52% (63873/122832)   Resolving deltas:  53% (65107/122832)   Resolving deltas:  54% (66331/122832)   Resolving deltas:  55% (67588/122832)   Resolving deltas:  56% (68822/122832)   Resolving deltas:  57% (70270/122832)   Resolving deltas:  58% (71280/122832)   Resolving deltas:  59% (72473/122832)   Resolving deltas:  60% (73709/122832)   Resolving deltas:  61% (75420/122832)   Resolving deltas:  62% (76419/122832)   Resolving deltas:  63% (77448/122832)   Resolving deltas:  64% (78626/122832)   Resolving deltas:  65% (80106/122832)   Resolving deltas:  66% (81233/122832)   Resolving deltas:  67% (82353/122832)   Resolving deltas:  68% (83535/122832)   Resolving deltas:  69% (84859/122832)   Resolving deltas:  70% (86029/122832)   Resolving deltas:  71% (87302/122832)   Resolving deltas:  72% (88464/122832)   Resolving deltas:  73% (89668/122832)   Resolving deltas:  74% (90898/122832)   Resolving deltas:  75% (92133/122832)   Resolving deltas:  75% (92154/122832)   Resolving deltas:  76% (93357/122832)   Resolving deltas:  77% (94588/122832)   Resolving deltas:  78% (95902/122832)   Resolving deltas:  79% (97042/122832)   Resolving deltas:  80% (98266/122832)   Resolving deltas:  81% (99499/122832)   Resolving deltas:  82% (100728/122832)   Resolving deltas:  83% (101954/122832)   Resolving deltas:  84% (103179/122832)   Resolving deltas:  85% (104413/122832)   Resolving deltas:  86% (105675/122832)   Resolving deltas:  87% (106883/122832)   Resolving deltas:  88% (108407/122832)   Resolving deltas:  89% (109428/122832)   Resolving deltas:  90% (110639/122832)   Resolving deltas:  91% (111821/122832)   Resolving deltas:  91% (112591/122832)   Resolving deltas:  92% (113018/122832)   Resolving deltas:  93% (114239/122832)   Resolving deltas:  94% (115463/122832)   Resolving deltas:  95% (116696/122832)   Resolving deltas:  96% (117954/122832)   Resolving deltas:  97% (119152/122832)   Resolving deltas:  98% (120379/122832)   Resolving deltas:  99% (121611/122832)   Resolving deltas: 100% (122832/122832)   Resolving deltas: 100% (122832/122832), done.
-From https://github.com/atom/atom
- * [new branch]      1.10-releases           -> origin/1.10-releases
- * [new branch]      1.11-releases           -> origin/1.11-releases
- * [new branch]      1.12-releases           -> origin/1.12-releases
- * [new branch]      1.13-releases           -> origin/1.13-releases
- * [new branch]      1.14                    -> origin/1.14
- * [new branch]      1.14-releases           -> origin/1.14-releases
- * [new branch]      1.15-releases           -> origin/1.15-releases
- * [new branch]      1.16-releases           -> origin/1.16-releases
- * [new branch]      1.17-releases           -> origin/1.17-releases
- * [new branch]      1.5-releases            -> origin/1.5-releases
- * [new branch]      1.6-releases            -> origin/1.6-releases
- * [new branch]      1.7-releases            -> origin/1.7-releases
- * [new branch]      1.8-releases            -> origin/1.8-releases
- * [new branch]      1.9-releases            -> origin/1.9-releases
- * [new branch]      as-ns-browserify        -> origin/as-ns-browserify
- * [new branch]      as-ns-move-editor-out   -> origin/as-ns-move-editor-out
- * [new branch]      as-use-marker-layer-update-events -> origin/as-use-marker-layer-update-events
- * [new branch]      bf-destroy-markers-from-display-buffer -> origin/bf-destroy-markers-from-display-buffer
- * [new branch]      bf-test-runner-fixes    -> origin/bf-test-runner-fixes
- * [new branch]      cn-fix-invalid-delayed-package-loading -> origin/cn-fix-invalid-delayed-package-loading
- * [new branch]      dg-fix-portable-user-data -> origin/dg-fix-portable-user-data
- * [new branch]      dg-npm-3.10.10          -> origin/dg-npm-3.10.10
- * [new branch]      dh-dont-hide-activation-errors-in-test -> origin/dh-dont-hide-activation-errors-in-test
- * [new branch]      dr-portable-mode-mac    -> origin/dr-portable-mode-mac
- * [new branch]      dr-wait-linux           -> origin/dr-wait-linux
- * [new branch]      expose-updates          -> origin/expose-updates
- * [new branch]      facebook                -> origin/facebook
- * [new branch]      fb-hw-directoryreplace  -> origin/fb-hw-directoryreplace
- * [new branch]      fb-vjeux-flush-context-menu-2 -> origin/fb-vjeux-flush-context-menu-2
- * [new branch]      fold-comment-with-empty-line -> origin/fold-comment-with-empty-line
- * [new branch]      gjt-local-apm           -> origin/gjt-local-apm
- * [new branch]      iz-close-window-with-last-tab -> origin/iz-close-window-with-last-tab
- * [new branch]      iz-fix-getCurrentWordBufferRange -> origin/iz-fix-getCurrentWordBufferRange
- * [new branch]      iz-open-locations-and-search-all-panes -> origin/iz-open-locations-and-search-all-panes
- * [new branch]      jasonrudolph/tweak-contributing-doc -> origin/jasonrudolph/tweak-contributing-doc
- * [new branch]      jl-local-apm            -> origin/jl-local-apm
- * [new branch]      ks-log-typo             -> origin/ks-log-typo
- * [new branch]      ks-rebuild-incompatible-modules -> origin/ks-rebuild-incompatible-modules
- * [new branch]      ku-buffer-pool          -> origin/ku-buffer-pool
- * [new branch]      ku-fix-cwd              -> origin/ku-fix-cwd
- * [new branch]      ld-change-range-event   -> origin/ld-change-range-event
- * [new branch]      ld-set-active-item      -> origin/ld-set-active-item
- * [new branch]      master                  -> origin/master
- * [new branch]      mb-fix-windows-build    -> origin/mb-fix-windows-build
- * [new branch]      mb-kill-chromedriver-in-build -> origin/mb-kill-chromedriver-in-build
- * [new branch]      mb-ns-fix-duplicate-display-markers -> origin/mb-ns-fix-duplicate-display-markers
- * [new branch]      mb-ns-integrate-new-display-layer -> origin/mb-ns-integrate-new-display-layer
- * [new branch]      mb-ns-refactor-workspace-open -> origin/mb-ns-refactor-workspace-open
- * [new branch]      mb-optimize-package-load -> origin/mb-optimize-package-load
- * [new branch]      mb-publish-artifacts-from-appveyor -> origin/mb-publish-artifacts-from-appveyor
- * [new branch]      mb-side-by-side-windows-installer -> origin/mb-side-by-side-windows-installer
- * [new branch]      mkt-fix-1-7-beta-0-release -> origin/mkt-fix-1-7-beta-0-release
- * [new branch]      mkt-url-based-command-dispatch -> origin/mkt-url-based-command-dispatch
- * [new branch]      move-lines-up-and-down-with-multiple-selections -> origin/move-lines-up-and-down-with-multiple-selections
- * [new branch]      mq-convert-even-more-to-js -> origin/mq-convert-even-more-to-js
- * [new branch]      mq-default-cursor       -> origin/mq-default-cursor
- * [new branch]      mq-fix-flaky-specs      -> origin/mq-fix-flaky-specs
- * [new branch]      mq-zoom-scroll          -> origin/mq-zoom-scroll
- * [new branch]      ns-appveyor-experimentation -> origin/ns-appveyor-experimentation
- * [new branch]      ns-as-unique-atom-homes-for-startup-spec -> origin/ns-as-unique-atom-homes-for-startup-spec
- * [new branch]      ns-editor-rendering     -> origin/ns-editor-rendering
- * [new branch]      ns-electron-1.6.x       -> origin/ns-electron-1.6.x
- * [new branch]      ns-fix-add-pane-event   -> origin/ns-fix-add-pane-event
- * [new branch]      ns-fix-ime              -> origin/ns-fix-ime
- * [new branch]      ns-improve-test-script-assertions -> origin/ns-improve-test-script-assertions
- * [new branch]      ns-main-process-tests-on-circle -> origin/ns-main-process-tests-on-circle
- * [new branch]      ns-mb-remove-dummy-scrollbars -> origin/ns-mb-remove-dummy-scrollbars
- * [new branch]      ns-no-polling           -> origin/ns-no-polling
- * [new branch]      ns-skip-deleted-project-paths -> origin/ns-skip-deleted-project-paths
- * [new branch]      ns-test-apm-upgrade     -> origin/ns-test-apm-upgrade
- * [new branch]      ns-upgrade-scandal      -> origin/ns-upgrade-scandal
- * [new branch]      ns-upgrade-text-buffer  -> origin/ns-upgrade-text-buffer
- * [new branch]      overlay-scroll          -> origin/overlay-scroll
- * [new branch]      scroll-away-from-bottom-panels -> origin/scroll-away-from-bottom-panels
- * [new branch]      tj-upgrade-deprecated-packages -> origin/tj-upgrade-deprecated-packages
- * [new branch]      tj-upgrade-electron     -> origin/tj-upgrade-electron
- * [new branch]      wl-async-dialog         -> origin/wl-async-dialog
- * [new branch]      wl-auto-detect-encoding -> origin/wl-auto-detect-encoding
- * [new branch]      wl-build-on-node-7      -> origin/wl-build-on-node-7
- * [new branch]      wl-lint-specs           -> origin/wl-lint-specs
- * [new branch]      wl-notification-stack-detail -> origin/wl-notification-stack-detail
- * [new branch]      wl-open-empty-editor-as-pending -> origin/wl-open-empty-editor-as-pending
- * [new branch]      wl-update-language-git  -> origin/wl-update-language-git
- * [new branch]      wl-update-languages     -> origin/wl-update-languages
- * [new tag]         v1.12.9                 -> v1.12.9
- * [new tag]         v1.14.4                 -> v1.14.4
- * [new tag]         v1.15.0                 -> v1.15.0
- * [new tag]         v1.16.0                 -> v1.16.0
- * [new tag]         v1.17.0-beta3           -> v1.17.0-beta3
- * [new tag]         v1.5.4                  -> v1.5.4
- * [new tag]         v1.7.0-beta0            -> v1.7.0-beta0
- * [new tag]         v1.9.9                  -> v1.9.9
- * [new tag]         v0.0.1                  -> v0.0.1
- * [new tag]         v0.0.2                  -> v0.0.2
- * [new tag]         v0.0.3                  -> v0.0.3
- * [new tag]         v0.1.0                  -> v0.1.0
- * [new tag]         v0.10.0                 -> v0.10.0
- * [new tag]         v0.100.0                -> v0.100.0
- * [new tag]         v0.101.0                -> v0.101.0
- * [new tag]         v0.102.0                -> v0.102.0
- * [new tag]         v0.103.0                -> v0.103.0
- * [new tag]         v0.104.0                -> v0.104.0
- * [new tag]         v0.105.0                -> v0.105.0
- * [new tag]         v0.106.0                -> v0.106.0
- * [new tag]         v0.107.0                -> v0.107.0
- * [new tag]         v0.108.0                -> v0.108.0
- * [new tag]         v0.109.0                -> v0.109.0
- * [new tag]         v0.11.0                 -> v0.11.0
- * [new tag]         v0.110.0                -> v0.110.0
- * [new tag]         v0.111.0                -> v0.111.0
- * [new tag]         v0.112.0                -> v0.112.0
- * [new tag]         v0.113.0                -> v0.113.0
- * [new tag]         v0.114.0                -> v0.114.0
- * [new tag]         v0.115.0                -> v0.115.0
- * [new tag]         v0.116.0                -> v0.116.0
- * [new tag]         v0.117.0                -> v0.117.0
- * [new tag]         v0.118.0                -> v0.118.0
- * [new tag]         v0.119.0                -> v0.119.0
- * [new tag]         v0.12.0                 -> v0.12.0
- * [new tag]         v0.120.0                -> v0.120.0
- * [new tag]         v0.121.0                -> v0.121.0
- * [new tag]         v0.122.0                -> v0.122.0
- * [new tag]         v0.123.0                -> v0.123.0
- * [new tag]         v0.124.0                -> v0.124.0
- * [new tag]         v0.125.0                -> v0.125.0
- * [new tag]         v0.126.0                -> v0.126.0
- * [new tag]         v0.127.0                -> v0.127.0
- * [new tag]         v0.128.0                -> v0.128.0
- * [new tag]         v0.129.0                -> v0.129.0
- * [new tag]         v0.13.0                 -> v0.13.0
- * [new tag]         v0.130.0                -> v0.130.0
- * [new tag]         v0.131.0                -> v0.131.0
- * [new tag]         v0.132.0                -> v0.132.0
- * [new tag]         v0.133.0                -> v0.133.0
- * [new tag]         v0.134.0                -> v0.134.0
- * [new tag]         v0.135.0                -> v0.135.0
- * [new tag]         v0.136.0                -> v0.136.0
- * [new tag]         v0.137.0                -> v0.137.0
- * [new tag]         v0.138.0                -> v0.138.0
- * [new tag]         v0.139.0                -> v0.139.0
- * [new tag]         v0.14.0                 -> v0.14.0
- * [new tag]         v0.140.0                -> v0.140.0
- * [new tag]         v0.141.0                -> v0.141.0
- * [new tag]         v0.142.0                -> v0.142.0
- * [new tag]         v0.143.0                -> v0.143.0
- * [new tag]         v0.144.0                -> v0.144.0
- * [new tag]         v0.145.0                -> v0.145.0
- * [new tag]         v0.146.0                -> v0.146.0
- * [new tag]         v0.147.0                -> v0.147.0
- * [new tag]         v0.148.0                -> v0.148.0
- * [new tag]         v0.149.0                -> v0.149.0
- * [new tag]         v0.15.0                 -> v0.15.0
- * [new tag]         v0.150.0                -> v0.150.0
- * [new tag]         v0.151.0                -> v0.151.0
- * [new tag]         v0.152.0                -> v0.152.0
- * [new tag]         v0.153.0                -> v0.153.0
- * [new tag]         v0.154.0                -> v0.154.0
- * [new tag]         v0.155.0                -> v0.155.0
- * [new tag]         v0.156.0                -> v0.156.0
- * [new tag]         v0.157.0                -> v0.157.0
- * [new tag]         v0.158.0                -> v0.158.0
- * [new tag]         v0.159.0                -> v0.159.0
- * [new tag]         v0.16.0                 -> v0.16.0
- * [new tag]         v0.160.0                -> v0.160.0
- * [new tag]         v0.161.0                -> v0.161.0
- * [new tag]         v0.162.0                -> v0.162.0
- * [new tag]         v0.163.0                -> v0.163.0
- * [new tag]         v0.164.0                -> v0.164.0
- * [new tag]         v0.165.0                -> v0.165.0
- * [new tag]         v0.166.0                -> v0.166.0
- * [new tag]         v0.167.0                -> v0.167.0
- * [new tag]         v0.168.0                -> v0.168.0
- * [new tag]         v0.169.0                -> v0.169.0
- * [new tag]         v0.17.0                 -> v0.17.0
- * [new tag]         v0.170.0                -> v0.170.0
- * [new tag]         v0.171.0                -> v0.171.0
- * [new tag]         v0.172.0                -> v0.172.0
- * [new tag]         v0.173.0                -> v0.173.0
- * [new tag]         v0.174.0                -> v0.174.0
- * [new tag]         v0.175.0                -> v0.175.0
- * [new tag]         v0.176.0                -> v0.176.0
- * [new tag]         v0.177.0                -> v0.177.0
- * [new tag]         v0.178.0                -> v0.178.0
- * [new tag]         v0.179.0                -> v0.179.0
- * [new tag]         v0.18.0                 -> v0.18.0
- * [new tag]         v0.180.0                -> v0.180.0
- * [new tag]         v0.181.0                -> v0.181.0
- * [new tag]         v0.182.0                -> v0.182.0
- * [new tag]         v0.183.0                -> v0.183.0
- * [new tag]         v0.184.0                -> v0.184.0
- * [new tag]         v0.185.0                -> v0.185.0
- * [new tag]         v0.186.0                -> v0.186.0
- * [new tag]         v0.187.0                -> v0.187.0
- * [new tag]         v0.188.0                -> v0.188.0
- * [new tag]         v0.189.0                -> v0.189.0
- * [new tag]         v0.19.0                 -> v0.19.0
- * [new tag]         v0.190.0                -> v0.190.0
- * [new tag]         v0.191.0                -> v0.191.0
- * [new tag]         v0.192.0                -> v0.192.0
- * [new tag]         v0.193.0                -> v0.193.0
- * [new tag]         v0.194.0                -> v0.194.0
- * [new tag]         v0.195.0                -> v0.195.0
- * [new tag]         v0.196.0                -> v0.196.0
- * [new tag]         v0.197.0                -> v0.197.0
- * [new tag]         v0.198.0                -> v0.198.0
- * [new tag]         v0.199.0                -> v0.199.0
- * [new tag]         v0.2.0                  -> v0.2.0
- * [new tag]         v0.20.0                 -> v0.20.0
- * [new tag]         v0.200.0                -> v0.200.0
- * [new tag]         v0.201.0                -> v0.201.0
- * [new tag]         v0.202.0                -> v0.202.0
- * [new tag]         v0.203.0                -> v0.203.0
- * [new tag]         v0.204.0                -> v0.204.0
- * [new tag]         v0.205.0                -> v0.205.0
- * [new tag]         v0.206.0                -> v0.206.0
- * [new tag]         v0.207.0                -> v0.207.0
- * [new tag]         v0.208.0                -> v0.208.0
- * [new tag]         v0.209.0                -> v0.209.0
- * [new tag]         v0.21.0                 -> v0.21.0
- * [new tag]         v0.210.0                -> v0.210.0
- * [new tag]         v0.211.0                -> v0.211.0
- * [new tag]         v0.23.0                 -> v0.23.0
- * [new tag]         v0.24.0                 -> v0.24.0
- * [new tag]         v0.25.0                 -> v0.25.0
- * [new tag]         v0.26.0                 -> v0.26.0
- * [new tag]         v0.27.0                 -> v0.27.0
- * [new tag]         v0.28.0                 -> v0.28.0
- * [new tag]         v0.29.0                 -> v0.29.0
- * [new tag]         v0.3.0                  -> v0.3.0
- * [new tag]         v0.30.0                 -> v0.30.0
- * [new tag]         v0.31.0                 -> v0.31.0
- * [new tag]         v0.32.0                 -> v0.32.0
- * [new tag]         v0.33.0                 -> v0.33.0
- * [new tag]         v0.34.0                 -> v0.34.0
- * [new tag]         v0.35.0                 -> v0.35.0
- * [new tag]         v0.36.0                 -> v0.36.0
- * [new tag]         v0.37.0                 -> v0.37.0
- * [new tag]         v0.38.0                 -> v0.38.0
- * [new tag]         v0.39.0                 -> v0.39.0
- * [new tag]         v0.4.0                  -> v0.4.0
- * [new tag]         v0.40.0                 -> v0.40.0
- * [new tag]         v0.41.0                 -> v0.41.0
- * [new tag]         v0.42.0                 -> v0.42.0
- * [new tag]         v0.43.0                 -> v0.43.0
- * [new tag]         v0.44.0                 -> v0.44.0
- * [new tag]         v0.45.0                 -> v0.45.0
- * [new tag]         v0.46.0                 -> v0.46.0
- * [new tag]         v0.47.0                 -> v0.47.0
- * [new tag]         v0.48.0                 -> v0.48.0
- * [new tag]         v0.49.0                 -> v0.49.0
- * [new tag]         v0.5.0                  -> v0.5.0
- * [new tag]         v0.50.0                 -> v0.50.0
- * [new tag]         v0.51.0                 -> v0.51.0
- * [new tag]         v0.52.0                 -> v0.52.0
- * [new tag]         v0.53.0                 -> v0.53.0
- * [new tag]         v0.54.0                 -> v0.54.0
- * [new tag]         v0.55.0                 -> v0.55.0
- * [new tag]         v0.56.0                 -> v0.56.0
- * [new tag]         v0.57.0                 -> v0.57.0
- * [new tag]         v0.58.0                 -> v0.58.0
- * [new tag]         v0.59.0                 -> v0.59.0
- * [new tag]         v0.6.0                  -> v0.6.0
- * [new tag]         v0.60.0                 -> v0.60.0
- * [new tag]         v0.61.0                 -> v0.61.0
- * [new tag]         v0.62.0                 -> v0.62.0
- * [new tag]         v0.63.0                 -> v0.63.0
- * [new tag]         v0.64.0                 -> v0.64.0
- * [new tag]         v0.65.0                 -> v0.65.0
- * [new tag]         v0.66.0                 -> v0.66.0
- * [new tag]         v0.67.0                 -> v0.67.0
- * [new tag]         v0.68.0                 -> v0.68.0
- * [new tag]         v0.69.0                 -> v0.69.0
- * [new tag]         v0.7.0                  -> v0.7.0
- * [new tag]         v0.70.0                 -> v0.70.0
- * [new tag]         v0.71.0                 -> v0.71.0
- * [new tag]         v0.72.0                 -> v0.72.0
- * [new tag]         v0.73.0                 -> v0.73.0
- * [new tag]         v0.74.0                 -> v0.74.0
- * [new tag]         v0.75.0                 -> v0.75.0
- * [new tag]         v0.76.0                 -> v0.76.0
- * [new tag]         v0.77.0                 -> v0.77.0
- * [new tag]         v0.78.0                 -> v0.78.0
- * [new tag]         v0.79.0                 -> v0.79.0
- * [new tag]         v0.8.0                  -> v0.8.0
- * [new tag]         v0.80.0                 -> v0.80.0
- * [new tag]         v0.81.0                 -> v0.81.0
- * [new tag]         v0.82.0                 -> v0.82.0
- * [new tag]         v0.83.0                 -> v0.83.0
- * [new tag]         v0.84.0                 -> v0.84.0
- * [new tag]         v0.85.0                 -> v0.85.0
- * [new tag]         v0.86.0                 -> v0.86.0
- * [new tag]         v0.87.0                 -> v0.87.0
- * [new tag]         v0.88.0                 -> v0.88.0
- * [new tag]         v0.89.0                 -> v0.89.0
- * [new tag]         v0.9.0                  -> v0.9.0
- * [new tag]         v0.90.0                 -> v0.90.0
- * [new tag]         v0.91.0                 -> v0.91.0
- * [new tag]         v0.92.0                 -> v0.92.0
- * [new tag]         v0.93.0                 -> v0.93.0
- * [new tag]         v0.94.0                 -> v0.94.0
- * [new tag]         v0.95.0                 -> v0.95.0
- * [new tag]         v0.96.0                 -> v0.96.0
- * [new tag]         v0.97.0                 -> v0.97.0
- * [new tag]         v0.98.0                 -> v0.98.0
- * [new tag]         v0.99.0                 -> v0.99.0
- * [new tag]         v1.0.0                  -> v1.0.0
- * [new tag]         v1.0.1                  -> v1.0.1
- * [new tag]         v1.0.10                 -> v1.0.10
- * [new tag]         v1.0.11                 -> v1.0.11
- * [new tag]         v1.0.12                 -> v1.0.12
- * [new tag]         v1.0.13                 -> v1.0.13
- * [new tag]         v1.0.14                 -> v1.0.14
- * [new tag]         v1.0.15                 -> v1.0.15
- * [new tag]         v1.0.16                 -> v1.0.16
- * [new tag]         v1.0.17                 -> v1.0.17
- * [new tag]         v1.0.18                 -> v1.0.18
- * [new tag]         v1.0.19                 -> v1.0.19
- * [new tag]         v1.0.2                  -> v1.0.2
- * [new tag]         v1.0.3                  -> v1.0.3
- * [new tag]         v1.0.4                  -> v1.0.4
- * [new tag]         v1.0.5                  -> v1.0.5
- * [new tag]         v1.0.6                  -> v1.0.6
- * [new tag]         v1.0.7                  -> v1.0.7
- * [new tag]         v1.0.8                  -> v1.0.8
- * [new tag]         v1.0.9                  -> v1.0.9
- * [new tag]         v1.1.0                  -> v1.1.0
- * [new tag]         v1.1.0-beta.0           -> v1.1.0-beta.0
- * [new tag]         v1.1.0-beta1            -> v1.1.0-beta1
- * [new tag]         v1.10.0                 -> v1.10.0
- * [new tag]         v1.10.0-beta0           -> v1.10.0-beta0
- * [new tag]         v1.10.0-beta1           -> v1.10.0-beta1
- * [new tag]         v1.10.0-beta2           -> v1.10.0-beta2
- * [new tag]         v1.10.0-beta3           -> v1.10.0-beta3
- * [new tag]         v1.10.0-beta4           -> v1.10.0-beta4
- * [new tag]         v1.10.0-beta5           -> v1.10.0-beta5
- * [new tag]         v1.10.0-beta6           -> v1.10.0-beta6
- * [new tag]         v1.10.0-beta7           -> v1.10.0-beta7
- * [new tag]         v1.10.1                 -> v1.10.1
- * [new tag]         v1.10.2                 -> v1.10.2
- * [new tag]         v1.11.0                 -> v1.11.0
- * [new tag]         v1.11.0-beta0           -> v1.11.0-beta0
- * [new tag]         v1.11.0-beta1           -> v1.11.0-beta1
- * [new tag]         v1.11.0-beta2           -> v1.11.0-beta2
- * [new tag]         v1.11.0-beta3           -> v1.11.0-beta3
- * [new tag]         v1.11.0-beta4           -> v1.11.0-beta4
- * [new tag]         v1.11.0-beta5           -> v1.11.0-beta5
- * [new tag]         v1.11.1                 -> v1.11.1
- * [new tag]         v1.11.2                 -> v1.11.2
- * [new tag]         v1.12.0                 -> v1.12.0
- * [new tag]         v1.12.0-beta0           -> v1.12.0-beta0
- * [new tag]         v1.12.0-beta1           -> v1.12.0-beta1
- * [new tag]         v1.12.0-beta2           -> v1.12.0-beta2
- * [new tag]         v1.12.0-beta3           -> v1.12.0-beta3
- * [new tag]         v1.12.0-beta4           -> v1.12.0-beta4
- * [new tag]         v1.12.0-beta5           -> v1.12.0-beta5
- * [new tag]         v1.12.0-beta6           -> v1.12.0-beta6
- * [new tag]         v1.12.0-beta7           -> v1.12.0-beta7
- * [new tag]         v1.12.1                 -> v1.12.1
- * [new tag]         v1.12.2                 -> v1.12.2
- * [new tag]         v1.12.3                 -> v1.12.3
- * [new tag]         v1.12.4                 -> v1.12.4
- * [new tag]         v1.12.5                 -> v1.12.5
- * [new tag]         v1.12.6                 -> v1.12.6
- * [new tag]         v1.12.7                 -> v1.12.7
- * [new tag]         v1.12.8                 -> v1.12.8
- * [new tag]         v1.13.0                 -> v1.13.0
- * [new tag]         v1.13.0-beta0           -> v1.13.0-beta0
- * [new tag]         v1.13.0-beta1           -> v1.13.0-beta1
- * [new tag]         v1.13.0-beta10          -> v1.13.0-beta10
- * [new tag]         v1.13.0-beta2           -> v1.13.0-beta2
- * [new tag]         v1.13.0-beta3           -> v1.13.0-beta3
- * [new tag]         v1.13.0-beta4           -> v1.13.0-beta4
- * [new tag]         v1.13.0-beta5           -> v1.13.0-beta5
- * [new tag]         v1.13.0-beta6           -> v1.13.0-beta6
- * [new tag]         v1.13.0-beta7           -> v1.13.0-beta7
- * [new tag]         v1.13.0-beta8           -> v1.13.0-beta8
- * [new tag]         v1.13.0-beta9           -> v1.13.0-beta9
- * [new tag]         v1.13.1                 -> v1.13.1
- * [new tag]         v1.14.0                 -> v1.14.0
- * [new tag]         v1.14.0-beta0           -> v1.14.0-beta0
- * [new tag]         v1.14.0-beta1           -> v1.14.0-beta1
- * [new tag]         v1.14.0-beta2           -> v1.14.0-beta2
- * [new tag]         v1.14.0-beta3           -> v1.14.0-beta3
- * [new tag]         v1.14.0-beta4           -> v1.14.0-beta4
- * [new tag]         v1.14.1                 -> v1.14.1
- * [new tag]         v1.14.2                 -> v1.14.2
- * [new tag]         v1.14.3                 -> v1.14.3
- * [new tag]         v1.15.0-beta0           -> v1.15.0-beta0
- * [new tag]         v1.15.0-beta1           -> v1.15.0-beta1
- * [new tag]         v1.15.0-beta2           -> v1.15.0-beta2
- * [new tag]         v1.15.0-beta3           -> v1.15.0-beta3
- * [new tag]         v1.15.0-beta4           -> v1.15.0-beta4
- * [new tag]         v1.16.0-beta0           -> v1.16.0-beta0
- * [new tag]         v1.17.0-beta0           -> v1.17.0-beta0
- * [new tag]         v1.17.0-beta1           -> v1.17.0-beta1
- * [new tag]         v1.17.0-beta2           -> v1.17.0-beta2
- * [new tag]         v1.2.0                  -> v1.2.0
- * [new tag]         v1.2.0-beta0            -> v1.2.0-beta0
- * [new tag]         v1.2.0-beta1            -> v1.2.0-beta1
- * [new tag]         v1.2.0-beta2            -> v1.2.0-beta2
- * [new tag]         v1.2.0-beta3            -> v1.2.0-beta3
- * [new tag]         v1.2.1                  -> v1.2.1
- * [new tag]         v1.2.2                  -> v1.2.2
- * [new tag]         v1.2.3                  -> v1.2.3
- * [new tag]         v1.2.4                  -> v1.2.4
- * [new tag]         v1.3.0                  -> v1.3.0
- * [new tag]         v1.3.0-beta0            -> v1.3.0-beta0
- * [new tag]         v1.3.0-beta1            -> v1.3.0-beta1
- * [new tag]         v1.3.0-beta2            -> v1.3.0-beta2
- * [new tag]         v1.3.0-beta3            -> v1.3.0-beta3
- * [new tag]         v1.3.0-beta4            -> v1.3.0-beta4
- * [new tag]         v1.3.0-beta5            -> v1.3.0-beta5
- * [new tag]         v1.3.0-beta6            -> v1.3.0-beta6
- * [new tag]         v1.3.0-beta7            -> v1.3.0-beta7
- * [new tag]         v1.3.1                  -> v1.3.1
- * [new tag]         v1.3.2                  -> v1.3.2
- * [new tag]         v1.3.3                  -> v1.3.3
- * [new tag]         v1.4.0                  -> v1.4.0
- * [new tag]         v1.4.0-beta0            -> v1.4.0-beta0
- * [new tag]         v1.4.0-beta1            -> v1.4.0-beta1
- * [new tag]         v1.4.0-beta2            -> v1.4.0-beta2
- * [new tag]         v1.4.0-beta3            -> v1.4.0-beta3
- * [new tag]         v1.4.1                  -> v1.4.1
- * [new tag]         v1.4.2                  -> v1.4.2
- * [new tag]         v1.4.3                  -> v1.4.3
- * [new tag]         v1.5.0                  -> v1.5.0
- * [new tag]         v1.5.0-beta0            -> v1.5.0-beta0
- * [new tag]         v1.5.0-beta1            -> v1.5.0-beta1
- * [new tag]         v1.5.0-beta2            -> v1.5.0-beta2
- * [new tag]         v1.5.0-beta3            -> v1.5.0-beta3
- * [new tag]         v1.5.1                  -> v1.5.1
- * [new tag]         v1.5.2                  -> v1.5.2
- * [new tag]         v1.5.3                  -> v1.5.3
- * [new tag]         v1.6.0                  -> v1.6.0
- * [new tag]         v1.6.0-beta0            -> v1.6.0-beta0
- * [new tag]         v1.6.0-beta1            -> v1.6.0-beta1
- * [new tag]         v1.6.0-beta2            -> v1.6.0-beta2
- * [new tag]         v1.6.0-beta3            -> v1.6.0-beta3
- * [new tag]         v1.6.0-beta4            -> v1.6.0-beta4
- * [new tag]         v1.6.0-beta5            -> v1.6.0-beta5
- * [new tag]         v1.6.0-beta6            -> v1.6.0-beta6
- * [new tag]         v1.6.0-beta7            -> v1.6.0-beta7
- * [new tag]         v1.6.0-beta8            -> v1.6.0-beta8
- * [new tag]         v1.6.1                  -> v1.6.1
- * [new tag]         v1.6.2                  -> v1.6.2
- * [new tag]         v1.7.0                  -> v1.7.0
- * [new tag]         v1.7.0-beta1            -> v1.7.0-beta1
- * [new tag]         v1.7.0-beta2            -> v1.7.0-beta2
- * [new tag]         v1.7.0-beta3            -> v1.7.0-beta3
- * [new tag]         v1.7.0-beta4            -> v1.7.0-beta4
- * [new tag]         v1.7.0-beta5            -> v1.7.0-beta5
- * [new tag]         v1.7.1                  -> v1.7.1
- * [new tag]         v1.7.2                  -> v1.7.2
- * [new tag]         v1.7.3                  -> v1.7.3
- * [new tag]         v1.7.4                  -> v1.7.4
- * [new tag]         v1.8.0                  -> v1.8.0
- * [new tag]         v1.8.0-beta0            -> v1.8.0-beta0
- * [new tag]         v1.8.0-beta1            -> v1.8.0-beta1
- * [new tag]         v1.8.0-beta2            -> v1.8.0-beta2
- * [new tag]         v1.8.0-beta3            -> v1.8.0-beta3
- * [new tag]         v1.8.0-beta4            -> v1.8.0-beta4
- * [new tag]         v1.9.0                  -> v1.9.0
- * [new tag]         v1.9.0-beta0            -> v1.9.0-beta0
- * [new tag]         v1.9.0-beta1            -> v1.9.0-beta1
- * [new tag]         v1.9.0-beta2            -> v1.9.0-beta2
- * [new tag]         v1.9.1                  -> v1.9.1
- * [new tag]         v1.9.2                  -> v1.9.2
- * [new tag]         v1.9.3                  -> v1.9.3
- * [new tag]         v1.9.4                  -> v1.9.4
- * [new tag]         v1.9.5                  -> v1.9.5
- * [new tag]         v1.9.6                  -> v1.9.6
- * [new tag]         v1.9.7                  -> v1.9.7
- * [new tag]         v1.9.8                  -> v1.9.8

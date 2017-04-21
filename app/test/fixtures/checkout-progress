@@ -1,13 +1,0 @@
-Checking out files:  44% (326/728)   Checking out files:  45% (328/728)   Checking out files:  46% (335/728)   Checking out files:  47% (343/728)   Checking out files:  48% (350/728)   Checking out files:  49% (357/728)   Checking out files:  50% (364/728)   Checking out files:  51% (372/728)   Checking out files:  52% (379/728)   Checking out files:  53% (386/728)   Checking out files:  54% (394/728)   Checking out files:  55% (401/728)   Checking out files:  56% (408/728)   Checking out files:  57% (415/728)   Checking out files:  58% (423/728)   Checking out files:  59% (430/728)   Checking out files:  60% (437/728)   Checking out files:  61% (445/728)   Checking out files:  62% (452/728)   Checking out files:  63% (459/728)   Checking out files:  64% (466/728)   Checking out files:  65% (474/728)   Checking out files:  66% (481/728)   Checking out files:  67% (488/728)   Checking out files:  68% (496/728)   Checking out files:  69% (503/728)   Checking out files:  70% (510/728)   Checking out files:  71% (517/728)   Checking out files:  72% (525/728)   Checking out files:  73% (532/728)   Checking out files:  74% (539/728)   Checking out files:  75% (546/728)   Checking out files:  76% (554/728)   Checking out files:  77% (561/728)   Checking out files:  78% (568/728)   Checking out files:  79% (576/728)   Checking out files:  80% (583/728)   Checking out files:  81% (590/728)   Checking out files:  82% (597/728)   Checking out files:  83% (605/728)   Checking out files:  84% (612/728)   Checking out files:  85% (619/728)   Checking out files:  86% (627/728)   Checking out files:  87% (634/728)   Checking out files:  88% (641/728)   Checking out files:  89% (648/728)   Checking out files:  90% (656/728)   Checking out files:  91% (663/728)   Checking out files:  92% (670/728)   Checking out files:  93% (678/728)   Checking out files:  94% (685/728)   Checking out files:  95% (692/728)   Checking out files:  96% (699/728)   Checking out files:  97% (707/728)   Checking out files:  98% (714/728)   Checking out files:  99% (721/728)   Checking out files: 100% (728/728)   Checking out files: 100% (728/728), done.
-Note: checking out 'origin/master'.
-
-You are in 'detached HEAD' state. You can look around, make experimental
-changes and commit them, and you can discard any commits you make in this
-state without impacting any branches by performing another checkout.
-
-If you want to create a new branch to retain commits you create, you may
-do so (now or later) by using -b with the checkout command again. Example:
-
-  git checkout -b <new-branch-name>
-
-HEAD is now at 4d1a81f... :arrow_up: fuzzy-finder
