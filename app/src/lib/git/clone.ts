@@ -1,9 +1,7 @@
 import { git, envForAuthentication, IGitExecutionOptions } from './core'
 import { Account } from '../../models/account'
 import { ICloneProgress } from '../app-state'
-import { CloneProgressParser } from '../progress'
-
-const byline = require('byline')
+import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
 
 /** Additional arguments to provide when cloning a repository */
 export type CloneOptions = {
@@ -21,23 +19,17 @@ export async function clone(url: string, path: string, options: CloneOptions, pr
   let opts: IGitExecutionOptions = { env }
 
   if (progressCallback) {
-    const progressParser = new CloneProgressParser()
     const title = `Cloning into ${path}`
     const kind = 'clone'
 
-    opts = {
-      processCallback: (process) => {
-        byline(process.stderr).on('data', (line: string) => {
-          const progress = progressParser.parse(line)
-          const description = progress.kind === 'progress'
-            ? progress.details.text
-            : progress.text
-          const value = progress.percent
+    opts = executionOptionsWithProgress(opts, new CloneProgressParser(), (progress) =>{
+      const description = progress.kind === 'progress'
+        ? progress.details.text
+        : progress.text
+      const value = progress.percent
 
-          progressCallback({ kind, title, description, value })
-        })
-      },
-    }
+      progressCallback({ kind, title, description, value })
+    })
 
     // Initial progress
     progressCallback({ kind, title, value: 0 })

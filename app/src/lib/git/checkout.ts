@@ -1,10 +1,8 @@
 import { git } from './core'
 import { Repository } from '../../models/repository'
 import { ChildProcess } from 'child_process'
-import { CheckoutProgressParser } from '../progress'
+import { CheckoutProgressParser, progressProcessCallback } from '../progress'
 import { ICheckoutProgress } from '../app-state'
-
-const byline = require('byline')
 
 type ProcessCallback = (process: ChildProcess) => void
 export type ProgressCallback = (progress: ICheckoutProgress) => void
@@ -33,25 +31,19 @@ export async function checkoutBranch(repository: Repository, name: string, progr
 
   if (progressCallback) {
 
-    const parser = new CheckoutProgressParser()
     const title = `Checking out branch ${name}`
     const kind = 'checkout'
     const targetBranch = name
 
-    processCallback = (process: ChildProcess) => {
-      byline(process.stderr).on('data', (chunk: string) => {
+    processCallback = progressProcessCallback(new CheckoutProgressParser(), (progress) => {
+      if (progress.kind === 'progress') {
 
-        const progress = parser.parse(chunk)
+        const description = progress.details.text
+        const value = progress.percent
 
-        if (progress.kind === 'progress') {
-
-          const description = progress.details.text
-          const value = progress.percent
-
-          progressCallback({ kind, title, description, value, targetBranch })
-        }
-      })
-    }
+        progressCallback({ kind, title, description, value, targetBranch })
+      }
+    })
 
     // Initial progress
     progressCallback({ kind, title, value: 0, targetBranch })

@@ -1,11 +1,8 @@
 import { git, envForAuthentication, expectedAuthenticationErrors, IGitExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
-import { ChildProcess } from 'child_process'
-import { PushProgressParser } from '../progress'
+import { PushProgressParser, executionOptionsWithProgress } from '../progress'
 import { IPushProgress } from '../app-state'
-
-const byline = require('byline')
 
 /**
  * Push from the remote to the branch, optionally setting the upstream.
@@ -33,7 +30,7 @@ export async function push(repository: Repository, account: Account | null, remo
     args.push('--set-upstream')
   }
 
-  let options: IGitExecutionOptions = {
+  let opts: IGitExecutionOptions = {
     env: envForAuthentication(account),
     expectedErrors: expectedAuthenticationErrors(),
   }
@@ -43,29 +40,20 @@ export async function push(repository: Repository, account: Account | null, remo
     const title = `Pushing to ${remote}`
     const kind = 'push'
 
-    options = {
-      ...options,
-      processCallback: (process: ChildProcess) => {
-        const parser = new PushProgressParser()
+    opts = executionOptionsWithProgress(opts, new PushProgressParser(), (progress) => {
+      const description = progress.kind === 'progress'
+        ? progress.details.text
+        : progress.text
+      const value = progress.percent
 
-        byline(process.stderr).on('data', (line: string) => {
-          const progress = parser.parse(line)
-
-          const description = progress.kind === 'progress'
-            ? progress.details.text
-            : progress.text
-          const value = progress.percent
-
-          progressCallback({ kind, title, description, value, remote, branch })
-        })
-      },
-    }
+      progressCallback({ kind, title, description, value, remote, branch })
+    })
 
     // Initial progress
     progressCallback({ kind: 'push', title, value: 0, remote, branch })
   }
 
-  const result = await git(args, repository.path, 'push', options)
+  const result = await git(args, repository.path, 'push', opts)
 
   if (result.gitErrorDescription) {
     throw new Error(result.gitErrorDescription)

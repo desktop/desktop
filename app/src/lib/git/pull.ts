@@ -1,16 +1,13 @@
 import { git, envForAuthentication, expectedAuthenticationErrors, GitError, IGitExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
-import { ChildProcess } from 'child_process'
-import { PullProgressParser } from '../progress'
+import { PullProgressParser, executionOptionsWithProgress } from '../progress'
 import { IPullProgress } from '../app-state'
-
-const byline = require('byline')
 
 /** Pull from the remote to the branch. */
 export async function pull(repository: Repository, account: Account | null, remote: string, progressCallback?: (progress: IPullProgress) => void): Promise<void> {
 
-  let options: IGitExecutionOptions = {
+  let opts: IGitExecutionOptions = {
     env: envForAuthentication(account),
     expectedErrors: expectedAuthenticationErrors(),
   }
@@ -19,33 +16,25 @@ export async function pull(repository: Repository, account: Account | null, remo
     const title = `Pulling ${remote}`
     const kind = 'pull'
 
-    options = {
-      ...options,
-      processCallback: (process: ChildProcess) => {
-        const parser = new PullProgressParser()
-        byline(process.stderr).on('data', (line: string) => {
-          const progress = parser.parse(line)
+    opts = executionOptionsWithProgress(opts, new PullProgressParser, (progress) => {
+      // In addition to progress output from the remote end and from
+      // git itself, the stderr output from pull contains information
+      // about ref updates. We don't need to bring those into the progress
+      // stream so we'll just punt on anything we don't know about for now. 
+      if (progress.kind === 'context') {
+        if (!progress.text.startsWith('remote: Counting objects')) {
+          return
+        }
+      }
 
-          // In addition to progress output from the remote end and from
-          // git itself, the stderr output from pull contains information
-          // about ref updates. We don't need to bring those into the progress
-          // stream so we'll just punt on anything we don't know about for now. 
-          if (progress.kind === 'context') {
-            if (!progress.text.startsWith('remote: Counting objects')) {
-              return
-            }
-          }
+      const description = progress.kind === 'progress'
+        ? progress.details.text
+        : progress.text
 
-          const description = progress.kind === 'progress'
-            ? progress.details.text
-            : progress.text
+      const value = progress.percent
 
-          const value = progress.percent
-
-          progressCallback({ kind, title, description, value, remote })
-        })
-      },
-    }
+      progressCallback({ kind, title, description, value, remote })
+    })
 
     // Initial progress
     progressCallback({ kind, title, value: 0, remote })
@@ -55,7 +44,7 @@ export async function pull(repository: Repository, account: Account | null, remo
     ? [ 'pull', '--progress', remote ]
     : [ 'pull', remote ]
 
-  const result = await git(args, repository.path, 'pull', options)
+  const result = await git(args, repository.path, 'pull', opts)
 
   if (result.gitErrorDescription) {
     throw new GitError(result, args)

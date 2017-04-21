@@ -1,11 +1,8 @@
 import { git, envForAuthentication, IGitExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
-import { ChildProcess } from 'child_process'
-import { FetchProgressParser } from '../progress'
+import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
 import { IFetchProgress } from '../app-state'
-
-const byline = require('byline')
 
 /**
  * Fetch from the given remote.
@@ -22,7 +19,7 @@ const byline = require('byline')
  *                           command line flag for 'git push'.
  */
 export async function fetch(repository: Repository, account: Account | null, remote: string, progressCallback?: (progress: IFetchProgress) => void): Promise<void> {
-  let options: IGitExecutionOptions = {
+  let opts: IGitExecutionOptions = {
     successExitCodes: new Set([ 0 ]),
     env: envForAuthentication(account),
   }
@@ -30,23 +27,15 @@ export async function fetch(repository: Repository, account: Account | null, rem
   if (progressCallback) {
     const title = `Fetching ${remote}`
     const kind = 'fetch'
-    const parser = new FetchProgressParser()
 
-    options = {
-      ...options,
-      processCallback: (process: ChildProcess) => {
-        byline(process.stderr).on('data', (line: string) => {
+    opts = executionOptionsWithProgress(opts, new FetchProgressParser(), (progress) => {
+      const description = progress.kind === 'progress'
+        ? progress.details.text
+        : progress.text
+      const value = progress.percent
 
-          const progress = parser.parse(line)
-          const description = progress.kind === 'progress'
-            ? progress.details.text
-            : progress.text
-          const value = progress.percent
-
-          progressCallback({ kind, title, description, value, remote })
-        })
-      },
-    }
+      progressCallback({ kind, title, description, value, remote })
+    })
 
     // Initial progress
     progressCallback({ kind, title, value: 0, remote })
@@ -56,7 +45,7 @@ export async function fetch(repository: Repository, account: Account | null, rem
     ? [ 'fetch', '--progress', '--prune', remote ]
     : [ 'fetch', '--prune', remote ]
 
-  await git(args, repository.path, 'fetch', options)
+  await git(args, repository.path, 'fetch', opts)
 }
 
 /** Fetch a given refspec from the given remote. */
