@@ -28,9 +28,11 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, void> {
           <Octicon className='header-icon' symbol={OcticonSymbol.radioTower}/>
         </div>
 
-        <div>
+        <h1 className='welcome-title'>Help improve GitHub Desktop!</h1>
+
+        <p>
           Would you like to help us improve GitHub Desktop by periodically submitting <LinkButton uri={SamplesURL}>anonymous usage data</LinkButton>?
-        </div>
+        </p>
 
         <Checkbox
           label='Yes, submit anonymized usage data'
@@ -38,7 +40,7 @@ export class UsageOptOut extends React.Component<IUsageOptOutProps, void> {
           onChange={this.onChange}
         />
 
-        <Row>
+        <Row className='actions'>
           <Button type='submit'>Finish</Button>
           <Button onClick={this.cancel}>Cancel</Button>
         </Row>
