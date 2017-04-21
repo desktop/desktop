@@ -769,18 +769,20 @@ export class AppStore {
    */
   private async updateChangesDiffForCurrentSelection(repository: Repository): Promise<void> {
     const stateBeforeLoad = this.getRepositoryState(repository)
-    const currentSelectedFile = stateBeforeLoad.changesState.selectedFile
+    const previouslySelectedFile = stateBeforeLoad.changesState.selectedFile
 
-    if (!currentSelectedFile) { return }
+    if (!previouslySelectedFile) { return }
 
-    const diff = await getWorkingDirectoryDiff(repository, currentSelectedFile)
+    const diff = await getWorkingDirectoryDiff(repository, previouslySelectedFile)
 
     const stateAfterLoad = this.getRepositoryState(repository)
     const changesState = stateAfterLoad.changesState
+    const currentlySelectedFile = changesState.selectedFile
 
-    // A whole bunch of things could have happened since we initiated the diff load
-    if (!changesState.selectedFile) { return }
-    if (changesState.selectedFile.id !== currentSelectedFile.id) { return }
+    // The selected file could have changed while we were loading the diff, in
+    // which case we no longer care about the diff.
+    if (!currentlySelectedFile) { return }
+    if (currentlySelectedFile.id !== previouslySelectedFile.id) { return }
 
     const selectableLines = new Set<number>()
     if (diff.kind === DiffType.Text) {
@@ -799,8 +801,8 @@ export class AppStore {
       })
     }
 
-    const newSelection = currentSelectedFile.selection.withSelectableLines(selectableLines)
-    const selectedFile = currentSelectedFile.withSelection(newSelection)
+    const newSelection = currentlySelectedFile.selection.withSelectableLines(selectableLines)
+    const selectedFile = currentlySelectedFile.withSelection(newSelection)
 
     const workingDirectory = changesState.workingDirectory.byReplacingFile(selectedFile)
     this.updateChangesState(repository, state => ({ selectedFile, diff, workingDirectory }))
