@@ -148,7 +148,11 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
       ? <Octicon symbol={this.props.icon} className={classNames('icon', this.props.iconClassName)} />
       : null
 
-    const className = classNames('toolbar-button', this.props.className)
+    const className = classNames(
+      'toolbar-button',
+      { 'has-progress': this.props.progressValue !== undefined },
+      this.props.className
+    )
 
     const preContentRenderer = this.props.preContentRenderer
     const preContent = preContentRenderer && preContentRenderer()
