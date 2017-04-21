@@ -113,19 +113,19 @@
   padding: var(--spacing-quad);
   padding-top: calc(var(--spacing-quad) * 1.5);
 
-  @media screen and (width: 1366px) {
+  @media screen and (min-width: 1366px) {
     zoom: 1.2;
   }
 
-  @media screen and (width: 1400px) {
+  @media screen and (min-width: 1400px) {
     zoom: 1.3;
   }
 
-  @media screen and (width: 1600px) {
+  @media screen and (min-width: 1600px) {
     zoom: 1.4;
   }
 
-  @media screen and (width: 1680px) {
+  @media screen and (min-width: 1680px) {
     zoom: 1.5;
   }
 }
