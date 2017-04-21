@@ -1,4 +1,4 @@
-import { git, envForAuthentication } from './core'
+import { git, envForAuthentication, gitNetworkArguments } from './core'
 import { Account } from '../../models/account'
 import { ChildProcess } from 'child_process'
 
@@ -21,7 +21,10 @@ export async function clone(url: string, path: string, options: CloneOptions, pr
     })
   }
 
-  const args = [ 'clone', '--recursive', '--progress' ]
+  const args = [
+    ...gitNetworkArguments,
+    'clone', '--recursive', '--progress',
+  ]
 
   if (options.branch) {
     args.push('-b', options.branch)

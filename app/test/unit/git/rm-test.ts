@@ -1,3 +1,5 @@
+/* tslint:disable:no-sync-functions */
+
 import * as Fs from 'fs'
 import * as Path from 'path'
 import { expect } from 'chai'
