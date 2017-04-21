@@ -1,4 +1,4 @@
-import { app, Menu, MenuItem, ipcMain, BrowserWindow } from 'electron'
+import { app, Menu, MenuItem, ipcMain, BrowserWindow, autoUpdater } from 'electron'
 
 import { AppWindow } from './app-window'
 import { buildDefaultMenu, MenuEvent, findMenuItemByID } from './menu'
@@ -179,6 +179,10 @@ app.on('ready', () => {
     if (__DARWIN__) {
       getMainWindow().showCertificateTrustDialog(certificate, message)
     }
+  })
+
+  autoUpdater.on('error', err => {
+    getMainWindow().sendAutoUpdaterError(err)
   })
 })
 
