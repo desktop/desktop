@@ -258,9 +258,7 @@ export class AppStore {
       isCommitting: false,
       lastFetched: null,
       checkoutProgress: null,
-      pushProgress: null,
-      pullProgress: null,
-      fetchProgress: null,
+      pushPullFetchProgress: null,
     }
   }
 
@@ -1135,20 +1133,9 @@ export class AppStore {
     return this._refreshRepository(repository)
   }
 
-  private updatePushProgress(repository: Repository, title: string, description: string | undefined, value: number) {
-    this.updateRepositoryState(repository, state => ({
-      pushProgress: { kind: 'push', title, description, value },
-    }))
 
-    if (this.selectedRepository === repository) {
-      this.emitUpdate()
-    }
-  }
-
-  private clearPushProgress(repository: Repository) {
-    this.updateRepositoryState(repository, state => ({
-      pushProgress: null,
-    }))
+  private updatePushPullFetchProgress(repository: Repository, pushPullFetchProgress: Progress | null) {
+    this.updateRepositoryState(repository, state => ({ pushPullFetchProgress }))
 
     if (this.selectedRepository === repository) {
       this.emitUpdate()
@@ -1181,36 +1168,48 @@ export class AppStore {
         const fetchWeight = 0.3
         const pushTitle = `Pushing to ${remote.name}`
 
-        this.updatePushProgress(repository, pushTitle, '', 0)
+        this.updatePushPullFetchProgress(repository, {
+          kind: 'push',
+          title: pushTitle,
+          value: 0,
+        })
 
         await gitStore.performFailableOperation(async () => {
 
           await pushRepo(repository, account, remote.name, branch.name, setUpstream, (progress) => {
-            const progressValue = pushWeight * progress.value
-            this.updatePushProgress(repository, pushTitle, progress.description, progressValue)
+            this.updatePushPullFetchProgress(repository, {
+              ...progress,
+              title: pushTitle,
+              value: pushWeight * progress.value,
+            })
           })
 
           await gitStore.fetchAll(account, false, (fetchProgress) => {
-            const progressValue = pushWeight + fetchProgress.value * fetchWeight
-
-            this.updatePushProgress(
-              repository,
-              fetchProgress.title,
-              fetchProgress.description,
-              progressValue
-            )
+            this.updatePushPullFetchProgress(repository, {
+              ...fetchProgress,
+              value: pushWeight + fetchProgress.value * fetchWeight,
+            })
           })
 
-          this.updatePushProgress(repository, 'Refreshing repository', '', 1)
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: 'Refreshing repository',
+            value: 1,
+          })
 
           await this._refreshRepository(repository)
 
-          this.updatePushProgress(repository, 'Refreshing repository', 'Fast-forwarding branches', 1)
+          this.updatePushPullFetchProgress(repository, {
+            kind: 'generic',
+            title: 'Refreshing repository',
+            description: 'Fast-forwarding branches',
+            value: 1
+          })
 
           await this.fastForwardBranches(repository)
         })
 
-        this.clearPushProgress(repository)
+        this.updatePushPullFetchProgress(repository, null)
       }
     })
   }
@@ -1247,14 +1246,6 @@ export class AppStore {
     }
   }
 
-  private updatePullProgress(repository: Repository, pullProgress: Progress | null) {
-    this.updateRepositoryState(repository, state => ({ pullProgress }))
-
-    if (this.selectedRepository === repository) {
-      this.emitUpdate()
-    }
-  }
-
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _pull(repository: Repository, account: Account | null): Promise<void> {
     return this.withPushPull(repository, async () => {
@@ -1279,7 +1270,7 @@ export class AppStore {
 
         const title = `Pulling ${remote.name}`
         const kind = 'pull'
-        this.updatePullProgress(repository, { kind, title, value: 0 })
+        this.updatePushPullFetchProgress(repository, { kind, title, value: 0 })
 
         try {
           const otherRemotes = (await getRemotes(repository))
@@ -1301,7 +1292,7 @@ export class AppStore {
 
           await gitStore.performFailableOperation(() =>
             pullRepo(repository, account, remote.name, progress => {
-              this.updatePullProgress(repository, {
+              this.updatePushPullFetchProgress(repository, {
                 ...progress,
                 value: progress.value * pullWeight,
               })
@@ -1310,7 +1301,7 @@ export class AppStore {
           const fetchStartProgress = fetchWeight
 
           await gitStore.fetchRemotes(account, otherRemotes, false, progress => {
-            this.updatePullProgress(repository, {
+            this.updatePushPullFetchProgress(repository, {
               kind,
               title: progress.title,
               description: progress.description,
@@ -1320,7 +1311,7 @@ export class AppStore {
 
           const refreshStartProgress = pullWeight + fetchWeight
 
-          this.updatePullProgress(repository, {
+          this.updatePushPullFetchProgress(repository, {
             kind,
             title: 'Refreshing repository',
             value: refreshStartProgress,
@@ -1328,7 +1319,7 @@ export class AppStore {
 
           await this._refreshRepository(repository)
 
-          this.updatePullProgress(repository, {
+          this.updatePushPullFetchProgress(repository, {
             kind,
             title: 'Refreshing repository',
             description: 'Fast-forwarding branches',
@@ -1337,7 +1328,7 @@ export class AppStore {
 
           await this.fastForwardBranches(repository)
         } finally {
-          this.updatePullProgress(repository, null)
+          this.updatePushPullFetchProgress(repository, null)
         }
       }
     })
@@ -1450,14 +1441,6 @@ export class AppStore {
     return this.performFetch(repository, account, false)
   }
 
-  private updateFetchProgress(repository: Repository, fetchProgress: Progress | null) {
-    this.updateRepositoryState(repository, state => ({ fetchProgress }))
-
-    if (this.selectedRepository === repository) {
-      this.emitUpdate()
-    }
-  }
-
   private async performFetch(repository: Repository, account: Account | null, backgroundTask: boolean): Promise<void> {
     await this.withPushPull(repository, async () => {
       const gitStore = this.getGitStore(repository)
@@ -1467,13 +1450,13 @@ export class AppStore {
         const refreshWeight = 0.1
 
         await gitStore.fetchAll(account, backgroundTask, (progress) => {
-          this.updateFetchProgress(repository, {
+          this.updatePushPullFetchProgress(repository, {
             ...progress,
             value: progress.value * fetchWeight,
           })
         })
 
-        this.updateFetchProgress(repository, {
+        this.updatePushPullFetchProgress(repository, {
           kind: 'generic',
           title: 'Refreshing repository',
           value: fetchWeight,
@@ -1481,7 +1464,7 @@ export class AppStore {
 
         await this._refreshRepository(repository)
 
-        this.updateFetchProgress(repository, {
+        this.updatePushPullFetchProgress(repository, {
           kind: 'generic',
           title: 'Refreshing repository',
           description: 'Fast-forwarding branches',
@@ -1490,7 +1473,7 @@ export class AppStore {
 
         await this.fastForwardBranches(repository)
       } finally {
-        this.updateFetchProgress(repository, null)
+        this.updatePushPullFetchProgress(repository, null)
       }
     })
   }

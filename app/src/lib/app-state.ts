@@ -234,28 +234,13 @@ export interface IRepositoryState {
   readonly checkoutProgress: ICheckoutProgress | null
 
   /**
-   * If we're currently working on pushing a branch this
-   * provides insight into the progress of that operation.
+   * If we're currently working on pushing a branch, fetching
+   * from a remote or pulling a branch this provides insight
+   * into the progress of that operation.
    * 
-   * null if no push operation is in flight.
+   * null if no such operation is in flight.
    */
-  readonly pushProgress: Progress | null
-
-  /**
-   * If we're currently working on pulling from a remote this
-   * provides insight into the progress of that operation.
-   * 
-   * null if no push operation is in flight.
-   */
-  readonly pullProgress: Progress | null
-
-  /**
-   * If we're currently working on fetching from a remote this
-   * provides insight into the progress of that operation.
-   * 
-   * null if no fetch operation is in flight.
-   */
-  readonly fetchProgress: Progress | null
+  readonly pushPullFetchProgress: Progress | null
 }
 
 export type Progress = IGenericProgress
