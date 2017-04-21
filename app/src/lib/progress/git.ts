@@ -5,7 +5,7 @@
 export interface IProgressStep {
   /**
    * The title of the git progress event. By title we refer to the
-   * exact value of the title field in Git's progress struct:
+   * exact value of the title field in the Git progress struct:
    * 
    * https://github.com/git/git/blob/6a2c2f8d34fa1e8f3bb85d159d354810ed63692e/progress.c#L31-L39
    * 
@@ -40,12 +40,80 @@ export interface IGitOutput {
   readonly text: string
 }
 
+/**
+ * A well-structured representation of a Git progress line.
+ */
 export interface IGitProgressInfo {
+  /**
+   * The title of the git progress event. By title we refer to the
+   * exact value of the title field in Git's progress struct:
+   * 
+   * https://github.com/git/git/blob/6a2c2f8d34fa1e8f3bb85d159d354810ed63692e/progress.c#L31-L39
+   * 
+   * In essence this means anything up to (but not including) the last colon (:)
+   * in a single progress line. Take this example progress line
+   * 
+   *    remote: Compressing objects:  14% (159/1133)
+   * 
+   * In this case the title would be 'remote: Compressing objects'.
+   */
   readonly title: string
+
+  /**
+   * The progress value as parsed from the Git progress line.
+   * 
+   * We define value to mean the same as it does in the Git progress struct, i.e
+   * it's the number of processed units.
+   * 
+   * In the progress line 'remote: Compressing objects:  14% (159/1133)' the
+   * value is 159.
+   * 
+   * In the progress line 'remote: Counting objects: 123' the value is 123.
+   * 
+   */
   readonly value: number
+
+  /**
+   * The progress total as parsed from the git progress line.
+   * 
+   * We define total to mean the same as it does in the Git progress struct, i.e
+   * it's the total number of units in a given process.
+   * 
+   * In the progress line 'remote: Compressing objects:  14% (159/1133)' the
+   * total is 1133.
+   * 
+   * In the progress line 'remote: Counting objects: 123' the total is undefined.
+   * 
+   */
   readonly total?: number
+
+  /**
+   * The progress percent as parsed from the git progress line.
+   * 
+   * We define percent to mean the same as it does in the Git progress struct, i.e
+   * it's the value divided by total.
+   * 
+   * In the progress line 'remote: Compressing objects:  14% (159/1133)' the
+   * percent is 14.
+   * 
+   * In the progress line 'remote: Counting objects: 123' the percent is undefined.
+   * 
+   */
   readonly percent?: number
+
+  /**
+   * Whether or not the parsed git progress line indicates that the operation
+   * is done.
+   * 
+   * This is denoted by a trailing ", done" string in the progress line.
+   * Example: Checking out files:  100% (728/728), done
+   */
   readonly done: boolean
+
+  /**
+   * The untouched raw text line that this instance was parsed from. Useful
+   * for presenting the actual output from Git to the user.
+   */
   readonly text: string
 }
 
@@ -85,6 +153,13 @@ export class GitProgressParser {
     }))
   }
 
+  /**
+   * Parse the given line of output from Git, returns either an IGitProgress
+   * instance if the line could successfully be parsed as a Git progress
+   * event whose title was registered with this parser or an IGitOutput
+   * instance if the line couldn't be parsed or if the title wasn't
+   * registered with the parser.
+   */
   public parse(line: string): IGitProgress | IGitOutput {
     const progress = parse(line)
 
