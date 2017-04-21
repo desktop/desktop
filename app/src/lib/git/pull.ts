@@ -4,7 +4,19 @@ import { Account } from '../../models/account'
 import { PullProgressParser, executionOptionsWithProgress } from '../progress'
 import { IPullProgress } from '../app-state'
 
-/** Pull from the remote to the branch. */
+/** 
+ * Pull from the specified remote.
+ * 
+ * @param repository - The repository in which the pull should take place
+ * 
+ * @param remote     - The name of the remote that should be pulled from
+ * 
+ * @param progressCallback - An optional function which will be invoked
+ *                           with information about the current progress
+ *                           of the pull operation. When provided this enables
+ *                           the '--progress' command line flag for
+ *                           'git pull'.
+ */
 export async function pull(repository: Repository, account: Account | null, remote: string, progressCallback?: (progress: IPullProgress) => void): Promise<void> {
 
   let opts: IGitExecutionOptions = {
