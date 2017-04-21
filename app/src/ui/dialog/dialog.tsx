@@ -202,12 +202,21 @@ export class Dialog extends React.Component<IDialogProps, IDialogState> {
     if (!e) {
       if (this.dialogElement) {
         this.dialogElement.removeEventListener('cancel', this.onDialogCancel)
+        this.dialogElement.addEventListener('keydown', this.onKeyDown)
       }
     } else {
       e.addEventListener('cancel', this.onDialogCancel)
+      e.addEventListener('keydown', this.onKeyDown)
     }
 
     this.dialogElement = e
+  }
+
+  private onKeyDown = (event: KeyboardEvent) => {
+    const shortcutKey = __DARWIN__ ? event.metaKey : event.ctrlKey
+    if (shortcutKey && event.key === 'w') {
+      this.onDialogCancel(event)
+    }
   }
 
   private onDismiss = () => {

@@ -8,8 +8,8 @@ import { parseRemote } from './remote-parsing'
 
 /** Try to use the list of users and a remote URL to guess a GitHub repository. */
 export function matchGitHubRepository(accounts: ReadonlyArray<Account>, remote: string): GitHubRepository | null {
-  for (const ix in accounts) {
-    const match = matchRemoteWithAccount(accounts[ix], remote)
+  for (const account of accounts) {
+    const match = matchRemoteWithAccount(account, remote)
     if (match) { return match }
   }
 
