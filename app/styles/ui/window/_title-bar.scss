@@ -8,6 +8,7 @@
 
   display: flex;
   flex-direction: row;
+  z-index: 1;
 
   @include darwin {
     height: var(--darwin-title-bar-height);
@@ -118,12 +119,16 @@
 
   .window-controls {
     svg {
-      fill: #000;
+      fill: #fff;
     }
 
     button {
       &:hover {
         background-color: #e5e5e5;
+
+        svg {
+          fill: #000;
+        }
 
         &:active {
           background-color: #cccccc;
