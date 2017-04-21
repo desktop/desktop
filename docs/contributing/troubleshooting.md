@@ -31,6 +31,6 @@ PS> npm -g install npm@latest
 
 and run `npm install` again
 
-See https://github.com/atom/node-keytar/issues/45 and
-https://github.com/nodejs/node-gyp/issues/972 for more information.
-
+For more information see
+[atom/node-keytar#45](https://github.com/atom/node-keytar/issues/45) and
+[nodejs/node-gyp#972](https://github.com/nodejs/node-gyp/issues/972).
