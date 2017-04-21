@@ -1180,9 +1180,9 @@ export class AppStore {
 
         const remotes = await getRemotes(repository)
 
-        // Let's say that a push takes twice as long as a fetch,
+        // Let's say that a push takes roughly twice as long as a fetch,
         // this is of course highly inaccurate.
-        let pushWeight = 2
+        let pushWeight = 2.5
         let fetchWeight = 1 * remotes.length
 
         // Let's leave 10% at the end for refreshing
