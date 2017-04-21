@@ -1,5 +1,8 @@
 {
   "releases": {
+    "0.0.35": [
+
+    ],
     "0.0.34": [
       "[New] macOS: Users can choose whether to accept untrusted certificates - #671",
       "[New] Windows: Users are prompted to install git when opening a shell if it is not installed - #813",
