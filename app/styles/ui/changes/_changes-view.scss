@@ -18,6 +18,7 @@
     .path {
       flex-grow: 1;
       display: flex;
+      min-width: 0;
     }
 
     @include octicon-status;
