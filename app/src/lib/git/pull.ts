@@ -47,6 +47,7 @@ export async function pull(repository: Repository, account: Account | null, remo
       },
     }
 
+    // Initial progress
     progressCallback({ kind, title, value: 0, remote })
   }
 

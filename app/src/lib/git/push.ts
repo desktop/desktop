@@ -61,6 +61,7 @@ export async function push(repository: Repository, account: Account | null, remo
       },
     }
 
+    // Initial progress
     progressCallback({ kind: 'push', title, value: 0, remote, branch })
   }
 

@@ -53,7 +53,7 @@ export async function checkoutBranch(repository: Repository, name: string, progr
       })
     }
 
-    // Send an initial progress
+    // Initial progress
     progressCallback({ kind, title, value: 0, targetBranch })
   }
 

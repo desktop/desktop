@@ -39,6 +39,7 @@ export async function clone(url: string, path: string, options: CloneOptions, pr
       },
     }
 
+    // Initial progress
     progressCallback({ kind, title, value: 0 })
   }
 
