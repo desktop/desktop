@@ -4,7 +4,6 @@ import { updateStore } from '../lib/update-store'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IUpdateAvailableProps {
-  readonly updateAvailble: boolean
   readonly releaseNotesLink: string
 }
 
@@ -21,7 +20,7 @@ export class UpdateAvailable extends React.Component<IUpdateAvailableProps, IUpd
     super(props)
 
     this.state = {
-      isActive: this.props.updateAvailble,
+      isActive: true,
     }
   }
 
