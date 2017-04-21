@@ -371,8 +371,6 @@ export interface IBranchesState {
   readonly recentBranches: ReadonlyArray<Branch>
 }
 
-
-
 export interface IHistorySelection {
   readonly sha: string | null
   readonly file: FileChange | null
