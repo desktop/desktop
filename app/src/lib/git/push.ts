@@ -3,7 +3,7 @@ import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { ChildProcess } from 'child_process'
 import { PushProgressParser } from '../progress'
-import { IGenericProgress } from '../app-state'
+import { IPushProgress } from '../app-state'
 
 const byline = require('byline')
 
@@ -27,7 +27,7 @@ const byline = require('byline')
  *                           the '--progress' command line flag for
  *                           'git push'.
  */
-export async function push(repository: Repository, account: Account | null, remote: string, branch: string, setUpstream: boolean, progressCallback?: (progress: IGenericProgress) => void): Promise<void> {
+export async function push(repository: Repository, account: Account | null, remote: string, branch: string, setUpstream: boolean, progressCallback?: (progress: IPushProgress) => void): Promise<void> {
   const args = [ 'push', remote, branch ]
   if (setUpstream) {
     args.push('--set-upstream')
@@ -51,6 +51,7 @@ export async function push(repository: Repository, account: Account | null, remo
           const progress = parser.parse(line)
 
           progressCallback({
+            kind: 'push',
             title,
             description: progress.kind === 'progress'
               ? progress.details.text
@@ -61,7 +62,7 @@ export async function push(repository: Repository, account: Account | null, remo
       },
     }
 
-    progressCallback({ title, value: 0 })
+    progressCallback({ kind: 'push', title, value: 0 })
   }
 
   const result = await git(args, repository.path, 'push', options)

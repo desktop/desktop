@@ -60,7 +60,7 @@ export class CloningRepositoriesStore {
 
     const title = `Cloning into ${path}`
 
-    this.stateByID.set(repository.id, { title, value: 0 })
+    this.stateByID.set(repository.id, { kind: 'clone', title, value: 0 })
     this.emitUpdate()
 
     let success = true
@@ -69,6 +69,7 @@ export class CloningRepositoriesStore {
       await cloneRepo(url, path, options, output => {
         const progress = progressParser.parse(output)
         this.stateByID.set(repository.id, {
+          kind: 'clone',
           title,
           description: progress.kind === 'progress'
             ? progress.details.text

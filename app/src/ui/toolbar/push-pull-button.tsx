@@ -6,7 +6,7 @@ import { Dispatcher } from '../../lib/dispatcher'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { Repository } from '../../models/repository'
 import { RelativeTime } from '../relative-time'
-import { IGenericProgress } from '../../lib/app-state'
+import { Progress } from '../../lib/app-state'
 
 interface IPushPullButtonProps {
   /**
@@ -24,7 +24,7 @@ interface IPushPullButtonProps {
   /** The date of the last fetch. */
   readonly lastFetched: Date | null
 
-  readonly progress: IGenericProgress | null
+  readonly progress: Progress | null
 
   readonly dispatcher: Dispatcher
   readonly repository: Repository

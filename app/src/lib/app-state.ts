@@ -239,7 +239,7 @@ export interface IRepositoryState {
    * 
    * null if no push operation is in flight.
    */
-  readonly pushProgress: IGenericProgress | null
+  readonly pushProgress: Progress | null
 
   /**
    * If we're currently working on pulling from a remote this
@@ -247,7 +247,7 @@ export interface IRepositoryState {
    * 
    * null if no push operation is in flight.
    */
-  readonly pullProgress: IGenericProgress | null
+  readonly pullProgress: Progress | null
 
   /**
    * If we're currently working on fetching from a remote this
@@ -255,13 +255,21 @@ export interface IRepositoryState {
    * 
    * null if no fetch operation is in flight.
    */
-  readonly fetchProgress: IGenericProgress | null
+  readonly fetchProgress: Progress | null
 }
 
-/** 
- * An object describing the progression of a branch checkout operation
+export type Progress = IGenericProgress
+  | ICheckoutProgress
+  | IFetchProgress
+  | IPullProgress
+  | IPushProgress
+
+/**
+ * Base interface containing all the properties that progress events
+ * needs to support.
  */
-export interface IGenericProgress {
+interface IProgress {
+
   /** 
    * The overall progress of the operation, represented as a fraction between
    * 0 and 1.
@@ -287,88 +295,51 @@ export interface IGenericProgress {
 /** 
  * An object describing the progression of a branch checkout operation
  */
-export interface ICheckoutProgress {
+export interface IGenericProgress extends IProgress {
+  kind: 'generic'
+}
+
+/** 
+ * An object describing the progression of a branch checkout operation
+ */
+export interface ICheckoutProgress extends IProgress {
+  kind: 'checkout'
+
   /** The branch that's currently being checked out */
   readonly targetBranch: string
-
-  /** 
-   * The overall progress of the operation, represented as a fraction between
-   * 0 and 1.
-   */
-  readonly value: number
-
-  /**
-   * An informative text for user consumption indicating the current operation
-   * state. This will be high level such as 'Fetching origin' or 
-   * 'Fetching upstream' and will typically persist over a number of progress
-   * events. For more detailed information about the progress see
-   * the description field
-   */
-  readonly title: string
-
-  /**
-   * An informative text for user consumption. For checkout progress this will
-   * be the last line output from Git.
-   */
-  readonly description?: string
 }
 
 /** 
  * An object describing the progression of a fetch operation
  */
-export interface IFetchProgress {
+export interface IFetchProgress extends IProgress {
+  kind: 'fetch'
 
   /**
    * The remote that's being fetched
    */
   readonly remote: string,
+}
 
-  /** 
-   * The overall progress of the operation, represented as a fraction between
-   * 0 and 1.
-   */
-  readonly value: number
+/** 
+ * An object describing the progression of a pull operation
+ */
+export interface IPullProgress extends IProgress {
+  kind: 'pull'
+}
 
-  /**
-   * An informative text for user consumption indicating the current operation
-   * state. This will be high level such as 'Fetching origin' or 
-   * 'Fetching upstream' and will typically persist over a number of progress
-   * events. For more detailed information about the progress see
-   * the description field
-   */
-  readonly title: string
-
-  /**
-   * An informative text for user consumption. For fetch progress this will
-   * be the last line output from Git.
-   */
-  readonly description?: string
+/** 
+ * An object describing the progression of a pull operation
+ */
+export interface IPushProgress extends IProgress {
+  kind: 'push'
 }
 
 /** 
  * An object describing the progression of a fetch operation
  */
-export interface ICloneProgress {
-  /** 
-   * The overall progress of the operation, represented as a fraction between
-   * 0 and 1.
-   */
-  readonly value: number
-
-  /**
-   * An informative text for user consumption indicating the current operation
-   * state. This will be high level such as 'Fetching origin' or 
-   * 'Fetching upstream' and will typically persist over a number of progress
-   * events. For more detailed information about the progress see
-   * the description field
-   */
-  readonly title: string
-
-  /**
-   * An informative text for user consumption. For fetch progress this will
-   * be the last line output from Git.
-   */
-  readonly description?: string
+export interface ICloneProgress extends IProgress {
+  kind: 'clone'
 }
 
 export interface IBranchesState {

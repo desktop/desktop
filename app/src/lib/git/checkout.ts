@@ -43,6 +43,7 @@ export async function checkoutBranch(repository: Repository, name: string, progr
 
         if (progress.kind === 'progress') {
           progressCallback({
+            kind: 'checkout',
             title,
             description: progress.details.text,
             value: progress.percent,
@@ -53,7 +54,7 @@ export async function checkoutBranch(repository: Repository, name: string, progr
     }
 
     // Send an initial progress
-    progressCallback({ title, value: 0, targetBranch: name })
+    progressCallback({ kind: 'checkout', title, value: 0, targetBranch: name })
   }
 
   const args = processCallback

@@ -476,7 +476,7 @@ export class GitStore {
     const title = `Fetching ${remote}`
 
     if (progressCallback) {
-      progressCallback({ title, value: 0, remote })
+      progressCallback({ kind: 'fetch', title, value: 0, remote })
     }
 
     await this.performFailableOperation(() => {
@@ -491,6 +491,7 @@ export class GitStore {
           : progress.text
 
         progressCallback({
+          kind: 'fetch',
           title,
           description,
           value: progress.percent,

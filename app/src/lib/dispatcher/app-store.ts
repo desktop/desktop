@@ -14,8 +14,7 @@ import {
   PossibleSelections,
   SelectionType,
   ICheckoutProgress,
-  IFetchProgress,
-  IGenericProgress,
+  Progress,
 } from '../app-state'
 import { Account } from '../../models/account'
 import { Repository } from '../../models/repository'
@@ -1024,6 +1023,7 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _checkoutBranch(repository: Repository, name: string): Promise<Repository> {
     const gitStore = this.getGitStore(repository)
+    const kind = 'checkout'
 
     await gitStore.performFailableOperation(() => {
       return checkoutBranch(repository, name, (progress) => {
@@ -1033,6 +1033,7 @@ export class AppStore {
 
     try {
       this.updateCheckoutProgress(repository, {
+        kind,
         title: 'Refreshing repository',
         value: 1,
         targetBranch: name,
@@ -1136,7 +1137,7 @@ export class AppStore {
 
   private updatePushProgress(repository: Repository, title: string, description: string | undefined, value: number) {
     this.updateRepositoryState(repository, state => ({
-      pushProgress: { title, description, value },
+      pushProgress: { kind: 'push', title, description, value },
     }))
 
     if (this.selectedRepository === repository) {
@@ -1246,7 +1247,7 @@ export class AppStore {
     }
   }
 
-  private updatePullProgress(repository: Repository, pullProgress: IGenericProgress | null) {
+  private updatePullProgress(repository: Repository, pullProgress: Progress | null) {
     this.updateRepositoryState(repository, state => ({ pullProgress }))
 
     if (this.selectedRepository === repository) {
@@ -1277,7 +1278,8 @@ export class AppStore {
       if (state.branchesState.tip.kind === TipState.Valid) {
 
         const title = `Pulling ${remote.name}`
-        this.updatePullProgress(repository, { title, value: 0 })
+        const kind = 'pull'
+        this.updatePullProgress(repository, { kind, title, value: 0 })
 
         try {
           const otherRemotes = (await getRemotes(repository))
@@ -1309,7 +1311,9 @@ export class AppStore {
 
           await gitStore.fetchRemotes(account, otherRemotes, false, progress => {
             this.updatePullProgress(repository, {
-              ...progress,
+              kind,
+              title: progress.title,
+              description: progress.description,
               value: fetchStartProgress + progress.value * fetchWeight,
             })
           })
@@ -1317,6 +1321,7 @@ export class AppStore {
           const refreshStartProgress = pullWeight + fetchWeight
 
           this.updatePullProgress(repository, {
+            kind,
             title: 'Refreshing repository',
             value: refreshStartProgress,
           })
@@ -1324,6 +1329,7 @@ export class AppStore {
           await this._refreshRepository(repository)
 
           this.updatePullProgress(repository, {
+            kind,
             title: 'Refreshing repository',
             description: 'Fast-forwarding branches',
             value: refreshStartProgress + refreshWeight * 0.5,
@@ -1444,7 +1450,7 @@ export class AppStore {
     return this.performFetch(repository, account, false)
   }
 
-  private updateFetchProgress(repository: Repository, fetchProgress: IGenericProgress | null) {
+  private updateFetchProgress(repository: Repository, fetchProgress: Progress | null) {
     this.updateRepositoryState(repository, state => ({ fetchProgress }))
 
     if (this.selectedRepository === repository) {
@@ -1460,15 +1466,15 @@ export class AppStore {
         const fetchWeight = 0.9
         const refreshWeight = 0.1
 
-        await gitStore.fetchAll(account, backgroundTask, (progress: IFetchProgress) => {
+        await gitStore.fetchAll(account, backgroundTask, (progress) => {
           this.updateFetchProgress(repository, {
-            title: progress.title,
-            description: progress.description,
+            ...progress,
             value: progress.value * fetchWeight,
           })
         })
 
         this.updateFetchProgress(repository, {
+          kind: 'generic',
           title: 'Refreshing repository',
           value: fetchWeight,
         })
@@ -1476,6 +1482,7 @@ export class AppStore {
         await this._refreshRepository(repository)
 
         this.updateFetchProgress(repository, {
+          kind: 'generic',
           title: 'Refreshing repository',
           description: 'Fast-forwarding branches',
           value: fetchWeight + (refreshWeight * 0.5),

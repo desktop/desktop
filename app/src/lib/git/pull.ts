@@ -3,12 +3,12 @@ import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { ChildProcess } from 'child_process'
 import { PullProgressParser } from '../progress'
-import { IGenericProgress } from '../app-state'
+import { IPullProgress } from '../app-state'
 
 const byline = require('byline')
 
 /** Pull from the remote to the branch. */
-export async function pull(repository: Repository, account: Account | null, remote: string, progressCallback?: (progress: IGenericProgress) => void): Promise<void> {
+export async function pull(repository: Repository, account: Account | null, remote: string, progressCallback?: (progress: IPullProgress) => void): Promise<void> {
 
   let options: IGitExecutionOptions = {
     env: envForAuthentication(account),
@@ -17,6 +17,7 @@ export async function pull(repository: Repository, account: Account | null, remo
 
   if (progressCallback) {
     const title = `Pulling ${remote}`
+    const kind = 'pull'
 
     options = {
       ...options,
@@ -36,6 +37,7 @@ export async function pull(repository: Repository, account: Account | null, remo
           }
 
           progressCallback({
+            kind,
             title,
             description: progress.kind === 'progress'
               ? progress.details.text
@@ -46,7 +48,7 @@ export async function pull(repository: Repository, account: Account | null, remo
       },
     }
 
-    progressCallback({ title, value: 0 })
+    progressCallback({ kind, title, value: 0 })
   }
 
   const args = progressCallback
