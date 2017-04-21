@@ -28,9 +28,28 @@ export interface IProgressStep {
   readonly weight: number
 }
 
+/**
+ * The overall progress of one or more steps in a Git operation.
+ */
 export interface IGitProgress {
   readonly kind: 'progress'
+
+  /**
+   * The overall percent of the operation
+   */
   readonly percent: number
+
+  /**
+   * The underlying progress line that this progress instance was
+   * constructed from. Note that the percent value in details
+   * doesn't correspond to that of percent in this instance for
+   * two reasons. Fist, we calculate percent by dividing value with total
+   * to produce a high precision decimal value between 0 and 1 while
+   * details.percent is a rounded integer between 0 and 100.
+   * 
+   * Second, the percent in this instance is scaled in relation to any
+   * other steps included in the progress parser.
+   */
   readonly details: IGitProgressInfo
 }
 
@@ -88,7 +107,8 @@ export interface IGitProgressInfo {
   readonly total?: number
 
   /**
-   * The progress percent as parsed from the git progress line.
+   * The progress percent as parsed from the git progress line represented as
+   * an integer between 0 and 100.
    * 
    * We define percent to mean the same as it does in the Git progress struct, i.e
    * it's the value divided by total.
@@ -123,6 +143,9 @@ export interface IGitProgressInfo {
  * of the an operation. An operation could be something like `git fetch`
  * which contains multiple steps, each individually reported by Git as
  * progress events between 0 and 100%.
+ * 
+ * A parser cannot be reused, it's mean to parse a single stderr stream
+ * for Git.
  */
 export class GitProgressParser {
   private readonly steps: ReadonlyArray<IProgressStep>
@@ -137,6 +160,16 @@ export class GitProgressParser {
 
   private lastPercent = 0
 
+  /**
+   * Initialize a new instance of a Git progress parser.
+   * 
+   * @param steps - A series of steps that could be present in the git
+   *                output with relative weight between these steps. Note
+   *                that order is significant here as once the parser sees
+   *                a progress line that matches a step all previous steps
+   *                are considered completed and overall progress is adjusted
+   *                accordingly.
+   */
   public constructor(steps: ReadonlyArray<IProgressStep>) {
 
     if (!steps.length) {
