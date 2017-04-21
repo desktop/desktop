@@ -64,8 +64,6 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
       <Form className='sign-in-form' onSubmit={this.signIn}>
         {this.renderUsernamePassword()}
 
-        {this.renderError()}
-
         {this.renderSignInWithBrowser()}
       </Form>
     )
@@ -91,6 +89,8 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
           labelLinkText='Forgot password?'
           labelLinkUri={this.props.forgotPasswordUrl}/>
 
+        {this.renderError()}
+
         {this.renderActions()}
       </div>
     )
@@ -100,9 +100,12 @@ export class AuthenticationForm extends React.Component<IAuthenticationFormProps
     const signInDisabled = Boolean(!this.state.username.length || !this.state.password.length || this.props.loading)
     return (
       <div className='actions'>
-        {this.props.supportsBasicAuth ? <Button type='submit' disabled={signInDisabled}>Sign in</Button> : null}
+        {this.props.supportsBasicAuth ?
+          <Button type='submit' disabled={signInDisabled}>
+            Sign in {this.props.loading ? <Loading/> : null }
+          </Button>
+          : null}
         {this.props.additionalButtons}
-        {this.props.loading ? <Loading/> : null}
       </div>
     )
   }

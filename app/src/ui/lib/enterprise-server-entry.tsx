@@ -56,14 +56,15 @@ export class EnterpriseServerEntry extends React.Component<IEnterpriseServerEntr
           onValueChanged={this.onServerAddressChanged}
           placeholder='https://github.example.com' />
 
+        {this.props.error ? <Errors>{this.props.error.message}</Errors> : null}
+
         <div className='actions'>
-          <Button type='submit' disabled={disableSubmission}>Continue</Button>
+          <Button type='submit' disabled={disableSubmission}>
+            Continue
+            {this.props.loading ? <Loading/> : null}
+          </Button>
           {this.props.additionalButtons}
         </div>
-
-        {this.props.loading ? <Loading/> : null}
-
-        {this.props.error ? <Errors>{this.props.error.message}</Errors> : null}
       </Form>
     )
   }
