@@ -76,6 +76,13 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     this.state = props.appStore.getState()
     props.appStore.onDidUpdate(state => {
+      const selectedState = state.selectedState
+      if (selectedState) {
+        if (selectedState.type === SelectionType.Repository) {
+          console.log(selectedState.state.changesState.workingDirectory.files)
+        }
+      }
+
       this.setState(state)
 
       this.updateMenu(state)
