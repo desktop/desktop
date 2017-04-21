@@ -1,6 +1,5 @@
-import * as chai from 'chai'
-const expect = chai.expect
 
+import { expect } from 'chai'
 import { CloneProgressParser } from '../../../src/lib/progress'
 
 describe('CloneProgressParser', () => {
