@@ -92,7 +92,6 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
           tabIndex={this.props.tabIndex}
           type='checkbox'
           onChange={this.onChange}
-          // checked={this.props.value === CheckboxValue.On}
           ref={this.onInputRef}
         />
         {this.renderLabel()}
