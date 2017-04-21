@@ -311,6 +311,11 @@ export interface IFetchProgress extends IProgress {
  */
 export interface IPullProgress extends IProgress {
   kind: 'pull'
+
+  /**
+   * The remote that's being pulled from
+   */
+  readonly remote: string,
 }
 
 /** 
@@ -318,6 +323,16 @@ export interface IPullProgress extends IProgress {
  */
 export interface IPushProgress extends IProgress {
   kind: 'push'
+
+  /**
+   * The remote that's being pushed to
+   */
+  readonly remote: string,
+
+  /**
+   * The branch that's being pushed
+   */
+  readonly branch: string,
 }
 
 /** 

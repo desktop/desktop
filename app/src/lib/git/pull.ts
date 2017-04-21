@@ -43,12 +43,13 @@ export async function pull(repository: Repository, account: Account | null, remo
               ? progress.details.text
               : progress.text,
             value: progress.percent,
+            remote,
           })
         })
       },
     }
 
-    progressCallback({ kind, title, value: 0 })
+    progressCallback({ kind, title, value: 0, remote })
   }
 
   const args = progressCallback

@@ -57,12 +57,14 @@ export async function push(repository: Repository, account: Account | null, remo
               ? progress.details.text
               : progress.text,
             value: progress.percent,
+            remote,
+            branch,
           })
         })
       },
     }
 
-    progressCallback({ kind: 'push', title, value: 0 })
+    progressCallback({ kind: 'push', title, value: 0, remote, branch })
   }
 
   const result = await git(args, repository.path, 'push', options)

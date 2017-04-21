@@ -1172,6 +1172,8 @@ export class AppStore {
           kind: 'push',
           title: pushTitle,
           value: 0,
+          remote: remote.name,
+          branch: branch.name,
         })
 
         await gitStore.performFailableOperation(async () => {
@@ -1270,7 +1272,12 @@ export class AppStore {
 
         const title = `Pulling ${remote.name}`
         const kind = 'pull'
-        this.updatePushPullFetchProgress(repository, { kind, title, value: 0 })
+        this.updatePushPullFetchProgress(repository, {
+          kind,
+          title,
+          value: 0,
+          remote: remote.name,
+        })
 
         try {
           const otherRemotes = (await getRemotes(repository))
@@ -1302,7 +1309,7 @@ export class AppStore {
 
           await gitStore.fetchRemotes(account, otherRemotes, false, progress => {
             this.updatePushPullFetchProgress(repository, {
-              kind,
+              ...progress,
               title: progress.title,
               description: progress.description,
               value: fetchStartProgress + progress.value * fetchWeight,
@@ -1312,7 +1319,7 @@ export class AppStore {
           const refreshStartProgress = pullWeight + fetchWeight
 
           this.updatePushPullFetchProgress(repository, {
-            kind,
+            kind: 'generic',
             title: 'Refreshing repository',
             value: refreshStartProgress,
           })
@@ -1320,7 +1327,7 @@ export class AppStore {
           await this._refreshRepository(repository)
 
           this.updatePushPullFetchProgress(repository, {
-            kind,
+            kind: 'generic',
             title: 'Refreshing repository',
             description: 'Fast-forwarding branches',
             value: refreshStartProgress + refreshWeight * 0.5,
