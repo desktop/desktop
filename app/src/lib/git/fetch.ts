@@ -9,14 +9,15 @@ import { IFetchProgress } from '../app-state'
  * 
  * @param repository - The repository to fetch into
  * 
- * @param account - The account to use when authenticating with the remote
+ * @param account    - The account to use when authenticating with the remote
  *
- * @param remote - The remote to fetch from
+ * @param remote     - The remote to fetch from
  *
  * @param progressCallback - An optional function which will be invoked
- *                           once per each line of output from Git. When
- *                           provided this also enables the '--progress'
- *                           command line flag for 'git push'.
+ *                           with information about the current progress
+ *                           of the fetch operation. When provided this enables
+ *                           the '--progress' command line flag for
+ *                           'git fetch'.
  */
 export async function fetch(repository: Repository, account: Account | null, remote: string, progressCallback?: (progress: IFetchProgress) => void): Promise<void> {
   let opts: IGitExecutionOptions = {
