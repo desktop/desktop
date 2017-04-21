@@ -83,10 +83,9 @@ When running the app in development mode,
 [React Dev Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en)
 should automatically install itself on first start when in development mode.
 
-An additional extension, [Devtron](http://electron.atom.io/devtron/), is also included but is disabled by default.
-
-To enable Devtron, switch to the Console tab in Chrome Developer Tools and run
-this command:
+An additional extension, [Devtron](http://electron.atom.io/devtron/), is also
+included but is disabled by default. To enable Devtron, select the Console
+tab in Chrome Developer Tools and run this command:
 
 ```js
 require('devtron').install()
