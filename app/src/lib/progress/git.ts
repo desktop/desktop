@@ -112,7 +112,23 @@ export class GitProgressParser {
 const percentRe = /^(\d{1,3})% \((\d+)\/(\d+)\)$/
 const valueOnlyRe = /^\d+$/
 
-// Receiving objects:  99% (166741/167587), 279.42 MiB | 2.43 MiB/s  
+/**
+ * Attempts to parse a single line of progress output from Git.
+ * 
+ * For details about how Git formats progress see
+ * 
+ *   https://github.com/git/git/blob/6a2c2f8d34fa1e8f3bb85d159d354810ed63692e/progress.c
+ * 
+ * Some examples:
+ *  remote: Counting objects: 123
+ *  remote: Counting objects: 167587, done.
+ *  Receiving objects:  99% (166741/167587), 272.10 MiB | 2.39 MiB/s   
+ *  Checking out files:  100% (728/728)
+ *  Checking out files:  100% (728/728), done
+ * 
+ * @returns An object containing well-structured information about the progress
+ *          or null if the line could not be parsed as a Git progress line.
+ */
 export function parse(line: string): IGitProgress | null {
 
   const titleLength = line.lastIndexOf(': ')
@@ -142,17 +158,12 @@ export function parse(line: string): IGitProgress | null {
   let total: number | undefined = undefined
   let percent: number | undefined = undefined
 
-  // remote: Counting objects: 123
-  // remote: Counting objects: 167587, done.
   if (valueOnlyRe.test(progressParts[0])) {
     value = parseInt(progressParts[0], 10)
 
     if (isNaN(value)) {
       return null
     }
-  // Receiving objects:  99% (166741/167587), 272.10 MiB | 2.39 MiB/s   
-  // Checking out files:  32% (233/728) 
-  // Checking out files: 100% (728/728), done.
   } else {
     const percentMatch = percentRe.exec(progressParts[0])
 
