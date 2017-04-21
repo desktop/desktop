@@ -233,7 +233,7 @@ export class AppStore {
       },
       changesState: {
         workingDirectory: new WorkingDirectoryStatus(new Array<WorkingDirectoryFileChange>(), true),
-        selectedFile: null,
+        selectedFileID: null,
         diff: null,
         contextualCommitMessage: null,
         commitMessage: null,
@@ -679,7 +679,6 @@ export class AppStore {
     const status = await gitStore.performFailableOperation(() => getStatus(repository))
     if (!status) { return }
 
-    let selectedFile: WorkingDirectoryFileChange | null = null
     this.updateChangesState(repository, state => {
 
       // Populate a map for all files in the current working directory state
@@ -706,30 +705,22 @@ export class AppStore {
       .sort((x, y) => caseInsensitiveCompare(x.path, y.path))
 
       const includeAll = this.getIncludeAllState(mergedFiles)
-
-      // Try to find the currently selected file among the files
-      // in the new working directory state. Matching by id is
-      // different from matching by path since id includes the
-      // change type (new, modified, deleted etc)
-      if (state.selectedFile) {
-        selectedFile = mergedFiles.find(f => f.id === state.selectedFile!.id) || null
-      }
-
-      const fileSelectionChanged = selectedFile == null
-
-      if (!selectedFile && mergedFiles.length) {
-        selectedFile = mergedFiles[0] || null
-      }
-
       const workingDirectory = new WorkingDirectoryStatus(mergedFiles, includeAll)
 
-      // The file selection could have changed if the previously selected
-      // file is no longer selectable (it was reverted or committed) but
-      // if it hasn't changed we can reuse the diff
-      const diff = fileSelectionChanged ? null : state.diff
+      let selectedFileID = state.selectedFileID
+      // Select the first file if we don't have anything selected.
+      if (!selectedFileID && mergedFiles.length) {
+        selectedFileID = mergedFiles[0].id || null
+      }
 
-      return { workingDirectory, selectedFile, diff }
+      // The file selection could have changed if the previously selected file
+      // is no longer selectable (it was reverted or committed) but if it hasn't
+      // changed we can reuse the diff.
+      const sameSelectedFileExists = state.selectedFileID ? workingDirectory.findFileWithID(state.selectedFileID) : null
+      const diff = sameSelectedFileExists ? state.diff : null
+
     })
+      return { workingDirectory, selectedFileID, diff }
     this.emitUpdate()
 
     this.updateChangesDiffForCurrentSelection(repository)
@@ -749,14 +740,9 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
-    this.updateChangesState(repository, state => {
-      let r = selectedFile
-      if (selectedFile) {
-        r = state.workingDirectory.files.find(f => f.id === selectedFile.id) || null
-      }
-
-      return { selectedFile: r, diff: null }
     })
+    this.updateChangesState(repository, state => (
+      { selectedFileID: selectedFile ? selectedFile.id : null, diff: null }
     this.emitUpdate()
 
     this.updateChangesDiffForCurrentSelection(repository)
@@ -769,29 +755,35 @@ export class AppStore {
    */
   private async updateChangesDiffForCurrentSelection(repository: Repository): Promise<void> {
     const stateBeforeLoad = this.getRepositoryState(repository)
-    const previouslySelectedFile = stateBeforeLoad.changesState.selectedFile
+    const changesStateBeforeLoad = stateBeforeLoad.changesState
+    const selectedFileIDBeforeLoad = changesStateBeforeLoad.selectedFileID
+    if (!selectedFileIDBeforeLoad) { return }
 
-    if (!previouslySelectedFile) { return }
+    const selectedFileBeforeLoad = changesStateBeforeLoad.workingDirectory.findFileWithID(selectedFileIDBeforeLoad)
+    if (!selectedFileBeforeLoad) { return }
 
-    const diff = await getWorkingDirectoryDiff(repository, previouslySelectedFile)
+    const diff = await getWorkingDirectoryDiff(repository, selectedFileBeforeLoad)
 
     const stateAfterLoad = this.getRepositoryState(repository)
     const changesState = stateAfterLoad.changesState
-    const currentlySelectedFile = changesState.selectedFile
+    const selectedFileID = changesState.selectedFileID
 
-    // The selected file could have changed while we were loading the diff, in
-    // which case we no longer care about the diff.
+    // A different file could have been selected while we were loading the diff
+    // in which case we no longer care about the diff we just loaded.
+    if (!selectedFileID) { return }
+    if (selectedFileID !== selectedFileIDBeforeLoad) { return }
+
+    const currentlySelectedFile = changesState.workingDirectory.findFileWithID(selectedFileID)
     if (!currentlySelectedFile) { return }
-    if (currentlySelectedFile.id !== previouslySelectedFile.id) { return }
 
     const selectableLines = new Set<number>()
     if (diff.kind === DiffType.Text) {
-      // The diff might have changed dramatically since last we loaded it. Ideally we
-      // would be more clever about validating that any partial selection state is
-      // still valid by ensuring that selected lines still exist but for now we'll
-      // settle on just updating the selectable lines such that any previously selected
-      // line which now no longer exists or has been turned into a context line
-      // isn't still selected.
+      // The diff might have changed dramatically since last we loaded it.
+      // Ideally we would be more clever about validating that any partial
+      // selection state is still valid by ensuring that selected lines still
+      // exist but for now we'll settle on just updating the selectable lines
+      // such that any previously selected line which now no longer exists or
+      // has been turned into a context line isn't still selected.
       diff.hunks.forEach(h => {
         h.lines.forEach((line, index) => {
           if (line.isIncludeableLine()) {
@@ -803,9 +795,9 @@ export class AppStore {
 
     const newSelection = currentlySelectedFile.selection.withSelectableLines(selectableLines)
     const selectedFile = currentlySelectedFile.withSelection(newSelection)
-
     const workingDirectory = changesState.workingDirectory.byReplacingFile(selectedFile)
-    this.updateChangesState(repository, state => ({ selectedFile, diff, workingDirectory }))
+
+    this.updateChangesState(repository, state => ({ diff, workingDirectory }), 'updateChangesDiffForCurrentSelection')
     this.emitUpdate()
   }
 
@@ -864,32 +856,20 @@ export class AppStore {
   }
 
   /**
-   * Updates the selection for the given file in the working directory
-   * state and emits an update event.
+   * Updates the selection for the given file in the working directory state and
+   * emits an update event.
    */
   private updateWorkingDirectoryFileSelection(repository: Repository, file: WorkingDirectoryFileChange, selection: DiffSelection) {
-
     this.updateChangesState(repository, state => {
-
       const newFiles = state.workingDirectory.files.map(f =>
         f.id === file.id ? f.withSelection(selection) : f
       )
 
       const includeAll = this.getIncludeAllState(newFiles)
-
-      let selectedFile: WorkingDirectoryFileChange | null = null
-      if (state.selectedFile) {
-        const f = state.selectedFile
-        selectedFile = newFiles.find(file => file.id === f.id) || null
-      }
-
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
-      const diff = selectedFile ? state.diff : null
-
-      return { workingDirectory, selectedFile, diff }
     })
-
-    console.log(`${file.path}: ${selection.getSelectionType()}`)
+      const diff = state.selectedFileID ? state.diff : null
+      return { workingDirectory, diff }
 
     this.emitUpdate()
   }
@@ -897,15 +877,9 @@ export class AppStore {
   /** This shouldn't be called directly. See `Dispatcher`. */
   public _changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
     this.updateChangesState(repository, state => {
-
-      const selectedFile = state.selectedFile
-        ? state.selectedFile.withIncludeAll(includeAll)
-        : null
-
       const workingDirectory = state.workingDirectory.withIncludeAllFiles(includeAll)
-
-      return { workingDirectory, selectedFile }
     })
+      return { workingDirectory }
     this.emitUpdate()
 
     return Promise.resolve()
