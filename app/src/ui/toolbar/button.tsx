@@ -42,9 +42,9 @@ export interface IToolbarButtonProps {
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /**
-   * A function that's called when a key event is received from the 
+   * A function that's called when a key event is received from the
    * ToolbarButton component or any of its descendants.
-   * 
+   *
    * Consumers of this event should not act on the event if the event has
    * had its default action prevented by an earlier consumer that's called
    * the preventDefault method on the event instance.
@@ -76,15 +76,15 @@ export interface IToolbarButtonProps {
    * A value of 'undefined' means that whether or not the element participates
    * in sequential keyboard navigation is left to the user agent's default
    * settings.
-   * 
+   *
    * A negative value means that the element can receive focus but not
    * through sequential keyboard navigation (i.e. only via programmatic
    * focus)
-   * 
+   *
    * A value of zero means that the element can receive focus through
    * sequential keyboard navigation and that the order should be determined
    * by the element's position in the DOM.
-   * 
+   *
    * A positive value means that the element can receive focus through
    * sequential keyboard navigation and that it should have the explicit
    * order provided and not have it be determined by its position in the DOM.
@@ -98,7 +98,7 @@ export interface IToolbarButtonProps {
    * An optional progress value as a fraction between 0 and 1. Passing a number
    * greater than zero will render a progress bar background in the toolbar
    * button. Use this to communicate an ongoing operation.
-   * 
+   *
    * Consumers should not rely solely on the visual progress bar, they should
    * also implement alternative representation such as showing a percentage
    * text in the description or title along with information about what
@@ -187,7 +187,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     }
 
     const title = this.props.title
-      ? <div className='title'>{this.props.title}</div>
+      ? <div className='title' title={this.props.title}>{this.props.title}</div>
       : null
 
     const description = this.props.description
@@ -208,7 +208,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
         return (
           <div className='text'>
             {description}
-            <div className='title'>{this.props.title}</div>
+            <div className='title' title={this.props.title}>{this.props.title}</div>
           </div>
         )
 
