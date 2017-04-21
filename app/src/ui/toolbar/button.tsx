@@ -161,8 +161,10 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
       ? <div className='progress' style={{ transform: `scaleX(${progressValue})` }} />
       : undefined
 
+    const title = this.props.title ? `Current branch is ${this.props.title}` : undefined
+
     return (
-      <div className={className} onKeyDown={this.props.onKeyDown}>
+      <div className={className} onKeyDown={this.props.onKeyDown} title={title}>
         {preContent}
         <Button
           onClick={this.onClick}
@@ -187,7 +189,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     }
 
     const title = this.props.title
-      ? <div className='title' title={this.props.title}>{this.props.title}</div>
+      ? <div className='title'>{this.props.title}</div>
       : null
 
     const description = this.props.description
@@ -208,7 +210,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
         return (
           <div className='text'>
             {description}
-            <div className='title' title={this.props.title}>{this.props.title}</div>
+            <div className='title'>{this.props.title}</div>
           </div>
         )
 
