@@ -1034,7 +1034,7 @@ export class AppStore {
     try {
       this.updateCheckoutProgress(repository, {
         kind,
-        title: 'Refreshing repository',
+        title: __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository',
         value: 1,
         targetBranch: name,
       })
@@ -1195,9 +1195,11 @@ export class AppStore {
             })
           })
 
+          const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
+
           this.updatePushPullFetchProgress(repository, {
             kind: 'generic',
-            title: 'Refreshing repository',
+            title: refreshTitle,
             value: 1,
           })
 
@@ -1205,7 +1207,7 @@ export class AppStore {
 
           this.updatePushPullFetchProgress(repository, {
             kind: 'generic',
-            title: 'Refreshing repository',
+            title: refreshTitle,
             description: 'Fast-forwarding branches',
             value: 1,
           })
@@ -1319,10 +1321,11 @@ export class AppStore {
           })
 
           const refreshStartProgress = pullWeight + fetchWeight
+          const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
 
           this.updatePushPullFetchProgress(repository, {
             kind: 'generic',
-            title: 'Refreshing repository',
+            title: refreshTitle,
             value: refreshStartProgress,
           })
 
@@ -1330,7 +1333,7 @@ export class AppStore {
 
           this.updatePushPullFetchProgress(repository, {
             kind: 'generic',
-            title: 'Refreshing repository',
+            title: refreshTitle,
             description: 'Fast-forwarding branches',
             value: refreshStartProgress + refreshWeight * 0.5,
           })
@@ -1460,9 +1463,11 @@ export class AppStore {
           })
         })
 
+        const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
+
         this.updatePushPullFetchProgress(repository, {
           kind: 'generic',
-          title: 'Refreshing repository',
+          title: refreshTitle,
           value: fetchWeight,
         })
 
@@ -1470,7 +1475,7 @@ export class AppStore {
 
         this.updatePushPullFetchProgress(repository, {
           kind: 'generic',
-          title: 'Refreshing repository',
+          title: refreshTitle,
           description: 'Fast-forwarding branches',
           value: fetchWeight + (refreshWeight * 0.5),
         })
