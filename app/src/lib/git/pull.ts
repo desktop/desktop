@@ -25,6 +25,16 @@ export async function pull(repository: Repository, account: Account | null, remo
         byline(process.stderr).on('data', (line: string) => {
           const progress = parser.parse(line)
 
+          // In addition to progress output from the remote end and from
+          // git itself, the stderr output from pull contains information
+          // about ref updates. We don't need to bring those into the progress
+          // stream so we'll just punt on anything we don't know about for now. 
+          if (progress.kind === 'context') {
+            if (!progress.text.startsWith('remote: Counting objects')) {
+              return
+            }
+          }
+
           progressCallback({
             title,
             description: progress.kind === 'progress'
