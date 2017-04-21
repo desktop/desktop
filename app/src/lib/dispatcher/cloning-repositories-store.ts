@@ -3,7 +3,6 @@ import * as Path from 'path'
 import { Emitter, Disposable } from 'event-kit'
 
 import { clone as cloneRepo, CloneOptions } from '../git'
-import { CloneProgressParser } from '../progress'
 import { ICloneProgress } from '../app-state'
 
 let CloningRepositoryID = 1
@@ -64,18 +63,9 @@ export class CloningRepositoriesStore {
     this.emitUpdate()
 
     let success = true
-    const progressParser = new CloneProgressParser()
     try {
-      await cloneRepo(url, path, options, output => {
-        const progress = progressParser.parse(output)
-        this.stateByID.set(repository.id, {
-          kind: 'clone',
-          title,
-          description: progress.kind === 'progress'
-            ? progress.details.text
-            : progress.text,
-          value: progress.percent,
-        })
+      await cloneRepo(url, path, options, progress => {
+        this.stateByID.set(repository.id, progress)
         this.emitUpdate()
       })
     } catch (e) {
