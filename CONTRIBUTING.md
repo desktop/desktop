@@ -7,18 +7,21 @@ changes to GitHub Desktop.
 
 You will need to install these tools:
 
- - [Nodejs](https://nodejs.org) v7 is preferred as it's the version embedded into Electron
-    - **Windows developers**:  Make sure you allow the Node.js installer to add
-      node to the PATH, it'll make life much easier for you.
+ - [Nodejs](https://nodejs.org) - v7 is preferred as it's the version embedded into Electron
+    - **Windows developers**: *Make sure you allow the Node.js installer to add
+      node to the PATH, it'll make life much easier for you.*
  - Python 2.7 - [Windows](https://www.python.org/downloads/windows/), [macOS](https://www.python.org/downloads/mac-osx/)
-    - **Windows developers**: Let python install into the default suggested path
+    - **Windows developers**: *Let Python install into the default suggested path
       (`c:\Python27`), otherwise you'll have to configure node-gyp manually with
-      the path which is annoying.
+      the path which is annoying.*
  - **macOS:** Xcode and Xcode Command Line Tools (Xcode -> Preferences -> Downloads)
  - **Windows:** Visual Studio 2015 or [Visual C++ Build Tools](http://go.microsoft.com/fwlink/?LinkId=691126)
-    - Run `npm config set msvs_version 2015` after installing the build tools
+    - Run `npm config set msvs_version 2015` after installing the build tools.
+    - *Visual Studio 2017 support has not been tested yet - waiting on
+      `node-gyp` support to be generally available.*
 
-With these things installed, open a shell and validate your output to these commands looks like this:
+With these things installed, open a shell and validate you have access to these
+commands and that the versions look similar:
 
 ```
 > node -v
@@ -31,8 +34,9 @@ v7.8.0
 Python 2.7.13
 ```
 
-We also have some [additional resources](./docs/contributing/tooling.md) to help you configure
-favourite editor to work nicely with the GitHub Desktop repository.
+We also have some [additional resources](./docs/contributing/tooling.md) to help
+configure your favourite editor to work nicely with the GitHub Desktop
+repository.
 
 ## Building
 
@@ -73,19 +77,24 @@ Electron ships with Chrome Dev Tools to assist with debugging, profiling and
 other measurement tools.
 
 1. Run the command `npm start` to launch the app
-2. Open _Chrome Dev Tools_
+2. Under the **View** menu, select **Toggle Developer Tools**
 
-[React Dev
-Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en)
+When running the app in development mode,
+[React Dev Tools](https://chrome.google.com/webstore/detail/react-developer-tools/fmkadmapgofadopljbjfkapdkoienihi?hl=en)
 should automatically install itself on first start when in development mode.
 
-If you would also like to use [Devtron](http://electron.atom.io/devtron/), run
-the command `require('devtron').install()` inside of the console in _Chrome Dev
-Tools_.
+An additional extension, [Devtron](http://electron.atom.io/devtron/), is also included but is disabled by default.
+
+To enable Devtron, switch to the Console tab in Chrome Developer Tools and run
+this command:
+
+```js
+require('devtron').install()
+```
 
 ## The Next Steps
 
-You've made it to here, so let's give you some other things to read to get you started:
+You're almost there! Here's a couple of things we recommend you read next:
 
  - [Up for Grabs](./docs/process/up-for-grabs.md) - we've marked some tasks in
    the backlog that are ideal for external contributors
