@@ -23,9 +23,6 @@ interface IPushPullButtonProps {
   /** The date of the last fetch. */
   readonly lastFetched: Date | null
 
-  /** Is the user currently publishing? */
-  readonly isPublishing: boolean
-
   readonly dispatcher: Dispatcher
   readonly repository: Repository
 }
@@ -122,11 +119,6 @@ export class PushPullButton extends React.Component<IPushPullButtonProps, void> 
   }
 
   private performAction = () => {
-    if (this.props.isPublishing) {
-      this.props.dispatcher.closeFoldout()
-      return
-    }
-
     if (!this.props.aheadBehind) {
       this.props.dispatcher.push(this.props.repository)
       return

@@ -3,6 +3,7 @@ import { Octicon, OcticonSymbol } from '../octicons'
 import * as classNames from 'classnames'
 import { assertNever } from '../../lib/fatal-error'
 import { Button } from '../lib/button'
+import { clamp } from '../../lib/clamp'
 
 /** The button style. */
 export enum ToolbarButtonStyle {
@@ -41,9 +42,9 @@ export interface IToolbarButtonProps {
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /**
-   * A function that's called when a key event is received from the 
+   * A function that's called when a key event is received from the
    * ToolbarButton component or any of its descendants.
-   * 
+   *
    * Consumers of this event should not act on the event if the event has
    * had its default action prevented by an earlier consumer that's called
    * the preventDefault method on the event instance.
@@ -75,15 +76,15 @@ export interface IToolbarButtonProps {
    * A value of 'undefined' means that whether or not the element participates
    * in sequential keyboard navigation is left to the user agent's default
    * settings.
-   * 
+   *
    * A negative value means that the element can receive focus but not
    * through sequential keyboard navigation (i.e. only via programmatic
    * focus)
-   * 
+   *
    * A value of zero means that the element can receive focus through
    * sequential keyboard navigation and that the order should be determined
    * by the element's position in the DOM.
-   * 
+   *
    * A positive value means that the element can receive focus through
    * sequential keyboard navigation and that it should have the explicit
    * order provided and not have it be determined by its position in the DOM.
@@ -92,6 +93,18 @@ export interface IToolbarButtonProps {
    * detrimental to accessibility in most scenarios.
    */
   readonly tabIndex?: number
+
+  /**
+   * An optional progress value as a fraction between 0 and 1. Passing a number
+   * greater than zero will render a progress bar background in the toolbar
+   * button. Use this to communicate an ongoing operation.
+   *
+   * Consumers should not rely solely on the visual progress bar, they should
+   * also implement alternative representation such as showing a percentage
+   * text in the description or title along with information about what
+   * operation is currently in flight.
+   */
+  readonly progressValue?: number
 }
 
 /**
@@ -140,8 +153,18 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
     const preContentRenderer = this.props.preContentRenderer
     const preContent = preContentRenderer && preContentRenderer()
 
+    const progressValue = this.props.progressValue !== undefined
+      ? Math.round(clamp(this.props.progressValue, 0, 1) * 100) / 100
+      : undefined
+
+    const progress = progressValue !== undefined
+      ? <div className='progress' style={{ transform: `scaleX(${progressValue})` }} />
+      : undefined
+
+    const title = this.props.title ? `Current branch is ${this.props.title}` : undefined
+
     return (
-      <div className={className} onKeyDown={this.props.onKeyDown}>
+      <div className={className} onKeyDown={this.props.onKeyDown} title={title}>
         {preContent}
         <Button
           onClick={this.onClick}
@@ -150,6 +173,7 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
           onMouseEnter={this.props.onMouseEnter}
           tabIndex={this.props.tabIndex}
         >
+          {progress}
           {icon}
           {this.renderText()}
           {this.props.children}
