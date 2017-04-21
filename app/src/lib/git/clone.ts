@@ -1,4 +1,4 @@
-import { git, envForAuthentication, IGitExecutionOptions } from './core'
+import { git, envForAuthentication, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { Account } from '../../models/account'
 import { ICloneProgress } from '../app-state'
 import { CloneProgressParser, executionOptionsWithProgress } from '../progress'
@@ -55,6 +55,11 @@ export async function clone(url: string, path: string, options: CloneOptions, pr
     // Initial progress
     progressCallback({ kind, title, value: 0 })
   }
+
+  const args = [
+    ...gitNetworkArguments,
+    'clone', '--recursive', '--progress',
+  ]
 
   if (options.branch) {
     args.push('-b', options.branch)

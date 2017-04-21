@@ -1,4 +1,11 @@
-import { git, envForAuthentication, expectedAuthenticationErrors, GitError, IGitExecutionOptions } from './core'
+import {
+  git,
+  envForAuthentication,
+  expectedAuthenticationErrors,
+  GitError,
+  IGitExecutionOptions,
+  gitNetworkArguments,
+} from './core'
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { PullProgressParser, executionOptionsWithProgress } from '../progress'
@@ -53,8 +60,8 @@ export async function pull(repository: Repository, account: Account | null, remo
   }
 
   const args = progressCallback
-    ? [ 'pull', '--progress', remote ]
-    : [ 'pull', remote ]
+    ? [ ...gitNetworkArguments, 'pull', '--progress', remote ]
+    : [ ...gitNetworkArguments, 'pull', remote ]
 
   const result = await git(args, repository.path, 'pull', opts)
 

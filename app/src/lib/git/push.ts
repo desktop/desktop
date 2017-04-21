@@ -1,4 +1,11 @@
-import { git, envForAuthentication, expectedAuthenticationErrors, IGitExecutionOptions } from './core'
+import {
+  git,
+  envForAuthentication,
+  expectedAuthenticationErrors,
+  IGitExecutionOptions,
+  gitNetworkArguments,
+} from './core'
+
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { PushProgressParser, executionOptionsWithProgress } from '../progress'
@@ -25,7 +32,11 @@ import { IPushProgress } from '../app-state'
  *                           'git push'.
  */
 export async function push(repository: Repository, account: Account | null, remote: string, branch: string, setUpstream: boolean, progressCallback?: (progress: IPushProgress) => void): Promise<void> {
-  const args = [ 'push', remote, branch ]
+  const args = [
+    ...gitNetworkArguments,
+    'push', remote, branch,
+  ]
+
   if (setUpstream) {
     args.push('--set-upstream')
   }

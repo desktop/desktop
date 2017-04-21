@@ -1,4 +1,4 @@
-import { git, envForAuthentication, IGitExecutionOptions } from './core'
+import { git, envForAuthentication, IGitExecutionOptions, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 import { FetchProgressParser, executionOptionsWithProgress } from '../progress'
@@ -53,8 +53,8 @@ export async function fetch(repository: Repository, account: Account | null, rem
   }
 
   const args = progressCallback
-    ? [ 'fetch', '--progress', '--prune', remote ]
-    : [ 'fetch', '--prune', remote ]
+    ? [ ...gitNetworkAruments, 'fetch', '--progress', '--prune', remote ]
+    : [ ...gitNetworkAruments, 'fetch', '--prune', remote ]
 
   await git(args, repository.path, 'fetch', opts)
 }
@@ -66,6 +66,11 @@ export async function fetchRefspec(repository: Repository, account: Account | nu
     env: envForAuthentication(account),
   }
 
-  await git([ 'fetch', remote, refspec ], repository.path, 'fetchRefspec', options)
+  const args = [
+    ...gitNetworkArguments,
+    'fetch', remote, refspec,
+  ]
+
+  await git(args, repository.path, 'fetchRefspec', options)
 }
 
