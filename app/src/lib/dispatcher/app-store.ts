@@ -1203,7 +1203,7 @@ export class AppStore {
             kind: 'generic',
             title: 'Refreshing repository',
             description: 'Fast-forwarding branches',
-            value: 1
+            value: 1,
           })
 
           await this.fastForwardBranches(repository)
