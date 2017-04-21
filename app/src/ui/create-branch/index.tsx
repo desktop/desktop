@@ -8,7 +8,6 @@ import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
-import { Select } from '../lib/select'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
 
@@ -80,14 +79,8 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
           {this.renderSanitizedName()}
 
           <Row>
-            <Select
-              label='From'
-              onChange={this.onBaseBranchChange}
-              defaultValue={currentBranch ? currentBranch.name : undefined}>
-              {this.props.branches.map(branch =>
-                <option key={branch.name} value={branch.name}>{branch.name}</option>
-              )}
-            </Select>
+            <button>default branch</button>
+            <button disabled={!currentBranch}>{currentBranch ? currentBranch.name : 'No branch'}</button>
           </Row>
         </DialogContent>
 
@@ -118,16 +111,16 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
     })
   }
 
-  private onBaseBranchChange = (event: React.FormEvent<HTMLSelectElement>) => {
-    const baseBranchName = event.currentTarget.value
-    const baseBranch = this.props.branches.find(b => b.name === baseBranchName)!
-    this.setState({
-      currentError: this.state.currentError,
-      proposedName: this.state.proposedName,
-      baseBranch,
-      sanitizedName: this.state.sanitizedName,
-    })
-  }
+  // private onBaseBranchChange = (event: React.FormEvent<HTMLSelectElement>) => {
+  //   const baseBranchName = event.currentTarget.value
+  //   const baseBranch = this.props.branches.find(b => b.name === baseBranchName)!
+  //   this.setState({
+  //     currentError: this.state.currentError,
+  //     proposedName: this.state.proposedName,
+  //     baseBranch,
+  //     sanitizedName: this.state.sanitizedName,
+  //   })
+  // }
 
   private createBranch = async () => {
     const name = this.state.sanitizedName
