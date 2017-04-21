@@ -1,11 +1,11 @@
-import { git, envForAuthentication, expectedAuthenticationErrors, GitError } from './core'
+import { git, envForAuthentication, expectedAuthenticationErrors, GitError, IGitExecutionOptions } from './core'
 import { Repository } from '../../models/repository'
 import { Account } from '../../models/account'
 
 /** Pull from the remote to the branch. */
 export async function pull(repository: Repository, account: Account | null, remote: string, branch: string): Promise<void> {
 
-  const options = {
+  const options: IGitExecutionOptions = {
     env: envForAuthentication(account),
     expectedErrors: expectedAuthenticationErrors(),
   }
