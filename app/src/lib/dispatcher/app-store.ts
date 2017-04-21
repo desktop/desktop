@@ -1166,10 +1166,10 @@ export class AppStore {
         const branch = state.branchesState.tip.branch
         const setUpstream = branch.upstream ? false : true
 
-        const pushWeight = 0.7
-        const fetchWeight = 0.3
         const pushTitle = `Pushing to ${remote.name}`
 
+        // Emit an initial progress even before our push begins
+        // since we're doing some work to get remotes up front.
         this.updatePushPullFetchProgress(repository, {
           kind: 'push',
           title: pushTitle,
@@ -1177,6 +1177,22 @@ export class AppStore {
           remote: remote.name,
           branch: branch.name,
         })
+
+        const remotes = await getRemotes(repository)
+
+        // Let's say that a push takes twice as long as a fetch,
+        // this is of course highly inaccurate.
+        let pushWeight = 2
+        let fetchWeight = 1 * remotes.length
+
+        // Let's leave 10% at the end for refreshing
+        const refreshWeight = 0.1
+
+        // Scale pull and fetch weights to be between 0 and 0.9.
+        const scale = (1 / ((pushWeight + fetchWeight)) * (1 - refreshWeight))
+
+        pushWeight *= scale
+        fetchWeight *= scale
 
         await gitStore.performFailableOperation(async () => {
 
@@ -1188,7 +1204,7 @@ export class AppStore {
             })
           })
 
-          await gitStore.fetchAll(account, false, (fetchProgress) => {
+          await gitStore.fetchRemotes(account, remotes, false, (fetchProgress) => {
             this.updatePushPullFetchProgress(repository, {
               ...fetchProgress,
               value: pushWeight + fetchProgress.value * fetchWeight,
@@ -1196,11 +1212,12 @@ export class AppStore {
           })
 
           const refreshTitle = __DARWIN__ ? 'Refreshing Repository' : 'Refreshing repository'
+          const refreshStartProgress = pushWeight + fetchWeight
 
           this.updatePushPullFetchProgress(repository, {
             kind: 'generic',
             title: refreshTitle,
-            value: 1,
+            value: refreshStartProgress,
           })
 
           await this._refreshRepository(repository)
@@ -1209,7 +1226,7 @@ export class AppStore {
             kind: 'generic',
             title: refreshTitle,
             description: 'Fast-forwarding branches',
-            value: 1,
+            value: refreshStartProgress + refreshWeight * 0.5,
           })
 
           await this.fastForwardBranches(repository)
