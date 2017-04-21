@@ -96,10 +96,6 @@ export class GitHubUserStore {
 
   /** Not to be called externally. See `Dispatcher`. */
   public async _loadAndCacheUser(accounts: ReadonlyArray<Account>, repository: Repository, sha: string | null, email: string) {
-    if (1 < 2) {
-      return
-    }
-
     const endpoint = repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint()
     const key = `${endpoint}+${email.toLowerCase()}`
     if (this.requestsInFlight.has(key)) { return }
@@ -131,10 +127,8 @@ export class GitHubUserStore {
       this.cacheUser(gitUser)
     }
 
-    if (gitUser) {
-      this.requestsInFlight.delete(key)
-      this.emitUpdate()
-    }
+    this.requestsInFlight.delete(key)
+    this.emitUpdate()
   }
 
   private async findUserWithAPI(account: Account, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitHubUser | null> {

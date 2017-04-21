@@ -30,13 +30,6 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
     this.props.onIncludeChanged(this.props.path, include)
   }
 
-  public shouldComponentUpdate(nextProps: IChangedFileProps) {
-    return this.props.path !== nextProps.path ||
-           this.props.status !== nextProps.status ||
-           this.props.oldPath !== nextProps.oldPath ||
-           this.props.include !== nextProps.include
-  }
-
   private get checkboxValue(): CheckboxValue {
     if (this.props.include === true) {
       return CheckboxValue.On

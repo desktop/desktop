@@ -195,7 +195,6 @@ export class AppStore {
   }
 
   private emitUpdateNow() {
-    console.log('--- EMIT NOW ---')
     this.emitQueued = false
     this.emitter.emit('did-update', this.getState())
   }
@@ -423,7 +422,6 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadHistory(repository: Repository): Promise<void> {
-    debugger
     const gitStore = this.getGitStore(repository)
     await gitStore.loadHistory()
 
