@@ -2,7 +2,7 @@
 
 [![Travis Build Status](https://travis-ci.com/desktop/desktop.svg?token=bruh3Kp8xZqr5CQ5et3q&branch=master)](https://travis-ci.com/desktop/desktop) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/kstdl28ba3f7drbr/branch/master?svg=true)](https://ci.appveyor.com/project/github-windows/desktop/branch/master)
 
-GitHub Desktop is an [Electron](https://electron.atom.io)-based GitHub app. It
+GitHub Desktop is an open source [Electron](https://electron.atom.io)-based GitHub app. It
 is written in [TypeScript](http://www.typescriptlang.org) and uses
 [React](https://facebook.github.io/react/).
 
