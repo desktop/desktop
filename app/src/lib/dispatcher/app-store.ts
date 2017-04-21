@@ -288,14 +288,7 @@ export class AppStore {
   private updateChangesState<K extends keyof IChangesState>(repository: Repository, fn: (changesState: IChangesState) => Pick<IChangesState, K>) {
     this.updateRepositoryState(repository, state => {
       const changesState = state.changesState
-      const newValues = fn(changesState)
-
-      const newState = merge(changesState, newValues)
-      if (newState.selectedFile && newState.workingDirectory.files.indexOf(newState.selectedFile!) < 0) {
-        console.log('sabatuer!')
-        debugger
-      }
-
+      const newState = merge(changesState, fn(changesState))
       return { changesState: newState }
     })
   }
@@ -718,9 +711,8 @@ export class AppStore {
       // changed we can reuse the diff.
       const sameSelectedFileExists = state.selectedFileID ? workingDirectory.findFileWithID(state.selectedFileID) : null
       const diff = sameSelectedFileExists ? state.diff : null
-
-    })
       return { workingDirectory, selectedFileID, diff }
+    })
     this.emitUpdate()
 
     this.updateChangesDiffForCurrentSelection(repository)
@@ -740,9 +732,9 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
-    })
     this.updateChangesState(repository, state => (
       { selectedFileID: selectedFile ? selectedFile.id : null, diff: null }
+    ))
     this.emitUpdate()
 
     this.updateChangesDiffForCurrentSelection(repository)
@@ -797,7 +789,7 @@ export class AppStore {
     const selectedFile = currentlySelectedFile.withSelection(newSelection)
     const workingDirectory = changesState.workingDirectory.byReplacingFile(selectedFile)
 
-    this.updateChangesState(repository, state => ({ diff, workingDirectory }), 'updateChangesDiffForCurrentSelection')
+    this.updateChangesState(repository, state => ({ diff, workingDirectory }))
     this.emitUpdate()
   }
 
@@ -867,9 +859,9 @@ export class AppStore {
 
       const includeAll = this.getIncludeAllState(newFiles)
       const workingDirectory = new WorkingDirectoryStatus(newFiles, includeAll)
-    })
       const diff = state.selectedFileID ? state.diff : null
       return { workingDirectory, diff }
+    })
 
     this.emitUpdate()
   }
@@ -878,8 +870,9 @@ export class AppStore {
   public _changeIncludeAllFiles(repository: Repository, includeAll: boolean): Promise<void> {
     this.updateChangesState(repository, state => {
       const workingDirectory = state.workingDirectory.withIncludeAllFiles(includeAll)
-    })
       return { workingDirectory }
+    })
+
     this.emitUpdate()
 
     return Promise.resolve()
