@@ -195,6 +195,7 @@ export class AppStore {
   }
 
   private emitUpdateNow() {
+    console.log('--- EMIT NOW ---')
     this.emitQueued = false
     this.emitter.emit('did-update', this.getState())
   }
@@ -289,7 +290,14 @@ export class AppStore {
     this.updateRepositoryState(repository, state => {
       const changesState = state.changesState
       const newValues = fn(changesState)
-      return { changesState: merge(changesState, newValues) }
+
+      const newState = merge(changesState, newValues)
+      if (newState.selectedFile && newState.workingDirectory.files.indexOf(newState.selectedFile!) < 0) {
+        console.log('sabatuer!')
+        debugger
+      }
+
+      return { changesState: newState }
     })
   }
 
@@ -415,6 +423,7 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _loadHistory(repository: Repository): Promise<void> {
+    debugger
     const gitStore = this.getGitStore(repository)
     await gitStore.loadHistory()
 
@@ -742,12 +751,17 @@ export class AppStore {
 
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _changeChangesSelection(repository: Repository, selectedFile: WorkingDirectoryFileChange | null): Promise<void> {
-    this.updateChangesState(repository, state => (
-      { selectedFile, diff: null }
-    ))
+    this.updateChangesState(repository, state => {
+      let r = selectedFile
+      if (selectedFile) {
+        r = state.workingDirectory.files.find(f => f.id === selectedFile.id) || null
+      }
+
+      return { selectedFile: r, diff: null }
+    })
     this.emitUpdate()
 
-    await this.updateChangesDiffForCurrentSelection(repository)
+    this.updateChangesDiffForCurrentSelection(repository)
   }
 
   /**
@@ -874,6 +888,8 @@ export class AppStore {
 
       return { workingDirectory, selectedFile, diff }
     })
+
+    console.log(`${file.path}: ${selection.getSelectionType()}`)
 
     this.emitUpdate()
   }

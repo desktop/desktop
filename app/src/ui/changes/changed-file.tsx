@@ -26,7 +26,15 @@ export class ChangedFile extends React.Component<IChangedFileProps, void> {
 
   private handleCheckboxChange = (event: React.FormEvent<HTMLInputElement>) => {
     const include = event.currentTarget.checked
+    console.log(`${this.props.path}: ${include}`)
     this.props.onIncludeChanged(this.props.path, include)
+  }
+
+  public shouldComponentUpdate(nextProps: IChangedFileProps) {
+    return this.props.path !== nextProps.path ||
+           this.props.status !== nextProps.status ||
+           this.props.oldPath !== nextProps.oldPath ||
+           this.props.include !== nextProps.include
   }
 
   private get checkboxValue(): CheckboxValue {

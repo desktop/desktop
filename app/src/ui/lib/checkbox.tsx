@@ -42,6 +42,12 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
     }
   }
 
+  public shouldComponentUpdate(nextProps: ICheckboxProps) {
+    return this.props.value !== nextProps.value ||
+           this.props.label !== nextProps.label ||
+           this.props.onChange !== nextProps.onChange
+  }
+
   public componentDidUpdate() {
     this.updateInputState()
   }
@@ -92,6 +98,7 @@ export class Checkbox extends React.Component<ICheckboxProps, ICheckboxState> {
           tabIndex={this.props.tabIndex}
           type='checkbox'
           onChange={this.onChange}
+          // checked={this.props.value === CheckboxValue.On}
           ref={this.onInputRef}
         />
         {this.renderLabel()}
