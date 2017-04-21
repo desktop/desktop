@@ -34,7 +34,7 @@ v7.8.0
 Python 2.7.13
 ```
 
-We also have some [additional resources](./docs/contributing/tooling.md) to help
+There are also [additional resources](./docs/contributing/tooling.md) to
 configure your favourite editor to work nicely with the GitHub Desktop
 repository.
 
