@@ -32,8 +32,9 @@ export async function clone(url: string, path: string, options: CloneOptions, pr
           const description = progress.kind === 'progress'
             ? progress.details.text
             : progress.text
+          const value = progress.percent
 
-          progressCallback({ kind, title, description, value: progress.percent })
+          progressCallback({ kind, title, description, value })
         })
       },
     }

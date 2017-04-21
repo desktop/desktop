@@ -35,6 +35,8 @@ export async function checkoutBranch(repository: Repository, name: string, progr
 
     const parser = new CheckoutProgressParser()
     const title = `Checking out branch ${name}`
+    const kind = 'checkout'
+    const targetBranch = name
 
     processCallback = (process: ChildProcess) => {
       byline(process.stderr).on('data', (chunk: string) => {
@@ -42,19 +44,17 @@ export async function checkoutBranch(repository: Repository, name: string, progr
         const progress = parser.parse(chunk)
 
         if (progress.kind === 'progress') {
-          progressCallback({
-            kind: 'checkout',
-            title,
-            description: progress.details.text,
-            value: progress.percent,
-            targetBranch: name,
-          })
+
+          const description = progress.details.text
+          const value = progress.percent
+
+          progressCallback({ kind, title, description, value, targetBranch })
         }
       })
     }
 
     // Send an initial progress
-    progressCallback({ kind: 'checkout', title, value: 0, targetBranch: name })
+    progressCallback({ kind, title, value: 0, targetBranch })
   }
 
   const args = processCallback

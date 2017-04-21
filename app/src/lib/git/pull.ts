@@ -36,15 +36,13 @@ export async function pull(repository: Repository, account: Account | null, remo
             }
           }
 
-          progressCallback({
-            kind,
-            title,
-            description: progress.kind === 'progress'
-              ? progress.details.text
-              : progress.text,
-            value: progress.percent,
-            remote,
-          })
+          const description = progress.kind === 'progress'
+            ? progress.details.text
+            : progress.text
+
+          const value = progress.percent
+
+          progressCallback({ kind, title, description, value, remote })
         })
       },
     }

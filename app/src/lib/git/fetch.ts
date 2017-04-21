@@ -41,14 +41,9 @@ export async function fetch(repository: Repository, account: Account | null, rem
           const description = progress.kind === 'progress'
             ? progress.details.text
             : progress.text
+          const value = progress.percent
 
-          progressCallback({
-            kind,
-            title,
-            description,
-            value: progress.percent,
-            remote,
-          })
+          progressCallback({ kind, title, description, value, remote })
         })
       },
     }
