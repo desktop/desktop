@@ -23,9 +23,9 @@ The rest of this document goes into more details around this flow.
 
 ### Work-in-Progress
 
-We recommend open pull requests early - ideally as soon as you have somethign to
-show off. This is especially helpful for large changes, as continuous
-integration tests are run earlier on, and any regressions can be caught before
+We recommend open pull requests early - ideally as soon as you have something to
+show. This is especially helpful for large pieces of work, as continuous
+integration tests are run earlier on, and regressions can be caught before
 humans get involved.
 
 Until the code is ready for review, you can prefix the PR title with [WIP] to
