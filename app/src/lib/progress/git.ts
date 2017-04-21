@@ -1,5 +1,30 @@
+/**
+ * Identifies a particular subset of progress events from Git by
+ * title.
+ */
 export interface IProgressStep {
+  /**
+   * The title of the git progress event. By title we refer to the
+   * exact value of the title field in Git's progress struct:
+   * 
+   * https://github.com/git/git/blob/6a2c2f8d34fa1e8f3bb85d159d354810ed63692e/progress.c#L31-L39
+   * 
+   * In essence this means anything up to (but not including) the last colon (:)
+   * in a single progress line. Take this example progress line
+   * 
+   *    remote: Compressing objects:  14% (159/1133)
+   * 
+   * In this case the title would be 'remote: Compressing objects'.
+   */
   readonly title: string
+
+  /**
+   * The weight of this step in relation to others for a particular
+   * Git operation. This value can be any number as long as it's
+   * proportional to others in the same parser, it will all be scaled
+   * to a decimal value between 0 and 1 before being used to calculate
+   * overall progress.
+   */
   readonly weight: number
 }
 
