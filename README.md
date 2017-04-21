@@ -2,28 +2,35 @@
 
 [![Travis Build Status](https://travis-ci.com/desktop/desktop.svg?token=bruh3Kp8xZqr5CQ5et3q&branch=master)](https://travis-ci.com/desktop/desktop) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/kstdl28ba3f7drbr/branch/master?svg=true)](https://ci.appveyor.com/project/github-windows/desktop/branch/master)
 
-See [desktop.github.com](https://desktop.github.com) for more product-oriented
-information about GitHub Desktop.
-
 GitHub Desktop is an [Electron](https://electron.atom.io)-based GitHub app. It
 is written in [TypeScript](http://www.typescriptlang.org) and uses
 [React](https://facebook.github.io/react/).
 
-## I want to use it!
+## Where can I get it?
 
-Download it [for
-macOS](https://central.github.com/deployments/desktop/desktop/latest/darwin) or
-[for
-Windows](https://central.github.com/deployments/desktop/desktop/latest/win32).
+Download the installer for your OS:
+
+ - [macOS](https://desktop.githubusercontent.com/releases/0.0.33-c52dc23f/GitHubDesktop.zip)
+ - [Windows](https://desktop.githubusercontent.com/releases/0.0.33-c52dc23f/GitHubDesktopSetup.exe)
+ - [Windows machine-wide install](https://desktop.githubusercontent.com/releases/0.0.33-c52dc23f/GitHubDesktopSetup.msi)
+
 You can install this alongside your existing GitHub Desktop for Mac or GitHub
-Desktop for Windows application, however there is no current migration path to
-import your existing repositories into the new application - but you can
-drag-and-drop them onto the application to quickly move things across.
+Desktop for Windows application.
+
+**NOTE**: there is no current migration path to import your existing
+repositories into the new application - you can drag-and-drop your repositories
+from disk onto the application to get started.
 
 ## I want to contribute!
 
-Please read the [CONTRIBUTING.md](./CONTRIBUTING.md) document as this covers the
-basics. The [docs](./docs) folder also contains more detailed documentation.
+The [CONTRIBUTING.md](./CONTRIBUTING.md) document will help you get setup and
+familiar with the source. The [documentation](./docs) folder also contains more
+resources relevant to the project.
+
+## More Resources
+
+See [desktop.github.com](https://desktop.github.com) for more product-oriented
+information about GitHub Desktop.
 
 ## License
 
