@@ -19,6 +19,8 @@ export async function clone(url: string, path: string, options: CloneOptions, pr
   let opts: IGitExecutionOptions = { env }
 
   if (progressCallback) {
+    args.push('--progress')
+
     const title = `Cloning into ${path}`
     const kind = 'clone'
 
