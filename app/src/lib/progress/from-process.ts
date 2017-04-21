@@ -11,7 +11,7 @@ export function executionOptionsWithProgress(
   progressCallback: (progress: ICombinedProgress | IContextOutput) => void): IGitExecutionOptions {
 
   return merge(options, {
-    processCallback: progressProcessCallback(parser, progressCallback)
+    processCallback: progressProcessCallback(parser, progressCallback),
   })
 }
 
