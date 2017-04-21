@@ -10,7 +10,13 @@ export async function pull(repository: Repository, account: Account | null, remo
     expectedErrors: expectedAuthenticationErrors(),
   }
 
-  const args = [ 'pull', remote, branch ]
+  const args = [
+    // Explicitly unset any defined credential helper, we rely on our
+    // own askpass for authentication.
+      '-c' , 'credential.helper=',
+      'pull' , '--verbose', remote, branch,
+  ]
+
   const result = await git(args, repository.path, 'pull', options)
 
   if (result.gitErrorDescription) {

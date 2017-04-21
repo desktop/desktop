@@ -9,7 +9,14 @@ export async function fetch(repository: Repository, account: Account | null, rem
     env: envForAuthentication(account),
   }
 
-  await git([ 'fetch', '--prune', remote ], repository.path, 'fetch', options)
+  const args = [
+    // Explicitly unset any defined credential helper, we rely on our
+    // own askpass for authentication.
+    '-c' , 'credential.helper=',
+    'fetch', '--prune', remote,
+  ]
+
+  await git(args, repository.path, 'fetch', options)
 }
 
 /** Fetch a given refspec from the given remote. */
@@ -19,6 +26,13 @@ export async function fetchRefspec(repository: Repository, account: Account | nu
     env: envForAuthentication(account),
   }
 
-  await git([ 'fetch', remote, refspec ], repository.path, 'fetchRefspec', options)
+  const args = [
+    // Explicitly unset any defined credential helper, we rely on our
+    // own askpass for authentication.
+    '-c' , 'credential.helper=',
+    'fetch', remote, refspec,
+  ]
+
+  await git(args, repository.path, 'fetchRefspec', options)
 }
 

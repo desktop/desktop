@@ -21,7 +21,12 @@ export async function clone(url: string, path: string, options: CloneOptions, pr
     })
   }
 
-  const args = [ 'clone', '--recursive', '--progress' ]
+  const args = [
+    // Explicitly unset any defined credential helper, we rely on our
+    // own askpass for authentication.
+      '-c' , 'credential.helper=',
+    'clone', '--recursive', '--progress',
+  ]
 
   if (options.branch) {
     args.push('-b', options.branch)

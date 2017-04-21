@@ -28,7 +28,15 @@ export async function deleteBranch(repository: Repository, branch: Branch, accou
   // If the user is not authenticated, the push is going to fail
   // Let this propagate and leave it to the caller to handle
   if (remote) {
-    await git([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path, 'deleteBranch', { env: envForAuthentication(account) })
+    const args = [
+      // Explicitly unset any defined credential helper, we rely on our
+      // own askpass for authentication.
+      '-c' , 'credential.helper=',
+      'push', remote, `:${branch.nameWithoutRemote}`,
+    ]
+
+    const opts = { env: envForAuthentication(account) }
+    await git(args, repository.path, 'deleteBranch', opts)
   }
 
   return true
