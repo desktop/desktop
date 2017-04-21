@@ -139,7 +139,7 @@ export function buildDefaultMenu(sharedProcess: SharedProcess): Electron.Menu {
       {
         label: __DARWIN__ ? 'Show Repository List' : 'Repository &list',
         id: 'show-repository-list',
-        accelerator: 'CmdOrCtrl+L',
+        accelerator: 'CmdOrCtrl+T',
         click: emit('choose-repository'),
       },
       {

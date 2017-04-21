@@ -299,6 +299,8 @@ export class API {
     }
 
     const response = await this.authenticatedRequest('GET', `repos/${owner}/${name}/mentionables/users`, undefined, headers)
+    if (!response.ok) { return null }
+
     const users = await deserialize<ReadonlyArray<IAPIMentionableUser>>(response)
     if (!users) { return null }
 
@@ -409,10 +411,7 @@ export async function fetchMetadata(endpoint: string): Promise<IServerMetadata |
         'Content-Type': 'application/json',
       },
     })
-
-    if (response.status !== 200) {
-      return null
-    }
+    if (!response.ok) { return null }
 
     const body = await deserialize<IServerMetadata>(response)
     if (!body || body.verifiable_password_authentication === undefined) {
@@ -521,6 +520,7 @@ export async function requestOAuthToken(endpoint: string, state: string, code: s
     'code': code,
     'state': state,
   })
+  if (!response.ok) { return null }
 
   const body = await deserialize<IAPIAccessToken>(response)
   if (body) {

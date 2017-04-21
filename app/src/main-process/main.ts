@@ -177,6 +177,13 @@ app.on('ready', () => {
       mainWindow.sendAppMenu()
     }
   })
+
+  ipcMain.on('show-certificate-trust-dialog', (event: Electron.IpcMainEvent, { certificate, message }: { certificate: Electron.Certificate, message: string }) => {
+    // This API's only implemented on macOS right now.
+    if (__DARWIN__) {
+      getMainWindow().showCertificateTrustDialog(certificate, message)
+    }
+  })
 })
 
 app.on('activate', () => {
@@ -189,6 +196,12 @@ app.on('web-contents-created', (event, contents) => {
     event.preventDefault()
     sharedProcess!.console.log(`Prevented new window to: ${url}`)
   })
+})
+
+app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+  callback(false)
+
+  getMainWindow().sendCertificateError(certificate, error, url)
 })
 
 function createWindow() {
