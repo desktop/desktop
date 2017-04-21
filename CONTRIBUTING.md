@@ -40,7 +40,7 @@ repository.
 
 ## Building
 
-After cloning the repository, the typical workflow to get the app up and running
+After cloning the repository, the typical workflow to get up running
 is as follows:
 
 * Run `npm install` to get all required dependencies on your machine.
