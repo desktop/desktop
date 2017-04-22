@@ -34,7 +34,11 @@ export type CloneOptions = {
 export async function clone(url: string, path: string, options: CloneOptions, progressCallback?: (progress: ICloneProgress) => void): Promise<void> {
   const env = envForAuthentication(options.account)
 
-  const args = [ 'clone', '--recursive' ]
+  const args = [
+    ...gitNetworkArguments,
+    'clone', '--recursive', '--progress',
+]
+
   let opts: IGitExecutionOptions = { env }
 
   if (progressCallback) {
@@ -55,11 +59,6 @@ export async function clone(url: string, path: string, options: CloneOptions, pr
     // Initial progress
     progressCallback({ kind, title, value: 0 })
   }
-
-  const args = [
-    ...gitNetworkArguments,
-    'clone', '--recursive', '--progress',
-  ]
 
   if (options.branch) {
     args.push('-b', options.branch)
