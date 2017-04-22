@@ -53,8 +53,8 @@ export async function fetch(repository: Repository, account: Account | null, rem
   }
 
   const args = progressCallback
-    ? [ ...gitNetworkAruments, 'fetch', '--progress', '--prune', remote ]
-    : [ ...gitNetworkAruments, 'fetch', '--prune', remote ]
+    ? [ ...gitNetworkArguments, 'fetch', '--progress', '--prune', remote ]
+    : [ ...gitNetworkArguments, 'fetch', '--prune', remote ]
 
   await git(args, repository.path, 'fetch', opts)
 }
