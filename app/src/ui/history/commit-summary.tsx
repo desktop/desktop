@@ -83,6 +83,10 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private onCollapse = () => {
+    if (this.commitSummaryDescriptionDiv) {
+      this.commitSummaryDescriptionDiv.scrollTop = 0
+    }
+
     this.setState({
       isExpanded: false,
     })
