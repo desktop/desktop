@@ -12,7 +12,7 @@ interface IVerticalSegmentedControlProps {
 }
 
 /** The two-factor authentication component. */
-export class IVerticalSegmentedControl extends React.Component<IVerticalSegmentedControlProps, void> {
+export class VerticalSegmentedControl extends React.Component<IVerticalSegmentedControlProps, void> {
   private renderItem(item: ISegmentedItem, selected: boolean) {
 
     const description = item.description
