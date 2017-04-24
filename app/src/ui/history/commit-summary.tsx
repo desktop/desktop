@@ -46,7 +46,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private renderExpander() {
-    if (!this.props.body.length || !this.state.isOverflowed) {
+    if (!this.props.body.length || (!this.props.isExpanded && !this.state.isOverflowed)) {
       return null
     }
 
