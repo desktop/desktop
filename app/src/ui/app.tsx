@@ -117,6 +117,8 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       setMenuVisible(visibleItem, true)
 
+      if (!(__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test') && status === UpdateStatus.UpdateReady) {
+        this.props.dispatcher.setUpdateBannerVisibility(true)
       }
     })
 
@@ -698,6 +700,10 @@ export class App extends React.Component<IAppProps, IAppState> {
     this.onPopupDismissed()
   }
 
+  private onUpdateAvailableDismissed = () => {
+    this.props.dispatcher.setUpdateBannerVisibility(false)
+  }
+
   private currentPopupContent(): JSX.Element | null {
     // Hide any dialogs while we're displaying an error
     if (this.state.errors.length) { return null }
@@ -1048,11 +1054,16 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderUpdateBanner() {
-
+    if (!this.props.dispatcher.getUpdateBannerVisibility()) {
       return null
     }
 
+    const releaseNotesUri = 'https://desktop.github.com/release-notes/tng/'
+
     return (
+      <UpdateAvailable
+        releaseNotesLink={releaseNotesUri}
+        onDismissed={this.onUpdateAvailableDismissed}/>
     )
   }
 
