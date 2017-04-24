@@ -129,6 +129,7 @@ export class AppStore {
   private sidebarWidth: number = defaultSidebarWidth
   private commitSummaryWidth: number = defaultCommitSummaryWidth
   private windowState: WindowState
+  private isUpdateAvailableBannerVisible: boolean = false
 
   private readonly statsStore: StatsStore
 
