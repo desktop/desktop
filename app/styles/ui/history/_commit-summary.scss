@@ -30,6 +30,12 @@
        overflow: auto;
     }
   }
+
+  &.has-expander {
+    .commit-summary-description {
+      padding-right: 150px;
+    }
+  }
 }
 
 .commit-summary {
@@ -71,7 +77,6 @@
     word-wrap: break-word;
     white-space: pre-line;
     border-bottom: var(--base-border);
-    padding-right: 150px;
     overflow: hidden;
     overflow-x: hidden;
     max-height: 60px;

@@ -1,4 +1,6 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
+
 import { FileChange } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { RichText } from '../lib/rich-text'
@@ -147,9 +149,11 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
       avatarUser = { ...author, avatarURL: this.props.gitHubUser.avatarURL }
     }
 
-    const className = this.props.isExpanded
-      ? 'expanded'
-      : 'collapsed'
+    const className = classNames({
+      expanded: this.props.isExpanded,
+      collapsed: !this.props.isExpanded,
+      'has-expander': this.props.isExpanded || this.state.isOverflowed,
+    })
 
     return (
       <div id='commit-summary' className={className}>
