@@ -20,6 +20,9 @@ export class GitHubUserStore {
 
   private readonly database: GitHubUserDatabase
 
+  /** The requests which have failed. We shouldn't keep trying them. */
+  private readonly failedRequests = new Set<string>()
+
   /**
    * The etag for the last mentionables request. Keyed by the GitHub repository
    * `dbID`.
@@ -99,6 +102,7 @@ export class GitHubUserStore {
     const endpoint = repository.gitHubRepository ? repository.gitHubRepository.endpoint : getDotComAPIEndpoint()
     const key = `${endpoint}+${email.toLowerCase()}`
     if (this.requestsInFlight.has(key)) { return }
+    if (this.failedRequests.has(key)) { return }
 
     const gitHubRepository = repository.gitHubRepository
     if (!gitHubRepository) {
@@ -128,6 +132,8 @@ export class GitHubUserStore {
     if (gitUser) {
       this.cacheUser(gitUser)
       this.emitUpdate()
+    } else {
+      this.failedRequests.add(key)
     }
   }
 
