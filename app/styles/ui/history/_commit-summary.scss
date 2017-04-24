@@ -14,8 +14,8 @@
   .expander {
     position: absolute;
     width: 75px;
+    top: var(--spacing);
     right: var(--spacing);
-    margin-top: var(--spacing-half);
     z-index: 29;
 
     svg {
@@ -49,6 +49,9 @@
 
   &-description-container {
     display: flex;
+
+    // So that we have something to position the expander against
+    position: relative;
   }
 
   // Enable text selection inside the title and description elements.
@@ -72,7 +75,6 @@
     padding-right: 150px;
     overflow: hidden;
     overflow-x: hidden;
-    position: relative;
     max-height: 60px;
 
     &:empty {
