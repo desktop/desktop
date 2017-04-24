@@ -55,7 +55,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     const icon = expanded ? OcticonSymbol.unfold : OcticonSymbol.fold
 
     return (
-      <a onClick={onClick} className='expander' >
+      <a onClick={onClick} className='expander'>
         <Octicon symbol={icon} />
         { expanded ? 'Collapse' : 'Expand' }
       </a>
