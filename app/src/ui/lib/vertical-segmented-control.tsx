@@ -6,6 +6,7 @@ interface ISegmentedItem {
 }
 
 interface IVerticalSegmentedControlProps {
+  readonly label?: string
   readonly items: ReadonlyArray<ISegmentedItem>
   readonly selectedIndex: number
   readonly onSelectionChanged: (selectedIndex: number) => void
@@ -31,12 +32,18 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
     }
 
     const selectedIndex = this.props.selectedIndex
+    const label = this.props.label
+      ? <label>{this.props.label}</label>
+      : undefined
 
     return (
-      <ul className='vertical-segmented-control'>
-        {this.props.items.map((item, index) =>
-          this.renderItem(item, index, index === selectedIndex))}
-      </ul>
+      <div className='vertical-segmented-control'>
+        {label}
+        <ul className='vertical-segmented-control'>
+          {this.props.items.map((item, index) =>
+            this.renderItem(item, index, index === selectedIndex))}
+        </ul>
+      </div>
     )
   }
 }
