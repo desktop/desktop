@@ -21,11 +21,6 @@ interface IRichTextProps {
    * no link highlighting is performed.
    */
   readonly repository?: Repository
-
-  /**
-   * TODO document
-   */
-  readonly onContainerRef?: (container: HTMLDivElement | null) => void
 }
 
 /**
@@ -57,10 +52,7 @@ export class RichText extends React.Component<IRichTextProps, void> {
     })
 
     return (
-      <div
-        className={this.props.className}
-        ref={this.props.onContainerRef}
-      >
+      <div className={this.props.className}>
         { elements }
       </div>
     )
