@@ -78,8 +78,14 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
         )
       } else {
         const items = [
-          { title: currentBranch.name },
-          { title: defaultBranch.name }
+          {
+            title: defaultBranch.name,
+            description: 'The default branch in your repository. Pick this to start on a new project.',
+          },
+          {
+            title: currentBranch.name,
+            description: 'The currently checked out branch. Pick this if your next project needs to build on work done in this branch.',
+          },
         ]
 
         return (
