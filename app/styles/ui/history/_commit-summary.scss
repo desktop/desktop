@@ -47,6 +47,10 @@
     word-wrap: break-word;
   }
 
+  &-description-container {
+    display: flex;
+  }
+
   // Enable text selection inside the title and description elements.
   &-title,
   &-description {

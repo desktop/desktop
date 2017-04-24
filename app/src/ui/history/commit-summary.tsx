@@ -18,11 +18,11 @@ interface ICommitSummaryProps {
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
   readonly gitHubUser: IGitHubUser | null
+  readonly isExpanded: boolean
   readonly onExpandChanged: (isExpanded: boolean) => void
 }
 
 interface ICommitSummaryState {
-  readonly isExpanded: boolean
   readonly isOverflowed: boolean
 }
 
@@ -32,10 +32,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   public constructor(props: ICommitSummaryProps) {
     super(props)
 
-    this.state = {
-      isExpanded: false,
-      isOverflowed: false,
-    }
+    this.state = { isOverflowed: false }
   }
 
   private commitSummaryDescriptionRef = (ref: HTMLDivElement | null) => {
@@ -47,7 +44,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
       return null
     }
 
-    if (!this.state.isExpanded && this.state.isOverflowed) {
+    if (!this.props.isExpanded && this.state.isOverflowed) {
       return (
         <a
           onClick={this.onExpand}
@@ -59,7 +56,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
       )
     }
 
-    if (this.state.isExpanded) {
+    if (this.props.isExpanded) {
       return (
         <a
           onClick={this.onCollapse}
@@ -75,10 +72,6 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private onExpand = () => {
-    this.setState({
-      isExpanded: true,
-    })
-
     this.props.onExpandChanged(true)
   }
 
@@ -86,10 +79,6 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     if (this.commitSummaryDescriptionDiv) {
       this.commitSummaryDescriptionDiv.scrollTop = 0
     }
-
-    this.setState({
-      isExpanded: false,
-    })
 
     this.props.onExpandChanged(false)
   }
@@ -139,7 +128,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
       avatarUser = { ...author, avatarURL: this.props.gitHubUser.avatarURL }
     }
 
-    const className = this.state.isExpanded
+    const className = this.props.isExpanded
       ? 'expanded'
       : 'collapsed'
 
