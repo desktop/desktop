@@ -1,3 +1,5 @@
+/* tslint:disable:no-sync-functions */
+
 import * as path from 'path'
 import { expect } from 'chai'
 
@@ -357,6 +359,50 @@ describe('git/commit', () => {
       expect(diff.hunks.length).to.equal(1)
       expect(diff.hunks[0].lines.length).to.equal(4)
       expect(diff.hunks[0].lines[3].text).to.equal('+line3')
+    })
+  })
+
+  describe('createCommit with a merge conflict', () => {
+    it('creates a merge commit', async () => {
+      const repo = await setupEmptyRepository()
+      const filePath = path.join(repo.path, 'foo')
+
+      fs.writeFileSync(filePath, '')
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
+
+      await GitProcess.exec([ 'branch', 'other-branch' ], repo.path)
+
+      fs.writeFileSync(filePath, 'b1')
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
+
+      await GitProcess.exec([ 'checkout', 'other-branch' ], repo.path)
+
+      fs.writeFileSync(filePath, 'b2')
+      await GitProcess.exec([ 'add', 'foo' ], repo.path)
+      await GitProcess.exec([ 'commit', '-m', 'Commit' ], repo.path)
+
+      await GitProcess.exec([ 'merge', 'master' ], repo.path)
+
+      const inMerge = fs.existsSync(path.join(repo.path, '.git', 'MERGE_HEAD'))
+      expect(inMerge).to.equal(true)
+
+      fs.writeFileSync(filePath, 'b1b2')
+
+      const status = await getStatus(repo)
+      const files = status.workingDirectory.files
+
+      expect(files.length).to.equal(1)
+      expect(files[0].path).to.equal('foo')
+      expect(files[0].status).to.equal(FileStatus.Conflicted)
+
+      const selection = files[0].selection.withSelectAll()
+      const selectedFile = files[0].withSelection(selection)
+      await createCommit(repo, 'Merge commit!', [ selectedFile ])
+
+      const commits = await getCommits(repo, 'HEAD', 5)
+      expect(commits[0].parentSHAs.length).to.equal(2)
     })
   })
 })

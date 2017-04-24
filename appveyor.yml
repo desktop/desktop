@@ -20,7 +20,7 @@ skip_tags: true
 version: "{build}"
 
 install:
-  - ps: Install-Product node $env:nodejs_version x64
+  - ps: Install-Product node $env:nodejs_version $env:platform
   - npm install -g npm
   - git submodule update --init --recursive
   - npm prune
@@ -32,6 +32,8 @@ build_script:
   - npm run build:prod
 
 test_script:
+  - node --version
+  - npm --version
   - npm run test:setup
   - ./script/test-appveyor.bat
 

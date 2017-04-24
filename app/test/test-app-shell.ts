@@ -1,3 +1,5 @@
+/* tslint:disable:no-sync-functions */
+
 import { IAppShell } from '../src/lib/dispatcher/app-shell'
 
 import * as Fs from 'fs'

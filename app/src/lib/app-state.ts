@@ -118,8 +118,10 @@ export enum PopupType {
   CreateBranch,
   SignIn,
   About,
+  InstallGit,
   PublishRepository,
   Acknowledgements,
+  UntrustedCertificate,
 }
 
 export type Popup = { type: PopupType.RenameBranch, repository: Repository, branch: Branch } |
@@ -135,8 +137,10 @@ export type Popup = { type: PopupType.RenameBranch, repository: Repository, bran
                     { type: PopupType.CreateBranch, repository: Repository } |
                     { type: PopupType.SignIn } |
                     { type: PopupType.About } |
+                    { type: PopupType.InstallGit, path: string } |
                     { type: PopupType.PublishRepository, repository: Repository } |
-                    { type: PopupType.Acknowledgements }
+                    { type: PopupType.Acknowledgements } |
+                    { type: PopupType.UntrustedCertificate, certificate: Electron.Certificate, url: string }
 
 export enum FoldoutType {
   Repository,
@@ -174,6 +178,26 @@ export type Foldout =
 export enum RepositorySection {
   Changes,
   History
+}
+
+/** 
+ * An object describing the progression of a branch checkout operation
+ */
+export interface ICheckoutProgress {
+  /** The branch that's currently being checked out */
+  readonly targetBranch: string
+
+  /** 
+   * The overall progress of the operation, represented as a fraction between
+   * 0 and 1.
+   */
+  readonly progressValue: number
+
+  /**
+   * An informative text for user consumption indicating the current operation
+   * state.
+   */
+  readonly progressText: string
 }
 
 export interface IRepositoryState {
@@ -221,6 +245,14 @@ export interface IRepositoryState {
 
   /** The date the repository was last fetched. */
   readonly lastFetched: Date | null
+
+  /**
+   * If we're currently working on switching to a new branch this
+   * provides insight into the progress of that operation.
+   * 
+   * null if no current branch switch operation is in flight.
+   */
+  readonly checkoutProgress: ICheckoutProgress | null
 }
 
 export interface IBranchesState {
