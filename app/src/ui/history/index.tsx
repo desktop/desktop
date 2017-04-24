@@ -46,6 +46,15 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
     this.props.dispatcher.changeHistoryFileSelection(this.props.repository, file)
   }
 
+  public componentWillUpdate(nextProps: IHistoryProps) {
+    // Reset isExpanded if we're switching file.
+    if (nextProps.history.selection.sha !== this.props.history.selection.sha) {
+      if (this.state.isExpanded) {
+        this.setState({ isExpanded: false })
+      }
+    }
+  }
+
   public componentWillUnmount() {
     this.loadChangedFilesScheduler.clear()
   }
