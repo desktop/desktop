@@ -100,12 +100,32 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   public componentDidMount() {
-    this.updateOverflow()
+    // No need to check if it overflows if we're expanded
+    if (!this.props.isExpanded) {
+      this.updateOverflow()
+    }
+  }
+
+  public componentWillUpdate(nextProps: ICommitSummaryProps) {
+    if (nextProps.body !== this.props.body) {
+      this.setState({ isOverflowed: false })
+    }
   }
 
   public componentDidUpdate(prevProps: ICommitSummaryProps) {
-    if (prevProps.body !== this.props.body) {
-      this.updateOverflow()
+    // No need to check if it overflows if we're expanded
+    if (!this.props.isExpanded) {
+      // If the body has changed or we've just toggled the expanded
+      // state we'll recalculate whether we overflow or not.
+      if (prevProps.body !== this.props.body || prevProps.isExpanded) {
+        this.updateOverflow()
+      }
+    } else {
+      // Clear overflow state if we're expanded, we don't need it.
+      if (this.state.isOverflowed) {
+        this.setState({ isOverflowed: false })
+      }
+    }
   }
 
   private renderDescription() {
