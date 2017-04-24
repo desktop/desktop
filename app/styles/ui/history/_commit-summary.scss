@@ -51,6 +51,11 @@
   }
 }
 
+// NOTE: This isn't a real class, it's an SCSS hack to allow us to only write
+// the suffixes of class names that all start with commit-summary. It's quite
+// confusing and also has the added downside of making it impossible to search
+// for a class name one finds in tsx. We might want to consider not allowing
+// this in the future but that's for... the future. 
 .commit-summary {
   &-title,
   &-meta {
