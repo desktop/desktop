@@ -50,7 +50,7 @@ export class GitHubRepository implements IGitHubRepository {
 
   /** Create a new copy of the repository with the API information copied over. */
   public withAPI(apiRepository: IAPIRepository): GitHubRepository {
-    const newRepository = new GitHubRepository(this.name, this.owner, this.dbID, apiRepository.private, apiRepository.fork, apiRepository.htmlUrl, apiRepository.defaultBranch, apiRepository.cloneUrl)
+    const newRepository = new GitHubRepository(this.name, this.owner, this.dbID, apiRepository.private, apiRepository.fork, apiRepository.html_url, apiRepository.default_branch, apiRepository.clone_url)
 
     return structuralEquals(newRepository, this) ? this : newRepository
   }
