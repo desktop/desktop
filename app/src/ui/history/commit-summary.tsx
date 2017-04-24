@@ -119,7 +119,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     const scrollView = this.descriptionScrollViewRef
     if (scrollView) {
       this.setState({
-        isOverflowed: scrollView.scrollHeight > scrollView.offsetHeight
+        isOverflowed: scrollView.scrollHeight > scrollView.offsetHeight,
       })
     } else {
       if (this.state.isOverflowed) {
