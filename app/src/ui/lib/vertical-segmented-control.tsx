@@ -12,21 +12,16 @@ interface IVerticalSegmentedControlProps {
 }
 
 export class VerticalSegmentedControl extends React.Component<IVerticalSegmentedControlProps, void> {
-  private renderItem(item: ISegmentedItem, selected: boolean) {
+  private onItemClick = (item: ISegmentedItem) => {
+    const itemIndex = this.props.items.indexOf(item)
 
-    const description = item.description
-      ? <p>{item.description}</p>
-      : undefined
+    if (itemIndex !== this.props.selectedIndex) {
+      this.props.onSelectionChanged(itemIndex)
+    }
+  }
 
-    const className = selected ? 'selected' : undefined
-    const tabIndex = selected ? 0 : -1
-
-    return (
-      <li className={className} role='button' tabIndex={tabIndex}>
-        <div className='title'>{item.title}</div>
-        {description}
-      </li>
-    )
+  private renderItem(item: ISegmentedItem, index: number, selected: boolean) {
+    return SegmentedItem(item, index, selected, this.onItemClick)
   }
 
   public render() {
@@ -40,8 +35,24 @@ export class VerticalSegmentedControl extends React.Component<IVerticalSegmented
     return (
       <ul className='vertical-segmented-control'>
         {this.props.items.map((item, index) =>
-          this.renderItem(item, index === selectedIndex))}
+          this.renderItem(item, index, index === selectedIndex))}
       </ul>
     )
   }
+}
+
+const SegmentedItem = (item: ISegmentedItem, index: number, selected: boolean, onClick: (index: ISegmentedItem) => void) => {
+    const description = item.description
+      ? <p>{item.description}</p>
+      : undefined
+
+    const className = selected ? 'selected' : undefined
+    const tabIndex = selected ? 0 : -1
+
+    return (
+      <li key={index} className={className} role='button' tabIndex={tabIndex}>
+        <div className='title'>{item.title}</div>
+        {description}
+      </li>
+    )
 }
