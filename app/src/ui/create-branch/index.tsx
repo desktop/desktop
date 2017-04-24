@@ -117,6 +117,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
 
     return (
       <Dialog
+        id='create-branch'
         title='Create a branch'
         onSubmit={this.createBranch}
         onDismissed={this.props.onDismissed}
