@@ -1023,7 +1023,7 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderUpdateBanner() {
-    if (!this.props.dispatcher.getUpdateBannerVisibility()) {
+    if (!this.state.isUpdateAvailableBannerVisible) {
       return null
     }
 
