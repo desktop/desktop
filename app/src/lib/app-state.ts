@@ -278,7 +278,11 @@ interface IProgress {
 }
 
 /** 
- * An object describing the progression of a branch checkout operation
+ * An object describing progression of an operation that can't be
+ * directly mapped or attributed to either one of the more specific
+ * progress events (Fetch, Checkout etc). An example of this would be
+ * our own refreshing of internal repository state that takes part
+ * after fetch, push and pull.  
  */
 export interface IGenericProgress extends IProgress {
   kind: 'generic'
