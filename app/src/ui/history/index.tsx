@@ -47,7 +47,7 @@ export class History extends React.Component<IHistoryProps, IHistoryState> {
   }
 
   public componentWillUpdate(nextProps: IHistoryProps) {
-    // Reset isExpanded if we're switching file.
+    // Reset isExpanded if we're switching commits.
     if (nextProps.history.selection.sha !== this.props.history.selection.sha) {
       if (this.state.isExpanded) {
         this.setState({ isExpanded: false })
