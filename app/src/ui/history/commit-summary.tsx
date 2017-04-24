@@ -37,7 +37,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     this.state = { isOverflowed: false }
   }
 
-  private commitSummaryDescriptionRef = (ref: HTMLDivElement | null) => {
+  private onCommitSummaryDescriptionRef = (ref: HTMLDivElement | null) => {
     this.commitSummaryDescriptionDiv = ref
   }
 
@@ -141,7 +141,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
           emoji={this.props.emoji}
           repository={this.props.repository}
           text={this.props.body}
-          onContainerRef={this.commitSummaryDescriptionRef} />
+          onContainerRef={this.onCommitSummaryDescriptionRef} />
 
         {this.renderExpander()}
       </div>
