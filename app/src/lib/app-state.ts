@@ -251,7 +251,7 @@ export type Progress = IGenericProgress
 
 /**
  * Base interface containing all the properties that progress events
- * needs to support.
+ * need to support.
  */
 interface IProgress {
 
