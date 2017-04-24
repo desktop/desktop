@@ -62,6 +62,7 @@
     // So that we have something to position the expander against
     position: relative;
     border-bottom: var(--base-border);
+    padding: var(--spacing);
   }
 
   // Enable text selection inside the title and description elements.
@@ -77,12 +78,11 @@
   &-description {
     font-family: var(--font-family-monospace);
     font-size: var(--font-size-sm);
-    padding: var(--spacing);
     word-wrap: break-word;
     white-space: pre-line;
     overflow: hidden;
     overflow-x: hidden;
-    max-height: 60px;
+    max-height: 45px;
   }
 
   &-meta {
