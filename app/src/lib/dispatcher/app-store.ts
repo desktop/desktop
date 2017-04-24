@@ -909,21 +909,19 @@ export class AppStore {
 
     await gitStore.loadCurrentAndDefaultBranch()
 
-    // We don't need to await these.
-    // The GitStore will emit an update when something changes.
-    gitStore.loadBranches()
-    gitStore.loadCurrentRemote()
-    gitStore.calculateAheadBehindForCurrentBranch()
-    gitStore.updateLastFetched()
+    await Promise.all([
+      gitStore.loadBranches(),
+      gitStore.loadCurrentRemote(),
+      gitStore.calculateAheadBehindForCurrentBranch(),
+      gitStore.updateLastFetched(),
+      this.refreshAuthor(repository),
+      gitStore.loadContextualCommitMessage(),
+    ])
 
     // When refreshing we *always* check the status so that we can update the
     // changes indicator in the tab bar. But we only load History if it's
     // selected.
     await this._loadStatus(repository)
-
-    await this.refreshAuthor(repository)
-
-    await gitStore.loadContextualCommitMessage()
 
     const section = state.selectedSection
     if (section === RepositorySection.History) {
