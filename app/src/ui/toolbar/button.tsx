@@ -42,9 +42,9 @@ export interface IToolbarButtonProps {
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /**
-   * A function that's called when a key event is received from the 
+   * A function that's called when a key event is received from the
    * ToolbarButton component or any of its descendants.
-   * 
+   *
    * Consumers of this event should not act on the event if the event has
    * had its default action prevented by an earlier consumer that's called
    * the preventDefault method on the event instance.
@@ -76,15 +76,15 @@ export interface IToolbarButtonProps {
    * A value of 'undefined' means that whether or not the element participates
    * in sequential keyboard navigation is left to the user agent's default
    * settings.
-   * 
+   *
    * A negative value means that the element can receive focus but not
    * through sequential keyboard navigation (i.e. only via programmatic
    * focus)
-   * 
+   *
    * A value of zero means that the element can receive focus through
    * sequential keyboard navigation and that the order should be determined
    * by the element's position in the DOM.
-   * 
+   *
    * A positive value means that the element can receive focus through
    * sequential keyboard navigation and that it should have the explicit
    * order provided and not have it be determined by its position in the DOM.
@@ -98,7 +98,7 @@ export interface IToolbarButtonProps {
    * An optional progress value as a fraction between 0 and 1. Passing a number
    * greater than zero will render a progress bar background in the toolbar
    * button. Use this to communicate an ongoing operation.
-   * 
+   *
    * Consumers should not rely solely on the visual progress bar, they should
    * also implement alternative representation such as showing a percentage
    * text in the description or title along with information about what
@@ -148,7 +148,11 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
       ? <Octicon symbol={this.props.icon} className={classNames('icon', this.props.iconClassName)} />
       : null
 
-    const className = classNames('toolbar-button', this.props.className)
+    const className = classNames(
+      'toolbar-button',
+      { 'has-progress': this.props.progressValue !== undefined },
+      this.props.className
+    )
 
     const preContentRenderer = this.props.preContentRenderer
     const preContent = preContentRenderer && preContentRenderer()
@@ -161,8 +165,10 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
       ? <div className='progress' style={{ transform: `scaleX(${progressValue})` }} />
       : undefined
 
+    const title = this.props.title ? `Current branch is ${this.props.title}` : undefined
+
     return (
-      <div className={className} onKeyDown={this.props.onKeyDown}>
+      <div className={className} onKeyDown={this.props.onKeyDown} title={title}>
         {preContent}
         <Button
           onClick={this.onClick}
@@ -182,15 +188,15 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
 
   private renderText() {
 
-    if (!this.props.title && !this.props.description) {
+    if (this.props.title === undefined && this.props.description === undefined) {
       return null
     }
 
-    const title = this.props.title
+    const title = this.props.title !== undefined
       ? <div className='title'>{this.props.title}</div>
       : null
 
-    const description = this.props.description
+    const description = this.props.description !== undefined
       ? <div className='description'>{this.props.description}</div>
       : null
 

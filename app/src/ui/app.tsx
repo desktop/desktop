@@ -190,7 +190,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         onNonDefaultBranch = true
       }
 
-      networkActionInProgress = selectedState.state.pushPullInProgress
+      networkActionInProgress = selectedState.state.isPushPullFetchInProgress
     }
 
     // These are IDs for menu items that are entirely _and only_
@@ -963,13 +963,16 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     const state = selection.state
     const remoteName = state.remote ? state.remote.name : null
+    const progress = state.pushPullFetchProgress
+
     return <PushPullButton
       dispatcher={this.props.dispatcher}
       repository={selection.repository}
       aheadBehind={state.aheadBehind}
       remoteName={remoteName}
       lastFetched={state.lastFetched}
-      networkActionInProgress={state.pushPullInProgress}
+      networkActionInProgress={state.isPushPullFetchInProgress}
+      progress={progress}
     />
   }
 
@@ -1049,7 +1052,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       )
     } else if (selectedState.type === SelectionType.CloningRepository) {
       return <CloningRepositoryView repository={selectedState.repository}
-                                    state={selectedState.state}/>
+                                    progress={selectedState.progress}/>
     } else if (selectedState.type === SelectionType.MissingRepository) {
       return <MissingRepository repository={selectedState.repository} dispatcher={this.props.dispatcher} accounts={this.state.accounts} />
     } else {

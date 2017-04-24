@@ -40,6 +40,7 @@
     "no-internal-module": true,
     "no-invalid-this": true,
     "no-stateless-class": true,
+    "no-sync-functions": true,
     "no-trailing-whitespace": true,
     "no-unused-expression": true,
     "no-unused-variable": [true, "react"],
