@@ -46,35 +46,20 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private renderExpander() {
-    if (!this.props.body.length) {
+    if (!this.props.body.length || !this.state.isOverflowed) {
       return null
     }
 
-    if (!this.props.isExpanded && this.state.isOverflowed) {
-      return (
-        <a
-          onClick={this.onExpand}
-          className='expander'
-        >
-          <Octicon symbol={OcticonSymbol.unfold} />
-          Expand
-        </a>
-      )
-    }
+    const expanded = this.props.isExpanded
+    const onClick = expanded ? this.onCollapse : this.onExpand
+    const icon = expanded ? OcticonSymbol.unfold : OcticonSymbol.fold
 
-    if (this.props.isExpanded) {
-      return (
-        <a
-          onClick={this.onCollapse}
-          className='expander'
-        >
-          <Octicon symbol={OcticonSymbol.fold} />
-          Collapse
-        </a>
-      )
-    }
-
-    return null
+    return (
+      <a onClick={onClick} className='expander' >
+        <Octicon symbol={icon} />
+        { expanded ? 'Collapse' : 'Expand' }
+      </a>
+    )
   }
 
   private onExpand = () => {
