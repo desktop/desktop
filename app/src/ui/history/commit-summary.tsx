@@ -36,16 +36,53 @@ interface IResizeObserverEntry {
 
 export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitSummaryState> {
   private descriptionScrollViewRef: HTMLDivElement | null
+  private readonly resizeObserver: any | null = null
+  private updateOverflowTimeoutId: number | null = null
 
   public constructor(props: ICommitSummaryProps) {
     super(props)
 
     this.state = { isOverflowed: false }
+
+    const ResizeObserver = (window as any).ResizeObserver
+
+    if (ResizeObserver || false) {
+      this.resizeObserver = new ResizeObserver((entries: ReadonlyArray<IResizeObserverEntry>) => {
+        for (const entry of entries) {
+          if (entry.target === this.descriptionScrollViewRef) {
+            // We might end up causing a recursive update by updating the state
+            // when we're reacting to a resize so we'll defer it until after
+            // react is done with this frame.
+            if (this.updateOverflowTimeoutId !== null) {
+              clearImmediate(this.updateOverflowTimeoutId)
+            }
+
+            this.updateOverflowTimeoutId = setImmediate(this.onResized)
+          }
+        }
+      })
+    }
+  }
+
+  private onResized = () => {
+    if (this.props.isExpanded) {
+      return
+    }
+
+    this.updateOverflow()
   }
 
   private onDescriptionScrollViewRef = (ref: HTMLDivElement | null) => {
     this.descriptionScrollViewRef = ref
 
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+
+      if (ref) {
+        this.resizeObserver.observe(ref)
+      } else {
+        this.setState({ isOverflowed: false })
+      }
     }
   }
 
