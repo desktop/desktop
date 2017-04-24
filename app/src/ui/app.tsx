@@ -63,8 +63,6 @@ export class App extends React.Component<IAppProps, IAppState> {
    */
   private lastKeyPressed: string | null = null
 
-  private isUpdateAvailable: boolean = false
-
   /**
    * Gets a value indicating whether or not we're currently showing a
    * modal dialog such as the preferences, or an error dialog.
@@ -119,8 +117,6 @@ export class App extends React.Component<IAppProps, IAppState> {
 
       setMenuVisible(visibleItem, true)
 
-      if (status === UpdateStatus.UpdateReady) {
-        this.isUpdateAvailable = true
       }
     })
 
@@ -1052,14 +1048,11 @@ export class App extends React.Component<IAppProps, IAppState> {
   }
 
   private renderUpdateBanner() {
-    const releaseNotesUri = 'https://desktop.github.com/release-notes/tng/'
 
-    if (__RELEASE_ENV__ === 'development' || __RELEASE_ENV__ === 'test' || !this.isUpdateAvailable) {
       return null
     }
 
     return (
-      <UpdateAvailable releaseNotesLink={releaseNotesUri}/>
     )
   }
 
