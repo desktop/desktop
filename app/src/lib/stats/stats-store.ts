@@ -21,7 +21,7 @@ type DailyStats = { version: string } & ILaunchStats & IDailyMeasures
 
 /** The store for the app's stats. */
 export class StatsStore {
-  private db: StatsDatabase
+  private readonly db: StatsDatabase
 
   /** Has the user opted out of stats reporting? */
   private optOut: boolean
