@@ -11,6 +11,7 @@ const StatsEndpoint = 'https://central.github.com/api/usage/desktop'
 
 const LastDailyStatsReportKey = 'last-daily-stats-report'
 
+/** The localStorage key for the stats GUID. */
 const StatsGUIDKey = 'stats-guid'
 
 /** How often daily stats should be submitted (i.e., 24 hours). */
