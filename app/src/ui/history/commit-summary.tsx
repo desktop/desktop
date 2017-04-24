@@ -29,7 +29,11 @@ interface ICommitSummaryState {
 }
 
 export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitSummaryState> {
-  private commitSummaryDescriptionDiv: HTMLDivElement | null
+  /**
+   * A reference to the div container inside of the RichText component
+   * which holds our commit description (or "body").
+   */
+  private descriptionRef: HTMLDivElement | null
 
   public constructor(props: ICommitSummaryProps) {
     super(props)
@@ -38,7 +42,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private onCommitSummaryDescriptionRef = (ref: HTMLDivElement | null) => {
-    this.commitSummaryDescriptionDiv = ref
+    this.descriptionRef = ref
   }
 
   private renderExpander() {
@@ -78,25 +82,24 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private onCollapse = () => {
-    if (this.commitSummaryDescriptionDiv) {
-      this.commitSummaryDescriptionDiv.scrollTop = 0
+    if (this.descriptionRef) {
+      this.descriptionRef.scrollTop = 0
     }
 
     this.props.onExpandChanged(false)
   }
 
   private updateOverflow() {
-    const div = this.commitSummaryDescriptionDiv
-
-    if (!div) {
-      return
+    const description = this.descriptionRef
+    if (description) {
+      this.setState({
+        isOverflowed: description.scrollHeight > description.offsetHeight
+      })
+    } else {
+      if (this.state.isOverflowed) {
+        this.setState({ isOverflowed: false })
+      }
     }
-
-    const doesOverflow = div.scrollHeight > div.offsetHeight
-
-    this.setState({
-      isOverflowed: doesOverflow,
-    })
   }
 
   public componentDidMount() {
