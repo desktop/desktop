@@ -163,6 +163,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     let hasDefaultBranch = false
     let hasPublishedBranch = false
     let networkActionInProgress = false
+    let tipStateIsUnknown = false
 
     if (selectedState && selectedState.type === SelectionType.Repository) {
       repositorySelected = true
@@ -174,6 +175,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       hasDefaultBranch = Boolean(defaultBranch)
 
       onBranch = tip.kind === TipState.Valid
+      tipStateIsUnknown = tip.kind === TipState.Unknown
 
       // If we are:
       //  1. on the default branch, or
@@ -226,6 +228,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       setMenuEnabled('view-repository-on-github', isHostedOnGitHub)
       setMenuEnabled('push', !networkActionInProgress)
       setMenuEnabled('pull', !networkActionInProgress)
+      setMenuEnabled('create-branch', !tipStateIsUnknown)
     } else {
       for (const id of repositoryScopedIDs) {
         setMenuEnabled(id, false)
