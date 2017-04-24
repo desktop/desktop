@@ -132,6 +132,7 @@ export class StatsStore {
       ...launchStats,
       ...dailyMeasures,
       ...userType,
+      guid: this.guid,
     }
   }
 
