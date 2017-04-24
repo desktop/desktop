@@ -28,12 +28,14 @@ interface ICommitSummaryState {
   readonly isOverflowed: boolean
 }
 
+// https://wicg.github.io/ResizeObserver/#resizeobserverentry
+interface IResizeObserverEntry {
+  readonly target: Element
+  readonly contentRect: ClientRect
+};
+
 export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitSummaryState> {
-  /**
-   * A reference to the div container inside of the RichText component
-   * which holds our commit description (or "body").
-   */
-  private descriptionRef: HTMLDivElement | null
+  private descriptionScrollViewRef: HTMLDivElement | null
 
   public constructor(props: ICommitSummaryProps) {
     super(props)
@@ -41,8 +43,10 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
     this.state = { isOverflowed: false }
   }
 
-  private onCommitSummaryDescriptionRef = (ref: HTMLDivElement | null) => {
-    this.descriptionRef = ref
+  private onDescriptionScrollViewRef = (ref: HTMLDivElement | null) => {
+    this.descriptionScrollViewRef = ref
+
+    }
   }
 
   private renderExpander() {
@@ -67,18 +71,18 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   }
 
   private onCollapse = () => {
-    if (this.descriptionRef) {
-      this.descriptionRef.scrollTop = 0
+    if (this.descriptionScrollViewRef) {
+      this.descriptionScrollViewRef.scrollTop = 0
     }
 
     this.props.onExpandChanged(false)
   }
 
   private updateOverflow() {
-    const description = this.descriptionRef
-    if (description) {
+    const scrollView = this.descriptionScrollViewRef
+    if (scrollView) {
       this.setState({
-        isOverflowed: description.scrollHeight > description.offsetHeight
+        isOverflowed: scrollView.scrollHeight > scrollView.offsetHeight
       })
     } else {
       if (this.state.isOverflowed) {
@@ -124,7 +128,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
 
     return (
       <div className='commit-summary-description-container'>
-        <div className='commit-summary-description-scroll-view' ref={this.onCommitSummaryDescriptionRef}>
+        <div className='commit-summary-description-scroll-view' ref={this.onDescriptionScrollViewRef}>
           <RichText
             className='commit-summary-description'
             emoji={this.props.emoji}
