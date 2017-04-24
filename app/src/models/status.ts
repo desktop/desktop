@@ -141,4 +141,9 @@ export class WorkingDirectoryStatus {
     })
     return new WorkingDirectoryStatus(newFiles, this.includeAll)
   }
+
+  /** Find the file with the given ID. */
+  public findFileWithID(id: string): WorkingDirectoryFileChange | null {
+    return this.files.find(f => f.id === id) || null
+  }
 }

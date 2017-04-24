@@ -21,6 +21,9 @@ export interface IToolbarButtonProps {
   /** An optional description of the function of the button */
   readonly description?: JSX.Element | string
 
+  /** The tooltip for the button. */
+  readonly tooltip?: string
+
   /** An optional symbol to be displayed next to the button text */
   readonly icon?: OcticonSymbol
 
@@ -148,7 +151,11 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
       ? <Octicon symbol={this.props.icon} className={classNames('icon', this.props.iconClassName)} />
       : null
 
-    const className = classNames('toolbar-button', this.props.className)
+    const className = classNames(
+      'toolbar-button',
+      { 'has-progress': this.props.progressValue !== undefined },
+      this.props.className
+    )
 
     const preContentRenderer = this.props.preContentRenderer
     const preContent = preContentRenderer && preContentRenderer()
@@ -161,10 +168,8 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
       ? <div className='progress' style={{ transform: `scaleX(${progressValue})` }} />
       : undefined
 
-    const title = this.props.title ? `Current branch is ${this.props.title}` : undefined
-
     return (
-      <div className={className} onKeyDown={this.props.onKeyDown} title={title}>
+      <div className={className} onKeyDown={this.props.onKeyDown} title={this.props.tooltip}>
         {preContent}
         <Button
           onClick={this.onClick}
@@ -184,15 +189,15 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
 
   private renderText() {
 
-    if (!this.props.title && !this.props.description) {
+    if (this.props.title === undefined && this.props.description === undefined) {
       return null
     }
 
-    const title = this.props.title
+    const title = this.props.title !== undefined
       ? <div className='title'>{this.props.title}</div>
       : null
 
-    const description = this.props.description
+    const description = this.props.description !== undefined
       ? <div className='description'>{this.props.description}</div>
       : null
 
