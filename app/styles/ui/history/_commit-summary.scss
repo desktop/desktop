@@ -29,7 +29,7 @@
       border-bottom: none;
     }
 
-    .commit-summary-description {
+    .commit-summary-description-scroll-view {
       max-height: none;
       overflow: auto;
     }
@@ -62,7 +62,11 @@
     // So that we have something to position the expander against
     position: relative;
     border-bottom: var(--base-border);
-    padding: var(--spacing);
+  }
+
+  &-description-scroll-view {
+    overflow: hidden;
+    max-height: 60px;
   }
 
   // Enable text selection inside the title and description elements.
@@ -80,9 +84,7 @@
     font-size: var(--font-size-sm);
     word-wrap: break-word;
     white-space: pre-line;
-    overflow: hidden;
-    overflow-x: hidden;
-    max-height: 45px;
+    padding: var(--spacing);
   }
 
   &-meta {

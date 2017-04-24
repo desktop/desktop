@@ -124,12 +124,14 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
 
     return (
       <div className='commit-summary-description-container'>
-        <RichText
-          className='commit-summary-description'
-          emoji={this.props.emoji}
-          repository={this.props.repository}
-          text={this.props.body}
-          onContainerRef={this.onCommitSummaryDescriptionRef} />
+        <div className='commit-summary-description-scroll-view' ref={this.onCommitSummaryDescriptionRef}>
+          <RichText
+            className='commit-summary-description'
+            emoji={this.props.emoji}
+            repository={this.props.repository}
+            text={this.props.body}
+          />
+        </div>
 
         {this.renderExpander()}
       </div>
