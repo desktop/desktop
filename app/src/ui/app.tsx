@@ -806,7 +806,13 @@ export class App extends React.Component<IAppProps, IAppState> {
           ? tip.branch
           : null
 
+        const branchesState = state.branchesState
         const repository = popup.repository
+
+        if (branchesState.tip.kind === TipState.Unknown) {
+          this.props.dispatcher.closePopup()
+          return null
+        }
 
         return <CreateBranch
                 currentBranch={currentBranch}
@@ -986,6 +992,12 @@ export class App extends React.Component<IAppProps, IAppState> {
     // manages to delete the last repository while the drop down is
     // open we'll just bail here.
     if (!selection || selection.type !== SelectionType.Repository) {
+      return
+    }
+
+    // We explicitly disable the menu item in this scenario so this
+    // should never happen.
+    if (selection.state.branchesState.tip.kind === TipState.Unknown) {
       return
     }
 
