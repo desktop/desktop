@@ -104,7 +104,26 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
   public componentDidUpdate(prevProps: ICommitSummaryProps) {
     if (prevProps.body !== this.props.body) {
       this.updateOverflow()
+  }
+
+  private renderDescription() {
+
+    if (!this.props.body) {
+      return null
     }
+
+    return (
+      <div className='commit-summary-description-container'>
+        <RichText
+          className='commit-summary-description'
+          emoji={this.props.emoji}
+          repository={this.props.repository}
+          text={this.props.body}
+          onContainerRef={this.commitSummaryDescriptionRef} />
+
+        {this.renderExpander()}
+      </div>
+    )
   }
 
   public render() {
@@ -171,16 +190,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
           </ul>
         </div>
 
-        <div className='commit-summary-description-container'>
-          <RichText
-            className='commit-summary-description'
-            emoji={this.props.emoji}
-            repository={this.props.repository}
-            text={this.props.body}
-            onContainerRef={this.commitSummaryDescriptionRef} />
-
-          {this.renderExpander()}
-        </div>
+        {this.renderDescription()}
       </div>
     )
   }
