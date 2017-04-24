@@ -986,7 +986,7 @@ export class App extends React.Component<IAppProps, IAppState> {
     // manages to delete the last repository while the drop down is
     // open we'll just bail here.
     if (!selection || selection.type !== SelectionType.Repository) {
-      return null
+      return
     }
 
     const repository = selection.repository
