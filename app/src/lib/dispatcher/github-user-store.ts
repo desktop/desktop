@@ -123,12 +123,12 @@ export class GitHubUserStore {
       gitUser = await this.findUserWithAPI(account, gitHubRepository, sha, email)
     }
 
+    this.requestsInFlight.delete(key)
+
     if (gitUser) {
       this.cacheUser(gitUser)
+      this.emitUpdate()
     }
-
-    this.requestsInFlight.delete(key)
-    this.emitUpdate()
   }
 
   private async findUserWithAPI(account: Account, repository: GitHubRepository, sha: string | null, email: string): Promise<IGitHubUser | null> {
