@@ -230,10 +230,10 @@ export class Dispatcher {
 
   /** Select the repository. */
   public async selectRepository(repository: Repository | CloningRepository): Promise<Repository | null> {
-    const repo = await this.appStore._selectRepository(repository)
+    let repo = await this.appStore._selectRepository(repository)
 
     if (repository instanceof Repository) {
-      await this.refreshGitHubRepositoryInfo(repository)
+      repo = await this.refreshGitHubRepositoryInfo(repository)
     }
 
     return repo
