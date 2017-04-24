@@ -1,4 +1,6 @@
 import * as React from 'react'
+import * as classNames from 'classnames'
+
 import { FileChange } from '../../models/status'
 import { Octicon, OcticonSymbol } from '../octicons'
 import { RichText } from '../lib/rich-text'
@@ -18,100 +20,163 @@ interface ICommitSummaryProps {
   readonly emoji: Map<string, string>
   readonly isLocal: boolean
   readonly gitHubUser: IGitHubUser | null
+  readonly isExpanded: boolean
   readonly onExpandChanged: (isExpanded: boolean) => void
 }
 
 interface ICommitSummaryState {
-  readonly isExpanded: boolean
   readonly isOverflowed: boolean
 }
 
+// https://wicg.github.io/ResizeObserver/#resizeobserverentry
+interface IResizeObserverEntry {
+  readonly target: Element
+  readonly contentRect: ClientRect
+};
+
 export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitSummaryState> {
-  private commitSummaryDescriptionDiv: HTMLDivElement | null
+  private descriptionScrollViewRef: HTMLDivElement | null
+  private readonly resizeObserver: any | null = null
+  private updateOverflowTimeoutId: number | null = null
 
   public constructor(props: ICommitSummaryProps) {
     super(props)
 
-    this.state = {
-      isExpanded: false,
-      isOverflowed: false,
+    this.state = { isOverflowed: false }
+
+    const ResizeObserver = (window as any).ResizeObserver
+
+    if (ResizeObserver || false) {
+      this.resizeObserver = new ResizeObserver((entries: ReadonlyArray<IResizeObserverEntry>) => {
+        for (const entry of entries) {
+          if (entry.target === this.descriptionScrollViewRef) {
+            // We might end up causing a recursive update by updating the state
+            // when we're reacting to a resize so we'll defer it until after
+            // react is done with this frame.
+            if (this.updateOverflowTimeoutId !== null) {
+              clearImmediate(this.updateOverflowTimeoutId)
+            }
+
+            this.updateOverflowTimeoutId = setImmediate(this.onResized)
+          }
+        }
+      })
     }
   }
 
-  private commitSummaryDescriptionRef = (ref: HTMLDivElement | null) => {
-    this.commitSummaryDescriptionDiv = ref
+  private onResized = () => {
+    if (this.props.isExpanded) {
+      return
+    }
+
+    this.updateOverflow()
+  }
+
+  private onDescriptionScrollViewRef = (ref: HTMLDivElement | null) => {
+    this.descriptionScrollViewRef = ref
+
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect()
+
+      if (ref) {
+        this.resizeObserver.observe(ref)
+      } else {
+        this.setState({ isOverflowed: false })
+      }
+    }
   }
 
   private renderExpander() {
-    if (!this.props.body.length) {
+    if (!this.props.body.length || (!this.props.isExpanded && !this.state.isOverflowed)) {
       return null
     }
 
-    if (!this.state.isExpanded && this.state.isOverflowed) {
-      return (
-        <a
-          onClick={this.onExpand}
-          className='expander'
-        >
-          <Octicon symbol={OcticonSymbol.unfold} />
-          Expand
-        </a>
-      )
-    }
+    const expanded = this.props.isExpanded
+    const onClick = expanded ? this.onCollapse : this.onExpand
+    const icon = expanded ? OcticonSymbol.unfold : OcticonSymbol.fold
 
-    if (this.state.isExpanded) {
-      return (
-        <a
-          onClick={this.onCollapse}
-          className='expander'
-        >
-          <Octicon symbol={OcticonSymbol.fold} />
-          Collapse
-        </a>
-      )
-    }
-
-    return null
+    return (
+      <a onClick={onClick} className='expander'>
+        <Octicon symbol={icon} />
+        { expanded ? 'Collapse' : 'Expand' }
+      </a>
+    )
   }
 
   private onExpand = () => {
-    this.setState({
-      isExpanded: true,
-    })
-
     this.props.onExpandChanged(true)
   }
 
   private onCollapse = () => {
-    this.setState({
-      isExpanded: false,
-    })
+    if (this.descriptionScrollViewRef) {
+      this.descriptionScrollViewRef.scrollTop = 0
+    }
 
     this.props.onExpandChanged(false)
   }
 
   private updateOverflow() {
-    const div = this.commitSummaryDescriptionDiv
-
-    if (!div) {
-      return
+    const scrollView = this.descriptionScrollViewRef
+    if (scrollView) {
+      this.setState({
+        isOverflowed: scrollView.scrollHeight > scrollView.offsetHeight
+      })
+    } else {
+      if (this.state.isOverflowed) {
+        this.setState({ isOverflowed: false })
+      }
     }
-
-    const doesOverflow = div.scrollHeight > div.offsetHeight
-
-    this.setState({
-      isOverflowed: doesOverflow,
-    })
   }
 
   public componentDidMount() {
-    this.updateOverflow()
+    // No need to check if it overflows if we're expanded
+    if (!this.props.isExpanded) {
+      this.updateOverflow()
+    }
+  }
+
+  public componentWillUpdate(nextProps: ICommitSummaryProps) {
+    if (nextProps.body !== this.props.body) {
+      this.setState({ isOverflowed: false })
+    }
   }
 
   public componentDidUpdate(prevProps: ICommitSummaryProps) {
-    if (prevProps.body !== this.props.body) {
-      this.updateOverflow()
+    // No need to check if it overflows if we're expanded
+    if (!this.props.isExpanded) {
+      // If the body has changed or we've just toggled the expanded
+      // state we'll recalculate whether we overflow or not.
+      if (prevProps.body !== this.props.body || prevProps.isExpanded) {
+        this.updateOverflow()
+      }
+    } else {
+      // Clear overflow state if we're expanded, we don't need it.
+      if (this.state.isOverflowed) {
+        this.setState({ isOverflowed: false })
+      }
     }
+  }
+
+  private renderDescription() {
+
+    if (!this.props.body) {
+      return null
+    }
+
+    return (
+      <div className='commit-summary-description-container'>
+        <div className='commit-summary-description-scroll-view' ref={this.onDescriptionScrollViewRef}>
+          <RichText
+            className='commit-summary-description'
+            emoji={this.props.emoji}
+            repository={this.props.repository}
+            text={this.props.body}
+          />
+        </div>
+
+        {this.renderExpander()}
+      </div>
+    )
   }
 
   public render() {
@@ -135,9 +200,11 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
       avatarUser = { ...author, avatarURL: this.props.gitHubUser.avatarURL }
     }
 
-    const className = this.state.isExpanded
-      ? 'expanded'
-      : 'collapsed'
+    const className = classNames({
+      expanded: this.props.isExpanded,
+      collapsed: !this.props.isExpanded,
+      'has-expander': this.props.isExpanded || this.state.isOverflowed,
+    })
 
     return (
       <div id='commit-summary' className={className}>
@@ -178,14 +245,7 @@ export class CommitSummary extends React.Component<ICommitSummaryProps, ICommitS
           </ul>
         </div>
 
-        {this.renderExpander()}
-
-        <RichText
-          className='commit-summary-description'
-          emoji={this.props.emoji}
-          repository={this.props.repository}
-          text={this.props.body}
-          onContainerRef={this.commitSummaryDescriptionRef} />
+        {this.renderDescription()}
       </div>
     )
   }
