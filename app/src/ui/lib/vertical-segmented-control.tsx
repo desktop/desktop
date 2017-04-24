@@ -11,7 +11,6 @@ interface IVerticalSegmentedControlProps {
   readonly onSelectionChanged: (selectedIndex: number) => void
 }
 
-/** The two-factor authentication component. */
 export class VerticalSegmentedControl extends React.Component<IVerticalSegmentedControlProps, void> {
   private renderItem(item: ISegmentedItem, selected: boolean) {
 
