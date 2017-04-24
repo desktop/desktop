@@ -14,6 +14,9 @@ export interface IToolbarDropdownProps {
   /** An optional description of the function of the button */
   readonly description?: string | JSX.Element
 
+  /** The tooltip for the button. */
+  readonly tooltip?: string
+
   /** An optional symbol to be displayed next to the button text */
   readonly icon?: OcticonSymbol
 
@@ -25,7 +28,7 @@ export interface IToolbarDropdownProps {
   /**
    * An event handler for when the drop down is opened, or closed, by a pointer
    * event or by pressing the space or enter key while focused.
-   * 
+   *
    * @param state    - The new state of the drop down
    * @param source   - Whether the state change was caused by a keyboard or
    *                   pointer interaction.
@@ -40,9 +43,9 @@ export interface IToolbarDropdownProps {
   readonly onMouseEnter?: (event: React.MouseEvent<HTMLButtonElement>) => void
 
   /**
-   * A function that's called when a key event is received from the 
+   * A function that's called when a key event is received from the
    * ToolbarDropDown component or any of its descendants.
-   * 
+   *
    * Consumers of this event should not act on the event if the event has
    * had its default action prevented by an earlier consumer that's called
    * the preventDefault method on the event instance.
@@ -87,15 +90,15 @@ export interface IToolbarDropdownProps {
    * A value of 'undefined' means that whether or not the element participates
    * in sequential keyboard navigation is left to the user agent's default
    * settings.
-   * 
+   *
    * A negative value means that the element can receive focus but not
    * through sequential keyboard navigation (i.e. only via programmatic
    * focus)
-   * 
+   *
    * A value of zero means that the element can receive focus through
    * sequential keyboard navigation and that the order should be determined
    * by the element's position in the DOM.
-   * 
+   *
    * A positive value means that the element can receive focus through
    * sequential keyboard navigation and that it should have the explicit
    * order provided and not have it be determined by its position in the DOM.
@@ -109,7 +112,7 @@ export interface IToolbarDropdownProps {
    * An optional progress value as a fraction between 0 and 1. Passing a number
    * greater than zero will render a progress bar background in the toolbar
    * button. Use this to communicate an ongoing operation.
-   * 
+   *
    * Consumers should not rely solely on the visual progress bar, they should
    * also implement alternative representation such as showing a percentage
    * text in the description or title along with information about what
@@ -285,6 +288,7 @@ export class ToolbarDropdown extends React.Component<IToolbarDropdownProps, IToo
           icon={this.props.icon}
           title={this.props.title}
           description={this.props.description}
+          tooltip={this.props.tooltip}
           onClick={this.onClick}
           onMouseEnter={this.props.onMouseEnter}
           style={this.props.style}
