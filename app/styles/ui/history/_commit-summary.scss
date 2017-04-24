@@ -83,10 +83,6 @@
     overflow: hidden;
     overflow-x: hidden;
     max-height: 60px;
-
-    &:empty {
-      display: none;
-    }
   }
 
   &-meta {
