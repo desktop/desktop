@@ -21,6 +21,9 @@ export interface IToolbarButtonProps {
   /** An optional description of the function of the button */
   readonly description?: JSX.Element | string
 
+  /** The tooltip for the button. */
+  readonly tooltip?: string
+
   /** An optional symbol to be displayed next to the button text */
   readonly icon?: OcticonSymbol
 
@@ -165,10 +168,8 @@ export class ToolbarButton extends React.Component<IToolbarButtonProps, void> {
       ? <div className='progress' style={{ transform: `scaleX(${progressValue})` }} />
       : undefined
 
-    const title = this.props.title ? `Current branch is ${this.props.title}` : undefined
-
     return (
-      <div className={className} onKeyDown={this.props.onKeyDown} title={title}>
+      <div className={className} onKeyDown={this.props.onKeyDown} title={this.props.tooltip}>
         {preContent}
         <Button
           onClick={this.onClick}

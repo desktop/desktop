@@ -23,7 +23,7 @@ interface IBranchDropdownProps {
   /**
    * An event handler for when the drop down is opened, or closed, by a pointer
    * event or by pressing the space or enter key while focused.
-   * 
+   *
    * @param state    - The new state of the drop down
    */
   readonly onDropDownStateChanged: (state: DropdownState) => void
@@ -74,19 +74,23 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
     let title: string
     let description = __DARWIN__ ? 'Current Branch' : 'Current branch'
     let canOpen = true
+    let tooltip: string
 
     if (tip.kind === TipState.Unknown) {
       // TODO: this is bad and I feel bad
       return null
     } else if (tip.kind === TipState.Unborn) {
       title = 'master'
+      tooltip = 'Current branch is master'
       canOpen = false
     } else if (tip.kind === TipState.Detached) {
       title = `On ${tip.currentSha.substr(0,7)}`
+      tooltip = 'Currently on a detached HEAD'
       icon = OcticonSymbol.gitCommit
       description = 'Detached HEAD'
     } else if (tip.kind === TipState.Valid) {
       title = tip.branch.name
+      tooltip = `Current branch is ${title}`
     } else {
       return assertNever(tip, `Unknown tip state: ${tipKind}`)
     }
@@ -118,6 +122,7 @@ export class BranchDropdown extends React.Component<IBranchDropdownProps, void> 
       iconClassName={iconClassName}
       title={title}
       description={description}
+      tooltip={tooltip}
       onDropdownStateChanged={this.onDropDownStateChanged}
       dropdownContentRenderer={this.renderBranchFoldout}
       dropdownState={currentState}
