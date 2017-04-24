@@ -13,9 +13,6 @@ interface IUpdateAvailableProps {
  * option of moving into the future or being a luddite.
  */
 export class UpdateAvailable extends React.Component<IUpdateAvailableProps, void> {
-  public constructor(props: IUpdateAvailableProps) {
-    super(props)
-  }
 
   public render() {
     return (
