@@ -1,7 +1,46 @@
 {
   "releases": {
-    "0.0.32": [
+    "0.0.35": [
 
+    ],
+    "0.0.34": [
+      "[New] macOS: Users can choose whether to accept untrusted certificates - #671",
+      "[New] Windows: Users are prompted to install git when opening a shell if it is not installed - #813",
+      "[New] Checkout progress is shown if branch switching takes a while - #1208",
+      "[New] Commit summary and description are automatically populated for merge conflicts - #1228",
+      "[Fixed] Cloning repositories while not signed in - #1163",
+      "[Fixed] Merge commits are now created as merge commits - #1216",
+      "[Fixed] Display of diffs with /r newline - #1234",
+      "[Fixed] Windows: Maximized windows are no longer positioned slightly off screen - #1202",
+      "[Fixed] JSON parse errors - #1243",
+      "[Fixed] GitHub Enterprise repositories were not associated with the proper Enterprise repository - #1242",
+      "[Fixed] Timestamps in the Branches list would wrap - #1255",
+      "[Fixed] Merges created from pulling wouldn't use the right git author - #1262",
+      "[Improved] Check for update errors are suppressed if they happen in the background - #1104, #1195",
+      "[Improved] The shortcut to show the repositories list is now command or control-T - #1220",
+      "[Improved] Command or control-W now closes open dialogs - #949",
+      "[Improved] Less memory usage while parsing large diffs - #1235"
+    ],
+    "0.0.33": [
+      "[Fixed] Update Now wouldn't update now - #1209"
+    ],
+    "0.0.32": [
+      "[New] You can now disable stats reporting from Preferences > Advanced - #1120",
+      "[New] Acknowledgements are now available from About - #810",
+      "[New] Open pull requests from dot com in the app - #808",
+      "[Fixed] Don't show background fetch errors - #875",
+      "[Fixed] No more surprise and delight - #620",
+      "[Fixed] Can't discard renamed files - #1177",
+      "[Fixed] Logging out of one account would log out of all accounts - #1192",
+      "[Fixed] Renamed files truncation - #695",
+      "[Fixed] Git on Windows now integrates with the system certificate store - #706",
+      "[Fixed] Cloning with an account/repoository shortcut would always fail - #1150",
+      "[Fixed] OS version reporting - #1130",
+      "[Fixed] Publish a new repository would always fail - #1046",
+      "[Fixed] Authentication would fail for the first repository after logging in - #1118",
+      "[Fixed] Don't flood the user with errors if a repository disappears on disk - #1132",
+      "[Improved] The Merge dialog uses the Branches list instead of a drop down menu - #749",
+      "[Improved] Lots of design polish - #1188, #1183, #1170, #1184, #1181, #1179, #1142, #1125"
     ],
     "0.0.31": [
       "[New] Prompt user to login when authentication error occurs - #903",

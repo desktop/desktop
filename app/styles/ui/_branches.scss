@@ -30,6 +30,7 @@
       flex-grow: 2;
       @include ellipsis;
       max-width: 65%;
+      margin-right: var(--spacing-half);
     }
 
     .description {
@@ -38,6 +39,7 @@
       font-size: var(--font-size-sm);
       flex-grow: 1;
       text-align: right;
+      white-space: nowrap;
     }
   }
 }

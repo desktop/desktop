@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, Menu, app } from 'electron'
+import { BrowserWindow, ipcMain, Menu, app, dialog } from 'electron'
 import { Emitter, Disposable } from 'event-kit'
 
 import { SharedProcess } from '../shared-process/shared-process'
@@ -8,40 +8,7 @@ import { URLActionType } from '../lib/parse-url'
 import { ILaunchStats } from '../lib/stats'
 import { menuFromElectronMenu } from '../models/app-menu'
 
-import * as Path from 'path'
-import * as Fs from 'fs'
-
 let windowStateKeeper: any | null = null
-
-// NOTE:
-// This is a workaround for an upstream issue with electron-window-state
-// where a null x/y will crash screen.getDisplayMatching() before our app
-// can launch correctly.
-//
-// This can be removed after we've updated our beta users to electron-window-state@4.0.1
-// which will serialize 0 correctly again. See the upstream PR:
-// https://github.com/mawie81/electron-window-state/pull/16/
-function sanitizeBeforeReadingSync() {
-  const userData = app.getPath('userData')
-  const file = 'window-state.json'
-  const filePath = Path.join(userData, file)
-
-  try {
-    const text = Fs.readFileSync(filePath, 'utf-8')
-    if (text.length) {
-      const json = JSON.parse(text)
-
-      if (json.x === null || json.x === null) {
-        json.x = json.x || 0
-        json.y = json.y || 0
-        const newContents = JSON.stringify(json)
-        Fs.writeFileSync(filePath, newContents)
-      }
-    }
-  } catch (e) {
-    // swallow this error, live a happy life
-  }
-}
 
 export class AppWindow {
   private window: Electron.BrowserWindow
@@ -58,8 +25,6 @@ export class AppWindow {
       // lazily.
       windowStateKeeper = require('electron-window-state')
     }
-
-    sanitizeBeforeReadingSync()
 
     const savedWindowState = windowStateKeeper({
       defaultWidth: 800,
@@ -102,6 +67,11 @@ export class AppWindow {
       let quitting = false
       app.on('before-quit', () => {
         quitting = true
+      })
+
+      ipcMain.on('will-quit', (event: Electron.IpcMainEvent) => {
+        quitting = true
+        event.returnValue = true
       })
 
       this.window.on('close', e => {
@@ -258,8 +228,47 @@ export class AppWindow {
 
   /** Send the app menu to the renderer. */
   public sendAppMenu() {
-    const menu = menuFromElectronMenu(Menu.getApplicationMenu())
-    this.window.webContents.send('app-menu', { menu })
+    const appMenu = Menu.getApplicationMenu()
+    if (appMenu) {
+      const menu = menuFromElectronMenu(appMenu)
+      this.window.webContents.send('app-menu', { menu })
+    }
+  }
+
+  /** Send a certificate error to the renderer. */
+  public sendCertificateError(certificate: Electron.Certificate, error: string, url: string) {
+    this.window.webContents.send('certificate-error', { certificate, error, url })
+  }
+
+  public showCertificateTrustDialog(certificate: Electron.Certificate, message: string) {
+    // The Electron type definitions don't include `showCertificateTrustDialog`
+    // yet.
+    const d = dialog as any
+    d.showCertificateTrustDialog(this.window, { certificate, message }, () => {})
+  }
+
+  /** Report the exception to the renderer. */
+  public sendException(error: Error) {
+    // `Error` can't be JSONified so it doesn't transport nicely over IPC. So
+    // we'll just manually copy the properties we care about.
+    const friendlyError = {
+      stack: error.stack,
+      message: error.message,
+      name: error.name,
+    }
+    this.window.webContents.send('main-process-exception', friendlyError)
+  }
+
+  /** Report an auto updater error to the renderer. */
+  public sendAutoUpdaterError(error: Error) {
+    // `Error` can't be JSONified so it doesn't transport nicely over IPC. So
+    // we'll just manually copy the properties we care about.
+    const friendlyError = {
+      stack: error.stack,
+      message: error.message,
+      name: error.name,
+    }
+    this.window.webContents.send('auto-updater-error', friendlyError)
   }
 
   /**

@@ -24,7 +24,7 @@ export class BranchListItem extends React.Component<IBranchProps, void> {
     return (
       <div className='branches-list-item'>
         <Octicon className='icon' symbol={icon} />
-        <div className='name'>{name}</div>
+        <div className='name' title={name}>{name}</div>
         <div className='description' title={infoTitle}>{date}</div>
       </div>
     )

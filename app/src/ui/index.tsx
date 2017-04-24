@@ -12,7 +12,7 @@ import { Repository } from '../models/repository'
 import { getDefaultDir, setDefaultDir } from './lib/default-dir'
 import { SelectionType } from '../lib/app-state'
 import { sendReady } from './main-process-proxy'
-import { reportError } from '../lib/exception-reporting'
+import { reportError } from './lib/exception-reporting'
 import { getVersion } from './lib/app-proxy'
 import { StatsDatabase, StatsStore } from '../lib/stats'
 import { IssuesDatabase, IssuesStore, SignInStore } from '../lib/dispatcher'
@@ -46,6 +46,10 @@ if (!process.env.TEST_ENV) {
 
 process.on('uncaughtException', (error: Error) => {
   getLogger().error('Uncaught exception on UI', error)
+  reportError(error, getVersion())
+})
+
+ipcRenderer.on('main-process-exception', (event: Electron.IpcRendererEvent, error: Error) => {
   reportError(error, getVersion())
 })
 

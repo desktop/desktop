@@ -1,4 +1,4 @@
-import { git, envForAuthentication } from './core'
+import { git, envForAuthentication, gitNetworkArguments } from './core'
 import { Repository } from '../../models/repository'
 import { Branch, BranchType } from '../../models/branch'
 import { Account } from '../../models/account'
@@ -28,7 +28,13 @@ export async function deleteBranch(repository: Repository, branch: Branch, accou
   // If the user is not authenticated, the push is going to fail
   // Let this propagate and leave it to the caller to handle
   if (remote) {
-    await git([ 'push', remote, `:${branch.nameWithoutRemote}` ], repository.path, 'deleteBranch', { env: envForAuthentication(account) })
+    const args = [
+      ...gitNetworkArguments,
+      'push', remote, `:${branch.nameWithoutRemote}`,
+    ]
+
+    const opts = { env: envForAuthentication(account) }
+    await git(args, repository.path, 'deleteBranch', opts)
   }
 
   return true
