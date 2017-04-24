@@ -141,10 +141,11 @@ export class AppStore {
     this.signInStore = signInStore
     this.showWelcomeFlow = !hasShownWelcomeFlow()
 
-    this.windowState = getWindowState(remote.getCurrentWindow())
+    const window = remote.getCurrentWindow()
+    this.windowState = getWindowState(window)
 
     ipcRenderer.on('window-state-changed', (_, args) => {
-      this.windowState = args as WindowState
+      this.windowState = getWindowState(window)
       this.emitUpdate()
     })
 
