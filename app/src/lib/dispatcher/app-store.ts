@@ -1052,7 +1052,7 @@ export class AppStore {
     const gitHubRepository = updatedRepository.gitHubRepository
     if (!gitHubRepository) { return updatedRepository }
 
-    const account = this.getAccountForRepository(repository)
+    const account = this.getAccountForRepository(updatedRepository)
     if (!account) { return updatedRepository }
 
     const api = new API(account)
