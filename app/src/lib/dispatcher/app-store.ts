@@ -1648,10 +1648,6 @@ export class AppStore {
     this.emitUpdate()
   }
 
-  public _getUpdateBannerVisibility() {
-    return this.isUpdateAvailableBannerVisible
-  }
-
   public _reportStats() {
     return this.statsStore.reportStats(this.accounts)
   }
