@@ -228,7 +228,7 @@ export interface IRepositoryState {
   /**
    * If we're currently working on switching to a new branch this
    * provides insight into the progress of that operation.
-   * 
+   *
    * null if no current branch switch operation is in flight.
    */
   readonly checkoutProgress: ICheckoutProgress | null
@@ -237,7 +237,7 @@ export interface IRepositoryState {
    * If we're currently working on pushing a branch, fetching
    * from a remote or pulling a branch this provides insight
    * into the progress of that operation.
-   * 
+   *
    * null if no such operation is in flight.
    */
   readonly pushPullFetchProgress: Progress | null
@@ -255,7 +255,7 @@ export type Progress = IGenericProgress
  */
 interface IProgress {
 
-  /** 
+  /**
    * The overall progress of the operation, represented as a fraction between
    * 0 and 1.
    */
@@ -263,7 +263,7 @@ interface IProgress {
 
   /**
    * An informative text for user consumption indicating the current operation
-   * state. This will be high level such as 'Pushing origin' or 
+   * state. This will be high level such as 'Pushing origin' or
    * 'Fetching upstream' and will typically persist over a number of progress
    * events. For more detailed information about the progress see
    * the description field
@@ -277,18 +277,18 @@ interface IProgress {
   readonly description?: string
 }
 
-/** 
+/**
  * An object describing progression of an operation that can't be
  * directly mapped or attributed to either one of the more specific
  * progress events (Fetch, Checkout etc). An example of this would be
  * our own refreshing of internal repository state that takes part
- * after fetch, push and pull.  
+ * after fetch, push and pull.
  */
 export interface IGenericProgress extends IProgress {
   kind: 'generic'
 }
 
-/** 
+/**
  * An object describing the progression of a branch checkout operation
  */
 export interface ICheckoutProgress extends IProgress {
@@ -298,7 +298,7 @@ export interface ICheckoutProgress extends IProgress {
   readonly targetBranch: string
 }
 
-/** 
+/**
  * An object describing the progression of a fetch operation
  */
 export interface IFetchProgress extends IProgress {
@@ -310,7 +310,7 @@ export interface IFetchProgress extends IProgress {
   readonly remote: string,
 }
 
-/** 
+/**
  * An object describing the progression of a pull operation
  */
 export interface IPullProgress extends IProgress {
@@ -322,7 +322,7 @@ export interface IPullProgress extends IProgress {
   readonly remote: string,
 }
 
-/** 
+/**
  * An object describing the progression of a pull operation
  */
 export interface IPushProgress extends IProgress {
@@ -339,7 +339,7 @@ export interface IPushProgress extends IProgress {
   readonly branch: string,
 }
 
-/** 
+/**
  * An object describing the progression of a fetch operation
  */
 export interface ICloneProgress extends IProgress {
@@ -395,10 +395,10 @@ export interface IChangesState {
   readonly workingDirectory: WorkingDirectoryStatus
 
   /**
-   * The selected file. Note that this must be the same instance as is in
+   * The ID of the selected file. The file itself can be looked up in
    * `workingDirectory`.
    */
-  readonly selectedFile: WorkingDirectoryFileChange | null
+  readonly selectedFileID: string | null
 
   readonly diff: IDiff | null
 
