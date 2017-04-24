@@ -350,6 +350,7 @@ export class AppStore {
       appMenuState: this.appMenu ? this.appMenu.openMenus : [],
       titleBarStyle: this.showWelcomeFlow ? 'light' : 'dark',
       highlightAccessKeys: this.highlightAccessKeys,
+      isUpdateAvailableBannerVisible: this.isUpdateAvailableBannerVisible,
     }
   }
 
