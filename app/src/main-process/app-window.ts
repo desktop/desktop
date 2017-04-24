@@ -259,6 +259,18 @@ export class AppWindow {
     this.window.webContents.send('main-process-exception', friendlyError)
   }
 
+  /** Report an auto updater error to the renderer. */
+  public sendAutoUpdaterError(error: Error) {
+    // `Error` can't be JSONified so it doesn't transport nicely over IPC. So
+    // we'll just manually copy the properties we care about.
+    const friendlyError = {
+      stack: error.stack,
+      message: error.message,
+      name: error.name,
+    }
+    this.window.webContents.send('auto-updater-error', friendlyError)
+  }
+
   /**
    * Get the time (in milliseconds) spent loading the page.
    *
