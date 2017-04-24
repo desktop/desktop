@@ -102,6 +102,9 @@ export interface IAppState {
    * Alt key is pressed. Only applicable on non-macOS platforms.
    */
   readonly highlightAccessKeys: boolean
+
+  /** Whether we should show the update banner */
+  readonly isUpdateAvailableBannerVisible: boolean
 }
 
 export enum PopupType {
