@@ -4,31 +4,24 @@ import { updateStore } from '../lib/update-store'
 import { Octicon, OcticonSymbol } from '../octicons'
 
 interface IUpdateAvailableProps {
-  readonly releaseNotesLink: string
-}
-
-interface IUpdateAvailableState {
-  readonly isActive: boolean,
+  readonly releaseNotesLink: string,
+  readonly onDismissed: () => void
 }
 
 /**
  * A component which tells the user an update is available and gives them the
  * option of moving into the future or being a luddite.
  */
-export class UpdateAvailable extends React.Component<IUpdateAvailableProps, IUpdateAvailableState> {
+export class UpdateAvailable extends React.Component<IUpdateAvailableProps, void> {
   public constructor(props: IUpdateAvailableProps) {
     super(props)
-
-    this.state = {
-      isActive: true,
-    }
   }
 
   public render() {
     return (
       <div
         id='update-available'
-        className={this.state.isActive ? 'active' : ''}
+        className='active'
         onSubmit={this.updateNow}
       >
         <Octicon
@@ -53,8 +46,6 @@ export class UpdateAvailable extends React.Component<IUpdateAvailableProps, IUpd
   }
 
   private dismiss = () => {
-    this.setState({
-      isActive: false,
-    })
+    this.props.onDismissed()
   }
 }
