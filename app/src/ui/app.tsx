@@ -800,12 +800,6 @@ export class App extends React.Component<IAppProps, IAppState> {
                 dispatcher={this.props.dispatcher} />
       case PopupType.CreateBranch: {
         const state = this.props.appStore.getRepositoryState(popup.repository)
-
-        const tip = state.branchesState.tip
-        const currentBranch = tip.kind === TipState.Valid
-          ? tip.branch
-          : null
-
         const branchesState = state.branchesState
         const repository = popup.repository
 
@@ -815,8 +809,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
 
         return <CreateBranch
-                currentBranch={currentBranch}
-                branches={state.branchesState.allBranches}
+                tip={branchesState.tip}
+                defaultBranch={branchesState.defaultBranch}
+                allBranches={branchesState.allBranches}
                 repository={repository}
                 onDismissed={this.onPopupDismissed}
                 dispatcher={this.props.dispatcher} />

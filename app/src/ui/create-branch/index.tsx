@@ -8,16 +8,19 @@ import { TextBox } from '../lib/text-box'
 import { Row } from '../lib/row'
 import { Button } from '../lib/button'
 import { ButtonGroup } from '../lib/button-group'
-import { Select } from '../lib/select'
 import { Dialog, DialogError, DialogContent, DialogFooter } from '../dialog'
 import { Octicon, OcticonSymbol } from '../octicons'
+import { VerticalSegmentedControl } from '../lib/vertical-segmented-control'
+import { TipState, IUnbornRepository, IDetachedHead, IValidBranch } from '../../models/tip'
+import { assertNever } from '../../lib/fatal-error'
 
 interface ICreateBranchProps {
   readonly repository: Repository
   readonly dispatcher: Dispatcher
   readonly onDismissed: () => void
-  readonly branches: ReadonlyArray<Branch>
-  readonly currentBranch: Branch | null
+  readonly tip: IUnbornRepository | IDetachedHead | IValidBranch
+  readonly defaultBranch: Branch | null
+  readonly allBranches: ReadonlyArray<Branch>
 }
 
 interface ICreateBranchState {
@@ -37,9 +40,63 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
       currentError: null,
       proposedName: '',
       sanitizedName: '',
-      baseBranch: this.props.currentBranch,
+      baseBranch: this.props.defaultBranch,
       loading: false,
     }
+  }
+
+  private renderBranchSelection() {
+    const tip = this.props.tip
+    const tipKind = tip.kind
+
+    if (tip.kind === TipState.Detached) {
+      return (
+        <p>
+          You do not currently have any branch checked out (your HEAD reference
+          is detached). As such your new branch will be based on your
+          currently checked out commit ({tip.currentSha.substr(0, 7)}).
+        </p>
+      )
+    } else if (tip.kind === TipState.Unborn) {
+      return (
+        <p>
+          Your current branch is unborn (does not yet contain any commits).
+          Creating a new branch now rename the current branch.
+        </p>
+      )
+    } else if (tip.kind === TipState.Valid) {
+
+      const currentBranch = tip.branch
+      const defaultBranch = this.props.defaultBranch
+
+      if (!defaultBranch || defaultBranch.name === currentBranch.name) {
+        return (
+          <p>
+            Your new branch will be based on your currently checked out
+            branch ({currentBranch.name}). 
+          </p>
+        )
+      } else {
+        const items = [
+          { title: currentBranch.name },
+          { title: defaultBranch.name }
+        ]
+
+        return (
+          <VerticalSegmentedControl
+            items={items}
+            selectedIndex={0}
+            onSelectionChanged={this.onBaseBranchChanged}
+          />
+        )
+      }
+
+    } else {
+      return assertNever(tip, `Unknown tip kind ${tipKind}`)
+    }
+  }
+
+  private onBaseBranchChanged = (selectedIndex: number) => {
   }
 
   private renderSanitizedName() {
@@ -56,7 +113,6 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
   public render() {
     const proposedName = this.state.proposedName
     const disabled = !proposedName.length || !!this.state.currentError
-    const currentBranch = this.props.currentBranch
     const error = this.state.currentError
 
     return (
@@ -79,16 +135,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
 
           {this.renderSanitizedName()}
 
-          <Row>
-            <Select
-              label='From'
-              onChange={this.onBaseBranchChange}
-              defaultValue={currentBranch ? currentBranch.name : undefined}>
-              {this.props.branches.map(branch =>
-                <option key={branch.name} value={branch.name}>{branch.name}</option>
-              )}
-            </Select>
-          </Row>
+          {this.renderBranchSelection()}
         </DialogContent>
 
         <DialogFooter>
@@ -104,7 +151,7 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
   private onBranchNameChange = (event: React.FormEvent<HTMLInputElement>) => {
     const str = event.currentTarget.value
     const sanitizedName = sanitizedBranchName(str)
-    const alreadyExists = this.props.branches.findIndex(b => b.name === sanitizedName) > -1
+    const alreadyExists = this.props.allBranches.findIndex(b => b.name === sanitizedName) > -1
     let currentError: Error | null = null
     if (alreadyExists) {
       currentError = new Error(`A branch named ${sanitizedName} already exists`)
@@ -115,17 +162,6 @@ export class CreateBranch extends React.Component<ICreateBranchProps, ICreateBra
       proposedName: str,
       baseBranch: this.state.baseBranch,
       sanitizedName,
-    })
-  }
-
-  private onBaseBranchChange = (event: React.FormEvent<HTMLSelectElement>) => {
-    const baseBranchName = event.currentTarget.value
-    const baseBranch = this.props.branches.find(b => b.name === baseBranchName)!
-    this.setState({
-      currentError: this.state.currentError,
-      proposedName: this.state.proposedName,
-      baseBranch,
-      sanitizedName: this.state.sanitizedName,
     })
   }
 
