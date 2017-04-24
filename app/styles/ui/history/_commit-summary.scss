@@ -24,6 +24,11 @@
   }
 
   &.expanded {
+
+    .commit-summary-description-container {
+      border-bottom: none;
+    }
+
     .commit-summary-description {
       max-height: none;
       flex-grow: 1;
