@@ -1449,6 +1449,16 @@ export class AppStore {
     return Promise.resolve()
   }
 
+  public _setUpdateBannerVisibility(visibility: boolean) {
+    this.isUpdateAvailableBannerVisible = visibility
+
+    this.emitUpdate()
+  }
+
+  public _getUpdateBannerVisibility() {
+    return this.isUpdateAvailableBannerVisible
+  }
+
   public _reportStats() {
     return this.statsStore.reportStats(this.accounts)
   }
